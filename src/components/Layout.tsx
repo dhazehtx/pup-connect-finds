@@ -12,7 +12,7 @@ const Layout = ({ children }: LayoutProps) => {
   const location = useLocation();
   
   return (
-    <div className="min-h-screen bg-gradient-to-br from-amber-50 to-orange-50">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white">
       <Header />
       <main className="pb-20 pt-16">
         {children}
