@@ -59,7 +59,7 @@ const Home = () => {
       <div className="text-center space-y-4">
         <h1 className="text-3xl font-bold text-gray-800">Find Your Perfect Puppy</h1>
         <p className="text-gray-600 max-w-2xl mx-auto">
-          Connect with verified breeders and find the perfect furry companion for your family.
+          Connect with verified breeders on MY PUP and find the perfect furry companion for your family.
         </p>
       </div>
 
