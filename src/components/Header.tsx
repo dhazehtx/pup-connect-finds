@@ -9,11 +9,13 @@ const Header = () => {
   return (
     <header className="fixed top-0 left-0 right-0 bg-white/95 backdrop-blur-sm border-b border-blue-200 z-50">
       <div className="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
-        <div className="flex items-center space-x-2">
-          <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-blue-700 rounded-full flex items-center justify-center">
-            <span className="text-white font-bold text-sm">🐕</span>
-          </div>
-          <h1 className="text-xl font-bold text-gray-800">MY PUP</h1>
+        <div className="flex items-center space-x-2" onClick={() => navigate('/')} role="button">
+          <img 
+            src="/lovable-uploads/64114b5b-ae93-4c5b-a6d4-be95ec65c954.png" 
+            alt="MY PUP Logo" 
+            className="w-8 h-8"
+          />
+          <h1 className="text-xl font-bold text-blue-600">MY PUP</h1>
         </div>
         
         <div className="flex items-center space-x-3">
