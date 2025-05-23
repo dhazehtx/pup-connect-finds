@@ -1,147 +1,165 @@
 
-import React from 'react';
-import { Star, MapPin, Heart } from 'lucide-react';
+import React, { useState } from 'react';
+import { Heart, MessageCircle, Share, Bookmark, MoreHorizontal } from 'lucide-react';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 
 const Home = () => {
-  const featuredBreeders = [
-    {
-      id: 1,
-      name: "Golden Paws Kennel",
-      location: "San Francisco, CA",
-      rating: 4.9,
-      reviews: 127,
-      specialties: ["Golden Retriever", "Labrador"],
-      image: "https://images.unsplash.com/photo-1552053831-71594a27632d?w=400&h=300&fit=crop",
-      verified: true
-    },
-    {
-      id: 2,
-      name: "Noble German Shepherds",
-      location: "Austin, TX",
-      rating: 4.8,
-      reviews: 89,
-      specialties: ["German Shepherd"],
-      image: "https://images.unsplash.com/photo-1589941013453-ec89f33b5e95?w=400&h=300&fit=crop",
-      verified: true
-    }
-  ];
+  const [likedPosts, setLikedPosts] = useState<Set<number>>(new Set());
 
-  const recentPuppies = [
+  const posts = [
     {
       id: 1,
-      breed: "Golden Retriever",
-      age: "8 weeks",
-      price: "$2,500",
-      image: "https://images.unsplash.com/photo-1605568427561-40dd23c2acea?w=300&h=300&fit=crop",
-      breeder: "Golden Paws Kennel"
+      user: {
+        name: "Golden Paws Kennel",
+        username: "goldenpaws_official",
+        avatar: "https://images.unsplash.com/photo-1552053831-71594a27632d?w=100&h=100&fit=crop&crop=face",
+        verified: true
+      },
+      image: "https://images.unsplash.com/photo-1605568427561-40dd23c2acea?w=600&h=600&fit=crop",
+      likes: 234,
+      caption: "Meet Luna! 🐕 This adorable 8-week-old Golden Retriever is looking for her forever home. She loves cuddles and playing fetch! #GoldenRetriever #PuppyLove #AdoptDontShop",
+      timeAgo: "2h",
+      location: "San Francisco, CA"
     },
     {
       id: 2,
-      breed: "German Shepherd",
-      age: "10 weeks",
-      price: "$3,200",
-      image: "https://images.unsplash.com/photo-1551717743-49959800b1f6?w=300&h=300&fit=crop",
-      breeder: "Noble German Shepherds"
+      user: {
+        name: "Noble German Shepherds",
+        username: "noble_shepherds",
+        avatar: "https://images.unsplash.com/photo-1589941013453-ec89f33b5e95?w=100&h=100&fit=crop&crop=face",
+        verified: true
+      },
+      image: "https://images.unsplash.com/photo-1551717743-49959800b1f6?w=600&h=600&fit=crop",
+      likes: 189,
+      caption: "Training session with Max! 🎾 Our German Shepherds are not only beautiful but incredibly intelligent. This 10-week-old pup is already showing amazing potential! #GermanShepherd #Training #SmartPups",
+      timeAgo: "4h",
+      location: "Austin, TX"
     },
     {
       id: 3,
-      breed: "Labrador",
-      age: "6 weeks",
-      price: "$2,200",
-      image: "https://images.unsplash.com/photo-1518717758536-85ae29035b6d?w=300&h=300&fit=crop",
-      breeder: "Golden Paws Kennel"
+      user: {
+        name: "Labrador Love",
+        username: "lab_love_kennel",
+        avatar: "https://images.unsplash.com/photo-1518717758536-85ae29035b6d?w=100&h=100&fit=crop&crop=face",
+        verified: false
+      },
+      image: "https://images.unsplash.com/photo-1518717758536-85ae29035b6d?w=600&h=600&fit=crop",
+      likes: 156,
+      caption: "Sleepy Sunday vibes 😴 This little chocolate Lab knows how to relax! Available for adoption next week. #LabradorRetriever #SundayVibes #ChocolateLab",
+      timeAgo: "6h",
+      location: "Denver, CO"
+    },
+    {
+      id: 4,
+      user: {
+        name: "Poodle Paradise",
+        username: "poodle_paradise",
+        avatar: "https://images.unsplash.com/photo-1574158622682-e40e69881006?w=100&h=100&fit=crop&crop=face",
+        verified: true
+      },
+      image: "https://images.unsplash.com/photo-1616190264687-b7ebf7fd683d?w=600&h=600&fit=crop",
+      likes: 298,
+      caption: "Fluffy Friday! ☁️ Our Standard Poodle puppies are ready for their new families. Hypoallergenic and incredibly loving! #Poodle #FluffyFriday #HypoallergenicDogs",
+      timeAgo: "8h",
+      location: "Seattle, WA"
     }
   ];
 
-  return (
-    <div className="max-w-4xl mx-auto px-4 py-6 space-y-8">
-      {/* Hero Section */}
-      <div className="text-center space-y-4">
-        <h1 className="text-3xl font-bold text-gray-800">Find Your Perfect Puppy</h1>
-        <p className="text-gray-600 max-w-2xl mx-auto">
-          Connect with verified breeders on MY PUP and find the perfect furry companion for your family.
-        </p>
-      </div>
+  const toggleLike = (postId: number) => {
+    setLikedPosts(prev => {
+      const newLiked = new Set(prev);
+      if (newLiked.has(postId)) {
+        newLiked.delete(postId);
+      } else {
+        newLiked.add(postId);
+      }
+      return newLiked;
+    });
+  };
 
-      {/* Featured Breeders */}
-      <section className="space-y-4">
-        <h2 className="text-2xl font-bold text-gray-800">Featured Breeders</h2>
-        <div className="grid gap-4 md:grid-cols-2">
-          {featuredBreeders.map((breeder) => (
-            <div key={breeder.id} className="bg-white rounded-xl shadow-sm border border-amber-100 overflow-hidden hover:shadow-md transition-shadow">
-              <img 
-                src={breeder.image} 
-                alt={breeder.name}
-                className="w-full h-48 object-cover"
-              />
-              <div className="p-4 space-y-3">
-                <div className="flex items-start justify-between">
-                  <div>
-                    <h3 className="font-semibold text-gray-800 flex items-center gap-2">
-                      {breeder.name}
-                      {breeder.verified && (
-                        <span className="text-blue-500">✓</span>
-                      )}
-                    </h3>
-                    <div className="flex items-center gap-1 text-sm text-gray-600">
-                      <MapPin size={14} />
-                      {breeder.location}
-                    </div>
+  return (
+    <div className="max-w-md mx-auto bg-white min-h-screen">
+      {/* Feed */}
+      <div className="space-y-0">
+        {posts.map((post) => (
+          <div key={post.id} className="bg-white border-b border-gray-100">
+            {/* Post Header */}
+            <div className="flex items-center justify-between p-4">
+              <div className="flex items-center space-x-3">
+                <Avatar className="w-10 h-10">
+                  <AvatarImage src={post.user.avatar} alt={post.user.name} />
+                  <AvatarFallback>{post.user.name.slice(0, 2)}</AvatarFallback>
+                </Avatar>
+                <div className="flex-1">
+                  <div className="flex items-center space-x-1">
+                    <h3 className="font-semibold text-sm text-gray-900">{post.user.username}</h3>
+                    {post.user.verified && (
+                      <span className="text-blue-500 text-sm">✓</span>
+                    )}
                   </div>
-                  <button className="p-2 hover:bg-gray-100 rounded-full">
-                    <Heart size={18} className="text-gray-400" />
+                  {post.location && (
+                    <p className="text-xs text-gray-500">{post.location}</p>
+                  )}
+                </div>
+              </div>
+              <button className="p-2">
+                <MoreHorizontal size={16} className="text-gray-600" />
+              </button>
+            </div>
+
+            {/* Post Image */}
+            <div className="relative">
+              <img 
+                src={post.image} 
+                alt="Post content"
+                className="w-full aspect-square object-cover"
+              />
+            </div>
+
+            {/* Post Actions */}
+            <div className="p-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-4">
+                  <button 
+                    onClick={() => toggleLike(post.id)}
+                    className="transition-colors"
+                  >
+                    <Heart 
+                      size={24} 
+                      className={likedPosts.has(post.id) ? "text-red-500 fill-current" : "text-gray-700"} 
+                    />
+                  </button>
+                  <button>
+                    <MessageCircle size={24} className="text-gray-700" />
+                  </button>
+                  <button>
+                    <Share size={24} className="text-gray-700" />
                   </button>
                 </div>
-                
-                <div className="flex items-center gap-4">
-                  <div className="flex items-center gap-1">
-                    <Star size={14} className="text-amber-500 fill-current" />
-                    <span className="text-sm font-medium">{breeder.rating}</span>
-                    <span className="text-sm text-gray-500">({breeder.reviews})</span>
-                  </div>
-                </div>
-                
-                <div className="flex flex-wrap gap-2">
-                  {breeder.specialties.map((breed) => (
-                    <span key={breed} className="px-2 py-1 bg-amber-100 text-amber-700 text-xs rounded-full">
-                      {breed}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* Recent Puppies */}
-      <section className="space-y-4">
-        <h2 className="text-2xl font-bold text-gray-800">Available Puppies</h2>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {recentPuppies.map((puppy) => (
-            <div key={puppy.id} className="bg-white rounded-xl shadow-sm border border-amber-100 overflow-hidden hover:shadow-md transition-shadow">
-              <div className="relative">
-                <img 
-                  src={puppy.image} 
-                  alt={puppy.breed}
-                  className="w-full h-48 object-cover"
-                />
-                <button className="absolute top-3 right-3 p-2 bg-white/90 hover:bg-white rounded-full shadow-sm">
-                  <Heart size={16} className="text-gray-400" />
+                <button>
+                  <Bookmark size={24} className="text-gray-700" />
                 </button>
               </div>
-              <div className="p-4 space-y-2">
-                <h3 className="font-semibold text-gray-800">{puppy.breed}</h3>
-                <p className="text-sm text-gray-600">{puppy.age} old</p>
-                <div className="flex items-center justify-between">
-                  <span className="text-lg font-bold text-amber-600">{puppy.price}</span>
-                  <span className="text-xs text-gray-500">{puppy.breeder}</span>
-                </div>
+
+              {/* Likes */}
+              <div>
+                <p className="font-semibold text-sm text-gray-900">
+                  {post.likes + (likedPosts.has(post.id) ? 1 : 0)} likes
+                </p>
+              </div>
+
+              {/* Caption */}
+              <div>
+                <p className="text-sm text-gray-900">
+                  <span className="font-semibold">{post.user.username}</span>{' '}
+                  {post.caption}
+                </p>
+                <p className="text-xs text-gray-500 mt-1">{post.timeAgo}</p>
               </div>
             </div>
-          ))}
-        </div>
-      </section>
+          </div>
+        ))}
+      </div>
     </div>
   );
 };
