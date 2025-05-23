@@ -16,8 +16,8 @@ const BottomNavigation = () => {
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-blue-200 z-50">
-      <div className="max-w-4xl mx-auto px-2 py-2">
+    <nav className="fixed bottom-0 left-0 right-0 bg-white/98 backdrop-blur-md border-t border-blue-100 shadow-lg z-50">
+      <div className="max-w-4xl mx-auto px-2 py-3">
         <div className="flex justify-around">
           {navItems.map((item) => {
             const Icon = item.icon;
@@ -27,10 +27,10 @@ const BottomNavigation = () => {
               <button
                 key={item.path}
                 onClick={() => navigate(item.path)}
-                className={`flex flex-col items-center p-2 rounded-lg transition-all ${
+                className={`flex flex-col items-center p-3 rounded-xl transition-all duration-200 ${
                   isActive 
-                    ? 'text-blue-600 bg-blue-100' 
-                    : 'text-gray-500 hover:text-blue-600 hover:bg-blue-50'
+                    ? 'text-white bg-gradient-to-r from-blue-500 to-blue-600 shadow-md scale-105' 
+                    : 'text-blue-600 hover:text-blue-700 hover:bg-blue-50'
                 }`}
               >
                 <Icon size={20} />
