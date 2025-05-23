@@ -1,9 +1,10 @@
 
 import React, { useState } from 'react';
-import { Search, Phone, Video, MoreHorizontal } from 'lucide-react';
+import { Search, Phone, Video, MoreHorizontal, Send } from 'lucide-react';
 
 const Messages = () => {
   const [selectedChat, setSelectedChat] = useState(1);
+  const [newMessage, setNewMessage] = useState('');
 
   const conversations = [
     {
@@ -32,6 +33,15 @@ const Messages = () => {
       unread: 1,
       avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=50&h=50&fit=crop&crop=face",
       online: true
+    },
+    {
+      id: 4,
+      name: "Bella's Breeder",
+      lastMessage: "Here are some new photos!",
+      time: "Yesterday",
+      unread: 0,
+      avatar: "https://images.unsplash.com/photo-1517849845537-4d257902454a?w=50&h=50&fit=crop&crop=face",
+      online: false
     }
   ];
 
@@ -62,53 +72,69 @@ const Messages = () => {
     }
   ];
 
+  const handleSendMessage = () => {
+    if (newMessage.trim()) {
+      // Here you would typically send the message
+      setNewMessage('');
+    }
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSendMessage();
+    }
+  };
+
   return (
     <div className="max-w-4xl mx-auto h-[calc(100vh-8rem)]">
-      <div className="flex h-full bg-white rounded-xl overflow-hidden border border-amber-100">
+      <div className="flex h-full bg-white rounded-2xl overflow-hidden shadow-lg border border-gray-100">
         {/* Conversations List */}
-        <div className="w-1/3 border-r border-gray-200">
-          <div className="p-4 border-b border-gray-200">
-            <h1 className="text-xl font-bold text-gray-800 mb-3">Messages</h1>
+        <div className="w-80 border-r border-gray-100 bg-gray-50">
+          <div className="p-6 bg-white border-b border-gray-100">
+            <h1 className="text-2xl font-bold text-gray-900 mb-4">Messages</h1>
             <div className="relative">
-              <Search size={18} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+              <Search size={20} className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
               <input
                 type="text"
-                placeholder="Search conversations"
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                placeholder="Search messages"
+                className="w-full pl-12 pr-4 py-3 bg-gray-100 border-0 rounded-full focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all text-sm"
               />
             </div>
           </div>
           
-          <div className="overflow-y-auto">
+          <div className="overflow-y-auto h-full">
             {conversations.map((conv) => (
               <div
                 key={conv.id}
                 onClick={() => setSelectedChat(conv.id)}
-                className={`p-4 cursor-pointer hover:bg-gray-50 transition-colors ${
-                  selectedChat === conv.id ? 'bg-amber-50 border-r-2 border-amber-500' : ''
+                className={`p-4 cursor-pointer transition-all duration-200 border-b border-gray-100 hover:bg-white ${
+                  selectedChat === conv.id ? 'bg-white shadow-sm' : 'bg-gray-50'
                 }`}
               >
-                <div className="flex items-start gap-3">
+                <div className="flex items-center gap-3">
                   <div className="relative">
                     <img
                       src={conv.avatar}
                       alt={conv.name}
-                      className="w-12 h-12 rounded-full object-cover"
+                      className="w-14 h-14 rounded-full object-cover ring-2 ring-white shadow-sm"
                     />
                     {conv.online && (
-                      <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white"></div>
+                      <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 bg-green-500 rounded-full border-2 border-white"></div>
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between">
-                      <h3 className="font-semibold text-gray-800 truncate">{conv.name}</h3>
+                    <div className="flex items-center justify-between mb-1">
+                      <h3 className="font-semibold text-gray-900 truncate text-sm">{conv.name}</h3>
                       <span className="text-xs text-gray-500">{conv.time}</span>
                     </div>
-                    <p className="text-sm text-gray-600 truncate mt-1">{conv.lastMessage}</p>
+                    <p className={`text-sm truncate ${conv.unread > 0 ? 'text-gray-900 font-medium' : 'text-gray-600'}`}>
+                      {conv.lastMessage}
+                    </p>
                   </div>
                   {conv.unread > 0 && (
-                    <div className="w-5 h-5 bg-amber-500 rounded-full flex items-center justify-center">
-                      <span className="text-xs text-white font-medium">{conv.unread}</span>
+                    <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center ml-2">
+                      <span className="text-xs text-white font-bold">{conv.unread}</span>
                     </div>
                   )}
                 </div>
@@ -118,72 +144,94 @@ const Messages = () => {
         </div>
 
         {/* Chat Area */}
-        <div className="flex-1 flex flex-col">
+        <div className="flex-1 flex flex-col bg-white">
           {/* Chat Header */}
-          <div className="p-4 border-b border-gray-200 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <img
-                src={conversations.find(c => c.id === selectedChat)?.avatar}
-                alt="Avatar"
-                className="w-10 h-10 rounded-full object-cover"
-              />
-              <div>
-                <h2 className="font-semibold text-gray-800">
-                  {conversations.find(c => c.id === selectedChat)?.name}
-                </h2>
-                <p className="text-sm text-green-500">Online</p>
+          <div className="p-4 border-b border-gray-100 bg-white shadow-sm">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="relative">
+                  <img
+                    src={conversations.find(c => c.id === selectedChat)?.avatar}
+                    alt="Avatar"
+                    className="w-12 h-12 rounded-full object-cover"
+                  />
+                  <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-green-500 rounded-full border-2 border-white"></div>
+                </div>
+                <div>
+                  <h2 className="font-semibold text-gray-900 text-lg">
+                    {conversations.find(c => c.id === selectedChat)?.name}
+                  </h2>
+                  <p className="text-sm text-green-500 font-medium">Active now</p>
+                </div>
               </div>
-            </div>
-            
-            <div className="flex items-center gap-2">
-              <button className="p-2 hover:bg-gray-100 rounded-full">
-                <Phone size={18} className="text-gray-600" />
-              </button>
-              <button className="p-2 hover:bg-gray-100 rounded-full">
-                <Video size={18} className="text-gray-600" />
-              </button>
-              <button className="p-2 hover:bg-gray-100 rounded-full">
-                <MoreHorizontal size={18} className="text-gray-600" />
-              </button>
+              
+              <div className="flex items-center gap-1">
+                <button className="p-3 hover:bg-gray-100 rounded-full transition-colors">
+                  <Phone size={20} className="text-gray-600" />
+                </button>
+                <button className="p-3 hover:bg-gray-100 rounded-full transition-colors">
+                  <Video size={20} className="text-gray-600" />
+                </button>
+                <button className="p-3 hover:bg-gray-100 rounded-full transition-colors">
+                  <MoreHorizontal size={20} className="text-gray-600" />
+                </button>
+              </div>
             </div>
           </div>
 
           {/* Messages */}
-          <div className="flex-1 p-4 overflow-y-auto space-y-4">
+          <div className="flex-1 p-6 overflow-y-auto space-y-4 bg-gray-50">
             {messages.map((msg) => (
               <div
                 key={msg.id}
                 className={`flex ${msg.sender === 'me' ? 'justify-end' : 'justify-start'}`}
               >
-                <div
-                  className={`max-w-xs px-4 py-2 rounded-2xl ${
-                    msg.sender === 'me'
-                      ? 'bg-amber-500 text-white'
-                      : 'bg-gray-100 text-gray-800'
-                  }`}
-                >
-                  <p className="text-sm">{msg.message}</p>
-                  <p className={`text-xs mt-1 ${
-                    msg.sender === 'me' ? 'text-amber-100' : 'text-gray-500'
-                  }`}>
-                    {msg.time}
-                  </p>
+                <div className={`flex items-end gap-2 max-w-xs ${msg.sender === 'me' ? 'flex-row-reverse' : 'flex-row'}`}>
+                  {msg.sender === 'them' && (
+                    <img
+                      src={conversations.find(c => c.id === selectedChat)?.avatar}
+                      alt="Avatar"
+                      className="w-8 h-8 rounded-full object-cover"
+                    />
+                  )}
+                  <div
+                    className={`px-4 py-3 rounded-2xl shadow-sm ${
+                      msg.sender === 'me'
+                        ? 'bg-blue-500 text-white'
+                        : 'bg-white text-gray-800 border border-gray-100'
+                    }`}
+                  >
+                    <p className="text-sm leading-relaxed">{msg.message}</p>
+                  </div>
                 </div>
               </div>
             ))}
           </div>
 
           {/* Message Input */}
-          <div className="p-4 border-t border-gray-200">
+          <div className="p-4 bg-white border-t border-gray-100">
             <div className="flex items-center gap-3">
-              <input
-                type="text"
-                placeholder="Type a message..."
-                className="flex-1 px-4 py-2 border border-gray-300 rounded-full focus:ring-2 focus:ring-amber-500 focus:border-transparent"
-              />
-              <button className="px-6 py-2 bg-amber-500 text-white rounded-full font-medium hover:bg-amber-600 transition-colors">
-                Send
-              </button>
+              <div className="flex-1 relative">
+                <input
+                  type="text"
+                  value={newMessage}
+                  onChange={(e) => setNewMessage(e.target.value)}
+                  onKeyPress={handleKeyPress}
+                  placeholder="Write a message..."
+                  className="w-full px-4 py-3 bg-gray-100 border-0 rounded-full focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all text-sm pr-12"
+                />
+                <button
+                  onClick={handleSendMessage}
+                  disabled={!newMessage.trim()}
+                  className={`absolute right-2 top-1/2 transform -translate-y-1/2 p-2 rounded-full transition-all ${
+                    newMessage.trim()
+                      ? 'bg-blue-500 text-white hover:bg-blue-600'
+                      : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                  }`}
+                >
+                  <Send size={16} />
+                </button>
+              </div>
             </div>
           </div>
         </div>
