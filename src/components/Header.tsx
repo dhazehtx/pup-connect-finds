@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Search, Bell, MessageCircle } from 'lucide-react';
+import { Search } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const Header = () => {
@@ -8,9 +8,9 @@ const Header = () => {
 
   return (
     <header className="fixed top-0 left-0 right-0 bg-white/98 backdrop-blur-md border-b border-blue-100 shadow-sm z-50">
-      <div className="max-w-4xl mx-auto px-4 py-4">
+      <div className="max-w-4xl mx-auto px-4 py-4 relative">
         {/* Centered Logo and Name */}
-        <div className="flex justify-center mb-4">
+        <div className="flex justify-center">
           <div 
             className="flex items-center space-x-3 cursor-pointer group" 
             onClick={() => navigate('/')}
@@ -29,24 +29,10 @@ const Header = () => {
           </div>
         </div>
         
-        {/* Action Buttons */}
-        <div className="flex items-center justify-center space-x-6">
+        {/* Search Button - Top Right */}
+        <div className="absolute top-1/2 right-4 transform -translate-y-1/2">
           <button className="p-3 hover:bg-blue-50 rounded-full transition-all duration-200 group">
             <Search size={22} className="text-blue-600 group-hover:text-blue-700" />
-          </button>
-          <button 
-            onClick={() => navigate('/messages')}
-            className="p-3 hover:bg-blue-50 rounded-full transition-all duration-200 relative group"
-          >
-            <MessageCircle size={22} className="text-blue-600 group-hover:text-blue-700" />
-            <span className="absolute -top-1 -right-1 w-5 h-5 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full text-xs text-white flex items-center justify-center font-medium shadow-sm">3</span>
-          </button>
-          <button 
-            onClick={() => navigate('/notifications')}
-            className="p-3 hover:bg-blue-50 rounded-full transition-all duration-200 relative group"
-          >
-            <Bell size={22} className="text-blue-600 group-hover:text-blue-700" />
-            <span className="absolute -top-1 -right-1 w-5 h-5 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full text-xs text-white flex items-center justify-center font-medium shadow-sm">5</span>
           </button>
         </div>
       </div>
