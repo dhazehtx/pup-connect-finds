@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Search, Filter, Star, MapPin, Heart, MessageCircle } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
@@ -163,7 +162,6 @@ const Explore = () => {
                     <SelectValue placeholder="All breeds" />
                   </SelectTrigger>
                   <SelectContent className="bg-white">
-                    <SelectItem value="">All breeds</SelectItem>
                     {breeds.map((breed) => (
                       <SelectItem key={breed} value={breed}>{breed}</SelectItem>
                     ))}
@@ -178,7 +176,6 @@ const Explore = () => {
                     <SelectValue placeholder="All colors" />
                   </SelectTrigger>
                   <SelectContent className="bg-white">
-                    <SelectItem value="">All colors</SelectItem>
                     {colors.map((color) => (
                       <SelectItem key={color} value={color}>{color}</SelectItem>
                     ))}
@@ -193,7 +190,6 @@ const Explore = () => {
                     <SelectValue placeholder="All genders" />
                   </SelectTrigger>
                   <SelectContent className="bg-white">
-                    <SelectItem value="">All genders</SelectItem>
                     <SelectItem value="Male">Male</SelectItem>
                     <SelectItem value="Female">Female</SelectItem>
                   </SelectContent>
@@ -207,7 +203,6 @@ const Explore = () => {
                     <SelectValue placeholder="All ages" />
                   </SelectTrigger>
                   <SelectContent className="bg-white">
-                    <SelectItem value="">All ages</SelectItem>
                     {ages.map((age) => (
                       <SelectItem key={age} value={age}>{age}</SelectItem>
                     ))}
