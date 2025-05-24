@@ -1,10 +1,14 @@
+
 import React, { useState } from 'react';
-import { Search, Filter, Star, MapPin, Heart, MessageCircle } from 'lucide-react';
+import { Search, Filter, Star, MapPin, Heart, MessageCircle, Phone, Mail, Camera, Video, Shield, Award } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Badge } from '@/components/ui/badge';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
 
 const Explore = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -52,10 +56,30 @@ const Explore = () => {
       genetics: ["bb", "DD", "COCO", "AtAt"],
       rating: 4.9,
       reviews: 23,
-      image: "https://images.unsplash.com/photo-1583337130417-3346a1be7dee?w=400&h=300&fit=crop",
-      breeder: "Elite French Bulldogs",
-      verified: true,
-      available: 3
+      images: [
+        "https://images.unsplash.com/photo-1583337130417-3346a1be7dee?w=400&h=300&fit=crop",
+        "https://images.unsplash.com/photo-1605568427561-40dd23c2acea?w=400&h=300&fit=crop",
+        "https://images.unsplash.com/photo-1518717758536-85ae29035b6d?w=400&h=300&fit=crop"
+      ],
+      videos: ["video1.mp4"],
+      breeder: {
+        name: "Elite French Bulldogs",
+        avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop",
+        verified: true,
+        rating: 4.9,
+        phone: "(555) 123-4567",
+        email: "contact@elitefrenchies.com"
+      },
+      health: {
+        vaccinated: true,
+        dewormed: true,
+        microchipped: true,
+        vetChecked: true,
+        dnaTests: ["Brachycephalic Airway", "Hip Dysplasia", "Eye Conditions"],
+        healthTests: ["Heart Clearance", "Eye Clearance", "Genetic Panel"]
+      },
+      available: 3,
+      isRescue: false
     },
     {
       id: 2,
@@ -70,46 +94,65 @@ const Explore = () => {
       genetics: [],
       rating: 4.8,
       reviews: 45,
-      image: "https://images.unsplash.com/photo-1552053831-71594a27632d?w=400&h=300&fit=crop",
-      breeder: "Sunset Retrievers",
-      verified: true,
-      available: 2
+      images: [
+        "https://images.unsplash.com/photo-1552053831-71594a27632d?w=400&h=300&fit=crop",
+        "https://images.unsplash.com/photo-1551717743-49959800b1f6?w=400&h=300&fit=crop"
+      ],
+      videos: [],
+      breeder: {
+        name: "Sunset Retrievers",
+        avatar: "https://images.unsplash.com/photo-1494790108755-2616b612b789?w=100&h=100&fit=crop",
+        verified: true,
+        rating: 4.8,
+        phone: "(555) 234-5678",
+        email: "info@sunsetretrievers.com"
+      },
+      health: {
+        vaccinated: true,
+        dewormed: true,
+        microchipped: false,
+        vetChecked: true,
+        dnaTests: ["Hip Dysplasia", "Elbow Dysplasia", "Progressive Retinal Atrophy"],
+        healthTests: ["OFA Hip", "OFA Elbow", "Eye Clearance"]
+      },
+      available: 2,
+      isRescue: false
     },
     {
       id: 3,
-      title: "German Shepherd Puppy - Champion Lines",
-      price: "$3,500",
+      title: "Rescue Labrador Mix - Needs Loving Home",
+      price: "Adoption Fee: $350",
       location: "San Jose, CA",
       distance: "8.1 miles",
-      breed: "German Shepherd",
+      breed: "Labrador Mix",
       color: "Black & Tan",
       gender: "Male",
-      age: "12 weeks",
+      age: "2 years",
       genetics: [],
       rating: 4.9,
       reviews: 31,
-      image: "https://images.unsplash.com/photo-1589941013453-ec89f33b5e95?w=400&h=300&fit=crop",
-      breeder: "Metro German Shepherds",
-      verified: true,
-      available: 1
-    },
-    {
-      id: 4,
-      title: "Labrador Retriever Puppies",
-      price: "$2,400",
-      location: "Berkeley, CA",
-      distance: "12.4 miles",
-      breed: "Labrador",
-      color: "Chocolate",
-      gender: "Female",
-      age: "9 weeks",
-      genetics: [],
-      rating: 4.7,
-      reviews: 18,
-      image: "https://images.unsplash.com/photo-1518717758536-85ae29035b6d?w=400&h=300&fit=crop",
-      breeder: "Happy Tails Labradors",
-      verified: true,
-      available: 4
+      images: [
+        "https://images.unsplash.com/photo-1589941013453-ec89f33b5e95?w=400&h=300&fit=crop"
+      ],
+      videos: [],
+      breeder: {
+        name: "Bay Area Dog Rescue",
+        avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop",
+        verified: true,
+        rating: 4.9,
+        phone: "(555) 345-6789",
+        email: "adopt@bayarearescue.org"
+      },
+      health: {
+        vaccinated: true,
+        dewormed: true,
+        microchipped: true,
+        vetChecked: true,
+        dnaTests: ["Breed Mix Analysis"],
+        healthTests: ["Full Health Exam", "Behavioral Assessment"]
+      },
+      available: 1,
+      isRescue: true
     }
   ];
 
@@ -162,7 +205,7 @@ const Explore = () => {
                     <SelectValue placeholder="All breeds" />
                   </SelectTrigger>
                   <SelectContent className="bg-white">
-                    {breeds.map((breed) => (
+                    {['French Bulldog', 'Golden Retriever', 'German Shepherd', 'Labrador', 'Poodle', 'Bulldog', 'Beagle', 'Rottweiler', 'Siberian Husky', 'Dachshund'].map((breed) => (
                       <SelectItem key={breed} value={breed}>{breed}</SelectItem>
                     ))}
                   </SelectContent>
@@ -176,7 +219,7 @@ const Explore = () => {
                     <SelectValue placeholder="All colors" />
                   </SelectTrigger>
                   <SelectContent className="bg-white">
-                    {colors.map((color) => (
+                    {['Black', 'White', 'Brown', 'Golden', 'Cream', 'Blue', 'Fawn', 'Brindle', 'Merle', 'Chocolate'].map((color) => (
                       <SelectItem key={color} value={color}>{color}</SelectItem>
                     ))}
                   </SelectContent>
@@ -203,7 +246,7 @@ const Explore = () => {
                     <SelectValue placeholder="All ages" />
                   </SelectTrigger>
                   <SelectContent className="bg-white">
-                    {ages.map((age) => (
+                    {['8-12 weeks', '3-6 months', '6-12 months', '1-2 years', '2+ years'].map((age) => (
                       <SelectItem key={age} value={age}>{age}</SelectItem>
                     ))}
                   </SelectContent>
@@ -232,7 +275,7 @@ const Explore = () => {
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-3">Genetics</label>
                 <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
-                  {frenchBulldogGenetics.map((genetic) => (
+                  {['BB (Non-dilute)', 'Bb (Carrier dilute)', 'bb (Dilute blue)', 'DD (Non-dilute)', 'Dd (Carrier dilute)', 'dd (Dilute)', 'COCO (Cream/White)', 'COco (Cream carrier)', 'coco (Normal)', 'AtAt (Tan points)', 'Ata (Tan carrier)', 'aa (Recessive black)', 'EmEm (Dark mask)', 'Eme (Mask carrier)', 'ee (Red/Yellow)', 'NN (Normal)', 'Nn (Carrier)', 'nn (Recessive trait)'].map((genetic) => (
                     <div key={genetic} className="flex items-center space-x-2">
                       <Checkbox
                         id={genetic}
@@ -268,60 +311,191 @@ const Explore = () => {
         </Select>
       </div>
 
-      {/* Listings Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+      {/* Listings Grid - 2x2 */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {listings.map((listing) => (
-          <Card key={listing.id} className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer">
+          <Card key={listing.id} className="overflow-hidden hover:shadow-xl transition-all duration-300">
+            {/* Image Carousel */}
             <div className="relative">
-              <img
-                src={listing.image}
-                alt={listing.title}
-                className="w-full h-48 object-cover"
-              />
+              <Carousel className="w-full">
+                <CarouselContent>
+                  {listing.images.map((image, index) => (
+                    <CarouselItem key={index}>
+                      <div className="relative h-64">
+                        <img
+                          src={image}
+                          alt={`${listing.title} - Image ${index + 1}`}
+                          className="w-full h-full object-cover"
+                        />
+                        {index === 0 && listing.videos.length > 0 && (
+                          <div className="absolute bottom-2 left-2 bg-black/70 text-white text-xs px-2 py-1 rounded flex items-center gap-1">
+                            <Video size={12} />
+                            Video Available
+                          </div>
+                        )}
+                      </div>
+                    </CarouselItem>
+                  ))}
+                </CarouselContent>
+                {listing.images.length > 1 && (
+                  <>
+                    <CarouselPrevious className="left-2" />
+                    <CarouselNext className="right-2" />
+                  </>
+                )}
+              </Carousel>
+              
               <button className="absolute top-3 right-3 p-2 bg-white/90 rounded-full hover:bg-white transition-colors">
                 <Heart size={16} className="text-gray-600" />
               </button>
-              {listing.verified && (
-                <div className="absolute top-3 left-3 bg-blue-500 text-white text-xs px-2 py-1 rounded">
-                  Verified
-                </div>
+              
+              {listing.isRescue && (
+                <Badge className="absolute top-3 left-3 bg-green-500 text-white">
+                  Rescue
+                </Badge>
+              )}
+              
+              {listing.breeder.verified && !listing.isRescue && (
+                <Badge className="absolute top-3 left-3 bg-blue-500 text-white">
+                  Verified Breeder
+                </Badge>
               )}
             </div>
             
-            <CardContent className="p-4">
-              <div className="space-y-2">
-                <h3 className="font-semibold text-gray-900 line-clamp-2">{listing.title}</h3>
-                <p className="text-xl font-bold text-gray-900">{listing.price}</p>
-                
-                <div className="space-y-1 text-sm text-gray-600">
-                  <div className="flex items-center gap-1">
-                    <MapPin size={14} />
-                    {listing.location} • {listing.distance}
+            <CardContent className="p-6">
+              {/* Title and Price */}
+              <div className="space-y-3">
+                <div>
+                  <h3 className="font-bold text-lg text-gray-900 mb-1">{listing.title}</h3>
+                  <p className="text-2xl font-bold text-blue-600">{listing.price}</p>
+                </div>
+
+                {/* Pet Details Grid */}
+                <div className="grid grid-cols-2 gap-3 py-3 border-y">
+                  <div className="space-y-1">
+                    <span className="text-sm text-gray-500">Breed</span>
+                    <p className="text-sm font-medium">{listing.breed}</p>
                   </div>
-                  <div>Breed: {listing.breed}</div>
-                  <div>Color: {listing.color} • Gender: {listing.gender}</div>
-                  <div>Age: {listing.age}</div>
-                  {listing.genetics.length > 0 && (
-                    <div>Genetics: {listing.genetics.join(', ')}</div>
+                  <div className="space-y-1">
+                    <span className="text-sm text-gray-500">Age</span>
+                    <p className="text-sm font-medium">{listing.age}</p>
+                  </div>
+                  <div className="space-y-1">
+                    <span className="text-sm text-gray-500">Gender</span>
+                    <p className="text-sm font-medium">{listing.gender}</p>
+                  </div>
+                  <div className="space-y-1">
+                    <span className="text-sm text-gray-500">Color</span>
+                    <p className="text-sm font-medium">{listing.color}</p>
+                  </div>
+                </div>
+
+                {/* Health Information */}
+                <div className="space-y-2">
+                  <h4 className="font-semibold text-gray-900 flex items-center gap-1">
+                    <Shield size={16} className="text-green-500" />
+                    Health Status
+                  </h4>
+                  <div className="flex flex-wrap gap-1">
+                    {listing.health.vaccinated && <Badge variant="secondary" className="text-xs">Vaccinated</Badge>}
+                    {listing.health.dewormed && <Badge variant="secondary" className="text-xs">Dewormed</Badge>}
+                    {listing.health.microchipped && <Badge variant="secondary" className="text-xs">Microchipped</Badge>}
+                    {listing.health.vetChecked && <Badge variant="secondary" className="text-xs">Vet Checked</Badge>}
+                  </div>
+                  
+                  {listing.health.dnaTests.length > 0 && (
+                    <div className="mt-2">
+                      <p className="text-xs text-gray-600 mb-1">DNA Tests:</p>
+                      <div className="flex flex-wrap gap-1">
+                        {listing.health.dnaTests.map((test, index) => (
+                          <Badge key={index} variant="outline" className="text-xs">
+                            {test}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  
+                  {listing.health.healthTests.length > 0 && (
+                    <div className="mt-2">
+                      <p className="text-xs text-gray-600 mb-1">Health Tests:</p>
+                      <div className="flex flex-wrap gap-1">
+                        {listing.health.healthTests.map((test, index) => (
+                          <Badge key={index} variant="outline" className="text-xs">
+                            {test}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
                   )}
                 </div>
 
-                <div className="flex items-center justify-between pt-2">
-                  <div className="flex items-center gap-1">
-                    <Star size={14} className="text-amber-500 fill-current" />
-                    <span className="text-sm text-gray-600">{listing.rating} ({listing.reviews})</span>
+                {/* Breeder Information */}
+                <div className="space-y-3 pt-3 border-t">
+                  <div className="flex items-center gap-3">
+                    <Avatar className="h-10 w-10">
+                      <AvatarImage src={listing.breeder.avatar} alt={listing.breeder.name} />
+                      <AvatarFallback>{listing.breeder.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2">
+                        <h4 className="font-semibold text-sm">{listing.breeder.name}</h4>
+                        {listing.breeder.verified && (
+                          <Award size={14} className="text-blue-500" />
+                        )}
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Star size={12} className="text-amber-500 fill-current" />
+                        <span className="text-xs text-gray-600">{listing.breeder.rating} ({listing.reviews} reviews)</span>
+                      </div>
+                    </div>
                   </div>
-                  <span className="text-sm text-gray-600">{listing.available} available</span>
+                  
+                  {/* Contact Information */}
+                  <div className="flex gap-2">
+                    <Button variant="outline" size="sm" className="flex-1 text-xs">
+                      <Phone size={14} />
+                      {listing.breeder.phone}
+                    </Button>
+                    <Button variant="outline" size="sm" className="flex-1 text-xs">
+                      <Mail size={14} />
+                      Email
+                    </Button>
+                  </div>
                 </div>
 
-                <div className="flex gap-2 pt-2">
-                  <Button className="flex-1" size="sm">
-                    View Details
-                  </Button>
-                  <Button variant="outline" size="sm">
-                    <MessageCircle size={16} />
-                  </Button>
+                {/* Location and Actions */}
+                <div className="space-y-3 pt-3 border-t">
+                  <div className="flex items-center gap-1 text-sm text-gray-600">
+                    <MapPin size={14} />
+                    {listing.location} • {listing.distance}
+                  </div>
+                  
+                  <div className="flex gap-2">
+                    <Button className="flex-1" size="sm">
+                      View Details
+                    </Button>
+                    <Button variant="outline" size="sm">
+                      <MessageCircle size={16} />
+                    </Button>
+                  </div>
+                  
+                  <p className="text-xs text-gray-500 text-center">{listing.available} available</p>
                 </div>
+
+                {/* Genetics for French Bulldogs */}
+                {listing.genetics.length > 0 && (
+                  <div className="pt-3 border-t">
+                    <p className="text-xs text-gray-600 mb-2">Genetics:</p>
+                    <div className="flex flex-wrap gap-1">
+                      {listing.genetics.map((genetic, index) => (
+                        <Badge key={index} variant="outline" className="text-xs">
+                          {genetic}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
