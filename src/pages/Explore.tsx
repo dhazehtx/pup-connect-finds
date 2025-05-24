@@ -350,11 +350,11 @@ const Explore = () => {
                 <CarouselContent>
                   {listing.images.map((image, index) => (
                     <CarouselItem key={index}>
-                      <div className="relative h-72 overflow-hidden">
+                      <div className="relative h-72 overflow-hidden rounded-2xl mx-3 my-3">
                         <img
                           src={image}
                           alt={`${listing.title} - Image ${index + 1}`}
-                          className="w-full h-full object-cover object-center"
+                          className="w-full h-full object-cover object-center rounded-2xl shadow-md"
                         />
                       </div>
                     </CarouselItem>
@@ -369,27 +369,27 @@ const Explore = () => {
               </Carousel>
 
               {/* Overlays */}
-              <button className="absolute top-3 right-3 p-2 bg-white/90 rounded-full hover:bg-white transition-colors">
+              <button className="absolute top-6 right-6 p-2 bg-white/90 rounded-full hover:bg-white transition-colors shadow-lg">
                 <Heart size={16} className="text-gray-600" />
               </button>
               
               {listing.verified && (
-                <Badge className="absolute top-3 left-3 bg-blue-500 text-white">
+                <Badge className="absolute top-6 left-6 bg-blue-500 text-white shadow-lg">
                   <Shield size={12} className="mr-1" />
                   Verified
                 </Badge>
               )}
 
               {/* Media indicators */}
-              <div className="absolute bottom-3 left-3 flex gap-1">
+              <div className="absolute bottom-6 left-6 flex gap-1">
                 {listing.images.length > 1 && (
-                  <Badge variant="secondary" className="text-xs">
+                  <Badge variant="secondary" className="text-xs shadow-lg">
                     <Camera size={10} className="mr-1" />
                     {listing.images.length}
                   </Badge>
                 )}
                 {listing.videos.length > 0 && (
-                  <Badge variant="secondary" className="text-xs">
+                  <Badge variant="secondary" className="text-xs shadow-lg">
                     <Video size={10} className="mr-1" />
                     {listing.videos.length}
                   </Badge>
