@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Search, Filter, Star, MapPin, Heart, MessageCircle } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
@@ -49,7 +50,7 @@ const Explore = () => {
       color: "Blue Fawn",
       gender: "Male",
       age: "8 weeks",
-      genetics: ["bb", "DD", "COCO", "AtAt"],
+      genetics: ["bb", "DD", "COCO", "AtAt"], // French Bulldogs often have genetics
       rating: 4.9,
       reviews: 23,
       image: "https://images.unsplash.com/photo-1583337130417-3346a1be7dee?w=400&h=300&fit=crop",
@@ -67,7 +68,7 @@ const Explore = () => {
       color: "Golden",
       gender: "Female",
       age: "10 weeks",
-      genetics: [],
+      genetics: [], // No genetics testing done
       rating: 4.8,
       reviews: 45,
       image: "https://images.unsplash.com/photo-1552053831-71594a27632d?w=400&h=300&fit=crop",
@@ -85,7 +86,7 @@ const Explore = () => {
       color: "Black & Tan",
       gender: "Male",
       age: "12 weeks",
-      genetics: [],
+      genetics: [], // No genetics testing done
       rating: 4.9,
       reviews: 31,
       image: "https://images.unsplash.com/photo-1589941013453-ec89f33b5e95?w=400&h=300&fit=crop",
@@ -103,7 +104,7 @@ const Explore = () => {
       color: "Chocolate",
       gender: "Female",
       age: "9 weeks",
-      genetics: [],
+      genetics: [], // No genetics testing done
       rating: 4.7,
       reviews: 18,
       image: "https://images.unsplash.com/photo-1518717758536-85ae29035b6d?w=400&h=300&fit=crop",
@@ -269,7 +270,7 @@ const Explore = () => {
       </div>
 
       {/* Listings Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {listings.map((listing) => (
           <Card key={listing.id} className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer">
             <div className="relative">
@@ -301,7 +302,7 @@ const Explore = () => {
                   <div>Breed: {listing.breed}</div>
                   <div>Color: {listing.color} • Gender: {listing.gender}</div>
                   <div>Age: {listing.age}</div>
-                  {listing.genetics.length > 0 && (
+                  {listing.genetics && listing.genetics.length > 0 && (
                     <div>Genetics: {listing.genetics.join(', ')}</div>
                   )}
                 </div>
