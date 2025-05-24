@@ -58,9 +58,9 @@ const Explore = () => {
       rating: 4.9,
       reviews: 23,
       images: [
-        "https://images.unsplash.com/photo-1583337130417-3346a1be7dee?w=400&h=300&fit=crop",
-        "https://images.unsplash.com/photo-1518717758536-85ae29035b6d?w=400&h=300&fit=crop",
-        "https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=400&h=300&fit=crop"
+        "https://images.unsplash.com/photo-1583337130417-3346a1be7dee?w=600&h=400&fit=crop&crop=center",
+        "https://images.unsplash.com/photo-1518717758536-85ae29035b6d?w=600&h=400&fit=crop&crop=center",
+        "https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=600&h=400&fit=crop&crop=center"
       ],
       videos: ["video1.mp4"],
       breeder: {
@@ -94,8 +94,8 @@ const Explore = () => {
       rating: 4.8,
       reviews: 45,
       images: [
-        "https://images.unsplash.com/photo-1552053831-71594a27632d?w=400&h=300&fit=crop",
-        "https://images.unsplash.com/photo-1551717743-49959800b1f6?w=400&h=300&fit=crop"
+        "https://images.unsplash.com/photo-1552053831-71594a27632d?w=600&h=400&fit=crop&crop=center",
+        "https://images.unsplash.com/photo-1551717743-49959800b1f6?w=600&h=400&fit=crop&crop=center"
       ],
       videos: [],
       breeder: {
@@ -129,8 +129,8 @@ const Explore = () => {
       rating: 4.9,
       reviews: 31,
       images: [
-        "https://images.unsplash.com/photo-1589941013453-ec89f33b5e95?w=400&h=300&fit=crop",
-        "https://images.unsplash.com/photo-1605568427561-40dd23c2acea?w=400&h=300&fit=crop"
+        "https://images.unsplash.com/photo-1589941013453-ec89f33b5e95?w=600&h=400&fit=crop&crop=center",
+        "https://images.unsplash.com/photo-1605568427561-40dd23c2acea?w=600&h=400&fit=crop&crop=center"
       ],
       videos: ["video2.mp4"],
       breeder: {
@@ -164,7 +164,7 @@ const Explore = () => {
       rating: 4.7,
       reviews: 18,
       images: [
-        "https://images.unsplash.com/photo-1518717758536-85ae29035b6d?w=400&h=300&fit=crop"
+        "https://images.unsplash.com/photo-1518717758536-85ae29035b6d?w=600&h=400&fit=crop&crop=center"
       ],
       videos: [],
       breeder: {
@@ -350,11 +350,11 @@ const Explore = () => {
                 <CarouselContent>
                   {listing.images.map((image, index) => (
                     <CarouselItem key={index}>
-                      <div className="relative h-64">
+                      <div className="relative h-72 overflow-hidden">
                         <img
                           src={image}
                           alt={`${listing.title} - Image ${index + 1}`}
-                          className="w-full h-full object-cover"
+                          className="w-full h-full object-cover object-center"
                         />
                       </div>
                     </CarouselItem>
