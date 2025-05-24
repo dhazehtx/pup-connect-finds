@@ -1,167 +1,336 @@
 
 import React, { useState } from 'react';
-import { MapPin, Filter, Star, Navigation } from 'lucide-react';
+import { Search, Filter, Star, MapPin, Heart, MessageCircle } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Checkbox } from '@/components/ui/checkbox';
 
 const Explore = () => {
+  const [searchTerm, setSearchTerm] = useState('');
   const [selectedBreed, setSelectedBreed] = useState('');
-  const [radius, setRadius] = useState(50);
+  const [selectedColor, setSelectedColor] = useState('');
+  const [selectedGender, setSelectedGender] = useState('');
+  const [selectedAge, setSelectedAge] = useState('');
+  const [selectedGenetics, setSelectedGenetics] = useState<string[]>([]);
+  const [priceRange, setPriceRange] = useState({ min: '', max: '' });
+  const [showFilters, setShowFilters] = useState(false);
 
   const breeds = [
-    'Golden Retriever', 'German Shepherd', 'Labrador', 'French Bulldog', 
+    'French Bulldog', 'Golden Retriever', 'German Shepherd', 'Labrador', 
     'Poodle', 'Bulldog', 'Beagle', 'Rottweiler', 'Siberian Husky', 'Dachshund'
   ];
 
-  const nearbyBreeders = [
+  const colors = [
+    'Black', 'White', 'Brown', 'Golden', 'Cream', 'Blue', 'Fawn', 'Brindle', 'Merle', 'Chocolate'
+  ];
+
+  const ages = [
+    '8-12 weeks', '3-6 months', '6-12 months', '1-2 years', '2+ years'
+  ];
+
+  const frenchBulldogGenetics = [
+    'BB (Non-dilute)', 'Bb (Carrier dilute)', 'bb (Dilute blue)', 
+    'DD (Non-dilute)', 'Dd (Carrier dilute)', 'dd (Dilute)',
+    'COCO (Cream/White)', 'COco (Cream carrier)', 'coco (Normal)',
+    'AtAt (Tan points)', 'Ata (Tan carrier)', 'aa (Recessive black)',
+    'EmEm (Dark mask)', 'Eme (Mask carrier)', 'ee (Red/Yellow)',
+    'NN (Normal)', 'Nn (Carrier)', 'nn (Recessive trait)'
+  ];
+
+  const listings = [
     {
       id: 1,
-      name: "Sunset Retrievers",
+      title: "Beautiful French Bulldog Puppies",
+      price: "$4,200",
+      location: "San Francisco, CA",
       distance: "2.3 miles",
-      breed: "Golden Retriever",
+      breed: "French Bulldog",
+      color: "Blue Fawn",
+      gender: "Male",
+      age: "8 weeks",
+      genetics: ["bb", "DD", "COCO", "AtAt"],
       rating: 4.9,
-      price: "$2,800",
-      image: "https://images.unsplash.com/photo-1552053831-71594a27632d?w=300&h=200&fit=crop",
+      reviews: 23,
+      image: "https://images.unsplash.com/photo-1583337130417-3346a1be7dee?w=400&h=300&fit=crop",
+      breeder: "Elite French Bulldogs",
+      verified: true,
       available: 3
     },
     {
       id: 2,
-      name: "Metro German Shepherds",
+      title: "Golden Retriever Puppies Ready Now",
+      price: "$2,800",
+      location: "Oakland, CA",
       distance: "5.7 miles",
-      breed: "German Shepherd",
-      rating: 4.7,
-      price: "$3,500",
-      image: "https://images.unsplash.com/photo-1589941013453-ec89f33b5e95?w=300&h=200&fit=crop",
+      breed: "Golden Retriever",
+      color: "Golden",
+      gender: "Female",
+      age: "10 weeks",
+      genetics: [],
+      rating: 4.8,
+      reviews: 45,
+      image: "https://images.unsplash.com/photo-1552053831-71594a27632d?w=400&h=300&fit=crop",
+      breeder: "Sunset Retrievers",
+      verified: true,
       available: 2
     },
     {
       id: 3,
-      name: "Happy Tails Labradors",
+      title: "German Shepherd Puppy - Champion Lines",
+      price: "$3,500",
+      location: "San Jose, CA",
       distance: "8.1 miles",
-      breed: "Labrador",
-      rating: 4.8,
-      price: "$2,400",
-      image: "https://images.unsplash.com/photo-1518717758536-85ae29035b6d?w=300&h=200&fit=crop",
-      available: 5
+      breed: "German Shepherd",
+      color: "Black & Tan",
+      gender: "Male",
+      age: "12 weeks",
+      genetics: [],
+      rating: 4.9,
+      reviews: 31,
+      image: "https://images.unsplash.com/photo-1589941013453-ec89f33b5e95?w=400&h=300&fit=crop",
+      breeder: "Metro German Shepherds",
+      verified: true,
+      available: 1
     },
     {
       id: 4,
-      name: "Elite French Bulldogs",
+      title: "Labrador Retriever Puppies",
+      price: "$2,400",
+      location: "Berkeley, CA",
       distance: "12.4 miles",
-      breed: "French Bulldog",
-      rating: 4.6,
-      price: "$4,200",
-      image: "https://images.unsplash.com/photo-1583337130417-3346a1be7dee?w=300&h=200&fit=crop",
-      available: 1
+      breed: "Labrador",
+      color: "Chocolate",
+      gender: "Female",
+      age: "9 weeks",
+      genetics: [],
+      rating: 4.7,
+      reviews: 18,
+      image: "https://images.unsplash.com/photo-1518717758536-85ae29035b6d?w=400&h=300&fit=crop",
+      breeder: "Happy Tails Labradors",
+      verified: true,
+      available: 4
     }
   ];
 
+  const handleGeneticsChange = (genetic: string, checked: boolean) => {
+    if (checked) {
+      setSelectedGenetics([...selectedGenetics, genetic]);
+    } else {
+      setSelectedGenetics(selectedGenetics.filter(g => g !== genetic));
+    }
+  };
+
   return (
-    <div className="max-w-4xl mx-auto px-4 py-6 space-y-6">
-      {/* Location Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Navigation size={20} className="text-amber-600" />
-          <div>
-            <h1 className="text-xl font-bold text-gray-800">Explore Nearby</h1>
-            <p className="text-sm text-gray-600">San Francisco, CA</p>
-          </div>
-        </div>
-        <button className="px-4 py-2 bg-amber-100 text-amber-700 rounded-lg font-medium hover:bg-amber-200 transition-colors">
-          Change Location
-        </button>
+    <div className="max-w-7xl mx-auto px-4 py-6">
+      {/* Header */}
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold text-gray-900 mb-2">Marketplace</h1>
+        <p className="text-gray-600">Find your perfect puppy companion</p>
       </div>
 
-      {/* Filters */}
-      <div className="bg-white rounded-xl p-4 border border-amber-100 space-y-4">
-        <div className="flex items-center gap-2">
-          <Filter size={18} className="text-gray-600" />
-          <h2 className="font-semibold text-gray-800">Filters</h2>
-        </div>
-        
-        <div className="grid gap-4 md:grid-cols-2">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Breed</label>
-            <select 
-              value={selectedBreed}
-              onChange={(e) => setSelectedBreed(e.target.value)}
-              className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent"
-            >
-              <option value="">All Breeds</option>
-              {breeds.map((breed) => (
-                <option key={breed} value={breed}>{breed}</option>
-              ))}
-            </select>
-          </div>
-          
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Distance: {radius} miles
-            </label>
-            <input
-              type="range"
-              min="5"
-              max="100"
-              value={radius}
-              onChange={(e) => setRadius(Number(e.target.value))}
-              className="w-full h-2 bg-amber-200 rounded-lg appearance-none cursor-pointer slider"
+      {/* Search and Filter Bar */}
+      <div className="bg-white rounded-lg border p-4 mb-6 space-y-4">
+        <div className="flex gap-4">
+          <div className="flex-1 relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+            <Input
+              placeholder="Search for puppies..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10"
             />
           </div>
+          <Button
+            variant="outline"
+            onClick={() => setShowFilters(!showFilters)}
+            className="flex items-center gap-2"
+          >
+            <Filter size={18} />
+            Filters
+          </Button>
         </div>
-      </div>
 
-      {/* Map Placeholder */}
-      <div className="bg-gradient-to-br from-amber-100 to-orange-100 rounded-xl h-64 flex items-center justify-center border border-amber-200">
-        <div className="text-center space-y-2">
-          <MapPin size={48} className="text-amber-600 mx-auto" />
-          <p className="text-gray-600 font-medium">Interactive Map Coming Soon</p>
-          <p className="text-sm text-gray-500">View breeders on an interactive map</p>
-        </div>
-      </div>
+        {/* Filters */}
+        {showFilters && (
+          <div className="border-t pt-4 space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Breed</label>
+                <Select value={selectedBreed} onValueChange={setSelectedBreed}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="All breeds" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-white">
+                    <SelectItem value="">All breeds</SelectItem>
+                    {breeds.map((breed) => (
+                      <SelectItem key={breed} value={breed}>{breed}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
 
-      {/* Results */}
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h2 className="text-xl font-bold text-gray-800">Nearby Breeders</h2>
-          <span className="text-sm text-gray-600">{nearbyBreeders.length} results</span>
-        </div>
-        
-        <div className="grid gap-4">
-          {nearbyBreeders.map((breeder) => (
-            <div key={breeder.id} className="bg-white rounded-xl p-4 border border-amber-100 hover:shadow-md transition-shadow">
-              <div className="flex gap-4">
-                <img 
-                  src={breeder.image} 
-                  alt={breeder.breed}
-                  className="w-20 h-20 rounded-lg object-cover"
-                />
-                <div className="flex-1 space-y-2">
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <h3 className="font-semibold text-gray-800">{breeder.name}</h3>
-                      <p className="text-sm text-amber-600 font-medium">{breeder.breed}</p>
-                    </div>
-                    <span className="text-lg font-bold text-gray-800">{breeder.price}</span>
-                  </div>
-                  
-                  <div className="flex items-center gap-4 text-sm text-gray-600">
-                    <div className="flex items-center gap-1">
-                      <MapPin size={14} />
-                      {breeder.distance}
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <Star size={14} className="text-amber-500 fill-current" />
-                      {breeder.rating}
-                    </div>
-                    <span>{breeder.available} available</span>
-                  </div>
-                  
-                  <button className="w-full bg-amber-500 text-white py-2 rounded-lg font-medium hover:bg-amber-600 transition-colors">
-                    View Details
-                  </button>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Color</label>
+                <Select value={selectedColor} onValueChange={setSelectedColor}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="All colors" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-white">
+                    <SelectItem value="">All colors</SelectItem>
+                    {colors.map((color) => (
+                      <SelectItem key={color} value={color}>{color}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Gender</label>
+                <Select value={selectedGender} onValueChange={setSelectedGender}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="All genders" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-white">
+                    <SelectItem value="">All genders</SelectItem>
+                    <SelectItem value="Male">Male</SelectItem>
+                    <SelectItem value="Female">Female</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Age</label>
+                <Select value={selectedAge} onValueChange={setSelectedAge}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="All ages" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-white">
+                    <SelectItem value="">All ages</SelectItem>
+                    {ages.map((age) => (
+                      <SelectItem key={age} value={age}>{age}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Price Range</label>
+                <div className="flex gap-2">
+                  <Input
+                    placeholder="Min"
+                    value={priceRange.min}
+                    onChange={(e) => setPriceRange({...priceRange, min: e.target.value})}
+                  />
+                  <Input
+                    placeholder="Max"
+                    value={priceRange.max}
+                    onChange={(e) => setPriceRange({...priceRange, max: e.target.value})}
+                  />
                 </div>
               </div>
             </div>
-          ))}
-        </div>
+
+            {/* Genetics Filter for French Bulldogs */}
+            {selectedBreed === 'French Bulldog' && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-3">Genetics</label>
+                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
+                  {frenchBulldogGenetics.map((genetic) => (
+                    <div key={genetic} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={genetic}
+                        checked={selectedGenetics.includes(genetic)}
+                        onCheckedChange={(checked) => handleGeneticsChange(genetic, checked as boolean)}
+                      />
+                      <label htmlFor={genetic} className="text-sm text-gray-700 cursor-pointer">
+                        {genetic}
+                      </label>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Results */}
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-lg font-semibold text-gray-900">{listings.length} puppies available</h2>
+        <Select defaultValue="newest">
+          <SelectTrigger className="w-48">
+            <SelectValue placeholder="Sort by" />
+          </SelectTrigger>
+          <SelectContent className="bg-white">
+            <SelectItem value="newest">Newest first</SelectItem>
+            <SelectItem value="price-low">Price: Low to High</SelectItem>
+            <SelectItem value="price-high">Price: High to Low</SelectItem>
+            <SelectItem value="distance">Distance</SelectItem>
+            <SelectItem value="rating">Highest rated</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      {/* Listings Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        {listings.map((listing) => (
+          <Card key={listing.id} className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer">
+            <div className="relative">
+              <img
+                src={listing.image}
+                alt={listing.title}
+                className="w-full h-48 object-cover"
+              />
+              <button className="absolute top-3 right-3 p-2 bg-white/90 rounded-full hover:bg-white transition-colors">
+                <Heart size={16} className="text-gray-600" />
+              </button>
+              {listing.verified && (
+                <div className="absolute top-3 left-3 bg-blue-500 text-white text-xs px-2 py-1 rounded">
+                  Verified
+                </div>
+              )}
+            </div>
+            
+            <CardContent className="p-4">
+              <div className="space-y-2">
+                <h3 className="font-semibold text-gray-900 line-clamp-2">{listing.title}</h3>
+                <p className="text-xl font-bold text-gray-900">{listing.price}</p>
+                
+                <div className="space-y-1 text-sm text-gray-600">
+                  <div className="flex items-center gap-1">
+                    <MapPin size={14} />
+                    {listing.location} • {listing.distance}
+                  </div>
+                  <div>Breed: {listing.breed}</div>
+                  <div>Color: {listing.color} • Gender: {listing.gender}</div>
+                  <div>Age: {listing.age}</div>
+                  {listing.genetics.length > 0 && (
+                    <div>Genetics: {listing.genetics.join(', ')}</div>
+                  )}
+                </div>
+
+                <div className="flex items-center justify-between pt-2">
+                  <div className="flex items-center gap-1">
+                    <Star size={14} className="text-amber-500 fill-current" />
+                    <span className="text-sm text-gray-600">{listing.rating} ({listing.reviews})</span>
+                  </div>
+                  <span className="text-sm text-gray-600">{listing.available} available</span>
+                </div>
+
+                <div className="flex gap-2 pt-2">
+                  <Button className="flex-1" size="sm">
+                    View Details
+                  </Button>
+                  <Button variant="outline" size="sm">
+                    <MessageCircle size={16} />
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
       </div>
     </div>
   );
