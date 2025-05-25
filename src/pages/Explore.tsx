@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Search, Filter, Star, MapPin, Heart, MessageCircle, Award } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
@@ -202,7 +203,11 @@ const Explore = () => {
                   <Button className="flex-1 bg-soft-sky text-royal-blue hover:bg-royal-blue hover:text-white border-0" size="sm">
                     View Details
                   </Button>
-                  <Button variant="outline" size="sm" className="border-gray-200 hover:bg-soft-sky text-royal-blue hover:text-royal-blue">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="bg-white border-gray-200 text-royal-blue hover:bg-soft-sky hover:text-royal-blue hover:border-gray-200"
+                  >
                     <MessageCircle size={16} />
                   </Button>
                 </div>
