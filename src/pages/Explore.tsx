@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Search, Filter, Star, MapPin, Heart, MessageCircle, Award } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
@@ -105,13 +104,13 @@ const Explore = () => {
               placeholder="Search for puppies..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
+              className="pl-10 bg-white"
             />
           </div>
           <Button
             variant="outline"
             onClick={() => setShowFilters(!showFilters)}
-            className="flex items-center gap-2"
+            className="flex items-center gap-2 bg-white hover:bg-soft-sky"
           >
             <Filter size={18} />
             Filters
@@ -123,7 +122,7 @@ const Explore = () => {
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-lg font-semibold text-gray-900">{listings.length} puppies available</h2>
         <Select defaultValue="newest">
-          <SelectTrigger className="w-48">
+          <SelectTrigger className="w-48 bg-white">
             <SelectValue placeholder="Sort by" />
           </SelectTrigger>
           <SelectContent className="bg-white">
@@ -166,7 +165,9 @@ const Explore = () => {
             
             <CardContent className="p-4">
               <div className="space-y-2">
-                <h3 className="font-semibold text-gray-900 line-clamp-2">{listing.title}</h3>
+                <div className="bg-white p-3 rounded-lg">
+                  <h3 className="font-semibold text-gray-900 line-clamp-2">{listing.title}</h3>
+                </div>
                 <p className="text-xl font-bold text-gray-900">{listing.price}</p>
                 
                 <div className="space-y-1 text-sm text-gray-600">
