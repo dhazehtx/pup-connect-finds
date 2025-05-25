@@ -1,4 +1,5 @@
 
+
 import React, { useState } from 'react';
 import { Search, Filter, Star, MapPin, Heart, MessageCircle, Award } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
@@ -97,7 +98,7 @@ const Explore = () => {
       </div>
 
       {/* Search and Filter Bar */}
-      <div className="bg-white rounded-lg border p-4 mb-6 space-y-4">
+      <div className="bg-white rounded-lg border border-gray-200 p-4 mb-6 space-y-4">
         <div className="flex gap-4">
           <div className="flex-1 relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
@@ -105,13 +106,13 @@ const Explore = () => {
               placeholder="Search for puppies..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 bg-white"
+              className="pl-10 bg-white border-gray-200"
             />
           </div>
           <Button
             variant="outline"
             onClick={() => setShowFilters(!showFilters)}
-            className="flex items-center gap-2 bg-white hover:bg-soft-sky"
+            className="flex items-center gap-2 bg-white hover:bg-soft-sky border-gray-200"
           >
             <Filter size={18} />
             Filters
@@ -123,10 +124,10 @@ const Explore = () => {
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-lg font-semibold text-gray-900">{listings.length} puppies available</h2>
         <Select defaultValue="newest">
-          <SelectTrigger className="w-48 bg-white">
+          <SelectTrigger className="w-48 bg-white border-gray-200">
             <SelectValue placeholder="Sort by" />
           </SelectTrigger>
-          <SelectContent className="bg-white">
+          <SelectContent className="bg-white border-gray-200">
             <SelectItem value="newest">Newest first</SelectItem>
             <SelectItem value="price-low">Price: Low to High</SelectItem>
             <SelectItem value="price-high">Price: High to Low</SelectItem>
@@ -139,7 +140,7 @@ const Explore = () => {
       {/* Listings Grid - 2x2 layout */}
       <div className="grid grid-cols-2 gap-6 max-w-4xl mx-auto">
         {listings.map((listing) => (
-          <Card key={listing.id} className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer bg-white">
+          <Card key={listing.id} className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer bg-white border-gray-200">
             <div className="relative">
               <img
                 src={listing.image}
@@ -166,7 +167,7 @@ const Explore = () => {
             
             <CardContent className="p-4 bg-white">
               <div className="space-y-2">
-                <div className="bg-white p-3 rounded-lg border border-gray-100">
+                <div className="bg-white p-3 rounded-lg border border-gray-200">
                   <h3 className="font-semibold text-gray-900 line-clamp-2">{listing.title}</h3>
                 </div>
                 <p className="text-xl font-bold text-gray-900">{listing.price}</p>
@@ -184,10 +185,10 @@ const Explore = () => {
                 {/* Verification Badges */}
                 <div className="flex flex-wrap gap-1 pt-1">
                   {listing.idVerified && (
-                    <Badge variant="outline" className="text-xs">ID Verified</Badge>
+                    <Badge variant="outline" className="text-xs border-gray-200">ID Verified</Badge>
                   )}
                   {listing.vetVerified && (
-                    <Badge variant="outline" className="text-xs">Vet Licensed</Badge>
+                    <Badge variant="outline" className="text-xs border-gray-200">Vet Licensed</Badge>
                   )}
                 </div>
 
@@ -200,10 +201,10 @@ const Explore = () => {
                 </div>
 
                 <div className="flex gap-2 pt-2">
-                  <Button className="flex-1" size="sm">
+                  <Button className="flex-1 bg-soft-sky text-royal-blue hover:bg-royal-blue hover:text-white border-0" size="sm">
                     View Details
                   </Button>
-                  <Button variant="outline" size="sm">
+                  <Button variant="outline" size="sm" className="border-gray-200 hover:bg-soft-sky">
                     <MessageCircle size={16} />
                   </Button>
                 </div>
@@ -217,3 +218,4 @@ const Explore = () => {
 };
 
 export default Explore;
+
