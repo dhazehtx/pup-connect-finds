@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -19,6 +20,13 @@ export default {
 		},
 		extend: {
 			colors: {
+				// New Clean & Professional color scheme
+				'royal-blue': '#246BFD',
+				'soft-sky': '#C9E7FF',
+				'mint-green': '#A8E6CF',
+				'deep-navy': '#1A1A2E',
+				'cloud-white': '#F9FAFB',
+				
 				border: 'hsl(var(--border))',
 				input: 'hsl(var(--input))',
 				ring: 'hsl(var(--ring))',
