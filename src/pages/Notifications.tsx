@@ -1,11 +1,8 @@
-
 import React, { useState } from 'react';
-import { Heart, MessageCircle, UserPlus, Star, Bell, TrendingDown, Search, FileCheck, UserCheck } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
+import NotificationHeader from '@/components/notifications/NotificationHeader';
+import NotificationSettings from '@/components/notifications/NotificationSettings';
+import NotificationItem from '@/components/notifications/NotificationItem';
+import EmptyNotifications from '@/components/notifications/EmptyNotifications';
 
 const Notifications = () => {
   const [showSettings, setShowSettings] = useState(false);
@@ -123,228 +120,27 @@ const Notifications = () => {
     setFollowingUsers(newFollowing);
   };
 
-  const getIcon = (type: string) => {
-    switch (type) {
-      case 'like':
-        return <Heart size={16} className="text-red-500" />;
-      case 'comment':
-        return <MessageCircle size={16} className="text-blue-500" />;
-      case 'message':
-        return <MessageCircle size={16} className="text-blue-500" />;
-      case 'follow':
-        return <UserPlus size={16} className="text-green-500" />;
-      case 'review':
-        return <Star size={16} className="text-amber-500" />;
-      case 'price_drop':
-        return <TrendingDown size={16} className="text-orange-500" />;
-      case 'new_listing':
-        return <Search size={16} className="text-purple-500" />;
-      case 'application':
-        return <FileCheck size={16} className="text-green-600" />;
-      default:
-        return <Bell size={16} className="text-gray-500" />;
-    }
-  };
-
-  const getTypeLabel = (type: string) => {
-    switch (type) {
-      case 'like': return 'Like';
-      case 'comment': return 'Comment';
-      case 'price_drop': return 'Price Alert';
-      case 'new_listing': return 'New Match';
-      case 'application': return 'Application';
-      case 'message': return 'Message';
-      case 'follow': return 'Follow';
-      case 'review': return 'Review';
-      default: return 'Notification';
-    }
-  };
-
   return (
     <div className="max-w-4xl mx-auto px-4 py-6">
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-gray-800">Notifications</h1>
-        <div className="flex items-center gap-2">
-          <Button 
-            variant="outline" 
-            size="sm"
-            onClick={() => setShowSettings(!showSettings)}
-          >
-            Settings
-          </Button>
-          <Button 
-            variant="ghost" 
-            size="sm"
-            className="text-amber-600 hover:text-amber-700"
-          >
-            Mark all as read
-          </Button>
-        </div>
-      </div>
+      <NotificationHeader 
+        showSettings={showSettings}
+        onToggleSettings={() => setShowSettings(!showSettings)}
+      />
 
-      {/* Notification Settings */}
-      {showSettings && (
-        <Card className="mb-6">
-          <CardHeader>
-            <CardTitle>Notification Preferences</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="flex items-center justify-between">
-                <Label htmlFor="likes">Likes</Label>
-                <Switch id="likes" defaultChecked />
-              </div>
-              <div className="flex items-center justify-between">
-                <Label htmlFor="comments">Comments</Label>
-                <Switch id="comments" defaultChecked />
-              </div>
-              <div className="flex items-center justify-between">
-                <Label htmlFor="price-alerts">Price drop alerts</Label>
-                <Switch id="price-alerts" defaultChecked />
-              </div>
-              <div className="flex items-center justify-between">
-                <Label htmlFor="new-listings">New listing matches</Label>
-                <Switch id="new-listings" defaultChecked />
-              </div>
-              <div className="flex items-center justify-between">
-                <Label htmlFor="messages">Chat messages</Label>
-                <Switch id="messages" defaultChecked />
-              </div>
-              <div className="flex items-center justify-between">
-                <Label htmlFor="applications">Application updates</Label>
-                <Switch id="applications" defaultChecked />
-              </div>
-              <div className="flex items-center justify-between">
-                <Label htmlFor="follows">New followers</Label>
-                <Switch id="follows" defaultChecked />
-              </div>
-              <div className="flex items-center justify-between">
-                <Label htmlFor="reviews">Reviews & ratings</Label>
-                <Switch id="reviews" defaultChecked />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
+      {showSettings && <NotificationSettings />}
 
       <div className="space-y-3">
         {notifications.map((notification) => (
-          <div
+          <NotificationItem
             key={notification.id}
-            className={`bg-white rounded-xl p-4 border transition-all hover:shadow-md ${
-              notification.read 
-                ? 'border-gray-200' 
-                : 'border-amber-200 bg-amber-50/30'
-            }`}
-          >
-            <div className="flex items-start gap-4">
-              {/* Avatar or Icon */}
-              <div className="flex-shrink-0">
-                {notification.avatar ? (
-                  <img
-                    src={notification.avatar}
-                    alt=""
-                    className="w-12 h-12 rounded-full object-cover"
-                  />
-                ) : (
-                  <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center">
-                    {getIcon(notification.type)}
-                  </div>
-                )}
-              </div>
-
-              {/* Content */}
-              <div className="flex-1 min-w-0">
-                <div className="flex items-start justify-between">
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <h3 className={`text-sm font-semibold ${
-                        notification.read ? 'text-gray-800' : 'text-gray-900'
-                      }`}>
-                        {notification.title}
-                      </h3>
-                      <Badge variant="outline" className="text-xs">
-                        {getTypeLabel(notification.type)}
-                      </Badge>
-                      {/* Follow/Following indicator */}
-                      {notification.username && (
-                        <div className="flex items-center gap-1">
-                          <span className="text-xs text-gray-500">@{notification.username}</span>
-                          <Button
-                            size="sm"
-                            variant={followingUsers.has(notification.username) ? "outline" : "default"}
-                            className="h-6 px-2 text-xs"
-                            onClick={() => handleFollowToggle(notification.username)}
-                          >
-                            {followingUsers.has(notification.username) ? (
-                              <>
-                                <UserCheck size={12} className="mr-1" />
-                                Following
-                              </>
-                            ) : (
-                              <>
-                                <UserPlus size={12} className="mr-1" />
-                                Follow
-                              </>
-                            )}
-                          </Button>
-                        </div>
-                      )}
-                    </div>
-                    <p className="text-sm text-gray-600">
-                      {notification.description}
-                    </p>
-                    <p className="text-xs text-gray-500">
-                      {notification.time}
-                    </p>
-                  </div>
-                  
-                  <div className="flex items-center gap-2">
-                    {!notification.read && (
-                      <div className="w-2 h-2 bg-amber-500 rounded-full flex-shrink-0"></div>
-                    )}
-                  </div>
-                </div>
-
-                {/* Action Buttons */}
-                {notification.actionable && (
-                  <div className="flex gap-2 mt-3">
-                    <Button size="sm" variant="outline">
-                      View Listing
-                    </Button>
-                    {notification.type === 'price_drop' && (
-                      <Button size="sm">
-                        Save Deal
-                      </Button>
-                    )}
-                  </div>
-                )}
-
-                {/* Quick actions for likes and comments */}
-                {(notification.type === 'like' || notification.type === 'comment') && (
-                  <div className="flex gap-2 mt-3">
-                    <Button size="sm" variant="outline">
-                      View Post
-                    </Button>
-                    {notification.type === 'comment' && (
-                      <Button size="sm" variant="outline">
-                        Reply
-                      </Button>
-                    )}
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
+            notification={notification}
+            followingUsers={followingUsers}
+            onFollowToggle={handleFollowToggle}
+          />
         ))}
       </div>
 
-      {/* Empty State */}
-      <div className="text-center py-12">
-        <Bell size={48} className="text-gray-300 mx-auto mb-4" />
-        <h3 className="text-lg font-medium text-gray-600 mb-2">You're all caught up!</h3>
-        <p className="text-gray-500">No more notifications to show</p>
-      </div>
+      <EmptyNotifications />
     </div>
   );
 };
