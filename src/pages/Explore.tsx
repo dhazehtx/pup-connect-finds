@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Search, Filter, Star, MapPin, Heart, MessageCircle, Award } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
@@ -138,7 +139,7 @@ const Explore = () => {
       {/* Listings Grid - 2x2 layout */}
       <div className="grid grid-cols-2 gap-6 max-w-4xl mx-auto">
         {listings.map((listing) => (
-          <Card key={listing.id} className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer">
+          <Card key={listing.id} className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer bg-white">
             <div className="relative">
               <img
                 src={listing.image}
@@ -163,9 +164,9 @@ const Explore = () => {
               </div>
             </div>
             
-            <CardContent className="p-4">
+            <CardContent className="p-4 bg-white">
               <div className="space-y-2">
-                <div className="bg-white p-3 rounded-lg">
+                <div className="bg-white p-3 rounded-lg border border-gray-100">
                   <h3 className="font-semibold text-gray-900 line-clamp-2">{listing.title}</h3>
                 </div>
                 <p className="text-xl font-bold text-gray-900">{listing.price}</p>
