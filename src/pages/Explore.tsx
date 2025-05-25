@@ -1,10 +1,11 @@
 
 import React, { useState } from 'react';
-import { Search, Filter, Star, MapPin, Heart, MessageCircle } from 'lucide-react';
+import { Search, Filter, Star, MapPin, Heart, MessageCircle, Award } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Badge } from '@/components/ui/badge';
 
 const Explore = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -26,6 +27,9 @@ const Explore = () => {
       image: "https://images.unsplash.com/photo-1583337130417-3346a1be7dee?w=400&h=300&fit=crop",
       breeder: "Elite French Bulldogs",
       verified: true,
+      verifiedBreeder: true,
+      idVerified: true,
+      vetVerified: true,
       available: 3
     },
     {
@@ -43,6 +47,9 @@ const Explore = () => {
       image: "https://images.unsplash.com/photo-1552053831-71594a27632d?w=400&h=300&fit=crop",
       breeder: "Sunset Retrievers",
       verified: true,
+      verifiedBreeder: true,
+      idVerified: true,
+      vetVerified: false,
       available: 2
     },
     {
@@ -142,11 +149,19 @@ const Explore = () => {
               <button className="absolute top-3 right-3 p-2 bg-white/90 rounded-full hover:bg-white transition-colors">
                 <Heart size={16} className="text-gray-600" />
               </button>
-              {listing.verified && (
-                <div className="absolute top-3 left-3 bg-blue-500 text-white text-xs px-2 py-1 rounded">
-                  Verified
-                </div>
-              )}
+              <div className="absolute top-3 left-3 flex flex-col gap-1">
+                {listing.verified && (
+                  <Badge className="bg-blue-500 text-white text-xs">
+                    Verified
+                  </Badge>
+                )}
+                {listing.verifiedBreeder && (
+                  <Badge className="bg-green-500 text-white text-xs flex items-center gap-1">
+                    <Award size={10} />
+                    Breeder
+                  </Badge>
+                )}
+              </div>
             </div>
             
             <CardContent className="p-4">
@@ -162,6 +177,16 @@ const Explore = () => {
                   <div>Breed: {listing.breed}</div>
                   <div>Color: {listing.color} • Gender: {listing.gender}</div>
                   <div>Age: {listing.age}</div>
+                </div>
+
+                {/* Verification Badges */}
+                <div className="flex flex-wrap gap-1 pt-1">
+                  {listing.idVerified && (
+                    <Badge variant="outline" className="text-xs">ID Verified</Badge>
+                  )}
+                  {listing.vetVerified && (
+                    <Badge variant="outline" className="text-xs">Vet Licensed</Badge>
+                  )}
                 </div>
 
                 <div className="flex items-center justify-between pt-2">

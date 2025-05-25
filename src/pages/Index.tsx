@@ -8,6 +8,9 @@ import Messages from './Messages';
 import Notifications from './Notifications';
 import Settings from './Settings';
 import Profile from './Profile';
+import Verification from './Verification';
+import MapView from './MapView';
+import Education from './Education';
 
 const Index = () => {
   return (
@@ -15,8 +18,11 @@ const Index = () => {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/explore" element={<Explore />} />
+        <Route path="/map" element={<MapView />} />
         <Route path="/messages" element={<Messages />} />
         <Route path="/notifications" element={<Notifications />} />
+        <Route path="/education" element={<Education />} />
+        <Route path="/verification" element={<Verification />} />
         <Route path="/settings" element={<Settings />} />
         <Route path="/profile/:userId" element={<Profile />} />
       </Routes>
