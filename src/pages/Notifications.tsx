@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Heart, MessageCircle, UserPlus, Star, Bell, TrendingDown, Search, FileCheck } from 'lucide-react';
+import { Heart, MessageCircle, UserPlus, Star, Bell, TrendingDown, Search, FileCheck, UserCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -9,10 +9,31 @@ import { Label } from '@/components/ui/label';
 
 const Notifications = () => {
   const [showSettings, setShowSettings] = useState(false);
+  const [followingUsers, setFollowingUsers] = useState(new Set(['sarah_chen', 'mike_johnson', 'golden_paws']));
   
   const notifications = [
     {
       id: 1,
+      type: 'like',
+      title: 'Sarah Chen liked your post',
+      description: 'Your Golden Retriever puppy photo got a new like',
+      time: '5 minutes ago',
+      read: false,
+      avatar: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=40&h=40&fit=crop&crop=face',
+      username: 'sarah_chen'
+    },
+    {
+      id: 2,
+      type: 'comment',
+      title: 'Mike Johnson commented on your post',
+      description: '"Beautiful puppies! Are they still available?"',
+      time: '8 minutes ago',
+      read: false,
+      avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=40&h=40&fit=crop&crop=face',
+      username: 'mike_johnson'
+    },
+    {
+      id: 3,
       type: 'price_drop',
       title: 'Price drop alert!',
       description: 'Golden Retriever puppies dropped from $3,200 to $2,800',
@@ -22,7 +43,37 @@ const Notifications = () => {
       actionable: true
     },
     {
-      id: 2,
+      id: 4,
+      type: 'like',
+      title: 'Golden Paws Kennel liked your review',
+      description: 'They appreciated your 5-star review',
+      time: '15 minutes ago',
+      read: false,
+      avatar: 'https://images.unsplash.com/photo-1560743173-567a3b5658b1?w=40&h=40&fit=crop&crop=face',
+      username: 'golden_paws'
+    },
+    {
+      id: 5,
+      type: 'follow',
+      title: 'Emma Wilson started following you',
+      description: 'Check out their profile and recent activity',
+      time: '30 minutes ago',
+      read: false,
+      avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=40&h=40&fit=crop&crop=face',
+      username: 'emma_wilson'
+    },
+    {
+      id: 6,
+      type: 'comment',
+      title: 'Alex Rivera commented on your post',
+      description: '"Do you have any female puppies available?"',
+      time: '45 minutes ago',
+      read: false,
+      avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=40&h=40&fit=crop&crop=face',
+      username: 'alex_rivera'
+    },
+    {
+      id: 7,
       type: 'new_listing',
       title: 'New listing matches your search',
       description: 'French Bulldog puppy in San Francisco - Blue Fawn color',
@@ -32,51 +83,56 @@ const Notifications = () => {
       actionable: true
     },
     {
-      id: 3,
+      id: 8,
       type: 'message',
       title: 'New message from Golden Paws Kennel',
       description: 'The puppies will be ready for pickup next week!',
       time: '2 hours ago',
       read: false,
-      avatar: 'https://images.unsplash.com/photo-1560743173-567a3b5658b1?w=40&h=40&fit=crop&crop=face'
+      avatar: 'https://images.unsplash.com/photo-1560743173-567a3b5658b1?w=40&h=40&fit=crop&crop=face',
+      username: 'golden_paws'
     },
     {
-      id: 4,
+      id: 9,
+      type: 'like',
+      title: 'Jessica Park and 12 others liked your post',
+      description: 'Your Labrador training video is getting lots of love!',
+      time: '3 hours ago',
+      read: true,
+      avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=40&h=40&fit=crop&crop=face',
+      username: 'jessica_park'
+    },
+    {
+      id: 10,
       type: 'application',
       title: 'Adoption application approved',
       description: 'Your application for "Bella" has been approved by the shelter',
       time: '4 hours ago',
-      read: false,
+      read: true,
       avatar: null
-    },
-    {
-      id: 5,
-      type: 'follow',
-      title: 'Sarah Chen started following you',
-      description: 'Check out their profile and recent activity',
-      time: '1 day ago',
-      read: true,
-      avatar: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=40&h=40&fit=crop&crop=face'
-    },
-    {
-      id: 6,
-      type: 'review',
-      title: 'New review from Mike Johnson',
-      description: '5 stars - "Amazing breeder, highly recommended!"',
-      time: '2 days ago',
-      read: true,
-      avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=40&h=40&fit=crop&crop=face'
     }
   ];
 
+  const handleFollowToggle = (username: string) => {
+    const newFollowing = new Set(followingUsers);
+    if (newFollowing.has(username)) {
+      newFollowing.delete(username);
+    } else {
+      newFollowing.add(username);
+    }
+    setFollowingUsers(newFollowing);
+  };
+
   const getIcon = (type: string) => {
     switch (type) {
+      case 'like':
+        return <Heart size={16} className="text-red-500" />;
+      case 'comment':
+        return <MessageCircle size={16} className="text-blue-500" />;
       case 'message':
         return <MessageCircle size={16} className="text-blue-500" />;
       case 'follow':
         return <UserPlus size={16} className="text-green-500" />;
-      case 'like':
-        return <Heart size={16} className="text-red-500" />;
       case 'review':
         return <Star size={16} className="text-amber-500" />;
       case 'price_drop':
@@ -92,6 +148,8 @@ const Notifications = () => {
 
   const getTypeLabel = (type: string) => {
     switch (type) {
+      case 'like': return 'Like';
+      case 'comment': return 'Comment';
       case 'price_drop': return 'Price Alert';
       case 'new_listing': return 'New Match';
       case 'application': return 'Application';
@@ -133,6 +191,14 @@ const Notifications = () => {
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="flex items-center justify-between">
+                <Label htmlFor="likes">Likes</Label>
+                <Switch id="likes" defaultChecked />
+              </div>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="comments">Comments</Label>
+                <Switch id="comments" defaultChecked />
+              </div>
+              <div className="flex items-center justify-between">
                 <Label htmlFor="price-alerts">Price drop alerts</Label>
                 <Switch id="price-alerts" defaultChecked />
               </div>
@@ -150,7 +216,7 @@ const Notifications = () => {
               </div>
               <div className="flex items-center justify-between">
                 <Label htmlFor="follows">New followers</Label>
-                <Switch id="follows" />
+                <Switch id="follows" defaultChecked />
               </div>
               <div className="flex items-center justify-between">
                 <Label htmlFor="reviews">Reviews & ratings</Label>
@@ -191,7 +257,7 @@ const Notifications = () => {
               <div className="flex-1 min-w-0">
                 <div className="flex items-start justify-between">
                   <div className="space-y-1">
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 flex-wrap">
                       <h3 className={`text-sm font-semibold ${
                         notification.read ? 'text-gray-800' : 'text-gray-900'
                       }`}>
@@ -200,6 +266,30 @@ const Notifications = () => {
                       <Badge variant="outline" className="text-xs">
                         {getTypeLabel(notification.type)}
                       </Badge>
+                      {/* Follow/Following indicator */}
+                      {notification.username && (
+                        <div className="flex items-center gap-1">
+                          <span className="text-xs text-gray-500">@{notification.username}</span>
+                          <Button
+                            size="sm"
+                            variant={followingUsers.has(notification.username) ? "outline" : "default"}
+                            className="h-6 px-2 text-xs"
+                            onClick={() => handleFollowToggle(notification.username)}
+                          >
+                            {followingUsers.has(notification.username) ? (
+                              <>
+                                <UserCheck size={12} className="mr-1" />
+                                Following
+                              </>
+                            ) : (
+                              <>
+                                <UserPlus size={12} className="mr-1" />
+                                Follow
+                              </>
+                            )}
+                          </Button>
+                        </div>
+                      )}
                     </div>
                     <p className="text-sm text-gray-600">
                       {notification.description}
@@ -225,6 +315,20 @@ const Notifications = () => {
                     {notification.type === 'price_drop' && (
                       <Button size="sm">
                         Save Deal
+                      </Button>
+                    )}
+                  </div>
+                )}
+
+                {/* Quick actions for likes and comments */}
+                {(notification.type === 'like' || notification.type === 'comment') && (
+                  <div className="flex gap-2 mt-3">
+                    <Button size="sm" variant="outline">
+                      View Post
+                    </Button>
+                    {notification.type === 'comment' && (
+                      <Button size="sm" variant="outline">
+                        Reply
                       </Button>
                     )}
                   </div>
