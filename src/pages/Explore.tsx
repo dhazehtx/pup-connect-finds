@@ -30,7 +30,8 @@ const Explore = () => {
       verifiedBreeder: true,
       idVerified: true,
       vetVerified: true,
-      available: 3
+      available: 3,
+      sourceType: "breeder"
     },
     {
       id: 2,
@@ -50,7 +51,8 @@ const Explore = () => {
       verifiedBreeder: true,
       idVerified: true,
       vetVerified: false,
-      available: 2
+      available: 2,
+      sourceType: "breeder"
     },
     {
       id: 3,
@@ -67,7 +69,8 @@ const Explore = () => {
       image: "https://images.unsplash.com/photo-1589941013453-ec89f33b5e95?w=400&h=300&fit=crop",
       breeder: "Metro German Shepherds",
       verified: true,
-      available: 1
+      available: 1,
+      sourceType: "breeder"
     },
     {
       id: 4,
@@ -84,7 +87,46 @@ const Explore = () => {
       image: "https://images.unsplash.com/photo-1518717758536-85ae29035b6d?w=400&h=300&fit=crop",
       breeder: "Happy Tails Labradors",
       verified: true,
-      available: 4
+      available: 4,
+      sourceType: "breeder"
+    },
+    {
+      id: 5,
+      title: "Rescue Pit Bull Mix - Needs Home",
+      price: "$150",
+      location: "San Francisco, CA",
+      distance: "1.8 miles",
+      breed: "Pit Bull Mix",
+      color: "Brindle",
+      gender: "Male",
+      age: "2 years",
+      rating: 4.6,
+      reviews: 12,
+      image: "https://images.unsplash.com/photo-1551717743-49959800b1f6?w=400&h=300&fit=crop",
+      breeder: "SF Animal Shelter",
+      verified: true,
+      available: 1,
+      sourceType: "shelter",
+      isKillShelter: true
+    },
+    {
+      id: 6,
+      title: "Sweet Beagle Looking for Family",
+      price: "$75",
+      location: "Oakland, CA",
+      distance: "6.2 miles",
+      breed: "Beagle",
+      color: "Tri-color",
+      gender: "Female",
+      age: "3 years",
+      rating: 4.8,
+      reviews: 28,
+      image: "https://images.unsplash.com/photo-1544944194-2d4245d0bc67?w=400&h=300&fit=crop",
+      breeder: "Oakland No-Kill Rescue",
+      verified: true,
+      available: 1,
+      sourceType: "shelter",
+      isKillShelter: false
     }
   ];
 
@@ -136,7 +178,7 @@ const Explore = () => {
         </Select>
       </div>
 
-      {/* Listings Grid - 2x2 layout */}
+      {/* Listings Grid - 2x3 layout */}
       <div className="grid grid-cols-2 gap-6 max-w-4xl mx-auto">
         {listings.map((listing) => (
           <Card key={listing.id} className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer bg-white border-gray-200">
@@ -155,10 +197,16 @@ const Explore = () => {
                     Verified
                   </Badge>
                 )}
-                {listing.verifiedBreeder && (
+                {listing.sourceType === "breeder" && listing.verifiedBreeder && (
                   <Badge className="bg-green-500 text-white text-xs flex items-center gap-1">
                     <Award size={10} />
                     Breeder
+                  </Badge>
+                )}
+                {listing.sourceType === "shelter" && (
+                  <Badge className={`text-white text-xs flex items-center gap-1 ${listing.isKillShelter ? 'bg-red-500' : 'bg-purple-500'}`}>
+                    <Heart size={10} />
+                    {listing.isKillShelter ? 'Kill Shelter' : 'No-Kill Shelter'}
                   </Badge>
                 )}
               </div>
@@ -176,6 +224,7 @@ const Explore = () => {
                     <MapPin size={14} />
                     {listing.location} • {listing.distance}
                   </div>
+                  <div>Source: {listing.sourceType === "breeder" ? "Breeder" : "Shelter"}</div>
                   <div>Breed: {listing.breed}</div>
                   <div>Color: {listing.color} • Gender: {listing.gender}</div>
                   <div>Age: {listing.age}</div>
