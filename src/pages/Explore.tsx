@@ -3,6 +3,8 @@ import React, { useState } from 'react';
 import SearchFilters from '@/components/SearchFilters';
 import SortingOptions from '@/components/SortingOptions';
 import ListingsGrid from '@/components/ListingsGrid';
+import QuickFilters from '@/components/QuickFilters';
+import SavedSearches from '@/components/SavedSearches';
 import { useToast } from '@/hooks/use-toast';
 import { useListingFilters } from '@/hooks/useListingFilters';
 import { sampleListings } from '@/data/sampleListings';
@@ -25,6 +27,7 @@ const Explore = () => {
   const [favorites, setFavorites] = useState<number[]>([]);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [sortBy, setSortBy] = useState('newest');
+  const [isLoading, setIsLoading] = useState(false);
   const [filters, setFilters] = useState<FilterState>({
     searchTerm: '',
     breed: 'all',
@@ -39,6 +42,12 @@ const Explore = () => {
   });
 
   const { sortedListings } = useListingFilters(sampleListings, filters, sortBy);
+
+  const hasActiveFilters = Object.entries(filters).some(([key, value]) => {
+    if (key === 'searchTerm') return value.length > 0;
+    if (typeof value === 'boolean') return value;
+    return value !== '' && value !== 'all';
+  });
 
   const handleClearFilters = () => {
     setFilters({
@@ -95,6 +104,19 @@ const Explore = () => {
         <p className="text-gray-600">Find your perfect puppy companion</p>
       </div>
 
+      {/* Saved Searches */}
+      <SavedSearches
+        filters={filters}
+        onFiltersChange={setFilters}
+      />
+
+      {/* Quick Filters */}
+      <QuickFilters
+        filters={filters}
+        onFiltersChange={setFilters}
+        onClearFilters={handleClearFilters}
+      />
+
       {/* Search and Filter Component */}
       <SearchFilters
         filters={filters}
@@ -120,6 +142,9 @@ const Explore = () => {
         onFavorite={handleFavorite}
         onContact={handleContact}
         onViewDetails={handleViewDetails}
+        isLoading={isLoading}
+        onClearFilters={handleClearFilters}
+        hasActiveFilters={hasActiveFilters}
       />
     </div>
   );

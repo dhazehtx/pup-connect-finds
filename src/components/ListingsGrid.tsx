@@ -1,6 +1,8 @@
 
 import React from 'react';
 import ListingCard from './ListingCard';
+import LoadingSkeleton from './LoadingSkeleton';
+import EmptyState from './EmptyState';
 
 interface Listing {
   id: number;
@@ -32,6 +34,9 @@ interface ListingsGridProps {
   onFavorite: (id: number) => void;
   onContact: (id: number) => void;
   onViewDetails: (id: number) => void;
+  isLoading?: boolean;
+  onClearFilters: () => void;
+  hasActiveFilters: boolean;
 }
 
 const ListingsGrid = ({ 
@@ -40,19 +45,25 @@ const ListingsGrid = ({
   favorites, 
   onFavorite, 
   onContact, 
-  onViewDetails 
+  onViewDetails,
+  isLoading = false,
+  onClearFilters,
+  hasActiveFilters
 }: ListingsGridProps) => {
+  if (isLoading) {
+    return <LoadingSkeleton viewMode={viewMode} />;
+  }
+
   if (listings.length === 0) {
-    return (
-      <div className="text-center py-12">
-        <p className="text-gray-500 text-lg">No puppies found matching your criteria</p>
-        <p className="text-gray-400 mt-2">Try adjusting your filters or search terms</p>
-      </div>
-    );
+    return <EmptyState onClearFilters={onClearFilters} hasActiveFilters={hasActiveFilters} />;
   }
 
   return (
-    <div className={viewMode === 'grid' ? 'grid grid-cols-2 gap-6 max-w-4xl mx-auto' : 'space-y-0'}>
+    <div className={
+      viewMode === 'grid' 
+        ? 'grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 max-w-4xl mx-auto' 
+        : 'space-y-0'
+    }>
       {listings.map((listing) => (
         <ListingCard
           key={listing.id}
