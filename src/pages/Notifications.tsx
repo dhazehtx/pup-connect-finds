@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import NotificationHeader from '@/components/notifications/NotificationHeader';
 import NotificationTabs from '@/components/notifications/NotificationTabs';
@@ -123,7 +122,7 @@ const Notifications = () => {
   });
 
   return (
-    <div className="min-h-screen bg-black">
+    <div className="min-h-screen bg-white">
       <NotificationHeader 
         showSettings={showSettings}
         onToggleSettings={() => setShowSettings(!showSettings)}
@@ -133,7 +132,7 @@ const Notifications = () => {
 
       <div className="pt-4">
         <div className="px-4 mb-4">
-          <h2 className="text-white font-semibold text-base mb-3">Last 7 days</h2>
+          <h2 className="text-gray-800 font-semibold text-base mb-3">Last 7 days</h2>
         </div>
         
         <NotificationTabs 

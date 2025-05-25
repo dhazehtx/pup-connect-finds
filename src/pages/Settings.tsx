@@ -1,8 +1,12 @@
 
-import React from 'react';
-import { User, Bell, Shield, MapPin, CreditCard, HelpCircle, LogOut, ChevronRight } from 'lucide-react';
+import React, { useState } from 'react';
+import { User, Bell, Shield, MapPin, CreditCard, HelpCircle, LogOut, ChevronRight, Palette } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
 
 const Settings = () => {
+  const [isDarkMode, setIsDarkMode] = useState(false);
+
   const settingsGroups = [
     {
       title: 'Account',
@@ -50,6 +54,30 @@ const Settings = () => {
           <button className="px-4 py-2 bg-amber-100 text-amber-700 rounded-lg font-medium hover:bg-amber-200 transition-colors">
             Edit Profile
           </button>
+        </div>
+      </div>
+
+      {/* Theme Settings */}
+      <div className="bg-white rounded-xl border border-amber-100 overflow-hidden mb-6">
+        <div className="px-6 py-4 border-b border-gray-100">
+          <h3 className="font-semibold text-gray-800">Appearance</h3>
+        </div>
+        <div className="px-6 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
+                <Palette size={20} className="text-gray-600" />
+              </div>
+              <div>
+                <h4 className="font-medium text-gray-800">Dark Mode</h4>
+                <p className="text-sm text-gray-600 mt-1">Switch between light and dark themes</p>
+              </div>
+            </div>
+            <Switch 
+              checked={isDarkMode}
+              onCheckedChange={setIsDarkMode}
+            />
+          </div>
         </div>
       </div>
 

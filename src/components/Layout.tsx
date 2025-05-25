@@ -13,9 +13,9 @@ const Layout = ({ children }: LayoutProps) => {
   const isNotificationsPage = location.pathname === '/notifications';
   
   return (
-    <div className={`min-h-screen ${isNotificationsPage ? 'bg-black' : 'bg-gradient-to-br from-blue-50 via-white to-blue-50'}`}>
-      {!isNotificationsPage && <Header />}
-      <main className={isNotificationsPage ? 'pb-20' : 'pb-20 pt-24'}>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50">
+      <Header />
+      <main className="pb-20 pt-24">
         {children}
       </main>
       <BottomNavigation />

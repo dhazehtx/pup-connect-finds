@@ -24,8 +24,8 @@ const NotificationTabs = ({ activeTab, onTabChange }: NotificationTabsProps) => 
           size="sm"
           className={`flex-shrink-0 rounded-full text-xs px-4 py-2 ${
             activeTab === tab.id 
-              ? 'bg-white text-black' 
-              : 'bg-gray-700 text-white border-gray-600 hover:bg-gray-600'
+              ? 'bg-blue-600 text-white hover:bg-blue-700' 
+              : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
           }`}
           onClick={() => onTabChange(tab.id)}
         >
