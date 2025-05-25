@@ -1,15 +1,40 @@
 
-import React, { useState } from 'react';
-import { Search, Filter, Star, MapPin, Heart, MessageCircle, Award } from 'lucide-react';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Badge } from '@/components/ui/badge';
+import React, { useState, useMemo } from 'react';
+import SearchFilters from '@/components/SearchFilters';
+import SortingOptions from '@/components/SortingOptions';
+import ListingCard from '@/components/ListingCard';
+import { useToast } from '@/hooks/use-toast';
+
+interface FilterState {
+  searchTerm: string;
+  breed: string;
+  minPrice: string;
+  maxPrice: string;
+  ageGroup: string;
+  gender: string;
+  sourceType: string;
+  maxDistance: string;
+  verifiedOnly: boolean;
+  availableOnly: boolean;
+}
 
 const Explore = () => {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [showFilters, setShowFilters] = useState(false);
+  const { toast } = useToast();
+  const [favorites, setFavorites] = useState<number[]>([]);
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [sortBy, setSortBy] = useState('newest');
+  const [filters, setFilters] = useState<FilterState>({
+    searchTerm: '',
+    breed: 'all',
+    minPrice: '',
+    maxPrice: '',
+    ageGroup: 'all',
+    gender: 'all',
+    sourceType: 'all',
+    maxDistance: 'all',
+    verifiedOnly: false,
+    availableOnly: false,
+  });
 
   const listings = [
     {
@@ -130,6 +155,158 @@ const Explore = () => {
     }
   ];
 
+  // Filter listings based on current filters
+  const filteredListings = useMemo(() => {
+    return listings.filter((listing) => {
+      // Search term filter
+      if (filters.searchTerm) {
+        const searchLower = filters.searchTerm.toLowerCase();
+        const matchesSearch = 
+          listing.title.toLowerCase().includes(searchLower) ||
+          listing.breed.toLowerCase().includes(searchLower) ||
+          listing.location.toLowerCase().includes(searchLower) ||
+          listing.breeder.toLowerCase().includes(searchLower);
+        if (!matchesSearch) return false;
+      }
+
+      // Breed filter
+      if (filters.breed !== 'all' && filters.breed !== 'all breeds') {
+        if (!listing.breed.toLowerCase().includes(filters.breed.toLowerCase())) return false;
+      }
+
+      // Source type filter
+      if (filters.sourceType !== 'all') {
+        if (listing.sourceType !== filters.sourceType) return false;
+      }
+
+      // Gender filter
+      if (filters.gender !== 'all') {
+        if (listing.gender.toLowerCase() !== filters.gender.toLowerCase()) return false;
+      }
+
+      // Age group filter
+      if (filters.ageGroup !== 'all') {
+        const ageNumber = parseInt(listing.age);
+        if (filters.ageGroup === 'puppy' && ageNumber > 52) return false; // > 1 year in weeks
+        if (filters.ageGroup === 'young' && (ageNumber <= 52 || ageNumber > 156)) return false; // 1-3 years
+        if (filters.ageGroup === 'adult' && ageNumber <= 156) return false; // 3+ years
+      }
+
+      // Price filters
+      if (filters.minPrice) {
+        const minPrice = parseInt(filters.minPrice.replace(/[$,]/g, ''));
+        const listingPrice = parseInt(listing.price.replace(/[$,]/g, ''));
+        if (listingPrice < minPrice) return false;
+      }
+
+      if (filters.maxPrice) {
+        const maxPrice = parseInt(filters.maxPrice.replace(/[$,]/g, ''));
+        const listingPrice = parseInt(listing.price.replace(/[$,]/g, ''));
+        if (listingPrice > maxPrice) return false;
+      }
+
+      // Distance filter
+      if (filters.maxDistance !== 'all') {
+        const maxDist = parseInt(filters.maxDistance);
+        const listingDist = parseFloat(listing.distance);
+        if (listingDist > maxDist) return false;
+      }
+
+      // Verified only filter
+      if (filters.verifiedOnly && !listing.verified) return false;
+
+      // Available only filter
+      if (filters.availableOnly && listing.available === 0) return false;
+
+      return true;
+    });
+  }, [listings, filters]);
+
+  // Sort filtered listings
+  const sortedListings = useMemo(() => {
+    const sorted = [...filteredListings];
+    
+    switch (sortBy) {
+      case 'price-low':
+        return sorted.sort((a, b) => {
+          const priceA = parseInt(a.price.replace(/[$,]/g, ''));
+          const priceB = parseInt(b.price.replace(/[$,]/g, ''));
+          return priceA - priceB;
+        });
+      case 'price-high':
+        return sorted.sort((a, b) => {
+          const priceA = parseInt(a.price.replace(/[$,]/g, ''));
+          const priceB = parseInt(b.price.replace(/[$,]/g, ''));
+          return priceB - priceA;
+        });
+      case 'distance':
+        return sorted.sort((a, b) => parseFloat(a.distance) - parseFloat(b.distance));
+      case 'rating':
+        return sorted.sort((a, b) => b.rating - a.rating);
+      case 'age-young':
+        return sorted.sort((a, b) => {
+          const ageA = parseInt(a.age);
+          const ageB = parseInt(b.age);
+          return ageA - ageB;
+        });
+      case 'age-old':
+        return sorted.sort((a, b) => {
+          const ageA = parseInt(a.age);
+          const ageB = parseInt(b.age);
+          return ageB - ageA;
+        });
+      default: // newest
+        return sorted.sort((a, b) => b.id - a.id);
+    }
+  }, [filteredListings, sortBy]);
+
+  const handleClearFilters = () => {
+    setFilters({
+      searchTerm: '',
+      breed: 'all',
+      minPrice: '',
+      maxPrice: '',
+      ageGroup: 'all',
+      gender: 'all',
+      sourceType: 'all',
+      maxDistance: 'all',
+      verifiedOnly: false,
+      availableOnly: false,
+    });
+  };
+
+  const handleFavorite = (id: number) => {
+    setFavorites(prev => {
+      const newFavorites = prev.includes(id) 
+        ? prev.filter(fav => fav !== id)
+        : [...prev, id];
+      
+      const listing = listings.find(l => l.id === id);
+      toast({
+        title: prev.includes(id) ? "Removed from favorites" : "Added to favorites",
+        description: listing ? `${listing.title}` : "Listing updated",
+      });
+      
+      return newFavorites;
+    });
+  };
+
+  const handleContact = (id: number) => {
+    const listing = listings.find(l => l.id === id);
+    toast({
+      title: "Contact initiated",
+      description: `We'll connect you with ${listing?.breeder || 'the seller'}`,
+    });
+  };
+
+  const handleViewDetails = (id: number) => {
+    const listing = listings.find(l => l.id === id);
+    toast({
+      title: "Opening details",
+      description: `Viewing details for ${listing?.title || 'this listing'}`,
+    });
+  };
+
   return (
     <div className="max-w-7xl mx-auto px-4 py-6">
       {/* Header */}
@@ -138,133 +315,44 @@ const Explore = () => {
         <p className="text-gray-600">Find your perfect puppy companion</p>
       </div>
 
-      {/* Search and Filter Bar */}
-      <div className="bg-white rounded-lg border border-gray-200 p-4 mb-6 space-y-4">
-        <div className="flex gap-4">
-          <div className="flex-1 relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
-            <Input
-              placeholder="Search for puppies..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 bg-white border-gray-200"
-            />
-          </div>
-          <Button
-            variant="outline"
-            onClick={() => setShowFilters(!showFilters)}
-            className="flex items-center gap-2 bg-white hover:bg-soft-sky border-gray-200"
-          >
-            <Filter size={18} />
-            Filters
-          </Button>
-        </div>
-      </div>
+      {/* Search and Filter Component */}
+      <SearchFilters
+        filters={filters}
+        onFiltersChange={setFilters}
+        resultsCount={sortedListings.length}
+        onClearFilters={handleClearFilters}
+      />
+
+      {/* Sorting and View Options */}
+      <SortingOptions
+        sortBy={sortBy}
+        onSortChange={setSortBy}
+        viewMode={viewMode}
+        onViewModeChange={setViewMode}
+        resultsCount={sortedListings.length}
+      />
 
       {/* Results */}
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-lg font-semibold text-gray-900">{listings.length} puppies available</h2>
-        <Select defaultValue="newest">
-          <SelectTrigger className="w-48 bg-white border-gray-200">
-            <SelectValue placeholder="Sort by" />
-          </SelectTrigger>
-          <SelectContent className="bg-white border-gray-200">
-            <SelectItem value="newest">Newest first</SelectItem>
-            <SelectItem value="price-low">Price: Low to High</SelectItem>
-            <SelectItem value="price-high">Price: High to Low</SelectItem>
-            <SelectItem value="distance">Distance</SelectItem>
-            <SelectItem value="rating">Highest rated</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-
-      {/* Listings Grid - 2x3 layout */}
-      <div className="grid grid-cols-2 gap-6 max-w-4xl mx-auto">
-        {listings.map((listing) => (
-          <Card key={listing.id} className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer bg-white border-gray-200">
-            <div className="relative">
-              <img
-                src={listing.image}
-                alt={listing.title}
-                className="w-full h-48 object-cover"
-              />
-              <button className="absolute top-3 right-3 p-2 bg-white/90 rounded-full hover:bg-white transition-colors">
-                <Heart size={16} className="text-gray-600" />
-              </button>
-              <div className="absolute top-3 left-3 flex flex-col gap-1">
-                {listing.verified && (
-                  <Badge className="bg-blue-500 text-white text-xs">
-                    Verified
-                  </Badge>
-                )}
-                {listing.sourceType === "breeder" && listing.verifiedBreeder && (
-                  <Badge className="bg-green-500 text-white text-xs flex items-center gap-1">
-                    <Award size={10} />
-                    Breeder
-                  </Badge>
-                )}
-                {listing.sourceType === "shelter" && (
-                  <Badge className={`text-white text-xs flex items-center gap-1 ${listing.isKillShelter ? 'bg-red-500' : 'bg-purple-500'}`}>
-                    <Heart size={10} />
-                    {listing.isKillShelter ? 'Kill Shelter' : 'No-Kill Shelter'}
-                  </Badge>
-                )}
-              </div>
-            </div>
-            
-            <CardContent className="p-4 bg-white">
-              <div className="space-y-2">
-                <div className="bg-white p-3 rounded-lg border border-gray-200">
-                  <h3 className="font-semibold text-gray-900 line-clamp-2">{listing.title}</h3>
-                </div>
-                <p className="text-xl font-bold text-gray-900">{listing.price}</p>
-                
-                <div className="space-y-1 text-sm text-gray-600">
-                  <div className="flex items-center gap-1">
-                    <MapPin size={14} />
-                    {listing.location} • {listing.distance}
-                  </div>
-                  <div>Source: {listing.sourceType === "breeder" ? "Breeder" : "Shelter"}</div>
-                  <div>Breed: {listing.breed}</div>
-                  <div>Color: {listing.color} • Gender: {listing.gender}</div>
-                  <div>Age: {listing.age}</div>
-                </div>
-
-                {/* Verification Badges */}
-                <div className="flex flex-wrap gap-1 pt-1">
-                  {listing.idVerified && (
-                    <Badge variant="outline" className="text-xs border-gray-200">ID Verified</Badge>
-                  )}
-                  {listing.vetVerified && (
-                    <Badge variant="outline" className="text-xs border-gray-200">Vet Licensed</Badge>
-                  )}
-                </div>
-
-                <div className="flex items-center justify-between pt-2">
-                  <div className="flex items-center gap-1">
-                    <Star size={14} className="text-royal-blue fill-current" />
-                    <span className="text-sm text-gray-600">{listing.rating} ({listing.reviews})</span>
-                  </div>
-                  <span className="text-sm text-gray-600">{listing.available} available</span>
-                </div>
-
-                <div className="flex gap-2 pt-2">
-                  <Button className="flex-1 bg-soft-sky text-royal-blue hover:bg-royal-blue hover:text-white border-0" size="sm">
-                    View Details
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    className="bg-white border-gray-200 text-royal-blue hover:bg-soft-sky hover:text-royal-blue hover:border-gray-200"
-                  >
-                    <MessageCircle size={16} />
-                  </Button>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+      {sortedListings.length === 0 ? (
+        <div className="text-center py-12">
+          <p className="text-gray-500 text-lg">No puppies found matching your criteria</p>
+          <p className="text-gray-400 mt-2">Try adjusting your filters or search terms</p>
+        </div>
+      ) : (
+        <div className={viewMode === 'grid' ? 'grid grid-cols-2 gap-6 max-w-4xl mx-auto' : 'space-y-0'}>
+          {sortedListings.map((listing) => (
+            <ListingCard
+              key={listing.id}
+              listing={listing}
+              viewMode={viewMode}
+              onFavorite={handleFavorite}
+              onContact={handleContact}
+              onViewDetails={handleViewDetails}
+              isFavorited={favorites.includes(listing.id)}
+            />
+          ))}
+        </div>
+      )}
     </div>
   );
 };
