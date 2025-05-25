@@ -9,13 +9,11 @@ import { Checkbox } from '@/components/ui/checkbox';
 const Explore = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedBreed, setSelectedBreed] = useState('');
-  const [zipCode, setZipCode] = useState('');
-  const [radius, setRadius] = useState('');
+  const [selectedColor, setSelectedColor] = useState('');
+  const [selectedGender, setSelectedGender] = useState('');
   const [selectedAge, setSelectedAge] = useState('');
-  const [selectedSize, setSelectedSize] = useState('');
-  const [listingType, setListingType] = useState('');
+  const [selectedGenetics, setSelectedGenetics] = useState<string[]>([]);
   const [priceRange, setPriceRange] = useState({ min: '', max: '' });
-  const [healthFilters, setHealthFilters] = useState<string[]>([]);
   const [showFilters, setShowFilters] = useState(false);
 
   const breeds = [
@@ -23,10 +21,22 @@ const Explore = () => {
     'Poodle', 'Bulldog', 'Beagle', 'Rottweiler', 'Siberian Husky', 'Dachshund'
   ];
 
-  const ageGroups = ['Puppy (0-1 year)', 'Adult (1-7 years)', 'Senior (7+ years)'];
-  const sizes = ['Small (under 25 lbs)', 'Medium (25-60 lbs)', 'Large (60+ lbs)'];
-  const radiusOptions = ['5 miles', '10 miles', '25 miles', '50 miles', '100 miles'];
-  const healthOptions = ['Vaccinated', 'Spayed/Neutered', 'Health Tested', 'Microchipped'];
+  const colors = [
+    'Black', 'White', 'Brown', 'Golden', 'Cream', 'Blue', 'Fawn', 'Brindle', 'Merle', 'Chocolate'
+  ];
+
+  const ages = [
+    '8-12 weeks', '3-6 months', '6-12 months', '1-2 years', '2+ years'
+  ];
+
+  const frenchBulldogGenetics = [
+    'BB (Non-dilute)', 'Bb (Carrier dilute)', 'bb (Dilute blue)', 
+    'DD (Non-dilute)', 'Dd (Carrier dilute)', 'dd (Dilute)',
+    'COCO (Cream/White)', 'COco (Cream carrier)', 'coco (Normal)',
+    'AtAt (Tan points)', 'Ata (Tan carrier)', 'aa (Recessive black)',
+    'EmEm (Dark mask)', 'Eme (Mask carrier)', 'ee (Red/Yellow)',
+    'NN (Normal)', 'Nn (Carrier)', 'nn (Recessive trait)'
+  ];
 
   const listings = [
     {
@@ -39,7 +49,7 @@ const Explore = () => {
       color: "Blue Fawn",
       gender: "Male",
       age: "8 weeks",
-      genetics: ["bb", "DD", "COCO", "AtAt"], // French Bulldogs often have genetics
+      genetics: ["bb", "DD", "COCO", "AtAt"],
       rating: 4.9,
       reviews: 23,
       image: "https://images.unsplash.com/photo-1583337130417-3346a1be7dee?w=400&h=300&fit=crop",
@@ -57,7 +67,7 @@ const Explore = () => {
       color: "Golden",
       gender: "Female",
       age: "10 weeks",
-      genetics: [], // No genetics testing done
+      genetics: [],
       rating: 4.8,
       reviews: 45,
       image: "https://images.unsplash.com/photo-1552053831-71594a27632d?w=400&h=300&fit=crop",
@@ -75,7 +85,7 @@ const Explore = () => {
       color: "Black & Tan",
       gender: "Male",
       age: "12 weeks",
-      genetics: [], // No genetics testing done
+      genetics: [],
       rating: 4.9,
       reviews: 31,
       image: "https://images.unsplash.com/photo-1589941013453-ec89f33b5e95?w=400&h=300&fit=crop",
@@ -93,7 +103,7 @@ const Explore = () => {
       color: "Chocolate",
       gender: "Female",
       age: "9 weeks",
-      genetics: [], // No genetics testing done
+      genetics: [],
       rating: 4.7,
       reviews: 18,
       image: "https://images.unsplash.com/photo-1518717758536-85ae29035b6d?w=400&h=300&fit=crop",
@@ -103,11 +113,11 @@ const Explore = () => {
     }
   ];
 
-  const handleHealthFilterChange = (filter: string, checked: boolean) => {
+  const handleGeneticsChange = (genetic: string, checked: boolean) => {
     if (checked) {
-      setHealthFilters([...healthFilters, filter]);
+      setSelectedGenetics([...selectedGenetics, genetic]);
     } else {
-      setHealthFilters(healthFilters.filter(f => f !== filter));
+      setSelectedGenetics(selectedGenetics.filter(g => g !== genetic));
     }
   };
 
@@ -144,8 +154,7 @@ const Explore = () => {
         {/* Filters */}
         {showFilters && (
           <div className="border-t pt-4 space-y-4">
-            {/* Main Filters Row */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Breed</label>
                 <Select value={selectedBreed} onValueChange={setSelectedBreed}>
@@ -161,13 +170,40 @@ const Explore = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Age Group</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Color</label>
+                <Select value={selectedColor} onValueChange={setSelectedColor}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="All colors" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-white">
+                    {colors.map((color) => (
+                      <SelectItem key={color} value={color}>{color}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Gender</label>
+                <Select value={selectedGender} onValueChange={setSelectedGender}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="All genders" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-white">
+                    <SelectItem value="Male">Male</SelectItem>
+                    <SelectItem value="Female">Female</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Age</label>
                 <Select value={selectedAge} onValueChange={setSelectedAge}>
                   <SelectTrigger>
                     <SelectValue placeholder="All ages" />
                   </SelectTrigger>
                   <SelectContent className="bg-white">
-                    {ageGroups.map((age) => (
+                    {ages.map((age) => (
                       <SelectItem key={age} value={age}>{age}</SelectItem>
                     ))}
                   </SelectContent>
@@ -175,95 +211,42 @@ const Explore = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Size</label>
-                <Select value={selectedSize} onValueChange={setSelectedSize}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="All sizes" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-white">
-                    {sizes.map((size) => (
-                      <SelectItem key={size} value={size}>{size}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Listing Type</label>
-                <Select value={listingType} onValueChange={setListingType}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="All types" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-white">
-                    <SelectItem value="purchase">For Purchase</SelectItem>
-                    <SelectItem value="adoption">For Adoption</SelectItem>
-                  </SelectContent>
-                </Select>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Price Range</label>
+                <div className="flex gap-2">
+                  <Input
+                    placeholder="Min"
+                    value={priceRange.min}
+                    onChange={(e) => setPriceRange({...priceRange, min: e.target.value})}
+                  />
+                  <Input
+                    placeholder="Max"
+                    value={priceRange.max}
+                    onChange={(e) => setPriceRange({...priceRange, max: e.target.value})}
+                  />
+                </div>
               </div>
             </div>
 
-            {/* Location and Price Row */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {/* Genetics Filter for French Bulldogs */}
+            {selectedBreed === 'French Bulldog' && (
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Zip Code</label>
-                <Input
-                  placeholder="Enter zip code"
-                  value={zipCode}
-                  onChange={(e) => setZipCode(e.target.value)}
-                />
+                <label className="block text-sm font-medium text-gray-700 mb-3">Genetics</label>
+                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
+                  {frenchBulldogGenetics.map((genetic) => (
+                    <div key={genetic} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={genetic}
+                        checked={selectedGenetics.includes(genetic)}
+                        onCheckedChange={(checked) => handleGeneticsChange(genetic, checked as boolean)}
+                      />
+                      <label htmlFor={genetic} className="text-sm text-gray-700 cursor-pointer">
+                        {genetic}
+                      </label>
+                    </div>
+                  ))}
+                </div>
               </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Radius</label>
-                <Select value={radius} onValueChange={setRadius}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select radius" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-white">
-                    {radiusOptions.map((option) => (
-                      <SelectItem key={option} value={option}>{option}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Min Price</label>
-                <Input
-                  placeholder="Min price"
-                  value={priceRange.min}
-                  onChange={(e) => setPriceRange({...priceRange, min: e.target.value})}
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Max Price</label>
-                <Input
-                  placeholder="Max price"
-                  value={priceRange.max}
-                  onChange={(e) => setPriceRange({...priceRange, max: e.target.value})}
-                />
-              </div>
-            </div>
-
-            {/* Health Filters */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-3">Health Status</label>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                {healthOptions.map((option) => (
-                  <div key={option} className="flex items-center space-x-2">
-                    <Checkbox
-                      id={option}
-                      checked={healthFilters.includes(option)}
-                      onCheckedChange={(checked) => handleHealthFilterChange(option, checked as boolean)}
-                    />
-                    <label htmlFor={option} className="text-sm text-gray-700 cursor-pointer">
-                      {option}
-                    </label>
-                  </div>
-                ))}
-              </div>
-            </div>
+            )}
           </div>
         )}
       </div>
@@ -286,7 +269,7 @@ const Explore = () => {
       </div>
 
       {/* Listings Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
         {listings.map((listing) => (
           <Card key={listing.id} className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer">
             <div className="relative">
@@ -318,7 +301,7 @@ const Explore = () => {
                   <div>Breed: {listing.breed}</div>
                   <div>Color: {listing.color} • Gender: {listing.gender}</div>
                   <div>Age: {listing.age}</div>
-                  {listing.genetics && listing.genetics.length > 0 && (
+                  {listing.genetics.length > 0 && (
                     <div>Genetics: {listing.genetics.join(', ')}</div>
                   )}
                 </div>

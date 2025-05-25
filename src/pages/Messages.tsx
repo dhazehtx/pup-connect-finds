@@ -1,39 +1,10 @@
+
 import React, { useState } from 'react';
-import { Search, ArrowLeft, Phone, Video, MoreHorizontal, Send, Globe, Zap } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Search, ArrowLeft, Phone, Video, MoreHorizontal, Send } from 'lucide-react';
 
 const Messages = () => {
   const [selectedChat, setSelectedChat] = useState<number | null>(null);
   const [newMessage, setNewMessage] = useState('');
-  const [showQuickMessages, setShowQuickMessages] = useState(false);
-  const [autoTranslate, setAutoTranslate] = useState(false);
-  const [selectedLanguage, setSelectedLanguage] = useState('en');
-
-  // Quick message templates
-  const quickMessages = [
-    "Is this puppy still available?",
-    "Can I schedule a visit to meet the puppy?",
-    "What health certificates do you have?",
-    "Has the puppy been vaccinated?",
-    "What is included in the price?",
-    "Can you provide more photos/videos?",
-    "What is the puppy's temperament like?",
-    "Are the parents on site?",
-    "What is your pickup process?",
-    "Do you offer a health guarantee?"
-  ];
-
-  const languages = [
-    { code: 'en', name: 'English' },
-    { code: 'es', name: 'Spanish' },
-    { code: 'fr', name: 'French' },
-    { code: 'de', name: 'German' },
-    { code: 'it', name: 'Italian' },
-    { code: 'pt', name: 'Portuguese' },
-    { code: 'zh', name: 'Chinese' },
-    { code: 'ja', name: 'Japanese' },
-    { code: 'ko', name: 'Korean' }
-  ];
 
   const conversations = [
     {
@@ -79,48 +50,33 @@ const Messages = () => {
       id: 1,
       sender: "them",
       message: "Hi! I saw your interest in our Golden Retriever puppies. Are you still looking?",
-      time: "2:15 PM",
-      translated: false,
-      originalMessage: ""
+      time: "2:15 PM"
     },
     {
       id: 2,
       sender: "me",
       message: "Yes, absolutely! Could you tell me more about the available puppies?",
-      time: "2:18 PM",
-      translated: false,
-      originalMessage: ""
+      time: "2:18 PM"
     },
     {
       id: 3,
       sender: "them",
       message: "We have 3 beautiful puppies available. All are 8 weeks old and have their first shots.",
-      time: "2:20 PM",
-      translated: false,
-      originalMessage: ""
+      time: "2:20 PM"
     },
     {
       id: 4,
       sender: "them",
       message: "The puppies will be ready for pickup next week!",
-      time: "2:30 PM",
-      translated: false,
-      originalMessage: ""
+      time: "2:30 PM"
     }
   ];
 
   const handleSendMessage = () => {
     if (newMessage.trim()) {
       // Here you would typically send the message
-      console.log('Sending message:', newMessage);
       setNewMessage('');
-      setShowQuickMessages(false);
     }
-  };
-
-  const handleQuickMessage = (message: string) => {
-    setNewMessage(message);
-    setShowQuickMessages(false);
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -136,11 +92,6 @@ const Messages = () => {
 
   const goBackToChats = () => {
     setSelectedChat(null);
-  };
-
-  const toggleAutoTranslate = () => {
-    setAutoTranslate(!autoTranslate);
-    console.log('Auto-translate toggled:', !autoTranslate);
   };
 
   const currentConversation = conversations.find(c => c.id === selectedChat);
@@ -234,13 +185,6 @@ const Messages = () => {
             </div>
             
             <div className="flex items-center gap-1">
-              <button 
-                onClick={toggleAutoTranslate}
-                className={`p-3 rounded-full transition-colors ${autoTranslate ? 'bg-blue-100 text-blue-600' : 'hover:bg-gray-100 text-gray-600'}`}
-                title="Auto-translate messages"
-              >
-                <Globe size={20} />
-              </button>
               <button className="p-3 hover:bg-gray-100 rounded-full transition-colors">
                 <Phone size={20} className="text-gray-600" />
               </button>
@@ -252,26 +196,6 @@ const Messages = () => {
               </button>
             </div>
           </div>
-
-          {/* Translation Settings */}
-          {autoTranslate && (
-            <div className="mt-3 pt-3 border-t border-gray-100">
-              <div className="flex items-center gap-3">
-                <span className="text-sm text-gray-600">Translate to:</span>
-                <select
-                  value={selectedLanguage}
-                  onChange={(e) => setSelectedLanguage(e.target.value)}
-                  className="text-sm border border-gray-200 rounded-md px-2 py-1 bg-white"
-                >
-                  {languages.map((lang) => (
-                    <option key={lang.code} value={lang.code}>
-                      {lang.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-          )}
         </div>
 
         {/* Messages */}
@@ -297,49 +221,15 @@ const Messages = () => {
                   }`}
                 >
                   <p className="text-sm leading-relaxed">{msg.message}</p>
-                  {autoTranslate && msg.sender === 'them' && (
-                    <div className="mt-2 pt-2 border-t border-gray-200">
-                      <p className="text-xs text-gray-500 italic">
-                        Translated: {msg.message}
-                      </p>
-                    </div>
-                  )}
                 </div>
               </div>
             </div>
           ))}
         </div>
 
-        {/* Quick Messages */}
-        {showQuickMessages && (
-          <div className="p-4 border-t border-gray-100 bg-gray-50">
-            <div className="mb-3">
-              <h3 className="text-sm font-medium text-gray-700 mb-2">Quick Messages</h3>
-              <div className="grid grid-cols-1 gap-2 max-h-32 overflow-y-auto">
-                {quickMessages.map((msg, index) => (
-                  <button
-                    key={index}
-                    onClick={() => handleQuickMessage(msg)}
-                    className="text-left p-2 text-sm bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
-                  >
-                    {msg}
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
-        )}
-
         {/* Message Input */}
         <div className="p-4 bg-white border-t border-gray-100">
           <div className="flex items-center gap-3">
-            <button
-              onClick={() => setShowQuickMessages(!showQuickMessages)}
-              className={`p-2 rounded-full transition-colors ${showQuickMessages ? 'bg-blue-100 text-blue-600' : 'hover:bg-gray-100 text-gray-600'}`}
-              title="Quick messages"
-            >
-              <Zap size={18} />
-            </button>
             <div className="flex-1 relative">
               <input
                 type="text"
