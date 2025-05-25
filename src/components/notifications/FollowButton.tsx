@@ -14,20 +14,14 @@ const FollowButton = ({ username, isFollowing, onToggle }: FollowButtonProps) =>
     <Button
       size="sm"
       variant={isFollowing ? "outline" : "default"}
-      className="h-6 px-2 text-xs"
+      className={`h-7 px-3 text-xs rounded-md ${
+        isFollowing 
+          ? 'bg-gray-700 border-gray-600 text-white hover:bg-gray-600' 
+          : 'bg-blue-600 text-white hover:bg-blue-700'
+      }`}
       onClick={() => onToggle(username)}
     >
-      {isFollowing ? (
-        <>
-          <UserCheck size={12} className="mr-1" />
-          Following
-        </>
-      ) : (
-        <>
-          <UserPlus size={12} className="mr-1" />
-          Follow
-        </>
-      )}
+      {isFollowing ? 'Following' : 'Follow back'}
     </Button>
   );
 };

@@ -1,112 +1,101 @@
+
 import React, { useState } from 'react';
 import NotificationHeader from '@/components/notifications/NotificationHeader';
+import NotificationTabs from '@/components/notifications/NotificationTabs';
 import NotificationSettings from '@/components/notifications/NotificationSettings';
 import NotificationItem from '@/components/notifications/NotificationItem';
-import EmptyNotifications from '@/components/notifications/EmptyNotifications';
 
 const Notifications = () => {
   const [showSettings, setShowSettings] = useState(false);
+  const [activeTab, setActiveTab] = useState('all');
   const [followingUsers, setFollowingUsers] = useState(new Set(['sarah_chen', 'mike_johnson', 'golden_paws']));
   
   const notifications = [
     {
       id: 1,
-      type: 'like',
-      title: 'Sarah Chen liked your post',
-      description: 'Your Golden Retriever puppy photo got a new like',
-      time: '5 minutes ago',
+      type: 'comment',
+      title: 'angelina99 commented on a post you\'re tagged in',
+      description: 'commented on a post you\'re tagged in: Awww',
+      time: '1d',
       read: false,
       avatar: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=40&h=40&fit=crop&crop=face',
-      username: 'sarah_chen'
+      username: 'angelina99',
+      postImage: 'https://images.unsplash.com/photo-1552053831-71594a27632d?w=50&h=50&fit=crop'
     },
     {
       id: 2,
-      type: 'comment',
-      title: 'Mike Johnson commented on your post',
-      description: '"Beautiful puppies! Are they still available?"',
-      time: '8 minutes ago',
+      type: 'like',
+      title: 'strawberrymama posted a thread you might like',
+      description: 'posted a thread you might like: Buy Me Dr Pepper Is well I hear 😊',
+      time: '2d',
       read: false,
-      avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=40&h=40&fit=crop&crop=face',
-      username: 'mike_johnson'
+      avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=40&h=40&fit=crop&crop=face',
+      username: 'strawberrymama'
     },
     {
       id: 3,
-      type: 'price_drop',
-      title: 'Price drop alert!',
-      description: 'Golden Retriever puppies dropped from $3,200 to $2,800',
-      time: '10 minutes ago',
+      type: 'follow',
+      title: 'family_first_88 started following you',
+      description: 'started following you.',
+      time: '2d',
       read: false,
-      avatar: null,
-      actionable: true
+      avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=40&h=40&fit=crop&crop=face',
+      username: 'family_first_88'
     },
     {
       id: 4,
       type: 'like',
-      title: 'Golden Paws Kennel liked your review',
-      description: 'They appreciated your 5-star review',
-      time: '15 minutes ago',
+      title: 'don_arredondo92, marianna.7 and others liked your story',
+      description: 'and others liked your story.',
+      time: '4d',
       read: false,
-      avatar: 'https://images.unsplash.com/photo-1560743173-567a3b5658b1?w=40&h=40&fit=crop&crop=face',
-      username: 'golden_paws'
+      avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=40&h=40&fit=crop&crop=face',
+      username: 'don_arredondo92',
+      postImage: 'https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=50&h=50&fit=crop'
     },
     {
       id: 5,
-      type: 'follow',
-      title: 'Emma Wilson started following you',
-      description: 'Check out their profile and recent activity',
-      time: '30 minutes ago',
+      type: 'like',
+      title: 'dejanmusk and kylahickks liked your story',
+      description: 'liked your story.',
+      time: '4d',
       read: false,
-      avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=40&h=40&fit=crop&crop=face',
-      username: 'emma_wilson'
+      avatar: 'https://images.unsplash.com/photo-1560743173-567a3b5658b1?w=40&h=40&fit=crop&crop=face',
+      username: 'dejanmusk',
+      postImage: 'https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=50&h=50&fit=crop'
     },
     {
       id: 6,
-      type: 'comment',
-      title: 'Alex Rivera commented on your post',
-      description: '"Do you have any female puppies available?"',
-      time: '45 minutes ago',
+      type: 'like',
+      title: 'kylahickks liked your story',
+      description: 'liked your story.',
+      time: '5d',
       read: false,
-      avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=40&h=40&fit=crop&crop=face',
-      username: 'alex_rivera'
+      avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=40&h=40&fit=crop&crop=face',
+      username: 'kylahickks',
+      postImage: 'https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=50&h=50&fit=crop'
     },
     {
       id: 7,
-      type: 'new_listing',
-      title: 'New listing matches your search',
-      description: 'French Bulldog puppy in San Francisco - Blue Fawn color',
-      time: '1 hour ago',
+      type: 'comment',
+      title: 'kylahickks mentioned you in a comment',
+      description: 'mentioned you in a comment: @pmoney_htxx "queens 👑 😍"',
+      time: '5d',
       read: false,
-      avatar: null,
-      actionable: true
+      avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=40&h=40&fit=crop&crop=face',
+      username: 'kylahickks',
+      postImage: 'https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=50&h=50&fit=crop'
     },
     {
       id: 8,
-      type: 'message',
-      title: 'New message from Golden Paws Kennel',
-      description: 'The puppies will be ready for pickup next week!',
-      time: '2 hours ago',
-      read: false,
-      avatar: 'https://images.unsplash.com/photo-1560743173-567a3b5658b1?w=40&h=40&fit=crop&crop=face',
-      username: 'golden_paws'
-    },
-    {
-      id: 9,
       type: 'like',
-      title: 'Jessica Park and 12 others liked your post',
-      description: 'Your Labrador training video is getting lots of love!',
-      time: '3 hours ago',
-      read: true,
+      title: 'kylahickks liked your comment',
+      description: 'liked your comment: Queen 👑',
+      time: '5d',
+      read: false,
       avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=40&h=40&fit=crop&crop=face',
-      username: 'jessica_park'
-    },
-    {
-      id: 10,
-      type: 'application',
-      title: 'Adoption application approved',
-      description: 'Your application for "Bella" has been approved by the shelter',
-      time: '4 hours ago',
-      read: true,
-      avatar: null
+      username: 'kylahickks',
+      postImage: 'https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=50&h=50&fit=crop'
     }
   ];
 
@@ -120,8 +109,21 @@ const Notifications = () => {
     setFollowingUsers(newFollowing);
   };
 
+  const filteredNotifications = notifications.filter(notification => {
+    switch (activeTab) {
+      case 'following':
+        return notification.username && followingUsers.has(notification.username);
+      case 'comments':
+        return notification.type === 'comment';
+      case 'follows':
+        return notification.type === 'follow';
+      default:
+        return true;
+    }
+  });
+
   return (
-    <div className="max-w-4xl mx-auto px-4 py-6">
+    <div className="min-h-screen bg-black">
       <NotificationHeader 
         showSettings={showSettings}
         onToggleSettings={() => setShowSettings(!showSettings)}
@@ -129,18 +131,27 @@ const Notifications = () => {
 
       {showSettings && <NotificationSettings />}
 
-      <div className="space-y-3">
-        {notifications.map((notification) => (
-          <NotificationItem
-            key={notification.id}
-            notification={notification}
-            followingUsers={followingUsers}
-            onFollowToggle={handleFollowToggle}
-          />
-        ))}
-      </div>
+      <div className="pt-4">
+        <div className="px-4 mb-4">
+          <h2 className="text-white font-semibold text-base mb-3">Last 7 days</h2>
+        </div>
+        
+        <NotificationTabs 
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
+        />
 
-      <EmptyNotifications />
+        <div className="space-y-0">
+          {filteredNotifications.map((notification) => (
+            <NotificationItem
+              key={notification.id}
+              notification={notification}
+              followingUsers={followingUsers}
+              onFollowToggle={handleFollowToggle}
+            />
+          ))}
+        </div>
+      </div>
     </div>
   );
 };
