@@ -191,7 +191,7 @@ const Explore = () => {
 
                 <div className="flex items-center justify-between pt-2">
                   <div className="flex items-center gap-1">
-                    <Star size={14} className="text-amber-500 fill-current" />
+                    <Star size={14} className="text-royal-blue fill-current" />
                     <span className="text-sm text-gray-600">{listing.rating} ({listing.reviews})</span>
                   </div>
                   <span className="text-sm text-gray-600">{listing.available} available</span>
