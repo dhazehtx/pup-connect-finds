@@ -9,80 +9,85 @@ import EmptyNotifications from '@/components/notifications/EmptyNotifications';
 const Notifications = () => {
   const [activeTab, setActiveTab] = useState('all');
   const [showSettings, setShowSettings] = useState(false);
+  const [followingUsers, setFollowingUsers] = useState(new Set<string>());
 
-  // Mock notification data
+  const handleFollowToggle = (username: string) => {
+    setFollowingUsers(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(username)) {
+        newSet.delete(username);
+      } else {
+        newSet.add(username);
+      }
+      return newSet;
+    });
+  };
+
+  // Mock notification data matching the expected interface
   const notifications = [
     {
-      id: '1',
-      type: 'like' as const,
-      user: {
-        name: 'Sarah Johnson',
-        avatar: 'https://images.unsplash.com/photo-1494790108755-2616b612bb10?w=150&h=150&fit=crop&crop=face',
-        username: 'sarahj'
-      },
-      content: 'liked your post about Golden Retriever puppies',
-      timestamp: '2m',
-      isRead: false
+      id: 1,
+      type: 'like',
+      title: 'New Like',
+      description: 'liked your post about Golden Retriever puppies',
+      time: '2m',
+      read: false,
+      avatar: 'https://images.unsplash.com/photo-1494790108755-2616b612bb10?w=150&h=150&fit=crop&crop=face',
+      username: 'sarahj',
+      postImage: 'https://images.unsplash.com/photo-1552053831-71594a27632d?w=150&h=150&fit=crop'
     },
     {
-      id: '2',
-      type: 'comment' as const,
-      user: {
-        name: 'Mike Chen',
-        avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face',
-        username: 'mikechen'
-      },
-      content: 'commented: "What a beautiful pup! Is he still available?"',
-      timestamp: '15m',
-      isRead: false
+      id: 2,
+      type: 'comment',
+      title: 'New Comment',
+      description: 'commented: "What a beautiful pup! Is he still available?"',
+      time: '15m',
+      read: false,
+      avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face',
+      username: 'mikechen',
+      postImage: 'https://images.unsplash.com/photo-1552053831-71594a27632d?w=150&h=150&fit=crop'
     },
     {
-      id: '3',
-      type: 'follow' as const,
-      user: {
-        name: 'Emma Davis',
-        avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face',
-        username: 'emmad'
-      },
-      content: 'started following you',
-      timestamp: '1h',
-      isRead: true
+      id: 3,
+      type: 'follow',
+      title: 'New Follower',
+      description: 'started following you',
+      time: '1h',
+      read: true,
+      avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face',
+      username: 'emmad'
     },
     {
-      id: '4',
-      type: 'message' as const,
-      user: {
-        name: 'Alex Thompson',
-        avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face',
-        username: 'alexthompson'
-      },
-      content: 'sent you a message about the Labrador listing',
-      timestamp: '2h',
-      isRead: true
+      id: 4,
+      type: 'message',
+      title: 'New Message',
+      description: 'sent you a message about the Labrador listing',
+      time: '2h',
+      read: true,
+      avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face',
+      username: 'alexthompson'
     },
     {
-      id: '5',
-      type: 'like' as const,
-      user: {
-        name: 'Jessica Wilson',
-        avatar: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=150&h=150&fit=crop&crop=face',
-        username: 'jessicaw'
-      },
-      content: 'liked your post about puppy training tips',
-      timestamp: '3h',
-      isRead: true
+      id: 5,
+      type: 'like',
+      title: 'New Like',
+      description: 'liked your post about puppy training tips',
+      time: '3h',
+      read: true,
+      avatar: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=150&h=150&fit=crop&crop=face',
+      username: 'jessicaw',
+      postImage: 'https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=150&h=150&fit=crop'
     },
     {
-      id: '6',
-      type: 'comment' as const,
-      user: {
-        name: 'David Lee',
-        avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&h=150&fit=crop&crop=face',
-        username: 'davidlee'
-      },
-      content: 'commented: "Great advice! My puppy loves these tips."',
-      timestamp: '4h',
-      isRead: true
+      id: 6,
+      type: 'comment',
+      title: 'New Comment',
+      description: 'commented: "Great advice! My puppy loves these tips."',
+      time: '4h',
+      read: true,
+      avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&h=150&fit=crop&crop=face',
+      username: 'davidlee',
+      postImage: 'https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=150&h=150&fit=crop'
     }
   ];
 
@@ -124,6 +129,8 @@ const Notifications = () => {
               <NotificationItem
                 key={notification.id}
                 notification={notification}
+                followingUsers={followingUsers}
+                onFollowToggle={handleFollowToggle}
               />
             ))
           ) : (
