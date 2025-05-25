@@ -34,6 +34,7 @@ const Notifications = () => {
       read: false,
       avatar: 'https://images.unsplash.com/photo-1494790108755-2616b612bb10?w=150&h=150&fit=crop&crop=face',
       username: 'sarahj',
+      actionable: false,
       postImage: 'https://images.unsplash.com/photo-1552053831-71594a27632d?w=150&h=150&fit=crop'
     },
     {
@@ -45,6 +46,7 @@ const Notifications = () => {
       read: false,
       avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face',
       username: 'mikechen',
+      actionable: false,
       postImage: 'https://images.unsplash.com/photo-1552053831-71594a27632d?w=150&h=150&fit=crop'
     },
     {
@@ -55,7 +57,8 @@ const Notifications = () => {
       time: '1h',
       read: true,
       avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face',
-      username: 'emmad'
+      username: 'emmad',
+      actionable: false
     },
     {
       id: 4,
@@ -65,7 +68,8 @@ const Notifications = () => {
       time: '2h',
       read: true,
       avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face',
-      username: 'alexthompson'
+      username: 'alexthompson',
+      actionable: false
     },
     {
       id: 5,
@@ -76,6 +80,7 @@ const Notifications = () => {
       read: true,
       avatar: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=150&h=150&fit=crop&crop=face',
       username: 'jessicaw',
+      actionable: false,
       postImage: 'https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=150&h=150&fit=crop'
     },
     {
@@ -87,6 +92,7 @@ const Notifications = () => {
       read: true,
       avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&h=150&fit=crop&crop=face',
       username: 'davidlee',
+      actionable: false,
       postImage: 'https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=150&h=150&fit=crop'
     }
   ];
