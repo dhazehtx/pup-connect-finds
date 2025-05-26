@@ -69,31 +69,39 @@ const DogLoadingIcon = ({ size = 48, className = "" }: DogLoadingIconProps) => {
         viewBox="0 0 100 100" 
         className="text-black"
       >
-        {/* Rotating paws with tracer effect and individual tilts */}
-        {circularPawPositions.map((paw, index) => {
-          const isActive = currentFrameData.activePaw === index;
-          const isPrevious = currentFrameData.activePaw === (index + 3) % 4;
-          const isPrevious2 = currentFrameData.activePaw === (index + 2) % 4;
-          
-          let opacity = 0;
-          if (isActive) opacity = 1;
-          else if (isPrevious) opacity = 0.4;
-          else if (isPrevious2) opacity = 0.15;
-          
-          // Northeast paw (index 0) gets 55 degrees, others get 45 degrees
-          const tiltRotation = index === 0 ? 55 : 45;
-          
-          return (
-            <PawPrint
-              key={index}
-              x={paw.x}
-              y={paw.y}
-              scale={1.2}
-              opacity={opacity}
-              rotation={tiltRotation}
-            />
-          );
-        })}
+        {/* Rotating container for outer paws */}
+        <g 
+          style={{
+            transformOrigin: '50px 50px',
+            animation: 'spin 2s linear infinite'
+          }}
+        >
+          {/* Rotating paws with tracer effect and individual tilts */}
+          {circularPawPositions.map((paw, index) => {
+            const isActive = currentFrameData.activePaw === index;
+            const isPrevious = currentFrameData.activePaw === (index + 3) % 4;
+            const isPrevious2 = currentFrameData.activePaw === (index + 2) % 4;
+            
+            let opacity = 0;
+            if (isActive) opacity = 1;
+            else if (isPrevious) opacity = 0.4;
+            else if (isPrevious2) opacity = 0.15;
+            
+            // Northeast paw (index 0) gets 55 degrees, others get 45 degrees
+            const tiltRotation = index === 0 ? 55 : 45;
+            
+            return (
+              <PawPrint
+                key={index}
+                x={paw.x}
+                y={paw.y}
+                scale={1.2}
+                opacity={opacity}
+                rotation={tiltRotation}
+              />
+            );
+          })}
+        </g>
         
         {/* Central paw - same size as rotating paws */}
         <g className="animate-pulse">
