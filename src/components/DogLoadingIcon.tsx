@@ -9,19 +9,22 @@ interface DogLoadingIconProps {
 const DogLoadingIcon = ({ size = 48, className = "" }: DogLoadingIconProps) => {
   const [currentFrame, setCurrentFrame] = useState(0);
   
-  // Walking pattern animation frames - alternating paws like a real dog walk
+  // Sequential loading pattern - one paw at a time
   const frames = [
-    { activePaws: [0, 3], scale: [1.2, 1, 1, 1.2], opacity: [1, 0.3, 0.3, 1] },     // Front left + Back right
-    { activePaws: [0, 1, 3], scale: [1.1, 1.1, 1, 1.1], opacity: [0.8, 0.8, 0.3, 0.8] }, // Transition
-    { activePaws: [1, 2], scale: [1, 1.2, 1.2, 1], opacity: [0.3, 1, 1, 0.3] },     // Front right + Back left
-    { activePaws: [1, 2, 3], scale: [1, 1.1, 1.1, 1.1], opacity: [0.3, 0.8, 0.8, 0.8] }, // Transition
-    { activePaws: [0, 3], scale: [1.2, 1, 1, 1.2], opacity: [1, 0.3, 0.3, 1] },     // Back to start
+    { visiblePaws: [0], opacity: [1, 0.2, 0.2, 0.2] },        // Front left
+    { visiblePaws: [0, 1], opacity: [0.6, 1, 0.2, 0.2] },     // Front left + Front right
+    { visiblePaws: [0, 1, 2], opacity: [0.4, 0.6, 1, 0.2] },  // Front left + Front right + Back left
+    { visiblePaws: [0, 1, 2, 3], opacity: [0.3, 0.4, 0.6, 1] }, // All paws
+    { visiblePaws: [1, 2, 3], opacity: [0.2, 0.6, 0.8, 1] },  // Fade out front left
+    { visiblePaws: [2, 3], opacity: [0.2, 0.2, 1, 0.8] },     // Fade out front right
+    { visiblePaws: [3], opacity: [0.2, 0.2, 0.2, 1] },        // Only back right
+    { visiblePaws: [], opacity: [0.2, 0.2, 0.2, 0.4] },       // All fading
   ];
 
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentFrame((prev) => (prev + 1) % frames.length);
-    }, 400); // Slower, more natural walking rhythm
+    }, 500); // Slower timing for loading effect
 
     return () => clearInterval(interval);
   }, []);
@@ -45,13 +48,12 @@ const DogLoadingIcon = ({ size = 48, className = "" }: DogLoadingIconProps) => {
         className="text-red-500"
       >
         {pawPositions.map((paw, index) => {
-          const isActive = currentFrameData.activePaws.includes(index);
-          const scale = currentFrameData.scale[index];
+          const isVisible = currentFrameData.visiblePaws.includes(index);
           const opacity = currentFrameData.opacity[index];
           
           return (
             <g key={index}>
-              {/* Paw pad (main part) - made bigger */}
+              {/* Paw pad (main part) */}
               <ellipse
                 cx={paw.x}
                 cy={paw.y}
@@ -59,12 +61,10 @@ const DogLoadingIcon = ({ size = 48, className = "" }: DogLoadingIconProps) => {
                 ry="10"
                 fill="currentColor"
                 opacity={opacity}
-                transform={`scale(${scale})`}
-                style={{ transformOrigin: `${paw.x}px ${paw.y}px` }}
                 className="transition-all duration-300 ease-in-out"
               />
               
-              {/* Paw toes - made bigger and more defined */}
+              {/* Paw toes */}
               <ellipse
                 cx={paw.x - 4}
                 cy={paw.y - 8}
@@ -72,8 +72,6 @@ const DogLoadingIcon = ({ size = 48, className = "" }: DogLoadingIconProps) => {
                 ry="4"
                 fill="currentColor"
                 opacity={opacity * 0.9}
-                transform={`scale(${scale})`}
-                style={{ transformOrigin: `${paw.x}px ${paw.y}px` }}
                 className="transition-all duration-300 ease-in-out"
               />
               <ellipse
@@ -83,8 +81,6 @@ const DogLoadingIcon = ({ size = 48, className = "" }: DogLoadingIconProps) => {
                 ry="4"
                 fill="currentColor"
                 opacity={opacity * 0.9}
-                transform={`scale(${scale})`}
-                style={{ transformOrigin: `${paw.x}px ${paw.y}px` }}
                 className="transition-all duration-300 ease-in-out"
               />
               <ellipse
@@ -94,22 +90,18 @@ const DogLoadingIcon = ({ size = 48, className = "" }: DogLoadingIconProps) => {
                 ry="4"
                 fill="currentColor"
                 opacity={opacity * 0.9}
-                transform={`scale(${scale})`}
-                style={{ transformOrigin: `${paw.x}px ${paw.y}px` }}
                 className="transition-all duration-300 ease-in-out"
               />
               
-              {/* Ripple effect for active paws */}
-              {isActive && (
+              {/* Loading dot effect for visible paws */}
+              {isVisible && (
                 <circle
                   cx={paw.x}
                   cy={paw.y}
-                  r="15"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="1"
-                  opacity="0.4"
-                  className="animate-ping"
+                  r="2"
+                  fill="currentColor"
+                  opacity="0.8"
+                  className="animate-pulse"
                 />
               )}
             </g>
