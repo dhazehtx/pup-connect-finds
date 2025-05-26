@@ -59,11 +59,11 @@ const DogLoadingIcon = ({ size = 48, className = "" }: DogLoadingIconProps) => {
               fill="currentColor"
             />
             
-            {/* Toe pads */}
-            <circle cx="-6" cy="-8" r="3" fill="currentColor" />
-            <circle cx="0" cy="-10" r="3" fill="currentColor" />
-            <circle cx="6" cy="-8" r="3" fill="currentColor" />
-            <circle cx="0" cy="-5" r="2" fill="currentColor" />
+            {/* Four toe pads */}
+            <circle cx="-6" cy="-8" r="2.5" fill="currentColor" />
+            <circle cx="-2" cy="-10" r="2.5" fill="currentColor" />
+            <circle cx="2" cy="-10" r="2.5" fill="currentColor" />
+            <circle cx="6" cy="-8" r="2.5" fill="currentColor" />
           </g>
         ))}
         
