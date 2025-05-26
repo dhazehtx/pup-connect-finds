@@ -9,34 +9,30 @@ interface DogLoadingIconProps {
 const DogLoadingIcon = ({ size = 48, className = "" }: DogLoadingIconProps) => {
   const [currentFrame, setCurrentFrame] = useState(0);
   
-  // Animation frames for rotating paws
+  // Animation frames for rotating paws (now 4 paws)
   const frames = [
     { activePaw: 0 },
     { activePaw: 1 },
     { activePaw: 2 },
     { activePaw: 3 },
-    { activePaw: 4 },
-    { activePaw: 5 },
   ];
 
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentFrame((prev) => (prev + 1) % frames.length);
-    }, 300);
+    }, 400);
 
     return () => clearInterval(interval);
   }, []);
 
   const currentFrameData = frames[currentFrame];
 
-  // Circular positions for rotating paws (6 paws around the circle)
+  // Circular positions for rotating paws (4 paws around the circle)
   const circularPawPositions = [
-    { x: 50, y: 20, angle: 0 },    // Top
-    { x: 70, y: 30, angle: 60 },   // Top right
-    { x: 70, y: 70, angle: 120 },  // Bottom right
-    { x: 50, y: 80, angle: 180 },  // Bottom
-    { x: 30, y: 70, angle: 240 },  // Bottom left
-    { x: 30, y: 30, angle: 300 },  // Top left
+    { x: 50, y: 25, angle: 0 },    // Top
+    { x: 75, y: 50, angle: 90 },   // Right
+    { x: 50, y: 75, angle: 180 },  // Bottom
+    { x: 25, y: 50, angle: 270 },  // Left
   ];
 
   const PawPrint = ({ x, y, scale = 1, opacity = 1 }: { x: number; y: number; scale?: number; opacity?: number }) => (
@@ -72,7 +68,7 @@ const DogLoadingIcon = ({ size = 48, className = "" }: DogLoadingIconProps) => {
             key={index}
             x={paw.x}
             y={paw.y}
-            scale={0.8}
+            scale={1}
             opacity={currentFrameData.activePaw === index ? 1 : 0.3}
           />
         ))}
@@ -82,7 +78,7 @@ const DogLoadingIcon = ({ size = 48, className = "" }: DogLoadingIconProps) => {
           <PawPrint
             x={50}
             y={50}
-            scale={1.2}
+            scale={1.3}
             opacity={1}
           />
         </g>
