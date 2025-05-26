@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import SearchFilters from '@/components/SearchFilters';
 import SortingOptions from '@/components/SortingOptions';
@@ -5,6 +6,7 @@ import ListingsGrid from '@/components/ListingsGrid';
 import QuickFilters from '@/components/QuickFilters';
 import SavedSearches from '@/components/SavedSearches';
 import { Skeleton } from '@/components/ui/skeleton';
+import DogLoadingIcon from '@/components/DogLoadingIcon';
 import { useToast } from '@/hooks/use-toast';
 import { useListingFilters } from '@/hooks/useListingFilters';
 import { sampleListings } from '@/data/sampleListings';
@@ -167,11 +169,13 @@ const Explore = () => {
           <Skeleton className="h-5 w-24" />
         </div>
 
-        {/* Listings Grid Skeleton */}
+        {/* Listings Grid Skeleton with DogLoadingIcon */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 max-w-4xl mx-auto">
           {Array.from({ length: 6 }).map((_, i) => (
             <div key={i} className="bg-white border border-gray-200 rounded-lg overflow-hidden">
-              <Skeleton className="w-full h-48" />
+              <div className="w-full h-48 bg-gray-100 flex items-center justify-center">
+                <DogLoadingIcon size={64} />
+              </div>
               <div className="p-4 space-y-3">
                 <Skeleton className="h-6 w-3/4" />
                 <Skeleton className="h-6 w-1/2" />
