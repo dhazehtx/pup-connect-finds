@@ -41,23 +41,23 @@ const DogLoadingIcon = ({ size = 48, className = "" }: DogLoadingIconProps) => {
       opacity={opacity}
       style={{
         transformOrigin: '0 0',
-        transition: 'transform 0.4s ease-in-out'
+        transition: 'opacity 0.4s ease-in-out, transform 0.4s ease-in-out'
       }}
     >
-      {/* Main paw pad */}
+      {/* Main paw pad - increased size */}
       <ellipse 
         cx="0" 
         cy="0" 
-        rx="4" 
-        ry="3" 
+        rx="6" 
+        ry="4.5" 
         fill="currentColor"
       />
       
-      {/* Four toe pads */}
-      <circle cx="-3" cy="-4" r="1.5" fill="currentColor" />
-      <circle cx="-1" cy="-5" r="1.5" fill="currentColor" />
-      <circle cx="1" cy="-5" r="1.5" fill="currentColor" />
-      <circle cx="3" cy="-4" r="1.5" fill="currentColor" />
+      {/* Four toe pads - increased size */}
+      <circle cx="-4.5" cy="-6" r="2.2" fill="currentColor" />
+      <circle cx="-1.5" cy="-7.5" r="2.2" fill="currentColor" />
+      <circle cx="1.5" cy="-7.5" r="2.2" fill="currentColor" />
+      <circle cx="4.5" cy="-6" r="2.2" fill="currentColor" />
     </g>
   );
 
@@ -69,24 +69,24 @@ const DogLoadingIcon = ({ size = 48, className = "" }: DogLoadingIconProps) => {
         viewBox="0 0 100 100" 
         className="text-black"
       >
-        {/* Rotating paws around the circle with curved rotation */}
+        {/* Rotating paws around the circle with disappearing/reappearing effect */}
         {circularPawPositions.map((paw, index) => (
           <PawPrint
             key={index}
             x={paw.x}
             y={paw.y}
-            scale={1}
-            opacity={currentFrameData.activePaw === index ? 1 : 0.3}
+            scale={1.2}
+            opacity={currentFrameData.activePaw === index ? 1 : 0}
             rotation={paw.angle + (currentFrame * 15)} // Curved rotation effect
           />
         ))}
         
-        {/* Central pulsating paw */}
+        {/* Central pulsating paw - increased size */}
         <g className="animate-pulse">
           <PawPrint
             x={50}
             y={50}
-            scale={1.3}
+            scale={1.8}
             opacity={1}
           />
         </g>
