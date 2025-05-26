@@ -9,31 +9,54 @@ interface DogLoadingIconProps {
 const DogLoadingIcon = ({ size = 48, className = "" }: DogLoadingIconProps) => {
   const [currentFrame, setCurrentFrame] = useState(0);
   
-  // Animation frames for paw prints
+  // Animation frames for rotating paws
   const frames = [
     { activePaw: 0 },
     { activePaw: 1 },
     { activePaw: 2 },
     { activePaw: 3 },
+    { activePaw: 4 },
+    { activePaw: 5 },
   ];
 
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentFrame((prev) => (prev + 1) % frames.length);
-    }, 400);
+    }, 300);
 
     return () => clearInterval(interval);
   }, []);
 
   const currentFrameData = frames[currentFrame];
 
-  // Paw print positions in a walking pattern
-  const pawPositions = [
-    { x: 30, y: 60, rotation: 15 },   // Back left
-    { x: 50, y: 40, rotation: -10 },  // Front left
-    { x: 70, y: 60, rotation: -15 },  // Back right
-    { x: 50, y: 70, rotation: 10 },   // Front right
+  // Circular positions for rotating paws (6 paws around the circle)
+  const circularPawPositions = [
+    { x: 50, y: 20, angle: 0 },    // Top
+    { x: 70, y: 30, angle: 60 },   // Top right
+    { x: 70, y: 70, angle: 120 },  // Bottom right
+    { x: 50, y: 80, angle: 180 },  // Bottom
+    { x: 30, y: 70, angle: 240 },  // Bottom left
+    { x: 30, y: 30, angle: 300 },  // Top left
   ];
+
+  const PawPrint = ({ x, y, scale = 1, opacity = 1 }: { x: number; y: number; scale?: number; opacity?: number }) => (
+    <g transform={`translate(${x}, ${y}) scale(${scale})`} opacity={opacity}>
+      {/* Main paw pad */}
+      <ellipse 
+        cx="0" 
+        cy="0" 
+        rx="4" 
+        ry="3" 
+        fill="currentColor"
+      />
+      
+      {/* Four toe pads */}
+      <circle cx="-3" cy="-4" r="1.5" fill="currentColor" />
+      <circle cx="-1" cy="-5" r="1.5" fill="currentColor" />
+      <circle cx="1" cy="-5" r="1.5" fill="currentColor" />
+      <circle cx="3" cy="-4" r="1.5" fill="currentColor" />
+    </g>
+  );
 
   return (
     <div className={`flex items-center justify-center ${className}`}>
@@ -43,29 +66,26 @@ const DogLoadingIcon = ({ size = 48, className = "" }: DogLoadingIconProps) => {
         viewBox="0 0 100 100" 
         className="text-black"
       >
-        {pawPositions.map((paw, index) => (
-          <g 
+        {/* Rotating paws around the circle */}
+        {circularPawPositions.map((paw, index) => (
+          <PawPrint
             key={index}
-            transform={`translate(${paw.x}, ${paw.y}) rotate(${paw.rotation})`}
+            x={paw.x}
+            y={paw.y}
+            scale={0.8}
             opacity={currentFrameData.activePaw === index ? 1 : 0.3}
-            className="transition-opacity duration-200"
-          >
-            {/* Main paw pad */}
-            <ellipse 
-              cx="0" 
-              cy="0" 
-              rx="8" 
-              ry="6" 
-              fill="currentColor"
-            />
-            
-            {/* Four toe pads */}
-            <circle cx="-6" cy="-8" r="3" fill="currentColor" />
-            <circle cx="-2" cy="-10" r="3" fill="currentColor" />
-            <circle cx="2" cy="-10" r="3" fill="currentColor" />
-            <circle cx="6" cy="-8" r="3" fill="currentColor" />
-          </g>
+          />
         ))}
+        
+        {/* Central pulsating paw */}
+        <g className="animate-pulse">
+          <PawPrint
+            x={50}
+            y={50}
+            scale={1.2}
+            opacity={1}
+          />
+        </g>
       </svg>
     </div>
   );
