@@ -45,7 +45,7 @@ const DogLoadingIcon = ({ size = 48, className = "" }: DogLoadingIconProps) => {
         width={size} 
         height={size} 
         viewBox="0 0 100 100" 
-        className="text-red-500"
+        className="text-black"
       >
         {pawPositions.map((paw, index) => {
           const isVisible = currentFrameData.visiblePaws.includes(index);
