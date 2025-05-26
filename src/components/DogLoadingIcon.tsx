@@ -41,7 +41,7 @@ const DogLoadingIcon = ({ size = 48, className = "" }: DogLoadingIconProps) => {
         width={size} 
         height={size} 
         viewBox="0 0 100 100" 
-        className="text-primary"
+        className="text-black"
       >
         {pawPositions.map((paw, index) => (
           <g 
