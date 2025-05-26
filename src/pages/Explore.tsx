@@ -3,8 +3,6 @@ import React, { useState, useEffect } from 'react';
 import SearchFilters from '@/components/SearchFilters';
 import SortingOptions from '@/components/SortingOptions';
 import ListingsGrid from '@/components/ListingsGrid';
-import QuickFilters from '@/components/QuickFilters';
-import SavedSearches from '@/components/SavedSearches';
 import { Skeleton } from '@/components/ui/skeleton';
 import DogLoadingIcon from '@/components/DogLoadingIcon';
 import { useToast } from '@/hooks/use-toast';
@@ -116,27 +114,6 @@ const Explore = () => {
           <Skeleton className="h-5 w-64" />
         </div>
 
-        {/* Saved Searches Skeleton */}
-        <div className="mb-6">
-          <Skeleton className="h-6 w-32 mb-3" />
-          <div className="flex gap-2">
-            <Skeleton className="h-8 w-24" />
-            <Skeleton className="h-8 w-32" />
-            <Skeleton className="h-8 w-28" />
-          </div>
-        </div>
-
-        {/* Quick Filters Skeleton */}
-        <div className="mb-6">
-          <div className="flex flex-wrap gap-2">
-            <Skeleton className="h-10 w-20" />
-            <Skeleton className="h-10 w-24" />
-            <Skeleton className="h-10 w-28" />
-            <Skeleton className="h-10 w-22" />
-            <Skeleton className="h-10 w-26" />
-          </div>
-        </div>
-
         {/* Search Filters Skeleton */}
         <div className="bg-white rounded-lg border border-gray-200 p-4 mb-6">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
@@ -209,19 +186,6 @@ const Explore = () => {
         <h1 className="text-2xl font-bold text-gray-900 mb-2">Marketplace</h1>
         <p className="text-gray-600">Find your perfect puppy companion</p>
       </div>
-
-      {/* Saved Searches */}
-      <SavedSearches
-        filters={filters}
-        onFiltersChange={setFilters}
-      />
-
-      {/* Quick Filters */}
-      <QuickFilters
-        filters={filters}
-        onFiltersChange={setFilters}
-        onClearFilters={handleClearFilters}
-      />
 
       {/* Search and Filter Component */}
       <SearchFilters
