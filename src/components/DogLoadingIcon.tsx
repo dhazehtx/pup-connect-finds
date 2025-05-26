@@ -35,7 +35,7 @@ const DogLoadingIcon = ({ size = 48, className = "" }: DogLoadingIconProps) => {
         width={size} 
         height={size} 
         viewBox="0 0 100 100" 
-        className="text-black"
+        className="text-red-500"
       >
         {/* Ball */}
         <circle
@@ -44,7 +44,7 @@ const DogLoadingIcon = ({ size = 48, className = "" }: DogLoadingIconProps) => {
           r="8"
           fill="currentColor"
           transform={`scale(${currentFrameData.scale})`}
-          transformOrigin="50 50"
+          style={{ transformOrigin: '50px 50px' }}
           className="transition-all duration-150 ease-out"
         />
         
