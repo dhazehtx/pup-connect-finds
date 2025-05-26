@@ -27,12 +27,12 @@ const DogLoadingIcon = ({ size = 48, className = "" }: DogLoadingIconProps) => {
 
   const currentFrameData = frames[currentFrame];
 
-  // Circular positions for rotating paws (4 paws at diagonal compass positions)
+  // Circular positions for rotating paws with adjusted angles for curved symmetry
   const circularPawPositions = [
-    { x: 65, y: 35, angle: 45 },   // Northeast
-    { x: 65, y: 65, angle: 135 },  // Southeast
-    { x: 35, y: 65, angle: 225 },  // Southwest
-    { x: 35, y: 35, angle: 315 },  // Northwest
+    { x: 65, y: 35, angle: 30 },   // Northeast - adjusted for symmetry
+    { x: 65, y: 65, angle: 150 },  // Southeast - adjusted for symmetry
+    { x: 35, y: 65, angle: 210 },  // Southwest - adjusted for symmetry
+    { x: 35, y: 35, angle: 330 },  // Northwest - adjusted for symmetry
   ];
 
   const PawPrint = ({ x, y, scale = 1, opacity = 1, rotation = 0 }: { x: number; y: number; scale?: number; opacity?: number; rotation?: number }) => (
@@ -69,7 +69,7 @@ const DogLoadingIcon = ({ size = 48, className = "" }: DogLoadingIconProps) => {
         viewBox="0 0 100 100" 
         className="text-black"
       >
-        {/* Rotating paws with tracer effect */}
+        {/* Rotating paws with tracer effect and curved symmetry */}
         {circularPawPositions.map((paw, index) => {
           const isActive = currentFrameData.activePaw === index;
           const isPrevious = currentFrameData.activePaw === (index + 3) % 4;
@@ -87,7 +87,7 @@ const DogLoadingIcon = ({ size = 48, className = "" }: DogLoadingIconProps) => {
               y={paw.y}
               scale={1.2}
               opacity={opacity}
-              rotation={paw.angle + (currentFrame * 20)} // Reduced rotation speed from 30 to 20
+              rotation={paw.angle + (currentFrame * 15)} // Adjusted rotation for curved symmetry
             />
           );
         })}
