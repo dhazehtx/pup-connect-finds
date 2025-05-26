@@ -50,20 +50,20 @@ const DogLoadingIcon = ({ size = 48, className = "" }: DogLoadingIconProps) => {
             opacity={currentFrameData.activePaw === index ? 1 : 0.3}
             className="transition-opacity duration-200"
           >
-            {/* Main paw pad */}
+            {/* Main paw pad - larger and more oval like iPhone emoji */}
             <ellipse 
               cx="0" 
-              cy="0" 
-              rx="8" 
-              ry="6" 
+              cy="2" 
+              rx="7" 
+              ry="9" 
               fill="currentColor"
             />
             
-            {/* Toe pads */}
-            <circle cx="-6" cy="-8" r="3" fill="currentColor" />
-            <circle cx="0" cy="-10" r="3" fill="currentColor" />
-            <circle cx="6" cy="-8" r="3" fill="currentColor" />
-            <circle cx="0" cy="-5" r="2" fill="currentColor" />
+            {/* Four toe pads arranged like iPhone paw emoji */}
+            <circle cx="-5" cy="-7" r="2.5" fill="currentColor" />
+            <circle cx="-1.5" cy="-9" r="2.5" fill="currentColor" />
+            <circle cx="1.5" cy="-9" r="2.5" fill="currentColor" />
+            <circle cx="5" cy="-7" r="2.5" fill="currentColor" />
           </g>
         ))}
         
