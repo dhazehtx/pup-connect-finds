@@ -109,7 +109,7 @@ export const sampleListings = [
     age: "3 years",
     rating: 4.8,
     reviews: 28,
-    image: "https://images.unsplash.com/photo-1544944194-2d4245d0bc67?w=400&h=300&fit=crop",
+    image: "https://images.unsplash.com/photo-1605568427561-40dd23c2acea?w=400&h=300&fit=crop",
     breeder: "Oakland No-Kill Rescue",
     verified: true,
     available: 1,
