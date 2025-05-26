@@ -69,7 +69,7 @@ const DogLoadingIcon = ({ size = 48, className = "" }: DogLoadingIconProps) => {
         viewBox="0 0 100 100" 
         className="text-black"
       >
-        {/* Rotating paws with tracer effect and 45 degree tilt */}
+        {/* Rotating paws with tracer effect and individual tilts */}
         {circularPawPositions.map((paw, index) => {
           const isActive = currentFrameData.activePaw === index;
           const isPrevious = currentFrameData.activePaw === (index + 3) % 4;
@@ -80,8 +80,8 @@ const DogLoadingIcon = ({ size = 48, className = "" }: DogLoadingIconProps) => {
           else if (isPrevious) opacity = 0.4;
           else if (isPrevious2) opacity = 0.15;
           
-          // Add 45 degree tilt to rotating paws
-          const tiltRotation = 45;
+          // Northeast paw (index 0) gets 55 degrees, others get 45 degrees
+          const tiltRotation = index === 0 ? 55 : 45;
           
           return (
             <PawPrint
