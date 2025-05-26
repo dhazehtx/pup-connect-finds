@@ -9,31 +9,25 @@ interface DogLoadingIconProps {
 const DogLoadingIcon = ({ size = 48, className = "" }: DogLoadingIconProps) => {
   const [currentFrame, setCurrentFrame] = useState(0);
   
-  // Animation frames for bones
+  // Animation frames for bouncing ball
   const frames = [
-    { activeBone: 0 },
-    { activeBone: 1 },
-    { activeBone: 2 },
-    { activeBone: 3 },
+    { y: 20, scale: 1 },     // Top position
+    { y: 35, scale: 1.1 },   // Mid-fall, slight stretch
+    { y: 60, scale: 1.3 },   // Bottom position, squashed
+    { y: 45, scale: 1.1 },   // Mid-bounce, slight stretch
+    { y: 30, scale: 1 },     // Rising
+    { y: 20, scale: 1 },     // Back to top
   ];
 
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentFrame((prev) => (prev + 1) % frames.length);
-    }, 400);
+    }, 150);
 
     return () => clearInterval(interval);
   }, []);
 
   const currentFrameData = frames[currentFrame];
-
-  // Bone positions in a scattered pattern
-  const bonePositions = [
-    { x: 20, y: 30, rotation: 45 },   // Top left
-    { x: 70, y: 25, rotation: -30 },  // Top right
-    { x: 25, y: 70, rotation: -15 },  // Bottom left
-    { x: 75, y: 65, rotation: 60 },   // Bottom right
-  ];
 
   return (
     <div className={`flex items-center justify-center ${className}`}>
@@ -43,50 +37,49 @@ const DogLoadingIcon = ({ size = 48, className = "" }: DogLoadingIconProps) => {
         viewBox="0 0 100 100" 
         className="text-black"
       >
-        {bonePositions.map((bone, index) => (
-          <g 
-            key={index}
-            transform={`translate(${bone.x}, ${bone.y}) rotate(${bone.rotation})`}
-            opacity={currentFrameData.activeBone === index ? 1 : 0.3}
-            className="transition-opacity duration-200"
-          >
-            {/* Bone shape */}
-            <g fill="currentColor">
-              {/* Main bone shaft */}
-              <rect x="-12" y="-2" width="24" height="4" rx="2" />
-              
-              {/* Left bone end */}
-              <circle cx="-12" cy="-3" r="4" />
-              <circle cx="-12" cy="3" r="4" />
-              
-              {/* Right bone end */}
-              <circle cx="12" cy="-3" r="4" />
-              <circle cx="12" cy="3" r="4" />
-            </g>
-          </g>
-        ))}
+        {/* Ball */}
+        <circle
+          cx="50"
+          cy={currentFrameData.y}
+          r="8"
+          fill="currentColor"
+          transform={`scale(${currentFrameData.scale})`}
+          transformOrigin="50 50"
+          className="transition-all duration-150 ease-out"
+        />
         
-        {/* Optional: Add a subtle glow effect */}
-        <defs>
-          <radialGradient id="boneGlow" cx="50%" cy="50%" r="50%">
-            <stop offset="0%" stopColor="currentColor" stopOpacity="0.1" />
-            <stop offset="100%" stopColor="currentColor" stopOpacity="0" />
-          </radialGradient>
-        </defs>
+        {/* Shadow that changes size based on ball height */}
+        <ellipse
+          cx="50"
+          cy="75"
+          rx={12 - (currentFrameData.y - 20) * 0.1}
+          ry={3 - (currentFrameData.y - 20) * 0.03}
+          fill="currentColor"
+          opacity={0.2}
+          className="transition-all duration-150 ease-out"
+        />
         
-        {/* Glow effect around active bone */}
-        {bonePositions.map((bone, index) => (
-          currentFrameData.activeBone === index && (
-            <circle
-              key={`glow-${index}`}
-              cx={bone.x}
-              cy={bone.y}
-              r="20"
-              fill="url(#boneGlow)"
+        {/* Optional: Add bounce lines for emphasis */}
+        {currentFrameData.y > 55 && (
+          <>
+            <path
+              d="M 35 70 Q 40 65 45 70"
+              stroke="currentColor"
+              strokeWidth="1"
+              fill="none"
+              opacity="0.3"
               className="animate-pulse"
             />
-          )
-        ))}
+            <path
+              d="M 55 70 Q 60 65 65 70"
+              stroke="currentColor"
+              strokeWidth="1"
+              fill="none"
+              opacity="0.3"
+              className="animate-pulse"
+            />
+          </>
+        )}
       </svg>
     </div>
   );
