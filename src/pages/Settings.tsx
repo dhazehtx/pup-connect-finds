@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { User, Bell, Shield, MapPin, CreditCard, HelpCircle, LogOut, ChevronRight, Palette } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
+import SocialMediaConnections from '@/components/settings/SocialMediaConnections';
 
 const Settings = () => {
   const [isDarkMode, setIsDarkMode] = useState(false);
@@ -55,6 +56,11 @@ const Settings = () => {
             Edit Profile
           </button>
         </div>
+      </div>
+
+      {/* Social Media Connections */}
+      <div className="mb-6">
+        <SocialMediaConnections />
       </div>
 
       {/* Theme Settings */}
