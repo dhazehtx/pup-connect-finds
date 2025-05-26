@@ -23,7 +23,7 @@ interface NotificationItemProps {
 
 const NotificationItem = ({ notification, followingUsers, onFollowToggle }: NotificationItemProps) => {
   return (
-    <div className="flex items-center gap-3 px-4 py-3 hover:bg-gray-900/50 transition-colors">
+    <div className="flex items-center gap-3 px-4 py-3 hover:bg-soft-sky/30 transition-colors">
       {/* Avatar */}
       <div className="flex-shrink-0">
         {notification.avatar ? (
@@ -33,7 +33,7 @@ const NotificationItem = ({ notification, followingUsers, onFollowToggle }: Noti
             className="w-11 h-11 rounded-full object-cover"
           />
         ) : (
-          <div className="w-11 h-11 bg-gray-700 rounded-full flex items-center justify-center">
+          <div className="w-11 h-11 bg-soft-sky rounded-full flex items-center justify-center">
             {getNotificationIcon(notification.type)}
           </div>
         )}
@@ -43,11 +43,11 @@ const NotificationItem = ({ notification, followingUsers, onFollowToggle }: Noti
       <div className="flex-1 min-w-0">
         <div className="flex items-start justify-between">
           <div className="flex-1 min-w-0">
-            <p className="text-white text-sm leading-tight">
+            <p className="text-deep-navy text-sm leading-tight">
               <span className="font-semibold">
                 {notification.username || 'System'}
               </span>{' '}
-              <span className="text-gray-300">
+              <span className="text-gray-600">
                 {notification.description}
               </span>{' '}
               <span className="text-gray-500 text-xs">
@@ -61,7 +61,7 @@ const NotificationItem = ({ notification, followingUsers, onFollowToggle }: Noti
                 <Button 
                   size="sm" 
                   variant="outline" 
-                  className="h-7 px-3 text-xs bg-transparent border-gray-600 text-gray-300 hover:bg-gray-800"
+                  className="h-7 px-3 text-xs bg-cloud-white border-soft-sky text-deep-navy hover:bg-soft-sky"
                 >
                   Reply
                 </Button>
@@ -91,7 +91,7 @@ const NotificationItem = ({ notification, followingUsers, onFollowToggle }: Noti
             
             {/* Unread indicator */}
             {!notification.read && (
-              <div className="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0"></div>
+              <div className="w-2 h-2 bg-royal-blue rounded-full flex-shrink-0"></div>
             )}
           </div>
         </div>

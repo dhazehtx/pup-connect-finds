@@ -16,8 +16,8 @@ const FollowButton = ({ username, isFollowing, onToggle }: FollowButtonProps) =>
       variant={isFollowing ? "outline" : "default"}
       className={`h-7 px-3 text-xs rounded-md ${
         isFollowing 
-          ? 'bg-gray-700 border-gray-600 text-white hover:bg-gray-600' 
-          : 'bg-blue-600 text-white hover:bg-blue-700'
+          ? 'bg-cloud-white border-soft-sky text-deep-navy hover:bg-soft-sky' 
+          : 'bg-royal-blue text-cloud-white hover:bg-deep-navy'
       }`}
       onClick={() => onToggle(username)}
     >
