@@ -9,25 +9,32 @@ interface DogLoadingIconProps {
 const DogLoadingIcon = ({ size = 48, className = "" }: DogLoadingIconProps) => {
   const [currentFrame, setCurrentFrame] = useState(0);
   
-  // Animation frames for bouncing ball
+  // Walking pattern animation frames - alternating paws like a real dog walk
   const frames = [
-    { y: 20, scale: 1 },     // Top position
-    { y: 35, scale: 1.1 },   // Mid-fall, slight stretch
-    { y: 60, scale: 1.3 },   // Bottom position, squashed
-    { y: 45, scale: 1.1 },   // Mid-bounce, slight stretch
-    { y: 30, scale: 1 },     // Rising
-    { y: 20, scale: 1 },     // Back to top
+    { activePaws: [0, 3], scale: [1.2, 1, 1, 1.2], opacity: [1, 0.3, 0.3, 1] },     // Front left + Back right
+    { activePaws: [0, 1, 3], scale: [1.1, 1.1, 1, 1.1], opacity: [0.8, 0.8, 0.3, 0.8] }, // Transition
+    { activePaws: [1, 2], scale: [1, 1.2, 1.2, 1], opacity: [0.3, 1, 1, 0.3] },     // Front right + Back left
+    { activePaws: [1, 2, 3], scale: [1, 1.1, 1.1, 1.1], opacity: [0.3, 0.8, 0.8, 0.8] }, // Transition
+    { activePaws: [0, 3], scale: [1.2, 1, 1, 1.2], opacity: [1, 0.3, 0.3, 1] },     // Back to start
   ];
 
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentFrame((prev) => (prev + 1) % frames.length);
-    }, 150);
+    }, 400); // Slower, more natural walking rhythm
 
     return () => clearInterval(interval);
   }, []);
 
   const currentFrameData = frames[currentFrame];
+  
+  // Paw positions - arranged like a dog's feet
+  const pawPositions = [
+    { x: 35, y: 35, label: "front-left" },   // Front left
+    { x: 65, y: 35, label: "front-right" },  // Front right  
+    { x: 35, y: 65, label: "back-left" },    // Back left
+    { x: 65, y: 65, label: "back-right" },   // Back right
+  ];
 
   return (
     <div className={`flex items-center justify-center ${className}`}>
@@ -37,49 +44,88 @@ const DogLoadingIcon = ({ size = 48, className = "" }: DogLoadingIconProps) => {
         viewBox="0 0 100 100" 
         className="text-red-500"
       >
-        {/* Ball */}
-        <circle
-          cx="50"
-          cy={currentFrameData.y}
-          r="8"
-          fill="currentColor"
-          transform={`scale(${currentFrameData.scale})`}
-          style={{ transformOrigin: '50px 50px' }}
-          className="transition-all duration-150 ease-out"
-        />
+        {pawPositions.map((paw, index) => {
+          const isActive = currentFrameData.activePaws.includes(index);
+          const scale = currentFrameData.scale[index];
+          const opacity = currentFrameData.opacity[index];
+          
+          return (
+            <g key={index}>
+              {/* Paw pad (main part) - made bigger */}
+              <ellipse
+                cx={paw.x}
+                cy={paw.y}
+                rx="8"
+                ry="10"
+                fill="currentColor"
+                opacity={opacity}
+                transform={`scale(${scale})`}
+                style={{ transformOrigin: `${paw.x}px ${paw.y}px` }}
+                className="transition-all duration-300 ease-in-out"
+              />
+              
+              {/* Paw toes - made bigger and more defined */}
+              <ellipse
+                cx={paw.x - 4}
+                cy={paw.y - 8}
+                rx="2.5"
+                ry="4"
+                fill="currentColor"
+                opacity={opacity * 0.9}
+                transform={`scale(${scale})`}
+                style={{ transformOrigin: `${paw.x}px ${paw.y}px` }}
+                className="transition-all duration-300 ease-in-out"
+              />
+              <ellipse
+                cx={paw.x}
+                cy={paw.y - 9}
+                rx="2.5"
+                ry="4"
+                fill="currentColor"
+                opacity={opacity * 0.9}
+                transform={`scale(${scale})`}
+                style={{ transformOrigin: `${paw.x}px ${paw.y}px` }}
+                className="transition-all duration-300 ease-in-out"
+              />
+              <ellipse
+                cx={paw.x + 4}
+                cy={paw.y - 8}
+                rx="2.5"
+                ry="4"
+                fill="currentColor"
+                opacity={opacity * 0.9}
+                transform={`scale(${scale})`}
+                style={{ transformOrigin: `${paw.x}px ${paw.y}px` }}
+                className="transition-all duration-300 ease-in-out"
+              />
+              
+              {/* Ripple effect for active paws */}
+              {isActive && (
+                <circle
+                  cx={paw.x}
+                  cy={paw.y}
+                  r="15"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1"
+                  opacity="0.4"
+                  className="animate-ping"
+                />
+              )}
+            </g>
+          );
+        })}
         
-        {/* Shadow that changes size based on ball height */}
+        {/* Central connecting element - subtle body indicator */}
         <ellipse
           cx="50"
-          cy="75"
-          rx={12 - (currentFrameData.y - 20) * 0.1}
-          ry={3 - (currentFrameData.y - 20) * 0.03}
+          cy="50"
+          rx="12"
+          ry="8"
           fill="currentColor"
-          opacity={0.2}
-          className="transition-all duration-150 ease-out"
+          opacity="0.1"
+          className="transition-opacity duration-500"
         />
-        
-        {/* Optional: Add bounce lines for emphasis */}
-        {currentFrameData.y > 55 && (
-          <>
-            <path
-              d="M 35 70 Q 40 65 45 70"
-              stroke="currentColor"
-              strokeWidth="1"
-              fill="none"
-              opacity="0.3"
-              className="animate-pulse"
-            />
-            <path
-              d="M 55 70 Q 60 65 65 70"
-              stroke="currentColor"
-              strokeWidth="1"
-              fill="none"
-              opacity="0.3"
-              className="animate-pulse"
-            />
-          </>
-        )}
       </svg>
     </div>
   );
