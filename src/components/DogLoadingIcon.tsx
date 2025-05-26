@@ -50,43 +50,20 @@ const DogLoadingIcon = ({ size = 48, className = "" }: DogLoadingIconProps) => {
             opacity={currentFrameData.activePaw === index ? 1 : 0.3}
             className="transition-opacity duration-200"
           >
-            {/* Main paw pad - larger and more oval like iPhone emoji */}
+            {/* Main paw pad */}
             <ellipse 
               cx="0" 
-              cy="2" 
-              rx="7" 
-              ry="9" 
+              cy="0" 
+              rx="8" 
+              ry="6" 
               fill="currentColor"
             />
             
-            {/* Four toe pads arranged like iPhone paw emoji */}
-            <circle cx="-5" cy="-7" r="2.5" fill="currentColor" />
-            <circle cx="-1.5" cy="-9" r="2.5" fill="currentColor" />
-            <circle cx="1.5" cy="-9" r="2.5" fill="currentColor" />
-            <circle cx="5" cy="-7" r="2.5" fill="currentColor" />
+            {/* Toe pads */}
+            <circle cx="-6" cy="-8" r="3" fill="currentColor" />
+            <circle cx="0" cy="-10" r="3" fill="currentColor" />
+            <circle cx="6" cy="-8" r="3" fill="currentColor" />
           </g>
-        ))}
-        
-        {/* Optional: Add a subtle trail effect */}
-        <defs>
-          <radialGradient id="pawGlow" cx="50%" cy="50%" r="50%">
-            <stop offset="0%" stopColor="currentColor" stopOpacity="0.1" />
-            <stop offset="100%" stopColor="currentColor" stopOpacity="0" />
-          </radialGradient>
-        </defs>
-        
-        {/* Glow effect around active paw */}
-        {pawPositions.map((paw, index) => (
-          currentFrameData.activePaw === index && (
-            <circle
-              key={`glow-${index}`}
-              cx={paw.x}
-              cy={paw.y}
-              r="15"
-              fill="url(#pawGlow)"
-              className="animate-pulse"
-            />
-          )
         ))}
       </svg>
     </div>
