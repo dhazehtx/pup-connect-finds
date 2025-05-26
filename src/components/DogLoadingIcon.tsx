@@ -20,7 +20,7 @@ const DogLoadingIcon = ({ size = 48, className = "" }: DogLoadingIconProps) => {
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentFrame((prev) => (prev + 1) % frames.length);
-    }, 400);
+    }, 150); // Increased speed from 400ms to 150ms
 
     return () => clearInterval(interval);
   }, []);
@@ -41,10 +41,10 @@ const DogLoadingIcon = ({ size = 48, className = "" }: DogLoadingIconProps) => {
       opacity={opacity}
       style={{
         transformOrigin: '0 0',
-        transition: 'opacity 0.4s ease-in-out, transform 0.4s ease-in-out'
+        transition: 'opacity 0.15s ease-in-out, transform 0.15s ease-in-out'
       }}
     >
-      {/* Main paw pad - increased size */}
+      {/* Main paw pad - same size for all paws */}
       <ellipse 
         cx="0" 
         cy="0" 
@@ -53,7 +53,7 @@ const DogLoadingIcon = ({ size = 48, className = "" }: DogLoadingIconProps) => {
         fill="currentColor"
       />
       
-      {/* Four toe pads - increased size */}
+      {/* Four toe pads - same size for all paws */}
       <circle cx="-4.5" cy="-6" r="2.2" fill="currentColor" />
       <circle cx="-1.5" cy="-7.5" r="2.2" fill="currentColor" />
       <circle cx="1.5" cy="-7.5" r="2.2" fill="currentColor" />
@@ -69,24 +69,35 @@ const DogLoadingIcon = ({ size = 48, className = "" }: DogLoadingIconProps) => {
         viewBox="0 0 100 100" 
         className="text-black"
       >
-        {/* Rotating paws around the circle with disappearing/reappearing effect */}
-        {circularPawPositions.map((paw, index) => (
-          <PawPrint
-            key={index}
-            x={paw.x}
-            y={paw.y}
-            scale={1.2}
-            opacity={currentFrameData.activePaw === index ? 1 : 0}
-            rotation={paw.angle + (currentFrame * 15)} // Curved rotation effect
-          />
-        ))}
+        {/* Rotating paws with tracer effect */}
+        {circularPawPositions.map((paw, index) => {
+          const isActive = currentFrameData.activePaw === index;
+          const isPrevious = currentFrameData.activePaw === (index + 3) % 4;
+          const isPrevious2 = currentFrameData.activePaw === (index + 2) % 4;
+          
+          let opacity = 0;
+          if (isActive) opacity = 1;
+          else if (isPrevious) opacity = 0.4;
+          else if (isPrevious2) opacity = 0.15;
+          
+          return (
+            <PawPrint
+              key={index}
+              x={paw.x}
+              y={paw.y}
+              scale={1.2}
+              opacity={opacity}
+              rotation={paw.angle + (currentFrame * 30)} // Increased rotation speed for faster effect
+            />
+          );
+        })}
         
-        {/* Central pulsating paw - increased size */}
+        {/* Central paw - same size as rotating paws */}
         <g className="animate-pulse">
           <PawPrint
             x={50}
             y={50}
-            scale={1.8}
+            scale={1.2}
             opacity={1}
           />
         </g>
