@@ -19,9 +19,13 @@ const Header = () => {
               <img 
                 src="/lovable-uploads/64114b5b-ae93-4c5b-a6d4-be95ec65c954.png" 
                 alt="MY PUP Logo" 
-                className="w-16 h-16 transition-transform duration-200 group-hover:scale-105"
+                className="w-24 h-24 transition-transform duration-200 group-hover:scale-105 mix-blend-multiply"
+                style={{ 
+                  filter: 'brightness(1.1) contrast(1.05)',
+                  background: 'transparent'
+                }}
               />
-              <div className="absolute inset-0 bg-royal-blue/10 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200"></div>
+              <div className="absolute inset-0 bg-gradient-to-br from-royal-blue/5 to-soft-sky/10 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200"></div>
             </div>
           </div>
         </div>
