@@ -69,7 +69,7 @@ const DogLoadingIcon = ({ size = 48, className = "" }: DogLoadingIconProps) => {
         viewBox="0 0 100 100" 
         className="text-black"
       >
-        {/* Rotating paws with tracer effect and curved symmetry */}
+        {/* Rotating paws with tracer effect and following motion */}
         {circularPawPositions.map((paw, index) => {
           const isActive = currentFrameData.activePaw === index;
           const isPrevious = currentFrameData.activePaw === (index + 3) % 4;
@@ -80,6 +80,9 @@ const DogLoadingIcon = ({ size = 48, className = "" }: DogLoadingIconProps) => {
           else if (isPrevious) opacity = 0.4;
           else if (isPrevious2) opacity = 0.15;
           
+          // Each paw rotates towards the next paw position, creating a following effect
+          const followingRotation = paw.angle + (currentFrame * 90); // Each step rotates 90 degrees to follow
+          
           return (
             <PawPrint
               key={index}
@@ -87,7 +90,7 @@ const DogLoadingIcon = ({ size = 48, className = "" }: DogLoadingIconProps) => {
               y={paw.y}
               scale={1.2}
               opacity={opacity}
-              rotation={paw.angle + (currentFrame * 15)} // Adjusted rotation for curved symmetry
+              rotation={followingRotation}
             />
           );
         })}
