@@ -20,7 +20,7 @@ const DogLoadingIcon = ({ size = 48, className = "" }: DogLoadingIconProps) => {
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentFrame((prev) => (prev + 1) % frames.length);
-    }, 150); // Increased speed from 400ms to 150ms
+    }, 300); // Slowed down from 150ms to 300ms
 
     return () => clearInterval(interval);
   }, []);
@@ -87,7 +87,7 @@ const DogLoadingIcon = ({ size = 48, className = "" }: DogLoadingIconProps) => {
               y={paw.y}
               scale={1.2}
               opacity={opacity}
-              rotation={paw.angle + (currentFrame * 30)} // Increased rotation speed for faster effect
+              rotation={paw.angle + (currentFrame * 20)} // Reduced rotation speed from 30 to 20
             />
           );
         })}
