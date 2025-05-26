@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 
 interface DogLoadingIconProps {
@@ -26,12 +27,12 @@ const DogLoadingIcon = ({ size = 48, className = "" }: DogLoadingIconProps) => {
 
   const currentFrameData = frames[currentFrame];
 
-  // Circular positions for rotating paws (4 paws at compass diagonal positions)
+  // Circular positions for rotating paws (4 paws at 90-degree intervals)
   const circularPawPositions = [
-    { x: 65, y: 35, angle: 45 },   // Northeast
-    { x: 65, y: 65, angle: 135 },  // Southeast
-    { x: 35, y: 65, angle: 225 },  // Southwest
-    { x: 35, y: 35, angle: 315 },  // Northwest
+    { x: 50, y: 25, angle: 0 },    // Top (0°)
+    { x: 75, y: 50, angle: 90 },   // Right (90°)
+    { x: 50, y: 75, angle: 180 },  // Bottom (180°)
+    { x: 25, y: 50, angle: 270 },  // Left (270°)
   ];
 
   const PawPrint = ({ x, y, scale = 1, opacity = 1 }: { x: number; y: number; scale?: number; opacity?: number }) => (
