@@ -1,181 +1,147 @@
+
 import React, { useState } from 'react';
-import { Search, Send } from 'lucide-react';
+import { Search, Edit } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import ChatInterface from '@/components/messaging/ChatInterface';
+
+interface Conversation {
+  id: string;
+  name: string;
+  avatar: string;
+  lastMessage: string;
+  timestamp: string;
+  unread: number;
+  isOnline: boolean;
+}
 
 const Messages = () => {
-  const [selectedChat, setSelectedChat] = useState<number | null>(null);
-  const [newMessage, setNewMessage] = useState('');
+  const [selectedChat, setSelectedChat] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
 
-  const conversations = [
+  const conversations: Conversation[] = [
     {
-      id: 1,
-      name: "Golden Paws Kennel",
-      lastMessage: "The puppies will be ready for pickup next week!",
-      time: "2:30 PM",
-      unread: 2,
-      avatar: "https://images.unsplash.com/photo-1560743173-567a3b5658b1?w=50&h=50&fit=crop&crop=face",
-      online: true
-    },
-    {
-      id: 2,
-      name: "Sarah Chen",
-      lastMessage: "Thank you for the health certificates",
-      time: "11:45 AM",
+      id: '1',
+      name: 'Golden Paws Kennel',
+      avatar: 'https://images.unsplash.com/photo-1560743173-567a3b5658b1?w=150&h=150&fit=crop&crop=face',
+      lastMessage: 'Thanks for your message! I\'ll get back to you soon.',
+      timestamp: '2m ago',
       unread: 0,
-      avatar: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=50&h=50&fit=crop&crop=face",
-      online: false
+      isOnline: true
     },
     {
-      id: 3,
-      name: "Noble German Shepherds",
-      lastMessage: "Would you like to schedule a visit?",
-      time: "Yesterday",
-      unread: 1,
-      avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=50&h=50&fit=crop&crop=face",
-      online: true
+      id: '2',
+      name: 'Sarah Johnson',
+      avatar: 'https://images.unsplash.com/photo-1494790108755-2616b612b789?w=150&h=150&fit=crop&crop=face',
+      lastMessage: 'Is the puppy still available?',
+      timestamp: '1h ago',
+      unread: 2,
+      isOnline: false
+    },
+    {
+      id: '3',
+      name: 'Mike\'s Pet Store',
+      avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face',
+      lastMessage: 'Great! When can we schedule a visit?',
+      timestamp: '3h ago',
+      unread: 0,
+      isOnline: true
     }
   ];
 
-  const messages = [
-    {
-      id: 1,
-      sender: "them",
-      message: "Hi! I saw your interest in our Golden Retriever puppies. Are you still looking?",
-      time: "2:15 PM"
-    },
-    {
-      id: 2,
-      sender: "me", 
-      message: "Yes, absolutely! Could you tell me more about the available puppies?",
-      time: "2:18 PM"
-    },
-    {
-      id: 3,
-      sender: "them",
-      message: "We have 3 beautiful puppies available. All are 8 weeks old and have their first shots.",
-      time: "2:20 PM"
-    }
-  ];
+  const filteredConversations = conversations.filter(conv =>
+    conv.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
-  const handleSendMessage = () => {
-    if (newMessage.trim()) {
-      setNewMessage('');
-    }
-  };
+  const selectedConversation = conversations.find(conv => conv.id === selectedChat);
 
-  const currentConversation = conversations.find(c => c.id === selectedChat);
-
-  if (!selectedChat) {
+  if (selectedChat && selectedConversation) {
     return (
-      <div className="max-w-md mx-auto h-full">
-        <div className="bg-white h-full">
-          <div className="p-4 border-b border-blue-100">
-            <h1 className="text-xl font-semibold">Messages</h1>
-            <div className="mt-3 relative">
-              <Search size={18} className="absolute left-3 top-3 text-gray-400" />
-              <input
-                type="text"
-                placeholder="Search"
-                className="w-full pl-10 pr-4 py-2 bg-gray-100 rounded-lg border-0 focus:ring-1 focus:ring-blue-500"
-              />
-            </div>
-          </div>
-          
-          <div className="overflow-y-auto">
-            {conversations.map((conv) => (
-              <div
-                key={conv.id}
-                onClick={() => setSelectedChat(conv.id)}
-                className="p-3 border-b border-blue-100 cursor-pointer hover:bg-blue-50 active:bg-blue-100"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="relative">
-                    <img
-                      src={conv.avatar}
-                      alt={conv.name}
-                      className="w-12 h-12 rounded-full object-cover"
-                    />
-                    {conv.online && (
-                      <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-green-500 rounded-full border-2 border-white"></div>
-                    )}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex justify-between items-start">
-                      <h3 className="font-medium text-sm text-gray-900 truncate">{conv.name}</h3>
-                      <span className="text-xs text-gray-500">{conv.time}</span>
-                    </div>
-                    <p className={`text-sm truncate mt-0.5 ${conv.unread > 0 ? 'text-gray-900 font-medium' : 'text-gray-600'}`}>
-                      {conv.lastMessage}
-                    </p>
-                  </div>
-                  {conv.unread > 0 && (
-                    <div className="w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center">
-                      <span className="text-xs text-white font-bold">{conv.unread}</span>
-                    </div>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
+      <div className="max-w-md mx-auto bg-white min-h-screen">
+        <div className="h-screen">
+          <ChatInterface
+            recipientName={selectedConversation.name}
+            recipientAvatar={selectedConversation.avatar}
+            isOnline={selectedConversation.isOnline}
+          />
         </div>
       </div>
     );
   }
 
   return (
-    <div className="max-w-md mx-auto h-full flex flex-col bg-white">
-      <div className="p-4 border-b border-blue-100 flex items-center gap-3">
-        <button onClick={() => setSelectedChat(null)} className="text-blue-500">
-          ←
-        </button>
-        <img
-          src={currentConversation?.avatar}
-          alt="Avatar"
-          className="w-8 h-8 rounded-full"
-        />
-        <h2 className="font-medium">{currentConversation?.name}</h2>
+    <div className="max-w-md mx-auto bg-white min-h-screen">
+      {/* Header */}
+      <div className="p-4 border-b">
+        <div className="flex items-center justify-between mb-4">
+          <h1 className="text-xl font-bold">Messages</h1>
+          <Button variant="ghost" size="icon">
+            <Edit size={20} />
+          </Button>
+        </div>
+        
+        {/* Search */}
+        <div className="relative">
+          <Search size={20} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+          <Input
+            placeholder="Search conversations..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10"
+          />
+        </div>
       </div>
 
-      <div className="flex-1 p-4 overflow-y-auto space-y-3">
-        {messages.map((msg) => (
+      {/* Conversations List */}
+      <div className="divide-y divide-gray-100">
+        {filteredConversations.map((conversation) => (
           <div
-            key={msg.id}
-            className={`flex ${msg.sender === 'me' ? 'justify-end' : 'justify-start'}`}
+            key={conversation.id}
+            onClick={() => setSelectedChat(conversation.id)}
+            className="p-4 hover:bg-gray-50 cursor-pointer transition-colors"
           >
-            <div
-              className={`max-w-xs px-4 py-2 rounded-2xl ${
-                msg.sender === 'me'
-                  ? 'bg-blue-500 text-white'
-                  : 'bg-gray-100 text-gray-800'
-              }`}
-            >
-              <p className="text-sm">{msg.message}</p>
+            <div className="flex items-center gap-3">
+              <div className="relative">
+                <img
+                  src={conversation.avatar}
+                  alt={conversation.name}
+                  className="w-12 h-12 rounded-full object-cover"
+                />
+                {conversation.isOnline && (
+                  <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white rounded-full"></div>
+                )}
+              </div>
+              
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center justify-between mb-1">
+                  <h3 className="font-semibold text-sm truncate">{conversation.name}</h3>
+                  <span className="text-xs text-gray-500">{conversation.timestamp}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <p className="text-sm text-gray-600 truncate">{conversation.lastMessage}</p>
+                  {conversation.unread > 0 && (
+                    <div className="bg-blue-500 text-white text-xs rounded-full min-w-[20px] h-5 flex items-center justify-center">
+                      {conversation.unread}
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
         ))}
       </div>
 
-      <div className="p-4 border-t border-blue-100">
-        <div className="flex items-center gap-2">
-          <input
-            type="text"
-            value={newMessage}
-            onChange={(e) => setNewMessage(e.target.value)}
-            placeholder="Message..."
-            className="flex-1 px-4 py-2 bg-gray-100 rounded-full border-0 focus:ring-1 focus:ring-blue-500"
-          />
-          <button
-            onClick={handleSendMessage}
-            disabled={!newMessage.trim()}
-            className={`p-2 rounded-full ${
-              newMessage.trim()
-                ? 'bg-blue-500 text-white'
-                : 'bg-gray-300 text-gray-500'
-            }`}
-          >
-            <Send size={16} />
-          </button>
+      {filteredConversations.length === 0 && (
+        <div className="p-8 text-center">
+          <div className="text-gray-400 mb-2">
+            <Edit size={48} className="mx-auto" />
+          </div>
+          <h3 className="font-medium text-gray-900 mb-1">No conversations found</h3>
+          <p className="text-sm text-gray-500">
+            {searchTerm ? 'Try adjusting your search terms.' : 'Start a new conversation to get started.'}
+          </p>
         </div>
-      </div>
+      )}
     </div>
   );
 };
