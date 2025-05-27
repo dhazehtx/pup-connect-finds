@@ -1,5 +1,6 @@
+
 import React, { useState } from 'react';
-import { Star, MapPin, MessageCircle, Award, Clock, Shield, Stethoscope } from 'lucide-react';
+import { Star, MapPin, MessageCircle, Award, Clock, Shield, Stethoscope, Heart } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';

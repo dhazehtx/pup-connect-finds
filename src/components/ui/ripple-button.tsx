@@ -85,7 +85,7 @@ const RippleButton = ({
           }}
         />
       ))}
-      <style jsx>{`
+      <style>{`
         @keyframes ripple {
           to {
             transform: scale(4);
