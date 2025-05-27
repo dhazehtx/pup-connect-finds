@@ -216,8 +216,8 @@ const Home = () => {
                   </CarouselContent>
                   {post.images.length > 1 && (
                     <>
-                      <CarouselPrevious className="left-2" />
-                      <CarouselNext className="right-2" />
+                      <CarouselPrevious className="left-2 bg-black/20 hover:bg-black/30 border-0 text-white" />
+                      <CarouselNext className="right-2 bg-black/20 hover:bg-black/30 border-0 text-white" />
                     </>
                   )}
                   {/* Image indicator dots */}
