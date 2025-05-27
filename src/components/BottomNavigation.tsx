@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Home, Compass, MessageCircle, Bell, Settings } from 'lucide-react';
+import { Home, Search, MessageCircle, User } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 
 const BottomNavigation = () => {
@@ -9,10 +9,9 @@ const BottomNavigation = () => {
 
   const navItems = [
     { icon: Home, label: 'Home', path: '/' },
-    { icon: Compass, label: 'Explore', path: '/explore' },
+    { icon: Search, label: 'Explore', path: '/explore' },
     { icon: MessageCircle, label: 'Messages', path: '/messages' },
-    { icon: Bell, label: 'Notifications', path: '/notifications' },
-    { icon: Settings, label: 'Settings', path: '/settings' },
+    { icon: User, label: 'Profile', path: '/profile/1' }, // Using a default profile ID
   ];
 
   return (
@@ -21,7 +20,8 @@ const BottomNavigation = () => {
         <div className="flex justify-around">
           {navItems.map((item) => {
             const Icon = item.icon;
-            const isActive = location.pathname === item.path;
+            const isActive = location.pathname === item.path || 
+              (item.path === '/explore' && location.pathname === '/map'); // Keep map view under explore
             
             return (
               <button
