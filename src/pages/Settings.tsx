@@ -5,6 +5,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Link } from 'react-router-dom';
 import SocialMediaConnections from '@/components/settings/SocialMediaConnections';
 import DarkModeToggle from '@/components/settings/DarkModeToggle';
 
@@ -36,7 +37,7 @@ const Settings = () => {
     {
       title: 'Support',
       items: [
-        { icon: HelpCircle, label: 'Help & Support', description: 'Get help or contact support' },
+        { icon: HelpCircle, label: 'Help & FAQ Center', description: 'Get help or contact support', link: '/help' },
       ]
     }
   ];
@@ -133,10 +134,14 @@ const Settings = () => {
             <div className="divide-y divide-border">
               {group.items.map((item, itemIndex) => {
                 const Icon = item.icon;
+                const ItemComponent = item.link ? Link : 'div';
+                const itemProps = item.link ? { to: item.link } : {};
+                
                 return (
-                  <div
+                  <ItemComponent
                     key={itemIndex}
-                    className="px-6 py-4 hover:bg-muted/50 cursor-pointer transition-colors"
+                    {...itemProps}
+                    className="px-6 py-4 hover:bg-muted/50 cursor-pointer transition-colors block"
                   >
                     <div className="flex items-center gap-4">
                       <div className="w-10 h-10 bg-muted rounded-lg flex items-center justify-center">
@@ -148,7 +153,7 @@ const Settings = () => {
                       </div>
                       <ChevronRight size={20} className="text-muted-foreground" />
                     </div>
-                  </div>
+                  </ItemComponent>
                 );
               })}
             </div>
