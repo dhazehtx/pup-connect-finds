@@ -97,7 +97,9 @@
 }
 
 /* COMPREHENSIVE YELLOW COLOR REMOVAL */
-/* Remove all yellow colors and replace with royal blue or appropriate alternatives */
+/* Remove all yellow colors and replace with appropriate alternatives */
+
+/* Standard Tailwind yellow classes */
 .bg-yellow-50,
 .bg-yellow-100,
 .bg-yellow-200,
@@ -108,7 +110,7 @@
 .bg-yellow-700,
 .bg-yellow-800,
 .bg-yellow-900 {
-  background-color: rgb(36 107 253) !important; /* Royal Blue */
+  background-color: rgb(249 250 251) !important; /* Cloud White */
 }
 
 .text-yellow-50,
@@ -134,14 +136,14 @@
 .border-yellow-700,
 .border-yellow-800,
 .border-yellow-900 {
-  border-color: rgb(36 107 253) !important; /* Royal Blue */
+  border-color: rgb(201 231 255) !important; /* Soft Sky */
 }
 
 /* Remove yellow from any element with yellow in the class name */
 [class*="yellow"] {
-  background-color: rgb(36 107 253) !important; /* Royal Blue background */
-  color: rgb(249 250 251) !important; /* Cloud White text */
-  border-color: rgb(36 107 253) !important; /* Royal Blue border */
+  background-color: rgb(249 250 251) !important; /* Cloud White background */
+  color: rgb(26 26 46) !important; /* Deep Navy text */
+  border-color: rgb(201 231 255) !important; /* Soft Sky border */
 }
 
 /* Override any inline yellow styles */
@@ -150,9 +152,9 @@
 *[style*="#fff0"],
 *[style*="rgb(255, 255"],
 *[style*="rgba(255, 255"] {
-  background-color: rgb(36 107 253) !important; /* Royal Blue */
-  color: rgb(249 250 251) !important; /* Cloud White */
-  border-color: rgb(36 107 253) !important; /* Royal Blue */
+  background-color: rgb(249 250 251) !important; /* Cloud White */
+  color: rgb(26 26 46) !important; /* Deep Navy */
+  border-color: rgb(201 231 255) !important; /* Soft Sky */
 }
 
 /* Specific overrides for common yellow hex codes */
@@ -160,9 +162,88 @@
 *[style*="#FFD700"],
 *[style*="#FFEB3B"],
 *[style*="#FFF176"],
-*[style*="#FFECB3"] {
-  background-color: rgb(36 107 253) !important; /* Royal Blue */
-  color: rgb(249 250 251) !important; /* Cloud White */
+*[style*="#FFECB3"],
+*[style*="#FFFACD"],
+*[style*="#F0E68C"],
+*[style*="#FFEFD5"] {
+  background-color: rgb(249 250 251) !important; /* Cloud White */
+  color: rgb(26 26 46) !important; /* Deep Navy */
+  border-color: rgb(201 231 255) !important; /* Soft Sky */
+}
+
+/* Target specific UI components that might have yellow backgrounds */
+/* Story circles and highlights */
+.story-circle,
+.highlight-circle,
+[class*="story"],
+[class*="highlight"] {
+  background-color: rgb(249 250 251) !important; /* Cloud White */
+  border-color: rgb(201 231 255) !important; /* Soft Sky */
+}
+
+/* Navigation arrows and buttons */
+.nav-arrow,
+.carousel-arrow,
+[class*="arrow"] {
+  background-color: rgb(249 250 251) !important; /* Cloud White */
+  color: rgb(26 26 46) !important; /* Deep Navy */
+  border-color: rgb(201 231 255) !important; /* Soft Sky */
+}
+
+/* Form inputs that might have yellow backgrounds */
+input[style*="yellow"],
+textarea[style*="yellow"],
+.form-input {
+  background-color: rgb(249 250 251) !important; /* Cloud White */
+  border-color: rgb(201 231 255) !important; /* Soft Sky */
+  color: rgb(26 26 46) !important; /* Deep Navy */
+}
+
+/* Buttons that might be yellow */
+button[style*="yellow"],
+.btn-yellow,
+.follow-btn {
+  background-color: rgb(36 107 253) !important; /* Royal Blue for action buttons */
+  color: rgb(249 250 251) !important; /* Cloud White text */
+  border-color: rgb(36 107 253) !important; /* Royal Blue border */
+}
+
+/* Badge and tag components */
+.badge[style*="yellow"],
+.tag[style*="yellow"],
+[class*="badge"][style*="yellow"] {
+  background-color: rgb(201 231 255) !important; /* Soft Sky */
+  color: rgb(26 26 46) !important; /* Deep Navy */
+  border-color: rgb(201 231 255) !important; /* Soft Sky */
+}
+
+/* Profile sections and containers */
+.profile-section,
+.profile-container,
+[class*="profile"] {
+  background-color: rgb(249 250 251) !important; /* Cloud White */
+}
+
+/* Tab sections and navigation */
+.tab-section,
+.tab-container,
+[class*="tab"] {
+  background-color: rgb(249 250 251) !important; /* Cloud White */
+  border-color: rgb(201 231 255) !important; /* Soft Sky */
+}
+
+/* Override any background gradients that might contain yellow */
+*[style*="linear-gradient"][style*="yellow"],
+*[style*="radial-gradient"][style*="yellow"] {
+  background: rgb(249 250 251) !important; /* Cloud White */
+}
+
+/* Ensure text remains readable on white backgrounds */
+.bg-white *,
+.bg-gray-50 *,
+[style*="background: white"] *,
+[style*="background-color: white"] * {
+  color: rgb(26 26 46) !important; /* Deep Navy for readability */
 }
 
 /* Custom animations for micro-interactions */
