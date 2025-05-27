@@ -72,7 +72,7 @@ const Messages = () => {
   return (
     <div className="max-w-md mx-auto bg-white min-h-screen">
       {/* Header */}
-      <div className="p-4 border-b">
+      <div className="p-4 border-b border-gray-100">
         <div className="flex items-center justify-between mb-4">
           <h1 className="text-xl font-bold">Messages</h1>
           <Button variant="ghost" size="icon">
@@ -87,7 +87,7 @@ const Messages = () => {
             placeholder="Search conversations..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10"
+            className="pl-10 bg-white border-gray-200"
           />
         </div>
       </div>
