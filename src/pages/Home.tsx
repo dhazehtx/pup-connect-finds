@@ -1,10 +1,49 @@
-
 import React, { useState } from 'react';
-import { Heart, MessageCircle, Share, Bookmark, MoreHorizontal } from 'lucide-react';
+import { Heart, MessageCircle, Share, Bookmark, MoreHorizontal, Plus } from 'lucide-react';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 
 const Home = () => {
   const [likedPosts, setLikedPosts] = useState<Set<number>>(new Set());
+
+  const stories = [
+    {
+      id: 'add',
+      user: { name: 'Your Story', avatar: '' },
+      isAddStory: true
+    },
+    {
+      id: 1,
+      user: { 
+        name: 'Golden Paws', 
+        avatar: 'https://images.unsplash.com/photo-1552053831-71594a27632d?w=100&h=100&fit=crop&crop=face' 
+      },
+      hasNewStory: true
+    },
+    {
+      id: 2,
+      user: { 
+        name: 'Noble Shepherds', 
+        avatar: 'https://images.unsplash.com/photo-1589941013453-ec89f33b5e95?w=100&h=100&fit=crop&crop=face' 
+      },
+      hasNewStory: true
+    },
+    {
+      id: 3,
+      user: { 
+        name: 'Lab Love', 
+        avatar: 'https://images.unsplash.com/photo-1518717758536-85ae29035b6d?w=100&h=100&fit=crop&crop=face' 
+      },
+      hasNewStory: false
+    },
+    {
+      id: 4,
+      user: { 
+        name: 'Poodle Paradise', 
+        avatar: 'https://images.unsplash.com/photo-1574158622682-e40e69881006?w=100&h=100&fit=crop&crop=face' 
+      },
+      hasNewStory: true
+    }
+  ];
 
   const posts = [
     {
@@ -79,6 +118,35 @@ const Home = () => {
 
   return (
     <div className="max-w-md mx-auto bg-white min-h-screen">
+      {/* Stories Section */}
+      <div className="bg-white border-b border-gray-100 p-4">
+        <div className="flex space-x-4 overflow-x-auto scrollbar-hide">
+          {stories.map((story) => (
+            <div key={story.id} className="flex flex-col items-center space-y-1 min-w-0">
+              <div className={`relative ${story.isAddStory ? 'w-16 h-16' : 'w-16 h-16'}`}>
+                {story.isAddStory ? (
+                  <div className="w-16 h-16 rounded-full border-2 border-gray-300 border-dashed flex items-center justify-center bg-gray-50">
+                    <Plus size={24} className="text-gray-400" />
+                  </div>
+                ) : (
+                  <>
+                    <div className={`w-16 h-16 rounded-full p-0.5 ${story.hasNewStory ? 'bg-gradient-to-r from-purple-500 to-pink-500' : 'bg-gray-300'}`}>
+                      <Avatar className="w-full h-full border-2 border-white">
+                        <AvatarImage src={story.user.avatar} alt={story.user.name} />
+                        <AvatarFallback>{story.user.name.slice(0, 2)}</AvatarFallback>
+                      </Avatar>
+                    </div>
+                  </>
+                )}
+              </div>
+              <span className="text-xs text-gray-600 text-center w-16 truncate">
+                {story.isAddStory ? 'Your Story' : story.user.name}
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+
       {/* Feed */}
       <div className="space-y-0">
         {posts.map((post) => (

@@ -1,7 +1,6 @@
-
 import React, { useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { MapPin, Settings, Grid, Heart } from 'lucide-react';
+import { MapPin, Settings, Grid, Heart, Plus } from 'lucide-react';
 
 const Profile = () => {
   const { userId } = useParams();
@@ -19,6 +18,30 @@ const Profile = () => {
     posts: 47,
     verified: true
   };
+
+  const highlights = [
+    {
+      id: 'new',
+      title: 'New',
+      cover: '',
+      isNew: true
+    },
+    {
+      id: 1,
+      title: 'Puppies',
+      cover: 'https://images.unsplash.com/photo-1605568427561-40dd23c2acea?w=100&h=100&fit=crop'
+    },
+    {
+      id: 2,
+      title: 'Training',
+      cover: 'https://images.unsplash.com/photo-1551717743-49959800b1f6?w=100&h=100&fit=crop'
+    },
+    {
+      id: 3,
+      title: 'Health',
+      cover: 'https://images.unsplash.com/photo-1518717758536-85ae29035b6d?w=100&h=100&fit=crop'
+    }
+  ];
 
   const posts = [
     "https://images.unsplash.com/photo-1605568427561-40dd23c2acea?w=300&h=300&fit=crop",
@@ -73,6 +96,34 @@ const Profile = () => {
         <button className="w-full py-2 bg-blue-500 text-white rounded-lg font-medium mb-4">
           Edit Profile
         </button>
+
+        {/* Highlights Section */}
+        <div className="mb-6">
+          <div className="flex space-x-4 overflow-x-auto scrollbar-hide">
+            {highlights.map((highlight) => (
+              <div key={highlight.id} className="flex flex-col items-center space-y-1 min-w-0">
+                <div className="relative w-16 h-16">
+                  {highlight.isNew ? (
+                    <div className="w-16 h-16 rounded-full border-2 border-gray-300 border-dashed flex items-center justify-center bg-gray-50">
+                      <Plus size={24} className="text-gray-400" />
+                    </div>
+                  ) : (
+                    <div className="w-16 h-16 rounded-full border-2 border-gray-300 overflow-hidden">
+                      <img
+                        src={highlight.cover}
+                        alt={highlight.title}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                  )}
+                </div>
+                <span className="text-xs text-gray-600 text-center w-16 truncate">
+                  {highlight.title}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
 
         <div className="border-t border-gray-200">
           <div className="flex">
