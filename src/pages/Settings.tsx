@@ -1,12 +1,23 @@
 
 import React, { useState } from 'react';
-import { User, Bell, Shield, MapPin, CreditCard, HelpCircle, LogOut, ChevronRight, Palette } from 'lucide-react';
+import { User, Bell, Shield, MapPin, CreditCard, HelpCircle, LogOut, ChevronRight, Palette, Edit3 } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import SocialMediaConnections from '@/components/settings/SocialMediaConnections';
 
 const Settings = () => {
   const [isDarkMode, setIsDarkMode] = useState(false);
+  const [bio, setBio] = useState("Passionate dog breeder specializing in Golden Retrievers and Labradors. Health tested puppies with health guarantees. Member since March 2023.");
+  const [isEditingBio, setIsEditingBio] = useState(false);
+
+  const handleBioSave = () => {
+    setIsEditingBio(false);
+    // Here you would typically save to backend/database
+    console.log('Bio saved:', bio);
+  };
 
   const settingsGroups = [
     {
@@ -57,6 +68,52 @@ const Settings = () => {
           </button>
         </div>
       </div>
+
+      {/* Bio Section */}
+      <Card className="mb-6">
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-deep-navy">Profile Bio</CardTitle>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setIsEditingBio(!isEditingBio)}
+              className="flex items-center gap-2"
+            >
+              <Edit3 size={16} />
+              {isEditingBio ? 'Cancel' : 'Edit'}
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent>
+          {isEditingBio ? (
+            <div className="space-y-4">
+              <Textarea
+                value={bio}
+                onChange={(e) => setBio(e.target.value)}
+                placeholder="Tell others about yourself, your experience, and what makes your breeding program special..."
+                className="min-h-[120px] resize-none"
+                maxLength={300}
+              />
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-deep-navy/60">{bio.length}/300 characters</span>
+                <div className="flex gap-2">
+                  <Button variant="outline" onClick={() => setIsEditingBio(false)}>
+                    Cancel
+                  </Button>
+                  <Button onClick={handleBioSave} className="bg-mint-green text-deep-navy hover:bg-mint-green/80">
+                    Save Bio
+                  </Button>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div>
+              <p className="text-deep-navy/80 leading-relaxed">{bio}</p>
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Social Media Connections */}
       <div className="mb-6">
