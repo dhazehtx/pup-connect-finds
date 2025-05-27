@@ -170,7 +170,90 @@
   border-color: rgb(147 197 253) !important; /* Soft Blue */
 }
 
-/* Target specific UI components that might have highlighted backgrounds */
+/* CAROUSEL COMPONENT FIXES */
+/* Target carousel navigation arrows specifically */
+[data-orientation="horizontal"] button,
+.carousel-arrow,
+.CarouselNext,
+.CarouselPrevious,
+button[aria-label*="Next"],
+button[aria-label*="Previous"],
+button[class*="carousel"] {
+  background-color: rgba(59, 130, 246, 0.9) !important; /* Semi-transparent blue */
+  color: white !important;
+  border-color: rgb(59, 130, 246) !important;
+  border-radius: 50% !important;
+}
+
+/* Carousel container and content */
+.carousel,
+[class*="carousel"],
+.embla,
+[class*="embla"] {
+  background-color: transparent !important;
+}
+
+/* Target specific carousel button positioning classes */
+.absolute.inset-y-0,
+.absolute.left-2,
+.absolute.right-2,
+.absolute.-left-12,
+.absolute.-right-12 {
+  background-color: rgba(59, 130, 246, 0.9) !important;
+  color: white !important;
+  border-radius: 50% !important;
+}
+
+/* SEARCH INPUT FIXES */
+/* Target search input fields specifically */
+input[placeholder*="Search"],
+input[placeholder*="search"],
+.search-input,
+[class*="search"] input,
+input[type="search"] {
+  background-color: rgb(243, 244, 246) !important; /* Light gray background */
+  border-color: rgb(209, 213, 219) !important; /* Gray border */
+  color: rgb(17, 24, 39) !important; /* Dark text */
+}
+
+/* Focus states for search inputs */
+input[placeholder*="Search"]:focus,
+input[placeholder*="search"]:focus,
+.search-input:focus,
+[class*="search"] input:focus,
+input[type="search"]:focus {
+  background-color: white !important;
+  border-color: rgb(59, 130, 246) !important; /* Blue border on focus */
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1) !important; /* Blue glow */
+}
+
+/* INPUT FIELD GENERAL FIXES */
+/* Target all input fields that might have yellow backgrounds */
+input,
+textarea,
+select {
+  background-color: white !important;
+  border-color: rgb(209, 213, 219) !important;
+  color: rgb(17, 24, 39) !important;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  border-color: rgb(59, 130, 246) !important;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1) !important;
+}
+
+/* TARGET SPECIFIC COMPONENT CLASSES FROM SCREENSHOTS */
+/* Messages search bar */
+.messages input,
+[class*="messages"] input,
+div[class*="relative"] input {
+  background-color: rgb(243, 244, 246) !important; /* Light gray */
+  border-color: rgb(209, 213, 219) !important;
+  color: rgb(17, 24, 39) !important;
+}
+
 /* Story circles and highlights */
 .story-circle,
 .highlight-circle,
@@ -185,9 +268,10 @@
 .nav-arrow,
 .carousel-arrow,
 [class*="arrow"] {
-  background-color: rgb(219 234 254) !important; /* Light Blue */
-  color: rgb(29 78 216) !important; /* Medium Blue */
-  border-color: rgb(147 197 253) !important; /* Soft Blue */
+  background-color: rgba(59, 130, 246, 0.9) !important; /* Semi-transparent blue */
+  color: white !important;
+  border-color: rgb(59, 130, 246) !important;
+  border-radius: 50% !important;
 }
 
 /* Form inputs that might have highlighted backgrounds */
@@ -196,9 +280,9 @@ textarea[style*="yellow"],
 .form-input,
 input[class*="highlight"],
 textarea[class*="highlight"] {
-  background-color: rgb(219 234 254) !important; /* Light Blue */
-  border-color: rgb(147 197 253) !important; /* Soft Blue */
-  color: rgb(29 78 216) !important; /* Medium Blue */
+  background-color: white !important;
+  border-color: rgb(209, 213, 219) !important;
+  color: rgb(17, 24, 39) !important;
 }
 
 /* Buttons that might be highlighted */
@@ -206,9 +290,9 @@ button[style*="yellow"],
 .btn-yellow,
 .btn-highlight,
 [class*="highlight-btn"] {
-  background-color: rgb(59 130 246) !important; /* Medium Blue for action buttons */
-  color: rgb(249 250 251) !important; /* Cloud White text */
-  border-color: rgb(59 130 246) !important; /* Medium Blue border */
+  background-color: rgb(59, 130, 246) !important; /* Medium Blue for action buttons */
+  color: white !important;
+  border-color: rgb(59, 130, 246) !important;
 }
 
 /* Badge and tag components */
@@ -216,30 +300,30 @@ button[style*="yellow"],
 .tag[style*="yellow"],
 [class*="badge"][style*="yellow"],
 [class*="highlight"][class*="badge"] {
-  background-color: rgb(219 234 254) !important; /* Light Blue */
-  color: rgb(29 78 216) !important; /* Medium Blue */
-  border-color: rgb(147 197 253) !important; /* Soft Blue */
+  background-color: rgb(219, 234, 254) !important; /* Light Blue */
+  color: rgb(29, 78, 216) !important; /* Medium Blue */
+  border-color: rgb(147, 197, 253) !important; /* Soft Blue */
 }
 
 /* Profile sections and containers */
 .profile-section,
 .profile-container,
 [class*="profile"][class*="highlight"] {
-  background-color: rgb(219 234 254) !important; /* Light Blue */
+  background-color: rgb(219, 234, 254) !important; /* Light Blue */
 }
 
 /* Tab sections and navigation */
 .tab-section,
 .tab-container,
 [class*="tab"][class*="highlight"] {
-  background-color: rgb(219 234 254) !important; /* Light Blue */
-  border-color: rgb(147 197 253) !important; /* Soft Blue */
+  background-color: rgb(219, 234, 254) !important; /* Light Blue */
+  border-color: rgb(147, 197, 253) !important; /* Soft Blue */
 }
 
 /* Override any background gradients that might contain yellow */
 *[style*="linear-gradient"][style*="yellow"],
 *[style*="radial-gradient"][style*="yellow"] {
-  background: linear-gradient(135deg, rgb(219 234 254), rgb(147 197 253)) !important; /* Blue gradient */
+  background: linear-gradient(135deg, rgb(219, 234, 254), rgb(147, 197, 253)) !important; /* Blue gradient */
 }
 
 /* Additional overrides for highlighted elements */
@@ -247,9 +331,9 @@ button[style*="yellow"],
 [class*="highlight"],
 .active-highlight,
 .selection-highlight {
-  background-color: rgb(219 234 254) !important; /* Light Blue */
-  color: rgb(29 78 216) !important; /* Medium Blue */
-  border-color: rgb(147 197 253) !important; /* Soft Blue */
+  background-color: rgb(219, 234, 254) !important; /* Light Blue */
+  color: rgb(29, 78, 216) !important; /* Medium Blue */
+  border-color: rgb(147, 197, 253) !important; /* Soft Blue */
 }
 
 /* Ensure text remains readable on blue backgrounds */
@@ -257,7 +341,20 @@ button[style*="yellow"],
 .bg-blue-100 *,
 [style*="background: rgb(219 234 254)"] *,
 [style*="background-color: rgb(219 234 254)"] * {
-  color: rgb(29 78 216) !important; /* Medium Blue for readability */
+  color: rgb(29, 78, 216) !important; /* Medium Blue for readability */
+}
+
+/* FORCE OVERRIDE ANY REMAINING YELLOW */
+/* Nuclear option for stubborn yellow elements */
+* {
+  background-image: none !important;
+}
+
+*[style*="background-color: yellow"],
+*[style*="background: yellow"],
+*[style*="bg: yellow"] {
+  background-color: rgba(59, 130, 246, 0.1) !important; /* Very light blue */
+  color: rgb(29, 78, 216) !important;
 }
 
 /* Custom animations for micro-interactions */
