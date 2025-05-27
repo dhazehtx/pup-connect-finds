@@ -15,6 +15,7 @@ import Education from './Education';
 import Monetization from './Monetization';
 import Partnerships from './Partnerships';
 import TermsOfService from './TermsOfService';
+import Help from './Help';
 
 const Index = () => {
   return (
@@ -33,6 +34,7 @@ const Index = () => {
         <Route path="/monetization" element={<Monetization />} />
         <Route path="/partnerships" element={<Partnerships />} />
         <Route path="/terms" element={<TermsOfService />} />
+        <Route path="/help" element={<Help />} />
       </Routes>
     </Layout>
   );
