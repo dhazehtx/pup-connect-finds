@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { ArrowLeft, Camera, Image, MapPin, X, Plus } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -168,7 +167,7 @@ const Post = () => {
             value={caption}
             onChange={(e) => setCaption(e.target.value)}
             placeholder="Write a caption for your post..."
-            className="min-h-[100px] resize-none focus-visible:ring-0 focus-visible:ring-offset-0"
+            className="min-h-[100px] resize-none focus-visible:ring-0 focus-visible:ring-offset-0 border-gray-200 focus:border-gray-200"
             maxLength={500}
           />
           <div className="text-right text-xs text-gray-500 mt-1">
