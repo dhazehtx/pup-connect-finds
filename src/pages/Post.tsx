@@ -167,7 +167,7 @@ const Post = () => {
             value={caption}
             onChange={(e) => setCaption(e.target.value)}
             placeholder="Write a caption for your post..."
-            className="min-h-[100px] resize-none focus-visible:ring-0 focus-visible:ring-offset-0 border-gray-200 focus:border-gray-200"
+            className="min-h-[100px] resize-none border-gray-200 focus:border-gray-200 focus-visible:ring-0 focus-visible:ring-offset-0 focus:ring-0 focus:outline-none"
             maxLength={500}
           />
           <div className="text-right text-xs text-gray-500 mt-1">
@@ -185,7 +185,7 @@ const Post = () => {
               value={location}
               onChange={(e) => setLocation(e.target.value)}
               placeholder="Add location"
-              className="border-0 p-0 focus-visible:ring-0"
+              className="border-0 p-0 focus-visible:ring-0 focus:ring-0 focus:outline-none"
             />
           </div>
         </div>
@@ -199,7 +199,7 @@ const Post = () => {
               value={currentTag}
               onChange={(e) => setCurrentTag(e.target.value)}
               placeholder="Add tags (e.g., #puppy)"
-              className="border-0 p-0 focus-visible:ring-0"
+              className="border-0 p-0 focus-visible:ring-0 focus:ring-0 focus:outline-none"
               onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addTag())}
             />
             <Button onClick={addTag} size="sm" variant="outline">
