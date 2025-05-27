@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { ArrowLeft, Camera, Image, MapPin, X, Plus } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -92,7 +93,7 @@ const Post = () => {
 
   return (
     <div className="max-w-md mx-auto bg-white min-h-screen">
-      <div className="p-4 border-b flex items-center justify-between">
+      <div className="p-4 flex items-center justify-between bg-white">
         <button onClick={() => navigate(-1)}>
           <ArrowLeft size={24} />
         </button>
