@@ -100,7 +100,7 @@ const Profile = () => {
       <div className="p-4">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-xl font-medium text-foreground">{profile.username}</h1>
-          <Settings size={24} className="text-foreground" />
+          <Settings size={24} className="text-muted-foreground" />
         </div>
 
         {/* Profile Header */}
@@ -140,7 +140,7 @@ const Profile = () => {
           <div className="flex items-center gap-2 mb-2">
             <h2 className="font-semibold text-sm text-foreground">{profile.name}</h2>
             {profile.isBreeder && (
-              <Badge className="bg-accent text-accent-foreground text-xs">
+              <Badge className="bg-primary text-primary-foreground text-xs">
                 <Award size={10} className="mr-1" />
                 Verified Breeder
               </Badge>
@@ -150,7 +150,7 @@ const Profile = () => {
           {/* Rating */}
           <div className="flex items-center gap-2 mb-2">
             <div className="flex items-center gap-1">
-              <Star size={14} className="text-primary fill-current" />
+              <Star size={14} className="text-primary fill-primary" />
               <span className="text-sm font-medium text-foreground">{profile.rating}</span>
             </div>
             <span className="text-sm text-muted-foreground">({profile.totalReviews} reviews)</span>
@@ -171,7 +171,7 @@ const Profile = () => {
           {/* Verification Badges */}
           <div className="flex flex-wrap gap-1 mb-3">
             {profile.verificationBadges.map((badge, index) => (
-              <Badge key={index} variant="outline" className="text-xs">
+              <Badge key={index} variant="outline" className="text-xs border-muted text-muted-foreground">
                 <Shield size={10} className="mr-1" />
                 {badge}
               </Badge>
@@ -183,7 +183,7 @@ const Profile = () => {
             <h4 className="text-sm font-medium mb-1 text-foreground">Specializes in:</h4>
             <div className="flex flex-wrap gap-1">
               {profile.specializations.map((spec, index) => (
-                <Badge key={index} variant="secondary" className="text-xs">
+                <Badge key={index} variant="secondary" className="text-xs bg-secondary text-secondary-foreground">
                   {spec}
                 </Badge>
               ))}
@@ -197,7 +197,7 @@ const Profile = () => {
             <Phone size={16} className="mr-2" />
             Contact
           </Button>
-          <Button variant="outline" className="flex-1">
+          <Button variant="outline" className="flex-1 border-border text-foreground hover:bg-muted">
             <Heart size={16} className="mr-2" />
             Follow
           </Button>
@@ -210,11 +210,11 @@ const Profile = () => {
               <div key={highlight.id} className="flex flex-col items-center space-y-1 min-w-0">
                 <div className="relative w-16 h-16">
                   {highlight.isNew ? (
-                    <div className="w-16 h-16 rounded-full border-2 border-border border-dashed flex items-center justify-center bg-muted">
+                    <div className="w-16 h-16 rounded-full border-2 border-muted border-dashed flex items-center justify-center bg-muted/30">
                       <Plus size={24} className="text-muted-foreground" />
                     </div>
                   ) : (
-                    <div className="w-16 h-16 rounded-full border-2 border-border overflow-hidden">
+                    <div className="w-16 h-16 rounded-full border-2 border-muted overflow-hidden">
                       <img
                         src={highlight.cover}
                         alt={highlight.title}
@@ -233,16 +233,16 @@ const Profile = () => {
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="border-t border-border">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="posts" className="flex items-center gap-1">
+          <TabsList className="grid w-full grid-cols-3 bg-muted">
+            <TabsTrigger value="posts" className="flex items-center gap-1 data-[state=active]:bg-background data-[state=active]:text-foreground">
               <Grid size={16} />
               <span className="text-xs font-medium">POSTS</span>
             </TabsTrigger>
-            <TabsTrigger value="reviews" className="flex items-center gap-1">
+            <TabsTrigger value="reviews" className="flex items-center gap-1 data-[state=active]:bg-background data-[state=active]:text-foreground">
               <Star size={16} />
               <span className="text-xs font-medium">REVIEWS</span>
             </TabsTrigger>
-            <TabsTrigger value="saved" className="flex items-center gap-1">
+            <TabsTrigger value="saved" className="flex items-center gap-1 data-[state=active]:bg-background data-[state=active]:text-foreground">
               <Heart size={16} />
               <span className="text-xs font-medium">SAVED</span>
             </TabsTrigger>
@@ -266,13 +266,13 @@ const Profile = () => {
           <TabsContent value="reviews" className="mt-0">
             <div className="space-y-4 p-4">
               {reviews.map((review) => (
-                <Card key={review.id}>
+                <Card key={review.id} className="bg-card border-border">
                   <CardContent className="p-4">
                     <div className="flex items-center justify-between mb-2">
                       <span className="font-medium text-sm text-card-foreground">{review.author}</span>
                       <div className="flex items-center gap-1">
                         {[...Array(review.rating)].map((_, i) => (
-                          <Star key={i} size={12} className="text-primary fill-current" />
+                          <Star key={i} size={12} className="text-primary fill-primary" />
                         ))}
                       </div>
                     </div>
