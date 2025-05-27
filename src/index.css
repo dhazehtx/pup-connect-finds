@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -170,19 +171,45 @@
   border-color: rgb(147 197 253) !important; /* Soft Blue */
 }
 
-/* CAROUSEL COMPONENT FIXES */
-/* Target carousel navigation arrows specifically */
+/* CAROUSEL COMPONENT FIXES - Enhanced targeting */
+/* Target carousel navigation arrows with all possible selectors */
 [data-orientation="horizontal"] button,
 .carousel-arrow,
 .CarouselNext,
 .CarouselPrevious,
 button[aria-label*="Next"],
 button[aria-label*="Previous"],
-button[class*="carousel"] {
+button[class*="carousel"],
+button[class*="Carousel"],
+.embla__button,
+.embla__prev,
+.embla__next,
+button[class*="embla"] {
   background-color: rgba(59, 130, 246, 0.9) !important; /* Semi-transparent blue */
   color: white !important;
   border-color: rgb(59, 130, 246) !important;
   border-radius: 50% !important;
+  outline: none !important;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.2) !important;
+}
+
+/* Target focus states for carousel buttons */
+[data-orientation="horizontal"] button:focus,
+.carousel-arrow:focus,
+.CarouselNext:focus,
+.CarouselPrevious:focus,
+button[aria-label*="Next"]:focus,
+button[aria-label*="Previous"]:focus,
+button[class*="carousel"]:focus,
+button[class*="Carousel"]:focus,
+.embla__button:focus,
+.embla__prev:focus,
+.embla__next:focus,
+button[class*="embla"]:focus {
+  background-color: rgb(59, 130, 246) !important;
+  outline: 2px solid rgb(147, 197, 253) !important;
+  outline-offset: 2px !important;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3) !important;
 }
 
 /* Carousel container and content */
@@ -198,10 +225,47 @@ button[class*="carousel"] {
 .absolute.left-2,
 .absolute.right-2,
 .absolute.-left-12,
-.absolute.-right-12 {
+.absolute.-right-12,
+button.absolute {
   background-color: rgba(59, 130, 246, 0.9) !important;
   color: white !important;
   border-radius: 50% !important;
+  border: 2px solid rgba(59, 130, 246, 0.8) !important;
+  outline: none !important;
+}
+
+/* SCROLL AREA FIXES - Target scroll components */
+/* Remove yellow from scroll areas and scrollbars */
+.scroll-area,
+[class*="scroll"],
+[data-radix-scroll-area-viewport],
+[data-radix-scroll-area-scrollbar] {
+  background-color: transparent !important;
+  border-color: rgb(209, 213, 219) !important;
+}
+
+/* Scrollbar styling */
+[data-radix-scroll-area-scrollbar] {
+  background-color: rgb(243, 244, 246) !important;
+}
+
+[data-radix-scroll-area-thumb] {
+  background-color: rgb(156, 163, 175) !important;
+  border: none !important;
+}
+
+/* Override any scrollbar highlights */
+::-webkit-scrollbar {
+  background-color: rgb(243, 244, 246) !important;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: rgb(156, 163, 175) !important;
+  border: none !important;
+}
+
+::-webkit-scrollbar-track {
+  background-color: rgb(243, 244, 246) !important;
 }
 
 /* SEARCH INPUT FIXES */
@@ -214,6 +278,7 @@ input[type="search"] {
   background-color: rgb(243, 244, 246) !important; /* Light gray background */
   border-color: rgb(209, 213, 219) !important; /* Gray border */
   color: rgb(17, 24, 39) !important; /* Dark text */
+  outline: none !important;
 }
 
 /* Focus states for search inputs */
@@ -225,6 +290,7 @@ input[type="search"]:focus {
   background-color: white !important;
   border-color: rgb(59, 130, 246) !important; /* Blue border on focus */
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1) !important; /* Blue glow */
+  outline: none !important;
 }
 
 /* INPUT FIELD GENERAL FIXES */
@@ -235,6 +301,7 @@ select {
   background-color: white !important;
   border-color: rgb(209, 213, 219) !important;
   color: rgb(17, 24, 39) !important;
+  outline: none !important;
 }
 
 input:focus,
@@ -242,119 +309,43 @@ textarea:focus,
 select:focus {
   border-color: rgb(59, 130, 246) !important;
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1) !important;
+  outline: none !important;
 }
 
-/* TARGET SPECIFIC COMPONENT CLASSES FROM SCREENSHOTS */
-/* Messages search bar */
-.messages input,
-[class*="messages"] input,
-div[class*="relative"] input {
-  background-color: rgb(243, 244, 246) !important; /* Light gray */
-  border-color: rgb(209, 213, 219) !important;
-  color: rgb(17, 24, 39) !important;
-}
-
-/* Story circles and highlights */
-.story-circle,
-.highlight-circle,
-[class*="story"],
-[class*="highlight"] {
-  background-color: rgb(219 234 254) !important; /* Light Blue */
-  border-color: rgb(147 197 253) !important; /* Soft Blue */
-  color: rgb(29 78 216) !important; /* Medium Blue text */
-}
-
-/* Navigation arrows and buttons */
-.nav-arrow,
-.carousel-arrow,
-[class*="arrow"] {
-  background-color: rgba(59, 130, 246, 0.9) !important; /* Semi-transparent blue */
-  color: white !important;
-  border-color: rgb(59, 130, 246) !important;
-  border-radius: 50% !important;
-}
-
-/* Form inputs that might have highlighted backgrounds */
-input[style*="yellow"],
-textarea[style*="yellow"],
-.form-input,
-input[class*="highlight"],
-textarea[class*="highlight"] {
-  background-color: white !important;
-  border-color: rgb(209, 213, 219) !important;
-  color: rgb(17, 24, 39) !important;
-}
-
-/* Buttons that might be highlighted */
-button[style*="yellow"],
-.btn-yellow,
-.btn-highlight,
-[class*="highlight-btn"] {
-  background-color: rgb(59, 130, 246) !important; /* Medium Blue for action buttons */
-  color: white !important;
-  border-color: rgb(59, 130, 246) !important;
-}
-
-/* Badge and tag components */
-.badge[style*="yellow"],
-.tag[style*="yellow"],
-[class*="badge"][style*="yellow"],
-[class*="highlight"][class*="badge"] {
-  background-color: rgb(219, 234, 254) !important; /* Light Blue */
-  color: rgb(29, 78, 216) !important; /* Medium Blue */
-  border-color: rgb(147, 197, 253) !important; /* Soft Blue */
-}
-
-/* Profile sections and containers */
-.profile-section,
-.profile-container,
-[class*="profile"][class*="highlight"] {
-  background-color: rgb(219, 234, 254) !important; /* Light Blue */
-}
-
-/* Tab sections and navigation */
-.tab-section,
-.tab-container,
-[class*="tab"][class*="highlight"] {
-  background-color: rgb(219, 234, 254) !important; /* Light Blue */
-  border-color: rgb(147, 197, 253) !important; /* Soft Blue */
-}
-
-/* Override any background gradients that might contain yellow */
-*[style*="linear-gradient"][style*="yellow"],
-*[style*="radial-gradient"][style*="yellow"] {
-  background: linear-gradient(135deg, rgb(219, 234, 254), rgb(147, 197, 253)) !important; /* Blue gradient */
-}
-
-/* Additional overrides for highlighted elements */
-.highlighted,
-[class*="highlight"],
-.active-highlight,
-.selection-highlight {
-  background-color: rgb(219, 234, 254) !important; /* Light Blue */
-  color: rgb(29, 78, 216) !important; /* Medium Blue */
-  border-color: rgb(147, 197, 253) !important; /* Soft Blue */
-}
-
-/* Ensure text remains readable on blue backgrounds */
-.bg-blue-50 *,
-.bg-blue-100 *,
-[style*="background: rgb(219 234 254)"] *,
-[style*="background-color: rgb(219 234 254)"] * {
-  color: rgb(29, 78, 216) !important; /* Medium Blue for readability */
-}
-
-/* FORCE OVERRIDE ANY REMAINING YELLOW */
-/* Nuclear option for stubborn yellow elements */
-* {
-  background-image: none !important;
-}
-
-*[style*="background-color: yellow"],
+/* ADDITIONAL COMPREHENSIVE OVERRIDES */
+/* Target any remaining yellow highlights with broad selectors */
 *[style*="background: yellow"],
-*[style*="bg: yellow"] {
-  background-color: rgba(59, 130, 246, 0.1) !important; /* Very light blue */
+*[style*="background-color: yellow"],
+*[style*="border: yellow"],
+*[style*="border-color: yellow"],
+*[style*="outline: yellow"],
+*[style*="outline-color: yellow"] {
+  background-color: rgba(59, 130, 246, 0.1) !important;
+  border-color: rgb(147, 197, 253) !important;
+  outline-color: rgb(59, 130, 246) !important;
+}
+
+/* Target yellow RGB values */
+*[style*="rgb(255, 255, 0)"],
+*[style*="rgba(255, 255, 0"],
+*[style*="rgb(255,255,0)"],
+*[style*="rgba(255,255,0"] {
+  background-color: rgba(59, 130, 246, 0.1) !important;
+  border-color: rgb(147, 197, 253) !important;
   color: rgb(29, 78, 216) !important;
+}
+
+/* Remove focus outlines that might be yellow */
+*:focus {
+  outline: 2px solid rgb(59, 130, 246) !important;
+  outline-offset: 2px !important;
+}
+
+/* Button focus states */
+button:focus {
+  outline: 2px solid rgb(59, 130, 246) !important;
+  outline-offset: 2px !important;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1) !important;
 }
 
 /* Custom animations for micro-interactions */
