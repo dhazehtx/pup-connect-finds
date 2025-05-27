@@ -99,13 +99,13 @@ const Profile = () => {
     <div className="max-w-md mx-auto bg-background min-h-screen">
       <div className="p-4 bg-background">
         {/* Header */}
-        <div className="flex justify-between items-center mb-6">
+        <div className="flex justify-between items-center mb-6 bg-background">
           <h1 className="text-xl font-medium text-foreground">{profile.username}</h1>
           <Settings size={24} className="text-muted-foreground" />
         </div>
 
         {/* Profile Header */}
-        <div className="flex items-center gap-4 mb-4">
+        <div className="flex items-center gap-4 mb-4 bg-background">
           <div className="relative">
             <img
               src={profile.avatar}
@@ -137,7 +137,7 @@ const Profile = () => {
         </div>
 
         {/* Profile Info */}
-        <div className="mb-4">
+        <div className="mb-4 bg-background">
           <div className="flex items-center gap-2 mb-2">
             <h2 className="font-semibold text-sm text-foreground">{profile.name}</h2>
             {profile.isBreeder && (
@@ -205,7 +205,7 @@ const Profile = () => {
         </div>
 
         {/* Highlights Section */}
-        <div className="mb-6">
+        <div className="mb-6 bg-background">
           <div className="flex space-x-4 overflow-x-auto scrollbar-hide">
             {highlights.map((highlight) => (
               <div key={highlight.id} className="flex flex-col items-center space-y-1 min-w-0">

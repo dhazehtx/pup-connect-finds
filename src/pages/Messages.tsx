@@ -69,7 +69,7 @@ const Messages = () => {
     return (
       <div className="max-w-md mx-auto h-full">
         <div className="bg-background h-full">
-          <div className="p-4 border-b border-border">
+          <div className="p-4 border-b border-border bg-background">
             <h1 className="text-xl font-semibold text-foreground">Messages</h1>
             <div className="mt-3 relative">
               <Search size={18} className="absolute left-3 top-3 text-muted-foreground" />
@@ -81,12 +81,12 @@ const Messages = () => {
             </div>
           </div>
           
-          <div className="overflow-y-auto">
+          <div className="overflow-y-auto bg-background">
             {conversations.map((conv) => (
               <div
                 key={conv.id}
                 onClick={() => setSelectedChat(conv.id)}
-                className="p-3 border-b border-border cursor-pointer hover:bg-muted/50 active:bg-muted"
+                className="p-3 border-b border-border cursor-pointer hover:bg-muted/50 active:bg-muted bg-background"
               >
                 <div className="flex items-center gap-3">
                   <div className="relative">
@@ -124,7 +124,7 @@ const Messages = () => {
 
   return (
     <div className="max-w-md mx-auto h-full flex flex-col bg-background">
-      <div className="p-4 border-b border-border flex items-center gap-3">
+      <div className="p-4 border-b border-border flex items-center gap-3 bg-background">
         <button onClick={() => setSelectedChat(null)} className="text-primary">
           ←
         </button>
@@ -136,7 +136,7 @@ const Messages = () => {
         <h2 className="font-medium text-foreground">{currentConversation?.name}</h2>
       </div>
 
-      <div className="flex-1 p-4 overflow-y-auto space-y-3">
+      <div className="flex-1 p-4 overflow-y-auto space-y-3 bg-background">
         {messages.map((msg) => (
           <div
             key={msg.id}
@@ -155,7 +155,7 @@ const Messages = () => {
         ))}
       </div>
 
-      <div className="p-4 border-t border-border">
+      <div className="p-4 border-t border-border bg-background">
         <div className="flex items-center gap-2">
           <input
             type="text"
