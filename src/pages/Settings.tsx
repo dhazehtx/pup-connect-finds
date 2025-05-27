@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { User, Bell, Shield, MapPin, CreditCard, HelpCircle, LogOut, ChevronRight, Edit3 } from 'lucide-react';
 import { Label } from '@/components/ui/label';
@@ -134,14 +133,12 @@ const Settings = () => {
             <div className="divide-y divide-border">
               {group.items.map((item, itemIndex) => {
                 const Icon = item.icon;
-                const ItemComponent = item.link ? Link : 'div';
-                const itemProps = item.link ? { to: item.link } : {};
                 
-                return (
-                  <ItemComponent
+                return item.link ? (
+                  <Link
                     key={itemIndex}
-                    {...itemProps}
-                    className="px-6 py-4 hover:bg-muted/50 cursor-pointer transition-colors block"
+                    to={item.link}
+                    className="px-6 py-4 hover:bg-muted/50 transition-colors block"
                   >
                     <div className="flex items-center gap-4">
                       <div className="w-10 h-10 bg-muted rounded-lg flex items-center justify-center">
@@ -153,7 +150,23 @@ const Settings = () => {
                       </div>
                       <ChevronRight size={20} className="text-muted-foreground" />
                     </div>
-                  </ItemComponent>
+                  </Link>
+                ) : (
+                  <div
+                    key={itemIndex}
+                    className="px-6 py-4 hover:bg-muted/50 cursor-pointer transition-colors"
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className="w-10 h-10 bg-muted rounded-lg flex items-center justify-center">
+                        <Icon size={20} className="text-primary" />
+                      </div>
+                      <div className="flex-1">
+                        <h4 className="font-medium text-card-foreground">{item.label}</h4>
+                        <p className="text-sm text-muted-foreground mt-1">{item.description}</p>
+                      </div>
+                      <ChevronRight size={20} className="text-muted-foreground" />
+                    </div>
+                  </div>
                 );
               })}
             </div>
