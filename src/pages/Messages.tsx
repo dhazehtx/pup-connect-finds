@@ -86,7 +86,7 @@ const Messages = () => {
               <div
                 key={conv.id}
                 onClick={() => setSelectedChat(conv.id)}
-                className="p-3 border-b cursor-pointer hover:bg-gray-50 active:bg-gray-100"
+                className="p-3 border-b border-blue-100 cursor-pointer hover:bg-blue-50 active:bg-blue-100"
               >
                 <div className="flex items-center gap-3">
                   <div className="relative">

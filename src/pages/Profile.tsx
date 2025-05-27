@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { MapPin, Settings, Grid, Heart, Plus, Shield, Award, Star, Calendar, Phone, Mail, Camera, Video, FileText, CheckCircle } from 'lucide-react';
@@ -171,7 +170,7 @@ const Profile = () => {
           {/* Verification Badges */}
           <div className="flex flex-wrap gap-1 mb-3">
             {profile.verificationBadges.map((badge, index) => (
-              <Badge key={index} variant="outline" className="text-xs">
+              <Badge key={index} className="text-xs bg-blue-100 text-blue-800 border-blue-200">
                 <Shield size={10} className="mr-1" />
                 {badge}
               </Badge>
@@ -183,7 +182,7 @@ const Profile = () => {
             <h4 className="text-sm font-medium mb-1">Specializes in:</h4>
             <div className="flex flex-wrap gap-1">
               {profile.specializations.map((spec, index) => (
-                <Badge key={index} variant="secondary" className="text-xs">
+                <Badge key={index} className="text-xs bg-blue-500 text-white">
                   {spec}
                 </Badge>
               ))}
@@ -197,7 +196,7 @@ const Profile = () => {
             <Phone size={16} className="mr-2" />
             Contact
           </Button>
-          <Button variant="outline" className="flex-1">
+          <Button className="flex-1 bg-blue-500 text-white">
             <Heart size={16} className="mr-2" />
             Follow
           </Button>
@@ -233,16 +232,16 @@ const Profile = () => {
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="border-t border-gray-200">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="posts" className="flex items-center gap-1">
+          <TabsList className="grid w-full grid-cols-3 bg-blue-50">
+            <TabsTrigger value="posts" className="flex items-center gap-1 data-[state=active]:bg-blue-500 data-[state=active]:text-white">
               <Grid size={16} />
               <span className="text-xs font-medium">POSTS</span>
             </TabsTrigger>
-            <TabsTrigger value="reviews" className="flex items-center gap-1">
+            <TabsTrigger value="reviews" className="flex items-center gap-1 data-[state=active]:bg-blue-500 data-[state=active]:text-white">
               <Star size={16} />
               <span className="text-xs font-medium">REVIEWS</span>
             </TabsTrigger>
-            <TabsTrigger value="saved" className="flex items-center gap-1">
+            <TabsTrigger value="saved" className="flex items-center gap-1 data-[state=active]:bg-blue-500 data-[state=active]:text-white">
               <Heart size={16} />
               <span className="text-xs font-medium">SAVED</span>
             </TabsTrigger>
