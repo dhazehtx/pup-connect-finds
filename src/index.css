@@ -171,6 +171,35 @@
   border-color: rgb(147 197 253) !important; /* Soft Blue */
 }
 
+/* TRUSTED PARTNERS BUTTON SPECIFIC OVERRIDES */
+/* Target the trusted partners button specifically */
+button[aria-label*="Trusted"],
+button:has([data-lucide="users"]),
+button:contains("Trusted Partners"),
+.trusted-partners-button,
+button:has(svg[data-lucide="users"]) {
+  background-color: rgb(36 107 253) !important; /* Royal Blue */
+  color: white !important;
+  border-color: rgb(36 107 253) !important;
+  box-shadow: none !important;
+}
+
+button[aria-label*="Trusted"]:hover,
+button:has([data-lucide="users"]):hover,
+button:contains("Trusted Partners"):hover,
+.trusted-partners-button:hover,
+button:has(svg[data-lucide="users"]):hover {
+  background-color: rgb(29 78 216) !important; /* Darker blue on hover */
+  color: white !important;
+  border-color: rgb(29 78 216) !important;
+}
+
+/* Target Users icon specifically within buttons */
+svg[data-lucide="users"] {
+  color: white !important;
+  fill: white !important;
+}
+
 /* CAROUSEL COMPONENT FIXES - Enhanced targeting */
 /* Target carousel navigation arrows with all possible selectors */
 [data-orientation="horizontal"] button,
@@ -346,6 +375,39 @@ button:focus {
   outline: 2px solid rgb(59, 130, 246) !important;
   outline-offset: 2px !important;
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1) !important;
+}
+
+/* SUPER SPECIFIC BUTTON OVERRIDES */
+/* Target buttons in the header area */
+header button,
+.header button,
+button[class*="bg-primary"],
+button[class*="text-primary-foreground"] {
+  background-color: rgb(36 107 253) !important; /* Royal Blue */
+  color: white !important;
+  border-color: rgb(36 107 253) !important;
+}
+
+header button:hover,
+.header button:hover,
+button[class*="bg-primary"]:hover,
+button[class*="text-primary-foreground"]:hover {
+  background-color: rgb(29 78 216) !important; /* Darker blue on hover */
+  color: white !important;
+}
+
+/* Target any button with Users icon */
+button:has(.lucide-users),
+button:has([data-lucide="users"]) {
+  background-color: rgb(36 107 253) !important;
+  color: white !important;
+  border-color: rgb(36 107 253) !important;
+}
+
+button:has(.lucide-users):hover,
+button:has([data-lucide="users"]):hover {
+  background-color: rgb(29 78 216) !important;
+  color: white !important;
 }
 
 /* Custom animations for micro-interactions */
