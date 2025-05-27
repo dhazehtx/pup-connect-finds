@@ -1,9 +1,12 @@
 
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Users } from 'lucide-react';
 import SearchFilters from '@/components/SearchFilters';
 import SortingOptions from '@/components/SortingOptions';
 import ListingsGrid from '@/components/ListingsGrid';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Button } from '@/components/ui/button';
 import DogLoadingIcon from '@/components/DogLoadingIcon';
 import { useToast } from '@/hooks/use-toast';
 import { useListingFilters } from '@/hooks/useListingFilters';
@@ -23,6 +26,7 @@ interface FilterState {
 }
 
 const Explore = () => {
+  const navigate = useNavigate();
   const { toast } = useToast();
   const [favorites, setFavorites] = useState<number[]>([]);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
@@ -181,10 +185,21 @@ const Explore = () => {
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-6">
-      {/* Header */}
+      {/* Header with Partnership Link */}
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">Marketplace</h1>
-        <p className="text-gray-600">Find your perfect puppy companion</p>
+        <div className="flex justify-between items-start mb-2">
+          <h1 className="text-2xl font-bold text-gray-900">Marketplace</h1>
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={() => navigate('/partnerships')}
+            className="flex items-center gap-2"
+          >
+            <Users size={16} />
+            Trusted Partners
+          </Button>
+        </div>
+        <p className="text-gray-600">Find your perfect puppy companion from verified sellers and rescue partners</p>
       </div>
 
       {/* Search and Filter Component */}
