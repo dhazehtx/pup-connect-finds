@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { useParams } from 'react-router-dom';
-import { MapPin, Settings, Grid, Heart, Plus, Shield, Award, Star, Calendar, Phone, Mail, Camera, Video, FileText, CheckCircle } from 'lucide-react';
+import { useParams, Link } from 'react-router-dom';
+import { MapPin, Settings, Grid, Heart, Plus, Shield, Award, Star, Calendar, Phone, Mail, Camera, Video, FileText, CheckCircle, HelpCircle } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -200,6 +200,16 @@ const Profile = () => {
             <Heart size={16} className="mr-2" />
             Follow
           </Button>
+        </div>
+
+        {/* Help & FAQ Center Button */}
+        <div className="mb-4">
+          <Link to="/help">
+            <Button variant="outline" className="w-full">
+              <HelpCircle size={16} className="mr-2" />
+              Help & FAQ Center
+            </Button>
+          </Link>
         </div>
 
         {/* Highlights Section */}
