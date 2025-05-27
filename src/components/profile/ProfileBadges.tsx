@@ -23,7 +23,7 @@ const ProfileBadges = ({ verificationBadges, specializations }: ProfileBadgesPro
 
       {/* Specializations */}
       <div className="mb-3">
-        <h4 className="text-sm font-medium mb-1">Specializes in:</h4>
+        <h4 className="text-sm font-medium mb-1 text-black">Specializes in:</h4>
         <div className="flex flex-wrap gap-1">
           {specializations.map((spec, index) => (
             <Badge key={index} className="text-xs bg-blue-500 text-white">

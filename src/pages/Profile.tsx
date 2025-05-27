@@ -100,7 +100,7 @@ const Profile = () => {
     <div className="max-w-md mx-auto bg-white min-h-screen">
       <div className="p-4">
         <div className="flex justify-between items-center mb-6">
-          <h1 className="text-xl font-medium">{profile.username}</h1>
+          <h1 className="text-xl font-medium text-black">{profile.username}</h1>
           <Settings size={24} />
         </div>
 

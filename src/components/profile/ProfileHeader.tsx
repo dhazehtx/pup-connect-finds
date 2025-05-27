@@ -59,7 +59,7 @@ const ProfileHeader = ({ profile }: ProfileHeaderProps) => {
       {/* Profile Info */}
       <div className="mb-4">
         <div className="flex items-center gap-2 mb-2">
-          <h2 className="font-semibold text-sm">{profile.name}</h2>
+          <h2 className="font-semibold text-sm text-black">{profile.name}</h2>
           {profile.isBreeder && (
             <Badge className="bg-green-500 text-white text-xs">
               <CheckCircle size={10} className="mr-1" />
