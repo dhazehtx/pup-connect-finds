@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { MessageCircle, Share, Bookmark, MoreHorizontal, Plus } from 'lucide-react';
+import { MessageCircle, Share, Bookmark, MoreHorizontal, Plus, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import AnimatedHeart from '@/components/ui/animated-heart';
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
 
 const Home = () => {
   const [likedPosts, setLikedPosts] = useState<Set<number>>(new Set());
@@ -55,7 +56,11 @@ const Home = () => {
         avatar: "https://images.unsplash.com/photo-1552053831-71594a27632d?w=100&h=100&fit=crop",
         verified: true
       },
-      image: "https://images.unsplash.com/photo-1605568427561-40dd23c2acea?w=600&h=600&fit=crop",
+      images: [
+        "https://images.unsplash.com/photo-1605568427561-40dd23c2acea?w=600&h=600&fit=crop",
+        "https://images.unsplash.com/photo-1552053831-71594a27632d?w=600&h=600&fit=crop",
+        "https://images.unsplash.com/photo-1583337130417-3346a1be7dee?w=600&h=600&fit=crop"
+      ],
       likes: 234,
       caption: "Meet Luna! 🐕 This adorable 8-week-old Golden Retriever is looking for her forever home. She loves cuddles and playing fetch! #GoldenRetriever #PuppyLove #AdoptDontShop",
       timeAgo: "2h",
@@ -69,7 +74,9 @@ const Home = () => {
         avatar: "https://images.unsplash.com/photo-1589941013453-ec89f33b5e95?w=100&h=100&fit=crop&crop=face",
         verified: true
       },
-      image: "https://images.unsplash.com/photo-1551717743-49959800b1f6?w=600&h=600&fit=crop",
+      images: [
+        "https://images.unsplash.com/photo-1551717743-49959800b1f6?w=600&h=600&fit=crop"
+      ],
       likes: 189,
       caption: "Training session with Max! 🎾 Our German Shepherds are not only beautiful but incredibly intelligent. This 10-week-old pup is already showing amazing potential! #GermanShepherd #Training #SmartPups",
       timeAgo: "4h",
@@ -83,7 +90,10 @@ const Home = () => {
         avatar: "https://images.unsplash.com/photo-1518717758536-85ae29035b6d?w=100&h=100&fit=crop&crop=face",
         verified: false
       },
-      image: "https://images.unsplash.com/photo-1518717758536-85ae29035b6d?w=600&h=600&fit=crop",
+      images: [
+        "https://images.unsplash.com/photo-1518717758536-85ae29035b6d?w=600&h=600&fit=crop",
+        "https://images.unsplash.com/photo-1558618047-3c8c76ca7d13?w=600&h=600&fit=crop"
+      ],
       likes: 156,
       caption: "Sleepy Sunday vibes 😴 This little chocolate Lab knows how to relax! Available for adoption next week. #LabradorRetriever #SundayVibes #ChocolateLab",
       timeAgo: "6h",
@@ -97,7 +107,12 @@ const Home = () => {
         avatar: "https://images.unsplash.com/photo-1574158622682-e40e69881006?w=100&h=100&fit=crop&crop=face",
         verified: true
       },
-      image: "https://images.unsplash.com/photo-1616190264687-b7ebf7fd683d?w=600&h=600&fit=crop",
+      images: [
+        "https://images.unsplash.com/photo-1616190264687-b7ebf7fd683d?w=600&h=600&fit=crop",
+        "https://images.unsplash.com/photo-1574158622682-e40e69881006?w=600&h=600&fit=crop",
+        "https://images.unsplash.com/photo-1549298916-f52d724204b4?w=600&h=600&fit=crop",
+        "https://images.unsplash.com/photo-1587559070757-f72e387efcba?w=600&h=600&fit=crop"
+      ],
       likes: 298,
       caption: "Fluffy Friday! ☁️ Our Standard Poodle puppies are ready for their new families. Hypoallergenic and incredibly loving! #Poodle #FluffyFriday #HypoallergenicDogs",
       timeAgo: "8h",
@@ -176,13 +191,48 @@ const Home = () => {
               </button>
             </div>
 
-            {/* Post Image */}
+            {/* Post Images */}
             <div className="relative">
-              <img 
-                src={post.image} 
-                alt="Post content"
-                className="w-full aspect-square object-cover"
-              />
+              {post.images.length === 1 ? (
+                <img 
+                  src={post.images[0]} 
+                  alt="Post content"
+                  className="w-full aspect-square object-cover"
+                />
+              ) : (
+                <Carousel className="w-full">
+                  <CarouselContent>
+                    {post.images.map((image, index) => (
+                      <CarouselItem key={index}>
+                        <div className="relative">
+                          <img 
+                            src={image} 
+                            alt={`Post content ${index + 1}`}
+                            className="w-full aspect-square object-cover"
+                          />
+                        </div>
+                      </CarouselItem>
+                    ))}
+                  </CarouselContent>
+                  {post.images.length > 1 && (
+                    <>
+                      <CarouselPrevious className="left-2" />
+                      <CarouselNext className="right-2" />
+                    </>
+                  )}
+                  {/* Image indicator dots */}
+                  {post.images.length > 1 && (
+                    <div className="absolute bottom-3 left-1/2 transform -translate-x-1/2 flex space-x-1">
+                      {post.images.map((_, index) => (
+                        <div
+                          key={index}
+                          className="w-2 h-2 rounded-full bg-white bg-opacity-70"
+                        />
+                      ))}
+                    </div>
+                  )}
+                </Carousel>
+              )}
             </div>
 
             {/* Post Actions */}
