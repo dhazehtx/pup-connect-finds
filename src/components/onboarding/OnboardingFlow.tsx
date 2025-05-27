@@ -44,6 +44,15 @@ const OnboardingFlow = ({ onComplete }: OnboardingFlowProps) => {
     setCurrentStep(onboardingSteps.length);
   };
 
+  const handleSkipAll = () => {
+    // Skip entire onboarding
+    toast({
+      title: "Welcome!",
+      description: "You can revisit the tutorial anytime in Settings.",
+    });
+    onComplete();
+  };
+
   const handleSignIn = () => {
     toast({
       title: "Welcome!",
@@ -66,6 +75,7 @@ const OnboardingFlow = ({ onComplete }: OnboardingFlowProps) => {
       <AuthScreen
         onSignIn={handleSignIn}
         onGuestBrowse={handleGuestBrowse}
+        onSkip={handleSkipAll}
       />
     );
   }
@@ -81,6 +91,7 @@ const OnboardingFlow = ({ onComplete }: OnboardingFlowProps) => {
       isLastScreen={currentStep === onboardingSteps.length - 1}
       onNext={handleNext}
       onSkip={handleSkip}
+      onSkipAll={handleSkipAll}
       currentStep={currentStep + 1}
       totalSteps={onboardingSteps.length}
     />

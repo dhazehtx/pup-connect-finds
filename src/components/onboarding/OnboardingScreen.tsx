@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Button } from '@/components/ui/button';
+import RippleButton from '@/components/ui/ripple-button';
 import { Card, CardContent } from '@/components/ui/card';
 
 interface OnboardingScreenProps {
@@ -10,6 +10,7 @@ interface OnboardingScreenProps {
   isLastScreen?: boolean;
   onNext: () => void;
   onSkip: () => void;
+  onSkipAll: () => void;
   currentStep: number;
   totalSteps: number;
 }
@@ -21,6 +22,7 @@ const OnboardingScreen = ({
   isLastScreen = false,
   onNext,
   onSkip,
+  onSkipAll,
   currentStep,
   totalSteps
 }: OnboardingScreenProps) => {
@@ -28,13 +30,25 @@ const OnboardingScreen = ({
     <div className="min-h-screen bg-gradient-to-br from-royal-blue/10 to-mint-green/10 flex items-center justify-center p-4">
       <Card className="w-full max-w-md mx-auto bg-cloud-white border-soft-sky shadow-lg">
         <CardContent className="p-8 text-center">
+          {/* Skip All Button */}
+          <div className="flex justify-end mb-4">
+            <RippleButton
+              onClick={onSkipAll}
+              variant="ghost"
+              size="sm"
+              className="text-deep-navy/60 hover:text-deep-navy"
+            >
+              Skip Tutorial
+            </RippleButton>
+          </div>
+
           {/* Progress indicators */}
           <div className="flex justify-center gap-2 mb-8">
             {Array.from({ length: totalSteps }).map((_, index) => (
               <div
                 key={index}
-                className={`w-2 h-2 rounded-full transition-colors ${
-                  index < currentStep ? 'bg-royal-blue' : 'bg-soft-sky'
+                className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                  index < currentStep ? 'bg-royal-blue scale-110' : 'bg-soft-sky'
                 }`}
               />
             ))}
@@ -55,23 +69,28 @@ const OnboardingScreen = ({
 
           {/* Actions */}
           <div className="space-y-3">
-            <Button
+            <RippleButton
               onClick={onNext}
               className="w-full bg-royal-blue hover:bg-royal-blue/90 text-cloud-white"
             >
               {isLastScreen ? 'Get Started' : 'Continue'}
-            </Button>
+            </RippleButton>
             
             {!isLastScreen && (
-              <Button
+              <RippleButton
                 onClick={onSkip}
                 variant="ghost"
                 className="w-full text-deep-navy/60 hover:text-deep-navy"
               >
-                Skip
-              </Button>
+                Skip This Step
+              </RippleButton>
             )}
           </div>
+
+          {/* Step indicator */}
+          <p className="text-xs text-deep-navy/50 mt-4">
+            Step {currentStep} of {totalSteps}
+          </p>
         </CardContent>
       </Card>
     </div>
