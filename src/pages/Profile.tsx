@@ -97,7 +97,7 @@ const Profile = () => {
 
   return (
     <div className="max-w-md mx-auto bg-background min-h-screen">
-      <div className="p-4">
+      <div className="p-4 bg-background">
         {/* Header */}
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-xl font-medium text-foreground">{profile.username}</h1>
@@ -184,7 +184,7 @@ const Profile = () => {
             <h4 className="text-sm font-medium mb-1 text-foreground">Specializes in:</h4>
             <div className="flex flex-wrap gap-1">
               {profile.specializations.map((spec, index) => (
-                <Badge key={index} variant="secondary" className="text-xs bg-accent text-accent-foreground">
+                <Badge key={index} variant="secondary" className="text-xs bg-soft-sky text-deep-navy">
                   {spec}
                 </Badge>
               ))}
