@@ -111,7 +111,7 @@ const Post = () => {
         {/* Photo Upload Section */}
         <div className="space-y-4">
           {uploadedPhotos.length > 0 ? (
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-3 gap-2">
               {uploadedPhotos.map((photo) => (
                 <div key={photo.id} className="relative aspect-square">
                   <img
@@ -127,7 +127,7 @@ const Post = () => {
                   </button>
                 </div>
               ))}
-              {uploadedPhotos.length < 4 && (
+              {uploadedPhotos.length < 10 && (
                 <label className="aspect-square bg-gray-100 rounded-lg flex items-center justify-center cursor-pointer hover:bg-gray-200 transition-colors border-2 border-dashed border-gray-300">
                   <div className="text-center">
                     <Plus size={24} className="text-gray-400 mx-auto mb-1" />
@@ -148,7 +148,7 @@ const Post = () => {
               <div className="text-center">
                 <Camera size={48} className="text-gray-400 mx-auto mb-2" />
                 <p className="text-gray-500 mb-2">Add Photos</p>
-                <p className="text-xs text-gray-400">Upload up to 4 photos</p>
+                <p className="text-xs text-gray-400">Upload up to 10 photos</p>
               </div>
               <input
                 type="file"
