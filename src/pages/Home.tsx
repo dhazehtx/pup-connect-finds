@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { Heart, MessageCircle, Share, Bookmark, MoreHorizontal, Plus } from 'lucide-react';
+import { MessageCircle, Share, Bookmark, MoreHorizontal, Plus } from 'lucide-react';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import AnimatedHeart from '@/components/ui/animated-heart';
 
 const Home = () => {
   const [likedPosts, setLikedPosts] = useState<Set<number>>(new Set());
@@ -51,7 +52,7 @@ const Home = () => {
       user: {
         name: "Golden Paws Kennel",
         username: "goldenpaws_official",
-        avatar: "https://images.unsplash.com/photo-1552053831-71594a27632d?w=100&h=100&fit=crop&crop=face",
+        avatar: "https://images.unsplash.com/photo-1552053831-71594a27632d?w=100&h=100&fit=crop",
         verified: true
       },
       image: "https://images.unsplash.com/photo-1605568427561-40dd23c2acea?w=600&h=600&fit=crop",
@@ -188,15 +189,10 @@ const Home = () => {
             <div className="p-4 space-y-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-4">
-                  <button 
-                    onClick={() => toggleLike(post.id)}
-                    className="transition-colors"
-                  >
-                    <Heart 
-                      size={24} 
-                      className={likedPosts.has(post.id) ? "text-red-500 fill-current" : "text-gray-700"} 
-                    />
-                  </button>
+                  <AnimatedHeart
+                    isLiked={likedPosts.has(post.id)}
+                    onToggle={() => toggleLike(post.id)}
+                  />
                   <button>
                     <MessageCircle size={24} className="text-gray-700" />
                   </button>

@@ -1,9 +1,11 @@
-
 import React, { useState } from 'react';
-import { Star, MapPin, Heart, MessageCircle, Award, Clock, Shield, Stethoscope } from 'lucide-react';
+import { Star, MapPin, MessageCircle, Award, Clock, Shield, Stethoscope } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import WishlistButton from '@/components/features/WishlistButton';
+import ReportButton from '@/components/features/ReportButton';
+import RippleButton from '@/components/ui/ripple-button';
 
 interface Listing {
   id: number;
@@ -40,11 +42,6 @@ interface ListingCardProps {
 const ListingCard = ({ listing, viewMode, onFavorite, onContact, onViewDetails, isFavorited = false }: ListingCardProps) => {
   const [imageLoaded, setImageLoaded] = useState(false);
 
-  const handleFavorite = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    onFavorite(listing.id);
-  };
-
   const handleContact = (e: React.MouseEvent) => {
     e.stopPropagation();
     onContact(listing.id);
@@ -62,12 +59,15 @@ const ListingCard = ({ listing, viewMode, onFavorite, onContact, onViewDetails, 
               onLoad={() => setImageLoaded(true)}
             />
             {!imageLoaded && <div className="absolute inset-0 bg-gray-200 animate-pulse" />}
-            <button 
-              onClick={handleFavorite}
-              className="absolute top-2 right-2 p-2 bg-white/90 rounded-full hover:bg-white transition-colors"
-            >
-              <Heart size={14} className={`${isFavorited ? 'text-red-500 fill-current' : 'text-gray-600'}`} />
-            </button>
+            <div className="absolute top-2 right-2 flex gap-1">
+              <WishlistButton
+                listingId={listing.id}
+                listingTitle={listing.title}
+                isFavorited={isFavorited}
+                onToggleFavorite={onFavorite}
+              />
+              <ReportButton listingId={listing.id} listingTitle={listing.title} />
+            </div>
           </div>
           
           <CardContent className="flex-1 p-4 bg-white">
@@ -101,21 +101,21 @@ const ListingCard = ({ listing, viewMode, onFavorite, onContact, onViewDetails, 
                   </div>
                   
                   <div className="flex gap-2">
-                    <Button 
+                    <RippleButton 
                       onClick={handleContact}
                       variant="outline" 
                       size="sm" 
                       className="bg-white border-gray-200 text-royal-blue hover:bg-soft-sky"
                     >
                       <MessageCircle size={14} />
-                    </Button>
-                    <Button 
+                    </RippleButton>
+                    <RippleButton 
                       onClick={() => onViewDetails(listing.id)}
                       className="bg-soft-sky text-royal-blue hover:bg-royal-blue hover:text-white" 
                       size="sm"
                     >
                       View Details
-                    </Button>
+                    </RippleButton>
                   </div>
                 </div>
               </div>
@@ -137,12 +137,15 @@ const ListingCard = ({ listing, viewMode, onFavorite, onContact, onViewDetails, 
         />
         {!imageLoaded && <div className="absolute inset-0 bg-gray-200 animate-pulse" />}
         
-        <button 
-          onClick={handleFavorite}
-          className="absolute top-3 right-3 p-2 bg-white/90 rounded-full hover:bg-white transition-colors"
-        >
-          <Heart size={16} className={`${isFavorited ? 'text-red-500 fill-current' : 'text-gray-600'}`} />
-        </button>
+        <div className="absolute top-3 right-3 flex flex-col gap-2">
+          <WishlistButton
+            listingId={listing.id}
+            listingTitle={listing.title}
+            isFavorited={isFavorited}
+            onToggleFavorite={onFavorite}
+          />
+          <ReportButton listingId={listing.id} listingTitle={listing.title} />
+        </div>
         
         <div className="absolute top-3 left-3 flex flex-col gap-1">
           {listing.verified && (
@@ -216,21 +219,21 @@ const ListingCard = ({ listing, viewMode, onFavorite, onContact, onViewDetails, 
           </div>
 
           <div className="flex gap-2 pt-2">
-            <Button 
+            <RippleButton 
               onClick={() => onViewDetails(listing.id)}
               className="flex-1 bg-soft-sky text-royal-blue hover:bg-royal-blue hover:text-white border-0" 
               size="sm"
             >
               View Details
-            </Button>
-            <Button 
+            </RippleButton>
+            <RippleButton 
               onClick={handleContact}
               variant="outline" 
               size="sm" 
               className="bg-white border-gray-200 text-royal-blue hover:bg-soft-sky hover:text-royal-blue hover:border-gray-200"
             >
               <MessageCircle size={16} />
-            </Button>
+            </RippleButton>
           </div>
         </div>
       </CardContent>
