@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Search, ArrowLeft, Phone, Video, MoreHorizontal, Send } from 'lucide-react';
+import { Search, Send } from 'lucide-react';
 
 const Messages = () => {
   const [selectedChat, setSelectedChat] = useState<number | null>(null);
@@ -33,15 +33,6 @@ const Messages = () => {
       unread: 1,
       avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=50&h=50&fit=crop&crop=face",
       online: true
-    },
-    {
-      id: 4,
-      name: "Bella's Breeder",
-      lastMessage: "Here are some new photos!",
-      time: "Yesterday",
-      unread: 0,
-      avatar: "https://images.unsplash.com/photo-1517849845537-4d257902454a?w=50&h=50&fit=crop&crop=face",
-      online: false
     }
   ];
 
@@ -54,7 +45,7 @@ const Messages = () => {
     },
     {
       id: 2,
-      sender: "me",
+      sender: "me", 
       message: "Yes, absolutely! Could you tell me more about the available puppies?",
       time: "2:18 PM"
     },
@@ -63,85 +54,62 @@ const Messages = () => {
       sender: "them",
       message: "We have 3 beautiful puppies available. All are 8 weeks old and have their first shots.",
       time: "2:20 PM"
-    },
-    {
-      id: 4,
-      sender: "them",
-      message: "The puppies will be ready for pickup next week!",
-      time: "2:30 PM"
     }
   ];
 
   const handleSendMessage = () => {
     if (newMessage.trim()) {
-      // Here you would typically send the message
       setNewMessage('');
     }
   };
 
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      handleSendMessage();
-    }
-  };
-
-  const openChat = (chatId: number) => {
-    setSelectedChat(chatId);
-  };
-
-  const goBackToChats = () => {
-    setSelectedChat(null);
-  };
-
   const currentConversation = conversations.find(c => c.id === selectedChat);
 
-  // Chat List View
   if (!selectedChat) {
     return (
-      <div className="max-w-4xl mx-auto h-[calc(100vh-8rem)]">
-        <div className="bg-white rounded-2xl overflow-hidden shadow-lg border border-gray-100 h-full">
-          <div className="p-6 bg-white border-b border-gray-100">
-            <h1 className="text-2xl font-bold text-gray-900 mb-4">Messages</h1>
-            <div className="relative">
-              <Search size={20} className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
+      <div className="max-w-md mx-auto h-full">
+        <div className="bg-white h-full">
+          <div className="p-4 border-b">
+            <h1 className="text-xl font-semibold">Messages</h1>
+            <div className="mt-3 relative">
+              <Search size={18} className="absolute left-3 top-3 text-gray-400" />
               <input
                 type="text"
-                placeholder="Search messages"
-                className="w-full pl-12 pr-4 py-3 bg-gray-100 border-0 rounded-full focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all text-sm"
+                placeholder="Search"
+                className="w-full pl-10 pr-4 py-2 bg-gray-100 rounded-lg border-0 focus:ring-1 focus:ring-blue-500"
               />
             </div>
           </div>
           
-          <div className="overflow-y-auto h-full">
+          <div className="overflow-y-auto">
             {conversations.map((conv) => (
               <div
                 key={conv.id}
-                onClick={() => openChat(conv.id)}
-                className="p-4 cursor-pointer transition-all duration-200 border-b border-gray-100 hover:bg-gray-50 active:bg-gray-100"
+                onClick={() => setSelectedChat(conv.id)}
+                className="p-3 border-b cursor-pointer hover:bg-gray-50 active:bg-gray-100"
               >
                 <div className="flex items-center gap-3">
                   <div className="relative">
                     <img
                       src={conv.avatar}
                       alt={conv.name}
-                      className="w-14 h-14 rounded-full object-cover ring-2 ring-white shadow-sm"
+                      className="w-12 h-12 rounded-full object-cover"
                     />
                     {conv.online && (
-                      <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 bg-green-500 rounded-full border-2 border-white"></div>
+                      <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-green-500 rounded-full border-2 border-white"></div>
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between mb-1">
-                      <h3 className="font-semibold text-gray-900 truncate text-sm">{conv.name}</h3>
+                    <div className="flex justify-between items-start">
+                      <h3 className="font-medium text-sm text-gray-900 truncate">{conv.name}</h3>
                       <span className="text-xs text-gray-500">{conv.time}</span>
                     </div>
-                    <p className={`text-sm truncate ${conv.unread > 0 ? 'text-gray-900 font-medium' : 'text-gray-600'}`}>
+                    <p className={`text-sm truncate mt-0.5 ${conv.unread > 0 ? 'text-gray-900 font-medium' : 'text-gray-600'}`}>
                       {conv.lastMessage}
                     </p>
                   </div>
                   {conv.unread > 0 && (
-                    <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center ml-2">
+                    <div className="w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center">
                       <span className="text-xs text-white font-bold">{conv.unread}</span>
                     </div>
                   )}
@@ -154,104 +122,59 @@ const Messages = () => {
     );
   }
 
-  // Individual Chat View
   return (
-    <div className="max-w-4xl mx-auto h-[calc(100vh-8rem)]">
-      <div className="flex h-full bg-white rounded-2xl overflow-hidden shadow-lg border border-gray-100 flex-col">
-        {/* Chat Header */}
-        <div className="p-4 border-b border-gray-100 bg-white shadow-sm">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <button 
-                onClick={goBackToChats}
-                className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-              >
-                <ArrowLeft size={20} className="text-gray-600" />
-              </button>
-              <div className="relative">
-                <img
-                  src={currentConversation?.avatar}
-                  alt="Avatar"
-                  className="w-12 h-12 rounded-full object-cover"
-                />
-                <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-green-500 rounded-full border-2 border-white"></div>
-              </div>
-              <div>
-                <h2 className="font-semibold text-gray-900 text-lg">
-                  {currentConversation?.name}
-                </h2>
-                <p className="text-sm text-green-500 font-medium">Active now</p>
-              </div>
-            </div>
-            
-            <div className="flex items-center gap-1">
-              <button className="p-3 hover:bg-gray-100 rounded-full transition-colors">
-                <Phone size={20} className="text-gray-600" />
-              </button>
-              <button className="p-3 hover:bg-gray-100 rounded-full transition-colors">
-                <Video size={20} className="text-gray-600" />
-              </button>
-              <button className="p-3 hover:bg-gray-100 rounded-full transition-colors">
-                <MoreHorizontal size={20} className="text-gray-600" />
-              </button>
-            </div>
-          </div>
-        </div>
+    <div className="max-w-md mx-auto h-full flex flex-col bg-white">
+      <div className="p-4 border-b flex items-center gap-3">
+        <button onClick={() => setSelectedChat(null)} className="text-blue-500">
+          ←
+        </button>
+        <img
+          src={currentConversation?.avatar}
+          alt="Avatar"
+          className="w-8 h-8 rounded-full"
+        />
+        <h2 className="font-medium">{currentConversation?.name}</h2>
+      </div>
 
-        {/* Messages */}
-        <div className="flex-1 p-6 overflow-y-auto space-y-4 bg-gray-50">
-          {messages.map((msg) => (
+      <div className="flex-1 p-4 overflow-y-auto space-y-3">
+        {messages.map((msg) => (
+          <div
+            key={msg.id}
+            className={`flex ${msg.sender === 'me' ? 'justify-end' : 'justify-start'}`}
+          >
             <div
-              key={msg.id}
-              className={`flex ${msg.sender === 'me' ? 'justify-end' : 'justify-start'}`}
+              className={`max-w-xs px-4 py-2 rounded-2xl ${
+                msg.sender === 'me'
+                  ? 'bg-blue-500 text-white'
+                  : 'bg-gray-100 text-gray-800'
+              }`}
             >
-              <div className={`flex items-end gap-2 max-w-xs ${msg.sender === 'me' ? 'flex-row-reverse' : 'flex-row'}`}>
-                {msg.sender === 'them' && (
-                  <img
-                    src={currentConversation?.avatar}
-                    alt="Avatar"
-                    className="w-8 h-8 rounded-full object-cover"
-                  />
-                )}
-                <div
-                  className={`px-4 py-3 rounded-2xl shadow-sm ${
-                    msg.sender === 'me'
-                      ? 'bg-blue-500 text-white'
-                      : 'bg-white text-gray-800 border border-gray-100'
-                  }`}
-                >
-                  <p className="text-sm leading-relaxed">{msg.message}</p>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Message Input */}
-        <div className="p-4 bg-white border-t border-gray-100">
-          <div className="flex items-center gap-3">
-            <div className="flex-1 relative">
-              <input
-                type="text"
-                value={newMessage}
-                onChange={(e) => setNewMessage(e.target.value)}
-                onKeyPress={handleKeyPress}
-                placeholder="Write a message..."
-                className="w-full px-4 py-3 bg-gray-100 border-0 rounded-full focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all text-sm pr-12"
-              />
-              <button
-                onClick={handleSendMessage}
-                disabled={!newMessage.trim()}
-                className={`absolute right-2 top-1/2 transform -translate-y-1/2 p-2 rounded-full transition-all ${
-                  newMessage.trim()
-                    ? 'bg-blue-500 text-white hover:bg-blue-600'
-                    : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                }`}
-              >
-                <Send size={16} />
-              </button>
+              <p className="text-sm">{msg.message}</p>
             </div>
           </div>
+        ))}
+      </div>
+
+      <div className="p-4 border-t">
+        <div className="flex items-center gap-2">
+          <input
+            type="text"
+            value={newMessage}
+            onChange={(e) => setNewMessage(e.target.value)}
+            placeholder="Message..."
+            className="flex-1 px-4 py-2 bg-gray-100 rounded-full border-0 focus:ring-1 focus:ring-blue-500"
+          />
+          <button
+            onClick={handleSendMessage}
+            disabled={!newMessage.trim()}
+            className={`p-2 rounded-full ${
+              newMessage.trim()
+                ? 'bg-blue-500 text-white'
+                : 'bg-gray-300 text-gray-500'
+            }`}
+          >
+            <Send size={16} />
+          </button>
         </div>
       </div>
     </div>

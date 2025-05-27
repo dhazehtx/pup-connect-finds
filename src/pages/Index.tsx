@@ -4,6 +4,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Layout from '../components/Layout';
 import Home from './Home';
 import Explore from './Explore';
+import Post from './Post';
 import Messages from './Messages';
 import Notifications from './Notifications';
 import Settings from './Settings';
@@ -18,6 +19,7 @@ const Index = () => {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/explore" element={<Explore />} />
+        <Route path="/post" element={<Post />} />
         <Route path="/map" element={<MapView />} />
         <Route path="/messages" element={<Messages />} />
         <Route path="/notifications" element={<Notifications />} />
