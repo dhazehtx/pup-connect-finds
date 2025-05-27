@@ -96,29 +96,73 @@
   }
 }
 
-/* Remove all yellow colors */
-.bg-yellow-500,
-.bg-yellow-400,
-.bg-yellow-300,
+/* COMPREHENSIVE YELLOW COLOR REMOVAL */
+/* Remove all yellow colors and replace with royal blue or appropriate alternatives */
+.bg-yellow-50,
+.bg-yellow-100,
 .bg-yellow-200,
-.bg-yellow-100 {
+.bg-yellow-300,
+.bg-yellow-400,
+.bg-yellow-500,
+.bg-yellow-600,
+.bg-yellow-700,
+.bg-yellow-800,
+.bg-yellow-900 {
   background-color: rgb(36 107 253) !important; /* Royal Blue */
 }
 
-.text-yellow-500,
-.text-yellow-400,
-.text-yellow-300,
+.text-yellow-50,
+.text-yellow-100,
 .text-yellow-200,
-.text-yellow-100 {
+.text-yellow-300,
+.text-yellow-400,
+.text-yellow-500,
+.text-yellow-600,
+.text-yellow-700,
+.text-yellow-800,
+.text-yellow-900 {
   color: rgb(26 26 46) !important; /* Deep Navy */
 }
 
-.border-yellow-500,
-.border-yellow-400,
-.border-yellow-300,
+.border-yellow-50,
+.border-yellow-100,
 .border-yellow-200,
-.border-yellow-100 {
+.border-yellow-300,
+.border-yellow-400,
+.border-yellow-500,
+.border-yellow-600,
+.border-yellow-700,
+.border-yellow-800,
+.border-yellow-900 {
   border-color: rgb(36 107 253) !important; /* Royal Blue */
+}
+
+/* Remove yellow from any element with yellow in the class name */
+[class*="yellow"] {
+  background-color: rgb(36 107 253) !important; /* Royal Blue background */
+  color: rgb(249 250 251) !important; /* Cloud White text */
+  border-color: rgb(36 107 253) !important; /* Royal Blue border */
+}
+
+/* Override any inline yellow styles */
+*[style*="yellow"],
+*[style*="#ffff"],
+*[style*="#fff0"],
+*[style*="rgb(255, 255"],
+*[style*="rgba(255, 255"] {
+  background-color: rgb(36 107 253) !important; /* Royal Blue */
+  color: rgb(249 250 251) !important; /* Cloud White */
+  border-color: rgb(36 107 253) !important; /* Royal Blue */
+}
+
+/* Specific overrides for common yellow hex codes */
+*[style*="#FFFF00"],
+*[style*="#FFD700"],
+*[style*="#FFEB3B"],
+*[style*="#FFF176"],
+*[style*="#FFECB3"] {
+  background-color: rgb(36 107 253) !important; /* Royal Blue */
+  color: rgb(249 250 251) !important; /* Cloud White */
 }
 
 /* Custom animations for micro-interactions */
