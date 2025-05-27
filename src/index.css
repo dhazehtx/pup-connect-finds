@@ -96,6 +96,31 @@
   }
 }
 
+/* Remove all yellow colors */
+.bg-yellow-500,
+.bg-yellow-400,
+.bg-yellow-300,
+.bg-yellow-200,
+.bg-yellow-100 {
+  background-color: rgb(36 107 253) !important; /* Royal Blue */
+}
+
+.text-yellow-500,
+.text-yellow-400,
+.text-yellow-300,
+.text-yellow-200,
+.text-yellow-100 {
+  color: rgb(26 26 46) !important; /* Deep Navy */
+}
+
+.border-yellow-500,
+.border-yellow-400,
+.border-yellow-300,
+.border-yellow-200,
+.border-yellow-100 {
+  border-color: rgb(36 107 253) !important; /* Royal Blue */
+}
+
 /* Custom animations for micro-interactions */
 @layer utilities {
   @keyframes ripple {

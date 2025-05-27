@@ -41,15 +41,15 @@ const ProfileHeader = ({ profile }: ProfileHeaderProps) => {
         <div className="flex-1">
           <div className="flex gap-6 text-center">
             <div>
-              <div className="font-semibold">{profile.posts}</div>
+              <div className="font-semibold text-black">{profile.posts}</div>
               <div className="text-gray-600 text-sm">Posts</div>
             </div>
             <div>
-              <div className="font-semibold">{profile.followers.toLocaleString()}</div>
+              <div className="font-semibold text-black">{profile.followers.toLocaleString()}</div>
               <div className="text-gray-600 text-sm">Followers</div>
             </div>
             <div>
-              <div className="font-semibold">{profile.following}</div>
+              <div className="font-semibold text-black">{profile.following}</div>
               <div className="text-gray-600 text-sm">Following</div>
             </div>
           </div>
@@ -71,7 +71,7 @@ const ProfileHeader = ({ profile }: ProfileHeaderProps) => {
         {/* Rating */}
         <div className="flex items-center gap-2 mb-2">
           <div className="flex items-center gap-1">
-            <Star size={14} className="text-yellow-500 fill-current" />
+            <Star size={14} className="text-blue-500 fill-current" />
             <span className="text-sm font-medium">{profile.rating}</span>
           </div>
           <span className="text-sm text-gray-600">({profile.totalReviews} reviews)</span>
