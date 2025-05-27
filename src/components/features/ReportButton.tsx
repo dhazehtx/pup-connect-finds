@@ -139,7 +139,7 @@ const ReportButton = ({ listingId, listingTitle }: ReportButtonProps) => {
                     <Checkbox 
                       id="urgent" 
                       checked={urgentConcern} 
-                      onCheckedChange={setUrgentConcern}
+                      onCheckedChange={(checked) => setUrgentConcern(checked === true)}
                     />
                     <Label htmlFor="urgent" className="text-xs text-red-800">
                       This requires urgent attention
@@ -149,7 +149,7 @@ const ReportButton = ({ listingId, listingTitle }: ReportButtonProps) => {
                     <Checkbox 
                       id="authorities" 
                       checked={contactAuthorities} 
-                      onCheckedChange={setContactAuthorities}
+                      onCheckedChange={(checked) => setContactAuthorities(checked === true)}
                     />
                     <Label htmlFor="authorities" className="text-xs text-red-800">
                       I will also contact local authorities
