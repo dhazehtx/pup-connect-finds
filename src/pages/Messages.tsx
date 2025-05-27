@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Search, Send } from 'lucide-react';
 
@@ -69,7 +68,7 @@ const Messages = () => {
     return (
       <div className="max-w-md mx-auto h-full">
         <div className="bg-white h-full">
-          <div className="p-4 border-b">
+          <div className="p-4 border-b border-blue-100">
             <h1 className="text-xl font-semibold">Messages</h1>
             <div className="mt-3 relative">
               <Search size={18} className="absolute left-3 top-3 text-gray-400" />
@@ -124,7 +123,7 @@ const Messages = () => {
 
   return (
     <div className="max-w-md mx-auto h-full flex flex-col bg-white">
-      <div className="p-4 border-b flex items-center gap-3">
+      <div className="p-4 border-b border-blue-100 flex items-center gap-3">
         <button onClick={() => setSelectedChat(null)} className="text-blue-500">
           ←
         </button>
@@ -155,7 +154,7 @@ const Messages = () => {
         ))}
       </div>
 
-      <div className="p-4 border-t">
+      <div className="p-4 border-t border-blue-100">
         <div className="flex items-center gap-2">
           <input
             type="text"
