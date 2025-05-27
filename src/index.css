@@ -89,42 +89,10 @@
 @layer base {
   * {
     @apply border-border;
-    /* Remove iOS Safari yellow tap highlight */
-    -webkit-tap-highlight-color: transparent;
-    /* Remove any tap highlight colors */
-    tap-highlight-color: transparent;
   }
 
   body {
     @apply bg-background text-foreground;
-    /* Additional mobile optimizations */
-    -webkit-touch-callout: none;
-    -webkit-user-select: none;
-    user-select: none;
-  }
-
-  /* Allow text selection for inputs and text areas */
-  input, textarea, [contenteditable] {
-    -webkit-user-select: text;
-    user-select: text;
-  }
-
-  /* Remove focus outlines that might appear yellow on mobile */
-  button:focus,
-  a:focus,
-  input:focus,
-  textarea:focus,
-  select:focus {
-    outline: none;
-    box-shadow: 0 0 0 2px hsl(var(--ring));
-  }
-
-  /* Ensure buttons don't show any tap highlights */
-  button,
-  a,
-  [role="button"] {
-    -webkit-tap-highlight-color: transparent;
-    tap-highlight-color: transparent;
   }
 }
 

@@ -68,25 +68,25 @@ const Messages = () => {
   if (!selectedChat) {
     return (
       <div className="max-w-md mx-auto h-full">
-        <div className="bg-background h-full">
-          <div className="p-4 border-b border-border bg-background">
-            <h1 className="text-xl font-semibold text-foreground">Messages</h1>
+        <div className="bg-white h-full">
+          <div className="p-4 border-b">
+            <h1 className="text-xl font-semibold">Messages</h1>
             <div className="mt-3 relative">
-              <Search size={18} className="absolute left-3 top-3 text-muted-foreground" />
+              <Search size={18} className="absolute left-3 top-3 text-gray-400" />
               <input
                 type="text"
                 placeholder="Search"
-                className="w-full pl-10 pr-4 py-2 bg-muted rounded-lg border border-border focus:ring-1 focus:ring-primary text-foreground"
+                className="w-full pl-10 pr-4 py-2 bg-gray-100 rounded-lg border-0 focus:ring-1 focus:ring-blue-500"
               />
             </div>
           </div>
           
-          <div className="overflow-y-auto bg-background">
+          <div className="overflow-y-auto">
             {conversations.map((conv) => (
               <div
                 key={conv.id}
                 onClick={() => setSelectedChat(conv.id)}
-                className="p-3 border-b border-border cursor-pointer hover:bg-muted/50 active:bg-muted bg-background"
+                className="p-3 border-b cursor-pointer hover:bg-gray-50 active:bg-gray-100"
               >
                 <div className="flex items-center gap-3">
                   <div className="relative">
@@ -96,21 +96,21 @@ const Messages = () => {
                       className="w-12 h-12 rounded-full object-cover"
                     />
                     {conv.online && (
-                      <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-green-500 rounded-full border-2 border-background"></div>
+                      <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-green-500 rounded-full border-2 border-white"></div>
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex justify-between items-start">
-                      <h3 className="font-medium text-sm text-foreground truncate">{conv.name}</h3>
-                      <span className="text-xs text-muted-foreground">{conv.time}</span>
+                      <h3 className="font-medium text-sm text-gray-900 truncate">{conv.name}</h3>
+                      <span className="text-xs text-gray-500">{conv.time}</span>
                     </div>
-                    <p className={`text-sm truncate mt-0.5 ${conv.unread > 0 ? 'text-foreground font-medium' : 'text-muted-foreground'}`}>
+                    <p className={`text-sm truncate mt-0.5 ${conv.unread > 0 ? 'text-gray-900 font-medium' : 'text-gray-600'}`}>
                       {conv.lastMessage}
                     </p>
                   </div>
                   {conv.unread > 0 && (
-                    <div className="w-5 h-5 bg-primary rounded-full flex items-center justify-center">
-                      <span className="text-xs text-primary-foreground font-bold">{conv.unread}</span>
+                    <div className="w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center">
+                      <span className="text-xs text-white font-bold">{conv.unread}</span>
                     </div>
                   )}
                 </div>
@@ -123,9 +123,9 @@ const Messages = () => {
   }
 
   return (
-    <div className="max-w-md mx-auto h-full flex flex-col bg-background">
-      <div className="p-4 border-b border-border flex items-center gap-3 bg-background">
-        <button onClick={() => setSelectedChat(null)} className="text-primary">
+    <div className="max-w-md mx-auto h-full flex flex-col bg-white">
+      <div className="p-4 border-b flex items-center gap-3">
+        <button onClick={() => setSelectedChat(null)} className="text-blue-500">
           ←
         </button>
         <img
@@ -133,10 +133,10 @@ const Messages = () => {
           alt="Avatar"
           className="w-8 h-8 rounded-full"
         />
-        <h2 className="font-medium text-foreground">{currentConversation?.name}</h2>
+        <h2 className="font-medium">{currentConversation?.name}</h2>
       </div>
 
-      <div className="flex-1 p-4 overflow-y-auto space-y-3 bg-background">
+      <div className="flex-1 p-4 overflow-y-auto space-y-3">
         {messages.map((msg) => (
           <div
             key={msg.id}
@@ -145,8 +145,8 @@ const Messages = () => {
             <div
               className={`max-w-xs px-4 py-2 rounded-2xl ${
                 msg.sender === 'me'
-                  ? 'bg-primary text-primary-foreground'
-                  : 'bg-muted text-foreground'
+                  ? 'bg-blue-500 text-white'
+                  : 'bg-gray-100 text-gray-800'
               }`}
             >
               <p className="text-sm">{msg.message}</p>
@@ -155,22 +155,22 @@ const Messages = () => {
         ))}
       </div>
 
-      <div className="p-4 border-t border-border bg-background">
+      <div className="p-4 border-t">
         <div className="flex items-center gap-2">
           <input
             type="text"
             value={newMessage}
             onChange={(e) => setNewMessage(e.target.value)}
             placeholder="Message..."
-            className="flex-1 px-4 py-2 bg-muted rounded-full border border-border focus:ring-1 focus:ring-primary text-foreground"
+            className="flex-1 px-4 py-2 bg-gray-100 rounded-full border-0 focus:ring-1 focus:ring-blue-500"
           />
           <button
             onClick={handleSendMessage}
             disabled={!newMessage.trim()}
             className={`p-2 rounded-full ${
               newMessage.trim()
-                ? 'bg-primary text-primary-foreground'
-                : 'bg-muted text-muted-foreground'
+                ? 'bg-blue-500 text-white'
+                : 'bg-gray-300 text-gray-500'
             }`}
           >
             <Send size={16} />

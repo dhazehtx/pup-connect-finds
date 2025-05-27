@@ -96,16 +96,15 @@ const Profile = () => {
   ];
 
   return (
-    <div className="max-w-md mx-auto bg-background min-h-screen">
-      <div className="p-4 bg-background">
-        {/* Header */}
-        <div className="flex justify-between items-center mb-6 bg-background">
-          <h1 className="text-xl font-medium text-foreground">{profile.username}</h1>
-          <Settings size={24} className="text-muted-foreground" />
+    <div className="max-w-md mx-auto bg-white min-h-screen">
+      <div className="p-4">
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-xl font-medium">{profile.username}</h1>
+          <Settings size={24} />
         </div>
 
         {/* Profile Header */}
-        <div className="flex items-center gap-4 mb-4 bg-background">
+        <div className="flex items-center gap-4 mb-4">
           <div className="relative">
             <img
               src={profile.avatar}
@@ -113,35 +112,35 @@ const Profile = () => {
               className="w-20 h-20 rounded-full object-cover"
             />
             {profile.verified && (
-              <div className="absolute -bottom-1 -right-1 bg-primary rounded-full p-1">
-                <CheckCircle size={16} className="text-primary-foreground" />
+              <div className="absolute -bottom-1 -right-1 bg-blue-500 rounded-full p-1">
+                <CheckCircle size={16} className="text-white" />
               </div>
             )}
           </div>
           <div className="flex-1">
             <div className="flex gap-6 text-center">
               <div>
-                <div className="font-semibold text-foreground">{profile.posts}</div>
-                <div className="text-muted-foreground text-sm">Posts</div>
+                <div className="font-semibold">{profile.posts}</div>
+                <div className="text-gray-600 text-sm">Posts</div>
               </div>
               <div>
-                <div className="font-semibold text-foreground">{profile.followers.toLocaleString()}</div>
-                <div className="text-muted-foreground text-sm">Followers</div>
+                <div className="font-semibold">{profile.followers.toLocaleString()}</div>
+                <div className="text-gray-600 text-sm">Followers</div>
               </div>
               <div>
-                <div className="font-semibold text-foreground">{profile.following}</div>
-                <div className="text-muted-foreground text-sm">Following</div>
+                <div className="font-semibold">{profile.following}</div>
+                <div className="text-gray-600 text-sm">Following</div>
               </div>
             </div>
           </div>
         </div>
 
         {/* Profile Info */}
-        <div className="mb-4 bg-background">
+        <div className="mb-4">
           <div className="flex items-center gap-2 mb-2">
-            <h2 className="font-semibold text-sm text-foreground">{profile.name}</h2>
+            <h2 className="font-semibold text-sm">{profile.name}</h2>
             {profile.isBreeder && (
-              <Badge className="bg-primary text-primary-foreground text-xs">
+              <Badge className="bg-green-500 text-white text-xs">
                 <Award size={10} className="mr-1" />
                 Verified Breeder
               </Badge>
@@ -151,20 +150,20 @@ const Profile = () => {
           {/* Rating */}
           <div className="flex items-center gap-2 mb-2">
             <div className="flex items-center gap-1">
-              <Star size={14} className="text-primary fill-primary" />
-              <span className="text-sm font-medium text-foreground">{profile.rating}</span>
+              <Star size={14} className="text-yellow-500 fill-current" />
+              <span className="text-sm font-medium">{profile.rating}</span>
             </div>
-            <span className="text-sm text-muted-foreground">({profile.totalReviews} reviews)</span>
+            <span className="text-sm text-gray-600">({profile.totalReviews} reviews)</span>
           </div>
 
-          <p className="text-sm text-muted-foreground mb-2">{profile.bio}</p>
+          <p className="text-sm text-gray-600 mb-2">{profile.bio}</p>
           
-          <div className="flex items-center gap-1 text-sm text-muted-foreground mb-2">
+          <div className="flex items-center gap-1 text-sm text-gray-600 mb-2">
             <MapPin size={12} />
             {profile.location}
           </div>
 
-          <div className="flex items-center gap-1 text-sm text-muted-foreground mb-3">
+          <div className="flex items-center gap-1 text-sm text-gray-600 mb-3">
             <Calendar size={12} />
             {profile.yearsExperience} years experience
           </div>
@@ -172,7 +171,7 @@ const Profile = () => {
           {/* Verification Badges */}
           <div className="flex flex-wrap gap-1 mb-3">
             {profile.verificationBadges.map((badge, index) => (
-              <Badge key={index} variant="outline" className="text-xs border-border text-muted-foreground bg-muted/30">
+              <Badge key={index} variant="outline" className="text-xs">
                 <Shield size={10} className="mr-1" />
                 {badge}
               </Badge>
@@ -181,10 +180,10 @@ const Profile = () => {
 
           {/* Specializations */}
           <div className="mb-3">
-            <h4 className="text-sm font-medium mb-1 text-foreground">Specializes in:</h4>
+            <h4 className="text-sm font-medium mb-1">Specializes in:</h4>
             <div className="flex flex-wrap gap-1">
               {profile.specializations.map((spec, index) => (
-                <Badge key={index} variant="secondary" className="text-xs bg-soft-sky text-deep-navy">
+                <Badge key={index} variant="secondary" className="text-xs">
                   {spec}
                 </Badge>
               ))}
@@ -194,28 +193,28 @@ const Profile = () => {
 
         {/* Action Buttons */}
         <div className="flex gap-2 mb-4">
-          <Button className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90">
+          <Button className="flex-1 bg-blue-500 text-white">
             <Phone size={16} className="mr-2" />
             Contact
           </Button>
-          <Button variant="outline" className="flex-1 border-border text-foreground hover:bg-muted">
+          <Button variant="outline" className="flex-1">
             <Heart size={16} className="mr-2" />
             Follow
           </Button>
         </div>
 
         {/* Highlights Section */}
-        <div className="mb-6 bg-background">
+        <div className="mb-6">
           <div className="flex space-x-4 overflow-x-auto scrollbar-hide">
             {highlights.map((highlight) => (
               <div key={highlight.id} className="flex flex-col items-center space-y-1 min-w-0">
                 <div className="relative w-16 h-16">
                   {highlight.isNew ? (
-                    <div className="w-16 h-16 rounded-full border-2 border-border border-dashed flex items-center justify-center bg-muted/50">
-                      <Plus size={24} className="text-muted-foreground" />
+                    <div className="w-16 h-16 rounded-full border-2 border-gray-300 border-dashed flex items-center justify-center bg-gray-50">
+                      <Plus size={24} className="text-gray-400" />
                     </div>
                   ) : (
-                    <div className="w-16 h-16 rounded-full border-2 border-border overflow-hidden">
+                    <div className="w-16 h-16 rounded-full border-2 border-gray-300 overflow-hidden">
                       <img
                         src={highlight.cover}
                         alt={highlight.title}
@@ -224,7 +223,7 @@ const Profile = () => {
                     </div>
                   )}
                 </div>
-                <span className="text-xs text-muted-foreground text-center w-16 truncate">
+                <span className="text-xs text-gray-600 text-center w-16 truncate">
                   {highlight.title}
                 </span>
               </div>
@@ -233,17 +232,17 @@ const Profile = () => {
         </div>
 
         {/* Tabs */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="border-t border-border">
-          <TabsList className="grid w-full grid-cols-3 bg-muted">
-            <TabsTrigger value="posts" className="flex items-center gap-1 data-[state=active]:bg-background data-[state=active]:text-foreground">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="border-t border-gray-200">
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="posts" className="flex items-center gap-1">
               <Grid size={16} />
               <span className="text-xs font-medium">POSTS</span>
             </TabsTrigger>
-            <TabsTrigger value="reviews" className="flex items-center gap-1 data-[state=active]:bg-background data-[state=active]:text-foreground">
+            <TabsTrigger value="reviews" className="flex items-center gap-1">
               <Star size={16} />
               <span className="text-xs font-medium">REVIEWS</span>
             </TabsTrigger>
-            <TabsTrigger value="saved" className="flex items-center gap-1 data-[state=active]:bg-background data-[state=active]:text-foreground">
+            <TabsTrigger value="saved" className="flex items-center gap-1">
               <Heart size={16} />
               <span className="text-xs font-medium">SAVED</span>
             </TabsTrigger>
@@ -267,18 +266,18 @@ const Profile = () => {
           <TabsContent value="reviews" className="mt-0">
             <div className="space-y-4 p-4">
               {reviews.map((review) => (
-                <Card key={review.id} className="bg-card border-border">
+                <Card key={review.id}>
                   <CardContent className="p-4">
                     <div className="flex items-center justify-between mb-2">
-                      <span className="font-medium text-sm text-card-foreground">{review.author}</span>
+                      <span className="font-medium text-sm">{review.author}</span>
                       <div className="flex items-center gap-1">
                         {[...Array(review.rating)].map((_, i) => (
-                          <Star key={i} size={12} className="text-primary fill-primary" />
+                          <Star key={i} size={12} className="text-yellow-500 fill-current" />
                         ))}
                       </div>
                     </div>
-                    <p className="text-sm text-muted-foreground mb-2">{review.text}</p>
-                    <span className="text-xs text-muted-foreground">{review.date}</span>
+                    <p className="text-sm text-gray-600 mb-2">{review.text}</p>
+                    <span className="text-xs text-gray-500">{review.date}</span>
                   </CardContent>
                 </Card>
               ))}
@@ -286,7 +285,7 @@ const Profile = () => {
           </TabsContent>
           
           <TabsContent value="saved" className="mt-0">
-            <div className="p-4 text-center text-muted-foreground">
+            <div className="p-4 text-center text-gray-500">
               <Heart size={48} className="mx-auto mb-4 opacity-30" />
               <p>No saved posts yet</p>
             </div>
