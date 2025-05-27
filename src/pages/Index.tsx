@@ -12,6 +12,7 @@ import Profile from './Profile';
 import Verification from './Verification';
 import MapView from './MapView';
 import Education from './Education';
+import Monetization from './Monetization';
 
 const Index = () => {
   return (
@@ -27,6 +28,7 @@ const Index = () => {
         <Route path="/verification" element={<Verification />} />
         <Route path="/settings" element={<Settings />} />
         <Route path="/profile/:userId" element={<Profile />} />
+        <Route path="/monetization" element={<Monetization />} />
       </Routes>
     </Layout>
   );
