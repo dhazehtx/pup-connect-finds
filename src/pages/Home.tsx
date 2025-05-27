@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { MessageCircle, Share, Bookmark, MoreHorizontal, Plus } from 'lucide-react';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
@@ -118,21 +119,21 @@ const Home = () => {
   };
 
   return (
-    <div className="max-w-md mx-auto bg-white min-h-screen">
+    <div className="max-w-md mx-auto bg-background min-h-screen">
       {/* Stories Section */}
-      <div className="bg-white border-b border-gray-100 p-4">
+      <div className="bg-background border-b border-border p-4">
         <div className="flex space-x-4 overflow-x-auto scrollbar-hide">
           {stories.map((story) => (
             <div key={story.id} className="flex flex-col items-center space-y-1 min-w-0">
               <div className={`relative ${story.isAddStory ? 'w-16 h-16' : 'w-16 h-16'}`}>
                 {story.isAddStory ? (
-                  <div className="w-16 h-16 rounded-full border-2 border-gray-300 border-dashed flex items-center justify-center bg-gray-50">
-                    <Plus size={24} className="text-gray-400" />
+                  <div className="w-16 h-16 rounded-full border-2 border-border border-dashed flex items-center justify-center bg-muted">
+                    <Plus size={24} className="text-muted-foreground" />
                   </div>
                 ) : (
                   <>
-                    <div className={`w-16 h-16 rounded-full p-0.5 ${story.hasNewStory ? 'bg-gradient-to-r from-purple-500 to-pink-500' : 'bg-gray-300'}`}>
-                      <Avatar className="w-full h-full border-2 border-white">
+                    <div className={`w-16 h-16 rounded-full p-0.5 ${story.hasNewStory ? 'bg-gradient-to-r from-primary to-accent' : 'bg-border'}`}>
+                      <Avatar className="w-full h-full border-2 border-background">
                         <AvatarImage src={story.user.avatar} alt={story.user.name} />
                         <AvatarFallback>{story.user.name.slice(0, 2)}</AvatarFallback>
                       </Avatar>
@@ -140,7 +141,7 @@ const Home = () => {
                   </>
                 )}
               </div>
-              <span className="text-xs text-gray-600 text-center w-16 truncate">
+              <span className="text-xs text-muted-foreground text-center w-16 truncate">
                 {story.isAddStory ? 'Your Story' : story.user.name}
               </span>
             </div>
@@ -151,7 +152,7 @@ const Home = () => {
       {/* Feed */}
       <div className="space-y-0">
         {posts.map((post) => (
-          <div key={post.id} className="bg-white border-b border-gray-100">
+          <div key={post.id} className="bg-background border-b border-border">
             {/* Post Header */}
             <div className="flex items-center justify-between p-4">
               <div className="flex items-center space-x-3">
@@ -161,18 +162,18 @@ const Home = () => {
                 </Avatar>
                 <div className="flex-1">
                   <div className="flex items-center space-x-1">
-                    <h3 className="font-semibold text-sm text-gray-900">{post.user.username}</h3>
+                    <h3 className="font-semibold text-sm text-foreground">{post.user.username}</h3>
                     {post.user.verified && (
-                      <span className="text-blue-500 text-sm">✓</span>
+                      <span className="text-primary text-sm">✓</span>
                     )}
                   </div>
                   {post.location && (
-                    <p className="text-xs text-gray-500">{post.location}</p>
+                    <p className="text-xs text-muted-foreground">{post.location}</p>
                   )}
                 </div>
               </div>
               <button className="p-2">
-                <MoreHorizontal size={16} className="text-gray-600" />
+                <MoreHorizontal size={16} className="text-muted-foreground" />
               </button>
             </div>
 
@@ -194,31 +195,31 @@ const Home = () => {
                     onToggle={() => toggleLike(post.id)}
                   />
                   <button>
-                    <MessageCircle size={24} className="text-gray-700" />
+                    <MessageCircle size={24} className="text-foreground" />
                   </button>
                   <button>
-                    <Share size={24} className="text-gray-700" />
+                    <Share size={24} className="text-foreground" />
                   </button>
                 </div>
                 <button>
-                  <Bookmark size={24} className="text-gray-700" />
+                  <Bookmark size={24} className="text-foreground" />
                 </button>
               </div>
 
               {/* Likes */}
               <div>
-                <p className="font-semibold text-sm text-gray-900">
+                <p className="font-semibold text-sm text-foreground">
                   {post.likes + (likedPosts.has(post.id) ? 1 : 0)} likes
                 </p>
               </div>
 
               {/* Caption */}
               <div>
-                <p className="text-sm text-gray-900">
+                <p className="text-sm text-foreground">
                   <span className="font-semibold">{post.user.username}</span>{' '}
                   {post.caption}
                 </p>
-                <p className="text-xs text-gray-500 mt-1">{post.timeAgo}</p>
+                <p className="text-xs text-muted-foreground mt-1">{post.timeAgo}</p>
               </div>
             </div>
           </div>
