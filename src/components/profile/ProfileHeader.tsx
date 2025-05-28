@@ -72,7 +72,7 @@ const ProfileHeader = ({ profile }: ProfileHeaderProps) => {
         <div className="flex items-center gap-2 mb-2">
           <div className="flex items-center gap-1">
             <Star size={14} className="text-blue-500 fill-current" />
-            <span className="text-sm font-medium">{profile.rating}</span>
+            <span className="text-sm font-medium text-black">{profile.rating}</span>
           </div>
           <span className="text-sm text-gray-600">({profile.totalReviews} reviews)</span>
         </div>
