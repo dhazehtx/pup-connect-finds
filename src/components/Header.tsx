@@ -1,7 +1,6 @@
 
 import React from 'react';
-import { Search, Bell, MessageCircle, User, LogOut } from 'lucide-react';
-import { Input } from '@/components/ui/input';
+import { Bell, User, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -35,40 +34,26 @@ const Header = () => {
   return (
     <header className="bg-cloud-white border-b border-soft-sky sticky top-0 z-50">
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-        {/* Logo */}
-        <div className="flex items-center space-x-2">
-          <div className="w-8 h-8 bg-royal-blue rounded-full flex items-center justify-center">
-            <span className="text-cloud-white font-bold text-sm">MP</span>
-          </div>
-          <span className="font-bold text-deep-navy text-xl">MY PUP</span>
-        </div>
+        {/* Left spacer for balance */}
+        <div className="w-16"></div>
 
-        {/* Search Bar */}
-        <div className="flex-1 max-w-2xl mx-8">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
-            <Input
-              placeholder="Search for breeds, locations, or breeders..."
-              className="pl-10 bg-gray-50 border-gray-200 focus:border-royal-blue focus:ring-royal-blue"
-            />
+        {/* Centered Logo */}
+        <div className="flex items-center justify-center flex-1">
+          <div className="flex items-center space-x-2">
+            <div className="w-10 h-10 bg-royal-blue rounded-full flex items-center justify-center">
+              <span className="text-cloud-white font-bold text-lg">🐕</span>
+            </div>
+            <span className="font-bold text-deep-navy text-xl">MY PUP</span>
           </div>
         </div>
 
         {/* Right Side Actions */}
-        <div className="flex items-center space-x-4">
+        <div className="flex items-center space-x-3">
           {/* Notifications */}
           <Button variant="ghost" size="sm" className="relative">
             <Bell size={20} />
             <span className="absolute -top-1 -right-1 bg-sunset-orange text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
               3
-            </span>
-          </Button>
-
-          {/* Messages */}
-          <Button variant="ghost" size="sm" className="relative">
-            <MessageCircle size={20} />
-            <span className="absolute -top-1 -right-1 bg-sunset-orange text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-              2
             </span>
           </Button>
 
@@ -84,7 +69,7 @@ const Header = () => {
                 </Avatar>
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-56" align="end" forceMount>
+            <DropdownMenuContent className="w-56 bg-white" align="end" forceMount>
               <div className="flex flex-col space-y-1 p-2">
                 <p className="text-sm font-medium leading-none">{user?.email}</p>
                 <p className="text-xs leading-none text-muted-foreground">
