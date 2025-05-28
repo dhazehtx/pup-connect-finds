@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { DogListing, User, Review, Message, Favorite, Report } from '@/types/backend';
 
@@ -268,3 +267,107 @@ export const searchService = {
     return (data || []).map(mapDatabaseListingToDogListing);
   }
 };
+
+// Review Service
+export const reviewServiceAPI = {
+  async getReviewsForUser(userId: string): Promise<Review[]> {
+    const { data, error } = await supabase
+      .from('reviews')
+      .select(`
+        *,
+        reviewer_profile:profiles!reviews_reviewer_id_fkey (
+          full_name,
+          username,
+          avatar_url
+        )
+      `)
+      .eq('reviewed_user_id', userId)
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    return data || [];
+  },
+
+  async getReviewsForListing(listingId: string): Promise<Review[]> {
+    const { data, error } = await supabase
+      .from('reviews')
+      .select(`
+        *,
+        reviewer_profile:profiles!reviews_reviewer_id_fkey (
+          full_name,
+          username,
+          avatar_url
+        )
+      `)
+      .eq('listing_id', listingId)
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    return data || [];
+  },
+
+  async createReview(reviewData: {
+    reviewed_user_id: string;
+    listing_id?: string;
+    rating: number;
+    title?: string;
+    comment?: string;
+  }): Promise<Review> {
+    const { data: user } = await supabase.auth.getUser();
+    if (!user.user) throw new Error('User not authenticated');
+
+    const { data, error } = await supabase
+      .from('reviews')
+      .insert([{
+        reviewer_id: user.user.id,
+        ...reviewData
+      }])
+      .select(`
+        *,
+        reviewer_profile:profiles!reviews_reviewer_id_fkey (
+          full_name,
+          username,
+          avatar_url
+        )
+      `)
+      .single();
+
+    if (error) throw error;
+    return data;
+  },
+
+  async getUserAverageRating(userId: string): Promise<{ average: number; count: number }> {
+    const { data, error } = await supabase
+      .from('reviews')
+      .select('rating')
+      .eq('reviewed_user_id', userId);
+
+    if (error) throw error;
+    
+    if (!data || data.length === 0) {
+      return { average: 0, count: 0 };
+    }
+
+    const average = data.reduce((sum, review) => sum + review.rating, 0) / data.length;
+    return { average: Math.round(average * 10) / 10, count: data.length };
+  }
+};
+
+// Add Review interface to existing types
+interface Review {
+  id: string;
+  reviewer_id: string;
+  reviewed_user_id: string;
+  listing_id: string | null;
+  rating: number;
+  title: string | null;
+  comment: string | null;
+  helpful_count: number;
+  created_at: string;
+  updated_at: string;
+  reviewer_profile?: {
+    full_name: string | null;
+    username: string | null;
+    avatar_url: string | null;
+  };
+}
