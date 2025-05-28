@@ -101,7 +101,7 @@ const Profile = () => {
       <div className="p-4">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-xl font-medium text-black">{profile.username}</h1>
-          <Settings size={24} />
+          <Settings size={24} className="text-black" />
         </div>
 
         <ProfileHeader profile={profile} />
