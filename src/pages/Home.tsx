@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { MessageCircle, Share, Bookmark, MoreHorizontal, Plus, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
@@ -41,7 +42,7 @@ const Home = () => {
       id: 4,
       user: { 
         name: 'Poodle Paradise', 
-        avatar: 'https://images.unsplash.com/photo-1574158622682-e40e69881006?w=100&h=100&fit=crop&crop=face' 
+        avatar: 'https://images.unsplash.com/photo-1616190260687-b7039d92c41b?w=100&h=100&fit=crop&crop=face' 
       },
       hasNewStory: true
     }
@@ -57,9 +58,9 @@ const Home = () => {
         verified: true
       },
       images: [
-        "https://images.unsplash.com/photo-1605568427561-40dd23c2acea?w=600&h=600&fit=crop",
         "https://images.unsplash.com/photo-1552053831-71594a27632d?w=600&h=600&fit=crop",
-        "https://images.unsplash.com/photo-1583337130417-3346a1be7dee?w=600&h=600&fit=crop"
+        "https://images.unsplash.com/photo-1552053831-71594a27632d?w=600&h=600&fit=crop",
+        "https://images.unsplash.com/photo-1552053831-71594a27632d?w=600&h=600&fit=crop"
       ],
       likes: 234,
       caption: "Meet Luna! 🐕 This adorable 8-week-old Golden Retriever is looking for her forever home. She loves cuddles and playing fetch! #GoldenRetriever #PuppyLove #AdoptDontShop",
@@ -75,7 +76,7 @@ const Home = () => {
         verified: true
       },
       images: [
-        "https://images.unsplash.com/photo-1551717743-49959800b1f6?w=600&h=600&fit=crop"
+        "https://images.unsplash.com/photo-1589941013453-ec89f33b5e95?w=600&h=600&fit=crop"
       ],
       likes: 189,
       caption: "Training session with Max! 🎾 Our German Shepherds are not only beautiful but incredibly intelligent. This 10-week-old pup is already showing amazing potential! #GermanShepherd #Training #SmartPups",
@@ -92,7 +93,7 @@ const Home = () => {
       },
       images: [
         "https://images.unsplash.com/photo-1518717758536-85ae29035b6d?w=600&h=600&fit=crop",
-        "https://images.unsplash.com/photo-1558618047-3c8c76ca7d13?w=600&h=600&fit=crop"
+        "https://images.unsplash.com/photo-1518717758536-85ae29035b6d?w=600&h=600&fit=crop"
       ],
       likes: 156,
       caption: "Sleepy Sunday vibes 😴 This little chocolate Lab knows how to relax! Available for adoption next week. #LabradorRetriever #SundayVibes #ChocolateLab",
@@ -104,14 +105,14 @@ const Home = () => {
       user: {
         name: "Poodle Paradise",
         username: "poodle_paradise",
-        avatar: "https://images.unsplash.com/photo-1574158622682-e40e69881006?w=100&h=100&fit=crop&crop=face",
+        avatar: "https://images.unsplash.com/photo-1616190260687-b7039d92c41b?w=100&h=100&fit=crop&crop=face",
         verified: true
       },
       images: [
-        "https://images.unsplash.com/photo-1616190264687-b7ebf7fd683d?w=600&h=600&fit=crop",
-        "https://images.unsplash.com/photo-1574158622682-e40e69881006?w=600&h=600&fit=crop",
-        "https://images.unsplash.com/photo-1549298916-f52d724204b4?w=600&h=600&fit=crop",
-        "https://images.unsplash.com/photo-1587559070757-f72e387efcba?w=600&h=600&fit=crop"
+        "https://images.unsplash.com/photo-1616190260687-b7039d92c41b?w=600&h=600&fit=crop",
+        "https://images.unsplash.com/photo-1616190260687-b7039d92c41b?w=600&h=600&fit=crop",
+        "https://images.unsplash.com/photo-1616190260687-b7039d92c41b?w=600&h=600&fit=crop",
+        "https://images.unsplash.com/photo-1616190260687-b7039d92c41b?w=600&h=600&fit=crop"
       ],
       likes: 298,
       caption: "Fluffy Friday! ☁️ Our Standard Poodle puppies are ready for their new families. Hypoallergenic and incredibly loving! #Poodle #FluffyFriday #HypoallergenicDogs",
@@ -155,7 +156,7 @@ const Home = () => {
                   </>
                 )}
               </div>
-              <span className="text-xs text-gray-600 text-center w-16 truncate">
+              <span className="text-xs text-black text-center w-16 truncate">
                 {story.isAddStory ? 'Your Story' : story.user.name}
               </span>
             </div>
@@ -176,7 +177,7 @@ const Home = () => {
                 </Avatar>
                 <div className="flex-1">
                   <div className="flex items-center space-x-1">
-                    <h3 className="font-semibold text-sm text-gray-900">{post.user.username}</h3>
+                    <h3 className="font-semibold text-sm text-black">{post.user.username}</h3>
                     {post.user.verified && (
                       <span className="text-blue-500 text-sm">✓</span>
                     )}
@@ -257,14 +258,14 @@ const Home = () => {
 
               {/* Likes */}
               <div>
-                <p className="font-semibold text-sm text-gray-900">
+                <p className="font-semibold text-sm text-black">
                   {post.likes + (likedPosts.has(post.id) ? 1 : 0)} likes
                 </p>
               </div>
 
               {/* Caption */}
               <div>
-                <p className="text-sm text-gray-900">
+                <p className="text-sm text-black">
                   <span className="font-semibold">{post.user.username}</span>{' '}
                   {post.caption}
                 </p>
