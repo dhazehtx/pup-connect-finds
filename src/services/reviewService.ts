@@ -36,25 +36,24 @@ export const reviewService = {
         reviewer_id: userData.user.id,
         ...reviewData
       }])
-      .select(`
-        *,
-        profiles!reviewer_id(
-          full_name,
-          username,
-          avatar_url
-        )
-      `)
+      .select()
       .single();
 
     if (error) throw error;
     
-    // Transform the data to match our interface
+    // Fetch the reviewer profile separately
+    const { data: profileData } = await supabase
+      .from('profiles')
+      .select('full_name, username, avatar_url')
+      .eq('id', userData.user.id)
+      .single();
+    
     return {
       ...data,
-      reviewer_profile: data.profiles ? {
-        full_name: data.profiles.full_name,
-        username: data.profiles.username,
-        avatar_url: data.profiles.avatar_url
+      reviewer_profile: profileData ? {
+        full_name: profileData.full_name,
+        username: profileData.username,
+        avatar_url: profileData.avatar_url
       } : undefined
     };
   },
@@ -63,26 +62,28 @@ export const reviewService = {
   async getUserReviews(userId: string): Promise<Review[]> {
     const { data, error } = await supabase
       .from('reviews')
-      .select(`
-        *,
-        profiles!reviewer_id(
-          full_name,
-          username,
-          avatar_url
-        )
-      `)
+      .select('*')
       .eq('reviewed_user_id', userId)
       .order('created_at', { ascending: false });
 
     if (error) throw error;
     
-    // Transform the data to match our interface
-    return (data || []).map(review => ({
+    if (!data || data.length === 0) return [];
+
+    // Fetch reviewer profiles separately
+    const reviewerIds = data.map(review => review.reviewer_id);
+    const { data: profiles } = await supabase
+      .from('profiles')
+      .select('id, full_name, username, avatar_url')
+      .in('id', reviewerIds);
+
+    // Combine reviews with profiles
+    return data.map(review => ({
       ...review,
-      reviewer_profile: review.profiles ? {
-        full_name: review.profiles.full_name,
-        username: review.profiles.username,
-        avatar_url: review.profiles.avatar_url
+      reviewer_profile: profiles?.find(profile => profile.id === review.reviewer_id) ? {
+        full_name: profiles.find(profile => profile.id === review.reviewer_id)?.full_name || null,
+        username: profiles.find(profile => profile.id === review.reviewer_id)?.username || null,
+        avatar_url: profiles.find(profile => profile.id === review.reviewer_id)?.avatar_url || null
       } : undefined
     }));
   },
@@ -91,26 +92,28 @@ export const reviewService = {
   async getListingReviews(listingId: string): Promise<Review[]> {
     const { data, error } = await supabase
       .from('reviews')
-      .select(`
-        *,
-        profiles!reviewer_id(
-          full_name,
-          username,
-          avatar_url
-        )
-      `)
+      .select('*')
       .eq('listing_id', listingId)
       .order('created_at', { ascending: false });
 
     if (error) throw error;
     
-    // Transform the data to match our interface
-    return (data || []).map(review => ({
+    if (!data || data.length === 0) return [];
+
+    // Fetch reviewer profiles separately
+    const reviewerIds = data.map(review => review.reviewer_id);
+    const { data: profiles } = await supabase
+      .from('profiles')
+      .select('id, full_name, username, avatar_url')
+      .in('id', reviewerIds);
+
+    // Combine reviews with profiles
+    return data.map(review => ({
       ...review,
-      reviewer_profile: review.profiles ? {
-        full_name: review.profiles.full_name,
-        username: review.profiles.username,
-        avatar_url: review.profiles.avatar_url
+      reviewer_profile: profiles?.find(profile => profile.id === review.reviewer_id) ? {
+        full_name: profiles.find(profile => profile.id === review.reviewer_id)?.full_name || null,
+        username: profiles.find(profile => profile.id === review.reviewer_id)?.username || null,
+        avatar_url: profiles.find(profile => profile.id === review.reviewer_id)?.avatar_url || null
       } : undefined
     }));
   },
