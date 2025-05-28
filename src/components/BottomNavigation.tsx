@@ -1,73 +1,114 @@
 
-import React from 'react';
-import { Home, Search, Plus, MessageCircle, User } from 'lucide-react';
+import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { Home, Search, Plus, MessageCircle, User } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
+import GuestPrompt from '@/components/GuestPrompt';
 
 const BottomNavigation = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { user } = useAuth();
+  const [showGuestPrompt, setShowGuestPrompt] = useState(false);
+  const [promptAction, setPromptAction] = useState('');
 
-  const navItems = [
-    { icon: Home, label: 'Home', path: '/' },
-    { icon: Search, label: 'Explore', path: '/explore' },
-    { icon: Plus, label: 'Post', path: '/post', isSpecial: true },
-    { icon: MessageCircle, label: 'Messages', path: '/messages' },
-    { icon: User, label: 'Profile', path: '/profile/1' },
-  ];
-
-  const handleNavigation = (path: string) => {
-    // Add haptic feedback for mobile
-    if ('vibrate' in navigator) {
-      navigator.vibrate(10);
+  const handleProtectedNavigation = (path: string, action: string) => {
+    if (!user) {
+      setPromptAction(action);
+      setShowGuestPrompt(true);
+      return;
     }
     navigate(path);
   };
 
+  const navItems = [
+    {
+      icon: Home,
+      label: 'Home',
+      path: '/',
+      protected: false
+    },
+    {
+      icon: Search,
+      label: 'Explore',
+      path: '/explore',
+      protected: false
+    },
+    {
+      icon: Plus,
+      label: 'Post',
+      path: '/post',
+      protected: true,
+      action: 'create listings'
+    },
+    {
+      icon: MessageCircle,
+      label: 'Messages',
+      path: '/messages',
+      protected: true,
+      action: 'access messages'
+    },
+    {
+      icon: User,
+      label: 'Profile',
+      path: '/profile',
+      protected: true,
+      action: 'view your profile'
+    }
+  ];
+
+  const isActive = (path: string) => {
+    if (path === '/') {
+      return location.pathname === '/';
+    }
+    return location.pathname.startsWith(path);
+  };
+
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-cloud-white/98 backdrop-blur-md border-t border-soft-sky shadow-lg z-50">
-      <div className="max-w-4xl mx-auto px-2 py-3">
-        <div className="flex justify-around">
+    <>
+      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-40">
+        <div className="grid grid-cols-5 h-16">
           {navItems.map((item) => {
             const Icon = item.icon;
-            const isActive = location.pathname === item.path || 
-              (item.path === '/explore' && location.pathname === '/map');
+            const active = isActive(item.path);
             
             return (
               <button
                 key={item.path}
-                onClick={() => handleNavigation(item.path)}
-                className={`relative flex flex-col items-center p-3 rounded-xl transition-all duration-300 transform ${
-                  item.isSpecial
-                    ? 'bg-gradient-to-r from-royal-blue to-deep-navy text-cloud-white shadow-md scale-110 hover:scale-115'
-                    : isActive 
-                      ? 'text-cloud-white bg-gradient-to-r from-royal-blue to-deep-navy shadow-md scale-105' 
-                      : 'text-royal-blue hover:text-deep-navy hover:bg-soft-sky hover:scale-105'
-                } active:scale-95`}
-                aria-label={item.label}
-                aria-current={isActive ? 'page' : undefined}
+                onClick={() => {
+                  if (item.protected && !user) {
+                    handleProtectedNavigation(item.path, item.action || 'access this feature');
+                  } else {
+                    navigate(item.path);
+                  }
+                }}
+                className={`flex flex-col items-center justify-center p-2 transition-colors ${
+                  active 
+                    ? 'text-royal-blue bg-royal-blue/5' 
+                    : user || !item.protected
+                      ? 'text-gray-600 hover:text-royal-blue'
+                      : 'text-gray-400'
+                }`}
               >
-                {/* Active indicator dot */}
-                {isActive && !item.isSpecial && (
-                  <div className="absolute -top-1 w-1 h-1 bg-cloud-white rounded-full animate-pulse" />
+                <Icon size={20} />
+                <span className="text-xs mt-1 font-medium">{item.label}</span>
+                {item.protected && !user && (
+                  <div className="absolute top-0 right-0 w-2 h-2 bg-sunset-orange rounded-full"></div>
                 )}
-                
-                <Icon size={item.isSpecial ? 24 : 20} className="transition-transform" />
-                <span className={`text-xs mt-1 font-medium transition-all ${
-                  isActive ? 'font-semibold' : ''
-                }`}>
-                  {item.label}
-                </span>
-                
-                {/* Ripple effect container */}
-                <div className="absolute inset-0 rounded-xl overflow-hidden pointer-events-none">
-                  <div className="absolute inset-0 bg-white/20 rounded-xl scale-0 animate-ping" />
-                </div>
               </button>
             );
           })}
         </div>
-      </div>
-    </nav>
+      </nav>
+
+      {showGuestPrompt && (
+        <GuestPrompt
+          action={promptAction}
+          description={`To ${promptAction}, you need to create a MY PUP account.`}
+          onCancel={() => setShowGuestPrompt(false)}
+        />
+      )}
+    </>
   );
 };
 

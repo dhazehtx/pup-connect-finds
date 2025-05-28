@@ -1,15 +1,16 @@
-import React, { useState } from 'react';
-import { Star, MapPin, MessageCircle, Award, Clock, Shield, Stethoscope, Heart } from 'lucide-react';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import WishlistButton from '@/components/features/WishlistButton';
-import ReportButton from '@/components/features/ReportButton';
-import RippleButton from '@/components/ui/ripple-button';
-import GuestPrompt from '@/components/GuestPrompt';
-import { useAuth } from '@/contexts/AuthContext';
 
-interface Listing {
+import React from 'react';
+import { Heart, MessageCircle, MapPin, Star, Shield, CheckCircle, Eye } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import RippleButton from '@/components/ui/ripple-button';
+import AnimatedHeart from '@/components/ui/animated-heart';
+import UserVerificationBadge from '@/components/features/UserVerificationBadge';
+import { useAuth } from '@/contexts/AuthContext';
+import GuestPrompt from '@/components/GuestPrompt';
+import { useState } from 'react';
+
+interface ListingCardProps {
   id: number;
   title: string;
   price: string;
@@ -30,257 +31,221 @@ interface Listing {
   available: number;
   sourceType: string;
   isKillShelter?: boolean;
-}
-
-interface ListingCardProps {
-  listing: Listing;
-  viewMode: 'grid' | 'list';
+  isFavorited: boolean;
   onFavorite: (id: number) => void;
   onContact: (id: number) => void;
   onViewDetails: (id: number) => void;
-  isFavorited?: boolean;
+  viewMode?: 'grid' | 'list';
 }
 
-const ListingCard = ({ listing, viewMode, onFavorite, onContact, onViewDetails, isFavorited = false }: ListingCardProps) => {
-  const [imageLoaded, setImageLoaded] = useState(false);
+const ListingCard = ({
+  id,
+  title,
+  price,
+  location,
+  distance,
+  breed,
+  color,
+  gender,
+  age,
+  rating,
+  reviews,
+  image,
+  breeder,
+  verified,
+  verifiedBreeder = false,
+  idVerified = false,
+  vetVerified = false,
+  available,
+  sourceType,
+  isKillShelter = false,
+  isFavorited,
+  onFavorite,
+  onContact,
+  onViewDetails,
+  viewMode = 'grid'
+}: ListingCardProps) => {
+  const { user, isGuest } = useAuth();
   const [showGuestPrompt, setShowGuestPrompt] = useState(false);
   const [promptAction, setPromptAction] = useState('');
-  const { user, isGuest } = useAuth();
 
-  const handleContact = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    
-    if (!user && !isGuest) {
-      setPromptAction('contact this breeder');
+  const handleFavorite = () => {
+    if (!user) {
+      setPromptAction('save favorites');
       setShowGuestPrompt(true);
       return;
     }
-    
-    if (isGuest) {
-      setPromptAction('contact this breeder');
+    onFavorite(id);
+  };
+
+  const handleContact = () => {
+    if (!user) {
+      setPromptAction('contact breeders');
       setShowGuestPrompt(true);
       return;
     }
-    
-    onContact(listing.id);
+    onContact(id);
   };
 
-  const handleViewDetails = () => {
-    // Allow all users (including guests) to view details
-    onViewDetails(listing.id);
-  };
+  const cardClasses = viewMode === 'list' 
+    ? "flex flex-row"
+    : "flex flex-col";
 
-  if (viewMode === 'list') {
-    return (
-      <>
-        <Card className="overflow-hidden hover:shadow-lg transition-all duration-200 cursor-pointer bg-white border-gray-200 mb-4">
-          <div className="flex">
-            <div className="relative w-48 h-32 flex-shrink-0">
-              <img
-                src={listing.image}
-                alt={listing.title}
-                className={`w-full h-full object-cover transition-opacity duration-200 ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
-                onLoad={() => setImageLoaded(true)}
-              />
-              {!imageLoaded && <div className="absolute inset-0 bg-gray-200 animate-pulse" />}
-              <div className="absolute top-2 right-2 flex gap-1">
-                {(user || isGuest) && (
-                  <>
-                    <WishlistButton
-                      listingId={listing.id.toString()}
-                      listingTitle={listing.title}
-                    />
-                    <ReportButton listingId={listing.id} listingTitle={listing.title} />
-                  </>
-                )}
-              </div>
-            </div>
-            
-            <CardContent className="flex-1 p-4 bg-white">
-              <div className="flex justify-between items-start">
-                <div className="flex-1">
-                  <div className="flex items-start gap-2 mb-2">
-                    <h3 className="font-semibold text-gray-900 line-clamp-1 flex-1">{listing.title}</h3>
-                    <p className="text-xl font-bold text-gray-900">{listing.price}</p>
-                  </div>
-                  
-                  <div className="space-y-1 text-sm text-gray-600 mb-3">
-                    <div className="flex items-center gap-1">
-                      <MapPin size={12} />
-                      {listing.location} • {listing.distance}
-                    </div>
-                    <div className="flex gap-4">
-                      <span>Breed: {listing.breed}</span>
-                      <span>Age: {listing.age}</span>
-                      <span>Gender: {listing.gender}</span>
-                    </div>
-                  </div>
+  const imageClasses = viewMode === 'list'
+    ? "w-48 h-36"
+    : "w-full h-48";
 
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <div className="flex items-center gap-1">
-                        <Star size={12} className="text-royal-blue fill-current" />
-                        <span className="text-sm text-gray-600">{listing.rating} ({listing.reviews})</span>
-                      </div>
-                      <span className="text-sm text-gray-600">•</span>
-                      <span className="text-sm text-gray-600">{listing.available} available</span>
-                    </div>
-                    
-                    <div className="flex gap-2">
-                      <RippleButton 
-                        onClick={handleContact}
-                        variant="outline" 
-                        size="sm" 
-                        className="bg-white border-gray-200 text-royal-blue hover:bg-soft-sky"
-                      >
-                        <MessageCircle size={14} />
-                      </RippleButton>
-                      <RippleButton 
-                        onClick={handleViewDetails}
-                        className="bg-soft-sky text-royal-blue hover:bg-royal-blue hover:text-white" 
-                        size="sm"
-                      >
-                        View Details
-                      </RippleButton>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </div>
-        </Card>
-        
-        {showGuestPrompt && (
-          <GuestPrompt
-            action={promptAction}
-            description="Create an account to contact breeders and save your favorite listings."
-            onCancel={() => setShowGuestPrompt(false)}
-          />
-        )}
-      </>
-    );
-  }
+  const contentClasses = viewMode === 'list'
+    ? "flex-1 p-4"
+    : "p-4";
 
   return (
     <>
-      <Card className="overflow-hidden hover:shadow-lg transition-all duration-200 cursor-pointer bg-white border-gray-200" onClick={handleViewDetails}>
-        <div className="relative">
+      <Card className={`bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-lg transition-shadow cursor-pointer ${cardClasses}`}>
+        <div 
+          className={`relative ${imageClasses} bg-gray-100 flex-shrink-0`}
+          onClick={() => onViewDetails(id)}
+        >
           <img
-            src={listing.image}
-            alt={listing.title}
-            className={`w-full h-48 object-cover transition-opacity duration-200 ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
-            onLoad={() => setImageLoaded(true)}
+            src={image}
+            alt={title}
+            className="w-full h-full object-cover"
           />
-          {!imageLoaded && <div className="absolute inset-0 bg-gray-200 animate-pulse" />}
           
-          <div className="absolute top-3 right-3 flex flex-col gap-2">
-            {(user || isGuest) && (
-              <>
-                <WishlistButton
-                  listingId={listing.id.toString()}
-                  listingTitle={listing.title}
-                />
-                <ReportButton listingId={listing.id} listingTitle={listing.title} />
-              </>
-            )}
+          {/* Favorite button */}
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              handleFavorite();
+            }}
+            className="absolute top-3 right-3 z-10"
+          >
+            <AnimatedHeart 
+              isLiked={isFavorited} 
+              size={24}
+              className="text-white drop-shadow-lg"
+            />
+          </button>
+
+          {/* Urgent badge for kill shelters */}
+          {isKillShelter && (
+            <Badge className="absolute top-3 left-3 bg-red-600 text-white">
+              URGENT
+            </Badge>
+          )}
+
+          {/* Available count badge */}
+          {available > 1 && (
+            <Badge className="absolute bottom-3 left-3 bg-black/70 text-white">
+              {available} available
+            </Badge>
+          )}
+        </div>
+
+        <div className={contentClasses}>
+          <div className="space-y-2 mb-3">
+            <div className="flex items-start justify-between">
+              <h3 className="font-semibold text-lg text-black leading-tight">{title}</h3>
+              <span className="font-bold text-lg text-green-600 ml-2">{price}</span>
+            </div>
+            
+            <div className="flex items-center text-gray-600 text-sm">
+              <MapPin size={14} className="mr-1" />
+              <span>{location}</span>
+              <span className="mx-2">•</span>
+              <span>{distance}</span>
+            </div>
           </div>
-          
-          <div className="absolute top-3 left-3 flex flex-col gap-1">
-            {listing.verified && (
-              <Badge className="bg-blue-500 text-white text-xs">
+
+          <div className="space-y-2 mb-3 text-sm text-gray-700">
+            <div className="flex justify-between">
+              <span>Breed:</span>
+              <span className="font-medium">{breed}</span>
+            </div>
+            <div className="flex justify-between">
+              <span>Color:</span>
+              <span>{color}</span>
+            </div>
+            <div className="flex justify-between">
+              <span>Gender:</span>
+              <span>{gender}</span>
+            </div>
+            <div className="flex justify-between">
+              <span>Age:</span>
+              <span>{age}</span>
+            </div>
+          </div>
+
+          {/* Source type badge */}
+          <div className="flex gap-2 mb-3">
+            <Badge variant={sourceType === 'rescue' ? 'secondary' : 'outline'}>
+              {sourceType}
+            </Badge>
+            {verified && (
+              <Badge variant="secondary" className="bg-green-100 text-green-800">
+                <CheckCircle size={12} className="mr-1" />
                 Verified
               </Badge>
             )}
-            {listing.sourceType === "breeder" && listing.verifiedBreeder && (
-              <Badge className="bg-green-500 text-white text-xs flex items-center gap-1">
-                <Award size={10} />
-                Breeder
-              </Badge>
-            )}
-            {listing.sourceType === "shelter" && (
-              <Badge className={`text-white text-xs flex items-center gap-1 ${listing.isKillShelter ? 'bg-red-500' : 'bg-purple-500'}`}>
-                <Heart size={10} />
-                {listing.isKillShelter ? 'Kill Shelter' : 'No-Kill Shelter'}
-              </Badge>
+          </div>
+
+          {/* Breeder info */}
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center">
+              <span className="text-sm text-gray-600 mr-2">by {breeder}</span>
+              <UserVerificationBadge 
+                verified={verifiedBreeder}
+                idVerified={idVerified}
+                vetVerified={vetVerified}
+                size="sm"
+              />
+            </div>
+            
+            {reviews > 0 && (
+              <div className="flex items-center text-sm text-gray-600">
+                <Star size={14} className="text-yellow-400 mr-1" />
+                <span>{rating}</span>
+                <span className="mx-1">•</span>
+                <span>{reviews} reviews</span>
+              </div>
             )}
           </div>
 
-          {listing.available <= 2 && (
-            <div className="absolute bottom-3 left-3">
-              <Badge className="bg-orange-500 text-white text-xs flex items-center gap-1">
-                <Clock size={10} />
-                Only {listing.available} left
-              </Badge>
-            </div>
+          {/* Action buttons */}
+          <div className="flex gap-2">
+            <RippleButton
+              onClick={() => onViewDetails(id)}
+              className="flex-1 bg-royal-blue hover:bg-royal-blue/90 text-white text-sm"
+            >
+              <Eye size={16} className="mr-1" />
+              View Details
+            </RippleButton>
+            
+            <RippleButton
+              onClick={(e) => {
+                e.stopPropagation();
+                handleContact();
+              }}
+              variant="outline"
+              className="px-3 border-royal-blue text-royal-blue hover:bg-royal-blue hover:text-white"
+            >
+              <MessageCircle size={16} />
+            </RippleButton>
+          </div>
+
+          {/* Guest user notice */}
+          {!user && (
+            <p className="text-xs text-gray-500 mt-2 text-center">
+              Sign in to contact breeders and save favorites
+            </p>
           )}
         </div>
-        
-        <CardContent className="p-4 bg-white">
-          <div className="space-y-2">
-            <div className="bg-white p-3 rounded-lg border border-gray-200">
-              <h3 className="font-semibold text-gray-900 line-clamp-2">{listing.title}</h3>
-            </div>
-            <p className="text-xl font-bold text-gray-900">{listing.price}</p>
-            
-            <div className="space-y-1 text-sm text-gray-600">
-              <div className="flex items-center gap-1">
-                <MapPin size={14} />
-                {listing.location} • {listing.distance}
-              </div>
-              <div>Source: {listing.sourceType === "breeder" ? "Breeder" : "Shelter"}</div>
-              <div>Breed: {listing.breed}</div>
-              <div>Color: {listing.color} • Gender: {listing.gender}</div>
-              <div>Age: {listing.age}</div>
-            </div>
-
-            <div className="flex flex-wrap gap-1 pt-1">
-              {listing.idVerified && (
-                <Badge variant="outline" className="text-xs border-gray-200 flex items-center gap-1">
-                  <Shield size={10} />
-                  ID Verified
-                </Badge>
-              )}
-              {listing.vetVerified && (
-                <Badge variant="outline" className="text-xs border-gray-200 flex items-center gap-1">
-                  <Stethoscope size={10} />
-                  Vet Licensed
-                </Badge>
-              )}
-            </div>
-
-            <div className="flex items-center justify-between pt-2">
-              <div className="flex items-center gap-1">
-                <Star size={14} className="text-royal-blue fill-current" />
-                <span className="text-sm text-gray-600">{listing.rating} ({listing.reviews})</span>
-              </div>
-              <span className="text-sm text-gray-600">{listing.available} available</span>
-            </div>
-
-            <div className="flex gap-2 pt-2">
-              <RippleButton 
-                onClick={handleViewDetails}
-                className="flex-1 bg-soft-sky text-royal-blue hover:bg-royal-blue hover:text-white border-0" 
-                size="sm"
-              >
-                View Details
-              </RippleButton>
-              <RippleButton 
-                onClick={handleContact}
-                variant="outline" 
-                size="sm" 
-                className="bg-white border-gray-200 text-royal-blue hover:bg-soft-sky hover:text-royal-blue hover:border-gray-200"
-              >
-                <MessageCircle size={16} />
-              </RippleButton>
-            </div>
-          </div>
-        </CardContent>
       </Card>
-      
+
       {showGuestPrompt && (
         <GuestPrompt
           action={promptAction}
-          description="Create an account to contact breeders and save your favorite listings."
+          description={`To ${promptAction}, you need to create a MY PUP account.`}
           onCancel={() => setShowGuestPrompt(false)}
         />
       )}
