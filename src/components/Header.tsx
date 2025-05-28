@@ -30,11 +30,9 @@ const Header = () => {
           </div>
         </div>
         
-        {/* Search Button - Top Right */}
+        {/* Search Icon - Top Right */}
         <div className="absolute top-1/2 right-4 transform -translate-y-1/2">
-          <button className="p-2 hover:bg-soft-sky rounded-full transition-all duration-200 group">
-            <Search size={20} className="text-royal-blue group-hover:text-deep-navy" />
-          </button>
+          <Search size={20} className="text-black" />
         </div>
       </div>
     </header>
