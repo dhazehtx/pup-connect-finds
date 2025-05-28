@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Star, MapPin, MessageCircle, Award, Clock, Shield, Stethoscope, Heart } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
@@ -61,10 +62,10 @@ const ListingCard = ({ listing, viewMode, onFavorite, onContact, onViewDetails, 
             {!imageLoaded && <div className="absolute inset-0 bg-gray-200 animate-pulse" />}
             <div className="absolute top-2 right-2 flex gap-1">
               <WishlistButton
-                listingId={listing.id.toString()}
+                listingId={String(listing.id)}
                 listingTitle={listing.title}
               />
-              <ReportButton listingId={listing.id.toString()} listingTitle={listing.title} />
+              <ReportButton listingId={String(listing.id)} listingTitle={listing.title} />
             </div>
           </div>
           
@@ -137,10 +138,10 @@ const ListingCard = ({ listing, viewMode, onFavorite, onContact, onViewDetails, 
         
         <div className="absolute top-3 right-3 flex flex-col gap-2">
           <WishlistButton
-            listingId={listing.id.toString()}
+            listingId={String(listing.id)}
             listingTitle={listing.title}
           />
-          <ReportButton listingId={listing.id.toString()} listingTitle={listing.title} />
+          <ReportButton listingId={String(listing.id)} listingTitle={listing.title} />
         </div>
         
         <div className="absolute top-3 left-3 flex flex-col gap-1">
