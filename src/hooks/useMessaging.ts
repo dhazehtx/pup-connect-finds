@@ -1,8 +1,8 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
+import { useToast } from '@/hooks/use-toast';
 
 interface Conversation {
   id: string;
@@ -30,24 +30,26 @@ interface Message {
   sender_id: string;
   content: string;
   message_type: string;
-  image_url: string | null;
-  read_at: string | null;
+  image_url?: string;
+  read_at?: string;
   created_at: string;
 }
 
 export const useMessaging = () => {
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [messages, setMessages] = useState<Message[]>([]);
-  const [loading, setLoading] = useState(false);
-  const { toast } = useToast();
+  const [loading, setLoading] = useState(true);
   const { user } = useAuth();
+  const { toast } = useToast();
 
   const fetchConversations = async () => {
     if (!user) return;
 
     try {
       setLoading(true);
-      const { data, error } = await supabase
+      
+      // First get conversations
+      const { data: conversationsData, error: conversationsError } = await supabase
         .from('conversations')
         .select(`
           *,
@@ -55,30 +57,37 @@ export const useMessaging = () => {
             dog_name,
             breed,
             image_url
-          ),
-          buyer_profile:buyer_id (
-            full_name,
-            username,
-            avatar_url
-          ),
-          seller_profile:seller_id (
-            full_name,
-            username,
-            avatar_url
           )
         `)
         .or(`buyer_id.eq.${user.id},seller_id.eq.${user.id}`)
-        .order('last_message_at', { ascending: false });
+        .order('last_message_at', { ascending: false, nullsFirst: false });
 
-      if (error) throw error;
+      if (conversationsError) throw conversationsError;
 
-      const mappedConversations = data?.map(conv => ({
-        ...conv,
-        listing: conv.dog_listings,
-        other_user: conv.buyer_id === user.id ? conv.seller_profile : conv.buyer_profile
-      })) || [];
+      // For each conversation, get the other user's profile
+      const conversationsWithProfiles = await Promise.all(
+        (conversationsData || []).map(async (conv) => {
+          const otherUserId = conv.buyer_id === user.id ? conv.seller_id : conv.buyer_id;
+          
+          const { data: profileData } = await supabase
+            .from('profiles')
+            .select('full_name, username, avatar_url')
+            .eq('id', otherUserId)
+            .single();
 
-      setConversations(mappedConversations);
+          return {
+            ...conv,
+            listing: conv.dog_listings,
+            other_user: profileData || {
+              full_name: null,
+              username: null,
+              avatar_url: null
+            }
+          };
+        })
+      );
+
+      setConversations(conversationsWithProfiles);
     } catch (error) {
       console.error('Error fetching conversations:', error);
       toast({
@@ -111,10 +120,56 @@ export const useMessaging = () => {
     }
   };
 
-  const createConversation = async (listingId: string, sellerId: string) => {
-    if (!user) return null;
+  const sendMessage = async (conversationId: string, content: string, messageType: string = 'text') => {
+    if (!user) return;
 
     try {
+      const { data, error } = await supabase
+        .from('messages')
+        .insert([{
+          conversation_id: conversationId,
+          sender_id: user.id,
+          content,
+          message_type: messageType
+        }])
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      // Refresh messages
+      await fetchMessages(conversationId);
+      
+      return data;
+    } catch (error) {
+      console.error('Error sending message:', error);
+      toast({
+        title: "Error",
+        description: "Failed to send message",
+        variant: "destructive",
+      });
+      throw error;
+    }
+  };
+
+  const createConversation = async (listingId: string, sellerId: string) => {
+    if (!user) return;
+
+    try {
+      // Check if conversation already exists
+      const { data: existingConv } = await supabase
+        .from('conversations')
+        .select('id')
+        .eq('listing_id', listingId)
+        .eq('buyer_id', user.id)
+        .eq('seller_id', sellerId)
+        .single();
+
+      if (existingConv) {
+        return existingConv.id;
+      }
+
+      // Create new conversation
       const { data, error } = await supabase
         .from('conversations')
         .insert([{
@@ -126,65 +181,17 @@ export const useMessaging = () => {
         .single();
 
       if (error) throw error;
-      
-      toast({
-        title: "Success",
-        description: "Conversation started!",
-      });
 
-      return data;
+      await fetchConversations();
+      return data.id;
     } catch (error) {
       console.error('Error creating conversation:', error);
       toast({
         title: "Error",
-        description: "Failed to start conversation",
+        description: "Failed to create conversation",
         variant: "destructive",
       });
-      return null;
-    }
-  };
-
-  const sendMessage = async (conversationId: string, content: string, messageType = 'text', imageUrl?: string) => {
-    if (!user) return null;
-
-    try {
-      const { data, error } = await supabase
-        .from('messages')
-        .insert([{
-          conversation_id: conversationId,
-          sender_id: user.id,
-          content,
-          message_type: messageType,
-          image_url: imageUrl
-        }])
-        .select()
-        .single();
-
-      if (error) throw error;
-      
-      setMessages(prev => [...prev, data]);
-      return data;
-    } catch (error) {
-      console.error('Error sending message:', error);
-      toast({
-        title: "Error",
-        description: "Failed to send message",
-        variant: "destructive",
-      });
-      return null;
-    }
-  };
-
-  const markMessageAsRead = async (messageId: string) => {
-    try {
-      const { error } = await supabase
-        .from('messages')
-        .update({ read_at: new Date().toISOString() })
-        .eq('id', messageId);
-
-      if (error) throw error;
-    } catch (error) {
-      console.error('Error marking message as read:', error);
+      throw error;
     }
   };
 
@@ -200,8 +207,7 @@ export const useMessaging = () => {
     loading,
     fetchConversations,
     fetchMessages,
-    createConversation,
     sendMessage,
-    markMessageAsRead
+    createConversation,
   };
 };
