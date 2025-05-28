@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Bell, User, LogOut } from 'lucide-react';
+import { Bell, User, LogOut, Menu } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -51,44 +51,39 @@ const Header = () => {
         <div className="flex items-center space-x-3">
           {/* Notifications */}
           <Button variant="ghost" size="sm" className="relative">
-            <Bell size={20} />
+            <Bell size={24} />
             <span className="absolute -top-1 -right-1 bg-sunset-orange text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
               3
             </span>
           </Button>
 
-          {/* User Menu */}
+          {/* User Menu - Hamburger Icon */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-                <Avatar className="h-8 w-8">
-                  <AvatarImage src="/placeholder-avatar.jpg" alt="Profile" />
-                  <AvatarFallback className="bg-royal-blue text-white">
-                    {user?.email ? getInitials(user.email) : 'U'}
-                  </AvatarFallback>
-                </Avatar>
+              <Button variant="ghost" className="relative h-10 w-10 rounded-full">
+                <Menu size={28} className="text-deep-navy" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-56 bg-white" align="end" forceMount>
-              <div className="flex flex-col space-y-1 p-2">
-                <p className="text-sm font-medium leading-none">{user?.email}</p>
-                <p className="text-xs leading-none text-muted-foreground">
+            <DropdownMenuContent className="w-64 bg-white" align="end" forceMount>
+              <div className="flex flex-col space-y-1 p-4">
+                <p className="text-base font-medium leading-none">{user?.email}</p>
+                <p className="text-sm leading-none text-muted-foreground">
                   Welcome to MY PUP
                 </p>
               </div>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => navigate('/profile')}>
-                <User className="mr-2 h-4 w-4" />
-                <span>Profile</span>
+              <DropdownMenuItem onClick={() => navigate('/profile')} className="py-3 px-4">
+                <User className="mr-3 h-5 w-5" />
+                <span className="text-base">Profile</span>
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => navigate('/settings')}>
-                <User className="mr-2 h-4 w-4" />
-                <span>Settings</span>
+              <DropdownMenuItem onClick={() => navigate('/settings')} className="py-3 px-4">
+                <User className="mr-3 h-5 w-5" />
+                <span className="text-base">Settings</span>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={handleSignOut}>
-                <LogOut className="mr-2 h-4 w-4" />
-                <span>Sign out</span>
+              <DropdownMenuItem onClick={handleSignOut} className="py-3 px-4">
+                <LogOut className="mr-3 h-5 w-5" />
+                <span className="text-base">Sign out</span>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
