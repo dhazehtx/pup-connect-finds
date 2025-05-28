@@ -40,17 +40,17 @@ const SortingOptions = ({ sortBy, onSortChange, viewMode, onViewModeChange, resu
         </div>
 
         <Select value={sortBy} onValueChange={onSortChange}>
-          <SelectTrigger className="w-48 bg-white border-gray-200">
+          <SelectTrigger className="w-48 bg-white border-gray-200 text-black">
             <SelectValue placeholder="Sort by" />
           </SelectTrigger>
           <SelectContent className="bg-white border-gray-200">
-            <SelectItem value="newest">Newest first</SelectItem>
-            <SelectItem value="price-low">Price: Low to High</SelectItem>
-            <SelectItem value="price-high">Price: High to Low</SelectItem>
-            <SelectItem value="distance">Closest first</SelectItem>
-            <SelectItem value="rating">Highest rated</SelectItem>
-            <SelectItem value="age-young">Youngest first</SelectItem>
-            <SelectItem value="age-old">Oldest first</SelectItem>
+            <SelectItem value="newest" className="text-black">Newest first</SelectItem>
+            <SelectItem value="price-low" className="text-black">Price: Low to High</SelectItem>
+            <SelectItem value="price-high" className="text-black">Price: High to Low</SelectItem>
+            <SelectItem value="distance" className="text-black">Closest first</SelectItem>
+            <SelectItem value="rating" className="text-black">Highest rated</SelectItem>
+            <SelectItem value="age-young" className="text-black">Youngest first</SelectItem>
+            <SelectItem value="age-old" className="text-black">Oldest first</SelectItem>
           </SelectContent>
         </Select>
       </div>
