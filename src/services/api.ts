@@ -2,6 +2,60 @@
 import { supabase } from '@/integrations/supabase/client';
 import { DogListing, User, Review, Message, Favorite, Report } from '@/types/backend';
 
+// Helper function to map database user to User interface
+const mapDatabaseUserToUser = (dbUser: any): User => {
+  return {
+    id: dbUser.id,
+    email: dbUser.email,
+    fullName: dbUser.full_name,
+    username: dbUser.username,
+    userType: dbUser.user_type,
+    bio: dbUser.bio,
+    location: dbUser.location,
+    phone: dbUser.phone,
+    websiteUrl: dbUser.website_url,
+    avatarUrl: dbUser.avatar_url,
+    verified: dbUser.verified,
+    rating: dbUser.rating,
+    totalReviews: dbUser.total_reviews,
+    yearsExperience: dbUser.years_experience,
+    createdAt: dbUser.created_at,
+    updatedAt: dbUser.updated_at,
+  };
+};
+
+// Helper function to map database listing to DogListing interface
+const mapDatabaseListingToDogListing = (dbListing: any): DogListing => {
+  return {
+    id: dbListing.id,
+    dogName: dbListing.dog_name,
+    breed: dbListing.breed,
+    age: dbListing.age,
+    price: dbListing.price,
+    imageUrl: dbListing.image_url,
+    userId: dbListing.user_id,
+    status: 'available', // Default status since it's not in database yet
+    createdAt: dbListing.created_at,
+    updatedAt: dbListing.updated_at,
+    // Include profile data if available
+    ...(dbListing.profiles && {
+      userProfile: mapDatabaseUserToUser(dbListing.profiles)
+    })
+  };
+};
+
+// Helper function to map DogListing interface to database format
+const mapDogListingToDatabase = (listing: Omit<DogListing, 'id' | 'createdAt' | 'updatedAt'>) => {
+  return {
+    dog_name: listing.dogName,
+    breed: listing.breed,
+    age: listing.age,
+    price: listing.price,
+    image_url: listing.imageUrl,
+    user_id: listing.userId,
+  };
+};
+
 // User Service
 export const userService = {
   async getProfile(userId: string): Promise<User | null> {
@@ -12,19 +66,34 @@ export const userService = {
       .single();
     
     if (error) throw error;
-    return data;
+    return data ? mapDatabaseUserToUser(data) : null;
   },
 
   async updateProfile(userId: string, updates: Partial<User>): Promise<User> {
+    // Map User interface to database format
+    const dbUpdates: any = {};
+    if (updates.fullName !== undefined) dbUpdates.full_name = updates.fullName;
+    if (updates.username !== undefined) dbUpdates.username = updates.username;
+    if (updates.userType !== undefined) dbUpdates.user_type = updates.userType;
+    if (updates.bio !== undefined) dbUpdates.bio = updates.bio;
+    if (updates.location !== undefined) dbUpdates.location = updates.location;
+    if (updates.phone !== undefined) dbUpdates.phone = updates.phone;
+    if (updates.websiteUrl !== undefined) dbUpdates.website_url = updates.websiteUrl;
+    if (updates.avatarUrl !== undefined) dbUpdates.avatar_url = updates.avatarUrl;
+    if (updates.verified !== undefined) dbUpdates.verified = updates.verified;
+    if (updates.rating !== undefined) dbUpdates.rating = updates.rating;
+    if (updates.totalReviews !== undefined) dbUpdates.total_reviews = updates.totalReviews;
+    if (updates.yearsExperience !== undefined) dbUpdates.years_experience = updates.yearsExperience;
+
     const { data, error } = await supabase
       .from('profiles')
-      .update(updates)
+      .update(dbUpdates)
       .eq('id', userId)
       .select()
       .single();
     
     if (error) throw error;
-    return data;
+    return mapDatabaseUserToUser(data);
   },
 
   async searchUsers(query: string, userType?: string): Promise<User[]> {
@@ -39,21 +108,23 @@ export const userService = {
     
     const { data, error } = await queryBuilder;
     if (error) throw error;
-    return data || [];
+    return (data || []).map(mapDatabaseUserToUser);
   }
 };
 
 // Listing Service
 export const listingService = {
   async createListing(listing: Omit<DogListing, 'id' | 'createdAt' | 'updatedAt'>): Promise<DogListing> {
+    const dbListing = mapDogListingToDatabase(listing);
+    
     const { data, error } = await supabase
       .from('dog_listings')
-      .insert([listing])
+      .insert([dbListing])
       .select()
       .single();
     
     if (error) throw error;
-    return data;
+    return mapDatabaseListingToDogListing(data);
   },
 
   async getListings(filters?: {
@@ -87,13 +158,10 @@ export const listingService = {
     if (filters?.maxPrice) {
       query = query.lte('price', filters.maxPrice);
     }
-    if (filters?.status) {
-      query = query.eq('status', filters.status);
-    }
 
     const { data, error } = await query;
     if (error) throw error;
-    return data || [];
+    return (data || []).map(mapDatabaseListingToDogListing);
   },
 
   async getUserListings(userId: string): Promise<DogListing[]> {
@@ -104,19 +172,27 @@ export const listingService = {
       .order('created_at', { ascending: false });
     
     if (error) throw error;
-    return data || [];
+    return (data || []).map(mapDatabaseListingToDogListing);
   },
 
   async updateListing(listingId: string, updates: Partial<DogListing>): Promise<DogListing> {
+    // Map updates to database format
+    const dbUpdates: any = {};
+    if (updates.dogName !== undefined) dbUpdates.dog_name = updates.dogName;
+    if (updates.breed !== undefined) dbUpdates.breed = updates.breed;
+    if (updates.age !== undefined) dbUpdates.age = updates.age;
+    if (updates.price !== undefined) dbUpdates.price = updates.price;
+    if (updates.imageUrl !== undefined) dbUpdates.image_url = updates.imageUrl;
+
     const { data, error } = await supabase
       .from('dog_listings')
-      .update(updates)
+      .update(dbUpdates)
       .eq('id', listingId)
       .select()
       .single();
     
     if (error) throw error;
-    return data;
+    return mapDatabaseListingToDogListing(data);
   },
 
   async deleteListing(listingId: string): Promise<void> {
@@ -189,6 +265,6 @@ export const searchService = {
 
     const { data, error } = await queryBuilder;
     if (error) throw error;
-    return data || [];
+    return (data || []).map(mapDatabaseListingToDogListing);
   }
 };
