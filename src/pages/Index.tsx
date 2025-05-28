@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { Routes, Route } from 'react-router-dom';
 import Layout from '../components/Layout';
 import Home from './Home';
 import Explore from './Explore';
@@ -31,6 +31,7 @@ const Index = () => {
         <Route path="/verification" element={<Verification />} />
         <Route path="/settings" element={<Settings />} />
         <Route path="/profile/:userId" element={<Profile />} />
+        <Route path="/profile" element={<Profile />} />
         <Route path="/monetization" element={<Monetization />} />
         <Route path="/partnerships" element={<Partnerships />} />
         <Route path="/terms" element={<TermsOfService />} />

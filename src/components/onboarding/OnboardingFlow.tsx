@@ -1,8 +1,10 @@
 
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import OnboardingScreen from './OnboardingScreen';
 import AuthScreen from './AuthScreen';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface OnboardingFlowProps {
   onComplete: () => void;
@@ -11,6 +13,8 @@ interface OnboardingFlowProps {
 const OnboardingFlow = ({ onComplete }: OnboardingFlowProps) => {
   const [currentStep, setCurrentStep] = useState(0);
   const { toast } = useToast();
+  const { user } = useAuth();
+  const navigate = useNavigate();
 
   const onboardingSteps = [
     {
@@ -45,29 +49,28 @@ const OnboardingFlow = ({ onComplete }: OnboardingFlowProps) => {
   };
 
   const handleSkipAll = () => {
-    // Skip entire onboarding
-    toast({
-      title: "Welcome!",
-      description: "You can revisit the tutorial anytime in Settings.",
-    });
-    onComplete();
+    // Skip entire onboarding and go to auth
+    navigate('/auth');
   };
 
   const handleSignIn = () => {
-    toast({
-      title: "Welcome!",
-      description: "Sign in functionality will be implemented with Supabase integration.",
-    });
+    // This will be handled by the auth context automatically
     onComplete();
   };
 
   const handleGuestBrowse = () => {
     toast({
-      title: "Welcome, Guest!",
-      description: "You can browse all listings. Sign up anytime to contact breeders.",
+      title: "Guest Mode",
+      description: "You can browse listings. Sign up anytime to contact breeders.",
     });
     onComplete();
   };
+
+  // If user is logged in, complete onboarding
+  if (user) {
+    onComplete();
+    return null;
+  }
 
   // Show auth screen
   if (currentStep >= onboardingSteps.length) {
