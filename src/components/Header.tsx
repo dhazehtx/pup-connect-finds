@@ -41,7 +41,21 @@ const Header = () => {
         <div className="flex items-center justify-center flex-1">
           <div className="flex items-center space-x-2">
             <div className="w-10 h-10 bg-royal-blue rounded-full flex items-center justify-center">
-              <span className="text-cloud-white font-bold text-lg">🐕</span>
+              <svg 
+                viewBox="0 0 24 24" 
+                fill="none" 
+                className="w-6 h-6 text-cloud-white"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path 
+                  d="M12 2C10.5 2 9.2 2.8 8.5 4C7.8 2.8 6.5 2 5 2C3.3 2 2 3.3 2 5C2 6.7 3.3 8 5 8C5.3 8 5.6 8 5.9 7.9C6.8 10.1 9.2 11.5 12 11.5C14.8 11.5 17.2 10.1 18.1 7.9C18.4 8 18.7 8 19 8C20.7 8 22 6.7 22 5C22 3.3 20.7 2 19 2C17.5 2 16.2 2.8 15.5 4C14.8 2.8 13.5 2 12 2Z" 
+                  fill="currentColor"
+                />
+                <ellipse cx="12" cy="16" rx="8" ry="4" fill="currentColor" opacity="0.8"/>
+                <circle cx="9" cy="14" r="1" fill="white"/>
+                <circle cx="15" cy="14" r="1" fill="white"/>
+                <path d="M12 15.5C11.5 15.5 11 15.7 11 16C11 16.3 11.5 16.5 12 16.5C12.5 16.5 13 16.3 13 16C13 15.7 12.5 15.5 12 15.5Z" fill="white"/>
+              </svg>
             </div>
             <span className="font-bold text-deep-navy text-xl">MY PUP</span>
           </div>
