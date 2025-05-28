@@ -42,7 +42,8 @@ const Header = () => {
           <img 
             src="/lovable-uploads/252c4abe-53d4-48e1-a356-bf715001c720.png" 
             alt="MY PUP Logo" 
-            className="h-16 w-auto object-contain"
+            className="h-16 w-auto object-contain mix-blend-multiply"
+            style={{ filter: 'contrast(1.1) brightness(1.1)' }}
           />
         </div>
 
