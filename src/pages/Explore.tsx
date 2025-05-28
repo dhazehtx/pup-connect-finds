@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Users, Plus } from 'lucide-react';
@@ -28,6 +29,29 @@ interface FilterState {
   availableOnly: boolean;
 }
 
+interface Listing {
+  id: number;
+  title: string;
+  price: string;
+  location: string;
+  distance: string;
+  breed: string;
+  color: string;
+  gender: string;
+  age: string;
+  rating: number;
+  reviews: number;
+  image: string;
+  breeder: string;
+  verified: boolean;
+  verifiedBreeder?: boolean;
+  idVerified?: boolean;
+  vetVerified?: boolean;
+  available: number;
+  sourceType: string;
+  isKillShelter?: boolean;
+}
+
 const Explore = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -51,8 +75,27 @@ const Explore = () => {
 
   const { listings: dbListings, loading } = useDogListings();
 
+  // Helper function to get breed-appropriate image
+  const getBreedImage = (breed: string): string => {
+    const breedImages: Record<string, string> = {
+      'French Bulldog': 'https://images.unsplash.com/photo-1583337130417-3346a1be7dee?w=400&h=300&fit=crop',
+      'English Bulldog': 'https://images.unsplash.com/photo-1605568427561-40dd23c2acea?w=400&h=300&fit=crop',
+      'Golden Retriever': 'https://images.unsplash.com/photo-1552053831-71594a27632d?w=400&h=300&fit=crop',
+      'German Shepherd': 'https://images.unsplash.com/photo-1589941013453-ec89f33b5e95?w=400&h=300&fit=crop',
+      'Labrador': 'https://images.unsplash.com/photo-1518717758536-85ae29035b6d?w=400&h=300&fit=crop',
+      'Poodle Mix': 'https://images.unsplash.com/photo-1616190260687-b7039d92c41b?w=400&h=300&fit=crop',
+      'Siberian Husky': 'https://images.unsplash.com/photo-1605568427561-40dd23c2acea?w=400&h=300&fit=crop',
+      'Boston Terrier': 'https://images.unsplash.com/photo-1551717743-49959800b1f6?w=400&h=300&fit=crop',
+      'Beagle': 'https://images.unsplash.com/photo-1544717342-7b6977ea1f8a?w=400&h=300&fit=crop',
+      'Pembroke Welsh Corgi': 'https://images.unsplash.com/photo-1546975490-e8b92a360b24?w=400&h=300&fit=crop',
+      'Rottweiler': 'https://images.unsplash.com/photo-1567752881298-894bb81f9379?w=400&h=300&fit=crop'
+    };
+    
+    return breedImages[breed] || 'https://images.unsplash.com/photo-1605568427561-40dd23c2acea?w=400&h=300&fit=crop';
+  };
+
   // Convert database listings to match the existing ListingCard interface
-  const convertedDbListings = dbListings.map((listing, index) => ({
+  const convertedDbListings: Listing[] = dbListings.map((listing, index) => ({
     id: index + 1000, // Offset to avoid conflicts
     title: `${listing.dog_name} - ${listing.breed}`,
     price: `$${listing.price.toLocaleString()}`,
@@ -64,7 +107,7 @@ const Explore = () => {
     age: `${listing.age} months`,
     rating: listing.profiles?.rating || 4.5,
     reviews: listing.profiles?.total_reviews || 0,
-    image: listing.image_url || 'https://images.unsplash.com/photo-1605568427561-40dd23c2acea?w=300&h=300&fit=crop',
+    image: listing.image_url || getBreedImage(listing.breed),
     breeder: listing.profiles?.full_name || listing.profiles?.username || 'Anonymous',
     verified: listing.profiles?.verified || false,
     verifiedBreeder: listing.profiles?.verified || false,
