@@ -1,16 +1,18 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Users } from 'lucide-react';
+import { Users, Plus } from 'lucide-react';
 import SearchFilters from '@/components/SearchFilters';
 import SortingOptions from '@/components/SortingOptions';
 import ListingsGrid from '@/components/ListingsGrid';
+import CreateListingForm from '@/components/listings/CreateListingForm';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 import DogLoadingIcon from '@/components/DogLoadingIcon';
 import { useToast } from '@/hooks/use-toast';
 import { useListingFilters } from '@/hooks/useListingFilters';
-import { sampleListings } from '@/data/sampleListings';
+import { useDogListings } from '@/hooks/useDogListings';
+import { supabase } from '@/integrations/supabase/client';
 
 interface FilterState {
   searchTerm: string;
@@ -31,7 +33,8 @@ const Explore = () => {
   const [favorites, setFavorites] = useState<number[]>([]);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [sortBy, setSortBy] = useState('newest');
-  const [isLoading, setIsLoading] = useState(true);
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [filters, setFilters] = useState<FilterState>({
     searchTerm: '',
     breed: 'all',
@@ -45,15 +48,40 @@ const Explore = () => {
     availableOnly: false,
   });
 
-  const { sortedListings } = useListingFilters(sampleListings, filters, sortBy);
+  const { listings: dbListings, loading } = useDogListings();
 
-  // Auto-hide loading after 5 seconds to show the demo
+  // Convert database listings to match the existing ListingCard interface
+  const convertedListings = dbListings.map((listing, index) => ({
+    id: index + 1000, // Offset to avoid conflicts
+    title: `${listing.dog_name} - ${listing.breed}`,
+    price: `$${listing.price.toLocaleString()}`,
+    location: listing.profiles?.location || 'Location not specified',
+    distance: '2.3 miles', // Placeholder
+    breed: listing.breed,
+    color: 'Various', // Placeholder
+    gender: 'Mixed', // Placeholder
+    age: `${listing.age} months`,
+    rating: listing.profiles?.rating || 4.5,
+    reviews: listing.profiles?.total_reviews || 0,
+    image: listing.image_url || 'https://images.unsplash.com/photo-1605568427561-40dd23c2acea?w=300&h=300&fit=crop',
+    breeder: listing.profiles?.full_name || listing.profiles?.username || 'Anonymous',
+    verified: listing.profiles?.verified || false,
+    verifiedBreeder: listing.profiles?.verified || false,
+    idVerified: listing.profiles?.verified || false,
+    vetVerified: listing.profiles?.verified || false,
+    available: 1,
+    sourceType: 'breeder',
+    isKillShelter: false,
+  }));
+
+  const { sortedListings } = useListingFilters(convertedListings, filters, sortBy);
+
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 5000);
-
-    return () => clearTimeout(timer);
+    const checkAuth = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      setIsAuthenticated(!!user);
+    };
+    checkAuth();
   }, []);
 
   const hasActiveFilters = Object.entries(filters).some(([key, value]) => {
@@ -83,7 +111,7 @@ const Explore = () => {
         ? prev.filter(fav => fav !== id)
         : [...prev, id];
       
-      const listing = sampleListings.find(l => l.id === id);
+      const listing = sortedListings.find(l => l.id === id);
       toast({
         title: prev.includes(id) ? "Removed from favorites" : "Added to favorites",
         description: listing ? `${listing.title}` : "Listing updated",
@@ -94,7 +122,7 @@ const Explore = () => {
   };
 
   const handleContact = (id: number) => {
-    const listing = sampleListings.find(l => l.id === id);
+    const listing = sortedListings.find(l => l.id === id);
     toast({
       title: "Contact initiated",
       description: `We'll connect you with ${listing?.breeder || 'the seller'}`,
@@ -102,14 +130,22 @@ const Explore = () => {
   };
 
   const handleViewDetails = (id: number) => {
-    const listing = sampleListings.find(l => l.id === id);
+    const listing = sortedListings.find(l => l.id === id);
     toast({
       title: "Opening details",
       description: `Viewing details for ${listing?.title || 'this listing'}`,
     });
   };
 
-  if (isLoading) {
+  const handleCreateSuccess = () => {
+    setIsCreateDialogOpen(false);
+    toast({
+      title: "Success",
+      description: "Your listing has been created successfully!",
+    });
+  };
+
+  if (loading) {
     return (
       <div className="max-w-7xl mx-auto px-4 py-6">
         {/* Header Skeleton */}
@@ -185,19 +221,41 @@ const Explore = () => {
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-6">
-      {/* Header with Partnership Link */}
+      {/* Header with Partnership Link and Create Listing */}
       <div className="mb-6">
         <div className="flex justify-between items-start mb-2">
           <h1 className="text-2xl font-bold text-gray-900">Marketplace</h1>
-          <Button 
-            variant="default"
-            size="sm"
-            onClick={() => navigate('/partnerships')}
-            className="flex items-center gap-2 bg-primary text-primary-foreground hover:bg-primary/90"
-          >
-            <Users size={16} />
-            Trusted Partners
-          </Button>
+          <div className="flex gap-2">
+            {isAuthenticated && (
+              <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button 
+                    variant="default"
+                    size="sm"
+                    className="flex items-center gap-2 bg-green-600 text-white hover:bg-green-700"
+                  >
+                    <Plus size={16} />
+                    Create Listing
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+                  <CreateListingForm 
+                    onSuccess={handleCreateSuccess}
+                    onCancel={() => setIsCreateDialogOpen(false)}
+                  />
+                </DialogContent>
+              </Dialog>
+            )}
+            <Button 
+              variant="default"
+              size="sm"
+              onClick={() => navigate('/partnerships')}
+              className="flex items-center gap-2 bg-primary text-primary-foreground hover:bg-primary/90"
+            >
+              <Users size={16} />
+              Trusted Partners
+            </Button>
+          </div>
         </div>
         <p className="text-gray-600">Find your perfect puppy companion from verified sellers and rescue partners</p>
       </div>
@@ -227,7 +285,7 @@ const Explore = () => {
         onFavorite={handleFavorite}
         onContact={handleContact}
         onViewDetails={handleViewDetails}
-        isLoading={isLoading}
+        isLoading={loading}
         onClearFilters={handleClearFilters}
         hasActiveFilters={hasActiveFilters}
       />

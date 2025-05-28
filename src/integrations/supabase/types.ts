@@ -9,7 +9,107 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      dog_listings: {
+        Row: {
+          age: number
+          breed: string
+          created_at: string | null
+          dog_name: string
+          id: string
+          image_url: string | null
+          price: number
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          age: number
+          breed: string
+          created_at?: string | null
+          dog_name: string
+          id?: string
+          image_url?: string | null
+          price: number
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          age?: number
+          breed?: string
+          created_at?: string | null
+          dog_name?: string
+          id?: string
+          image_url?: string | null
+          price?: number
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dog_listings_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          bio: string | null
+          created_at: string | null
+          email: string
+          full_name: string | null
+          id: string
+          location: string | null
+          phone: string | null
+          rating: number | null
+          total_reviews: number | null
+          updated_at: string | null
+          user_type: Database["public"]["Enums"]["user_type"] | null
+          username: string | null
+          verified: boolean | null
+          website_url: string | null
+          years_experience: number | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string | null
+          email: string
+          full_name?: string | null
+          id: string
+          location?: string | null
+          phone?: string | null
+          rating?: number | null
+          total_reviews?: number | null
+          updated_at?: string | null
+          user_type?: Database["public"]["Enums"]["user_type"] | null
+          username?: string | null
+          verified?: boolean | null
+          website_url?: string | null
+          years_experience?: number | null
+        }
+        Update: {
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string | null
+          email?: string
+          full_name?: string | null
+          id?: string
+          location?: string | null
+          phone?: string | null
+          rating?: number | null
+          total_reviews?: number | null
+          updated_at?: string | null
+          user_type?: Database["public"]["Enums"]["user_type"] | null
+          username?: string | null
+          verified?: boolean | null
+          website_url?: string | null
+          years_experience?: number | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -18,7 +118,7 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      user_type: "buyer" | "breeder" | "shelter" | "admin"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -133,6 +233,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      user_type: ["buyer", "breeder", "shelter", "admin"],
+    },
   },
 } as const
