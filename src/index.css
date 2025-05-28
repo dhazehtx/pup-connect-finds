@@ -96,171 +96,29 @@
   }
 }
 
-/* COMPREHENSIVE YELLOW COLOR REMOVAL */
-/* Replace all yellow colors with clean whites and grays */
-
-/* Remove yellow from HTML and body */
-html, body {
-  background-color: rgb(249 250 251) !important; /* Cloud White */
-  color: rgb(26 26 46) !important; /* Deep Navy */
-}
-
-/* Remove yellow from all elements */
-* {
-  background-color: inherit !important;
-}
-
-/* Override any yellow backgrounds globally */
-*[style*="yellow"],
-*[style*="#ffff"],
-*[style*="#fff0"],
-*[style*="rgb(255, 255"],
-*[style*="rgba(255, 255"],
-*[style*="#FFFF00"],
-*[style*="#FFD700"],
-*[style*="#FFEB3B"],
-*[style*="#FFF176"],
-*[style*="#FFECB3"],
-*[style*="#FFFACD"],
-*[style*="#F0E68C"],
-*[style*="#FFEFD5"] {
-  background-color: rgb(249 250 251) !important; /* Cloud White */
-  color: rgb(26 26 46) !important; /* Deep Navy */
-}
-
-/* Remove yellow from Tailwind classes */
-.bg-yellow-50,
-.bg-yellow-100,
-.bg-yellow-200,
-.bg-yellow-300,
-.bg-yellow-400,
+/* Remove all yellow colors */
 .bg-yellow-500,
-.bg-yellow-600,
-.bg-yellow-700,
-.bg-yellow-800,
-.bg-yellow-900 {
-  background-color: rgb(249 250 251) !important; /* Cloud White */
-}
-
-.text-yellow-50,
-.text-yellow-100,
-.text-yellow-200,
-.text-yellow-300,
-.text-yellow-400,
-.text-yellow-500,
-.text-yellow-600,
-.text-yellow-700,
-.text-yellow-800,
-.text-yellow-900 {
-  color: rgb(26 26 46) !important; /* Deep Navy */
-}
-
-/* Override status messages and notifications */
-.status-message,
-.notification,
-.alert,
-.toast {
-  background-color: rgb(249 250 251) !important; /* Cloud White */
-  color: rgb(26 26 46) !important; /* Deep Navy */
-  border-color: rgb(209 213 219) !important; /* Gray border */
-}
-
-/* Override onboarding and modal backgrounds */
-.modal,
-.dialog,
-.onboarding,
-[class*="onboarding"],
-[class*="modal"],
-[class*="dialog"] {
-  background-color: rgb(249 250 251) !important; /* Cloud White */
-}
-
-/* Override any container or wrapper backgrounds */
-.container,
-.wrapper,
-.main,
-.app,
-#root,
-[class*="container"],
-[class*="wrapper"] {
-  background-color: rgb(249 250 251) !important; /* Cloud White */
-}
-
-/* TRUSTED PARTNERS BUTTON FIXES */
-button[aria-label*="Trusted"],
-button:has([data-lucide="users"]),
-.trusted-partners-button,
-button:has(svg[data-lucide="users"]) {
+.bg-yellow-400,
+.bg-yellow-300,
+.bg-yellow-200,
+.bg-yellow-100 {
   background-color: rgb(36 107 253) !important; /* Royal Blue */
-  color: white !important;
-  border-color: rgb(36 107 253) !important;
 }
 
-button[aria-label*="Trusted"]:hover,
-button:has([data-lucide="users"]):hover,
-.trusted-partners-button:hover,
-button:has(svg[data-lucide="users"]):hover {
-  background-color: rgb(29 78 216) !important; /* Darker blue on hover */
+.text-yellow-500,
+.text-yellow-400,
+.text-yellow-300,
+.text-yellow-200,
+.text-yellow-100 {
+  color: rgb(26 26 46) !important; /* Deep Navy */
 }
 
-/* CAROUSEL COMPONENT FIXES */
-[data-orientation="horizontal"] button,
-.carousel-arrow,
-.CarouselNext,
-.CarouselPrevious,
-button[aria-label*="Next"],
-button[aria-label*="Previous"],
-button[class*="carousel"],
-button[class*="Carousel"],
-.embla__button,
-.embla__prev,
-.embla__next,
-button[class*="embla"] {
-  background-color: rgba(107, 114, 128, 0.2) !important; /* Gray transparent */
-  color: white !important;
-  border-color: rgba(107, 114, 128, 0.3) !important;
-}
-
-[data-orientation="horizontal"] button:hover,
-.carousel-arrow:hover,
-.CarouselNext:hover,
-.CarouselPrevious:hover,
-button[aria-label*="Next"]:hover,
-button[aria-label*="Previous"]:hover,
-button[class*="carousel"]:hover,
-button[class*="Carousel"]:hover,
-.embla__button:hover,
-.embla__prev:hover,
-.embla__next:hover,
-button[class*="embla"]:hover {
-  background-color: rgba(107, 114, 128, 0.3) !important;
-}
-
-/* INPUT FIELD FIXES */
-input,
-textarea,
-select {
-  background-color: white !important;
-  border-color: rgb(209, 213, 219) !important;
-  color: rgb(17, 24, 39) !important;
-}
-
-input:focus,
-textarea:focus,
-select:focus {
-  border-color: rgb(59, 130, 246) !important;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1) !important;
-}
-
-/* REMOVE ANY REMAINING YELLOW HIGHLIGHTS */
-::selection {
-  background-color: rgba(59, 130, 246, 0.2) !important; /* Light blue selection */
-  color: rgb(26 26 46) !important;
-}
-
-::-moz-selection {
-  background-color: rgba(59, 130, 246, 0.2) !important;
-  color: rgb(26 26 46) !important;
+.border-yellow-500,
+.border-yellow-400,
+.border-yellow-300,
+.border-yellow-200,
+.border-yellow-100 {
+  border-color: rgb(36 107 253) !important; /* Royal Blue */
 }
 
 /* Custom animations for micro-interactions */

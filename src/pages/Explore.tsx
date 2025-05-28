@@ -190,10 +190,10 @@ const Explore = () => {
         <div className="flex justify-between items-start mb-2">
           <h1 className="text-2xl font-bold text-gray-900">Marketplace</h1>
           <Button 
-            variant="default"
+            variant="outline" 
             size="sm"
             onClick={() => navigate('/partnerships')}
-            className="flex items-center gap-2 bg-primary text-primary-foreground hover:bg-primary/90"
+            className="flex items-center gap-2"
           >
             <Users size={16} />
             Trusted Partners
