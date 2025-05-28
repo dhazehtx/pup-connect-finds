@@ -50,19 +50,19 @@ const Header = () => {
         {/* Right Side Actions */}
         <div className="flex items-center space-x-3">
           {/* Notifications */}
-          <Button variant="ghost" size="sm" className="relative bg-transparent hover:bg-transparent p-2">
+          <button className="relative p-2 hover:bg-transparent focus:outline-none">
             <Bell size={24} className="text-deep-navy" />
             <span className="absolute -top-1 -right-1 bg-sunset-orange text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
               3
             </span>
-          </Button>
+          </button>
 
           {/* User Menu - Hamburger Icon */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="relative h-10 w-10 bg-transparent hover:bg-transparent p-2">
+              <button className="relative h-10 w-10 p-2 hover:bg-transparent focus:outline-none">
                 <Menu size={28} className="text-deep-navy" />
-              </Button>
+              </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent className="w-64 bg-white" align="end" forceMount>
               <div className="flex flex-col space-y-1 p-4">
