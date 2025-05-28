@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -8,10 +7,12 @@ interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
+  isGuest: boolean;
   signUp: (email: string, password: string, userData?: any) => Promise<void>;
   signIn: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
   updateProfile: (updates: any) => Promise<void>;
+  continueAsGuest: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -28,15 +29,28 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isGuest, setIsGuest] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
+    // Check if user has chosen to browse as guest
+    const guestMode = localStorage.getItem('guestMode');
+    if (guestMode === 'true') {
+      setIsGuest(true);
+    }
+
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
         setLoading(false);
+        
+        // If user logs in, remove guest mode
+        if (session?.user) {
+          setIsGuest(false);
+          localStorage.removeItem('guestMode');
+        }
       }
     );
 
@@ -49,6 +63,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     return () => subscription.unsubscribe();
   }, []);
+
+  const continueAsGuest = () => {
+    setIsGuest(true);
+    setLoading(false);
+    localStorage.setItem('guestMode', 'true');
+    toast({
+      title: "Guest Mode",
+      description: "You can browse listings. Sign up anytime to contact breeders.",
+    });
+  };
 
   const signUp = async (email: string, password: string, userData?: any) => {
     try {
@@ -146,10 +170,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     user,
     session,
     loading,
+    isGuest,
     signUp,
     signIn,
     signOut,
     updateProfile,
+    continueAsGuest,
   };
 
   return (

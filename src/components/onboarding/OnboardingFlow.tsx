@@ -13,7 +13,7 @@ interface OnboardingFlowProps {
 const OnboardingFlow = ({ onComplete }: OnboardingFlowProps) => {
   const [currentStep, setCurrentStep] = useState(0);
   const { toast } = useToast();
-  const { user } = useAuth();
+  const { user, continueAsGuest } = useAuth();
   const navigate = useNavigate();
 
   const onboardingSteps = [
@@ -59,10 +59,7 @@ const OnboardingFlow = ({ onComplete }: OnboardingFlowProps) => {
   };
 
   const handleGuestBrowse = () => {
-    toast({
-      title: "Guest Mode",
-      description: "You can browse listings. Sign up anytime to contact breeders.",
-    });
+    continueAsGuest();
     onComplete();
   };
 
