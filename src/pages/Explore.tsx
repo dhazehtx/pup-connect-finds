@@ -13,6 +13,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useListingFilters } from '@/hooks/useListingFilters';
 import { useDogListings } from '@/hooks/useDogListings';
 import { supabase } from '@/integrations/supabase/client';
+import { sampleListings } from '@/data/sampleListings';
 
 interface FilterState {
   searchTerm: string;
@@ -51,7 +52,7 @@ const Explore = () => {
   const { listings: dbListings, loading } = useDogListings();
 
   // Convert database listings to match the existing ListingCard interface
-  const convertedListings = dbListings.map((listing, index) => ({
+  const convertedDbListings = dbListings.map((listing, index) => ({
     id: index + 1000, // Offset to avoid conflicts
     title: `${listing.dog_name} - ${listing.breed}`,
     price: `$${listing.price.toLocaleString()}`,
@@ -74,7 +75,10 @@ const Explore = () => {
     isKillShelter: false,
   }));
 
-  const { sortedListings } = useListingFilters(convertedListings, filters, sortBy);
+  // Combine sample listings with database listings for demo purposes
+  const allListings = [...sampleListings, ...convertedDbListings];
+
+  const { sortedListings } = useListingFilters(allListings, filters, sortBy);
 
   useEffect(() => {
     const checkAuth = async () => {
