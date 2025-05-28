@@ -1,9 +1,8 @@
-
 import React, { useState } from 'react';
 import { MessageCircle, Share, Bookmark, MoreHorizontal, Plus, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import AnimatedHeart from '@/components/ui/animated-heart';
-import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
+import { Carousel, CarouselContent, CarouselItem } from '@/components/ui/carousel';
 
 const Home = () => {
   const [likedPosts, setLikedPosts] = useState<Set<number>>(new Set());
@@ -215,12 +214,6 @@ const Home = () => {
                       </CarouselItem>
                     ))}
                   </CarouselContent>
-                  {post.images.length > 1 && (
-                    <>
-                      <CarouselPrevious />
-                      <CarouselNext />
-                    </>
-                  )}
                   {/* Image indicator dots */}
                   {post.images.length > 1 && (
                     <div className="absolute bottom-3 left-1/2 transform -translate-x-1/2 flex space-x-1">
