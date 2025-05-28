@@ -97,38 +97,9 @@
 }
 
 /* COMPREHENSIVE YELLOW COLOR REMOVAL */
-/* Replace all yellow colors with clean whites and grays */
+/* Replace all highlighted colors with blended blue tones */
 
-/* Remove yellow from HTML and body */
-html, body {
-  background-color: rgb(249 250 251) !important; /* Cloud White */
-  color: rgb(26 26 46) !important; /* Deep Navy */
-}
-
-/* Remove yellow from all elements */
-* {
-  background-color: inherit !important;
-}
-
-/* Override any yellow backgrounds globally */
-*[style*="yellow"],
-*[style*="#ffff"],
-*[style*="#fff0"],
-*[style*="rgb(255, 255"],
-*[style*="rgba(255, 255"],
-*[style*="#FFFF00"],
-*[style*="#FFD700"],
-*[style*="#FFEB3B"],
-*[style*="#FFF176"],
-*[style*="#FFECB3"],
-*[style*="#FFFACD"],
-*[style*="#F0E68C"],
-*[style*="#FFEFD5"] {
-  background-color: rgb(249 250 251) !important; /* Cloud White */
-  color: rgb(26 26 46) !important; /* Deep Navy */
-}
-
-/* Remove yellow from Tailwind classes */
+/* Standard Tailwind yellow classes */
 .bg-yellow-50,
 .bg-yellow-100,
 .bg-yellow-200,
@@ -139,7 +110,7 @@ html, body {
 .bg-yellow-700,
 .bg-yellow-800,
 .bg-yellow-900 {
-  background-color: rgb(249 250 251) !important; /* Cloud White */
+  background-color: rgb(219 234 254) !important; /* Light Blue blend */
 }
 
 .text-yellow-50,
@@ -152,58 +123,85 @@ html, body {
 .text-yellow-700,
 .text-yellow-800,
 .text-yellow-900 {
-  color: rgb(26 26 46) !important; /* Deep Navy */
+  color: rgb(29 78 216) !important; /* Medium Blue */
 }
 
-/* Override status messages and notifications */
-.status-message,
-.notification,
-.alert,
-.toast {
-  background-color: rgb(249 250 251) !important; /* Cloud White */
-  color: rgb(26 26 46) !important; /* Deep Navy */
-  border-color: rgb(209 213 219) !important; /* Gray border */
+.border-yellow-50,
+.border-yellow-100,
+.border-yellow-200,
+.border-yellow-300,
+.border-yellow-400,
+.border-yellow-500,
+.border-yellow-600,
+.border-yellow-700,
+.border-yellow-800,
+.border-yellow-900 {
+  border-color: rgb(147 197 253) !important; /* Soft Blue border */
 }
 
-/* Override onboarding and modal backgrounds */
-.modal,
-.dialog,
-.onboarding,
-[class*="onboarding"],
-[class*="modal"],
-[class*="dialog"] {
-  background-color: rgb(249 250 251) !important; /* Cloud White */
+/* Remove yellow from any element with yellow in the class name */
+[class*="yellow"] {
+  background-color: rgb(219 234 254) !important; /* Light Blue background */
+  color: rgb(29 78 216) !important; /* Medium Blue text */
+  border-color: rgb(147 197 253) !important; /* Soft Blue border */
 }
 
-/* Override any container or wrapper backgrounds */
-.container,
-.wrapper,
-.main,
-.app,
-#root,
-[class*="container"],
-[class*="wrapper"] {
-  background-color: rgb(249 250 251) !important; /* Cloud White */
+/* Override any inline yellow styles */
+*[style*="yellow"],
+*[style*="#ffff"],
+*[style*="#fff0"],
+*[style*="rgb(255, 255"],
+*[style*="rgba(255, 255"] {
+  background-color: rgb(219 234 254) !important; /* Light Blue */
+  color: rgb(29 78 216) !important; /* Medium Blue */
+  border-color: rgb(147 197 253) !important; /* Soft Blue */
 }
 
-/* TRUSTED PARTNERS BUTTON FIXES */
+/* Specific overrides for common yellow hex codes */
+*[style*="#FFFF00"],
+*[style*="#FFD700"],
+*[style*="#FFEB3B"],
+*[style*="#FFF176"],
+*[style*="#FFECB3"],
+*[style*="#FFFACD"],
+*[style*="#F0E68C"],
+*[style*="#FFEFD5"] {
+  background-color: rgb(219 234 254) !important; /* Light Blue */
+  color: rgb(29 78 216) !important; /* Medium Blue */
+  border-color: rgb(147 197 253) !important; /* Soft Blue */
+}
+
+/* TRUSTED PARTNERS BUTTON SPECIFIC OVERRIDES */
+/* Target the trusted partners button specifically */
 button[aria-label*="Trusted"],
 button:has([data-lucide="users"]),
+button:contains("Trusted Partners"),
 .trusted-partners-button,
 button:has(svg[data-lucide="users"]) {
   background-color: rgb(36 107 253) !important; /* Royal Blue */
   color: white !important;
   border-color: rgb(36 107 253) !important;
+  box-shadow: none !important;
 }
 
 button[aria-label*="Trusted"]:hover,
 button:has([data-lucide="users"]):hover,
+button:contains("Trusted Partners"):hover,
 .trusted-partners-button:hover,
 button:has(svg[data-lucide="users"]):hover {
   background-color: rgb(29 78 216) !important; /* Darker blue on hover */
+  color: white !important;
+  border-color: rgb(29 78 216) !important;
 }
 
-/* CAROUSEL COMPONENT FIXES */
+/* Target Users icon specifically within buttons */
+svg[data-lucide="users"] {
+  color: white !important;
+  fill: white !important;
+}
+
+/* CAROUSEL COMPONENT FIXES - Enhanced targeting */
+/* Target carousel navigation arrows with all possible selectors */
 [data-orientation="horizontal"] button,
 .carousel-arrow,
 .CarouselNext,
@@ -216,33 +214,123 @@ button[class*="Carousel"],
 .embla__prev,
 .embla__next,
 button[class*="embla"] {
-  background-color: rgba(107, 114, 128, 0.2) !important; /* Gray transparent */
+  background-color: rgba(59, 130, 246, 0.9) !important; /* Semi-transparent blue */
   color: white !important;
-  border-color: rgba(107, 114, 128, 0.3) !important;
+  border-color: rgb(59, 130, 246) !important;
+  border-radius: 50% !important;
+  outline: none !important;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.2) !important;
 }
 
-[data-orientation="horizontal"] button:hover,
-.carousel-arrow:hover,
-.CarouselNext:hover,
-.CarouselPrevious:hover,
-button[aria-label*="Next"]:hover,
-button[aria-label*="Previous"]:hover,
-button[class*="carousel"]:hover,
-button[class*="Carousel"]:hover,
-.embla__button:hover,
-.embla__prev:hover,
-.embla__next:hover,
-button[class*="embla"]:hover {
-  background-color: rgba(107, 114, 128, 0.3) !important;
+/* Target focus states for carousel buttons */
+[data-orientation="horizontal"] button:focus,
+.carousel-arrow:focus,
+.CarouselNext:focus,
+.CarouselPrevious:focus,
+button[aria-label*="Next"]:focus,
+button[aria-label*="Previous"]:focus,
+button[class*="carousel"]:focus,
+button[class*="Carousel"]:focus,
+.embla__button:focus,
+.embla__prev:focus,
+.embla__next:focus,
+button[class*="embla"]:focus {
+  background-color: rgb(59, 130, 246) !important;
+  outline: 2px solid rgb(147, 197, 253) !important;
+  outline-offset: 2px !important;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3) !important;
 }
 
-/* INPUT FIELD FIXES */
+/* Carousel container and content */
+.carousel,
+[class*="carousel"],
+.embla,
+[class*="embla"] {
+  background-color: transparent !important;
+}
+
+/* Target specific carousel button positioning classes */
+.absolute.inset-y-0,
+.absolute.left-2,
+.absolute.right-2,
+.absolute.-left-12,
+.absolute.-right-12,
+button.absolute {
+  background-color: rgba(59, 130, 246, 0.9) !important;
+  color: white !important;
+  border-radius: 50% !important;
+  border: 2px solid rgba(59, 130, 246, 0.8) !important;
+  outline: none !important;
+}
+
+/* SCROLL AREA FIXES - Target scroll components */
+/* Remove yellow from scroll areas and scrollbars */
+.scroll-area,
+[class*="scroll"],
+[data-radix-scroll-area-viewport],
+[data-radix-scroll-area-scrollbar] {
+  background-color: transparent !important;
+  border-color: rgb(209, 213, 219) !important;
+}
+
+/* Scrollbar styling */
+[data-radix-scroll-area-scrollbar] {
+  background-color: rgb(243, 244, 246) !important;
+}
+
+[data-radix-scroll-area-thumb] {
+  background-color: rgb(156, 163, 175) !important;
+  border: none !important;
+}
+
+/* Override any scrollbar highlights */
+::-webkit-scrollbar {
+  background-color: rgb(243, 244, 246) !important;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: rgb(156, 163, 175) !important;
+  border: none !important;
+}
+
+::-webkit-scrollbar-track {
+  background-color: rgb(243, 244, 246) !important;
+}
+
+/* SEARCH INPUT FIXES */
+/* Target search input fields specifically */
+input[placeholder*="Search"],
+input[placeholder*="search"],
+.search-input,
+[class*="search"] input,
+input[type="search"] {
+  background-color: rgb(243, 244, 246) !important; /* Light gray background */
+  border-color: rgb(209, 213, 219) !important; /* Gray border */
+  color: rgb(17, 24, 39) !important; /* Dark text */
+  outline: none !important;
+}
+
+/* Focus states for search inputs */
+input[placeholder*="Search"]:focus,
+input[placeholder*="search"]:focus,
+.search-input:focus,
+[class*="search"] input:focus,
+input[type="search"]:focus {
+  background-color: white !important;
+  border-color: rgb(59, 130, 246) !important; /* Blue border on focus */
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1) !important; /* Blue glow */
+  outline: none !important;
+}
+
+/* INPUT FIELD GENERAL FIXES */
+/* Target all input fields that might have yellow backgrounds */
 input,
 textarea,
 select {
   background-color: white !important;
   border-color: rgb(209, 213, 219) !important;
   color: rgb(17, 24, 39) !important;
+  outline: none !important;
 }
 
 input:focus,
@@ -250,17 +338,76 @@ textarea:focus,
 select:focus {
   border-color: rgb(59, 130, 246) !important;
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1) !important;
+  outline: none !important;
 }
 
-/* REMOVE ANY REMAINING YELLOW HIGHLIGHTS */
-::selection {
-  background-color: rgba(59, 130, 246, 0.2) !important; /* Light blue selection */
-  color: rgb(26 26 46) !important;
+/* ADDITIONAL COMPREHENSIVE OVERRIDES */
+/* Target any remaining yellow highlights with broad selectors */
+*[style*="background: yellow"],
+*[style*="background-color: yellow"],
+*[style*="border: yellow"],
+*[style*="border-color: yellow"],
+*[style*="outline: yellow"],
+*[style*="outline-color: yellow"] {
+  background-color: rgba(59, 130, 246, 0.1) !important;
+  border-color: rgb(147, 197, 253) !important;
+  outline-color: rgb(59, 130, 246) !important;
 }
 
-::-moz-selection {
-  background-color: rgba(59, 130, 246, 0.2) !important;
-  color: rgb(26 26 46) !important;
+/* Target yellow RGB values */
+*[style*="rgb(255, 255, 0)"],
+*[style*="rgba(255, 255, 0"],
+*[style*="rgb(255,255,0)"],
+*[style*="rgba(255,255,0"] {
+  background-color: rgba(59, 130, 246, 0.1) !important;
+  border-color: rgb(147, 197, 253) !important;
+  color: rgb(29, 78, 216) !important;
+}
+
+/* Remove focus outlines that might be yellow */
+*:focus {
+  outline: 2px solid rgb(59, 130, 246) !important;
+  outline-offset: 2px !important;
+}
+
+/* Button focus states */
+button:focus {
+  outline: 2px solid rgb(59, 130, 246) !important;
+  outline-offset: 2px !important;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1) !important;
+}
+
+/* SUPER SPECIFIC BUTTON OVERRIDES */
+/* Target buttons in the header area */
+header button,
+.header button,
+button[class*="bg-primary"],
+button[class*="text-primary-foreground"] {
+  background-color: rgb(36 107 253) !important; /* Royal Blue */
+  color: white !important;
+  border-color: rgb(36 107 253) !important;
+}
+
+header button:hover,
+.header button:hover,
+button[class*="bg-primary"]:hover,
+button[class*="text-primary-foreground"]:hover {
+  background-color: rgb(29 78 216) !important; /* Darker blue on hover */
+  color: white !important;
+}
+
+/* Target any button with Users icon */
+button:has(.lucide-users),
+button:has([data-lucide="users"]) {
+  background-color: rgb(36 107 253) !important;
+  color: white !important;
+  border-color: rgb(36 107 253) !important;
+}
+
+button:has(.lucide-users):hover,
+button:has([data-lucide="users"]):hover {
+  background-color: rgb(29 78 216) !important;
+  color: white !important;
 }
 
 /* Custom animations for micro-interactions */
