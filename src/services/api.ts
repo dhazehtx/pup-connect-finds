@@ -34,7 +34,7 @@ const mapDatabaseListingToDogListing = (dbListing: any): DogListing => {
     price: dbListing.price,
     imageUrl: dbListing.image_url,
     userId: dbListing.user_id,
-    status: 'available', // Default status since it's not in database yet
+    status: 'active', // Fixed: use 'active' instead of 'available'
     createdAt: dbListing.created_at,
     updatedAt: dbListing.updated_at,
     // Include profile data if available
@@ -96,7 +96,7 @@ export const userService = {
     return mapDatabaseUserToUser(data);
   },
 
-  async searchUsers(query: string, userType?: string): Promise<User[]> {
+  async searchUsers(query: string, userType?: 'buyer' | 'breeder' | 'shelter' | 'admin'): Promise<User[]> {
     let queryBuilder = supabase
       .from('profiles')
       .select('*')
