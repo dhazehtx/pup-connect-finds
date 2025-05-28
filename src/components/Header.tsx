@@ -33,7 +33,7 @@ const Header = () => {
 
   return (
     <header className="bg-cloud-white border-b border-soft-sky sticky top-0 z-50">
-      <div className="container mx-auto px-4 h-16 flex items-center justify-between">
+      <div className="container mx-auto px-4 h-20 flex items-center justify-between">
         {/* Left spacer for balance */}
         <div className="w-16"></div>
 
@@ -42,7 +42,7 @@ const Header = () => {
           <img 
             src="/lovable-uploads/252c4abe-53d4-48e1-a356-bf715001c720.png" 
             alt="MY PUP Logo" 
-            className="h-12 w-auto object-contain"
+            className="h-16 w-auto object-contain"
           />
         </div>
 
