@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 
 export interface Review {
@@ -39,7 +38,7 @@ export const reviewService = {
       }])
       .select(`
         *,
-        reviewer_profile:profiles!reviews_reviewer_id_fkey(
+        reviewer_profile:profiles(
           full_name,
           username,
           avatar_url
@@ -57,7 +56,7 @@ export const reviewService = {
       .from('reviews')
       .select(`
         *,
-        reviewer_profile:profiles!reviews_reviewer_id_fkey(
+        reviewer_profile:profiles(
           full_name,
           username,
           avatar_url
@@ -76,7 +75,7 @@ export const reviewService = {
       .from('reviews')
       .select(`
         *,
-        reviewer_profile:profiles!reviews_reviewer_id_fkey(
+        reviewer_profile:profiles(
           full_name,
           username,
           avatar_url
