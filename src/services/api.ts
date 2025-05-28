@@ -1,5 +1,5 @@
 import { supabase } from '@/integrations/supabase/client';
-import { DogListing, User, Review, Message, Favorite, Report } from '@/types/backend';
+import { DogListing, User, Message, Favorite, Report } from '@/types/backend';
 
 // Helper function to map database user to User interface
 const mapDatabaseUserToUser = (dbUser: any): User => {
@@ -268,9 +268,9 @@ export const searchService = {
   }
 };
 
-// Review Service
+// Review Service - Updated to fix foreign key references
 export const reviewServiceAPI = {
-  async getReviewsForUser(userId: string): Promise<Review[]> {
+  async getReviewsForUser(userId: string) {
     const { data, error } = await supabase
       .from('reviews')
       .select(`
@@ -288,7 +288,7 @@ export const reviewServiceAPI = {
     return data || [];
   },
 
-  async getReviewsForListing(listingId: string): Promise<Review[]> {
+  async getReviewsForListing(listingId: string) {
     const { data, error } = await supabase
       .from('reviews')
       .select(`
@@ -312,7 +312,7 @@ export const reviewServiceAPI = {
     rating: number;
     title?: string;
     comment?: string;
-  }): Promise<Review> {
+  }) {
     const { data: user } = await supabase.auth.getUser();
     if (!user.user) throw new Error('User not authenticated');
 

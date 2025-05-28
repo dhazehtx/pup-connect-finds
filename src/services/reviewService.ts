@@ -28,15 +28,18 @@ export const reviewService = {
     title?: string;
     comment?: string;
   }): Promise<Review> {
+    const { data: userData, error: userError } = await supabase.auth.getUser();
+    if (userError || !userData.user) throw new Error('User not authenticated');
+
     const { data, error } = await supabase
       .from('reviews')
       .insert([{
-        reviewer_id: (await supabase.auth.getUser()).data.user?.id,
+        reviewer_id: userData.user.id,
         ...reviewData
       }])
       .select(`
         *,
-        reviewer_profile:profiles!reviews_reviewer_id_fkey (
+        reviewer_profile:profiles!reviewer_id (
           full_name,
           username,
           avatar_url
@@ -54,7 +57,7 @@ export const reviewService = {
       .from('reviews')
       .select(`
         *,
-        reviewer_profile:profiles!reviews_reviewer_id_fkey (
+        reviewer_profile:profiles!reviewer_id (
           full_name,
           username,
           avatar_url
@@ -73,7 +76,7 @@ export const reviewService = {
       .from('reviews')
       .select(`
         *,
-        reviewer_profile:profiles!reviews_reviewer_id_fkey (
+        reviewer_profile:profiles!reviewer_id (
           full_name,
           username,
           avatar_url
@@ -105,11 +108,14 @@ export const reviewService = {
 
   // Mark review as helpful
   async markReviewHelpful(reviewId: string): Promise<void> {
+    const { data: userData, error: userError } = await supabase.auth.getUser();
+    if (userError || !userData.user) throw new Error('User not authenticated');
+
     const { error } = await supabase
       .from('review_helpfulness')
       .insert([{
         review_id: reviewId,
-        user_id: (await supabase.auth.getUser()).data.user?.id
+        user_id: userData.user.id
       }]);
 
     if (error) throw error;
@@ -117,22 +123,28 @@ export const reviewService = {
 
   // Remove helpful mark
   async removeHelpfulMark(reviewId: string): Promise<void> {
+    const { data: userData, error: userError } = await supabase.auth.getUser();
+    if (userError || !userData.user) throw new Error('User not authenticated');
+
     const { error } = await supabase
       .from('review_helpfulness')
       .delete()
       .eq('review_id', reviewId)
-      .eq('user_id', (await supabase.auth.getUser()).data.user?.id);
+      .eq('user_id', userData.user.id);
 
     if (error) throw error;
   },
 
   // Check if user has marked review as helpful
   async hasUserMarkedHelpful(reviewId: string): Promise<boolean> {
+    const { data: userData, error: userError } = await supabase.auth.getUser();
+    if (userError || !userData.user) return false;
+
     const { data, error } = await supabase
       .from('review_helpfulness')
       .select('id')
       .eq('review_id', reviewId)
-      .eq('user_id', (await supabase.auth.getUser()).data.user?.id)
+      .eq('user_id', userData.user.id)
       .single();
 
     if (error && error.code !== 'PGRST116') throw error;
