@@ -38,7 +38,7 @@ export const reviewService = {
       }])
       .select(`
         *,
-        reviewer_profile:profiles(
+        profiles!reviewer_id(
           full_name,
           username,
           avatar_url
@@ -47,7 +47,16 @@ export const reviewService = {
       .single();
 
     if (error) throw error;
-    return data;
+    
+    // Transform the data to match our interface
+    return {
+      ...data,
+      reviewer_profile: data.profiles ? {
+        full_name: data.profiles.full_name,
+        username: data.profiles.username,
+        avatar_url: data.profiles.avatar_url
+      } : undefined
+    };
   },
 
   // Get reviews for a specific user
@@ -56,7 +65,7 @@ export const reviewService = {
       .from('reviews')
       .select(`
         *,
-        reviewer_profile:profiles(
+        profiles!reviewer_id(
           full_name,
           username,
           avatar_url
@@ -66,7 +75,16 @@ export const reviewService = {
       .order('created_at', { ascending: false });
 
     if (error) throw error;
-    return data || [];
+    
+    // Transform the data to match our interface
+    return (data || []).map(review => ({
+      ...review,
+      reviewer_profile: review.profiles ? {
+        full_name: review.profiles.full_name,
+        username: review.profiles.username,
+        avatar_url: review.profiles.avatar_url
+      } : undefined
+    }));
   },
 
   // Get reviews for a specific listing
@@ -75,7 +93,7 @@ export const reviewService = {
       .from('reviews')
       .select(`
         *,
-        reviewer_profile:profiles(
+        profiles!reviewer_id(
           full_name,
           username,
           avatar_url
@@ -85,7 +103,16 @@ export const reviewService = {
       .order('created_at', { ascending: false });
 
     if (error) throw error;
-    return data || [];
+    
+    // Transform the data to match our interface
+    return (data || []).map(review => ({
+      ...review,
+      reviewer_profile: review.profiles ? {
+        full_name: review.profiles.full_name,
+        username: review.profiles.username,
+        avatar_url: review.profiles.avatar_url
+      } : undefined
+    }));
   },
 
   // Get average rating for a user
