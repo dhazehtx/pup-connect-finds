@@ -50,7 +50,7 @@ const Header = () => {
         {/* Right Side Actions */}
         <div className="flex items-center space-x-3">
           {/* Notifications */}
-          <Button variant="ghost" size="sm" className="relative hover:bg-gray-100">
+          <Button variant="ghost" size="sm" className="relative bg-transparent hover:bg-transparent p-2">
             <Bell size={24} className="text-deep-navy" />
             <span className="absolute -top-1 -right-1 bg-sunset-orange text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
               3
@@ -60,7 +60,7 @@ const Header = () => {
           {/* User Menu - Hamburger Icon */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="relative h-10 w-10 rounded-full hover:bg-gray-100">
+              <Button variant="ghost" className="relative h-10 w-10 bg-transparent hover:bg-transparent p-2">
                 <Menu size={28} className="text-deep-navy" />
               </Button>
             </DropdownMenuTrigger>
