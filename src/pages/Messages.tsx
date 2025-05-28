@@ -87,7 +87,7 @@ const Messages = () => {
             placeholder="Search conversations..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10 bg-white border-gray-200 text-black placeholder-black"
+            className="pl-10 bg-white border-gray-200 text-black placeholder:text-black"
           />
         </div>
       </div>
