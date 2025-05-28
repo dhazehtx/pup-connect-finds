@@ -370,30 +370,11 @@ select:focus {
   outline-offset: 2px !important;
 }
 
-/* Button focus states */
+/* Button focus states - REMOVED HEADER BUTTON OVERRIDES */
 button:focus {
   outline: 2px solid rgb(59, 130, 246) !important;
   outline-offset: 2px !important;
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1) !important;
-}
-
-/* SUPER SPECIFIC BUTTON OVERRIDES */
-/* Target buttons in the header area */
-header button,
-.header button,
-button[class*="bg-primary"],
-button[class*="text-primary-foreground"] {
-  background-color: rgb(36 107 253) !important; /* Royal Blue */
-  color: white !important;
-  border-color: rgb(36 107 253) !important;
-}
-
-header button:hover,
-.header button:hover,
-button[class*="bg-primary"]:hover,
-button[class*="text-primary-foreground"]:hover {
-  background-color: rgb(29 78 216) !important; /* Darker blue on hover */
-  color: white !important;
 }
 
 /* Target any button with Users icon */
