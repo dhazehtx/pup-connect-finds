@@ -50,8 +50,8 @@ const Header = () => {
         {/* Right Side Actions */}
         <div className="flex items-center space-x-3">
           {/* Notifications */}
-          <Button variant="ghost" size="sm" className="relative">
-            <Bell size={24} />
+          <Button variant="ghost" size="sm" className="relative bg-transparent hover:bg-gray-100">
+            <Bell size={24} className="text-deep-navy" />
             <span className="absolute -top-1 -right-1 bg-sunset-orange text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
               3
             </span>
@@ -60,30 +60,30 @@ const Header = () => {
           {/* User Menu - Hamburger Icon */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="relative h-10 w-10 rounded-full">
+              <Button variant="ghost" className="relative h-10 w-10 rounded-full bg-transparent hover:bg-gray-100">
                 <Menu size={28} className="text-deep-navy" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent className="w-64 bg-white" align="end" forceMount>
               <div className="flex flex-col space-y-1 p-4">
-                <p className="text-base font-medium leading-none">{user?.email}</p>
-                <p className="text-sm leading-none text-muted-foreground">
+                <p className="text-base font-medium leading-none text-black">{user?.email}</p>
+                <p className="text-sm leading-none text-gray-600">
                   Welcome to MY PUP
                 </p>
               </div>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => navigate('/profile')} className="py-3 px-4">
-                <User className="mr-3 h-5 w-5" />
-                <span className="text-base">Profile</span>
+              <DropdownMenuItem onClick={() => navigate('/profile')} className="py-3 px-4 text-black hover:bg-gray-100">
+                <User className="mr-3 h-5 w-5 text-black" />
+                <span className="text-base text-black">Profile</span>
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => navigate('/settings')} className="py-3 px-4">
-                <User className="mr-3 h-5 w-5" />
-                <span className="text-base">Settings</span>
+              <DropdownMenuItem onClick={() => navigate('/settings')} className="py-3 px-4 text-black hover:bg-gray-100">
+                <User className="mr-3 h-5 w-5 text-black" />
+                <span className="text-base text-black">Settings</span>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={handleSignOut} className="py-3 px-4">
-                <LogOut className="mr-3 h-5 w-5" />
-                <span className="text-base">Sign out</span>
+              <DropdownMenuItem onClick={handleSignOut} className="py-3 px-4 text-black hover:bg-gray-100">
+                <LogOut className="mr-3 h-5 w-5 text-black" />
+                <span className="text-base text-black">Sign out</span>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
