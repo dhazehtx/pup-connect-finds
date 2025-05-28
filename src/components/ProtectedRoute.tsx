@@ -2,7 +2,7 @@
 import React from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { LoadingSkeleton } from '@/components/LoadingSkeleton';
+import LoadingSkeleton from '@/components/LoadingSkeleton';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -13,7 +13,7 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   const location = useLocation();
 
   if (loading) {
-    return <LoadingSkeleton />;
+    return <LoadingSkeleton viewMode="grid" count={3} />;
   }
 
   if (!user) {
