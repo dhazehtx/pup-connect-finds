@@ -11,7 +11,7 @@ interface DogListing {
   price: number;
   image_url?: string;
   user_id: string;
-  status: string;
+  status?: string;
   description?: string;
   location?: string;
   created_at: string;

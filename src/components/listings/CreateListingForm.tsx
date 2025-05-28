@@ -36,6 +36,7 @@ const CreateListingForm = ({ onSuccess, onCancel }: CreateListingFormProps) => {
         age: parseInt(formData.age),
         price: parseFloat(formData.price),
         image_url: formData.image_url || undefined,
+        status: 'active',
       });
       
       setFormData({

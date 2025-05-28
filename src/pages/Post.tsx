@@ -155,6 +155,9 @@ const Post = () => {
         age: parseInt(age),
         price: parseFloat(price),
         image_url: uploadedImages[0]?.uploadedUrl || null,
+        status: 'active',
+        description: caption.trim() || undefined,
+        location: location.trim() || undefined,
       });
 
       toast({
