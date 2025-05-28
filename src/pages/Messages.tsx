@@ -74,7 +74,7 @@ const Messages = () => {
       {/* Header */}
       <div className="p-4 border-b border-gray-100">
         <div className="flex items-center justify-between mb-4">
-          <h1 className="text-xl font-bold">Messages</h1>
+          <h1 className="text-xl font-bold text-black">Messages</h1>
           <Button variant="ghost" size="icon">
             <Edit size={20} />
           </Button>
@@ -87,7 +87,7 @@ const Messages = () => {
             placeholder="Search conversations..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10 bg-white border-gray-200"
+            className="pl-10 bg-white border-gray-200 text-black placeholder-gray-500"
           />
         </div>
       </div>
@@ -114,11 +114,11 @@ const Messages = () => {
               
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between mb-1">
-                  <h3 className="font-semibold text-sm truncate">{conversation.name}</h3>
+                  <h3 className="font-semibold text-sm truncate text-black">{conversation.name}</h3>
                   <span className="text-xs text-gray-500">{conversation.timestamp}</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <p className="text-sm text-gray-600 truncate">{conversation.lastMessage}</p>
+                  <p className="text-sm text-black truncate">{conversation.lastMessage}</p>
                   {conversation.unread > 0 && (
                     <div className="bg-blue-500 text-white text-xs rounded-full min-w-[20px] h-5 flex items-center justify-center">
                       {conversation.unread}
@@ -136,7 +136,7 @@ const Messages = () => {
           <div className="text-gray-400 mb-2">
             <Edit size={48} className="mx-auto" />
           </div>
-          <h3 className="font-medium text-gray-900 mb-1">No conversations found</h3>
+          <h3 className="font-medium text-black mb-1">No conversations found</h3>
           <p className="text-sm text-gray-500">
             {searchTerm ? 'Try adjusting your search terms.' : 'Start a new conversation to get started.'}
           </p>

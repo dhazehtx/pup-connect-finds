@@ -271,7 +271,7 @@ const Explore = () => {
       {/* Header with Partnership Link and Create Listing */}
       <div className="mb-6">
         <div className="flex justify-between items-start mb-2">
-          <h1 className="text-2xl font-bold text-gray-900">Marketplace</h1>
+          <h1 className="text-2xl font-bold text-black">Marketplace</h1>
           <div className="flex gap-2">
             {isAuthenticated && (
               <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
@@ -304,7 +304,7 @@ const Explore = () => {
             </Button>
           </div>
         </div>
-        <p className="text-gray-600">Find your perfect puppy companion from verified sellers and rescue partners</p>
+        <p className="text-black">Find your perfect puppy companion from verified sellers and rescue partners</p>
       </div>
 
       {/* Search and Filter Component */}
