@@ -3,18 +3,21 @@ import { useState, useEffect } from 'react';
 
 export const useOnboarding = () => {
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const [hasSeenOnboarding, setHasSeenOnboarding] = useState(false);
   const [canRevisit, setCanRevisit] = useState(false);
 
   useEffect(() => {
     // Check if user has seen onboarding before
-    const hasSeenOnboarding = localStorage.getItem('hasSeenOnboarding');
+    const seenOnboarding = localStorage.getItem('hasSeenOnboarding');
     const onboardingVersion = localStorage.getItem('onboardingVersion');
     const currentVersion = '1.0';
     
-    if (!hasSeenOnboarding || onboardingVersion !== currentVersion) {
+    if (!seenOnboarding || onboardingVersion !== currentVersion) {
       setShowOnboarding(true);
+      setHasSeenOnboarding(false);
     } else {
       setCanRevisit(true);
+      setHasSeenOnboarding(true);
     }
   }, []);
 
@@ -23,6 +26,7 @@ export const useOnboarding = () => {
     localStorage.setItem('onboardingVersion', '1.0');
     localStorage.setItem('onboardingCompletedAt', new Date().toISOString());
     setShowOnboarding(false);
+    setHasSeenOnboarding(true);
     setCanRevisit(true);
   };
 
@@ -30,6 +34,7 @@ export const useOnboarding = () => {
     localStorage.removeItem('hasSeenOnboarding');
     localStorage.removeItem('onboardingVersion');
     setShowOnboarding(true);
+    setHasSeenOnboarding(false);
     setCanRevisit(false);
   };
 
@@ -38,6 +43,7 @@ export const useOnboarding = () => {
     localStorage.setItem('onboardingSkipped', 'true');
     localStorage.setItem('onboardingVersion', '1.0');
     setShowOnboarding(false);
+    setHasSeenOnboarding(true);
     setCanRevisit(true);
   };
 
@@ -54,6 +60,7 @@ export const useOnboarding = () => {
 
   return {
     showOnboarding,
+    hasSeenOnboarding,
     canRevisit,
     completeOnboarding,
     resetOnboarding,

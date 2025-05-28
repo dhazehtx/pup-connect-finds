@@ -99,6 +99,18 @@ const ListingCard = ({
     ? "flex-1 p-4"
     : "p-4";
 
+  // Determine verification level based on verification props
+  const getVerificationLevel = () => {
+    if (verifiedBreeder && idVerified && vetVerified) {
+      return 'professional';
+    } else if (verifiedBreeder && idVerified) {
+      return 'premium';
+    } else if (verifiedBreeder) {
+      return 'basic';
+    }
+    return 'none';
+  };
+
   return (
     <>
       <Card className={`bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-lg transition-shadow cursor-pointer ${cardClasses}`}>
@@ -122,6 +134,7 @@ const ListingCard = ({
           >
             <AnimatedHeart 
               isLiked={isFavorited} 
+              onToggle={handleFavorite}
               size={24}
               className="text-white drop-shadow-lg"
             />
@@ -194,10 +207,10 @@ const ListingCard = ({
             <div className="flex items-center">
               <span className="text-sm text-gray-600 mr-2">by {breeder}</span>
               <UserVerificationBadge 
-                verified={verifiedBreeder}
-                idVerified={idVerified}
-                vetVerified={vetVerified}
-                size="sm"
+                verificationLevel={getVerificationLevel()}
+                rating={rating}
+                totalReviews={reviews}
+                className="ml-1"
               />
             </div>
             
