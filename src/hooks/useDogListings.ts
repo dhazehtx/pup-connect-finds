@@ -11,6 +11,9 @@ interface DogListing {
   price: number;
   image_url?: string;
   user_id: string;
+  status: string;
+  description?: string;
+  location?: string;
   created_at: string;
   updated_at: string;
   profiles?: {
@@ -44,6 +47,7 @@ export const useDogListings = () => {
             total_reviews
           )
         `)
+        .eq('status', 'active')
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -67,7 +71,11 @@ export const useDogListings = () => {
 
       const { data, error } = await supabase
         .from('dog_listings')
-        .insert([{ ...listingData, user_id: user.id }])
+        .insert([{ 
+          ...listingData, 
+          user_id: user.id,
+          status: listingData.status || 'active'
+        }])
         .select()
         .single();
 
@@ -78,7 +86,7 @@ export const useDogListings = () => {
         description: "Listing created successfully",
       });
 
-      fetchListings(); // Refresh listings
+      fetchListings();
       return data;
     } catch (error) {
       console.error('Error creating listing:', error);
@@ -95,7 +103,10 @@ export const useDogListings = () => {
     try {
       const { error } = await supabase
         .from('dog_listings')
-        .update(updates)
+        .update({
+          ...updates,
+          updated_at: new Date().toISOString()
+        })
         .eq('id', id);
 
       if (error) throw error;
@@ -105,7 +116,7 @@ export const useDogListings = () => {
         description: "Listing updated successfully",
       });
 
-      fetchListings(); // Refresh listings
+      fetchListings();
     } catch (error) {
       console.error('Error updating listing:', error);
       toast({
@@ -131,7 +142,7 @@ export const useDogListings = () => {
         description: "Listing deleted successfully",
       });
 
-      fetchListings(); // Refresh listings
+      fetchListings();
     } catch (error) {
       console.error('Error deleting listing:', error);
       toast({

@@ -1,93 +1,70 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, Paperclip, Smile, Phone, Video, MoreVertical } from 'lucide-react';
+import { Send, Paperclip, Smile, Phone, Video, MoreVertical, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Avatar } from '@/components/ui/avatar';
-
-interface Message {
-  id: string;
-  text: string;
-  timestamp: Date;
-  isOwn: boolean;
-  type: 'text' | 'image';
-  imageUrl?: string;
-}
+import { Badge } from '@/components/ui/badge';
+import { useMessaging } from '@/hooks/useMessaging';
 
 interface ChatInterfaceProps {
+  conversationId: string;
   recipientName: string;
   recipientAvatar: string;
   isOnline?: boolean;
+  onBack?: () => void;
+  listingInfo?: {
+    name: string;
+    breed: string;
+    image: string | null;
+  };
 }
 
-const ChatInterface = ({ recipientName, recipientAvatar, isOnline = false }: ChatInterfaceProps) => {
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: '1',
-      text: 'Hi! Is the Golden Retriever puppy still available?',
-      timestamp: new Date(Date.now() - 3600000),
-      isOwn: true,
-      type: 'text'
-    },
-    {
-      id: '2',
-      text: 'Yes, she is! Would you like to schedule a visit?',
-      timestamp: new Date(Date.now() - 3000000),
-      isOwn: false,
-      type: 'text'
-    },
-    {
-      id: '3',
-      text: 'That would be great! What times are available this weekend?',
-      timestamp: new Date(Date.now() - 1800000),
-      isOwn: true,
-      type: 'text'
-    }
-  ]);
-  
+const ChatInterface = ({ 
+  conversationId, 
+  recipientName, 
+  recipientAvatar, 
+  isOnline = false,
+  onBack,
+  listingInfo 
+}: ChatInterfaceProps) => {
   const [newMessage, setNewMessage] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  
+  const { messages, sendMessage, fetchMessages } = useMessaging();
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
   useEffect(() => {
+    if (conversationId) {
+      fetchMessages(conversationId);
+    }
+  }, [conversationId]);
+
+  useEffect(() => {
     scrollToBottom();
   }, [messages]);
 
-  const sendMessage = () => {
+  const handleSendMessage = async () => {
     if (!newMessage.trim()) return;
 
-    const message: Message = {
-      id: Date.now().toString(),
-      text: newMessage,
-      timestamp: new Date(),
-      isOwn: true,
-      type: 'text'
-    };
-
-    setMessages(prev => [...prev, message]);
+    const messageContent = newMessage;
     setNewMessage('');
 
-    // Simulate typing indicator and response
+    await sendMessage(conversationId, messageContent);
+
+    // Simulate typing indicator and response (remove this in production)
     setIsTyping(true);
     setTimeout(() => {
       setIsTyping(false);
-      const response: Message = {
-        id: (Date.now() + 1).toString(),
-        text: 'Thanks for your message! I\'ll get back to you soon.',
-        timestamp: new Date(),
-        isOwn: false,
-        type: 'text'
-      };
-      setMessages(prev => [...prev, response]);
     }, 2000);
   };
 
-  const formatTime = (date: Date) => {
-    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  const formatTime = (date: string) => {
+    return new Date(date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
   return (
@@ -95,6 +72,11 @@ const ChatInterface = ({ recipientName, recipientAvatar, isOnline = false }: Cha
       {/* Chat Header */}
       <div className="flex items-center justify-between p-4 border-b bg-white">
         <div className="flex items-center gap-3">
+          {onBack && (
+            <Button variant="ghost" size="icon" onClick={onBack}>
+              <ArrowLeft size={20} />
+            </Button>
+          )}
           <div className="relative">
             <Avatar className="w-10 h-10">
               <img src={recipientAvatar} alt={recipientName} className="w-full h-full object-cover" />
@@ -123,30 +105,49 @@ const ChatInterface = ({ recipientName, recipientAvatar, isOnline = false }: Cha
         </div>
       </div>
 
+      {/* Listing Info Banner */}
+      {listingInfo && (
+        <div className="p-3 bg-blue-50 border-b flex items-center gap-3">
+          {listingInfo.image && (
+            <img 
+              src={listingInfo.image} 
+              alt={listingInfo.name}
+              className="w-10 h-10 rounded object-cover"
+            />
+          )}
+          <div className="flex-1">
+            <p className="font-medium text-sm">{listingInfo.name}</p>
+            <Badge variant="secondary" className="text-xs">
+              {listingInfo.breed}
+            </Badge>
+          </div>
+        </div>
+      )}
+
       {/* Messages */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {messages.map((message) => (
-          <div key={message.id} className={`flex ${message.isOwn ? 'justify-end' : 'justify-start'}`}>
-            <div className={`max-w-[70%] ${message.isOwn ? 'order-2' : 'order-1'}`}>
+          <div key={message.id} className={`flex ${message.sender_id ? 'justify-end' : 'justify-start'}`}>
+            <div className={`max-w-[70%] ${message.sender_id ? 'order-2' : 'order-1'}`}>
               <div
                 className={`p-3 rounded-2xl ${
-                  message.isOwn
+                  message.sender_id
                     ? 'bg-blue-500 text-white rounded-br-md'
                     : 'bg-gray-100 text-gray-900 rounded-bl-md'
                 }`}
               >
-                {message.type === 'text' ? (
-                  <p className="text-sm">{message.text}</p>
+                {message.message_type === 'text' ? (
+                  <p className="text-sm">{message.content}</p>
                 ) : (
                   <img
-                    src={message.imageUrl}
+                    src={message.image_url || ''}
                     alt="Shared image"
                     className="max-w-full rounded-lg"
                   />
                 )}
               </div>
-              <p className={`text-xs text-gray-500 mt-1 ${message.isOwn ? 'text-right' : 'text-left'}`}>
-                {formatTime(message.timestamp)}
+              <p className={`text-xs text-gray-500 mt-1 ${message.sender_id ? 'text-right' : 'text-left'}`}>
+                {formatTime(message.created_at)}
               </p>
             </div>
           </div>
@@ -178,14 +179,14 @@ const ChatInterface = ({ recipientName, recipientAvatar, isOnline = false }: Cha
               onChange={(e) => setNewMessage(e.target.value)}
               placeholder="Type a message..."
               className="pr-10"
-              onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
+              onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
             />
             <Button variant="ghost" size="icon" className="absolute right-0 top-0">
               <Smile size={20} />
             </Button>
           </div>
           <Button 
-            onClick={sendMessage}
+            onClick={handleSendMessage}
             className="bg-blue-500 hover:bg-blue-600"
             size="icon"
             disabled={!newMessage.trim()}

@@ -1,68 +1,40 @@
 
 import React, { useState } from 'react';
-import { Search, Edit } from 'lucide-react';
+import { Search, Edit, ArrowLeft } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import ChatInterface from '@/components/messaging/ChatInterface';
-
-interface Conversation {
-  id: string;
-  name: string;
-  avatar: string;
-  lastMessage: string;
-  timestamp: string;
-  unread: number;
-  isOnline: boolean;
-}
+import ConversationsList from '@/components/messaging/ConversationsList';
+import { useMessaging } from '@/hooks/useMessaging';
 
 const Messages = () => {
-  const [selectedChat, setSelectedChat] = useState<string | null>(null);
+  const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
-
-  const conversations: Conversation[] = [
-    {
-      id: '1',
-      name: 'Golden Paws Kennel',
-      avatar: 'https://images.unsplash.com/photo-1560743173-567a3b5658b1?w=150&h=150&fit=crop&crop=face',
-      lastMessage: 'Thanks for your message! I\'ll get back to you soon.',
-      timestamp: '2m ago',
-      unread: 0,
-      isOnline: true
-    },
-    {
-      id: '2',
-      name: 'Sarah Johnson',
-      avatar: 'https://images.unsplash.com/photo-1494790108755-2616b612b789?w=150&h=150&fit=crop&crop=face',
-      lastMessage: 'Is the puppy still available?',
-      timestamp: '1h ago',
-      unread: 2,
-      isOnline: false
-    },
-    {
-      id: '3',
-      name: 'Mike\'s Pet Store',
-      avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face',
-      lastMessage: 'Great! When can we schedule a visit?',
-      timestamp: '3h ago',
-      unread: 0,
-      isOnline: true
-    }
-  ];
+  const { conversations, loading } = useMessaging();
 
   const filteredConversations = conversations.filter(conv =>
-    conv.name.toLowerCase().includes(searchTerm.toLowerCase())
+    conv.other_user?.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    conv.other_user?.username?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    conv.listing?.dog_name?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const selectedConversation = conversations.find(conv => conv.id === selectedChat);
+  const selectedConversation = conversations.find(conv => conv.id === selectedConversationId);
 
-  if (selectedChat && selectedConversation) {
+  if (selectedConversationId && selectedConversation) {
     return (
       <div className="max-w-md mx-auto bg-white min-h-screen">
         <div className="h-screen">
           <ChatInterface
-            recipientName={selectedConversation.name}
-            recipientAvatar={selectedConversation.avatar}
-            isOnline={selectedConversation.isOnline}
+            conversationId={selectedConversation.id}
+            recipientName={selectedConversation.other_user?.full_name || selectedConversation.other_user?.username || 'Unknown User'}
+            recipientAvatar={selectedConversation.other_user?.avatar_url || '/placeholder.svg'}
+            isOnline={false}
+            onBack={() => setSelectedConversationId(null)}
+            listingInfo={selectedConversation.listing ? {
+              name: selectedConversation.listing.dog_name,
+              breed: selectedConversation.listing.breed,
+              image: selectedConversation.listing.image_url
+            } : undefined}
           />
         </div>
       </div>
@@ -93,54 +65,17 @@ const Messages = () => {
       </div>
 
       {/* Conversations List */}
-      <div className="divide-y divide-gray-100">
-        {filteredConversations.map((conversation) => (
-          <div
-            key={conversation.id}
-            onClick={() => setSelectedChat(conversation.id)}
-            className="p-4 hover:bg-gray-50 cursor-pointer transition-colors"
-          >
-            <div className="flex items-center gap-3">
-              <div className="relative">
-                <img
-                  src={conversation.avatar}
-                  alt={conversation.name}
-                  className="w-12 h-12 rounded-full object-cover"
-                />
-                {conversation.isOnline && (
-                  <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white rounded-full"></div>
-                )}
-              </div>
-              
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center justify-between mb-1">
-                  <h3 className="font-semibold text-sm truncate text-black">{conversation.name}</h3>
-                  <span className="text-xs text-gray-500">{conversation.timestamp}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <p className="text-sm text-black truncate">{conversation.lastMessage}</p>
-                  {conversation.unread > 0 && (
-                    <div className="bg-blue-500 text-white text-xs rounded-full min-w-[20px] h-5 flex items-center justify-center">
-                      {conversation.unread}
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {filteredConversations.length === 0 && (
-        <div className="p-8 text-center">
-          <div className="text-gray-400 mb-2">
-            <Edit size={48} className="mx-auto" />
-          </div>
-          <h3 className="font-medium text-black mb-1">No conversations found</h3>
-          <p className="text-sm text-gray-500">
-            {searchTerm ? 'Try adjusting your search terms.' : 'Start a new conversation to get started.'}
-          </p>
+      {loading ? (
+        <div className="p-4 text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto"></div>
+          <p className="text-gray-500 mt-2">Loading conversations...</p>
         </div>
+      ) : (
+        <ConversationsList
+          conversations={filteredConversations}
+          onSelectConversation={(conv) => setSelectedConversationId(conv.id)}
+          selectedConversationId={selectedConversationId}
+        />
       )}
     </div>
   );
