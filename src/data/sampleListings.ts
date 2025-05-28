@@ -1,4 +1,5 @@
 
+
 export const sampleListings = [
   {
     id: 1,
@@ -138,7 +139,7 @@ export const sampleListings = [
     age: "14 weeks",
     rating: 4.9,
     reviews: 27,
-    image: "https://images.unsplash.com/photo-1625316708582-7c38734be31d?w=400&h=300&fit=crop",
+    image: "https://images.unsplash.com/photo-1605568427561-40dd23c2acea?w=400&h=300&fit=crop",
     breeder: "Arctic Huskies",
     verified: true,
     verifiedBreeder: true,
@@ -255,3 +256,4 @@ export const sampleListings = [
     sourceType: "breeder"
   }
 ];
+
