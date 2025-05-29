@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Navigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -52,19 +53,12 @@ const Auth = () => {
     mode: 'onChange',
   });
 
-  // Enhanced debugging
-  const watchedValues = signUpForm.watch();
+  // Debugging - watch form values
+  const signUpValues = signUpForm.watch();
   
   useEffect(() => {
-    console.log('🔍 Form values changed:', watchedValues);
-    console.log('🔍 Full name value specifically:', watchedValues.fullName);
-    console.log('🔍 Username value specifically:', watchedValues.username);
-  }, [watchedValues]);
-
-  useEffect(() => {
-    console.log('🔍 Component re-rendered, isSignUp:', isSignUp);
-    console.log('🔍 Loading state:', loading);
-  });
+    console.log('🔍 SignUp form values:', signUpValues);
+  }, [signUpValues]);
 
   // Redirect if user is already logged in
   if (user) {
@@ -90,36 +84,6 @@ const Auth = () => {
     } catch (error) {
       console.error('Sign in error:', error);
     }
-  };
-
-  const DebugInput = ({ field, placeholder, disabled }: any) => {
-    console.log('🔍 DebugInput rendering with field:', field);
-    console.log('🔍 Field value:', field.value);
-    console.log('🔍 Field name:', field.name);
-    
-    return (
-      <Input
-        placeholder={placeholder}
-        disabled={disabled}
-        value={field.value || ''}
-        onChange={(e) => {
-          console.log('🔍 Input onChange triggered:', e.target.value);
-          console.log('🔍 Event target:', e.target);
-          console.log('🔍 Field before change:', field.value);
-          field.onChange(e);
-          console.log('🔍 Field after change called');
-        }}
-        onInput={(e) => {
-          console.log('🔍 Input onInput triggered:', (e.target as HTMLInputElement).value);
-        }}
-        onKeyDown={(e) => {
-          console.log('🔍 Key pressed:', e.key);
-        }}
-        onBlur={field.onBlur}
-        name={field.name}
-        ref={field.ref}
-      />
-    );
   };
 
   return (
@@ -149,14 +113,15 @@ const Auth = () => {
                   name="fullName"
                   render={({ field }) => {
                     console.log('🔍 FormField fullName render, field:', field);
+                    console.log('🔍 Field value for fullName:', field.value);
                     return (
                       <FormItem>
                         <FormLabel>Full Name</FormLabel>
                         <FormControl>
-                          <DebugInput 
-                            field={field}
+                          <Input
                             placeholder="Enter your full name"
                             disabled={loading}
+                            {...field}
                           />
                         </FormControl>
                         <FormMessage />
@@ -170,14 +135,15 @@ const Auth = () => {
                   name="username"
                   render={({ field }) => {
                     console.log('🔍 FormField username render, field:', field);
+                    console.log('🔍 Field value for username:', field.value);
                     return (
                       <FormItem>
                         <FormLabel>Username</FormLabel>
                         <FormControl>
-                          <DebugInput 
-                            field={field}
+                          <Input
                             placeholder="Choose a username"
                             disabled={loading}
+                            {...field}
                           />
                         </FormControl>
                         <FormMessage />
