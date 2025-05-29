@@ -40,6 +40,7 @@ const Auth = () => {
       fullName: '',
       username: '',
     },
+    mode: 'onChange', // This ensures the form updates on every change
   });
 
   const signInForm = useForm<SignInData>({
@@ -48,6 +49,7 @@ const Auth = () => {
       email: '',
       password: '',
     },
+    mode: 'onChange',
   });
 
   // Debug logging
@@ -115,14 +117,7 @@ const Auth = () => {
                         <Input
                           placeholder="Enter your full name"
                           disabled={loading}
-                          value={field.value}
-                          onChange={(e) => {
-                            console.log('Full name changing to:', e.target.value);
-                            field.onChange(e);
-                          }}
-                          onBlur={field.onBlur}
-                          name={field.name}
-                          ref={field.ref}
+                          {...field}
                         />
                       </FormControl>
                       <FormMessage />
@@ -140,14 +135,7 @@ const Auth = () => {
                         <Input
                           placeholder="Choose a username"
                           disabled={loading}
-                          value={field.value}
-                          onChange={(e) => {
-                            console.log('Username changing to:', e.target.value);
-                            field.onChange(e);
-                          }}
-                          onBlur={field.onBlur}
-                          name={field.name}
-                          ref={field.ref}
+                          {...field}
                         />
                       </FormControl>
                       <FormMessage />
