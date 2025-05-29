@@ -15,28 +15,23 @@ const RealtimeChat = ({ conversationId, children }: RealtimeChatProps) => {
   const { fetchMessages } = useMessaging();
   const { toast } = useToast();
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const lastMessageCountRef = useRef(0);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  const handleNewMessage = (message: any) => {
-    // Show notification for new messages from others
-    if (message.sender_id !== user?.id) {
-      toast({
-        title: "New message",
-        description: "You have received a new message",
-      });
-      
-      // Refresh messages to show the new one
-      fetchMessages(conversationId);
+  const handleMessagePoll = async () => {
+    try {
+      await fetchMessages(conversationId);
+      // Auto-scroll to bottom when new messages are detected
+      setTimeout(scrollToBottom, 100);
+    } catch (error) {
+      console.error('Error polling messages:', error);
     }
-    
-    // Auto-scroll to bottom
-    setTimeout(scrollToBottom, 100);
   };
 
-  const { isConnected } = useRealtimeMessages(conversationId, handleNewMessage);
+  const { isConnected } = useRealtimeMessages(conversationId, handleMessagePoll);
 
   useEffect(() => {
     scrollToBottom();
@@ -47,7 +42,10 @@ const RealtimeChat = ({ conversationId, children }: RealtimeChatProps) => {
       {children}
       <div ref={messagesEndRef} />
       {isConnected && (
-        <div className="absolute top-2 right-2 w-2 h-2 bg-green-500 rounded-full"></div>
+        <div className="absolute top-2 right-2 flex items-center gap-2">
+          <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+          <span className="text-xs text-gray-500">Auto-refresh active</span>
+        </div>
       )}
     </div>
   );

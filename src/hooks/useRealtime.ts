@@ -1,86 +1,76 @@
 
 import { useEffect, useState } from 'react';
-import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { usePolling } from './usePolling';
 
 interface UseRealtimeProps {
-  table: string;
-  event?: 'INSERT' | 'UPDATE' | 'DELETE' | '*';
-  filter?: string;
-  onUpdate?: (payload: any) => void;
+  onUpdate?: (payload?: any) => void;
+  interval?: number;
+  enabled?: boolean;
 }
 
-export const useRealtime = ({ table, event = '*', filter, onUpdate }: UseRealtimeProps) => {
+export const useRealtime = ({ onUpdate, interval = 5000, enabled = true }: UseRealtimeProps) => {
   const [isConnected, setIsConnected] = useState(false);
   const { user } = useAuth();
 
+  const handlePoll = async () => {
+    if (onUpdate) {
+      await onUpdate();
+    }
+  };
+
+  const { isPolling } = usePolling({
+    onPoll: handlePoll,
+    interval,
+    enabled: enabled && !!user
+  });
+
   useEffect(() => {
-    if (!user) return;
-
-    const channelName = `realtime-${table}-${Date.now()}`;
-    const channel = supabase.channel(channelName);
-
-    // Subscribe to database changes
-    channel
-      .on(
-        'postgres_changes' as any,
-        {
-          event,
-          schema: 'public',
-          table,
-          ...(filter && { filter })
-        },
-        (payload) => {
-          console.log(`Realtime update on ${table}:`, payload);
-          onUpdate?.(payload);
-        }
-      )
-      .subscribe((status) => {
-        console.log('Subscription status:', status);
-        setIsConnected(status === 'SUBSCRIBED');
-      });
-
-    return () => {
-      supabase.removeChannel(channel);
-      setIsConnected(false);
-    };
-  }, [table, event, filter, onUpdate, user]);
+    setIsConnected(isPolling && !!user);
+  }, [isPolling, user]);
 
   return { isConnected };
 };
 
-// Hook for real-time messaging
-export const useRealtimeMessages = (conversationId: string, onNewMessage?: (message: any) => void) => {
+// Hook for polling messages
+export const useRealtimeMessages = (conversationId: string, onNewMessage?: (message?: any) => void) => {
   const { user } = useAuth();
 
   return useRealtime({
-    table: 'messages',
-    event: 'INSERT',
-    filter: `conversation_id=eq.${conversationId}`,
-    onUpdate: (payload) => {
-      if (payload.new && payload.new.sender_id !== user?.id) {
-        onNewMessage?.(payload.new);
+    onUpdate: async () => {
+      if (onNewMessage) {
+        await onNewMessage();
       }
-    }
+    },
+    interval: 3000, // Poll every 3 seconds for messages
+    enabled: !!conversationId && !!user
   });
 };
 
-// Hook for real-time favorites
-export const useRealtimeFavorites = (onFavoriteUpdate?: (payload: any) => void) => {
+// Hook for polling favorites
+export const useRealtimeFavorites = (onFavoriteUpdate?: (payload?: any) => void) => {
   const { user } = useAuth();
 
   return useRealtime({
-    table: 'favorites',
-    filter: `user_id=eq.${user?.id}`,
-    onUpdate: onFavoriteUpdate
+    onUpdate: async () => {
+      if (onFavoriteUpdate) {
+        await onFavoriteUpdate();
+      }
+    },
+    interval: 10000, // Poll every 10 seconds for favorites
+    enabled: !!user
   });
 };
 
-// Hook for real-time listings
-export const useRealtimeListings = (onListingUpdate?: (payload: any) => void) => {
+// Hook for polling listings
+export const useRealtimeListings = (onListingUpdate?: (payload?: any) => void) => {
   return useRealtime({
-    table: 'dog_listings',
-    event: '*',
-    onUpdate: onListingUpdate
+    onUpdate: async () => {
+      if (onListingUpdate) {
+        await onListingUpdate();
+      }
+    },
+    interval: 15000, // Poll every 15 seconds for listings
+    enabled: true
   });
 };

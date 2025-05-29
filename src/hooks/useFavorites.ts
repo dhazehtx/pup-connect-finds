@@ -1,8 +1,10 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRealtimeFavorites } from '@/hooks/useRealtime';
+import { useOptimisticUpdates } from '@/hooks/useOptimisticUpdates';
 
 interface Favorite {
   id: string;
@@ -21,25 +23,21 @@ interface Favorite {
 }
 
 export const useFavorites = () => {
-  const [favorites, setFavorites] = useState<Favorite[]>([]);
   const [favoriteListingIds, setFavoriteListingIds] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
   const { user } = useAuth();
 
-  // Set up real-time updates for favorites
-  useRealtimeFavorites((payload) => {
-    if (payload.eventType === 'INSERT') {
-      setFavoriteListingIds(prev => new Set([...prev, payload.new.listing_id]));
-      fetchFavorites(); // Refresh to get full data
-    } else if (payload.eventType === 'DELETE') {
-      setFavoriteListingIds(prev => {
-        const newSet = new Set(prev);
-        newSet.delete(payload.old.listing_id);
-        return newSet;
-      });
-      setFavorites(prev => prev.filter(fav => fav.listing_id !== payload.old.listing_id));
-    }
+  const {
+    data: favorites,
+    updateData: setFavorites,
+    executeOptimistic,
+    isPending
+  } = useOptimisticUpdates<Favorite>([]);
+
+  // Set up polling for favorites with reduced frequency
+  useRealtimeFavorites(async () => {
+    await fetchFavorites();
   });
 
   const fetchFavorites = async () => {
@@ -90,60 +88,77 @@ export const useFavorites = () => {
   const addToFavorites = async (listingId: string) => {
     if (!user) return false;
 
-    try {
-      const { error } = await supabase
-        .from('favorites')
-        .insert([{
+    const actionId = `add-${listingId}`;
+    
+    await executeOptimistic(actionId, {
+      optimisticUpdate: (currentData) => {
+        // Add optimistic favorite
+        setFavoriteListingIds(prev => new Set([...prev, listingId]));
+        const newFavorite: Favorite = {
+          id: `temp-${Date.now()}`,
           user_id: user.id,
-          listing_id: listingId
-        }]);
+          listing_id: listingId,
+          created_at: new Date().toISOString(),
+        };
+        return [newFavorite, ...currentData];
+      },
+      serverAction: async () => {
+        const { error } = await supabase
+          .from('favorites')
+          .insert([{
+            user_id: user.id,
+            listing_id: listingId
+          }]);
+        if (error) throw error;
+      },
+      rollbackUpdate: (currentData) => {
+        setFavoriteListingIds(prev => {
+          const newSet = new Set(prev);
+          newSet.delete(listingId);
+          return newSet;
+        });
+        return currentData.filter(fav => fav.listing_id !== listingId || !fav.id.startsWith('temp-'));
+      },
+      successMessage: "Added to favorites!",
+      errorMessage: "Failed to add to favorites"
+    });
 
-      if (error) throw error;
-
-      toast({
-        title: "Added to favorites!",
-        description: "This listing has been saved to your wishlist.",
-      });
-
-      return true;
-    } catch (error) {
-      console.error('Error adding to favorites:', error);
-      toast({
-        title: "Error",
-        description: "Failed to add to favorites",
-        variant: "destructive",
-      });
-      return false;
-    }
+    return true;
   };
 
   const removeFromFavorites = async (listingId: string) => {
     if (!user) return false;
 
-    try {
-      const { error } = await supabase
-        .from('favorites')
-        .delete()
-        .eq('user_id', user.id)
-        .eq('listing_id', listingId);
+    const actionId = `remove-${listingId}`;
+    
+    await executeOptimistic(actionId, {
+      optimisticUpdate: (currentData) => {
+        // Remove optimistic favorite
+        setFavoriteListingIds(prev => {
+          const newSet = new Set(prev);
+          newSet.delete(listingId);
+          return newSet;
+        });
+        return currentData.filter(fav => fav.listing_id !== listingId);
+      },
+      serverAction: async () => {
+        const { error } = await supabase
+          .from('favorites')
+          .delete()
+          .eq('user_id', user.id)
+          .eq('listing_id', listingId);
+        if (error) throw error;
+      },
+      rollbackUpdate: (currentData) => {
+        setFavoriteListingIds(prev => new Set([...prev, listingId]));
+        // In a real app, we'd restore the favorite from cache or refetch
+        return currentData;
+      },
+      successMessage: "Removed from favorites",
+      errorMessage: "Failed to remove from favorites"
+    });
 
-      if (error) throw error;
-
-      toast({
-        title: "Removed from favorites",
-        description: "This listing has been removed from your wishlist.",
-      });
-
-      return true;
-    } catch (error) {
-      console.error('Error removing from favorites:', error);
-      toast({
-        title: "Error",
-        description: "Failed to remove from favorites",
-        variant: "destructive",
-      });
-      return false;
-    }
+    return true;
   };
 
   const toggleFavorite = async (listingId: string) => {
@@ -156,6 +171,10 @@ export const useFavorites = () => {
 
   const isFavorited = (listingId: string) => {
     return favoriteListingIds.has(listingId);
+  };
+
+  const isFavoritePending = (listingId: string) => {
+    return isPending(`add-${listingId}`) || isPending(`remove-${listingId}`);
   };
 
   useEffect(() => {
@@ -171,6 +190,7 @@ export const useFavorites = () => {
     removeFromFavorites,
     toggleFavorite,
     isFavorited,
+    isFavoritePending,
     refreshFavorites: fetchFavorites
   };
 };
