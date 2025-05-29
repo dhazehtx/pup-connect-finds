@@ -15,6 +15,7 @@ export const usePolling = ({ onPoll, interval = 5000, enabled = true }: UsePolli
 
   useEffect(() => {
     if (!user || !enabled) {
+      console.log('Polling stopped - user:', !!user, 'enabled:', enabled);
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
         intervalRef.current = null;
@@ -24,10 +25,13 @@ export const usePolling = ({ onPoll, interval = 5000, enabled = true }: UsePolli
     }
 
     const startPolling = () => {
+      console.log(`Starting polling with ${interval}ms interval`);
       setIsPolling(true);
       intervalRef.current = setInterval(async () => {
+        console.log('Executing poll...');
         try {
           await onPoll();
+          console.log('Poll completed successfully');
         } catch (error) {
           console.error('Polling error:', error);
         }
@@ -37,6 +41,7 @@ export const usePolling = ({ onPoll, interval = 5000, enabled = true }: UsePolli
     startPolling();
 
     return () => {
+      console.log('Cleaning up polling');
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
         intervalRef.current = null;
@@ -46,6 +51,7 @@ export const usePolling = ({ onPoll, interval = 5000, enabled = true }: UsePolli
   }, [onPoll, interval, enabled, user]);
 
   const stopPolling = () => {
+    console.log('Manually stopping polling');
     if (intervalRef.current) {
       clearInterval(intervalRef.current);
       intervalRef.current = null;
@@ -55,12 +61,15 @@ export const usePolling = ({ onPoll, interval = 5000, enabled = true }: UsePolli
 
   const startPolling = () => {
     if (!intervalRef.current && user && enabled) {
+      console.log('Manually starting polling');
       setIsPolling(true);
       intervalRef.current = setInterval(async () => {
+        console.log('Executing manual poll...');
         try {
           await onPoll();
+          console.log('Manual poll completed successfully');
         } catch (error) {
-          console.error('Polling error:', error);
+          console.error('Manual polling error:', error);
         }
       }, interval);
     }

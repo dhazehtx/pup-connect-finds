@@ -27,7 +27,8 @@ export const useRealtime = ({ onUpdate, interval = 5000, enabled = true }: UseRe
 
   useEffect(() => {
     setIsConnected(isPolling && !!user);
-  }, [isPolling, user]);
+    console.log('Realtime connection status:', isPolling && !!user, 'interval:', interval);
+  }, [isPolling, user, interval]);
 
   return { isConnected };
 };
@@ -36,8 +37,11 @@ export const useRealtime = ({ onUpdate, interval = 5000, enabled = true }: UseRe
 export const useRealtimeMessages = (conversationId: string, onNewMessage?: (message?: any) => void) => {
   const { user } = useAuth();
 
+  console.log('Setting up message polling for conversation:', conversationId);
+
   return useRealtime({
     onUpdate: async () => {
+      console.log('Polling messages for conversation:', conversationId);
       if (onNewMessage) {
         await onNewMessage();
       }
@@ -51,8 +55,11 @@ export const useRealtimeMessages = (conversationId: string, onNewMessage?: (mess
 export const useRealtimeFavorites = (onFavoriteUpdate?: (payload?: any) => void) => {
   const { user } = useAuth();
 
+  console.log('Setting up favorites polling');
+
   return useRealtime({
     onUpdate: async () => {
+      console.log('Polling favorites updates');
       if (onFavoriteUpdate) {
         await onFavoriteUpdate();
       }
@@ -64,8 +71,11 @@ export const useRealtimeFavorites = (onFavoriteUpdate?: (payload?: any) => void)
 
 // Hook for polling listings
 export const useRealtimeListings = (onListingUpdate?: (payload?: any) => void) => {
+  console.log('Setting up listings polling');
+
   return useRealtime({
     onUpdate: async () => {
+      console.log('Polling listings updates');
       if (onListingUpdate) {
         await onListingUpdate();
       }

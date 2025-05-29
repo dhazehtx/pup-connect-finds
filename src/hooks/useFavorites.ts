@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -37,12 +36,14 @@ export const useFavorites = () => {
 
   // Set up polling for favorites with reduced frequency
   useRealtimeFavorites(async () => {
+    console.log('Favorites polling triggered - fetching latest favorites');
     await fetchFavorites();
   });
 
   const fetchFavorites = async () => {
     if (!user) return;
 
+    console.log('Fetching favorites for user:', user.id);
     try {
       setLoading(true);
       const { data, error } = await supabase
@@ -73,6 +74,7 @@ export const useFavorites = () => {
       
       const listingIds = new Set(data?.map(fav => fav.listing_id) || []);
       setFavoriteListingIds(listingIds);
+      console.log('Favorites fetched successfully, count:', mappedFavorites.length);
     } catch (error) {
       console.error('Error fetching favorites:', error);
       toast({
