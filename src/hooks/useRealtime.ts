@@ -33,6 +33,7 @@ export const useRealtime = ({ table, event = '*', filter, onUpdate }: UseRealtim
         }
       )
       .subscribe((status) => {
+        console.log('Subscription status:', status);
         setIsConnected(status === 'SUBSCRIBED');
       });
 
