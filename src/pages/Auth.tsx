@@ -28,7 +28,7 @@ type SignUpData = z.infer<typeof signUpSchema>;
 type SignInData = z.infer<typeof signInSchema>;
 
 const Auth = () => {
-  const [isSignUp, setIsSignUp] = useState(false);
+  const [isSignUp, setIsSignUp] = useState(true); // Changed to true to test signup form
   const [showPassword, setShowPassword] = useState(false);
   const { signUp, signIn, user, loading } = useAuth();
 
@@ -52,12 +52,18 @@ const Auth = () => {
     mode: 'onChange',
   });
 
-  // Debugging - watch form values
+  // Enhanced debugging - watch form values and errors
   const signUpValues = signUpForm.watch();
+  const signUpErrors = signUpForm.formState.errors;
+  const signUpFieldStates = signUpForm.getFieldState('fullName');
   
   useEffect(() => {
     console.log('🔍 SignUp form values:', signUpValues);
-  }, [signUpValues]);
+    console.log('🔍 SignUp form errors:', signUpErrors);
+    console.log('🔍 FullName field state:', signUpFieldStates);
+    console.log('🔍 Form control fullName value:', signUpForm.getValues('fullName'));
+    console.log('🔍 Form control username value:', signUpForm.getValues('username'));
+  }, [signUpValues, signUpErrors, signUpFieldStates]);
 
   // Redirect if user is already logged in
   if (user) {
@@ -110,39 +116,51 @@ const Auth = () => {
                 <FormField
                   control={signUpForm.control}
                   name="fullName"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Full Name</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="text"
-                          placeholder="Enter your full name"
-                          disabled={loading}
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+                  render={({ field }) => {
+                    console.log('🔍 FullName FormField render - field value:', field.value);
+                    console.log('🔍 FullName FormField render - field name:', field.name);
+                    console.log('🔍 FullName FormField render - field onChange:', !!field.onChange);
+                    
+                    return (
+                      <FormItem>
+                        <FormLabel>Full Name</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="text"
+                            placeholder="Enter your full name"
+                            disabled={loading}
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    );
+                  }}
                 />
 
                 <FormField
                   control={signUpForm.control}
                   name="username"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Username</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="text"
-                          placeholder="Choose a username"
-                          disabled={loading}
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+                  render={({ field }) => {
+                    console.log('🔍 Username FormField render - field value:', field.value);
+                    console.log('🔍 Username FormField render - field name:', field.name);
+                    console.log('🔍 Username FormField render - field onChange:', !!field.onChange);
+                    
+                    return (
+                      <FormItem>
+                        <FormLabel>Username</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="text"
+                            placeholder="Choose a username"
+                            disabled={loading}
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    );
+                  }}
                 />
 
                 <FormField

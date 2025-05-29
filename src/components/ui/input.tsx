@@ -10,11 +10,22 @@ const Input = React.forwardRef<HTMLInputElement, React.ComponentProps<"input">>(
     console.log('🔍 Input component name:', props.name);
     console.log('🔍 Input component placeholder:', props.placeholder);
     
+    // Additional debugging for form field registration
+    console.log('🔍 Input onChange handler present:', !!props.onChange);
+    console.log('🔍 Input onBlur handler present:', !!props.onBlur);
+    console.log('🔍 Input ref present:', !!ref);
+    
     // Check for potential event handling issues
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       console.log('🔍 Input change event:', e.target.value, 'for field:', props.name);
+      console.log('🔍 Input change event target name:', e.target.name);
+      console.log('🔍 Input props.name matches target.name:', props.name === e.target.name);
+      
       if (props.onChange) {
+        console.log('🔍 Calling props.onChange for field:', props.name);
         props.onChange(e);
+      } else {
+        console.log('🔍 No onChange handler for field:', props.name);
       }
     };
 
