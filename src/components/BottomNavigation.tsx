@@ -45,15 +45,13 @@ const BottomNavigation = () => {
       icon: MessageCircle,
       label: 'Messages',
       path: '/messages',
-      protected: true,
-      action: 'access messages'
+      protected: false  // Now accessible for demo
     },
     {
       icon: User,
       label: 'Profile',
       path: '/profile',
-      protected: true,
-      action: 'view your profile'
+      protected: false  // Now accessible for demo
     }
   ];
 

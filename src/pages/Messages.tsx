@@ -6,19 +6,85 @@ import { Button } from '@/components/ui/button';
 import ChatInterface from '@/components/messaging/ChatInterface';
 import ConversationsList from '@/components/messaging/ConversationsList';
 import { useMessaging } from '@/hooks/useMessaging';
+import { useAuth } from '@/contexts/AuthContext';
+
+// Demo conversations for non-authenticated users
+const demoConversations = [
+  {
+    id: 'demo-1',
+    listing_id: 'listing-1',
+    buyer_id: 'buyer-1',
+    seller_id: 'seller-1',
+    created_at: '2024-01-15T10:00:00Z',
+    updated_at: '2024-01-15T14:30:00Z',
+    last_message_at: '2024-01-15T14:30:00Z',
+    listing: {
+      dog_name: 'Golden Retriever Puppy',
+      breed: 'Golden Retriever',
+      image_url: 'https://images.unsplash.com/photo-1552053831-71594a27632d?w=300&h=300&fit=crop'
+    },
+    other_user: {
+      full_name: 'Sarah Wilson',
+      username: 'sarahw',
+      avatar_url: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face'
+    }
+  },
+  {
+    id: 'demo-2',
+    listing_id: 'listing-2',
+    buyer_id: 'buyer-2',
+    seller_id: 'seller-2',
+    created_at: '2024-01-14T09:00:00Z',
+    updated_at: '2024-01-14T16:45:00Z',
+    last_message_at: '2024-01-14T16:45:00Z',
+    listing: {
+      dog_name: 'Labrador Mix',
+      breed: 'Labrador Mix',
+      image_url: 'https://images.unsplash.com/photo-1518717758536-85ae29035b6d?w=300&h=300&fit=crop'
+    },
+    other_user: {
+      full_name: 'Mike Johnson',
+      username: 'mikej',
+      avatar_url: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face'
+    }
+  },
+  {
+    id: 'demo-3',
+    listing_id: 'listing-3',
+    buyer_id: 'buyer-3',
+    seller_id: 'seller-3',
+    created_at: '2024-01-13T11:00:00Z',
+    updated_at: '2024-01-13T18:20:00Z',
+    last_message_at: '2024-01-13T18:20:00Z',
+    listing: {
+      dog_name: 'German Shepherd',
+      breed: 'German Shepherd',
+      image_url: 'https://images.unsplash.com/photo-1605568427561-40dd23c2acea?w=300&h=300&fit=crop'
+    },
+    other_user: {
+      full_name: 'Emma Davis',
+      username: 'emmad',
+      avatar_url: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face'
+    }
+  }
+];
 
 const Messages = () => {
   const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const { user } = useAuth();
   const { conversations, loading } = useMessaging();
 
-  const filteredConversations = conversations.filter(conv =>
+  // Use real conversations if user is authenticated, otherwise use demo data
+  const displayConversations = user ? conversations : demoConversations;
+
+  const filteredConversations = displayConversations.filter(conv =>
     conv.other_user?.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     conv.other_user?.username?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     conv.listing?.dog_name?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const selectedConversation = conversations.find(conv => conv.id === selectedConversationId);
+  const selectedConversation = displayConversations.find(conv => conv.id === selectedConversationId);
 
   if (selectedConversationId && selectedConversation) {
     return (
@@ -52,6 +118,15 @@ const Messages = () => {
           </Button>
         </div>
         
+        {/* Demo notice for non-authenticated users */}
+        {!user && (
+          <div className="mb-4 p-3 bg-blue-50 rounded-lg">
+            <p className="text-sm text-blue-700">
+              <strong>Demo Mode:</strong> Showing sample conversations for design preview
+            </p>
+          </div>
+        )}
+        
         {/* Search */}
         <div className="relative">
           <Search size={20} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
@@ -65,7 +140,7 @@ const Messages = () => {
       </div>
 
       {/* Conversations List */}
-      {loading ? (
+      {user && loading ? (
         <div className="p-4 text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto"></div>
           <p className="text-gray-500 mt-2">Loading conversations...</p>

@@ -31,9 +31,10 @@ const Index = () => {
         <Route path="/terms" element={<TermsOfService />} />
         <Route path="/help" element={<Help />} />
         
-        {/* Profile routes - temporarily public for design work */}
+        {/* Profile and Messages routes - temporarily public for design work */}
         <Route path="/profile/:userId" element={<Profile />} />
         <Route path="/profile" element={<Profile />} />
+        <Route path="/messages" element={<Messages />} />
         
         {/* Protected routes requiring authentication */}
         <Route 
@@ -41,14 +42,6 @@ const Index = () => {
           element={
             <ProtectedRoute guestMessage="Create and manage listings with a MY PUP account.">
               <Post />
-            </ProtectedRoute>
-          } 
-        />
-        <Route 
-          path="/messages" 
-          element={
-            <ProtectedRoute guestMessage="Connect with breeders and buyers through our secure messaging system.">
-              <Messages />
             </ProtectedRoute>
           } 
         />
