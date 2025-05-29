@@ -114,31 +114,16 @@ const Auth = () => {
                     <FormItem>
                       <FormLabel>Full Name</FormLabel>
                       <FormControl>
-                        <div style={{ border: '2px solid red', padding: '4px' }}>
-                          <input
-                            type="text"
-                            placeholder="Enter your full name"
-                            disabled={loading}
-                            value={field.value}
-                            onChange={(e) => {
-                              console.log('🔍 Full Name onChange - value:', e.target.value);
-                              console.log('🔍 Full Name onChange - target:', e.target);
-                              field.onChange(e);
-                            }}
-                            onBlur={field.onBlur}
-                            name={field.name}
-                            ref={field.ref}
-                            style={{ 
-                              width: '100%',
-                              padding: '8px',
-                              fontSize: '16px',
-                              color: '#000000 !important',
-                              backgroundColor: '#ffffff',
-                              border: '1px solid #ccc',
-                              borderRadius: '4px'
-                            }}
-                          />
-                        </div>
+                        <Input
+                          type="text"
+                          placeholder="Enter your full name"
+                          disabled={loading}
+                          {...field}
+                          onChange={(e) => {
+                            console.log('🔍 Full Name onChange - value:', e.target.value);
+                            field.onChange(e);
+                          }}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -152,31 +137,16 @@ const Auth = () => {
                     <FormItem>
                       <FormLabel>Username</FormLabel>
                       <FormControl>
-                        <div style={{ border: '2px solid blue', padding: '4px' }}>
-                          <input
-                            type="text"
-                            placeholder="Choose a username"
-                            disabled={loading}
-                            value={field.value}
-                            onChange={(e) => {
-                              console.log('🔍 Username onChange - value:', e.target.value);
-                              console.log('🔍 Username onChange - target:', e.target);
-                              field.onChange(e);
-                            }}
-                            onBlur={field.onBlur}
-                            name={field.name}
-                            ref={field.ref}
-                            style={{ 
-                              width: '100%',
-                              padding: '8px',
-                              fontSize: '16px',
-                              color: '#000000 !important',
-                              backgroundColor: '#ffffff',
-                              border: '1px solid #ccc',
-                              borderRadius: '4px'
-                            }}
-                          />
-                        </div>
+                        <Input
+                          type="text"
+                          placeholder="Choose a username"
+                          disabled={loading}
+                          {...field}
+                          onChange={(e) => {
+                            console.log('🔍 Username onChange - value:', e.target.value);
+                            field.onChange(e);
+                          }}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
