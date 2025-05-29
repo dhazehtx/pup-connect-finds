@@ -1,8 +1,8 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
+import { useRealtimeFavorites } from '@/hooks/useRealtime';
 
 interface Favorite {
   id: string;
@@ -26,6 +26,21 @@ export const useFavorites = () => {
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
   const { user } = useAuth();
+
+  // Set up real-time updates for favorites
+  useRealtimeFavorites((payload) => {
+    if (payload.eventType === 'INSERT') {
+      setFavoriteListingIds(prev => new Set([...prev, payload.new.listing_id]));
+      fetchFavorites(); // Refresh to get full data
+    } else if (payload.eventType === 'DELETE') {
+      setFavoriteListingIds(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(payload.old.listing_id);
+        return newSet;
+      });
+      setFavorites(prev => prev.filter(fav => fav.listing_id !== payload.old.listing_id));
+    }
+  });
 
   const fetchFavorites = async () => {
     if (!user) return;
@@ -85,9 +100,6 @@ export const useFavorites = () => {
 
       if (error) throw error;
 
-      setFavoriteListingIds(prev => new Set([...prev, listingId]));
-      fetchFavorites(); // Refresh to get the full listing data
-      
       toast({
         title: "Added to favorites!",
         description: "This listing has been saved to your wishlist.",
@@ -116,14 +128,6 @@ export const useFavorites = () => {
         .eq('listing_id', listingId);
 
       if (error) throw error;
-
-      setFavoriteListingIds(prev => {
-        const newSet = new Set(prev);
-        newSet.delete(listingId);
-        return newSet;
-      });
-      
-      setFavorites(prev => prev.filter(fav => fav.listing_id !== listingId));
 
       toast({
         title: "Removed from favorites",

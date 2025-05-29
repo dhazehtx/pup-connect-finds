@@ -48,7 +48,6 @@ export const useMessaging = () => {
     try {
       setLoading(true);
       
-      // First get conversations
       const { data: conversationsData, error: conversationsError } = await supabase
         .from('conversations')
         .select(`
@@ -64,7 +63,6 @@ export const useMessaging = () => {
 
       if (conversationsError) throw conversationsError;
 
-      // For each conversation, get the other user's profile
       const conversationsWithProfiles = await Promise.all(
         (conversationsData || []).map(async (conv) => {
           const otherUserId = conv.buyer_id === user.id ? conv.seller_id : conv.buyer_id;
@@ -136,6 +134,15 @@ export const useMessaging = () => {
         .single();
 
       if (error) throw error;
+
+      // Update conversation last message timestamp
+      await supabase
+        .from('conversations')
+        .update({ 
+          last_message_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', conversationId);
 
       // Refresh messages
       await fetchMessages(conversationId);
