@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { Navigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { MinimalInput } from '@/components/ui/minimal-input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { Heart, Mail, Lock, User, Eye, EyeOff } from 'lucide-react';
@@ -115,15 +114,11 @@ const Auth = () => {
                     <FormItem>
                       <FormLabel>Full Name</FormLabel>
                       <FormControl>
-                        <MinimalInput
+                        <Input
                           type="text"
                           placeholder="Enter your full name"
                           disabled={loading}
                           {...field}
-                          onChange={(e) => {
-                            console.log('🔍 MinimalInput Full Name onChange - value:', e.target.value);
-                            field.onChange(e);
-                          }}
                         />
                       </FormControl>
                       <FormMessage />
@@ -138,15 +133,11 @@ const Auth = () => {
                     <FormItem>
                       <FormLabel>Username</FormLabel>
                       <FormControl>
-                        <MinimalInput
+                        <Input
                           type="text"
                           placeholder="Choose a username"
                           disabled={loading}
                           {...field}
-                          onChange={(e) => {
-                            console.log('🔍 MinimalInput Username onChange - value:', e.target.value);
-                            field.onChange(e);
-                          }}
                         />
                       </FormControl>
                       <FormMessage />
