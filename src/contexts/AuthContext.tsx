@@ -2,7 +2,12 @@
 import React, { createContext, useContext } from 'react';
 import { useAuthState } from '@/hooks/useAuth';
 
-const AuthContext = createContext<ReturnType<typeof useAuthState> | undefined>(undefined);
+interface AuthContextType extends ReturnType<typeof useAuthState> {
+  continueAsGuest: () => void;
+  isGuest: boolean;
+}
+
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
@@ -22,7 +27,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const isGuest = localStorage.getItem('guestMode') === 'true' && !authState.user;
 
-  const value = {
+  const value: AuthContextType = {
     ...authState,
     continueAsGuest,
     isGuest,
