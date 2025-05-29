@@ -114,14 +114,20 @@ const Auth = () => {
                     <FormItem>
                       <FormLabel>Full Name</FormLabel>
                       <FormControl>
-                        <Input
+                        <input
+                          type="text"
                           placeholder="Enter your full name"
                           disabled={loading}
                           value={field.value}
-                          onChange={field.onChange}
+                          onChange={(e) => {
+                            console.log('🔍 Raw input onChange:', e.target.value);
+                            field.onChange(e);
+                          }}
                           onBlur={field.onBlur}
                           name={field.name}
                           ref={field.ref}
+                          className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
+                          style={{ color: 'black' }}
                         />
                       </FormControl>
                       <FormMessage />
@@ -136,14 +142,20 @@ const Auth = () => {
                     <FormItem>
                       <FormLabel>Username</FormLabel>
                       <FormControl>
-                        <Input
+                        <input
+                          type="text"
                           placeholder="Choose a username"
                           disabled={loading}
                           value={field.value}
-                          onChange={field.onChange}
+                          onChange={(e) => {
+                            console.log('🔍 Raw username onChange:', e.target.value);
+                            field.onChange(e);
+                          }}
                           onBlur={field.onBlur}
                           name={field.name}
                           ref={field.ref}
+                          className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
+                          style={{ color: 'black' }}
                         />
                       </FormControl>
                       <FormMessage />
