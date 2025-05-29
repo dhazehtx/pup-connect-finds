@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Navigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -40,7 +40,7 @@ const Auth = () => {
       fullName: '',
       username: '',
     },
-    mode: 'onChange', // This ensures the form updates on every change
+    mode: 'onChange',
   });
 
   const signInForm = useForm<SignInData>({
@@ -52,11 +52,18 @@ const Auth = () => {
     mode: 'onChange',
   });
 
-  // Debug logging
-  console.log('Auth form values:', {
-    isSignUp,
-    signUpValues: signUpForm.watch(),
-    loading,
+  // Enhanced debugging
+  const watchedValues = signUpForm.watch();
+  
+  useEffect(() => {
+    console.log('🔍 Form values changed:', watchedValues);
+    console.log('🔍 Full name value specifically:', watchedValues.fullName);
+    console.log('🔍 Username value specifically:', watchedValues.username);
+  }, [watchedValues]);
+
+  useEffect(() => {
+    console.log('🔍 Component re-rendered, isSignUp:', isSignUp);
+    console.log('🔍 Loading state:', loading);
   });
 
   // Redirect if user is already logged in
@@ -85,6 +92,36 @@ const Auth = () => {
     }
   };
 
+  const DebugInput = ({ field, placeholder, disabled }: any) => {
+    console.log('🔍 DebugInput rendering with field:', field);
+    console.log('🔍 Field value:', field.value);
+    console.log('🔍 Field name:', field.name);
+    
+    return (
+      <Input
+        placeholder={placeholder}
+        disabled={disabled}
+        value={field.value || ''}
+        onChange={(e) => {
+          console.log('🔍 Input onChange triggered:', e.target.value);
+          console.log('🔍 Event target:', e.target);
+          console.log('🔍 Field before change:', field.value);
+          field.onChange(e);
+          console.log('🔍 Field after change called');
+        }}
+        onInput={(e) => {
+          console.log('🔍 Input onInput triggered:', (e.target as HTMLInputElement).value);
+        }}
+        onKeyDown={(e) => {
+          console.log('🔍 Key pressed:', e.key);
+        }}
+        onBlur={field.onBlur}
+        name={field.name}
+        ref={field.ref}
+      />
+    );
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-royal-blue/10 to-mint-green/10 flex items-center justify-center p-4">
       <Card className="w-full max-w-md mx-auto bg-cloud-white border-soft-sky shadow-lg">
@@ -110,37 +147,43 @@ const Auth = () => {
                 <FormField
                   control={signUpForm.control}
                   name="fullName"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Full Name</FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder="Enter your full name"
-                          disabled={loading}
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+                  render={({ field }) => {
+                    console.log('🔍 FormField fullName render, field:', field);
+                    return (
+                      <FormItem>
+                        <FormLabel>Full Name</FormLabel>
+                        <FormControl>
+                          <DebugInput 
+                            field={field}
+                            placeholder="Enter your full name"
+                            disabled={loading}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    );
+                  }}
                 />
 
                 <FormField
                   control={signUpForm.control}
                   name="username"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Username</FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder="Choose a username"
-                          disabled={loading}
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+                  render={({ field }) => {
+                    console.log('🔍 FormField username render, field:', field);
+                    return (
+                      <FormItem>
+                        <FormLabel>Username</FormLabel>
+                        <FormControl>
+                          <DebugInput 
+                            field={field}
+                            placeholder="Choose a username"
+                            disabled={loading}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    );
+                  }}
                 />
 
                 <FormField
