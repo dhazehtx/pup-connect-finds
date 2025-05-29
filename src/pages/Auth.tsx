@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -106,8 +105,8 @@ const Auth = () => {
                       <FormControl>
                         <Input
                           placeholder="Enter your full name"
-                          {...field}
                           disabled={loading}
+                          {...field}
                         />
                       </FormControl>
                       <FormMessage />
@@ -124,8 +123,8 @@ const Auth = () => {
                       <FormControl>
                         <Input
                           placeholder="Choose a username"
-                          {...field}
                           disabled={loading}
+                          {...field}
                         />
                       </FormControl>
                       <FormMessage />
@@ -143,8 +142,8 @@ const Auth = () => {
                         <Input
                           type="email"
                           placeholder="Enter your email"
-                          {...field}
                           disabled={loading}
+                          {...field}
                         />
                       </FormControl>
                       <FormMessage />
@@ -163,9 +162,9 @@ const Auth = () => {
                           <Input
                             type={showPassword ? 'text' : 'password'}
                             placeholder="Create a password"
-                            {...field}
                             disabled={loading}
                             className="pr-10"
+                            {...field}
                           />
                           <button
                             type="button"
