@@ -8,12 +8,15 @@ interface AnimatedHeartProps {
   onToggle: () => void;
   size?: number;
   className?: string;
+  disabled?: boolean;
 }
 
-const AnimatedHeart = ({ isLiked, onToggle, size = 24, className }: AnimatedHeartProps) => {
+const AnimatedHeart = ({ isLiked, onToggle, size = 24, className, disabled = false }: AnimatedHeartProps) => {
   const [isAnimating, setIsAnimating] = useState(false);
 
   const handleClick = () => {
+    if (disabled) return;
+    
     setIsAnimating(true);
     onToggle();
     
@@ -24,9 +27,11 @@ const AnimatedHeart = ({ isLiked, onToggle, size = 24, className }: AnimatedHear
   return (
     <button
       onClick={handleClick}
+      disabled={disabled}
       className={cn(
         'relative transition-transform duration-150',
         isAnimating && 'animate-pulse',
+        disabled && 'cursor-not-allowed opacity-50',
         className
       )}
     >
@@ -37,10 +42,11 @@ const AnimatedHeart = ({ isLiked, onToggle, size = 24, className }: AnimatedHear
           isLiked 
             ? 'text-red-500 fill-current scale-110' 
             : 'text-gray-600 hover:text-red-400',
-          isAnimating && 'animate-bounce'
+          isAnimating && 'animate-bounce',
+          disabled && 'hover:text-gray-600'
         )} 
       />
-      {isAnimating && isLiked && (
+      {isAnimating && isLiked && !disabled && (
         <>
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="w-8 h-8 bg-red-500/20 rounded-full animate-ping" />
