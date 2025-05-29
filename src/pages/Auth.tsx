@@ -31,8 +31,7 @@ type SignInData = z.infer<typeof signInSchema>;
 const Auth = () => {
   const [isSignUp, setIsSignUp] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const { signUp, signIn, user } = useAuth();
+  const { signUp, signIn, user, loading } = useAuth();
 
   const signUpForm = useForm<SignUpData>({
     resolver: zodResolver(signUpSchema),
@@ -58,7 +57,6 @@ const Auth = () => {
   }
 
   const handleSignUp = async (data: SignUpData) => {
-    setLoading(true);
     try {
       await signUp(data.email, data.password, {
         full_name: data.fullName,
@@ -66,19 +64,14 @@ const Auth = () => {
       });
     } catch (error) {
       console.error('Sign up error:', error);
-    } finally {
-      setLoading(false);
     }
   };
 
   const handleSignIn = async (data: SignInData) => {
-    setLoading(true);
     try {
       await signIn(data.email, data.password);
     } catch (error) {
       console.error('Sign in error:', error);
-    } finally {
-      setLoading(false);
     }
   };
 

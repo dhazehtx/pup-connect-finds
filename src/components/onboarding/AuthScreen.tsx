@@ -1,5 +1,6 @@
 
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import RippleButton from '@/components/ui/ripple-button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -7,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { Heart, Mail, User, Eye, EyeOff, Shield, Lock } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface AuthScreenProps {
   onSignIn: () => void;
@@ -19,8 +21,9 @@ const AuthScreen = ({ onSignIn, onGuestBrowse, onSkip }: AuthScreenProps) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [errors, setErrors] = useState<{email?: string; password?: string}>({});
-  const [isLoading, setIsLoading] = useState(false);
+  const { signIn, loading } = useAuth();
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   const validateForm = () => {
     const newErrors: {email?: string; password?: string} = {};
@@ -45,17 +48,20 @@ const AuthScreen = ({ onSignIn, onGuestBrowse, onSkip }: AuthScreenProps) => {
     e.preventDefault();
     if (!validateForm()) return;
     
-    setIsLoading(true);
-    
-    // Simulate API call
-    setTimeout(() => {
-      setIsLoading(false);
-      toast({
-        title: "Success! 🎉",
-        description: "Welcome to MY PUP! You're all set.",
-      });
+    try {
+      await signIn(email, password);
       onSignIn();
-    }, 1500);
+    } catch (error) {
+      console.error('Sign in error:', error);
+    }
+  };
+
+  const handleGuestBrowse = () => {
+    onGuestBrowse();
+  };
+
+  const handleGoToFullAuth = () => {
+    navigate('/auth');
   };
 
   return (
@@ -81,7 +87,6 @@ const AuthScreen = ({ onSignIn, onGuestBrowse, onSkip }: AuthScreenProps) => {
           <CardTitle className="text-2xl font-bold text-deep-navy">Welcome to MY PUP</CardTitle>
           <p className="text-deep-navy/70">Join our community of dog lovers</p>
           
-          {/* Security indicator */}
           <div className="flex items-center justify-center gap-2 mt-2 text-xs text-deep-navy/60">
             <Shield size={12} />
             <span>Your data is secure and encrypted</span>
@@ -89,7 +94,6 @@ const AuthScreen = ({ onSignIn, onGuestBrowse, onSkip }: AuthScreenProps) => {
         </CardHeader>
         
         <CardContent className="space-y-4">
-          {/* Social Login Options */}
           <div className="space-y-3">
             <RippleButton
               onClick={() => {
@@ -99,6 +103,7 @@ const AuthScreen = ({ onSignIn, onGuestBrowse, onSkip }: AuthScreenProps) => {
                 });
               }}
               className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+              disabled={loading}
             >
               <Mail size={18} className="mr-2" />
               Continue with Google
@@ -113,6 +118,7 @@ const AuthScreen = ({ onSignIn, onGuestBrowse, onSkip }: AuthScreenProps) => {
               }}
               variant="outline"
               className="w-full border-gray-300 text-deep-navy hover:bg-gray-50"
+              disabled={loading}
             >
               <User size={18} className="mr-2" />
               Continue with Facebook
@@ -126,7 +132,6 @@ const AuthScreen = ({ onSignIn, onGuestBrowse, onSkip }: AuthScreenProps) => {
             </span>
           </div>
 
-          {/* Email/Password Form */}
           <form onSubmit={handleSubmit} className="space-y-3">
             <div>
               <Label htmlFor="email" className="text-deep-navy">Email</Label>
@@ -137,7 +142,7 @@ const AuthScreen = ({ onSignIn, onGuestBrowse, onSkip }: AuthScreenProps) => {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className={`mt-1 ${errors.email ? 'border-red-500' : ''}`}
-                disabled={isLoading}
+                disabled={loading}
               />
               {errors.email && (
                 <p className="text-red-500 text-xs mt-1">{errors.email}</p>
@@ -154,13 +159,13 @@ const AuthScreen = ({ onSignIn, onGuestBrowse, onSkip }: AuthScreenProps) => {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className={`mt-1 pr-10 ${errors.password ? 'border-red-500' : ''}`}
-                  disabled={isLoading}
+                  disabled={loading}
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
-                  disabled={isLoading}
+                  disabled={loading}
                 >
                   {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
@@ -172,10 +177,10 @@ const AuthScreen = ({ onSignIn, onGuestBrowse, onSkip }: AuthScreenProps) => {
 
             <RippleButton
               type="submit"
-              disabled={isLoading}
+              disabled={loading}
               className="w-full bg-royal-blue hover:bg-royal-blue/90 text-cloud-white disabled:opacity-50"
             >
-              {isLoading ? (
+              {loading ? (
                 <>
                   <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2" />
                   Signing In...
@@ -189,6 +194,17 @@ const AuthScreen = ({ onSignIn, onGuestBrowse, onSkip }: AuthScreenProps) => {
             </RippleButton>
           </form>
 
+          <div className="text-center">
+            <RippleButton
+              onClick={handleGoToFullAuth}
+              variant="ghost"
+              className="text-sm text-royal-blue hover:bg-royal-blue/10"
+              disabled={loading}
+            >
+              Need to create an account? Sign up here
+            </RippleButton>
+          </div>
+
           <div className="relative">
             <Separator className="my-4" />
             <span className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-cloud-white px-2 text-sm text-deep-navy/60">
@@ -196,12 +212,11 @@ const AuthScreen = ({ onSignIn, onGuestBrowse, onSkip }: AuthScreenProps) => {
             </span>
           </div>
 
-          {/* Guest Browse Option */}
           <RippleButton
-            onClick={onGuestBrowse}
+            onClick={handleGuestBrowse}
             variant="ghost"
             className="w-full text-royal-blue hover:bg-royal-blue/10"
-            disabled={isLoading}
+            disabled={loading}
           >
             Continue as Guest
           </RippleButton>

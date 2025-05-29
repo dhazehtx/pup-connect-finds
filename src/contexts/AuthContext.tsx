@@ -20,9 +20,10 @@ export const useAuth = () => {
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const authState = useAuthState();
 
-  // Legacy support for guest mode
   const continueAsGuest = () => {
     localStorage.setItem('guestMode', 'true');
+    // Force a page reload to update the auth state
+    window.location.reload();
   };
 
   const isGuest = localStorage.getItem('guestMode') === 'true' && !authState.user;

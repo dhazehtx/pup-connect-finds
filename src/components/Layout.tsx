@@ -18,9 +18,11 @@ const Layout = ({ children }: LayoutProps) => {
   const location = useLocation();
 
   useEffect(() => {
-    // Show onboarding if user hasn't seen it and isn't logged in
+    // Show onboarding if user hasn't seen it and isn't logged in or guest
     if (!loading && !user && !isGuest && !hasSeenOnboarding) {
       setShowOnboarding(true);
+    } else {
+      setShowOnboarding(false);
     }
   }, [loading, user, isGuest, hasSeenOnboarding]);
 
