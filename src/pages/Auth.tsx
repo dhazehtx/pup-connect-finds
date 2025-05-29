@@ -50,12 +50,20 @@ const Auth = () => {
     },
   });
 
+  // Debug logging
+  console.log('Auth form values:', {
+    isSignUp,
+    signUpValues: signUpForm.watch(),
+    loading,
+  });
+
   // Redirect if user is already logged in
   if (user) {
     return <Navigate to="/" replace />;
   }
 
   const handleSignUp = async (data: SignUpData) => {
+    console.log('Sign up data:', data);
     try {
       await signUp(data.email, data.password, {
         full_name: data.fullName,
@@ -67,6 +75,7 @@ const Auth = () => {
   };
 
   const handleSignIn = async (data: SignInData) => {
+    console.log('Sign in data:', data);
     try {
       await signIn(data.email, data.password);
     } catch (error) {
@@ -106,7 +115,14 @@ const Auth = () => {
                         <Input
                           placeholder="Enter your full name"
                           disabled={loading}
-                          {...field}
+                          value={field.value}
+                          onChange={(e) => {
+                            console.log('Full name changing to:', e.target.value);
+                            field.onChange(e);
+                          }}
+                          onBlur={field.onBlur}
+                          name={field.name}
+                          ref={field.ref}
                         />
                       </FormControl>
                       <FormMessage />
@@ -124,7 +140,14 @@ const Auth = () => {
                         <Input
                           placeholder="Choose a username"
                           disabled={loading}
-                          {...field}
+                          value={field.value}
+                          onChange={(e) => {
+                            console.log('Username changing to:', e.target.value);
+                            field.onChange(e);
+                          }}
+                          onBlur={field.onBlur}
+                          name={field.name}
+                          ref={field.ref}
                         />
                       </FormControl>
                       <FormMessage />
