@@ -37,7 +37,10 @@ export const useRealtime = ({ onUpdate, interval = 5000, enabled = true }: UseRe
 export const useRealtimeMessages = (conversationId: string, onNewMessage?: (message?: any) => void) => {
   const { user } = useAuth();
 
-  console.log('Setting up message polling for conversation:', conversationId);
+  // Only set up polling for real conversations (not demo ones) when user is authenticated
+  const isRealConversation = !conversationId.startsWith('demo-') && !!user;
+  
+  console.log('Setting up message polling for conversation:', conversationId, 'isReal:', isRealConversation);
 
   return useRealtime({
     onUpdate: async () => {
@@ -47,7 +50,7 @@ export const useRealtimeMessages = (conversationId: string, onNewMessage?: (mess
       }
     },
     interval: 3000, // Poll every 3 seconds for messages
-    enabled: !!conversationId && !!user
+    enabled: isRealConversation // Only poll real conversations
   });
 };
 

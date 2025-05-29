@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import ChatInterface from '@/components/messaging/ChatInterface';
 import ConversationsList from '@/components/messaging/ConversationsList';
+import RealtimeChat from '@/components/messaging/RealtimeChat';
 import { useMessaging } from '@/hooks/useMessaging';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -87,21 +88,42 @@ const Messages = () => {
   const selectedConversation = displayConversations.find(conv => conv.id === selectedConversationId);
 
   if (selectedConversationId && selectedConversation) {
+    const isDemoConversation = selectedConversationId.startsWith('demo-');
+    
     return (
       <div className="max-w-md mx-auto bg-white min-h-screen">
         <div className="h-screen">
-          <ChatInterface
-            conversationId={selectedConversation.id}
-            recipientName={selectedConversation.other_user?.full_name || selectedConversation.other_user?.username || 'Unknown User'}
-            recipientAvatar={selectedConversation.other_user?.avatar_url || '/placeholder.svg'}
-            isOnline={false}
-            onBack={() => setSelectedConversationId(null)}
-            listingInfo={selectedConversation.listing ? {
-              name: selectedConversation.listing.dog_name,
-              breed: selectedConversation.listing.breed,
-              image: selectedConversation.listing.image_url
-            } : undefined}
-          />
+          {isDemoConversation ? (
+            // For demo conversations, don't use RealtimeChat wrapper (no polling)
+            <ChatInterface
+              conversationId={selectedConversation.id}
+              recipientName={selectedConversation.other_user?.full_name || selectedConversation.other_user?.username || 'Unknown User'}
+              recipientAvatar={selectedConversation.other_user?.avatar_url || '/placeholder.svg'}
+              isOnline={false}
+              onBack={() => setSelectedConversationId(null)}
+              listingInfo={selectedConversation.listing ? {
+                name: selectedConversation.listing.dog_name,
+                breed: selectedConversation.listing.breed,
+                image: selectedConversation.listing.image_url
+              } : undefined}
+            />
+          ) : (
+            // For real conversations, use RealtimeChat wrapper (with polling)
+            <RealtimeChat conversationId={selectedConversation.id}>
+              <ChatInterface
+                conversationId={selectedConversation.id}
+                recipientName={selectedConversation.other_user?.full_name || selectedConversation.other_user?.username || 'Unknown User'}
+                recipientAvatar={selectedConversation.other_user?.avatar_url || '/placeholder.svg'}
+                isOnline={false}
+                onBack={() => setSelectedConversationId(null)}
+                listingInfo={selectedConversation.listing ? {
+                  name: selectedConversation.listing.dog_name,
+                  breed: selectedConversation.listing.breed,
+                  image: selectedConversation.listing.image_url
+                } : undefined}
+              />
+            </RealtimeChat>
+          )}
         </div>
       </div>
     );
@@ -122,7 +144,7 @@ const Messages = () => {
         {!user && (
           <div className="mb-4 p-3 bg-blue-50 rounded-lg">
             <p className="text-sm text-blue-700">
-              <strong>Demo Mode:</strong> Showing sample conversations for design preview
+              <strong>Demo Mode:</strong> Showing sample conversations with mock messages for design preview
             </p>
           </div>
         )}
