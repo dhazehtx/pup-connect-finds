@@ -37,8 +37,8 @@ const Input = React.forwardRef<HTMLInputElement, React.ComponentProps<"input">>(
           fontFamily: 'system-ui, -apple-system, sans-serif !important',
           WebkitTextFillColor: '#000000 !important',
           WebkitBackgroundClip: 'initial !important',
-          WebkitAppearance: 'none !important',
-          appearance: 'none !important',
+          WebkitAppearance: 'none',
+          appearance: 'none',
           outline: 'none !important'
         }}
         ref={ref}
