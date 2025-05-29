@@ -17,10 +17,13 @@ export const useRealtime = ({ table, event = '*', filter, onUpdate }: UseRealtim
   useEffect(() => {
     if (!user) return;
 
-    const channel = supabase
-      .channel(`realtime-${table}`)
+    const channelName = `realtime-${table}-${Date.now()}`;
+    const channel = supabase.channel(channelName);
+
+    // Subscribe to database changes
+    channel
       .on(
-        'postgres_changes',
+        'postgres_changes' as any,
         {
           event,
           schema: 'public',
