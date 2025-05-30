@@ -234,19 +234,19 @@ const ProfileEditDialog = ({ profile, isOpen, onClose }: ProfileEditDialogProps)
               />
             )}
 
-            <div className="flex gap-2 pt-4">
+            <div className="flex flex-col sm:flex-row gap-3 pt-6">
               <Button 
                 type="button" 
                 variant="outline" 
                 onClick={onClose}
-                className="flex-1"
+                className="w-full sm:flex-1"
                 disabled={isLoading}
               >
                 Cancel
               </Button>
               <Button 
                 type="submit" 
-                className="flex-1"
+                className="w-full sm:flex-1 bg-blue-600 hover:bg-blue-700 text-white"
                 disabled={isLoading}
               >
                 {isLoading ? 'Saving...' : 'Save Changes'}
