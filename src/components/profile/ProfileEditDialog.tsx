@@ -77,9 +77,9 @@ const ProfileEditDialog = ({ profile, isOpen, onClose }: ProfileEditDialogProps)
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto text-black">
         <DialogHeader>
-          <DialogTitle>Edit Profile</DialogTitle>
+          <DialogTitle className="text-black">Edit Profile</DialogTitle>
         </DialogHeader>
         
         <Form {...form}>
@@ -89,7 +89,7 @@ const ProfileEditDialog = ({ profile, isOpen, onClose }: ProfileEditDialogProps)
               name="avatarUrl"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Profile Picture</FormLabel>
+                  <FormLabel className="text-black">Profile Picture</FormLabel>
                   <FormControl>
                     <AvatarUpload
                       currentAvatar={field.value}
@@ -107,9 +107,13 @@ const ProfileEditDialog = ({ profile, isOpen, onClose }: ProfileEditDialogProps)
               name="fullName"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Full Name</FormLabel>
+                  <FormLabel className="text-black">Full Name</FormLabel>
                   <FormControl>
-                    <Input placeholder="Enter your full name" {...field} />
+                    <Input 
+                      placeholder="Enter your full name" 
+                      className="text-black border-gray-300" 
+                      {...field} 
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -121,9 +125,13 @@ const ProfileEditDialog = ({ profile, isOpen, onClose }: ProfileEditDialogProps)
               name="username"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Username</FormLabel>
+                  <FormLabel className="text-black">Username</FormLabel>
                   <FormControl>
-                    <Input placeholder="Enter your username" {...field} />
+                    <Input 
+                      placeholder="Enter your username" 
+                      className="text-black border-gray-300" 
+                      {...field} 
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -135,10 +143,10 @@ const ProfileEditDialog = ({ profile, isOpen, onClose }: ProfileEditDialogProps)
               name="userType"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>User Type</FormLabel>
+                  <FormLabel className="text-black">User Type</FormLabel>
                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
-                      <SelectTrigger>
+                      <SelectTrigger className="text-black border-gray-300">
                         <SelectValue placeholder="Select user type" />
                       </SelectTrigger>
                     </FormControl>
@@ -158,11 +166,11 @@ const ProfileEditDialog = ({ profile, isOpen, onClose }: ProfileEditDialogProps)
               name="bio"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Bio</FormLabel>
+                  <FormLabel className="text-black">Bio</FormLabel>
                   <FormControl>
                     <Textarea 
                       placeholder="Tell us about yourself..." 
-                      className="resize-none" 
+                      className="resize-none text-black border-gray-300" 
                       {...field} 
                     />
                   </FormControl>
@@ -176,9 +184,13 @@ const ProfileEditDialog = ({ profile, isOpen, onClose }: ProfileEditDialogProps)
               name="location"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Location</FormLabel>
+                  <FormLabel className="text-black">Location</FormLabel>
                   <FormControl>
-                    <Input placeholder="City, State" {...field} />
+                    <Input 
+                      placeholder="City, State" 
+                      className="text-black border-gray-300" 
+                      {...field} 
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -190,9 +202,13 @@ const ProfileEditDialog = ({ profile, isOpen, onClose }: ProfileEditDialogProps)
               name="phone"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Phone</FormLabel>
+                  <FormLabel className="text-black">Phone</FormLabel>
                   <FormControl>
-                    <Input placeholder="(555) 123-4567" {...field} />
+                    <Input 
+                      placeholder="(555) 123-4567" 
+                      className="text-black border-gray-300" 
+                      {...field} 
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -204,9 +220,13 @@ const ProfileEditDialog = ({ profile, isOpen, onClose }: ProfileEditDialogProps)
               name="websiteUrl"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Website</FormLabel>
+                  <FormLabel className="text-black">Website</FormLabel>
                   <FormControl>
-                    <Input placeholder="https://yourwebsite.com" {...field} />
+                    <Input 
+                      placeholder="https://yourwebsite.com" 
+                      className="text-black border-gray-300" 
+                      {...field} 
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -219,11 +239,12 @@ const ProfileEditDialog = ({ profile, isOpen, onClose }: ProfileEditDialogProps)
                 name="yearsExperience"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Years of Experience</FormLabel>
+                    <FormLabel className="text-black">Years of Experience</FormLabel>
                     <FormControl>
                       <Input 
                         type="number" 
                         placeholder="0" 
+                        className="text-black border-gray-300"
                         {...field} 
                         onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
                       />
