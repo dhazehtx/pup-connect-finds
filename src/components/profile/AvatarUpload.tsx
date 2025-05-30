@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Camera, User, Upload, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import { useFileUpload } from '@/hooks/useFileUpload';
+import { useImageUpload } from '@/hooks/useImageUpload';
 import { cn } from '@/lib/utils';
 
 interface AvatarUploadProps {
@@ -14,15 +14,24 @@ interface AvatarUploadProps {
 
 const AvatarUpload = ({ currentAvatar, onAvatarChange, userName }: AvatarUploadProps) => {
   const [dragActive, setDragActive] = useState(false);
-  const { uploadFile, uploading, progress } = useFileUpload({
-    bucket: 'dog-images',
-    folder: 'avatars',
-    maxSizeBytes: 10 * 1024 * 1024, // 10MB
-    allowedTypes: ['image/jpeg', 'image/png', 'image/webp']
-  });
+  const { uploadImage, uploading, uploadProgress } = useImageUpload();
 
   const handleFile = async (file: File) => {
-    const url = await uploadFile(file);
+    // Validate file size (10MB limit)
+    if (file.size > 10 * 1024 * 1024) {
+      console.error('File too large. Maximum size is 10MB.');
+      return;
+    }
+
+    // Validate file type
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
+    if (!allowedTypes.includes(file.type)) {
+      console.error('Invalid file type. Only JPEG, PNG, and WebP are allowed.');
+      return;
+    }
+
+    const imageId = `avatar-${Date.now()}`;
+    const url = await uploadImage(file, imageId);
     if (url) {
       onAvatarChange(url);
     }
@@ -52,6 +61,11 @@ const AvatarUpload = ({ currentAvatar, onAvatarChange, userName }: AvatarUploadP
     if (e.target.files && e.target.files[0]) {
       handleFile(e.target.files[0]);
     }
+  };
+
+  const getUploadProgress = () => {
+    const imageId = `avatar-${Date.now()}`;
+    return uploadProgress[imageId] || 0;
   };
 
   return (
@@ -92,7 +106,7 @@ const AvatarUpload = ({ currentAvatar, onAvatarChange, userName }: AvatarUploadP
           {uploading ? (
             <>
               <Upload className="h-6 w-6 text-blue-500 animate-pulse" />
-              <p className="text-sm text-gray-600">Uploading... {progress}%</p>
+              <p className="text-sm text-gray-600">Uploading... {getUploadProgress()}%</p>
             </>
           ) : (
             <>
