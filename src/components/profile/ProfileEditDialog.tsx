@@ -39,22 +39,34 @@ const ProfileEditDialog = ({ profile, isOpen, onClose }: ProfileEditDialogProps)
   const form = useForm<ProfileFormData>({
     resolver: zodResolver(profileSchema),
     defaultValues: {
-      fullName: profile?.fullName || '',
+      fullName: profile?.fullName || profile?.full_name || '',
       username: profile?.username || '',
       bio: profile?.bio || '',
       location: profile?.location || '',
       phone: profile?.phone || '',
-      websiteUrl: profile?.websiteUrl || '',
-      userType: profile?.userType || 'buyer',
-      yearsExperience: profile?.yearsExperience || 0,
-      avatarUrl: profile?.avatarUrl || '',
+      websiteUrl: profile?.websiteUrl || profile?.website_url || '',
+      userType: profile?.userType || profile?.user_type || 'buyer',
+      yearsExperience: profile?.yearsExperience || profile?.years_experience || 0,
+      avatarUrl: profile?.avatarUrl || profile?.avatar_url || '',
     },
   });
 
   const onSubmit = async (data: ProfileFormData) => {
     try {
       setIsLoading(true);
-      await updateProfile(data);
+      // Convert camelCase to snake_case for database compatibility
+      const updateData = {
+        full_name: data.fullName,
+        username: data.username,
+        bio: data.bio,
+        location: data.location,
+        phone: data.phone,
+        website_url: data.websiteUrl,
+        user_type: data.userType,
+        years_experience: data.yearsExperience,
+        avatar_url: data.avatarUrl,
+      };
+      await updateProfile(updateData);
       onClose();
     } catch (error) {
       console.error('Error updating profile:', error);

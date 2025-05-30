@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { Settings, Award } from 'lucide-react';
+import { Settings } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import ProfileHeader from '@/components/profile/ProfileHeader';
 import ProfileBadges from '@/components/profile/ProfileBadges';
@@ -12,35 +12,46 @@ import ProfileEditDialog from '@/components/profile/ProfileEditDialog';
 
 const Profile = () => {
   const { userId } = useParams();
-  const { user, profile } = useAuth();
+  const { user, profile, loading } = useAuth();
   const [activeTab, setActiveTab] = useState('posts');
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   
   // Check if this is the current user's profile or another user's profile
   const isOwnProfile = !userId || userId === user?.id;
   
+  // Show loading state while fetching user data
+  if (loading) {
+    return (
+      <div className="max-w-md mx-auto bg-white min-h-screen">
+        <div className="p-4 flex items-center justify-center min-h-[400px]">
+          <div className="animate-spin rounded-full h-8 w-8 border-2 border-blue-500 border-t-transparent" />
+        </div>
+      </div>
+    );
+  }
+
   // Use current user's profile data or create a default profile structure
   const displayProfile = isOwnProfile && profile ? {
     id: profile.id,
-    name: profile.fullName || 'User',
+    name: profile.fullName || profile.full_name || 'User',
     username: profile.username ? `@${profile.username}` : '@user',
     location: profile.location || 'Location not set',
     bio: profile.bio || 'Bio not added yet',
-    avatar: profile.avatarUrl || "https://images.unsplash.com/photo-1560743173-567a3b5658b1?w=150&h=150&fit=crop&crop=face",
+    avatar: profile.avatarUrl || profile.avatar_url || "https://images.unsplash.com/photo-1560743173-567a3b5658b1?w=150&h=150&fit=crop&crop=face",
     followers: 0, // These would come from separate tables in a real app
     following: 0,
     posts: 0,
     verified: profile.verified || false,
-    isBreeder: profile.userType === 'breeder',
+    isBreeder: profile.userType === 'breeder' || profile.user_type === 'breeder',
     verificationBadges: profile.verified ? ['ID Verified'] : [],
     rating: profile.rating || 0,
-    totalReviews: profile.totalReviews || 0,
-    yearsExperience: profile.yearsExperience || 0,
+    totalReviews: profile.totalReviews || profile.total_reviews || 0,
+    yearsExperience: profile.yearsExperience || profile.years_experience || 0,
     specializations: [], // This would be a separate field
     contactInfo: {
       phone: profile.phone || '',
       email: user?.email || '',
-      website: profile.websiteUrl || ''
+      website: profile.websiteUrl || profile.website_url || ''
     },
     certifications: [] // This would be a separate field
   } : {
@@ -133,7 +144,7 @@ const Profile = () => {
       <div className="p-4">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-xl font-medium text-black">{displayProfile.username}</h1>
-          {isOwnProfile && (
+          {isOwnProfile && user && (
             <button 
               onClick={() => setIsEditDialogOpen(true)}
               className="p-2 hover:bg-gray-100 rounded-full transition-colors"
@@ -162,7 +173,7 @@ const Profile = () => {
         />
       </div>
 
-      {isEditDialogOpen && (
+      {isEditDialogOpen && profile && (
         <ProfileEditDialog 
           profile={profile}
           isOpen={isEditDialogOpen}
