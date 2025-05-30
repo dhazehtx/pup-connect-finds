@@ -239,14 +239,14 @@ const ProfileEditDialog = ({ profile, isOpen, onClose }: ProfileEditDialogProps)
                 type="button" 
                 variant="outline" 
                 onClick={onClose}
-                className="w-full sm:flex-1"
+                className="w-full sm:flex-1 border-gray-300 text-gray-700 hover:bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
                 disabled={isLoading}
               >
                 Cancel
               </Button>
               <Button 
                 type="submit" 
-                className="w-full sm:flex-1 bg-blue-600 hover:bg-blue-700 text-white"
+                className="w-full sm:flex-1 bg-blue-600 hover:bg-blue-700 text-white focus:ring-2 focus:ring-blue-500 outline-none"
                 disabled={isLoading}
               >
                 {isLoading ? 'Saving...' : 'Save Changes'}
