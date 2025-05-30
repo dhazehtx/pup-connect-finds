@@ -10,6 +10,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
+import AvatarUpload from './AvatarUpload';
 
 const profileSchema = z.object({
   fullName: z.string().min(1, 'Full name is required'),
@@ -20,6 +21,7 @@ const profileSchema = z.object({
   websiteUrl: z.string().url().optional().or(z.literal('')),
   userType: z.enum(['buyer', 'breeder', 'shelter', 'admin']),
   yearsExperience: z.number().min(0).optional(),
+  avatarUrl: z.string().optional(),
 });
 
 type ProfileFormData = z.infer<typeof profileSchema>;
@@ -45,6 +47,7 @@ const ProfileEditDialog = ({ profile, isOpen, onClose }: ProfileEditDialogProps)
       websiteUrl: profile?.websiteUrl || '',
       userType: profile?.userType || 'buyer',
       yearsExperience: profile?.yearsExperience || 0,
+      avatarUrl: profile?.avatarUrl || '',
     },
   });
 
@@ -69,6 +72,24 @@ const ProfileEditDialog = ({ profile, isOpen, onClose }: ProfileEditDialogProps)
         
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <FormField
+              control={form.control}
+              name="avatarUrl"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Profile Picture</FormLabel>
+                  <FormControl>
+                    <AvatarUpload
+                      currentAvatar={field.value}
+                      onAvatarChange={field.onChange}
+                      userName={form.watch('fullName')}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
             <FormField
               control={form.control}
               name="fullName"
