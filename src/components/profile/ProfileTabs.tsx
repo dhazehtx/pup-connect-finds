@@ -27,10 +27,10 @@ const ProfileTabs = ({ activeTab, setActiveTab, posts, reviews, analyticsCompone
       <div className="flex gap-2 mb-4">
         <button
           onClick={() => setActiveTab('posts')}
-          className={`flex-1 flex flex-col items-center py-3 text-sm ${
+          className={`flex-1 flex flex-col items-center py-3 text-sm font-medium transition-colors ${
             activeTab === 'posts' 
-              ? 'text-black' 
-              : 'text-gray-400'
+              ? 'text-black border-b-2 border-black' 
+              : 'text-gray-400 hover:text-gray-600'
           }`}
         >
           <Grid size={20} className="mb-1" />
@@ -38,10 +38,10 @@ const ProfileTabs = ({ activeTab, setActiveTab, posts, reviews, analyticsCompone
         </button>
         <button
           onClick={() => setActiveTab('reviews')}
-          className={`flex-1 flex flex-col items-center py-3 text-sm ${
+          className={`flex-1 flex flex-col items-center py-3 text-sm font-medium transition-colors ${
             activeTab === 'reviews' 
-              ? 'text-black' 
-              : 'text-gray-400'
+              ? 'text-black border-b-2 border-black' 
+              : 'text-gray-400 hover:text-gray-600'
           }`}
         >
           <MessageSquare size={20} className="mb-1" />
