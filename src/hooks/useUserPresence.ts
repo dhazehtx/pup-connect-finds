@@ -57,10 +57,14 @@ export const useUserPresence = (channelName: string = 'global-presence') => {
         const users: UserPresence[] = [];
         
         Object.entries(state).forEach(([key, presences]) => {
-          const typedPresences = presences as UserPresence[];
+          // Type assertion since we know the structure of our tracked data
+          const typedPresences = presences as unknown as UserPresence[];
           transformedState[key] = typedPresences;
           typedPresences.forEach((presence) => {
-            users.push(presence);
+            // Ensure the presence has all required UserPresence properties
+            if (presence.user_id && presence.online_at && presence.status) {
+              users.push(presence);
+            }
           });
         });
         
