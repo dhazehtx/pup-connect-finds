@@ -1,0 +1,87 @@
+
+{
+  "common": {
+    "loading": "Loading...",
+    "error": "Error",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "view": "View",
+    "search": "Search",
+    "filter": "Filter",
+    "clear": "Clear",
+    "submit": "Submit",
+    "back": "Back",
+    "next": "Next",
+    "previous": "Previous"
+  },
+  "navigation": {
+    "home": "Home",
+    "explore": "Explore",
+    "messages": "Messages",
+    "favorites": "Favorites",
+    "profile": "Profile",
+    "settings": "Settings",
+    "help": "Help"
+  },
+  "auth": {
+    "signIn": "Sign In",
+    "signUp": "Sign Up",
+    "signOut": "Sign Out",
+    "email": "Email",
+    "password": "Password",
+    "confirmPassword": "Confirm Password",
+    "forgotPassword": "Forgot Password?",
+    "welcomeBack": "Welcome Back",
+    "joinMyPup": "Join MY PUP",
+    "createAccount": "Create your account to start finding your perfect pup",
+    "signInToAccount": "Sign in to your account"
+  },
+  "listings": {
+    "title": "Find Your Perfect Pup",
+    "noResults": "No puppies found",
+    "noResultsDescription": "It looks like there are no puppies available right now, but new listings are added daily!",
+    "clearFilters": "Clear All Filters",
+    "price": "Price",
+    "breed": "Breed",
+    "age": "Age",
+    "gender": "Gender",
+    "location": "Location",
+    "distance": "Distance",
+    "verified": "Verified",
+    "available": "Available",
+    "contact": "Contact",
+    "favorite": "Favorite",
+    "viewDetails": "View Details"
+  },
+  "profile": {
+    "basicInfo": "Basic Info",
+    "socialMedia": "Social Media",
+    "privacy": "Privacy",
+    "verification": "Verification",
+    "analytics": "Analytics",
+    "editProfile": "Edit Profile",
+    "saveChanges": "Save Changes",
+    "profilePicture": "Profile Picture",
+    "fullName": "Full Name",
+    "username": "Username",
+    "bio": "Bio",
+    "phone": "Phone",
+    "website": "Website"
+  },
+  "messaging": {
+    "conversations": "Conversations",
+    "typeMessage": "Type a message...",
+    "sendMessage": "Send Message",
+    "imageMessage": "Image",
+    "noConversations": "No conversations yet",
+    "startConversation": "Start a conversation to connect with breeders and other dog lovers!"
+  },
+  "language": {
+    "english": "English",
+    "spanish": "Español",
+    "french": "Français",
+    "selectLanguage": "Select Language"
+  }
+}

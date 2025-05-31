@@ -1,0 +1,87 @@
+
+{
+  "common": {
+    "loading": "Chargement...",
+    "error": "Erreur",
+    "save": "Enregistrer",
+    "cancel": "Annuler",
+    "delete": "Supprimer",
+    "edit": "Modifier",
+    "view": "Voir",
+    "search": "Rechercher",
+    "filter": "Filtrer",
+    "clear": "Effacer",
+    "submit": "Soumettre",
+    "back": "Retour",
+    "next": "Suivant",
+    "previous": "Précédent"
+  },
+  "navigation": {
+    "home": "Accueil",
+    "explore": "Explorer",
+    "messages": "Messages",
+    "favorites": "Favoris",
+    "profile": "Profil",
+    "settings": "Paramètres",
+    "help": "Aide"
+  },
+  "auth": {
+    "signIn": "Se Connecter",
+    "signUp": "S'inscrire",
+    "signOut": "Se Déconnecter",
+    "email": "Email",
+    "password": "Mot de Passe",
+    "confirmPassword": "Confirmer le Mot de Passe",
+    "forgotPassword": "Mot de passe oublié?",
+    "welcomeBack": "Bon Retour",
+    "joinMyPup": "Rejoindre MY PUP",
+    "createAccount": "Créez votre compte pour commencer à trouver votre chiot parfait",
+    "signInToAccount": "Connectez-vous à votre compte"
+  },
+  "listings": {
+    "title": "Trouvez Votre Chiot Parfait",
+    "noResults": "Aucun chiot trouvé",
+    "noResultsDescription": "Il semble qu'il n'y ait pas de chiots disponibles en ce moment, mais de nouvelles annonces sont ajoutées quotidiennement!",
+    "clearFilters": "Effacer Tous les Filtres",
+    "price": "Prix",
+    "breed": "Race",
+    "age": "Âge",
+    "gender": "Genre",
+    "location": "Emplacement",
+    "distance": "Distance",
+    "verified": "Vérifié",
+    "available": "Disponible",
+    "contact": "Contacter",
+    "favorite": "Favori",
+    "viewDetails": "Voir les Détails"
+  },
+  "profile": {
+    "basicInfo": "Informations de Base",
+    "socialMedia": "Réseaux Sociaux",
+    "privacy": "Confidentialité",
+    "verification": "Vérification",
+    "analytics": "Analyses",
+    "editProfile": "Modifier le Profil",
+    "saveChanges": "Enregistrer les Modifications",
+    "profilePicture": "Photo de Profil",
+    "fullName": "Nom Complet",
+    "username": "Nom d'Utilisateur",
+    "bio": "Biographie",
+    "phone": "Téléphone",
+    "website": "Site Web"
+  },
+  "messaging": {
+    "conversations": "Conversations",
+    "typeMessage": "Tapez un message...",
+    "sendMessage": "Envoyer un Message",
+    "imageMessage": "Image",
+    "noConversations": "Pas encore de conversations",
+    "startConversation": "Commencez une conversation pour vous connecter avec des éleveurs et d'autres amoureux des chiens!"
+  },
+  "language": {
+    "english": "English",
+    "spanish": "Español",
+    "french": "Français",
+    "selectLanguage": "Sélectionner la Langue"
+  }
+}

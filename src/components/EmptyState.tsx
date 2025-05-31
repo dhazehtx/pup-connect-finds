@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Search, Filter, Heart, MapPin, PlusCircle } from 'lucide-react';
 import RippleButton from '@/components/ui/ripple-button';
 import EmptyStateComponent from '@/components/ui/empty-state';
@@ -10,6 +11,8 @@ interface EmptyStateProps {
 }
 
 const EmptyState = ({ onClearFilters, hasActiveFilters }: EmptyStateProps) => {
+  const { t } = useTranslation();
+
   const suggestions = [
     { 
       icon: <MapPin className="w-4 h-4 text-royal-blue" />, 
@@ -29,10 +32,10 @@ const EmptyState = ({ onClearFilters, hasActiveFilters }: EmptyStateProps) => {
     return (
       <EmptyStateComponent
         icon={<Search className="w-8 h-8 text-royal-blue" />}
-        title="No puppies match your criteria"
+        title={t('listings.noResults')}
         description="Don't worry! Try adjusting your search to find your perfect pup."
         actionButton={{
-          text: 'Clear All Filters',
+          text: t('listings.clearFilters'),
           onClick: onClearFilters,
           variant: 'default'
         }}
@@ -44,8 +47,8 @@ const EmptyState = ({ onClearFilters, hasActiveFilters }: EmptyStateProps) => {
   return (
     <EmptyStateComponent
       icon={<Search className="w-8 h-8 text-royal-blue" />}
-      title="No puppies found"
-      description="It looks like there are no puppies available right now, but new listings are added daily!"
+      title={t('listings.noResults')}
+      description={t('listings.noResultsDescription')}
       actionButton={{
         text: 'Create Search Alert',
         onClick: () => {/* TODO: Implement search alerts */},

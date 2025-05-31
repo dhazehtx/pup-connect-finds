@@ -1,5 +1,5 @@
-
 import React, { useState, useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Send, Image, Paperclip } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -16,6 +16,7 @@ interface EnhancedChatInterfaceProps {
 }
 
 const EnhancedChatInterface = ({ conversationId, otherUserId, listingId }: EnhancedChatInterfaceProps) => {
+  const { t } = useTranslation();
   const [newMessage, setNewMessage] = useState('');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -62,7 +63,7 @@ const EnhancedChatInterface = ({ conversationId, otherUserId, listingId }: Enhan
     // Send message
     await sendMessage(
       conversationId,
-      newMessage.trim() || (selectedFile ? 'Image' : ''),
+      newMessage.trim() || (selectedFile ? t('messaging.imageMessage') : ''),
       selectedFile ? 'image' : 'text',
       imageUrl
     );
@@ -178,7 +179,7 @@ const EnhancedChatInterface = ({ conversationId, otherUserId, listingId }: Enhan
             value={newMessage}
             onChange={(e) => setNewMessage(e.target.value)}
             onKeyPress={handleKeyPress}
-            placeholder="Type a message..."
+            placeholder={t('messaging.typeMessage')}
             className="flex-1"
             disabled={uploading}
           />

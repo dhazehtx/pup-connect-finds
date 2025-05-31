@@ -1,0 +1,87 @@
+
+{
+  "common": {
+    "loading": "Cargando...",
+    "error": "Error",
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "delete": "Eliminar",
+    "edit": "Editar",
+    "view": "Ver",
+    "search": "Buscar",
+    "filter": "Filtrar",
+    "clear": "Limpiar",
+    "submit": "Enviar",
+    "back": "Atrás",
+    "next": "Siguiente",
+    "previous": "Anterior"
+  },
+  "navigation": {
+    "home": "Inicio",
+    "explore": "Explorar",
+    "messages": "Mensajes",
+    "favorites": "Favoritos",
+    "profile": "Perfil",
+    "settings": "Configuración",
+    "help": "Ayuda"
+  },
+  "auth": {
+    "signIn": "Iniciar Sesión",
+    "signUp": "Registrarse",
+    "signOut": "Cerrar Sesión",
+    "email": "Correo Electrónico",
+    "password": "Contraseña",
+    "confirmPassword": "Confirmar Contraseña",
+    "forgotPassword": "¿Olvidaste tu contraseña?",
+    "welcomeBack": "Bienvenido de Nuevo",
+    "joinMyPup": "Únete a MY PUP",
+    "createAccount": "Crea tu cuenta para empezar a encontrar tu cachorro perfecto",
+    "signInToAccount": "Inicia sesión en tu cuenta"
+  },
+  "listings": {
+    "title": "Encuentra Tu Cachorro Perfecto",
+    "noResults": "No se encontraron cachorros",
+    "noResultsDescription": "¡Parece que no hay cachorros disponibles ahora mismo, pero se agregan nuevos anuncios diariamente!",
+    "clearFilters": "Limpiar Todos los Filtros",
+    "price": "Precio",
+    "breed": "Raza",
+    "age": "Edad",
+    "gender": "Género",
+    "location": "Ubicación",
+    "distance": "Distancia",
+    "verified": "Verificado",
+    "available": "Disponible",
+    "contact": "Contactar",
+    "favorite": "Favorito",
+    "viewDetails": "Ver Detalles"
+  },
+  "profile": {
+    "basicInfo": "Información Básica",
+    "socialMedia": "Redes Sociales",
+    "privacy": "Privacidad",
+    "verification": "Verificación",
+    "analytics": "Analíticas",
+    "editProfile": "Editar Perfil",
+    "saveChanges": "Guardar Cambios",
+    "profilePicture": "Foto de Perfil",
+    "fullName": "Nombre Completo",
+    "username": "Nombre de Usuario",
+    "bio": "Biografía",
+    "phone": "Teléfono",
+    "website": "Sitio Web"
+  },
+  "messaging": {
+    "conversations": "Conversaciones",
+    "typeMessage": "Escribe un mensaje...",
+    "sendMessage": "Enviar Mensaje",
+    "imageMessage": "Imagen",
+    "noConversations": "Aún no hay conversaciones",
+    "startConversation": "¡Inicia una conversación para conectar con criadores y otros amantes de los perros!"
+  },
+  "language": {
+    "english": "English",
+    "spanish": "Español",
+    "french": "Français",
+    "selectLanguage": "Seleccionar Idioma"
+  }
+}
