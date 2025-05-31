@@ -170,6 +170,57 @@ export type Database = {
           },
         ]
       }
+      notifications: {
+        Row: {
+          created_at: string
+          id: string
+          is_read: boolean
+          message: string
+          related_id: string | null
+          sender_id: string | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          message: string
+          related_id?: string | null
+          sender_id?: string | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          message?: string
+          related_id?: string | null
+          sender_id?: string | null
+          title?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_sender_id_fkey"
+            columns: ["sender_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notifications_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -180,7 +231,9 @@ export type Database = {
           id: string
           location: string | null
           phone: string | null
+          privacy_settings: Json | null
           rating: number | null
+          social_links: Json | null
           total_reviews: number | null
           updated_at: string | null
           user_type: Database["public"]["Enums"]["user_type"] | null
@@ -198,7 +251,9 @@ export type Database = {
           id: string
           location?: string | null
           phone?: string | null
+          privacy_settings?: Json | null
           rating?: number | null
+          social_links?: Json | null
           total_reviews?: number | null
           updated_at?: string | null
           user_type?: Database["public"]["Enums"]["user_type"] | null
@@ -216,7 +271,9 @@ export type Database = {
           id?: string
           location?: string | null
           phone?: string | null
+          privacy_settings?: Json | null
           rating?: number | null
+          social_links?: Json | null
           total_reviews?: number | null
           updated_at?: string | null
           user_type?: Database["public"]["Enums"]["user_type"] | null
@@ -299,6 +356,75 @@ export type Database = {
             columns: ["listing_id"]
             isOneToOne: false
             referencedRelation: "dog_listings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      verification_requests: {
+        Row: {
+          address_proof: string | null
+          business_license: string | null
+          contact_verification: Json | null
+          created_at: string
+          experience_details: string | null
+          id: string
+          id_document: string | null
+          rejection_reason: string | null
+          reviewed_at: string | null
+          reviewer_id: string | null
+          status: string
+          submitted_at: string
+          updated_at: string
+          user_id: string
+          verification_type: string
+        }
+        Insert: {
+          address_proof?: string | null
+          business_license?: string | null
+          contact_verification?: Json | null
+          created_at?: string
+          experience_details?: string | null
+          id?: string
+          id_document?: string | null
+          rejection_reason?: string | null
+          reviewed_at?: string | null
+          reviewer_id?: string | null
+          status?: string
+          submitted_at?: string
+          updated_at?: string
+          user_id: string
+          verification_type: string
+        }
+        Update: {
+          address_proof?: string | null
+          business_license?: string | null
+          contact_verification?: Json | null
+          created_at?: string
+          experience_details?: string | null
+          id?: string
+          id_document?: string | null
+          rejection_reason?: string | null
+          reviewed_at?: string | null
+          reviewer_id?: string | null
+          status?: string
+          submitted_at?: string
+          updated_at?: string
+          user_id?: string
+          verification_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "verification_requests_reviewer_id_fkey"
+            columns: ["reviewer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "verification_requests_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
