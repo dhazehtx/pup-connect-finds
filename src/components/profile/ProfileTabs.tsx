@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Grid, MessageSquare, BarChart3 } from 'lucide-react';
@@ -27,22 +26,16 @@ const ProfileTabs = ({ activeTab, setActiveTab, posts, reviews, analyticsCompone
       <div className="flex gap-2 mb-4">
         <Button
           onClick={() => setActiveTab('posts')}
-          className={`flex-1 ${
-            activeTab === 'posts'
-              ? 'bg-blue-500 text-white'
-              : 'bg-blue-500 text-white'
-          }`}
+          variant={activeTab === 'posts' ? 'default' : 'outline'}
+          className="flex-1"
         >
           <Grid size={16} className="mr-2" />
           Posts
         </Button>
         <Button
           onClick={() => setActiveTab('reviews')}
-          className={`flex-1 ${
-            activeTab === 'reviews'
-              ? 'bg-blue-500 text-white'
-              : 'bg-blue-500 text-white'
-          }`}
+          variant={activeTab === 'reviews' ? 'default' : 'outline'}
+          className="flex-1"
         >
           <MessageSquare size={16} className="mr-2" />
           Reviews
@@ -50,11 +43,8 @@ const ProfileTabs = ({ activeTab, setActiveTab, posts, reviews, analyticsCompone
         {analyticsComponent && (
           <Button
             onClick={() => setActiveTab('analytics')}
-            className={`flex-1 ${
-              activeTab === 'analytics'
-                ? 'bg-blue-500 text-white'
-                : 'bg-blue-500 text-white'
-            }`}
+            variant={activeTab === 'analytics' ? 'default' : 'outline'}
+            className="flex-1"
           >
             <BarChart3 size={16} className="mr-2" />
             Analytics
