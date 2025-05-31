@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Grid, MessageSquare, BarChart3 } from 'lucide-react';
@@ -25,7 +26,7 @@ const ProfileTabs = ({ activeTab, setActiveTab, posts, reviews, analyticsCompone
       <div className="flex gap-2 mb-4">
         <button
           onClick={() => setActiveTab('posts')}
-          className={`flex items-center gap-2 px-4 py-2 text-sm font-medium transition-colors border ${
+          className={`flex items-center gap-2 px-4 py-2 text-sm font-medium transition-colors border rounded-none ${
             activeTab === 'posts'
               ? 'bg-gray-900 text-white border-gray-900'
               : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
@@ -36,7 +37,7 @@ const ProfileTabs = ({ activeTab, setActiveTab, posts, reviews, analyticsCompone
         </button>
         <button
           onClick={() => setActiveTab('reviews')}
-          className={`flex items-center gap-2 px-4 py-2 text-sm font-medium transition-colors border ${
+          className={`flex items-center gap-2 px-4 py-2 text-sm font-medium transition-colors border rounded-none ${
             activeTab === 'reviews'
               ? 'bg-gray-900 text-white border-gray-900'
               : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
@@ -48,7 +49,7 @@ const ProfileTabs = ({ activeTab, setActiveTab, posts, reviews, analyticsCompone
         {analyticsComponent && (
           <button
             onClick={() => setActiveTab('analytics')}
-            className={`flex items-center gap-2 px-4 py-2 text-sm font-medium transition-colors border ${
+            className={`flex items-center gap-2 px-4 py-2 text-sm font-medium transition-colors border rounded-none ${
               activeTab === 'analytics'
                 ? 'bg-gray-900 text-white border-gray-900'
                 : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
