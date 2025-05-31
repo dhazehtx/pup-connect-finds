@@ -1,7 +1,6 @@
 import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Grid, MessageSquare, BarChart3 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import StarRating from '@/components/reviews/StarRating';
 
 interface Review {
@@ -24,70 +23,81 @@ const ProfileTabs = ({ activeTab, setActiveTab, posts, reviews, analyticsCompone
   return (
     <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
       <div className="flex gap-2 mb-4">
-        <Button
+        <button
           onClick={() => setActiveTab('posts')}
-          variant={activeTab === 'posts' ? 'default' : 'outline'}
-          className="flex-1"
+          className={`flex-1 h-12 rounded-xl flex items-center justify-center font-medium transition-colors ${
+            activeTab === 'posts'
+              ? 'bg-blue-500 text-white'
+              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+          }`}
         >
           <Grid size={16} className="mr-2" />
           Posts
-        </Button>
-        <Button
+        </button>
+        <button
           onClick={() => setActiveTab('reviews')}
-          variant={activeTab === 'reviews' ? 'default' : 'outline'}
-          className="flex-1"
+          className={`flex-1 h-12 rounded-xl flex items-center justify-center font-medium transition-colors ${
+            activeTab === 'reviews'
+              ? 'bg-blue-500 text-white'
+              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+          }`}
         >
           <MessageSquare size={16} className="mr-2" />
           Reviews
-        </Button>
+        </button>
         {analyticsComponent && (
-          <Button
+          <button
             onClick={() => setActiveTab('analytics')}
-            variant={activeTab === 'analytics' ? 'default' : 'outline'}
-            className="flex-1"
+            className={`flex-1 h-12 rounded-xl flex items-center justify-center font-medium transition-colors ${
+              activeTab === 'analytics'
+                ? 'bg-blue-500 text-white'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            }`}
           >
             <BarChart3 size={16} className="mr-2" />
             Analytics
-          </Button>
+          </button>
         )}
       </div>
 
-      <TabsContent value="posts" className="mt-4">
-        <div className="grid grid-cols-3 gap-1">
-          {posts.map((post, index) => (
-            <div key={index} className="aspect-square">
-              <img
-                src={post}
-                alt={`Post ${index + 1}`}
-                className="w-full h-full object-cover rounded-sm"
-              />
-            </div>
-          ))}
-        </div>
-      </TabsContent>
-
-      <TabsContent value="reviews" className="mt-4">
-        <div className="space-y-4">
-          {reviews.map((review) => (
-            <div key={review.id} className="border-b border-gray-100 pb-4 last:border-b-0">
-              <div className="flex items-center justify-between mb-2">
-                <div className="flex items-center gap-2">
-                  <span className="font-medium text-sm">{review.author}</span>
-                  <StarRating rating={review.rating} size="sm" />
-                </div>
-                <span className="text-xs text-gray-500">{review.date}</span>
+      <div className="mt-4">
+        {activeTab === 'posts' && (
+          <div className="grid grid-cols-3 gap-1">
+            {posts.map((post, index) => (
+              <div key={index} className="aspect-square">
+                <img
+                  src={post}
+                  alt={`Post ${index + 1}`}
+                  className="w-full h-full object-cover rounded-sm"
+                />
               </div>
-              <p className="text-sm text-gray-700">{review.text}</p>
-            </div>
-          ))}
-        </div>
-      </TabsContent>
+            ))}
+          </div>
+        )}
 
-      {analyticsComponent && (
-        <TabsContent value="analytics" className="mt-4">
-          {analyticsComponent}
-        </TabsContent>
-      )}
+        {activeTab === 'reviews' && (
+          <div className="space-y-4">
+            {reviews.map((review) => (
+              <div key={review.id} className="border-b border-gray-100 pb-4 last:border-b-0">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium text-sm">{review.author}</span>
+                    <StarRating rating={review.rating} size="sm" />
+                  </div>
+                  <span className="text-xs text-gray-500">{review.date}</span>
+                </div>
+                <p className="text-sm text-gray-700">{review.text}</p>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {activeTab === 'analytics' && analyticsComponent && (
+          <div>
+            {analyticsComponent}
+          </div>
+        )}
+      </div>
     </Tabs>
   );
 };
