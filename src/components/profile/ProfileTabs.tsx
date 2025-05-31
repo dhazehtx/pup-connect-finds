@@ -28,7 +28,7 @@ const ProfileTabs = ({ activeTab, setActiveTab, posts, reviews, analyticsCompone
         <Button
           onClick={() => setActiveTab('posts')}
           variant={activeTab === 'posts' ? 'default' : 'outline'}
-          className="flex-1 h-10 rounded-lg"
+          className="flex-1 h-10 rounded-md"
         >
           <Grid size={16} className="mr-2" />
           Posts
@@ -36,7 +36,7 @@ const ProfileTabs = ({ activeTab, setActiveTab, posts, reviews, analyticsCompone
         <Button
           onClick={() => setActiveTab('reviews')}
           variant={activeTab === 'reviews' ? 'default' : 'outline'}
-          className="flex-1 h-10 rounded-lg"
+          className="flex-1 h-10 rounded-md"
         >
           <MessageSquare size={16} className="mr-2" />
           Reviews
@@ -45,7 +45,7 @@ const ProfileTabs = ({ activeTab, setActiveTab, posts, reviews, analyticsCompone
           <Button
             onClick={() => setActiveTab('analytics')}
             variant={activeTab === 'analytics' ? 'default' : 'outline'}
-            className="flex-1 h-10 rounded-lg"
+            className="flex-1 h-10 rounded-md"
           >
             <BarChart3 size={16} className="mr-2" />
             Analytics
