@@ -62,20 +62,26 @@ const ProfileAnalyticsEnhanced = ({ profile }: ProfileAnalyticsEnhancedProps) =>
               <SelectItem value="year">This Year</SelectItem>
             </SelectContent>
           </Select>
-          <Button
-            variant={activeView === 'overview' ? 'default' : 'outline'}
-            size="sm"
+          <button
+            className={`px-4 py-2 text-sm font-medium transition-colors ${
+              activeView === 'overview'
+                ? 'bg-gray-900 text-white'
+                : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+            }`}
             onClick={() => setActiveView('overview')}
           >
             Overview
-          </Button>
-          <Button
-            variant={activeView === 'detailed' ? 'default' : 'outline'}
-            size="sm"
+          </button>
+          <button
+            className={`px-4 py-2 text-sm font-medium transition-colors ${
+              activeView === 'detailed'
+                ? 'bg-gray-900 text-white'
+                : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+            }`}
             onClick={() => setActiveView('detailed')}
           >
             Detailed
-          </Button>
+          </button>
         </div>
       </div>
 
@@ -118,7 +124,7 @@ const ProfileAnalyticsEnhanced = ({ profile }: ProfileAnalyticsEnhancedProps) =>
                 </div>
                 <div className="flex justify-between">
                   <span>Verification</span>
-                  <span className={profile.verified ? "text-green-600" : "text-yellow-600"}>
+                  <span className={profile.verified ? "text-green-600" : "text-gray-600"}>
                     {profile.verified ? "✓ Verified" : "⚠ Pending"}
                   </span>
                 </div>
@@ -137,7 +143,7 @@ const ProfileAnalyticsEnhanced = ({ profile }: ProfileAnalyticsEnhancedProps) =>
             <CardContent>
               <div className="space-y-3">
                 <div className="flex items-center gap-3">
-                  <div className="w-2 h-2 rounded-full bg-blue-500" />
+                  <div className="w-2 h-2 rounded-full bg-gray-500" />
                   <span className="text-sm">Profile viewed 15 times today</span>
                 </div>
                 <div className="flex items-center gap-3">
@@ -145,11 +151,11 @@ const ProfileAnalyticsEnhanced = ({ profile }: ProfileAnalyticsEnhancedProps) =>
                   <span className="text-sm">New review received</span>
                 </div>
                 <div className="flex items-center gap-3">
-                  <div className="w-2 h-2 rounded-full bg-purple-500" />
+                  <div className="w-2 h-2 rounded-full bg-gray-500" />
                   <span className="text-sm">Contact information requested 3 times</span>
                 </div>
                 <div className="flex items-center gap-3">
-                  <div className="w-2 h-2 rounded-full bg-orange-500" />
+                  <div className="w-2 h-2 rounded-full bg-gray-500" />
                   <span className="text-sm">Profile shared 2 times</span>
                 </div>
               </div>

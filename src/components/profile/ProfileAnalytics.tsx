@@ -115,7 +115,7 @@ const ProfileAnalytics = () => {
             <p className="text-sm font-medium text-gray-600">{title}</p>
             <p className="text-2xl font-bold">{value}</p>
           </div>
-          <Icon className="h-8 w-8 text-blue-500" />
+          <Icon className="h-8 w-8 text-gray-500" />
         </div>
         {change && (
           <div className="flex items-center mt-2 text-sm">
@@ -155,11 +155,38 @@ const ProfileAnalytics = () => {
         </CardHeader>
         <CardContent>
           <Tabs value={timeRange} onValueChange={setTimeRange}>
-            <TabsList className="mb-4">
-              <TabsTrigger value="7d">7 Days</TabsTrigger>
-              <TabsTrigger value="30d">30 Days</TabsTrigger>
-              <TabsTrigger value="90d">90 Days</TabsTrigger>
-            </TabsList>
+            <div className="flex gap-2 mb-4">
+              <button
+                onClick={() => setTimeRange('7d')}
+                className={`px-4 py-2 text-sm font-medium transition-colors ${
+                  timeRange === '7d'
+                    ? 'bg-gray-900 text-white'
+                    : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+                }`}
+              >
+                7 Days
+              </button>
+              <button
+                onClick={() => setTimeRange('30d')}
+                className={`px-4 py-2 text-sm font-medium transition-colors ${
+                  timeRange === '30d'
+                    ? 'bg-gray-900 text-white'
+                    : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+                }`}
+              >
+                30 Days
+              </button>
+              <button
+                onClick={() => setTimeRange('90d')}
+                className={`px-4 py-2 text-sm font-medium transition-colors ${
+                  timeRange === '90d'
+                    ? 'bg-gray-900 text-white'
+                    : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+                }`}
+              >
+                90 Days
+              </button>
+            </div>
 
             <TabsContent value={timeRange} className="space-y-6">
               {/* Stats Grid */}
@@ -202,7 +229,7 @@ const ProfileAnalytics = () => {
                       <XAxis dataKey="date" />
                       <YAxis />
                       <Tooltip />
-                      <Line type="monotone" dataKey="views" stroke="#3b82f6" strokeWidth={2} />
+                      <Line type="monotone" dataKey="views" stroke="#374151" strokeWidth={2} />
                     </LineChart>
                   </ResponsiveContainer>
                 </CardContent>
@@ -219,7 +246,7 @@ const ProfileAnalytics = () => {
                       analytics2.recentActivity.map((activity, index) => (
                         <div key={index} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
                           <div className="flex-shrink-0">
-                            {activity.type === 'view' && <Eye className="h-4 w-4 text-blue-500" />}
+                            {activity.type === 'view' && <Eye className="h-4 w-4 text-gray-500" />}
                             {activity.type === 'contact' && <MessageCircle className="h-4 w-4 text-green-500" />}
                             {activity.type === 'favorite' && <Heart className="h-4 w-4 text-red-500" />}
                             {activity.type === 'verification_approved' && <TrendingUp className="h-4 w-4 text-green-500" />}
