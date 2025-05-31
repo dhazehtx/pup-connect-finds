@@ -23,22 +23,43 @@ interface ProfileTabsProps {
 const ProfileTabs = ({ activeTab, setActiveTab, posts, reviews, analyticsComponent }: ProfileTabsProps) => {
   return (
     <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-      <TabsList className={`grid w-full ${analyticsComponent ? 'grid-cols-3' : 'grid-cols-2'}`}>
-        <TabsTrigger value="posts" className="flex items-center gap-2">
+      <div className="flex gap-2 mb-4">
+        <button
+          onClick={() => setActiveTab('posts')}
+          className={`flex items-center gap-2 px-4 py-2 text-sm font-medium transition-colors ${
+            activeTab === 'posts'
+              ? 'bg-gray-900 text-white'
+              : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+          }`}
+        >
           <Grid size={14} />
           Posts
-        </TabsTrigger>
-        <TabsTrigger value="reviews" className="flex items-center gap-2">
+        </button>
+        <button
+          onClick={() => setActiveTab('reviews')}
+          className={`flex items-center gap-2 px-4 py-2 text-sm font-medium transition-colors ${
+            activeTab === 'reviews'
+              ? 'bg-gray-900 text-white'
+              : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+          }`}
+        >
           <MessageSquare size={14} />
           Reviews
-        </TabsTrigger>
+        </button>
         {analyticsComponent && (
-          <TabsTrigger value="analytics" className="flex items-center gap-2">
+          <button
+            onClick={() => setActiveTab('analytics')}
+            className={`flex items-center gap-2 px-4 py-2 text-sm font-medium transition-colors ${
+              activeTab === 'analytics'
+                ? 'bg-gray-900 text-white'
+                : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+            }`}
+          >
             <BarChart3 size={14} />
             Analytics
-          </TabsTrigger>
+          </button>
         )}
-      </TabsList>
+      </div>
 
       <TabsContent value="posts" className="mt-4">
         <div className="grid grid-cols-3 gap-1">

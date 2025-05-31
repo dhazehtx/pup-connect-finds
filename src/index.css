@@ -141,9 +141,9 @@
 
 /* Remove yellow from any element with yellow in the class name */
 [class*="yellow"] {
-  background-color: rgb(219 234 254) !important; /* Light Blue background */
-  color: rgb(29 78 216) !important; /* Medium Blue text */
-  border-color: rgb(147 197 253) !important; /* Soft Blue border */
+  background-color: transparent !important;
+  color: rgb(29 78 216) !important;
+  border-color: transparent !important;
 }
 
 /* Override any inline yellow styles */
@@ -152,9 +152,9 @@
 *[style*="#fff0"],
 *[style*="rgb(255, 255"],
 *[style*="rgba(255, 255"] {
-  background-color: rgb(219 234 254) !important; /* Light Blue */
-  color: rgb(29 78 216) !important; /* Medium Blue */
-  border-color: rgb(147 197 253) !important; /* Soft Blue */
+  background-color: transparent !important;
+  color: rgb(29 78 216) !important;
+  border-color: transparent !important;
 }
 
 /* Specific overrides for common yellow hex codes */
@@ -166,9 +166,9 @@
 *[style*="#FFFACD"],
 *[style*="#F0E68C"],
 *[style*="#FFEFD5"] {
-  background-color: rgb(219 234 254) !important; /* Light Blue */
-  color: rgb(29 78 216) !important; /* Medium Blue */
-  border-color: rgb(147 197 253) !important; /* Soft Blue */
+  background-color: transparent !important;
+  color: rgb(29 78 216) !important;
+  border-color: transparent !important;
 }
 
 /* PROFILE EDIT DIALOG SPECIFIC OVERRIDES */
@@ -179,6 +179,7 @@
   border: none !important;
   outline: none !important;
   box-shadow: none !important;
+  background-color: rgb(249 250 251) !important;
 }
 
 /* Target dialog content areas */
@@ -187,16 +188,27 @@
 [class*="dialog-content"] {
   border: none !important;
   outline: none !important;
+  background-color: white !important;
 }
 
-/* Target any container or wrapper that might have yellow borders */
+/* Target any container or wrapper that might have yellow backgrounds */
 .container,
 .wrapper,
 [class*="container"],
 [class*="wrapper"],
 [class*="content"],
 [class*="section"] {
+  background-color: white !important;
   border-color: transparent !important;
+}
+
+/* COMPREHENSIVE BACKGROUND REMOVAL */
+/* Target all possible yellow background variations */
+*[style*="background: yellow"],
+*[style*="background-color: yellow"],
+*[style*="background: #ffff"],
+*[style*="background-color: #ffff"] {
+  background-color: white !important;
 }
 
 /* COMPREHENSIVE BORDER REMOVAL */
@@ -399,9 +411,9 @@ select:focus {
 *[style*="border-color: yellow"],
 *[style*="outline: yellow"],
 *[style*="outline-color: yellow"] {
-  background-color: rgba(59, 130, 246, 0.1) !important;
-  border-color: rgb(147, 197, 253) !important;
-  outline-color: rgb(59, 130, 246) !important;
+  background-color: white !important;
+  border-color: transparent !important;
+  outline-color: transparent !important;
 }
 
 /* Target yellow RGB values */
@@ -409,8 +421,8 @@ select:focus {
 *[style*="rgba(255, 255, 0"],
 *[style*="rgb(255,255,0)"],
 *[style*="rgba(255,255,0"] {
-  background-color: rgba(59, 130, 246, 0.1) !important;
-  border-color: rgb(147, 197, 253) !important;
+  background-color: white !important;
+  border-color: transparent !important;
   color: rgb(29, 78, 216) !important;
 }
 
@@ -437,6 +449,36 @@ button:has(.lucide-users):hover,
 button:has([data-lucide="users"]):hover {
   background-color: rgb(29 78 216) !important;
   color: white !important;
+}
+
+/* PROFILE PAGE SPECIFIC FIXES */
+/* Target profile completion guide and any yellow backgrounds */
+[class*="completion"],
+[class*="guide"],
+[class*="profile-completion"] {
+  background-color: white !important;
+  border-color: transparent !important;
+}
+
+/* Target tabs components specifically */
+[data-radix-tabs-content],
+[data-radix-tabs-list],
+[data-radix-tabs-trigger] {
+  background-color: transparent !important;
+  border-color: transparent !important;
+}
+
+/* Remove any remaining pill styles from radix components */
+[data-radix-tabs-trigger] {
+  border-radius: 0.375rem !important; /* Standard border radius, not pill */
+  background-color: white !important;
+  border: 1px solid rgb(209, 213, 219) !important;
+}
+
+[data-radix-tabs-trigger][data-state="active"] {
+  background-color: rgb(17, 24, 39) !important;
+  color: white !important;
+  border-color: rgb(17, 24, 39) !important;
 }
 
 /* Custom animations for micro-interactions */
