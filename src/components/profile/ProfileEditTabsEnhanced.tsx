@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
@@ -52,22 +51,22 @@ const ProfileEditTabsEnhanced = ({
 
   return (
     <Tabs value={activeTab} onValueChange={setActiveTab}>
-      {/* Simple menu-style navigation */}
-      <div className="bg-gray-50 border rounded-lg mb-6">
+      {/* Simple text-only navigation */}
+      <div className="mb-6">
         {tabItems.map((item) => {
           const Icon = item.icon;
           return (
             <button
               key={item.id}
               onClick={() => setActiveTab(item.id)}
-              className={`w-full flex items-center gap-3 px-4 py-3 text-left transition-all border-b border-gray-200 last:border-b-0 ${
+              className={`w-full flex items-center gap-3 px-4 py-3 text-left transition-all ${
                 activeTab === item.id
-                  ? 'bg-blue-50 text-blue-700 border-l-4 border-l-blue-500'
-                  : 'text-gray-700 hover:bg-gray-100'
+                  ? 'bg-gray-100 text-gray-900 font-medium'
+                  : 'text-gray-600 hover:bg-gray-50 hover:text-gray-800'
               }`}
             >
-              <Icon size={18} className={activeTab === item.id ? 'text-blue-500' : 'text-gray-500'} />
-              <span className="font-medium">{item.label}</span>
+              <Icon size={18} className={activeTab === item.id ? 'text-gray-700' : 'text-gray-500'} />
+              <span>{item.label}</span>
             </button>
           );
         })}
