@@ -1,9 +1,9 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Shield, Upload, CheckCircle, Clock, X, Award } from 'lucide-react';
+import { Shield, Upload, CheckCircle, Clock, X, Award, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -12,6 +12,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
+import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 const verificationSchema = z.object({
   verificationType: z.enum(['breeder', 'shelter', 'veterinarian']),
@@ -35,8 +38,12 @@ interface VerificationManagerProps {
   onSubmitVerification: (data: VerificationFormData) => void;
 }
 
-const VerificationManager = ({ isVerified, verificationRequests, onSubmitVerification }: VerificationManagerProps) => {
+const VerificationManager = ({ isVerified, verificationRequests: initialRequests, onSubmitVerification }: VerificationManagerProps) => {
+  const { user } = useAuth();
+  const { toast } = useToast();
   const [isOpen, setIsOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [verificationRequests, setVerificationRequests] = useState<VerificationRequest[]>(initialRequests);
   
   const form = useForm<VerificationFormData>({
     resolver: zodResolver(verificationSchema),
@@ -47,10 +54,70 @@ const VerificationManager = ({ isVerified, verificationRequests, onSubmitVerific
     },
   });
 
-  const onSubmit = (data: VerificationFormData) => {
-    onSubmitVerification(data);
-    form.reset();
-    setIsOpen(false);
+  useEffect(() => {
+    if (user?.id) {
+      fetchVerificationRequests();
+    }
+  }, [user?.id]);
+
+  const fetchVerificationRequests = async () => {
+    if (!user?.id) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from('verification_requests')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setVerificationRequests(data || []);
+    } catch (error) {
+      console.error('Error fetching verification requests:', error);
+    }
+  };
+
+  const onSubmit = async (data: VerificationFormData) => {
+    if (!user?.id) return;
+    
+    try {
+      setLoading(true);
+      
+      const { data: result, error } = await supabase.functions.invoke('user-verification', {
+        body: {
+          action: 'submit_verification',
+          user_id: user.id,
+          verification_data: {
+            verification_type: data.verificationType,
+            business_license: data.businessLicense,
+            experience_details: data.experienceDetails,
+          }
+        }
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Verification Submitted",
+        description: "Your verification request has been submitted for review.",
+      });
+
+      form.reset();
+      setIsOpen(false);
+      fetchVerificationRequests();
+      
+      // Call the parent callback if provided
+      onSubmitVerification(data);
+    } catch (error) {
+      console.error('Error submitting verification:', error);
+      toast({
+        title: "Error",
+        description: "Failed to submit verification request. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   const getStatusIcon = (status: string) => {
@@ -108,7 +175,7 @@ const VerificationManager = ({ isVerified, verificationRequests, onSubmitVerific
             {!hasPendingRequest && (
               <Dialog open={isOpen} onOpenChange={setIsOpen}>
                 <DialogTrigger asChild>
-                  <Button className="w-full">
+                  <Button className="w-full" disabled={loading}>
                     <Shield size={16} className="mr-2" />
                     Start Verification Process
                   </Button>
@@ -184,15 +251,36 @@ const VerificationManager = ({ isVerified, verificationRequests, onSubmitVerific
                       </div>
 
                       <div className="flex gap-2 pt-4">
-                        <Button type="button" variant="outline" onClick={() => setIsOpen(false)}>
+                        <Button type="button" variant="outline" onClick={() => setIsOpen(false)} disabled={loading}>
                           Cancel
                         </Button>
-                        <Button type="submit">Submit Application</Button>
+                        <Button type="submit" disabled={loading}>
+                          {loading ? (
+                            <>
+                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                              Submitting...
+                            </>
+                          ) : (
+                            'Submit Application'
+                          )}
+                        </Button>
                       </div>
                     </form>
                   </Form>
                 </DialogContent>
               </Dialog>
+            )}
+
+            {hasPendingRequest && (
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                <div className="flex items-center gap-2 text-yellow-800">
+                  <Clock size={16} />
+                  <span className="font-medium">Verification Under Review</span>
+                </div>
+                <p className="text-sm text-yellow-700 mt-1">
+                  Your verification request is being reviewed. We'll notify you once complete.
+                </p>
+              </div>
             )}
           </div>
         )}

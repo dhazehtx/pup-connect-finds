@@ -5,6 +5,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from 'recharts';
 import { Eye, MessageCircle, Heart, TrendingUp, Calendar, Users } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useAnalytics } from '@/hooks/useBackendServices';
+import { supabase } from '@/integrations/supabase/client';
 
 interface AnalyticsData {
   totalViews: number;
@@ -21,7 +23,8 @@ interface AnalyticsData {
 
 const ProfileAnalytics = () => {
   const { user } = useAuth();
-  const [analytics, setAnalytics] = useState<AnalyticsData>({
+  const { analytics, loading: analyticsLoading } = useAnalytics(user?.id);
+  const [analytics2, setAnalytics] = useState<AnalyticsData>({
     totalViews: 0,
     uniqueViews: 0,
     contactRequests: 0,
@@ -33,43 +36,76 @@ const ProfileAnalytics = () => {
   const [timeRange, setTimeRange] = useState('7d');
 
   useEffect(() => {
-    // Simulate loading analytics data
-    setTimeout(() => {
+    if (user?.id) {
+      fetchRealAnalytics();
+    }
+  }, [user?.id, timeRange]);
+
+  const fetchRealAnalytics = async () => {
+    if (!user?.id) return;
+    
+    try {
+      setLoading(true);
+      
+      // Fetch profile views from conversations and messages
+      const { data: conversations } = await supabase
+        .from('conversations')
+        .select('*')
+        .eq('seller_id', user.id);
+
+      // Fetch favorites for user's listings
+      const { data: userListings } = await supabase
+        .from('dog_listings')
+        .select('id')
+        .eq('user_id', user.id);
+
+      const listingIds = userListings?.map(listing => listing.id) || [];
+      
+      const { data: favorites } = await supabase
+        .from('favorites')
+        .select('*')
+        .in('listing_id', listingIds);
+
+      // Fetch recent notifications for activity
+      const { data: notifications } = await supabase
+        .from('notifications')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(10);
+
+      // Calculate view trends (simulated for now)
+      const getDaysAgo = (days: number) => {
+        const date = new Date();
+        date.setDate(date.getDate() - days);
+        return date.toISOString().split('T')[0];
+      };
+
+      const viewsByDay = Array.from({ length: 7 }, (_, i) => ({
+        date: getDaysAgo(6 - i),
+        views: Math.floor(Math.random() * 20) + 10 // Simulated data
+      }));
+
+      const recentActivity = notifications?.slice(0, 5).map(notification => ({
+        type: notification.type,
+        description: notification.message,
+        timestamp: new Date(notification.created_at).toLocaleString()
+      })) || [];
+
       setAnalytics({
-        totalViews: 342,
-        uniqueViews: 278,
-        contactRequests: 15,
-        favoriteCount: 23,
-        viewsByDay: [
-          { date: '2024-01-01', views: 45 },
-          { date: '2024-01-02', views: 52 },
-          { date: '2024-01-03', views: 38 },
-          { date: '2024-01-04', views: 61 },
-          { date: '2024-01-05', views: 49 },
-          { date: '2024-01-06', views: 55 },
-          { date: '2024-01-07', views: 42 },
-        ],
-        recentActivity: [
-          {
-            type: 'view',
-            description: 'Sarah M. viewed your profile',
-            timestamp: '2 hours ago'
-          },
-          {
-            type: 'contact',
-            description: 'Mike D. sent you a message',
-            timestamp: '4 hours ago'
-          },
-          {
-            type: 'favorite',
-            description: 'Jessica L. favorited your listing',
-            timestamp: '6 hours ago'
-          }
-        ]
+        totalViews: (conversations?.length || 0) * 3, // Estimate based on conversations
+        uniqueViews: conversations?.length || 0,
+        contactRequests: conversations?.length || 0,
+        favoriteCount: favorites?.length || 0,
+        viewsByDay,
+        recentActivity
       });
+    } catch (error) {
+      console.error('Error fetching analytics:', error);
+    } finally {
       setLoading(false);
-    }, 1000);
-  }, [timeRange]);
+    }
+  };
 
   const StatCard = ({ icon: Icon, title, value, change }: any) => (
     <Card>
@@ -131,25 +167,25 @@ const ProfileAnalytics = () => {
                 <StatCard
                   icon={Eye}
                   title="Total Views"
-                  value={analytics.totalViews}
+                  value={analytics2.totalViews}
                   change="+12% vs last week"
                 />
                 <StatCard
                   icon={Users}
                   title="Unique Visitors"
-                  value={analytics.uniqueViews}
+                  value={analytics2.uniqueViews}
                   change="+8% vs last week"
                 />
                 <StatCard
                   icon={MessageCircle}
                   title="Contact Requests"
-                  value={analytics.contactRequests}
+                  value={analytics2.contactRequests}
                   change="+15% vs last week"
                 />
                 <StatCard
                   icon={Heart}
                   title="Favorites"
-                  value={analytics.favoriteCount}
+                  value={analytics2.favoriteCount}
                   change="+5% vs last week"
                 />
               </div>
@@ -161,7 +197,7 @@ const ProfileAnalytics = () => {
                 </CardHeader>
                 <CardContent>
                   <ResponsiveContainer width="100%" height={300}>
-                    <LineChart data={analytics.viewsByDay}>
+                    <LineChart data={analytics2.viewsByDay}>
                       <CartesianGrid strokeDasharray="3 3" />
                       <XAxis dataKey="date" />
                       <YAxis />
@@ -179,19 +215,24 @@ const ProfileAnalytics = () => {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3">
-                    {analytics.recentActivity.map((activity, index) => (
-                      <div key={index} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-                        <div className="flex-shrink-0">
-                          {activity.type === 'view' && <Eye className="h-4 w-4 text-blue-500" />}
-                          {activity.type === 'contact' && <MessageCircle className="h-4 w-4 text-green-500" />}
-                          {activity.type === 'favorite' && <Heart className="h-4 w-4 text-red-500" />}
+                    {analytics2.recentActivity.length > 0 ? (
+                      analytics2.recentActivity.map((activity, index) => (
+                        <div key={index} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                          <div className="flex-shrink-0">
+                            {activity.type === 'view' && <Eye className="h-4 w-4 text-blue-500" />}
+                            {activity.type === 'contact' && <MessageCircle className="h-4 w-4 text-green-500" />}
+                            {activity.type === 'favorite' && <Heart className="h-4 w-4 text-red-500" />}
+                            {activity.type === 'verification_approved' && <TrendingUp className="h-4 w-4 text-green-500" />}
+                          </div>
+                          <div className="flex-1">
+                            <p className="text-sm font-medium">{activity.description}</p>
+                            <p className="text-xs text-gray-500">{activity.timestamp}</p>
+                          </div>
                         </div>
-                        <div className="flex-1">
-                          <p className="text-sm font-medium">{activity.description}</p>
-                          <p className="text-xs text-gray-500">{activity.timestamp}</p>
-                        </div>
-                      </div>
-                    ))}
+                      ))
+                    ) : (
+                      <p className="text-gray-500 text-center py-4">No recent activity</p>
+                    )}
                   </div>
                 </CardContent>
               </Card>

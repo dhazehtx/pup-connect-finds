@@ -1,14 +1,53 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useFormContext } from 'react-hook-form';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Loader2, AlertCircle } from 'lucide-react';
 import AvatarUpload from './AvatarUpload';
 
 const BasicInfoForm = () => {
   const form = useFormContext();
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+
+  const handleFieldChange = (fieldName: string, value: any) => {
+    // Clear field error when user starts typing
+    if (fieldErrors[fieldName]) {
+      setFieldErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors[fieldName];
+        return newErrors;
+      });
+    }
+  };
+
+  const validateUsername = async (username: string) => {
+    if (!username) return;
+    
+    // Basic validation - can be enhanced with actual API call
+    if (username.length < 3) {
+      setFieldErrors(prev => ({ ...prev, username: 'Username must be at least 3 characters' }));
+      return;
+    }
+    
+    if (!/^[a-zA-Z0-9_]+$/.test(username)) {
+      setFieldErrors(prev => ({ ...prev, username: 'Username can only contain letters, numbers, and underscores' }));
+      return;
+    }
+  };
+
+  const validateWebsiteUrl = (url: string) => {
+    if (!url) return;
+    
+    try {
+      new URL(url);
+    } catch {
+      setFieldErrors(prev => ({ ...prev, websiteUrl: 'Please enter a valid URL (e.g., https://example.com)' }));
+    }
+  };
 
   return (
     <div className="space-y-4">
@@ -36,12 +75,16 @@ const BasicInfoForm = () => {
           name="fullName"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="text-black">Full Name</FormLabel>
+              <FormLabel className="text-black">Full Name *</FormLabel>
               <FormControl>
                 <Input 
                   placeholder="Enter your full name" 
                   className="text-black border-gray-300" 
-                  {...field} 
+                  {...field}
+                  onChange={(e) => {
+                    field.onChange(e);
+                    handleFieldChange('fullName', e.target.value);
+                  }}
                 />
               </FormControl>
               <FormMessage />
@@ -54,14 +97,25 @@ const BasicInfoForm = () => {
           name="username"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="text-black">Username</FormLabel>
+              <FormLabel className="text-black">Username *</FormLabel>
               <FormControl>
                 <Input 
                   placeholder="Enter your username" 
                   className="text-black border-gray-300" 
-                  {...field} 
+                  {...field}
+                  onChange={(e) => {
+                    field.onChange(e);
+                    handleFieldChange('username', e.target.value);
+                    validateUsername(e.target.value);
+                  }}
                 />
               </FormControl>
+              {fieldErrors.username && (
+                <div className="flex items-center gap-1 text-sm text-red-600">
+                  <AlertCircle size={12} />
+                  {fieldErrors.username}
+                </div>
+              )}
               <FormMessage />
             </FormItem>
           )}
@@ -73,8 +127,11 @@ const BasicInfoForm = () => {
         name="userType"
         render={({ field }) => (
           <FormItem>
-            <FormLabel className="text-black">User Type</FormLabel>
-            <Select onValueChange={field.onChange} defaultValue={field.value}>
+            <FormLabel className="text-black">User Type *</FormLabel>
+            <Select onValueChange={(value) => {
+              field.onChange(value);
+              handleFieldChange('userType', value);
+            }} defaultValue={field.value}>
               <FormControl>
                 <SelectTrigger className="text-black border-gray-300">
                   <SelectValue placeholder="Select user type" />
@@ -101,9 +158,16 @@ const BasicInfoForm = () => {
               <Textarea 
                 placeholder="Tell us about yourself..." 
                 className="resize-none text-black border-gray-300" 
-                {...field} 
+                {...field}
+                onChange={(e) => {
+                  field.onChange(e);
+                  handleFieldChange('bio', e.target.value);
+                }}
               />
             </FormControl>
+            <div className="text-xs text-gray-500 mt-1">
+              {field.value?.length || 0}/500 characters
+            </div>
             <FormMessage />
           </FormItem>
         )}
@@ -120,7 +184,11 @@ const BasicInfoForm = () => {
                 <Input 
                   placeholder="City, State" 
                   className="text-black border-gray-300" 
-                  {...field} 
+                  {...field}
+                  onChange={(e) => {
+                    field.onChange(e);
+                    handleFieldChange('location', e.target.value);
+                  }}
                 />
               </FormControl>
               <FormMessage />
@@ -138,7 +206,11 @@ const BasicInfoForm = () => {
                 <Input 
                   placeholder="(555) 123-4567" 
                   className="text-black border-gray-300" 
-                  {...field} 
+                  {...field}
+                  onChange={(e) => {
+                    field.onChange(e);
+                    handleFieldChange('phone', e.target.value);
+                  }}
                 />
               </FormControl>
               <FormMessage />
@@ -157,9 +229,20 @@ const BasicInfoForm = () => {
               <Input 
                 placeholder="https://yourwebsite.com" 
                 className="text-black border-gray-300" 
-                {...field} 
+                {...field}
+                onChange={(e) => {
+                  field.onChange(e);
+                  handleFieldChange('websiteUrl', e.target.value);
+                  validateWebsiteUrl(e.target.value);
+                }}
               />
             </FormControl>
+            {fieldErrors.websiteUrl && (
+              <div className="flex items-center gap-1 text-sm text-red-600">
+                <AlertCircle size={12} />
+                {fieldErrors.websiteUrl}
+              </div>
+            )}
             <FormMessage />
           </FormItem>
         )}
@@ -178,13 +261,26 @@ const BasicInfoForm = () => {
                   placeholder="0" 
                   className="text-black border-gray-300"
                   {...field} 
-                  onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                  onChange={(e) => {
+                    const value = parseInt(e.target.value) || 0;
+                    field.onChange(value);
+                    handleFieldChange('yearsExperience', value);
+                  }}
                 />
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
+      )}
+
+      {Object.keys(fieldErrors).length > 0 && (
+        <Alert>
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>
+            Please correct the errors above before proceeding.
+          </AlertDescription>
+        </Alert>
       )}
     </div>
   );
