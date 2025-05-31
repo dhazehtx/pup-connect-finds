@@ -166,36 +166,25 @@ export const useAdvancedSearch = () => {
     }
   }, []);
 
-  // Save a search using raw SQL
+  // Save a search
   const saveSearch = useCallback(async (name: string, filters: SearchFilters, notifyNewMatches: boolean = false) => {
     if (!user) return;
 
     try {
-      const { data, error } = await supabase.rpc('save_search', {
-        p_user_id: user.id,
-        p_name: name,
-        p_filters: filters,
-        p_notify_new_matches: notifyNewMatches
-      });
+      const { data, error } = await supabase
+        .from('saved_searches')
+        .insert([{
+          user_id: user.id,
+          name,
+          filters,
+          notify_new_matches: notifyNewMatches
+        }])
+        .select()
+        .single();
 
-      if (error) {
-        // Fallback to direct insert if RPC doesn't exist
-        const { data: insertData, error: insertError } = await supabase
-          .from('saved_searches' as any)
-          .insert([{
-            user_id: user.id,
-            name,
-            filters,
-            notify_new_matches: notifyNewMatches
-          }])
-          .select()
-          .single();
+      if (error) throw error;
 
-        if (insertError) throw insertError;
-        setSavedSearches(prev => [...prev, insertData]);
-      } else {
-        await loadSavedSearches();
-      }
+      setSavedSearches(prev => [data, ...prev]);
 
       toast({
         title: "Search Saved",
@@ -211,13 +200,13 @@ export const useAdvancedSearch = () => {
     }
   }, [user, toast]);
 
-  // Load saved searches using raw SQL
+  // Load saved searches
   const loadSavedSearches = useCallback(async () => {
     if (!user) return;
 
     try {
       const { data, error } = await supabase
-        .from('saved_searches' as any)
+        .from('saved_searches')
         .select('*')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false });
@@ -233,7 +222,7 @@ export const useAdvancedSearch = () => {
   const deleteSavedSearch = useCallback(async (searchId: string) => {
     try {
       const { error } = await supabase
-        .from('saved_searches' as any)
+        .from('saved_searches')
         .delete()
         .eq('id', searchId);
 

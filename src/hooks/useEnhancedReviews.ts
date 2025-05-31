@@ -107,9 +107,8 @@ export const useEnhancedReviews = () => {
         const photoUploads = photos.map(async (photo) => {
           const photoUrl = await uploadReviewPhoto(photo);
           if (photoUrl) {
-            // Use raw SQL for review_photos since it's not in types yet
             return supabase
-              .from('review_photos' as any)
+              .from('review_photos')
               .insert([{
                 review_id: review.id,
                 image_url: photoUrl
@@ -160,21 +159,39 @@ export const useEnhancedReviews = () => {
 
       if (error) throw error;
 
-      // Fetch photos for each review using raw SQL
+      // Fetch photos for each review
       const reviewsWithPhotos = await Promise.all((data || []).map(async (review) => {
         try {
           const { data: photos } = await supabase
-            .from('review_photos' as any)
+            .from('review_photos')
             .select('*')
             .eq('review_id', review.id);
 
+          // Ensure we have a valid reviewer_profile
+          const validReviewerProfile = review.reviewer_profile && typeof review.reviewer_profile === 'object' && !('error' in review.reviewer_profile)
+            ? review.reviewer_profile
+            : {
+                full_name: 'Unknown User',
+                username: 'unknown',
+                verified: false
+              };
+
           return {
             ...review,
+            reviewer_profile: validReviewerProfile,
             photos: photos || []
           };
         } catch (photoError) {
           console.error('Error fetching photos for review:', photoError);
-          return review;
+          return {
+            ...review,
+            reviewer_profile: {
+              full_name: 'Unknown User',
+              username: 'unknown',
+              verified: false
+            },
+            photos: []
+          };
         }
       }));
 
