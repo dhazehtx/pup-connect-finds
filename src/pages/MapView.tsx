@@ -5,10 +5,12 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import MapPlaceholder from '@/components/ui/map-placeholder';
 
 const MapView = () => {
   const [selectedRadius, setSelectedRadius] = useState('25');
   const [deliveryFilter, setDeliveryFilter] = useState('all');
+  const [searchLocation, setSearchLocation] = useState('');
 
   const listings = [
     {
@@ -51,6 +53,19 @@ const MapView = () => {
       verified: true
     }
   ];
+
+  const mapMarkers = listings.map(listing => ({
+    id: listing.id.toString(),
+    lat: listing.lat,
+    lng: listing.lng,
+    title: listing.title,
+    price: listing.price
+  }));
+
+  const handleLocationSearch = (location: string) => {
+    setSearchLocation(location);
+    console.log('Searching for listings near:', location);
+  };
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-6">
@@ -102,26 +117,13 @@ const MapView = () => {
       </div>
 
       <div className="grid lg:grid-cols-2 gap-6">
-        {/* Map Placeholder */}
+        {/* Enhanced Map Component */}
         <div className="lg:order-2">
-          <Card className="h-[600px]">
-            <CardContent className="p-0 h-full">
-              <div className="w-full h-full bg-gray-100 rounded-lg flex items-center justify-center relative overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-br from-blue-50 to-green-50"></div>
-                <div className="relative z-10 text-center">
-                  <MapPin className="w-16 h-16 text-blue-500 mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold text-gray-700 mb-2">Interactive Map</h3>
-                  <p className="text-gray-500 text-sm">Map integration coming soon</p>
-                  <p className="text-gray-400 text-xs mt-2">Showing {listings.length} listings within {selectedRadius} miles</p>
-                </div>
-                
-                {/* Mock map pins */}
-                <div className="absolute top-20 left-20 w-4 h-4 bg-red-500 rounded-full border-2 border-white shadow-lg"></div>
-                <div className="absolute top-32 right-24 w-4 h-4 bg-red-500 rounded-full border-2 border-white shadow-lg"></div>
-                <div className="absolute bottom-24 left-16 w-4 h-4 bg-red-500 rounded-full border-2 border-white shadow-lg"></div>
-              </div>
-            </CardContent>
-          </Card>
+          <MapPlaceholder
+            markers={mapMarkers}
+            onLocationSearch={handleLocationSearch}
+            className="h-[600px]"
+          />
         </div>
 
         {/* Listings */}

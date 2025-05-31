@@ -51,15 +51,20 @@ export const useUserPresence = (channelName: string = 'global-presence') => {
     newChannel
       .on('presence', { event: 'sync' }, () => {
         const state = newChannel.presenceState();
-        setPresenceState(state);
         
-        // Flatten the presence state to get all online users
+        // Transform the presence state to match our interface
+        const transformedState: PresenceState = {};
         const users: UserPresence[] = [];
-        Object.values(state).forEach((presences) => {
-          presences.forEach((presence) => {
+        
+        Object.entries(state).forEach(([key, presences]) => {
+          const typedPresences = presences as UserPresence[];
+          transformedState[key] = typedPresences;
+          typedPresences.forEach((presence) => {
             users.push(presence);
           });
         });
+        
+        setPresenceState(transformedState);
         setOnlineUsers(users);
         
         console.log('Presence sync:', users.length, 'users online');

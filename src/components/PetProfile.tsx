@@ -5,6 +5,10 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Calendar, MapPin, Heart, Share, Flag, Play, FileText, Stethoscope, Award, Truck, Camera } from 'lucide-react';
+import SwipeableCard from '@/components/ui/swipeable-card';
+import PaymentButton from '@/components/payments/PaymentButton';
+import { useMobileOptimized } from '@/hooks/useMobileOptimized';
+import { useToast } from '@/hooks/use-toast';
 
 interface PetProfileProps {
   pet: {
@@ -46,6 +50,11 @@ interface PetProfileProps {
 const PetProfile = ({ pet }: PetProfileProps) => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [showAllImages, setShowAllImages] = useState(false);
+  const [isFavorited, setIsFavorited] = useState(false);
+  const { isMobile } = useMobileOptimized();
+  const { toast } = useToast();
+
+  const price = parseFloat(pet.price.replace('$', '').replace(',', ''));
 
   const HealthBadge = ({ condition, label }: { condition: boolean; label: string }) => (
     <Badge 
@@ -56,11 +65,38 @@ const PetProfile = ({ pet }: PetProfileProps) => {
     </Badge>
   );
 
+  const handleImageSwipe = (direction: 'left' | 'right') => {
+    if (direction === 'left' && currentImageIndex < pet.images.length - 1) {
+      setCurrentImageIndex(prev => prev + 1);
+    } else if (direction === 'right' && currentImageIndex > 0) {
+      setCurrentImageIndex(prev => prev - 1);
+    }
+  };
+
+  const handleFavoriteToggle = () => {
+    setIsFavorited(!isFavorited);
+    toast({
+      title: isFavorited ? "Removed from favorites" : "Added to favorites",
+      description: `${pet.name} ${isFavorited ? 'removed from' : 'added to'} your favorites`
+    });
+  };
+
+  const handlePaymentSuccess = () => {
+    toast({
+      title: "Purchase Successful!",
+      description: `Thank you for purchasing ${pet.name}. You'll be contacted by ${pet.breeder.name} soon.`,
+    });
+  };
+
   return (
     <div className="max-w-md mx-auto bg-white min-h-screen">
-      {/* Image Gallery */}
+      {/* Image Gallery with Swipe Support */}
       <div className="relative">
-        <div className="aspect-square relative overflow-hidden">
+        <SwipeableCard
+          onSwipeLeft={() => handleImageSwipe('left')}
+          onSwipeRight={() => handleImageSwipe('right')}
+          className="aspect-square relative overflow-hidden border-0 rounded-none"
+        >
           <img
             src={pet.images[currentImageIndex]}
             alt={pet.name}
@@ -84,8 +120,13 @@ const PetProfile = ({ pet }: PetProfileProps) => {
 
           {/* Action Buttons */}
           <div className="absolute top-4 right-4 flex flex-col gap-2">
-            <Button size="sm" variant="outline" className="bg-white/90">
-              <Heart size={16} />
+            <Button 
+              size="sm" 
+              variant="outline" 
+              className="bg-white/90"
+              onClick={handleFavoriteToggle}
+            >
+              <Heart size={16} className={isFavorited ? 'fill-red-500 text-red-500' : ''} />
             </Button>
             <Button size="sm" variant="outline" className="bg-white/90">
               <Share size={16} />
@@ -101,7 +142,7 @@ const PetProfile = ({ pet }: PetProfileProps) => {
               {pet.price}
             </Badge>
           </div>
-        </div>
+        </SwipeableCard>
 
         {/* Show All Images Button */}
         {pet.images.length > 1 && (
@@ -114,6 +155,14 @@ const PetProfile = ({ pet }: PetProfileProps) => {
             <Camera size={14} className="mr-1" />
             View All ({pet.images.length})
           </Button>
+        )}
+
+        {/* Swipe indicators for mobile */}
+        {isMobile && pet.images.length > 1 && (
+          <div className="absolute top-1/2 left-4 right-4 flex justify-between pointer-events-none">
+            <div className="text-white/50 text-xs">← Swipe</div>
+            <div className="text-white/50 text-xs">Swipe →</div>
+          </div>
         )}
       </div>
 
@@ -277,13 +326,17 @@ const PetProfile = ({ pet }: PetProfileProps) => {
           <TabsContent value="media" className="space-y-4">
             <div className="grid grid-cols-2 gap-2">
               {pet.images.map((image, index) => (
-                <div key={index} className="aspect-square rounded-lg overflow-hidden">
+                <SwipeableCard
+                  key={index}
+                  onTap={() => setCurrentImageIndex(index)}
+                  className="aspect-square rounded-lg overflow-hidden"
+                >
                   <img
                     src={image}
                     alt={`${pet.name} ${index + 1}`}
                     className="w-full h-full object-cover"
                   />
-                </div>
+                </SwipeableCard>
               ))}
             </div>
             
@@ -301,22 +354,29 @@ const PetProfile = ({ pet }: PetProfileProps) => {
                     </div>
                   ))}
                 </div>
-              </div>
-            )}
+              )}
+            </div>
           </TabsContent>
         </Tabs>
 
-        {/* Action Buttons */}
-        <div className="sticky bottom-0 bg-white pt-4 border-t">
+        {/* Enhanced Action Buttons with Payment */}
+        <div className="sticky bottom-0 bg-white pt-4 border-t space-y-3">
           <div className="flex gap-3">
-            <Button className="flex-1 bg-blue-500 hover:bg-blue-600">
-              Contact Seller
-            </Button>
             <Button variant="outline" className="flex-1">
               <Calendar size={16} className="mr-2" />
               Schedule Meet
             </Button>
+            <Button variant="outline" className="flex-1">
+              Contact Seller
+            </Button>
           </div>
+          
+          <PaymentButton
+            amount={price}
+            description={`${pet.name} - ${pet.breed}`}
+            onSuccess={handlePaymentSuccess}
+            className="w-full bg-green-600 hover:bg-green-700 text-white"
+          />
         </div>
       </div>
     </div>
