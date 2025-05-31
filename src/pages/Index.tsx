@@ -16,6 +16,7 @@ import Monetization from './Monetization';
 import Partnerships from './Partnerships';
 import TermsOfService from './TermsOfService';
 import Help from './Help';
+import SampleData from './SampleData';
 import ProtectedRoute from '../components/ProtectedRoute';
 
 const Index = () => {
@@ -30,6 +31,7 @@ const Index = () => {
         <Route path="/partnerships" element={<Partnerships />} />
         <Route path="/terms" element={<TermsOfService />} />
         <Route path="/help" element={<Help />} />
+        <Route path="/sample-data" element={<SampleData />} />
         
         {/* Profile and Messages routes - temporarily public for design work */}
         <Route path="/profile/:userId" element={<Profile />} />
