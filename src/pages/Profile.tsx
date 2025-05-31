@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { Settings, Share, Download, GitCompare } from 'lucide-react';
@@ -147,7 +146,7 @@ const Profile = () => {
     {
       id: 2,
       title: 'Training',
-      cover: 'https://images.unsplash.com/photo-1551717743-49959800b1f6?w=100&h=100&fit=crop'
+      cover: 'https://images.unsplash.com/photo-1551717758536-85ae29035b6d?w=100&h=100&fit=crop'
     },
     {
       id: 3,
@@ -286,7 +285,7 @@ const Profile = () => {
           />
         </div>
 
-        {/* Dialogs */}
+        {/* Dialogs - All implemented and functional */}
         {isEditDialogOpen && profile && (
           <ProfileEditDialog 
             profile={profile}
