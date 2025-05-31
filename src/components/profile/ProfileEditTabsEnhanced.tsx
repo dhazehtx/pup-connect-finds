@@ -1,5 +1,5 @@
+
 import React from 'react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Form } from '@/components/ui/form';
 import { User, Share2, Shield, CheckCircle, BarChart3 } from 'lucide-react';
@@ -8,7 +8,6 @@ import SocialMediaManager from './SocialMediaManager';
 import PrivacySettings from './PrivacySettings';
 import EnhancedVerificationManager from './EnhancedVerificationManager';
 import ProfileAnalytics from './ProfileAnalytics';
-import ProfileCompletionIndicator from './ProfileCompletionIndicator';
 
 interface ProfileEditTabsEnhancedProps {
   form: any;
@@ -39,8 +38,6 @@ const ProfileEditTabsEnhanced = ({
   onClose,
   handleVerificationSubmit
 }: ProfileEditTabsEnhancedProps) => {
-  const watchedValues = form.watch();
-
   const tabItems = [
     { id: 'basic', label: 'Basic Info', icon: User },
     { id: 'social', label: 'Social Media', icon: Share2 },
@@ -50,7 +47,7 @@ const ProfileEditTabsEnhanced = ({
   ];
 
   return (
-    <Tabs value={activeTab} onValueChange={setActiveTab}>
+    <div>
       {/* Simple text-only navigation */}
       <div className="mb-6">
         {tabItems.map((item) => {
@@ -72,64 +69,69 @@ const ProfileEditTabsEnhanced = ({
         })}
       </div>
 
-      <TabsContent value="basic" className="space-y-4 mt-4">
-        <ProfileCompletionIndicator 
-          profile={watchedValues} 
-          className="mb-4"
-        />
-        
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <BasicInfoFormWithAvatar />
+      {/* Tab Content */}
+      {activeTab === 'basic' && (
+        <div className="space-y-4 mt-4">
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              <BasicInfoFormWithAvatar />
 
-            <div className="flex flex-col sm:flex-row gap-3 pt-6">
-              <Button 
-                type="button" 
-                variant="outline" 
-                onClick={onClose}
-                className="w-full sm:flex-1 border-gray-300 text-gray-700 hover:bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
-                disabled={isLoading}
-              >
-                Cancel
-              </Button>
-              <Button 
-                type="submit" 
-                className="w-full sm:flex-1 bg-blue-600 hover:bg-blue-700 text-white focus:ring-2 focus:ring-blue-500 outline-none"
-                disabled={isLoading}
-              >
-                {isLoading ? 'Saving...' : 'Save Changes'}
-              </Button>
-            </div>
-          </form>
-        </Form>
-      </TabsContent>
+              <div className="flex flex-col sm:flex-row gap-3 pt-6">
+                <button 
+                  type="button" 
+                  onClick={onClose}
+                  className="w-full sm:flex-1 px-4 py-2 text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 transition-colors"
+                  disabled={isLoading}
+                >
+                  Cancel
+                </button>
+                <button 
+                  type="submit" 
+                  className="w-full sm:flex-1 px-4 py-2 bg-gray-900 text-white hover:bg-gray-800 transition-colors"
+                  disabled={isLoading}
+                >
+                  {isLoading ? 'Saving...' : 'Save Changes'}
+                </button>
+              </div>
+            </form>
+          </Form>
+        </div>
+      )}
 
-      <TabsContent value="social" className="mt-4">
-        <SocialMediaManager
-          socialLinks={socialLinks}
-          onUpdate={setSocialLinks}
-        />
-      </TabsContent>
+      {activeTab === 'social' && (
+        <div className="mt-4">
+          <SocialMediaManager
+            socialLinks={socialLinks}
+            onUpdate={setSocialLinks}
+          />
+        </div>
+      )}
 
-      <TabsContent value="privacy" className="mt-4">
-        <PrivacySettings
-          settings={privacySettings}
-          onUpdate={setPrivacySettings}
-        />
-      </TabsContent>
+      {activeTab === 'privacy' && (
+        <div className="mt-4">
+          <PrivacySettings
+            settings={privacySettings}
+            onUpdate={setPrivacySettings}
+          />
+        </div>
+      )}
 
-      <TabsContent value="verification" className="mt-4">
-        <EnhancedVerificationManager
-          isVerified={profile?.verified || false}
-          verificationRequests={[]}
-          onSubmitVerification={handleVerificationSubmit}
-        />
-      </TabsContent>
+      {activeTab === 'verification' && (
+        <div className="mt-4">
+          <EnhancedVerificationManager
+            isVerified={profile?.verified || false}
+            verificationRequests={[]}
+            onSubmitVerification={handleVerificationSubmit}
+          />
+        </div>
+      )}
 
-      <TabsContent value="analytics" className="mt-4">
-        <ProfileAnalytics />
-      </TabsContent>
-    </Tabs>
+      {activeTab === 'analytics' && (
+        <div className="mt-4">
+          <ProfileAnalytics />
+        </div>
+      )}
+    </div>
   );
 };
 

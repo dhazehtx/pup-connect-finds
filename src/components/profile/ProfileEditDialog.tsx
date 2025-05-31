@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -13,7 +12,6 @@ import { useRealtimeVerification } from '@/hooks/useRealtimeVerification';
 import ProfilePreview from './ProfilePreview';
 import ProfileEditTabsEnhanced from './ProfileEditTabsEnhanced';
 import MobileProfileHeader from './MobileProfileHeader';
-import ProfileCompletionGuide from './ProfileCompletionGuide';
 
 const profileSchema = z.object({
   fullName: z.string().min(1, 'Full name is required').max(100, 'Full name is too long'),
@@ -44,7 +42,6 @@ const ProfileEditDialog = ({ profile, isOpen, onClose }: ProfileEditDialogProps)
   const [activeTab, setActiveTab] = useState('basic');
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [submitSuccess, setSubmitSuccess] = useState(false);
-  const [showCompletionGuide, setShowCompletionGuide] = useState(true);
 
   const form = useForm<ProfileFormData>({
     resolver: zodResolver(profileSchema),
@@ -210,15 +207,6 @@ const ProfileEditDialog = ({ profile, isOpen, onClose }: ProfileEditDialogProps)
               Profile updated successfully! Closing dialog...
             </AlertDescription>
           </Alert>
-        )}
-
-        {showCompletionGuide && (
-          <ProfileCompletionGuide
-            profile={watchedValues}
-            onStepClick={handleCompletionStepClick}
-            onDismiss={() => setShowCompletionGuide(false)}
-            className="mb-4"
-          />
         )}
         
         <div className={getMobileClasses(
