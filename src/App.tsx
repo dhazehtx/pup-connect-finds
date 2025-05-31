@@ -9,28 +9,32 @@ import GlobalErrorBoundary from "@/components/ui/global-error-boundary";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 
-// Initialize i18n
-import "./i18n/config";
-
 const queryClient = new QueryClient();
 
-const App = () => (
-  <GlobalErrorBoundary>
-    <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <Routes>
-              <Route path="/auth" element={<Auth />} />
-              <Route path="/*" element={<Index />} />
-            </Routes>
-          </BrowserRouter>
-        </TooltipProvider>
-      </AuthProvider>
-    </QueryClientProvider>
-  </GlobalErrorBoundary>
-);
+const App = () => {
+  // Initialize i18n after React is ready
+  React.useEffect(() => {
+    import("./i18n/config");
+  }, []);
+
+  return (
+    <GlobalErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <AuthProvider>
+          <TooltipProvider>
+            <Toaster />
+            <Sonner />
+            <BrowserRouter>
+              <Routes>
+                <Route path="/auth" element={<Auth />} />
+                <Route path="/*" element={<Index />} />
+              </Routes>
+            </BrowserRouter>
+          </TooltipProvider>
+        </AuthProvider>
+      </QueryClientProvider>
+    </GlobalErrorBoundary>
+  );
+};
 
 export default App;
