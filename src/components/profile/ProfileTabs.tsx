@@ -2,6 +2,7 @@
 import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Grid, MessageSquare, BarChart3 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import StarRating from '@/components/reviews/StarRating';
 
 interface Review {
@@ -24,40 +25,40 @@ const ProfileTabs = ({ activeTab, setActiveTab, posts, reviews, analyticsCompone
   return (
     <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
       <div className="flex gap-2 mb-4">
-        <button
+        <Button
           onClick={() => setActiveTab('posts')}
-          className={`flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+          className={`flex-1 ${
             activeTab === 'posts'
               ? 'bg-blue-500 text-white'
-              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              : 'bg-blue-500 text-white'
           }`}
         >
-          <Grid size={16} />
+          <Grid size={16} className="mr-2" />
           Posts
-        </button>
-        <button
+        </Button>
+        <Button
           onClick={() => setActiveTab('reviews')}
-          className={`flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+          className={`flex-1 ${
             activeTab === 'reviews'
               ? 'bg-blue-500 text-white'
-              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              : 'bg-blue-500 text-white'
           }`}
         >
-          <MessageSquare size={16} />
+          <MessageSquare size={16} className="mr-2" />
           Reviews
-        </button>
+        </Button>
         {analyticsComponent && (
-          <button
+          <Button
             onClick={() => setActiveTab('analytics')}
-            className={`flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+            className={`flex-1 ${
               activeTab === 'analytics'
                 ? 'bg-blue-500 text-white'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                : 'bg-blue-500 text-white'
             }`}
           >
-            <BarChart3 size={16} />
+            <BarChart3 size={16} className="mr-2" />
             Analytics
-          </button>
+          </Button>
         )}
       </div>
 
