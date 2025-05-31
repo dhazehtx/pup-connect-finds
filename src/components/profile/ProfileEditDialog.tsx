@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -90,7 +91,6 @@ const ProfileEditDialog = ({ profile, isOpen, onClose }: ProfileEditDialogProps)
         setActiveTab('social');
         break;
     }
-    setShowCompletionGuide(false);
   };
 
   const onSubmit = async (data: ProfileFormData) => {
