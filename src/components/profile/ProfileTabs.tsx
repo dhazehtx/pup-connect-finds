@@ -1,6 +1,8 @@
+
 import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Grid, MessageSquare, BarChart3 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import StarRating from '@/components/reviews/StarRating';
 
 interface Review {
@@ -23,40 +25,31 @@ const ProfileTabs = ({ activeTab, setActiveTab, posts, reviews, analyticsCompone
   return (
     <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
       <div className="flex gap-2 mb-4">
-        <button
+        <Button
           onClick={() => setActiveTab('posts')}
-          className={`flex-1 h-12 rounded-xl flex items-center justify-center font-medium transition-colors ${
-            activeTab === 'posts'
-              ? 'bg-blue-500 text-white'
-              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-          }`}
+          variant={activeTab === 'posts' ? 'default' : 'outline'}
+          className="flex-1 h-10 rounded-lg"
         >
           <Grid size={16} className="mr-2" />
           Posts
-        </button>
-        <button
+        </Button>
+        <Button
           onClick={() => setActiveTab('reviews')}
-          className={`flex-1 h-12 rounded-xl flex items-center justify-center font-medium transition-colors ${
-            activeTab === 'reviews'
-              ? 'bg-blue-500 text-white'
-              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-          }`}
+          variant={activeTab === 'reviews' ? 'default' : 'outline'}
+          className="flex-1 h-10 rounded-lg"
         >
           <MessageSquare size={16} className="mr-2" />
           Reviews
-        </button>
+        </Button>
         {analyticsComponent && (
-          <button
+          <Button
             onClick={() => setActiveTab('analytics')}
-            className={`flex-1 h-12 rounded-xl flex items-center justify-center font-medium transition-colors ${
-              activeTab === 'analytics'
-                ? 'bg-blue-500 text-white'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-            }`}
+            variant={activeTab === 'analytics' ? 'default' : 'outline'}
+            className="flex-1 h-10 rounded-lg"
           >
             <BarChart3 size={16} className="mr-2" />
             Analytics
-          </button>
+          </Button>
         )}
       </div>
 
