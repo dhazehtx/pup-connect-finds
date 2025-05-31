@@ -1,7 +1,9 @@
+
 import React, { useState } from 'react';
 import { Camera, User, Upload, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import { Progress } from '@/components/ui/progress';
 import { useImageUpload } from '@/hooks/useImageUpload';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
@@ -129,14 +131,12 @@ const AvatarUpload = ({ currentAvatar, onAvatarChange, userName }: AvatarUploadP
             <>
               <Upload className="h-6 w-6 text-blue-500 animate-pulse" />
               <p className="text-sm text-gray-600">Uploading... {getCurrentProgress()}%</p>
-              {getCurrentProgress() > 0 && (
-                <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div 
-                    className="bg-blue-500 h-2 rounded-full transition-all duration-300" 
-                    style={{ width: `${getCurrentProgress()}%` }}
-                  />
-                </div>
-              )}
+              <div className="w-full max-w-xs">
+                <Progress 
+                  value={getCurrentProgress()} 
+                  className="w-full h-2"
+                />
+              </div>
             </>
           ) : (
             <>

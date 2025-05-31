@@ -25,6 +25,17 @@ export const useImageUpload = () => {
       const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
       const filePath = `dog-images/${fileName}`;
 
+      // Simulate progress updates for better UX during upload
+      const progressInterval = setInterval(() => {
+        setUploadProgress(prev => {
+          const currentProgress = prev[imageId] || 0;
+          if (currentProgress < 90) {
+            return { ...prev, [imageId]: currentProgress + 10 };
+          }
+          return prev;
+        });
+      }, 500);
+
       // Upload file to Supabase Storage
       const { error: uploadError } = await supabase.storage
         .from('dog-images')
@@ -32,6 +43,8 @@ export const useImageUpload = () => {
           cacheControl: '3600',
           upsert: false
         });
+
+      clearInterval(progressInterval);
 
       if (uploadError) {
         console.error('Upload error:', uploadError);
