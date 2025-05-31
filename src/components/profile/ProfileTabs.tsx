@@ -1,9 +1,6 @@
 
 import React from 'react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Grid, MessageSquare, BarChart3 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import StarRating from '@/components/reviews/StarRating';
 
 interface Review {
   id: number;
@@ -23,31 +20,30 @@ interface ProfileTabsProps {
 
 const ProfileTabs = ({ activeTab, setActiveTab, posts, reviews, analyticsComponent }: ProfileTabsProps) => {
   return (
-    <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-      <div className="flex gap-2 mb-4">
+    <div className="w-full">
+      <div className="flex gap-8 mb-4 justify-center">
         <button
           onClick={() => setActiveTab('posts')}
-          className="flex-1 h-10 flex items-center justify-center text-sm font-medium text-gray-700"
+          className="flex flex-col items-center gap-1 text-gray-700"
         >
-          <Grid size={16} className="mr-2" />
-          Posts
+          <Grid size={20} />
+          <span className="text-sm font-medium">Posts</span>
         </button>
         <button
           onClick={() => setActiveTab('reviews')}
-          className="flex-1 h-10 flex items-center justify-center text-sm font-medium text-gray-700"
+          className="flex flex-col items-center gap-1 text-gray-700"
         >
-          <MessageSquare size={16} className="mr-2" />
-          Reviews
+          <MessageSquare size={20} />
+          <span className="text-sm font-medium">Reviews</span>
         </button>
         {analyticsComponent && (
-          <Button
+          <button
             onClick={() => setActiveTab('analytics')}
-            variant="ghost"
-            className="flex-1 h-10 bg-transparent border-none"
+            className="flex flex-col items-center gap-1 text-gray-700"
           >
-            <BarChart3 size={16} className="mr-2" />
-            Analytics
-          </Button>
+            <BarChart3 size={20} />
+            <span className="text-sm font-medium">Analytics</span>
+          </button>
         )}
       </div>
 
@@ -73,7 +69,6 @@ const ProfileTabs = ({ activeTab, setActiveTab, posts, reviews, analyticsCompone
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2">
                     <span className="font-medium text-sm">{review.author}</span>
-                    <StarRating rating={review.rating} size="sm" />
                   </div>
                   <span className="text-xs text-gray-500">{review.date}</span>
                 </div>
@@ -89,7 +84,7 @@ const ProfileTabs = ({ activeTab, setActiveTab, posts, reviews, analyticsCompone
           </div>
         )}
       </div>
-    </Tabs>
+    </div>
   );
 };
 
