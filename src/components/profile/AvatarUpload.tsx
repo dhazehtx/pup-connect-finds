@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Camera, User, Upload, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -15,6 +14,7 @@ interface AvatarUploadProps {
 
 const AvatarUpload = ({ currentAvatar, onAvatarChange, userName }: AvatarUploadProps) => {
   const [dragActive, setDragActive] = useState(false);
+  const [currentUploadId, setCurrentUploadId] = useState<string | null>(null);
   const { uploadImage, uploading, uploadProgress } = useImageUpload();
   const { toast } = useToast();
 
@@ -49,10 +49,14 @@ const AvatarUpload = ({ currentAvatar, onAvatarChange, userName }: AvatarUploadP
     }
 
     const imageId = `avatar-${Date.now()}`;
+    setCurrentUploadId(imageId);
+    
     const url = await uploadImage(file, imageId);
     if (url) {
       onAvatarChange(url);
     }
+    
+    setCurrentUploadId(null);
   };
 
   const handleDrag = (e: React.DragEvent) => {
@@ -81,9 +85,9 @@ const AvatarUpload = ({ currentAvatar, onAvatarChange, userName }: AvatarUploadP
     }
   };
 
-  const getUploadProgress = () => {
-    const imageId = `avatar-${Date.now()}`;
-    return uploadProgress[imageId] || 0;
+  const getCurrentProgress = () => {
+    if (!currentUploadId) return 0;
+    return uploadProgress[currentUploadId] || 0;
   };
 
   return (
@@ -124,7 +128,15 @@ const AvatarUpload = ({ currentAvatar, onAvatarChange, userName }: AvatarUploadP
           {uploading ? (
             <>
               <Upload className="h-6 w-6 text-blue-500 animate-pulse" />
-              <p className="text-sm text-gray-600">Uploading... {getUploadProgress()}%</p>
+              <p className="text-sm text-gray-600">Uploading... {getCurrentProgress()}%</p>
+              {getCurrentProgress() > 0 && (
+                <div className="w-full bg-gray-200 rounded-full h-2">
+                  <div 
+                    className="bg-blue-500 h-2 rounded-full transition-all duration-300" 
+                    style={{ width: `${getCurrentProgress()}%` }}
+                  />
+                </div>
+              )}
             </>
           ) : (
             <>
