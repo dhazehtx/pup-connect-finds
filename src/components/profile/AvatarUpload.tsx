@@ -1,9 +1,9 @@
-
 import React, { useState } from 'react';
 import { Camera, User, Upload, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { useImageUpload } from '@/hooks/useImageUpload';
+import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 
 interface AvatarUploadProps {
@@ -15,18 +15,27 @@ interface AvatarUploadProps {
 const AvatarUpload = ({ currentAvatar, onAvatarChange, userName }: AvatarUploadProps) => {
   const [dragActive, setDragActive] = useState(false);
   const { uploadImage, uploading, uploadProgress } = useImageUpload();
+  const { toast } = useToast();
 
   const handleFile = async (file: File) => {
     // Validate file size (10MB limit)
     if (file.size > 10 * 1024 * 1024) {
-      console.error('File too large. Maximum size is 10MB.');
+      toast({
+        title: "File too large",
+        description: "File size must be less than 10MB",
+        variant: "destructive",
+      });
       return;
     }
 
     // Validate file type
     const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
     if (!allowedTypes.includes(file.type)) {
-      console.error('Invalid file type. Only JPEG, PNG, and WebP are allowed.');
+      toast({
+        title: "Invalid file type",
+        description: "Only JPEG, PNG, and WebP files are allowed",
+        variant: "destructive",
+      });
       return;
     }
 
