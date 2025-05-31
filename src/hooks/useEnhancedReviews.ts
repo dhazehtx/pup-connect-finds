@@ -107,8 +107,9 @@ export const useEnhancedReviews = () => {
         const photoUploads = photos.map(async (photo) => {
           const photoUrl = await uploadReviewPhoto(photo);
           if (photoUrl) {
+            // Use raw SQL for review_photos since it's not in types yet
             return supabase
-              .from('review_photos')
+              .from('review_photos' as any)
               .insert([{
                 review_id: review.id,
                 image_url: photoUrl
@@ -152,11 +153,6 @@ export const useEnhancedReviews = () => {
             username,
             avatar_url,
             verified
-          ),
-          photos:review_photos (
-            id,
-            image_url,
-            caption
           )
         `)
         .eq('reviewed_user_id', userId)
@@ -164,9 +160,27 @@ export const useEnhancedReviews = () => {
 
       if (error) throw error;
 
+      // Fetch photos for each review using raw SQL
+      const reviewsWithPhotos = await Promise.all((data || []).map(async (review) => {
+        try {
+          const { data: photos } = await supabase
+            .from('review_photos' as any)
+            .select('*')
+            .eq('review_id', review.id);
+
+          return {
+            ...review,
+            photos: photos || []
+          };
+        } catch (photoError) {
+          console.error('Error fetching photos for review:', photoError);
+          return review;
+        }
+      }));
+
       // Check if current user has voted helpful on each review
-      if (user && data) {
-        const reviewIds = data.map(r => r.id);
+      if (user && reviewsWithPhotos) {
+        const reviewIds = reviewsWithPhotos.map(r => r.id);
         const { data: helpfulVotes } = await supabase
           .from('review_helpfulness')
           .select('review_id')
@@ -175,14 +189,14 @@ export const useEnhancedReviews = () => {
 
         const votedReviewIds = new Set(helpfulVotes?.map(v => v.review_id) || []);
         
-        const reviewsWithVotes = data.map(review => ({
+        const reviewsWithVotes = reviewsWithPhotos.map(review => ({
           ...review,
           user_helpful_vote: votedReviewIds.has(review.id)
         }));
 
         setReviews(reviewsWithVotes);
       } else {
-        setReviews(data || []);
+        setReviews(reviewsWithPhotos || []);
       }
     } catch (error) {
       console.error('Error fetching reviews:', error);
