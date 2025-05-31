@@ -1,6 +1,6 @@
 
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } = '@/components/ui/card';
+import React, { useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { LineChart, Line, AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { TrendingUp, Eye, Heart, MessageCircle, DollarSign, Users } from 'lucide-react';
@@ -8,7 +8,7 @@ import { useAuth } from '@/contexts/AuthContext';
 
 const AdvancedAnalyticsDashboard = () => {
   const { user } = useAuth();
-  const [analyticsData, setAnalyticsData] = useState({
+  const [analyticsData] = useState({
     overview: {
       totalViews: 1250,
       totalFavorites: 89,

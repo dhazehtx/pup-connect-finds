@@ -1,8 +1,8 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } = '@/components/ui/card';
-import { Video, VideoOff, Mic, MicOff, Phone, PhoneOff } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Video, VideoOff, Mic, MicOff, PhoneOff } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface VideoCallInterfaceProps {
