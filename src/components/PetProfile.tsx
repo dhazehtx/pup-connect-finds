@@ -354,8 +354,8 @@ const PetProfile = ({ pet }: PetProfileProps) => {
                     </div>
                   ))}
                 </div>
-              )}
-            </div>
+              </div>
+            )}
           </TabsContent>
         </Tabs>
 
