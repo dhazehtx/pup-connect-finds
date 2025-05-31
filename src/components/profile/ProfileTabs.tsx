@@ -61,7 +61,7 @@ const ProfileTabs = ({ activeTab, setActiveTab, posts, reviews, analyticsCompone
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-2">
                   <span className="font-medium text-sm">{review.author}</span>
-                  <StarRating rating={review.rating} size={12} />
+                  <StarRating rating={review.rating} size="sm" />
                 </div>
                 <span className="text-xs text-gray-500">{review.date}</span>
               </div>
