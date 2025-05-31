@@ -9,6 +9,10 @@ interface ProfileHeaderProps {
 }
 
 const ProfileHeader = ({ profile }: ProfileHeaderProps) => {
+  if (!profile) {
+    return <div>Loading profile...</div>;
+  }
+
   return (
     <>
       {/* Profile Header */}
@@ -28,15 +32,15 @@ const ProfileHeader = ({ profile }: ProfileHeaderProps) => {
         <div className="flex-1">
           <div className="flex gap-6 text-center">
             <div>
-              <div className="font-semibold text-black">{profile.stats.posts}</div>
+              <div className="font-semibold text-black">{profile.stats?.posts || 0}</div>
               <div className="text-gray-600 text-sm">Posts</div>
             </div>
             <div>
-              <div className="font-semibold text-black">{profile.stats.followers.toLocaleString()}</div>
+              <div className="font-semibold text-black">{(profile.stats?.followers || 0).toLocaleString()}</div>
               <div className="text-gray-600 text-sm">Followers</div>
             </div>
             <div>
-              <div className="font-semibold text-black">{profile.stats.following}</div>
+              <div className="font-semibold text-black">{profile.stats?.following || 0}</div>
               <div className="text-gray-600 text-sm">Following</div>
             </div>
           </div>
@@ -59,9 +63,9 @@ const ProfileHeader = ({ profile }: ProfileHeaderProps) => {
         <div className="flex items-center gap-2 mb-2">
           <div className="flex items-center gap-1">
             <Star size={14} className="text-blue-500 fill-current" />
-            <span className="text-sm font-medium text-black">{profile.rating}</span>
+            <span className="text-sm font-medium text-black">{profile.rating || 0}</span>
           </div>
-          <span className="text-sm text-gray-600">({profile.total_reviews} reviews)</span>
+          <span className="text-sm text-gray-600">({profile.total_reviews || 0} reviews)</span>
         </div>
 
         {profile.bio && (
@@ -77,7 +81,7 @@ const ProfileHeader = ({ profile }: ProfileHeaderProps) => {
 
         <div className="flex items-center gap-1 text-sm text-gray-600 mb-3">
           <Calendar size={12} />
-          {profile.years_experience} years experience
+          {profile.years_experience || 0} years experience
         </div>
       </div>
     </>
