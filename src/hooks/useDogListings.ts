@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
+import { showSuccessToast, showErrorToast } from '@/components/ui/enhanced-toast';
 
 interface DogListing {
   id: string;
@@ -29,7 +29,6 @@ interface DogListing {
 export const useDogListings = () => {
   const [listings, setListings] = useState<DogListing[]>([]);
   const [loading, setLoading] = useState(true);
-  const { toast } = useToast();
 
   const fetchListings = async () => {
     try {
@@ -54,10 +53,9 @@ export const useDogListings = () => {
       setListings(data || []);
     } catch (error) {
       console.error('Error fetching listings:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load listings",
-        variant: "destructive",
+      showErrorToast({
+        title: 'Failed to load listings',
+        description: 'Please try refreshing the page or check your connection.'
       });
     } finally {
       setLoading(false);
@@ -81,19 +79,18 @@ export const useDogListings = () => {
 
       if (error) throw error;
 
-      toast({
-        title: "Success",
-        description: "Listing created successfully",
+      showSuccessToast({
+        title: 'Listing created successfully',
+        description: 'Your puppy listing is now live and visible to potential buyers.'
       });
 
       fetchListings();
       return data;
     } catch (error) {
       console.error('Error creating listing:', error);
-      toast({
-        title: "Error",
-        description: "Failed to create listing",
-        variant: "destructive",
+      showErrorToast({
+        title: 'Failed to create listing',
+        description: 'Please check your information and try again.'
       });
       throw error;
     }
@@ -111,18 +108,17 @@ export const useDogListings = () => {
 
       if (error) throw error;
 
-      toast({
-        title: "Success",
-        description: "Listing updated successfully",
+      showSuccessToast({
+        title: 'Listing updated successfully',
+        description: 'Your changes have been saved and are now visible.'
       });
 
       fetchListings();
     } catch (error) {
       console.error('Error updating listing:', error);
-      toast({
-        title: "Error",
-        description: "Failed to update listing",
-        variant: "destructive",
+      showErrorToast({
+        title: 'Failed to update listing',
+        description: 'Please try again or contact support if the problem persists.'
       });
       throw error;
     }
@@ -137,18 +133,17 @@ export const useDogListings = () => {
 
       if (error) throw error;
 
-      toast({
-        title: "Success",
-        description: "Listing deleted successfully",
+      showSuccessToast({
+        title: 'Listing deleted successfully',
+        description: 'Your listing has been removed from the platform.'
       });
 
       fetchListings();
     } catch (error) {
       console.error('Error deleting listing:', error);
-      toast({
-        title: "Error",
-        description: "Failed to delete listing",
-        variant: "destructive",
+      showErrorToast({
+        title: 'Failed to delete listing',
+        description: 'Please try again or contact support if the problem persists.'
       });
       throw error;
     }

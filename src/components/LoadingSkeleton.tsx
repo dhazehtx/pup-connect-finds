@@ -1,6 +1,6 @@
 
 import React from 'react';
-import DogLoadingIcon from './DogLoadingIcon';
+import EnhancedLoading from '@/components/ui/enhanced-loading';
 
 interface LoadingSkeletonProps {
   viewMode: 'grid' | 'list';
@@ -14,7 +14,7 @@ const LoadingSkeleton = ({ viewMode, count = 6 }: LoadingSkeletonProps) => {
         {Array.from({ length: count }).map((_, i) => (
           <div key={i} className="flex bg-white border border-gray-200 rounded-lg p-4">
             <div className="w-48 h-32 rounded-lg bg-gray-100 flex items-center justify-center">
-              <DogLoadingIcon size={40} />
+              <EnhancedLoading size="md" variant="pulse" />
             </div>
             <div className="flex-1 ml-4 space-y-2">
               <div className="h-6 w-3/4 bg-gray-200 rounded animate-pulse" />
@@ -36,7 +36,7 @@ const LoadingSkeleton = ({ viewMode, count = 6 }: LoadingSkeletonProps) => {
       {Array.from({ length: count }).map((_, i) => (
         <div key={i} className="bg-white border border-gray-200 rounded-lg overflow-hidden">
           <div className="w-full h-48 bg-gray-100 flex items-center justify-center">
-            <DogLoadingIcon size={64} />
+            <EnhancedLoading size="lg" variant="pulse" />
           </div>
           <div className="p-4 space-y-2">
             <div className="h-6 w-3/4 bg-gray-200 rounded animate-pulse" />
