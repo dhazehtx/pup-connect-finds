@@ -6,13 +6,13 @@ import { Badge } from '@/components/ui/badge';
 
 interface ProfilePreviewProps {
   formData: {
-    fullName: string;
-    username: string;
-    bio: string;
-    location: string;
-    avatarUrl: string;
-    userType: string;
-    yearsExperience: number;
+    fullName?: string;
+    username?: string;
+    bio?: string;
+    location?: string;
+    avatarUrl?: string;
+    userType?: string;
+    yearsExperience?: number;
   };
 }
 
