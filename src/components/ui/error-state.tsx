@@ -73,7 +73,7 @@ const ErrorState = ({
           <RippleButton
             onClick={onRetry}
             className="bg-royal-blue text-white hover:bg-blue-600"
-            size={variant === 'minimal' ? 'sm' : 'default'}
+            size={variant === 'minimal' ? 'sm' : 'md'}
           >
             <RefreshCw className="w-4 h-4 mr-2" />
             {retryText}

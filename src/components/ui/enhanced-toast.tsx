@@ -49,13 +49,13 @@ export const showToast = (type: ToastType, options: ToastOptions) => {
   const styles = getToastStyles(type);
 
   return toast({
-    title: (
+    title: options.title,
+    description: (
       <div className="flex items-center gap-2">
         {icon}
-        <span>{options.title}</span>
+        <span>{options.description}</span>
       </div>
     ),
-    description: options.description,
     duration: options.duration || 4000,
     className: cn('border-l-4', styles),
     action: options.action ? (
