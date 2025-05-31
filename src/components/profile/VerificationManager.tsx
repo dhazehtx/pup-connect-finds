@@ -15,6 +15,7 @@ import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { Tables } from '@/integrations/supabase/types';
 
 const verificationSchema = z.object({
   verificationType: z.enum(['breeder', 'shelter', 'veterinarian']),
@@ -24,13 +25,8 @@ const verificationSchema = z.object({
 
 type VerificationFormData = z.infer<typeof verificationSchema>;
 
-interface VerificationRequest {
-  id: string;
-  verification_type: string;
-  status: 'pending' | 'approved' | 'rejected';
-  submitted_at: string;
-  rejection_reason?: string;
-}
+// Use the actual database type from Supabase
+type VerificationRequest = Tables<'verification_requests'>;
 
 interface VerificationManagerProps {
   isVerified: boolean;
