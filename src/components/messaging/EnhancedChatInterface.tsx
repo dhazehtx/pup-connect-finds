@@ -54,10 +54,8 @@ const EnhancedChatInterface = ({ conversationId, otherUserId, listingId }: Enhan
       imageUrl = await uploadFile(selectedFile, {
         bucket: 'dog-images',
         folder: 'messages',
-        maxSizeBytes: 10 * 1024 * 1024,
-        allowedTypes: ['image/jpeg', 'image/png', 'image/webp'],
-        maxWidth: 800,
-        maxHeight: 600
+        maxSize: 10,
+        allowedTypes: ['image/jpeg', 'image/png', 'image/webp']
       }) || undefined;
     }
 
