@@ -2,23 +2,10 @@
 import React from 'react';
 import { MapPin, Calendar, CheckCircle, Star } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { UserProfile } from '@/types/profile';
 
 interface ProfileHeaderProps {
-  profile: {
-    name: string;
-    username: string;
-    location: string;
-    bio: string;
-    avatar: string;
-    followers: number;
-    following: number;
-    posts: number;
-    verified: boolean;
-    isBreeder: boolean;
-    rating: number;
-    totalReviews: number;
-    yearsExperience: number;
-  };
+  profile: UserProfile;
 }
 
 const ProfileHeader = ({ profile }: ProfileHeaderProps) => {
@@ -28,8 +15,8 @@ const ProfileHeader = ({ profile }: ProfileHeaderProps) => {
       <div className="flex items-center gap-4 mb-4">
         <div className="relative">
           <img
-            src={profile.avatar}
-            alt={profile.name}
+            src={profile.avatar_url || 'https://images.unsplash.com/photo-1560743173-567a3b5658b1?w=150&h=150&fit=crop&crop=face'}
+            alt={profile.full_name || profile.username || 'Profile'}
             className="w-20 h-20 rounded-full object-cover"
           />
           {profile.verified && (
@@ -41,15 +28,15 @@ const ProfileHeader = ({ profile }: ProfileHeaderProps) => {
         <div className="flex-1">
           <div className="flex gap-6 text-center">
             <div>
-              <div className="font-semibold text-black">{profile.posts}</div>
+              <div className="font-semibold text-black">{profile.stats.posts}</div>
               <div className="text-gray-600 text-sm">Posts</div>
             </div>
             <div>
-              <div className="font-semibold text-black">{profile.followers.toLocaleString()}</div>
+              <div className="font-semibold text-black">{profile.stats.followers.toLocaleString()}</div>
               <div className="text-gray-600 text-sm">Followers</div>
             </div>
             <div>
-              <div className="font-semibold text-black">{profile.following}</div>
+              <div className="font-semibold text-black">{profile.stats.following}</div>
               <div className="text-gray-600 text-sm">Following</div>
             </div>
           </div>
@@ -59,8 +46,8 @@ const ProfileHeader = ({ profile }: ProfileHeaderProps) => {
       {/* Profile Info */}
       <div className="mb-4">
         <div className="flex items-center gap-2 mb-2">
-          <h2 className="font-semibold text-sm text-black">{profile.name}</h2>
-          {profile.isBreeder && (
+          <h2 className="font-semibold text-sm text-black">{profile.full_name || profile.username}</h2>
+          {profile.user_type === 'breeder' && (
             <Badge className="bg-green-500 text-white text-xs">
               <CheckCircle size={10} className="mr-1" />
               Verified Breeder
@@ -74,19 +61,23 @@ const ProfileHeader = ({ profile }: ProfileHeaderProps) => {
             <Star size={14} className="text-blue-500 fill-current" />
             <span className="text-sm font-medium text-black">{profile.rating}</span>
           </div>
-          <span className="text-sm text-gray-600">({profile.totalReviews} reviews)</span>
+          <span className="text-sm text-gray-600">({profile.total_reviews} reviews)</span>
         </div>
 
-        <p className="text-sm text-gray-600 mb-2">{profile.bio}</p>
+        {profile.bio && (
+          <p className="text-sm text-gray-600 mb-2">{profile.bio}</p>
+        )}
         
-        <div className="flex items-center gap-1 text-sm text-gray-600 mb-2">
-          <MapPin size={12} />
-          {profile.location}
-        </div>
+        {profile.location && (
+          <div className="flex items-center gap-1 text-sm text-gray-600 mb-2">
+            <MapPin size={12} />
+            {profile.location}
+          </div>
+        )}
 
         <div className="flex items-center gap-1 text-sm text-gray-600 mb-3">
           <Calendar size={12} />
-          {profile.yearsExperience} years experience
+          {profile.years_experience} years experience
         </div>
       </div>
     </>
