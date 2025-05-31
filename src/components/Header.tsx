@@ -11,7 +11,7 @@ import LanguageSwitcher from '@/components/ui/language-switcher';
 const Header = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user, logout, isGuest } = useAuth();
+  const { user, signOut, isGuest } = useAuth();
   const { t } = useTranslation();
   const [searchTerm, setSearchTerm] = useState('');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -25,7 +25,7 @@ const Header = () => {
 
   const handleAuthAction = () => {
     if (user && !isGuest) {
-      logout();
+      signOut();
     } else {
       navigate('/auth');
     }
