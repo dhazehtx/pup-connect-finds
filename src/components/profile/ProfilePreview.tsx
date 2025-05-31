@@ -23,7 +23,7 @@ const ProfilePreview = ({ formData }: ProfilePreviewProps) => {
   const displayBio = formData.bio || 'Add a bio to tell people about yourself...';
 
   return (
-    <div className="border rounded-lg p-4 bg-gray-50">
+    <div className="p-4 bg-gray-50" style={{ border: 'none', outline: 'none' }}>
       <h3 className="text-sm font-medium text-gray-700 mb-3">Preview</h3>
       
       <div className="flex items-center gap-3 mb-3">

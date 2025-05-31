@@ -171,6 +171,56 @@
   border-color: rgb(147 197 253) !important; /* Soft Blue */
 }
 
+/* PROFILE EDIT DIALOG SPECIFIC OVERRIDES */
+/* Target profile preview and edit dialog elements */
+.profile-preview,
+[class*="profile-preview"],
+[class*="ProfilePreview"] {
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* Target dialog content areas */
+[data-radix-dialog-content],
+.dialog-content,
+[class*="dialog-content"] {
+  border: none !important;
+  outline: none !important;
+}
+
+/* Target any container or wrapper that might have yellow borders */
+.container,
+.wrapper,
+[class*="container"],
+[class*="wrapper"],
+[class*="content"],
+[class*="section"] {
+  border-color: transparent !important;
+}
+
+/* COMPREHENSIVE BORDER REMOVAL */
+/* Target all possible yellow border variations */
+*[style*="border: 1px solid yellow"],
+*[style*="border-color: yellow"],
+*[style*="border: yellow"],
+*[style*="outline: yellow"],
+*[style*="box-shadow: yellow"] {
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* Remove focus outlines that might be yellow on form elements */
+input:focus,
+textarea:focus,
+select:focus,
+button:focus {
+  outline: none !important;
+  border-color: rgb(209, 213, 219) !important;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1) !important;
+}
+
 /* TRUSTED PARTNERS BUTTON SPECIFIC OVERRIDES */
 /* Target the trusted partners button specifically */
 button[aria-label*="Trusted"],
@@ -366,14 +416,12 @@ select:focus {
 
 /* Remove focus outlines that might be yellow */
 *:focus {
-  outline: 2px solid rgb(59, 130, 246) !important;
-  outline-offset: 2px !important;
+  outline: none !important;
 }
 
 /* Button focus states - REMOVED HEADER BUTTON OVERRIDES */
 button:focus {
-  outline: 2px solid rgb(59, 130, 246) !important;
-  outline-offset: 2px !important;
+  outline: none !important;
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1) !important;
 }
 
