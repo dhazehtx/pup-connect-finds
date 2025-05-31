@@ -25,20 +25,28 @@ const ProfileTabs = ({ activeTab, setActiveTab, posts, reviews, analyticsCompone
   return (
     <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
       <div className="flex gap-2 mb-4">
-        <Button
+        <button
           onClick={() => setActiveTab('posts')}
-          className="flex-1 bg-blue-500 text-white"
+          className={`flex-1 flex flex-col items-center py-3 text-sm font-medium transition-colors ${
+            activeTab === 'posts' 
+              ? 'text-black border-b-2 border-black' 
+              : 'text-gray-400 hover:text-gray-600'
+          }`}
         >
-          <Grid size={16} className="mr-2" />
-          Posts
-        </Button>
-        <Button
+          <Grid size={20} className="mb-1" />
+          POSTS
+        </button>
+        <button
           onClick={() => setActiveTab('reviews')}
-          className="flex-1 bg-blue-500 text-white"
+          className={`flex-1 flex flex-col items-center py-3 text-sm font-medium transition-colors ${
+            activeTab === 'reviews' 
+              ? 'text-black border-b-2 border-black' 
+              : 'text-gray-400 hover:text-gray-600'
+          }`}
         >
-          <MessageSquare size={16} className="mr-2" />
-          Reviews
-        </Button>
+          <MessageSquare size={20} className="mb-1" />
+          REVIEWS
+        </button>
         {analyticsComponent && (
           <Button
             onClick={() => setActiveTab('analytics')}
