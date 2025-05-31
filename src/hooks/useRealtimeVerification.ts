@@ -9,6 +9,7 @@ interface VerificationUpdate {
   status: 'pending' | 'approved' | 'rejected';
   reviewed_at?: string;
   rejection_reason?: string;
+  verification_type?: string;
 }
 
 export const useRealtimeVerification = () => {
@@ -65,16 +66,16 @@ export const useRealtimeVerification = () => {
             )
           );
 
-          // Show notification based on status change
+          // Show enhanced notification based on status change
           if (updatedRequest.status === 'approved') {
             toast({
-              title: "Verification Approved! 🎉",
-              description: "Your account has been verified. You can now enjoy enhanced features.",
+              title: "🎉 Verification Approved!",
+              description: `Your ${updatedRequest.verification_type || 'account'} verification has been approved. You now have enhanced credibility and visibility.`,
             });
           } else if (updatedRequest.status === 'rejected') {
             toast({
-              title: "Verification Update",
-              description: updatedRequest.rejection_reason || "Your verification request needs attention.",
+              title: "❌ Verification Update",
+              description: updatedRequest.rejection_reason || "Your verification request needs attention. Please review and resubmit.",
               variant: "destructive",
             });
           }
@@ -93,8 +94,8 @@ export const useRealtimeVerification = () => {
           setVerificationRequests(prev => [newRequest, ...prev]);
           
           toast({
-            title: "Verification Submitted",
-            description: "Your verification request has been submitted for review.",
+            title: "📋 Verification Submitted",
+            description: "Your verification request has been submitted for review. We'll notify you of updates.",
           });
         }
       )
@@ -126,7 +127,7 @@ export const useRealtimeVerification = () => {
           if (updatedProfile.verified && !payload.old?.verified) {
             toast({
               title: "🏆 Account Verified!",
-              description: "Congratulations! Your account is now verified with enhanced credibility.",
+              description: "Congratulations! Your account is now verified. This enhances your credibility and gives you access to premium features.",
             });
           }
         }

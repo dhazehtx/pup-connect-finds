@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { Settings } from 'lucide-react';
@@ -13,7 +12,9 @@ import ProfileEditDialog from '@/components/profile/ProfileEditDialog';
 import ProfileCompletionGuide from '@/components/profile/ProfileCompletionGuide';
 import MobileProfileHeader from '@/components/profile/MobileProfileHeader';
 import ProfileErrorBoundary from '@/components/profile/ProfileErrorBoundary';
+import ProfileAnalyticsEnhanced from '@/components/profile/ProfileAnalyticsEnhanced';
 import { useMobileOptimized } from '@/hooks/useMobileOptimized';
+import { useRealtimeVerification } from '@/hooks/useRealtimeVerification';
 import { UserProfile } from '@/types/profile';
 
 const Profile = () => {
@@ -23,6 +24,9 @@ const Profile = () => {
   const [activeTab, setActiveTab] = useState('posts');
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [showCompletionGuide, setShowCompletionGuide] = useState(true);
+  
+  // Initialize real-time verification notifications
+  useRealtimeVerification();
   
   // Check if this is the current user's profile or another user's profile
   const isOwnProfile = !userId || userId === user?.id;
@@ -251,6 +255,9 @@ const Profile = () => {
             setActiveTab={setActiveTab}
             posts={posts}
             reviews={reviews}
+            analyticsComponent={
+              isOwnProfile ? <ProfileAnalyticsEnhanced profile={displayProfile} /> : undefined
+            }
           />
         </div>
 
