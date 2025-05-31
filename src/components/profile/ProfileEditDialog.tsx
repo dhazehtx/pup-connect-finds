@@ -9,7 +9,7 @@ import { AlertCircle, CheckCircle } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import ProfilePreview from './ProfilePreview';
-import ProfileEditTabs from './ProfileEditTabs';
+import ProfileEditTabsEnhanced from './ProfileEditTabsEnhanced';
 
 const profileSchema = z.object({
   fullName: z.string().min(1, 'Full name is required').max(100, 'Full name is too long'),
@@ -162,7 +162,7 @@ const ProfileEditDialog = ({ profile, isOpen, onClose }: ProfileEditDialogProps)
         
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2">
-            <ProfileEditTabs
+            <ProfileEditTabsEnhanced
               form={form}
               activeTab={activeTab}
               setActiveTab={setActiveTab}
