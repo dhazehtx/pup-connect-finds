@@ -4,11 +4,14 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
-import { Check, Crown, Star, Zap } from 'lucide-react';
-import { PRICING_CONFIG } from '@/config/pricing';
+import { Check, Crown, Star, Zap, Settings } from 'lucide-react';
+import { useSubscription } from '@/hooks/useSubscription';
+import { useAuth } from '@/contexts/AuthContext';
 
 const PricingPlans = () => {
   const [isYearly, setIsYearly] = useState(false);
+  const { subscribed, subscription_tier, createCheckout, openCustomerPortal, loading } = useSubscription();
+  const { user } = useAuth();
   
   const plans = [
     {
@@ -18,9 +21,14 @@ const PricingPlans = () => {
       bgColor: 'bg-blue-50',
       borderColor: 'border-blue-200',
       popular: false,
-      monthlyPrice: PRICING_CONFIG.subscriptions.basic.monthly,
-      yearlyPrice: PRICING_CONFIG.subscriptions.basic.yearly,
-      features: PRICING_CONFIG.subscriptions.basic.features
+      monthlyPrice: 7.99,
+      yearlyPrice: 79.99,
+      features: [
+        'Up to 5 dog listings',
+        'Basic messaging',
+        'Standard support',
+        'Basic analytics'
+      ]
     },
     {
       name: 'Pro',
@@ -29,9 +37,16 @@ const PricingPlans = () => {
       bgColor: 'bg-yellow-50',
       borderColor: 'border-yellow-200',
       popular: true,
-      monthlyPrice: PRICING_CONFIG.subscriptions.pro.monthly,
-      yearlyPrice: PRICING_CONFIG.subscriptions.pro.yearly,
-      features: PRICING_CONFIG.subscriptions.pro.features
+      monthlyPrice: 14.99,
+      yearlyPrice: 149.99,
+      features: [
+        'Unlimited dog listings',
+        'Priority messaging',
+        'Advanced search filters',
+        'Detailed analytics',
+        'Verification badge',
+        'Priority support'
+      ]
     },
     {
       name: 'Enterprise',
@@ -40,9 +55,16 @@ const PricingPlans = () => {
       bgColor: 'bg-purple-50',
       borderColor: 'border-purple-200',
       popular: false,
-      monthlyPrice: PRICING_CONFIG.subscriptions.enterprise.monthly,
-      yearlyPrice: PRICING_CONFIG.subscriptions.enterprise.yearly,
-      features: PRICING_CONFIG.subscriptions.enterprise.features
+      monthlyPrice: 29.99,
+      yearlyPrice: 299.99,
+      features: [
+        'Everything in Pro',
+        'Custom branding',
+        'API access',
+        'Dedicated account manager',
+        'Custom integrations',
+        'White-label options'
+      ]
     }
   ];
 
@@ -50,6 +72,14 @@ const PricingPlans = () => {
     const monthlyCost = plan.monthlyPrice * 12;
     const yearlyCost = plan.yearlyPrice;
     return Math.round(((monthlyCost - yearlyCost) / monthlyCost) * 100);
+  };
+
+  const handleSubscribe = (planName: string) => {
+    createCheckout(planName);
+  };
+
+  const isCurrentPlan = (planName: string) => {
+    return subscribed && subscription_tier === planName;
   };
 
   return (
@@ -68,17 +98,53 @@ const PricingPlans = () => {
         </div>
       </div>
 
+      {subscribed && (
+        <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="font-semibold text-green-800">
+                Current Plan: {subscription_tier}
+              </p>
+              <p className="text-sm text-green-600">
+                You have an active subscription
+              </p>
+            </div>
+            <Button
+              onClick={openCustomerPortal}
+              variant="outline"
+              size="sm"
+              className="border-green-300 text-green-700 hover:bg-green-100"
+            >
+              <Settings size={16} className="mr-2" />
+              Manage Subscription
+            </Button>
+          </div>
+        </div>
+      )}
+
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {plans.map((plan, index) => {
           const Icon = plan.icon;
           const price = isYearly ? plan.yearlyPrice : plan.monthlyPrice;
           const period = isYearly ? 'year' : 'month';
+          const isCurrentlySubscribed = isCurrentPlan(plan.name);
           
           return (
-            <Card key={index} className={`relative ${plan.borderColor} ${plan.popular ? 'ring-2 ring-yellow-400' : ''}`}>
-              {plan.popular && (
+            <Card 
+              key={index} 
+              className={`relative ${plan.borderColor} ${
+                plan.popular ? 'ring-2 ring-yellow-400' : ''
+              } ${isCurrentlySubscribed ? 'ring-2 ring-green-400' : ''}`}
+            >
+              {plan.popular && !isCurrentlySubscribed && (
                 <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
                   <Badge className="bg-yellow-500 text-white">Most Popular</Badge>
+                </div>
+              )}
+              
+              {isCurrentlySubscribed && (
+                <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
+                  <Badge className="bg-green-500 text-white">Your Plan</Badge>
                 </div>
               )}
               
@@ -109,9 +175,25 @@ const PricingPlans = () => {
                 </ul>
                 
                 <Button 
-                  className={`w-full ${plan.popular ? 'bg-yellow-500 hover:bg-yellow-600' : 'bg-blue-500 hover:bg-blue-600'} text-white`}
+                  onClick={() => handleSubscribe(plan.name)}
+                  disabled={loading || isCurrentlySubscribed || !user}
+                  className={`w-full ${
+                    isCurrentlySubscribed 
+                      ? 'bg-green-500 hover:bg-green-600' 
+                      : plan.popular 
+                        ? 'bg-yellow-500 hover:bg-yellow-600' 
+                        : 'bg-blue-500 hover:bg-blue-600'
+                  } text-white`}
                 >
-                  Get Started
+                  {loading ? (
+                    'Loading...'
+                  ) : isCurrentlySubscribed ? (
+                    'Current Plan'
+                  ) : !user ? (
+                    'Sign in to Subscribe'
+                  ) : (
+                    'Get Started'
+                  )}
                 </Button>
               </CardContent>
             </Card>
