@@ -3,7 +3,7 @@ import { useParams } from 'react-router-dom';
 import { Settings } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
-import ProfileHeader from '@/components/profile/ProfileHeader';
+import ProfileHeaderWithPresence from '@/components/profile/ProfileHeaderWithPresence';
 import ProfileBadges from '@/components/profile/ProfileBadges';
 import ProfileActions from '@/components/profile/ProfileActions';
 import ProfileHighlights from '@/components/profile/ProfileHighlights';
@@ -13,6 +13,7 @@ import ProfileCompletionGuide from '@/components/profile/ProfileCompletionGuide'
 import MobileProfileHeader from '@/components/profile/MobileProfileHeader';
 import ProfileErrorBoundary from '@/components/profile/ProfileErrorBoundary';
 import ProfileAnalyticsEnhanced from '@/components/profile/ProfileAnalyticsEnhanced';
+import OnlineUsersList from '@/components/ui/online-users-list';
 import { useMobileOptimized } from '@/hooks/useMobileOptimized';
 import { useRealtimeVerification } from '@/hooks/useRealtimeVerification';
 import { UserProfile } from '@/types/profile';
@@ -239,7 +240,7 @@ const Profile = () => {
             </div>
           )}
 
-          <ProfileHeader profile={displayProfile} />
+          <ProfileHeaderWithPresence profile={displayProfile} />
           
           <ProfileBadges 
             verificationBadges={displayProfile.verification_badges.map(b => b.type)}
@@ -247,6 +248,11 @@ const Profile = () => {
           />
 
           <ProfileActions />
+
+          {/* Online Users Section - Show for all users */}
+          <div className="mb-6">
+            <OnlineUsersList variant="compact" maxVisible={3} />
+          </div>
 
           <ProfileHighlights highlights={highlights} />
 
