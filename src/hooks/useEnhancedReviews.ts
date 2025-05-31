@@ -1,4 +1,3 @@
-
 import { useState, useCallback, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -168,7 +167,10 @@ export const useEnhancedReviews = () => {
             .eq('review_id', review.id);
 
           // Ensure we have a valid reviewer_profile
-          const validReviewerProfile = review.reviewer_profile && typeof review.reviewer_profile === 'object' && !('error' in review.reviewer_profile)
+          const validReviewerProfile = review.reviewer_profile && 
+            typeof review.reviewer_profile === 'object' && 
+            !Array.isArray(review.reviewer_profile) &&
+            !('error' in review.reviewer_profile)
             ? review.reviewer_profile
             : {
                 full_name: 'Unknown User',

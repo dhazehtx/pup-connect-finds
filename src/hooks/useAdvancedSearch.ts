@@ -1,4 +1,3 @@
-
 import { useState, useCallback, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -173,18 +172,23 @@ export const useAdvancedSearch = () => {
     try {
       const { data, error } = await supabase
         .from('saved_searches')
-        .insert([{
+        .insert({
           user_id: user.id,
           name,
-          filters,
+          filters: filters as any,
           notify_new_matches: notifyNewMatches
-        }])
+        })
         .select()
         .single();
 
       if (error) throw error;
 
-      setSavedSearches(prev => [data, ...prev]);
+      const newSavedSearch: SavedSearch = {
+        ...data,
+        filters: data.filters as SearchFilters
+      };
+
+      setSavedSearches(prev => [newSavedSearch, ...prev]);
 
       toast({
         title: "Search Saved",
@@ -212,7 +216,13 @@ export const useAdvancedSearch = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setSavedSearches(data || []);
+      
+      const typedSavedSearches: SavedSearch[] = (data || []).map(item => ({
+        ...item,
+        filters: item.filters as SearchFilters
+      }));
+      
+      setSavedSearches(typedSavedSearches);
     } catch (error) {
       console.error('Error loading saved searches:', error);
     }
