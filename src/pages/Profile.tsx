@@ -1,6 +1,7 @@
+
 import React, { useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { Settings, Share, Download, GitCompare } from 'lucide-react';
+import { Settings } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import ProfileHeader from '@/components/profile/ProfileHeader';
@@ -12,9 +13,6 @@ import ProfileEditDialog from '@/components/profile/ProfileEditDialog';
 import ProfileCompletionGuide from '@/components/profile/ProfileCompletionGuide';
 import MobileProfileHeader from '@/components/profile/MobileProfileHeader';
 import ProfileErrorBoundary from '@/components/profile/ProfileErrorBoundary';
-import { ProfileExportDialog } from '@/components/profile/ProfileExportDialog';
-import { ProfileShareDialog } from '@/components/profile/ProfileShareDialog';
-import { ProfileComparisonDialog } from '@/components/profile/ProfileComparisonDialog';
 import { useMobileOptimized } from '@/hooks/useMobileOptimized';
 import { UserProfile } from '@/types/profile';
 
@@ -24,9 +22,6 @@ const Profile = () => {
   const { isMobile } = useMobileOptimized();
   const [activeTab, setActiveTab] = useState('posts');
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [isExportDialogOpen, setIsExportDialogOpen] = useState(false);
-  const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
-  const [isComparisonDialogOpen, setIsComparisonDialogOpen] = useState(false);
   const [showCompletionGuide, setShowCompletionGuide] = useState(true);
   
   // Check if this is the current user's profile or another user's profile
@@ -218,39 +213,13 @@ const Profile = () => {
                 @{displayProfile.username}
               </h1>
               {isOwnProfile && user && (
-                <div className="flex gap-2">
-                  <Button 
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setIsExportDialogOpen(true)}
-                  >
-                    <Download size={16} className="mr-2" />
-                    Export
-                  </Button>
-                  <Button 
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setIsShareDialogOpen(true)}
-                  >
-                    <Share size={16} className="mr-2" />
-                    Share
-                  </Button>
-                  <Button 
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setIsComparisonDialogOpen(true)}
-                  >
-                    <GitCompare size={16} className="mr-2" />
-                    Compare
-                  </Button>
-                  <Button 
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setIsEditDialogOpen(true)}
-                  >
-                    <Settings size={20} />
-                  </Button>
-                </div>
+                <Button 
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setIsEditDialogOpen(true)}
+                >
+                  <Settings size={20} />
+                </Button>
               )}
             </div>
           )}
@@ -285,7 +254,7 @@ const Profile = () => {
           />
         </div>
 
-        {/* Dialogs - All implemented and functional */}
+        {/* Edit Dialog */}
         {isEditDialogOpen && profile && (
           <ProfileEditDialog 
             profile={profile}
@@ -293,24 +262,6 @@ const Profile = () => {
             onClose={() => setIsEditDialogOpen(false)}
           />
         )}
-
-        <ProfileExportDialog
-          profile={displayProfile}
-          isOpen={isExportDialogOpen}
-          onClose={() => setIsExportDialogOpen(false)}
-        />
-
-        <ProfileShareDialog
-          profile={displayProfile}
-          isOpen={isShareDialogOpen}
-          onClose={() => setIsShareDialogOpen(false)}
-        />
-
-        <ProfileComparisonDialog
-          currentProfile={displayProfile}
-          isOpen={isComparisonDialogOpen}
-          onClose={() => setIsComparisonDialogOpen(false)}
-        />
       </div>
     </ProfileErrorBoundary>
   );
