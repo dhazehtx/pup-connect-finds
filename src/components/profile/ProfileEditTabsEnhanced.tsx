@@ -48,8 +48,8 @@ const ProfileEditTabsEnhanced = ({
 
   return (
     <div>
-      {/* Simple text-only navigation */}
-      <div className="mb-6">
+      {/* Simple text-only navigation - removed borders */}
+      <div className="mb-6 space-y-1">
         {tabItems.map((item) => {
           const Icon = item.icon;
           return (
@@ -69,68 +69,70 @@ const ProfileEditTabsEnhanced = ({
         })}
       </div>
 
-      {/* Tab Content */}
-      {activeTab === 'basic' && (
-        <div className="space-y-4 mt-4">
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-              <BasicInfoFormWithAvatar />
+      {/* Tab Content - removed all borders and background highlights */}
+      <div className="space-y-6">
+        {activeTab === 'basic' && (
+          <div className="space-y-4">
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                <BasicInfoFormWithAvatar />
 
-              <div className="flex flex-col sm:flex-row gap-3 pt-6">
-                <button 
-                  type="button" 
-                  onClick={onClose}
-                  className="w-full sm:flex-1 px-4 py-2 text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 transition-colors"
-                  disabled={isLoading}
-                >
-                  Cancel
-                </button>
-                <button 
-                  type="submit" 
-                  className="w-full sm:flex-1 px-4 py-2 bg-gray-900 text-white hover:bg-gray-800 transition-colors"
-                  disabled={isLoading}
-                >
-                  {isLoading ? 'Saving...' : 'Save Changes'}
-                </button>
-              </div>
-            </form>
-          </Form>
-        </div>
-      )}
+                <div className="flex flex-col sm:flex-row gap-3 pt-6">
+                  <button 
+                    type="button" 
+                    onClick={onClose}
+                    className="w-full sm:flex-1 px-4 py-2 text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 transition-colors"
+                    disabled={isLoading}
+                  >
+                    Cancel
+                  </button>
+                  <button 
+                    type="submit" 
+                    className="w-full sm:flex-1 px-4 py-2 bg-gray-900 text-white hover:bg-gray-800 transition-colors"
+                    disabled={isLoading}
+                  >
+                    {isLoading ? 'Saving...' : 'Save Changes'}
+                  </button>
+                </div>
+              </form>
+            </Form>
+          </div>
+        )}
 
-      {activeTab === 'social' && (
-        <div className="mt-4">
-          <SocialMediaManager
-            socialLinks={socialLinks}
-            onUpdate={setSocialLinks}
-          />
-        </div>
-      )}
+        {activeTab === 'social' && (
+          <div>
+            <SocialMediaManager
+              socialLinks={socialLinks}
+              onUpdate={setSocialLinks}
+            />
+          </div>
+        )}
 
-      {activeTab === 'privacy' && (
-        <div className="mt-4">
-          <PrivacySettings
-            settings={privacySettings}
-            onUpdate={setPrivacySettings}
-          />
-        </div>
-      )}
+        {activeTab === 'privacy' && (
+          <div>
+            <PrivacySettings
+              settings={privacySettings}
+              onUpdate={setPrivacySettings}
+            />
+          </div>
+        )}
 
-      {activeTab === 'verification' && (
-        <div className="mt-4">
-          <EnhancedVerificationManager
-            isVerified={profile?.verified || false}
-            verificationRequests={[]}
-            onSubmitVerification={handleVerificationSubmit}
-          />
-        </div>
-      )}
+        {activeTab === 'verification' && (
+          <div>
+            <EnhancedVerificationManager
+              isVerified={profile?.verified || false}
+              verificationRequests={[]}
+              onSubmitVerification={handleVerificationSubmit}
+            />
+          </div>
+        )}
 
-      {activeTab === 'analytics' && (
-        <div className="mt-4">
-          <ProfileAnalytics />
-        </div>
-      )}
+        {activeTab === 'analytics' && (
+          <div>
+            <ProfileAnalytics />
+          </div>
+        )}
+      </div>
     </div>
   );
 };
