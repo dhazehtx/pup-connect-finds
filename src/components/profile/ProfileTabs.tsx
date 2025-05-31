@@ -2,7 +2,7 @@
 import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Grid, MessageSquare, BarChart3 } from 'lucide-react';
-import { StarRating } from '@/components/reviews/StarRating';
+import StarRating from '@/components/reviews/StarRating';
 
 interface Review {
   id: number;

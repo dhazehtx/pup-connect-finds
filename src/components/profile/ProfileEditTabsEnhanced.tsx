@@ -43,13 +43,59 @@ const ProfileEditTabsEnhanced = ({
 
   return (
     <Tabs value={activeTab} onValueChange={setActiveTab}>
-      <TabsList className="grid w-full grid-cols-5">
-        <TabsTrigger value="basic">Basic Info</TabsTrigger>
-        <TabsTrigger value="social">Social Media</TabsTrigger>
-        <TabsTrigger value="privacy">Privacy</TabsTrigger>
-        <TabsTrigger value="verification">Verification</TabsTrigger>
-        <TabsTrigger value="analytics">Analytics</TabsTrigger>
-      </TabsList>
+      {/* Custom styled TabsList to match the design */}
+      <div className="flex bg-blue-100 rounded-full p-1 mb-6">
+        <button
+          onClick={() => setActiveTab('basic')}
+          className={`flex-1 py-2 px-4 rounded-full text-sm font-medium transition-all ${
+            activeTab === 'basic'
+              ? 'bg-blue-500 text-white shadow-sm'
+              : 'text-blue-700 hover:bg-blue-200'
+          }`}
+        >
+          Basic Info
+        </button>
+        <button
+          onClick={() => setActiveTab('social')}
+          className={`flex-1 py-2 px-4 rounded-full text-sm font-medium transition-all ${
+            activeTab === 'social'
+              ? 'bg-blue-500 text-white shadow-sm'
+              : 'text-blue-700 hover:bg-blue-200'
+          }`}
+        >
+          Social Media
+        </button>
+        <button
+          onClick={() => setActiveTab('privacy')}
+          className={`flex-1 py-2 px-4 rounded-full text-sm font-medium transition-all ${
+            activeTab === 'privacy'
+              ? 'bg-blue-500 text-white shadow-sm'
+              : 'text-blue-700 hover:bg-blue-200'
+          }`}
+        >
+          Privacy
+        </button>
+        <button
+          onClick={() => setActiveTab('verification')}
+          className={`flex-1 py-2 px-4 rounded-full text-sm font-medium transition-all ${
+            activeTab === 'verification'
+              ? 'bg-blue-500 text-white shadow-sm'
+              : 'text-blue-700 hover:bg-blue-200'
+          }`}
+        >
+          Verification
+        </button>
+        <button
+          onClick={() => setActiveTab('analytics')}
+          className={`flex-1 py-2 px-4 rounded-full text-sm font-medium transition-all ${
+            activeTab === 'analytics'
+              ? 'bg-blue-500 text-white shadow-sm'
+              : 'text-blue-700 hover:bg-blue-200'
+          }`}
+        >
+          Analytics
+        </button>
+      </div>
 
       <TabsContent value="basic" className="space-y-4 mt-4">
         <ProfileCompletionIndicator 
