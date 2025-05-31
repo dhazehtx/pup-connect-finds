@@ -8,13 +8,19 @@ import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/contexts/AuthContext';
-import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useRealtimeVerification } from '@/hooks/useRealtimeVerification';
+import { useMobileOptimized } from '@/hooks/useMobileOptimized';
 
 const Verification = () => {
   const { user, profile } = useAuth();
   const { toast } = useToast();
-  const [verificationRequests, setVerificationRequests] = useState([]);
+  const { 
+    verificationRequests, 
+    isLoading: verificationLoading, 
+    submitVerificationRequest 
+  } = useRealtimeVerification();
+  const { isMobile, getMobileClasses } = useMobileOptimized();
   const [loading, setLoading] = useState(false);
 
   const [idUploaded, setIdUploaded] = useState(false);
@@ -49,57 +55,24 @@ const Verification = () => {
     }
   ];
 
-  useEffect(() => {
-    if (user) {
-      fetchVerificationRequests();
-    }
-  }, [user]);
-
-  const fetchVerificationRequests = async () => {
-    if (!user) return;
-    
-    try {
-      const { data, error } = await supabase
-        .from('verification_requests')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      setVerificationRequests(data || []);
-    } catch (error) {
-      console.error('Error fetching verification requests:', error);
-    }
-  };
-
-  const submitVerificationRequest = async () => {
+  const submitVerification = async () => {
     if (!user) return;
 
     try {
       setLoading(true);
       
-      const { data, error } = await supabase.functions.invoke('user-verification', {
-        body: {
-          action: 'submit_verification',
-          user_id: user.id,
-          verification_data: {
-            business_license: 'sample_license_123',
-            id_document: 'sample_id_456',
-            address_proof: 'sample_address_789',
-            contact_verification: { phone: profile?.phone, email: user.email },
-            experience_details: 'Experienced breeder with 10+ years in the field'
-          }
-        }
+      await submitVerificationRequest({
+        business_license: 'sample_license_123',
+        id_document: 'sample_id_456',
+        address_proof: 'sample_address_789',
+        contact_verification: { phone: profile?.phone, email: user.email },
+        experience_details: 'Experienced breeder with 10+ years in the field'
       });
-
-      if (error) throw error;
 
       toast({
         title: "Verification Submitted",
         description: "Your verification request has been submitted for review.",
       });
-
-      fetchVerificationRequests();
     } catch (error) {
       console.error('Error submitting verification:', error);
       toast({
@@ -116,15 +89,31 @@ const Verification = () => {
   const isVerified = profile?.verified;
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-6">
+    <div className={getMobileClasses(
+      "px-4 py-4 max-w-full",
+      "max-w-4xl mx-auto px-4 py-6"
+    )}>
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Account Verification</h1>
-        <p className="text-gray-600">Complete your verification to earn trust badges and increase buyer confidence</p>
+        <h1 className={getMobileClasses(
+          "text-2xl font-bold text-gray-900 mb-2",
+          "text-3xl font-bold text-gray-900 mb-2"
+        )}>
+          Account Verification
+        </h1>
+        <p className={getMobileClasses(
+          "text-sm text-gray-600",
+          "text-gray-600"
+        )}>
+          Complete your verification to earn trust badges and increase buyer confidence
+        </p>
       </div>
 
       <Tabs defaultValue="status" className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="status">Verification Status</TabsTrigger>
+        <TabsList className={getMobileClasses(
+          "grid w-full grid-cols-3 text-xs",
+          "grid w-full grid-cols-3"
+        )}>
+          <TabsTrigger value="status">Status</TabsTrigger>
           <TabsTrigger value="documents">Documents</TabsTrigger>
           <TabsTrigger value="history">History</TabsTrigger>
         </TabsList>
@@ -133,13 +122,16 @@ const Verification = () => {
           {/* Verification Status */}
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
+              <CardTitle className="flex items-center gap-2 text-base">
                 <Shield className="w-5 h-5 text-blue-500" />
                 Current Status
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="flex items-center justify-between">
+              <div className={getMobileClasses(
+                "space-y-4",
+                "flex items-center justify-between"
+              )}>
                 <div className="flex items-center gap-3">
                   <div className={`w-16 h-16 rounded-full flex items-center justify-center ${
                     isVerified ? 'bg-green-100' : 'bg-blue-100'
@@ -150,11 +142,14 @@ const Verification = () => {
                       <Shield className="w-8 h-8 text-blue-500" />
                     )}
                   </div>
-                  <div>
+                  <div className="flex-1">
                     <h3 className="font-semibold">
                       {isVerified ? 'Verified Account' : 'Verification Pending'}
                     </h3>
-                    <p className="text-sm text-gray-600">
+                    <p className={getMobileClasses(
+                      "text-xs text-gray-600",
+                      "text-sm text-gray-600"
+                    )}>
                       {isVerified 
                         ? 'Your account has been verified' 
                         : pendingRequest 
@@ -163,14 +158,29 @@ const Verification = () => {
                     </p>
                   </div>
                 </div>
-                <Badge variant={isVerified ? "default" : pendingRequest ? "secondary" : "outline"}>
-                  {isVerified ? 'Verified' : pendingRequest ? 'Under Review' : 'Not Verified'}
-                </Badge>
+                
+                {!isMobile && (
+                  <Badge variant={isVerified ? "default" : pendingRequest ? "secondary" : "outline"}>
+                    {isVerified ? 'Verified' : pendingRequest ? 'Under Review' : 'Not Verified'}
+                  </Badge>
+                )}
               </div>
+
+              {isMobile && (
+                <div className="mt-3">
+                  <Badge variant={isVerified ? "default" : pendingRequest ? "secondary" : "outline"}>
+                    {isVerified ? 'Verified' : pendingRequest ? 'Under Review' : 'Not Verified'}
+                  </Badge>
+                </div>
+              )}
               
               {!isVerified && !pendingRequest && (
                 <div className="mt-4">
-                  <Button onClick={submitVerificationRequest} disabled={loading}>
+                  <Button 
+                    onClick={submitVerification} 
+                    disabled={loading}
+                    className={getMobileClasses("w-full", "")}
+                  >
                     {loading ? 'Submitting...' : 'Submit for Verification'}
                   </Button>
                 </div>
@@ -181,10 +191,10 @@ const Verification = () => {
 
         <TabsContent value="documents" className="space-y-6">
           {/* Verification Items */}
-          <div className="grid gap-6">
+          <div className="grid gap-4">
             {verificationItems.map((item) => (
               <Card key={item.id} className={`border ${item.completed ? 'border-green-200 bg-green-50' : 'border-gray-200'}`}>
-                <CardContent className="p-6">
+                <CardContent className={getMobileClasses("p-4", "p-6")}>
                   <div className="flex items-start justify-between">
                     <div className="flex items-start gap-4">
                       <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
@@ -233,28 +243,55 @@ const Verification = () => {
         <TabsContent value="history" className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>Verification History</CardTitle>
+              <CardTitle className="text-base">Verification History</CardTitle>
             </CardHeader>
             <CardContent>
-              {verificationRequests.length === 0 ? (
-                <p className="text-gray-500">No verification requests found.</p>
+              {verificationLoading ? (
+                <div className="flex items-center justify-center p-4">
+                  <div className="animate-spin rounded-full h-6 w-6 border-2 border-blue-500 border-t-transparent" />
+                </div>
+              ) : verificationRequests.length === 0 ? (
+                <p className="text-gray-500 text-sm">No verification requests found.</p>
               ) : (
                 <div className="space-y-3">
                   {verificationRequests.map((request) => (
-                    <div key={request.id} className="flex items-center justify-between p-3 border rounded">
-                      <div>
-                        <p className="font-medium capitalize">{request.verification_type} Verification</p>
-                        <p className="text-sm text-gray-500">
+                    <div key={request.id} className={getMobileClasses(
+                      "p-3 border rounded space-y-2",
+                      "flex items-center justify-between p-3 border rounded"
+                    )}>
+                      <div className="flex-1">
+                        <p className="font-medium capitalize text-sm">
+                          {request.verification_type || 'General'} Verification
+                        </p>
+                        <p className="text-xs text-gray-500">
                           Submitted {new Date(request.submitted_at).toLocaleDateString()}
                         </p>
+                        {request.rejection_reason && request.status === 'rejected' && (
+                          <p className="text-xs text-red-600 mt-1">
+                            Reason: {request.rejection_reason}
+                          </p>
+                        )}
                       </div>
-                      <Badge className={
-                        request.status === 'approved' ? 'bg-green-100 text-green-800' :
-                        request.status === 'rejected' ? 'bg-red-100 text-red-800' :
-                        'bg-yellow-100 text-yellow-800'
-                      }>
-                        {request.status}
-                      </Badge>
+                      {!isMobile && (
+                        <Badge className={
+                          request.status === 'approved' ? 'bg-green-100 text-green-800' :
+                          request.status === 'rejected' ? 'bg-red-100 text-red-800' :
+                          'bg-yellow-100 text-yellow-800'
+                        }>
+                          {request.status}
+                        </Badge>
+                      )}
+                      {isMobile && (
+                        <div className="mt-2">
+                          <Badge className={
+                            request.status === 'approved' ? 'bg-green-100 text-green-800' :
+                            request.status === 'rejected' ? 'bg-red-100 text-red-800' :
+                            'bg-yellow-100 text-yellow-800'
+                          }>
+                            {request.status}
+                          </Badge>
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>

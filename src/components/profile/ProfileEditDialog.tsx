@@ -8,8 +8,12 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertCircle, CheckCircle } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+import { useMobileOptimized } from '@/hooks/useMobileOptimized';
+import { useRealtimeVerification } from '@/hooks/useRealtimeVerification';
 import ProfilePreview from './ProfilePreview';
 import ProfileEditTabsEnhanced from './ProfileEditTabsEnhanced';
+import MobileProfileHeader from './MobileProfileHeader';
+import ProfileCompletionGuide from './ProfileCompletionGuide';
 
 const profileSchema = z.object({
   fullName: z.string().min(1, 'Full name is required').max(100, 'Full name is too long'),
@@ -34,10 +38,13 @@ interface ProfileEditDialogProps {
 const ProfileEditDialog = ({ profile, isOpen, onClose }: ProfileEditDialogProps) => {
   const { updateProfile } = useAuth();
   const { toast } = useToast();
+  const { submitVerificationRequest } = useRealtimeVerification();
+  const { isMobile, getMobileClasses } = useMobileOptimized();
   const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('basic');
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [submitSuccess, setSubmitSuccess] = useState(false);
+  const [showCompletionGuide, setShowCompletionGuide] = useState(true);
 
   const form = useForm<ProfileFormData>({
     resolver: zodResolver(profileSchema),
@@ -66,6 +73,28 @@ const ProfileEditDialog = ({ profile, isOpen, onClose }: ProfileEditDialogProps)
       show_social_links: true,
     }
   );
+
+  const handleCompletionStepClick = (stepId: string) => {
+    switch (stepId) {
+      case 'basic_info':
+        setActiveTab('basic');
+        break;
+      case 'profile_photo':
+        setActiveTab('basic');
+        // Focus on avatar section
+        break;
+      case 'contact_info':
+        setActiveTab('basic');
+        break;
+      case 'verification':
+        setActiveTab('verification');
+        break;
+      case 'social_links':
+        setActiveTab('social');
+        break;
+    }
+    setShowCompletionGuide(false);
+  };
 
   const onSubmit = async (data: ProfileFormData) => {
     try {
@@ -123,11 +152,19 @@ const ProfileEditDialog = ({ profile, isOpen, onClose }: ProfileEditDialogProps)
   };
 
   const handleVerificationSubmit = async (verificationData: any) => {
-    console.log('Verification submitted:', verificationData);
-    toast({
-      title: "Verification Submitted",
-      description: "Your verification request has been submitted for review.",
-    });
+    try {
+      await submitVerificationRequest(verificationData);
+      toast({
+        title: "Verification Submitted",
+        description: "Your verification request has been submitted for review.",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to submit verification request. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleClose = () => {
@@ -139,10 +176,25 @@ const ProfileEditDialog = ({ profile, isOpen, onClose }: ProfileEditDialogProps)
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-6xl max-h-[90vh] overflow-y-auto text-black">
-        <DialogHeader>
-          <DialogTitle className="text-black">Edit Profile</DialogTitle>
-        </DialogHeader>
+      <DialogContent 
+        className={getMobileClasses(
+          "w-full h-full max-w-none max-h-none m-0 rounded-none",
+          "sm:max-w-6xl max-h-[90vh] overflow-y-auto"
+        )}
+      >
+        {isMobile && (
+          <MobileProfileHeader 
+            profile={profile}
+            onBack={handleClose}
+            isOwnProfile={true}
+          />
+        )}
+
+        {!isMobile && (
+          <DialogHeader>
+            <DialogTitle className="text-black">Edit Profile</DialogTitle>
+          </DialogHeader>
+        )}
         
         {submitError && (
           <Alert variant="destructive">
@@ -159,9 +211,21 @@ const ProfileEditDialog = ({ profile, isOpen, onClose }: ProfileEditDialogProps)
             </AlertDescription>
           </Alert>
         )}
+
+        {showCompletionGuide && (
+          <ProfileCompletionGuide
+            profile={watchedValues}
+            onStepClick={handleCompletionStepClick}
+            onDismiss={() => setShowCompletionGuide(false)}
+            className="mb-4"
+          />
+        )}
         
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2">
+        <div className={getMobileClasses(
+          "space-y-4",
+          "grid grid-cols-1 lg:grid-cols-3 gap-6"
+        )}>
+          <div className={getMobileClasses("", "lg:col-span-2")}>
             <ProfileEditTabsEnhanced
               form={form}
               activeTab={activeTab}
@@ -178,9 +242,11 @@ const ProfileEditDialog = ({ profile, isOpen, onClose }: ProfileEditDialogProps)
             />
           </div>
 
-          <div className="lg:sticky lg:top-4">
-            <ProfilePreview formData={watchedValues} />
-          </div>
+          {!isMobile && (
+            <div className="lg:sticky lg:top-4">
+              <ProfilePreview formData={watchedValues} />
+            </div>
+          )}
         </div>
       </DialogContent>
     </Dialog>
