@@ -27,16 +27,16 @@ const ProfileTabs = ({ activeTab, setActiveTab, posts, reviews, analyticsCompone
       <div className="flex gap-2 mb-4">
         <Button
           onClick={() => setActiveTab('posts')}
-          variant={activeTab === 'posts' ? 'default' : 'outline'}
-          className="flex-1 h-10 rounded-none"
+          variant="ghost"
+          className="flex-1 h-10 bg-transparent border-none"
         >
           <Grid size={16} className="mr-2" />
           Posts
         </Button>
         <Button
           onClick={() => setActiveTab('reviews')}
-          variant={activeTab === 'reviews' ? 'default' : 'outline'}
-          className="flex-1 h-10 rounded-none"
+          variant="ghost"
+          className="flex-1 h-10 bg-transparent border-none"
         >
           <MessageSquare size={16} className="mr-2" />
           Reviews
@@ -44,8 +44,8 @@ const ProfileTabs = ({ activeTab, setActiveTab, posts, reviews, analyticsCompone
         {analyticsComponent && (
           <Button
             onClick={() => setActiveTab('analytics')}
-            variant={activeTab === 'analytics' ? 'default' : 'outline'}
-            className="flex-1 h-10 rounded-none"
+            variant="ghost"
+            className="flex-1 h-10 bg-transparent border-none"
           >
             <BarChart3 size={16} className="mr-2" />
             Analytics
