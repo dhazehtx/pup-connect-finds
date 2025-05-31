@@ -1,6 +1,10 @@
 
+import { Database } from '@/integrations/supabase/types';
+
+type UserProfile = Database['public']['Tables']['profiles']['Insert'];
+
 // Sample user data for testing
-export const sampleUsers = [
+export const sampleUsers: UserProfile[] = [
   {
     id: '11111111-1111-1111-1111-111111111111',
     email: 'sarah.johnson@example.com',

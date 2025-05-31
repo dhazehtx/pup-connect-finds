@@ -1,6 +1,10 @@
 
+import { Database } from '@/integrations/supabase/types';
+
+type Review = Database['public']['Tables']['reviews']['Insert'];
+
 // Sample reviews for testing
-export const sampleReviews = [
+export const sampleReviews: Review[] = [
   {
     id: 'review-1111-1111-1111-111111111111',
     reviewer_id: '44444444-4444-4444-4444-444444444444',

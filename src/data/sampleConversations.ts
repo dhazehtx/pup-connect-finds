@@ -1,6 +1,11 @@
 
+import { Database } from '@/integrations/supabase/types';
+
+type Conversation = Database['public']['Tables']['conversations']['Insert'];
+type Message = Database['public']['Tables']['messages']['Insert'];
+
 // Sample conversations and messages for testing
-export const sampleConversations = [
+export const sampleConversations: Conversation[] = [
   {
     id: 'conv-1111-1111-1111-111111111111',
     listing_id: 'listing-1111-1111-1111-111111111111',
@@ -21,7 +26,7 @@ export const sampleConversations = [
   }
 ];
 
-export const sampleMessages = [
+export const sampleMessages: Message[] = [
   {
     id: 'msg-1111-1111-1111-111111111111',
     conversation_id: 'conv-1111-1111-1111-111111111111',
