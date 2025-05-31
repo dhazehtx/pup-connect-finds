@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Camera, User, Upload, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -17,7 +18,7 @@ const AvatarUpload = ({ currentAvatar, onAvatarChange, userName }: AvatarUploadP
   const { uploadImage, uploading, uploadProgress } = useImageUpload();
   const { toast } = useToast();
 
-  const handleFile = async (file: File) => {
+  const validateFile = (file: File): boolean => {
     // Validate file size (10MB limit)
     if (file.size > 10 * 1024 * 1024) {
       toast({
@@ -25,7 +26,7 @@ const AvatarUpload = ({ currentAvatar, onAvatarChange, userName }: AvatarUploadP
         description: "File size must be less than 10MB",
         variant: "destructive",
       });
-      return;
+      return false;
     }
 
     // Validate file type
@@ -36,6 +37,14 @@ const AvatarUpload = ({ currentAvatar, onAvatarChange, userName }: AvatarUploadP
         description: "Only JPEG, PNG, and WebP files are allowed",
         variant: "destructive",
       });
+      return false;
+    }
+
+    return true;
+  };
+
+  const handleFile = async (file: File) => {
+    if (!validateFile(file)) {
       return;
     }
 
