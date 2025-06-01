@@ -1,12 +1,13 @@
 
 import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { DollarSign, Heart, Star, Users, CreditCard, BarChart3 } from 'lucide-react';
+import { DollarSign, Heart, Star, Users, CreditCard, BarChart3, Gift } from 'lucide-react';
 import MonetizationDashboard from '@/components/monetization/MonetizationDashboard';
 import EnhancedPricingPlans from '@/components/monetization/EnhancedPricingPlans';
 import SubscriptionAnalytics from '@/components/monetization/SubscriptionAnalytics';
 import ListingFees from '@/components/monetization/ListingFees';
 import DonationCenter from '@/components/monetization/DonationCenter';
+import DoggyBoxPromotion from '@/components/monetization/DoggyBoxPromotion';
 
 const Monetization = () => {
   return (
@@ -20,7 +21,7 @@ const Monetization = () => {
 
       <Tabs defaultValue="dashboard" className="max-w-7xl mx-auto">
         <div className="bg-white border-b sticky top-0 z-10">
-          <TabsList className="grid w-full grid-cols-6 h-16">
+          <TabsList className="grid w-full grid-cols-7 h-16">
             <TabsTrigger value="dashboard" className="flex flex-col items-center gap-1">
               <DollarSign size={18} />
               <span className="text-xs">Dashboard</span>
@@ -28,6 +29,10 @@ const Monetization = () => {
             <TabsTrigger value="subscriptions" className="flex flex-col items-center gap-1">
               <Users size={18} />
               <span className="text-xs">Subscriptions</span>
+            </TabsTrigger>
+            <TabsTrigger value="doggy-boxes" className="flex flex-col items-center gap-1">
+              <Gift size={18} />
+              <span className="text-xs">Doggy Boxes</span>
             </TabsTrigger>
             <TabsTrigger value="analytics" className="flex flex-col items-center gap-1">
               <BarChart3 size={18} />
@@ -49,11 +54,43 @@ const Monetization = () => {
         </div>
 
         <TabsContent value="dashboard" className="m-0">
-          <MonetizationDashboard />
+          <div className="p-6 space-y-6">
+            <DoggyBoxPromotion />
+            <MonetizationDashboard />
+          </div>
         </TabsContent>
 
         <TabsContent value="subscriptions" className="m-0">
           <EnhancedPricingPlans />
+        </TabsContent>
+
+        <TabsContent value="doggy-boxes" className="m-0">
+          <div className="p-6">
+            <DoggyBoxPromotion />
+            <div className="mt-8 text-center">
+              <div className="text-center py-12">
+                <Gift size={48} className="text-purple-500 mx-auto mb-4" />
+                <h3 className="text-xl font-semibold mb-2">Doggy Subscription Management</h3>
+                <p className="text-gray-600 mb-4">
+                  Analytics and management tools for doggy subscription boxes coming soon!
+                </p>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
+                  <div className="bg-white p-6 rounded-lg border">
+                    <h4 className="font-semibold mb-2">Monthly Revenue Tracking</h4>
+                    <p className="text-sm text-gray-600">Monitor subscription box revenue and growth</p>
+                  </div>
+                  <div className="bg-white p-6 rounded-lg border">
+                    <h4 className="font-semibold mb-2">Customer Preferences</h4>
+                    <p className="text-sm text-gray-600">Analyze dog profiles and customization data</p>
+                  </div>
+                  <div className="bg-white p-6 rounded-lg border">
+                    <h4 className="font-semibold mb-2">Inventory Management</h4>
+                    <p className="text-sm text-gray-600">Track toys, treats, and accessories inventory</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </TabsContent>
 
         <TabsContent value="analytics" className="m-0">

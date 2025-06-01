@@ -32,6 +32,7 @@ import NotFound from "./pages/NotFound";
 import Dashboard from "./pages/Dashboard";
 import Recommendations from "./pages/Recommendations";
 import Compare from "./pages/Compare";
+import DoggyBoxes from "./pages/DoggyBoxes";
 
 const queryClient = new QueryClient();
 
@@ -50,6 +51,7 @@ const App = () => (
                 <Route path="dashboard" element={<Dashboard />} />
                 <Route path="recommendations" element={<Recommendations />} />
                 <Route path="compare" element={<Compare />} />
+                <Route path="doggy-boxes" element={<DoggyBoxes />} />
                 <Route path="messages" element={<Messages />} />
                 <Route path="profile" element={<Profile />} />
                 <Route path="post" element={<Post />} />
