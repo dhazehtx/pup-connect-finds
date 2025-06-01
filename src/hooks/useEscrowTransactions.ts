@@ -43,7 +43,7 @@ export const useEscrowTransactions = (userId?: string) => {
         .from('escrow_transactions')
         .select(`
           *,
-          dog_listings:listing_id (
+          dog_listings!listing_id (
             dog_name,
             breed,
             image_url
@@ -59,9 +59,7 @@ export const useEscrowTransactions = (userId?: string) => {
 
       if (error) throw error;
       
-      // Type assertion to handle the Supabase response structure
-      const typedData = (data || []) as EscrowTransaction[];
-      setTransactions(typedData);
+      setTransactions(data || []);
     } catch (error: any) {
       toast({
         title: "Failed to load transactions",
