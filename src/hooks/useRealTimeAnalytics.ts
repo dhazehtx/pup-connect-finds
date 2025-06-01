@@ -125,7 +125,13 @@ export const useRealTimeAnalytics = () => {
       // Process page views
       const pageViewStats: { [key: string]: PageView } = {};
       pageViews?.forEach(event => {
-        const page = event.event_data?.page || 'unknown';
+        const eventData = event.event_data;
+        let page = 'unknown';
+        
+        if (eventData && typeof eventData === 'object') {
+          page = (eventData as any).page || 'unknown';
+        }
+        
         if (!pageViewStats[page]) {
           pageViewStats[page] = {
             page,

@@ -30,7 +30,14 @@ export const useCalendarScheduling = () => {
         .order('start_time', { ascending: true });
 
       if (error) throw error;
-      setEvents(data || []);
+      
+      // Type assertion to ensure compatibility
+      const typedEvents = (data || []).map(event => ({
+        ...event,
+        status: event.status as 'pending' | 'confirmed' | 'cancelled'
+      })) as ScheduleEvent[];
+      
+      setEvents(typedEvents);
     } catch (error: any) {
       console.error('Error fetching events:', error);
       toast({
@@ -54,13 +61,18 @@ export const useCalendarScheduling = () => {
 
       if (error) throw error;
 
-      setEvents(prev => [...prev, data]);
+      const typedEvent = {
+        ...data,
+        status: data.status as 'pending' | 'confirmed' | 'cancelled'
+      } as ScheduleEvent;
+
+      setEvents(prev => [...prev, typedEvent]);
       toast({
         title: "Event scheduled",
         description: "Your appointment has been scheduled successfully.",
       });
 
-      return data;
+      return typedEvent;
     } catch (error: any) {
       console.error('Error creating event:', error);
       toast({

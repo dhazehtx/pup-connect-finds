@@ -156,7 +156,7 @@ export const useAdvancedMatching = () => {
         .from('user_preferences')
         .upsert({
           user_id: user.id,
-          matching_criteria: preferences,
+          matching_criteria: JSON.parse(JSON.stringify(preferences)), // Convert to JSON compatible format
           updated_at: new Date().toISOString()
         });
 
@@ -179,8 +179,9 @@ export const useAdvancedMatching = () => {
       if (error && error.code !== 'PGRST116') throw error;
       
       if (data && data.matching_criteria) {
-        setCriteria(data.matching_criteria as MatchingCriteria);
-        return data.matching_criteria as MatchingCriteria;
+        const parsedCriteria = data.matching_criteria as unknown as MatchingCriteria;
+        setCriteria(parsedCriteria);
+        return parsedCriteria;
       }
     } catch (error) {
       console.error('Error loading preferences:', error);
