@@ -53,20 +53,14 @@ const ListingsGrid: React.FC<ListingsGridProps> = ({
   showEnhancedActions = false
 }) => {
   if (isLoading) {
-    return <LoadingSkeleton count={6} />;
+    return <LoadingSkeleton viewMode={viewMode} count={6} />;
   }
 
   if (listings.length === 0) {
     return (
       <EmptyState
-        title="No listings found"
-        description={
-          hasActiveFilters
-            ? "Try adjusting your filters to see more results"
-            : "There are no listings available at the moment"
-        }
-        actionLabel={hasActiveFilters ? "Clear Filters" : undefined}
-        onAction={hasActiveFilters ? onClearFilters : undefined}
+        onClearFilters={onClearFilters || (() => {})}
+        hasActiveFilters={hasActiveFilters}
       />
     );
   }
