@@ -9,6 +9,39 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      analytics_events: {
+        Row: {
+          event_data: Json
+          event_type: string
+          id: string
+          page_url: string
+          session_id: string
+          timestamp: string
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          event_data?: Json
+          event_type: string
+          id?: string
+          page_url: string
+          session_id: string
+          timestamp?: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          event_data?: Json
+          event_type?: string
+          id?: string
+          page_url?: string
+          session_id?: string
+          timestamp?: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       conversations: {
         Row: {
           buyer_id: string
@@ -649,6 +682,45 @@ export type Database = {
         }
         Relationships: []
       }
+      scheduled_events: {
+        Row: {
+          attendee_email: string | null
+          created_at: string
+          description: string | null
+          end_time: string
+          id: string
+          listing_id: string | null
+          start_time: string
+          status: string
+          title: string
+          user_id: string
+        }
+        Insert: {
+          attendee_email?: string | null
+          created_at?: string
+          description?: string | null
+          end_time: string
+          id?: string
+          listing_id?: string | null
+          start_time: string
+          status?: string
+          title: string
+          user_id: string
+        }
+        Update: {
+          attendee_email?: string | null
+          created_at?: string
+          description?: string | null
+          end_time?: string
+          id?: string
+          listing_id?: string | null
+          start_time?: string
+          status?: string
+          title?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       stripe_webhooks: {
         Row: {
           created_at: string
@@ -763,6 +835,30 @@ export type Database = {
           tier_breakdown?: Json
           total_revenue?: number
           upgrades?: number
+        }
+        Relationships: []
+      }
+      user_preferences: {
+        Row: {
+          created_at: string
+          id: string
+          matching_criteria: Json
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          matching_criteria?: Json
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          matching_criteria?: Json
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }

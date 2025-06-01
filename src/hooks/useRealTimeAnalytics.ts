@@ -49,7 +49,7 @@ export const useRealTimeAnalytics = () => {
   // Track page view
   const trackPageView = async (page: string) => {
     try {
-      await supabase.from('analytics_events').insert({
+      await supabase.from('analytics_events' as any).insert({
         event_type: 'page_view',
         event_data: { page },
         user_id: user?.id,
@@ -68,7 +68,7 @@ export const useRealTimeAnalytics = () => {
   // Track user interaction
   const trackEvent = async (eventType: string, eventData: any = {}) => {
     try {
-      await supabase.from('analytics_events').insert({
+      await supabase.from('analytics_events' as any).insert({
         event_type: eventType,
         event_data: eventData,
         user_id: user?.id,
@@ -115,7 +115,7 @@ export const useRealTimeAnalytics = () => {
     try {
       // Get page views for the last 24 hours
       const { data: pageViews } = await supabase
-        .from('analytics_events')
+        .from('analytics_events' as any)
         .select('event_data, timestamp')
         .eq('event_type', 'page_view')
         .gte('timestamp', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString());
@@ -137,7 +137,7 @@ export const useRealTimeAnalytics = () => {
 
       // Get current active users (last 5 minutes)
       const { data: activeUsers } = await supabase
-        .from('analytics_events')
+        .from('analytics_events' as any)
         .select('session_id')
         .gte('timestamp', new Date(Date.now() - 5 * 60 * 1000).toISOString());
 

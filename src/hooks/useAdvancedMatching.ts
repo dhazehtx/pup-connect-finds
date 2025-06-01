@@ -74,7 +74,7 @@ export const useAdvancedMatching = () => {
     }
 
     // Age matching (15% weight)
-    const listingAge = listing.age_months || 0;
+    const listingAge = listing.age || 0;
     if (listingAge >= userCriteria.ageRange.min && listingAge <= userCriteria.ageRange.max) {
       score += 15;
       compatibility.lifestyle += 15;
@@ -127,7 +127,7 @@ export const useAdvancedMatching = () => {
       const { data: listings, error } = await supabase
         .from('dog_listings')
         .select('*')
-        .eq('status', 'available');
+        .eq('status', 'active');
 
       if (error) throw error;
 
@@ -153,7 +153,7 @@ export const useAdvancedMatching = () => {
 
     try {
       const { error } = await supabase
-        .from('user_preferences')
+        .from('user_preferences' as any)
         .upsert({
           user_id: user.id,
           matching_criteria: preferences,
@@ -171,7 +171,7 @@ export const useAdvancedMatching = () => {
 
     try {
       const { data, error } = await supabase
-        .from('user_preferences')
+        .from('user_preferences' as any)
         .select('matching_criteria')
         .eq('user_id', user.id)
         .single();

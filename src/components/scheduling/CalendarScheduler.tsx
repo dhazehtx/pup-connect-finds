@@ -5,6 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Clock, MapPin, Video } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useCalendarScheduling } from '@/hooks/useCalendarScheduling';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface CalendarSchedulerProps {
   breederId: string;
@@ -18,13 +20,15 @@ const CalendarScheduler = ({ breederId, listingId, onScheduled }: CalendarSchedu
   const [meetingType, setMeetingType] = useState<'in_person' | 'video'>('in_person');
   const [notes, setNotes] = useState('');
   const { toast } = useToast();
+  const { createEvent, loading } = useCalendarScheduling();
+  const { user } = useAuth();
 
   const timeSlots = [
     '09:00', '10:00', '11:00', '14:00', '15:00', '16:00', '17:00'
   ];
 
   const handleSchedule = async () => {
-    if (!selectedDate || !selectedTime) {
+    if (!selectedDate || !selectedTime || !user) {
       toast({
         title: "Missing information",
         description: "Please select both date and time for your appointment.",
@@ -33,29 +37,35 @@ const CalendarScheduler = ({ breederId, listingId, onScheduled }: CalendarSchedu
       return;
     }
 
-    const appointment = {
-      date: selectedDate,
-      time: selectedTime,
-      type: meetingType,
-      notes,
-      breederId,
-      listingId,
+    const startDateTime = new Date(selectedDate);
+    const [hours, minutes] = selectedTime.split(':').map(Number);
+    startDateTime.setHours(hours, minutes, 0, 0);
+    
+    const endDateTime = new Date(startDateTime);
+    endDateTime.setHours(hours + 1, minutes, 0, 0); // 1 hour duration
+
+    const eventData = {
+      title: `Meeting for ${meetingType === 'video' ? 'Video Call' : 'In-Person Visit'}`,
+      description: notes,
+      start_time: startDateTime.toISOString(),
+      end_time: endDateTime.toISOString(),
+      user_id: user.id,
+      listing_id: listingId,
+      attendee_email: user.email,
+      status: 'pending' as const
     };
 
     try {
-      // Here you would typically save to Supabase
-      toast({
-        title: "Appointment scheduled!",
-        description: `Your ${meetingType === 'video' ? 'video call' : 'in-person meeting'} has been scheduled for ${selectedDate.toLocaleDateString()} at ${selectedTime}.`,
-      });
-      
-      onScheduled?.(appointment);
+      const appointment = await createEvent(eventData);
+      if (appointment) {
+        onScheduled?.(appointment);
+        // Reset form
+        setSelectedDate(undefined);
+        setSelectedTime('');
+        setNotes('');
+      }
     } catch (error) {
-      toast({
-        title: "Scheduling failed",
-        description: "Unable to schedule appointment. Please try again.",
-        variant: "destructive",
-      });
+      console.error('Scheduling error:', error);
     }
   };
 
@@ -157,10 +167,10 @@ const CalendarScheduler = ({ breederId, listingId, onScheduled }: CalendarSchedu
         {/* Schedule Button */}
         <Button 
           onClick={handleSchedule}
-          disabled={!selectedDate || !selectedTime}
+          disabled={!selectedDate || !selectedTime || loading}
           className="w-full"
         >
-          Schedule Appointment
+          {loading ? 'Scheduling...' : 'Schedule Appointment'}
         </Button>
       </CardContent>
     </Card>

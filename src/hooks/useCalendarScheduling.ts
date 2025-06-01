@@ -25,13 +25,14 @@ export const useCalendarScheduling = () => {
     try {
       setLoading(true);
       const { data, error } = await supabase
-        .from('scheduled_events')
+        .from('scheduled_events' as any)
         .select('*')
         .order('start_time', { ascending: true });
 
       if (error) throw error;
       setEvents(data || []);
     } catch (error: any) {
+      console.error('Error fetching events:', error);
       toast({
         title: "Error fetching events",
         description: error.message,
@@ -46,7 +47,7 @@ export const useCalendarScheduling = () => {
     try {
       setLoading(true);
       const { data, error } = await supabase
-        .from('scheduled_events')
+        .from('scheduled_events' as any)
         .insert(eventData)
         .select()
         .single();
@@ -61,6 +62,7 @@ export const useCalendarScheduling = () => {
 
       return data;
     } catch (error: any) {
+      console.error('Error creating event:', error);
       toast({
         title: "Error scheduling event",
         description: error.message,
@@ -75,7 +77,7 @@ export const useCalendarScheduling = () => {
   const updateEventStatus = async (eventId: string, status: ScheduleEvent['status']) => {
     try {
       const { error } = await supabase
-        .from('scheduled_events')
+        .from('scheduled_events' as any)
         .update({ status })
         .eq('id', eventId);
 
@@ -92,6 +94,7 @@ export const useCalendarScheduling = () => {
         description: `Event status updated to ${status}.`,
       });
     } catch (error: any) {
+      console.error('Error updating event:', error);
       toast({
         title: "Error updating event",
         description: error.message,
@@ -103,7 +106,7 @@ export const useCalendarScheduling = () => {
   const deleteEvent = async (eventId: string) => {
     try {
       const { error } = await supabase
-        .from('scheduled_events')
+        .from('scheduled_events' as any)
         .delete()
         .eq('id', eventId);
 
@@ -115,6 +118,7 @@ export const useCalendarScheduling = () => {
         description: "The event has been cancelled.",
       });
     } catch (error: any) {
+      console.error('Error deleting event:', error);
       toast({
         title: "Error cancelling event",
         description: error.message,

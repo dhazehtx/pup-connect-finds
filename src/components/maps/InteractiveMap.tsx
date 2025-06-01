@@ -2,224 +2,199 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { MapPin, Search, Navigation } from 'lucide-react';
+import { MapPin, Navigation, Search } from 'lucide-react';
+import { useGeolocation } from '@/hooks/useGeolocation';
 import { useToast } from '@/hooks/use-toast';
-
-interface Location {
-  lat: number;
-  lng: number;
-  address?: string;
-}
 
 interface MapMarker {
   id: string;
-  position: Location;
+  lat: number;
+  lng: number;
   title: string;
   description?: string;
-  type: 'listing' | 'user' | 'meeting';
+  type: 'listing' | 'user' | 'breeder';
 }
 
-const InteractiveMap = () => {
-  const [userLocation, setUserLocation] = useState<Location | null>(null);
-  const [markers, setMarkers] = useState<MapMarker[]>([]);
-  const [searchQuery, setSearchQuery] = useState('');
+interface InteractiveMapProps {
+  markers?: MapMarker[];
+  center?: { lat: number; lng: number };
+  zoom?: number;
+  onMarkerClick?: (marker: MapMarker) => void;
+  showUserLocation?: boolean;
+}
+
+const InteractiveMap = ({ 
+  markers = [], 
+  center = { lat: 40.7128, lng: -74.0060 }, // Default to NYC
+  zoom = 10,
+  onMarkerClick,
+  showUserLocation = true 
+}: InteractiveMapProps) => {
+  const [mapCenter, setMapCenter] = useState(center);
   const [selectedMarker, setSelectedMarker] = useState<MapMarker | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const { position, getCurrentLocation, loading: locationLoading } = useGeolocation();
   const { toast } = useToast();
 
-  // Get user's current location
-  const getCurrentLocation = () => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const location: Location = {
-            lat: position.coords.latitude,
-            lng: position.coords.longitude
-          };
-          setUserLocation(location);
-          toast({
-            title: "Location found",
-            description: "Your current location has been detected.",
-          });
-        },
-        (error) => {
-          toast({
-            title: "Location error",
-            description: "Unable to get your location. Please enable location services.",
-            variant: "destructive",
-          });
-        }
-      );
+  // Update map center when user location is available
+  useEffect(() => {
+    if (position && showUserLocation) {
+      setMapCenter({
+        lat: position.latitude,
+        lng: position.longitude
+      });
     }
-  };
+  }, [position, showUserLocation]);
 
-  // Search for locations
-  const searchLocation = async (query: string) => {
-    if (!query.trim()) return;
-
+  const handleGetLocation = async () => {
     try {
-      // Simulate geocoding API call
-      // In production, replace with actual geocoding service
-      const mockResults: MapMarker[] = [
-        {
-          id: '1',
-          position: { lat: 37.7749, lng: -122.4194 },
-          title: `Golden Retriever Breeder - ${query}`,
-          description: 'Verified breeder with excellent reviews',
-          type: 'listing'
-        },
-        {
-          id: '2',
-          position: { lat: 37.7849, lng: -122.4094 },
-          title: `Dog Training Center - ${query}`,
-          description: 'Professional training services',
-          type: 'listing'
-        }
-      ];
-
-      setMarkers(mockResults);
+      await getCurrentLocation();
       toast({
-        title: "Search completed",
-        description: `Found ${mockResults.length} results for "${query}"`,
+        title: "Location found",
+        description: "Map centered on your location",
       });
     } catch (error) {
+      console.error('Location error:', error);
+    }
+  };
+
+  const handleMarkerClick = (marker: MapMarker) => {
+    setSelectedMarker(marker);
+    onMarkerClick?.(marker);
+  };
+
+  const handleSearch = () => {
+    if (searchQuery.trim()) {
+      // In a real implementation, this would geocode the search query
       toast({
-        title: "Search error",
-        description: "Unable to search locations. Please try again.",
-        variant: "destructive",
+        title: "Search functionality",
+        description: "Map search would be implemented with a geocoding service",
       });
     }
   };
 
-  // Calculate distance between two points
-  const calculateDistance = (point1: Location, point2: Location): number => {
-    const R = 6371; // Earth's radius in kilometers
-    const dLat = (point2.lat - point1.lat) * Math.PI / 180;
-    const dLng = (point2.lng - point1.lng) * Math.PI / 180;
-    const a = 
-      Math.sin(dLat/2) * Math.sin(dLat/2) +
-      Math.cos(point1.lat * Math.PI / 180) * Math.cos(point2.lat * Math.PI / 180) * 
-      Math.sin(dLng/2) * Math.sin(dLng/2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-    return R * c;
+  // Mock map implementation - in production this would use Google Maps, Mapbox, etc.
+  const mockMapStyle = {
+    width: '100%',
+    height: '400px',
+    backgroundColor: '#e5e7eb',
+    border: '2px solid #d1d5db',
+    borderRadius: '8px',
+    position: 'relative' as const,
+    overflow: 'hidden'
   };
 
-  useEffect(() => {
-    getCurrentLocation();
-  }, []);
-
   return (
-    <div className="space-y-6">
-      {/* Search and Controls */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <MapPin className="h-5 w-5" />
-            Interactive Map
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex gap-2">
-            <Input
-              placeholder="Search for breeders, locations, or services..."
+    <Card className="w-full">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <MapPin className="h-5 w-5" />
+          Interactive Map
+        </CardTitle>
+        
+        {/* Search Bar */}
+        <div className="flex gap-2 mt-4">
+          <div className="flex-1 relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Search location..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              onKeyPress={(e) => e.key === 'Enter' && searchLocation(searchQuery)}
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
             />
-            <Button onClick={() => searchLocation(searchQuery)}>
-              <Search className="h-4 w-4" />
-            </Button>
-            <Button variant="outline" onClick={getCurrentLocation}>
-              <Navigation className="h-4 w-4" />
-            </Button>
           </div>
-        </CardContent>
-      </Card>
-
-      {/* Map Placeholder */}
-      <Card>
-        <CardContent className="p-0">
-          <div className="relative w-full h-96 bg-gray-100 rounded-lg flex items-center justify-center">
-            <div className="text-center space-y-4">
-              <MapPin className="h-12 w-12 text-gray-400 mx-auto" />
-              <div>
-                <p className="text-lg font-medium text-gray-600">Interactive Map View</p>
-                <p className="text-sm text-gray-500">
-                  {userLocation 
-                    ? `Current location: ${userLocation.lat.toFixed(4)}, ${userLocation.lng.toFixed(4)}`
-                    : 'Location not detected'
-                  }
-                </p>
-              </div>
-              
-              {/* Mock map markers */}
-              {markers.map((marker) => (
-                <div
-                  key={marker.id}
-                  className="absolute w-6 h-6 bg-red-500 rounded-full border-2 border-white shadow-lg cursor-pointer transform -translate-x-1/2 -translate-y-1/2"
-                  style={{
-                    top: `${30 + Math.random() * 40}%`,
-                    left: `${20 + Math.random() * 60}%`
-                  }}
-                  onClick={() => setSelectedMarker(marker)}
-                  title={marker.title}
-                />
-              ))}
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Location Results */}
-      {markers.length > 0 && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {markers.map((marker) => (
-            <Card 
-              key={marker.id} 
-              className={`cursor-pointer transition-colors ${
-                selectedMarker?.id === marker.id ? 'ring-2 ring-blue-500' : ''
-              }`}
-              onClick={() => setSelectedMarker(marker)}
-            >
-              <CardContent className="p-4">
-                <div className="flex items-start justify-between">
-                  <div>
-                    <h3 className="font-semibold">{marker.title}</h3>
-                    <p className="text-sm text-gray-600">{marker.description}</p>
-                    {userLocation && (
-                      <p className="text-xs text-gray-500 mt-1">
-                        Distance: {calculateDistance(userLocation, marker.position).toFixed(1)} km
-                      </p>
-                    )}
-                  </div>
-                  <div className={`w-3 h-3 rounded-full ${
-                    marker.type === 'listing' ? 'bg-green-500' : 
-                    marker.type === 'user' ? 'bg-blue-500' : 'bg-purple-500'
-                  }`} />
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+          <Button onClick={handleSearch} variant="outline">
+            Search
+          </Button>
+          <Button 
+            onClick={handleGetLocation} 
+            disabled={locationLoading}
+            variant="outline"
+            className="flex items-center gap-2"
+          >
+            <Navigation className="h-4 w-4" />
+            {locationLoading ? 'Locating...' : 'My Location'}
+          </Button>
         </div>
-      )}
-
-      {/* Selected Marker Details */}
-      {selectedMarker && (
-        <Card>
-          <CardHeader>
-            <CardTitle>{selectedMarker.title}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-gray-600 mb-4">{selectedMarker.description}</p>
-            <div className="flex gap-2">
-              <Button>Get Directions</Button>
-              <Button variant="outline">Contact</Button>
-              <Button variant="outline">Save Location</Button>
+      </CardHeader>
+      
+      <CardContent>
+        {/* Mock Map Display */}
+        <div style={mockMapStyle} className="flex items-center justify-center">
+          <div className="text-center text-gray-600">
+            <MapPin className="h-12 w-12 mx-auto mb-2 text-blue-500" />
+            <p className="text-lg font-medium">Interactive Map View</p>
+            <p className="text-sm">
+              Center: {mapCenter.lat.toFixed(4)}, {mapCenter.lng.toFixed(4)}
+            </p>
+            <p className="text-sm mt-2">
+              {markers.length} marker{markers.length !== 1 ? 's' : ''} available
+            </p>
+            
+            {/* Mock markers visualization */}
+            <div className="mt-4 space-y-2">
+              {markers.slice(0, 3).map((marker) => (
+                <div 
+                  key={marker.id}
+                  className="bg-white p-2 rounded shadow-sm border cursor-pointer hover:bg-gray-50"
+                  onClick={() => handleMarkerClick(marker)}
+                >
+                  <div className="text-sm font-medium">{marker.title}</div>
+                  <div className="text-xs text-gray-500">
+                    {marker.lat.toFixed(4)}, {marker.lng.toFixed(4)}
+                  </div>
+                </div>
+              ))}
+              {markers.length > 3 && (
+                <div className="text-xs text-gray-500">
+                  +{markers.length - 3} more markers
+                </div>
+              )}
             </div>
-          </CardContent>
-        </Card>
-      )}
-    </div>
+          </div>
+        </div>
+
+        {/* Selected Marker Info */}
+        {selectedMarker && (
+          <div className="mt-4 p-4 bg-blue-50 rounded-lg border-l-4 border-blue-500">
+            <h4 className="font-medium text-blue-900">{selectedMarker.title}</h4>
+            {selectedMarker.description && (
+              <p className="text-sm text-blue-700 mt-1">{selectedMarker.description}</p>
+            )}
+            <div className="text-xs text-blue-600 mt-2">
+              Type: {selectedMarker.type} | 
+              Location: {selectedMarker.lat.toFixed(4)}, {selectedMarker.lng.toFixed(4)}
+            </div>
+          </div>
+        )}
+
+        {/* User Location Display */}
+        {position && (
+          <div className="mt-4 p-3 bg-green-50 rounded-lg border border-green-200">
+            <div className="flex items-center gap-2 text-green-800">
+              <Navigation className="h-4 w-4" />
+              <span className="font-medium">Your Location</span>
+            </div>
+            <div className="text-sm text-green-700 mt-1">
+              {position.latitude.toFixed(6)}, {position.longitude.toFixed(6)}
+            </div>
+            <div className="text-xs text-green-600">
+              Accuracy: ±{Math.round(position.accuracy)}m
+            </div>
+          </div>
+        )}
+
+        {/* Integration Note */}
+        <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+          <p className="text-sm text-yellow-800">
+            <strong>Note:</strong> This is a mock map implementation. 
+            In production, integrate with Google Maps, Mapbox, or OpenStreetMap for full functionality.
+          </p>
+        </div>
+      </CardContent>
+    </Card>
   );
 };
 
