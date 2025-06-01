@@ -24,6 +24,13 @@ const ImageAnalyzer = () => {
     }
   };
 
+  const triggerFileUpload = () => {
+    const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
+    if (fileInput) {
+      fileInput.click();
+    }
+  };
+
   const handleAnalyze = async () => {
     if (!imageUrl) {
       toast({
@@ -55,7 +62,7 @@ const ImageAnalyzer = () => {
               onChange={handleFileUpload}
               className="flex-1"
             />
-            <Button variant="outline" onClick={() => document.querySelector('input[type="file"]')?.click()}>
+            <Button variant="outline" onClick={triggerFileUpload}>
               <Upload size={16} className="mr-1" />
               Upload
             </Button>
