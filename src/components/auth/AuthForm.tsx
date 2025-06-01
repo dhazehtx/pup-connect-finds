@@ -20,8 +20,13 @@ interface SignInData {
   password: string;
 }
 
-const AuthForm = () => {
-  const [isSignUp, setIsSignUp] = useState(false);
+interface AuthFormProps {
+  mode?: 'signin' | 'signup';
+  onSuccess?: () => void;
+}
+
+const AuthForm = ({ mode = 'signin', onSuccess }: AuthFormProps) => {
+  const [isSignUp, setIsSignUp] = useState(mode === 'signup');
   const { signUp, signIn, user, loading } = useAuth();
 
   // Redirect if user is already logged in
@@ -36,6 +41,7 @@ const AuthForm = () => {
         full_name: data.fullName,
         username: data.username,
       });
+      onSuccess?.();
     } catch (error) {
       console.error('Sign up error:', error);
     }
@@ -45,30 +51,25 @@ const AuthForm = () => {
     console.log('Sign in data:', data);
     try {
       await signIn(data.email, data.password);
+      onSuccess?.();
     } catch (error) {
       console.error('Sign in error:', error);
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-royal-blue/10 to-mint-green/10 flex items-center justify-center p-4">
-      <Card className="w-full max-w-md mx-auto bg-cloud-white border-soft-sky shadow-lg">
-        <AuthHeader isSignUp={isSignUp} />
-        
-        <CardContent className="space-y-4">
-          {isSignUp ? (
-            <SignUpForm onSubmit={handleSignUp} loading={loading} />
-          ) : (
-            <SignInForm onSubmit={handleSignIn} loading={loading} />
-          )}
+    <div className="space-y-4">
+      {isSignUp ? (
+        <SignUpForm onSubmit={handleSignUp} loading={loading} />
+      ) : (
+        <SignInForm onSubmit={handleSignIn} loading={loading} />
+      )}
 
-          <AuthToggle 
-            isSignUp={isSignUp} 
-            onToggle={() => setIsSignUp(!isSignUp)} 
-            loading={loading} 
-          />
-        </CardContent>
-      </Card>
+      <AuthToggle 
+        isSignUp={isSignUp} 
+        onToggle={() => setIsSignUp(!isSignUp)} 
+        loading={loading} 
+      />
     </div>
   );
 };
