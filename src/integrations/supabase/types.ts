@@ -198,6 +198,33 @@ export type Database = {
           },
         ]
       }
+      guest_users: {
+        Row: {
+          created_at: string | null
+          email: string
+          expires_at: string | null
+          full_name: string
+          id: string
+          phone: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          email: string
+          expires_at?: string | null
+          full_name: string
+          id?: string
+          phone?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          email?: string
+          expires_at?: string | null
+          full_name?: string
+          id?: string
+          phone?: string | null
+        }
+        Relationships: []
+      }
       messages: {
         Row: {
           content: string
@@ -326,6 +353,95 @@ export type Database = {
         }
         Relationships: []
       }
+      payment_methods: {
+        Row: {
+          brand: string | null
+          created_at: string | null
+          id: string
+          is_default: boolean | null
+          last_four: string | null
+          stripe_payment_method_id: string
+          type: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          brand?: string | null
+          created_at?: string | null
+          id?: string
+          is_default?: boolean | null
+          last_four?: string | null
+          stripe_payment_method_id: string
+          type: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          brand?: string | null
+          created_at?: string | null
+          id?: string
+          is_default?: boolean | null
+          last_four?: string | null
+          stripe_payment_method_id?: string
+          type?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      payment_plans: {
+        Row: {
+          created_at: string | null
+          down_payment: number
+          id: string
+          listing_id: string
+          monthly_payment: number
+          next_payment_date: string | null
+          number_of_payments: number
+          payments_made: number | null
+          status: string | null
+          total_amount: number
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          down_payment: number
+          id?: string
+          listing_id: string
+          monthly_payment: number
+          next_payment_date?: string | null
+          number_of_payments: number
+          payments_made?: number | null
+          status?: string | null
+          total_amount: number
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          down_payment?: number
+          id?: string
+          listing_id?: string
+          monthly_payment?: number
+          next_payment_date?: string | null
+          number_of_payments?: number
+          payments_made?: number | null
+          status?: string | null
+          total_amount?: number
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_plans_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "dog_listings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -339,7 +455,10 @@ export type Database = {
           privacy_settings: Json | null
           rating: number | null
           social_links: Json | null
+          social_providers: Json | null
           total_reviews: number | null
+          two_factor_enabled: boolean | null
+          two_factor_secret: string | null
           updated_at: string | null
           user_type: Database["public"]["Enums"]["user_type"] | null
           username: string | null
@@ -359,7 +478,10 @@ export type Database = {
           privacy_settings?: Json | null
           rating?: number | null
           social_links?: Json | null
+          social_providers?: Json | null
           total_reviews?: number | null
+          two_factor_enabled?: boolean | null
+          two_factor_secret?: string | null
           updated_at?: string | null
           user_type?: Database["public"]["Enums"]["user_type"] | null
           username?: string | null
@@ -379,7 +501,10 @@ export type Database = {
           privacy_settings?: Json | null
           rating?: number | null
           social_links?: Json | null
+          social_providers?: Json | null
           total_reviews?: number | null
+          two_factor_enabled?: boolean | null
+          two_factor_secret?: string | null
           updated_at?: string | null
           user_type?: Database["public"]["Enums"]["user_type"] | null
           username?: string | null
@@ -640,6 +765,59 @@ export type Database = {
           upgrades?: number
         }
         Relationships: []
+      }
+      verification_documents: {
+        Row: {
+          document_type: string
+          file_name: string
+          file_size: number | null
+          file_url: string
+          id: string
+          mime_type: string | null
+          rejection_reason: string | null
+          reviewed_at: string | null
+          status: string | null
+          uploaded_at: string | null
+          user_id: string
+          verification_request_id: string | null
+        }
+        Insert: {
+          document_type: string
+          file_name: string
+          file_size?: number | null
+          file_url: string
+          id?: string
+          mime_type?: string | null
+          rejection_reason?: string | null
+          reviewed_at?: string | null
+          status?: string | null
+          uploaded_at?: string | null
+          user_id: string
+          verification_request_id?: string | null
+        }
+        Update: {
+          document_type?: string
+          file_name?: string
+          file_size?: number | null
+          file_url?: string
+          id?: string
+          mime_type?: string | null
+          rejection_reason?: string | null
+          reviewed_at?: string | null
+          status?: string | null
+          uploaded_at?: string | null
+          user_id?: string
+          verification_request_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "verification_documents_verification_request_id_fkey"
+            columns: ["verification_request_id"]
+            isOneToOne: false
+            referencedRelation: "verification_requests"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       verification_requests: {
         Row: {

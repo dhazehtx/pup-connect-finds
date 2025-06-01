@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Shield, Upload, CheckCircle, Camera, FileText, Award } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -11,6 +12,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { useRealtimeVerification } from '@/hooks/useRealtimeVerification';
 import { useMobileOptimized } from '@/hooks/useMobileOptimized';
+import SocialLogin from '@/components/auth/SocialLogin';
+import EnhancedVerificationFlow from '@/components/verification/EnhancedVerificationFlow';
 
 const Verification = () => {
   const { user, profile } = useAuth();
@@ -22,68 +25,7 @@ const Verification = () => {
   } = useRealtimeVerification();
   const { isMobile, getMobileClasses } = useMobileOptimized();
   const [loading, setLoading] = useState(false);
-
-  const [idUploaded, setIdUploaded] = useState(false);
-  const [vetLicenseUploaded, setVetLicenseUploaded] = useState(false);
-  const [termsAccepted, setTermsAccepted] = useState(false);
-  const [ethicsAccepted, setEthicsAccepted] = useState(false);
-
-  const verificationItems = [
-    {
-      id: 'id',
-      title: 'Government ID Verification',
-      description: 'Upload a valid government-issued photo ID',
-      icon: <Shield className="w-5 h-5" />,
-      completed: true,
-      required: true
-    },
-    {
-      id: 'vet',
-      title: 'Veterinarian License',
-      description: 'Upload your veterinary license or breeder certification',
-      icon: <Award className="w-5 h-5" />,
-      completed: false,
-      required: false
-    },
-    {
-      id: 'business',
-      title: 'Business License',
-      description: 'Upload your business registration (if applicable)',
-      icon: <FileText className="w-5 h-5" />,
-      completed: false,
-      required: false
-    }
-  ];
-
-  const submitVerification = async () => {
-    if (!user) return;
-
-    try {
-      setLoading(true);
-      
-      await submitVerificationRequest({
-        business_license: 'sample_license_123',
-        id_document: 'sample_id_456',
-        address_proof: 'sample_address_789',
-        contact_verification: { phone: profile?.phone, email: user.email },
-        experience_details: 'Experienced breeder with 10+ years in the field'
-      });
-
-      toast({
-        title: "Verification Submitted",
-        description: "Your verification request has been submitted for review.",
-      });
-    } catch (error) {
-      console.error('Error submitting verification:', error);
-      toast({
-        title: "Error",
-        description: "Failed to submit verification request. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
+  const [activeTab, setActiveTab] = useState('status');
 
   const pendingRequest = verificationRequests.find(req => req.status === 'pending');
   const isVerified = profile?.verified;
@@ -108,13 +50,14 @@ const Verification = () => {
         </p>
       </div>
 
-      <Tabs defaultValue="status" className="w-full">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className={getMobileClasses(
-          "grid w-full grid-cols-3 text-xs",
-          "grid w-full grid-cols-3"
+          "grid w-full grid-cols-4 text-xs",
+          "grid w-full grid-cols-4"
         )}>
           <TabsTrigger value="status">Status</TabsTrigger>
           <TabsTrigger value="documents">Documents</TabsTrigger>
+          <TabsTrigger value="security">Security</TabsTrigger>
           <TabsTrigger value="history">History</TabsTrigger>
         </TabsList>
 
@@ -173,71 +116,51 @@ const Verification = () => {
                   </Badge>
                 </div>
               )}
-              
-              {!isVerified && !pendingRequest && (
-                <div className="mt-4">
-                  <Button 
-                    onClick={submitVerification} 
-                    disabled={loading}
-                    className={getMobileClasses("w-full", "")}
-                  >
-                    {loading ? 'Submitting...' : 'Submit for Verification'}
-                  </Button>
-                </div>
-              )}
             </CardContent>
           </Card>
+
+          {/* Quick Actions */}
+          <div className="grid gap-4 md:grid-cols-2">
+            <Card>
+              <CardContent className="p-6">
+                <h3 className="font-semibold mb-2">Identity Verification</h3>
+                <p className="text-sm text-gray-600 mb-4">
+                  Verify your identity with government ID and selfie
+                </p>
+                <Button 
+                  onClick={() => setActiveTab('documents')}
+                  className="w-full"
+                  variant={isVerified ? "outline" : "default"}
+                >
+                  {isVerified ? 'View Status' : 'Start Verification'}
+                </Button>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="p-6">
+                <h3 className="font-semibold mb-2">Security Settings</h3>
+                <p className="text-sm text-gray-600 mb-4">
+                  Enable 2FA and manage connected accounts
+                </p>
+                <Button 
+                  onClick={() => setActiveTab('security')}
+                  variant="outline"
+                  className="w-full"
+                >
+                  Manage Security
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
         </TabsContent>
 
         <TabsContent value="documents" className="space-y-6">
-          {/* Verification Items */}
-          <div className="grid gap-4">
-            {verificationItems.map((item) => (
-              <Card key={item.id} className={`border ${item.completed ? 'border-green-200 bg-green-50' : 'border-gray-200'}`}>
-                <CardContent className={getMobileClasses("p-4", "p-6")}>
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-start gap-4">
-                      <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                        item.completed ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-gray-400'
-                      }`}>
-                        {item.completed ? <CheckCircle className="w-5 h-5" /> : item.icon}
-                      </div>
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-1">
-                          <h3 className="font-semibold">{item.title}</h3>
-                          {item.required && <Badge variant="destructive" className="text-xs">Required</Badge>}
-                        </div>
-                        <p className="text-sm text-gray-600 mb-4">{item.description}</p>
-                        
-                        {!item.completed && (
-                          <div className="space-y-3">
-                            <div className="flex items-center gap-2">
-                              <Input type="file" accept="image/*,.pdf" className="flex-1" />
-                              <Button size="sm" onClick={() => {
-                                if (item.id === 'id') setIdUploaded(true);
-                                if (item.id === 'vet') setVetLicenseUploaded(true);
-                              }}>
-                                <Upload className="w-4 h-4 mr-1" />
-                                Upload
-                              </Button>
-                            </div>
-                            <p className="text-xs text-gray-500">Accepted formats: JPG, PNG, PDF (Max 5MB)</p>
-                          </div>
-                        )}
-                        
-                        {item.completed && (
-                          <div className="flex items-center gap-2 text-green-600">
-                            <CheckCircle className="w-4 h-4" />
-                            <span className="text-sm">Verified and approved</span>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+          <EnhancedVerificationFlow />
+        </TabsContent>
+
+        <TabsContent value="security" className="space-y-6">
+          <SocialLogin showTwoFactor={true} />
         </TabsContent>
 
         <TabsContent value="history" className="space-y-6">
