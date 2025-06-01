@@ -27,7 +27,7 @@ export interface EscrowTransaction {
     dog_name: string;
     breed: string;
     image_url?: string;
-  };
+  } | null;
 }
 
 export const useEscrowTransactions = (userId?: string) => {
@@ -58,7 +58,10 @@ export const useEscrowTransactions = (userId?: string) => {
       const { data, error } = await query;
 
       if (error) throw error;
-      setTransactions(data || []);
+      
+      // Type assertion to handle the Supabase response structure
+      const typedData = (data || []) as EscrowTransaction[];
+      setTransactions(typedData);
     } catch (error: any) {
       toast({
         title: "Failed to load transactions",
