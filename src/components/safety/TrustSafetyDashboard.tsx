@@ -5,7 +5,6 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Shield, AlertTriangle, Flag, CheckCircle, Users, Book } from 'lucide-react';
-import ReportButton from '@/components/features/ReportButton';
 
 const TrustSafetyDashboard = () => {
   const [safetyScore, setSafetyScore] = useState(85);
@@ -155,11 +154,10 @@ const TrustSafetyDashboard = () => {
                     <p className="text-sm text-gray-600 mb-3">
                       Report suspicious behavior, harassment, or fraud
                     </p>
-                    <ReportButton 
-                      reportType="user"
-                      targetId="sample-user-id"
-                      size="sm"
-                    />
+                    <Button size="sm" variant="outline">
+                      <Flag className="mr-2" size={16} />
+                      Report User
+                    </Button>
                   </CardContent>
                 </Card>
                 
@@ -169,11 +167,10 @@ const TrustSafetyDashboard = () => {
                     <p className="text-sm text-gray-600 mb-3">
                       Report fake listings, puppy mills, or other violations
                     </p>
-                    <ReportButton 
-                      reportType="listing"
-                      targetId="sample-listing-id"
-                      size="sm"
-                    />
+                    <Button size="sm" variant="outline">
+                      <Flag className="mr-2" size={16} />
+                      Report Listing
+                    </Button>
                   </CardContent>
                 </Card>
               </div>

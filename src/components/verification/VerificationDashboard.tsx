@@ -6,7 +6,6 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Shield, CheckCircle, Clock, AlertTriangle, Upload, Camera } from 'lucide-react';
-import DocumentUpload from '@/components/profile/DocumentUpload';
 
 interface VerificationStatus {
   id: string;
@@ -84,6 +83,12 @@ const VerificationDashboard = () => {
   const getOverallProgress = () => {
     const completed = verificationTypes.filter(t => t.completed).length;
     return (completed / verificationTypes.length) * 100;
+  };
+
+  const handleDocumentUpload = (files: FileList | null) => {
+    if (files) {
+      console.log('Documents uploaded:', Array.from(files));
+    }
   };
 
   return (
@@ -176,13 +181,31 @@ const VerificationDashboard = () => {
               <CardTitle>Submit Verification Documents</CardTitle>
             </CardHeader>
             <CardContent>
-              <DocumentUpload
-                onUploadComplete={(files) => {
-                  console.log('Documents uploaded:', files);
-                }}
-                acceptedTypes={['image/jpeg', 'image/png', 'application/pdf']}
-                maxFiles={5}
-              />
+              <div className="space-y-4">
+                <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+                  <input
+                    type="file"
+                    multiple
+                    accept="image/jpeg,image/png,application/pdf"
+                    onChange={(e) => handleDocumentUpload(e.target.files)}
+                    className="hidden"
+                    id="document-upload"
+                  />
+                  <Upload className="mx-auto mb-2 text-gray-400" size={24} />
+                  <p className="text-sm text-gray-600 mb-2">
+                    Upload your verification documents
+                  </p>
+                  <Button
+                    variant="outline"
+                    onClick={() => document.getElementById('document-upload')?.click()}
+                  >
+                    Select Files
+                  </Button>
+                  <p className="text-xs text-gray-500 mt-2">
+                    Accepted formats: JPG, PNG, PDF. Max 5 files.
+                  </p>
+                </div>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>

@@ -61,7 +61,7 @@ const EnhancedReviewSystem: React.FC<EnhancedReviewSystemProps> = ({
             <div className="text-center">
               <div className="text-4xl font-bold">{averageRating.toFixed(1)}</div>
               <div className="flex justify-center mt-1">
-                <StarRating rating={averageRating} readonly />
+                <StarRating rating={averageRating} interactive={false} />
               </div>
               <div className="text-sm text-gray-600 mt-1">{totalReviews} reviews</div>
             </div>
@@ -111,6 +111,7 @@ const EnhancedReviewSystem: React.FC<EnhancedReviewSystemProps> = ({
               <label className="block text-sm font-medium mb-2">Rating</label>
               <StarRating 
                 rating={newReview.rating} 
+                interactive={true}
                 onRatingChange={(rating) => setNewReview(prev => ({ ...prev, rating }))}
               />
             </div>
@@ -186,7 +187,7 @@ const EnhancedReviewSystem: React.FC<EnhancedReviewSystemProps> = ({
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-1">
                       <span className="font-medium">Anonymous User</span>
-                      <StarRating rating={review.rating} readonly size="sm" />
+                      <StarRating rating={review.rating} interactive={false} size="sm" />
                     </div>
                     <div className="text-sm text-gray-600">
                       {new Date(review.created_at).toLocaleDateString()}
