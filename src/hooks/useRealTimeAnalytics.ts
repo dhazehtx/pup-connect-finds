@@ -49,7 +49,7 @@ export const useRealTimeAnalytics = () => {
   // Track page view
   const trackPageView = async (page: string) => {
     try {
-      await supabase.from('analytics_events' as any).insert({
+      await supabase.from('analytics_events').insert({
         event_type: 'page_view',
         event_data: { page },
         user_id: user?.id,
@@ -68,7 +68,7 @@ export const useRealTimeAnalytics = () => {
   // Track user interaction
   const trackEvent = async (eventType: string, eventData: any = {}) => {
     try {
-      await supabase.from('analytics_events' as any).insert({
+      await supabase.from('analytics_events').insert({
         event_type: eventType,
         event_data: eventData,
         user_id: user?.id,
@@ -114,16 +114,18 @@ export const useRealTimeAnalytics = () => {
   const fetchAnalytics = async () => {
     try {
       // Get page views for the last 24 hours
-      const { data: pageViews } = await supabase
-        .from('analytics_events' as any)
+      const { data: pageViews, error: pageViewsError } = await supabase
+        .from('analytics_events')
         .select('event_data, timestamp')
         .eq('event_type', 'page_view')
         .gte('timestamp', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString());
 
+      if (pageViewsError) throw pageViewsError;
+
       // Process page views
       const pageViewStats: { [key: string]: PageView } = {};
       pageViews?.forEach(event => {
-        const page = event.event_data.page || 'unknown';
+        const page = event.event_data?.page || 'unknown';
         if (!pageViewStats[page]) {
           pageViewStats[page] = {
             page,
@@ -136,10 +138,12 @@ export const useRealTimeAnalytics = () => {
       });
 
       // Get current active users (last 5 minutes)
-      const { data: activeUsers } = await supabase
-        .from('analytics_events' as any)
+      const { data: activeUsers, error: activeUsersError } = await supabase
+        .from('analytics_events')
         .select('session_id')
         .gte('timestamp', new Date(Date.now() - 5 * 60 * 1000).toISOString());
+
+      if (activeUsersError) throw activeUsersError;
 
       const uniqueActiveSessions = new Set(activeUsers?.map(u => u.session_id) || []);
 

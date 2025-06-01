@@ -25,7 +25,7 @@ export const useCalendarScheduling = () => {
     try {
       setLoading(true);
       const { data, error } = await supabase
-        .from('scheduled_events' as any)
+        .from('scheduled_events')
         .select('*')
         .order('start_time', { ascending: true });
 
@@ -47,7 +47,7 @@ export const useCalendarScheduling = () => {
     try {
       setLoading(true);
       const { data, error } = await supabase
-        .from('scheduled_events' as any)
+        .from('scheduled_events')
         .insert(eventData)
         .select()
         .single();
@@ -77,7 +77,7 @@ export const useCalendarScheduling = () => {
   const updateEventStatus = async (eventId: string, status: ScheduleEvent['status']) => {
     try {
       const { error } = await supabase
-        .from('scheduled_events' as any)
+        .from('scheduled_events')
         .update({ status })
         .eq('id', eventId);
 
@@ -106,7 +106,7 @@ export const useCalendarScheduling = () => {
   const deleteEvent = async (eventId: string) => {
     try {
       const { error } = await supabase
-        .from('scheduled_events' as any)
+        .from('scheduled_events')
         .delete()
         .eq('id', eventId);
 

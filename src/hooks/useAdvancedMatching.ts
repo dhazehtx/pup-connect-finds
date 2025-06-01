@@ -153,7 +153,7 @@ export const useAdvancedMatching = () => {
 
     try {
       const { error } = await supabase
-        .from('user_preferences' as any)
+        .from('user_preferences')
         .upsert({
           user_id: user.id,
           matching_criteria: preferences,
@@ -171,16 +171,16 @@ export const useAdvancedMatching = () => {
 
     try {
       const { data, error } = await supabase
-        .from('user_preferences' as any)
+        .from('user_preferences')
         .select('matching_criteria')
         .eq('user_id', user.id)
         .single();
 
       if (error && error.code !== 'PGRST116') throw error;
       
-      if (data?.matching_criteria) {
-        setCriteria(data.matching_criteria);
-        return data.matching_criteria;
+      if (data && data.matching_criteria) {
+        setCriteria(data.matching_criteria as MatchingCriteria);
+        return data.matching_criteria as MatchingCriteria;
       }
     } catch (error) {
       console.error('Error loading preferences:', error);
