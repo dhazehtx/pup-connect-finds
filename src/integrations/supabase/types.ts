@@ -100,6 +100,75 @@ export type Database = {
           },
         ]
       }
+      escrow_transactions: {
+        Row: {
+          amount: number
+          buyer_confirmed_at: string | null
+          buyer_id: string
+          commission_amount: number
+          commission_rate: number
+          created_at: string
+          dispute_created_at: string | null
+          dispute_reason: string | null
+          dispute_resolved_at: string | null
+          funds_released_at: string | null
+          id: string
+          listing_id: string
+          meeting_location: string | null
+          meeting_scheduled_at: string | null
+          seller_amount: number
+          seller_confirmed_at: string | null
+          seller_id: string
+          status: string
+          stripe_payment_intent_id: string
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          buyer_confirmed_at?: string | null
+          buyer_id: string
+          commission_amount: number
+          commission_rate?: number
+          created_at?: string
+          dispute_created_at?: string | null
+          dispute_reason?: string | null
+          dispute_resolved_at?: string | null
+          funds_released_at?: string | null
+          id?: string
+          listing_id: string
+          meeting_location?: string | null
+          meeting_scheduled_at?: string | null
+          seller_amount: number
+          seller_confirmed_at?: string | null
+          seller_id: string
+          status?: string
+          stripe_payment_intent_id: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          buyer_confirmed_at?: string | null
+          buyer_id?: string
+          commission_amount?: number
+          commission_rate?: number
+          created_at?: string
+          dispute_created_at?: string | null
+          dispute_reason?: string | null
+          dispute_resolved_at?: string | null
+          funds_released_at?: string | null
+          id?: string
+          listing_id?: string
+          meeting_location?: string | null
+          meeting_scheduled_at?: string | null
+          seller_amount?: number
+          seller_confirmed_at?: string | null
+          seller_id?: string
+          status?: string
+          stripe_payment_intent_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       favorites: {
         Row: {
           created_at: string
@@ -220,6 +289,42 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      payment_intents: {
+        Row: {
+          amount: number
+          buyer_email: string
+          created_at: string
+          currency: string
+          id: string
+          listing_id: string
+          status: string
+          stripe_payment_intent_id: string
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          buyer_email: string
+          created_at?: string
+          currency?: string
+          id?: string
+          listing_id: string
+          status: string
+          stripe_payment_intent_id: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          buyer_email?: string
+          created_at?: string
+          currency?: string
+          id?: string
+          listing_id?: string
+          status?: string
+          stripe_payment_intent_id?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       profiles: {
         Row: {
