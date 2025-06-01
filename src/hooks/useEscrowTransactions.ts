@@ -43,7 +43,7 @@ export const useEscrowTransactions = (userId?: string) => {
         .from('escrow_transactions')
         .select(`
           *,
-          dog_listings (
+          dog_listings!listing_id (
             dog_name,
             breed,
             image_url
@@ -59,9 +59,12 @@ export const useEscrowTransactions = (userId?: string) => {
 
       if (error) throw error;
       
-      // Type assertion to handle the Supabase response structure
-      const typedData = (data || []) as EscrowTransaction[];
-      setTransactions(typedData);
+      // Handle the response and filter out any invalid entries
+      const validTransactions = (data || []).filter(transaction => 
+        transaction && typeof transaction === 'object'
+      ) as any[];
+      
+      setTransactions(validTransactions);
     } catch (error: any) {
       console.error('Error fetching escrow transactions:', error);
       toast({
