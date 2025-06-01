@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import RippleButton from '@/components/ui/ripple-button';
 import AnimatedHeart from '@/components/ui/animated-heart';
 import UserVerificationBadge from '@/components/features/UserVerificationBadge';
+import ListingActions from '@/components/listings/ListingActions';
 import { useAuth } from '@/contexts/AuthContext';
 import GuestPrompt from '@/components/GuestPrompt';
 import { useState } from 'react';
@@ -36,6 +37,7 @@ interface ListingCardProps {
   onContact: (id: number) => void;
   onViewDetails: (id: number) => void;
   viewMode?: 'grid' | 'list';
+  showEnhancedActions?: boolean;
 }
 
 const ListingCard = ({
@@ -63,7 +65,8 @@ const ListingCard = ({
   onFavorite,
   onContact,
   onViewDetails,
-  viewMode = 'grid'
+  viewMode = 'grid',
+  showEnhancedActions = false
 }: ListingCardProps) => {
   const { user, isGuest } = useAuth();
   const [showGuestPrompt, setShowGuestPrompt] = useState(false);
@@ -225,26 +228,38 @@ const ListingCard = ({
           </div>
 
           {/* Action buttons */}
-          <div className="flex gap-2">
-            <RippleButton
-              onClick={() => onViewDetails(id)}
-              className="flex-1 bg-royal-blue hover:bg-royal-blue/90 text-white text-sm"
-            >
-              <Eye size={16} className="mr-1" />
-              View Details
-            </RippleButton>
-            
-            <RippleButton
-              onClick={(e) => {
-                e.stopPropagation();
-                handleContact();
-              }}
-              variant="outline"
-              className="px-3 border-royal-blue text-royal-blue hover:bg-royal-blue hover:text-white"
-            >
-              <MessageCircle size={16} />
-            </RippleButton>
-          </div>
+          {showEnhancedActions ? (
+            <ListingActions
+              listingId={id}
+              title={title}
+              price={price}
+              sellerName={breeder}
+              onContact={handleContact}
+              onFavorite={handleFavorite}
+              isFavorited={isFavorited}
+            />
+          ) : (
+            <div className="flex gap-2">
+              <RippleButton
+                onClick={() => onViewDetails(id)}
+                className="flex-1 bg-royal-blue hover:bg-royal-blue/90 text-white text-sm"
+              >
+                <Eye size={16} className="mr-1" />
+                View Details
+              </RippleButton>
+              
+              <RippleButton
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleContact();
+                }}
+                variant="outline"
+                className="px-3 border-royal-blue text-royal-blue hover:bg-royal-blue hover:text-white"
+              >
+                <MessageCircle size={16} />
+              </RippleButton>
+            </div>
+          )}
 
           {/* Guest user notice */}
           {!user && (

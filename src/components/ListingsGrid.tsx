@@ -1,8 +1,8 @@
 
 import React from 'react';
 import ListingCard from './ListingCard';
-import LoadingSkeleton from './LoadingSkeleton';
 import EmptyState from './EmptyState';
+import LoadingSkeleton from './LoadingSkeleton';
 
 interface Listing {
   id: number;
@@ -35,63 +35,58 @@ interface ListingsGridProps {
   onContact: (id: number) => void;
   onViewDetails: (id: number) => void;
   isLoading?: boolean;
-  onClearFilters: () => void;
-  hasActiveFilters: boolean;
+  onClearFilters?: () => void;
+  hasActiveFilters?: boolean;
+  showEnhancedActions?: boolean;
 }
 
-const ListingsGrid = ({ 
-  listings, 
-  viewMode, 
-  favorites, 
-  onFavorite, 
-  onContact, 
+const ListingsGrid: React.FC<ListingsGridProps> = ({
+  listings,
+  viewMode,
+  favorites,
+  onFavorite,
+  onContact,
   onViewDetails,
   isLoading = false,
   onClearFilters,
-  hasActiveFilters
-}: ListingsGridProps) => {
+  hasActiveFilters = false,
+  showEnhancedActions = false
+}) => {
   if (isLoading) {
-    return <LoadingSkeleton viewMode={viewMode} />;
+    return <LoadingSkeleton count={6} />;
   }
 
   if (listings.length === 0) {
-    return <EmptyState onClearFilters={onClearFilters} hasActiveFilters={hasActiveFilters} />;
+    return (
+      <EmptyState
+        title="No listings found"
+        description={
+          hasActiveFilters
+            ? "Try adjusting your filters to see more results"
+            : "There are no listings available at the moment"
+        }
+        actionLabel={hasActiveFilters ? "Clear Filters" : undefined}
+        onAction={hasActiveFilters ? onClearFilters : undefined}
+      />
+    );
   }
 
+  const gridClasses = viewMode === 'list' 
+    ? "space-y-4"
+    : "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6";
+
   return (
-    <div className={
-      viewMode === 'grid' 
-        ? 'grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 max-w-4xl mx-auto' 
-        : 'space-y-0'
-    }>
+    <div className={gridClasses}>
       {listings.map((listing) => (
         <ListingCard
           key={listing.id}
-          id={listing.id}
-          title={listing.title}
-          price={listing.price}
-          location={listing.location}
-          distance={listing.distance}
-          breed={listing.breed}
-          color={listing.color}
-          gender={listing.gender}
-          age={listing.age}
-          rating={listing.rating}
-          reviews={listing.reviews}
-          image={listing.image}
-          breeder={listing.breeder}
-          verified={listing.verified}
-          verifiedBreeder={listing.verifiedBreeder}
-          idVerified={listing.idVerified}
-          vetVerified={listing.vetVerified}
-          available={listing.available}
-          sourceType={listing.sourceType}
-          isKillShelter={listing.isKillShelter}
-          viewMode={viewMode}
+          {...listing}
+          isFavorited={favorites.includes(listing.id)}
           onFavorite={onFavorite}
           onContact={onContact}
           onViewDetails={onViewDetails}
-          isFavorited={favorites.includes(listing.id)}
+          viewMode={viewMode}
+          showEnhancedActions={showEnhancedActions}
         />
       ))}
     </div>

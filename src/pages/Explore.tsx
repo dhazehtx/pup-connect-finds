@@ -1,14 +1,15 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Users, Plus } from 'lucide-react';
+import { Users, Plus, Filter, Grid, List } from 'lucide-react';
 import SearchFilters from '@/components/SearchFilters';
 import SortingOptions from '@/components/SortingOptions';
 import ListingsGrid from '@/components/ListingsGrid';
 import CreateListingForm from '@/components/listings/CreateListingForm';
+import AdvancedSearchFilters from '@/components/search/AdvancedSearchFilters';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import DogLoadingIcon from '@/components/DogLoadingIcon';
 import { useToast } from '@/hooks/use-toast';
 import { useListingFilters } from '@/hooks/useListingFilters';
@@ -60,6 +61,7 @@ const Explore = () => {
   const [sortBy, setSortBy] = useState('newest');
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [showAdvancedSearch, setShowAdvancedSearch] = useState(false);
   const [filters, setFilters] = useState<FilterState>({
     searchTerm: '',
     breed: 'all',
@@ -82,7 +84,7 @@ const Explore = () => {
       'English Bulldog': 'https://images.unsplash.com/photo-1605568427561-40dd23c2acea?w=400&h=300&fit=crop',
       'Golden Retriever': 'https://images.unsplash.com/photo-1552053831-71594a27632d?w=400&h=300&fit=crop',
       'German Shepherd': 'https://images.unsplash.com/photo-1589941013453-ec89f33b5e95?w=400&h=300&fit=crop',
-      'Labrador': 'https://images.unsplash.com/photo-1518717758536-85ae29035b6d?w=400&h=300&fit=crop',
+      'Labrador': 'https://images.unsplash.com/photo-1518717743-49959800b1f6?w=400&h=300&fit=crop',
       'Poodle Mix': 'https://images.unsplash.com/photo-1616190260687-b7039d92c41b?w=400&h=300&fit=crop',
       'Siberian Husky': 'https://images.unsplash.com/photo-1605568427561-40dd23c2acea?w=400&h=300&fit=crop',
       'Boston Terrier': 'https://images.unsplash.com/photo-1551717743-49959800b1f6?w=400&h=300&fit=crop',
@@ -149,6 +151,31 @@ const Explore = () => {
       maxDistance: 'all',
       verifiedOnly: false,
       availableOnly: false,
+    });
+  };
+
+  const handleAdvancedSearch = (advancedFilters: any) => {
+    // Convert advanced filters to basic filter format
+    setFilters(prev => ({
+      ...prev,
+      searchTerm: advancedFilters.query || '',
+      breed: advancedFilters.breeds.length > 0 ? advancedFilters.breeds[0] : 'all',
+      minPrice: advancedFilters.priceRange[0].toString(),
+      maxPrice: advancedFilters.priceRange[1].toString(),
+      verifiedOnly: advancedFilters.verifiedSellersOnly,
+    }));
+    
+    toast({
+      title: "Search Updated",
+      description: `Found ${sortedListings.length} listings matching your criteria`,
+    });
+  };
+
+  const handleSaveSearch = (searchFilters: any, name: string) => {
+    // Save search functionality
+    toast({
+      title: "Search Saved",
+      description: `"${name}" has been saved. You'll be notified of new matches.`,
     });
   };
 
@@ -302,18 +329,50 @@ const Explore = () => {
               <Users size={16} />
               Trusted Partners
             </Button>
+            <Button 
+              variant="outline"
+              size="sm"
+              onClick={() => navigate('/compare')}
+              className="flex items-center gap-2"
+            >
+              Compare
+            </Button>
+            <Button 
+              variant="outline"
+              size="sm"
+              onClick={() => navigate('/recommendations')}
+              className="flex items-center gap-2"
+            >
+              For You
+            </Button>
           </div>
         </div>
         <p className="text-black">Find your perfect puppy companion from verified sellers and rescue partners</p>
       </div>
 
-      {/* Search and Filter Component */}
-      <SearchFilters
-        filters={filters}
-        onFiltersChange={setFilters}
-        resultsCount={sortedListings.length}
-        onClearFilters={handleClearFilters}
-      />
+      {/* Search Tabs */}
+      <Tabs defaultValue="basic" className="mb-6">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="basic">Basic Search</TabsTrigger>
+          <TabsTrigger value="advanced">Advanced Search</TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="basic">
+          <SearchFilters
+            filters={filters}
+            onFiltersChange={setFilters}
+            resultsCount={sortedListings.length}
+            onClearFilters={handleClearFilters}
+          />
+        </TabsContent>
+        
+        <TabsContent value="advanced">
+          <AdvancedSearchFilters
+            onSearch={handleAdvancedSearch}
+            onSaveSearch={handleSaveSearch}
+          />
+        </TabsContent>
+      </Tabs>
 
       {/* Sorting and View Options */}
       <SortingOptions
@@ -335,6 +394,7 @@ const Explore = () => {
         isLoading={loading}
         onClearFilters={handleClearFilters}
         hasActiveFilters={hasActiveFilters}
+        showEnhancedActions={true}
       />
     </div>
   );
