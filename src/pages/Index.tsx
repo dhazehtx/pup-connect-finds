@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import Layout from '../components/Layout';
@@ -16,6 +17,7 @@ import Partnerships from './Partnerships';
 import TermsOfService from './TermsOfService';
 import Help from './Help';
 import SampleData from './SampleData';
+import AIAssistant from './AIAssistant';
 import ProtectedRoute from '../components/ProtectedRoute';
 import Success from './Success';
 import Header from '../components/Header';
@@ -36,6 +38,7 @@ const Index = () => {
           <Route path="/terms" element={<TermsOfService />} />
           <Route path="/help" element={<Help />} />
           <Route path="/sample-data" element={<SampleData />} />
+          <Route path="/ai-assistant" element={<AIAssistant />} />
           
           {/* Profile and Messages routes - temporarily public for design work */}
           <Route path="/profile/:userId" element={<Profile />} />
