@@ -419,15 +419,49 @@ export type Database = {
         }
         Relationships: []
       }
+      stripe_webhooks: {
+        Row: {
+          created_at: string
+          data: Json
+          event_type: string
+          id: string
+          processed: boolean
+          processed_at: string | null
+          stripe_event_id: string
+        }
+        Insert: {
+          created_at?: string
+          data: Json
+          event_type: string
+          id?: string
+          processed?: boolean
+          processed_at?: string | null
+          stripe_event_id: string
+        }
+        Update: {
+          created_at?: string
+          data?: Json
+          event_type?: string
+          id?: string
+          processed?: boolean
+          processed_at?: string | null
+          stripe_event_id?: string
+        }
+        Relationships: []
+      }
       subscribers: {
         Row: {
           created_at: string
           email: string
           id: string
+          pending_tier_change: string | null
+          previous_tier: string | null
           stripe_customer_id: string | null
           subscribed: boolean
           subscription_end: string | null
           subscription_tier: string | null
+          tier_change_at: string | null
+          trial_end: string | null
           updated_at: string
           user_id: string | null
         }
@@ -435,10 +469,14 @@ export type Database = {
           created_at?: string
           email: string
           id?: string
+          pending_tier_change?: string | null
+          previous_tier?: string | null
           stripe_customer_id?: string | null
           subscribed?: boolean
           subscription_end?: string | null
           subscription_tier?: string | null
+          tier_change_at?: string | null
+          trial_end?: string | null
           updated_at?: string
           user_id?: string | null
         }
@@ -446,12 +484,55 @@ export type Database = {
           created_at?: string
           email?: string
           id?: string
+          pending_tier_change?: string | null
+          previous_tier?: string | null
           stripe_customer_id?: string | null
           subscribed?: boolean
           subscription_end?: string | null
           subscription_tier?: string | null
+          tier_change_at?: string | null
+          trial_end?: string | null
           updated_at?: string
           user_id?: string | null
+        }
+        Relationships: []
+      }
+      subscription_analytics: {
+        Row: {
+          cancelled_subscriptions: number
+          created_at: string
+          date: string
+          downgrades: number
+          id: string
+          mrr: number
+          new_subscriptions: number
+          tier_breakdown: Json
+          total_revenue: number
+          upgrades: number
+        }
+        Insert: {
+          cancelled_subscriptions?: number
+          created_at?: string
+          date: string
+          downgrades?: number
+          id?: string
+          mrr?: number
+          new_subscriptions?: number
+          tier_breakdown?: Json
+          total_revenue?: number
+          upgrades?: number
+        }
+        Update: {
+          cancelled_subscriptions?: number
+          created_at?: string
+          date?: string
+          downgrades?: number
+          id?: string
+          mrr?: number
+          new_subscriptions?: number
+          tier_breakdown?: Json
+          total_revenue?: number
+          upgrades?: number
         }
         Relationships: []
       }

@@ -1,9 +1,10 @@
 
 import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { DollarSign, Heart, Star, Users, CreditCard } from 'lucide-react';
+import { DollarSign, Heart, Star, Users, CreditCard, BarChart3 } from 'lucide-react';
 import MonetizationDashboard from '@/components/monetization/MonetizationDashboard';
-import PricingPlans from '@/components/monetization/PricingPlans';
+import EnhancedPricingPlans from '@/components/monetization/EnhancedPricingPlans';
+import SubscriptionAnalytics from '@/components/monetization/SubscriptionAnalytics';
 import ListingFees from '@/components/monetization/ListingFees';
 import DonationCenter from '@/components/monetization/DonationCenter';
 
@@ -19,7 +20,7 @@ const Monetization = () => {
 
       <Tabs defaultValue="dashboard" className="max-w-7xl mx-auto">
         <div className="bg-white border-b sticky top-0 z-10">
-          <TabsList className="grid w-full grid-cols-5 h-16">
+          <TabsList className="grid w-full grid-cols-6 h-16">
             <TabsTrigger value="dashboard" className="flex flex-col items-center gap-1">
               <DollarSign size={18} />
               <span className="text-xs">Dashboard</span>
@@ -27,6 +28,10 @@ const Monetization = () => {
             <TabsTrigger value="subscriptions" className="flex flex-col items-center gap-1">
               <Users size={18} />
               <span className="text-xs">Subscriptions</span>
+            </TabsTrigger>
+            <TabsTrigger value="analytics" className="flex flex-col items-center gap-1">
+              <BarChart3 size={18} />
+              <span className="text-xs">Analytics</span>
             </TabsTrigger>
             <TabsTrigger value="listings" className="flex flex-col items-center gap-1">
               <Star size={18} />
@@ -48,7 +53,11 @@ const Monetization = () => {
         </TabsContent>
 
         <TabsContent value="subscriptions" className="m-0">
-          <PricingPlans />
+          <EnhancedPricingPlans />
+        </TabsContent>
+
+        <TabsContent value="analytics" className="m-0">
+          <SubscriptionAnalytics />
         </TabsContent>
 
         <TabsContent value="listings" className="m-0">

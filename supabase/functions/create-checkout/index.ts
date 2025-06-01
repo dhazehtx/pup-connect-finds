@@ -8,6 +8,11 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+const logStep = (step: string, details?: any) => {
+  const detailsStr = details ? ` - ${JSON.stringify(details)}` : '';
+  console.log(`[CREATE-CHECKOUT] ${step}${detailsStr}`);
+};
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -19,14 +24,18 @@ serve(async (req) => {
   );
 
   try {
+    logStep("Checkout function started");
+
     const authHeader = req.headers.get("Authorization")!;
     const token = authHeader.replace("Bearer ", "");
     const { data } = await supabaseClient.auth.getUser(token);
     const user = data.user;
     if (!user?.email) throw new Error("User not authenticated or email not available");
 
-    const { tier } = await req.json();
+    const { tier, trialDays = 14 } = await req.json();
     if (!tier) throw new Error("Subscription tier is required");
+
+    logStep("User authenticated", { userId: user.id, email: user.email, tier, trialDays });
 
     const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", { apiVersion: "2023-10-16" });
     
@@ -46,6 +55,11 @@ serve(async (req) => {
     const selectedPlan = pricing[tier as keyof typeof pricing];
     if (!selectedPlan) throw new Error("Invalid subscription tier");
 
+    logStep("Creating checkout session", { planName: selectedPlan.name, trialDays });
+
+    // Calculate trial end date
+    const trialEnd = Math.floor((Date.now() + (trialDays * 24 * 60 * 60 * 1000)) / 1000);
+
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
       customer_email: customerId ? undefined : user.email,
@@ -63,7 +77,20 @@ serve(async (req) => {
       mode: "subscription",
       success_url: `${req.headers.get("origin")}/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${req.headers.get("origin")}/monetization`,
+      subscription_data: {
+        trial_end: trialEnd,
+        metadata: {
+          user_id: user.id,
+          tier: tier,
+        },
+      },
+      metadata: {
+        user_id: user.id,
+        tier: tier,
+      },
     });
+
+    logStep("Checkout session created", { sessionId: session.id, url: session.url });
 
     return new Response(JSON.stringify({ url: session.url }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -71,6 +98,7 @@ serve(async (req) => {
     });
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
+    logStep("ERROR in create-checkout", { message: errorMessage });
     return new Response(JSON.stringify({ error: errorMessage }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 500,
