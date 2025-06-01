@@ -3,24 +3,35 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import TextGenerator from '@/components/TextGenerator';
-import { Sparkles, FileText, MessageSquare, User } from 'lucide-react';
+import ImageAnalyzer from '@/components/ai/ImageAnalyzer';
+import AISearch from '@/components/ai/AISearch';
+import SupportChatbot from '@/components/ai/SupportChatbot';
+import { Sparkles, FileText, MessageSquare, User, Camera, Search, HeadphonesIcon } from 'lucide-react';
 
 const AIAssistant = () => {
   return (
-    <div className="container mx-auto px-4 py-8 max-w-4xl">
+    <div className="container mx-auto px-4 py-8 max-w-6xl">
       <div className="text-center mb-8">
         <div className="flex items-center justify-center gap-2 mb-4">
           <Sparkles className="w-8 h-8 text-royal-blue" />
-          <h1 className="text-3xl font-bold text-gray-900">AI Assistant</h1>
+          <h1 className="text-3xl font-bold text-gray-900">AI Assistant Suite</h1>
         </div>
-        <p className="text-gray-600 max-w-2xl mx-auto">
-          Use our AI-powered tools to create compelling content for your pet listings, 
-          breeder profiles, and communications on MY PUP.
+        <p className="text-gray-600 max-w-3xl mx-auto">
+          Discover the power of AI on MY PUP! From analyzing pet photos to finding perfect matches, 
+          our AI tools help you make better decisions and create amazing content.
         </p>
       </div>
 
-      <Tabs defaultValue="listing" className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
+      <Tabs defaultValue="search" className="w-full">
+        <TabsList className="grid w-full grid-cols-6">
+          <TabsTrigger value="search" className="flex items-center gap-2">
+            <Search size={16} />
+            AI Search
+          </TabsTrigger>
+          <TabsTrigger value="image" className="flex items-center gap-2">
+            <Camera size={16} />
+            Photo Analysis
+          </TabsTrigger>
           <TabsTrigger value="listing" className="flex items-center gap-2">
             <FileText size={16} />
             Listings
@@ -29,9 +40,9 @@ const AIAssistant = () => {
             <User size={16} />
             Breeder Info
           </TabsTrigger>
-          <TabsTrigger value="message" className="flex items-center gap-2">
-            <MessageSquare size={16} />
-            Messages
+          <TabsTrigger value="support" className="flex items-center gap-2">
+            <HeadphonesIcon size={16} />
+            Support Chat
           </TabsTrigger>
           <TabsTrigger value="general" className="flex items-center gap-2">
             <Sparkles size={16} />
@@ -39,13 +50,45 @@ const AIAssistant = () => {
           </TabsTrigger>
         </TabsList>
 
+        <TabsContent value="search" className="mt-6">
+          <div className="grid gap-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>AI-Powered Pet Search</CardTitle>
+                <p className="text-sm text-gray-600">
+                  Find your perfect pet companion using intelligent search that understands your lifestyle and preferences.
+                </p>
+              </CardHeader>
+              <CardContent>
+                <AISearch />
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="image" className="mt-6">
+          <div className="grid gap-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Pet Photo Analyzer</CardTitle>
+                <p className="text-sm text-gray-600">
+                  Upload a pet photo to get AI-powered insights about breed, health indicators, and characteristics.
+                </p>
+              </CardHeader>
+              <CardContent>
+                <ImageAnalyzer />
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+
         <TabsContent value="listing" className="mt-6">
           <div className="grid gap-6">
             <Card>
               <CardHeader>
                 <CardTitle>Pet Listing Assistant</CardTitle>
                 <p className="text-sm text-gray-600">
-                  Create engaging descriptions for your pet listings that highlight their best qualities.
+                  Create engaging descriptions for your pet listings that highlight their best qualities with personalized AI assistance.
                 </p>
               </CardHeader>
               <CardContent>
@@ -65,7 +108,7 @@ const AIAssistant = () => {
               <CardHeader>
                 <CardTitle>Breeder Profile Assistant</CardTitle>
                 <p className="text-sm text-gray-600">
-                  Create professional content for your breeder profile and expertise descriptions.
+                  Create professional content for your breeder profile with AI that understands your experience and specialties.
                 </p>
               </CardHeader>
               <CardContent>
@@ -79,21 +122,17 @@ const AIAssistant = () => {
           </div>
         </TabsContent>
 
-        <TabsContent value="message" className="mt-6">
+        <TabsContent value="support" className="mt-6">
           <div className="grid gap-6">
             <Card>
               <CardHeader>
-                <CardTitle>Message Assistant</CardTitle>
+                <CardTitle>24/7 Support Assistant</CardTitle>
                 <p className="text-sm text-gray-600">
-                  Craft professional and friendly messages for communicating with buyers and sellers.
+                  Get instant help with platform questions, account issues, and guidance on pet adoption and breeding.
                 </p>
               </CardHeader>
               <CardContent>
-                <TextGenerator
-                  defaultType="message"
-                  title="Generate Message Content"
-                  placeholder="Describe the situation and what kind of message you want to send..."
-                />
+                <SupportChatbot />
               </CardContent>
             </Card>
           </div>
@@ -105,7 +144,7 @@ const AIAssistant = () => {
               <CardHeader>
                 <CardTitle>General AI Assistant</CardTitle>
                 <p className="text-sm text-gray-600">
-                  Generate any type of content for your MY PUP platform needs.
+                  Generate any type of content for your MY PUP platform needs with personalized AI assistance.
                 </p>
               </CardHeader>
               <CardContent>
