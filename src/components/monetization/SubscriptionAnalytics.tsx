@@ -7,6 +7,9 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsi
 import { TrendingUp, TrendingDown, Users, DollarSign, Calendar, Target } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { Database } from '@/integrations/supabase/types';
+
+type SubscriptionAnalyticsRow = Database['public']['Tables']['subscription_analytics']['Row'];
 
 interface AnalyticsData {
   date: string;
@@ -82,7 +85,22 @@ const SubscriptionAnalytics: React.FC = () => {
         .order('date', { ascending: true });
 
       if (error) throw error;
-      setAnalyticsData(data || []);
+      
+      // Transform the data to match our interface
+      const transformedData: AnalyticsData[] = (data || []).map((row: SubscriptionAnalyticsRow) => ({
+        date: row.date,
+        new_subscriptions: row.new_subscriptions,
+        cancelled_subscriptions: row.cancelled_subscriptions,
+        upgrades: row.upgrades,
+        downgrades: row.downgrades,
+        total_revenue: Number(row.total_revenue),
+        mrr: Number(row.mrr),
+        tier_breakdown: typeof row.tier_breakdown === 'object' && row.tier_breakdown !== null 
+          ? row.tier_breakdown as Record<string, number>
+          : {}
+      }));
+      
+      setAnalyticsData(transformedData);
     } catch (error) {
       toast({
         title: "Analytics Load Failed",
