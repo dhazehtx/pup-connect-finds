@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Users, Plus, Filter, Grid, List } from 'lucide-react';
+import { Users, Plus, Filter, Grid, List, Mic } from 'lucide-react';
 import SearchFilters from '@/components/SearchFilters';
 import SortingOptions from '@/components/SortingOptions';
 import ListingsGrid from '@/components/ListingsGrid';
@@ -16,6 +16,7 @@ import { useListingFilters } from '@/hooks/useListingFilters';
 import { useDogListings } from '@/hooks/useDogListings';
 import { supabase } from '@/integrations/supabase/client';
 import { sampleListings } from '@/data/sampleListings';
+import VoiceSearchInterface from '@/components/search/VoiceSearchInterface';
 
 interface FilterState {
   searchTerm: string;
@@ -62,6 +63,7 @@ const Explore = () => {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [showAdvancedSearch, setShowAdvancedSearch] = useState(false);
+  const [showVoiceSearch, setShowVoiceSearch] = useState(false);
   const [filters, setFilters] = useState<FilterState>({
     searchTerm: '',
     breed: 'all',
@@ -219,6 +221,35 @@ const Explore = () => {
     });
   };
 
+  const handleVoiceSearchResults = (query: string, voiceFilters: any) => {
+    setFilters(prev => ({
+      ...prev,
+      searchTerm: query,
+      ...voiceFilters
+    }));
+    setShowVoiceSearch(false);
+    
+    toast({
+      title: "Voice search applied",
+      description: `Found ${sortedListings.length} listings matching your voice search`,
+    });
+  };
+
+  const handleBreedRecommendations = (breeds: string[]) => {
+    if (breeds.length > 0) {
+      setFilters(prev => ({
+        ...prev,
+        breed: breeds[0], // Use first recommended breed
+        searchTerm: breeds.join(' OR ')
+      }));
+      
+      toast({
+        title: "AI recommendations applied",
+        description: `Showing listings for recommended breeds`,
+      });
+    }
+  };
+
   if (loading) {
     return (
       <div className="max-w-7xl mx-auto px-4 py-6">
@@ -295,11 +326,22 @@ const Explore = () => {
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-6">
-      {/* Header with Partnership Link and Create Listing */}
+      {/* Header with enhanced search options */}
       <div className="mb-6">
         <div className="flex justify-between items-start mb-2">
           <h1 className="text-2xl font-bold text-black">Marketplace</h1>
           <div className="flex gap-2">
+            {/* Voice Search Button */}
+            <Button 
+              variant="outline"
+              size="sm"
+              onClick={() => setShowVoiceSearch(!showVoiceSearch)}
+              className="flex items-center gap-2"
+            >
+              <Mic size={16} />
+              Voice Search
+            </Button>
+            
             {isAuthenticated && (
               <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
                 <DialogTrigger asChild>
@@ -347,14 +389,25 @@ const Explore = () => {
             </Button>
           </div>
         </div>
-        <p className="text-black">Find your perfect puppy companion from verified sellers and rescue partners</p>
+        <p className="text-black">Find your perfect puppy companion with AI-powered search and recommendations</p>
       </div>
 
-      {/* Search Tabs */}
+      {/* Voice Search Interface */}
+      {showVoiceSearch && (
+        <div className="mb-6">
+          <VoiceSearchInterface
+            onSearchResults={handleVoiceSearchResults}
+            onBreedRecommendation={handleBreedRecommendations}
+          />
+        </div>
+      )}
+
+      {/* Enhanced Search Tabs */}
       <Tabs defaultValue="basic" className="mb-6">
-        <TabsList className="grid w-full grid-cols-2">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="basic">Basic Search</TabsTrigger>
           <TabsTrigger value="advanced">Advanced Search</TabsTrigger>
+          <TabsTrigger value="ai">AI Recommendations</TabsTrigger>
         </TabsList>
         
         <TabsContent value="basic">
@@ -370,6 +423,13 @@ const Explore = () => {
           <AdvancedSearchFilters
             onSearch={handleAdvancedSearch}
             onSaveSearch={handleSaveSearch}
+          />
+        </TabsContent>
+        
+        <TabsContent value="ai">
+          <VoiceSearchInterface
+            onSearchResults={handleVoiceSearchResults}
+            onBreedRecommendation={handleBreedRecommendations}
           />
         </TabsContent>
       </Tabs>
