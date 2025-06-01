@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import Home from './Home';
@@ -19,6 +18,9 @@ import SampleData from './SampleData';
 import AIAssistant from './AIAssistant';
 import ProtectedRoute from '../components/ProtectedRoute';
 import Success from './Success';
+import Auth from './Auth';
+import AuthCallback from './AuthCallback';
+import PremiumDashboard from './PremiumDashboard';
 
 const Index = () => {
   return (
@@ -33,6 +35,8 @@ const Index = () => {
       <Route path="/help" element={<Help />} />
       <Route path="/sample-data" element={<SampleData />} />
       <Route path="/ai-assistant" element={<AIAssistant />} />
+      <Route path="/auth" element={<Auth />} />
+      <Route path="/auth/callback" element={<AuthCallback />} />
       
       {/* Profile and Messages routes - temporarily public for design work */}
       <Route path="/profile/:userId" element={<Profile />} />
@@ -77,6 +81,14 @@ const Index = () => {
         element={
           <ProtectedRoute guestMessage="Access premium features and monetization tools for verified breeders.">
             <Monetization />
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/premium-dashboard" 
+        element={
+          <ProtectedRoute guestMessage="Access premium analytics and advanced features with a verified account.">
+            <PremiumDashboard />
           </ProtectedRoute>
         } 
       />
