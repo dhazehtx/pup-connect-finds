@@ -1,3 +1,4 @@
+
 import React, { useState, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -16,6 +17,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { useEnhancedAI } from '@/hooks/useEnhancedAI';
 import { validateImageFile } from '@/utils/imageOptimization';
+import InteractiveImageEditor from './InteractiveImageEditor';
 
 interface StoryCreatorProps {
   onClose: () => void;
@@ -23,7 +25,7 @@ interface StoryCreatorProps {
 }
 
 const StoryCreator = ({ onClose, onStoryCreated }: StoryCreatorProps) => {
-  const [creationMode, setCreationMode] = useState<'select' | 'upload' | 'ai-generate'>('select');
+  const [creationMode, setCreationMode] = useState<'select' | 'upload' | 'ai-generate' | 'edit-image'>('select');
   const [isGenerating, setIsGenerating] = useState(false);
   const [aiPrompt, setAiPrompt] = useState('');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -75,7 +77,7 @@ const StoryCreator = ({ onClose, onStoryCreated }: StoryCreatorProps) => {
           setSelectedFile(file);
           const url = URL.createObjectURL(file);
           setPreviewUrl(url);
-          setCreationMode('upload');
+          setCreationMode('edit-image');
         };
         
         img.onerror = () => {
@@ -193,6 +195,20 @@ const StoryCreator = ({ onClose, onStoryCreated }: StoryCreatorProps) => {
     handleCreateStory(content);
   };
 
+  const handleImageSave = (canvas: HTMLCanvasElement) => {
+    // Convert canvas to blob and create story
+    canvas.toBlob((blob) => {
+      if (blob) {
+        const url = URL.createObjectURL(blob);
+        const content = {
+          type: 'image' as const,
+          url: url
+        };
+        handleCreateStory(content);
+      }
+    }, 'image/jpeg', 0.9);
+  };
+
   const resetSelection = () => {
     setSelectedFile(null);
     setPreviewUrl(null);
@@ -298,6 +314,14 @@ const StoryCreator = ({ onClose, onStoryCreated }: StoryCreatorProps) => {
                 </Button>
               </div>
             </div>
+          )}
+
+          {creationMode === 'edit-image' && previewUrl && (
+            <InteractiveImageEditor
+              imageUrl={previewUrl}
+              onSave={handleImageSave}
+              onCancel={resetSelection}
+            />
           )}
 
           {creationMode === 'ai-generate' && (
