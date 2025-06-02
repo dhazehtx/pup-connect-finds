@@ -47,7 +47,7 @@ const SignInForm = ({ onSubmit, loading }: SignInFormProps) => {
                   placeholder="Enter your email"
                   {...field}
                   disabled={loading}
-                  className="h-11 border-gray-300 rounded-none focus:border-black focus:ring-0"
+                  className="h-12 border-2 border-gray-200 focus:border-gray-900 focus:ring-0 bg-white text-gray-900 placeholder:text-gray-500"
                 />
               </FormControl>
               <FormMessage />
@@ -68,7 +68,7 @@ const SignInForm = ({ onSubmit, loading }: SignInFormProps) => {
                     placeholder="Enter your password"
                     {...field}
                     disabled={loading}
-                    className="h-11 border-gray-300 rounded-none focus:border-black focus:ring-0 pr-10"
+                    className="h-12 border-2 border-gray-200 focus:border-gray-900 focus:ring-0 bg-white text-gray-900 placeholder:text-gray-500 pr-10"
                   />
                   <button
                     type="button"
@@ -88,7 +88,7 @@ const SignInForm = ({ onSubmit, loading }: SignInFormProps) => {
         <Button
           type="submit"
           disabled={loading}
-          className="w-full h-11 bg-black hover:bg-gray-800 text-white rounded-none font-medium"
+          className="w-full h-12 bg-gray-900 hover:bg-gray-800 text-white font-medium transition-colors"
         >
           {loading ? (
             <>
