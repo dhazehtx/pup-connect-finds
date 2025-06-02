@@ -219,11 +219,11 @@ const InteractiveImageEditor = ({ imageUrl, onSave, onCancel }: InteractiveImage
   };
 
   return (
-    <div className="mobile-story-editor story-editor-container bg-cloud-white">
+    <div className="mobile-story-editor story-editor-container bg-white">
       {/* Image Editor Container - Mobile Optimized */}
       <div className="story-editor-content flex flex-col">
         <div 
-          className="relative bg-deep-navy rounded-lg overflow-hidden flex-1" 
+          className="relative bg-black rounded-lg overflow-hidden flex-1" 
           style={{ aspectRatio: '9/16', minHeight: '400px', maxHeight: 'calc(100vh - 180px)' }}
         >
           <div
@@ -334,56 +334,56 @@ const InteractiveImageEditor = ({ imageUrl, onSave, onCancel }: InteractiveImage
             
             {/* Visual feedback overlay */}
             {isDragging && (
-              <div className="absolute inset-0 bg-royal-blue/10 border-2 border-royal-blue border-dashed" />
+              <div className="absolute inset-0 bg-blue-500/10 border-2 border-blue-500 border-dashed" />
             )}
           </div>
           
           {/* Scale indicator */}
-          <div className="absolute top-4 right-4 bg-deep-navy/80 text-cloud-white px-2 py-1 rounded text-sm">
+          <div className="absolute top-4 right-4 bg-black/80 text-white px-2 py-1 rounded text-sm">
             {Math.round(scale * 100)}%
           </div>
           
           {/* Instructions */}
-          <div className="absolute bottom-4 left-4 bg-deep-navy/80 text-cloud-white px-2 py-1 rounded text-xs max-w-48">
+          <div className="absolute bottom-4 left-4 bg-black/80 text-white px-2 py-1 rounded text-xs max-w-48">
             {initialSetupComplete ? 'Auto-cropped for Stories' : 'Loading...'}
           </div>
         </div>
 
         {/* Controls - Mobile Optimized */}
-        <div className="flex gap-2 p-3 bg-cloud-white">
+        <div className="flex gap-2 p-3 bg-white">
           <button
             onClick={() => setScale(prev => Math.max(0.5, prev - 0.1))}
-            className="flex-1 px-3 py-2 bg-soft-sky text-deep-navy rounded-lg text-sm font-medium hover:bg-soft-sky/80 transition-colors"
+            className="flex-1 px-3 py-2 bg-gray-200 text-gray-800 rounded-lg text-sm font-medium hover:bg-gray-300 transition-colors"
           >
             Zoom Out
           </button>
           <button
             onClick={() => setScale(prev => Math.min(3, prev + 0.1))}
-            className="flex-1 px-3 py-2 bg-soft-sky text-deep-navy rounded-lg text-sm font-medium hover:bg-soft-sky/80 transition-colors"
+            className="flex-1 px-3 py-2 bg-gray-200 text-gray-800 rounded-lg text-sm font-medium hover:bg-gray-300 transition-colors"
           >
             Zoom In
           </button>
           <button
             onClick={resetToOptimalCrop}
-            className="flex-1 px-3 py-2 bg-mint-green text-deep-navy rounded-lg text-sm font-medium hover:bg-mint-green/80 transition-colors"
+            className="flex-1 px-3 py-2 bg-green-500 text-white rounded-lg text-sm font-medium hover:bg-green-600 transition-colors"
           >
             Auto Crop
           </button>
         </div>
       </div>
 
-      {/* Action buttons - Fixed at bottom for mobile with safe area */}
-      <div className="story-editor-buttons bg-cloud-white border-t border-soft-sky">
+      {/* Action buttons - Fixed at bottom with solid background for readability */}
+      <div className="story-editor-buttons bg-white border-t border-gray-200 shadow-lg">
         <div className="flex gap-3">
           <button
             onClick={onCancel}
-            className="flex-1 px-4 py-3 border-2 border-soft-sky text-deep-navy hover:bg-soft-sky hover:text-deep-navy rounded-lg font-medium transition-colors bg-cloud-white"
+            className="flex-1 px-4 py-3 bg-gray-100 text-gray-800 border-2 border-gray-300 hover:bg-gray-200 hover:border-gray-400 rounded-lg font-medium transition-colors"
           >
             Cancel
           </button>
           <button
             onClick={handleSave}
-            className="flex-1 px-4 py-3 bg-royal-blue text-cloud-white hover:bg-royal-blue/90 rounded-lg font-medium transition-colors"
+            className="flex-1 px-4 py-3 bg-gray-800 text-white hover:bg-gray-900 rounded-lg font-medium transition-colors"
           >
             Post Story
           </button>
