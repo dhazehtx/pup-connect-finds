@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -8,19 +8,11 @@ import {
   MessageCircle, 
   Share2, 
   MoreHorizontal,
-  User,
   Plus
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
-
-// Sample stories data
-const sampleStories = [
-  { id: 1, username: 'Your Story', avatar: null, isAddStory: true },
-  { id: 2, username: 'goldenbreeder', avatar: 'https://images.unsplash.com/photo-1552053831-71594a27632d?w=100&h=100&fit=crop&crop=face' },
-  { id: 3, username: 'puppylover', avatar: 'https://images.unsplash.com/photo-1518717758536-85ae29035b6d?w=100&h=100&fit=crop&crop=face' },
-  { id: 4, username: 'dogrescue', avatar: 'https://images.unsplash.com/photo-1529472119196-cb724127a98e?w=100&h=100&fit=crop&crop=face' },
-  { id: 5, username: 'frenchbulldog', avatar: 'https://images.unsplash.com/photo-1583337130417-3346a1be7dee?w=100&h=100&fit=crop&crop=face' },
-];
+import StoryViewer from '@/components/stories/StoryViewer';
+import { sampleStories, Story } from '@/data/sampleStories';
 
 // Sample posts data
 const samplePosts = [
@@ -72,6 +64,38 @@ const samplePosts = [
 
 const Home = () => {
   const { user, isGuest } = useAuth();
+  const [selectedStoryIndex, setSelectedStoryIndex] = useState<number | null>(null);
+  const [stories, setStories] = useState<Story[]>(sampleStories);
+
+  const handleStoryClick = (index: number) => {
+    const story = stories[index];
+    if (story.isAddStory) {
+      // Handle add story functionality
+      console.log('Add new story');
+      return;
+    }
+    setSelectedStoryIndex(index);
+  };
+
+  const handleCloseStory = () => {
+    setSelectedStoryIndex(null);
+  };
+
+  const handleNextStory = () => {
+    if (selectedStoryIndex !== null) {
+      const nextIndex = (selectedStoryIndex + 1) % stories.filter(s => !s.isAddStory).length;
+      const adjustedIndex = nextIndex === 0 ? 1 : nextIndex + 1; // Skip "add story"
+      setSelectedStoryIndex(adjustedIndex);
+    }
+  };
+
+  const handlePreviousStory = () => {
+    if (selectedStoryIndex !== null) {
+      const prevIndex = selectedStoryIndex - 1;
+      const adjustedIndex = prevIndex < 1 ? stories.length - 1 : prevIndex; // Skip "add story"
+      setSelectedStoryIndex(adjustedIndex);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -80,15 +104,19 @@ const Home = () => {
         {/* Stories Section */}
         <div className="p-4 border-b border-gray-200 bg-white sticky top-0 z-10">
           <div className="flex space-x-4 overflow-x-auto scrollbar-hide">
-            {sampleStories.map((story) => (
-              <div key={story.id} className="flex flex-col items-center space-y-1 min-w-[60px]">
+            {stories.map((story, index) => (
+              <div 
+                key={story.id} 
+                className="flex flex-col items-center space-y-1 min-w-[60px] cursor-pointer"
+                onClick={() => handleStoryClick(index)}
+              >
                 <div className={`w-14 h-14 rounded-full p-0.5 ${story.isAddStory ? 'bg-gray-200' : 'bg-gradient-to-tr from-yellow-400 to-pink-600'}`}>
                   <div className="w-full h-full bg-white rounded-full flex items-center justify-center overflow-hidden">
                     {story.isAddStory ? (
                       <Plus className="w-6 h-6 text-gray-600" />
                     ) : (
                       <img 
-                        src={story.avatar} 
+                        src={story.avatar!} 
                         alt={story.username}
                         className="w-full h-full object-cover rounded-full"
                       />
@@ -174,6 +202,17 @@ const Home = () => {
           ))}
         </div>
       </div>
+
+      {/* Story Viewer */}
+      {selectedStoryIndex !== null && (
+        <StoryViewer
+          stories={stories.filter(s => !s.isAddStory)}
+          currentStoryIndex={selectedStoryIndex - 1} // Adjust for filtered array
+          onClose={handleCloseStory}
+          onNext={handleNextStory}
+          onPrevious={handlePreviousStory}
+        />
+      )}
     </div>
   );
 };
