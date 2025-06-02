@@ -1,272 +1,267 @@
+
 import React, { useState } from 'react';
-import { MessageCircle, Share, Bookmark, MoreHorizontal, Plus, ChevronLeft, ChevronRight } from 'lucide-react';
-import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import AnimatedHeart from '@/components/ui/animated-heart';
-import { Carousel, CarouselContent, CarouselItem } from '@/components/ui/carousel';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { 
+  Heart, 
+  MapPin, 
+  Star, 
+  MessageCircle, 
+  Share2, 
+  Filter,
+  Sparkles,
+  Camera,
+  PenTool,
+  HeadphonesIcon,
+  Search,
+  Plus,
+  Brain,
+  Wand2,
+  Eye
+} from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
+import { useDogListings } from '@/hooks/useDogListings';
+import { LoadingSkeleton } from '@/components/LoadingSkeleton';
+import { EmptyState } from '@/components/EmptyState';
 
 const Home = () => {
-  const [likedPosts, setLikedPosts] = useState<Set<number>>(new Set());
+  const { user, isGuest } = useAuth();
+  const { listings, loading, error } = useDogListings();
+  const [activeTab, setActiveTab] = useState('feed');
 
-  const stories = [
+  if (loading) {
+    return <LoadingSkeleton />;
+  }
+
+  if (error) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="text-center">
+          <p className="text-red-600">Error loading content: {error.message}</p>
+        </div>
+      </div>
+    );
+  }
+
+  const featuredListings = listings?.slice(0, 6) || [];
+
+  const aiFeatures = [
     {
-      id: 'add',
-      user: { name: 'Your Story', avatar: '' },
-      isAddStory: true
+      title: "AI Assistant Suite",
+      description: "Access all AI tools in one place",
+      icon: Brain,
+      color: "bg-purple-500",
+      link: "/ai-assistant",
+      badge: "All Tools"
     },
     {
-      id: 1,
-      user: { 
-        name: 'Golden Paws', 
-        avatar: 'https://images.unsplash.com/photo-1552053831-71594a27632d?w=100&h=100&fit=crop&crop=face' 
-      },
-      hasNewStory: true
+      title: "Smart Pet Search",
+      description: "Find pets using natural language",
+      icon: Search,
+      color: "bg-blue-500",
+      link: "/ai-assistant?tab=search",
+      badge: "AI Search"
     },
     {
-      id: 2,
-      user: { 
-        name: 'Noble Shepherds', 
-        avatar: 'https://images.unsplash.com/photo-1589941013453-ec89f33b5e95?w=100&h=100&fit=crop&crop=face' 
-      },
-      hasNewStory: true
+      title: "Photo Analysis",
+      description: "Upload photos for breed & health insights",
+      icon: Camera,
+      color: "bg-green-500",
+      link: "/ai-assistant?tab=image",
+      badge: "AI Vision"
     },
     {
-      id: 3,
-      user: { 
-        name: 'Lab Love', 
-        avatar: 'https://images.unsplash.com/photo-1518717758536-85ae29035b6d?w=100&h=100&fit=crop&crop=face' 
-      },
-      hasNewStory: false
+      title: "Listing Generator",
+      description: "Create compelling descriptions with AI",
+      icon: PenTool,
+      color: "bg-orange-500",
+      link: "/ai-assistant?tab=listing",
+      badge: "AI Writer"
     },
     {
-      id: 4,
-      user: { 
-        name: 'Poodle Paradise', 
-        avatar: 'https://images.unsplash.com/photo-1616190260687-b7039d92c41b?w=100&h=100&fit=crop&crop=face' 
-      },
-      hasNewStory: true
+      title: "Support Chat",
+      description: "24/7 AI assistant for help",
+      icon: HeadphonesIcon,
+      color: "bg-teal-500",
+      link: "/ai-assistant?tab=support",
+      badge: "AI Support"
+    },
+    {
+      title: "Create Listing",
+      description: "Post your pet with AI assistance",
+      icon: Plus,
+      color: "bg-pink-500",
+      link: "/post",
+      badge: "New"
     }
   ];
-
-  const posts = [
-    {
-      id: 1,
-      user: {
-        name: "Golden Paws Kennel",
-        username: "goldenpaws_official",
-        avatar: "https://images.unsplash.com/photo-1552053831-71594a27632d?w=100&h=100&fit=crop",
-        verified: true
-      },
-      images: [
-        "https://images.unsplash.com/photo-1552053831-71594a27632d?w=600&h=600&fit=crop",
-        "https://images.unsplash.com/photo-1552053831-71594a27632d?w=600&h=600&fit=crop",
-        "https://images.unsplash.com/photo-1552053831-71594a27632d?w=600&h=600&fit=crop"
-      ],
-      likes: 234,
-      caption: "Meet Luna! 🐕 This adorable 8-week-old Golden Retriever is looking for her forever home. She loves cuddles and playing fetch! #GoldenRetriever #PuppyLove #AdoptDontShop",
-      timeAgo: "2h",
-      location: "San Francisco, CA"
-    },
-    {
-      id: 2,
-      user: {
-        name: "Noble German Shepherds",
-        username: "noble_shepherds",
-        avatar: "https://images.unsplash.com/photo-1589941013453-ec89f33b5e95?w=100&h=100&fit=crop&crop=face",
-        verified: true
-      },
-      images: [
-        "https://images.unsplash.com/photo-1589941013453-ec89f33b5e95?w=600&h=600&fit=crop"
-      ],
-      likes: 189,
-      caption: "Training session with Max! 🎾 Our German Shepherds are not only beautiful but incredibly intelligent. This 10-week-old pup is already showing amazing potential! #GermanShepherd #Training #SmartPups",
-      timeAgo: "4h",
-      location: "Austin, TX"
-    },
-    {
-      id: 3,
-      user: {
-        name: "Labrador Love",
-        username: "lab_love_kennel",
-        avatar: "https://images.unsplash.com/photo-1518717758536-85ae29035b6d?w=100&h=100&fit=crop&crop=face",
-        verified: false
-      },
-      images: [
-        "https://images.unsplash.com/photo-1518717758536-85ae29035b6d?w=600&h=600&fit=crop",
-        "https://images.unsplash.com/photo-1518717758536-85ae29035b6d?w=600&h=600&fit=crop"
-      ],
-      likes: 156,
-      caption: "Sleepy Sunday vibes 😴 This little chocolate Lab knows how to relax! Available for adoption next week. #LabradorRetriever #SundayVibes #ChocolateLab",
-      timeAgo: "6h",
-      location: "Denver, CO"
-    },
-    {
-      id: 4,
-      user: {
-        name: "Poodle Paradise",
-        username: "poodle_paradise",
-        avatar: "https://images.unsplash.com/photo-1616190260687-b7039d92c41b?w=100&h=100&fit=crop&crop=face",
-        verified: true
-      },
-      images: [
-        "https://images.unsplash.com/photo-1616190260687-b7039d92c41b?w=600&h=600&fit=crop",
-        "https://images.unsplash.com/photo-1616190260687-b7039d92c41b?w=600&h=600&fit=crop",
-        "https://images.unsplash.com/photo-1616190260687-b7039d92c41b?w=600&h=600&fit=crop",
-        "https://images.unsplash.com/photo-1616190260687-b7039d92c41b?w=600&h=600&fit=crop"
-      ],
-      likes: 298,
-      caption: "Fluffy Friday! ☁️ Our Standard Poodle puppies are ready for their new families. Hypoallergenic and incredibly loving! #Poodle #FluffyFriday #HypoallergenicDogs",
-      timeAgo: "8h",
-      location: "Seattle, WA"
-    }
-  ];
-
-  const toggleLike = (postId: number) => {
-    setLikedPosts(prev => {
-      const newLiked = new Set(prev);
-      if (newLiked.has(postId)) {
-        newLiked.delete(postId);
-      } else {
-        newLiked.add(postId);
-      }
-      return newLiked;
-    });
-  };
 
   return (
-    <div className="max-w-md mx-auto bg-white min-h-screen">
-      {/* Stories Section */}
-      <div className="bg-white border-b border-gray-100 p-4">
-        <div className="flex space-x-4 overflow-x-auto scrollbar-hide">
-          {stories.map((story) => (
-            <div key={story.id} className="flex flex-col items-center space-y-1 min-w-0">
-              <div className={`relative ${story.isAddStory ? 'w-16 h-16' : 'w-16 h-16'}`}>
-                {story.isAddStory ? (
-                  <div className="w-16 h-16 rounded-full border-2 border-gray-300 border-dashed flex items-center justify-center bg-gray-50">
-                    <Plus size={24} className="text-gray-400" />
-                  </div>
-                ) : (
-                  <>
-                    <div className={`w-16 h-16 rounded-full p-0.5 ${story.hasNewStory ? 'bg-gradient-to-r from-purple-500 to-pink-500' : 'bg-gray-300'}`}>
-                      <Avatar className="w-full h-full border-2 border-white">
-                        <AvatarImage src={story.user.avatar} alt={story.user.name} />
-                        <AvatarFallback>{story.user.name.slice(0, 2)}</AvatarFallback>
-                      </Avatar>
-                    </div>
-                  </>
-                )}
-              </div>
-              <span className="text-xs text-black text-center w-16 truncate">
-                {story.isAddStory ? 'Your Story' : story.user.name}
-              </span>
-            </div>
-          ))}
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+      {/* Hero Section with AI Features */}
+      <div className="bg-gradient-to-r from-purple-600 via-blue-600 to-teal-600 text-white py-12">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-8">
+            <h1 className="text-4xl md:text-6xl font-bold mb-4">
+              Find Your Perfect Pup with AI
+            </h1>
+            <p className="text-xl md:text-2xl mb-6 opacity-90">
+              Discover, analyze, and connect with the power of artificial intelligence
+            </p>
+          </div>
+          
+          {/* AI Features Grid */}
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
+            {aiFeatures.map((feature, index) => {
+              const Icon = feature.icon;
+              return (
+                <Link key={index} to={feature.link}>
+                  <Card className="hover:shadow-lg transition-all duration-300 hover:scale-105 bg-white/10 backdrop-blur border-white/20">
+                    <CardContent className="p-4 text-center">
+                      <div className={`w-12 h-12 mx-auto mb-3 rounded-lg ${feature.color} flex items-center justify-center`}>
+                        <Icon className="w-6 h-6 text-white" />
+                      </div>
+                      <h3 className="font-semibold text-sm mb-1">{feature.title}</h3>
+                      <p className="text-xs opacity-80 mb-2">{feature.description}</p>
+                      <Badge variant="secondary" className="text-xs">
+                        {feature.badge}
+                      </Badge>
+                    </CardContent>
+                  </Card>
+                </Link>
+              );
+            })}
+          </div>
+
+          {/* Quick Action Buttons */}
+          <div className="flex flex-wrap gap-4 justify-center">
+            <Link to="/ai-assistant">
+              <Button size="lg" className="bg-white text-purple-600 hover:bg-gray-100">
+                <Sparkles className="w-5 h-5 mr-2" />
+                Try All AI Tools
+              </Button>
+            </Link>
+            <Link to="/ai-assistant?tab=image">
+              <Button size="lg" variant="outline" className="border-white text-white hover:bg-white hover:text-purple-600">
+                <Eye className="w-5 h-5 mr-2" />
+                Analyze Pet Photo
+              </Button>
+            </Link>
+            <Link to="/post">
+              <Button size="lg" variant="outline" className="border-white text-white hover:bg-white hover:text-purple-600">
+                <Wand2 className="w-5 h-5 mr-2" />
+                Create AI Listing
+              </Button>
+            </Link>
+          </div>
         </div>
       </div>
 
-      {/* Feed */}
-      <div className="space-y-0">
-        {posts.map((post) => (
-          <div key={post.id} className="bg-white border-b border-gray-100">
-            {/* Post Header */}
-            <div className="flex items-center justify-between p-4">
-              <div className="flex items-center space-x-3">
-                <Avatar className="w-10 h-10">
-                  <AvatarImage src={post.user.avatar} alt={post.user.name} />
-                  <AvatarFallback>{post.user.name.slice(0, 2)}</AvatarFallback>
-                </Avatar>
-                <div className="flex-1">
-                  <div className="flex items-center space-x-1">
-                    <h3 className="font-semibold text-sm text-black">{post.user.username}</h3>
-                    {post.user.verified && (
-                      <span className="text-blue-500 text-sm">✓</span>
-                    )}
-                  </div>
-                  {post.location && (
-                    <p className="text-xs text-gray-500">{post.location}</p>
-                  )}
-                </div>
-              </div>
-              <button className="p-2">
-                <MoreHorizontal size={16} className="text-gray-600" />
-              </button>
-            </div>
+      {/* Main Content */}
+      <div className="container mx-auto px-4 py-8">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="grid w-full grid-cols-2 mb-6">
+            <TabsTrigger value="feed">Pet Feed</TabsTrigger>
+            <TabsTrigger value="featured">Featured Pets</TabsTrigger>
+          </TabsList>
 
-            {/* Post Images */}
-            <div className="relative">
-              {post.images.length === 1 ? (
-                <img 
-                  src={post.images[0]} 
-                  alt="Post content"
-                  className="w-full aspect-square object-cover"
-                />
-              ) : (
-                <Carousel className="w-full">
-                  <CarouselContent>
-                    {post.images.map((image, index) => (
-                      <CarouselItem key={index}>
-                        <div className="relative">
+          <TabsContent value="feed" className="space-y-6">
+            {/* Feed Content */}
+            <div className="grid gap-6">
+              {featuredListings.length > 0 ? (
+                featuredListings.map((listing) => (
+                  <Card key={listing.id} className="overflow-hidden hover:shadow-lg transition-shadow">
+                    <div className="flex">
+                      {listing.image_url && (
+                        <div className="w-32 h-32 flex-shrink-0">
                           <img 
-                            src={image} 
-                            alt={`Post content ${index + 1}`}
-                            className="w-full aspect-square object-cover"
+                            src={listing.image_url} 
+                            alt={listing.dog_name}
+                            className="w-full h-full object-cover"
                           />
                         </div>
-                      </CarouselItem>
-                    ))}
-                  </CarouselContent>
-                  {/* Image indicator dots */}
-                  {post.images.length > 1 && (
-                    <div className="absolute bottom-3 left-1/2 transform -translate-x-1/2 flex space-x-1">
-                      {post.images.map((_, index) => (
-                        <div
-                          key={index}
-                          className="w-2 h-2 rounded-full bg-white bg-opacity-70"
-                        />
-                      ))}
+                      )}
+                      <div className="flex-1 p-4">
+                        <div className="flex justify-between items-start mb-2">
+                          <h3 className="text-xl font-semibold">{listing.dog_name}</h3>
+                          <Badge>{listing.breed}</Badge>
+                        </div>
+                        <p className="text-gray-600 mb-2">{listing.age} months old</p>
+                        <p className="text-2xl font-bold text-green-600 mb-3">${listing.price}</p>
+                        <div className="flex gap-2">
+                          <Button size="sm">
+                            <Heart className="w-4 h-4 mr-1" />
+                            Save
+                          </Button>
+                          <Button size="sm" variant="outline">
+                            <MessageCircle className="w-4 h-4 mr-1" />
+                            Message
+                          </Button>
+                          <Button size="sm" variant="outline">
+                            <Share2 className="w-4 h-4 mr-1" />
+                            Share
+                          </Button>
+                        </div>
+                      </div>
                     </div>
-                  )}
-                </Carousel>
+                  </Card>
+                ))
+              ) : (
+                <EmptyState 
+                  title="No pets available"
+                  description="Be the first to add a pet listing!"
+                />
               )}
             </div>
+          </TabsContent>
 
-            {/* Post Actions */}
-            <div className="p-4 space-y-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-4">
-                  <AnimatedHeart
-                    isLiked={likedPosts.has(post.id)}
-                    onToggle={() => toggleLike(post.id)}
+          <TabsContent value="featured" className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {featuredListings.length > 0 ? (
+                featuredListings.map((listing) => (
+                  <Card key={listing.id} className="overflow-hidden hover:shadow-lg transition-shadow">
+                    {listing.image_url && (
+                      <div className="aspect-video">
+                        <img 
+                          src={listing.image_url} 
+                          alt={listing.dog_name}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                    )}
+                    <CardContent className="p-4">
+                      <div className="flex justify-between items-start mb-2">
+                        <h3 className="text-lg font-semibold">{listing.dog_name}</h3>
+                        <Badge>{listing.breed}</Badge>
+                      </div>
+                      <p className="text-gray-600 mb-2">{listing.age} months old</p>
+                      <p className="text-xl font-bold text-green-600 mb-3">${listing.price}</p>
+                      <div className="flex gap-2">
+                        <Button size="sm" className="flex-1">
+                          <Heart className="w-4 h-4 mr-1" />
+                          Save
+                        </Button>
+                        <Button size="sm" variant="outline">
+                          <MessageCircle className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))
+              ) : (
+                <div className="col-span-full">
+                  <EmptyState 
+                    title="No featured pets"
+                    description="Check back later for featured listings!"
                   />
-                  <button>
-                    <MessageCircle size={24} className="text-gray-700" />
-                  </button>
-                  <button>
-                    <Share size={24} className="text-gray-700" />
-                  </button>
                 </div>
-                <button>
-                  <Bookmark size={24} className="text-gray-700" />
-                </button>
-              </div>
-
-              {/* Likes */}
-              <div>
-                <p className="font-semibold text-sm text-black">
-                  {post.likes + (likedPosts.has(post.id) ? 1 : 0)} likes
-                </p>
-              </div>
-
-              {/* Caption */}
-              <div>
-                <p className="text-sm text-black">
-                  <span className="font-semibold">{post.user.username}</span>{' '}
-                  {post.caption}
-                </p>
-                <p className="text-xs text-gray-500 mt-1">{post.timeAgo}</p>
-              </div>
+              )}
             </div>
-          </div>
-        ))}
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );
