@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -12,6 +11,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import StoryViewer from '@/components/stories/StoryViewer';
+import StoryCreator from '@/components/stories/StoryCreator';
 import { sampleStories, Story } from '@/data/sampleStories';
 
 // Sample posts data
@@ -66,15 +66,32 @@ const Home = () => {
   const { user, isGuest } = useAuth();
   const [selectedStoryIndex, setSelectedStoryIndex] = useState<number | null>(null);
   const [stories, setStories] = useState<Story[]>(sampleStories);
+  const [showStoryCreator, setShowStoryCreator] = useState(false);
 
   const handleStoryClick = (index: number) => {
     const story = stories[index];
     if (story.isAddStory) {
-      // Handle add story functionality
-      console.log('Add new story');
+      if (user && !isGuest) {
+        setShowStoryCreator(true);
+      } else {
+        // Handle guest user or not logged in
+        console.log('Please sign in to create stories');
+        return;
+      }
       return;
     }
     setSelectedStoryIndex(index);
+  };
+
+  const handleStoryCreated = (newStory: Story) => {
+    setStories(prev => {
+      // Remove any existing story from this user and add the new one
+      const filteredStories = prev.filter(s => s.username !== newStory.username || s.isAddStory);
+      // Insert the new story after the "add story" button
+      filteredStories.splice(1, 0, newStory);
+      return filteredStories;
+    });
+    setShowStoryCreator(false);
   };
 
   const handleCloseStory = () => {
@@ -202,6 +219,14 @@ const Home = () => {
           ))}
         </div>
       </div>
+
+      {/* Story Creator */}
+      {showStoryCreator && (
+        <StoryCreator
+          onClose={() => setShowStoryCreator(false)}
+          onStoryCreated={handleStoryCreated}
+        />
+      )}
 
       {/* Story Viewer */}
       {selectedStoryIndex !== null && (
