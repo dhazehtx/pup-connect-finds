@@ -14,6 +14,8 @@ const InteractiveImageEditor = ({ imageUrl, onSave, onCancel }: InteractiveImage
   const [isDragging, setIsDragging] = useState(false);
   const [lastTouch, setLastTouch] = useState<{ x: number; y: number } | null>(null);
   const [lastDistance, setLastDistance] = useState(0);
+  const [imageLoaded, setImageLoaded] = useState(false);
+  const [imageDimensions, setImageDimensions] = useState({ width: 0, height: 0 });
   const containerRef = useRef<HTMLDivElement>(null);
   const imageRef = useRef<HTMLImageElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -21,6 +23,53 @@ const InteractiveImageEditor = ({ imageUrl, onSave, onCancel }: InteractiveImage
   // Story dimensions (9:16 aspect ratio)
   const storyWidth = 360;
   const storyHeight = 640;
+
+  // Calculate initial scale to fit image properly in story format
+  const calculateInitialScale = useCallback((imgWidth: number, imgHeight: number) => {
+    const containerAspectRatio = storyWidth / storyHeight; // 9:16 = 0.5625
+    const imageAspectRatio = imgWidth / imgHeight;
+    
+    let initialScale;
+    if (imageAspectRatio > containerAspectRatio) {
+      // Image is wider - scale to fit height
+      initialScale = storyHeight / imgHeight;
+    } else {
+      // Image is taller - scale to fit width
+      initialScale = storyWidth / imgWidth;
+    }
+    
+    return Math.max(initialScale, 0.5); // Ensure minimum scale
+  }, []);
+
+  // Handle image load to set initial scale and position
+  useEffect(() => {
+    if (imageRef.current && !imageLoaded) {
+      const img = imageRef.current;
+      const handleImageLoad = () => {
+        const naturalWidth = img.naturalWidth;
+        const naturalHeight = img.naturalHeight;
+        
+        setImageDimensions({ width: naturalWidth, height: naturalHeight });
+        
+        // Calculate and set initial scale for optimal crop
+        const initialScale = calculateInitialScale(naturalWidth, naturalHeight);
+        setScale(initialScale);
+        
+        // Center the image
+        setPosition({ x: 0, y: 0 });
+        setImageLoaded(true);
+        
+        console.log(`Image auto-cropped: ${naturalWidth}x${naturalHeight} -> scale: ${initialScale.toFixed(2)}`);
+      };
+
+      if (img.complete) {
+        handleImageLoad();
+      } else {
+        img.addEventListener('load', handleImageLoad);
+        return () => img.removeEventListener('load', handleImageLoad);
+      }
+    }
+  }, [imageUrl, imageLoaded, calculateInitialScale]);
 
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
     e.preventDefault();
@@ -149,6 +198,14 @@ const InteractiveImageEditor = ({ imageUrl, onSave, onCancel }: InteractiveImage
     onSave(canvas);
   };
 
+  const resetToOptimalCrop = () => {
+    if (imageDimensions.width && imageDimensions.height) {
+      const initialScale = calculateInitialScale(imageDimensions.width, imageDimensions.height);
+      setScale(initialScale);
+      setPosition({ x: 0, y: 0 });
+    }
+  };
+
   return (
     <div className="space-y-4">
       <div className="relative bg-black rounded-lg overflow-hidden" style={{ aspectRatio: '9/16', height: '500px' }}>
@@ -189,7 +246,7 @@ const InteractiveImageEditor = ({ imageUrl, onSave, onCancel }: InteractiveImage
         
         {/* Instructions */}
         <div className="absolute bottom-4 left-4 bg-black/50 text-white px-2 py-1 rounded text-xs max-w-48">
-          Pinch to zoom, drag to move
+          {imageLoaded ? 'Auto-cropped for Stories' : 'Loading...'}
         </div>
       </div>
 
@@ -208,13 +265,10 @@ const InteractiveImageEditor = ({ imageUrl, onSave, onCancel }: InteractiveImage
           Zoom In
         </button>
         <button
-          onClick={() => {
-            setScale(1);
-            setPosition({ x: 0, y: 0 });
-          }}
-          className="px-3 py-2 bg-gray-200 rounded text-sm"
+          onClick={resetToOptimalCrop}
+          className="px-3 py-2 bg-blue-200 rounded text-sm"
         >
-          Reset
+          Auto Crop
         </button>
       </div>
 
