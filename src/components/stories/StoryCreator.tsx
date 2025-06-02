@@ -201,10 +201,17 @@ const StoryCreator = ({ onClose, onStoryCreated }: StoryCreatorProps) => {
               </div>
               
               <div className="flex space-x-2">
-                <Button onClick={() => setCreationMode('select')} variant="outline" className="flex-1">
+                <Button 
+                  onClick={() => setCreationMode('select')} 
+                  variant="outline" 
+                  className="flex-1 border-2 border-black text-black hover:bg-gray-100"
+                >
                   Back
                 </Button>
-                <Button onClick={handleUploadStory} className="flex-1">
+                <Button 
+                  onClick={handleUploadStory} 
+                  className="flex-1 border-2 border-black bg-black text-white hover:bg-gray-800"
+                >
                   <Upload className="w-4 h-4 mr-2" />
                   Post Story
                 </Button>
