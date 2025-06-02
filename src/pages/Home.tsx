@@ -15,8 +15,8 @@ import {
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useDogListings } from '@/hooks/useDogListings';
-import { LoadingSkeleton } from '@/components/LoadingSkeleton';
-import { EmptyState } from '@/components/EmptyState';
+import LoadingSkeleton from '@/components/LoadingSkeleton';
+import EmptyState from '@/components/EmptyState';
 
 const Home = () => {
   const { user, isGuest } = useAuth();
@@ -24,7 +24,7 @@ const Home = () => {
   const [activeTab, setActiveTab] = useState('feed');
 
   if (loading) {
-    return <LoadingSkeleton />;
+    return <LoadingSkeleton viewMode="list" />;
   }
 
   const featuredListings = listings?.slice(0, 6) || [];
@@ -82,8 +82,8 @@ const Home = () => {
                 ))
               ) : (
                 <EmptyState 
-                  title="No pets available"
-                  description="Be the first to add a pet listing!"
+                  onClearFilters={() => {}}
+                  hasActiveFilters={false}
                 />
               )}
             </div>
@@ -125,8 +125,8 @@ const Home = () => {
               ) : (
                 <div className="col-span-full">
                   <EmptyState 
-                    title="No featured pets"
-                    description="Check back later for featured listings!"
+                    onClearFilters={() => {}}
+                    hasActiveFilters={false}
                   />
                 </div>
               )}
