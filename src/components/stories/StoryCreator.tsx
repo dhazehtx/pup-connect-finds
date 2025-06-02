@@ -220,157 +220,167 @@ const StoryCreator = ({ onClose, onStoryCreated }: StoryCreatorProps) => {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle>Create Your Story</CardTitle>
-          <Button variant="ghost" size="sm" onClick={onClose}>
-            <X className="w-4 h-4" />
-          </Button>
-        </CardHeader>
-        
-        <CardContent className="space-y-4">
-          {creationMode === 'select' && (
-            <div className="space-y-3">
-              <Button
-                onClick={() => fileInputRef.current?.click()}
-                className="w-full justify-start"
-                variant="outline"
-              >
-                <Camera className="w-4 h-4 mr-2" />
-                Upload Photo
-              </Button>
-              
-              <Button
-                onClick={() => videoInputRef.current?.click()}
-                className="w-full justify-start"
-                variant="outline"
-              >
-                <Video className="w-4 h-4 mr-2" />
-                Upload Video
-              </Button>
-              
-              <Button
-                onClick={() => setCreationMode('ai-generate')}
-                className="w-full justify-start"
-                variant="outline"
-              >
-                <Wand2 className="w-4 h-4 mr-2" />
-                Generate with AI
-              </Button>
-              
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*"
-                className="hidden"
-                onChange={(e) => handleFileSelect(e, 'image')}
-              />
-              
-              <input
-                ref={videoInputRef}
-                type="file"
-                accept="video/*"
-                className="hidden"
-                onChange={(e) => handleFileSelect(e, 'video')}
-              />
-            </div>
-          )}
-
-          {creationMode === 'upload' && previewUrl && (
-            <div className="space-y-3">
-              <div className="relative">
-                {selectedFile?.type.startsWith('video/') ? (
-                  <video
-                    src={previewUrl}
-                    className="w-full h-64 object-cover rounded-lg"
-                    controls
-                  />
-                ) : (
-                  <img
-                    src={previewUrl}
-                    alt="Story preview"
-                    className="w-full h-64 object-cover rounded-lg"
-                  />
-                )}
-              </div>
-              
-              <div className="flex space-x-2">
-                <Button 
-                  onClick={resetSelection} 
-                  variant="outline" 
-                  className="flex-1 border-2 border-gray-500 text-gray-700 hover:bg-gray-100"
-                >
-                  Back
-                </Button>
-                <Button 
-                  onClick={handleUploadStory} 
-                  className="flex-1 border-2 border-gray-500 bg-gray-600 text-white hover:bg-gray-700"
-                >
-                  <Upload className="w-4 h-4 mr-2" />
-                  Post Story
-                </Button>
-              </div>
-            </div>
-          )}
-
-          {creationMode === 'edit-image' && previewUrl && (
+    <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+      {creationMode === 'edit-image' && previewUrl ? (
+        <div className="w-full h-full max-w-md mx-auto bg-background rounded-lg shadow-lg overflow-hidden">
+          <div className="flex items-center justify-between p-4 border-b border-border">
+            <h2 className="text-lg font-semibold text-foreground">Edit Your Story</h2>
+            <Button variant="ghost" size="sm" onClick={resetSelection}>
+              <X className="w-4 h-4" />
+            </Button>
+          </div>
+          <div className="h-full">
             <InteractiveImageEditor
               imageUrl={previewUrl}
               onSave={handleImageSave}
               onCancel={resetSelection}
             />
-          )}
-
-          {creationMode === 'ai-generate' && (
-            <div className="space-y-3">
-              <Textarea
-                value={aiPrompt}
-                onChange={(e) => setAiPrompt(e.target.value)}
-                placeholder="Describe what you want to generate... (e.g., 'A golden retriever playing in a sunny garden')"
-                rows={3}
-              />
-              
-              <div className="flex space-x-2">
+          </div>
+        </div>
+      ) : (
+        <Card className="w-full max-w-md bg-background border-border">
+          <CardHeader className="flex flex-row items-center justify-between">
+            <CardTitle className="text-foreground">Create Your Story</CardTitle>
+            <Button variant="ghost" size="sm" onClick={onClose}>
+              <X className="w-4 h-4" />
+            </Button>
+          </CardHeader>
+          
+          <CardContent className="space-y-4">
+            {creationMode === 'select' && (
+              <div className="space-y-3">
                 <Button
-                  onClick={() => generateAIContent('image')}
-                  disabled={isGenerating}
-                  className="flex-1"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="w-full justify-start"
+                  variant="outline"
                 >
-                  {isGenerating ? (
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  ) : (
-                    <ImageIcon className="w-4 h-4 mr-2" />
-                  )}
-                  Generate Image
+                  <Camera className="w-4 h-4 mr-2" />
+                  Upload Photo
                 </Button>
                 
                 <Button
-                  onClick={() => generateAIContent('video')}
-                  disabled={isGenerating}
-                  className="flex-1"
+                  onClick={() => videoInputRef.current?.click()}
+                  className="w-full justify-start"
                   variant="outline"
                 >
-                  {isGenerating ? (
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  <Video className="w-4 h-4 mr-2" />
+                  Upload Video
+                </Button>
+                
+                <Button
+                  onClick={() => setCreationMode('ai-generate')}
+                  className="w-full justify-start"
+                  variant="outline"
+                >
+                  <Wand2 className="w-4 h-4 mr-2" />
+                  Generate with AI
+                </Button>
+                
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(e) => handleFileSelect(e, 'image')}
+                />
+                
+                <input
+                  ref={videoInputRef}
+                  type="file"
+                  accept="video/*"
+                  className="hidden"
+                  onChange={(e) => handleFileSelect(e, 'video')}
+                />
+              </div>
+            )}
+
+            {creationMode === 'upload' && previewUrl && (
+              <div className="space-y-3">
+                <div className="relative">
+                  {selectedFile?.type.startsWith('video/') ? (
+                    <video
+                      src={previewUrl}
+                      className="w-full h-64 object-cover rounded-lg"
+                      controls
+                    />
                   ) : (
-                    <Video className="w-4 h-4 mr-2" />
+                    <img
+                      src={previewUrl}
+                      alt="Story preview"
+                      className="w-full h-64 object-cover rounded-lg"
+                    />
                   )}
-                  Generate Video
+                </div>
+                
+                <div className="flex space-x-2">
+                  <Button 
+                    onClick={resetSelection} 
+                    variant="outline" 
+                    className="flex-1"
+                  >
+                    Back
+                  </Button>
+                  <Button 
+                    onClick={handleUploadStory} 
+                    className="flex-1"
+                  >
+                    <Upload className="w-4 h-4 mr-2" />
+                    Post Story
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            {creationMode === 'ai-generate' && (
+              <div className="space-y-3">
+                <Textarea
+                  value={aiPrompt}
+                  onChange={(e) => setAiPrompt(e.target.value)}
+                  placeholder="Describe what you want to generate... (e.g., 'A golden retriever playing in a sunny garden')"
+                  rows={3}
+                />
+                
+                <div className="flex space-x-2">
+                  <Button
+                    onClick={() => generateAIContent('image')}
+                    disabled={isGenerating}
+                    className="flex-1"
+                  >
+                    {isGenerating ? (
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    ) : (
+                      <ImageIcon className="w-4 h-4 mr-2" />
+                    )}
+                    Generate Image
+                  </Button>
+                  
+                  <Button
+                    onClick={() => generateAIContent('video')}
+                    disabled={isGenerating}
+                    className="flex-1"
+                    variant="outline"
+                  >
+                    {isGenerating ? (
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    ) : (
+                      <Video className="w-4 h-4 mr-2" />
+                    )}
+                    Generate Video
+                  </Button>
+                </div>
+                
+                <Button 
+                  onClick={() => setCreationMode('select')} 
+                  variant="ghost" 
+                  className="w-full"
+                >
+                  Back
                 </Button>
               </div>
-              
-              <Button 
-                onClick={() => setCreationMode('select')} 
-                variant="ghost" 
-                className="w-full"
-              >
-                Back
-              </Button>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+            )}
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 };

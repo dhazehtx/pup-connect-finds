@@ -219,82 +219,88 @@ const InteractiveImageEditor = ({ imageUrl, onSave, onCancel }: InteractiveImage
   };
 
   return (
-    <div className="space-y-4">
-      <div className="relative bg-black rounded-lg overflow-hidden" style={{ aspectRatio: '9/16', height: '500px' }}>
-        <div
-          ref={containerRef}
-          className="w-full h-full relative cursor-move touch-none"
-          onTouchStart={handleTouchStart}
-          onTouchMove={handleTouchMove}
-          onTouchEnd={handleTouchEnd}
-          onMouseDown={handleMouseDown}
-          onMouseMove={handleMouseMove}
-          onMouseUp={handleMouseUp}
-          onMouseLeave={handleMouseUp}
-          onWheel={handleWheel}
+    <div className="flex flex-col h-full max-h-screen bg-background p-4 space-y-4">
+      {/* Image Editor Container - Mobile Optimized */}
+      <div className="flex-1 flex flex-col min-h-0">
+        <div 
+          className="relative bg-black rounded-lg overflow-hidden flex-1 min-h-0" 
+          style={{ aspectRatio: '9/16', maxHeight: 'calc(100vh - 200px)' }}
         >
-          <img
-            ref={imageRef}
-            src={imageUrl}
-            alt="Story content"
-            className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 pointer-events-none select-none"
-            style={{
-              transform: `translate(-50%, -50%) translate(${position.x}px, ${position.y}px) scale(${scale})`,
-              transition: isDragging ? 'none' : 'transform 0.1s ease-out'
-            }}
-            draggable={false}
-          />
+          <div
+            ref={containerRef}
+            className="w-full h-full relative cursor-move touch-none"
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+            onMouseDown={handleMouseDown}
+            onMouseMove={handleMouseMove}
+            onMouseUp={handleMouseUp}
+            onMouseLeave={handleMouseUp}
+            onWheel={handleWheel}
+          >
+            <img
+              ref={imageRef}
+              src={imageUrl}
+              alt="Story content"
+              className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 pointer-events-none select-none"
+              style={{
+                transform: `translate(-50%, -50%) translate(${position.x}px, ${position.y}px) scale(${scale})`,
+                transition: isDragging ? 'none' : 'transform 0.1s ease-out'
+              }}
+              draggable={false}
+            />
+            
+            {/* Visual feedback overlay */}
+            {isDragging && (
+              <div className="absolute inset-0 bg-royal-blue/10 border-2 border-royal-blue border-dashed" />
+            )}
+          </div>
           
-          {/* Visual feedback overlay */}
-          {isDragging && (
-            <div className="absolute inset-0 bg-blue-500/10 border-2 border-blue-500 border-dashed" />
-          )}
+          {/* Scale indicator */}
+          <div className="absolute top-4 right-4 bg-black/70 text-white px-2 py-1 rounded text-sm">
+            {Math.round(scale * 100)}%
+          </div>
+          
+          {/* Instructions */}
+          <div className="absolute bottom-4 left-4 bg-black/70 text-white px-2 py-1 rounded text-xs max-w-48">
+            {initialSetupComplete ? 'Auto-cropped for Stories' : 'Loading...'}
+          </div>
         </div>
-        
-        {/* Scale indicator */}
-        <div className="absolute top-4 right-4 bg-black/50 text-white px-2 py-1 rounded text-sm">
-          {Math.round(scale * 100)}%
-        </div>
-        
-        {/* Instructions */}
-        <div className="absolute bottom-4 left-4 bg-black/50 text-white px-2 py-1 rounded text-xs max-w-48">
-          {initialSetupComplete ? 'Auto-cropped for Stories' : 'Loading...'}
+
+        {/* Controls - Mobile Optimized */}
+        <div className="flex gap-2 py-3">
+          <button
+            onClick={() => setScale(prev => Math.max(0.5, prev - 0.1))}
+            className="flex-1 px-3 py-2 bg-secondary text-secondary-foreground rounded-lg text-sm font-medium hover:bg-secondary/80 transition-colors"
+          >
+            Zoom Out
+          </button>
+          <button
+            onClick={() => setScale(prev => Math.min(3, prev + 0.1))}
+            className="flex-1 px-3 py-2 bg-secondary text-secondary-foreground rounded-lg text-sm font-medium hover:bg-secondary/80 transition-colors"
+          >
+            Zoom In
+          </button>
+          <button
+            onClick={resetToOptimalCrop}
+            className="flex-1 px-3 py-2 bg-accent text-accent-foreground rounded-lg text-sm font-medium hover:bg-accent/80 transition-colors"
+          >
+            Auto Crop
+          </button>
         </div>
       </div>
 
-      {/* Controls */}
-      <div className="flex space-x-2">
-        <button
-          onClick={() => setScale(prev => Math.max(0.5, prev - 0.1))}
-          className="px-3 py-2 bg-gray-200 rounded text-sm"
-        >
-          Zoom Out
-        </button>
-        <button
-          onClick={() => setScale(prev => Math.min(3, prev + 0.1))}
-          className="px-3 py-2 bg-gray-200 rounded text-sm"
-        >
-          Zoom In
-        </button>
-        <button
-          onClick={resetToOptimalCrop}
-          className="px-3 py-2 bg-blue-200 rounded text-sm"
-        >
-          Auto Crop
-        </button>
-      </div>
-
-      {/* Action buttons */}
-      <div className="flex space-x-2">
+      {/* Action buttons - Fixed at bottom for mobile */}
+      <div className="flex gap-3 pb-safe">
         <button
           onClick={onCancel}
-          className="flex-1 px-4 py-2 border-2 border-gray-500 text-gray-700 hover:bg-gray-100 rounded"
+          className="flex-1 px-4 py-3 border-2 border-border text-foreground hover:bg-accent hover:text-accent-foreground rounded-lg font-medium transition-colors"
         >
           Back
         </button>
         <button
           onClick={handleSave}
-          className="flex-1 px-4 py-2 bg-gray-600 text-white hover:bg-gray-700 rounded"
+          className="flex-1 px-4 py-3 bg-primary text-primary-foreground hover:bg-primary/90 rounded-lg font-medium transition-colors"
         >
           Post Story
         </button>
