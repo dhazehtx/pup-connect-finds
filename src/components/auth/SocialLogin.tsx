@@ -134,57 +134,53 @@ const SocialLogin: React.FC<SocialLoginProps> = ({ onSuccess, showTwoFactor = fa
   }
 
   return (
-    <div className="space-y-3">
-      <div className="grid gap-3">
-        <Button
-          variant="outline"
+    <div className="space-y-4">
+      <div className="space-y-3">
+        <button
           onClick={() => handleSocialLogin('google')}
           disabled={loading === 'google'}
-          className="w-full h-11 bg-black text-white border-black hover:bg-gray-800 rounded-none font-medium"
+          className="w-full h-12 bg-white border border-gray-300 hover:border-gray-400 hover:bg-gray-50 transition-colors flex items-center justify-center gap-3 font-medium text-gray-700 disabled:opacity-50"
         >
-          <Chrome className="h-4 w-4 mr-2" />
+          <Chrome className="h-5 w-5 text-gray-600" />
           {loading === 'google' ? 'Connecting...' : 'Continue with Google'}
-        </Button>
+        </button>
 
-        <Button
-          variant="outline"
+        <button
           onClick={() => handleSocialLogin('facebook')}
           disabled={loading === 'facebook'}
-          className="w-full h-11 bg-gray-800 text-white border-gray-800 hover:bg-gray-700 rounded-none font-medium"
+          className="w-full h-12 bg-white border border-gray-300 hover:border-gray-400 hover:bg-gray-50 transition-colors flex items-center justify-center gap-3 font-medium text-gray-700 disabled:opacity-50"
         >
-          <Facebook className="h-4 w-4 mr-2" />
+          <Facebook className="h-5 w-5 text-gray-600" />
           {loading === 'facebook' ? 'Connecting...' : 'Continue with Facebook'}
-        </Button>
+        </button>
 
-        <Button
-          variant="outline"
+        <button
           onClick={() => handleSocialLogin('apple')}
           disabled={loading === 'apple'}
-          className="w-full h-11 bg-gray-900 text-white border-gray-900 hover:bg-gray-800 rounded-none font-medium"
+          className="w-full h-12 bg-white border border-gray-300 hover:border-gray-400 hover:bg-gray-50 transition-colors flex items-center justify-center gap-3 font-medium text-gray-700 disabled:opacity-50"
         >
-          <Apple className="h-4 w-4 mr-2" />
+          <Apple className="h-5 w-5 text-gray-600" />
           {loading === 'apple' ? 'Connecting...' : 'Continue with Apple'}
-        </Button>
+        </button>
       </div>
 
-      <div className="relative">
+      <div className="relative my-6">
         <div className="absolute inset-0 flex items-center">
-          <span className="w-full border-t border-gray-300" />
+          <span className="w-full border-t border-gray-200" />
         </div>
         <div className="relative flex justify-center text-xs uppercase">
-          <span className="bg-white px-2 text-gray-500 font-medium">Or</span>
+          <span className="bg-white px-3 text-gray-500 font-medium">Or</span>
         </div>
       </div>
 
-      <Button
-        variant="ghost"
+      <button
         onClick={handleGuestCheckout}
-        className="w-full h-11 text-gray-600 hover:bg-gray-100 rounded-none font-medium"
+        className="w-full h-12 bg-gray-100 hover:bg-gray-200 border border-gray-200 transition-colors flex items-center justify-center font-medium text-gray-700"
       >
         Continue as Guest
-      </Button>
+      </button>
 
-      <p className="text-xs text-gray-500 text-center">
+      <p className="text-xs text-gray-500 text-center mt-4">
         By continuing, you agree to our Terms of Service and Privacy Policy
       </p>
     </div>
