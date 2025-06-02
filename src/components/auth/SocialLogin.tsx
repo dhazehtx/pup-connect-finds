@@ -135,7 +135,7 @@ const SocialLogin: React.FC<SocialLoginProps> = ({ onSuccess, showTwoFactor = fa
 
   return (
     <div className="space-y-3">
-      <div className="grid gap-2">
+      <div className="grid gap-3">
         <Button
           variant="outline"
           onClick={() => handleSocialLogin('google')}
