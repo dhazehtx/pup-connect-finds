@@ -219,11 +219,11 @@ const InteractiveImageEditor = ({ imageUrl, onSave, onCancel }: InteractiveImage
   };
 
   return (
-    <div className="flex flex-col h-full max-h-screen bg-background p-4 space-y-4">
+    <div className="flex flex-col h-full max-h-screen bg-cloud-white p-4 space-y-4">
       {/* Image Editor Container - Mobile Optimized */}
       <div className="flex-1 flex flex-col min-h-0">
         <div 
-          className="relative bg-black rounded-lg overflow-hidden flex-1 min-h-0" 
+          className="relative bg-deep-navy rounded-lg overflow-hidden flex-1 min-h-0" 
           style={{ aspectRatio: '9/16', maxHeight: 'calc(100vh - 200px)' }}
         >
           <div
@@ -257,12 +257,12 @@ const InteractiveImageEditor = ({ imageUrl, onSave, onCancel }: InteractiveImage
           </div>
           
           {/* Scale indicator */}
-          <div className="absolute top-4 right-4 bg-black/70 text-white px-2 py-1 rounded text-sm">
+          <div className="absolute top-4 right-4 bg-deep-navy/80 text-cloud-white px-2 py-1 rounded text-sm">
             {Math.round(scale * 100)}%
           </div>
           
           {/* Instructions */}
-          <div className="absolute bottom-4 left-4 bg-black/70 text-white px-2 py-1 rounded text-xs max-w-48">
+          <div className="absolute bottom-4 left-4 bg-deep-navy/80 text-cloud-white px-2 py-1 rounded text-xs max-w-48">
             {initialSetupComplete ? 'Auto-cropped for Stories' : 'Loading...'}
           </div>
         </div>
@@ -271,19 +271,19 @@ const InteractiveImageEditor = ({ imageUrl, onSave, onCancel }: InteractiveImage
         <div className="flex gap-2 py-3">
           <button
             onClick={() => setScale(prev => Math.max(0.5, prev - 0.1))}
-            className="flex-1 px-3 py-2 bg-secondary text-secondary-foreground rounded-lg text-sm font-medium hover:bg-secondary/80 transition-colors"
+            className="flex-1 px-3 py-2 bg-soft-sky text-deep-navy rounded-lg text-sm font-medium hover:bg-soft-sky/80 transition-colors"
           >
             Zoom Out
           </button>
           <button
             onClick={() => setScale(prev => Math.min(3, prev + 0.1))}
-            className="flex-1 px-3 py-2 bg-secondary text-secondary-foreground rounded-lg text-sm font-medium hover:bg-secondary/80 transition-colors"
+            className="flex-1 px-3 py-2 bg-soft-sky text-deep-navy rounded-lg text-sm font-medium hover:bg-soft-sky/80 transition-colors"
           >
             Zoom In
           </button>
           <button
             onClick={resetToOptimalCrop}
-            className="flex-1 px-3 py-2 bg-accent text-accent-foreground rounded-lg text-sm font-medium hover:bg-accent/80 transition-colors"
+            className="flex-1 px-3 py-2 bg-mint-green text-deep-navy rounded-lg text-sm font-medium hover:bg-mint-green/80 transition-colors"
           >
             Auto Crop
           </button>
@@ -294,13 +294,13 @@ const InteractiveImageEditor = ({ imageUrl, onSave, onCancel }: InteractiveImage
       <div className="flex gap-3 pb-safe">
         <button
           onClick={onCancel}
-          className="flex-1 px-4 py-3 border-2 border-border text-foreground hover:bg-accent hover:text-accent-foreground rounded-lg font-medium transition-colors"
+          className="flex-1 px-4 py-3 border-2 border-soft-sky text-deep-navy hover:bg-soft-sky hover:text-deep-navy rounded-lg font-medium transition-colors bg-cloud-white"
         >
           Back
         </button>
         <button
           onClick={handleSave}
-          className="flex-1 px-4 py-3 bg-primary text-primary-foreground hover:bg-primary/90 rounded-lg font-medium transition-colors"
+          className="flex-1 px-4 py-3 bg-royal-blue text-cloud-white hover:bg-royal-blue/90 rounded-lg font-medium transition-colors"
         >
           Post Story
         </button>
