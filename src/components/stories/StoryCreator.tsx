@@ -1,4 +1,3 @@
-
 import React, { useState, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -40,44 +39,43 @@ const StoryCreator = ({ onClose, onStoryCreated }: StoryCreatorProps) => {
     const file = event.target.files?.[0];
     if (file) {
       if (type === 'image') {
-        // Validate image file size and type
-        const validation = validateImageFile(file);
-        if (!validation.valid) {
+        // Basic validation for file type only - remove size restrictions since we have cropping
+        const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+        if (!allowedTypes.includes(file.type)) {
           toast({
-            title: "Upload Error",
-            description: validation.error,
+            title: "Invalid File Type",
+            description: "Please upload JPEG, PNG, WebP, or GIF images.",
             variant: "destructive",
           });
-          // Clear the input
           if (fileInputRef.current) {
             fileInputRef.current.value = '';
           }
           return;
         }
 
-        // Additional check for image dimensions (if too big for crop)
+        // Check for reasonable file size limit (50MB) to prevent browser issues
+        const maxFileSize = 50 * 1024 * 1024; // 50MB
+        if (file.size > maxFileSize) {
+          toast({
+            title: "File Too Large",
+            description: "File size must be less than 50MB.",
+            variant: "destructive",
+          });
+          if (fileInputRef.current) {
+            fileInputRef.current.value = '';
+          }
+          return;
+        }
+
+        // Load image to verify it's valid, but don't restrict dimensions
         const img = new Image();
         img.onload = () => {
-          const maxDimension = 2000; // Maximum allowed dimension
-          if (img.width > maxDimension || img.height > maxDimension) {
-            toast({
-              title: "Image Size Too Big",
-              description: `Image dimensions are too large. Maximum allowed size is ${maxDimension}x${maxDimension} pixels.`,
-              variant: "destructive",
-            });
-            // Clear the input and don't proceed
-            if (fileInputRef.current) {
-              fileInputRef.current.value = '';
-            }
-            URL.revokeObjectURL(img.src);
-            return;
-          }
-          
           // Image is valid, proceed with setting it
           setSelectedFile(file);
           const url = URL.createObjectURL(file);
           setPreviewUrl(url);
           setCreationMode('edit-image');
+          URL.revokeObjectURL(img.src);
         };
         
         img.onerror = () => {
@@ -93,7 +91,7 @@ const StoryCreator = ({ onClose, onStoryCreated }: StoryCreatorProps) => {
         
         img.src = URL.createObjectURL(file);
       } else {
-        // For video files, just check basic size
+        // For video files, check basic size
         const maxVideoSize = 50 * 1024 * 1024; // 50MB
         if (file.size > maxVideoSize) {
           toast({
