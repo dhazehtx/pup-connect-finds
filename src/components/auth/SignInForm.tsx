@@ -40,13 +40,14 @@ const SignInForm = ({ onSubmit, loading }: SignInFormProps) => {
           name="email"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Email</FormLabel>
+              <FormLabel className="text-sm font-medium text-gray-700">Email</FormLabel>
               <FormControl>
                 <Input
                   type="email"
                   placeholder="Enter your email"
                   {...field}
                   disabled={loading}
+                  className="h-11 border-gray-300 rounded-none focus:border-black focus:ring-0"
                 />
               </FormControl>
               <FormMessage />
@@ -59,7 +60,7 @@ const SignInForm = ({ onSubmit, loading }: SignInFormProps) => {
           name="password"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Password</FormLabel>
+              <FormLabel className="text-sm font-medium text-gray-700">Password</FormLabel>
               <FormControl>
                 <div className="relative">
                   <Input
@@ -67,7 +68,7 @@ const SignInForm = ({ onSubmit, loading }: SignInFormProps) => {
                     placeholder="Enter your password"
                     {...field}
                     disabled={loading}
-                    className="pr-10"
+                    className="h-11 border-gray-300 rounded-none focus:border-black focus:ring-0 pr-10"
                   />
                   <button
                     type="button"
@@ -87,7 +88,7 @@ const SignInForm = ({ onSubmit, loading }: SignInFormProps) => {
         <Button
           type="submit"
           disabled={loading}
-          className="w-full bg-gray-900 hover:bg-gray-800 text-white"
+          className="w-full h-11 bg-black hover:bg-gray-800 text-white rounded-none font-medium"
         >
           {loading ? (
             <>

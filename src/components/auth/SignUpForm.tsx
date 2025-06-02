@@ -44,13 +44,14 @@ const SignUpForm = ({ onSubmit, loading }: SignUpFormProps) => {
           name="fullName"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Full Name</FormLabel>
+              <FormLabel className="text-sm font-medium text-gray-700">Full Name</FormLabel>
               <FormControl>
                 <Input
                   type="text"
                   placeholder="Enter your full name"
                   disabled={loading}
                   {...field}
+                  className="h-11 border-gray-300 rounded-none focus:border-black focus:ring-0"
                 />
               </FormControl>
               <FormMessage />
@@ -63,13 +64,14 @@ const SignUpForm = ({ onSubmit, loading }: SignUpFormProps) => {
           name="username"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Username</FormLabel>
+              <FormLabel className="text-sm font-medium text-gray-700">Username</FormLabel>
               <FormControl>
                 <Input
                   type="text"
                   placeholder="Choose a username"
                   disabled={loading}
                   {...field}
+                  className="h-11 border-gray-300 rounded-none focus:border-black focus:ring-0"
                 />
               </FormControl>
               <FormMessage />
@@ -82,13 +84,14 @@ const SignUpForm = ({ onSubmit, loading }: SignUpFormProps) => {
           name="email"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Email</FormLabel>
+              <FormLabel className="text-sm font-medium text-gray-700">Email</FormLabel>
               <FormControl>
                 <Input
                   type="email"
                   placeholder="Enter your email"
                   disabled={loading}
                   {...field}
+                  className="h-11 border-gray-300 rounded-none focus:border-black focus:ring-0"
                 />
               </FormControl>
               <FormMessage />
@@ -101,14 +104,14 @@ const SignUpForm = ({ onSubmit, loading }: SignUpFormProps) => {
           name="password"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Password</FormLabel>
+              <FormLabel className="text-sm font-medium text-gray-700">Password</FormLabel>
               <FormControl>
                 <div className="relative">
                   <Input
                     type={showPassword ? 'text' : 'password'}
                     placeholder="Create a password"
                     disabled={loading}
-                    className="pr-10"
+                    className="h-11 border-gray-300 rounded-none focus:border-black focus:ring-0 pr-10"
                     {...field}
                   />
                   <button
@@ -129,7 +132,7 @@ const SignUpForm = ({ onSubmit, loading }: SignUpFormProps) => {
         <Button
           type="submit"
           disabled={loading}
-          className="w-full bg-gray-900 hover:bg-gray-800 text-white"
+          className="w-full h-11 bg-black hover:bg-gray-800 text-white rounded-none font-medium"
         >
           {loading ? (
             <>

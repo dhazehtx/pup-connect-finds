@@ -134,13 +134,13 @@ const SocialLogin: React.FC<SocialLoginProps> = ({ onSuccess, showTwoFactor = fa
   }
 
   return (
-    <div className="space-y-4">
-      <div className="grid gap-3">
+    <div className="space-y-3">
+      <div className="grid gap-2">
         <Button
           variant="outline"
           onClick={() => handleSocialLogin('google')}
           disabled={loading === 'google'}
-          className="w-full bg-white border-gray-300 text-gray-700 hover:bg-gray-50"
+          className="w-full h-11 bg-black text-white border-black hover:bg-gray-800 rounded-none font-medium"
         >
           <Chrome className="h-4 w-4 mr-2" />
           {loading === 'google' ? 'Connecting...' : 'Continue with Google'}
@@ -150,7 +150,7 @@ const SocialLogin: React.FC<SocialLoginProps> = ({ onSuccess, showTwoFactor = fa
           variant="outline"
           onClick={() => handleSocialLogin('facebook')}
           disabled={loading === 'facebook'}
-          className="w-full bg-white border-gray-300 text-gray-700 hover:bg-gray-50"
+          className="w-full h-11 bg-gray-800 text-white border-gray-800 hover:bg-gray-700 rounded-none font-medium"
         >
           <Facebook className="h-4 w-4 mr-2" />
           {loading === 'facebook' ? 'Connecting...' : 'Continue with Facebook'}
@@ -160,7 +160,7 @@ const SocialLogin: React.FC<SocialLoginProps> = ({ onSuccess, showTwoFactor = fa
           variant="outline"
           onClick={() => handleSocialLogin('apple')}
           disabled={loading === 'apple'}
-          className="w-full bg-white border-gray-300 text-gray-700 hover:bg-gray-50"
+          className="w-full h-11 bg-gray-900 text-white border-gray-900 hover:bg-gray-800 rounded-none font-medium"
         >
           <Apple className="h-4 w-4 mr-2" />
           {loading === 'apple' ? 'Connecting...' : 'Continue with Apple'}
@@ -169,17 +169,17 @@ const SocialLogin: React.FC<SocialLoginProps> = ({ onSuccess, showTwoFactor = fa
 
       <div className="relative">
         <div className="absolute inset-0 flex items-center">
-          <span className="w-full border-t" />
+          <span className="w-full border-t border-gray-300" />
         </div>
         <div className="relative flex justify-center text-xs uppercase">
-          <span className="bg-white px-2 text-gray-500">Or</span>
+          <span className="bg-white px-2 text-gray-500 font-medium">Or</span>
         </div>
       </div>
 
       <Button
         variant="ghost"
         onClick={handleGuestCheckout}
-        className="w-full text-gray-600 hover:bg-gray-50"
+        className="w-full h-11 text-gray-600 hover:bg-gray-100 rounded-none font-medium"
       >
         Continue as Guest
       </Button>

@@ -13,8 +13,8 @@ const AuthToggle = ({ isSignUp, onToggle, loading }: AuthToggleProps) => {
   return (
     <>
       <div className="relative">
-        <Separator className="my-4" />
-        <span className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white px-2 text-sm text-gray-500">
+        <Separator className="my-4 bg-gray-300" />
+        <span className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white px-2 text-sm text-gray-500 font-medium">
           {isSignUp ? 'Already have an account?' : "Don't have an account?"}
         </span>
       </div>
@@ -22,7 +22,7 @@ const AuthToggle = ({ isSignUp, onToggle, loading }: AuthToggleProps) => {
       <Button
         onClick={onToggle}
         variant="ghost"
-        className="w-full text-gray-600 hover:bg-gray-50"
+        className="w-full h-11 text-gray-600 hover:bg-gray-100 rounded-none font-medium"
         disabled={loading}
       >
         {isSignUp ? 'Sign In Instead' : 'Create Account'}

@@ -32,25 +32,40 @@ const Auth = () => {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="signin">Sign In</TabsTrigger>
-            <TabsTrigger value="signup">Sign Up</TabsTrigger>
-            <TabsTrigger value="guest">Guest</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-3 bg-gray-100 p-1 rounded-none">
+            <TabsTrigger 
+              value="signin"
+              className="rounded-none data-[state=active]:bg-black data-[state=active]:text-white font-medium"
+            >
+              Sign In
+            </TabsTrigger>
+            <TabsTrigger 
+              value="signup"
+              className="rounded-none data-[state=active]:bg-black data-[state=active]:text-white font-medium"
+            >
+              Sign Up
+            </TabsTrigger>
+            <TabsTrigger 
+              value="guest"
+              className="rounded-none data-[state=active]:bg-black data-[state=active]:text-white font-medium"
+            >
+              Guest
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="signin">
-            <Card>
+            <Card className="border-gray-300 rounded-none">
               <CardHeader>
-                <CardTitle>Sign In</CardTitle>
+                <CardTitle className="text-xl font-semibold text-gray-900">Sign In</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <SocialLogin onSuccess={() => navigate('/')} />
                 <div className="relative">
                   <div className="absolute inset-0 flex items-center">
-                    <span className="w-full border-t" />
+                    <span className="w-full border-t border-gray-300" />
                   </div>
                   <div className="relative flex justify-center text-xs uppercase">
-                    <span className="bg-white px-2 text-gray-500">Or continue with email</span>
+                    <span className="bg-white px-2 text-gray-500 font-medium">Or continue with email</span>
                   </div>
                 </div>
                 <AuthForm mode="signin" onSuccess={() => navigate('/')} />
@@ -59,18 +74,18 @@ const Auth = () => {
           </TabsContent>
 
           <TabsContent value="signup">
-            <Card>
+            <Card className="border-gray-300 rounded-none">
               <CardHeader>
-                <CardTitle>Create Account</CardTitle>
+                <CardTitle className="text-xl font-semibold text-gray-900">Create Account</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <SocialLogin onSuccess={() => navigate('/')} />
                 <div className="relative">
                   <div className="absolute inset-0 flex items-center">
-                    <span className="w-full border-t" />
+                    <span className="w-full border-t border-gray-300" />
                   </div>
                   <div className="relative flex justify-center text-xs uppercase">
-                    <span className="bg-white px-2 text-gray-500">Or continue with email</span>
+                    <span className="bg-white px-2 text-gray-500 font-medium">Or continue with email</span>
                   </div>
                 </div>
                 <AuthForm mode="signup" onSuccess={() => navigate('/')} />
