@@ -13,38 +13,40 @@ import { Globe } from 'lucide-react';
 const languages = [
   { code: 'en', name: 'English', flag: '🇺🇸' },
   { code: 'es', name: 'Español', flag: '🇪🇸' },
-  { code: 'fr', name: 'Français', flag: '🇫🇷' }
+  { code: 'fr', name: 'Français', flag: '🇫🇷' },
 ];
 
 const LanguageSwitcher = () => {
-  const { i18n, t } = useTranslation();
+  const { i18n } = useTranslation();
+
+  const currentLanguage = languages.find(lang => lang.code === i18n.language) || languages[0];
 
   const changeLanguage = (languageCode: string) => {
     i18n.changeLanguage(languageCode);
   };
 
-  const currentLanguage = languages.find(lang => lang.code === i18n.language) || languages[0];
-
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="outline" size="sm" className="flex items-center gap-2">
-          <Globe size={16} />
-          <span className="hidden sm:inline">{currentLanguage.flag} {currentLanguage.name}</span>
-          <span className="sm:hidden">{currentLanguage.flag}</span>
+        <Button 
+          variant="outline" 
+          size="sm" 
+          className="border-2 border-gray-500 text-gray-700 hover:bg-gray-100"
+        >
+          <Globe size={16} className="mr-1" />
+          <span className="hidden sm:inline">{currentLanguage.flag}</span>
+          <span className="hidden md:inline ml-1">{currentLanguage.name}</span>
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="bg-white border shadow-lg z-50">
+      <DropdownMenuContent align="end" className="border-gray-500">
         {languages.map((language) => (
           <DropdownMenuItem
             key={language.code}
             onClick={() => changeLanguage(language.code)}
-            className={`flex items-center gap-2 cursor-pointer ${
-              i18n.language === language.code ? 'bg-blue-50 text-blue-600' : 'hover:bg-gray-50'
-            }`}
+            className="cursor-pointer hover:bg-gray-100"
           >
-            <span>{language.flag}</span>
-            <span>{language.name}</span>
+            <span className="mr-2">{language.flag}</span>
+            {language.name}
           </DropdownMenuItem>
         ))}
       </DropdownMenuContent>
