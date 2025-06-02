@@ -1,4 +1,3 @@
-
 import React, { useState, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -16,6 +15,7 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { useEnhancedAI } from '@/hooks/useEnhancedAI';
+import { validateImageFile } from '@/utils/imageOptimization';
 
 interface StoryCreatorProps {
   onClose: () => void;
@@ -37,10 +37,79 @@ const StoryCreator = ({ onClose, onStoryCreated }: StoryCreatorProps) => {
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>, type: 'image' | 'video') => {
     const file = event.target.files?.[0];
     if (file) {
-      setSelectedFile(file);
-      const url = URL.createObjectURL(file);
-      setPreviewUrl(url);
-      setCreationMode('upload');
+      if (type === 'image') {
+        // Validate image file size and type
+        const validation = validateImageFile(file);
+        if (!validation.valid) {
+          toast({
+            title: "Upload Error",
+            description: validation.error,
+            variant: "destructive",
+          });
+          // Clear the input
+          if (fileInputRef.current) {
+            fileInputRef.current.value = '';
+          }
+          return;
+        }
+
+        // Additional check for image dimensions (if too big for crop)
+        const img = new Image();
+        img.onload = () => {
+          const maxDimension = 2000; // Maximum allowed dimension
+          if (img.width > maxDimension || img.height > maxDimension) {
+            toast({
+              title: "Image Size Too Big",
+              description: `Image dimensions are too large. Maximum allowed size is ${maxDimension}x${maxDimension} pixels.`,
+              variant: "destructive",
+            });
+            // Clear the input and don't proceed
+            if (fileInputRef.current) {
+              fileInputRef.current.value = '';
+            }
+            URL.revokeObjectURL(img.src);
+            return;
+          }
+          
+          // Image is valid, proceed with setting it
+          setSelectedFile(file);
+          const url = URL.createObjectURL(file);
+          setPreviewUrl(url);
+          setCreationMode('upload');
+        };
+        
+        img.onerror = () => {
+          toast({
+            title: "Invalid Image",
+            description: "Unable to load the selected image. Please try another file.",
+            variant: "destructive",
+          });
+          if (fileInputRef.current) {
+            fileInputRef.current.value = '';
+          }
+        };
+        
+        img.src = URL.createObjectURL(file);
+      } else {
+        // For video files, just check basic size
+        const maxVideoSize = 50 * 1024 * 1024; // 50MB
+        if (file.size > maxVideoSize) {
+          toast({
+            title: "Video Size Too Big",
+            description: "Video file is too large. Maximum allowed size is 50MB.",
+            variant: "destructive",
+          });
+          if (videoInputRef.current) {
+            videoInputRef.current.value = '';
+          }
+          return;
+        }
+        
+        setSelectedFile(file);
+        const url = URL.createObjectURL(file);
+        setPreviewUrl(url);
+        setCreationMode('upload');
+      }
     }
   };
 
@@ -124,6 +193,18 @@ const StoryCreator = ({ onClose, onStoryCreated }: StoryCreatorProps) => {
     handleCreateStory(content);
   };
 
+  const resetSelection = () => {
+    setSelectedFile(null);
+    setPreviewUrl(null);
+    setCreationMode('select');
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+    if (videoInputRef.current) {
+      videoInputRef.current.value = '';
+    }
+  };
+
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
       <Card className="w-full max-w-md">
@@ -202,7 +283,7 @@ const StoryCreator = ({ onClose, onStoryCreated }: StoryCreatorProps) => {
               
               <div className="flex space-x-2">
                 <Button 
-                  onClick={() => setCreationMode('select')} 
+                  onClick={resetSelection} 
                   variant="outline" 
                   className="flex-1 border-2 border-gray-500 text-gray-700 hover:bg-gray-100"
                 >
