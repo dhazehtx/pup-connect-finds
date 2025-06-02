@@ -24,26 +24,16 @@ import {
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useDogListings } from '@/hooks/useDogListings';
-import { LoadingSkeleton } from '@/components/LoadingSkeleton';
-import { EmptyState } from '@/components/EmptyState';
+import LoadingSkeleton from '@/components/LoadingSkeleton';
+import EmptyState from '@/components/EmptyState';
 
 const Home = () => {
   const { user, isGuest } = useAuth();
-  const { listings, loading, error } = useDogListings();
+  const { listings, loading } = useDogListings();
   const [activeTab, setActiveTab] = useState('feed');
 
   if (loading) {
-    return <LoadingSkeleton />;
-  }
-
-  if (error) {
-    return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="text-center">
-          <p className="text-red-600">Error loading content: {error.message}</p>
-        </div>
-      </div>
-    );
+    return <LoadingSkeleton viewMode="grid" />;
   }
 
   const featuredListings = listings?.slice(0, 6) || [];
@@ -211,8 +201,8 @@ const Home = () => {
                 ))
               ) : (
                 <EmptyState 
-                  title="No pets available"
-                  description="Be the first to add a pet listing!"
+                  onClearFilters={() => {}}
+                  hasActiveFilters={false}
                 />
               )}
             </div>
@@ -254,8 +244,8 @@ const Home = () => {
               ) : (
                 <div className="col-span-full">
                   <EmptyState 
-                    title="No featured pets"
-                    description="Check back later for featured listings!"
+                    onClearFilters={() => {}}
+                    hasActiveFilters={false}
                   />
                 </div>
               )}
