@@ -32,29 +32,29 @@ const Auth = () => {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-3 bg-white border border-gray-200">
+          <TabsList className="grid w-full grid-cols-3 bg-white border border-gray-200 rounded-none h-12">
             <TabsTrigger 
               value="signin"
-              className="data-[state=active]:bg-gray-900 data-[state=active]:text-white text-gray-600 font-medium border-0"
+              className="data-[state=active]:bg-black data-[state=active]:text-white text-gray-600 font-medium border-0 rounded-none h-full"
             >
               Sign In
             </TabsTrigger>
             <TabsTrigger 
               value="signup"
-              className="data-[state=active]:bg-gray-900 data-[state=active]:text-white text-gray-600 font-medium border-0"
+              className="data-[state=active]:bg-black data-[state=active]:text-white text-gray-600 font-medium border-0 rounded-none h-full"
             >
               Sign Up
             </TabsTrigger>
             <TabsTrigger 
               value="guest"
-              className="data-[state=active]:bg-gray-900 data-[state=active]:text-white text-gray-600 font-medium border-0"
+              className="data-[state=active]:bg-black data-[state=active]:text-white text-gray-600 font-medium border-0 rounded-none h-full"
             >
               Guest
             </TabsTrigger>
           </TabsList>
 
           <TabsContent value="signin">
-            <Card className="border border-gray-200 shadow-none">
+            <Card className="border border-gray-200 shadow-none rounded-none">
               <CardHeader>
                 <CardTitle className="text-xl font-semibold text-gray-900">Sign In</CardTitle>
               </CardHeader>
@@ -74,7 +74,7 @@ const Auth = () => {
           </TabsContent>
 
           <TabsContent value="signup">
-            <Card className="border border-gray-200 shadow-none">
+            <Card className="border border-gray-200 shadow-none rounded-none">
               <CardHeader>
                 <CardTitle className="text-xl font-semibold text-gray-900">Create Account</CardTitle>
               </CardHeader>
