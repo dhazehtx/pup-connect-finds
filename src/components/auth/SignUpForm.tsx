@@ -5,7 +5,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import RippleButton from '@/components/ui/ripple-button';
+import { Button } from '@/components/ui/button';
 import { User, Eye, EyeOff } from 'lucide-react';
 
 const signUpSchema = z.object({
@@ -126,10 +126,10 @@ const SignUpForm = ({ onSubmit, loading }: SignUpFormProps) => {
           )}
         />
 
-        <RippleButton
+        <Button
           type="submit"
           disabled={loading}
-          className="w-full bg-royal-blue hover:bg-royal-blue/90 text-cloud-white"
+          className="w-full bg-gray-900 hover:bg-gray-800 text-white"
         >
           {loading ? (
             <>
@@ -142,7 +142,7 @@ const SignUpForm = ({ onSubmit, loading }: SignUpFormProps) => {
               Create Account
             </>
           )}
-        </RippleButton>
+        </Button>
       </form>
     </Form>
   );

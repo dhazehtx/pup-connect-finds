@@ -140,7 +140,7 @@ const SocialLogin: React.FC<SocialLoginProps> = ({ onSuccess, showTwoFactor = fa
           variant="outline"
           onClick={() => handleSocialLogin('google')}
           disabled={loading === 'google'}
-          className="w-full"
+          className="w-full bg-white border-gray-300 text-gray-700 hover:bg-gray-50"
         >
           <Chrome className="h-4 w-4 mr-2" />
           {loading === 'google' ? 'Connecting...' : 'Continue with Google'}
@@ -150,7 +150,7 @@ const SocialLogin: React.FC<SocialLoginProps> = ({ onSuccess, showTwoFactor = fa
           variant="outline"
           onClick={() => handleSocialLogin('facebook')}
           disabled={loading === 'facebook'}
-          className="w-full"
+          className="w-full bg-white border-gray-300 text-gray-700 hover:bg-gray-50"
         >
           <Facebook className="h-4 w-4 mr-2" />
           {loading === 'facebook' ? 'Connecting...' : 'Continue with Facebook'}
@@ -160,7 +160,7 @@ const SocialLogin: React.FC<SocialLoginProps> = ({ onSuccess, showTwoFactor = fa
           variant="outline"
           onClick={() => handleSocialLogin('apple')}
           disabled={loading === 'apple'}
-          className="w-full"
+          className="w-full bg-white border-gray-300 text-gray-700 hover:bg-gray-50"
         >
           <Apple className="h-4 w-4 mr-2" />
           {loading === 'apple' ? 'Connecting...' : 'Continue with Apple'}
@@ -179,7 +179,7 @@ const SocialLogin: React.FC<SocialLoginProps> = ({ onSuccess, showTwoFactor = fa
       <Button
         variant="ghost"
         onClick={handleGuestCheckout}
-        className="w-full"
+        className="w-full text-gray-600 hover:bg-gray-50"
       >
         Continue as Guest
       </Button>
