@@ -42,6 +42,113 @@ export type Database = {
         }
         Relationships: []
       }
+      background_checks: {
+        Row: {
+          check_type: string
+          created_at: string
+          expires_at: string | null
+          external_id: string | null
+          id: string
+          provider: string
+          results: Json | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          check_type: string
+          created_at?: string
+          expires_at?: string | null
+          external_id?: string | null
+          id?: string
+          provider: string
+          results?: Json | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          check_type?: string
+          created_at?: string
+          expires_at?: string | null
+          external_id?: string | null
+          id?: string
+          provider?: string
+          results?: Json | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "background_checks_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      content_moderation: {
+        Row: {
+          ai_confidence: number | null
+          ai_flags: Json | null
+          content_id: string
+          content_type: string
+          created_at: string
+          human_review: boolean | null
+          id: string
+          moderation_status: string
+          review_notes: string | null
+          reviewer_id: string | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          ai_confidence?: number | null
+          ai_flags?: Json | null
+          content_id: string
+          content_type: string
+          created_at?: string
+          human_review?: boolean | null
+          id?: string
+          moderation_status?: string
+          review_notes?: string | null
+          reviewer_id?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          ai_confidence?: number | null
+          ai_flags?: Json | null
+          content_id?: string
+          content_type?: string
+          created_at?: string
+          human_review?: boolean | null
+          id?: string
+          moderation_status?: string
+          review_notes?: string | null
+          reviewer_id?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "content_moderation_reviewer_id_fkey"
+            columns: ["reviewer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "content_moderation_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       conversations: {
         Row: {
           buyer_id: string
@@ -257,6 +364,109 @@ export type Database = {
           phone?: string | null
         }
         Relationships: []
+      }
+      image_analysis: {
+        Row: {
+          analysis_type: string
+          confidence: number | null
+          created_at: string
+          id: string
+          image_url: string
+          listing_id: string | null
+          provider: string
+          results: Json
+        }
+        Insert: {
+          analysis_type: string
+          confidence?: number | null
+          created_at?: string
+          id?: string
+          image_url: string
+          listing_id?: string | null
+          provider: string
+          results?: Json
+        }
+        Update: {
+          analysis_type?: string
+          confidence?: number | null
+          created_at?: string
+          id?: string
+          image_url?: string
+          listing_id?: string | null
+          provider?: string
+          results?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "image_analysis_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "dog_listings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      matching_preferences: {
+        Row: {
+          activity_level: string | null
+          age_range_max: number | null
+          age_range_min: number | null
+          created_at: string
+          experience_level: string | null
+          id: string
+          living_situation: Json | null
+          location_radius: number | null
+          preferred_breeds: string[] | null
+          price_range_max: number | null
+          price_range_min: number | null
+          size_preferences: string[] | null
+          temperament_preferences: string[] | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          activity_level?: string | null
+          age_range_max?: number | null
+          age_range_min?: number | null
+          created_at?: string
+          experience_level?: string | null
+          id?: string
+          living_situation?: Json | null
+          location_radius?: number | null
+          preferred_breeds?: string[] | null
+          price_range_max?: number | null
+          price_range_min?: number | null
+          size_preferences?: string[] | null
+          temperament_preferences?: string[] | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          activity_level?: string | null
+          age_range_max?: number | null
+          age_range_min?: number | null
+          created_at?: string
+          experience_level?: string | null
+          id?: string
+          living_situation?: Json | null
+          location_radius?: number | null
+          preferred_breeds?: string[] | null
+          price_range_max?: number | null
+          price_range_min?: number | null
+          size_preferences?: string[] | null
+          temperament_preferences?: string[] | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "matching_preferences_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       messages: {
         Row: {
@@ -475,6 +685,42 @@ export type Database = {
           },
         ]
       }
+      performance_metrics: {
+        Row: {
+          created_at: string
+          entity_id: string | null
+          entity_type: string | null
+          id: string
+          metadata: Json | null
+          metric_type: string
+          metric_value: number
+          period_end: string
+          period_start: string
+        }
+        Insert: {
+          created_at?: string
+          entity_id?: string | null
+          entity_type?: string | null
+          id?: string
+          metadata?: Json | null
+          metric_type: string
+          metric_value: number
+          period_end: string
+          period_start: string
+        }
+        Update: {
+          created_at?: string
+          entity_id?: string | null
+          entity_type?: string | null
+          id?: string
+          metadata?: Json | null
+          metric_type?: string
+          metric_value?: number
+          period_end?: string
+          period_start?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -546,6 +792,93 @@ export type Database = {
           years_experience?: number | null
         }
         Relationships: []
+      }
+      rate_limits: {
+        Row: {
+          created_at: string
+          endpoint: string
+          id: string
+          identifier: string
+          requests_count: number
+          updated_at: string
+          window_end: string
+          window_start: string
+        }
+        Insert: {
+          created_at?: string
+          endpoint: string
+          id?: string
+          identifier: string
+          requests_count?: number
+          updated_at?: string
+          window_end: string
+          window_start: string
+        }
+        Update: {
+          created_at?: string
+          endpoint?: string
+          id?: string
+          identifier?: string
+          requests_count?: number
+          updated_at?: string
+          window_end?: string
+          window_start?: string
+        }
+        Relationships: []
+      }
+      revenue_analytics: {
+        Row: {
+          amount: number
+          created_at: string
+          currency: string
+          date: string
+          id: string
+          listing_id: string | null
+          metadata: Json | null
+          revenue_type: string
+          transaction_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          currency?: string
+          date: string
+          id?: string
+          listing_id?: string | null
+          metadata?: Json | null
+          revenue_type: string
+          transaction_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          currency?: string
+          date?: string
+          id?: string
+          listing_id?: string | null
+          metadata?: Json | null
+          revenue_type?: string
+          transaction_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "revenue_analytics_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "dog_listings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "revenue_analytics_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       review_helpfulness: {
         Row: {
@@ -721,6 +1054,205 @@ export type Database = {
         }
         Relationships: []
       }
+      scheduled_tasks: {
+        Row: {
+          attempts: number | null
+          completed_at: string | null
+          created_at: string
+          error_message: string | null
+          id: string
+          max_attempts: number | null
+          scheduled_for: string
+          status: string
+          task_data: Json | null
+          task_type: string
+          updated_at: string
+        }
+        Insert: {
+          attempts?: number | null
+          completed_at?: string | null
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          max_attempts?: number | null
+          scheduled_for: string
+          status?: string
+          task_data?: Json | null
+          task_type: string
+          updated_at?: string
+        }
+        Update: {
+          attempts?: number | null
+          completed_at?: string | null
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          max_attempts?: number | null
+          scheduled_for?: string
+          status?: string
+          task_data?: Json | null
+          task_type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      security_events: {
+        Row: {
+          created_at: string
+          details: Json
+          event_type: string
+          id: string
+          ip_address: unknown | null
+          resolved: boolean | null
+          resolved_at: string | null
+          resolved_by: string | null
+          severity: string
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          details?: Json
+          event_type: string
+          id?: string
+          ip_address?: unknown | null
+          resolved?: boolean | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          severity?: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          details?: Json
+          event_type?: string
+          id?: string
+          ip_address?: unknown | null
+          resolved?: boolean | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          severity?: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "security_events_resolved_by_fkey"
+            columns: ["resolved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "security_events_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sms_notifications: {
+        Row: {
+          created_at: string
+          delivered_at: string | null
+          error_message: string | null
+          id: string
+          message: string
+          phone_number: string
+          provider: string
+          provider_message_id: string | null
+          sent_at: string | null
+          status: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          delivered_at?: string | null
+          error_message?: string | null
+          id?: string
+          message: string
+          phone_number: string
+          provider?: string
+          provider_message_id?: string | null
+          sent_at?: string | null
+          status?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          delivered_at?: string | null
+          error_message?: string | null
+          id?: string
+          message?: string
+          phone_number?: string
+          provider?: string
+          provider_message_id?: string | null
+          sent_at?: string | null
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sms_notifications_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      social_accounts: {
+        Row: {
+          created_at: string
+          follower_count: number | null
+          id: string
+          platform: string
+          platform_user_id: string
+          profile_url: string | null
+          updated_at: string
+          user_id: string
+          username: string | null
+          verification_date: string | null
+          verified: boolean | null
+        }
+        Insert: {
+          created_at?: string
+          follower_count?: number | null
+          id?: string
+          platform: string
+          platform_user_id: string
+          profile_url?: string | null
+          updated_at?: string
+          user_id: string
+          username?: string | null
+          verification_date?: string | null
+          verified?: boolean | null
+        }
+        Update: {
+          created_at?: string
+          follower_count?: number | null
+          id?: string
+          platform?: string
+          platform_user_id?: string
+          profile_url?: string | null
+          updated_at?: string
+          user_id?: string
+          username?: string | null
+          verification_date?: string | null
+          verified?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "social_accounts_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       stripe_webhooks: {
         Row: {
           created_at: string
@@ -837,6 +1369,53 @@ export type Database = {
           upgrades?: number
         }
         Relationships: []
+      }
+      user_interactions: {
+        Row: {
+          created_at: string
+          id: string
+          interaction_type: string
+          ip_address: unknown | null
+          metadata: Json | null
+          session_id: string | null
+          target_id: string | null
+          target_type: string | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          interaction_type: string
+          ip_address?: unknown | null
+          metadata?: Json | null
+          session_id?: string | null
+          target_id?: string | null
+          target_type?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          interaction_type?: string
+          ip_address?: unknown | null
+          metadata?: Json | null
+          session_id?: string | null
+          target_id?: string | null
+          target_type?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_interactions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_preferences: {
         Row: {
