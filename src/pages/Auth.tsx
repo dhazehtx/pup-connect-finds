@@ -24,37 +24,37 @@ const Auth = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-white flex items-center justify-center p-4">
       <div className="max-w-md w-full space-y-6">
         <div className="text-center">
-          <h1 className="text-3xl font-bold text-gray-900">Welcome to DogFinder</h1>
+          <h1 className="text-3xl font-bold text-gray-900">DogFinder</h1>
           <p className="text-gray-600 mt-2">Find your perfect companion</p>
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-3 bg-gray-100 p-1 rounded-none">
+          <TabsList className="grid w-full grid-cols-3 bg-white border border-gray-200">
             <TabsTrigger 
               value="signin"
-              className="rounded-none data-[state=active]:bg-black data-[state=active]:text-white font-medium"
+              className="data-[state=active]:bg-gray-900 data-[state=active]:text-white text-gray-600 font-medium border-0"
             >
               Sign In
             </TabsTrigger>
             <TabsTrigger 
               value="signup"
-              className="rounded-none data-[state=active]:bg-black data-[state=active]:text-white font-medium"
+              className="data-[state=active]:bg-gray-900 data-[state=active]:text-white text-gray-600 font-medium border-0"
             >
               Sign Up
             </TabsTrigger>
             <TabsTrigger 
               value="guest"
-              className="rounded-none data-[state=active]:bg-black data-[state=active]:text-white font-medium"
+              className="data-[state=active]:bg-gray-900 data-[state=active]:text-white text-gray-600 font-medium border-0"
             >
               Guest
             </TabsTrigger>
           </TabsList>
 
           <TabsContent value="signin">
-            <Card className="border-gray-300 rounded-none">
+            <Card className="border border-gray-200 shadow-none">
               <CardHeader>
                 <CardTitle className="text-xl font-semibold text-gray-900">Sign In</CardTitle>
               </CardHeader>
@@ -62,7 +62,7 @@ const Auth = () => {
                 <SocialLogin onSuccess={() => navigate('/')} />
                 <div className="relative">
                   <div className="absolute inset-0 flex items-center">
-                    <span className="w-full border-t border-gray-300" />
+                    <span className="w-full border-t border-gray-200" />
                   </div>
                   <div className="relative flex justify-center text-xs uppercase">
                     <span className="bg-white px-2 text-gray-500 font-medium">Or continue with email</span>
@@ -74,7 +74,7 @@ const Auth = () => {
           </TabsContent>
 
           <TabsContent value="signup">
-            <Card className="border-gray-300 rounded-none">
+            <Card className="border border-gray-200 shadow-none">
               <CardHeader>
                 <CardTitle className="text-xl font-semibold text-gray-900">Create Account</CardTitle>
               </CardHeader>
@@ -82,7 +82,7 @@ const Auth = () => {
                 <SocialLogin onSuccess={() => navigate('/')} />
                 <div className="relative">
                   <div className="absolute inset-0 flex items-center">
-                    <span className="w-full border-t border-gray-300" />
+                    <span className="w-full border-t border-gray-200" />
                   </div>
                   <div className="relative flex justify-center text-xs uppercase">
                     <span className="bg-white px-2 text-gray-500 font-medium">Or continue with email</span>
