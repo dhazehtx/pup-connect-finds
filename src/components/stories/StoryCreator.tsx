@@ -15,7 +15,6 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { useEnhancedAI } from '@/hooks/useEnhancedAI';
-import { validateImageFile } from '@/utils/imageOptimization';
 import InteractiveImageEditor from './InteractiveImageEditor';
 
 interface StoryCreatorProps {
@@ -39,9 +38,9 @@ const StoryCreator = ({ onClose, onStoryCreated }: StoryCreatorProps) => {
     const file = event.target.files?.[0];
     if (file) {
       if (type === 'image') {
-        // Basic validation for file type only - remove size restrictions since we have cropping
-        const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
-        if (!allowedTypes.includes(file.type)) {
+        // Basic validation for file type only - allow any image size since we have cropping
+        const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif'];
+        if (!allowedTypes.includes(file.type.toLowerCase())) {
           toast({
             title: "Invalid File Type",
             description: "Please upload JPEG, PNG, WebP, or GIF images.",
@@ -53,12 +52,12 @@ const StoryCreator = ({ onClose, onStoryCreated }: StoryCreatorProps) => {
           return;
         }
 
-        // Check for reasonable file size limit (50MB) to prevent browser issues
-        const maxFileSize = 50 * 1024 * 1024; // 50MB
+        // Check for reasonable file size limit (100MB) to prevent browser memory issues
+        const maxFileSize = 100 * 1024 * 1024; // 100MB
         if (file.size > maxFileSize) {
           toast({
             title: "File Too Large",
-            description: "File size must be less than 50MB.",
+            description: "File size must be less than 100MB.",
             variant: "destructive",
           });
           if (fileInputRef.current) {
@@ -67,9 +66,10 @@ const StoryCreator = ({ onClose, onStoryCreated }: StoryCreatorProps) => {
           return;
         }
 
-        // Load image to verify it's valid, but don't restrict dimensions
+        // Load image to verify it's valid - no dimension restrictions
         const img = new Image();
         img.onload = () => {
+          console.log(`Image loaded successfully: ${img.width}x${img.height} pixels`);
           // Image is valid, proceed with setting it
           setSelectedFile(file);
           const url = URL.createObjectURL(file);
@@ -92,11 +92,11 @@ const StoryCreator = ({ onClose, onStoryCreated }: StoryCreatorProps) => {
         img.src = URL.createObjectURL(file);
       } else {
         // For video files, check basic size
-        const maxVideoSize = 50 * 1024 * 1024; // 50MB
+        const maxVideoSize = 100 * 1024 * 1024; // 100MB
         if (file.size > maxVideoSize) {
           toast({
             title: "Video Size Too Big",
-            description: "Video file is too large. Maximum allowed size is 50MB.",
+            description: "Video file is too large. Maximum allowed size is 100MB.",
             variant: "destructive",
           });
           if (videoInputRef.current) {
