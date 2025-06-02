@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { useSwipeGestures } from '@/hooks/useSwipeGestures';
 
@@ -19,6 +18,7 @@ const InteractiveImageEditor = ({ imageUrl, onSave, onCancel }: InteractiveImage
   const containerRef = useRef<HTMLDivElement>(null);
   const imageRef = useRef<HTMLImageElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [initialSetupComplete, setInitialSetupComplete] = useState(false);
 
   // Story dimensions (9:16 aspect ratio)
   const storyWidth = 360;
@@ -43,34 +43,46 @@ const InteractiveImageEditor = ({ imageUrl, onSave, onCancel }: InteractiveImage
 
   // Handle image load to set initial scale and position
   useEffect(() => {
-    if (imageRef.current && !imageLoaded) {
+    if (imageRef.current && !initialSetupComplete) {
       const img = imageRef.current;
+      
       const handleImageLoad = () => {
         const naturalWidth = img.naturalWidth;
         const naturalHeight = img.naturalHeight;
         
-        setImageDimensions({ width: naturalWidth, height: naturalHeight });
-        
         // Calculate and set initial scale for optimal crop
         const initialScale = calculateInitialScale(naturalWidth, naturalHeight);
-        setScale(initialScale);
         
-        // Center the image
-        setPosition({ x: 0, y: 0 });
-        setImageLoaded(true);
-        
-        console.log(`Image auto-cropped: ${naturalWidth}x${naturalHeight} -> scale: ${initialScale.toFixed(2)}`);
+        // Use setTimeout to avoid React warning about updating during render
+        setTimeout(() => {
+          setImageDimensions({ width: naturalWidth, height: naturalHeight });
+          setScale(initialScale);
+          setPosition({ x: 0, y: 0 });
+          setImageLoaded(true);
+          setInitialSetupComplete(true);
+          
+          console.log(`Image auto-cropped: ${naturalWidth}x${naturalHeight} -> scale: ${initialScale.toFixed(2)}`);
+        }, 0);
       };
 
-      if (img.complete) {
+      if (img.complete && img.naturalWidth > 0) {
         handleImageLoad();
       } else {
         img.addEventListener('load', handleImageLoad);
         return () => img.removeEventListener('load', handleImageLoad);
       }
     }
-  }, [imageUrl, imageLoaded, calculateInitialScale]);
+  }, [imageUrl, initialSetupComplete, calculateInitialScale]);
 
+  // Reset when imageUrl changes
+  useEffect(() => {
+    setInitialSetupComplete(false);
+    setImageLoaded(false);
+    setScale(1);
+    setPosition({ x: 0, y: 0 });
+  }, [imageUrl]);
+
+  // Touch events
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
     e.preventDefault();
     
@@ -246,7 +258,7 @@ const InteractiveImageEditor = ({ imageUrl, onSave, onCancel }: InteractiveImage
         
         {/* Instructions */}
         <div className="absolute bottom-4 left-4 bg-black/50 text-white px-2 py-1 rounded text-xs max-w-48">
-          {imageLoaded ? 'Auto-cropped for Stories' : 'Loading...'}
+          {initialSetupComplete ? 'Auto-cropped for Stories' : 'Loading...'}
         </div>
       </div>
 
