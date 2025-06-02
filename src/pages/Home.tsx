@@ -1,18 +1,15 @@
 
-import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import React from 'react';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   Heart, 
-  MapPin, 
-  Star, 
   MessageCircle, 
   Share2, 
-  Filter
+  MoreHorizontal,
+  User
 } from 'lucide-react';
-import { Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useDogListings } from '@/hooks/useDogListings';
 import LoadingSkeleton from '@/components/LoadingSkeleton';
@@ -21,118 +18,89 @@ import EmptyState from '@/components/EmptyState';
 const Home = () => {
   const { user, isGuest } = useAuth();
   const { listings, loading } = useDogListings();
-  const [activeTab, setActiveTab] = useState('feed');
 
   if (loading) {
     return <LoadingSkeleton viewMode="list" />;
   }
 
-  const featuredListings = listings?.slice(0, 6) || [];
+  if (!listings || listings.length === 0) {
+    return (
+      <EmptyState 
+        onClearFilters={() => {}}
+        hasActiveFilters={false}
+      />
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
-      {/* Main Content */}
-      <div className="container mx-auto px-4 py-8">
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-2 mb-6">
-            <TabsTrigger value="feed">Pet Feed</TabsTrigger>
-            <TabsTrigger value="featured">Featured Pets</TabsTrigger>
-          </TabsList>
+    <div className="min-h-screen bg-gray-50">
+      {/* Instagram-like Feed */}
+      <div className="max-w-md mx-auto bg-white min-h-screen">
+        <div className="space-y-0">
+          {listings.map((listing) => (
+            <Card key={listing.id} className="rounded-none border-x-0 border-t-0 border-b border-gray-200 shadow-none">
+              {/* Post Header */}
+              <div className="flex items-center justify-between p-3 border-b border-gray-100">
+                <div className="flex items-center space-x-3">
+                  <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center">
+                    <User className="w-5 h-5 text-gray-600" />
+                  </div>
+                  <div>
+                    <p className="font-semibold text-sm">{listing.profiles?.username || 'breeder'}</p>
+                    <p className="text-xs text-gray-500">{listing.profiles?.location || 'Location'}</p>
+                  </div>
+                </div>
+                <Button variant="ghost" size="sm">
+                  <MoreHorizontal className="w-5 h-5" />
+                </Button>
+              </div>
 
-          <TabsContent value="feed" className="space-y-6">
-            {/* Feed Content */}
-            <div className="grid gap-6">
-              {featuredListings.length > 0 ? (
-                featuredListings.map((listing) => (
-                  <Card key={listing.id} className="overflow-hidden hover:shadow-lg transition-shadow">
-                    <div className="flex">
-                      {listing.image_url && (
-                        <div className="w-32 h-32 flex-shrink-0">
-                          <img 
-                            src={listing.image_url} 
-                            alt={listing.dog_name}
-                            className="w-full h-full object-cover"
-                          />
-                        </div>
-                      )}
-                      <div className="flex-1 p-4">
-                        <div className="flex justify-between items-start mb-2">
-                          <h3 className="text-xl font-semibold">{listing.dog_name}</h3>
-                          <Badge>{listing.breed}</Badge>
-                        </div>
-                        <p className="text-gray-600 mb-2">{listing.age} months old</p>
-                        <p className="text-2xl font-bold text-green-600 mb-3">${listing.price}</p>
-                        <div className="flex gap-2">
-                          <Button size="sm">
-                            <Heart className="w-4 h-4 mr-1" />
-                            Save
-                          </Button>
-                          <Button size="sm" variant="outline">
-                            <MessageCircle className="w-4 h-4 mr-1" />
-                            Message
-                          </Button>
-                          <Button size="sm" variant="outline">
-                            <Share2 className="w-4 h-4 mr-1" />
-                            Share
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
-                  </Card>
-                ))
-              ) : (
-                <EmptyState 
-                  onClearFilters={() => {}}
-                  hasActiveFilters={false}
-                />
-              )}
-            </div>
-          </TabsContent>
-
-          <TabsContent value="featured" className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {featuredListings.length > 0 ? (
-                featuredListings.map((listing) => (
-                  <Card key={listing.id} className="overflow-hidden hover:shadow-lg transition-shadow">
-                    {listing.image_url && (
-                      <div className="aspect-video">
-                        <img 
-                          src={listing.image_url} 
-                          alt={listing.dog_name}
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
-                    )}
-                    <CardContent className="p-4">
-                      <div className="flex justify-between items-start mb-2">
-                        <h3 className="text-lg font-semibold">{listing.dog_name}</h3>
-                        <Badge>{listing.breed}</Badge>
-                      </div>
-                      <p className="text-gray-600 mb-2">{listing.age} months old</p>
-                      <p className="text-xl font-bold text-green-600 mb-3">${listing.price}</p>
-                      <div className="flex gap-2">
-                        <Button size="sm" className="flex-1">
-                          <Heart className="w-4 h-4 mr-1" />
-                          Save
-                        </Button>
-                        <Button size="sm" variant="outline">
-                          <MessageCircle className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))
-              ) : (
-                <div className="col-span-full">
-                  <EmptyState 
-                    onClearFilters={() => {}}
-                    hasActiveFilters={false}
+              {/* Post Image */}
+              {listing.image_url && (
+                <div className="aspect-square bg-gray-100">
+                  <img 
+                    src={listing.image_url} 
+                    alt={listing.dog_name}
+                    className="w-full h-full object-cover"
                   />
                 </div>
               )}
-            </div>
-          </TabsContent>
-        </Tabs>
+
+              {/* Post Actions */}
+              <div className="p-3">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center space-x-4">
+                    <Button variant="ghost" size="sm" className="p-0 h-auto">
+                      <Heart className="w-6 h-6" />
+                    </Button>
+                    <Button variant="ghost" size="sm" className="p-0 h-auto">
+                      <MessageCircle className="w-6 h-6" />
+                    </Button>
+                    <Button variant="ghost" size="sm" className="p-0 h-auto">
+                      <Share2 className="w-6 h-6" />
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Post Content */}
+                <div className="space-y-1">
+                  <p className="font-semibold text-sm">
+                    <span className="font-bold">{listing.dog_name}</span> • <Badge variant="outline" className="text-xs">{listing.breed}</Badge>
+                  </p>
+                  <p className="text-sm">
+                    <span className="font-semibold">${listing.price}</span> • {listing.age} months old
+                  </p>
+                  {listing.description && (
+                    <p className="text-sm text-gray-700">{listing.description}</p>
+                  )}
+                  <p className="text-xs text-gray-500 uppercase tracking-wide">
+                    {new Date(listing.created_at).toLocaleDateString()}
+                  </p>
+                </div>
+              </div>
+            </Card>
+          ))}
+        </div>
       </div>
     </div>
   );
