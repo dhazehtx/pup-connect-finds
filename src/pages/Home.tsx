@@ -9,95 +9,117 @@ import {
   Share2, 
   MoreHorizontal,
   User,
-  Database
+  Plus
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
-import { useDogListings } from '@/hooks/useDogListings';
-import LoadingSkeleton from '@/components/LoadingSkeleton';
-import EmptyState from '@/components/EmptyState';
-import { useToast } from '@/hooks/use-toast';
-import { loadSampleData } from '@/utils/sampleDataLoader';
+
+// Sample stories data
+const sampleStories = [
+  { id: 1, username: 'Your Story', avatar: null, isAddStory: true },
+  { id: 2, username: 'goldenbreeder', avatar: 'https://images.unsplash.com/photo-1552053831-71594a27632d?w=100&h=100&fit=crop&crop=face' },
+  { id: 3, username: 'puppylover', avatar: 'https://images.unsplash.com/photo-1518717758536-85ae29035b6d?w=100&h=100&fit=crop&crop=face' },
+  { id: 4, username: 'dogrescue', avatar: 'https://images.unsplash.com/photo-1529472119196-cb724127a98e?w=100&h=100&fit=crop&crop=face' },
+  { id: 5, username: 'frenchbulldog', avatar: 'https://images.unsplash.com/photo-1583337130417-3346a1be7dee?w=100&h=100&fit=crop&crop=face' },
+];
+
+// Sample posts data
+const samplePosts = [
+  {
+    id: 1,
+    username: 'goldenbreeder',
+    userAvatar: 'https://images.unsplash.com/photo-1552053831-71594a27632d?w=50&h=50&fit=crop&crop=face',
+    location: 'Austin, TX',
+    image: 'https://images.unsplash.com/photo-1552053831-71594a27632d?w=400&h=400&fit=crop',
+    caption: 'Meet Luna! 🐕 This beautiful Golden Retriever puppy is looking for her forever home. She loves playing fetch and cuddles! #goldenretriever #puppylove',
+    likes: 127,
+    comments: 23,
+    timeAgo: '2h'
+  },
+  {
+    id: 2,
+    username: 'puppylover',
+    userAvatar: 'https://images.unsplash.com/photo-1518717758536-85ae29035b6d?w=50&h=50&fit=crop&crop=face',
+    location: 'Denver, CO',
+    image: 'https://images.unsplash.com/photo-1518717758536-85ae29035b6d?w=400&h=400&fit=crop',
+    caption: 'Max is the sweetest chocolate lab! He\'s great with kids and loves swimming 🏊‍♂️ #labrador #chocolate #goodboy',
+    likes: 89,
+    comments: 15,
+    timeAgo: '4h'
+  },
+  {
+    id: 3,
+    username: 'dogrescue',
+    userAvatar: 'https://images.unsplash.com/photo-1529472119196-cb724127a98e?w=50&h=50&fit=crop&crop=face',
+    location: 'Portland, OR',
+    image: 'https://images.unsplash.com/photo-1529472119196-cb724127a98e?w=400&h=400&fit=crop',
+    caption: 'Buddy found his forever home today! 🏠❤️ Thank you to everyone who shared his story. #rescue #adopted #happiness',
+    likes: 234,
+    comments: 41,
+    timeAgo: '6h'
+  },
+  {
+    id: 4,
+    username: 'frenchbulldog',
+    userAvatar: 'https://images.unsplash.com/photo-1583337130417-3346a1be7dee?w=50&h=50&fit=crop&crop=face',
+    location: 'Los Angeles, CA',
+    image: 'https://images.unsplash.com/photo-1583337130417-3346a1be7dee?w=400&h=400&fit=crop',
+    caption: 'Bella\'s first day at the park! She made so many new friends 🐾 #frenchie #parkday #socializing',
+    likes: 156,
+    comments: 28,
+    timeAgo: '8h'
+  }
+];
 
 const Home = () => {
   const { user, isGuest } = useAuth();
-  const { listings, loading, refreshListings } = useDogListings();
-  const { toast } = useToast();
-
-  const handleLoadSampleData = async () => {
-    try {
-      const success = await loadSampleData();
-      if (success) {
-        toast({
-          title: "Sample Data Loaded",
-          description: "Demo listings have been added successfully!",
-        });
-        refreshListings();
-      } else {
-        toast({
-          title: "Error",
-          description: "Failed to load sample data",
-          variant: "destructive",
-        });
-      }
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "An error occurred while loading sample data",
-        variant: "destructive",
-      });
-    }
-  };
-
-  if (loading) {
-    return <LoadingSkeleton viewMode="list" />;
-  }
-
-  if (!listings || listings.length === 0) {
-    return (
-      <div className="min-h-screen bg-gray-50">
-        <div className="max-w-md mx-auto bg-white min-h-screen">
-          <div className="p-6 text-center">
-            <h2 className="text-xl font-semibold mb-4">No listings yet</h2>
-            <p className="text-gray-600 mb-6">Load some sample data to see the demo in action!</p>
-            <Button onClick={handleLoadSampleData} className="mb-4">
-              <Database className="w-4 h-4 mr-2" />
-              Load Demo Listings
-            </Button>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Instagram-like Feed */}
       <div className="max-w-md mx-auto bg-white min-h-screen">
-        {/* Demo Data Loader Button */}
-        <div className="p-3 border-b border-gray-200 bg-white sticky top-0 z-10">
-          <Button 
-            onClick={handleLoadSampleData}
-            variant="outline" 
-            size="sm"
-            className="w-full"
-          >
-            <Database className="w-4 h-4 mr-2" />
-            Load More Demo Data
-          </Button>
+        {/* Stories Section */}
+        <div className="p-4 border-b border-gray-200 bg-white sticky top-0 z-10">
+          <div className="flex space-x-4 overflow-x-auto scrollbar-hide">
+            {sampleStories.map((story) => (
+              <div key={story.id} className="flex flex-col items-center space-y-1 min-w-[60px]">
+                <div className={`w-14 h-14 rounded-full p-0.5 ${story.isAddStory ? 'bg-gray-200' : 'bg-gradient-to-tr from-yellow-400 to-pink-600'}`}>
+                  <div className="w-full h-full bg-white rounded-full flex items-center justify-center overflow-hidden">
+                    {story.isAddStory ? (
+                      <Plus className="w-6 h-6 text-gray-600" />
+                    ) : (
+                      <img 
+                        src={story.avatar} 
+                        alt={story.username}
+                        className="w-full h-full object-cover rounded-full"
+                      />
+                    )}
+                  </div>
+                </div>
+                <span className="text-xs text-gray-600 text-center max-w-[60px] truncate">
+                  {story.username}
+                </span>
+              </div>
+            ))}
+          </div>
         </div>
 
+        {/* Posts Feed */}
         <div className="space-y-0">
-          {listings.map((listing) => (
-            <Card key={listing.id} className="rounded-none border-x-0 border-t-0 border-b border-gray-200 shadow-none">
+          {samplePosts.map((post) => (
+            <Card key={post.id} className="rounded-none border-x-0 border-t-0 border-b border-gray-200 shadow-none">
               {/* Post Header */}
               <div className="flex items-center justify-between p-3 border-b border-gray-100">
                 <div className="flex items-center space-x-3">
-                  <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center">
-                    <User className="w-5 h-5 text-gray-600" />
+                  <div className="w-8 h-8 rounded-full overflow-hidden">
+                    <img 
+                      src={post.userAvatar} 
+                      alt={post.username}
+                      className="w-full h-full object-cover"
+                    />
                   </div>
                   <div>
-                    <p className="font-semibold text-sm">{listing.profiles?.username || 'breeder'}</p>
-                    <p className="text-xs text-gray-500">{listing.profiles?.location || 'Location'}</p>
+                    <p className="font-semibold text-sm">{post.username}</p>
+                    <p className="text-xs text-gray-500">{post.location}</p>
                   </div>
                 </div>
                 <Button variant="ghost" size="sm">
@@ -106,15 +128,13 @@ const Home = () => {
               </div>
 
               {/* Post Image */}
-              {listing.image_url && (
-                <div className="aspect-square bg-gray-100">
-                  <img 
-                    src={listing.image_url} 
-                    alt={listing.dog_name}
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-              )}
+              <div className="aspect-square bg-gray-100">
+                <img 
+                  src={post.image} 
+                  alt="Post content"
+                  className="w-full h-full object-cover"
+                />
+              </div>
 
               {/* Post Actions */}
               <div className="p-3">
@@ -134,17 +154,19 @@ const Home = () => {
 
                 {/* Post Content */}
                 <div className="space-y-1">
-                  <p className="font-semibold text-sm">
-                    <span className="font-bold">{listing.dog_name}</span> • <Badge variant="outline" className="text-xs">{listing.breed}</Badge>
+                  <p className="text-sm">
+                    <span className="font-semibold">{post.likes.toLocaleString()} likes</span>
                   </p>
                   <p className="text-sm">
-                    <span className="font-semibold">${listing.price}</span> • {listing.age} months old
+                    <span className="font-semibold">{post.username}</span> {post.caption}
                   </p>
-                  {listing.description && (
-                    <p className="text-sm text-gray-700">{listing.description}</p>
+                  {post.comments > 0 && (
+                    <p className="text-sm text-gray-500">
+                      View all {post.comments} comments
+                    </p>
                   )}
-                  <p className="text-xs text-gray-500 uppercase tracking-wide">
-                    {new Date(listing.created_at).toLocaleDateString()}
+                  <p className="text-xs text-gray-400 uppercase tracking-wide">
+                    {post.timeAgo} ago
                   </p>
                 </div>
               </div>
