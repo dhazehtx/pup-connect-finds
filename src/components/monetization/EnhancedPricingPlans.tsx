@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -26,13 +25,14 @@ const EnhancedPricingPlans = () => {
       monthlyPrice: PRICING_CONFIG.subscriptions.basic.monthly,
       yearlyPrice: PRICING_CONFIG.subscriptions.basic.yearly,
       features: PRICING_CONFIG.subscriptions.basic.features,
-      description: 'Perfect for casual dog lovers and first-time buyers',
+      description: 'Full social experience for dog lovers - completely free!',
       buttonText: 'Get Started Free',
       savings: null,
       socialFeatures: [
-        { icon: MessageSquare, text: '10 messages/day' },
-        { icon: Heart, text: 'Like & comment' },
-        { icon: Users, text: 'View profiles & stories' }
+        { icon: MessageSquare, text: 'Unlimited messaging' },
+        { icon: Video, text: 'Unlimited video calls' },
+        { icon: Phone, text: 'Unlimited voice calls' },
+        { icon: Camera, text: 'Create stories & posts' }
       ]
     },
     {
@@ -46,14 +46,14 @@ const EnhancedPricingPlans = () => {
       monthlyPrice: PRICING_CONFIG.subscriptions.pro.monthly,
       yearlyPrice: PRICING_CONFIG.subscriptions.pro.yearly,
       features: PRICING_CONFIG.subscriptions.pro.features,
-      description: 'For serious dog enthusiasts who want the best experience',
+      description: 'Enhanced experience with premium features and early access',
       buttonText: 'Upgrade to Pro Pup',
       savings: 'Save $25/year',
       socialFeatures: [
-        { icon: Video, text: 'Unlimited video calls' },
-        { icon: Phone, text: 'Voice calls included' },
-        { icon: Camera, text: 'Create stories & posts' },
-        { icon: MessageSquare, text: 'Unlimited messaging' }
+        { icon: Video, text: 'HD video calls & streaming' },
+        { icon: Camera, text: 'Premium templates & effects' },
+        { icon: Users, text: 'Group calls (8 people)' },
+        { icon: MessageSquare, text: 'Message scheduling' }
       ]
     },
     {
@@ -71,10 +71,10 @@ const EnhancedPricingPlans = () => {
       buttonText: 'Become Elite Handler',
       savings: 'Save $40/year',
       socialFeatures: [
-        { icon: Video, text: 'Live streaming' },
+        { icon: Video, text: 'Business streaming studio' },
         { icon: Users, text: 'Multi-account management' },
         { icon: MessageSquare, text: 'Bulk messaging tools' },
-        { icon: Camera, text: 'Professional content tools' }
+        { icon: Camera, text: 'Professional content suite' }
       ]
     }
   ];
@@ -99,7 +99,7 @@ const EnhancedPricingPlans = () => {
     <div className="p-6 max-w-7xl mx-auto">
       <div className="text-center mb-8">
         <h2 className="text-4xl font-bold mb-4">Choose Your Perfect Plan</h2>
-        <p className="text-xl text-gray-600 mb-6">Join thousands of happy dog parents finding their perfect companions</p>
+        <p className="text-xl text-gray-600 mb-6">Full social features free forever - upgrade for premium experiences</p>
         
         <div className="flex items-center justify-center gap-4 mb-8">
           <span className={`text-sm ${!isYearly ? 'font-semibold' : 'text-gray-600'}`}>Monthly</span>
@@ -244,13 +244,13 @@ const EnhancedPricingPlans = () => {
 
       {/* Social Features Showcase */}
       <div className="mt-16 text-center">
-        <h3 className="text-2xl font-bold mb-8">Full Social Experience</h3>
+        <h3 className="text-2xl font-bold mb-8">Full Social Experience - Free Forever</h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
           <div className="text-center">
             <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <Video className="w-8 h-8 text-blue-600" />
             </div>
-            <h4 className="font-semibold text-lg mb-2">Video Calls</h4>
+            <h4 className="font-semibold text-lg mb-2">Unlimited Video Calls</h4>
             <p className="text-gray-600 text-sm">Connect face-to-face with breeders and other dog lovers</p>
           </div>
           
@@ -258,7 +258,7 @@ const EnhancedPricingPlans = () => {
             <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <Phone className="w-8 h-8 text-green-600" />
             </div>
-            <h4 className="font-semibold text-lg mb-2">Voice Calls</h4>
+            <h4 className="font-semibold text-lg mb-2">Unlimited Voice Calls</h4>
             <p className="text-gray-600 text-sm">Quick voice conversations for instant communication</p>
           </div>
 
@@ -274,7 +274,7 @@ const EnhancedPricingPlans = () => {
             <div className="w-16 h-16 bg-pink-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <MessageSquare className="w-8 h-8 text-pink-600" />
             </div>
-            <h4 className="font-semibold text-lg mb-2">Unlimited Chat</h4>
+            <h4 className="font-semibold text-lg mb-2">Unlimited Messaging</h4>
             <p className="text-gray-600 text-sm">Message breeders, sellers, and the community without limits</p>
           </div>
         </div>

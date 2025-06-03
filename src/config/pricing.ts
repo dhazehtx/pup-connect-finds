@@ -12,14 +12,20 @@ export const PRICING_CONFIG = {
       name: 'Basic',
       features: [
         'Browse all dog listings & services',
-        'Message sellers & providers',
-        'Save up to 10 favorites',
+        'Unlimited messaging with sellers & providers',
+        'Unlimited video & voice calls',
+        'Create and share stories',
+        'Post photos & videos to profile',
+        'Unlimited likes and comments',
+        'Save unlimited favorites',
         'Access basic support',
         'Standard listing visibility',
-        'Like and comment on posts',
         'View stories and profiles',
         'Basic profile creation',
-        'Limited messaging (10 per day)'
+        'Advanced messaging features',
+        'Message read receipts',
+        'Story highlights and saved content',
+        'Advanced photo filters'
       ]
     },
     pro: {
@@ -29,21 +35,21 @@ export const PRICING_CONFIG = {
       features: [
         'Everything in Basic',
         'See listings first (early access)',
-        'Unlimited favorites & messages',
-        'Video calls with sellers/providers',
-        'Voice calls with sellers/providers',
-        'Create and share stories',
-        'Post photos & videos to profile',
-        'Unlimited likes and comments',
-        'Advanced messaging features',
+        'HD video & voice calls',
+        'Premium story templates & effects',
+        'Enhanced profile customization',
+        'Live streaming capabilities',
         'Exclusive breeds & shelter partners',
         'Partner brand discounts (10-20%)',
         'Pro Pup trustworthiness badge',
         'Priority customer support',
         'Profile verification options',
-        'Story highlights and saved content',
-        'Advanced photo filters',
-        'Message read receipts'
+        'Advanced analytics for your posts',
+        'Custom story highlights',
+        'Professional photo editing tools',
+        'Message scheduling & templates',
+        'Group video calls (up to 8 people)',
+        'Premium filters & AR effects'
       ]
     },
     business: {
@@ -60,14 +66,15 @@ export const PRICING_CONFIG = {
         'Elite Handler verification badge',
         'Dedicated account manager',
         'Custom branding options',
-        'Live streaming capabilities',
+        'Business live streaming studio',
         'Business insights and metrics',
         'Bulk messaging tools',
-        'Professional content creation tools',
+        'Professional content creation suite',
         'Priority placement in search',
-        'Advanced video call features',
+        'Advanced business video tools',
         'Multi-account management',
-        'API access for integrations'
+        'API access for integrations',
+        'White-label customer portal'
       ]
     }
   },
