@@ -69,6 +69,8 @@ export interface UserProfile {
   total_reviews: number;
   specializations: string[];
   certifications: string[];
+  trust_score?: number;
+  breeding_program_name?: string;
   
   // Contact & Social
   phone?: string;

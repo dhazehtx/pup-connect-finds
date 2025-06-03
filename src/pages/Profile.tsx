@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { Settings } from 'lucide-react';
@@ -10,7 +9,7 @@ import ProfileActions from '@/components/profile/ProfileActions';
 import ProfileHighlights from '@/components/profile/ProfileHighlights';
 import ProfileTabs from '@/components/profile/ProfileTabs';
 import ProfileEditDialog from '@/components/profile/ProfileEditDialog';
-import ProfileCompletionGuide from '@/components/profile/ProfileCompletionGuide';
+import ProfileCompletionGuideEnhanced from '@/components/profile/ProfileCompletionGuideEnhanced';
 import MobileProfileHeader from '@/components/profile/MobileProfileHeader';
 import ProfileErrorBoundary from '@/components/profile/ProfileErrorBoundary';
 import ProfileAnalyticsEnhanced from '@/components/profile/ProfileAnalyticsEnhanced';
@@ -76,6 +75,8 @@ const Profile = () => {
     total_reviews: profile.totalReviews || profile.total_reviews || 0,
     specializations: enhancedProfile?.specializations || [],
     certifications: enhancedProfile?.certifications || [],
+    trust_score: enhancedProfile?.trust_score || (profile.rating / 5) || 0,
+    breeding_program_name: portfolios.length > 0 ? portfolios[0].portfolio_name : undefined,
     phone: profile.phone,
     website_url: profile.websiteUrl || profile.website_url,
     social_links: profile.social_links || {},
@@ -122,6 +123,8 @@ const Profile = () => {
       'USDA Licensed',
       'Veterinary Health Certificate'
     ],
+    trust_score: 0.95,
+    breeding_program_name: 'Golden Paws Breeding Program',
     phone: '+1 (555) 123-4567',
     website_url: 'www.goldenpaws.com',
     social_links: {},
@@ -258,11 +261,19 @@ const Profile = () => {
           {/* Profile Completion Guide - enhanced with trust score */}
           {isOwnProfile && showCompletionGuide && enhancedProfile && (
             <div className="mb-6">
-              <ProfileCompletionGuide
+              <ProfileCompletionGuideEnhanced
                 profile={{
-                  ...displayProfile,
-                  trust_score: enhancedProfile.trust_score,
-                  profile_completion_percentage: enhancedProfile.profile_completion_percentage
+                  full_name: displayProfile.full_name,
+                  username: displayProfile.username,
+                  bio: displayProfile.bio,
+                  location: displayProfile.location,
+                  phone: displayProfile.phone,
+                  website_url: displayProfile.website_url,
+                  avatar_url: displayProfile.avatar_url,
+                  verified: displayProfile.verified,
+                  trust_score: displayProfile.trust_score,
+                  profile_completion_percentage: enhancedProfile.profile_completion_percentage,
+                  specializations: displayProfile.specializations
                 }}
                 onStepClick={handleStepClick}
                 onDismiss={() => setShowCompletionGuide(false)}
@@ -275,6 +286,7 @@ const Profile = () => {
           <ProfileBadges 
             verificationBadges={allVerificationBadges}
             specializations={allSpecializations}
+            certifications={displayProfile.certifications}
           />
 
           <ProfileActions />
