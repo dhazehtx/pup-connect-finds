@@ -22,22 +22,88 @@ const Home = () => {
   const [stories, setStories] = useState<Story[]>(sampleStories);
   const [showStoryCreator, setShowStoryCreator] = useState(false);
 
-  // Convert listings to posts format for the feed
-  const feedPosts = listings.slice(0, 6).map((listing) => ({
-    id: listing.id,
-    username: listing.profiles?.username || 'Unknown User',
-    userAvatar: 'https://images.unsplash.com/photo-1552053831-71594a27632d?w=50&h=50&fit=crop&crop=face', // Using default avatar since avatar_url doesn't exist in profiles
-    location: listing.location || 'Location not specified',
-    image: listing.image_url || 'https://images.unsplash.com/photo-1552053831-71594a27632d?w=400&h=400&fit=crop',
-    caption: `Meet ${listing.dog_name}! 🐕 This beautiful ${listing.breed} is looking for a forever home. ${listing.description || ''} #${listing.breed.toLowerCase().replace(/\s+/g, '')} #puppylove`,
-    likes: Math.floor(Math.random() * 200) + 50, // Random likes for demo
-    comments: Math.floor(Math.random() * 50) + 5, // Random comments for demo
-    timeAgo: new Date(listing.created_at).toLocaleDateString(),
-    price: `$${listing.price}`,
-    dogName: listing.dog_name,
-    breed: listing.breed,
-    age: listing.age
-  }));
+  // Mock feed posts data to ensure content is always visible
+  const mockFeedPosts = [
+    {
+      id: 'post-1',
+      username: 'golden_breeder_sf',
+      userAvatar: 'https://images.unsplash.com/photo-1552053831-71594a27632d?w=50&h=50&fit=crop&crop=face',
+      location: 'San Francisco, CA',
+      image: 'https://images.unsplash.com/photo-1552053831-71594a27632d?w=400&h=400&fit=crop',
+      caption: 'Meet Luna! 🐕 This beautiful Golden Retriever puppy is looking for her forever home. She\'s 8 weeks old, health tested, and has the sweetest temperament. AKC registered with champion bloodlines. #goldenretriever #puppylove #akc',
+      likes: 142,
+      comments: 23,
+      timeAgo: '2 hours ago',
+      price: '$2,800',
+      dogName: 'Luna',
+      breed: 'Golden Retriever',
+      age: '8 weeks'
+    },
+    {
+      id: 'post-2',
+      username: 'frenchie_love_bay',
+      userAvatar: 'https://images.unsplash.com/photo-1583337130417-3346a1be7dee?w=50&h=50&fit=crop&crop=face',
+      location: 'Oakland, CA',
+      image: 'https://images.unsplash.com/photo-1583337130417-3346a1be7dee?w=400&h=400&fit=crop',
+      caption: 'Bella is ready for her new family! 💙 This gorgeous French Bulldog has the most adorable personality. She\'s playful, loves cuddles, and gets along great with kids. Health tested parents. #frenchbulldog #frenchie #puppy',
+      likes: 89,
+      comments: 15,
+      timeAgo: '4 hours ago',
+      price: '$4,200',
+      dogName: 'Bella',
+      breed: 'French Bulldog',
+      age: '10 weeks'
+    },
+    {
+      id: 'post-3',
+      username: 'shepherd_sanctuary',
+      userAvatar: 'https://images.unsplash.com/photo-1589941013453-ec89f33b5e95?w=50&h=50&fit=crop&crop=face',
+      location: 'San Jose, CA',
+      image: 'https://images.unsplash.com/photo-1589941013453-ec89f33b5e95?w=400&h=400&fit=crop',
+      caption: 'Charlie is a stunning German Shepherd from champion lines! 🏆 He\'s intelligent, loyal, and has excellent temperament. Perfect for families looking for a protective and loving companion. #germanshepherd #champion #puppy',
+      likes: 203,
+      comments: 31,
+      timeAgo: '6 hours ago',
+      price: '$3,500',
+      dogName: 'Charlie',
+      breed: 'German Shepherd',
+      age: '12 weeks'
+    },
+    {
+      id: 'post-4',
+      username: 'rescue_hearts_ca',
+      userAvatar: 'https://images.unsplash.com/photo-1529472119196-cb724127a98e?w=50&h=50&fit=crop&crop=face',
+      location: 'Berkeley, CA',
+      image: 'https://images.unsplash.com/photo-1529472119196-cb724127a98e?w=400&h=400&fit=crop',
+      caption: 'Meet Max! 🐾 This sweet rescue pup is looking for his forever home. He\'s great with kids, fully vaccinated, and just wants to be loved. Adoption fee helps us save more lives! #rescue #adoption #mixedbreed',
+      likes: 67,
+      comments: 12,
+      timeAgo: '8 hours ago',
+      price: '$150',
+      dogName: 'Max',
+      breed: 'Mixed Breed',
+      age: '2 years'
+    }
+  ];
+
+  // Convert database listings to posts format or use mock data
+  const feedPosts = listings.length > 0 
+    ? listings.slice(0, 6).map((listing) => ({
+        id: listing.id,
+        username: listing.profiles?.username || 'Unknown User',
+        userAvatar: 'https://images.unsplash.com/photo-1552053831-71594a27632d?w=50&h=50&fit=crop&crop=face',
+        location: listing.location || 'Location not specified',
+        image: listing.image_url || 'https://images.unsplash.com/photo-1552053831-71594a27632d?w=400&h=400&fit=crop',
+        caption: `Meet ${listing.dog_name}! 🐕 This beautiful ${listing.breed} is looking for a forever home. ${listing.description || ''} #${listing.breed.toLowerCase().replace(/\s+/g, '')} #puppylove`,
+        likes: Math.floor(Math.random() * 200) + 50,
+        comments: Math.floor(Math.random() * 50) + 5,
+        timeAgo: new Date(listing.created_at).toLocaleDateString(),
+        price: `$${listing.price}`,
+        dogName: listing.dog_name,
+        breed: listing.breed,
+        age: listing.age
+      }))
+    : mockFeedPosts;
 
   const handleStoryClick = (index: number) => {
     const story = stories[index];
@@ -131,88 +197,82 @@ const Home = () => {
 
         {/* Posts Feed */}
         <div className="space-y-0">
-          {feedPosts.length === 0 ? (
-            <div className="p-4 text-center">
-              <p className="text-gray-500">No listings available yet. Be the first to post!</p>
-            </div>
-          ) : (
-            feedPosts.map((post) => (
-              <Card key={post.id} className="rounded-none border-x-0 border-t-0 border-b border-gray-200 shadow-none">
-                {/* Post Header */}
-                <div className="flex items-center justify-between p-3 border-b border-gray-100">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-8 h-8 rounded-full overflow-hidden">
-                      <img 
-                        src={post.userAvatar} 
-                        alt={post.username}
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-                    <div>
-                      <p className="font-semibold text-sm">{post.username}</p>
-                      <p className="text-xs text-gray-500">{post.location}</p>
-                    </div>
+          {feedPosts.map((post) => (
+            <Card key={post.id} className="rounded-none border-x-0 border-t-0 border-b border-gray-200 shadow-none">
+              {/* Post Header */}
+              <div className="flex items-center justify-between p-3 border-b border-gray-100">
+                <div className="flex items-center space-x-3">
+                  <div className="w-8 h-8 rounded-full overflow-hidden">
+                    <img 
+                      src={post.userAvatar} 
+                      alt={post.username}
+                      className="w-full h-full object-cover"
+                    />
                   </div>
-                  <div className="flex items-center space-x-2">
-                    <Badge variant="secondary" className="text-xs">
-                      {post.price}
-                    </Badge>
-                    <Button variant="ghost" size="sm">
-                      <MoreHorizontal className="w-5 h-5" />
+                  <div>
+                    <p className="font-semibold text-sm">{post.username}</p>
+                    <p className="text-xs text-gray-500">{post.location}</p>
+                  </div>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Badge variant="secondary" className="text-xs">
+                    {post.price}
+                  </Badge>
+                  <Button variant="ghost" size="sm">
+                    <MoreHorizontal className="w-5 h-5" />
+                  </Button>
+                </div>
+              </div>
+
+              {/* Post Image */}
+              <div className="aspect-square bg-gray-100">
+                <img 
+                  src={post.image} 
+                  alt="Post content"
+                  className="w-full h-full object-cover"
+                />
+              </div>
+
+              {/* Post Actions */}
+              <div className="p-3">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center space-x-4">
+                    <Button variant="ghost" size="sm" className="p-0 h-auto">
+                      <Heart className="w-6 h-6" />
+                    </Button>
+                    <Button variant="ghost" size="sm" className="p-0 h-auto">
+                      <MessageCircle className="w-6 h-6" />
+                    </Button>
+                    <Button variant="ghost" size="sm" className="p-0 h-auto">
+                      <Share2 className="w-6 h-6" />
                     </Button>
                   </div>
                 </div>
 
-                {/* Post Image */}
-                <div className="aspect-square bg-gray-100">
-                  <img 
-                    src={post.image} 
-                    alt="Post content"
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-
-                {/* Post Actions */}
-                <div className="p-3">
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center space-x-4">
-                      <Button variant="ghost" size="sm" className="p-0 h-auto">
-                        <Heart className="w-6 h-6" />
-                      </Button>
-                      <Button variant="ghost" size="sm" className="p-0 h-auto">
-                        <MessageCircle className="w-6 h-6" />
-                      </Button>
-                      <Button variant="ghost" size="sm" className="p-0 h-auto">
-                        <Share2 className="w-6 h-6" />
-                      </Button>
-                    </div>
+                {/* Post Content */}
+                <div className="space-y-1">
+                  <p className="text-sm">
+                    <span className="font-semibold">{post.likes.toLocaleString()} likes</span>
+                  </p>
+                  <div className="flex flex-wrap gap-1 text-xs text-gray-600 mb-2">
+                    <Badge variant="outline" className="text-xs">{post.breed}</Badge>
+                    <Badge variant="outline" className="text-xs">{post.age}</Badge>
                   </div>
-
-                  {/* Post Content */}
-                  <div className="space-y-1">
-                    <p className="text-sm">
-                      <span className="font-semibold">{post.likes.toLocaleString()} likes</span>
+                  <p className="text-sm">
+                    <span className="font-semibold">{post.username}</span> {post.caption}
+                  </p>
+                  {post.comments > 0 && (
+                    <p className="text-sm text-gray-500">
+                      View all {post.comments} comments
                     </p>
-                    <div className="flex flex-wrap gap-1 text-xs text-gray-600 mb-2">
-                      <Badge variant="outline" className="text-xs">{post.breed}</Badge>
-                      <Badge variant="outline" className="text-xs">{post.age} months</Badge>
-                    </div>
-                    <p className="text-sm">
-                      <span className="font-semibold">{post.username}</span> {post.caption}
-                    </p>
-                    {post.comments > 0 && (
-                      <p className="text-sm text-gray-500">
-                        View all {post.comments} comments
-                      </p>
-                    )}
-                    <p className="text-xs text-gray-400 uppercase tracking-wide">
-                      {post.timeAgo}
-                    </p>
-                  </div>
+                  )}
+                  <p className="text-xs text-gray-400 uppercase tracking-wide">
+                    {post.timeAgo}
+                  </p>
                 </div>
-              </Card>
-            ))
-          )}
+              </div>
+            </Card>
+          ))}
         </div>
       </div>
 

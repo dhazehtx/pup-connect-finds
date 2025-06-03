@@ -37,7 +37,7 @@ const Explore = () => {
     'Nearby (10mi)'
   ];
 
-  // Mock data for display
+  // Enhanced mock data for better display
   const mockListings = [
     {
       id: 1,
@@ -48,7 +48,8 @@ const Explore = () => {
       age: '8 weeks',
       available: 3,
       image: 'https://images.unsplash.com/photo-1583337130417-3346a1be7dee?w=400&h=400&fit=crop',
-      verified: true
+      verified: true,
+      description: 'Adorable French Bulldog puppies with excellent temperament and health tested parents.'
     },
     {
       id: 2,
@@ -59,7 +60,8 @@ const Explore = () => {
       age: '10 weeks',
       available: 2,
       image: 'https://images.unsplash.com/photo-1552053831-71594a27632d?w=400&h=400&fit=crop',
-      verified: true
+      verified: true,
+      description: 'Champion bloodline Golden Retriever puppies, perfect family companions.'
     },
     {
       id: 3,
@@ -69,8 +71,9 @@ const Explore = () => {
       breed: 'German Shepherd',
       age: '6 weeks',
       available: 4,
-      image: 'https://images.unsplash.com/photo-1551717758-536850ae29035b6d?w=400&h=400&fit=crop',
-      verified: true
+      image: 'https://images.unsplash.com/photo-1589941013453-ec89f33b5e95?w=400&h=400&fit=crop',
+      verified: true,
+      description: 'Intelligent and loyal German Shepherd puppies from working lines.'
     },
     {
       id: 4,
@@ -81,16 +84,52 @@ const Explore = () => {
       age: '12 weeks',
       available: 1,
       image: 'https://images.unsplash.com/photo-1518717758536-85ae29035b6d?w=400&h=400&fit=crop',
-      verified: false
+      verified: false,
+      description: 'Sweet Labrador mix puppies looking for loving homes.'
+    },
+    {
+      id: 5,
+      title: 'Beagle Puppies Available',
+      price: '$900',
+      location: 'Fremont, CA',
+      breed: 'Beagle',
+      age: '9 weeks',
+      available: 2,
+      image: 'https://images.unsplash.com/photo-1544717342-7b6977ea1f8a?w=400&h=400&fit=crop',
+      verified: true,
+      description: 'Friendly Beagle puppies with excellent hunting lineage.'
+    },
+    {
+      id: 6,
+      title: 'Rescue Mixed Breed',
+      price: '$200',
+      location: 'Palo Alto, CA',
+      breed: 'Mixed Breed',
+      age: '1 year',
+      available: 1,
+      image: 'https://images.unsplash.com/photo-1529472119196-cb724127a98e?w=400&h=400&fit=crop',
+      verified: false,
+      description: 'Sweet rescue dog looking for a second chance at happiness.'
     }
   ];
 
   const handleSearch = async (term: string) => {
     setSearchTerm(term);
-    // Simulate loading delay
     setIsInitialLoading(true);
-    setTimeout(() => {
+    
+    // Filter mock listings based on search term
+    if (term.trim()) {
+      const filtered = mockListings.filter(listing => 
+        listing.breed.toLowerCase().includes(term.toLowerCase()) ||
+        listing.title.toLowerCase().includes(term.toLowerCase()) ||
+        listing.location.toLowerCase().includes(term.toLowerCase())
+      );
+      setListings(filtered);
+    } else {
       setListings(mockListings);
+    }
+    
+    setTimeout(() => {
       setIsInitialLoading(false);
     }, 500);
   };
@@ -135,9 +174,10 @@ const Explore = () => {
             variant="outline" 
             size="sm"
             className="absolute right-2 top-1/2 transform -translate-y-1/2 h-8"
+            onClick={() => handleSearch(searchTerm)}
           >
             <Filter className="w-4 h-4 mr-1" />
-            Filters
+            Search
           </Button>
         </div>
 
@@ -172,23 +212,6 @@ const Explore = () => {
               </Badge>
             ))}
           </div>
-        </div>
-
-        {/* Main Search Bar */}
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-          <Input
-            placeholder="Search for puppies, breeds, or locations..."
-            className="pl-10 bg-gray-50 border-gray-200"
-          />
-          <Button 
-            variant="outline" 
-            size="sm"
-            className="absolute right-2 top-1/2 transform -translate-y-1/2 h-8"
-          >
-            <Filter className="w-4 h-4 mr-1" />
-            Filters
-          </Button>
         </div>
 
         {/* Results Header */}
@@ -268,6 +291,7 @@ const Explore = () => {
                   )}
                 </div>
                 <p className="text-xs text-gray-500 mt-1">{listing.location}</p>
+                <p className="text-xs text-gray-600 mt-2 line-clamp-2">{listing.description}</p>
               </CardContent>
             </Card>
           ))}
