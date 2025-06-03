@@ -1,89 +1,85 @@
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { usePolling } from './usePolling';
 
-interface UseRealtimeProps {
-  onUpdate?: (payload?: any) => void;
-  interval?: number;
-  enabled?: boolean;
-}
-
-export const useRealtime = ({ onUpdate, interval = 5000, enabled = true }: UseRealtimeProps) => {
+// Generic realtime hook for any table
+export const useRealtimeSubscription = (
+  table: string, 
+  callback: (payload: any) => void,
+  filter?: string
+) => {
   const [isConnected, setIsConnected] = useState(false);
   const { user } = useAuth();
 
-  const handlePoll = async () => {
-    if (onUpdate) {
-      await onUpdate();
-    }
-  };
-
-  const { isPolling } = usePolling({
-    onPoll: handlePoll,
-    interval,
-    enabled: enabled && !!user
-  });
-
   useEffect(() => {
-    setIsConnected(isPolling && !!user);
-    console.log('Realtime connection status:', isPolling && !!user, 'interval:', interval);
-  }, [isPolling, user, interval]);
+    if (!user) return;
+
+    const channel = supabase
+      .channel(`realtime-${table}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: table,
+          filter: filter
+        },
+        callback
+      )
+      .subscribe((status) => {
+        setIsConnected(status === 'SUBSCRIBED');
+      });
+
+    return () => {
+      supabase.removeChannel(channel);
+      setIsConnected(false);
+    };
+  }, [table, user, filter]);
 
   return { isConnected };
 };
 
-// Hook for polling messages
-export const useRealtimeMessages = (conversationId: string, onNewMessage?: (message?: any) => void) => {
-  const { user } = useAuth();
+// Specialized hook for messages
+export const useRealtimeMessages = (
+  conversationId: string,
+  onMessage: () => void
+) => {
+  return useRealtimeSubscription(
+    'messages',
+    (payload) => {
+      console.log('New message received:', payload);
+      onMessage();
+    },
+    `conversation_id=eq.${conversationId}`
+  );
+};
 
-  // Only set up polling for real conversations (not demo ones) when user is authenticated
-  const isRealConversation = !conversationId.startsWith('demo-') && !!user;
+// Specialized hook for favorites
+export const useRealtimeFavorites = (onUpdate: () => void) => {
+  const { user } = useAuth();
   
-  console.log('Setting up message polling for conversation:', conversationId, 'isReal:', isRealConversation);
-
-  return useRealtime({
-    onUpdate: async () => {
-      console.log('Polling messages for conversation:', conversationId);
-      if (onNewMessage) {
-        await onNewMessage();
-      }
+  return useRealtimeSubscription(
+    'favorites',
+    (payload) => {
+      console.log('Favorites updated:', payload);
+      // Add polling fallback for reliability
+      setTimeout(onUpdate, 1000);
     },
-    interval: 3000, // Poll every 3 seconds for messages
-    enabled: isRealConversation // Only poll real conversations
-  });
+    user ? `user_id=eq.${user.id}` : undefined
+  );
 };
 
-// Hook for polling favorites
-export const useRealtimeFavorites = (onFavoriteUpdate?: (payload?: any) => void) => {
-  const { user } = useAuth();
+// Polling fallback hook
+export const usePolling = (
+  callback: () => void,
+  interval: number = 30000,
+  enabled: boolean = true
+) => {
+  useEffect(() => {
+    if (!enabled) return;
 
-  console.log('Setting up favorites polling');
-
-  return useRealtime({
-    onUpdate: async () => {
-      console.log('Polling favorites updates');
-      if (onFavoriteUpdate) {
-        await onFavoriteUpdate();
-      }
-    },
-    interval: 10000, // Poll every 10 seconds for favorites
-    enabled: !!user
-  });
-};
-
-// Hook for polling listings
-export const useRealtimeListings = (onListingUpdate?: (payload?: any) => void) => {
-  console.log('Setting up listings polling');
-
-  return useRealtime({
-    onUpdate: async () => {
-      console.log('Polling listings updates');
-      if (onListingUpdate) {
-        await onListingUpdate();
-      }
-    },
-    interval: 15000, // Poll every 15 seconds for listings
-    enabled: true
-  });
+    const poll = setInterval(callback, interval);
+    return () => clearInterval(poll);
+  }, [callback, interval, enabled]);
 };
