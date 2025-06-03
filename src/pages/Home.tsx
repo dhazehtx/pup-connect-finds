@@ -26,7 +26,7 @@ const Home = () => {
   const feedPosts = listings.slice(0, 6).map((listing) => ({
     id: listing.id,
     username: listing.profiles?.username || 'Unknown User',
-    userAvatar: listing.profiles?.avatar_url || 'https://images.unsplash.com/photo-1552053831-71594a27632d?w=50&h=50&fit=crop&crop=face',
+    userAvatar: 'https://images.unsplash.com/photo-1552053831-71594a27632d?w=50&h=50&fit=crop&crop=face', // Using default avatar since avatar_url doesn't exist in profiles
     location: listing.location || 'Location not specified',
     image: listing.image_url || 'https://images.unsplash.com/photo-1552053831-71594a27632d?w=400&h=400&fit=crop',
     caption: `Meet ${listing.dog_name}! 🐕 This beautiful ${listing.breed} is looking for a forever home. ${listing.description || ''} #${listing.breed.toLowerCase().replace(/\s+/g, '')} #puppylove`,

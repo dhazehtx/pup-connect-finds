@@ -41,12 +41,12 @@ const Explore = () => {
     reviews: listing.profiles?.total_reviews || 0,
     image: listing.image_url || 'https://images.unsplash.com/photo-1552053831-71594a27632d?w=400&h=400&fit=crop',
     breeder: listing.profiles?.full_name || listing.profiles?.username || 'Unknown Breeder',
-    verified: Boolean(listing.profiles?.verified) || false,
-    verifiedBreeder: Boolean(listing.profiles?.verified) || false,
-    idVerified: Boolean(listing.profiles?.verified) || false,
+    verified: Boolean(listing.profiles?.verified),
+    verifiedBreeder: Boolean(listing.profiles?.verified),
+    idVerified: Boolean(listing.profiles?.verified),
     vetVerified: false, // Mock for now
     available: 1, // Mock for now
-    sourceType: 'breeder', // Mock for now
+    sourceType: 'breeder' as const, // Mock for now
     isKillShelter: false
   }));
 
