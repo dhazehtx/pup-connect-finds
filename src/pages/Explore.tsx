@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import Layout from '@/components/Layout';
+import BottomNavigation from '@/components/BottomNavigation';
 import ListingsGrid from '@/components/ListingsGrid';
 import QuickFilters from '@/components/QuickFilters';
 import SortingOptions from '@/components/SortingOptions';
@@ -178,84 +178,87 @@ const ExplorePage: React.FC<ExplorePageProps> = () => {
   };
 
   return (
-    <Layout>
-      <div className="container mx-auto px-4 py-8">
-        {/* Quick Filters */}
-        <QuickFilters
-          filters={filterState}
-          onFiltersChange={handleFilterChange}
-          onClearFilters={handleClearFilters}
-        />
+    <div className="min-h-screen bg-gradient-to-br from-royal-blue/10 to-mint-green/10">
+      <main className="pb-20">
+        <div className="container mx-auto px-4 py-8">
+          {/* Quick Filters */}
+          <QuickFilters
+            filters={filterState}
+            onFiltersChange={handleFilterChange}
+            onClearFilters={handleClearFilters}
+          />
 
-        {/* Mobile Sorting */}
-        {isMobile && (
-          <div className="flex justify-end mb-4">
-            <Button onClick={() => setIsMobileSortOpen(true)} variant="outline">
-              <SlidersHorizontal className="h-4 w-4 mr-2" />
-              Sort
-            </Button>
-          </div>
-        )}
-
-        {/* Sorting Options */}
-        <SortingOptions
-          sortBy={sortBy}
-          onSortChange={setSortBy}
-          viewMode={viewMode}
-          onViewModeChange={setViewMode}
-          resultsCount={listings.length}
-        />
-
-        {/* Listings Grid - Full Width */}
-        <div className="w-full">
-          {loading && <p>Loading listings...</p>}
-          {error && <p className="text-red-500">Error: {error}</p>}
-          {listings && listings.length === 0 && !loading && (
-            <Card>
-              <CardContent className="py-8 text-center">
-                <p className="text-lg text-gray-600">No listings found matching your criteria.</p>
-              </CardContent>
-            </Card>
-          )}
-          {listings && listings.length > 0 && (
-            <ListingsGrid
-              listings={listings}
-              viewMode={viewMode}
-              favorites={favoriteIds}
-              onFavorite={handleFavorite}
-              onContact={handleContact}
-              onViewDetails={handleViewDetails}
-              isLoading={loading}
-              onClearFilters={handleClearFilters}
-              hasActiveFilters={Object.values(filterState).some(value => 
-                typeof value === 'boolean' ? value : value !== ''
-              )}
-            />
-          )}
-        </div>
-
-        {/* Mobile Sorting Modal */}
-        {isMobileSortOpen && (
-          <div className="fixed inset-0 bg-white z-50">
-            <div className="flex items-center justify-between p-4 border-b">
-              <h2 className="text-lg font-semibold">Sort By</h2>
-              <Button onClick={closeMobileSort} variant="ghost">
-                <X className="h-5 w-5" />
+          {/* Mobile Sorting */}
+          {isMobile && (
+            <div className="flex justify-end mb-4">
+              <Button onClick={() => setIsMobileSortOpen(true)} variant="outline">
+                <SlidersHorizontal className="h-4 w-4 mr-2" />
+                Sort
               </Button>
             </div>
-            <div className="p-4">
-              <SortingOptions
-                sortBy={sortBy}
-                onSortChange={setSortBy}
+          )}
+
+          {/* Sorting Options */}
+          <SortingOptions
+            sortBy={sortBy}
+            onSortChange={setSortBy}
+            viewMode={viewMode}
+            onViewModeChange={setViewMode}
+            resultsCount={listings.length}
+          />
+
+          {/* Listings Grid - Full Width */}
+          <div className="w-full">
+            {loading && <p>Loading listings...</p>}
+            {error && <p className="text-red-500">Error: {error}</p>}
+            {listings && listings.length === 0 && !loading && (
+              <Card>
+                <CardContent className="py-8 text-center">
+                  <p className="text-lg text-gray-600">No listings found matching your criteria.</p>
+                </CardContent>
+              </Card>
+            )}
+            {listings && listings.length > 0 && (
+              <ListingsGrid
+                listings={listings}
                 viewMode={viewMode}
-                onViewModeChange={setViewMode}
-                resultsCount={listings.length}
+                favorites={favoriteIds}
+                onFavorite={handleFavorite}
+                onContact={handleContact}
+                onViewDetails={handleViewDetails}
+                isLoading={loading}
+                onClearFilters={handleClearFilters}
+                hasActiveFilters={Object.values(filterState).some(value => 
+                  typeof value === 'boolean' ? value : value !== ''
+                )}
               />
-            </div>
+            )}
           </div>
-        )}
-      </div>
-    </Layout>
+
+          {/* Mobile Sorting Modal */}
+          {isMobileSortOpen && (
+            <div className="fixed inset-0 bg-white z-50">
+              <div className="flex items-center justify-between p-4 border-b">
+                <h2 className="text-lg font-semibold">Sort By</h2>
+                <Button onClick={closeMobileSort} variant="ghost">
+                  <X className="h-5 w-5" />
+                </Button>
+              </div>
+              <div className="p-4">
+                <SortingOptions
+                  sortBy={sortBy}
+                  onSortChange={setSortBy}
+                  viewMode={viewMode}
+                  onViewModeChange={setViewMode}
+                  resultsCount={listings.length}
+                />
+              </div>
+            </div>
+          )}
+        </div>
+      </main>
+      <BottomNavigation />
+    </div>
   );
 };
 
