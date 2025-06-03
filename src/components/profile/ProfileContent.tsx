@@ -1,7 +1,9 @@
 
 import React, { useState } from 'react';
-import { Settings } from 'lucide-react';
+import { Settings, Star, Crown, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useNavigate } from 'react-router-dom';
 import ProfileHeaderWithPresence from '@/components/profile/ProfileHeaderWithPresence';
 import ProfileBadges from '@/components/profile/ProfileBadges';
 import ProfileActions from '@/components/profile/ProfileActions';
@@ -34,6 +36,7 @@ const ProfileContent = ({
   const [activeTab, setActiveTab] = useState('posts');
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [showCompletionGuide, setShowCompletionGuide] = useState(true);
+  const navigate = useNavigate();
 
   console.log('ProfileContent render:', {
     displayProfile: !!displayProfile,
@@ -168,6 +171,50 @@ const ProfileContent = ({
               onDismiss={() => setShowCompletionGuide(false)}
             />
           </div>
+        )}
+
+        {/* Premium Features Card - Only show for own profile */}
+        {isOwnProfile && (
+          <Card className="mb-6 bg-gradient-to-r from-blue-50 to-purple-50 border-blue-200">
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <Star className="w-5 h-5 text-yellow-500" />
+                Premium Features
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-gray-600 mb-4">
+                Unlock professional tools to help more families find their perfect puppy
+              </p>
+              <div className="grid grid-cols-3 gap-3 mb-4">
+                <div className="text-center">
+                  <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                    <Crown className="w-5 h-5 text-blue-600" />
+                  </div>
+                  <div className="text-xs text-gray-600">Priority Placement</div>
+                </div>
+                <div className="text-center">
+                  <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                    <Zap className="w-5 h-5 text-purple-600" />
+                  </div>
+                  <div className="text-xs text-gray-600">Advanced Analytics</div>
+                </div>
+                <div className="text-center">
+                  <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                    <Star className="w-5 h-5 text-green-600" />
+                  </div>
+                  <div className="text-xs text-gray-600">Verification Badge</div>
+                </div>
+              </div>
+              <Button 
+                onClick={() => navigate('/monetization')} 
+                className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
+                size="sm"
+              >
+                Explore Premium Features
+              </Button>
+            </CardContent>
+          </Card>
         )}
 
         <ProfileHeaderWithPresence profile={displayProfile} />
