@@ -1,76 +1,88 @@
 
 import { useState, useCallback } from 'react';
-import { useToast } from '@/hooks/use-toast';
 
 interface OptimisticAction<T> {
-  optimisticUpdate: (currentData: T[]) => T[];
-  serverAction: () => Promise<void>;
-  rollbackUpdate: (currentData: T[]) => T[];
-  successMessage?: string;
-  errorMessage?: string;
+  optimisticUpdate: (data: T[]) => T[];
+  operation: () => Promise<any>;
+  rollback: (data: T[]) => T[];
 }
 
 export const useOptimisticUpdates = <T>(initialData: T[] = []) => {
   const [data, setData] = useState<T[]>(initialData);
-  const [pendingActions, setPendingActions] = useState<Set<string>>(new Set());
-  const { toast } = useToast();
+  const [isOptimistic, setIsOptimistic] = useState(false);
 
-  const executeOptimistic = useCallback(async <U extends T>(
-    actionId: string,
-    action: OptimisticAction<U>
-  ) => {
-    // Add to pending actions
-    setPendingActions(prev => new Set([...prev, actionId]));
-
+  const executeOptimistic = useCallback(async (action: OptimisticAction<T>) => {
     // Apply optimistic update immediately
-    setData(prevData => action.optimisticUpdate(prevData as U[]) as T[]);
+    setData(prevData => action.optimisticUpdate(prevData));
+    setIsOptimistic(true);
 
     try {
-      // Execute server action
-      await action.serverAction();
-      
-      // Show success message
-      if (action.successMessage) {
-        toast({
-          title: "Success",
-          description: action.successMessage,
-        });
-      }
+      // Execute the actual operation
+      await action.operation();
+      setIsOptimistic(false);
     } catch (error) {
-      console.error('Optimistic action failed:', error);
-      
-      // Rollback optimistic update
-      setData(prevData => action.rollbackUpdate(prevData as U[]) as T[]);
-      
-      // Show error message
-      toast({
-        title: "Error",
-        description: action.errorMessage || "Action failed",
-        variant: "destructive",
-      });
-    } finally {
-      // Remove from pending actions
-      setPendingActions(prev => {
-        const newSet = new Set(prev);
-        newSet.delete(actionId);
-        return newSet;
-      });
+      // Rollback on error
+      setData(prevData => action.rollback(prevData));
+      setIsOptimistic(false);
+      throw error;
     }
-  }, [toast]);
-
-  const updateData = useCallback((newData: T[]) => {
-    setData(newData);
   }, []);
 
-  const isPending = useCallback((actionId: string) => {
-    return pendingActions.has(actionId);
-  }, [pendingActions]);
+  const addOptimistic = useCallback((item: T, operation: () => Promise<any>) => {
+    return executeOptimistic({
+      optimisticUpdate: (data) => [item, ...data],
+      operation,
+      rollback: (data) => data.slice(1)
+    });
+  }, [executeOptimistic]);
+
+  const updateOptimistic = useCallback((
+    id: string | number,
+    updates: Partial<T>,
+    operation: () => Promise<any>,
+    idKey: keyof T = 'id' as keyof T
+  ) => {
+    let originalItem: T | null = null;
+    
+    return executeOptimistic({
+      optimisticUpdate: (data) => data.map(item => {
+        if (item[idKey] === id) {
+          originalItem = item;
+          return { ...item, ...updates };
+        }
+        return item;
+      }),
+      operation,
+      rollback: (data) => data.map(item => 
+        item[idKey] === id && originalItem ? originalItem : item
+      )
+    });
+  }, [executeOptimistic]);
+
+  const removeOptimistic = useCallback((
+    id: string | number,
+    operation: () => Promise<any>,
+    idKey: keyof T = 'id' as keyof T
+  ) => {
+    let originalData: T[] = [];
+    
+    return executeOptimistic({
+      optimisticUpdate: (data) => {
+        originalData = data;
+        return data.filter(item => item[idKey] !== id);
+      },
+      operation,
+      rollback: () => originalData
+    });
+  }, [executeOptimistic]);
 
   return {
     data,
-    updateData,
+    setData,
+    isOptimistic,
     executeOptimistic,
-    isPending,
-    hasPendingActions: pendingActions.size > 0
+    addOptimistic,
+    updateOptimistic,
+    removeOptimistic
   };
 };
