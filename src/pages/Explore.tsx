@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import Layout from '@/components/Layout';
@@ -21,7 +22,7 @@ import { useDogListings } from '@/hooks/useDogListings';
 import { useEnhancedListings } from '@/hooks/useEnhancedListings';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
-import { Search, Filter, SlidersHorizontal, BarChart3, Settings, Star, Heart, Eye, TrendingUp } from 'lucide-react';
+import { Search, Filter, SlidersHorizontal, BarChart3, Settings, Star, Heart, Eye, TrendingUp, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface ExplorePageProps {}

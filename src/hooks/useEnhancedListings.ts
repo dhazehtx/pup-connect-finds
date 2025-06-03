@@ -27,21 +27,59 @@ interface EnhancedListing {
   };
 }
 
+interface SearchHistory {
+  id: string;
+  query: string;
+  timestamp: string;
+}
+
+interface SavedSearch {
+  id: string;
+  name: string;
+  filters: any;
+  timestamp: string;
+}
+
+interface SortConfig {
+  field: string;
+  direction: 'asc' | 'desc';
+}
+
+interface Filters {
+  searchTerm?: string;
+  breed?: string;
+  minPrice?: number;
+  maxPrice?: number;
+  location?: string;
+  age?: string;
+  status?: string;
+}
+
 export const useEnhancedListings = () => {
   const [listings, setListings] = useState<EnhancedListing[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [totalCount, setTotalCount] = useState<number | null>(null);
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(12);
+  const [sortConfig, setSortConfig] = useState<SortConfig>({ field: 'created_at', direction: 'desc' });
+  const [filters, setFilters] = useState<Filters>({});
+  const [searchHistory, setSearchHistory] = useState<SearchHistory[]>([]);
+  const [savedSearches, setSavedSearches] = useState<SavedSearch[]>([]);
+  const [quickFilter, setQuickFilter] = useState<string>('');
+  const [enhancedListings, setEnhancedListings] = useState<EnhancedListing[]>([]);
+  const [favorites, setFavorites] = useState<string[]>([]);
+  
   const { toast } = useToast();
   const { user } = useAuth();
 
-  const fetchListings = async (filters?: {
-    status?: string;
-    breed?: string;
-    minPrice?: number;
-    maxPrice?: number;
-    location?: string;
-  }) => {
+  const fetchListings = async (customFilters?: Filters) => {
     try {
       setLoading(true);
+      setError(null);
+      
+      const activeFilters = customFilters || filters;
+      
       let query = supabase
         .from('dog_listings')
         .select(`
@@ -54,39 +92,42 @@ export const useEnhancedListings = () => {
             rating,
             total_reviews
           )
-        `)
-        .order('created_at', { ascending: false });
+        `, { count: 'exact' })
+        .eq('status', 'active')
+        .order(sortConfig.field, { ascending: sortConfig.direction === 'asc' })
+        .range((page - 1) * pageSize, page * pageSize - 1);
 
       // Apply filters
-      if (filters?.status) {
-        query = query.eq('status', filters.status);
-      } else {
-        // Default to only show active listings
-        query = query.eq('status', 'active');
+      if (activeFilters.searchTerm) {
+        query = query.or(`dog_name.ilike.%${activeFilters.searchTerm}%,breed.ilike.%${activeFilters.searchTerm}%,description.ilike.%${activeFilters.searchTerm}%`);
       }
 
-      if (filters?.breed) {
-        query = query.ilike('breed', `%${filters.breed}%`);
+      if (activeFilters.breed) {
+        query = query.ilike('breed', `%${activeFilters.breed}%`);
       }
 
-      if (filters?.minPrice !== undefined) {
-        query = query.gte('price', filters.minPrice);
+      if (activeFilters.location) {
+        query = query.ilike('location', `%${activeFilters.location}%`);
       }
 
-      if (filters?.maxPrice !== undefined) {
-        query = query.lte('price', filters.maxPrice);
+      if (activeFilters.minPrice !== undefined) {
+        query = query.gte('price', activeFilters.minPrice);
       }
 
-      if (filters?.location) {
-        query = query.ilike('location', `%${filters.location}%`);
+      if (activeFilters.maxPrice !== undefined) {
+        query = query.lte('price', activeFilters.maxPrice);
       }
 
-      const { data, error } = await query;
+      const { data, error, count } = await query;
 
       if (error) throw error;
+      
       setListings(data || []);
+      setEnhancedListings(data || []);
+      setTotalCount(count);
     } catch (error) {
       console.error('Error fetching listings:', error);
+      setError('Failed to load listings');
       toast({
         title: "Error",
         description: "Failed to load listings",
@@ -168,66 +209,187 @@ export const useEnhancedListings = () => {
     }
   };
 
-  const searchListings = async (query: string, filters?: any) => {
-    try {
-      setLoading(true);
-      let supabaseQuery = supabase
-        .from('dog_listings')
-        .select(`
-          *,
-          profiles:user_id (
-            full_name,
-            username,
-            location,
-            verified,
-            rating,
-            total_reviews
-          )
-        `)
-        .eq('status', 'active')
-        .or(`dog_name.ilike.%${query}%,breed.ilike.%${query}%,description.ilike.%${query}%`)
-        .order('created_at', { ascending: false });
+  const searchListings = async (query: string, customFilters?: any) => {
+    const newFilters = { ...filters, searchTerm: query, ...customFilters };
+    setFilters(newFilters);
+    await fetchListings(newFilters);
+  };
 
-      // Apply additional filters if provided
-      if (filters?.breed) {
-        supabaseQuery = supabaseQuery.ilike('breed', `%${filters.breed}%`);
-      }
+  // Search history functions
+  const addSearchToHistory = (query: string) => {
+    const newSearch: SearchHistory = {
+      id: Date.now().toString(),
+      query,
+      timestamp: new Date().toISOString()
+    };
+    setSearchHistory(prev => [newSearch, ...prev.slice(0, 9)]); // Keep last 10 searches
+  };
 
-      if (filters?.location) {
-        supabaseQuery = supabaseQuery.ilike('location', `%${filters.location}%`);
-      }
+  const clearSearchHistory = () => {
+    setSearchHistory([]);
+  };
 
-      if (filters?.minPrice !== undefined) {
-        supabaseQuery = supabaseQuery.gte('price', filters.minPrice);
-      }
+  // Saved searches functions
+  const saveSearch = (name: string, searchFilters: Filters) => {
+    const newSavedSearch: SavedSearch = {
+      id: Date.now().toString(),
+      name,
+      filters: searchFilters,
+      timestamp: new Date().toISOString()
+    };
+    setSavedSearches(prev => [...prev, newSavedSearch]);
+    toast({
+      title: "Search Saved",
+      description: `Search "${name}" has been saved`,
+    });
+  };
 
-      if (filters?.maxPrice !== undefined) {
-        supabaseQuery = supabaseQuery.lte('price', filters.maxPrice);
-      }
+  const deleteSearch = (searchId: string) => {
+    setSavedSearches(prev => prev.filter(search => search.id !== searchId));
+    toast({
+      title: "Search Deleted",
+      description: "Saved search has been removed",
+    });
+  };
 
-      const { data, error } = await supabaseQuery;
+  const applySavedSearch = (search: SavedSearch) => {
+    setFilters(search.filters);
+    fetchListings(search.filters);
+  };
 
-      if (error) throw error;
-      setListings(data || []);
-    } catch (error) {
-      console.error('Error searching listings:', error);
+  const clearAllFilters = () => {
+    const emptyFilters: Filters = {};
+    setFilters(emptyFilters);
+    setQuickFilter('');
+    fetchListings(emptyFilters);
+  };
+
+  // Favorites functions
+  const favoriteListing = async (listingId: string) => {
+    if (!user) {
       toast({
-        title: "Error",
-        description: "Search failed",
+        title: "Authentication Required",
+        description: "Please sign in to favorite listings",
         variant: "destructive",
       });
-    } finally {
-      setLoading(false);
+      return;
+    }
+
+    try {
+      const isFavorited = favorites.includes(listingId);
+      
+      if (isFavorited) {
+        await supabase
+          .from('favorites')
+          .delete()
+          .eq('user_id', user.id)
+          .eq('listing_id', listingId);
+        
+        setFavorites(prev => prev.filter(id => id !== listingId));
+      } else {
+        await supabase
+          .from('favorites')
+          .insert({
+            user_id: user.id,
+            listing_id: listingId
+          });
+        
+        setFavorites(prev => [...prev, listingId]);
+      }
+    } catch (error) {
+      console.error('Error updating favorite:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update favorite",
+        variant: "destructive",
+      });
     }
   };
 
+  const isListingFavorited = (listingId: string) => {
+    return favorites.includes(listingId);
+  };
+
+  // Analytics functions
+  const trackListingView = async (listingId: string) => {
+    try {
+      await supabase.from('user_interactions').insert({
+        user_id: user?.id,
+        target_id: listingId,
+        target_type: 'listing',
+        interaction_type: 'view',
+        metadata: { timestamp: new Date().toISOString() }
+      });
+    } catch (error) {
+      console.error('Failed to track listing view:', error);
+    }
+  };
+
+  const trackListingInquiry = async (listingId: string) => {
+    try {
+      await supabase.from('user_interactions').insert({
+        user_id: user?.id,
+        target_id: listingId,
+        target_type: 'listing',
+        interaction_type: 'inquiry',
+        metadata: { timestamp: new Date().toISOString() }
+      });
+    } catch (error) {
+      console.error('Failed to track listing inquiry:', error);
+    }
+  };
+
+  // Load favorites on mount
+  useEffect(() => {
+    if (user) {
+      const loadFavorites = async () => {
+        try {
+          const { data } = await supabase
+            .from('favorites')
+            .select('listing_id')
+            .eq('user_id', user.id);
+          
+          setFavorites(data?.map(f => f.listing_id) || []);
+        } catch (error) {
+          console.error('Error loading favorites:', error);
+        }
+      };
+      loadFavorites();
+    }
+  }, [user]);
+
   useEffect(() => {
     fetchListings();
-  }, []);
+  }, [page, pageSize, sortConfig]);
 
   return {
     listings,
     loading,
+    error,
+    totalCount,
+    page,
+    pageSize,
+    setPage,
+    setPageSize,
+    sortConfig,
+    setSortConfig,
+    filters,
+    setFilters,
+    searchHistory,
+    addSearchToHistory,
+    clearSearchHistory,
+    savedSearches,
+    saveSearch,
+    deleteSearch,
+    applySavedSearch,
+    clearAllFilters,
+    quickFilter,
+    setQuickFilter,
+    enhancedListings,
+    favoriteListing,
+    isListingFavorited,
+    trackListingView,
+    trackListingInquiry,
     fetchListings,
     updateListingStatus,
     getUserListings,
