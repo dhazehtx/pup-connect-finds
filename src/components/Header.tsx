@@ -1,238 +1,193 @@
 
 import React, { useState } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
-import { Heart, Search, User, Menu, X, Bell } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { Link } from 'react-router-dom';
+import { Heart, Menu, X } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
-import LanguageSwitcher from '@/components/ui/language-switcher';
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 
 const Header = () => {
-  const navigate = useNavigate();
-  const location = useLocation();
-  const { user, signOut, isGuest } = useAuth();
-  const { t } = useTranslation();
-  const [searchTerm, setSearchTerm] = useState('');
+  const { user, signOut, profile } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (searchTerm.trim()) {
-      navigate(`/explore?search=${encodeURIComponent(searchTerm.trim())}`);
-    }
-  };
-
-  const handleAuthAction = () => {
-    if (user && !isGuest) {
-      signOut();
-    } else {
-      navigate('/auth');
-    }
+  const toggleMobileMenu = () => {
+    setIsMobileMenuOpen(!isMobileMenuOpen);
   };
 
   return (
-    <header className="bg-cloud-white shadow-sm border-b border-soft-sky sticky top-0 z-50">
+    <nav className="bg-white shadow-sm border-b">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
-          {/* Logo */}
-          <div 
-            className="flex items-center gap-2 cursor-pointer"
-            onClick={() => navigate('/')}
-          >
-            <div className="w-8 h-8 bg-royal-blue rounded-full flex items-center justify-center">
-              <Heart size={20} className="text-cloud-white" />
-            </div>
-            <span className="text-xl font-bold text-deep-navy">MY PUP</span>
-          </div>
-
-          {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center space-x-8">
-            <Button
-              variant="ghost"
-              onClick={() => navigate('/explore')}
-              className="text-deep-navy hover:bg-soft-sky"
-            >
-              Browse
-            </Button>
-            <Button
-              variant="ghost"
-              onClick={() => navigate('/location-explorer')}
-              className="text-deep-navy hover:bg-soft-sky"
-            >
-              Locations
-            </Button>
-            <Button
-              variant="ghost"
-              onClick={() => navigate('/analytics')}
-              className="text-deep-navy hover:bg-soft-sky"
-            >
-              Analytics
-            </Button>
-          </nav>
-
-          {/* Desktop Search */}
-          <div className="hidden md:flex flex-1 max-w-md mx-8">
-            <form onSubmit={handleSearch} className="w-full">
-              <div className="relative">
-                <Search size={20} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-deep-navy/60" />
-                <Input
-                  type="text"
-                  placeholder="Search puppies, breeders..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10 bg-white border-soft-sky focus:border-royal-blue"
-                />
-              </div>
-            </form>
-          </div>
-
-          {/* Desktop Actions */}
-          <div className="hidden md:flex items-center gap-3">
-            <LanguageSwitcher />
+        <div className="flex justify-between h-16">
+          <div className="flex items-center">
+            <Link to="/" className="flex items-center space-x-2">
+              <Heart className="h-8 w-8 text-primary" />
+              <span className="text-xl font-bold text-gray-900">PuppyLove</span>
+            </Link>
             
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => navigate('/notifications')}
-              className="text-deep-navy hover:bg-soft-sky"
-            >
-              <Bell size={18} />
-            </Button>
-
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => navigate('/profile')}
-              className="text-deep-navy hover:bg-soft-sky"
-            >
-              <User size={18} className="mr-2" />
-              {user && !isGuest ? user.email?.split('@')[0] : 'Profile'}
-            </Button>
-
-            <Button
-              onClick={handleAuthAction}
-              size="sm"
-              variant={user && !isGuest ? "outline" : "default"}
-              className={user && !isGuest 
-                ? "border-royal-blue text-royal-blue hover:bg-royal-blue hover:text-cloud-white" 
-                : "bg-royal-blue hover:bg-royal-blue/90 text-cloud-white"
-              }
-            >
-              {user && !isGuest ? 'Sign Out' : 'Sign In'}
-            </Button>
-          </div>
-
-          {/* Mobile Menu Button */}
-          <Button
-            variant="ghost"
-            size="sm"
-            className="md:hidden"
-            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-          >
-            {isMobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
-          </Button>
-        </div>
-
-        {/* Mobile Menu */}
-        {isMobileMenuOpen && (
-          <div className="md:hidden py-4 border-t border-soft-sky bg-cloud-white">
-            {/* Mobile Search */}
-            <form onSubmit={handleSearch} className="mb-4">
-              <div className="relative">
-                <Search size={20} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-deep-navy/60" />
-                <Input
-                  type="text"
-                  placeholder="Search puppies, breeders..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10 bg-white border-soft-sky"
-                />
-              </div>
-            </form>
-
-            {/* Mobile Navigation */}
-            <div className="space-y-2">
-              <Button
-                variant="ghost"
-                onClick={() => {
-                  navigate('/explore');
-                  setIsMobileMenuOpen(false);
-                }}
-                className="w-full justify-start text-deep-navy hover:bg-soft-sky"
+            <div className="hidden md:ml-6 md:flex md:space-x-8">
+              <Link
+                to="/browse"
+                className="text-gray-500 hover:text-gray-700 px-3 py-2 rounded-md text-sm font-medium"
               >
                 Browse Puppies
-              </Button>
-              
-              <Button
-                variant="ghost"
-                onClick={() => {
-                  navigate('/location-explorer');
-                  setIsMobileMenuOpen(false);
-                }}
-                className="w-full justify-start text-deep-navy hover:bg-soft-sky"
+              </Link>
+              <Link
+                to="/location-explorer"
+                className="text-gray-500 hover:text-gray-700 px-3 py-2 rounded-md text-sm font-medium"
               >
                 Location Explorer
-              </Button>
-
-              <Button
-                variant="ghost"
-                onClick={() => {
-                  navigate('/analytics');
-                  setIsMobileMenuOpen(false);
-                }}
-                className="w-full justify-start text-deep-navy hover:bg-soft-sky"
+              </Link>
+              <Link
+                to="/analytics"
+                className="text-gray-500 hover:text-gray-700 px-3 py-2 rounded-md text-sm font-medium"
               >
                 Analytics
-              </Button>
-
-              <div className="flex justify-between items-center py-2">
-                <span className="text-sm text-deep-navy/70">Language</span>
-                <LanguageSwitcher />
-              </div>
-              
-              <Button
-                variant="ghost"
-                onClick={() => {
-                  navigate('/notifications');
-                  setIsMobileMenuOpen(false);
-                }}
-                className="w-full justify-start text-deep-navy hover:bg-soft-sky"
-              >
-                <Bell size={18} className="mr-2" />
-                Notifications
-              </Button>
-
-              <Button
-                variant="ghost"
-                onClick={() => {
-                  navigate('/profile');
-                  setIsMobileMenuOpen(false);
-                }}
-                className="w-full justify-start text-deep-navy hover:bg-soft-sky"
-              >
-                <User size={18} className="mr-2" />
-                {user && !isGuest ? user.email?.split('@')[0] : 'Profile'}
-              </Button>
-
-              <Button
-                onClick={() => {
-                  handleAuthAction();
-                  setIsMobileMenuOpen(false);
-                }}
-                variant={user && !isGuest ? "outline" : "default"}
-                className={`w-full ${user && !isGuest 
-                  ? "border-royal-blue text-royal-blue hover:bg-royal-blue hover:text-cloud-white" 
-                  : "bg-royal-blue hover:bg-royal-blue/90 text-cloud-white"
-                }`}
-              >
-                {user && !isGuest ? 'Sign Out' : 'Sign In'}
-              </Button>
+              </Link>
             </div>
           </div>
-        )}
+
+          <div className="flex items-center">
+            <div className="md:hidden">
+              <button
+                onClick={toggleMobileMenu}
+                type="button"
+                className="bg-white inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+                aria-expanded="false"
+              >
+                <span className="sr-only">Open main menu</span>
+                {isMobileMenuOpen ? (
+                  <X className="h-6 w-6" aria-hidden="true" />
+                ) : (
+                  <Menu className="h-6 w-6" aria-hidden="true" />
+                )}
+              </button>
+            </div>
+
+            {user ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button className="outline-none">
+                    <Avatar className="h-9 w-9">
+                      <AvatarImage src={profile?.avatar_url} />
+                      <AvatarFallback>{profile?.full_name?.charAt(0) || user.email?.charAt(0)}</AvatarFallback>
+                    </Avatar>
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-56 mr-2">
+                  <DropdownMenuLabel>{profile?.full_name || user.email}</DropdownMenuLabel>
+                  <DropdownMenuItem>
+                    <Link to="/profile" className="w-full h-full block">
+                      Profile
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem>
+                    <Link to="/my-listings" className="w-full h-full block">
+                      My Listings
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem>
+                    <Link to="/create-listing" className="w-full h-full block">
+                      Create Listing
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={signOut}>Logout</DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <div className="hidden md:ml-6 md:flex md:space-x-4">
+                <Link
+                  to="/login"
+                  className="text-gray-500 hover:text-gray-700 px-3 py-2 rounded-md text-sm font-medium"
+                >
+                  Login
+                </Link>
+                <Link
+                  to="/register"
+                  className="text-white bg-primary hover:bg-primary-dark px-4 py-2 rounded-md text-sm font-medium"
+                >
+                  Register
+                </Link>
+              </div>
+            )}
+          </div>
+        </div>
       </div>
-    </header>
+
+      {/* Mobile menu, show/hide based on menu state. */}
+      <div className={`md:hidden ${isMobileMenuOpen ? 'block' : 'hidden'}`}>
+        <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+          <Link
+            to="/browse"
+            className="text-gray-500 hover:text-gray-700 block px-3 py-2 rounded-md text-base font-medium"
+          >
+            Browse Puppies
+          </Link>
+          <Link
+            to="/location-explorer"
+            className="text-gray-500 hover:text-gray-700 block px-3 py-2 rounded-md text-base font-medium"
+          >
+            Location Explorer
+          </Link>
+          <Link
+            to="/analytics"
+            className="text-gray-500 hover:text-gray-700 block px-3 py-2 rounded-md text-base font-medium"
+          >
+            Analytics
+          </Link>
+          {user ? (
+            <>
+              <Link
+                to="/profile"
+                className="text-gray-500 hover:text-gray-700 block px-3 py-2 rounded-md text-base font-medium"
+              >
+                Profile
+              </Link>
+              <Link
+                to="/my-listings"
+                className="text-gray-500 hover:text-gray-700 block px-3 py-2 rounded-md text-base font-medium"
+              >
+                My Listings
+              </Link>
+              <Link
+                to="/create-listing"
+                className="text-gray-500 hover:text-gray-700 block px-3 py-2 rounded-md text-base font-medium"
+              >
+                Create Listing
+              </Link>
+              <button
+                onClick={signOut}
+                className="text-gray-500 hover:text-gray-700 block px-3 py-2 rounded-md text-base font-medium"
+              >
+                Logout
+              </button>
+            </>
+          ) : (
+            <>
+              <Link
+                to="/login"
+                className="text-gray-500 hover:text-gray-700 block px-3 py-2 rounded-md text-base font-medium"
+              >
+                Login
+              </Link>
+              <Link
+                to="/register"
+                className="text-gray-500 hover:text-gray-700 block px-3 py-2 rounded-md text-base font-medium"
+              >
+                Register
+              </Link>
+            </>
+          )}
+        </div>
+      </div>
+    </nav>
   );
 };
 
