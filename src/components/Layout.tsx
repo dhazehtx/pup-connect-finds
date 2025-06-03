@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import Header from './Header';
 import BottomNavigation from './BottomNavigation';
+import Footer from './Footer';
 import OnboardingFlow from './onboarding/OnboardingFlow';
 import { useAuth } from '@/contexts/AuthContext';
 import { useOnboarding } from '@/hooks/useOnboarding';
@@ -45,15 +46,16 @@ const Layout = ({ children }: LayoutProps) => {
     );
   }
 
-  // Don't render header on auth page only
+  // Only hide header on auth page
   const isAuthPage = location.pathname === '/auth';
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-royal-blue/10 to-mint-green/10">
+    <div className="min-h-screen bg-gradient-to-br from-royal-blue/10 to-mint-green/10 flex flex-col">
       {!isAuthPage && <Header />}
-      <main className="pb-20">
+      <main className="flex-1 pb-20">
         {children}
       </main>
+      {!isAuthPage && <Footer />}
       <BottomNavigation />
     </div>
   );
