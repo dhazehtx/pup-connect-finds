@@ -1,6 +1,5 @@
 
 import { useState, useEffect, useCallback } from 'react';
-import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 
@@ -45,7 +44,53 @@ export const useProfessionalNetwork = () => {
   const [following, setFollowing] = useState<UserFollow[]>([]);
   const [pendingRequests, setPendingRequests] = useState<ProfessionalConnection[]>([]);
 
-  // Send connection request
+  // Mock data for demonstration
+  const mockFollowers: UserFollow[] = [
+    {
+      id: '1',
+      follower_id: 'user1',
+      following_id: user?.id || 'current-user',
+      followed_at: new Date().toISOString(),
+      profile: {
+        full_name: 'Sarah Johnson',
+        username: 'sarah_j',
+        avatar_url: 'https://images.unsplash.com/photo-1494790108755-2616b612b47c?w=150&h=150&fit=crop&crop=face',
+        user_type: 'buyer',
+        verified: true
+      }
+    },
+    {
+      id: '2',
+      follower_id: 'user2',
+      following_id: user?.id || 'current-user',
+      followed_at: new Date().toISOString(),
+      profile: {
+        full_name: 'Mike Davis',
+        username: 'mike_d',
+        avatar_url: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face',
+        user_type: 'breeder',
+        verified: false
+      }
+    }
+  ];
+
+  const mockFollowing: UserFollow[] = [
+    {
+      id: '3',
+      follower_id: user?.id || 'current-user',
+      following_id: 'user3',
+      followed_at: new Date().toISOString(),
+      profile: {
+        full_name: 'Emma Wilson',
+        username: 'emma_w',
+        avatar_url: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face',
+        user_type: 'breeder',
+        verified: true
+      }
+    }
+  ];
+
+  // Send connection request (mock implementation)
   const sendConnectionRequest = useCallback(async (
     recipientId: string,
     connectionType: 'professional' | 'mentorship' | 'collaboration' = 'professional',
@@ -56,35 +101,24 @@ export const useProfessionalNetwork = () => {
     try {
       setLoading(true);
 
-      const { data, error } = await supabase
-        .from('professional_connections')
-        .insert({
-          requester_id: user.id,
-          recipient_id: recipientId,
-          connection_type: connectionType,
-          message,
-          status: 'pending'
-        })
-        .select(`
-          *,
-          profile:profiles!professional_connections_recipient_id_fkey(
-            full_name,
-            username,
-            avatar_url,
-            user_type,
-            verified
-          )
-        `)
-        .single();
-
-      if (error) throw error;
+      // Mock implementation
+      const newConnection: ProfessionalConnection = {
+        id: Math.random().toString(36).substr(2, 9),
+        requester_id: user.id,
+        recipient_id: recipientId,
+        connection_type: connectionType,
+        message,
+        status: 'pending',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      };
 
       toast({
         title: "Success",
         description: "Connection request sent successfully",
       });
 
-      return data;
+      return newConnection;
     } catch (error) {
       console.error('Error sending connection request:', error);
       toast({
@@ -98,7 +132,7 @@ export const useProfessionalNetwork = () => {
     }
   }, [user, toast]);
 
-  // Respond to connection request
+  // Respond to connection request (mock implementation)
   const respondToConnectionRequest = useCallback(async (
     connectionId: string,
     response: 'accepted' | 'declined'
@@ -106,31 +140,15 @@ export const useProfessionalNetwork = () => {
     try {
       setLoading(true);
 
-      const { data, error } = await supabase
-        .from('professional_connections')
-        .update({
-          status: response,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', connectionId)
-        .select()
-        .single();
-
-      if (error) throw error;
-
-      // Update local state
+      // Mock implementation
       setPendingRequests(prev => prev.filter(req => req.id !== connectionId));
-      
-      if (response === 'accepted') {
-        setConnections(prev => [data, ...prev]);
-      }
 
       toast({
         title: "Success",
         description: `Connection request ${response}`,
       });
 
-      return data;
+      return { id: connectionId, status: response };
     } catch (error) {
       console.error('Error responding to connection request:', error);
       toast({
@@ -144,38 +162,25 @@ export const useProfessionalNetwork = () => {
     }
   }, [toast]);
 
-  // Follow user
+  // Follow user (mock implementation)
   const followUser = useCallback(async (userId: string) => {
     if (!user) return;
 
     try {
-      const { data, error } = await supabase
-        .from('user_follows')
-        .insert({
-          follower_id: user.id,
-          following_id: userId
-        })
-        .select(`
-          *,
-          profile:profiles!user_follows_following_id_fkey(
-            full_name,
-            username,
-            avatar_url,
-            user_type,
-            verified
-          )
-        `)
-        .single();
+      const newFollow: UserFollow = {
+        id: Math.random().toString(36).substr(2, 9),
+        follower_id: user.id,
+        following_id: userId,
+        followed_at: new Date().toISOString()
+      };
 
-      if (error) throw error;
-
-      setFollowing(prev => [data, ...prev]);
+      setFollowing(prev => [newFollow, ...prev]);
       toast({
         title: "Success",
         description: "Successfully followed user",
       });
 
-      return data;
+      return newFollow;
     } catch (error) {
       console.error('Error following user:', error);
       toast({
@@ -187,19 +192,11 @@ export const useProfessionalNetwork = () => {
     }
   }, [user, toast]);
 
-  // Unfollow user
+  // Unfollow user (mock implementation)
   const unfollowUser = useCallback(async (userId: string) => {
     if (!user) return;
 
     try {
-      const { error } = await supabase
-        .from('user_follows')
-        .delete()
-        .eq('follower_id', user.id)
-        .eq('following_id', userId);
-
-      if (error) throw error;
-
       setFollowing(prev => prev.filter(f => f.following_id !== userId));
       toast({
         title: "Success",
@@ -216,117 +213,27 @@ export const useProfessionalNetwork = () => {
     }
   }, [user, toast]);
 
-  // Fetch connections
+  // Fetch connections (mock implementation)
   const fetchConnections = useCallback(async () => {
     if (!user) return;
-
-    try {
-      const { data, error } = await supabase
-        .from('professional_connections')
-        .select(`
-          *,
-          profile:profiles!professional_connections_recipient_id_fkey(
-            full_name,
-            username,
-            avatar_url,
-            user_type,
-            verified
-          )
-        `)
-        .or(`requester_id.eq.${user.id},recipient_id.eq.${user.id}`)
-        .eq('status', 'accepted')
-        .order('updated_at', { ascending: false });
-
-      if (error) throw error;
-      setConnections(data || []);
-    } catch (error) {
-      console.error('Error fetching connections:', error);
-    }
+    setConnections([]);
   }, [user]);
 
-  // Fetch pending requests
+  // Fetch pending requests (mock implementation)
   const fetchPendingRequests = useCallback(async () => {
     if (!user) return;
-
-    try {
-      const { data, error } = await supabase
-        .from('professional_connections')
-        .select(`
-          *,
-          profile:profiles!professional_connections_requester_id_fkey(
-            full_name,
-            username,
-            avatar_url,
-            user_type,
-            verified
-          )
-        `)
-        .eq('recipient_id', user.id)
-        .eq('status', 'pending')
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      setPendingRequests(data || []);
-    } catch (error) {
-      console.error('Error fetching pending requests:', error);
-    }
+    setPendingRequests([]);
   }, [user]);
 
-  // Fetch followers
+  // Fetch followers (mock implementation)
   const fetchFollowers = useCallback(async (userId?: string) => {
-    const targetUserId = userId || user?.id;
-    if (!targetUserId) return;
+    setFollowers(mockFollowers);
+  }, []);
 
-    try {
-      const { data, error } = await supabase
-        .from('user_follows')
-        .select(`
-          *,
-          profile:profiles!user_follows_follower_id_fkey(
-            full_name,
-            username,
-            avatar_url,
-            user_type,
-            verified
-          )
-        `)
-        .eq('following_id', targetUserId)
-        .order('followed_at', { ascending: false });
-
-      if (error) throw error;
-      setFollowers(data || []);
-    } catch (error) {
-      console.error('Error fetching followers:', error);
-    }
-  }, [user]);
-
-  // Fetch following
+  // Fetch following (mock implementation)
   const fetchFollowing = useCallback(async (userId?: string) => {
-    const targetUserId = userId || user?.id;
-    if (!targetUserId) return;
-
-    try {
-      const { data, error } = await supabase
-        .from('user_follows')
-        .select(`
-          *,
-          profile:profiles!user_follows_following_id_fkey(
-            full_name,
-            username,
-            avatar_url,
-            user_type,
-            verified
-          )
-        `)
-        .eq('follower_id', targetUserId)
-        .order('followed_at', { ascending: false });
-
-      if (error) throw error;
-      setFollowing(data || []);
-    } catch (error) {
-      console.error('Error fetching following:', error);
-    }
-  }, [user]);
+    setFollowing(mockFollowing);
+  }, []);
 
   // Initialize data
   useEffect(() => {

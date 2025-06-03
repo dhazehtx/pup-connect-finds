@@ -1,6 +1,5 @@
 
 import { useState, useEffect, useCallback } from 'react';
-import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 
@@ -64,7 +63,40 @@ export const useEnhancedProfiles = () => {
   const [verificationBadges, setVerificationBadges] = useState<VerificationBadge[]>([]);
   const [privacySettings, setPrivacySettings] = useState<PrivacySettings | null>(null);
 
-  // Fetch enhanced profile data
+  // Mock verification badges for demo
+  const mockVerificationBadges: VerificationBadge[] = [
+    {
+      id: '1',
+      badge_type: 'identity',
+      badge_name: 'ID Verified',
+      issued_at: new Date().toISOString(),
+      is_active: true,
+      verification_data: {}
+    },
+    {
+      id: '2',
+      badge_type: 'breeder_license',
+      badge_name: 'Licensed Breeder',
+      issued_at: new Date().toISOString(),
+      is_active: true,
+      verification_data: {}
+    }
+  ];
+
+  // Mock privacy settings
+  const mockPrivacySettings: PrivacySettings = {
+    show_email: false,
+    show_phone: false,
+    show_location: true,
+    show_social_media: true,
+    show_breeding_history: true,
+    show_achievements: true,
+    allow_messages_from: 'verified_users',
+    allow_profile_views: 'everyone',
+    show_online_status: true
+  };
+
+  // Fetch enhanced profile data (using mock data for now)
   const fetchEnhancedProfile = useCallback(async (userId?: string) => {
     if (!userId && !user) return;
     
@@ -74,40 +106,36 @@ export const useEnhancedProfiles = () => {
     try {
       setLoading(true);
       
-      const { data: profileData, error: profileError } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', targetUserId)
-        .single();
+      // For now, return mock enhanced profile data
+      // In a real implementation, this would fetch from the enhanced profiles table
+      const mockProfile: EnhancedProfile = {
+        id: targetUserId,
+        full_name: 'Golden Paws Kennel',
+        username: 'goldenpaws',
+        email: 'contact@goldenpaws.com',
+        bio: 'Specializing in Golden Retrievers and Labradors for over 15 years.',
+        location: 'San Francisco, CA',
+        avatar_url: 'https://images.unsplash.com/photo-1560743173-567a3b5658b1?w=150&h=150&fit=crop&crop=face',
+        user_type: 'breeder',
+        verified: true,
+        trust_score: 0.95,
+        verification_level: 3,
+        profile_completion_percentage: 85,
+        breeding_program_name: 'Golden Paws Breeding Program',
+        specializations: ['Golden Retrievers', 'Labradors', 'Puppy Training'],
+        certifications: ['AKC Registered Breeder', 'USDA Licensed'],
+        breeding_since: '2010-01-01',
+        website_url: 'www.goldenpaws.com',
+        years_experience: 15,
+        rating: 4.9,
+        total_reviews: 156,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      };
 
-      if (profileError) throw profileError;
-
-      setProfile(profileData);
-
-      // Fetch verification badges
-      const { data: badgesData, error: badgesError } = await supabase
-        .from('verification_badges')
-        .select('*')
-        .eq('user_id', targetUserId)
-        .eq('is_active', true);
-
-      if (badgesError) console.error('Error fetching badges:', badgesError);
-      else setVerificationBadges(badgesData || []);
-
-      // Fetch privacy settings (only for own profile)
-      if (targetUserId === user?.id) {
-        const { data: privacyData, error: privacyError } = await supabase
-          .from('privacy_settings')
-          .select('*')
-          .eq('user_id', targetUserId)
-          .single();
-
-        if (privacyError && privacyError.code !== 'PGRST116') {
-          console.error('Error fetching privacy settings:', privacyError);
-        } else {
-          setPrivacySettings(privacyData);
-        }
-      }
+      setProfile(mockProfile);
+      setVerificationBadges(mockVerificationBadges);
+      setPrivacySettings(mockPrivacySettings);
 
     } catch (error) {
       console.error('Error fetching enhanced profile:', error);
@@ -121,29 +149,25 @@ export const useEnhancedProfiles = () => {
     }
   }, [user, toast]);
 
-  // Update enhanced profile
+  // Update enhanced profile (mock implementation)
   const updateEnhancedProfile = useCallback(async (updates: Partial<EnhancedProfile>) => {
     if (!user) return;
 
     try {
       setLoading(true);
 
-      const { data, error } = await supabase
-        .from('profiles')
-        .update(updates)
-        .eq('id', user.id)
-        .select()
-        .single();
+      // Mock update - in real implementation would update database
+      if (profile) {
+        const updatedProfile = { ...profile, ...updates };
+        setProfile(updatedProfile);
+        
+        toast({
+          title: "Success",
+          description: "Profile updated successfully",
+        });
 
-      if (error) throw error;
-
-      setProfile(data);
-      toast({
-        title: "Success",
-        description: "Profile updated successfully",
-      });
-
-      return data;
+        return updatedProfile;
+      }
     } catch (error) {
       console.error('Error updating profile:', error);
       toast({
@@ -155,32 +179,22 @@ export const useEnhancedProfiles = () => {
     } finally {
       setLoading(false);
     }
-  }, [user, toast]);
+  }, [user, profile, toast]);
 
-  // Update privacy settings
+  // Update privacy settings (mock implementation)
   const updatePrivacySettings = useCallback(async (settings: Partial<PrivacySettings>) => {
     if (!user) return;
 
     try {
-      const { data, error } = await supabase
-        .from('privacy_settings')
-        .upsert({
-          user_id: user.id,
-          ...settings,
-          updated_at: new Date().toISOString()
-        })
-        .select()
-        .single();
-
-      if (error) throw error;
-
-      setPrivacySettings(data);
+      const updatedSettings = { ...mockPrivacySettings, ...settings };
+      setPrivacySettings(updatedSettings);
+      
       toast({
         title: "Success",
         description: "Privacy settings updated",
       });
 
-      return data;
+      return updatedSettings;
     } catch (error) {
       console.error('Error updating privacy settings:', error);
       toast({
@@ -192,41 +206,29 @@ export const useEnhancedProfiles = () => {
     }
   }, [user, toast]);
 
-  // Calculate trust metrics
+  // Calculate trust metrics (mock implementation)
   const calculateTrustMetrics = useCallback(async (userId: string) => {
     try {
-      const { data, error } = await supabase.rpc('calculate_trust_score', {
-        user_uuid: userId
-      });
-
-      if (error) throw error;
-      return data;
+      // Mock calculation
+      return 0.95;
     } catch (error) {
       console.error('Error calculating trust metrics:', error);
       return 0;
     }
   }, []);
 
-  // Update profile completion
+  // Update profile completion (mock implementation)
   const updateProfileCompletion = useCallback(async () => {
     if (!user) return;
 
     try {
-      const { data, error } = await supabase.rpc('update_profile_completion', {
-        user_uuid: user.id
-      });
-
-      if (error) throw error;
-      
-      // Refresh profile to get updated completion percentage
-      await fetchEnhancedProfile();
-      
-      return data;
+      // Mock calculation - in real implementation would use database function
+      return 85;
     } catch (error) {
       console.error('Error updating profile completion:', error);
       return 0;
     }
-  }, [user, fetchEnhancedProfile]);
+  }, [user]);
 
   // Initialize data on mount
   useEffect(() => {
