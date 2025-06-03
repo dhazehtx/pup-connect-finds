@@ -252,18 +252,6 @@ const Profile = () => {
     }
   };
 
-  // Add verification badges from enhanced system
-  const allVerificationBadges = verificationBadges.length > 0 
-    ? verificationBadges.map(badge => badge.badge_name)
-    : displayProfile.verification_badges.map(badge => badge.type);
-
-  // Add specializations from enhanced profile or portfolio
-  const allSpecializations = enhancedProfile?.specializations?.length > 0
-    ? enhancedProfile.specializations
-    : portfolios.length > 0 
-      ? portfolios[0]?.available_breeds || displayProfile.specializations
-      : displayProfile.specializations;
-
   return (
     <ProfileErrorBoundary>
       <div className="max-w-md mx-auto bg-white min-h-screen">
