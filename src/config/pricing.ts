@@ -15,7 +15,11 @@ export const PRICING_CONFIG = {
         'Message sellers & providers',
         'Save up to 10 favorites',
         'Access basic support',
-        'Standard listing visibility'
+        'Standard listing visibility',
+        'Like and comment on posts',
+        'View stories and profiles',
+        'Basic profile creation',
+        'Limited messaging (10 per day)'
       ]
     },
     pro: {
@@ -27,10 +31,19 @@ export const PRICING_CONFIG = {
         'See listings first (early access)',
         'Unlimited favorites & messages',
         'Video calls with sellers/providers',
+        'Voice calls with sellers/providers',
+        'Create and share stories',
+        'Post photos & videos to profile',
+        'Unlimited likes and comments',
+        'Advanced messaging features',
         'Exclusive breeds & shelter partners',
         'Partner brand discounts (10-20%)',
         'Pro Pup trustworthiness badge',
-        'Priority customer support'
+        'Priority customer support',
+        'Profile verification options',
+        'Story highlights and saved content',
+        'Advanced photo filters',
+        'Message read receipts'
       ]
     },
     business: {
@@ -46,7 +59,15 @@ export const PRICING_CONFIG = {
         'Customer management system',
         'Elite Handler verification badge',
         'Dedicated account manager',
-        'Custom branding options'
+        'Custom branding options',
+        'Live streaming capabilities',
+        'Business insights and metrics',
+        'Bulk messaging tools',
+        'Professional content creation tools',
+        'Priority placement in search',
+        'Advanced video call features',
+        'Multi-account management',
+        'API access for integrations'
       ]
     }
   },

@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
-import { Check, Crown, Star, Zap, Heart, Shield, Users } from 'lucide-react';
+import { Check, Crown, Star, Zap, Heart, Shield, Users, Video, Phone, MessageSquare, Camera } from 'lucide-react';
 import { useSubscription } from '@/hooks/useSubscription';
 import { useAuth } from '@/contexts/AuthContext';
 import { PRICING_CONFIG } from '@/config/pricing';
@@ -28,7 +28,12 @@ const EnhancedPricingPlans = () => {
       features: PRICING_CONFIG.subscriptions.basic.features,
       description: 'Perfect for casual dog lovers and first-time buyers',
       buttonText: 'Get Started Free',
-      savings: null
+      savings: null,
+      socialFeatures: [
+        { icon: MessageSquare, text: '10 messages/day' },
+        { icon: Heart, text: 'Like & comment' },
+        { icon: Users, text: 'View profiles & stories' }
+      ]
     },
     {
       name: 'Pro',
@@ -43,7 +48,13 @@ const EnhancedPricingPlans = () => {
       features: PRICING_CONFIG.subscriptions.pro.features,
       description: 'For serious dog enthusiasts who want the best experience',
       buttonText: 'Upgrade to Pro Pup',
-      savings: 'Save $25/year'
+      savings: 'Save $25/year',
+      socialFeatures: [
+        { icon: Video, text: 'Unlimited video calls' },
+        { icon: Phone, text: 'Voice calls included' },
+        { icon: Camera, text: 'Create stories & posts' },
+        { icon: MessageSquare, text: 'Unlimited messaging' }
+      ]
     },
     {
       name: 'Enterprise',
@@ -58,7 +69,13 @@ const EnhancedPricingPlans = () => {
       features: PRICING_CONFIG.subscriptions.business.features,
       description: 'For professional breeders, shelters & service providers',
       buttonText: 'Become Elite Handler',
-      savings: 'Save $40/year'
+      savings: 'Save $40/year',
+      socialFeatures: [
+        { icon: Video, text: 'Live streaming' },
+        { icon: Users, text: 'Multi-account management' },
+        { icon: MessageSquare, text: 'Bulk messaging tools' },
+        { icon: Camera, text: 'Professional content tools' }
+      ]
     }
   ];
 
@@ -171,6 +188,19 @@ const EnhancedPricingPlans = () => {
                     </>
                   )}
                 </div>
+
+                {/* Social Features Highlight */}
+                <div className="mt-4 space-y-2">
+                  {plan.socialFeatures.map((feature, idx) => {
+                    const FeatureIcon = feature.icon;
+                    return (
+                      <div key={idx} className="flex items-center justify-center gap-2 text-sm">
+                        <FeatureIcon size={14} className={plan.color} />
+                        <span>{feature.text}</span>
+                      </div>
+                    );
+                  })}
+                </div>
               </CardHeader>
               
               <CardContent className="p-6">
@@ -210,6 +240,44 @@ const EnhancedPricingPlans = () => {
             </Card>
           );
         })}
+      </div>
+
+      {/* Social Features Showcase */}
+      <div className="mt-16 text-center">
+        <h3 className="text-2xl font-bold mb-8">Full Social Experience</h3>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+          <div className="text-center">
+            <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Video className="w-8 h-8 text-blue-600" />
+            </div>
+            <h4 className="font-semibold text-lg mb-2">Video Calls</h4>
+            <p className="text-gray-600 text-sm">Connect face-to-face with breeders and other dog lovers</p>
+          </div>
+          
+          <div className="text-center">
+            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Phone className="w-8 h-8 text-green-600" />
+            </div>
+            <h4 className="font-semibold text-lg mb-2">Voice Calls</h4>
+            <p className="text-gray-600 text-sm">Quick voice conversations for instant communication</p>
+          </div>
+
+          <div className="text-center">
+            <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Camera className="w-8 h-8 text-purple-600" />
+            </div>
+            <h4 className="font-semibold text-lg mb-2">Stories & Posts</h4>
+            <p className="text-gray-600 text-sm">Share your dog's journey and special moments</p>
+          </div>
+          
+          <div className="text-center">
+            <div className="w-16 h-16 bg-pink-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <MessageSquare className="w-8 h-8 text-pink-600" />
+            </div>
+            <h4 className="font-semibold text-lg mb-2">Unlimited Chat</h4>
+            <p className="text-gray-600 text-sm">Message breeders, sellers, and the community without limits</p>
+          </div>
+        </div>
       </div>
 
       {/* Value Proposition Section */}
