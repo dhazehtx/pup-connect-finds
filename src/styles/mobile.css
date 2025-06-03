@@ -1,0 +1,49 @@
+
+/* MOBILE-SPECIFIC STYLES AND OPTIMIZATIONS */
+@layer utilities {
+  /* Mobile-specific improvements */
+  @media (max-width: 768px) {
+    button {
+      @apply min-h-[44px] text-base;
+    }
+
+    .touch-target {
+      @apply min-h-[44px] min-w-[44px];
+    }
+
+    /* Ensure story editor controls are always visible */
+    .story-editor-controls {
+      @apply bg-background/95 backdrop-blur-sm border border-border;
+      @apply shadow-lg rounded-lg p-4;
+    }
+
+    /* Enhanced story viewer for mobile */
+    .story-viewer-mobile {
+      @apply touch-none select-none;
+    }
+
+    .story-nav-button {
+      @apply w-12 h-12 rounded-full bg-black/60 backdrop-blur-sm;
+      @apply border border-white/30 text-white shadow-lg;
+      @apply hover:bg-black/80 active:bg-black/90;
+    }
+  }
+
+  /* Utility for safe area padding on mobile */
+  .pb-safe {
+    padding-bottom: max(1rem, env(safe-area-inset-bottom));
+  }
+
+  .pt-safe {
+    padding-top: max(1rem, env(safe-area-inset-top));
+  }
+
+  /* Mobile-optimized active states */
+  .active-scale {
+    transition: transform 0.1s ease-in-out;
+  }
+
+  .active-scale:active {
+    transform: scale(0.95);
+  }
+}
