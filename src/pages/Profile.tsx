@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { Settings } from 'lucide-react';
@@ -57,7 +58,29 @@ const Profile = () => {
   }
 
   // Use enhanced profile data if available, otherwise fall back to existing profile structure
-  const displayProfile: UserProfile = enhancedProfile || (isOwnProfile && profile ? {
+  const displayProfile: UserProfile = enhancedProfile ? {
+    ...enhancedProfile,
+    verification_badges: enhancedProfile.verified ? [
+      { type: 'ID Verified', verified_at: new Date().toISOString() }
+    ] : [],
+    social_links: {},
+    privacy_settings: {
+      show_bio: true,
+      show_email: false,
+      show_phone: false,
+      show_location: true,
+      show_social_links: true
+    },
+    stats: {
+      followers: followers.length,
+      following: following.length,
+      posts: 0,
+      totalListings: 0,
+      activeListings: 0,
+      totalViews: 0,
+      totalInquiries: 0
+    }
+  } : (isOwnProfile && profile ? {
     id: profile.id,
     username: profile.username,
     full_name: profile.fullName || profile.full_name,
@@ -73,9 +96,9 @@ const Profile = () => {
     years_experience: profile.yearsExperience || profile.years_experience || 0,
     rating: profile.rating || 0,
     total_reviews: profile.totalReviews || profile.total_reviews || 0,
-    specializations: enhancedProfile?.specializations || [],
-    certifications: enhancedProfile?.certifications || [],
-    trust_score: enhancedProfile?.trust_score || (profile.rating / 5) || 0,
+    specializations: [],
+    certifications: [],
+    trust_score: (profile.rating / 5) || 0,
     breeding_program_name: portfolios.length > 0 ? portfolios[0].portfolio_name : undefined,
     phone: profile.phone,
     website_url: profile.websiteUrl || profile.website_url,
@@ -228,6 +251,18 @@ const Profile = () => {
         setIsEditDialogOpen(true);
     }
   };
+
+  // Add verification badges from enhanced system
+  const allVerificationBadges = verificationBadges.length > 0 
+    ? verificationBadges.map(badge => badge.badge_name)
+    : displayProfile.verification_badges.map(badge => badge.type);
+
+  // Add specializations from enhanced profile or portfolio
+  const allSpecializations = enhancedProfile?.specializations?.length > 0
+    ? enhancedProfile.specializations
+    : portfolios.length > 0 
+      ? portfolios[0]?.available_breeds || displayProfile.specializations
+      : displayProfile.specializations;
 
   return (
     <ProfileErrorBoundary>
