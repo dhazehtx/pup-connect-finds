@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Users, Plus, Filter, Grid, List, Mic } from 'lucide-react';
+import { Users, Plus, Filter, Grid, List, Mic, BarChart3, Settings } from 'lucide-react';
 import SearchFilters from '@/components/SearchFilters';
 import SortingOptions from '@/components/SortingOptions';
 import ListingsGrid from '@/components/ListingsGrid';
 import CreateListingForm from '@/components/listings/CreateListingForm';
 import AdvancedSearchFilters from '@/components/search/AdvancedSearchFilters';
+import SearchHistory from '@/components/search/SearchHistory';
+import ListingAnalyticsDashboard from '@/components/analytics/ListingAnalyticsDashboard';
+import BulkListingManager from '@/components/listings/BulkListingManager';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
@@ -14,9 +17,11 @@ import DogLoadingIcon from '@/components/DogLoadingIcon';
 import { useToast } from '@/hooks/use-toast';
 import { useListingFilters } from '@/hooks/useListingFilters';
 import { useDogListings } from '@/hooks/useDogListings';
+import { useListingAnalytics } from '@/hooks/useListingAnalytics';
 import { supabase } from '@/integrations/supabase/client';
 import { sampleListings } from '@/data/sampleListings';
 import VoiceSearchInterface from '@/components/search/VoiceSearchInterface';
+import { useMobile } from '@/hooks/use-mobile';
 
 interface FilterState {
   searchTerm: string;
@@ -57,6 +62,7 @@ interface Listing {
 const Explore = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const isMobile = useMobile();
   const [favorites, setFavorites] = useState<number[]>([]);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [sortBy, setSortBy] = useState('newest');
@@ -64,6 +70,7 @@ const Explore = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [showAdvancedSearch, setShowAdvancedSearch] = useState(false);
   const [showVoiceSearch, setShowVoiceSearch] = useState(false);
+  const [activeTab, setActiveTab] = useState('marketplace');
   const [filters, setFilters] = useState<FilterState>({
     searchTerm: '',
     breed: 'all',
@@ -78,6 +85,7 @@ const Explore = () => {
   });
 
   const { listings: dbListings, loading } = useDogListings();
+  const { trackListingView } = useListingAnalytics();
 
   // Helper function to get breed-appropriate image
   const getBreedImage = (breed: string): string => {
@@ -326,11 +334,11 @@ const Explore = () => {
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-6">
-      {/* Header with enhanced search options */}
+      {/* Enhanced Header */}
       <div className="mb-6">
         <div className="flex justify-between items-start mb-2">
           <h1 className="text-2xl font-bold text-black">Marketplace</h1>
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap">
             {/* Voice Search Button */}
             <Button 
               variant="outline"
@@ -339,29 +347,52 @@ const Explore = () => {
               className="flex items-center gap-2"
             >
               <Mic size={16} />
-              Voice Search
+              {!isMobile && "Voice Search"}
             </Button>
             
             {isAuthenticated && (
-              <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-                <DialogTrigger asChild>
-                  <Button 
-                    variant="default"
-                    size="sm"
-                    className="flex items-center gap-2 bg-green-600 text-white hover:bg-green-700"
-                  >
-                    <Plus size={16} />
-                    Create Listing
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-                  <CreateListingForm 
-                    onSuccess={handleCreateSuccess}
-                    onCancel={() => setIsCreateDialogOpen(false)}
-                  />
-                </DialogContent>
-              </Dialog>
+              <>
+                <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+                  <DialogTrigger asChild>
+                    <Button 
+                      variant="default"
+                      size="sm"
+                      className="flex items-center gap-2 bg-green-600 text-white hover:bg-green-700"
+                    >
+                      <Plus size={16} />
+                      {!isMobile && "Create Listing"}
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+                    <CreateListingForm 
+                      onSuccess={handleCreateSuccess}
+                      onCancel={() => setIsCreateDialogOpen(false)}
+                    />
+                  </DialogContent>
+                </Dialog>
+                
+                <Button 
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setActiveTab('analytics')}
+                  className="flex items-center gap-2"
+                >
+                  <BarChart3 size={16} />
+                  {!isMobile && "Analytics"}
+                </Button>
+                
+                <Button 
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setActiveTab('management')}
+                  className="flex items-center gap-2"
+                >
+                  <Settings size={16} />
+                  {!isMobile && "Manage"}
+                </Button>
+              </>
             )}
+            
             <Button 
               variant="default"
               size="sm"
@@ -369,63 +400,88 @@ const Explore = () => {
               className="flex items-center gap-2 bg-primary text-primary-foreground hover:bg-primary/90"
             >
               <Users size={16} />
-              Trusted Partners
-            </Button>
-            <Button 
-              variant="outline"
-              size="sm"
-              onClick={() => navigate('/compare')}
-              className="flex items-center gap-2"
-            >
-              Compare
-            </Button>
-            <Button 
-              variant="outline"
-              size="sm"
-              onClick={() => navigate('/recommendations')}
-              className="flex items-center gap-2"
-            >
-              For You
+              {!isMobile && "Partners"}
             </Button>
           </div>
         </div>
         <p className="text-black">Find your perfect puppy companion with AI-powered search and recommendations</p>
       </div>
 
-      {/* Voice Search Interface */}
-      {showVoiceSearch && (
-        <div className="mb-6">
-          <VoiceSearchInterface
-            onSearchResults={handleVoiceSearchResults}
-            onBreedRecommendation={handleBreedRecommendations}
-          />
-        </div>
-      )}
-
-      {/* Enhanced Search Tabs */}
-      <Tabs defaultValue="basic" className="mb-6">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="basic">Basic Search</TabsTrigger>
-          <TabsTrigger value="advanced">Advanced Search</TabsTrigger>
-          <TabsTrigger value="ai">AI Recommendations</TabsTrigger>
+      {/* Main Content Tabs */}
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+        <TabsList className="grid w-full grid-cols-4 lg:grid-cols-6">
+          <TabsTrigger value="marketplace">Marketplace</TabsTrigger>
+          <TabsTrigger value="search">Advanced Search</TabsTrigger>
+          <TabsTrigger value="history">Search History</TabsTrigger>
+          {isAuthenticated && <TabsTrigger value="analytics">Analytics</TabsTrigger>}
+          {isAuthenticated && <TabsTrigger value="management">Management</TabsTrigger>}
+          <TabsTrigger value="ai">AI Tools</TabsTrigger>
         </TabsList>
-        
-        <TabsContent value="basic">
+
+        <TabsContent value="marketplace" className="space-y-6">
+          {/* Voice Search Interface */}
+          {showVoiceSearch && (
+            <VoiceSearchInterface
+              onSearchResults={handleVoiceSearchResults}
+              onBreedRecommendation={handleBreedRecommendations}
+            />
+          )}
+
+          {/* Search Filters */}
           <SearchFilters
             filters={filters}
             onFiltersChange={setFilters}
             resultsCount={sortedListings.length}
             onClearFilters={handleClearFilters}
           />
+
+          {/* Sorting and View Options */}
+          <SortingOptions
+            sortBy={sortBy}
+            onSortChange={setSortBy}
+            viewMode={viewMode}
+            onViewModeChange={setViewMode}
+            resultsCount={sortedListings.length}
+          />
+
+          {/* Results */}
+          <ListingsGrid
+            listings={sortedListings}
+            viewMode={viewMode}
+            favorites={favorites}
+            onFavorite={handleFavorite}
+            onContact={handleContact}
+            onViewDetails={handleViewDetails}
+            isLoading={loading}
+            onClearFilters={handleClearFilters}
+            hasActiveFilters={hasActiveFilters}
+            showEnhancedActions={true}
+          />
         </TabsContent>
-        
-        <TabsContent value="advanced">
+
+        <TabsContent value="search">
           <AdvancedSearchFilters
             onSearch={handleAdvancedSearch}
             onSaveSearch={handleSaveSearch}
           />
         </TabsContent>
-        
+
+        <TabsContent value="history">
+          <SearchHistory />
+        </TabsContent>
+
+        {isAuthenticated && (
+          <TabsContent value="analytics">
+            <ListingAnalyticsDashboard />
+          </TabsContent>
+        )}
+
+        {isAuthenticated && (
+          <TabsContent value="management">
+            <BulkListingManager />
+          </TabsContent>
+        )}
+
         <TabsContent value="ai">
           <VoiceSearchInterface
             onSearchResults={handleVoiceSearchResults}
@@ -433,29 +489,6 @@ const Explore = () => {
           />
         </TabsContent>
       </Tabs>
-
-      {/* Sorting and View Options */}
-      <SortingOptions
-        sortBy={sortBy}
-        onSortChange={setSortBy}
-        viewMode={viewMode}
-        onViewModeChange={setViewMode}
-        resultsCount={sortedListings.length}
-      />
-
-      {/* Results */}
-      <ListingsGrid
-        listings={sortedListings}
-        viewMode={viewMode}
-        favorites={favorites}
-        onFavorite={handleFavorite}
-        onContact={handleContact}
-        onViewDetails={handleViewDetails}
-        isLoading={loading}
-        onClearFilters={handleClearFilters}
-        hasActiveFilters={hasActiveFilters}
-        showEnhancedActions={true}
-      />
     </div>
   );
 };
