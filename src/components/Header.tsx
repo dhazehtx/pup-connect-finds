@@ -25,6 +25,15 @@ const Header = () => {
     navigate('/notifications');
   };
 
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+      navigate('/');
+    } catch (error) {
+      console.error('Sign out error:', error);
+    }
+  };
+
   return (
     <nav className="bg-white shadow-sm border-b">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -44,7 +53,7 @@ const Header = () => {
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
               <Input
-                placeholder="common.search"
+                placeholder="Search for puppies..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10 bg-gray-50 border-gray-200 focus:border-blue-500"
@@ -54,11 +63,13 @@ const Header = () => {
 
           {/* Right Side Actions */}
           <div className="flex items-center space-x-4">
-            {/* Notification Bell */}
-            <NotificationBell 
-              className="text-gray-600 hover:text-gray-900" 
-              onClick={handleNotificationClick}
-            />
+            {/* Notification Bell - only show for logged in users */}
+            {user && (
+              <NotificationBell 
+                className="text-gray-600 hover:text-gray-900" 
+                onClick={handleNotificationClick}
+              />
+            )}
 
             {/* Language Selector */}
             <DropdownMenu>
@@ -90,7 +101,7 @@ const Header = () => {
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" className="flex items-center space-x-2">
                     <User className="w-4 h-4" />
-                    <span>danieluke97</span>
+                    <span>{profile?.username || profile?.full_name || 'User'}</span>
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent className="w-56" align="end">
@@ -112,12 +123,15 @@ const Header = () => {
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={signOut}>Logout</DropdownMenuItem>
+                  <DropdownMenuItem onClick={handleSignOut}>Sign Out</DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
-              <Button className="bg-blue-600 hover:bg-blue-700 text-white">
-                auth.signOut
+              <Button 
+                onClick={() => navigate('/auth')}
+                className="bg-blue-600 hover:bg-blue-700 text-white"
+              >
+                Sign In
               </Button>
             )}
           </div>

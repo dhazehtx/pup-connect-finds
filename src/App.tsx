@@ -14,6 +14,8 @@ import Notifications from './pages/Notifications';
 import AnalyticsDashboard from '@/pages/AnalyticsDashboard';
 import Monetization from './pages/Monetization';
 import Explore from './pages/Explore';
+import Auth from './pages/Auth';
+import AuthCallback from './pages/AuthCallback';
 
 function App() {
   const queryClient = new QueryClient();
@@ -35,6 +37,8 @@ function App() {
               <Route path="/notifications" element={<Notifications />} />
               <Route path="/analytics" element={<AnalyticsDashboard />} />
               <Route path="/monetization" element={<Monetization />} />
+              <Route path="/auth" element={<Auth />} />
+              <Route path="/auth/callback" element={<AuthCallback />} />
             </Routes>
           </Layout>
         </Router>
