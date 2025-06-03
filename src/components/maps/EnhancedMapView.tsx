@@ -353,8 +353,8 @@ const EnhancedMapView = () => {
                   </div>
                 ))}
               </div>
-            </Card>
-          )}
+            </CardContent>
+          </Card>
         </div>
       </div>
     </div>
