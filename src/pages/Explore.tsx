@@ -1,265 +1,258 @@
+
 import React, { useState, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
-import BottomNavigation from '@/components/BottomNavigation';
-import ListingsGrid from '@/components/ListingsGrid';
-import QuickFilters from '@/components/QuickFilters';
-import SortingOptions from '@/components/SortingOptions';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { Search, Filter, MapPin, SlidersHorizontal, Grid, List } from 'lucide-react';
 import { Input } from '@/components/ui/input';
-import { useIsMobile } from '@/hooks/use-mobile';
-import { useEnhancedListings } from '@/hooks/useEnhancedListings';
+import { Button } from '@/components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import { Slider } from '@/components/ui/slider';
+import ListingsGrid from '@/components/ListingsGrid';
+import { useDogListings } from '@/hooks/useDogListings';
 import { useAuth } from '@/contexts/AuthContext';
-import { useToast } from '@/hooks/use-toast';
-import { Search, Filter, SlidersHorizontal, TrendingUp, X } from 'lucide-react';
-import { sampleListings } from '@/data/sampleListings';
 
-interface FilterState {
-  searchTerm: string;
-  breed: string;
-  minPrice: string;
-  maxPrice: string;
-  ageGroup: string;
-  gender: string;
-  sourceType: string;
-  maxDistance: string;
-  verifiedOnly: boolean;
-  availableOnly: boolean;
-}
-
-interface ExplorePageProps {}
-
-const ExplorePage: React.FC<ExplorePageProps> = () => {
-  const [searchParams, setSearchParams] = useSearchParams();
-  const [isMobileSortOpen, setIsMobileSortOpen] = useState(false);
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
-  const [sortBy, setSortBy] = useState('newest');
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filterState, setFilterState] = useState<FilterState>({
-    searchTerm: '',
-    breed: '',
-    minPrice: '',
-    maxPrice: '',
-    ageGroup: '',
-    gender: '',
-    sourceType: '',
-    maxDistance: '',
-    verifiedOnly: false,
-    availableOnly: false
-  });
-  
-  const isMobile = useIsMobile();
+const Explore = () => {
+  const { listings, loading, searchListings } = useDogListings();
   const { user } = useAuth();
-  const { toast } = useToast();
+  const [searchTerm, setSearchTerm] = useState('');
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [showFilters, setShowFilters] = useState(false);
+  const [favorites, setFavorites] = useState<number[]>([]);
+  
+  // Filter states
+  const [selectedBreed, setSelectedBreed] = useState('');
+  const [selectedLocation, setSelectedLocation] = useState('');
+  const [priceRange, setPriceRange] = useState([0, 10000]);
+  const [ageRange, setAgeRange] = useState([0, 24]);
 
-  // Use sample listings for now
-  const [listings, setListings] = useState(sampleListings);
-  const [favoriteIds, setFavoriteIds] = useState<number[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  // Convert database listings to the format expected by ListingsGrid
+  const convertedListings = listings.map((listing) => ({
+    id: parseInt(listing.id.replace(/-/g, '').substring(0, 8), 16), // Convert UUID to number for compatibility
+    title: listing.dog_name,
+    price: `$${listing.price}`,
+    location: listing.location || 'Location not specified',
+    distance: '2.5 miles', // Mock distance for now
+    breed: listing.breed,
+    color: 'Mixed', // Mock color as it's not in our schema
+    gender: 'Unknown', // Mock gender as it's not in our schema
+    age: `${listing.age} months`,
+    rating: listing.profiles?.rating || 0,
+    reviews: listing.profiles?.total_reviews || 0,
+    image: listing.image_url || 'https://images.unsplash.com/photo-1552053831-71594a27632d?w=400&h=400&fit=crop',
+    breeder: listing.profiles?.full_name || listing.profiles?.username || 'Unknown Breeder',
+    verified: listing.profiles?.verified || false,
+    verifiedBreeder: listing.profiles?.verified || false,
+    idVerified: listing.profiles?.verified || false,
+    vetVerified: false, // Mock for now
+    available: 1, // Mock for now
+    sourceType: 'breeder', // Mock for now
+    isKillShelter: false
+  }));
 
-  const handleSearch = (query: string) => {
-    setFilterState(prev => ({ ...prev, searchTerm: query }));
-    // Filter listings based on search term
-    if (query.trim()) {
-      const filtered = sampleListings.filter(listing => 
-        listing.title.toLowerCase().includes(query.toLowerCase()) ||
-        listing.breed.toLowerCase().includes(query.toLowerCase()) ||
-        listing.breeder.toLowerCase().includes(query.toLowerCase())
-      );
-      setListings(filtered);
-    } else {
-      setListings(sampleListings);
-    }
+  const handleSearch = async (term: string) => {
+    setSearchTerm(term);
+    const filters = {
+      breed: selectedBreed,
+      location: selectedLocation,
+      minPrice: priceRange[0],
+      maxPrice: priceRange[1]
+    };
+    await searchListings(term, filters);
   };
 
-  const handleFilterChange = (newFilters: FilterState) => {
-    setFilterState(newFilters);
-    // Apply filters to listings
-    let filtered = [...sampleListings];
-    
-    if (newFilters.breed) {
-      filtered = filtered.filter(listing => 
-        listing.breed.toLowerCase().includes(newFilters.breed.toLowerCase())
-      );
-    }
-    
-    if (newFilters.minPrice) {
-      const minPrice = parseFloat(newFilters.minPrice.replace(/[^0-9.]/g, ''));
-      filtered = filtered.filter(listing => {
-        const price = parseFloat(listing.price.replace(/[^0-9.]/g, ''));
-        return price >= minPrice;
-      });
-    }
-    
-    if (newFilters.maxPrice) {
-      const maxPrice = parseFloat(newFilters.maxPrice.replace(/[^0-9.]/g, ''));
-      filtered = filtered.filter(listing => {
-        const price = parseFloat(listing.price.replace(/[^0-9.]/g, ''));
-        return price <= maxPrice;
-      });
-    }
-    
-    if (newFilters.sourceType) {
-      filtered = filtered.filter(listing => 
-        listing.sourceType === newFilters.sourceType
-      );
-    }
-    
-    if (newFilters.verifiedOnly) {
-      filtered = filtered.filter(listing => listing.verified);
-    }
-    
-    setListings(filtered);
-  };
-
-  const closeMobileSort = () => {
-    setIsMobileSortOpen(false);
+  const handleApplyFilters = async () => {
+    const filters = {
+      breed: selectedBreed,
+      location: selectedLocation,
+      minPrice: priceRange[0],
+      maxPrice: priceRange[1]
+    };
+    await searchListings(searchTerm, filters);
+    setShowFilters(false);
   };
 
   const handleClearFilters = () => {
-    setFilterState({
-      searchTerm: '',
-      breed: '',
-      minPrice: '',
-      maxPrice: '',
-      ageGroup: '',
-      gender: '',
-      sourceType: '',
-      maxDistance: '',
-      verifiedOnly: false,
-      availableOnly: false
-    });
-    setListings(sampleListings);
+    setSelectedBreed('');
+    setSelectedLocation('');
+    setPriceRange([0, 10000]);
+    setAgeRange([0, 24]);
+    handleSearch('');
   };
 
+  const hasActiveFilters = selectedBreed || selectedLocation || priceRange[0] > 0 || priceRange[1] < 10000;
+
   const handleFavorite = (id: number) => {
-    if (!user) {
-      toast({
-        title: "Sign in required",
-        description: "Please sign in to save favorites",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    setFavoriteIds(prev => 
+    setFavorites(prev => 
       prev.includes(id) 
-        ? prev.filter(fId => fId !== id)
+        ? prev.filter(fav => fav !== id)
         : [...prev, id]
     );
-    
-    toast({
-      title: favoriteIds.includes(id) ? "Removed from favorites" : "Added to favorites",
-      description: "Your favorites have been updated",
-    });
   };
 
   const handleContact = (id: number) => {
     if (!user) {
-      toast({
-        title: "Sign in required",
-        description: "Please sign in to contact breeders",
-        variant: "destructive",
-      });
+      console.log('Please sign in to contact breeders');
       return;
     }
-    
-    toast({
-      title: "Message sent",
-      description: "Your message has been sent to the breeder",
-    });
+    console.log('Contact breeder for listing:', id);
   };
 
   const handleViewDetails = (id: number) => {
-    // Navigate to listing details page
-    console.log('Viewing details for listing:', id);
+    console.log('View details for listing:', id);
   };
 
+  useEffect(() => {
+    // Initial load is handled by the hook
+  }, []);
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-royal-blue/10 to-mint-green/10">
-      <main className="pb-20">
-        <div className="container mx-auto px-4 py-8">
-          {/* Quick Filters */}
-          <QuickFilters
-            filters={filterState}
-            onFiltersChange={handleFilterChange}
-            onClearFilters={handleClearFilters}
-          />
-
-          {/* Mobile Sorting */}
-          {isMobile && (
-            <div className="flex justify-end mb-4">
-              <Button onClick={() => setIsMobileSortOpen(true)} variant="outline">
-                <SlidersHorizontal className="h-4 w-4 mr-2" />
-                Sort
+    <div className="max-w-6xl mx-auto bg-white min-h-screen">
+      {/* Header */}
+      <div className="p-4 border-b border-gray-100 bg-white sticky top-0 z-10">
+        <h1 className="text-2xl font-bold mb-4">Explore Dogs</h1>
+        
+        {/* Search Bar */}
+        <div className="flex gap-2 mb-4">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+            <Input
+              placeholder="Search by breed, location, or name..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && handleSearch(searchTerm)}
+              className="pl-10"
+            />
+          </div>
+          
+          <Dialog open={showFilters} onOpenChange={setShowFilters}>
+            <DialogTrigger asChild>
+              <Button variant="outline" size="icon">
+                <SlidersHorizontal className="w-5 h-5" />
               </Button>
-            </div>
-          )}
+            </DialogTrigger>
+            <DialogContent className="max-w-md">
+              <DialogHeader>
+                <DialogTitle>Filter Results</DialogTitle>
+              </DialogHeader>
+              
+              <div className="space-y-6">
+                {/* Breed Filter */}
+                <div className="space-y-2">
+                  <Label>Breed</Label>
+                  <Select value={selectedBreed} onValueChange={setSelectedBreed}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select breed" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="">All Breeds</SelectItem>
+                      <SelectItem value="golden retriever">Golden Retriever</SelectItem>
+                      <SelectItem value="labrador">Labrador</SelectItem>
+                      <SelectItem value="german shepherd">German Shepherd</SelectItem>
+                      <SelectItem value="french bulldog">French Bulldog</SelectItem>
+                      <SelectItem value="beagle">Beagle</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
 
-          {/* Sorting Options */}
-          <SortingOptions
-            sortBy={sortBy}
-            onSortChange={setSortBy}
-            viewMode={viewMode}
-            onViewModeChange={setViewMode}
-            resultsCount={listings.length}
-          />
+                {/* Location Filter */}
+                <div className="space-y-2">
+                  <Label>Location</Label>
+                  <Input
+                    placeholder="Enter city or state"
+                    value={selectedLocation}
+                    onChange={(e) => setSelectedLocation(e.target.value)}
+                  />
+                </div>
 
-          {/* Listings Grid - Full Width */}
-          <div className="w-full">
-            {loading && <p>Loading listings...</p>}
-            {error && <p className="text-red-500">Error: {error}</p>}
-            {listings && listings.length === 0 && !loading && (
-              <Card>
-                <CardContent className="py-8 text-center">
-                  <p className="text-lg text-gray-600">No listings found matching your criteria.</p>
-                </CardContent>
-              </Card>
+                {/* Price Range */}
+                <div className="space-y-2">
+                  <Label>Price Range: ${priceRange[0]} - ${priceRange[1]}</Label>
+                  <Slider
+                    value={priceRange}
+                    onValueChange={setPriceRange}
+                    max={10000}
+                    min={0}
+                    step={100}
+                    className="w-full"
+                  />
+                </div>
+
+                {/* Age Range */}
+                <div className="space-y-2">
+                  <Label>Age Range: {ageRange[0]} - {ageRange[1]} months</Label>
+                  <Slider
+                    value={ageRange}
+                    onValueChange={setAgeRange}
+                    max={24}
+                    min={0}
+                    step={1}
+                    className="w-full"
+                  />
+                </div>
+
+                <div className="flex gap-2">
+                  <Button onClick={handleApplyFilters} className="flex-1">
+                    Apply Filters
+                  </Button>
+                  <Button variant="outline" onClick={handleClearFilters}>
+                    Clear
+                  </Button>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
+          
+          <Button 
+            variant="outline" 
+            size="icon"
+            onClick={() => setViewMode(viewMode === 'grid' ? 'list' : 'grid')}
+          >
+            {viewMode === 'grid' ? <List className="w-5 h-5" /> : <Grid className="w-5 h-5" />}
+          </Button>
+        </div>
+
+        {/* Active Filters */}
+        {hasActiveFilters && (
+          <div className="flex flex-wrap gap-2">
+            {selectedBreed && (
+              <Badge variant="secondary" className="capitalize">
+                {selectedBreed}
+              </Badge>
             )}
-            {listings && listings.length > 0 && (
-              <ListingsGrid
-                listings={listings}
-                viewMode={viewMode}
-                favorites={favoriteIds}
-                onFavorite={handleFavorite}
-                onContact={handleContact}
-                onViewDetails={handleViewDetails}
-                isLoading={loading}
-                onClearFilters={handleClearFilters}
-                hasActiveFilters={Object.values(filterState).some(value => 
-                  typeof value === 'boolean' ? value : value !== ''
-                )}
-              />
+            {selectedLocation && (
+              <Badge variant="secondary">
+                <MapPin className="w-3 h-3 mr-1" />
+                {selectedLocation}
+              </Badge>
+            )}
+            {(priceRange[0] > 0 || priceRange[1] < 10000) && (
+              <Badge variant="secondary">
+                ${priceRange[0]} - ${priceRange[1]}
+              </Badge>
             )}
           </div>
+        )}
+      </div>
 
-          {/* Mobile Sorting Modal */}
-          {isMobileSortOpen && (
-            <div className="fixed inset-0 bg-white z-50">
-              <div className="flex items-center justify-between p-4 border-b">
-                <h2 className="text-lg font-semibold">Sort By</h2>
-                <Button onClick={closeMobileSort} variant="ghost">
-                  <X className="h-5 w-5" />
-                </Button>
-              </div>
-              <div className="p-4">
-                <SortingOptions
-                  sortBy={sortBy}
-                  onSortChange={setSortBy}
-                  viewMode={viewMode}
-                  onViewModeChange={setViewMode}
-                  resultsCount={listings.length}
-                />
-              </div>
-            </div>
-          )}
-        </div>
-      </main>
-      <BottomNavigation />
+      {/* Listings */}
+      <div className="p-4">
+        <ListingsGrid
+          listings={convertedListings}
+          viewMode={viewMode}
+          favorites={favorites}
+          onFavorite={handleFavorite}
+          onContact={handleContact}
+          onViewDetails={handleViewDetails}
+          isLoading={loading}
+          onClearFilters={handleClearFilters}
+          hasActiveFilters={hasActiveFilters}
+          showEnhancedActions={true}
+        />
+      </div>
     </div>
   );
 };
 
-export default ExplorePage;
+export default Explore;

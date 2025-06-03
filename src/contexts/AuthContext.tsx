@@ -1,37 +1,41 @@
 
-import React, { createContext, useContext } from 'react';
+import React, { createContext, useContext, ReactNode } from 'react';
 import { useAuthState } from '@/hooks/useAuth';
+import { User, Session } from '@supabase/supabase-js';
 
-interface AuthContextType extends ReturnType<typeof useAuthState> {
-  continueAsGuest: () => void;
+interface AuthContextType {
+  user: User | null;
+  session: Session | null;
+  loading: boolean;
+  profile: any | null;
   isGuest: boolean;
+  signUp: (email: string, password: string, userData?: any) => Promise<void>;
+  signIn: (email: string, password: string) => Promise<void>;
+  signOut: () => Promise<void>;
+  updateProfile: (updates: any) => Promise<void>;
+  refreshProfile: () => Promise<any>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
-  if (!context) {
+  if (context === undefined) {
     throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;
 };
 
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+interface AuthProviderProps {
+  children: ReactNode;
+}
+
+export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const authState = useAuthState();
-
-  const continueAsGuest = () => {
-    localStorage.setItem('guestMode', 'true');
-    // Force a page reload to update the auth state
-    window.location.reload();
-  };
-
-  const isGuest = localStorage.getItem('guestMode') === 'true' && !authState.user;
 
   const value: AuthContextType = {
     ...authState,
-    continueAsGuest,
-    isGuest,
+    isGuest: !authState.user && !authState.loading,
   };
 
   return (
