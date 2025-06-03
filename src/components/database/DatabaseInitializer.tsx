@@ -35,38 +35,15 @@ const DatabaseInitializer = () => {
 
     for (const tableName of requiredTables) {
       try {
-        // Try to query the table with a simple count to check if it exists
-        const { error } = await supabase
-          .rpc('check_table_exists', { table_name: tableName })
-          .single();
+        // Use a direct query approach that works with any table name
+        const query = supabase.from(tableName as any).select('*', { count: 'exact', head: true });
+        const { error } = await query;
 
-        if (error && error.code === '42883') {
-          // RPC function doesn't exist, fall back to direct table query
-          try {
-            const { error: queryError } = await supabase
-              .from(tableName as 'profiles')
-              .select('count')
-              .limit(0);
-
-            tableStatuses.push({
-              name: tableName,
-              exists: !queryError,
-              error: queryError?.message
-            });
-          } catch (fallbackError) {
-            tableStatuses.push({
-              name: tableName,
-              exists: false,
-              error: 'Table not accessible'
-            });
-          }
-        } else {
-          tableStatuses.push({
-            name: tableName,
-            exists: !error,
-            error: error?.message
-          });
-        }
+        tableStatuses.push({
+          name: tableName,
+          exists: !error || error.code !== 'PGRST116', // PGRST116 is "relation does not exist"
+          error: error && error.code === 'PGRST116' ? 'Table does not exist' : error?.message
+        });
       } catch (err) {
         tableStatuses.push({
           name: tableName,
