@@ -3,7 +3,6 @@ import { useSearchParams } from 'react-router-dom';
 import Layout from '@/components/Layout';
 import ListingsGrid from '@/components/ListingsGrid';
 import QuickFilters from '@/components/QuickFilters';
-import SearchFilters from '@/components/SearchFilters';
 import SortingOptions from '@/components/SortingOptions';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -33,7 +32,6 @@ interface ExplorePageProps {}
 
 const ExplorePage: React.FC<ExplorePageProps> = () => {
   const [searchParams, setSearchParams] = useSearchParams();
-  const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
   const [isMobileSortOpen, setIsMobileSortOpen] = useState(false);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [sortBy, setSortBy] = useState('newest');
@@ -116,18 +114,6 @@ const ExplorePage: React.FC<ExplorePageProps> = () => {
     setListings(filtered);
   };
 
-  const openMobileFilters = () => {
-    setIsMobileFiltersOpen(true);
-  };
-
-  const closeMobileFilters = () => {
-    setIsMobileFiltersOpen(false);
-  };
-
-  const openMobileSort = () => {
-    setIsMobileSortOpen(true);
-  };
-
   const closeMobileSort = () => {
     setIsMobileSortOpen(false);
   };
@@ -197,18 +183,14 @@ const ExplorePage: React.FC<ExplorePageProps> = () => {
         {/* Quick Filters */}
         <QuickFilters
           filters={filterState}
-          onFiltersChange={setFilterState}
+          onFiltersChange={handleFilterChange}
           onClearFilters={handleClearFilters}
         />
 
-        {/* Mobile Filters and Sorting */}
+        {/* Mobile Sorting */}
         {isMobile && (
-          <div className="flex justify-between mb-4">
-            <Button onClick={openMobileFilters} variant="outline">
-              <Filter className="h-4 w-4 mr-2" />
-              Filters
-            </Button>
-            <Button onClick={openMobileSort} variant="outline">
+          <div className="flex justify-end mb-4">
+            <Button onClick={() => setIsMobileSortOpen(true)} variant="outline">
               <SlidersHorizontal className="h-4 w-4 mr-2" />
               Sort
             </Button>
@@ -251,26 +233,6 @@ const ExplorePage: React.FC<ExplorePageProps> = () => {
             />
           )}
         </div>
-
-        {/* Mobile Filter Modal */}
-        {isMobileFiltersOpen && (
-          <div className="fixed inset-0 bg-white z-50">
-            <div className="flex items-center justify-between p-4 border-b">
-              <h2 className="text-lg font-semibold">Filters</h2>
-              <Button onClick={closeMobileFilters} variant="ghost">
-                <X className="h-5 w-5" />
-              </Button>
-            </div>
-            <div className="p-4">
-              <SearchFilters
-                filters={filterState}
-                onFiltersChange={handleFilterChange}
-                resultsCount={listings.length}
-                onClearFilters={handleClearFilters}
-              />
-            </div>
-          </div>
-        )}
 
         {/* Mobile Sorting Modal */}
         {isMobileSortOpen && (
