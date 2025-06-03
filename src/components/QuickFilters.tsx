@@ -1,7 +1,8 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Search } from 'lucide-react';
 
 interface FilterState {
   searchTerm: string;
@@ -46,6 +47,10 @@ const QuickFilters = ({ filters, onFiltersChange, onClearFilters }: QuickFilters
     onFiltersChange({ ...filters, ...filterUpdate });
   };
 
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    onFiltersChange({ ...filters, searchTerm: e.target.value });
+  };
+
   const activeFiltersCount = Object.entries(filters).filter(([key, value]) => {
     if (key === 'searchTerm') return value.length > 0;
     if (typeof value === 'boolean') return value;
@@ -54,7 +59,22 @@ const QuickFilters = ({ filters, onFiltersChange, onClearFilters }: QuickFilters
 
   return (
     <div className="bg-white border border-gray-200 rounded-lg p-4 mb-4">
-      <div className="space-y-3">
+      <div className="space-y-4">
+        {/* Search Bar */}
+        <div>
+          <div className="relative">
+            <Search size={20} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+            <Input
+              type="text"
+              placeholder="Search by breed, breeder name, or keywords..."
+              value={filters.searchTerm}
+              onChange={handleSearchChange}
+              className="pl-10 bg-white border-gray-200 focus:border-royal-blue"
+            />
+          </div>
+        </div>
+
+        {/* Popular Breeds */}
         <div>
           <h3 className="text-sm font-medium text-gray-700 mb-2">Popular Breeds</h3>
           <div className="flex flex-wrap gap-2">
@@ -76,6 +96,7 @@ const QuickFilters = ({ filters, onFiltersChange, onClearFilters }: QuickFilters
           </div>
         </div>
 
+        {/* Quick Filters */}
         <div>
           <h3 className="text-sm font-medium text-gray-700 mb-2">Quick Filters</h3>
           <div className="flex flex-wrap gap-2">

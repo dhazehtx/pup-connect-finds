@@ -45,9 +45,12 @@ const Layout = ({ children }: LayoutProps) => {
     );
   }
 
+  // Don't render header on auth page
+  const isAuthPage = location.pathname === '/auth';
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-royal-blue/10 to-mint-green/10">
-      <Header />
+      {!isAuthPage && <Header />}
       <main className="pb-20">
         {children}
       </main>
