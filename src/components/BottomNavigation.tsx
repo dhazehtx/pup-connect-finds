@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Home, Search, Plus, MessageCircle, User, Compass } from 'lucide-react';
+import { Home, Search, Plus, MessageCircle, User } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import GuestPrompt from '@/components/GuestPrompt';
 
@@ -29,7 +29,7 @@ const BottomNavigation = () => {
       protected: false
     },
     {
-      icon: Compass,
+      icon: Search,
       label: 'Explore',
       path: '/explore',
       protected: false
@@ -82,9 +82,9 @@ const BottomNavigation = () => {
                 }}
                 className={`flex flex-col items-center justify-center p-2 transition-colors ${
                   active 
-                    ? 'text-white bg-blue-900 rounded-t-lg' 
+                    ? 'text-white bg-blue-600 rounded-t-lg' 
                     : user || !item.protected
-                      ? 'text-gray-600 hover:text-blue-900'
+                      ? 'text-gray-600 hover:text-blue-600'
                       : 'text-gray-400'
                 }`}
               >
