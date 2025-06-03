@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -103,7 +104,8 @@ export const useAuthState = () => {
         email,
         password,
         options: {
-          data: userData
+          data: userData,
+          emailRedirectTo: `${window.location.origin}/`
         }
       });
 
@@ -151,6 +153,9 @@ export const useAuthState = () => {
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
 
+      // Clear guest mode
+      localStorage.removeItem('guestMode');
+
       toast({
         title: "Signed out",
         description: "You've been successfully signed out.",
@@ -161,6 +166,28 @@ export const useAuthState = () => {
         description: error.message,
         variant: "destructive",
       });
+    }
+  };
+
+  const resetPassword = async (email: string) => {
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/auth?mode=reset`
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Password reset sent",
+        description: "Check your email for password reset instructions.",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Password reset failed",
+        description: error.message,
+        variant: "destructive",
+      });
+      throw error;
     }
   };
 
@@ -199,6 +226,7 @@ export const useAuthState = () => {
     signIn,
     signOut,
     updateProfile,
+    resetPassword,
     refreshProfile: () => authState.user ? fetchProfile(authState.user.id) : null
   };
 };

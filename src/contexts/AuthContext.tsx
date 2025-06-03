@@ -15,6 +15,7 @@ interface AuthContextType {
   updateProfile: (updates: any) => Promise<void>;
   refreshProfile: () => Promise<any>;
   continueAsGuest: () => void;
+  resetPassword: (email: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -35,14 +36,20 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const authState = useAuthState();
 
   const continueAsGuest = () => {
-    // This would set a guest flag in localStorage or similar
+    localStorage.setItem('guestMode', 'true');
     console.log('Continuing as guest');
+  };
+
+  const resetPassword = async (email: string) => {
+    // This will be implemented in the auth hook
+    return authState.resetPassword(email);
   };
 
   const value: AuthContextType = {
     ...authState,
     isGuest: !authState.user && !authState.loading,
     continueAsGuest,
+    resetPassword,
   };
 
   return (

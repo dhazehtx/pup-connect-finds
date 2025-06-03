@@ -1,211 +1,148 @@
-import { useState, useCallback, useEffect } from 'react';
+
+import { useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
+import { useToast } from '@/hooks/use-toast';
 
 interface SearchFilters {
-  query?: string;
   breed?: string;
+  location?: string;
   minPrice?: number;
   maxPrice?: number;
   minAge?: number;
   maxAge?: number;
-  location?: string;
-  locationRadius?: number;
-  userType?: 'breeder' | 'shelter';
   verified?: boolean;
 }
 
 interface SavedSearch {
   id: string;
-  user_id: string;
   name: string;
   filters: SearchFilters;
   notify_new_matches: boolean;
   created_at: string;
 }
 
-interface SearchResult {
-  id: string;
-  dog_name: string;
-  breed: string;
-  age: number;
-  price: number;
-  image_url?: string;
-  location?: string;
-  user_id: string;
-  created_at: string;
-  profiles?: {
-    full_name: string;
-    username: string;
-    user_type: string;
-    verified: boolean;
-    rating: number;
-    total_reviews: number;
-  };
-}
-
 export const useAdvancedSearch = () => {
-  const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
-  const [savedSearches, setSavedSearches] = useState<SavedSearch[]>([]);
   const [loading, setLoading] = useState(false);
-  const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [savedSearches, setSavedSearches] = useState<SavedSearch[]>([]);
   const { user } = useAuth();
   const { toast } = useToast();
 
-  // Advanced search function
-  const performSearch = useCallback(async (filters: SearchFilters) => {
-    setLoading(true);
+  const searchListings = useCallback(async (query: string, filters: SearchFilters = {}) => {
     try {
-      let query = supabase
+      setLoading(true);
+
+      let queryBuilder = supabase
         .from('dog_listings')
         .select(`
           *,
           profiles:user_id (
             full_name,
             username,
-            user_type,
+            location,
             verified,
             rating,
-            total_reviews
+            total_reviews,
+            avatar_url
+          ),
+          listing_photos (
+            photo_url,
+            display_order
           )
         `)
         .eq('status', 'active');
 
       // Apply text search
-      if (filters.query) {
-        query = query.or(
-          `dog_name.ilike.%${filters.query}%,breed.ilike.%${filters.query}%,description.ilike.%${filters.query}%`
-        );
+      if (query) {
+        queryBuilder = queryBuilder.or(`dog_name.ilike.%${query}%,breed.ilike.%${query}%,description.ilike.%${query}%`);
       }
 
-      // Apply breed filter
+      // Apply filters
       if (filters.breed) {
-        query = query.ilike('breed', `%${filters.breed}%`);
+        queryBuilder = queryBuilder.ilike('breed', `%${filters.breed}%`);
       }
-
-      // Apply price filters
-      if (filters.minPrice !== undefined) {
-        query = query.gte('price', filters.minPrice);
-      }
-      if (filters.maxPrice !== undefined) {
-        query = query.lte('price', filters.maxPrice);
-      }
-
-      // Apply age filters (convert to months)
-      if (filters.minAge !== undefined) {
-        query = query.gte('age', filters.minAge);
-      }
-      if (filters.maxAge !== undefined) {
-        query = query.lte('age', filters.maxAge);
-      }
-
-      // Apply location filter
       if (filters.location) {
-        query = query.ilike('location', `%${filters.location}%`);
+        queryBuilder = queryBuilder.ilike('location', `%${filters.location}%`);
+      }
+      if (filters.minPrice) {
+        queryBuilder = queryBuilder.gte('price', filters.minPrice);
+      }
+      if (filters.maxPrice) {
+        queryBuilder = queryBuilder.lte('price', filters.maxPrice);
+      }
+      if (filters.minAge) {
+        queryBuilder = queryBuilder.gte('age', filters.minAge);
+      }
+      if (filters.maxAge) {
+        queryBuilder = queryBuilder.lte('age', filters.maxAge);
       }
 
-      const { data, error } = await query.order('created_at', { ascending: false });
+      const { data, error } = await queryBuilder.order('created_at', { ascending: false });
 
       if (error) throw error;
 
-      // Filter by user type and verification if specified
+      // Filter by verified status if requested
       let results = data || [];
-      if (filters.userType) {
-        results = results.filter(listing => 
-          listing.profiles?.user_type === filters.userType
-        );
-      }
-      if (filters.verified) {
-        results = results.filter(listing => 
-          listing.profiles?.verified === true
-        );
+      if (filters.verified !== undefined) {
+        results = results.filter(listing => listing.profiles?.verified === filters.verified);
       }
 
-      setSearchResults(results);
+      return results;
     } catch (error) {
-      console.error('Error performing search:', error);
+      console.error('Error searching listings:', error);
       toast({
-        title: "Search Error",
-        description: "Failed to perform search",
+        title: "Error",
+        description: "Failed to search listings",
         variant: "destructive",
       });
+      return [];
     } finally {
       setLoading(false);
     }
   }, [toast]);
 
-  // Get search suggestions
-  const getSearchSuggestions = useCallback(async (query: string) => {
-    if (!query || query.length < 2) {
-      setSuggestions([]);
-      return;
+  const saveSearch = async (name: string, filters: SearchFilters, notifyNewMatches: boolean = false) => {
+    if (!user) {
+      toast({
+        title: "Error",
+        description: "You must be logged in to save searches",
+        variant: "destructive",
+      });
+      return null;
     }
-
-    try {
-      const { data: breeds } = await supabase
-        .from('dog_listings')
-        .select('breed')
-        .ilike('breed', `%${query}%`)
-        .limit(5);
-
-      const { data: names } = await supabase
-        .from('dog_listings')
-        .select('dog_name')
-        .ilike('dog_name', `%${query}%`)
-        .limit(5);
-
-      const breedSuggestions = breeds?.map(b => b.breed) || [];
-      const nameSuggestions = names?.map(n => n.dog_name) || [];
-      
-      const uniqueSuggestions = Array.from(new Set([...breedSuggestions, ...nameSuggestions]));
-      setSuggestions(uniqueSuggestions.slice(0, 8));
-    } catch (error) {
-      console.error('Error getting suggestions:', error);
-    }
-  }, []);
-
-  // Save a search
-  const saveSearch = useCallback(async (name: string, filters: SearchFilters, notifyNewMatches: boolean = false) => {
-    if (!user) return;
 
     try {
       const { data, error } = await supabase
         .from('saved_searches')
-        .insert({
+        .insert([{
           user_id: user.id,
           name,
-          filters: filters as any,
+          filters,
           notify_new_matches: notifyNewMatches
-        })
+        }])
         .select()
         .single();
 
       if (error) throw error;
 
-      const newSavedSearch: SavedSearch = {
-        ...data,
-        filters: data.filters as SearchFilters
-      };
-
-      setSavedSearches(prev => [newSavedSearch, ...prev]);
-
       toast({
-        title: "Search Saved",
-        description: `Search "${name}" has been saved`,
+        title: "Success",
+        description: "Search saved successfully",
       });
-    } catch (error) {
+
+      return data;
+    } catch (error: any) {
       console.error('Error saving search:', error);
       toast({
         title: "Error",
         description: "Failed to save search",
         variant: "destructive",
       });
+      return null;
     }
-  }, [user, toast]);
+  };
 
-  // Load saved searches
-  const loadSavedSearches = useCallback(async () => {
+  const getSavedSearches = async () => {
     if (!user) return;
 
     try {
@@ -216,59 +153,49 @@ export const useAdvancedSearch = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      
-      const typedSavedSearches: SavedSearch[] = (data || []).map(item => ({
-        ...item,
-        filters: item.filters as SearchFilters
-      }));
-      
-      setSavedSearches(typedSavedSearches);
+      setSavedSearches(data || []);
     } catch (error) {
-      console.error('Error loading saved searches:', error);
+      console.error('Error fetching saved searches:', error);
     }
-  }, [user]);
+  };
 
-  // Delete saved search
-  const deleteSavedSearch = useCallback(async (searchId: string) => {
+  const deleteSavedSearch = async (searchId: string) => {
+    if (!user) return false;
+
     try {
       const { error } = await supabase
         .from('saved_searches')
         .delete()
-        .eq('id', searchId);
+        .eq('id', searchId)
+        .eq('user_id', user.id);
 
       if (error) throw error;
 
-      setSavedSearches(prev => prev.filter(s => s.id !== searchId));
+      setSavedSearches(prev => prev.filter(search => search.id !== searchId));
+      
       toast({
-        title: "Search Deleted",
-        description: "Saved search has been removed",
+        title: "Success",
+        description: "Saved search deleted",
       });
-    } catch (error) {
+
+      return true;
+    } catch (error: any) {
       console.error('Error deleting saved search:', error);
       toast({
         title: "Error",
         description: "Failed to delete saved search",
         variant: "destructive",
       });
+      return false;
     }
-  }, [toast]);
-
-  // Load saved searches on mount
-  useEffect(() => {
-    if (user) {
-      loadSavedSearches();
-    }
-  }, [user, loadSavedSearches]);
+  };
 
   return {
-    searchResults,
-    savedSearches,
-    suggestions,
-    loading,
-    performSearch,
-    getSearchSuggestions,
+    searchListings,
     saveSearch,
+    getSavedSearches,
     deleteSavedSearch,
-    loadSavedSearches
+    savedSearches,
+    loading
   };
 };

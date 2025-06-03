@@ -10,12 +10,18 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
 import ListingsGrid from '@/components/ListingsGrid';
-import { useDogListings } from '@/hooks/useDogListings';
+import { useAdvancedSearch } from '@/hooks/useAdvancedSearch';
 import { useAuth } from '@/contexts/AuthContext';
+import { useFavorites } from '@/hooks/useFavorites';
+import { useEnhancedMessaging } from '@/hooks/useEnhancedMessaging';
 
 const Explore = () => {
-  const { listings, loading, searchListings } = useDogListings();
+  const { searchListings, loading } = useAdvancedSearch();
   const { user } = useAuth();
+  const { isFavorited, toggleFavorite } = useFavorites();
+  const { createConversation } = useEnhancedMessaging();
+  
+  const [listings, setListings] = useState<any[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [showFilters, setShowFilters] = useState(false);
@@ -29,25 +35,25 @@ const Explore = () => {
 
   // Convert database listings to the format expected by ListingsGrid
   const convertedListings = listings.map((listing) => ({
-    id: parseInt(listing.id.replace(/-/g, '').substring(0, 8), 16), // Convert UUID to number for compatibility
+    id: parseInt(listing.id.replace(/-/g, '').substring(0, 8), 16),
     title: listing.dog_name,
     price: `$${listing.price}`,
     location: listing.location || 'Location not specified',
-    distance: '2.5 miles', // Mock distance for now
+    distance: '2.5 miles',
     breed: listing.breed,
-    color: 'Mixed', // Mock color as it's not in our schema
-    gender: 'Unknown', // Mock gender as it's not in our schema
+    color: 'Mixed',
+    gender: 'Unknown',
     age: `${listing.age} months`,
     rating: listing.profiles?.rating || 0,
     reviews: listing.profiles?.total_reviews || 0,
-    image: listing.image_url || 'https://images.unsplash.com/photo-1552053831-71594a27632d?w=400&h=400&fit=crop',
+    image: listing.image_url || listing.listing_photos?.[0]?.photo_url || 'https://images.unsplash.com/photo-1552053831-71594a27632d?w=400&h=400&fit=crop',
     breeder: listing.profiles?.full_name || listing.profiles?.username || 'Unknown Breeder',
     verified: Boolean(listing.profiles?.verified),
     verifiedBreeder: Boolean(listing.profiles?.verified),
     idVerified: Boolean(listing.profiles?.verified),
-    vetVerified: false, // Mock for now
-    available: 1, // Mock for now
-    sourceType: 'breeder' as const, // Mock for now
+    vetVerified: false,
+    available: 1,
+    sourceType: 'breeder' as const,
     isKillShelter: false
   }));
 
@@ -57,9 +63,12 @@ const Explore = () => {
       breed: selectedBreed,
       location: selectedLocation,
       minPrice: priceRange[0],
-      maxPrice: priceRange[1]
+      maxPrice: priceRange[1],
+      minAge: ageRange[0],
+      maxAge: ageRange[1]
     };
-    await searchListings(term, filters);
+    const results = await searchListings(term, filters);
+    setListings(results);
   };
 
   const handleApplyFilters = async () => {
@@ -67,18 +76,22 @@ const Explore = () => {
       breed: selectedBreed,
       location: selectedLocation,
       minPrice: priceRange[0],
-      maxPrice: priceRange[1]
+      maxPrice: priceRange[1],
+      minAge: ageRange[0],
+      maxAge: ageRange[1]
     };
-    await searchListings(searchTerm, filters);
+    const results = await searchListings(searchTerm, filters);
+    setListings(results);
     setShowFilters(false);
   };
 
-  const handleClearFilters = () => {
+  const handleClearFilters = async () => {
     setSelectedBreed('');
     setSelectedLocation('');
     setPriceRange([0, 10000]);
     setAgeRange([0, 24]);
-    handleSearch('');
+    const results = await searchListings('');
+    setListings(results);
   };
 
   const hasActiveFilters = Boolean(
@@ -88,7 +101,12 @@ const Explore = () => {
     (priceRange && priceRange[1] < 10000)
   );
 
-  const handleFavorite = (id: number) => {
+  const handleFavorite = async (id: number) => {
+    const listingId = listings.find(l => parseInt(l.id.replace(/-/g, '').substring(0, 8), 16) === id)?.id;
+    if (listingId) {
+      await toggleFavorite(listingId);
+    }
+    
     setFavorites(prev => 
       prev.includes(id) 
         ? prev.filter(fav => fav !== id)
@@ -96,12 +114,16 @@ const Explore = () => {
     );
   };
 
-  const handleContact = (id: number) => {
+  const handleContact = async (id: number) => {
     if (!user) {
       console.log('Please sign in to contact breeders');
       return;
     }
-    console.log('Contact breeder for listing:', id);
+    
+    const listing = listings.find(l => parseInt(l.id.replace(/-/g, '').substring(0, 8), 16) === id);
+    if (listing) {
+      await createConversation(listing.id, listing.user_id);
+    }
   };
 
   const handleViewDetails = (id: number) => {
@@ -109,7 +131,8 @@ const Explore = () => {
   };
 
   useEffect(() => {
-    // Initial load is handled by the hook
+    // Initial load
+    handleSearch('');
   }, []);
 
   return (
