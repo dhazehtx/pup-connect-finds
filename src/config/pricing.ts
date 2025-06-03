@@ -9,76 +9,90 @@ export const PRICING_CONFIG = {
     basic: {
       monthly: 0, // Free tier
       yearly: 0,
-      name: 'Basic',
+      name: 'Pup Seeker',
       features: [
-        'Browse all dog listings & services',
-        'Unlimited messaging with sellers & providers',
-        'Unlimited video & voice calls',
-        'Create and share stories',
-        'Post photos & videos to profile',
-        'Unlimited likes and comments',
+        'Create profile',
+        'Browse all dog listings',
         'Save unlimited favorites',
-        'Access basic support',
-        'Standard listing visibility',
-        'View stories and profiles',
-        'Basic profile creation',
-        'Advanced messaging features',
-        'Message read receipts',
-        'Story highlights and saved content',
-        'Advanced photo filters'
-      ]
+        'Message sellers (up to 5/day)',
+        'Access basic social feed (IG-style)',
+        'Follow dogs/breeders',
+        'View pet care tips & blogs',
+        'Post dog content (1/day or 5/week)',
+        'Basic support'
+      ],
+      limits: {
+        dailyMessages: 5,
+        dailyPosts: 1,
+        weeklyPosts: 5
+      }
     },
     pro: {
-      monthly: 6.99,
-      yearly: 59, // ~2 months free
-      name: 'Pro Pup',
+      monthly: 14.99,
+      yearly: 149, // ~2 months free
+      name: 'Pup Pro',
       features: [
-        'Everything in Basic',
-        'See listings first (early access)',
-        'HD video & voice calls',
-        'Premium story templates & effects',
-        'Enhanced profile customization',
-        'Live streaming capabilities',
-        'Exclusive breeds & shelter partners',
-        'Partner brand discounts (10-20%)',
-        'Pro Pup trustworthiness badge',
-        'Priority customer support',
-        'Profile verification options',
-        'Advanced analytics for your posts',
-        'Custom story highlights',
-        'Professional photo editing tools',
-        'Message scheduling & templates',
-        'Group video calls (up to 8 people)',
-        'Premium filters & AR effects'
-      ]
+        'Everything in Pup Seeker',
+        'Unlimited messaging',
+        'Priority placement in search',
+        'Pro seller/breeder badge',
+        'Add business/storefront profile',
+        'Access analytics (views, clicks)',
+        'Social post scheduler (basic)',
+        'Up to 10 listings at a time',
+        'Custom bio links',
+        'Post unlimited dog content',
+        'Moderate reviews'
+      ],
+      limits: {
+        maxListings: 10
+      }
     },
     business: {
-      monthly: 19.99,
-      yearly: 199, // ~2 months free
-      name: 'Elite Handler',
+      monthly: 39.99,
+      yearly: 399, // ~2 months free
+      name: 'Pup Partner',
       features: [
-        'Everything in Pro Pup',
-        'Verified breeder/business profile',
-        '+5 featured listings per month',
-        'Advanced booking & scheduling tools',
-        'Detailed analytics dashboard',
-        'Customer management system',
-        'Elite Handler verification badge',
-        'Dedicated account manager',
-        'Custom branding options',
-        'Business live streaming studio',
-        'Business insights and metrics',
-        'Bulk messaging tools',
-        'Professional content creation suite',
-        'Priority placement in search',
-        'Advanced business video tools',
-        'Multi-account management',
-        'API access for integrations',
-        'White-label customer portal'
-      ]
+        'Everything in Pup Pro',
+        'Verified business status',
+        'Featured listings (homepage)',
+        'Booking integrations (vet, grooming, walking)',
+        'Flight nanny directory access',
+        'Host virtual meet & greet events',
+        'Priority support',
+        'Run promotions & discounts',
+        'API access (for syncing listings)',
+        'Connect team members',
+        'Unlimited listings',
+        'Advanced analytics dashboard',
+        'CRM-style messaging inbox'
+      ],
+      limits: {
+        maxListings: 'unlimited'
+      }
+    },
+    enterprise: {
+      monthly: 99,
+      yearly: 999,
+      name: 'Pup Agency Dashboard',
+      features: [
+        'Everything in Pup Partner',
+        'Multi-location account management',
+        'Team user permissions',
+        'Monthly performance reports',
+        'API listing sync',
+        'Advanced CRM messaging inbox',
+        'Dedicated support manager',
+        'White-label options',
+        'Custom integrations'
+      ],
+      limits: {
+        maxListings: 'unlimited',
+        teamMembers: 'unlimited'
+      }
     }
   },
-  transactionFee: 0.05, // Reduced from 8% to 5%
+  transactionFee: 0.05, // 5%
   donationGoals: {
     monthly: 10000,
     quarterly: 30000,

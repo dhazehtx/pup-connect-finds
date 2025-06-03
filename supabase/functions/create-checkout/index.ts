@@ -45,11 +45,11 @@ serve(async (req) => {
       customerId = customers.data[0].id;
     }
 
-    // Updated pricing with new freemium structure
+    // Updated pricing with new tier structure
     const pricing = {
-      'Basic': { amount: 0, name: 'Basic Plan' }, // Free tier
-      'Pro': { amount: 699, name: 'Pro Pup' }, // $6.99
-      'Enterprise': { amount: 1999, name: 'Elite Handler' } // $19.99
+      'Basic': { amount: 0, name: 'Pup Seeker' }, // Free tier
+      'Pro': { amount: 1499, name: 'Pup Pro' }, // $14.99
+      'Enterprise': { amount: 3999, name: 'Pup Partner' } // $39.99
     };
 
     const selectedPlan = pricing[tier as keyof typeof pricing];

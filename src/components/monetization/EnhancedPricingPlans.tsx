@@ -1,9 +1,10 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
-import { Check, Crown, Star, Zap, Heart, Shield, Users, Video, Phone, MessageSquare, Camera } from 'lucide-react';
+import { Check, Crown, Star, Zap, Heart, Shield, Users, Video, Phone, Camera, MessageSquare } from 'lucide-react';
 import { useSubscription } from '@/hooks/useSubscription';
 import { useAuth } from '@/contexts/AuthContext';
 import { PRICING_CONFIG } from '@/config/pricing';
@@ -16,7 +17,7 @@ const EnhancedPricingPlans = () => {
   const plans = [
     {
       name: 'Basic',
-      displayName: 'Basic',
+      displayName: 'Pup Seeker',
       icon: Heart,
       color: 'text-blue-600',
       bgColor: 'bg-blue-50',
@@ -25,19 +26,19 @@ const EnhancedPricingPlans = () => {
       monthlyPrice: PRICING_CONFIG.subscriptions.basic.monthly,
       yearlyPrice: PRICING_CONFIG.subscriptions.basic.yearly,
       features: PRICING_CONFIG.subscriptions.basic.features,
-      description: 'Full social experience for dog lovers - completely free!',
-      buttonText: 'Get Started Free',
+      description: 'Perfect for dog lovers looking to adopt or browse',
+      buttonText: 'Start Free',
       savings: null,
       socialFeatures: [
-        { icon: MessageSquare, text: 'Unlimited messaging' },
-        { icon: Video, text: 'Unlimited video calls' },
-        { icon: Phone, text: 'Unlimited voice calls' },
-        { icon: Camera, text: 'Create stories & posts' }
+        { icon: Camera, text: 'Post content (1/day)' },
+        { icon: MessageSquare, text: 'Message sellers (5/day)' },
+        { icon: Heart, text: 'Save favorites' },
+        { icon: Users, text: 'Follow dogs & breeders' }
       ]
     },
     {
       name: 'Pro',
-      displayName: 'Pro Pup',
+      displayName: 'Pup Pro',
       icon: Crown,
       color: 'text-yellow-600',
       bgColor: 'bg-yellow-50',
@@ -46,19 +47,19 @@ const EnhancedPricingPlans = () => {
       monthlyPrice: PRICING_CONFIG.subscriptions.pro.monthly,
       yearlyPrice: PRICING_CONFIG.subscriptions.pro.yearly,
       features: PRICING_CONFIG.subscriptions.pro.features,
-      description: 'Enhanced experience with premium features and early access',
-      buttonText: 'Upgrade to Pro Pup',
-      savings: 'Save $25/year',
+      description: 'For hobby breeders & pet businesses wanting more exposure',
+      buttonText: 'Upgrade to Pup Pro',
+      savings: 'Save $30/year',
       socialFeatures: [
-        { icon: Video, text: 'HD video calls & streaming' },
-        { icon: Camera, text: 'Premium templates & effects' },
-        { icon: Users, text: 'Group calls (8 people)' },
-        { icon: MessageSquare, text: 'Message scheduling' }
+        { icon: MessageSquare, text: 'Unlimited messaging' },
+        { icon: Camera, text: 'Unlimited content posting' },
+        { icon: Star, text: 'Priority search placement' },
+        { icon: Users, text: 'Business profile' }
       ]
     },
     {
       name: 'Enterprise',
-      displayName: 'Elite Handler',
+      displayName: 'Pup Partner',
       icon: Zap,
       color: 'text-purple-600',
       bgColor: 'bg-purple-50',
@@ -67,14 +68,14 @@ const EnhancedPricingPlans = () => {
       monthlyPrice: PRICING_CONFIG.subscriptions.business.monthly,
       yearlyPrice: PRICING_CONFIG.subscriptions.business.yearly,
       features: PRICING_CONFIG.subscriptions.business.features,
-      description: 'For professional breeders, shelters & service providers',
-      buttonText: 'Become Elite Handler',
-      savings: 'Save $40/year',
+      description: 'For licensed breeders, shelters & pet service providers',
+      buttonText: 'Become Pup Partner',
+      savings: 'Save $80/year',
       socialFeatures: [
-        { icon: Video, text: 'Business streaming studio' },
-        { icon: Users, text: 'Multi-account management' },
-        { icon: MessageSquare, text: 'Bulk messaging tools' },
-        { icon: Camera, text: 'Professional content suite' }
+        { icon: Shield, text: 'Verified business status' },
+        { icon: Star, text: 'Featured listings' },
+        { icon: Video, text: 'Virtual meet & greet events' },
+        { icon: Users, text: 'Team member access' }
       ]
     }
   ];
@@ -99,14 +100,14 @@ const EnhancedPricingPlans = () => {
     <div className="p-6 max-w-7xl mx-auto">
       <div className="text-center mb-8">
         <h2 className="text-4xl font-bold mb-4">Choose Your Perfect Plan</h2>
-        <p className="text-xl text-gray-600 mb-6">Full social features free forever - upgrade for premium experiences</p>
+        <p className="text-xl text-gray-600 mb-6">From casual browsing to professional breeding - we have the right tier for you</p>
         
         <div className="flex items-center justify-center gap-4 mb-8">
           <span className={`text-sm ${!isYearly ? 'font-semibold' : 'text-gray-600'}`}>Monthly</span>
           <Switch checked={isYearly} onCheckedChange={setIsYearly} />
           <span className={`text-sm ${isYearly ? 'font-semibold' : 'text-gray-600'}`}>
             Yearly
-            <Badge className="ml-2 bg-green-100 text-green-800">Save up to $40</Badge>
+            <Badge className="ml-2 bg-green-100 text-green-800">Save up to $80</Badge>
           </span>
         </div>
       </div>
@@ -116,7 +117,7 @@ const EnhancedPricingPlans = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="font-semibold text-green-800">
-                Current Plan: {subscription_tier === 'Pro' ? 'Pro Pup' : subscription_tier === 'Enterprise' ? 'Elite Handler' : subscription_tier}
+                Current Plan: {subscription_tier === 'Pro' ? 'Pup Pro' : subscription_tier === 'Enterprise' ? 'Pup Partner' : subscription_tier}
               </p>
               <p className="text-sm text-green-600">
                 You're getting the most out of My Pup!
@@ -242,42 +243,47 @@ const EnhancedPricingPlans = () => {
         })}
       </div>
 
-      {/* Social Features Showcase */}
+      {/* Enterprise/Agency Add-on Section */}
       <div className="mt-16 text-center">
-        <h3 className="text-2xl font-bold mb-8">Full Social Experience - Free Forever</h3>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-          <div className="text-center">
-            <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Video className="w-8 h-8 text-blue-600" />
+        <h3 className="text-2xl font-bold mb-8">Need More Power?</h3>
+        <Card className="max-w-2xl mx-auto bg-gradient-to-r from-purple-50 to-indigo-50">
+          <CardContent className="p-8">
+            <div className="flex justify-center mb-4">
+              <div className="p-4 rounded-full bg-purple-100">
+                <Zap size={40} className="text-purple-600" />
+              </div>
             </div>
-            <h4 className="font-semibold text-lg mb-2">Unlimited Video Calls</h4>
-            <p className="text-gray-600 text-sm">Connect face-to-face with breeders and other dog lovers</p>
-          </div>
-          
-          <div className="text-center">
-            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Phone className="w-8 h-8 text-green-600" />
+            <h4 className="text-2xl font-bold mb-4">Pup Agency Dashboard</h4>
+            <p className="text-gray-600 mb-4">Starting at $99/month</p>
+            <p className="text-gray-700 mb-6">
+              For large shelters, regional breeder networks, or agencies managing 20+ dogs
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6 text-sm">
+              <div className="flex items-center gap-2">
+                <Check size={16} className="text-green-600" />
+                <span>Multi-location management</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Check size={16} className="text-green-600" />
+                <span>Team user permissions</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Check size={16} className="text-green-600" />
+                <span>Monthly performance reports</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Check size={16} className="text-green-600" />
+                <span>Dedicated support manager</span>
+              </div>
             </div>
-            <h4 className="font-semibold text-lg mb-2">Unlimited Voice Calls</h4>
-            <p className="text-gray-600 text-sm">Quick voice conversations for instant communication</p>
-          </div>
-
-          <div className="text-center">
-            <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Camera className="w-8 h-8 text-purple-600" />
-            </div>
-            <h4 className="font-semibold text-lg mb-2">Stories & Posts</h4>
-            <p className="text-gray-600 text-sm">Share your dog's journey and special moments</p>
-          </div>
-          
-          <div className="text-center">
-            <div className="w-16 h-16 bg-pink-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <MessageSquare className="w-8 h-8 text-pink-600" />
-            </div>
-            <h4 className="font-semibold text-lg mb-2">Unlimited Messaging</h4>
-            <p className="text-gray-600 text-sm">Message breeders, sellers, and the community without limits</p>
-          </div>
-        </div>
+            <Button 
+              size="lg" 
+              className="bg-purple-600 hover:bg-purple-700 text-white"
+            >
+              Contact Sales Team
+            </Button>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Value Proposition Section */}
@@ -308,18 +314,6 @@ const EnhancedPricingPlans = () => {
             <p className="text-gray-600">Join thousands of dog lovers in our supportive community</p>
           </div>
         </div>
-      </div>
-
-      <div className="mt-12 text-center">
-        <Card className="inline-block bg-gradient-to-r from-blue-50 to-purple-50">
-          <CardContent className="p-8">
-            <h3 className="text-xl font-semibold mb-3">Need Something Custom?</h3>
-            <p className="text-gray-600 mb-6">Large shelter or breeding operation? We have enterprise solutions!</p>
-            <Button variant="outline" size="lg" className="border-purple-300 text-purple-700 hover:bg-purple-50">
-              Contact Our Team
-            </Button>
-          </CardContent>
-        </Card>
       </div>
     </div>
   );
