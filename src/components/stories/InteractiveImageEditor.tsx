@@ -16,35 +16,52 @@ const InteractiveImageEditor = ({ imageUrl, onSave, onCancel }: InteractiveImage
   const [lastDistance, setLastDistance] = useState(0);
   const [imageLoaded, setImageLoaded] = useState(false);
   const [imageDimensions, setImageDimensions] = useState({ width: 0, height: 0 });
+  const [containerDimensions, setContainerDimensions] = useState({ width: 0, height: 0 });
   const containerRef = useRef<HTMLDivElement>(null);
   const imageRef = useRef<HTMLImageElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [initialSetupComplete, setInitialSetupComplete] = useState(false);
 
-  // Story dimensions (9:16 aspect ratio)
-  const storyWidth = 360;
-  const storyHeight = 640;
+  // Calculate container dimensions based on mobile screen
+  useEffect(() => {
+    const updateContainerSize = () => {
+      if (containerRef.current) {
+        const rect = containerRef.current.getBoundingClientRect();
+        const availableHeight = window.innerHeight - 200; // Account for header and controls
+        const maxHeight = Math.min(availableHeight, rect.width * (16/9)); // 9:16 aspect ratio
+        
+        setContainerDimensions({
+          width: rect.width,
+          height: maxHeight
+        });
+      }
+    };
+
+    updateContainerSize();
+    window.addEventListener('resize', updateContainerSize);
+    return () => window.removeEventListener('resize', updateContainerSize);
+  }, []);
 
   // Calculate initial scale to fit image properly in story format
-  const calculateInitialScale = useCallback((imgWidth: number, imgHeight: number) => {
-    const containerAspectRatio = storyWidth / storyHeight; // 9:16 = 0.5625
+  const calculateInitialScale = useCallback((imgWidth: number, imgHeight: number, containerWidth: number, containerHeight: number) => {
+    const containerAspectRatio = containerWidth / containerHeight;
     const imageAspectRatio = imgWidth / imgHeight;
     
     let initialScale;
     if (imageAspectRatio > containerAspectRatio) {
       // Image is wider - scale to fit height
-      initialScale = storyHeight / imgHeight;
+      initialScale = containerHeight / imgHeight;
     } else {
       // Image is taller - scale to fit width
-      initialScale = storyWidth / imgWidth;
+      initialScale = containerWidth / imgWidth;
     }
     
-    return Math.max(initialScale, 0.5); // Ensure minimum scale
+    return Math.max(initialScale, 0.3); // Ensure minimum scale for mobile
   }, []);
 
   // Handle image load to set initial scale and position
   useEffect(() => {
-    if (imageRef.current && !initialSetupComplete) {
+    if (imageRef.current && !initialSetupComplete && containerDimensions.width > 0) {
       const img = imageRef.current;
       
       const handleImageLoad = () => {
@@ -52,7 +69,12 @@ const InteractiveImageEditor = ({ imageUrl, onSave, onCancel }: InteractiveImage
         const naturalHeight = img.naturalHeight;
         
         // Calculate and set initial scale for optimal crop
-        const initialScale = calculateInitialScale(naturalWidth, naturalHeight);
+        const initialScale = calculateInitialScale(
+          naturalWidth, 
+          naturalHeight, 
+          containerDimensions.width, 
+          containerDimensions.height
+        );
         
         // Use setTimeout to avoid React warning about updating during render
         setTimeout(() => {
@@ -62,7 +84,7 @@ const InteractiveImageEditor = ({ imageUrl, onSave, onCancel }: InteractiveImage
           setImageLoaded(true);
           setInitialSetupComplete(true);
           
-          console.log(`Image auto-cropped: ${naturalWidth}x${naturalHeight} -> scale: ${initialScale.toFixed(2)}`);
+          console.log(`Image auto-fitted: ${naturalWidth}x${naturalHeight} -> scale: ${initialScale.toFixed(2)}`);
         }, 0);
       };
 
@@ -73,7 +95,7 @@ const InteractiveImageEditor = ({ imageUrl, onSave, onCancel }: InteractiveImage
         return () => img.removeEventListener('load', handleImageLoad);
       }
     }
-  }, [imageUrl, initialSetupComplete, calculateInitialScale]);
+  }, [imageUrl, initialSetupComplete, calculateInitialScale, containerDimensions]);
 
   // Reset when imageUrl changes
   useEffect(() => {
@@ -134,7 +156,7 @@ const InteractiveImageEditor = ({ imageUrl, onSave, onCancel }: InteractiveImage
       );
       
       const scaleChange = distance / lastDistance;
-      setScale(prev => Math.max(0.5, Math.min(3, prev * scaleChange)));
+      setScale(prev => Math.max(0.3, Math.min(5, prev * scaleChange)));
       setLastDistance(distance);
     }
   }, [isDragging, lastTouch, lastDistance]);
@@ -180,22 +202,23 @@ const InteractiveImageEditor = ({ imageUrl, onSave, onCancel }: InteractiveImage
   const handleWheel = useCallback((e: React.WheelEvent) => {
     e.preventDefault();
     const scaleChange = e.deltaY > 0 ? 0.9 : 1.1;
-    setScale(prev => Math.max(0.5, Math.min(3, prev * scaleChange)));
+    setScale(prev => Math.max(0.3, Math.min(5, prev * scaleChange)));
   }, []);
 
   const handleSave = () => {
-    if (!imageRef.current || !canvasRef.current) return;
+    if (!imageRef.current || !canvasRef.current || !containerDimensions.width) return;
     
     const canvas = canvasRef.current;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    canvas.width = storyWidth;
-    canvas.height = storyHeight;
+    // Use container dimensions for canvas
+    canvas.width = containerDimensions.width;
+    canvas.height = containerDimensions.height;
 
     // Fill with black background
     ctx.fillStyle = '#000000';
-    ctx.fillRect(0, 0, storyWidth, storyHeight);
+    ctx.fillRect(0, 0, containerDimensions.width, containerDimensions.height);
 
     // Calculate image position and size
     const img = imageRef.current;
@@ -203,8 +226,8 @@ const InteractiveImageEditor = ({ imageUrl, onSave, onCancel }: InteractiveImage
     const imgHeight = img.naturalHeight * scale;
     
     // Center the image initially, then apply position offset
-    const centerX = (storyWidth - imgWidth) / 2 + position.x;
-    const centerY = (storyHeight - imgHeight) / 2 + position.y;
+    const centerX = (containerDimensions.width - imgWidth) / 2 + position.x;
+    const centerY = (containerDimensions.height - imgHeight) / 2 + position.y;
 
     ctx.drawImage(img, centerX, centerY, imgWidth, imgHeight);
     
@@ -212,23 +235,42 @@ const InteractiveImageEditor = ({ imageUrl, onSave, onCancel }: InteractiveImage
   };
 
   const resetToOptimalCrop = () => {
-    if (imageDimensions.width && imageDimensions.height) {
-      const initialScale = calculateInitialScale(imageDimensions.width, imageDimensions.height);
+    if (imageDimensions.width && imageDimensions.height && containerDimensions.width) {
+      const initialScale = calculateInitialScale(
+        imageDimensions.width, 
+        imageDimensions.height, 
+        containerDimensions.width, 
+        containerDimensions.height
+      );
       setScale(initialScale);
       setPosition({ x: 0, y: 0 });
     }
   };
 
   return (
-    <div className="flex flex-col h-full max-h-screen bg-background p-4 space-y-4">
+    <div className="flex flex-col h-screen bg-background overflow-hidden">
+      {/* Header */}
+      <div className="flex items-center justify-between p-4 border-b border-border bg-background z-10">
+        <h2 className="text-lg font-semibold text-foreground">Edit Your Story</h2>
+        <button
+          onClick={onCancel}
+          className="p-2 text-foreground hover:bg-muted rounded-full transition-colors"
+        >
+          ✕
+        </button>
+      </div>
+
       {/* Image Editor Container - Mobile Optimized */}
-      <div className="flex-1 flex flex-col min-h-0">
+      <div className="flex-1 flex flex-col min-h-0 p-4">
         <div 
-          className="relative bg-muted rounded-lg overflow-hidden flex-1 min-h-0 border border-border" 
-          style={{ aspectRatio: '9/16', maxHeight: 'calc(100vh - 200px)' }}
+          ref={containerRef}
+          className="relative bg-muted rounded-lg overflow-hidden flex-1 border border-border" 
+          style={{ 
+            height: containerDimensions.height || 'auto',
+            maxHeight: '70vh'
+          }}
         >
           <div
-            ref={containerRef}
             className="w-full h-full relative cursor-move touch-none"
             onTouchStart={handleTouchStart}
             onTouchMove={handleTouchMove}
@@ -258,50 +300,50 @@ const InteractiveImageEditor = ({ imageUrl, onSave, onCancel }: InteractiveImage
           </div>
           
           {/* Scale indicator - Enhanced visibility */}
-          <div className="absolute top-4 right-4 bg-background/95 backdrop-blur-sm text-foreground px-3 py-2 rounded-md text-sm font-medium border border-border shadow-lg">
+          <div className="absolute top-3 right-3 bg-black/80 text-white px-3 py-1.5 rounded-full text-sm font-medium backdrop-blur-sm">
             {Math.round(scale * 100)}%
           </div>
           
           {/* Instructions - Enhanced visibility */}
-          <div className="absolute bottom-4 left-4 bg-background/95 backdrop-blur-sm text-foreground px-3 py-2 rounded-md text-xs font-medium border border-border shadow-lg max-w-48">
-            {initialSetupComplete ? 'Auto-cropped for Stories' : 'Loading...'}
+          <div className="absolute bottom-3 left-3 bg-black/80 text-white px-3 py-1.5 rounded-full text-xs font-medium backdrop-blur-sm">
+            {initialSetupComplete ? 'Pinch to zoom, drag to move' : 'Loading...'}
           </div>
         </div>
 
-        {/* Controls - Enhanced for Mobile */}
-        <div className="flex gap-3 py-4">
+        {/* Controls - Enhanced for Mobile with better spacing */}
+        <div className="grid grid-cols-3 gap-3 py-4">
           <button
-            onClick={() => setScale(prev => Math.max(0.5, prev - 0.1))}
-            className="flex-1 px-4 py-3 bg-secondary text-secondary-foreground rounded-lg text-sm font-semibold hover:bg-secondary/80 active:bg-secondary/60 transition-all duration-200 border border-border shadow-sm"
+            onClick={() => setScale(prev => Math.max(0.3, prev - 0.2))}
+            className="px-4 py-3 bg-secondary text-secondary-foreground rounded-lg text-sm font-semibold hover:bg-secondary/80 active:bg-secondary/60 transition-all duration-200 border border-border shadow-sm touch-manipulation"
           >
             Zoom Out
           </button>
           <button
-            onClick={() => setScale(prev => Math.min(3, prev + 0.1))}
-            className="flex-1 px-4 py-3 bg-secondary text-secondary-foreground rounded-lg text-sm font-semibold hover:bg-secondary/80 active:bg-secondary/60 transition-all duration-200 border border-border shadow-sm"
+            onClick={resetToOptimalCrop}
+            className="px-4 py-3 bg-accent text-accent-foreground rounded-lg text-sm font-semibold hover:bg-accent/80 active:bg-accent/60 transition-all duration-200 border border-border shadow-sm touch-manipulation"
           >
-            Zoom In
+            Auto Fit
           </button>
           <button
-            onClick={resetToOptimalCrop}
-            className="flex-1 px-4 py-3 bg-accent text-accent-foreground rounded-lg text-sm font-semibold hover:bg-accent/80 active:bg-accent/60 transition-all duration-200 border border-border shadow-sm"
+            onClick={() => setScale(prev => Math.min(5, prev + 0.2))}
+            className="px-4 py-3 bg-secondary text-secondary-foreground rounded-lg text-sm font-semibold hover:bg-secondary/80 active:bg-secondary/60 transition-all duration-200 border border-border shadow-sm touch-manipulation"
           >
-            Auto Crop
+            Zoom In
           </button>
         </div>
       </div>
 
-      {/* Action buttons - Enhanced visibility and touch targets */}
-      <div className="flex gap-4 pb-safe">
+      {/* Action buttons - Fixed to bottom with safe area */}
+      <div className="flex gap-4 p-4 bg-background border-t border-border safe-area-inset-bottom">
         <button
           onClick={onCancel}
-          className="flex-1 px-6 py-4 border-2 border-primary text-primary hover:bg-primary hover:text-primary-foreground active:bg-primary/90 rounded-lg font-semibold transition-all duration-200 bg-background shadow-sm min-h-[50px] touch-manipulation"
+          className="flex-1 px-6 py-4 border-2 border-primary text-primary hover:bg-primary hover:text-primary-foreground active:bg-primary/90 rounded-lg font-semibold transition-all duration-200 bg-background shadow-sm min-h-[52px] touch-manipulation"
         >
-          Back
+          Cancel
         </button>
         <button
           onClick={handleSave}
-          className="flex-1 px-6 py-4 bg-primary text-primary-foreground hover:bg-primary/90 active:bg-primary/80 rounded-lg font-semibold transition-all duration-200 shadow-sm min-h-[50px] touch-manipulation"
+          className="flex-1 px-6 py-4 bg-primary text-primary-foreground hover:bg-primary/90 active:bg-primary/80 rounded-lg font-semibold transition-all duration-200 shadow-sm min-h-[52px] touch-manipulation"
         >
           Post Story
         </button>
