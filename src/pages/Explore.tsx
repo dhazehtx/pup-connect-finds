@@ -6,24 +6,16 @@ import ListingsGrid from '@/components/ListingsGrid';
 import QuickFilters from '@/components/QuickFilters';
 import SearchFilters from '@/components/SearchFilters';
 import SortingOptions from '@/components/SortingOptions';
-import SavedSearches from '@/components/SavedSearches';
-import AdvancedSearchInterface from '@/components/search/AdvancedSearchInterface';
-import SearchHistory from '@/components/search/SearchHistory';
-import ListingAnalyticsDashboard from '@/components/analytics/ListingAnalyticsDashboard';
-import BulkListingManager from '@/components/listings/BulkListingManager';
-import ListingQualityChecker from '@/components/moderation/ListingQualityChecker';
-import MobileListingCard from '@/components/listings/MobileListingCard';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { useDogListings } from '@/hooks/useDogListings';
 import { useEnhancedListings } from '@/hooks/useEnhancedListings';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
-import { Search, Filter, SlidersHorizontal, BarChart3, Settings, Star, Heart, Eye, TrendingUp, X } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { Search, Filter, SlidersHorizontal, TrendingUp, X } from 'lucide-react';
+import { sampleListings } from '@/data/sampleListings';
 
 interface FilterState {
   searchTerm: string;
@@ -42,15 +34,11 @@ interface ExplorePageProps {}
 
 const ExplorePage: React.FC<ExplorePageProps> = () => {
   const [searchParams, setSearchParams] = useSearchParams();
-  const [isFilterOpen, setIsFilterOpen] = useState(false);
-  const [isAdvancedSearchOpen, setIsAdvancedSearchOpen] = useState(false);
-  const [isAnalyticsOpen, setIsAnalyticsOpen] = useState(false);
-  const [isBulkManagerOpen, setIsBulkManagerOpen] = useState(false);
-  const [isQualityCheckerOpen, setIsQualityCheckerOpen] = useState(false);
   const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
   const [isMobileSortOpen, setIsMobileSortOpen] = useState(false);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [sortBy, setSortBy] = useState('newest');
+  const [searchTerm, setSearchTerm] = useState('');
   const [filterState, setFilterState] = useState<FilterState>({
     searchTerm: '',
     breed: '',
@@ -68,102 +56,65 @@ const ExplorePage: React.FC<ExplorePageProps> = () => {
   const { user } = useAuth();
   const { toast } = useToast();
 
-  const {
-    listings,
-    loading,
-    error,
-    totalCount,
-    page,
-    pageSize,
-    setPage,
-    setPageSize,
-    sortConfig,
-    setSortConfig,
-    filters,
-    setFilters,
-    searchHistory,
-    addSearchToHistory,
-    clearSearchHistory,
-    savedSearches,
-    saveSearch,
-    deleteSearch,
-    applySavedSearch,
-    clearAllFilters,
-    quickFilter,
-    setQuickFilter,
-    enhancedListings,
-    favoriteListing,
-    isListingFavorited,
-    trackListingView,
-    trackListingInquiry
-  } = useEnhancedListings();
-
-  // Convert enhanced listings to the format expected by ListingsGrid
-  const convertedListings = enhancedListings.map(listing => ({
-    id: parseInt(listing.id),
-    title: listing.dog_name,
-    price: `$${listing.price.toLocaleString()}`,
-    location: listing.location || 'Location not specified',
-    distance: '0 miles', // You may want to calculate this
-    breed: listing.breed,
-    color: 'Unknown', // Add this to your database if needed
-    gender: 'Unknown', // Add this to your database if needed
-    age: `${listing.age} months`,
-    rating: listing.profiles?.rating || 0,
-    reviews: listing.profiles?.total_reviews || 0,
-    image: listing.image_url || '/placeholder.svg',
-    breeder: listing.profiles?.full_name || 'Unknown',
-    verified: listing.profiles?.verified || false,
-    verifiedBreeder: listing.profiles?.verified || false,
-    idVerified: listing.profiles?.verified || false,
-    vetVerified: false,
-    available: 1,
-    sourceType: 'breeder'
-  }));
-
-  const favoriteIds = enhancedListings
-    .filter(listing => isListingFavorited(listing.id))
-    .map(listing => parseInt(listing.id));
+  // Use sample listings for now
+  const [listings, setListings] = useState(sampleListings);
+  const [favoriteIds, setFavoriteIds] = useState<number[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleSearch = (query: string) => {
-    setFilters(prev => ({ ...prev, searchTerm: query }));
-    addSearchToHistory(query);
+    setFilterState(prev => ({ ...prev, searchTerm: query }));
+    // Filter listings based on search term
+    if (query.trim()) {
+      const filtered = sampleListings.filter(listing => 
+        listing.title.toLowerCase().includes(query.toLowerCase()) ||
+        listing.breed.toLowerCase().includes(query.toLowerCase()) ||
+        listing.breeder.toLowerCase().includes(query.toLowerCase())
+      );
+      setListings(filtered);
+    } else {
+      setListings(sampleListings);
+    }
   };
 
-  const handleFilterChange = (newFilters: any) => {
-    setFilters(newFilters);
-  };
-
-  const handleSortChange = (newSortConfig: any) => {
-    setSortConfig(newSortConfig);
-  };
-
-  const handlePageChange = (newPage: number) => {
-    setPage(newPage);
-  };
-
-  const handlePageSizeChange = (newPageSize: number) => {
-    setPageSize(newPageSize);
-  };
-
-  const toggleFilterVisibility = () => {
-    setIsFilterOpen(!isFilterOpen);
-  };
-
-  const toggleAdvancedSearch = () => {
-    setIsAdvancedSearchOpen(!isAdvancedSearchOpen);
-  };
-
-  const toggleAnalyticsDashboard = () => {
-    setIsAnalyticsOpen(!isAnalyticsOpen);
-  };
-
-  const toggleBulkListingManager = () => {
-    setIsBulkManagerOpen(!isBulkManagerOpen);
-  };
-
-  const toggleQualityChecker = () => {
-    setIsQualityCheckerOpen(!isQualityCheckerOpen);
+  const handleFilterChange = (newFilters: FilterState) => {
+    setFilterState(newFilters);
+    // Apply filters to listings
+    let filtered = [...sampleListings];
+    
+    if (newFilters.breed) {
+      filtered = filtered.filter(listing => 
+        listing.breed.toLowerCase().includes(newFilters.breed.toLowerCase())
+      );
+    }
+    
+    if (newFilters.minPrice) {
+      const minPrice = parseFloat(newFilters.minPrice.replace(/[^0-9.]/g, ''));
+      filtered = filtered.filter(listing => {
+        const price = parseFloat(listing.price.replace(/[^0-9.]/g, ''));
+        return price >= minPrice;
+      });
+    }
+    
+    if (newFilters.maxPrice) {
+      const maxPrice = parseFloat(newFilters.maxPrice.replace(/[^0-9.]/g, ''));
+      filtered = filtered.filter(listing => {
+        const price = parseFloat(listing.price.replace(/[^0-9.]/g, ''));
+        return price <= maxPrice;
+      });
+    }
+    
+    if (newFilters.sourceType) {
+      filtered = filtered.filter(listing => 
+        listing.sourceType === newFilters.sourceType
+      );
+    }
+    
+    if (newFilters.verifiedOnly) {
+      filtered = filtered.filter(listing => listing.verified);
+    }
+    
+    setListings(filtered);
   };
 
   const openMobileFilters = () => {
@@ -195,67 +146,55 @@ const ExplorePage: React.FC<ExplorePageProps> = () => {
       verifiedOnly: false,
       availableOnly: false
     });
-    clearAllFilters();
+    setListings(sampleListings);
   };
 
   const handleFavorite = (id: number) => {
-    favoriteListing(id.toString());
+    if (!user) {
+      toast({
+        title: "Sign in required",
+        description: "Please sign in to save favorites",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    setFavoriteIds(prev => 
+      prev.includes(id) 
+        ? prev.filter(fId => fId !== id)
+        : [...prev, id]
+    );
+    
+    toast({
+      title: favoriteIds.includes(id) ? "Removed from favorites" : "Added to favorites",
+      description: "Your favorites have been updated",
+    });
   };
 
   const handleContact = (id: number) => {
-    trackListingInquiry(id.toString());
+    if (!user) {
+      toast({
+        title: "Sign in required",
+        description: "Please sign in to contact breeders",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    toast({
+      title: "Message sent",
+      description: "Your message has been sent to the breeder",
+    });
   };
 
   const handleViewDetails = (id: number) => {
-    trackListingView(id.toString());
+    // Navigate to listing details page
+    console.log('Viewing details for listing:', id);
   };
-
-  useEffect(() => {
-    // Track initial page view
-    if (listings && listings.length > 0) {
-      listings.forEach(listing => {
-        trackListingView(listing.id);
-      });
-    }
-  }, [listings]);
 
   return (
     <Layout>
       <div className="container mx-auto px-4 py-8">
-        {/* Header Section */}
-        <div className="flex flex-col md:flex-row items-center justify-between mb-6">
-          <div className="flex items-center space-x-4">
-            <h1 className="text-2xl font-semibold text-gray-800">
-              Explore {totalCount !== null ? `(${totalCount})` : ''}
-            </h1>
-            <Badge variant="secondary">
-              <TrendingUp className="h-4 w-4 mr-1" />
-              Trending
-            </Badge>
-          </div>
-
-          {/* Search Bar */}
-          <div className="flex items-center space-x-2 w-full md:w-auto mt-3 md:mt-0">
-            <Input
-              type="search"
-              placeholder="Search breeds, keywords..."
-              className="flex-grow"
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  handleSearch((e.target as HTMLInputElement).value);
-                }
-              }}
-            />
-            <Button onClick={() => {
-              const searchInput = document.querySelector('input[type="search"]') as HTMLInputElement;
-              handleSearch(searchInput?.value || '');
-            }}>
-              <Search className="h-4 w-4 mr-2" />
-              Search
-            </Button>
-          </div>
-        </div>
-
         {/* Quick Filters */}
         <QuickFilters
           filters={filterState}
@@ -283,7 +222,7 @@ const ExplorePage: React.FC<ExplorePageProps> = () => {
           onSortChange={setSortBy}
           viewMode={viewMode}
           onViewModeChange={setViewMode}
-          resultsCount={totalCount || 0}
+          resultsCount={listings.length}
         />
 
         {/* Filters and Sorting Options */}
@@ -293,8 +232,8 @@ const ExplorePage: React.FC<ExplorePageProps> = () => {
             <div className="md:col-span-1">
               <SearchFilters
                 filters={filterState}
-                onFiltersChange={setFilterState}
-                resultsCount={totalCount || 0}
+                onFiltersChange={handleFilterChange}
+                resultsCount={listings.length}
                 onClearFilters={handleClearFilters}
               />
             </div>
@@ -311,9 +250,9 @@ const ExplorePage: React.FC<ExplorePageProps> = () => {
                 </CardContent>
               </Card>
             )}
-            {convertedListings && convertedListings.length > 0 && (
+            {listings && listings.length > 0 && (
               <ListingsGrid
-                listings={convertedListings}
+                listings={listings}
                 viewMode={viewMode}
                 favorites={favoriteIds}
                 onFavorite={handleFavorite}
@@ -341,8 +280,8 @@ const ExplorePage: React.FC<ExplorePageProps> = () => {
             <div className="p-4">
               <SearchFilters
                 filters={filterState}
-                onFiltersChange={setFilterState}
-                resultsCount={totalCount || 0}
+                onFiltersChange={handleFilterChange}
+                resultsCount={listings.length}
                 onClearFilters={handleClearFilters}
               />
             </div>
@@ -364,7 +303,7 @@ const ExplorePage: React.FC<ExplorePageProps> = () => {
                 onSortChange={setSortBy}
                 viewMode={viewMode}
                 onViewModeChange={setViewMode}
-                resultsCount={totalCount || 0}
+                resultsCount={listings.length}
               />
             </div>
           </div>

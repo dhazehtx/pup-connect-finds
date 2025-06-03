@@ -84,7 +84,7 @@ const SampleDataManager = () => {
           </div>
           <div className="space-y-2">
             <Heart className="w-8 h-8 mx-auto text-red-500" />
-            <div className="text-sm font-medium">6 Listings</div>
+            <div className="text-sm font-medium">12 Listings</div>
             <div className="text-xs text-muted-foreground">Dog Listings</div>
           </div>
           <div className="space-y-2">
@@ -141,7 +141,7 @@ const SampleDataManager = () => {
         <div className="text-xs text-muted-foreground bg-gray-50 p-3 rounded-lg">
           <strong>Note:</strong> This manager is for development and testing purposes only. 
           It loads realistic sample data to help you test all the app features including 
-          search, messaging, reviews, and user profiles.
+          search, messaging, reviews, and user profiles. The explore page now shows 12 sample listings.
         </div>
       </CardContent>
     </Card>

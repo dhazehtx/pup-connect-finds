@@ -4,6 +4,7 @@ import { sampleUsers } from '@/data/sampleUsers';
 import { sampleDogListings } from '@/data/sampleDogListings';
 import { sampleReviews } from '@/data/sampleReviews';
 import { sampleConversations, sampleMessages } from '@/data/sampleConversations';
+import { sampleListings } from '@/data/sampleListings';
 
 export const loadSampleData = async () => {
   try {
@@ -60,6 +61,7 @@ export const loadSampleData = async () => {
     }
 
     console.log('Sample data loaded successfully!');
+    console.log(`Loaded ${sampleListings.length} sample listings from sampleListings.ts`);
     return true;
   } catch (error) {
     console.error('Error loading sample data:', error);
