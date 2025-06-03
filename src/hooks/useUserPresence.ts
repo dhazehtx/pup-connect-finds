@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -23,17 +22,17 @@ export const useUserPresence = (currentPage?: string) => {
     // Update user presence when they come online
     const updatePresence = async (status: 'online' | 'away' | 'busy' | 'offline') => {
       try {
+        // Since user_presence table doesn't exist in types, we'll use profiles for now
         const { error } = await supabase
-          .from('user_presence')
-          .upsert({
-            user_id: user.id,
-            status,
-            current_page: currentPage,
-            last_seen: new Date().toISOString()
-          });
+          .from('profiles')
+          .update({
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', user.id);
 
         if (error) throw error;
         setUserStatus(status);
+        console.log('User presence updated:', status);
       } catch (error) {
         console.error('Failed to update presence:', error);
       }
@@ -62,7 +61,7 @@ export const useUserPresence = (currentPage?: string) => {
     document.addEventListener('visibilitychange', handleVisibilityChange);
     window.addEventListener('beforeunload', handleBeforeUnload);
 
-    // Subscribe to presence changes
+    // Subscribe to profile changes for presence simulation
     const channel = supabase
       .channel('user-presence')
       .on(
@@ -70,37 +69,33 @@ export const useUserPresence = (currentPage?: string) => {
         {
           event: '*',
           schema: 'public',
-          table: 'user_presence'
+          table: 'profiles'
         },
         (payload) => {
-          console.log('Presence change:', payload);
+          console.log('Profile change:', payload);
           // Update online users list
           fetchOnlineUsers();
         }
       )
       .subscribe();
 
-    // Fetch current online users
+    // Fetch current online users (simulate with recent profile updates)
     const fetchOnlineUsers = async () => {
       try {
         const { data, error } = await supabase
-          .from('user_presence')
-          .select(`
-            *,
-            profiles:user_id (
-              username,
-              avatar_url
-            )
-          `)
-          .eq('status', 'online')
-          .gt('last_seen', new Date(Date.now() - 5 * 60 * 1000).toISOString()); // Active in last 5 minutes
+          .from('profiles')
+          .select('id, username, avatar_url, updated_at')
+          .gt('updated_at', new Date(Date.now() - 5 * 60 * 1000).toISOString()) // Active in last 5 minutes
+          .limit(20);
 
         if (error) throw error;
         
-        const formattedUsers = data?.map(presence => ({
-          ...presence,
-          username: presence.profiles?.username,
-          avatar_url: presence.profiles?.avatar_url
+        const formattedUsers: UserPresence[] = data?.map(profile => ({
+          user_id: profile.id,
+          status: 'online' as const,
+          last_seen: profile.updated_at || new Date().toISOString(),
+          username: profile.username || undefined,
+          avatar_url: profile.avatar_url || undefined
         })) || [];
         
         setOnlineUsers(formattedUsers);
@@ -135,24 +130,28 @@ export const useUserPresence = (currentPage?: string) => {
     return onlineUsers.some(user => user.user_id === userId && user.status === 'online');
   };
 
+  const updateStatus = async (status: 'online' | 'away' | 'busy' | 'offline') => {
+    if (user) {
+      try {
+        await supabase
+          .from('profiles')
+          .update({
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', user.id);
+        setUserStatus(status);
+      } catch (error) {
+        console.error('Failed to update status:', error);
+      }
+    }
+  };
+
   return {
     onlineUsers,
     userStatus,
     onlineCount: onlineUsers.length,
     getUserPresence,
     isUserOnline,
-    updateStatus: (status: 'online' | 'away' | 'busy' | 'offline') => {
-      if (user) {
-        supabase
-          .from('user_presence')
-          .upsert({
-            user_id: user.id,
-            status,
-            current_page: currentPage,
-            last_seen: new Date().toISOString()
-          });
-        setUserStatus(status);
-      }
-    }
+    updateStatus
   };
 };

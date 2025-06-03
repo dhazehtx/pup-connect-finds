@@ -6,14 +6,13 @@ import { useRealtimeData } from './useRealtimeData';
 
 interface Notification {
   id: string;
-  type: 'message' | 'listing_interest' | 'verification_update' | 'payment_confirmation' | 'system';
+  user_id: string;
+  type: string;
   title: string;
   message: string;
   related_id?: string;
   sender_id?: string;
   is_read: boolean;
-  action_url?: string;
-  metadata: any;
   created_at: string;
   sender_profile?: {
     full_name: string;
@@ -80,7 +79,6 @@ export const useNotifications = () => {
 
       const formattedNotifications = data?.map(notification => ({
         ...notification,
-        metadata: notification.metadata || {},
         sender_profile: notification.sender_profile
       })) || [];
 
