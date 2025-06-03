@@ -45,15 +45,27 @@ serve(async (req) => {
       customerId = customers.data[0].id;
     }
 
-    // Define pricing based on tier
+    // Updated pricing with new freemium structure
     const pricing = {
-      'Basic': { amount: 799, name: 'Basic Plan' },
-      'Pro': { amount: 1499, name: 'Pro Plan' },
-      'Enterprise': { amount: 2999, name: 'Enterprise Plan' }
+      'Basic': { amount: 0, name: 'Basic Plan' }, // Free tier
+      'Pro': { amount: 699, name: 'Pro Pup' }, // $6.99
+      'Enterprise': { amount: 1999, name: 'Elite Handler' } // $19.99
     };
 
     const selectedPlan = pricing[tier as keyof typeof pricing];
     if (!selectedPlan) throw new Error("Invalid subscription tier");
+
+    // Handle free tier
+    if (selectedPlan.amount === 0) {
+      logStep("Free tier selected, no payment needed");
+      return new Response(JSON.stringify({ 
+        message: "Free tier activated",
+        tier: "Basic"
+      }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200,
+      });
+    }
 
     logStep("Creating checkout session", { planName: selectedPlan.name, trialDays });
 
