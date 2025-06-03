@@ -1,10 +1,310 @@
 
+@tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Import modular CSS files */
-@import './styles/theme.css';
-@import './styles/components.css';
-@import './styles/mobile.css';
-@import './styles/utilities.css';
-@import './styles/accessibility.css';
+@layer base {
+  :root {
+    /* Updated to Clean & Professional color scheme */
+    --background: 249 250 251; /* Cloud White #F9FAFB */
+    --foreground: 26 26 46; /* Deep Navy #1A1A2E */
+
+    --card: 249 250 251; /* Cloud White */
+    --card-foreground: 26 26 46; /* Deep Navy */
+
+    --popover: 249 250 251; /* Cloud White */
+    --popover-foreground: 26 26 46; /* Deep Navy */
+
+    --primary: 36 107 253; /* Royal Blue #246BFD */
+    --primary-foreground: 249 250 251; /* Cloud White */
+
+    --secondary: 201 231 255; /* Soft Sky #C9E7FF */
+    --secondary-foreground: 26 26 46; /* Deep Navy */
+
+    --muted: 201 231 255; /* Soft Sky */
+    --muted-foreground: 26 26 46; /* Deep Navy */
+
+    --accent: 168 230 207; /* Mint Green #A8E6CF */
+    --accent-foreground: 26 26 46; /* Deep Navy */
+
+    --destructive: 239 68 68; /* Red for destructive actions */
+    --destructive-foreground: 249 250 251; /* Cloud White */
+
+    --border: 201 231 255; /* Soft Sky for borders */
+    --input: 201 231 255; /* Soft Sky for inputs */
+    --ring: 36 107 253; /* Royal Blue for focus rings */
+
+    --radius: 0.5rem;
+
+    --sidebar-background: 249 250 251; /* Cloud White */
+    --sidebar-foreground: 26 26 46; /* Deep Navy */
+    --sidebar-primary: 36 107 253; /* Royal Blue */
+    --sidebar-primary-foreground: 249 250 251; /* Cloud White */
+    --sidebar-accent: 201 231 255; /* Soft Sky */
+    --sidebar-accent-foreground: 26 26 46; /* Deep Navy */
+    --sidebar-border: 201 231 255; /* Soft Sky */
+    --sidebar-ring: 36 107 253; /* Royal Blue */
+  }
+
+  .dark {
+    --background: 26 26 46; /* Deep Navy for dark mode */
+    --foreground: 249 250 251; /* Cloud White for dark mode */
+
+    --card: 26 26 46;
+    --card-foreground: 249 250 251;
+
+    --popover: 26 26 46;
+    --popover-foreground: 249 250 251;
+
+    --primary: 36 107 253; /* Royal Blue stays same */
+    --primary-foreground: 249 250 251;
+
+    --secondary: 30 41 59; /* Darker secondary for dark mode */
+    --secondary-foreground: 249 250 251;
+
+    --muted: 30 41 59;
+    --muted-foreground: 156 163 175;
+
+    --accent: 168 230 207; /* Mint Green stays same */
+    --accent-foreground: 26 26 46;
+
+    --destructive: 220 38 38;
+    --destructive-foreground: 249 250 251;
+
+    --border: 30 41 59;
+    --input: 30 41 59;
+    --ring: 36 107 253;
+    
+    --sidebar-background: 26 26 46;
+    --sidebar-foreground: 249 250 251;
+    --sidebar-primary: 36 107 253;
+    --sidebar-primary-foreground: 249 250 251;
+    --sidebar-accent: 30 41 59;
+    --sidebar-accent-foreground: 249 250 251;
+    --sidebar-border: 30 41 59;
+    --sidebar-ring: 36 107 253;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/* MOBILE-FIRST BUTTON IMPROVEMENTS */
+/* Enhanced mobile button visibility and touch targets */
+@layer components {
+  .mobile-button-enhanced {
+    @apply min-h-[50px] px-4 py-3 text-base font-semibold rounded-lg border shadow-sm;
+    @apply transition-all duration-200 ease-in-out;
+    @apply active:scale-95 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2;
+    @apply touch-manipulation select-none;
+  }
+
+  .mobile-button-primary {
+    @apply mobile-button-enhanced bg-primary text-primary-foreground border-primary;
+    @apply hover:bg-primary/90 active:bg-primary/80;
+    @apply shadow-lg shadow-primary/20;
+  }
+
+  .mobile-button-secondary {
+    @apply mobile-button-enhanced bg-secondary text-secondary-foreground border-secondary;
+    @apply hover:bg-secondary/80 active:bg-secondary/60;
+  }
+
+  .mobile-button-outline {
+    @apply mobile-button-enhanced bg-background text-foreground border-border;
+    @apply hover:bg-muted active:bg-muted/80;
+  }
+
+  .mobile-button-ghost {
+    @apply mobile-button-enhanced bg-transparent border-transparent;
+    @apply hover:bg-muted active:bg-muted/80;
+  }
+
+  /* Mobile-optimized floating action buttons */
+  .mobile-fab {
+    @apply fixed bottom-6 right-6 w-14 h-14 rounded-full shadow-lg;
+    @apply bg-primary text-primary-foreground border-2 border-primary;
+    @apply hover:bg-primary/90 active:bg-primary/80;
+    @apply transition-all duration-200 z-50;
+    @apply flex items-center justify-center;
+    @apply touch-manipulation select-none;
+  }
+
+  /* Enhanced story viewer controls */
+  .story-control-button {
+    @apply p-3 rounded-full backdrop-blur-sm border;
+    @apply bg-black/40 border-white/20 text-white;
+    @apply hover:bg-white/20 active:bg-white/30;
+    @apply transition-all duration-200 shadow-lg;
+    @apply touch-manipulation select-none;
+  }
+
+  /* Story creator enhanced buttons */
+  .story-creator-button {
+    @apply w-full min-h-[50px] px-4 py-3 rounded-lg font-semibold;
+    @apply transition-all duration-200 shadow-sm border;
+    @apply active:scale-98 touch-manipulation select-none;
+  }
+}
+
+/* COMPREHENSIVE COLOR CONSISTENCY FIXES */
+/* Remove all remaining yellow highlights and ensure consistent theming */
+@layer utilities {
+  /* Force consistent button styles across all components */
+  button, .btn {
+    @apply font-medium transition-colors duration-200;
+  }
+
+  /* Ensure all interactive elements have proper contrast */
+  button:focus-visible,
+  input:focus-visible,
+  textarea:focus-visible,
+  select:focus-visible {
+    @apply outline-none ring-2 ring-primary ring-offset-2 ring-offset-background;
+  }
+
+  /* Mobile-specific improvements */
+  @media (max-width: 768px) {
+    button {
+      @apply min-h-[44px] text-base;
+    }
+
+    .touch-target {
+      @apply min-h-[44px] min-w-[44px];
+    }
+
+    /* Ensure story editor controls are always visible */
+    .story-editor-controls {
+      @apply bg-background/95 backdrop-blur-sm border border-border;
+      @apply shadow-lg rounded-lg p-4;
+    }
+
+    /* Enhanced story viewer for mobile */
+    .story-viewer-mobile {
+      @apply touch-none select-none;
+    }
+
+    .story-nav-button {
+      @apply w-12 h-12 rounded-full bg-black/60 backdrop-blur-sm;
+      @apply border border-white/30 text-white shadow-lg;
+      @apply hover:bg-black/80 active:bg-black/90;
+    }
+  }
+
+  /* Remove any remaining yellow artifacts */
+  .no-yellow {
+    @apply !bg-transparent !text-current !border-current;
+  }
+
+  /* Utility for safe area padding on mobile */
+  .pb-safe {
+    padding-bottom: max(1rem, env(safe-area-inset-bottom));
+  }
+
+  .pt-safe {
+    padding-top: max(1rem, env(safe-area-inset-top));
+  }
+}
+
+/* ANIMATION ENHANCEMENTS FOR MOBILE */
+@layer utilities {
+  @keyframes ripple {
+    0% {
+      transform: scale(0);
+      opacity: 1;
+    }
+    100% {
+      transform: scale(4);
+      opacity: 0;
+    }
+  }
+
+  @keyframes heartPulse {
+    0% {
+      transform: scale(1);
+    }
+    50% {
+      transform: scale(1.3);
+    }
+    100% {
+      transform: scale(1);
+    }
+  }
+
+  @keyframes buttonPress {
+    0% {
+      transform: scale(1);
+    }
+    50% {
+      transform: scale(0.95);
+    }
+    100% {
+      transform: scale(1);
+    }
+  }
+
+  .animate-heart-pulse {
+    animation: heartPulse 0.3s ease-in-out;
+  }
+
+  .animate-button-press {
+    animation: buttonPress 0.15s ease-in-out;
+  }
+
+  .hover-lift {
+    transition: transform 0.2s ease-in-out;
+  }
+
+  .hover-lift:hover {
+    transform: translateY(-2px);
+  }
+
+  /* Mobile-optimized active states */
+  .active-scale {
+    transition: transform 0.1s ease-in-out;
+  }
+
+  .active-scale:active {
+    transform: scale(0.95);
+  }
+}
+
+/* ACCESSIBILITY IMPROVEMENTS */
+@layer base {
+  /* Ensure sufficient contrast for all text */
+  .text-contrast {
+    @apply text-foreground;
+  }
+
+  /* High contrast mode support */
+  @media (prefers-contrast: high) {
+    button {
+      @apply border-2 border-current;
+    }
+
+    .story-control-button {
+      @apply border-2 border-white bg-black text-white;
+    }
+  }
+
+  /* Reduced motion support */
+  @media (prefers-reduced-motion: reduce) {
+    * {
+      @apply !transition-none !animate-none;
+    }
+  }
+
+  /* Large text support */
+  @media (prefers-font-size: large) {
+    button, input, textarea {
+      @apply text-lg;
+    }
+  }
+}
