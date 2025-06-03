@@ -5,8 +5,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { Send, Check, CheckCheck, Clock, User, Camera, Video } from 'lucide-react';
+import { Send, Check, CheckCheck, Clock, User, Camera, Shield, ShieldOff } from 'lucide-react';
 import { useRealtimeMessaging } from '@/hooks/useRealtimeMessaging';
+import { useEncryptedMessaging } from '@/hooks/useEncryptedMessaging';
 import { useAuth } from '@/contexts/AuthContext';
 import { formatDistanceToNow } from 'date-fns';
 import MediaMessage from './MediaMessage';
@@ -29,10 +30,17 @@ interface RealTimeChatInterfaceProps {
 
 const RealTimeChatInterface = ({ conversationId, otherUser, listingInfo }: RealTimeChatInterfaceProps) => {
   const { user } = useAuth();
-  const { messages, sendMessage, markAsRead } = useRealtimeMessaging();
+  const { messages, markAsRead } = useRealtimeMessaging();
+  const { 
+    sendEncryptedMessage, 
+    decryptReceivedMessage, 
+    isEncryptionReady 
+  } = useEncryptedMessaging();
   const [newMessage, setNewMessage] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [otherUserTyping, setOtherUserTyping] = useState(false);
+  const [decryptedMessages, setDecryptedMessages] = useState<Map<string, string>>(new Map());
+  const [encryptionEnabled, setEncryptionEnabled] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -46,11 +54,42 @@ const RealTimeChatInterface = ({ conversationId, otherUser, listingInfo }: RealT
     }
   }, [messages, conversationId]);
 
+  // Decrypt messages when they arrive
+  useEffect(() => {
+    const decryptMessages = async () => {
+      const newDecrypted = new Map(decryptedMessages);
+      
+      for (const message of messages) {
+        if (message.is_encrypted && !newDecrypted.has(message.id)) {
+          try {
+            const decryptedContent = await decryptReceivedMessage(message);
+            newDecrypted.set(message.id, decryptedContent);
+          } catch (error) {
+            console.error('Failed to decrypt message:', error);
+            newDecrypted.set(message.id, '[Encrypted message - unable to decrypt]');
+          }
+        }
+      }
+      
+      setDecryptedMessages(newDecrypted);
+    };
+
+    if (isEncryptionReady && messages.length > 0) {
+      decryptMessages();
+    }
+  }, [messages, isEncryptionReady, decryptReceivedMessage, decryptedMessages]);
+
   const handleSendMessage = async () => {
     if (!newMessage.trim() || !user) return;
 
     try {
-      await sendMessage(conversationId, newMessage.trim(), 'text');
+      if (encryptionEnabled && isEncryptionReady) {
+        await sendEncryptedMessage(conversationId, newMessage.trim(), 'text', undefined, otherUser.id);
+      } else {
+        // Fallback to regular messaging if encryption is disabled
+        const { sendMessage } = useRealtimeMessaging();
+        await sendMessage(conversationId, newMessage.trim(), 'text');
+      }
       setNewMessage('');
     } catch (error) {
       console.error('Error sending message:', error);
@@ -61,12 +100,14 @@ const RealTimeChatInterface = ({ conversationId, otherUser, listingInfo }: RealT
     if (!user) return;
 
     try {
-      await sendMessage(
-        conversationId,
-        caption || (type === 'image' ? 'Shared an image' : 'Shared a video'),
-        type,
-        url
-      );
+      const messageContent = caption || (type === 'image' ? 'Shared an image' : 'Shared a video');
+      
+      if (encryptionEnabled && isEncryptionReady) {
+        await sendEncryptedMessage(conversationId, messageContent, type, url, otherUser.id);
+      } else {
+        const { sendMessage } = useRealtimeMessaging();
+        await sendMessage(conversationId, messageContent, type, url);
+      }
     } catch (error) {
       console.error('Error sending media message:', error);
     }
@@ -91,6 +132,13 @@ const RealTimeChatInterface = ({ conversationId, otherUser, listingInfo }: RealT
     return <Clock size={14} className="text-gray-300" />;
   };
 
+  const getMessageContent = (message: any) => {
+    if (message.is_encrypted) {
+      return decryptedMessages.get(message.id) || 'Decrypting...';
+    }
+    return message.content || '';
+  };
+
   return (
     <div className="flex flex-col h-full max-h-[600px]">
       {/* Chat Header */}
@@ -104,7 +152,14 @@ const RealTimeChatInterface = ({ conversationId, otherUser, listingInfo }: RealT
               </AvatarFallback>
             </Avatar>
             <div>
-              <CardTitle className="text-lg">{otherUser.name}</CardTitle>
+              <CardTitle className="text-lg flex items-center gap-2">
+                {otherUser.name}
+                {isEncryptionReady && encryptionEnabled ? (
+                  <Shield className="w-4 h-4 text-green-500" title="End-to-end encrypted" />
+                ) : (
+                  <ShieldOff className="w-4 h-4 text-gray-400" title="Not encrypted" />
+                )}
+              </CardTitle>
               {listingInfo && (
                 <p className="text-sm text-gray-500">
                   About: {listingInfo.name} - ${listingInfo.price}
@@ -115,11 +170,24 @@ const RealTimeChatInterface = ({ conversationId, otherUser, listingInfo }: RealT
               )}
             </div>
           </div>
-          {listingInfo && (
-            <div className="text-right">
+          <div className="flex items-center gap-2">
+            {listingInfo && (
               <Badge variant="outline">{listingInfo.breed}</Badge>
-            </div>
-          )}
+            )}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setEncryptionEnabled(!encryptionEnabled)}
+              disabled={!isEncryptionReady}
+              title={encryptionEnabled ? "Disable encryption" : "Enable encryption"}
+            >
+              {encryptionEnabled ? (
+                <Shield className="w-4 h-4 text-green-500" />
+              ) : (
+                <ShieldOff className="w-4 h-4 text-gray-400" />
+              )}
+            </Button>
+          </div>
         </div>
       </CardHeader>
 
@@ -147,7 +215,10 @@ const RealTimeChatInterface = ({ conversationId, otherUser, listingInfo }: RealT
                   <MediaMessage
                     imageUrl={message.message_type === 'image' ? message.image_url : undefined}
                     videoUrl={message.message_type === 'video' ? message.image_url : undefined}
-                    caption={message.content !== 'Shared an image' && message.content !== 'Shared a video' ? message.content : undefined}
+                    caption={(() => {
+                      const content = getMessageContent(message);
+                      return content !== 'Shared an image' && content !== 'Shared a video' ? content : undefined;
+                    })()}
                     isOwn={isOwn}
                   />
                 )}
@@ -155,13 +226,16 @@ const RealTimeChatInterface = ({ conversationId, otherUser, listingInfo }: RealT
                 {/* Text Messages */}
                 {message.message_type === 'text' && (
                   <div
-                    className={`rounded-lg px-3 py-2 ${
+                    className={`rounded-lg px-3 py-2 relative ${
                       isOwn
                         ? 'bg-blue-500 text-white'
                         : 'bg-gray-100 text-gray-900'
                     }`}
                   >
-                    <p className="text-sm break-words">{message.content}</p>
+                    <p className="text-sm break-words">{getMessageContent(message)}</p>
+                    {message.is_encrypted && (
+                      <Shield className="w-3 h-3 absolute top-1 right-1 opacity-60" />
+                    )}
                   </div>
                 )}
                 
@@ -194,6 +268,11 @@ const RealTimeChatInterface = ({ conversationId, otherUser, listingInfo }: RealT
 
       {/* Message Input */}
       <div className="border-t p-4 bg-white">
+        {!isEncryptionReady && (
+          <div className="mb-2 p-2 bg-yellow-50 border border-yellow-200 rounded text-sm text-yellow-800">
+            Setting up encryption... Messages will be encrypted once ready.
+          </div>
+        )}
         <div className="flex gap-2">
           <MediaUploadDialog onMediaUpload={handleMediaUpload}>
             <Button variant="outline" size="icon">
@@ -205,7 +284,7 @@ const RealTimeChatInterface = ({ conversationId, otherUser, listingInfo }: RealT
             value={newMessage}
             onChange={(e) => setNewMessage(e.target.value)}
             onKeyPress={handleKeyPress}
-            placeholder="Type your message..."
+            placeholder={encryptionEnabled ? "Type your encrypted message..." : "Type your message..."}
             className="flex-1"
           />
           <Button 

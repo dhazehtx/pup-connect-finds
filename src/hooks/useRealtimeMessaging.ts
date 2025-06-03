@@ -84,7 +84,7 @@ export const useRealtimeMessaging = () => {
     }
   }, [toast]);
 
-  // Send a new message
+  // Send a new message (fallback for non-encrypted messages)
   const sendMessage = useCallback(async (
     conversationId: string,
     content: string,
@@ -101,7 +101,8 @@ export const useRealtimeMessaging = () => {
           sender_id: user.id,
           content,
           message_type: messageType,
-          image_url: imageUrl
+          image_url: imageUrl,
+          is_encrypted: false
         }])
         .select()
         .single();
@@ -199,9 +200,13 @@ export const useRealtimeMessaging = () => {
             
             // Show toast for new messages from others
             if (newMessage.sender_id !== user.id) {
+              const displayContent = newMessage.is_encrypted 
+                ? "New encrypted message" 
+                : (newMessage.content?.substring(0, 50) + "..." || "New message");
+              
               toast({
                 title: "New Message",
-                description: newMessage.content.substring(0, 50) + "...",
+                description: displayContent,
               });
             }
           }

@@ -470,31 +470,40 @@ export type Database = {
       }
       messages: {
         Row: {
-          content: string
+          content: string | null
           conversation_id: string
           created_at: string
+          encrypted_content: string | null
+          encryption_key_id: string | null
           id: string
           image_url: string | null
+          is_encrypted: boolean | null
           message_type: string | null
           read_at: string | null
           sender_id: string
         }
         Insert: {
-          content: string
+          content?: string | null
           conversation_id: string
           created_at?: string
+          encrypted_content?: string | null
+          encryption_key_id?: string | null
           id?: string
           image_url?: string | null
+          is_encrypted?: boolean | null
           message_type?: string | null
           read_at?: string | null
           sender_id: string
         }
         Update: {
-          content?: string
+          content?: string | null
           conversation_id?: string
           created_at?: string
+          encrypted_content?: string | null
+          encryption_key_id?: string | null
           id?: string
           image_url?: string | null
+          is_encrypted?: boolean | null
           message_type?: string | null
           read_at?: string | null
           sender_id?: string
@@ -1367,6 +1376,33 @@ export type Database = {
           tier_breakdown?: Json
           total_revenue?: number
           upgrades?: number
+        }
+        Relationships: []
+      }
+      user_encryption_keys: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean | null
+          key_fingerprint: string
+          public_key: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          key_fingerprint: string
+          public_key: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          key_fingerprint?: string
+          public_key?: string
+          user_id?: string
         }
         Relationships: []
       }
