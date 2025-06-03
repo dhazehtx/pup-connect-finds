@@ -12,6 +12,8 @@ import Messages from './pages/Messages';
 import Settings from './pages/Settings';
 import Notifications from './pages/Notifications';
 import AnalyticsDashboard from '@/pages/AnalyticsDashboard';
+import Monetization from './pages/Monetization';
+import Explore from './pages/Explore';
 
 function App() {
   const queryClient = new QueryClient();
@@ -25,13 +27,14 @@ function App() {
               <Route path="/" element={<Home />} />
               <Route path="/map" element={<MapView />} />
               <Route path="/location-explorer" element={<LocationExplorer />} />
-              <Route path="/explore" element={<LocationExplorer />} />
+              <Route path="/explore" element={<Explore />} />
               <Route path="/profile" element={<Profile />} />
               <Route path="/profile/:userId" element={<Profile />} />
               <Route path="/messages" element={<Messages />} />
               <Route path="/settings" element={<Settings />} />
               <Route path="/notifications" element={<Notifications />} />
               <Route path="/analytics" element={<AnalyticsDashboard />} />
+              <Route path="/monetization" element={<Monetization />} />
             </Routes>
           </Layout>
         </Router>
