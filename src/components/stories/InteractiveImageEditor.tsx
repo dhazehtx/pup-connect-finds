@@ -67,19 +67,22 @@ const InteractiveImageEditor = ({ imageUrl, onSave, onCancel }: InteractiveImage
     return () => window.removeEventListener('resize', updateContainerSize);
   }, []);
 
-  // Instagram-style auto-fit calculation
-  const calculateInitialScale = useCallback((imgWidth: number, imgHeight: number, containerWidth: number, containerHeight: number) => {
+  // Instagram-style smart fit calculation
+  const calculateSmartFit = useCallback((imgWidth: number, imgHeight: number, containerWidth: number, containerHeight: number) => {
     const containerAspectRatio = containerWidth / containerHeight;
     const imageAspectRatio = imgWidth / imgHeight;
     
     let initialScale;
-    if (imageAspectRatio > containerAspectRatio) {
-      initialScale = containerHeight / imgHeight;
-    } else {
+    // For portrait images or images close to story ratio, fit to width
+    if (imageAspectRatio <= containerAspectRatio * 1.2) {
       initialScale = containerWidth / imgWidth;
+    } else {
+      // For landscape images, fit to height
+      initialScale = containerHeight / imgHeight;
     }
     
-    return Math.max(initialScale * 1.02, 1.1);
+    // Ensure minimum scale to avoid tiny images
+    return Math.max(initialScale, 0.5);
   }, []);
 
   // Setup initial scale and position when image loads
@@ -91,7 +94,7 @@ const InteractiveImageEditor = ({ imageUrl, onSave, onCancel }: InteractiveImage
         const naturalWidth = img.naturalWidth;
         const naturalHeight = img.naturalHeight;
         
-        const initialScale = calculateInitialScale(
+        const smartScale = calculateSmartFit(
           naturalWidth, 
           naturalHeight, 
           containerDimensions.width, 
@@ -100,12 +103,12 @@ const InteractiveImageEditor = ({ imageUrl, onSave, onCancel }: InteractiveImage
         
         setTimeout(() => {
           setImageDimensions({ width: naturalWidth, height: naturalHeight });
-          setScale(initialScale);
+          setScale(smartScale);
           setPosition({ x: 0, y: 0 });
           setImageLoaded(true);
           setInitialSetupComplete(true);
           
-          console.log(`Auto-fitted for story: ${naturalWidth}x${naturalHeight} -> scale: ${initialScale.toFixed(2)}`);
+          console.log(`Smart fit applied: ${naturalWidth}x${naturalHeight} -> scale: ${smartScale.toFixed(2)}`);
         }, 50);
       };
 
@@ -116,7 +119,7 @@ const InteractiveImageEditor = ({ imageUrl, onSave, onCancel }: InteractiveImage
         return () => img.removeEventListener('load', handleImageLoad);
       }
     }
-  }, [imageUrl, initialSetupComplete, calculateInitialScale, containerDimensions]);
+  }, [imageUrl, initialSetupComplete, calculateSmartFit, containerDimensions]);
 
   // Reset when imageUrl changes
   useEffect(() => {
@@ -250,15 +253,15 @@ const InteractiveImageEditor = ({ imageUrl, onSave, onCancel }: InteractiveImage
     onSave(canvas);
   };
 
-  const resetToOptimalCrop = () => {
+  const resetToSmartFit = () => {
     if (imageDimensions.width && imageDimensions.height && containerDimensions.width) {
-      const initialScale = calculateInitialScale(
+      const smartScale = calculateSmartFit(
         imageDimensions.width, 
         imageDimensions.height, 
         containerDimensions.width, 
         containerDimensions.height
       );
-      setScale(initialScale);
+      setScale(smartScale);
       setPosition({ x: 0, y: 0 });
     }
   };
@@ -318,7 +321,8 @@ const InteractiveImageEditor = ({ imageUrl, onSave, onCancel }: InteractiveImage
               className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 pointer-events-none select-none"
               style={{
                 transform: `translate(-50%, -50%) translate(${position.x}px, ${position.y}px) scale(${scale})`,
-                transition: isDragging ? 'none' : 'transform 0.2s ease-out'
+                transition: isDragging ? 'none' : 'transform 0.2s ease-out',
+                objectFit: 'contain'
               }}
               draggable={false}
             />
@@ -389,7 +393,7 @@ const InteractiveImageEditor = ({ imageUrl, onSave, onCancel }: InteractiveImage
                 −
               </button>
               <button
-                onClick={resetToOptimalCrop}
+                onClick={resetToSmartFit}
                 className="px-6 py-3 bg-white text-black rounded-full text-sm font-semibold hover:bg-gray-100 active:bg-gray-200 transition-colors shadow-lg touch-manipulation"
               >
                 Reset

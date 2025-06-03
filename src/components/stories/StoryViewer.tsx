@@ -208,7 +208,7 @@ const StoryViewer = ({
         </div>
       </div>
 
-      {/* Story content - Fixed sizing for proper mobile display */}
+      {/* Story content - Fixed to maintain proper aspect ratio like Instagram */}
       <div className="flex-1 relative flex items-center justify-center bg-black">
         <div 
           className="absolute left-0 top-0 w-1/3 h-full z-10 cursor-pointer touch-manipulation"
@@ -222,7 +222,7 @@ const StoryViewer = ({
         {currentContent?.type === 'video' ? (
           <video 
             src={currentContent.url} 
-            className="w-full h-full object-cover"
+            className="max-w-full max-h-full object-contain"
             autoPlay
             muted
             loop
@@ -234,10 +234,12 @@ const StoryViewer = ({
             <img 
               src={currentContent?.url} 
               alt="Story content"
-              className="w-full h-full object-cover"
+              className="max-w-full max-h-full object-contain"
               style={{ 
-                objectFit: 'cover',
-                objectPosition: 'center'
+                maxWidth: '100%',
+                maxHeight: '100%',
+                width: 'auto',
+                height: 'auto'
               }}
               onError={(e) => {
                 console.error('Image failed to load:', currentContent?.url);
