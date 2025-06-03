@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Search, Filter, Grid, List, Heart } from 'lucide-react';
+import { Search, Filter, Grid, List, Heart, BarChart3 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -10,11 +10,13 @@ import { useAdvancedSearch } from '@/hooks/useAdvancedSearch';
 import { useAuth } from '@/contexts/AuthContext';
 import { useFavorites } from '@/hooks/useFavorites';
 import ExploreLoading from '@/components/ExploreLoading';
+import { useNavigate } from 'react-router-dom';
 
 const Explore = () => {
   const { searchListings, loading } = useAdvancedSearch();
   const { user } = useAuth();
   const { isFavorited, toggleFavorite } = useFavorites();
+  const navigate = useNavigate();
   
   const [listings, setListings] = useState<any[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -143,23 +145,33 @@ const Explore = () => {
   };
 
   useEffect(() => {
-    // Initial load with mock data
-    const timer = setTimeout(() => {
-      setListings(mockListings);
-      setIsInitialLoading(false);
-    }, 1000);
-
-    return () => clearTimeout(timer);
+    // Always show mock data immediately
+    setListings(mockListings);
+    setIsInitialLoading(false);
   }, []);
 
   // Show loading state during initial load
-  if (isInitialLoading) {
+  if (isInitialLoading && listings.length === 0) {
     return <ExploreLoading />;
   }
 
   return (
     <div className="max-w-md mx-auto bg-white min-h-screen">
       <div className="p-4 space-y-6">
+        {/* Header with Progress Button */}
+        <div className="flex items-center justify-between">
+          <h1 className="text-2xl font-bold">Explore</h1>
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={() => navigate('/completion-dashboard')}
+            className="flex items-center gap-2"
+          >
+            <BarChart3 className="w-4 h-4" />
+            Progress
+          </Button>
+        </div>
+
         {/* Search Bar */}
         <div className="relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />

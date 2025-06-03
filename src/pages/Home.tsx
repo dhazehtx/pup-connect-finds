@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -7,22 +8,25 @@ import {
   MessageCircle, 
   Share2, 
   MoreHorizontal,
-  Plus
+  Plus,
+  BarChart3
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useDogListings } from '@/hooks/useDogListings';
 import StoryViewer from '@/components/stories/StoryViewer';
 import StoryCreator from '@/components/stories/StoryCreator';
 import { sampleStories, Story } from '@/data/sampleStories';
+import { useNavigate } from 'react-router-dom';
 
 const Home = () => {
   const { user, isGuest } = useAuth();
   const { listings, loading } = useDogListings();
+  const navigate = useNavigate();
   const [selectedStoryIndex, setSelectedStoryIndex] = useState<number | null>(null);
   const [stories, setStories] = useState<Story[]>(sampleStories);
   const [showStoryCreator, setShowStoryCreator] = useState(false);
 
-  // Mock feed posts data to ensure content is always visible
+  // Enhanced mock feed posts data to ensure content is always visible
   const mockFeedPosts = [
     {
       id: 'post-1',
@@ -83,27 +87,41 @@ const Home = () => {
       dogName: 'Max',
       breed: 'Mixed Breed',
       age: '2 years'
+    },
+    {
+      id: 'post-5',
+      username: 'labrador_love_ca',
+      userAvatar: 'https://images.unsplash.com/photo-1518717758536-85ae29035b6d?w=50&h=50&fit=crop&crop=face',
+      location: 'Fremont, CA',
+      image: 'https://images.unsplash.com/photo-1518717758536-85ae29035b6d?w=400&h=400&fit=crop',
+      caption: 'Sweet Labrador puppies ready for new homes! 🥰 These adorable pups are well socialized and love to play. Perfect family dogs with gentle temperaments. #labrador #puppies #familydog',
+      likes: 156,
+      comments: 28,
+      timeAgo: '1 day ago',
+      price: '$1,500',
+      dogName: 'Buddy & Friends',
+      breed: 'Labrador',
+      age: '10 weeks'
+    },
+    {
+      id: 'post-6',
+      username: 'beagle_breeders_norcal',
+      userAvatar: 'https://images.unsplash.com/photo-1544717342-7b6977ea1f8a?w=50&h=50&fit=crop&crop=face',
+      location: 'Sacramento, CA',
+      image: 'https://images.unsplash.com/photo-1544717342-7b6977ea1f8a?w=400&h=400&fit=crop',
+      caption: 'Beagle puppies with amazing hunting lineage! 🦴 These pups are energetic, friendly, and great with children. Health tested parents with excellent temperaments. #beagle #hunting #puppies',
+      likes: 94,
+      comments: 19,
+      timeAgo: '1 day ago',
+      price: '$1,200',
+      dogName: 'Scout',
+      breed: 'Beagle',
+      age: '9 weeks'
     }
   ];
 
-  // Convert database listings to posts format or use mock data
-  const feedPosts = listings.length > 0 
-    ? listings.slice(0, 6).map((listing) => ({
-        id: listing.id,
-        username: listing.profiles?.username || 'Unknown User',
-        userAvatar: 'https://images.unsplash.com/photo-1552053831-71594a27632d?w=50&h=50&fit=crop&crop=face',
-        location: listing.location || 'Location not specified',
-        image: listing.image_url || 'https://images.unsplash.com/photo-1552053831-71594a27632d?w=400&h=400&fit=crop',
-        caption: `Meet ${listing.dog_name}! 🐕 This beautiful ${listing.breed} is looking for a forever home. ${listing.description || ''} #${listing.breed.toLowerCase().replace(/\s+/g, '')} #puppylove`,
-        likes: Math.floor(Math.random() * 200) + 50,
-        comments: Math.floor(Math.random() * 50) + 5,
-        timeAgo: new Date(listing.created_at).toLocaleDateString(),
-        price: `$${listing.price}`,
-        dogName: listing.dog_name,
-        breed: listing.breed,
-        age: listing.age
-      }))
-    : mockFeedPosts;
+  // Always use mock data to ensure content is visible
+  const feedPosts = mockFeedPosts;
 
   const handleStoryClick = (index: number) => {
     const story = stories[index];
@@ -148,25 +166,26 @@ const Home = () => {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50">
-        <div className="max-w-md mx-auto bg-white min-h-screen">
-          <div className="p-4 text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto"></div>
-            <p className="text-gray-500 mt-2">Loading listings...</p>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Instagram-like Feed */}
       <div className="max-w-md mx-auto bg-white min-h-screen">
-        {/* Stories Section */}
-        <div className="p-4 border-b border-gray-200 bg-white sticky top-0 z-10">
+        {/* Header with Progress Button */}
+        <div className="p-4 border-b border-gray-200 bg-white sticky top-0 z-20">
+          <div className="flex items-center justify-between mb-4">
+            <h1 className="text-2xl font-bold">Home</h1>
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => navigate('/completion-dashboard')}
+              className="flex items-center gap-2"
+            >
+              <BarChart3 className="w-4 h-4" />
+              Progress
+            </Button>
+          </div>
+          
+          {/* Stories Section */}
           <div className="flex space-x-4 overflow-x-auto scrollbar-hide">
             {stories.map((story, index) => (
               <div 
