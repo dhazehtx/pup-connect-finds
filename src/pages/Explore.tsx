@@ -195,6 +195,14 @@ const ExplorePage: React.FC<ExplorePageProps> = () => {
   return (
     <Layout>
       <div className="container mx-auto px-4 py-8">
+        {/* Search and Advanced Filters at Top */}
+        <SearchFilters
+          filters={filterState}
+          onFiltersChange={handleFilterChange}
+          resultsCount={listings.length}
+          onClearFilters={handleClearFilters}
+        />
+
         {/* Quick Filters */}
         <QuickFilters
           filters={filterState}
@@ -225,47 +233,32 @@ const ExplorePage: React.FC<ExplorePageProps> = () => {
           resultsCount={listings.length}
         />
 
-        {/* Filters and Sorting Options */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          {/* Filters (Desktop) */}
-          {!isMobile && (
-            <div className="md:col-span-1">
-              <SearchFilters
-                filters={filterState}
-                onFiltersChange={handleFilterChange}
-                resultsCount={listings.length}
-                onClearFilters={handleClearFilters}
-              />
-            </div>
+        {/* Listings Grid - Full Width */}
+        <div className="w-full">
+          {loading && <p>Loading listings...</p>}
+          {error && <p className="text-red-500">Error: {error}</p>}
+          {listings && listings.length === 0 && !loading && (
+            <Card>
+              <CardContent className="py-8 text-center">
+                <p className="text-lg text-gray-600">No listings found matching your criteria.</p>
+              </CardContent>
+            </Card>
           )}
-
-          {/* Listings Grid */}
-          <div className="md:col-span-3">
-            {loading && <p>Loading listings...</p>}
-            {error && <p className="text-red-500">Error: {error}</p>}
-            {listings && listings.length === 0 && !loading && (
-              <Card>
-                <CardContent className="py-8 text-center">
-                  <p className="text-lg text-gray-600">No listings found matching your criteria.</p>
-                </CardContent>
-              </Card>
-            )}
-            {listings && listings.length > 0 && (
-              <ListingsGrid
-                listings={listings}
-                viewMode={viewMode}
-                favorites={favoriteIds}
-                onFavorite={handleFavorite}
-                onContact={handleContact}
-                onViewDetails={handleViewDetails}
-                isLoading={loading}
-                onClearFilters={handleClearFilters}
-                hasActiveFilters={Object.values(filterState).some(value => 
-                  typeof value === 'boolean' ? value : value !== ''
-                )}
-              />
-            )}
-          </div>
+          {listings && listings.length > 0 && (
+            <ListingsGrid
+              listings={listings}
+              viewMode={viewMode}
+              favorites={favoriteIds}
+              onFavorite={handleFavorite}
+              onContact={handleContact}
+              onViewDetails={handleViewDetails}
+              isLoading={loading}
+              onClearFilters={handleClearFilters}
+              hasActiveFilters={Object.values(filterState).some(value => 
+                typeof value === 'boolean' ? value : value !== ''
+              )}
+            />
+          )}
         </div>
 
         {/* Mobile Filter Modal */}
