@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { useSwipeGestures } from '@/hooks/useSwipeGestures';
 
@@ -25,14 +26,20 @@ const InteractiveImageEditor = ({ imageUrl, onSave, onCancel }: InteractiveImage
   useEffect(() => {
     const updateContainerSize = () => {
       if (containerRef.current) {
-        const rect = containerRef.current.getBoundingClientRect();
-        const availableHeight = window.innerHeight - 160; // Account for header and footer
-        const storyWidth = Math.min(rect.width - 32, 350); // Max width with padding
-        const storyHeight = storyWidth * (16/9); // 9:16 aspect ratio
+        const viewportHeight = window.innerHeight;
+        const viewportWidth = window.innerWidth;
+        
+        // Calculate optimal story dimensions for mobile
+        const maxWidth = Math.min(viewportWidth - 32, 400); // Max width with padding
+        const storyHeight = viewportHeight * 0.7; // Use 70% of viewport height
+        const storyWidth = storyHeight * (9/16); // 9:16 aspect ratio
+        
+        const finalWidth = Math.min(maxWidth, storyWidth);
+        const finalHeight = finalWidth * (16/9); // Maintain 9:16 ratio
         
         setContainerDimensions({
-          width: storyWidth,
-          height: Math.min(storyHeight, availableHeight)
+          width: finalWidth,
+          height: finalHeight
         });
       }
     };
@@ -42,7 +49,7 @@ const InteractiveImageEditor = ({ imageUrl, onSave, onCancel }: InteractiveImage
     return () => window.removeEventListener('resize', updateContainerSize);
   }, []);
 
-  // Calculate initial scale to fill story dimensions
+  // Calculate initial scale to fill story dimensions (Instagram-style)
   const calculateInitialScale = useCallback((imgWidth: number, imgHeight: number, containerWidth: number, containerHeight: number) => {
     const containerAspectRatio = containerWidth / containerHeight;
     const imageAspectRatio = imgWidth / imgHeight;
@@ -56,7 +63,8 @@ const InteractiveImageEditor = ({ imageUrl, onSave, onCancel }: InteractiveImage
       initialScale = containerWidth / imgWidth;
     }
     
-    return Math.max(initialScale * 1.1, 0.5); // Scale up slightly to ensure fill
+    // Ensure the image always fills the container completely (Instagram behavior)
+    return Math.max(initialScale * 1.05, 1); // Scale up slightly to ensure complete fill
   }, []);
 
   // Handle image load to set initial scale and position
@@ -150,7 +158,7 @@ const InteractiveImageEditor = ({ imageUrl, onSave, onCancel }: InteractiveImage
       );
       
       const scaleChange = distance / lastDistance;
-      setScale(prev => Math.max(0.3, Math.min(5, prev * scaleChange)));
+      setScale(prev => Math.max(0.5, Math.min(5, prev * scaleChange)));
       setLastDistance(distance);
     }
   }, [isDragging, lastTouch, lastDistance]);
@@ -196,7 +204,7 @@ const InteractiveImageEditor = ({ imageUrl, onSave, onCancel }: InteractiveImage
   const handleWheel = useCallback((e: React.WheelEvent) => {
     e.preventDefault();
     const scaleChange = e.deltaY > 0 ? 0.9 : 1.1;
-    setScale(prev => Math.max(0.3, Math.min(5, prev * scaleChange)));
+    setScale(prev => Math.max(0.5, Math.min(5, prev * scaleChange)));
   }, []);
 
   const handleSave = () => {
@@ -206,11 +214,11 @@ const InteractiveImageEditor = ({ imageUrl, onSave, onCancel }: InteractiveImage
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    // Use 9:16 story dimensions for canvas
+    // Set canvas to exact story dimensions
     canvas.width = containerDimensions.width;
     canvas.height = containerDimensions.height;
 
-    // Fill with black background
+    // Fill with black background (Instagram style)
     ctx.fillStyle = '#000000';
     ctx.fillRect(0, 0, containerDimensions.width, containerDimensions.height);
 
@@ -239,24 +247,33 @@ const InteractiveImageEditor = ({ imageUrl, onSave, onCancel }: InteractiveImage
     }
   };
 
+  // Handle cancel button properly
+  const handleCancel = (e?: React.MouseEvent) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    onCancel();
+  };
+
   return (
-    <div className="fixed inset-0 bg-yellow-400 flex flex-col overflow-hidden z-50">
+    <div className="fixed inset-0 bg-black flex flex-col overflow-hidden z-50">
       {/* Header */}
-      <div className="flex items-center justify-between p-4 bg-yellow-400 z-10 shrink-0">
-        <h2 className="text-lg font-semibold text-gray-800">Edit Your Story</h2>
+      <div className="flex items-center justify-between p-4 bg-black z-10 shrink-0 border-b border-gray-800">
+        <h2 className="text-lg font-semibold text-white">Crop for Story</h2>
         <button
-          onClick={onCancel}
-          className="p-2 text-gray-800 hover:bg-black/10 rounded-full transition-colors"
+          onClick={handleCancel}
+          className="p-2 text-white hover:bg-white/10 rounded-full transition-colors"
         >
           ✕
         </button>
       </div>
 
       {/* Image Editor Container */}
-      <div className="flex-1 flex flex-col items-center justify-center p-4 min-h-0">
+      <div className="flex-1 flex flex-col items-center justify-center p-4 min-h-0 bg-black">
         <div 
           ref={containerRef}
-          className="relative bg-black rounded-lg overflow-hidden border-2 border-gray-800" 
+          className="relative bg-black rounded-lg overflow-hidden border border-gray-700" 
           style={{ 
             width: containerDimensions.width || 300,
             height: containerDimensions.height || 533,
@@ -264,7 +281,7 @@ const InteractiveImageEditor = ({ imageUrl, onSave, onCancel }: InteractiveImage
           }}
         >
           <div
-            className="w-full h-full relative cursor-move touch-none"
+            className="w-full h-full relative cursor-move touch-none overflow-hidden"
             onTouchStart={handleTouchStart}
             onTouchMove={handleTouchMove}
             onTouchEnd={handleTouchEnd}
@@ -287,7 +304,7 @@ const InteractiveImageEditor = ({ imageUrl, onSave, onCancel }: InteractiveImage
             />
             
             {isDragging && (
-              <div className="absolute inset-0 bg-white/10 border-2 border-white border-dashed" />
+              <div className="absolute inset-0 bg-white/5 border border-white/20 border-dashed" />
             )}
           </div>
           
@@ -300,26 +317,26 @@ const InteractiveImageEditor = ({ imageUrl, onSave, onCancel }: InteractiveImage
           </div>
         </div>
 
-        {/* Auto-cropped text */}
-        <p className="text-gray-700 text-center mt-4 mb-2 text-sm font-medium">Auto-cropped for Stories</p>
+        {/* Instructions */}
+        <p className="text-gray-400 text-center mt-4 mb-2 text-sm font-medium">Move and scale to fit perfectly</p>
 
         {/* Controls */}
         <div className="grid grid-cols-3 gap-3 w-full max-w-md">
           <button
-            onClick={() => setScale(prev => Math.max(0.3, prev - 0.2))}
-            className="px-4 py-3 bg-gray-700 text-white rounded-lg text-sm font-semibold hover:bg-gray-600 active:bg-gray-800 transition-all duration-200 shadow-sm touch-manipulation"
+            onClick={() => setScale(prev => Math.max(0.5, prev - 0.2))}
+            className="px-4 py-3 bg-gray-800 text-white rounded-lg text-sm font-semibold hover:bg-gray-700 active:bg-gray-900 transition-all duration-200 shadow-sm touch-manipulation border border-gray-700"
           >
             Zoom Out
           </button>
           <button
             onClick={resetToOptimalCrop}
-            className="px-4 py-3 bg-pink-500 text-white rounded-lg text-sm font-semibold hover:bg-pink-400 active:bg-pink-600 transition-all duration-200 shadow-sm touch-manipulation"
+            className="px-4 py-3 bg-blue-600 text-white rounded-lg text-sm font-semibold hover:bg-blue-500 active:bg-blue-700 transition-all duration-200 shadow-sm touch-manipulation"
           >
-            Auto Crop
+            Reset
           </button>
           <button
             onClick={() => setScale(prev => Math.min(5, prev + 0.2))}
-            className="px-4 py-3 bg-gray-700 text-white rounded-lg text-sm font-semibold hover:bg-gray-600 active:bg-gray-800 transition-all duration-200 shadow-sm touch-manipulation"
+            className="px-4 py-3 bg-gray-800 text-white rounded-lg text-sm font-semibold hover:bg-gray-700 active:bg-gray-900 transition-all duration-200 shadow-sm touch-manipulation border border-gray-700"
           >
             Zoom In
           </button>
@@ -327,18 +344,18 @@ const InteractiveImageEditor = ({ imageUrl, onSave, onCancel }: InteractiveImage
       </div>
 
       {/* Action buttons - Fixed to bottom */}
-      <div className="flex gap-4 p-4 bg-yellow-400 border-t border-gray-300 shrink-0 safe-area-inset-bottom">
+      <div className="flex gap-4 p-4 bg-black border-t border-gray-800 shrink-0 safe-area-inset-bottom">
         <button
-          onClick={onCancel}
-          className="flex-1 px-6 py-4 border-2 border-gray-800 text-gray-800 hover:bg-gray-800 hover:text-white active:bg-gray-900 rounded-lg font-semibold transition-all duration-200 shadow-sm min-h-[52px] touch-manipulation"
+          onClick={handleCancel}
+          className="flex-1 px-6 py-4 border border-gray-600 text-white hover:bg-gray-800 active:bg-gray-700 rounded-lg font-semibold transition-all duration-200 shadow-sm min-h-[52px] touch-manipulation"
         >
           Cancel
         </button>
         <button
           onClick={handleSave}
-          className="flex-1 px-6 py-4 bg-gray-800 text-white hover:bg-gray-700 active:bg-gray-900 rounded-lg font-semibold transition-all duration-200 shadow-sm min-h-[52px] touch-manipulation"
+          className="flex-1 px-6 py-4 bg-blue-600 text-white hover:bg-blue-500 active:bg-blue-700 rounded-lg font-semibold transition-all duration-200 shadow-sm min-h-[52px] touch-manipulation"
         >
-          Post Story
+          Share to Story
         </button>
       </div>
 

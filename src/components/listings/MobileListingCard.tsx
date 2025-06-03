@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Heart, MessageCircle, MapPin, Star, Verified, Swatches } from 'lucide-react';
+import { Heart, MessageCircle, MapPin, Star, Verified } from 'lucide-react';
 import { useSwipeGestures } from '@/hooks/useSwipeGestures';
 import { cn } from '@/lib/utils';
 
@@ -31,8 +31,7 @@ const MobileListingCard = ({
     onTouchStart,
     onTouchMove,
     onTouchEnd,
-    swipeDirection,
-    swipeDistance
+    isSwiping
   } = useSwipeGestures({
     onSwipeLeft: () => onFavorite(listing.id),
     onSwipeRight: () => onContact(listing.id),
@@ -47,17 +46,15 @@ const MobileListingCard = ({
   const handleTouchMove = (e: React.TouchEvent) => {
     onTouchMove(e);
     // Update visual feedback based on swipe
-    if (swipeDirection === 'left' && swipeDistance > 20) {
-      setSwipeOffset(-Math.min(swipeDistance * 0.3, 30));
-    } else if (swipeDirection === 'right' && swipeDistance > 20) {
-      setSwipeOffset(Math.min(swipeDistance * 0.3, 30));
+    if (isSwiping) {
+      setSwipeOffset(Math.min(20, 20));
     }
   };
 
   const handleTouchEnd = (e: React.TouchEvent) => {
     setIsPressed(false);
     setSwipeOffset(0);
-    onTouchEnd(e);
+    onTouchEnd();
   };
 
   return (
@@ -65,8 +62,7 @@ const MobileListingCard = ({
       className={cn(
         "w-full overflow-hidden transition-all duration-200",
         isPressed && "scale-98 shadow-lg",
-        swipeDirection === 'left' && swipeDistance > 50 && "bg-red-50 border-red-200",
-        swipeDirection === 'right' && swipeDistance > 50 && "bg-green-50 border-green-200"
+        isSwiping && "bg-blue-50 border-blue-200"
       )}
       style={{ transform: `translateX(${swipeOffset}px)` }}
       onTouchStart={handleTouchStart}
@@ -84,17 +80,9 @@ const MobileListingCard = ({
           />
           
           {/* Quick Action Overlay */}
-          {swipeDirection && swipeDistance > 50 && (
-            <div className={cn(
-              "absolute inset-0 flex items-center justify-center bg-black/50",
-              swipeDirection === 'left' && "text-red-400",
-              swipeDirection === 'right' && "text-green-400"
-            )}>
-              {swipeDirection === 'left' ? (
-                <Heart className="h-12 w-12" fill="currentColor" />
-              ) : (
-                <MessageCircle className="h-12 w-12" />
-              )}
+          {isSwiping && (
+            <div className="absolute inset-0 flex items-center justify-center bg-black/50 text-blue-400">
+              <Heart className="h-12 w-12" fill="currentColor" />
             </div>
           )}
           

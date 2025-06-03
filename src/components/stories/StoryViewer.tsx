@@ -142,8 +142,12 @@ const StoryViewer = ({
     }
   };
 
-  // Handle close with proper callback
-  const handleClose = () => {
+  // Handle close with proper event stopping
+  const handleClose = (e?: React.MouseEvent) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
     console.log('Story viewer closing');
     onClose();
   };
@@ -228,15 +232,18 @@ const StoryViewer = ({
             }}
           />
         ) : (
-          <div className="relative w-full h-full">
+          <div className="relative w-full h-full bg-black flex items-center justify-center">
             <img 
               src={currentContent?.url} 
               alt="Story content"
               className="w-full h-full object-cover"
-              style={{ aspectRatio: '9/16' }}
+              style={{ 
+                aspectRatio: '9/16',
+                objectFit: 'cover',
+                objectPosition: 'center'
+              }}
               onError={(e) => {
                 console.error('Image failed to load:', currentContent?.url);
-                // Show a fallback or error state
                 const target = e.target as HTMLImageElement;
                 target.style.backgroundColor = '#374151';
                 target.alt = 'Failed to load image';
