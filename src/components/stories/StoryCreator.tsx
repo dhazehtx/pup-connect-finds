@@ -1,3 +1,4 @@
+
 import React, { useState, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -220,12 +221,12 @@ const StoryCreator = ({ onClose, onStoryCreated }: StoryCreatorProps) => {
   };
 
   return (
-    <div className="fixed inset-0 bg-deep-navy/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
       {creationMode === 'edit-image' && previewUrl ? (
-        <div className="w-full h-full max-w-md mx-auto bg-cloud-white rounded-lg shadow-lg overflow-hidden">
-          <div className="flex items-center justify-between p-4 border-b border-soft-sky">
-            <h2 className="text-lg font-semibold text-deep-navy">Edit Your Story</h2>
-            <Button variant="ghost" size="sm" onClick={resetSelection} className="text-deep-navy hover:bg-soft-sky">
+        <div className="w-full h-full max-w-md mx-auto bg-background rounded-lg shadow-xl border border-border overflow-hidden">
+          <div className="flex items-center justify-between p-4 border-b border-border bg-background">
+            <h2 className="text-lg font-semibold text-foreground">Edit Your Story</h2>
+            <Button variant="ghost" size="sm" onClick={resetSelection} className="text-foreground hover:bg-muted">
               <X className="w-4 h-4" />
             </Button>
           </div>
@@ -238,41 +239,41 @@ const StoryCreator = ({ onClose, onStoryCreated }: StoryCreatorProps) => {
           </div>
         </div>
       ) : (
-        <Card className="w-full max-w-md bg-cloud-white border-soft-sky">
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="text-deep-navy">Create Your Story</CardTitle>
-            <Button variant="ghost" size="sm" onClick={onClose} className="text-deep-navy hover:bg-soft-sky">
+        <Card className="w-full max-w-md bg-background border-border shadow-xl">
+          <CardHeader className="flex flex-row items-center justify-between border-b border-border">
+            <CardTitle className="text-foreground">Create Your Story</CardTitle>
+            <Button variant="ghost" size="sm" onClick={onClose} className="text-foreground hover:bg-muted">
               <X className="w-4 h-4" />
             </Button>
           </CardHeader>
           
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-4 p-6">
             {creationMode === 'select' && (
               <div className="space-y-3">
                 <Button
                   onClick={() => fileInputRef.current?.click()}
-                  className="w-full justify-start bg-cloud-white border-soft-sky text-deep-navy hover:bg-soft-sky"
+                  className="w-full justify-start bg-background border-border text-foreground hover:bg-muted active:bg-muted/80 min-h-[50px] shadow-sm"
                   variant="outline"
                 >
-                  <Camera className="w-4 h-4 mr-2" />
+                  <Camera className="w-5 h-5 mr-3" />
                   Upload Photo
                 </Button>
                 
                 <Button
                   onClick={() => videoInputRef.current?.click()}
-                  className="w-full justify-start bg-cloud-white border-soft-sky text-deep-navy hover:bg-soft-sky"
+                  className="w-full justify-start bg-background border-border text-foreground hover:bg-muted active:bg-muted/80 min-h-[50px] shadow-sm"
                   variant="outline"
                 >
-                  <Video className="w-4 h-4 mr-2" />
+                  <Video className="w-5 h-5 mr-3" />
                   Upload Video
                 </Button>
                 
                 <Button
                   onClick={() => setCreationMode('ai-generate')}
-                  className="w-full justify-start bg-cloud-white border-soft-sky text-deep-navy hover:bg-soft-sky"
+                  className="w-full justify-start bg-background border-border text-foreground hover:bg-muted active:bg-muted/80 min-h-[50px] shadow-sm"
                   variant="outline"
                 >
-                  <Wand2 className="w-4 h-4 mr-2" />
+                  <Wand2 className="w-5 h-5 mr-3" />
                   Generate with AI
                 </Button>
                 
@@ -295,34 +296,34 @@ const StoryCreator = ({ onClose, onStoryCreated }: StoryCreatorProps) => {
             )}
 
             {creationMode === 'upload' && previewUrl && (
-              <div className="space-y-3">
+              <div className="space-y-4">
                 <div className="relative">
                   {selectedFile?.type.startsWith('video/') ? (
                     <video
                       src={previewUrl}
-                      className="w-full h-64 object-cover rounded-lg"
+                      className="w-full h-64 object-cover rounded-lg border border-border"
                       controls
                     />
                   ) : (
                     <img
                       src={previewUrl}
                       alt="Story preview"
-                      className="w-full h-64 object-cover rounded-lg"
+                      className="w-full h-64 object-cover rounded-lg border border-border"
                     />
                   )}
                 </div>
                 
-                <div className="flex space-x-2">
+                <div className="flex space-x-3">
                   <Button 
                     onClick={resetSelection} 
                     variant="outline" 
-                    className="flex-1 bg-cloud-white border-soft-sky text-deep-navy hover:bg-soft-sky"
+                    className="flex-1 bg-background border-border text-foreground hover:bg-muted min-h-[50px]"
                   >
                     Back
                   </Button>
                   <Button 
                     onClick={handleUploadStory} 
-                    className="flex-1 bg-royal-blue text-cloud-white hover:bg-royal-blue/90"
+                    className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90 min-h-[50px]"
                   >
                     <Upload className="w-4 h-4 mr-2" />
                     Post Story
@@ -332,20 +333,20 @@ const StoryCreator = ({ onClose, onStoryCreated }: StoryCreatorProps) => {
             )}
 
             {creationMode === 'ai-generate' && (
-              <div className="space-y-3">
+              <div className="space-y-4">
                 <Textarea
                   value={aiPrompt}
                   onChange={(e) => setAiPrompt(e.target.value)}
                   placeholder="Describe what you want to generate... (e.g., 'A golden retriever playing in a sunny garden')"
                   rows={3}
-                  className="bg-cloud-white border-soft-sky text-deep-navy focus:border-royal-blue"
+                  className="bg-background border-border text-foreground focus:border-primary resize-none"
                 />
                 
-                <div className="flex space-x-2">
+                <div className="flex space-x-3">
                   <Button
                     onClick={() => generateAIContent('image')}
                     disabled={isGenerating}
-                    className="flex-1 bg-royal-blue text-cloud-white hover:bg-royal-blue/90"
+                    className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90 min-h-[50px]"
                   >
                     {isGenerating ? (
                       <Loader2 className="w-4 h-4 mr-2 animate-spin" />
@@ -358,7 +359,7 @@ const StoryCreator = ({ onClose, onStoryCreated }: StoryCreatorProps) => {
                   <Button
                     onClick={() => generateAIContent('video')}
                     disabled={isGenerating}
-                    className="flex-1 bg-cloud-white border-soft-sky text-deep-navy hover:bg-soft-sky"
+                    className="flex-1 bg-background border-border text-foreground hover:bg-muted min-h-[50px]"
                     variant="outline"
                   >
                     {isGenerating ? (
@@ -373,7 +374,7 @@ const StoryCreator = ({ onClose, onStoryCreated }: StoryCreatorProps) => {
                 <Button 
                   onClick={() => setCreationMode('select')} 
                   variant="ghost" 
-                  className="w-full text-deep-navy hover:bg-soft-sky"
+                  className="w-full text-foreground hover:bg-muted min-h-[50px]"
                 >
                   Back
                 </Button>

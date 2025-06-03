@@ -153,7 +153,7 @@ const StoryViewer = ({
       {/* Progress bars */}
       <div className="absolute top-4 left-4 right-4 flex space-x-1 z-10">
         {currentStory.content.map((_, index) => (
-          <div key={index} className="flex-1 h-1 bg-gray-600 rounded-full overflow-hidden">
+          <div key={index} className="flex-1 h-1 bg-white/30 rounded-full overflow-hidden">
             <div 
               className="h-full bg-white transition-all duration-100"
               style={{ 
@@ -168,18 +168,18 @@ const StoryViewer = ({
       {/* Story header */}
       <div className="absolute top-8 left-4 right-4 flex items-center justify-between z-10 mt-4">
         <div className="flex items-center space-x-3">
-          <div className="w-8 h-8 rounded-full overflow-hidden">
+          <div className="w-10 h-10 rounded-full overflow-hidden ring-2 ring-white/50">
             {currentStory.avatar ? (
               <img src={currentStory.avatar} alt={currentStory.username} className="w-full h-full object-cover" />
             ) : (
               <div className="w-full h-full bg-gray-600 flex items-center justify-center">
-                <span className="text-white text-xs">{currentStory.username[0]}</span>
+                <span className="text-white text-sm font-semibold">{currentStory.username[0]}</span>
               </div>
             )}
           </div>
           <div>
-            <p className="text-white font-semibold text-sm">{currentStory.username}</p>
-            <p className="text-gray-300 text-xs">{currentStory.timestamp}</p>
+            <p className="text-white font-semibold text-sm drop-shadow-lg">{currentStory.username}</p>
+            <p className="text-white/80 text-xs drop-shadow-lg">{currentStory.timestamp}</p>
           </div>
         </div>
         <div className="flex items-center space-x-2">
@@ -187,11 +187,16 @@ const StoryViewer = ({
             variant="ghost" 
             size="sm" 
             onClick={() => setShowAIGenerator(!showAIGenerator)}
-            className="text-white hover:bg-white/20"
+            className="text-white hover:bg-white/20 backdrop-blur-sm bg-black/20 border border-white/20 rounded-full p-2"
           >
-            <Wand2 className="w-4 h-4" />
+            <Wand2 className="w-5 h-5" />
           </Button>
-          <Button variant="ghost" size="sm" onClick={onClose} className="text-white hover:bg-white/20">
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={onClose} 
+            className="text-white hover:bg-white/20 backdrop-blur-sm bg-black/20 border border-white/20 rounded-full p-2"
+          >
             <X className="w-5 h-5" />
           </Button>
         </div>
@@ -224,8 +229,8 @@ const StoryViewer = ({
               className="w-full h-full object-cover"
             />
             {currentContent?.prompt && (
-              <div className="absolute bottom-20 left-4 right-4">
-                <Badge variant="secondary" className="bg-black/50 text-white">
+              <div className="absolute bottom-24 left-4 right-4">
+                <Badge variant="secondary" className="bg-black/60 text-white backdrop-blur-sm border border-white/20">
                   AI Generated: {currentContent.prompt}
                 </Badge>
               </div>
@@ -234,12 +239,12 @@ const StoryViewer = ({
         )}
       </div>
 
-      {/* Navigation arrows */}
+      {/* Navigation arrows - Enhanced visibility */}
       <Button
         variant="ghost"
         size="sm"
         onClick={onPrevious}
-        className="absolute left-4 top-1/2 transform -translate-y-1/2 text-white hover:bg-white/20"
+        className="absolute left-4 top-1/2 transform -translate-y-1/2 text-white hover:bg-white/20 backdrop-blur-sm bg-black/20 border border-white/20 rounded-full p-3"
       >
         <ChevronLeft className="w-6 h-6" />
       </Button>
@@ -247,27 +252,27 @@ const StoryViewer = ({
         variant="ghost"
         size="sm"
         onClick={onNext}
-        className="absolute right-4 top-1/2 transform -translate-y-1/2 text-white hover:bg-white/20"
+        className="absolute right-4 top-1/2 transform -translate-y-1/2 text-white hover:bg-white/20 backdrop-blur-sm bg-black/20 border border-white/20 rounded-full p-3"
       >
         <ChevronRight className="w-6 h-6" />
       </Button>
 
-      {/* AI Generator Panel */}
+      {/* AI Generator Panel - Enhanced visibility */}
       {showAIGenerator && (
-        <div className="absolute bottom-20 left-4 right-4 bg-black/80 rounded-lg p-4 backdrop-blur-sm">
-          <h3 className="text-white font-semibold mb-3">Generate AI Content</h3>
+        <div className="absolute bottom-24 left-4 right-4 bg-black/90 backdrop-blur-lg rounded-lg p-4 border border-white/20">
+          <h3 className="text-white font-semibold mb-3 text-center">Generate AI Content</h3>
           <Textarea
             value={aiPrompt}
             onChange={(e) => setAiPrompt(e.target.value)}
             placeholder="Describe what you want to generate..."
-            className="mb-3 bg-white/10 text-white placeholder-gray-300 border-gray-600"
+            className="mb-3 bg-white/10 text-white placeholder-white/60 border-white/20 focus:border-white/40"
             rows={2}
           />
-          <div className="flex space-x-2">
+          <div className="flex space-x-3">
             <Button
               onClick={() => generateAIContent('image')}
               disabled={isGenerating}
-              className="flex-1 bg-blue-600 hover:bg-blue-700"
+              className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90 min-h-[44px]"
             >
               {isGenerating ? (
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
@@ -279,7 +284,7 @@ const StoryViewer = ({
             <Button
               onClick={() => generateAIContent('video')}
               disabled={isGenerating}
-              className="flex-1 bg-purple-600 hover:bg-purple-700"
+              className="flex-1 bg-white/20 text-white hover:bg-white/30 backdrop-blur-sm border border-white/20 min-h-[44px]"
             >
               {isGenerating ? (
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
@@ -292,22 +297,34 @@ const StoryViewer = ({
         </div>
       )}
 
-      {/* Story interactions */}
+      {/* Story interactions - Enhanced visibility */}
       <div className="absolute bottom-4 left-4 right-4 flex items-center justify-between">
         <div className="flex items-center space-x-4">
-          <Button variant="ghost" size="sm" className="text-white hover:bg-white/20">
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="text-white hover:bg-white/20 backdrop-blur-sm bg-black/20 border border-white/20 rounded-full p-2"
+          >
             <Heart className="w-5 h-5" />
           </Button>
-          <Button variant="ghost" size="sm" className="text-white hover:bg-white/20">
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="text-white hover:bg-white/20 backdrop-blur-sm bg-black/20 border border-white/20 rounded-full p-2"
+          >
             <MessageCircle className="w-5 h-5" />
           </Button>
         </div>
         <div className="flex items-center space-x-2 flex-1 max-w-xs">
           <Input 
             placeholder="Send message..."
-            className="bg-transparent border-gray-600 text-white placeholder-gray-400"
+            className="bg-black/40 backdrop-blur-sm border-white/20 text-white placeholder-white/60 focus:border-white/40"
           />
-          <Button variant="ghost" size="sm" className="text-white hover:bg-white/20">
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="text-white hover:bg-white/20 backdrop-blur-sm bg-black/20 border border-white/20 rounded-full p-2"
+          >
             <Send className="w-4 h-4" />
           </Button>
         </div>

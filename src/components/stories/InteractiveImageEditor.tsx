@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { useSwipeGestures } from '@/hooks/useSwipeGestures';
 
@@ -219,11 +220,11 @@ const InteractiveImageEditor = ({ imageUrl, onSave, onCancel }: InteractiveImage
   };
 
   return (
-    <div className="flex flex-col h-full max-h-screen bg-cloud-white p-4 space-y-4">
+    <div className="flex flex-col h-full max-h-screen bg-background p-4 space-y-4">
       {/* Image Editor Container - Mobile Optimized */}
       <div className="flex-1 flex flex-col min-h-0">
         <div 
-          className="relative bg-deep-navy rounded-lg overflow-hidden flex-1 min-h-0" 
+          className="relative bg-muted rounded-lg overflow-hidden flex-1 min-h-0 border border-border" 
           style={{ aspectRatio: '9/16', maxHeight: 'calc(100vh - 200px)' }}
         >
           <div
@@ -252,55 +253,55 @@ const InteractiveImageEditor = ({ imageUrl, onSave, onCancel }: InteractiveImage
             
             {/* Visual feedback overlay */}
             {isDragging && (
-              <div className="absolute inset-0 bg-royal-blue/10 border-2 border-royal-blue border-dashed" />
+              <div className="absolute inset-0 bg-primary/10 border-2 border-primary border-dashed" />
             )}
           </div>
           
-          {/* Scale indicator */}
-          <div className="absolute top-4 right-4 bg-deep-navy/80 text-cloud-white px-2 py-1 rounded text-sm">
+          {/* Scale indicator - Enhanced visibility */}
+          <div className="absolute top-4 right-4 bg-background/95 backdrop-blur-sm text-foreground px-3 py-2 rounded-md text-sm font-medium border border-border shadow-lg">
             {Math.round(scale * 100)}%
           </div>
           
-          {/* Instructions */}
-          <div className="absolute bottom-4 left-4 bg-deep-navy/80 text-cloud-white px-2 py-1 rounded text-xs max-w-48">
+          {/* Instructions - Enhanced visibility */}
+          <div className="absolute bottom-4 left-4 bg-background/95 backdrop-blur-sm text-foreground px-3 py-2 rounded-md text-xs font-medium border border-border shadow-lg max-w-48">
             {initialSetupComplete ? 'Auto-cropped for Stories' : 'Loading...'}
           </div>
         </div>
 
-        {/* Controls - Mobile Optimized */}
-        <div className="flex gap-2 py-3">
+        {/* Controls - Enhanced for Mobile */}
+        <div className="flex gap-3 py-4">
           <button
             onClick={() => setScale(prev => Math.max(0.5, prev - 0.1))}
-            className="flex-1 px-3 py-2 bg-soft-sky text-deep-navy rounded-lg text-sm font-medium hover:bg-soft-sky/80 transition-colors"
+            className="flex-1 px-4 py-3 bg-secondary text-secondary-foreground rounded-lg text-sm font-semibold hover:bg-secondary/80 active:bg-secondary/60 transition-all duration-200 border border-border shadow-sm"
           >
             Zoom Out
           </button>
           <button
             onClick={() => setScale(prev => Math.min(3, prev + 0.1))}
-            className="flex-1 px-3 py-2 bg-soft-sky text-deep-navy rounded-lg text-sm font-medium hover:bg-soft-sky/80 transition-colors"
+            className="flex-1 px-4 py-3 bg-secondary text-secondary-foreground rounded-lg text-sm font-semibold hover:bg-secondary/80 active:bg-secondary/60 transition-all duration-200 border border-border shadow-sm"
           >
             Zoom In
           </button>
           <button
             onClick={resetToOptimalCrop}
-            className="flex-1 px-3 py-2 bg-mint-green text-deep-navy rounded-lg text-sm font-medium hover:bg-mint-green/80 transition-colors"
+            className="flex-1 px-4 py-3 bg-accent text-accent-foreground rounded-lg text-sm font-semibold hover:bg-accent/80 active:bg-accent/60 transition-all duration-200 border border-border shadow-sm"
           >
             Auto Crop
           </button>
         </div>
       </div>
 
-      {/* Action buttons - Fixed at bottom for mobile */}
-      <div className="flex gap-3 pb-safe">
+      {/* Action buttons - Enhanced visibility and touch targets */}
+      <div className="flex gap-4 pb-safe">
         <button
           onClick={onCancel}
-          className="flex-1 px-4 py-3 border-2 border-soft-sky text-deep-navy hover:bg-soft-sky hover:text-deep-navy rounded-lg font-medium transition-colors bg-cloud-white"
+          className="flex-1 px-6 py-4 border-2 border-primary text-primary hover:bg-primary hover:text-primary-foreground active:bg-primary/90 rounded-lg font-semibold transition-all duration-200 bg-background shadow-sm min-h-[50px] touch-manipulation"
         >
           Back
         </button>
         <button
           onClick={handleSave}
-          className="flex-1 px-4 py-3 bg-royal-blue text-cloud-white hover:bg-royal-blue/90 rounded-lg font-medium transition-colors"
+          className="flex-1 px-6 py-4 bg-primary text-primary-foreground hover:bg-primary/90 active:bg-primary/80 rounded-lg font-semibold transition-all duration-200 shadow-sm min-h-[50px] touch-manipulation"
         >
           Post Story
         </button>
