@@ -1,112 +1,73 @@
 
 import React, { useState, useEffect } from 'react';
-import { Search, Filter, MapPin, SlidersHorizontal, Grid, List } from 'lucide-react';
+import { Search, Filter, Grid, List, Heart } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Label } from '@/components/ui/label';
-import { Slider } from '@/components/ui/slider';
-import ListingsGrid from '@/components/ListingsGrid';
 import { useAdvancedSearch } from '@/hooks/useAdvancedSearch';
 import { useAuth } from '@/contexts/AuthContext';
 import { useFavorites } from '@/hooks/useFavorites';
-import { useEnhancedMessaging } from '@/hooks/useEnhancedMessaging';
 
 const Explore = () => {
   const { searchListings, loading } = useAdvancedSearch();
   const { user } = useAuth();
   const { isFavorited, toggleFavorite } = useFavorites();
-  const { createConversation } = useEnhancedMessaging();
   
   const [listings, setListings] = useState<any[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
-  const [showFilters, setShowFilters] = useState(false);
   const [favorites, setFavorites] = useState<number[]>([]);
-  
-  // Filter states
-  const [selectedBreed, setSelectedBreed] = useState('');
-  const [selectedLocation, setSelectedLocation] = useState('');
-  const [priceRange, setPriceRange] = useState([0, 10000]);
-  const [ageRange, setAgeRange] = useState([0, 24]);
 
-  // Convert database listings to the format expected by ListingsGrid
-  const convertedListings = listings.map((listing) => ({
-    id: parseInt(listing.id.replace(/-/g, '').substring(0, 8), 16),
-    title: listing.dog_name,
-    price: `$${listing.price}`,
-    location: listing.location || 'Location not specified',
-    distance: '2.5 miles',
-    breed: listing.breed,
-    color: 'Mixed',
-    gender: 'Unknown',
-    age: `${listing.age} months`,
-    rating: listing.profiles?.rating || 0,
-    reviews: listing.profiles?.total_reviews || 0,
-    image: listing.image_url || listing.listing_photos?.[0]?.photo_url || 'https://images.unsplash.com/photo-1552053831-71594a27632d?w=400&h=400&fit=crop',
-    breeder: listing.profiles?.full_name || listing.profiles?.username || 'Unknown Breeder',
-    verified: Boolean(listing.profiles?.verified),
-    verifiedBreeder: Boolean(listing.profiles?.verified),
-    idVerified: Boolean(listing.profiles?.verified),
-    vetVerified: false,
-    available: 1,
-    sourceType: 'breeder' as const,
-    isKillShelter: false
-  }));
+  const popularBreeds = [
+    'French Bulldog',
+    'Golden Retriever', 
+    'German Shepherd',
+    'Labrador',
+    'Beagle'
+  ];
+
+  const quickFilters = [
+    'Under $1000',
+    'Puppies Only',
+    'Verified Only',
+    'Nearby (10mi)'
+  ];
+
+  // Mock data for display
+  const mockListings = [
+    {
+      id: 1,
+      title: 'Beautiful French Bulldog Puppies',
+      price: '$2,500',
+      location: 'San Francisco, CA',
+      breed: 'French Bulldog',
+      age: '8 weeks',
+      available: 3,
+      image: 'https://images.unsplash.com/photo-1583337130417-3346a1be7dee?w=400&h=400&fit=crop',
+      verified: true
+    },
+    {
+      id: 2,
+      title: 'Loyal Golden Retriever Pups',
+      price: '$1,800',
+      location: 'Oakland, CA',
+      breed: 'Golden Retriever',
+      age: '10 weeks',
+      available: 2,
+      image: 'https://images.unsplash.com/photo-1552053831-71594a27632d?w=400&h=400&fit=crop',
+      verified: true
+    }
+  ];
 
   const handleSearch = async (term: string) => {
     setSearchTerm(term);
-    const filters = {
-      breed: selectedBreed,
-      location: selectedLocation,
-      minPrice: priceRange[0],
-      maxPrice: priceRange[1],
-      minAge: ageRange[0],
-      maxAge: ageRange[1]
-    };
-    const results = await searchListings(term, filters);
-    setListings(results);
+    // For now using mock data
+    setListings(mockListings);
   };
 
-  const handleApplyFilters = async () => {
-    const filters = {
-      breed: selectedBreed,
-      location: selectedLocation,
-      minPrice: priceRange[0],
-      maxPrice: priceRange[1],
-      minAge: ageRange[0],
-      maxAge: ageRange[1]
-    };
-    const results = await searchListings(searchTerm, filters);
-    setListings(results);
-    setShowFilters(false);
-  };
-
-  const handleClearFilters = async () => {
-    setSelectedBreed('');
-    setSelectedLocation('');
-    setPriceRange([0, 10000]);
-    setAgeRange([0, 24]);
-    const results = await searchListings('');
-    setListings(results);
-  };
-
-  const hasActiveFilters = Boolean(
-    selectedBreed || 
-    selectedLocation || 
-    (priceRange && priceRange[0] > 0) || 
-    (priceRange && priceRange[1] < 10000)
-  );
-
-  const handleFavorite = async (id: number) => {
-    const listingId = listings.find(l => parseInt(l.id.replace(/-/g, '').substring(0, 8), 16) === id)?.id;
-    if (listingId) {
-      await toggleFavorite(listingId);
-    }
-    
+  const handleFavorite = (id: number) => {
     setFavorites(prev => 
       prev.includes(id) 
         ? prev.filter(fav => fav !== id)
@@ -114,170 +75,165 @@ const Explore = () => {
     );
   };
 
-  const handleContact = async (id: number) => {
-    if (!user) {
-      console.log('Please sign in to contact breeders');
-      return;
-    }
-    
-    const listing = listings.find(l => parseInt(l.id.replace(/-/g, '').substring(0, 8), 16) === id);
-    if (listing) {
-      await createConversation(listing.id, listing.user_id);
-    }
-  };
-
-  const handleViewDetails = (id: number) => {
-    console.log('View details for listing:', id);
-  };
-
   useEffect(() => {
-    // Initial load
-    handleSearch('');
+    // Initial load with mock data
+    setListings(mockListings);
   }, []);
 
   return (
-    <div className="max-w-6xl mx-auto bg-white min-h-screen">
-      {/* Header */}
-      <div className="p-4 border-b border-gray-100 bg-white sticky top-0 z-10">
-        <h1 className="text-2xl font-bold mb-4">Explore Dogs</h1>
-        
+    <div className="max-w-md mx-auto bg-white min-h-screen">
+      {/* Main Content */}
+      <div className="p-4 space-y-6">
         {/* Search Bar */}
-        <div className="flex gap-2 mb-4">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-            <Input
-              placeholder="Search by breed, location, or name..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleSearch(searchTerm)}
-              className="pl-10"
-            />
-          </div>
-          
-          <Dialog open={showFilters} onOpenChange={setShowFilters}>
-            <DialogTrigger asChild>
-              <Button variant="outline" size="icon">
-                <SlidersHorizontal className="w-5 h-5" />
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-md">
-              <DialogHeader>
-                <DialogTitle>Filter Results</DialogTitle>
-              </DialogHeader>
-              
-              <div className="space-y-6">
-                {/* Breed Filter */}
-                <div className="space-y-2">
-                  <Label>Breed</Label>
-                  <Select value={selectedBreed} onValueChange={setSelectedBreed}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select breed" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="">All Breeds</SelectItem>
-                      <SelectItem value="golden retriever">Golden Retriever</SelectItem>
-                      <SelectItem value="labrador">Labrador</SelectItem>
-                      <SelectItem value="german shepherd">German Shepherd</SelectItem>
-                      <SelectItem value="french bulldog">French Bulldog</SelectItem>
-                      <SelectItem value="beagle">Beagle</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {/* Location Filter */}
-                <div className="space-y-2">
-                  <Label>Location</Label>
-                  <Input
-                    placeholder="Enter city or state"
-                    value={selectedLocation}
-                    onChange={(e) => setSelectedLocation(e.target.value)}
-                  />
-                </div>
-
-                {/* Price Range */}
-                <div className="space-y-2">
-                  <Label>Price Range: ${priceRange[0]} - ${priceRange[1]}</Label>
-                  <Slider
-                    value={priceRange}
-                    onValueChange={setPriceRange}
-                    max={10000}
-                    min={0}
-                    step={100}
-                    className="w-full"
-                  />
-                </div>
-
-                {/* Age Range */}
-                <div className="space-y-2">
-                  <Label>Age Range: {ageRange[0]} - {ageRange[1]} months</Label>
-                  <Slider
-                    value={ageRange}
-                    onValueChange={setAgeRange}
-                    max={24}
-                    min={0}
-                    step={1}
-                    className="w-full"
-                  />
-                </div>
-
-                <div className="flex gap-2">
-                  <Button onClick={handleApplyFilters} className="flex-1">
-                    Apply Filters
-                  </Button>
-                  <Button variant="outline" onClick={handleClearFilters}>
-                    Clear
-                  </Button>
-                </div>
-              </div>
-            </DialogContent>
-          </Dialog>
-          
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+          <Input
+            placeholder="Search by breed, breeder name, or keywords..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && handleSearch(searchTerm)}
+            className="pl-10 bg-gray-50 border-gray-200"
+          />
           <Button 
             variant="outline" 
-            size="icon"
-            onClick={() => setViewMode(viewMode === 'grid' ? 'list' : 'grid')}
+            size="sm"
+            className="absolute right-2 top-1/2 transform -translate-y-1/2 h-8"
           >
-            {viewMode === 'grid' ? <List className="w-5 h-5" /> : <Grid className="w-5 h-5" />}
+            <Filter className="w-4 h-4 mr-1" />
+            Filters
           </Button>
         </div>
 
-        {/* Active Filters */}
-        {hasActiveFilters && (
+        {/* Popular Breeds */}
+        <div>
+          <h3 className="text-lg font-semibold mb-3">Popular Breeds</h3>
           <div className="flex flex-wrap gap-2">
-            {selectedBreed && (
-              <Badge variant="secondary" className="capitalize">
-                {selectedBreed}
+            {popularBreeds.map((breed) => (
+              <Badge 
+                key={breed}
+                variant="outline"
+                className="cursor-pointer hover:bg-blue-50 hover:border-blue-200"
+                onClick={() => handleSearch(breed)}
+              >
+                {breed}
               </Badge>
-            )}
-            {selectedLocation && (
-              <Badge variant="secondary">
-                <MapPin className="w-3 h-3 mr-1" />
-                {selectedLocation}
-              </Badge>
-            )}
-            {(priceRange[0] > 0 || priceRange[1] < 10000) && (
-              <Badge variant="secondary">
-                ${priceRange[0]} - ${priceRange[1]}
-              </Badge>
-            )}
+            ))}
           </div>
-        )}
-      </div>
+        </div>
 
-      {/* Listings */}
-      <div className="p-4">
-        <ListingsGrid
-          listings={convertedListings}
-          viewMode={viewMode}
-          favorites={favorites}
-          onFavorite={handleFavorite}
-          onContact={handleContact}
-          onViewDetails={handleViewDetails}
-          isLoading={loading}
-          onClearFilters={handleClearFilters}
-          hasActiveFilters={hasActiveFilters}
-          showEnhancedActions={true}
-        />
+        {/* Quick Filters */}
+        <div>
+          <h3 className="text-lg font-semibold mb-3">Quick Filters</h3>
+          <div className="flex flex-wrap gap-2">
+            {quickFilters.map((filter) => (
+              <Badge 
+                key={filter}
+                variant="secondary"
+                className="cursor-pointer hover:bg-gray-200"
+              >
+                {filter}
+              </Badge>
+            ))}
+          </div>
+        </div>
+
+        {/* Main Search Bar */}
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+          <Input
+            placeholder="Search for puppies, breeds, or locations..."
+            className="pl-10 bg-gray-50 border-gray-200"
+          />
+          <Button 
+            variant="outline" 
+            size="sm"
+            className="absolute right-2 top-1/2 transform -translate-y-1/2 h-8"
+          >
+            <Filter className="w-4 h-4 mr-1" />
+            Filters
+          </Button>
+        </div>
+
+        {/* Results Header */}
+        <div className="flex items-center justify-between">
+          <h2 className="text-xl font-semibold">{listings.length} puppies available</h2>
+          <div className="flex items-center gap-2">
+            <div className="flex bg-gray-100 rounded-lg p-1">
+              <Button
+                variant={viewMode === 'grid' ? 'default' : 'ghost'}
+                size="sm"
+                onClick={() => setViewMode('grid')}
+                className="h-8 w-8 p-0"
+              >
+                <Grid className="w-4 h-4" />
+              </Button>
+              <Button
+                variant={viewMode === 'list' ? 'default' : 'ghost'}
+                size="sm"
+                onClick={() => setViewMode('list')}
+                className="h-8 w-8 p-0"
+              >
+                <List className="w-4 h-4" />
+              </Button>
+            </div>
+            <Select defaultValue="newest">
+              <SelectTrigger className="w-32">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="newest">Newest first</SelectItem>
+                <SelectItem value="price-low">Price: Low to High</SelectItem>
+                <SelectItem value="price-high">Price: High to Low</SelectItem>
+                <SelectItem value="distance">Distance</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
+        {/* Listings Grid */}
+        <div className={`grid gap-4 ${viewMode === 'grid' ? 'grid-cols-2' : 'grid-cols-1'}`}>
+          {listings.map((listing) => (
+            <Card key={listing.id} className="overflow-hidden">
+              <div className="relative">
+                <img
+                  src={listing.image}
+                  alt={listing.title}
+                  className="w-full h-48 object-cover"
+                />
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="absolute top-2 right-2 h-8 w-8 p-0 bg-white/80 hover:bg-white"
+                  onClick={() => handleFavorite(listing.id)}
+                >
+                  <Heart 
+                    className={`w-4 h-4 ${favorites.includes(listing.id) ? 'fill-red-500 text-red-500' : 'text-gray-600'}`} 
+                  />
+                </Button>
+                {listing.available > 1 && (
+                  <Badge className="absolute bottom-2 left-2 bg-blue-600">
+                    {listing.available} available
+                  </Badge>
+                )}
+              </div>
+              <CardContent className="p-3">
+                <h3 className="font-semibold text-sm line-clamp-2 mb-1">
+                  {listing.title}
+                </h3>
+                <p className="text-xs text-gray-600 mb-2">{listing.breed}</p>
+                <div className="flex items-center justify-between">
+                  <span className="font-bold text-lg">{listing.price}</span>
+                  {listing.verified && (
+                    <Badge variant="secondary" className="text-xs">
+                      Verified
+                    </Badge>
+                  )}
+                </div>
+                <p className="text-xs text-gray-500 mt-1">{listing.location}</p>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
       </div>
     </div>
   );
