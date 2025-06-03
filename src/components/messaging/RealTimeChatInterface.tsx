@@ -5,10 +5,12 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { Send, Check, CheckCheck, Clock, User } from 'lucide-react';
+import { Send, Check, CheckCheck, Clock, User, Camera, Video } from 'lucide-react';
 import { useRealtimeMessaging } from '@/hooks/useRealtimeMessaging';
 import { useAuth } from '@/contexts/AuthContext';
 import { formatDistanceToNow } from 'date-fns';
+import MediaMessage from './MediaMessage';
+import MediaUploadDialog from './MediaUploadDialog';
 
 interface RealTimeChatInterfaceProps {
   conversationId: string;
@@ -52,6 +54,21 @@ const RealTimeChatInterface = ({ conversationId, otherUser, listingInfo }: RealT
       setNewMessage('');
     } catch (error) {
       console.error('Error sending message:', error);
+    }
+  };
+
+  const handleMediaUpload = async (url: string, type: 'image' | 'video', caption?: string) => {
+    if (!user) return;
+
+    try {
+      await sendMessage(
+        conversationId,
+        caption || (type === 'image' ? 'Shared an image' : 'Shared a video'),
+        type,
+        url
+      );
+    } catch (error) {
+      console.error('Error sending media message:', error);
     }
   };
 
@@ -125,15 +142,29 @@ const RealTimeChatInterface = ({ conversationId, otherUser, listingInfo }: RealT
               </Avatar>
 
               <div className={`max-w-xs lg:max-w-md ${isOwn ? 'text-right' : 'text-left'}`}>
-                <div
-                  className={`rounded-lg px-3 py-2 ${
-                    isOwn
-                      ? 'bg-blue-500 text-white'
-                      : 'bg-gray-100 text-gray-900'
-                  }`}
-                >
-                  <p className="text-sm break-words">{message.content}</p>
-                </div>
+                {/* Media Messages */}
+                {(message.message_type === 'image' || message.message_type === 'video') && message.image_url && (
+                  <MediaMessage
+                    imageUrl={message.message_type === 'image' ? message.image_url : undefined}
+                    videoUrl={message.message_type === 'video' ? message.image_url : undefined}
+                    caption={message.content !== 'Shared an image' && message.content !== 'Shared a video' ? message.content : undefined}
+                    isOwn={isOwn}
+                  />
+                )}
+                
+                {/* Text Messages */}
+                {message.message_type === 'text' && (
+                  <div
+                    className={`rounded-lg px-3 py-2 ${
+                      isOwn
+                        ? 'bg-blue-500 text-white'
+                        : 'bg-gray-100 text-gray-900'
+                    }`}
+                  >
+                    <p className="text-sm break-words">{message.content}</p>
+                  </div>
+                )}
+                
                 <div className="flex items-center justify-between mt-1 gap-2">
                   <span className="text-xs text-gray-500">{messageTime}</span>
                   {getMessageStatusIcon(message)}
@@ -164,6 +195,12 @@ const RealTimeChatInterface = ({ conversationId, otherUser, listingInfo }: RealT
       {/* Message Input */}
       <div className="border-t p-4 bg-white">
         <div className="flex gap-2">
+          <MediaUploadDialog onMediaUpload={handleMediaUpload}>
+            <Button variant="outline" size="icon">
+              <Camera size={16} />
+            </Button>
+          </MediaUploadDialog>
+          
           <Input
             value={newMessage}
             onChange={(e) => setNewMessage(e.target.value)}
