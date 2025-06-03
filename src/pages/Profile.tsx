@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { Settings } from 'lucide-react';
@@ -171,6 +170,20 @@ const Profile = () => {
     updated_at: '2024-01-01T00:00:00Z'
   });
 
+  const handleStepClick = (stepId: string) => {
+    switch (stepId) {
+      case 'basic_info':
+      case 'profile_photo':
+        setIsEditDialogOpen(true);
+        break;
+      case 'verification':
+        window.location.href = '/verification';
+        break;
+      default:
+        setIsEditDialogOpen(true);
+    }
+  };
+
   // Add verification badges from enhanced system
   const allVerificationBadges = verificationBadges.length > 0 
     ? verificationBadges.map(badge => badge.badge_name)
@@ -237,20 +250,6 @@ const Profile = () => {
       text: "Professional breeder with excellent facilities. The puppy training they provide is exceptional."
     }
   ];
-
-  const handleStepClick = (stepId: string) => {
-    switch (stepId) {
-      case 'basic_info':
-      case 'profile_photo':
-        setIsEditDialogOpen(true);
-        break;
-      case 'verification':
-        window.location.href = '/verification';
-        break;
-      default:
-        setIsEditDialogOpen(true);
-    }
-  };
 
   return (
     <ProfileErrorBoundary>
