@@ -1,4 +1,3 @@
-
 import React, { useState, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -285,12 +284,11 @@ const StoryCreator = ({ onClose, onStoryCreated }: StoryCreatorProps) => {
                   </div>
                 </Button>
                 
-                {/* Hidden file inputs with proper mobile support */}
+                {/* Hidden file inputs - Fixed for proper library access */}
                 <input
                   ref={fileInputRef}
                   type="file"
-                  accept="image/*,.heic,.heif"
-                  capture="environment"
+                  accept="image/*"
                   className="hidden"
                   onChange={(e) => handleFileSelect(e, 'image')}
                   multiple={false}
@@ -300,7 +298,6 @@ const StoryCreator = ({ onClose, onStoryCreated }: StoryCreatorProps) => {
                   ref={videoInputRef}
                   type="file"
                   accept="video/*"
-                  capture="environment"
                   className="hidden"
                   onChange={(e) => handleFileSelect(e, 'video')}
                   multiple={false}
