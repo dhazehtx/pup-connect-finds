@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Heart, Search, Globe, User } from 'lucide-react';
+import { Heart, Search, Globe, User, DollarSign } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
@@ -120,6 +120,13 @@ const Header = () => {
                   <DropdownMenuItem>
                     <Link to="/create-listing" className="w-full">
                       Create Listing
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem>
+                    <Link to="/monetization" className="w-full flex items-center gap-2">
+                      <DollarSign className="w-4 h-4" />
+                      Business Center
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
