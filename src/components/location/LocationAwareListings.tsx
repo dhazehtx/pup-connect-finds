@@ -35,10 +35,15 @@ const LocationAwareListings = ({ onLocationFilter }: LocationAwareListingsProps)
       });
       
       // Filter by distance and add distance info
+      // Since our database doesn't have lat/lng, we'll generate mock coordinates near the user
       const withDistance = results.map(listing => {
+        // Generate mock coordinates within the search radius for demonstration
+        const mockLat = currentLocation.lat + (Math.random() - 0.5) * 0.1;
+        const mockLng = currentLocation.lng + (Math.random() - 0.5) * 0.1;
+        
         const distance = getDistanceToLocation({
-          lat: listing.latitude || currentLocation.lat + (Math.random() - 0.5) * 0.1,
-          lng: listing.longitude || currentLocation.lng + (Math.random() - 0.5) * 0.1,
+          lat: mockLat,
+          lng: mockLng,
           address: listing.location || 'Unknown'
         });
         
