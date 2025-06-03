@@ -1,7 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
-import Header from './Header';
 import BottomNavigation from './BottomNavigation';
 import OnboardingFlow from './onboarding/OnboardingFlow';
 import { useAuth } from '@/contexts/AuthContext';
@@ -45,12 +44,8 @@ const Layout = ({ children }: LayoutProps) => {
     );
   }
 
-  // Don't render header on auth page only
-  const isAuthPage = location.pathname === '/auth';
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-royal-blue/10 to-mint-green/10">
-      {!isAuthPage && <Header />}
       <main className="pb-20">
         {children}
       </main>
