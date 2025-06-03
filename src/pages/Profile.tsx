@@ -1,282 +1,319 @@
-import React, { useState } from 'react';
-import { useParams } from 'react-router-dom';
-import { Settings } from 'lucide-react';
-import { useAuth } from '@/contexts/AuthContext';
+
+import React, { useState, useEffect } from 'react';
+import { ArrowLeft, Edit, Star, MapPin, Calendar, Phone, Mail, Globe } from 'lucide-react';
+import { useNavigate, useParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import ProfileHeaderWithPresence from '@/components/profile/ProfileHeaderWithPresence';
-import ProfileBadges from '@/components/profile/ProfileBadges';
-import ProfileActions from '@/components/profile/ProfileActions';
-import ProfileHighlights from '@/components/profile/ProfileHighlights';
-import ProfileTabs from '@/components/profile/ProfileTabs';
-import ProfileEditDialog from '@/components/profile/ProfileEditDialog';
-import ProfileCompletionGuide from '@/components/profile/ProfileCompletionGuide';
-import MobileProfileHeader from '@/components/profile/MobileProfileHeader';
-import ProfileErrorBoundary from '@/components/profile/ProfileErrorBoundary';
-import ProfileAnalyticsEnhanced from '@/components/profile/ProfileAnalyticsEnhanced';
-import OnlineUsersList from '@/components/ui/online-users-list';
-import { useMobileOptimized } from '@/hooks/useMobileOptimized';
-import { useRealtimeVerification } from '@/hooks/useRealtimeVerification';
-import { UserProfile } from '@/types/profile';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useAuth } from '@/contexts/AuthContext';
+import { useReviews } from '@/hooks/useReviews';
+import { useDogListings } from '@/hooks/useDogListings';
 
 const Profile = () => {
+  const navigate = useNavigate();
   const { userId } = useParams();
-  const { user, profile, loading } = useAuth();
-  const { isMobile } = useMobileOptimized();
-  const [activeTab, setActiveTab] = useState('posts');
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [showCompletionGuide, setShowCompletionGuide] = useState(true);
+  const { user, profile } = useAuth();
+  const { reviews, fetchReviews, getAverageRating } = useReviews();
+  const { fetchUserListings } = useDogListings();
   
-  // Initialize real-time verification notifications
-  useRealtimeVerification();
-  
-  // Check if this is the current user's profile or another user's profile
+  const [profileData, setProfileData] = useState<any>(null);
+  const [userListings, setUserListings] = useState<any[]>([]);
+  const [averageRating, setAverageRating] = useState({ average: 0, count: 0 });
+  const [loading, setLoading] = useState(true);
+
   const isOwnProfile = !userId || userId === user?.id;
-  
-  // Show loading state while fetching user data
+  const targetUserId = userId || user?.id;
+
+  useEffect(() => {
+    const loadProfileData = async () => {
+      if (!targetUserId) return;
+
+      try {
+        setLoading(true);
+        
+        // Load profile data
+        if (isOwnProfile) {
+          setProfileData(profile);
+        } else {
+          // Fetch other user's profile
+          // This would require a public profile endpoint
+        }
+
+        // Load reviews and listings
+        await fetchReviews(targetUserId);
+        const listings = await fetchUserListings(targetUserId);
+        setUserListings(listings);
+        
+        // Get average rating
+        const rating = await getAverageRating(targetUserId);
+        setAverageRating(rating);
+        
+      } catch (error) {
+        console.error('Error loading profile:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadProfileData();
+  }, [targetUserId, isOwnProfile, profile]);
+
   if (loading) {
     return (
-      <div className="max-w-md mx-auto bg-white min-h-screen">
-        <div className="p-4 flex items-center justify-center min-h-[400px]">
-          <div className="animate-spin rounded-full h-8 w-8 border-2 border-blue-500 border-t-transparent" />
+      <div className="max-w-4xl mx-auto bg-white min-h-screen">
+        <div className="p-4 text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto"></div>
+          <p className="text-gray-500 mt-2">Loading profile...</p>
         </div>
       </div>
     );
   }
 
-  // Use current user's profile data or create a default profile structure
-  const displayProfile: UserProfile = isOwnProfile && profile ? {
-    id: profile.id,
-    username: profile.username,
-    full_name: profile.fullName || profile.full_name,
-    email: user?.email || '',
-    bio: profile.bio,
-    location: profile.location,
-    avatar_url: profile.avatarUrl || profile.avatar_url,
-    user_type: profile.userType || profile.user_type || 'buyer',
-    verified: profile.verified || false,
-    verification_badges: profile.verified ? [
-      { type: 'ID Verified', verified_at: new Date().toISOString() }
-    ] : [],
-    years_experience: profile.yearsExperience || profile.years_experience || 0,
-    rating: profile.rating || 0,
-    total_reviews: profile.totalReviews || profile.total_reviews || 0,
-    specializations: [],
-    certifications: [],
-    phone: profile.phone,
-    website_url: profile.websiteUrl || profile.website_url,
-    social_links: profile.social_links || {},
-    privacy_settings: profile.privacy_settings || {
-      show_bio: true,
-      show_email: false,
-      show_phone: false,
-      show_location: true,
-      show_social_links: true
-    },
-    stats: {
-      followers: 0,
-      following: 0,
-      posts: 0,
-      totalListings: 0,
-      activeListings: 0,
-      totalViews: 0,
-      totalInquiries: 0
-    },
-    created_at: profile.created_at || new Date().toISOString(),
-    updated_at: profile.updated_at || new Date().toISOString()
-  } : {
-    // Default profile for non-logged in users or other users
-    id: userId || 'unknown',
-    username: 'goldenpaws',
-    full_name: "Golden Paws Kennel",
-    email: 'contact@goldenpaws.com',
-    bio: "Specializing in Golden Retrievers and Labradors for over 15 years. All our puppies are health tested and come with health guarantees.",
-    location: "San Francisco, CA",
-    avatar_url: "https://images.unsplash.com/photo-1560743173-567a3b5658b1?w=150&h=150&fit=crop&crop=face",
-    user_type: 'breeder',
-    verified: true,
-    verification_badges: [
-      { type: 'ID Verified', verified_at: '2024-01-01T00:00:00Z' },
-      { type: 'Licensed Breeder', verified_at: '2024-01-01T00:00:00Z' },
-      { type: 'Vet Reviewed', verified_at: '2024-01-01T00:00:00Z' }
-    ],
-    years_experience: 15,
-    rating: 4.9,
-    total_reviews: 156,
-    specializations: ['Golden Retrievers', 'Labradors', 'Puppy Training'],
-    certifications: [
-      'AKC Registered Breeder',
-      'USDA Licensed',
-      'Veterinary Health Certificate'
-    ],
-    phone: '+1 (555) 123-4567',
-    website_url: 'www.goldenpaws.com',
-    social_links: {},
-    privacy_settings: {
-      show_bio: true,
-      show_email: false,
-      show_phone: true,
-      show_location: true,
-      show_social_links: true
-    },
-    stats: {
-      followers: 1248,
-      following: 342,
-      posts: 47,
-      totalListings: 12,
-      activeListings: 8,
-      totalViews: 15420,
-      totalInquiries: 89
-    },
-    created_at: '2020-01-01T00:00:00Z',
-    updated_at: '2024-01-01T00:00:00Z'
-  };
-
-  const highlights = [
-    {
-      id: 'new',
-      title: 'New',
-      cover: '',
-      isNew: true
-    },
-    {
-      id: 1,
-      title: 'Puppies',
-      cover: 'https://images.unsplash.com/photo-1605568427561-40dd23c2acea?w=100&h=100&fit=crop'
-    },
-    {
-      id: 2,
-      title: 'Training',
-      cover: 'https://images.unsplash.com/photo-1551717758536-85ae29035b6d?w=100&h=100&fit=crop'
-    },
-    {
-      id: 3,
-      title: 'Health',
-      cover: 'https://images.unsplash.com/photo-1518717758536-85ae29035b6d?w=100&h=100&fit=crop'
-    },
-    {
-      id: 4,
-      title: 'Reviews',
-      cover: 'https://images.unsplash.com/photo-1583337130417-3346a1be7dee?w=100&h=100&fit=crop'
-    }
-  ];
-
-  const posts = [
-    "https://images.unsplash.com/photo-1605568427561-40dd23c2acea?w=300&h=300&fit=crop",
-    "https://images.unsplash.com/photo-1518717758536-85ae29035b6d?w=300&h=300&fit=crop",
-    "https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=300&h=300&fit=crop",
-    "https://images.unsplash.com/photo-1552053831-71594a27632d?w=300&h=300&fit=crop",
-    "https://images.unsplash.com/photo-1583337130417-3346a1be7dee?w=300&h=300&fit=crop",
-    "https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=300&h=300&fit=crop"
-  ];
-
-  const reviews = [
-    {
-      id: 1,
-      author: "Sarah M.",
-      rating: 5,
-      date: "2 weeks ago",
-      text: "Amazing experience! Our Golden Retriever puppy is healthy, well-socialized, and came with all health records. Highly recommend!"
-    },
-    {
-      id: 2,
-      author: "Mike D.",
-      rating: 5,
-      date: "1 month ago",
-      text: "Professional breeder with excellent facilities. The puppy training they provide is exceptional."
-    }
-  ];
-
-  const handleStepClick = (stepId: string) => {
-    switch (stepId) {
-      case 'basic_info':
-      case 'profile_photo':
-        setIsEditDialogOpen(true);
-        break;
-      case 'verification':
-        window.location.href = '/verification';
-        break;
-      default:
-        setIsEditDialogOpen(true);
-    }
-  };
+  if (!profileData && !isOwnProfile) {
+    return (
+      <div className="max-w-4xl mx-auto bg-white min-h-screen">
+        <div className="p-4 flex items-center justify-between bg-white border-b">
+          <button onClick={() => navigate(-1)}>
+            <ArrowLeft size={24} />
+          </button>
+          <h1 className="text-lg font-semibold">Profile</h1>
+          <div></div>
+        </div>
+        <div className="p-4 text-center">
+          <p className="text-gray-600">Profile not found.</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <ProfileErrorBoundary>
-      <div className="max-w-md mx-auto bg-white min-h-screen">
-        {/* Mobile Header */}
-        <MobileProfileHeader 
-          profile={displayProfile}
-          isOwnProfile={isOwnProfile}
-          onEdit={() => setIsEditDialogOpen(true)}
-        />
-
-        <div className="p-4">
-          {/* Desktop Header */}
-          {!isMobile && (
-            <div className="flex justify-between items-center mb-6">
-              <h1 className="text-xl font-medium text-black">
-                @{displayProfile.username}
-              </h1>
-              {isOwnProfile && user && (
-                <Button 
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setIsEditDialogOpen(true)}
-                >
-                  <Settings size={20} />
-                </Button>
-              )}
-            </div>
-          )}
-
-          {/* Profile Completion Guide */}
-          {isOwnProfile && showCompletionGuide && (
-            <div className="mb-6">
-              <ProfileCompletionGuide
-                profile={displayProfile}
-                onStepClick={handleStepClick}
-                onDismiss={() => setShowCompletionGuide(false)}
-              />
-            </div>
-          )}
-
-          <ProfileHeaderWithPresence profile={displayProfile} />
-          
-          <ProfileBadges 
-            verificationBadges={displayProfile.verification_badges.map(b => b.type)}
-            specializations={displayProfile.specializations}
-          />
-
-          <ProfileActions />
-
-          {/* Online Users Section - Show for all users */}
-          <div className="mb-6">
-            <OnlineUsersList variant="compact" maxVisible={3} />
-          </div>
-
-          <ProfileHighlights highlights={highlights} />
-
-          <ProfileTabs 
-            activeTab={activeTab}
-            setActiveTab={setActiveTab}
-            posts={posts}
-            reviews={reviews}
-            analyticsComponent={
-              isOwnProfile ? <ProfileAnalyticsEnhanced profile={displayProfile} /> : undefined
-            }
-          />
-        </div>
-
-        {/* Edit Dialog */}
-        {isEditDialogOpen && profile && (
-          <ProfileEditDialog 
-            profile={profile}
-            isOpen={isEditDialogOpen}
-            onClose={() => setIsEditDialogOpen(false)}
-          />
+    <div className="max-w-4xl mx-auto bg-white min-h-screen">
+      {/* Header */}
+      <div className="p-4 flex items-center justify-between bg-white border-b sticky top-0 z-10">
+        <button onClick={() => navigate(-1)}>
+          <ArrowLeft size={24} />
+        </button>
+        <h1 className="text-lg font-semibold">Profile</h1>
+        {isOwnProfile && (
+          <Button variant="ghost" size="sm" onClick={() => navigate('/profile/edit')}>
+            <Edit size={16} />
+          </Button>
         )}
       </div>
-    </ProfileErrorBoundary>
+
+      <div className="p-4 space-y-6">
+        {/* Profile Header */}
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+              <div className="w-20 h-20 bg-gray-200 rounded-full flex items-center justify-center overflow-hidden">
+                {profileData?.avatar_url ? (
+                  <img 
+                    src={profileData.avatar_url} 
+                    alt="Profile" 
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <span className="text-2xl font-bold text-gray-600">
+                    {profileData?.full_name?.[0] || profileData?.username?.[0] || 'U'}
+                  </span>
+                )}
+              </div>
+              
+              <div className="flex-1">
+                <div className="flex items-center gap-2 mb-2">
+                  <h2 className="text-2xl font-bold">
+                    {profileData?.full_name || profileData?.username || 'Anonymous User'}
+                  </h2>
+                  {profileData?.verified && (
+                    <Badge variant="secondary" className="bg-blue-100 text-blue-800">
+                      Verified
+                    </Badge>
+                  )}
+                </div>
+                
+                <div className="flex items-center gap-4 text-sm text-gray-600 mb-2">
+                  {averageRating.count > 0 && (
+                    <div className="flex items-center gap-1">
+                      <Star size={16} className="fill-yellow-400 text-yellow-400" />
+                      <span className="font-medium">{averageRating.average}</span>
+                      <span>({averageRating.count} reviews)</span>
+                    </div>
+                  )}
+                  {profileData?.location && (
+                    <div className="flex items-center gap-1">
+                      <MapPin size={16} />
+                      <span>{profileData.location}</span>
+                    </div>
+                  )}
+                </div>
+
+                {profileData?.bio && (
+                  <p className="text-gray-700">{profileData.bio}</p>
+                )}
+              </div>
+            </div>
+
+            {/* Contact Info */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-6 pt-6 border-t">
+              {profileData?.email && (
+                <div className="flex items-center gap-2 text-sm">
+                  <Mail size={16} className="text-gray-400" />
+                  <span>{profileData.email}</span>
+                </div>
+              )}
+              {profileData?.phone && (
+                <div className="flex items-center gap-2 text-sm">
+                  <Phone size={16} className="text-gray-400" />
+                  <span>{profileData.phone}</span>
+                </div>
+              )}
+              {profileData?.website_url && (
+                <div className="flex items-center gap-2 text-sm">
+                  <Globe size={16} className="text-gray-400" />
+                  <a 
+                    href={profileData.website_url} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="text-blue-600 hover:underline"
+                  >
+                    Website
+                  </a>
+                </div>
+              )}
+              <div className="flex items-center gap-2 text-sm">
+                <Calendar size={16} className="text-gray-400" />
+                <span>
+                  Joined {new Date(profileData?.created_at || '').toLocaleDateString()}
+                </span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Tabs */}
+        <Tabs defaultValue="listings" className="w-full">
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="listings">
+              Listings ({userListings.length})
+            </TabsTrigger>
+            <TabsTrigger value="reviews">
+              Reviews ({reviews.length})
+            </TabsTrigger>
+            <TabsTrigger value="about">
+              About
+            </TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="listings" className="space-y-4">
+            {userListings.length === 0 ? (
+              <Card>
+                <CardContent className="py-8 text-center">
+                  <p className="text-gray-600">No listings yet.</p>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {userListings.map((listing) => (
+                  <Card key={listing.id} className="overflow-hidden">
+                    {listing.image_url && (
+                      <div className="aspect-video w-full bg-gray-100">
+                        <img
+                          src={listing.image_url}
+                          alt={listing.dog_name}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                    )}
+                    <CardContent className="p-4">
+                      <h3 className="font-semibold">{listing.dog_name}</h3>
+                      <p className="text-gray-600">{listing.breed}</p>
+                      <p className="font-bold text-green-600 mt-2">
+                        ${listing.price}
+                      </p>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </TabsContent>
+          
+          <TabsContent value="reviews" className="space-y-4">
+            {reviews.length === 0 ? (
+              <Card>
+                <CardContent className="py-8 text-center">
+                  <p className="text-gray-600">No reviews yet.</p>
+                </CardContent>
+              </Card>
+            ) : (
+              reviews.map((review) => (
+                <Card key={review.id}>
+                  <CardContent className="p-4">
+                    <div className="flex items-start justify-between mb-2">
+                      <div className="flex items-center gap-1">
+                        {[...Array(5)].map((_, i) => (
+                          <Star 
+                            key={i} 
+                            size={16} 
+                            className={i < review.rating ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'}
+                          />
+                        ))}
+                      </div>
+                      <span className="text-sm text-gray-500">
+                        {new Date(review.created_at).toLocaleDateString()}
+                      </span>
+                    </div>
+                    {review.title && (
+                      <h4 className="font-semibold mb-1">{review.title}</h4>
+                    )}
+                    {review.comment && (
+                      <p className="text-gray-700">{review.comment}</p>
+                    )}
+                  </CardContent>
+                </Card>
+              ))
+            )}
+          </TabsContent>
+          
+          <TabsContent value="about" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>About</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <h4 className="font-medium mb-2">User Type</h4>
+                  <Badge variant="outline" className="capitalize">
+                    {profileData?.user_type || 'buyer'}
+                  </Badge>
+                </div>
+                
+                {profileData?.years_experience > 0 && (
+                  <div>
+                    <h4 className="font-medium mb-2">Experience</h4>
+                    <p className="text-gray-700">
+                      {profileData.years_experience} years of experience
+                    </p>
+                  </div>
+                )}
+                
+                <div>
+                  <h4 className="font-medium mb-2">Member Since</h4>
+                  <p className="text-gray-700">
+                    {new Date(profileData?.created_at || '').toLocaleDateString('en-US', {
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric'
+                    })}
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
+      </div>
+    </div>
   );
 };
 

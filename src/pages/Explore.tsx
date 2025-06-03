@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Search, Filter, MapPin, SlidersHorizontal, Grid, List } from 'lucide-react';
 import { Input } from '@/components/ui/input';
@@ -11,15 +10,16 @@ import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
 import ListingsGrid from '@/components/ListingsGrid';
 import { useDogListings } from '@/hooks/useDogListings';
+import { useFavorites } from '@/hooks/useFavorites';
 import { useAuth } from '@/contexts/AuthContext';
 
 const Explore = () => {
   const { listings, loading, searchListings } = useDogListings();
+  const { favorites, toggleFavorite, isFavorited } = useFavorites();
   const { user } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [showFilters, setShowFilters] = useState(false);
-  const [favorites, setFavorites] = useState<number[]>([]);
   
   // Filter states
   const [selectedBreed, setSelectedBreed] = useState('');
@@ -88,12 +88,14 @@ const Explore = () => {
     (priceRange && priceRange[1] < 10000)
   );
 
-  const handleFavorite = (id: number) => {
-    setFavorites(prev => 
-      prev.includes(id) 
-        ? prev.filter(fav => fav !== id)
-        : [...prev, id]
-    );
+  const handleFavorite = async (id: number) => {
+    const listingId = listings.find(listing => 
+      parseInt(listing.id.replace(/-/g, '').substring(0, 8), 16) === id
+    )?.id;
+    
+    if (listingId) {
+      await toggleFavorite(listingId);
+    }
   };
 
   const handleContact = (id: number) => {
@@ -107,6 +109,12 @@ const Explore = () => {
   const handleViewDetails = (id: number) => {
     console.log('View details for listing:', id);
   };
+
+  // Convert favorites to number format for ListingsGrid compatibility
+  const favoritesAsNumbers = favorites.map(fav => {
+    const listing = listings.find(l => l.id === fav);
+    return listing ? parseInt(listing.id.replace(/-/g, '').substring(0, 8), 16) : 0;
+  }).filter(Boolean);
 
   useEffect(() => {
     // Initial load is handled by the hook
@@ -246,7 +254,7 @@ const Explore = () => {
         <ListingsGrid
           listings={convertedListings}
           viewMode={viewMode}
-          favorites={favorites}
+          favorites={favoritesAsNumbers}
           onFavorite={handleFavorite}
           onContact={handleContact}
           onViewDetails={handleViewDetails}

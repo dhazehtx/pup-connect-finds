@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -45,6 +46,11 @@ export const useAuthState = () => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         console.log('Auth state changed:', event, session?.user?.id);
+        
+        // Clear guest flag on successful authentication
+        if (session?.user) {
+          localStorage.removeItem('isGuest');
+        }
         
         let profile = null;
         if (session?.user) {
@@ -103,7 +109,8 @@ export const useAuthState = () => {
         email,
         password,
         options: {
-          data: userData
+          data: userData,
+          emailRedirectTo: `${window.location.origin}/`
         }
       });
 
@@ -111,7 +118,7 @@ export const useAuthState = () => {
 
       toast({
         title: "Account created!",
-        description: "Welcome to MY PUP! Your account has been created successfully.",
+        description: "Please check your email to verify your account.",
       });
     } catch (error: any) {
       toast({
@@ -151,6 +158,9 @@ export const useAuthState = () => {
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
 
+      // Clear guest flag on sign out
+      localStorage.removeItem('isGuest');
+
       toast({
         title: "Signed out",
         description: "You've been successfully signed out.",
@@ -161,6 +171,48 @@ export const useAuthState = () => {
         description: error.message,
         variant: "destructive",
       });
+    }
+  };
+
+  const resetPassword = async (email: string) => {
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Password reset email sent",
+        description: "Check your email for password reset instructions.",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Password reset failed",
+        description: error.message,
+        variant: "destructive",
+      });
+      throw error;
+    }
+  };
+
+  const updatePassword = async (password: string) => {
+    try {
+      const { error } = await supabase.auth.updateUser({ password });
+
+      if (error) throw error;
+
+      toast({
+        title: "Password updated",
+        description: "Your password has been successfully updated.",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Password update failed",
+        description: error.message,
+        variant: "destructive",
+      });
+      throw error;
     }
   };
 
@@ -199,6 +251,8 @@ export const useAuthState = () => {
     signIn,
     signOut,
     updateProfile,
+    resetPassword,
+    updatePassword,
     refreshProfile: () => authState.user ? fetchProfile(authState.user.id) : null
   };
 };
