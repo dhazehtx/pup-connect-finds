@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { Settings } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
@@ -16,6 +17,9 @@ import ProfileAnalyticsEnhanced from '@/components/profile/ProfileAnalyticsEnhan
 import OnlineUsersList from '@/components/ui/online-users-list';
 import { useMobileOptimized } from '@/hooks/useMobileOptimized';
 import { useRealtimeVerification } from '@/hooks/useRealtimeVerification';
+import { useEnhancedProfiles } from '@/hooks/useEnhancedProfiles';
+import { useBreedingPortfolio } from '@/hooks/useBreedingPortfolio';
+import { useProfessionalNetwork } from '@/hooks/useProfessionalNetwork';
 import { UserProfile } from '@/types/profile';
 
 const Profile = () => {
@@ -26,6 +30,16 @@ const Profile = () => {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [showCompletionGuide, setShowCompletionGuide] = useState(true);
   
+  // Enhanced profile hooks
+  const { 
+    profile: enhancedProfile, 
+    verificationBadges, 
+    loading: enhancedLoading 
+  } = useEnhancedProfiles();
+  
+  const { portfolios } = useBreedingPortfolio();
+  const { followers, following } = useProfessionalNetwork();
+  
   // Initialize real-time verification notifications
   useRealtimeVerification();
   
@@ -33,7 +47,7 @@ const Profile = () => {
   const isOwnProfile = !userId || userId === user?.id;
   
   // Show loading state while fetching user data
-  if (loading) {
+  if (loading || enhancedLoading) {
     return (
       <div className="max-w-md mx-auto bg-white min-h-screen">
         <div className="p-4 flex items-center justify-center min-h-[400px]">
@@ -43,8 +57,8 @@ const Profile = () => {
     );
   }
 
-  // Use current user's profile data or create a default profile structure
-  const displayProfile: UserProfile = isOwnProfile && profile ? {
+  // Use enhanced profile data if available, otherwise fall back to existing profile structure
+  const displayProfile: UserProfile = enhancedProfile || (isOwnProfile && profile ? {
     id: profile.id,
     username: profile.username,
     full_name: profile.fullName || profile.full_name,
@@ -60,8 +74,8 @@ const Profile = () => {
     years_experience: profile.yearsExperience || profile.years_experience || 0,
     rating: profile.rating || 0,
     total_reviews: profile.totalReviews || profile.total_reviews || 0,
-    specializations: [],
-    certifications: [],
+    specializations: enhancedProfile?.specializations || [],
+    certifications: enhancedProfile?.certifications || [],
     phone: profile.phone,
     website_url: profile.websiteUrl || profile.website_url,
     social_links: profile.social_links || {},
@@ -73,8 +87,8 @@ const Profile = () => {
       show_social_links: true
     },
     stats: {
-      followers: 0,
-      following: 0,
+      followers: followers.length,
+      following: following.length,
       posts: 0,
       totalListings: 0,
       activeListings: 0,
@@ -129,7 +143,19 @@ const Profile = () => {
     },
     created_at: '2020-01-01T00:00:00Z',
     updated_at: '2024-01-01T00:00:00Z'
-  };
+  });
+
+  // Add verification badges from enhanced system
+  const allVerificationBadges = verificationBadges.length > 0 
+    ? verificationBadges.map(badge => badge.badge_name)
+    : displayProfile.verification_badges.map(badge => badge.type);
+
+  // Add specializations from enhanced profile or portfolio
+  const allSpecializations = enhancedProfile?.specializations?.length > 0
+    ? enhancedProfile.specializations
+    : portfolios.length > 0 
+      ? portfolios[0]?.available_breeds || displayProfile.specializations
+      : displayProfile.specializations;
 
   const highlights = [
     {
@@ -229,11 +255,15 @@ const Profile = () => {
             </div>
           )}
 
-          {/* Profile Completion Guide */}
-          {isOwnProfile && showCompletionGuide && (
+          {/* Profile Completion Guide - enhanced with trust score */}
+          {isOwnProfile && showCompletionGuide && enhancedProfile && (
             <div className="mb-6">
               <ProfileCompletionGuide
-                profile={displayProfile}
+                profile={{
+                  ...displayProfile,
+                  trust_score: enhancedProfile.trust_score,
+                  profile_completion_percentage: enhancedProfile.profile_completion_percentage
+                }}
                 onStepClick={handleStepClick}
                 onDismiss={() => setShowCompletionGuide(false)}
               />
@@ -243,8 +273,8 @@ const Profile = () => {
           <ProfileHeaderWithPresence profile={displayProfile} />
           
           <ProfileBadges 
-            verificationBadges={displayProfile.verification_badges.map(b => b.type)}
-            specializations={displayProfile.specializations}
+            verificationBadges={allVerificationBadges}
+            specializations={allSpecializations}
           />
 
           <ProfileActions />
