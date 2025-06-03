@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Search, Filter, MapPin, SlidersHorizontal, Grid, List } from 'lucide-react';
 import { Input } from '@/components/ui/input';
@@ -80,7 +81,12 @@ const Explore = () => {
     handleSearch('');
   };
 
-  const hasActiveFilters = selectedBreed || selectedLocation || priceRange[0] > 0 || priceRange[1] < 10000;
+  const hasActiveFilters = Boolean(
+    selectedBreed || 
+    selectedLocation || 
+    (priceRange && priceRange[0] > 0) || 
+    (priceRange && priceRange[1] < 10000)
+  );
 
   const handleFavorite = (id: number) => {
     setFavorites(prev => 
