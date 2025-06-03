@@ -82,16 +82,16 @@ const BottomNavigation = () => {
                 }}
                 className={`flex flex-col items-center justify-center p-2 transition-colors ${
                   active 
-                    ? 'text-royal-blue bg-royal-blue/5' 
+                    ? 'text-white bg-blue-600 rounded-t-lg' 
                     : user || !item.protected
-                      ? 'text-gray-600 hover:text-royal-blue'
+                      ? 'text-gray-600 hover:text-blue-600'
                       : 'text-gray-400'
                 }`}
               >
                 <Icon size={20} />
                 <span className="text-xs mt-1 font-medium">{item.label}</span>
                 {item.protected && !user && (
-                  <div className="absolute top-0 right-0 w-2 h-2 bg-sunset-orange rounded-full"></div>
+                  <div className="absolute top-0 right-0 w-2 h-2 bg-orange-500 rounded-full"></div>
                 )}
               </button>
             );
