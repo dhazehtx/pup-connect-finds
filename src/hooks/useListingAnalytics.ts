@@ -79,9 +79,44 @@ export const useListingAnalytics = () => {
     }
   };
 
+  const bulkUpdateListings = async (params: {
+    listingIds: string[];
+    operation: 'activate' | 'deactivate' | 'delete';
+  }) => {
+    setLoading(true);
+    try {
+      const { listingIds, operation } = params;
+
+      if (operation === 'delete') {
+        // Delete listings
+        const { error } = await supabase
+          .from('dog_listings')
+          .delete()
+          .in('id', listingIds);
+        
+        if (error) throw error;
+      } else {
+        // Update status
+        const status = operation === 'activate' ? 'active' : 'inactive';
+        const { error } = await supabase
+          .from('dog_listings')
+          .update({ status })
+          .in('id', listingIds);
+        
+        if (error) throw error;
+      }
+    } catch (error) {
+      console.error('Error in bulk operation:', error);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return {
     getListingAnalytics,
     getPerformanceMetrics,
+    bulkUpdateListings,
     loading
   };
 };

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -49,8 +48,18 @@ const BulkListingManager = () => {
       setBulkOperation('');
       setShowConfirmDialog(false);
       refreshListings();
+      
+      toast({
+        title: "Success",
+        description: "Bulk operation completed successfully",
+      });
     } catch (error) {
       console.error('Bulk operation failed:', error);
+      toast({
+        title: "Error",
+        description: "Bulk operation failed. Please try again.",
+        variant: "destructive",
+      });
     }
   };
 

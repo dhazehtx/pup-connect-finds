@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Heart, Menu, X } from 'lucide-react';
@@ -11,12 +12,10 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { useTheme } from "@/components/ui/theme-provider"
 
 const Navbar = () => {
-  const { user, logout } = useAuth();
+  const { user, signOut, profile } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const { setTheme } = useTheme();
 
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
@@ -76,13 +75,13 @@ const Navbar = () => {
                 <DropdownMenuTrigger asChild>
                   <button className="outline-none">
                     <Avatar className="h-9 w-9">
-                      <AvatarImage src={user.avatar_url} />
-                      <AvatarFallback>{user.full_name?.charAt(0)}</AvatarFallback>
+                      <AvatarImage src={profile?.avatar_url} />
+                      <AvatarFallback>{profile?.full_name?.charAt(0) || user.email?.charAt(0)}</AvatarFallback>
                     </Avatar>
                   </button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent className="w-56 mr-2">
-                  <DropdownMenuLabel>{user.full_name}</DropdownMenuLabel>
+                  <DropdownMenuLabel>{profile?.full_name || user.email}</DropdownMenuLabel>
                   <DropdownMenuItem>
                     <Link to="/profile" className="w-full h-full block">
                       Profile
@@ -99,10 +98,7 @@ const Navbar = () => {
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={() => setTheme(theme => theme === "light" ? "dark" : "light")}>
-                    Toggle theme
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={logout}>Logout</DropdownMenuItem>
+                  <DropdownMenuItem onClick={signOut}>Logout</DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
@@ -167,7 +163,7 @@ const Navbar = () => {
                 Create Listing
               </Link>
               <button
-                onClick={logout}
+                onClick={signOut}
                 className="text-gray-500 hover:text-gray-700 block px-3 py-2 rounded-md text-base font-medium"
               >
                 Logout
