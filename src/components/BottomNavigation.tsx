@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Home, Search, Plus, MessageCircle, User, Compass } from 'lucide-react';
+import { Home, Compass, Plus, MessageCircle, User, Bell } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import GuestPrompt from '@/components/GuestPrompt';
 
@@ -40,6 +40,12 @@ const BottomNavigation = () => {
       path: '/post',
       protected: true,
       action: 'create listings'
+    },
+    {
+      icon: Bell,
+      label: 'Notifications',
+      path: '/notifications',
+      protected: false
     },
     {
       icon: MessageCircle,
