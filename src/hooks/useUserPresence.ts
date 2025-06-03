@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -7,6 +8,8 @@ interface UserPresence {
   status: 'online' | 'away' | 'busy' | 'offline';
   last_seen: string;
   current_page?: string;
+  username?: string;
+  avatar_url?: string;
 }
 
 export const useUserPresence = (currentPage?: string) => {
@@ -20,10 +23,16 @@ export const useUserPresence = (currentPage?: string) => {
     // Update user presence when they come online
     const updatePresence = async (status: 'online' | 'away' | 'busy' | 'offline') => {
       try {
-        await supabase.rpc('update_user_presence', {
-          status,
-          current_page: currentPage
-        });
+        const { error } = await supabase
+          .from('user_presence')
+          .upsert({
+            user_id: user.id,
+            status,
+            current_page: currentPage,
+            last_seen: new Date().toISOString()
+          });
+
+        if (error) throw error;
         setUserStatus(status);
       } catch (error) {
         console.error('Failed to update presence:', error);
@@ -76,12 +85,25 @@ export const useUserPresence = (currentPage?: string) => {
       try {
         const { data, error } = await supabase
           .from('user_presence')
-          .select('*')
+          .select(`
+            *,
+            profiles:user_id (
+              username,
+              avatar_url
+            )
+          `)
           .eq('status', 'online')
           .gt('last_seen', new Date(Date.now() - 5 * 60 * 1000).toISOString()); // Active in last 5 minutes
 
         if (error) throw error;
-        setOnlineUsers(data || []);
+        
+        const formattedUsers = data?.map(presence => ({
+          ...presence,
+          username: presence.profiles?.username,
+          avatar_url: presence.profiles?.avatar_url
+        })) || [];
+        
+        setOnlineUsers(formattedUsers);
       } catch (error) {
         console.error('Failed to fetch online users:', error);
       }
@@ -105,12 +127,30 @@ export const useUserPresence = (currentPage?: string) => {
     };
   }, [user, currentPage]);
 
+  const getUserPresence = (userId: string) => {
+    return onlineUsers.find(user => user.user_id === userId);
+  };
+
+  const isUserOnline = (userId: string) => {
+    return onlineUsers.some(user => user.user_id === userId && user.status === 'online');
+  };
+
   return {
     onlineUsers,
     userStatus,
+    onlineCount: onlineUsers.length,
+    getUserPresence,
+    isUserOnline,
     updateStatus: (status: 'online' | 'away' | 'busy' | 'offline') => {
       if (user) {
-        supabase.rpc('update_user_presence', { status, current_page: currentPage });
+        supabase
+          .from('user_presence')
+          .upsert({
+            user_id: user.id,
+            status,
+            current_page: currentPage,
+            last_seen: new Date().toISOString()
+          });
         setUserStatus(status);
       }
     }

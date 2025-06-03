@@ -1,4 +1,3 @@
-
 import React, { useState, useRef } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -20,10 +19,10 @@ const MediaUploadDialog = ({ children, onMediaUpload }: MediaUploadDialogProps) 
   const [caption, setCaption] = useState('');
   const [preview, setPreview] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const { uploadFile, uploading } = useFileUpload({
-    bucket: 'dog-images',
+  const { uploadFile, isUploading } = useFileUpload({
+    bucket: 'images',
     folder: 'messages',
-    maxSizeBytes: 100 * 1024 * 1024, // 100MB
+    maxSize: 100, // 100MB
     allowedTypes: ['image/jpeg', 'image/png', 'image/webp', 'video/mp4', 'video/webm', 'video/quicktime']
   });
   const { toast } = useToast();
@@ -157,10 +156,10 @@ const MediaUploadDialog = ({ children, onMediaUpload }: MediaUploadDialogProps) 
               
               <Button
                 onClick={handleUpload}
-                disabled={uploading}
+                disabled={isUploading}
                 className="w-full"
               >
-                {uploading ? 'Uploading...' : 'Send Media'}
+                {isUploading ? 'Uploading...' : 'Send Media'}
               </Button>
             </div>
           )}

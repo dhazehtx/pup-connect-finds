@@ -66,7 +66,7 @@ export const useNotifications = () => {
         .from('notifications')
         .select(`
           *,
-          sender_profile:sender_id (
+          sender_profile:profiles!notifications_sender_id_fkey (
             full_name,
             username,
             avatar_url
@@ -80,6 +80,7 @@ export const useNotifications = () => {
 
       const formattedNotifications = data?.map(notification => ({
         ...notification,
+        metadata: notification.metadata || {},
         sender_profile: notification.sender_profile
       })) || [];
 

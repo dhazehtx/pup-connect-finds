@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Camera, X, Upload } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -14,10 +13,10 @@ interface ImageUploadProps {
 
 const ImageUpload = ({ value, onChange, className, folder = 'listings' }: ImageUploadProps) => {
   const [dragActive, setDragActive] = useState(false);
-  const { uploadFile, uploading, progress } = useFileUpload({
-    bucket: 'dog-images',
+  const { uploadFile, isUploading, uploadProgress } = useFileUpload({
+    bucket: 'images',
     folder,
-    maxSizeBytes: 50 * 1024 * 1024, // 50MB
+    maxSize: 50, // 50MB
   });
 
   const handleFile = async (file: File) => {
@@ -77,7 +76,7 @@ const ImageUpload = ({ value, onChange, className, folder = 'listings' }: ImageU
           className={cn(
             "border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-gray-400 transition-colors",
             dragActive && "border-blue-400 bg-blue-50",
-            uploading && "opacity-50 pointer-events-none"
+            isUploading && "opacity-50 pointer-events-none"
           )}
           onDragEnter={handleDrag}
           onDragLeave={handleDrag}
@@ -85,10 +84,10 @@ const ImageUpload = ({ value, onChange, className, folder = 'listings' }: ImageU
           onDrop={handleDrop}
         >
           <div className="flex flex-col items-center space-y-2">
-            {uploading ? (
+            {isUploading ? (
               <>
                 <Upload className="h-8 w-8 text-blue-500 animate-pulse" />
-                <p className="text-sm text-gray-600">Uploading... {progress}%</p>
+                <p className="text-sm text-gray-600">Uploading... {uploadProgress}%</p>
               </>
             ) : (
               <>

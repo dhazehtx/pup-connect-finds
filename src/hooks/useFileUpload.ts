@@ -65,23 +65,6 @@ export const useFileUpload = (options: UploadOptions = {}) => {
         .from(bucket)
         .getPublicUrl(fileName);
 
-      // Record upload in database
-      const { error: dbError } = await supabase
-        .from('file_uploads')
-        .insert({
-          user_id: user.id,
-          file_name: file.name,
-          file_url: publicUrl,
-          file_size: file.size,
-          mime_type: file.type,
-          upload_purpose: purpose,
-          related_id: relatedId
-        });
-
-      if (dbError) {
-        console.warn('Failed to record upload in database:', dbError);
-      }
-
       setUploadProgress(100);
       console.log('File uploaded successfully:', publicUrl);
       return publicUrl;
@@ -106,7 +89,9 @@ export const useFileUpload = (options: UploadOptions = {}) => {
     uploadFile,
     uploadMultiple,
     isUploading,
+    uploading: isUploading, // Add alias for compatibility
     uploadProgress,
+    progress: uploadProgress, // Add alias for compatibility
     error
   };
 };
