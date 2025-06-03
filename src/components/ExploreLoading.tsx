@@ -1,11 +1,39 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Progress } from '@/components/ui/progress';
 
 const ExploreLoading = () => {
+  const [progress, setProgress] = useState(0);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setProgress((oldProgress) => {
+        if (oldProgress === 100) {
+          return 100;
+        }
+        const diff = Math.random() * 10;
+        return Math.min(oldProgress + diff, 100);
+      });
+    }, 200);
+
+    return () => {
+      clearInterval(timer);
+    };
+  }, []);
+
   return (
     <div className="max-w-md mx-auto bg-white min-h-screen">
       <div className="p-4 space-y-6">
+        {/* Progress Display */}
+        <div className="text-center space-y-3">
+          <div className="text-2xl font-bold text-blue-600">
+            {Math.round(progress)}%
+          </div>
+          <Progress value={progress} className="w-full h-2" />
+          <p className="text-sm text-gray-600">Loading explore page...</p>
+        </div>
+
         {/* Search Bar Skeleton */}
         <div className="relative">
           <Skeleton className="h-10 w-full rounded-lg" />
