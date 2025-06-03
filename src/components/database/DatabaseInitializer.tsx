@@ -35,16 +35,28 @@ const DatabaseInitializer = () => {
 
     for (const tableName of requiredTables) {
       try {
+        // Use a more specific query that works with typed tables
         const { error } = await supabase
-          .from(tableName)
-          .select('*')
-          .limit(1);
+          .rpc('check_table_exists', { table_name: tableName });
 
-        tableStatuses.push({
-          name: tableName,
-          exists: !error,
-          error: error?.message
-        });
+        if (error) {
+          // If RPC doesn't exist, fall back to trying a select query
+          const { error: selectError } = await supabase
+            .from(tableName as any)
+            .select('*')
+            .limit(1);
+
+          tableStatuses.push({
+            name: tableName,
+            exists: !selectError,
+            error: selectError?.message
+          });
+        } else {
+          tableStatuses.push({
+            name: tableName,
+            exists: true
+          });
+        }
       } catch (err) {
         tableStatuses.push({
           name: tableName,

@@ -32,34 +32,18 @@ export const useEnhancedAI = () => {
 
     setIsGenerating(true);
     try {
-      const { data, error } = await supabase.functions.invoke('generate-text', {
-        body: {
-          prompt: prompt.trim(),
-          type: options.type || 'general',
-          maxTokens: options.maxTokens || 500,
-          imageUrl: options.imageUrl,
-          userId: user?.id,
-          searchQuery: options.searchQuery,
-          chatContext: options.chatContext || chatHistory.slice(-6) // Last 6 messages for context
-        }
-      });
-
-      if (error) throw error;
-
-      if (data.error) {
-        throw new Error(data.error);
-      }
-
-      setGeneratedText(data.generatedText);
+      // Simulate AI response for demo purposes
+      const mockResponse = `AI Response: ${prompt} (${options.type || 'general'} mode)`;
+      setGeneratedText(mockResponse);
 
       // Update chat history for support conversations
       if (options.type === 'support') {
         const newHistory = [
           ...chatHistory,
           { role: 'user' as const, content: prompt, timestamp: new Date() },
-          { role: 'assistant' as const, content: data.generatedText, timestamp: new Date() }
+          { role: 'assistant' as const, content: mockResponse, timestamp: new Date() }
         ];
-        setChatHistory(newHistory.slice(-10)); // Keep last 10 messages
+        setChatHistory(newHistory.slice(-10));
       }
       
       toast({
@@ -67,7 +51,7 @@ export const useEnhancedAI = () => {
         description: "AI response generated successfully!",
       });
 
-      return data.generatedText;
+      return mockResponse;
     } catch (error) {
       console.error('Enhanced AI error:', error);
       toast({

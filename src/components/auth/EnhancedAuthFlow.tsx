@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuthState } from '@/hooks/useAuth';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -11,7 +11,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Mail, Lock, User, Phone } from 'lucide-react';
 
 const EnhancedAuthFlow = () => {
-  const { signIn, signUp, resetPassword } = useAuth();
+  const { signIn, signUp, resetPassword } = useAuthState();
   const { toast } = useToast();
   
   const [loading, setLoading] = useState(false);
@@ -38,9 +38,7 @@ const EnhancedAuthFlow = () => {
     setError(null);
 
     try {
-      const { error } = await signIn(signInForm.email, signInForm.password);
-      if (error) throw error;
-      
+      await signIn(signInForm.email, signInForm.password);
       toast({
         title: "Welcome back!",
         description: "You've been signed in successfully.",
@@ -64,7 +62,7 @@ const EnhancedAuthFlow = () => {
     }
 
     try {
-      const { error } = await signUp(
+      await signUp(
         signUpForm.email, 
         signUpForm.password,
         {
@@ -72,8 +70,6 @@ const EnhancedAuthFlow = () => {
           phone: signUpForm.phone
         }
       );
-      
-      if (error) throw error;
       
       toast({
         title: "Account created!",
@@ -92,9 +88,7 @@ const EnhancedAuthFlow = () => {
     setError(null);
 
     try {
-      const { error } = await resetPassword(resetEmail);
-      if (error) throw error;
-      
+      await resetPassword(resetEmail);
       toast({
         title: "Reset email sent!",
         description: "Check your email for password reset instructions.",
