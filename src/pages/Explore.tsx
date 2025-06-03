@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import Layout from '@/components/Layout';
@@ -195,14 +194,6 @@ const ExplorePage: React.FC<ExplorePageProps> = () => {
   return (
     <Layout>
       <div className="container mx-auto px-4 py-8">
-        {/* Search and Advanced Filters at Top */}
-        <SearchFilters
-          filters={filterState}
-          onFiltersChange={handleFilterChange}
-          resultsCount={listings.length}
-          onClearFilters={handleClearFilters}
-        />
-
         {/* Quick Filters */}
         <QuickFilters
           filters={filterState}
