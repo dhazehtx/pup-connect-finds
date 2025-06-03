@@ -144,6 +144,7 @@ const StoryViewer = ({
 
   // Handle close with proper callback
   const handleClose = () => {
+    console.log('Story viewer closing');
     onClose();
   };
 
@@ -222,6 +223,9 @@ const StoryViewer = ({
             autoPlay
             muted
             loop
+            onError={(e) => {
+              console.error('Video failed to load:', currentContent.url);
+            }}
           />
         ) : (
           <div className="relative w-full h-full">
@@ -230,6 +234,16 @@ const StoryViewer = ({
               alt="Story content"
               className="w-full h-full object-cover"
               style={{ aspectRatio: '9/16' }}
+              onError={(e) => {
+                console.error('Image failed to load:', currentContent?.url);
+                // Show a fallback or error state
+                const target = e.target as HTMLImageElement;
+                target.style.backgroundColor = '#374151';
+                target.alt = 'Failed to load image';
+              }}
+              onLoad={() => {
+                console.log('Image loaded successfully:', currentContent?.url?.substring(0, 50) + '...');
+              }}
             />
             {currentContent?.prompt && (
               <div className="absolute bottom-24 left-4 right-4">

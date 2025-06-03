@@ -195,20 +195,22 @@ const StoryCreator = ({ onClose, onStoryCreated }: StoryCreatorProps) => {
   };
 
   const handleImageSave = (canvas: HTMLCanvasElement) => {
-    // Convert canvas to blob and create story
-    canvas.toBlob((blob) => {
-      if (blob) {
-        const url = URL.createObjectURL(blob);
-        const content = {
-          type: 'image' as const,
-          url: url
-        };
-        handleCreateStory(content);
-      }
-    }, 'image/jpeg', 0.9);
+    // Convert canvas to data URL instead of blob to ensure persistence
+    const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
+    console.log('Saving image with data URL:', dataUrl.substring(0, 50) + '...');
+    
+    const content = {
+      type: 'image' as const,
+      url: dataUrl
+    };
+    
+    handleCreateStory(content);
   };
 
   const resetSelection = () => {
+    if (previewUrl) {
+      URL.revokeObjectURL(previewUrl);
+    }
     setSelectedFile(null);
     setPreviewUrl(null);
     setCreationMode('select');
@@ -219,6 +221,15 @@ const StoryCreator = ({ onClose, onStoryCreated }: StoryCreatorProps) => {
       videoInputRef.current.value = '';
     }
   };
+
+  // Cleanup on unmount
+  React.useEffect(() => {
+    return () => {
+      if (previewUrl) {
+        URL.revokeObjectURL(previewUrl);
+      }
+    };
+  }, [previewUrl]);
 
   return (
     <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center p-0 sm:p-4">
