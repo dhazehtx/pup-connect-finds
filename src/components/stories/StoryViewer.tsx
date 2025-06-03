@@ -208,8 +208,8 @@ const StoryViewer = ({
         </div>
       </div>
 
-      {/* Story content - Fixed to properly display images without distortion */}
-      <div className="flex-1 relative flex items-center justify-center bg-black">
+      {/* Story content - Instagram-style fitting */}
+      <div className="flex-1 relative bg-black overflow-hidden">
         <div 
           className="absolute left-0 top-0 w-1/3 h-full z-10 cursor-pointer touch-manipulation"
           onClick={handlePreviousContent}
@@ -219,26 +219,22 @@ const StoryViewer = ({
           onClick={handleNextContent}
         />
         
-        {currentContent?.type === 'video' ? (
-          <video 
-            src={currentContent.url} 
-            className="max-w-full max-h-full object-contain"
-            autoPlay
-            muted
-            loop
-            playsInline
-            onError={() => console.error('Video failed to load:', currentContent.url)}
-          />
-        ) : (
-          <div className="relative w-full h-full bg-black flex items-center justify-center">
+        <div className="w-full h-full flex items-center justify-center">
+          {currentContent?.type === 'video' ? (
+            <video 
+              src={currentContent.url} 
+              className="w-full h-full object-contain"
+              autoPlay
+              muted
+              loop
+              playsInline
+              onError={() => console.error('Video failed to load:', currentContent.url)}
+            />
+          ) : (
             <img 
               src={currentContent?.url} 
               alt="Story content"
-              className="max-w-full max-h-full object-contain"
-              style={{ 
-                width: 'auto',
-                height: 'auto'
-              }}
+              className="w-full h-full object-contain"
               onError={(e) => {
                 console.error('Image failed to load:', currentContent?.url);
                 const target = e.target as HTMLImageElement;
@@ -249,15 +245,16 @@ const StoryViewer = ({
                 console.log('Image loaded successfully');
               }}
             />
-            {currentContent?.prompt && (
-              <div className="absolute bottom-32 left-4 right-4">
-                <Badge variant="secondary" className="bg-black/60 text-white backdrop-blur-sm border border-white/20">
-                  AI Generated: {currentContent.prompt}
-                </Badge>
-              </div>
-            )}
-          </div>
-        )}
+          )}
+          
+          {currentContent?.prompt && (
+            <div className="absolute bottom-32 left-4 right-4">
+              <Badge variant="secondary" className="bg-black/60 text-white backdrop-blur-sm border border-white/20">
+                AI Generated: {currentContent.prompt}
+              </Badge>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Navigation arrows - improved touch targets */}
