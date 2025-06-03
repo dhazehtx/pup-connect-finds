@@ -7,7 +7,7 @@ import { useEnhancedProfiles } from '@/hooks/useEnhancedProfiles';
 import { useBreedingPortfolio } from '@/hooks/useBreedingPortfolio';
 import { useProfessionalNetwork } from '@/hooks/useProfessionalNetwork';
 import { useRealtimeVerification } from '@/hooks/useRealtimeVerification';
-import LoadingSpinner from '@/components/ui/loading-spinner';
+import OptimizedLoading from '@/components/ui/optimized-loading';
 import ProfileErrorBoundary from '@/components/profile/ProfileErrorBoundary';
 import ProfileContent from '@/components/profile/ProfileContent';
 import { createDisplayProfile } from '@/utils/profileUtils';
@@ -42,13 +42,18 @@ const ProfileContainer = () => {
     isOwnProfile
   });
   
-  // Show loading state while fetching user data
+  // Show optimized loading state while fetching user data
   if (loading || enhancedLoading) {
     console.log('ProfileContainer: Showing loading spinner');
     return (
       <div className="max-w-md mx-auto bg-white min-h-screen">
         <div className="p-4 flex items-center justify-center min-h-[400px]">
-          <LoadingSpinner size="lg" text="Loading profile..." />
+          <OptimizedLoading 
+            size="lg" 
+            text="Loading profile..." 
+            variant="spinner"
+            color="primary"
+          />
         </div>
       </div>
     );

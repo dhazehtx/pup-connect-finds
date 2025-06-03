@@ -9,6 +9,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { useAdvancedSearch } from '@/hooks/useAdvancedSearch';
 import { useAuth } from '@/contexts/AuthContext';
 import { useFavorites } from '@/hooks/useFavorites';
+import ExploreLoading from '@/components/ExploreLoading';
 
 const Explore = () => {
   const { searchListings, loading } = useAdvancedSearch();
@@ -19,6 +20,7 @@ const Explore = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [favorites, setFavorites] = useState<number[]>([]);
+  const [isInitialLoading, setIsInitialLoading] = useState(true);
 
   const popularBreeds = [
     'French Bulldog',
@@ -58,13 +60,39 @@ const Explore = () => {
       available: 2,
       image: 'https://images.unsplash.com/photo-1552053831-71594a27632d?w=400&h=400&fit=crop',
       verified: true
+    },
+    {
+      id: 3,
+      title: 'German Shepherd Puppies',
+      price: '$2,200',
+      location: 'San Jose, CA',
+      breed: 'German Shepherd',
+      age: '6 weeks',
+      available: 4,
+      image: 'https://images.unsplash.com/photo-1551717758-536850ae29035b6d?w=400&h=400&fit=crop',
+      verified: true
+    },
+    {
+      id: 4,
+      title: 'Labrador Mix Puppies',
+      price: '$1,200',
+      location: 'Berkeley, CA',
+      breed: 'Labrador',
+      age: '12 weeks',
+      available: 1,
+      image: 'https://images.unsplash.com/photo-1518717758536-85ae29035b6d?w=400&h=400&fit=crop',
+      verified: false
     }
   ];
 
   const handleSearch = async (term: string) => {
     setSearchTerm(term);
-    // For now using mock data
-    setListings(mockListings);
+    // Simulate loading delay
+    setIsInitialLoading(true);
+    setTimeout(() => {
+      setListings(mockListings);
+      setIsInitialLoading(false);
+    }, 500);
   };
 
   const handleFavorite = (id: number) => {
@@ -77,12 +105,21 @@ const Explore = () => {
 
   useEffect(() => {
     // Initial load with mock data
-    setListings(mockListings);
+    const timer = setTimeout(() => {
+      setListings(mockListings);
+      setIsInitialLoading(false);
+    }, 1000);
+
+    return () => clearTimeout(timer);
   }, []);
+
+  // Show loading state during initial load
+  if (isInitialLoading) {
+    return <ExploreLoading />;
+  }
 
   return (
     <div className="max-w-md mx-auto bg-white min-h-screen">
-      {/* Main Content */}
       <div className="p-4 space-y-6">
         {/* Search Bar */}
         <div className="relative">
@@ -199,6 +236,7 @@ const Explore = () => {
                   src={listing.image}
                   alt={listing.title}
                   className="w-full h-48 object-cover"
+                  loading="lazy"
                 />
                 <Button
                   variant="ghost"
