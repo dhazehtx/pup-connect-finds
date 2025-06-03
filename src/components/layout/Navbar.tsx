@@ -1,0 +1,198 @@
+import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
+import { Heart, Menu, X } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { useTheme } from "@/components/ui/theme-provider"
+
+const Navbar = () => {
+  const { user, logout } = useAuth();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { setTheme } = useTheme();
+
+  const toggleMobileMenu = () => {
+    setIsMobileMenuOpen(!isMobileMenuOpen);
+  };
+
+  return (
+    <nav className="bg-white shadow-sm border-b">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex justify-between h-16">
+          <div className="flex items-center">
+            <Link to="/" className="flex items-center space-x-2">
+              <Heart className="h-8 w-8 text-primary" />
+              <span className="text-xl font-bold text-gray-900">PuppyLove</span>
+            </Link>
+            
+            <div className="hidden md:ml-6 md:flex md:space-x-8">
+              <Link
+                to="/browse"
+                className="text-gray-500 hover:text-gray-700 px-3 py-2 rounded-md text-sm font-medium"
+              >
+                Browse Puppies
+              </Link>
+              <Link
+                to="/location-explorer"
+                className="text-gray-500 hover:text-gray-700 px-3 py-2 rounded-md text-sm font-medium"
+              >
+                Location Explorer
+              </Link>
+              <Link
+                to="/analytics"
+                className="text-gray-500 hover:text-gray-700 px-3 py-2 rounded-md text-sm font-medium"
+              >
+                Analytics
+              </Link>
+            </div>
+          </div>
+
+          <div className="flex items-center">
+            <div className="md:hidden">
+              <button
+                onClick={toggleMobileMenu}
+                type="button"
+                className="bg-white inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+                aria-expanded="false"
+              >
+                <span className="sr-only">Open main menu</span>
+                {isMobileMenuOpen ? (
+                  <X className="h-6 w-6" aria-hidden="true" />
+                ) : (
+                  <Menu className="h-6 w-6" aria-hidden="true" />
+                )}
+              </button>
+            </div>
+
+            {user ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button className="outline-none">
+                    <Avatar className="h-9 w-9">
+                      <AvatarImage src={user.avatar_url} />
+                      <AvatarFallback>{user.full_name?.charAt(0)}</AvatarFallback>
+                    </Avatar>
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-56 mr-2">
+                  <DropdownMenuLabel>{user.full_name}</DropdownMenuLabel>
+                  <DropdownMenuItem>
+                    <Link to="/profile" className="w-full h-full block">
+                      Profile
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem>
+                    <Link to="/my-listings" className="w-full h-full block">
+                      My Listings
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem>
+                    <Link to="/create-listing" className="w-full h-full block">
+                      Create Listing
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => setTheme(theme => theme === "light" ? "dark" : "light")}>
+                    Toggle theme
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={logout}>Logout</DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <div className="hidden md:ml-6 md:flex md:space-x-4">
+                <Link
+                  to="/login"
+                  className="text-gray-500 hover:text-gray-700 px-3 py-2 rounded-md text-sm font-medium"
+                >
+                  Login
+                </Link>
+                <Link
+                  to="/register"
+                  className="text-white bg-primary hover:bg-primary-dark px-4 py-2 rounded-md text-sm font-medium"
+                >
+                  Register
+                </Link>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Mobile menu, show/hide based on menu state. */}
+      <div className={`md:hidden ${isMobileMenuOpen ? 'block' : 'hidden'}`}>
+        <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+          <Link
+            to="/browse"
+            className="text-gray-500 hover:text-gray-700 block px-3 py-2 rounded-md text-base font-medium"
+          >
+            Browse Puppies
+          </Link>
+          <Link
+            to="/location-explorer"
+            className="text-gray-500 hover:text-gray-700 block px-3 py-2 rounded-md text-base font-medium"
+          >
+            Location Explorer
+          </Link>
+          <Link
+            to="/analytics"
+            className="text-gray-500 hover:text-gray-700 block px-3 py-2 rounded-md text-base font-medium"
+          >
+            Analytics
+          </Link>
+          {user ? (
+            <>
+              <Link
+                to="/profile"
+                className="text-gray-500 hover:text-gray-700 block px-3 py-2 rounded-md text-base font-medium"
+              >
+                Profile
+              </Link>
+              <Link
+                to="/my-listings"
+                className="text-gray-500 hover:text-gray-700 block px-3 py-2 rounded-md text-base font-medium"
+              >
+                My Listings
+              </Link>
+              <Link
+                to="/create-listing"
+                className="text-gray-500 hover:text-gray-700 block px-3 py-2 rounded-md text-base font-medium"
+              >
+                Create Listing
+              </Link>
+              <button
+                onClick={logout}
+                className="text-gray-500 hover:text-gray-700 block px-3 py-2 rounded-md text-base font-medium"
+              >
+                Logout
+              </button>
+            </>
+          ) : (
+            <>
+              <Link
+                to="/login"
+                className="text-gray-500 hover:text-gray-700 block px-3 py-2 rounded-md text-base font-medium"
+              >
+                Login
+              </Link>
+              <Link
+                to="/register"
+                className="text-gray-500 hover:text-gray-700 block px-3 py-2 rounded-md text-base font-medium"
+              >
+                Register
+              </Link>
+            </>
+          )}
+        </div>
+      </div>
+    </nav>
+  );
+};
+
+export default Navbar;
