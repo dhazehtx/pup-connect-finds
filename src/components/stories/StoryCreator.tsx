@@ -11,7 +11,8 @@ import {
   Wand2, 
   Upload,
   Loader2,
-  Image as ImageIcon
+  Image as ImageIcon,
+  Plus
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
@@ -39,12 +40,14 @@ const StoryCreator = ({ onClose, onStoryCreated }: StoryCreatorProps) => {
     const file = event.target.files?.[0];
     if (file) {
       if (type === 'image') {
-        // Basic validation for file type only - allow any image size since we have cropping
-        const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif'];
-        if (!allowedTypes.includes(file.type.toLowerCase())) {
+        // Accept any image format including HEIC (iPhone photos)
+        const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif', 'image/heic', 'image/heif'];
+        const isValidType = allowedTypes.includes(file.type.toLowerCase()) || file.name.toLowerCase().match(/\.(jpg|jpeg|png|webp|gif|heic|heif)$/);
+        
+        if (!isValidType) {
           toast({
             title: "Invalid File Type",
-            description: "Please upload JPEG, PNG, WebP, or GIF images.",
+            description: "Please upload image files (JPG, PNG, WebP, GIF, HEIC).",
             variant: "destructive",
           });
           if (fileInputRef.current) {
@@ -53,12 +56,12 @@ const StoryCreator = ({ onClose, onStoryCreated }: StoryCreatorProps) => {
           return;
         }
 
-        // Check for reasonable file size limit (100MB) to prevent browser memory issues
-        const maxFileSize = 100 * 1024 * 1024; // 100MB
+        // Check for reasonable file size limit (200MB) for high-res phone photos
+        const maxFileSize = 200 * 1024 * 1024; // 200MB
         if (file.size > maxFileSize) {
           toast({
             title: "File Too Large",
-            description: "File size must be less than 100MB.",
+            description: "Image must be less than 200MB.",
             variant: "destructive",
           });
           if (fileInputRef.current) {
@@ -67,22 +70,26 @@ const StoryCreator = ({ onClose, onStoryCreated }: StoryCreatorProps) => {
           return;
         }
 
-        // Load image to verify it's valid - no dimension restrictions
+        // Load image to verify it's valid
         const img = new Image();
         img.onload = () => {
-          console.log(`Image loaded successfully: ${img.width}x${img.height} pixels`);
-          // Image is valid, proceed with setting it
+          console.log(`Phone image loaded: ${img.width}x${img.height} pixels`);
           setSelectedFile(file);
           const url = URL.createObjectURL(file);
           setPreviewUrl(url);
           setCreationMode('edit-image');
           URL.revokeObjectURL(img.src);
+          
+          toast({
+            title: "Image Ready",
+            description: "Tap and drag to position your photo perfectly!",
+          });
         };
         
         img.onerror = () => {
           toast({
             title: "Invalid Image",
-            description: "Unable to load the selected image. Please try another file.",
+            description: "Unable to load the image. Try another photo.",
             variant: "destructive",
           });
           if (fileInputRef.current) {
@@ -92,12 +99,12 @@ const StoryCreator = ({ onClose, onStoryCreated }: StoryCreatorProps) => {
         
         img.src = URL.createObjectURL(file);
       } else {
-        // For video files, check basic size
-        const maxVideoSize = 100 * 1024 * 1024; // 100MB
+        // Video handling
+        const maxVideoSize = 200 * 1024 * 1024; // 200MB for videos
         if (file.size > maxVideoSize) {
           toast({
-            title: "Video Size Too Big",
-            description: "Video file is too large. Maximum allowed size is 100MB.",
+            title: "Video Too Large",
+            description: "Video must be less than 200MB.",
             variant: "destructive",
           });
           if (videoInputRef.current) {
@@ -159,8 +166,8 @@ const StoryCreator = ({ onClose, onStoryCreated }: StoryCreatorProps) => {
   const handleCreateStory = (content: any) => {
     if (!user) {
       toast({
-        title: "Authentication Required",
-        description: "Please sign in to create stories",
+        title: "Sign In Required",
+        description: "Please sign in to share your story",
         variant: "destructive",
       });
       return;
@@ -176,8 +183,8 @@ const StoryCreator = ({ onClose, onStoryCreated }: StoryCreatorProps) => {
 
     onStoryCreated(newStory);
     toast({
-      title: "Story Created",
-      description: "Your story has been added successfully!",
+      title: "Story Shared! 🎉",
+      description: "Your story is now live and visible to others!",
     });
     onClose();
   };
@@ -185,7 +192,6 @@ const StoryCreator = ({ onClose, onStoryCreated }: StoryCreatorProps) => {
   const handleUploadStory = () => {
     if (!selectedFile || !previewUrl) return;
 
-    // In a real implementation, you would upload the file to storage
     const content = {
       type: selectedFile.type.startsWith('video/') ? 'video' as const : 'image' as const,
       url: previewUrl
@@ -195,9 +201,9 @@ const StoryCreator = ({ onClose, onStoryCreated }: StoryCreatorProps) => {
   };
 
   const handleImageSave = (canvas: HTMLCanvasElement) => {
-    // Convert canvas to data URL instead of blob to ensure persistence
-    const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
-    console.log('Saving image with data URL:', dataUrl.substring(0, 50) + '...');
+    // Convert canvas to high-quality data URL
+    const dataUrl = canvas.toDataURL('image/jpeg', 0.95);
+    console.log('Saving cropped story image');
     
     const content = {
       type: 'image' as const,
@@ -244,46 +250,74 @@ const StoryCreator = ({ onClose, onStoryCreated }: StoryCreatorProps) => {
       ) : (
         <Card className="w-full h-full sm:h-auto sm:max-w-md bg-background border-border shadow-xl sm:rounded-lg overflow-auto">
           <CardHeader className="sticky top-0 z-10 flex flex-row items-center justify-between border-b border-border bg-background">
-            <CardTitle className="text-foreground">Create Your Story</CardTitle>
-            <Button variant="ghost" size="sm" onClick={onClose} className="text-foreground hover:bg-muted">
-              <X className="w-4 h-4" />
+            <CardTitle className="text-foreground text-lg font-semibold">Create Story</CardTitle>
+            <Button variant="ghost" size="sm" onClick={onClose} className="text-foreground hover:bg-muted rounded-full p-2">
+              <X className="w-5 h-5" />
             </Button>
           </CardHeader>
           
           <CardContent className="space-y-4 p-6">
             {creationMode === 'select' && (
-              <div className="space-y-3">
+              <div className="space-y-4">
+                <div className="text-center mb-6">
+                  <h3 className="text-lg font-medium text-foreground mb-2">Share Your Moment</h3>
+                  <p className="text-sm text-muted-foreground">Upload photos or videos to share with your community</p>
+                </div>
+
                 <Button
                   onClick={() => fileInputRef.current?.click()}
-                  className="w-full justify-start bg-background border-border text-foreground hover:bg-muted active:bg-muted/80 min-h-[60px] shadow-sm"
-                  variant="outline"
+                  className="w-full justify-start bg-primary text-primary-foreground hover:bg-primary/90 min-h-[64px] shadow-sm rounded-xl"
+                  size="lg"
                 >
-                  <Camera className="w-5 h-5 mr-3 flex-shrink-0" />
-                  <span className="text-left">Upload Photo</span>
+                  <div className="flex items-center space-x-4">
+                    <div className="p-2 bg-primary-foreground/20 rounded-lg">
+                      <Camera className="w-6 h-6" />
+                    </div>
+                    <div className="text-left">
+                      <div className="font-semibold">Upload Photo</div>
+                      <div className="text-sm opacity-90">Screenshots, camera photos, gallery</div>
+                    </div>
+                  </div>
                 </Button>
                 
                 <Button
                   onClick={() => videoInputRef.current?.click()}
-                  className="w-full justify-start bg-background border-border text-foreground hover:bg-muted active:bg-muted/80 min-h-[60px] shadow-sm"
+                  className="w-full justify-start bg-background border-2 border-border text-foreground hover:bg-muted min-h-[64px] shadow-sm rounded-xl"
                   variant="outline"
+                  size="lg"
                 >
-                  <Video className="w-5 h-5 mr-3 flex-shrink-0" />
-                  <span className="text-left">Upload Video</span>
+                  <div className="flex items-center space-x-4">
+                    <div className="p-2 bg-muted rounded-lg">
+                      <Video className="w-6 h-6" />
+                    </div>
+                    <div className="text-left">
+                      <div className="font-semibold">Upload Video</div>
+                      <div className="text-sm opacity-70">Record or select from gallery</div>
+                    </div>
+                  </div>
                 </Button>
                 
                 <Button
                   onClick={() => setCreationMode('ai-generate')}
-                  className="w-full justify-start bg-background border-border text-foreground hover:bg-muted active:bg-muted/80 min-h-[60px] shadow-sm"
-                  variant="outline"
+                  className="w-full justify-start bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:from-purple-600 hover:to-pink-600 min-h-[64px] shadow-sm rounded-xl"
+                  size="lg"
                 >
-                  <Wand2 className="w-5 h-5 mr-3 flex-shrink-0" />
-                  <span className="text-left">Generate with AI</span>
+                  <div className="flex items-center space-x-4">
+                    <div className="p-2 bg-white/20 rounded-lg">
+                      <Wand2 className="w-6 h-6" />
+                    </div>
+                    <div className="text-left">
+                      <div className="font-semibold">AI Generate</div>
+                      <div className="text-sm opacity-90">Create with artificial intelligence</div>
+                    </div>
+                  </div>
                 </Button>
                 
                 <input
                   ref={fileInputRef}
                   type="file"
-                  accept="image/*"
+                  accept="image/*,.heic,.heif"
+                  capture="environment"
                   className="hidden"
                   onChange={(e) => handleFileSelect(e, 'image')}
                 />
@@ -292,6 +326,7 @@ const StoryCreator = ({ onClose, onStoryCreated }: StoryCreatorProps) => {
                   ref={videoInputRef}
                   type="file"
                   accept="video/*"
+                  capture="environment"
                   className="hidden"
                   onChange={(e) => handleFileSelect(e, 'video')}
                 />
@@ -304,7 +339,7 @@ const StoryCreator = ({ onClose, onStoryCreated }: StoryCreatorProps) => {
                   {selectedFile?.type.startsWith('video/') ? (
                     <video
                       src={previewUrl}
-                      className="w-full h-64 object-contain rounded-lg border border-border mx-auto"
+                      className="w-full h-80 object-cover rounded-lg border border-border mx-auto"
                       controls
                     />
                   ) : (
@@ -312,7 +347,7 @@ const StoryCreator = ({ onClose, onStoryCreated }: StoryCreatorProps) => {
                       <img
                         src={previewUrl}
                         alt="Story preview"
-                        className="max-w-full max-h-64 object-contain rounded-lg border border-border mx-auto"
+                        className="max-w-full max-h-80 object-contain rounded-lg border border-border mx-auto"
                       />
                     </div>
                   )}
@@ -331,7 +366,7 @@ const StoryCreator = ({ onClose, onStoryCreated }: StoryCreatorProps) => {
                     className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90 min-h-[52px]"
                   >
                     <Upload className="w-4 h-4 mr-2" />
-                    Post Story
+                    Share Story
                   </Button>
                 </div>
               </div>

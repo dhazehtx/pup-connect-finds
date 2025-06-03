@@ -22,20 +22,20 @@ const InteractiveImageEditor = ({ imageUrl, onSave, onCancel }: InteractiveImage
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [initialSetupComplete, setInitialSetupComplete] = useState(false);
 
-  // Calculate container dimensions for 9:16 story format
+  // Calculate container dimensions for perfect 9:16 story format (Instagram style)
   useEffect(() => {
     const updateContainerSize = () => {
       if (containerRef.current) {
         const viewportHeight = window.innerHeight;
         const viewportWidth = window.innerWidth;
         
-        // Calculate optimal story dimensions for mobile
-        const maxWidth = Math.min(viewportWidth - 32, 400); // Max width with padding
-        const storyHeight = viewportHeight * 0.7; // Use 70% of viewport height
-        const storyWidth = storyHeight * (9/16); // 9:16 aspect ratio
+        // Instagram story dimensions - prioritize mobile experience
+        const maxWidth = Math.min(viewportWidth - 16, 420); // Slight padding for mobile
+        const storyHeight = Math.min(viewportHeight * 0.75, 746); // Max Instagram story height
+        const storyWidth = storyHeight * (9/16); // Perfect 9:16 ratio
         
         const finalWidth = Math.min(maxWidth, storyWidth);
-        const finalHeight = finalWidth * (16/9); // Maintain 9:16 ratio
+        const finalHeight = finalWidth * (16/9); // Maintain exact 9:16
         
         setContainerDimensions({
           width: finalWidth,
@@ -49,25 +49,26 @@ const InteractiveImageEditor = ({ imageUrl, onSave, onCancel }: InteractiveImage
     return () => window.removeEventListener('resize', updateContainerSize);
   }, []);
 
-  // Calculate initial scale to fill story dimensions (Instagram-style)
+  // Instagram-style auto-fit calculation
   const calculateInitialScale = useCallback((imgWidth: number, imgHeight: number, containerWidth: number, containerHeight: number) => {
     const containerAspectRatio = containerWidth / containerHeight;
     const imageAspectRatio = imgWidth / imgHeight;
     
+    // Always fill the story frame completely (Instagram behavior)
     let initialScale;
     if (imageAspectRatio > containerAspectRatio) {
-      // Image is wider - scale to fill height
+      // Image is wider - scale to fill height completely
       initialScale = containerHeight / imgHeight;
     } else {
-      // Image is taller - scale to fill width  
+      // Image is taller - scale to fill width completely  
       initialScale = containerWidth / imgWidth;
     }
     
-    // Ensure the image always fills the container completely (Instagram behavior)
-    return Math.max(initialScale * 1.05, 1); // Scale up slightly to ensure complete fill
+    // Ensure no empty space (Instagram always fills completely)
+    return Math.max(initialScale * 1.02, 1.1); // Slight overscan for complete fill
   }, []);
 
-  // Handle image load to set initial scale and position
+  // Setup initial scale and position when image loads
   useEffect(() => {
     if (imageRef.current && !initialSetupComplete && containerDimensions.width > 0) {
       const img = imageRef.current;
@@ -83,6 +84,7 @@ const InteractiveImageEditor = ({ imageUrl, onSave, onCancel }: InteractiveImage
           containerDimensions.height
         );
         
+        // Small delay to ensure smooth loading
         setTimeout(() => {
           setImageDimensions({ width: naturalWidth, height: naturalHeight });
           setScale(initialScale);
@@ -90,8 +92,8 @@ const InteractiveImageEditor = ({ imageUrl, onSave, onCancel }: InteractiveImage
           setImageLoaded(true);
           setInitialSetupComplete(true);
           
-          console.log(`Image auto-fitted: ${naturalWidth}x${naturalHeight} -> scale: ${initialScale.toFixed(2)}`);
-        }, 0);
+          console.log(`Auto-fitted for story: ${naturalWidth}x${naturalHeight} -> scale: ${initialScale.toFixed(2)}`);
+        }, 50);
       };
 
       if (img.complete && img.naturalWidth > 0) {
@@ -111,7 +113,7 @@ const InteractiveImageEditor = ({ imageUrl, onSave, onCancel }: InteractiveImage
     setPosition({ x: 0, y: 0 });
   }, [imageUrl]);
 
-  // Touch events
+  // Enhanced touch handling for better mobile experience
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
     e.preventDefault();
     
@@ -158,7 +160,7 @@ const InteractiveImageEditor = ({ imageUrl, onSave, onCancel }: InteractiveImage
       );
       
       const scaleChange = distance / lastDistance;
-      setScale(prev => Math.max(0.5, Math.min(5, prev * scaleChange)));
+      setScale(prev => Math.max(0.3, Math.min(4, prev * scaleChange)));
       setLastDistance(distance);
     }
   }, [isDragging, lastTouch, lastDistance]);
@@ -169,7 +171,7 @@ const InteractiveImageEditor = ({ imageUrl, onSave, onCancel }: InteractiveImage
     setLastDistance(0);
   }, []);
 
-  // Mouse events for desktop
+  // Desktop support
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
     setIsDragging(true);
     setLastTouch({
@@ -200,11 +202,10 @@ const InteractiveImageEditor = ({ imageUrl, onSave, onCancel }: InteractiveImage
     setLastTouch(null);
   }, []);
 
-  // Wheel event for desktop zoom
   const handleWheel = useCallback((e: React.WheelEvent) => {
     e.preventDefault();
     const scaleChange = e.deltaY > 0 ? 0.9 : 1.1;
-    setScale(prev => Math.max(0.5, Math.min(5, prev * scaleChange)));
+    setScale(prev => Math.max(0.3, Math.min(4, prev * scaleChange)));
   }, []);
 
   const handleSave = () => {
@@ -214,11 +215,11 @@ const InteractiveImageEditor = ({ imageUrl, onSave, onCancel }: InteractiveImage
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    // Set canvas to exact story dimensions
+    // Set canvas to exact Instagram story dimensions
     canvas.width = containerDimensions.width;
     canvas.height = containerDimensions.height;
 
-    // Fill with black background (Instagram style)
+    // Black background (Instagram style)
     ctx.fillStyle = '#000000';
     ctx.fillRect(0, 0, containerDimensions.width, containerDimensions.height);
 
@@ -247,7 +248,6 @@ const InteractiveImageEditor = ({ imageUrl, onSave, onCancel }: InteractiveImage
     }
   };
 
-  // Handle cancel button properly
   const handleCancel = (e?: React.MouseEvent) => {
     if (e) {
       e.preventDefault();
@@ -258,22 +258,28 @@ const InteractiveImageEditor = ({ imageUrl, onSave, onCancel }: InteractiveImage
 
   return (
     <div className="fixed inset-0 bg-black flex flex-col overflow-hidden z-50">
-      {/* Header */}
-      <div className="flex items-center justify-between p-4 bg-black z-10 shrink-0 border-b border-gray-800">
-        <h2 className="text-lg font-semibold text-white">Crop for Story</h2>
+      {/* Instagram-style header */}
+      <div className="flex items-center justify-between p-4 bg-black z-10 shrink-0">
         <button
           onClick={handleCancel}
-          className="p-2 text-white hover:bg-white/10 rounded-full transition-colors"
+          className="text-white text-lg font-medium hover:opacity-80 transition-opacity"
         >
-          ✕
+          Cancel
+        </button>
+        <h2 className="text-white font-semibold">New Story</h2>
+        <button
+          onClick={handleSave}
+          className="text-blue-500 text-lg font-semibold hover:opacity-80 transition-opacity"
+        >
+          Share
         </button>
       </div>
 
-      {/* Image Editor Container */}
-      <div className="flex-1 flex flex-col items-center justify-center p-4 min-h-0 bg-black">
+      {/* Main editing area */}
+      <div className="flex-1 flex flex-col items-center justify-center p-2 min-h-0 bg-black">
         <div 
           ref={containerRef}
-          className="relative bg-black rounded-lg overflow-hidden border border-gray-700" 
+          className="relative bg-black rounded-xl overflow-hidden shadow-2xl" 
           style={{ 
             width: containerDimensions.width || 300,
             height: containerDimensions.height || 533,
@@ -298,65 +304,49 @@ const InteractiveImageEditor = ({ imageUrl, onSave, onCancel }: InteractiveImage
               className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 pointer-events-none select-none"
               style={{
                 transform: `translate(-50%, -50%) translate(${position.x}px, ${position.y}px) scale(${scale})`,
-                transition: isDragging ? 'none' : 'transform 0.1s ease-out'
+                transition: isDragging ? 'none' : 'transform 0.2s ease-out'
               }}
               draggable={false}
             />
             
+            {/* Visual feedback when dragging */}
             {isDragging && (
-              <div className="absolute inset-0 bg-white/5 border border-white/20 border-dashed" />
+              <div className="absolute inset-0 bg-white/5 border border-white/30 border-dashed rounded-lg" />
             )}
           </div>
           
-          <div className="absolute top-3 right-3 bg-black/80 text-white px-3 py-1.5 rounded-full text-sm font-medium backdrop-blur-sm">
+          {/* Zoom indicator */}
+          <div className="absolute top-4 right-4 bg-black/60 text-white px-3 py-1.5 rounded-full text-sm font-medium backdrop-blur-sm">
             {Math.round(scale * 100)}%
           </div>
           
-          <div className="absolute bottom-3 left-3 bg-black/80 text-white px-3 py-1.5 rounded-full text-xs font-medium backdrop-blur-sm">
-            {initialSetupComplete ? 'Pinch to zoom, drag to move' : 'Loading...'}
+          {/* Instructions overlay */}
+          <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black/60 text-white px-4 py-2 rounded-full text-sm font-medium backdrop-blur-sm">
+            {initialSetupComplete ? 'Pinch to zoom • Drag to move' : 'Loading...'}
           </div>
         </div>
 
-        {/* Instructions */}
-        <p className="text-gray-400 text-center mt-4 mb-2 text-sm font-medium">Move and scale to fit perfectly</p>
-
-        {/* Controls */}
-        <div className="grid grid-cols-3 gap-3 w-full max-w-md">
+        {/* Quick action buttons */}
+        <div className="flex items-center justify-center space-x-6 mt-6">
           <button
-            onClick={() => setScale(prev => Math.max(0.5, prev - 0.2))}
-            className="px-4 py-3 bg-gray-800 text-white rounded-lg text-sm font-semibold hover:bg-gray-700 active:bg-gray-900 transition-all duration-200 shadow-sm touch-manipulation border border-gray-700"
+            onClick={() => setScale(prev => Math.max(0.3, prev - 0.15))}
+            className="w-12 h-12 bg-gray-800 text-white rounded-full text-xl font-bold hover:bg-gray-700 active:bg-gray-900 transition-colors shadow-lg touch-manipulation"
           >
-            Zoom Out
+            −
           </button>
           <button
             onClick={resetToOptimalCrop}
-            className="px-4 py-3 bg-blue-600 text-white rounded-lg text-sm font-semibold hover:bg-blue-500 active:bg-blue-700 transition-all duration-200 shadow-sm touch-manipulation"
+            className="px-6 py-3 bg-white text-black rounded-full text-sm font-semibold hover:bg-gray-100 active:bg-gray-200 transition-colors shadow-lg touch-manipulation"
           >
             Reset
           </button>
           <button
-            onClick={() => setScale(prev => Math.min(5, prev + 0.2))}
-            className="px-4 py-3 bg-gray-800 text-white rounded-lg text-sm font-semibold hover:bg-gray-700 active:bg-gray-900 transition-all duration-200 shadow-sm touch-manipulation border border-gray-700"
+            onClick={() => setScale(prev => Math.min(4, prev + 0.15))}
+            className="w-12 h-12 bg-gray-800 text-white rounded-full text-xl font-bold hover:bg-gray-700 active:bg-gray-900 transition-colors shadow-lg touch-manipulation"
           >
-            Zoom In
+            +
           </button>
         </div>
-      </div>
-
-      {/* Action buttons - Fixed to bottom */}
-      <div className="flex gap-4 p-4 bg-black border-t border-gray-800 shrink-0 safe-area-inset-bottom">
-        <button
-          onClick={handleCancel}
-          className="flex-1 px-6 py-4 border border-gray-600 text-white hover:bg-gray-800 active:bg-gray-700 rounded-lg font-semibold transition-all duration-200 shadow-sm min-h-[52px] touch-manipulation"
-        >
-          Cancel
-        </button>
-        <button
-          onClick={handleSave}
-          className="flex-1 px-6 py-4 bg-blue-600 text-white hover:bg-blue-500 active:bg-blue-700 rounded-lg font-semibold transition-all duration-200 shadow-sm min-h-[52px] touch-manipulation"
-        >
-          Share to Story
-        </button>
       </div>
 
       <canvas ref={canvasRef} className="hidden" />
