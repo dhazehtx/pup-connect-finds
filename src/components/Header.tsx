@@ -1,11 +1,12 @@
 
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Heart, Search, Globe, User } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import NotificationBell from '@/components/ui/notification-bell';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -18,6 +19,11 @@ import {
 const Header = () => {
   const { user, signOut, profile } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
+  const navigate = useNavigate();
+
+  const handleNotificationClick = () => {
+    navigate('/notifications');
+  };
 
   return (
     <nav className="bg-white shadow-sm border-b">
@@ -48,6 +54,12 @@ const Header = () => {
 
           {/* Right Side Actions */}
           <div className="flex items-center space-x-4">
+            {/* Notification Bell */}
+            <NotificationBell 
+              className="text-gray-600 hover:text-gray-900" 
+              onClick={handleNotificationClick}
+            />
+
             {/* Language Selector */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>

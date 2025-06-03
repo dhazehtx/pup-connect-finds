@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { User, Bell, Shield, MapPin, CreditCard, HelpCircle, LogOut, ChevronRight, Edit3 } from 'lucide-react';
 import { Label } from '@/components/ui/label';
@@ -6,7 +7,6 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Link } from 'react-router-dom';
 import SocialMediaConnections from '@/components/settings/SocialMediaConnections';
-import DarkModeToggle from '@/components/settings/DarkModeToggle';
 
 const Settings = () => {
   const [bio, setBio] = useState("Passionate dog breeder specializing in Golden Retrievers and Labradors. Health tested puppies with health guarantees. Member since March 2023.");
@@ -23,7 +23,7 @@ const Settings = () => {
       items: [
         { icon: User, label: 'Profile Information', description: 'Update your personal details' },
         { icon: Shield, label: 'Privacy & Security', description: 'Manage your privacy settings' },
-        { icon: Bell, label: 'Notifications', description: 'Configure notification preferences' },
+        { icon: Bell, label: 'Notifications', description: 'Configure notification preferences', link: '/notifications' },
       ]
     },
     {
@@ -116,11 +116,6 @@ const Settings = () => {
       {/* Social Media Connections */}
       <div className="mb-6">
         <SocialMediaConnections />
-      </div>
-
-      {/* Dark Mode Toggle */}
-      <div className="mb-6">
-        <DarkModeToggle />
       </div>
 
       {/* Settings Sections */}
