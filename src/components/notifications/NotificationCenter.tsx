@@ -1,10 +1,9 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Bell, Settings, MarkAsRead, Check, X, MessageCircle, Heart, Star, TrendingDown } from 'lucide-react';
+import { Bell, Settings, CheckCheck, Check, X, MessageCircle, Heart, Star, TrendingDown } from 'lucide-react';
 import { useEnhancedNotifications } from '@/hooks/useEnhancedNotifications';
 import { usePushNotifications } from '@/hooks/usePushNotifications';
 import { formatDistanceToNow } from 'date-fns';
