@@ -1,6 +1,19 @@
 
 import React, { useState, useRef, useCallback, useEffect } from 'react';
-import { useSwipeGestures } from '@/hooks/useSwipeGestures';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Slider } from '@/components/ui/slider';
+import { 
+  ArrowRight, 
+  Type, 
+  Palette, 
+  Sparkles, 
+  RotateCw, 
+  Crop,
+  Sun,
+  Contrast,
+  Zap
+} from 'lucide-react';
 
 interface InteractiveImageEditorProps {
   imageUrl: string;
@@ -17,25 +30,30 @@ const InteractiveImageEditor = ({ imageUrl, onSave, onCancel }: InteractiveImage
   const [imageLoaded, setImageLoaded] = useState(false);
   const [imageDimensions, setImageDimensions] = useState({ width: 0, height: 0 });
   const [containerDimensions, setContainerDimensions] = useState({ width: 0, height: 0 });
+  const [editMode, setEditMode] = useState<'crop' | 'text' | 'filters' | 'adjust'>('crop');
+  const [textInput, setTextInput] = useState('');
+  const [textElements, setTextElements] = useState<Array<{id: number, text: string, x: number, y: number, color: string}>>([]);
+  const [brightness, setBrightness] = useState(100);
+  const [contrast, setContrast] = useState(100);
+  const [saturation, setSaturation] = useState(100);
   const containerRef = useRef<HTMLDivElement>(null);
   const imageRef = useRef<HTMLImageElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [initialSetupComplete, setInitialSetupComplete] = useState(false);
 
-  // Calculate container dimensions for perfect 9:16 story format (Instagram style)
+  // Calculate container dimensions for perfect 9:16 story format
   useEffect(() => {
     const updateContainerSize = () => {
       if (containerRef.current) {
         const viewportHeight = window.innerHeight;
         const viewportWidth = window.innerWidth;
         
-        // Instagram story dimensions - prioritize mobile experience
-        const maxWidth = Math.min(viewportWidth - 16, 420); // Slight padding for mobile
-        const storyHeight = Math.min(viewportHeight * 0.75, 746); // Max Instagram story height
-        const storyWidth = storyHeight * (9/16); // Perfect 9:16 ratio
+        const maxWidth = Math.min(viewportWidth - 16, 420);
+        const storyHeight = Math.min(viewportHeight * 0.75, 746);
+        const storyWidth = storyHeight * (9/16);
         
         const finalWidth = Math.min(maxWidth, storyWidth);
-        const finalHeight = finalWidth * (16/9); // Maintain exact 9:16
+        const finalHeight = finalWidth * (16/9);
         
         setContainerDimensions({
           width: finalWidth,
@@ -54,18 +72,14 @@ const InteractiveImageEditor = ({ imageUrl, onSave, onCancel }: InteractiveImage
     const containerAspectRatio = containerWidth / containerHeight;
     const imageAspectRatio = imgWidth / imgHeight;
     
-    // Always fill the story frame completely (Instagram behavior)
     let initialScale;
     if (imageAspectRatio > containerAspectRatio) {
-      // Image is wider - scale to fill height completely
       initialScale = containerHeight / imgHeight;
     } else {
-      // Image is taller - scale to fill width completely  
       initialScale = containerWidth / imgWidth;
     }
     
-    // Ensure no empty space (Instagram always fills completely)
-    return Math.max(initialScale * 1.02, 1.1); // Slight overscan for complete fill
+    return Math.max(initialScale * 1.02, 1.1);
   }, []);
 
   // Setup initial scale and position when image loads
@@ -84,7 +98,6 @@ const InteractiveImageEditor = ({ imageUrl, onSave, onCancel }: InteractiveImage
           containerDimensions.height
         );
         
-        // Small delay to ensure smooth loading
         setTimeout(() => {
           setImageDimensions({ width: naturalWidth, height: naturalHeight });
           setScale(initialScale);
@@ -111,10 +124,15 @@ const InteractiveImageEditor = ({ imageUrl, onSave, onCancel }: InteractiveImage
     setImageLoaded(false);
     setScale(1);
     setPosition({ x: 0, y: 0 });
+    setBrightness(100);
+    setContrast(100);
+    setSaturation(100);
+    setTextElements([]);
   }, [imageUrl]);
 
-  // Enhanced touch handling for better mobile experience
+  // Touch handling for cropping
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    if (editMode !== 'crop') return;
     e.preventDefault();
     
     if (e.touches.length === 1) {
@@ -133,9 +151,10 @@ const InteractiveImageEditor = ({ imageUrl, onSave, onCancel }: InteractiveImage
       );
       setLastDistance(distance);
     }
-  }, []);
+  }, [editMode]);
 
   const handleTouchMove = useCallback((e: React.TouchEvent) => {
+    if (editMode !== 'crop') return;
     e.preventDefault();
     
     if (e.touches.length === 1 && isDragging && lastTouch) {
@@ -163,7 +182,7 @@ const InteractiveImageEditor = ({ imageUrl, onSave, onCancel }: InteractiveImage
       setScale(prev => Math.max(0.3, Math.min(4, prev * scaleChange)));
       setLastDistance(distance);
     }
-  }, [isDragging, lastTouch, lastDistance]);
+  }, [editMode, isDragging, lastTouch, lastDistance]);
 
   const handleTouchEnd = useCallback(() => {
     setIsDragging(false);
@@ -171,42 +190,25 @@ const InteractiveImageEditor = ({ imageUrl, onSave, onCancel }: InteractiveImage
     setLastDistance(0);
   }, []);
 
-  // Desktop support
-  const handleMouseDown = useCallback((e: React.MouseEvent) => {
-    setIsDragging(true);
-    setLastTouch({
-      x: e.clientX,
-      y: e.clientY
-    });
-  }, []);
-
-  const handleMouseMove = useCallback((e: React.MouseEvent) => {
-    if (isDragging && lastTouch) {
-      const deltaX = e.clientX - lastTouch.x;
-      const deltaY = e.clientY - lastTouch.y;
-      
-      setPosition(prev => ({
-        x: prev.x + deltaX,
-        y: prev.y + deltaY
-      }));
-      
-      setLastTouch({
-        x: e.clientX,
-        y: e.clientY
-      });
+  const handleAddText = () => {
+    if (textInput.trim()) {
+      const newText = {
+        id: Date.now(),
+        text: textInput,
+        x: 50,
+        y: 50,
+        color: '#FFFFFF'
+      };
+      setTextElements(prev => [...prev, newText]);
+      setTextInput('');
     }
-  }, [isDragging, lastTouch]);
+  };
 
-  const handleMouseUp = useCallback(() => {
-    setIsDragging(false);
-    setLastTouch(null);
-  }, []);
-
-  const handleWheel = useCallback((e: React.WheelEvent) => {
-    e.preventDefault();
-    const scaleChange = e.deltaY > 0 ? 0.9 : 1.1;
-    setScale(prev => Math.max(0.3, Math.min(4, prev * scaleChange)));
-  }, []);
+  const resetFilters = () => {
+    setBrightness(100);
+    setContrast(100);
+    setSaturation(100);
+  };
 
   const handleSave = () => {
     if (!imageRef.current || !canvasRef.current || !containerDimensions.width) return;
@@ -215,11 +217,13 @@ const InteractiveImageEditor = ({ imageUrl, onSave, onCancel }: InteractiveImage
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    // Set canvas to exact Instagram story dimensions
     canvas.width = containerDimensions.width;
     canvas.height = containerDimensions.height;
 
-    // Black background (Instagram style)
+    // Apply filters
+    ctx.filter = `brightness(${brightness}%) contrast(${contrast}%) saturate(${saturation}%)`;
+    
+    // Black background
     ctx.fillStyle = '#000000';
     ctx.fillRect(0, 0, containerDimensions.width, containerDimensions.height);
 
@@ -231,6 +235,17 @@ const InteractiveImageEditor = ({ imageUrl, onSave, onCancel }: InteractiveImage
     const centerY = (containerDimensions.height - imgHeight) / 2 + position.y;
 
     ctx.drawImage(img, centerX, centerY, imgWidth, imgHeight);
+    
+    // Reset filter for text
+    ctx.filter = 'none';
+    
+    // Draw text elements
+    textElements.forEach(textEl => {
+      ctx.fillStyle = textEl.color;
+      ctx.font = 'bold 24px Arial';
+      ctx.textAlign = 'center';
+      ctx.fillText(textEl.text, (textEl.x / 100) * containerDimensions.width, (textEl.y / 100) * containerDimensions.height);
+    });
     
     onSave(canvas);
   };
@@ -262,16 +277,17 @@ const InteractiveImageEditor = ({ imageUrl, onSave, onCancel }: InteractiveImage
       <div className="flex items-center justify-between p-4 bg-black z-10 shrink-0">
         <button
           onClick={handleCancel}
-          className="text-white text-lg font-medium hover:opacity-80 transition-opacity"
+          className="text-white text-lg font-medium hover:opacity-80 transition-opacity touch-manipulation min-h-[44px] px-2"
         >
           Cancel
         </button>
-        <h2 className="text-white font-semibold">New Story</h2>
+        <h2 className="text-white font-semibold">Edit Story</h2>
         <button
           onClick={handleSave}
-          className="text-blue-500 text-lg font-semibold hover:opacity-80 transition-opacity"
+          className="flex items-center space-x-2 bg-blue-500 text-white px-4 py-2 rounded-full hover:bg-blue-600 transition-colors touch-manipulation min-h-[44px]"
         >
-          Share
+          <span className="font-semibold">Share</span>
+          <ArrowRight className="w-4 h-4" />
         </button>
       </div>
 
@@ -291,11 +307,9 @@ const InteractiveImageEditor = ({ imageUrl, onSave, onCancel }: InteractiveImage
             onTouchStart={handleTouchStart}
             onTouchMove={handleTouchMove}
             onTouchEnd={handleTouchEnd}
-            onMouseDown={handleMouseDown}
-            onMouseMove={handleMouseMove}
-            onMouseUp={handleMouseUp}
-            onMouseLeave={handleMouseUp}
-            onWheel={handleWheel}
+            style={{
+              filter: `brightness(${brightness}%) contrast(${contrast}%) saturate(${saturation}%)`
+            }}
           >
             <img
               ref={imageRef}
@@ -309,43 +323,151 @@ const InteractiveImageEditor = ({ imageUrl, onSave, onCancel }: InteractiveImage
               draggable={false}
             />
             
+            {/* Text elements overlay */}
+            {textElements.map(textEl => (
+              <div
+                key={textEl.id}
+                className="absolute font-bold text-2xl text-center pointer-events-none select-none"
+                style={{
+                  left: `${textEl.x}%`,
+                  top: `${textEl.y}%`,
+                  color: textEl.color,
+                  transform: 'translate(-50%, -50%)',
+                  textShadow: '2px 2px 4px rgba(0,0,0,0.8)'
+                }}
+              >
+                {textEl.text}
+              </div>
+            ))}
+            
             {/* Visual feedback when dragging */}
-            {isDragging && (
+            {isDragging && editMode === 'crop' && (
               <div className="absolute inset-0 bg-white/5 border border-white/30 border-dashed rounded-lg" />
             )}
           </div>
-          
-          {/* Zoom indicator */}
-          <div className="absolute top-4 right-4 bg-black/60 text-white px-3 py-1.5 rounded-full text-sm font-medium backdrop-blur-sm">
-            {Math.round(scale * 100)}%
-          </div>
-          
-          {/* Instructions overlay */}
-          <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black/60 text-white px-4 py-2 rounded-full text-sm font-medium backdrop-blur-sm">
-            {initialSetupComplete ? 'Pinch to zoom • Drag to move' : 'Loading...'}
-          </div>
         </div>
 
-        {/* Quick action buttons */}
-        <div className="flex items-center justify-center space-x-6 mt-6">
+        {/* Edit mode tabs */}
+        <div className="flex items-center justify-center space-x-2 mt-4 bg-gray-900 rounded-full p-1">
           <button
-            onClick={() => setScale(prev => Math.max(0.3, prev - 0.15))}
-            className="w-12 h-12 bg-gray-800 text-white rounded-full text-xl font-bold hover:bg-gray-700 active:bg-gray-900 transition-colors shadow-lg touch-manipulation"
+            onClick={() => setEditMode('crop')}
+            className={`px-4 py-2 rounded-full text-sm font-medium transition-colors touch-manipulation min-h-[40px] ${
+              editMode === 'crop' ? 'bg-white text-black' : 'text-white hover:bg-gray-800'
+            }`}
           >
-            −
+            <Crop className="w-4 h-4 mr-1 inline" />
+            Crop
           </button>
           <button
-            onClick={resetToOptimalCrop}
-            className="px-6 py-3 bg-white text-black rounded-full text-sm font-semibold hover:bg-gray-100 active:bg-gray-200 transition-colors shadow-lg touch-manipulation"
+            onClick={() => setEditMode('text')}
+            className={`px-4 py-2 rounded-full text-sm font-medium transition-colors touch-manipulation min-h-[40px] ${
+              editMode === 'text' ? 'bg-white text-black' : 'text-white hover:bg-gray-800'
+            }`}
           >
-            Reset
+            <Type className="w-4 h-4 mr-1 inline" />
+            Text
           </button>
           <button
-            onClick={() => setScale(prev => Math.min(4, prev + 0.15))}
-            className="w-12 h-12 bg-gray-800 text-white rounded-full text-xl font-bold hover:bg-gray-700 active:bg-gray-900 transition-colors shadow-lg touch-manipulation"
+            onClick={() => setEditMode('adjust')}
+            className={`px-4 py-2 rounded-full text-sm font-medium transition-colors touch-manipulation min-h-[40px] ${
+              editMode === 'adjust' ? 'bg-white text-black' : 'text-white hover:bg-gray-800'
+            }`}
           >
-            +
+            <Sun className="w-4 h-4 mr-1 inline" />
+            Adjust
           </button>
+        </div>
+
+        {/* Edit controls */}
+        <div className="w-full max-w-md mt-4 px-4">
+          {editMode === 'crop' && (
+            <div className="flex items-center justify-center space-x-4">
+              <button
+                onClick={() => setScale(prev => Math.max(0.3, prev - 0.15))}
+                className="w-12 h-12 bg-gray-800 text-white rounded-full text-xl font-bold hover:bg-gray-700 active:bg-gray-900 transition-colors shadow-lg touch-manipulation"
+              >
+                −
+              </button>
+              <button
+                onClick={resetToOptimalCrop}
+                className="px-6 py-3 bg-white text-black rounded-full text-sm font-semibold hover:bg-gray-100 active:bg-gray-200 transition-colors shadow-lg touch-manipulation"
+              >
+                Reset
+              </button>
+              <button
+                onClick={() => setScale(prev => Math.min(4, prev + 0.15))}
+                className="w-12 h-12 bg-gray-800 text-white rounded-full text-xl font-bold hover:bg-gray-700 active:bg-gray-900 transition-colors shadow-lg touch-manipulation"
+              >
+                +
+              </button>
+            </div>
+          )}
+
+          {editMode === 'text' && (
+            <div className="space-y-4">
+              <div className="flex space-x-2">
+                <Input
+                  value={textInput}
+                  onChange={(e) => setTextInput(e.target.value)}
+                  placeholder="Add text..."
+                  className="flex-1 bg-gray-800 text-white border-gray-600 min-h-[48px] touch-manipulation"
+                />
+                <Button
+                  onClick={handleAddText}
+                  className="bg-blue-500 hover:bg-blue-600 min-h-[48px] touch-manipulation"
+                >
+                  Add
+                </Button>
+              </div>
+              <p className="text-white/70 text-sm text-center">
+                {textElements.length} text element(s) added
+              </p>
+            </div>
+          )}
+
+          {editMode === 'adjust' && (
+            <div className="space-y-4">
+              <div>
+                <label className="text-white text-sm mb-2 block">Brightness</label>
+                <Slider
+                  value={[brightness]}
+                  onValueChange={(value) => setBrightness(value[0])}
+                  min={50}
+                  max={150}
+                  step={1}
+                  className="w-full"
+                />
+              </div>
+              <div>
+                <label className="text-white text-sm mb-2 block">Contrast</label>
+                <Slider
+                  value={[contrast]}
+                  onValueChange={(value) => setContrast(value[0])}
+                  min={50}
+                  max={150}
+                  step={1}
+                  className="w-full"
+                />
+              </div>
+              <div>
+                <label className="text-white text-sm mb-2 block">Saturation</label>
+                <Slider
+                  value={[saturation]}
+                  onValueChange={(value) => setSaturation(value[0])}
+                  min={0}
+                  max={200}
+                  step={1}
+                  className="w-full"
+                />
+              </div>
+              <button
+                onClick={resetFilters}
+                className="w-full px-4 py-3 bg-gray-800 text-white rounded-full text-sm font-semibold hover:bg-gray-700 transition-colors touch-manipulation"
+              >
+                Reset Filters
+              </button>
+            </div>
+          )}
         </div>
       </div>
 

@@ -142,22 +142,22 @@ const StoryViewer = ({
     }
   };
 
-  // Handle close with proper event stopping
-  const handleClose = (e?: React.MouseEvent) => {
+  // Fixed close handler with proper event handling
+  const handleClose = (e?: React.MouseEvent | React.TouchEvent) => {
     if (e) {
       e.preventDefault();
       e.stopPropagation();
     }
-    console.log('Story viewer closing');
+    console.log('Story viewer closing properly');
     onClose();
   };
 
   if (!currentStory) return null;
 
   return (
-    <div className="fixed inset-0 bg-black z-50 flex items-center justify-center">
+    <div className="fixed inset-0 bg-black z-50 flex flex-col">
       {/* Progress bars */}
-      <div className="absolute top-4 left-4 right-4 flex space-x-1 z-10">
+      <div className="absolute top-2 left-4 right-4 flex space-x-1 z-20">
         {currentStory.content.map((_, index) => (
           <div key={index} className="flex-1 h-1 bg-white/30 rounded-full overflow-hidden">
             <div 
@@ -172,7 +172,7 @@ const StoryViewer = ({
       </div>
 
       {/* Story header */}
-      <div className="absolute top-8 left-4 right-4 flex items-center justify-between z-10 mt-4">
+      <div className="absolute top-6 left-4 right-4 flex items-center justify-between z-20">
         <div className="flex items-center space-x-3">
           <div className="w-10 h-10 rounded-full overflow-hidden ring-2 ring-white/50">
             {currentStory.avatar ? (
@@ -193,7 +193,7 @@ const StoryViewer = ({
             variant="ghost" 
             size="sm" 
             onClick={() => setShowAIGenerator(!showAIGenerator)}
-            className="text-white hover:bg-white/20 backdrop-blur-sm bg-black/20 border border-white/20 rounded-full p-2"
+            className="text-white hover:bg-white/20 backdrop-blur-sm bg-black/20 border border-white/20 rounded-full p-2 min-h-[44px] min-w-[44px] touch-manipulation"
           >
             <Wand2 className="w-5 h-5" />
           </Button>
@@ -201,21 +201,21 @@ const StoryViewer = ({
             variant="ghost" 
             size="sm" 
             onClick={handleClose}
-            className="text-white hover:bg-white/20 backdrop-blur-sm bg-black/20 border border-white/20 rounded-full p-2"
+            className="text-white hover:bg-white/20 backdrop-blur-sm bg-black/20 border border-white/20 rounded-full p-2 min-h-[44px] min-w-[44px] touch-manipulation"
           >
-            <X className="w-5 h-5" />
+            <X className="w-6 h-6" />
           </Button>
         </div>
       </div>
 
-      {/* Story content - Properly fitted for 9:16 aspect ratio */}
-      <div className="relative w-full h-full max-w-md mx-auto flex items-center justify-center">
+      {/* Story content - Fixed sizing for proper mobile display */}
+      <div className="flex-1 relative flex items-center justify-center bg-black">
         <div 
-          className="absolute left-0 top-0 w-1/3 h-full z-10 cursor-pointer"
+          className="absolute left-0 top-0 w-1/3 h-full z-10 cursor-pointer touch-manipulation"
           onClick={handlePreviousContent}
         />
         <div 
-          className="absolute right-0 top-0 w-1/3 h-full z-10 cursor-pointer"
+          className="absolute right-0 top-0 w-1/3 h-full z-10 cursor-pointer touch-manipulation"
           onClick={handleNextContent}
         />
         
@@ -223,13 +223,11 @@ const StoryViewer = ({
           <video 
             src={currentContent.url} 
             className="w-full h-full object-cover"
-            style={{ aspectRatio: '9/16' }}
             autoPlay
             muted
             loop
-            onError={(e) => {
-              console.error('Video failed to load:', currentContent.url);
-            }}
+            playsInline
+            onError={() => console.error('Video failed to load:', currentContent.url)}
           />
         ) : (
           <div className="relative w-full h-full bg-black flex items-center justify-center">
@@ -238,7 +236,6 @@ const StoryViewer = ({
               alt="Story content"
               className="w-full h-full object-cover"
               style={{ 
-                aspectRatio: '9/16',
                 objectFit: 'cover',
                 objectPosition: 'center'
               }}
@@ -249,11 +246,11 @@ const StoryViewer = ({
                 target.alt = 'Failed to load image';
               }}
               onLoad={() => {
-                console.log('Image loaded successfully:', currentContent?.url?.substring(0, 50) + '...');
+                console.log('Image loaded successfully');
               }}
             />
             {currentContent?.prompt && (
-              <div className="absolute bottom-24 left-4 right-4">
+              <div className="absolute bottom-32 left-4 right-4">
                 <Badge variant="secondary" className="bg-black/60 text-white backdrop-blur-sm border border-white/20">
                   AI Generated: {currentContent.prompt}
                 </Badge>
@@ -263,12 +260,12 @@ const StoryViewer = ({
         )}
       </div>
 
-      {/* Navigation arrows */}
+      {/* Navigation arrows - improved touch targets */}
       <Button
         variant="ghost"
         size="sm"
         onClick={onPrevious}
-        className="absolute left-4 top-1/2 transform -translate-y-1/2 text-white hover:bg-white/20 backdrop-blur-sm bg-black/20 border border-white/20 rounded-full p-3"
+        className="absolute left-4 top-1/2 transform -translate-y-1/2 text-white hover:bg-white/20 backdrop-blur-sm bg-black/20 border border-white/20 rounded-full p-3 min-h-[50px] min-w-[50px] touch-manipulation z-10"
       >
         <ChevronLeft className="w-6 h-6" />
       </Button>
@@ -276,27 +273,27 @@ const StoryViewer = ({
         variant="ghost"
         size="sm"
         onClick={onNext}
-        className="absolute right-4 top-1/2 transform -translate-y-1/2 text-white hover:bg-white/20 backdrop-blur-sm bg-black/20 border border-white/20 rounded-full p-3"
+        className="absolute right-4 top-1/2 transform -translate-y-1/2 text-white hover:bg-white/20 backdrop-blur-sm bg-black/20 border border-white/20 rounded-full p-3 min-h-[50px] min-w-[50px] touch-manipulation z-10"
       >
         <ChevronRight className="w-6 h-6" />
       </Button>
 
       {/* AI Generator Panel */}
       {showAIGenerator && (
-        <div className="absolute bottom-24 left-4 right-4 bg-black/90 backdrop-blur-lg rounded-lg p-4 border border-white/20">
+        <div className="absolute bottom-32 left-4 right-4 bg-black/90 backdrop-blur-lg rounded-lg p-4 border border-white/20 z-20">
           <h3 className="text-white font-semibold mb-3 text-center">Generate AI Content</h3>
           <Textarea
             value={aiPrompt}
             onChange={(e) => setAiPrompt(e.target.value)}
             placeholder="Describe what you want to generate..."
-            className="mb-3 bg-white/10 text-white placeholder-white/60 border-white/20 focus:border-white/40"
+            className="mb-3 bg-white/10 text-white placeholder-white/60 border-white/20 focus:border-white/40 min-h-[48px] touch-manipulation"
             rows={2}
           />
           <div className="flex space-x-3">
             <Button
               onClick={() => generateAIContent('image')}
               disabled={isGenerating}
-              className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90 min-h-[44px]"
+              className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90 min-h-[48px] touch-manipulation"
             >
               {isGenerating ? (
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
@@ -308,7 +305,7 @@ const StoryViewer = ({
             <Button
               onClick={() => generateAIContent('video')}
               disabled={isGenerating}
-              className="flex-1 bg-white/20 text-white hover:bg-white/30 backdrop-blur-sm border border-white/20 min-h-[44px]"
+              className="flex-1 bg-white/20 text-white hover:bg-white/30 backdrop-blur-sm border border-white/20 min-h-[48px] touch-manipulation"
             >
               {isGenerating ? (
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
@@ -321,20 +318,20 @@ const StoryViewer = ({
         </div>
       )}
 
-      {/* Story interactions */}
-      <div className="absolute bottom-4 left-4 right-4 flex items-center justify-between">
+      {/* Story interactions - positioned at bottom */}
+      <div className="absolute bottom-6 left-4 right-4 flex items-center justify-between z-20">
         <div className="flex items-center space-x-4">
           <Button 
             variant="ghost" 
             size="sm" 
-            className="text-white hover:bg-white/20 backdrop-blur-sm bg-black/20 border border-white/20 rounded-full p-2"
+            className="text-white hover:bg-white/20 backdrop-blur-sm bg-black/20 border border-white/20 rounded-full p-2 min-h-[44px] min-w-[44px] touch-manipulation"
           >
             <Heart className="w-5 h-5" />
           </Button>
           <Button 
             variant="ghost" 
             size="sm" 
-            className="text-white hover:bg-white/20 backdrop-blur-sm bg-black/20 border border-white/20 rounded-full p-2"
+            className="text-white hover:bg-white/20 backdrop-blur-sm bg-black/20 border border-white/20 rounded-full p-2 min-h-[44px] min-w-[44px] touch-manipulation"
           >
             <MessageCircle className="w-5 h-5" />
           </Button>
@@ -342,12 +339,12 @@ const StoryViewer = ({
         <div className="flex items-center space-x-2 flex-1 max-w-xs">
           <Input 
             placeholder="Send message..."
-            className="bg-black/40 backdrop-blur-sm border-white/20 text-white placeholder-white/60 focus:border-white/40"
+            className="bg-black/40 backdrop-blur-sm border-white/20 text-white placeholder-white/60 focus:border-white/40 min-h-[44px] touch-manipulation"
           />
           <Button 
             variant="ghost" 
             size="sm" 
-            className="text-white hover:bg-white/20 backdrop-blur-sm bg-black/20 border border-white/20 rounded-full p-2"
+            className="text-white hover:bg-white/20 backdrop-blur-sm bg-black/20 border border-white/20 rounded-full p-2 min-h-[44px] min-w-[44px] touch-manipulation"
           >
             <Send className="w-4 h-4" />
           </Button>
