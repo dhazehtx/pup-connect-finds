@@ -62,7 +62,7 @@ const StoryViewer = ({
   useEffect(() => {
     if (!currentContent) return;
 
-    const duration = currentContent.type === 'video' ? 15000 : 5000; // 15s for video, 5s for image
+    const duration = currentContent.type === 'video' ? 15000 : 5000;
     const interval = setInterval(() => {
       setProgress(prev => {
         if (prev >= 100) {
@@ -109,14 +109,11 @@ const StoryViewer = ({
 
     setIsGenerating(true);
     try {
-      // For demo purposes, we'll generate an image description
       const response = await generateAIResponse(
         `Generate a detailed description for a ${type} about: ${aiPrompt}. Make it engaging for a social media story.`,
         { type: 'general' }
       );
 
-      // In a real implementation, you would call an image/video generation API here
-      // For now, we'll use a placeholder with the generated description
       const newContent = {
         type: 'ai-generated' as const,
         url: type === 'image' 
@@ -125,7 +122,6 @@ const StoryViewer = ({
         prompt: aiPrompt
       };
 
-      // Add to current story (in a real app, this would save to backend)
       currentStory.content.push(newContent);
       
       toast({
@@ -144,6 +140,11 @@ const StoryViewer = ({
     } finally {
       setIsGenerating(false);
     }
+  };
+
+  // Handle close with proper callback
+  const handleClose = () => {
+    onClose();
   };
 
   if (!currentStory) return null;
@@ -194,7 +195,7 @@ const StoryViewer = ({
           <Button 
             variant="ghost" 
             size="sm" 
-            onClick={onClose} 
+            onClick={handleClose}
             className="text-white hover:bg-white/20 backdrop-blur-sm bg-black/20 border border-white/20 rounded-full p-2"
           >
             <X className="w-5 h-5" />
@@ -202,8 +203,8 @@ const StoryViewer = ({
         </div>
       </div>
 
-      {/* Story content */}
-      <div className="relative w-full max-w-md h-full flex items-center justify-center">
+      {/* Story content - Properly fitted for 9:16 aspect ratio */}
+      <div className="relative w-full h-full max-w-md mx-auto flex items-center justify-center">
         <div 
           className="absolute left-0 top-0 w-1/3 h-full z-10 cursor-pointer"
           onClick={handlePreviousContent}
@@ -217,6 +218,7 @@ const StoryViewer = ({
           <video 
             src={currentContent.url} 
             className="w-full h-full object-cover"
+            style={{ aspectRatio: '9/16' }}
             autoPlay
             muted
             loop
@@ -227,6 +229,7 @@ const StoryViewer = ({
               src={currentContent?.url} 
               alt="Story content"
               className="w-full h-full object-cover"
+              style={{ aspectRatio: '9/16' }}
             />
             {currentContent?.prompt && (
               <div className="absolute bottom-24 left-4 right-4">
@@ -239,7 +242,7 @@ const StoryViewer = ({
         )}
       </div>
 
-      {/* Navigation arrows - Enhanced visibility */}
+      {/* Navigation arrows */}
       <Button
         variant="ghost"
         size="sm"
@@ -257,7 +260,7 @@ const StoryViewer = ({
         <ChevronRight className="w-6 h-6" />
       </Button>
 
-      {/* AI Generator Panel - Enhanced visibility */}
+      {/* AI Generator Panel */}
       {showAIGenerator && (
         <div className="absolute bottom-24 left-4 right-4 bg-black/90 backdrop-blur-lg rounded-lg p-4 border border-white/20">
           <h3 className="text-white font-semibold mb-3 text-center">Generate AI Content</h3>
@@ -297,7 +300,7 @@ const StoryViewer = ({
         </div>
       )}
 
-      {/* Story interactions - Enhanced visibility */}
+      {/* Story interactions */}
       <div className="absolute bottom-4 left-4 right-4 flex items-center justify-between">
         <div className="flex items-center space-x-4">
           <Button 
