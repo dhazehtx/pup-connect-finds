@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -29,9 +30,8 @@ export const useFavorites = () => {
 
   const {
     data: favorites,
-    updateData: setFavorites,
-    executeOptimistic,
-    isPending
+    setData: setFavorites,
+    executeOptimistic
   } = useOptimisticUpdates<Favorite>([]);
 
   // Set up polling for favorites with reduced frequency
@@ -89,10 +89,8 @@ export const useFavorites = () => {
 
   const addToFavorites = async (listingId: string) => {
     if (!user) return false;
-
-    const actionId = `add-${listingId}`;
     
-    await executeOptimistic(actionId, {
+    await executeOptimistic({
       optimisticUpdate: (currentData) => {
         // Add optimistic favorite
         setFavoriteListingIds(prev => new Set([...prev, listingId]));
@@ -104,7 +102,7 @@ export const useFavorites = () => {
         };
         return [newFavorite, ...currentData];
       },
-      serverAction: async () => {
+      operation: async () => {
         const { error } = await supabase
           .from('favorites')
           .insert([{
@@ -113,16 +111,19 @@ export const useFavorites = () => {
           }]);
         if (error) throw error;
       },
-      rollbackUpdate: (currentData) => {
+      rollback: (currentData) => {
         setFavoriteListingIds(prev => {
           const newSet = new Set(prev);
           newSet.delete(listingId);
           return newSet;
         });
         return currentData.filter(fav => fav.listing_id !== listingId || !fav.id.startsWith('temp-'));
-      },
-      successMessage: "Added to favorites!",
-      errorMessage: "Failed to add to favorites"
+      }
+    });
+
+    toast({
+      title: "Added to favorites!",
+      description: "Listing added to your favorites",
     });
 
     return true;
@@ -130,10 +131,8 @@ export const useFavorites = () => {
 
   const removeFromFavorites = async (listingId: string) => {
     if (!user) return false;
-
-    const actionId = `remove-${listingId}`;
     
-    await executeOptimistic(actionId, {
+    await executeOptimistic({
       optimisticUpdate: (currentData) => {
         // Remove optimistic favorite
         setFavoriteListingIds(prev => {
@@ -143,7 +142,7 @@ export const useFavorites = () => {
         });
         return currentData.filter(fav => fav.listing_id !== listingId);
       },
-      serverAction: async () => {
+      operation: async () => {
         const { error } = await supabase
           .from('favorites')
           .delete()
@@ -151,13 +150,16 @@ export const useFavorites = () => {
           .eq('listing_id', listingId);
         if (error) throw error;
       },
-      rollbackUpdate: (currentData) => {
+      rollback: (currentData) => {
         setFavoriteListingIds(prev => new Set([...prev, listingId]));
         // In a real app, we'd restore the favorite from cache or refetch
         return currentData;
-      },
-      successMessage: "Removed from favorites",
-      errorMessage: "Failed to remove from favorites"
+      }
+    });
+
+    toast({
+      title: "Removed from favorites",
+      description: "Listing removed from your favorites",
     });
 
     return true;
@@ -176,7 +178,8 @@ export const useFavorites = () => {
   };
 
   const isFavoritePending = (listingId: string) => {
-    return isPending(`add-${listingId}`) || isPending(`remove-${listingId}`);
+    // For now, return false since we don't have pending state tracking
+    return false;
   };
 
   useEffect(() => {
