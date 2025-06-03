@@ -35,33 +35,43 @@ const DatabaseInitializer = () => {
 
     for (const tableName of requiredTables) {
       try {
-        // Use a more specific query that works with typed tables
+        // Try to query the table with a simple count to check if it exists
         const { error } = await supabase
-          .rpc('check_table_exists', { table_name: tableName });
+          .rpc('check_table_exists', { table_name: tableName })
+          .single();
 
-        if (error) {
-          // If RPC doesn't exist, fall back to trying a select query
-          const { error: selectError } = await supabase
-            .from(tableName as any)
-            .select('*')
-            .limit(1);
+        if (error && error.code === '42883') {
+          // RPC function doesn't exist, fall back to direct table query
+          try {
+            const { error: queryError } = await supabase
+              .from(tableName as 'profiles')
+              .select('count')
+              .limit(0);
 
-          tableStatuses.push({
-            name: tableName,
-            exists: !selectError,
-            error: selectError?.message
-          });
+            tableStatuses.push({
+              name: tableName,
+              exists: !queryError,
+              error: queryError?.message
+            });
+          } catch (fallbackError) {
+            tableStatuses.push({
+              name: tableName,
+              exists: false,
+              error: 'Table not accessible'
+            });
+          }
         } else {
           tableStatuses.push({
             name: tableName,
-            exists: true
+            exists: !error,
+            error: error?.message
           });
         }
       } catch (err) {
         tableStatuses.push({
           name: tableName,
           exists: false,
-          error: 'Unknown error'
+          error: 'Connection error'
         });
       }
     }
@@ -121,6 +131,9 @@ const DatabaseInitializer = () => {
                 {missingTables.map(table => (
                   <div key={table.name} className="text-sm bg-red-50 p-2 rounded">
                     {table.name}
+                    {table.error && (
+                      <div className="text-xs text-red-600 mt-1">{table.error}</div>
+                    )}
                   </div>
                 ))}
               </div>
