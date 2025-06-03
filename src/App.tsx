@@ -25,6 +25,8 @@ function App() {
               <Route path="/" element={<Home />} />
               <Route path="/map" element={<MapView />} />
               <Route path="/location-explorer" element={<LocationExplorer />} />
+              <Route path="/explore" element={<LocationExplorer />} />
+              <Route path="/profile" element={<Profile />} />
               <Route path="/profile/:userId" element={<Profile />} />
               <Route path="/messages" element={<Messages />} />
               <Route path="/settings" element={<Settings />} />
