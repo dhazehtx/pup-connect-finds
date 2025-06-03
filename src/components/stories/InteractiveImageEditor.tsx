@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { useSwipeGestures } from '@/hooks/useSwipeGestures';
 
@@ -220,106 +219,24 @@ const InteractiveImageEditor = ({ imageUrl, onSave, onCancel }: InteractiveImage
   };
 
   return (
-    <div className="mobile-story-editor story-editor-container bg-cloud-white">
+    <div className="flex flex-col h-full max-h-screen bg-cloud-white p-4 space-y-4">
       {/* Image Editor Container - Mobile Optimized */}
-      <div className="story-editor-content flex flex-col">
+      <div className="flex-1 flex flex-col min-h-0">
         <div 
-          className="relative bg-deep-navy rounded-lg overflow-hidden flex-1" 
-          style={{ aspectRatio: '9/16', minHeight: '400px', maxHeight: 'calc(100vh - 180px)' }}
+          className="relative bg-deep-navy rounded-lg overflow-hidden flex-1 min-h-0" 
+          style={{ aspectRatio: '9/16', maxHeight: 'calc(100vh - 200px)' }}
         >
           <div
             ref={containerRef}
             className="w-full h-full relative cursor-move touch-none"
-            onTouchStart={(e) => {
-              e.preventDefault();
-              
-              if (e.touches.length === 1) {
-                setIsDragging(true);
-                setLastTouch({
-                  x: e.touches[0].clientX,
-                  y: e.touches[0].clientY
-                });
-              } else if (e.touches.length === 2) {
-                setIsDragging(false);
-                const touch1 = e.touches[0];
-                const touch2 = e.touches[1];
-                const distance = Math.sqrt(
-                  Math.pow(touch2.clientX - touch1.clientX, 2) +
-                  Math.pow(touch2.clientY - touch1.clientY, 2)
-                );
-                setLastDistance(distance);
-              }
-            }}
-            onTouchMove={(e) => {
-              e.preventDefault();
-              
-              if (e.touches.length === 1 && isDragging && lastTouch) {
-                const deltaX = e.touches[0].clientX - lastTouch.x;
-                const deltaY = e.touches[0].clientY - lastTouch.y;
-                
-                setPosition(prev => ({
-                  x: prev.x + deltaX,
-                  y: prev.y + deltaY
-                }));
-                
-                setLastTouch({
-                  x: e.touches[0].clientX,
-                  y: e.touches[0].clientY
-                });
-              } else if (e.touches.length === 2 && lastDistance > 0) {
-                const touch1 = e.touches[0];
-                const touch2 = e.touches[1];
-                const distance = Math.sqrt(
-                  Math.pow(touch2.clientX - touch1.clientX, 2) +
-                  Math.pow(touch2.clientY - touch1.clientY, 2)
-                );
-                
-                const scaleChange = distance / lastDistance;
-                setScale(prev => Math.max(0.5, Math.min(3, prev * scaleChange)));
-                setLastDistance(distance);
-              }
-            }}
-            onTouchEnd={() => {
-              setIsDragging(false);
-              setLastTouch(null);
-              setLastDistance(0);
-            }}
-            onMouseDown={(e) => {
-              setIsDragging(true);
-              setLastTouch({
-                x: e.clientX,
-                y: e.clientY
-              });
-            }}
-            onMouseMove={(e) => {
-              if (isDragging && lastTouch) {
-                const deltaX = e.clientX - lastTouch.x;
-                const deltaY = e.clientY - lastTouch.y;
-                
-                setPosition(prev => ({
-                  x: prev.x + deltaX,
-                  y: prev.y + deltaY
-                }));
-                
-                setLastTouch({
-                  x: e.clientX,
-                  y: e.clientY
-                });
-              }
-            }}
-            onMouseUp={() => {
-              setIsDragging(false);
-              setLastTouch(null);
-            }}
-            onMouseLeave={() => {
-              setIsDragging(false);
-              setLastTouch(null);
-            }}
-            onWheel={(e) => {
-              e.preventDefault();
-              const scaleChange = e.deltaY > 0 ? 0.9 : 1.1;
-              setScale(prev => Math.max(0.5, Math.min(3, prev * scaleChange)));
-            }}
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+            onMouseDown={handleMouseDown}
+            onMouseMove={handleMouseMove}
+            onMouseUp={handleMouseUp}
+            onMouseLeave={handleMouseUp}
+            onWheel={handleWheel}
           >
             <img
               ref={imageRef}
@@ -351,7 +268,7 @@ const InteractiveImageEditor = ({ imageUrl, onSave, onCancel }: InteractiveImage
         </div>
 
         {/* Controls - Mobile Optimized */}
-        <div className="flex gap-2 p-3 bg-cloud-white">
+        <div className="flex gap-2 py-3">
           <button
             onClick={() => setScale(prev => Math.max(0.5, prev - 0.1))}
             className="flex-1 px-3 py-2 bg-soft-sky text-deep-navy rounded-lg text-sm font-medium hover:bg-soft-sky/80 transition-colors"
@@ -373,22 +290,20 @@ const InteractiveImageEditor = ({ imageUrl, onSave, onCancel }: InteractiveImage
         </div>
       </div>
 
-      {/* Action buttons - Fixed at bottom with solid background for readability */}
-      <div className="story-editor-buttons bg-white border-t border-soft-sky shadow-lg">
-        <div className="flex gap-3">
-          <button
-            onClick={onCancel}
-            className="flex-1 px-4 py-3 border-2 border-soft-sky text-deep-navy hover:bg-soft-sky hover:text-deep-navy rounded-lg font-medium transition-colors bg-cloud-white"
-          >
-            Cancel
-          </button>
-          <button
-            onClick={handleSave}
-            className="flex-1 px-4 py-3 bg-royal-blue text-cloud-white hover:bg-royal-blue/90 rounded-lg font-medium transition-colors"
-          >
-            Post Story
-          </button>
-        </div>
+      {/* Action buttons - Fixed at bottom for mobile */}
+      <div className="flex gap-3 pb-safe">
+        <button
+          onClick={onCancel}
+          className="flex-1 px-4 py-3 border-2 border-soft-sky text-deep-navy hover:bg-soft-sky hover:text-deep-navy rounded-lg font-medium transition-colors bg-cloud-white"
+        >
+          Back
+        </button>
+        <button
+          onClick={handleSave}
+          className="flex-1 px-4 py-3 bg-royal-blue text-cloud-white hover:bg-royal-blue/90 rounded-lg font-medium transition-colors"
+        >
+          Post Story
+        </button>
       </div>
 
       {/* Hidden canvas for export */}
