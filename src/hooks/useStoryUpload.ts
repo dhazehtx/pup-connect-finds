@@ -20,7 +20,7 @@ export const useStoryUpload = (options: StoryUploadOptions = {}) => {
   } = options;
 
   const validateFile = (file: File): { valid: boolean; error?: string } => {
-    // Check file type (including iPhone HEIC photos)
+    // Check file type (including iPhone HEIC photos and mobile formats)
     const isValidType = allowedTypes.includes(file.type.toLowerCase()) || 
                        file.name.toLowerCase().match(/\.(jpg|jpeg|png|webp|gif|heic|heif)$/);
     
@@ -48,27 +48,30 @@ export const useStoryUpload = (options: StoryUploadOptions = {}) => {
       setUploading(true);
       setProgress(0);
 
-      // Simulate upload progress for better UX
-      const progressInterval = setInterval(() => {
-        setProgress(prev => Math.min(prev + 20, 90));
-      }, 200);
-
       // Create object URL for immediate preview
       const imageUrl = URL.createObjectURL(file);
       
-      // Complete the "upload"
-      setTimeout(() => {
-        clearInterval(progressInterval);
-        setProgress(100);
-        setUploading(false);
-        
-        toast({
-          title: "Photo Ready! 📸",
-          description: "Your image is ready to be cropped and shared",
+      // Simulate processing with progress updates for better UX
+      const progressInterval = setInterval(() => {
+        setProgress(prev => {
+          if (prev >= 90) {
+            clearInterval(progressInterval);
+            setProgress(100);
+            
+            setTimeout(() => {
+              setUploading(false);
+              toast({
+                title: "Photo Ready! 📸",
+                description: "Tap and drag to position your photo perfectly",
+              });
+              resolve(imageUrl);
+            }, 300);
+            
+            return 100;
+          }
+          return prev + 30;
         });
-        
-        resolve(imageUrl);
-      }, 1000);
+      }, 150);
     });
   };
 
@@ -84,9 +87,11 @@ export const useStoryUpload = (options: StoryUploadOptions = {}) => {
     }
 
     try {
+      console.log(`Processing ${file.type} file: ${file.name} (${(file.size / 1024 / 1024).toFixed(2)}MB)`);
       return await processImageFile(file);
     } catch (error) {
       console.error('Upload error:', error);
+      setUploading(false);
       toast({
         title: "Upload Failed",
         description: "Failed to process your image. Please try again.",
