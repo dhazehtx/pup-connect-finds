@@ -96,7 +96,7 @@ const Messages = () => {
     return (
       <div className="max-w-md mx-auto bg-white min-h-screen">
         <div className="h-screen">
-          {/* Enhanced Messaging Interface for both demo and real conversations */}
+          {/* Use Enhanced Messaging Interface for both demo and real conversations */}
           <EnhancedMessagingInterface
             conversationId={selectedConversation.id}
             otherUserName={selectedConversation.other_user?.full_name || selectedConversation.other_user?.username || 'Unknown User'}

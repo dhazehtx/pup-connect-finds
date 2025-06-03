@@ -1,3 +1,4 @@
+
 import { useEffect, useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -31,6 +32,7 @@ export const useRealtimeMessaging = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [loading, setLoading] = useState(true);
+  const [typingUsers, setTypingUsers] = useState<Set<string>>(new Set());
   const { user } = useAuth();
   const { toast } = useToast();
 
@@ -86,7 +88,7 @@ export const useRealtimeMessaging = () => {
     }
   }, [toast]);
 
-  // Send a new message (fallback for non-encrypted messages)
+  // Send a new message
   const sendMessage = useCallback(async (
     conversationId: string,
     content: string,
@@ -110,6 +112,16 @@ export const useRealtimeMessaging = () => {
         .single();
 
       if (error) throw error;
+
+      // Update conversation last message timestamp
+      await supabase
+        .from('conversations')
+        .update({ 
+          last_message_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', conversationId);
+
       return data;
     } catch (error) {
       console.error('Error sending message:', error);
@@ -178,12 +190,64 @@ export const useRealtimeMessaging = () => {
     }
   }, [user]);
 
+  // Send typing indicator
+  const sendTypingIndicator = useCallback(async (conversationId: string, isTyping: boolean) => {
+    if (!user) return;
+
+    const channel = supabase.channel(`typing-${conversationId}`);
+    await channel.send({
+      type: 'broadcast',
+      event: 'typing',
+      payload: {
+        user_id: user.id,
+        typing: isTyping,
+        timestamp: new Date().toISOString()
+      }
+    });
+  }, [user]);
+
+  // Search messages
+  const searchMessages = useCallback(async (query: string, conversationId?: string) => {
+    try {
+      let queryBuilder = supabase
+        .from('messages')
+        .select('*')
+        .ilike('content', `%${query}%`);
+
+      if (conversationId) {
+        queryBuilder = queryBuilder.eq('conversation_id', conversationId);
+      } else if (user) {
+        // Search in user's conversations only
+        const { data: userConversations } = await supabase
+          .from('conversations')
+          .select('id')
+          .or(`buyer_id.eq.${user.id},seller_id.eq.${user.id}`);
+
+        if (userConversations) {
+          const conversationIds = userConversations.map(c => c.id);
+          queryBuilder = queryBuilder.in('conversation_id', conversationIds);
+        }
+      }
+
+      const { data, error } = await queryBuilder
+        .order('created_at', { ascending: false })
+        .limit(50);
+
+      if (error) throw error;
+      return data || [];
+    } catch (error) {
+      console.error('Error searching messages:', error);
+      return [];
+    }
+  }, [user]);
+
   // Set up real-time subscriptions
   useEffect(() => {
     if (!user) return;
 
     let messagesChannel: any;
     let conversationsChannel: any;
+    let typingChannel: any;
 
     const setupRealtimeSubscriptions = () => {
       // Subscribe to new messages
@@ -230,6 +294,34 @@ export const useRealtimeMessaging = () => {
           }
         )
         .subscribe();
+
+      // Subscribe to typing indicators
+      typingChannel = supabase
+        .channel('typing-indicators')
+        .on('broadcast', { event: 'typing' }, (payload) => {
+          const { user_id, typing } = payload.payload;
+          
+          if (user_id !== user.id) {
+            setTypingUsers(prev => {
+              const newSet = new Set(prev);
+              if (typing) {
+                newSet.add(user_id);
+                // Auto-remove after 3 seconds
+                setTimeout(() => {
+                  setTypingUsers(current => {
+                    const updated = new Set(current);
+                    updated.delete(user_id);
+                    return updated;
+                  });
+                }, 3000);
+              } else {
+                newSet.delete(user_id);
+              }
+              return newSet;
+            });
+          }
+        })
+        .subscribe();
     };
 
     setupRealtimeSubscriptions();
@@ -237,6 +329,7 @@ export const useRealtimeMessaging = () => {
     return () => {
       if (messagesChannel) supabase.removeChannel(messagesChannel);
       if (conversationsChannel) supabase.removeChannel(conversationsChannel);
+      if (typingChannel) supabase.removeChannel(typingChannel);
     };
   }, [user, fetchConversations, toast]);
 
@@ -251,10 +344,13 @@ export const useRealtimeMessaging = () => {
     messages,
     conversations,
     loading,
+    typingUsers,
     fetchMessages,
     sendMessage,
     createConversation,
     markAsRead,
+    sendTypingIndicator,
+    searchMessages,
     refreshConversations: fetchConversations
   };
 };

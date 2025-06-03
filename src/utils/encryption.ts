@@ -1,39 +1,31 @@
 
-// Web Crypto API utilities for end-to-end encryption
+// Message encryption utilities using Web Crypto API
 export class MessageEncryption {
-  private static algorithm = {
-    name: 'RSA-OAEP',
-    modulusLength: 2048,
-    publicExponent: new Uint8Array([1, 0, 1]),
-    hash: 'SHA-256',
-  };
+  private static readonly ALGORITHM = 'RSA-OAEP';
+  private static readonly KEY_SIZE = 2048;
+  private static readonly HASH = 'SHA-256';
 
-  private static aesAlgorithm = {
-    name: 'AES-GCM',
-    length: 256,
-  };
-
-  // Generate a new RSA key pair for a user
+  // Generate RSA key pair for end-to-end encryption
   static async generateKeyPair(): Promise<{
     publicKey: CryptoKey;
     privateKey: CryptoKey;
     publicKeyPem: string;
     fingerprint: string;
   }> {
-    const keyPair = await crypto.subtle.generateKey(
-      this.algorithm,
+    const keyPair = await window.crypto.subtle.generateKey(
+      {
+        name: this.ALGORITHM,
+        modulusLength: this.KEY_SIZE,
+        publicExponent: new Uint8Array([1, 0, 1]),
+        hash: this.HASH,
+      },
       true,
       ['encrypt', 'decrypt']
     );
 
-    const publicKeyBuffer = await crypto.subtle.exportKey('spki', keyPair.publicKey);
-    const publicKeyPem = this.arrayBufferToPem(publicKeyBuffer, 'PUBLIC KEY');
-    
-    // Create fingerprint from public key
-    const publicKeyHash = await crypto.subtle.digest('SHA-256', publicKeyBuffer);
-    const fingerprint = Array.from(new Uint8Array(publicKeyHash))
-      .map(b => b.toString(16).padStart(2, '0'))
-      .join('');
+    const publicKeyBuffer = await window.crypto.subtle.exportKey('spki', keyPair.publicKey);
+    const publicKeyPem = this.arrayBufferToBase64(publicKeyBuffer);
+    const fingerprint = await this.generateFingerprint(publicKeyBuffer);
 
     return {
       publicKey: keyPair.publicKey,
@@ -43,46 +35,52 @@ export class MessageEncryption {
     };
   }
 
-  // Import a public key from PEM format
-  static async importPublicKey(publicKeyPem: string): Promise<CryptoKey> {
-    const publicKeyBuffer = this.pemToArrayBuffer(publicKeyPem, 'PUBLIC KEY');
-    return await crypto.subtle.importKey(
+  // Import public key from PEM format
+  static async importPublicKey(pemKey: string): Promise<CryptoKey> {
+    const keyBuffer = this.base64ToArrayBuffer(pemKey);
+    return await window.crypto.subtle.importKey(
       'spki',
-      publicKeyBuffer,
-      this.algorithm,
-      false,
+      keyBuffer,
+      {
+        name: this.ALGORITHM,
+        hash: this.HASH,
+      },
+      true,
       ['encrypt']
     );
   }
 
-  // Encrypt a message using hybrid encryption (RSA + AES)
-  static async encryptMessage(message: string, recipientPublicKey: CryptoKey): Promise<{
+  // Encrypt message with recipient's public key
+  static async encryptMessage(
+    message: string,
+    recipientPublicKey: CryptoKey
+  ): Promise<{
     encryptedMessage: string;
     encryptedKey: string;
     iv: string;
   }> {
     // Generate AES key for message encryption
-    const aesKey = await crypto.subtle.generateKey(
-      this.aesAlgorithm,
+    const aesKey = await window.crypto.subtle.generateKey(
+      { name: 'AES-GCM', length: 256 },
       true,
       ['encrypt', 'decrypt']
     );
 
-    // Generate random IV
-    const iv = crypto.getRandomValues(new Uint8Array(12));
+    // Generate IV
+    const iv = window.crypto.getRandomValues(new Uint8Array(12));
 
     // Encrypt message with AES
     const encodedMessage = new TextEncoder().encode(message);
-    const encryptedMessageBuffer = await crypto.subtle.encrypt(
+    const encryptedMessageBuffer = await window.crypto.subtle.encrypt(
       { name: 'AES-GCM', iv },
       aesKey,
       encodedMessage
     );
 
-    // Export AES key and encrypt it with recipient's public key
-    const aesKeyBuffer = await crypto.subtle.exportKey('raw', aesKey);
-    const encryptedKeyBuffer = await crypto.subtle.encrypt(
-      this.algorithm,
+    // Export AES key and encrypt with RSA
+    const aesKeyBuffer = await window.crypto.subtle.exportKey('raw', aesKey);
+    const encryptedKeyBuffer = await window.crypto.subtle.encrypt(
+      { name: this.ALGORITHM },
       recipientPublicKey,
       aesKeyBuffer
     );
@@ -94,112 +92,109 @@ export class MessageEncryption {
     };
   }
 
-  // Decrypt a message using the user's private key
+  // Decrypt message with private key
   static async decryptMessage(
     encryptedMessage: string,
     encryptedKey: string,
     iv: string,
     privateKey: CryptoKey
   ): Promise<string> {
-    try {
-      // Decrypt AES key with private key
-      const encryptedKeyBuffer = this.base64ToArrayBuffer(encryptedKey);
-      const aesKeyBuffer = await crypto.subtle.decrypt(
-        this.algorithm,
-        privateKey,
-        encryptedKeyBuffer
-      );
+    // Decrypt AES key with RSA
+    const encryptedKeyBuffer = this.base64ToArrayBuffer(encryptedKey);
+    const aesKeyBuffer = await window.crypto.subtle.decrypt(
+      { name: this.ALGORITHM },
+      privateKey,
+      encryptedKeyBuffer
+    );
 
-      // Import decrypted AES key
-      const aesKey = await crypto.subtle.importKey(
-        'raw',
-        aesKeyBuffer,
-        this.aesAlgorithm,
-        false,
-        ['decrypt']
-      );
+    // Import AES key
+    const aesKey = await window.crypto.subtle.importKey(
+      'raw',
+      aesKeyBuffer,
+      { name: 'AES-GCM' },
+      false,
+      ['decrypt']
+    );
 
-      // Decrypt message with AES key
-      const encryptedMessageBuffer = this.base64ToArrayBuffer(encryptedMessage);
-      const ivBuffer = this.base64ToArrayBuffer(iv);
-      
-      const decryptedMessageBuffer = await crypto.subtle.decrypt(
-        { name: 'AES-GCM', iv: ivBuffer },
-        aesKey,
-        encryptedMessageBuffer
-      );
+    // Decrypt message
+    const encryptedMessageBuffer = this.base64ToArrayBuffer(encryptedMessage);
+    const ivBuffer = this.base64ToArrayBuffer(iv);
+    const decryptedBuffer = await window.crypto.subtle.decrypt(
+      { name: 'AES-GCM', iv: ivBuffer },
+      aesKey,
+      encryptedMessageBuffer
+    );
 
-      return new TextDecoder().decode(decryptedMessageBuffer);
-    } catch (error) {
-      console.error('Decryption failed:', error);
-      return '[Encrypted message - unable to decrypt]';
-    }
+    return new TextDecoder().decode(decryptedBuffer);
   }
 
   // Store private key in IndexedDB
   static async storePrivateKey(userId: string, privateKey: CryptoKey): Promise<void> {
+    const request = indexedDB.open('MessageEncryption', 1);
+    
     return new Promise((resolve, reject) => {
-      const request = indexedDB.open('EncryptionKeys', 1);
-      
       request.onerror = () => reject(request.error);
-      request.onsuccess = () => {
+      request.onsuccess = async () => {
         const db = request.result;
-        const transaction = db.transaction(['privateKeys'], 'readwrite');
-        const store = transaction.objectStore('privateKeys');
+        const transaction = db.transaction(['keys'], 'readwrite');
+        const store = transaction.objectStore('keys');
         
-        store.put({ userId, privateKey });
+        const exportedKey = await window.crypto.subtle.exportKey('jwk', privateKey);
+        store.put({ userId, privateKey: exportedKey });
+        
         transaction.oncomplete = () => resolve();
         transaction.onerror = () => reject(transaction.error);
       };
       
       request.onupgradeneeded = () => {
         const db = request.result;
-        if (!db.objectStoreNames.contains('privateKeys')) {
-          db.createObjectStore('privateKeys', { keyPath: 'userId' });
-        }
+        db.createObjectStore('keys', { keyPath: 'userId' });
       };
     });
   }
 
   // Retrieve private key from IndexedDB
   static async getPrivateKey(userId: string): Promise<CryptoKey | null> {
+    const request = indexedDB.open('MessageEncryption', 1);
+    
     return new Promise((resolve, reject) => {
-      const request = indexedDB.open('EncryptionKeys', 1);
-      
       request.onerror = () => reject(request.error);
       request.onsuccess = () => {
         const db = request.result;
-        const transaction = db.transaction(['privateKeys'], 'readonly');
-        const store = transaction.objectStore('privateKeys');
-        
+        const transaction = db.transaction(['keys'], 'readonly');
+        const store = transaction.objectStore('keys');
         const getRequest = store.get(userId);
-        getRequest.onsuccess = () => {
-          resolve(getRequest.result?.privateKey || null);
+        
+        getRequest.onsuccess = async () => {
+          if (getRequest.result) {
+            try {
+              const privateKey = await window.crypto.subtle.importKey(
+                'jwk',
+                getRequest.result.privateKey,
+                {
+                  name: this.ALGORITHM,
+                  hash: this.HASH,
+                },
+                false,
+                ['decrypt']
+              );
+              resolve(privateKey);
+            } catch (error) {
+              resolve(null);
+            }
+          } else {
+            resolve(null);
+          }
         };
-        getRequest.onerror = () => reject(getRequest.error);
+        getRequest.onerror = () => resolve(null);
       };
     });
-  }
-
-  // Utility methods
-  private static arrayBufferToPem(buffer: ArrayBuffer, type: string): string {
-    const base64 = this.arrayBufferToBase64(buffer);
-    const formatted = base64.match(/.{1,64}/g)?.join('\n') || base64;
-    return `-----BEGIN ${type}-----\n${formatted}\n-----END ${type}-----`;
-  }
-
-  private static pemToArrayBuffer(pem: string, type: string): ArrayBuffer {
-    const base64 = pem
-      .replace(`-----BEGIN ${type}-----`, '')
-      .replace(`-----END ${type}-----`, '')
-      .replace(/\s/g, '');
-    return this.base64ToArrayBuffer(base64);
   }
 
   private static arrayBufferToBase64(buffer: ArrayBuffer): string {
     const bytes = new Uint8Array(buffer);
     let binary = '';
-    for (let i = 0; i < bytes.byteLength; i++) {
+    for (let i = 0; i < bytes.length; i++) {
       binary += String.fromCharCode(bytes[i]);
     }
     return btoa(binary);
@@ -207,10 +202,20 @@ export class MessageEncryption {
 
   private static base64ToArrayBuffer(base64: string): ArrayBuffer {
     const binary = atob(base64);
-    const bytes = new Uint8Array(binary.length);
+    const buffer = new ArrayBuffer(binary.length);
+    const bytes = new Uint8Array(buffer);
     for (let i = 0; i < binary.length; i++) {
       bytes[i] = binary.charCodeAt(i);
     }
-    return bytes.buffer;
+    return buffer;
+  }
+
+  private static async generateFingerprint(publicKeyBuffer: ArrayBuffer): Promise<string> {
+    const hashBuffer = await window.crypto.subtle.digest('SHA-256', publicKeyBuffer);
+    const hashArray = new Uint8Array(hashBuffer);
+    return Array.from(hashArray)
+      .map(b => b.toString(16).padStart(2, '0'))
+      .join('')
+      .substring(0, 16);
   }
 }
