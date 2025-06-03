@@ -48,7 +48,7 @@ export const useStoryUpload = (options: StoryUploadOptions = {}) => {
       setUploading(true);
       setProgress(0);
 
-      // Create object URL for immediate preview
+      // Create object URL for immediate preview - NO CROPPING, preserve original
       const imageUrl = URL.createObjectURL(file);
       
       // Simulate processing with progress updates for better UX
@@ -62,7 +62,7 @@ export const useStoryUpload = (options: StoryUploadOptions = {}) => {
               setUploading(false);
               toast({
                 title: "Photo Ready! 📸",
-                description: "Tap and drag to position your photo perfectly",
+                description: "Your image has been uploaded and will fit perfectly in your story",
               });
               resolve(imageUrl);
             }, 300);
@@ -87,7 +87,7 @@ export const useStoryUpload = (options: StoryUploadOptions = {}) => {
     }
 
     try {
-      console.log(`Processing ${file.type} file: ${file.name} (${(file.size / 1024 / 1024).toFixed(2)}MB)`);
+      console.log(`Processing ${file.type} file: ${file.name} (${(file.size / 1024 / 1024).toFixed(2)}MB) - preserving original aspect ratio`);
       return await processImageFile(file);
     } catch (error) {
       console.error('Upload error:', error);
