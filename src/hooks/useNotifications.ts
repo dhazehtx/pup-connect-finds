@@ -1,150 +1,188 @@
 
 import { useState, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
+import { useRealtimeData } from './useRealtimeData';
 
 interface Notification {
   id: string;
+  type: 'message' | 'listing_interest' | 'verification_update' | 'payment_confirmation' | 'system';
   title: string;
   message: string;
-  type: 'info' | 'success' | 'warning' | 'error';
-  timestamp: Date;
-  read: boolean;
-  actionUrl?: string;
+  related_id?: string;
+  sender_id?: string;
+  is_read: boolean;
+  action_url?: string;
+  metadata: any;
+  created_at: string;
+  sender_profile?: {
+    full_name: string;
+    username: string;
+    avatar_url: string;
+  };
 }
 
 export const useNotifications = () => {
+  const { user } = useAuth();
   const [notifications, setNotifications] = useState<Notification[]>([]);
-  const [permission, setPermission] = useState<NotificationPermission>('default');
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    // Check notification permission
-    if ('Notification' in window) {
-      setPermission(Notification.permission);
-    }
-
-    // Load saved notifications from localStorage
-    const saved = localStorage.getItem('notifications');
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved).map((n: any) => ({
-          ...n,
-          timestamp: new Date(n.timestamp)
-        }));
-        setNotifications(parsed);
-      } catch (error) {
-        console.error('Failed to load notifications:', error);
+  // Real-time updates for new notifications
+  useRealtimeData({
+    table: 'notifications',
+    filter: user ? `user_id=eq.${user.id}` : undefined,
+    onInsert: (payload) => {
+      if (payload.new && payload.new.user_id === user?.id) {
+        fetchNotifications(); // Refetch to get sender profile data
+        
+        // Show browser notification if permission granted
+        if (Notification.permission === 'granted') {
+          new Notification(payload.new.title, {
+            body: payload.new.message,
+            icon: '/favicon.ico'
+          });
+        }
+      }
+    },
+    onUpdate: (payload) => {
+      if (payload.new && payload.new.user_id === user?.id) {
+        setNotifications(prev => prev.map(notification => 
+          notification.id === payload.new.id 
+            ? { ...notification, ...payload.new } 
+            : notification
+        ));
+        updateUnreadCount();
       }
     }
-  }, []);
+  });
+
+  const fetchNotifications = async () => {
+    if (!user) return;
+
+    try {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from('notifications')
+        .select(`
+          *,
+          sender_profile:sender_id (
+            full_name,
+            username,
+            avatar_url
+          )
+        `)
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(50);
+
+      if (error) throw error;
+
+      const formattedNotifications = data?.map(notification => ({
+        ...notification,
+        sender_profile: notification.sender_profile
+      })) || [];
+
+      setNotifications(formattedNotifications);
+      updateUnreadCount(formattedNotifications);
+    } catch (err: any) {
+      console.error('Error fetching notifications:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const updateUnreadCount = (notificationsList?: Notification[]) => {
+    const list = notificationsList || notifications;
+    const count = list.filter(n => !n.is_read).length;
+    setUnreadCount(count);
+  };
+
+  const markAsRead = async (notificationId: string) => {
+    try {
+      const { error } = await supabase
+        .from('notifications')
+        .update({ is_read: true })
+        .eq('id', notificationId)
+        .eq('user_id', user?.id);
+
+      if (error) throw error;
+
+      setNotifications(prev => prev.map(notification =>
+        notification.id === notificationId
+          ? { ...notification, is_read: true }
+          : notification
+      ));
+      updateUnreadCount();
+    } catch (err: any) {
+      console.error('Error marking notification as read:', err);
+    }
+  };
+
+  const markAllAsRead = async () => {
+    if (!user) return;
+
+    try {
+      const { error } = await supabase
+        .from('notifications')
+        .update({ is_read: true })
+        .eq('user_id', user.id)
+        .eq('is_read', false);
+
+      if (error) throw error;
+
+      setNotifications(prev => prev.map(notification => ({
+        ...notification,
+        is_read: true
+      })));
+      setUnreadCount(0);
+    } catch (err: any) {
+      console.error('Error marking all notifications as read:', err);
+    }
+  };
+
+  const deleteNotification = async (notificationId: string) => {
+    try {
+      const { error } = await supabase
+        .from('notifications')
+        .delete()
+        .eq('id', notificationId)
+        .eq('user_id', user?.id);
+
+      if (error) throw error;
+
+      setNotifications(prev => prev.filter(n => n.id !== notificationId));
+      updateUnreadCount();
+    } catch (err: any) {
+      console.error('Error deleting notification:', err);
+    }
+  };
+
+  // Request notification permission
+  const requestNotificationPermission = async () => {
+    if ('Notification' in window && Notification.permission === 'default') {
+      await Notification.requestPermission();
+    }
+  };
 
   useEffect(() => {
-    // Save notifications to localStorage
-    localStorage.setItem('notifications', JSON.stringify(notifications));
+    if (user) {
+      fetchNotifications();
+      requestNotificationPermission();
+    }
+  }, [user]);
+
+  useEffect(() => {
+    updateUnreadCount();
   }, [notifications]);
-
-  const requestPermission = async () => {
-    if ('Notification' in window) {
-      const result = await Notification.requestPermission();
-      setPermission(result);
-      return result;
-    }
-    return 'denied';
-  };
-
-  const addNotification = (notification: Omit<Notification, 'id' | 'timestamp' | 'read'>) => {
-    const newNotification: Notification = {
-      ...notification,
-      id: Date.now().toString(),
-      timestamp: new Date(),
-      read: false
-    };
-
-    setNotifications(prev => [newNotification, ...prev]);
-
-    // Show browser notification if permission granted
-    if (permission === 'granted') {
-      new Notification(notification.title, {
-        body: notification.message,
-        icon: '/favicon.ico',
-        badge: '/favicon.ico'
-      });
-    }
-
-    return newNotification;
-  };
-
-  const markAsRead = (id: string) => {
-    setNotifications(prev =>
-      prev.map(notification =>
-        notification.id === id ? { ...notification, read: true } : notification
-      )
-    );
-  };
-
-  const markAllAsRead = () => {
-    setNotifications(prev =>
-      prev.map(notification => ({ ...notification, read: true }))
-    );
-  };
-
-  const removeNotification = (id: string) => {
-    setNotifications(prev => prev.filter(notification => notification.id !== id));
-  };
-
-  const clearAll = () => {
-    setNotifications([]);
-  };
-
-  const unreadCount = notifications.filter(n => !n.read).length;
-
-  // Predefined notification types for common scenarios
-  const notifyNewMatch = (breedName: string, location: string) => {
-    addNotification({
-      title: 'New Match Found! 🐕',
-      message: `A ${breedName} is now available in ${location}`,
-      type: 'info',
-      actionUrl: '/explore'
-    });
-  };
-
-  const notifyPriceReduction = (petName: string, newPrice: string) => {
-    addNotification({
-      title: 'Price Drop! 💰',
-      message: `${petName} is now available for ${newPrice}`,
-      type: 'success'
-    });
-  };
-
-  const notifyNewMessage = (senderName: string) => {
-    addNotification({
-      title: 'New Message 💬',
-      message: `${senderName} sent you a message`,
-      type: 'info',
-      actionUrl: '/messages'
-    });
-  };
-
-  const notifyScheduledReminder = (eventType: string, petName: string) => {
-    addNotification({
-      title: 'Reminder 🔔',
-      message: `${eventType} scheduled for ${petName}`,
-      type: 'warning'
-    });
-  };
 
   return {
     notifications,
     unreadCount,
-    permission,
-    requestPermission,
-    addNotification,
+    loading,
     markAsRead,
     markAllAsRead,
-    removeNotification,
-    clearAll,
-    // Predefined notifications
-    notifyNewMatch,
-    notifyPriceReduction,
-    notifyNewMessage,
-    notifyScheduledReminder
+    deleteNotification,
+    refetch: fetchNotifications
   };
 };

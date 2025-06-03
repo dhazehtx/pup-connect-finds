@@ -1,158 +1,112 @@
 
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 
-interface UseFileUploadProps {
-  bucket: 'dog-images' | 'verification-docs';
+interface UploadOptions {
+  bucket?: string;
   folder?: string;
-  maxSizeBytes?: number;
+  maxSize?: number; // in MB
   allowedTypes?: string[];
+  purpose?: 'avatar' | 'listing' | 'story' | 'document';
 }
 
-export const useFileUpload = ({
-  bucket,
-  folder,
-  maxSizeBytes = 50 * 1024 * 1024, // 50MB default
-  allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
-}: UseFileUploadProps) => {
-  const [uploading, setUploading] = useState(false);
-  const [progress, setProgress] = useState(0);
-  const { toast } = useToast();
+export const useFileUpload = (options: UploadOptions = {}) => {
   const { user } = useAuth();
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [error, setError] = useState<string | null>(null);
 
-  const uploadFile = async (file: File): Promise<string | null> => {
+  const {
+    bucket = 'images',
+    folder = 'general',
+    maxSize = 10,
+    allowedTypes = ['image/jpeg', 'image/png', 'image/webp'],
+    purpose = 'listing'
+  } = options;
+
+  const uploadFile = async (file: File, relatedId?: string): Promise<string | null> => {
     if (!user) {
-      toast({
-        title: "Authentication required",
-        description: "Please sign in to upload files",
-        variant: "destructive",
-      });
+      setError('User must be authenticated to upload files');
       return null;
     }
 
-    // Validate file size
-    if (file.size > maxSizeBytes) {
-      toast({
-        title: "File too large",
-        description: `File size must be less than ${Math.round(maxSizeBytes / (1024 * 1024))}MB`,
-        variant: "destructive",
-      });
-      return null;
-    }
-
-    // Validate file type
-    if (!allowedTypes.includes(file.type)) {
-      toast({
-        title: "Invalid file type",
-        description: `Allowed types: ${allowedTypes.join(', ')}`,
-        variant: "destructive",
-      });
-      return null;
-    }
+    setError(null);
+    setIsUploading(true);
+    setUploadProgress(0);
 
     try {
-      setUploading(true);
-      setProgress(0);
+      // Validate file size
+      if (file.size > maxSize * 1024 * 1024) {
+        throw new Error(`File size must be less than ${maxSize}MB`);
+      }
 
-      // Create unique filename with user ID folder structure
+      // Validate file type
+      if (!allowedTypes.includes(file.type)) {
+        throw new Error(`File type must be one of: ${allowedTypes.join(', ')}`);
+      }
+
+      // Generate unique filename
       const fileExt = file.name.split('.').pop();
-      const fileName = `${user.id}/${folder ? folder + '/' : ''}${Date.now()}.${fileExt}`;
+      const fileName = `${user.id}/${folder}/${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
 
-      // Upload file to Supabase storage
-      const { data, error } = await supabase.storage
+      // Upload to Supabase Storage
+      const { data: uploadData, error: uploadError } = await supabase.storage
         .from(bucket)
         .upload(fileName, file, {
           cacheControl: '3600',
-          upsert: false,
+          upsert: false
         });
 
-      if (error) throw error;
+      if (uploadError) throw uploadError;
 
-      setProgress(100);
+      // Get public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from(bucket)
+        .getPublicUrl(fileName);
 
-      // Get public URL for public buckets
-      if (bucket === 'dog-images') {
-        const { data: urlData } = supabase.storage
-          .from(bucket)
-          .getPublicUrl(data.path);
-        
-        toast({
-          title: "Upload successful",
-          description: "File uploaded successfully",
+      // Record upload in database
+      const { error: dbError } = await supabase
+        .from('file_uploads')
+        .insert({
+          user_id: user.id,
+          file_name: file.name,
+          file_url: publicUrl,
+          file_size: file.size,
+          mime_type: file.type,
+          upload_purpose: purpose,
+          related_id: relatedId
         });
 
-        return urlData.publicUrl;
-      } else {
-        // For private buckets, return the path
-        toast({
-          title: "Upload successful", 
-          description: "File uploaded successfully",
-        });
-
-        return data.path;
+      if (dbError) {
+        console.warn('Failed to record upload in database:', dbError);
       }
-    } catch (error: any) {
-      console.error('Upload error:', error);
-      toast({
-        title: "Upload failed",
-        description: error.message || "Failed to upload file",
-        variant: "destructive",
-      });
+
+      setUploadProgress(100);
+      console.log('File uploaded successfully:', publicUrl);
+      return publicUrl;
+
+    } catch (err: any) {
+      console.error('Upload error:', err);
+      setError(err.message);
       return null;
     } finally {
-      setUploading(false);
-      setProgress(0);
+      setIsUploading(false);
     }
   };
 
-  const deleteFile = async (filePath: string): Promise<boolean> => {
-    if (!user) return false;
-
-    try {
-      const { error } = await supabase.storage
-        .from(bucket)
-        .remove([filePath]);
-
-      if (error) throw error;
-
-      toast({
-        title: "File deleted",
-        description: "File deleted successfully",
-      });
-
-      return true;
-    } catch (error: any) {
-      console.error('Delete error:', error);
-      toast({
-        title: "Delete failed",
-        description: error.message || "Failed to delete file",
-        variant: "destructive",
-      });
-      return false;
-    }
-  };
-
-  const getSignedUrl = async (filePath: string, expiresIn: number = 3600): Promise<string | null> => {
-    try {
-      const { data, error } = await supabase.storage
-        .from(bucket)
-        .createSignedUrl(filePath, expiresIn);
-
-      if (error) throw error;
-      return data.signedUrl;
-    } catch (error: any) {
-      console.error('Get signed URL error:', error);
-      return null;
-    }
+  const uploadMultiple = async (files: File[], relatedId?: string): Promise<string[]> => {
+    const results = await Promise.all(
+      files.map(file => uploadFile(file, relatedId))
+    );
+    return results.filter((url): url is string => url !== null);
   };
 
   return {
     uploadFile,
-    deleteFile,
-    getSignedUrl,
-    uploading,
-    progress
+    uploadMultiple,
+    isUploading,
+    uploadProgress,
+    error
   };
 };

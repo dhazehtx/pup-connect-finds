@@ -2,163 +2,162 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { useToast } from '@/hooks/use-toast';
+import { useRealtimeData } from './useRealtimeData';
 
 interface Story {
   id: string;
   user_id: string;
-  content_type: string;
+  content_type: 'image' | 'video' | 'ai-generated';
   content_url: string;
   caption?: string;
+  ai_prompt?: string;
+  view_count: number;
   expires_at: string;
   created_at: string;
-  user_profile?: {
-    full_name: string | null;
-    username: string | null;
-    avatar_url: string | null;
+  profile?: {
+    full_name: string;
+    username: string;
+    avatar_url: string;
   };
 }
 
 export const useStories = () => {
-  const [stories, setStories] = useState<Story[]>([]);
-  const [userStories, setUserStories] = useState<Story[]>([]);
-  const [loading, setLoading] = useState(false);
   const { user } = useAuth();
-  const { toast } = useToast();
+  const [stories, setStories] = useState<Story[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const fetchActiveStories = async () => {
+  // Real-time updates for stories
+  useRealtimeData({
+    table: 'stories',
+    onInsert: (payload) => {
+      if (payload.new) {
+        fetchStories(); // Refetch to get profile data
+      }
+    },
+    onUpdate: (payload) => {
+      if (payload.new) {
+        setStories(prev => prev.map(story => 
+          story.id === payload.new.id ? { ...story, ...payload.new } : story
+        ));
+      }
+    },
+    onDelete: (payload) => {
+      if (payload.old) {
+        setStories(prev => prev.filter(story => story.id !== payload.old.id));
+      }
+    }
+  });
+
+  const fetchStories = async () => {
     try {
       setLoading(true);
-      
-      // For now, we'll simulate stories with local storage since the table doesn't exist yet
-      const localStories = JSON.parse(localStorage.getItem('app_stories') || '[]');
-      const activeStories = localStories.filter((story: Story) => 
-        new Date(story.expires_at) > new Date()
-      );
-      
-      setStories(activeStories);
-    } catch (error) {
-      console.error('Error fetching stories:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load stories",
-        variant: "destructive",
-      });
+      const { data, error } = await supabase
+        .from('stories')
+        .select(`
+          *,
+          profiles:user_id (
+            full_name,
+            username,
+            avatar_url
+          )
+        `)
+        .gt('expires_at', new Date().toISOString())
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      const formattedStories = data?.map(story => ({
+        ...story,
+        profile: story.profiles
+      })) || [];
+
+      setStories(formattedStories);
+    } catch (err: any) {
+      console.error('Error fetching stories:', err);
+      setError(err.message);
     } finally {
       setLoading(false);
     }
   };
 
-  const fetchUserStories = async (userId?: string) => {
-    const targetUserId = userId || user?.id;
-    if (!targetUserId) return;
+  const createStory = async (
+    contentType: 'image' | 'video' | 'ai-generated',
+    contentUrl: string,
+    caption?: string,
+    aiPrompt?: string
+  ) => {
+    if (!user) throw new Error('User must be authenticated');
 
     try {
-      // For now, we'll simulate user stories with local storage
-      const localStories = JSON.parse(localStorage.getItem('app_stories') || '[]');
-      const activeUserStories = localStories.filter((story: Story) => 
-        story.user_id === targetUserId && new Date(story.expires_at) > new Date()
-      );
-      
-      setUserStories(activeUserStories);
-    } catch (error) {
-      console.error('Error fetching user stories:', error);
+      const { data, error } = await supabase
+        .from('stories')
+        .insert({
+          user_id: user.id,
+          content_type: contentType,
+          content_url: contentUrl,
+          caption,
+          ai_prompt: aiPrompt
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    } catch (err: any) {
+      console.error('Error creating story:', err);
+      throw err;
     }
   };
 
-  const createStory = async (contentUrl: string, caption?: string, contentType: string = 'image') => {
-    if (!user) {
-      toast({
-        title: "Error",
-        description: "You must be logged in to create stories",
-        variant: "destructive",
-      });
-      return null;
-    }
-
+  const viewStory = async (storyId: string) => {
     try {
-      const newStory: Story = {
-        id: Date.now().toString(),
-        user_id: user.id,
-        content_type: contentType,
-        content_url: contentUrl,
-        caption,
-        expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(), // 24 hours from now
-        created_at: new Date().toISOString()
-      };
+      const { error } = await supabase
+        .from('stories')
+        .update({ view_count: stories.find(s => s.id === storyId)?.view_count + 1 || 1 })
+        .eq('id', storyId);
 
-      // For now, store in local storage
-      const localStories = JSON.parse(localStorage.getItem('app_stories') || '[]');
-      localStories.push(newStory);
-      localStorage.setItem('app_stories', JSON.stringify(localStories));
+      if (error) throw error;
 
-      toast({
-        title: "Success",
-        description: "Story created successfully!",
-      });
-
-      // Refresh stories
-      await fetchActiveStories();
-      await fetchUserStories();
-
-      return newStory;
-    } catch (error: any) {
-      console.error('Error creating story:', error);
-      toast({
-        title: "Error",
-        description: "Failed to create story",
-        variant: "destructive",
-      });
-      return null;
+      // Update local state
+      setStories(prev => prev.map(story => 
+        story.id === storyId 
+          ? { ...story, view_count: story.view_count + 1 }
+          : story
+      ));
+    } catch (err: any) {
+      console.error('Error updating story view count:', err);
     }
   };
 
   const deleteStory = async (storyId: string) => {
-    if (!user) return false;
+    if (!user) throw new Error('User must be authenticated');
 
     try {
-      // For now, remove from local storage
-      const localStories = JSON.parse(localStorage.getItem('app_stories') || '[]');
-      const updatedStories = localStories.filter((story: Story) => 
-        story.id !== storyId || story.user_id !== user.id
-      );
-      localStorage.setItem('app_stories', JSON.stringify(updatedStories));
+      const { error } = await supabase
+        .from('stories')
+        .delete()
+        .eq('id', storyId)
+        .eq('user_id', user.id);
 
-      toast({
-        title: "Success",
-        description: "Story deleted",
-      });
-
-      // Refresh stories
-      await fetchActiveStories();
-      await fetchUserStories();
-
-      return true;
-    } catch (error: any) {
-      console.error('Error deleting story:', error);
-      toast({
-        title: "Error",
-        description: "Failed to delete story",
-        variant: "destructive",
-      });
-      return false;
+      if (error) throw error;
+    } catch (err: any) {
+      console.error('Error deleting story:', err);
+      throw err;
     }
   };
 
   useEffect(() => {
-    fetchActiveStories();
-    if (user) {
-      fetchUserStories();
-    }
-  }, [user]);
+    fetchStories();
+  }, []);
 
   return {
     stories,
-    userStories,
     loading,
+    error,
     createStory,
+    viewStory,
     deleteStory,
-    fetchActiveStories,
-    fetchUserStories
+    refetch: fetchStories
   };
 };

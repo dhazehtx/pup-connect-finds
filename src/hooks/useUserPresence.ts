@@ -1,102 +1,39 @@
-
-import { useEffect, useState, useCallback } from 'react';
-import { RealtimeChannel } from '@supabase/supabase-js';
+import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 
-export interface UserPresence {
+interface UserPresence {
   user_id: string;
-  username?: string;
-  avatar_url?: string;
-  online_at: string;
-  status: 'online' | 'away' | 'busy';
+  status: 'online' | 'away' | 'busy' | 'offline';
+  last_seen: string;
+  current_page?: string;
 }
 
-export interface PresenceState {
-  [key: string]: UserPresence[];
-}
-
-export const useUserPresence = (channelName: string = 'global-presence') => {
-  const [presenceState, setPresenceState] = useState<PresenceState>({});
+export const useUserPresence = (currentPage?: string) => {
+  const { user } = useAuth();
   const [onlineUsers, setOnlineUsers] = useState<UserPresence[]>([]);
-  const [channel, setChannel] = useState<RealtimeChannel | null>(null);
-  const { user, profile } = useAuth();
-
-  const updatePresence = useCallback(async (status: 'online' | 'away' | 'busy' = 'online') => {
-    if (!channel || !user) return;
-
-    const presenceData: UserPresence = {
-      user_id: user.id,
-      username: profile?.username || profile?.full_name || 'Anonymous',
-      avatar_url: profile?.avatar_url,
-      online_at: new Date().toISOString(),
-      status
-    };
-
-    const trackResult = await channel.track(presenceData);
-    console.log('Presence track result:', trackResult);
-  }, [channel, user, profile]);
+  const [userStatus, setUserStatus] = useState<'online' | 'away' | 'busy' | 'offline'>('offline');
 
   useEffect(() => {
     if (!user) return;
 
-    const newChannel = supabase.channel(channelName, {
-      config: {
-        presence: {
-          key: user.id,
-        },
-      },
-    });
-
-    newChannel
-      .on('presence', { event: 'sync' }, () => {
-        const state = newChannel.presenceState();
-        
-        // Transform the presence state to match our interface
-        const transformedState: PresenceState = {};
-        const users: UserPresence[] = [];
-        
-        Object.entries(state).forEach(([key, presences]) => {
-          // Type assertion since we know the structure of our tracked data
-          const typedPresences = presences as unknown as UserPresence[];
-          transformedState[key] = typedPresences;
-          typedPresences.forEach((presence) => {
-            // Ensure the presence has all required UserPresence properties
-            if (presence.user_id && presence.online_at && presence.status) {
-              users.push(presence);
-            }
-          });
+    // Update user presence when they come online
+    const updatePresence = async (status: 'online' | 'away' | 'busy' | 'offline') => {
+      try {
+        await supabase.rpc('update_user_presence', {
+          status,
+          current_page: currentPage
         });
-        
-        setPresenceState(transformedState);
-        setOnlineUsers(users);
-        
-        console.log('Presence sync:', users.length, 'users online');
-      })
-      .on('presence', { event: 'join' }, ({ key, newPresences }) => {
-        console.log('User joined:', key, newPresences);
-      })
-      .on('presence', { event: 'leave' }, ({ key, leftPresences }) => {
-        console.log('User left:', key, leftPresences);
-      })
-      .subscribe(async (status) => {
-        if (status === 'SUBSCRIBED') {
-          setChannel(newChannel);
-          // Set initial presence as online
-          await updatePresence('online');
-        }
-      });
-
-    return () => {
-      console.log('Cleaning up presence channel');
-      supabase.removeChannel(newChannel);
+        setUserStatus(status);
+      } catch (error) {
+        console.error('Failed to update presence:', error);
+      }
     };
-  }, [user, channelName]);
 
-  // Update presence when user becomes active/inactive
-  useEffect(() => {
-    if (!channel) return;
+    // Set user as online when hook initializes
+    updatePresence('online');
 
+    // Handle page visibility changes
     const handleVisibilityChange = () => {
       if (document.hidden) {
         updatePresence('away');
@@ -105,42 +42,77 @@ export const useUserPresence = (channelName: string = 'global-presence') => {
       }
     };
 
+    // Handle page unload
     const handleBeforeUnload = () => {
-      updatePresence('away');
+      navigator.sendBeacon('/api/presence', JSON.stringify({
+        user_id: user.id,
+        status: 'offline'
+      }));
     };
 
     document.addEventListener('visibilitychange', handleVisibilityChange);
     window.addEventListener('beforeunload', handleBeforeUnload);
 
+    // Subscribe to presence changes
+    const channel = supabase
+      .channel('user-presence')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'user_presence'
+        },
+        (payload) => {
+          console.log('Presence change:', payload);
+          // Update online users list
+          fetchOnlineUsers();
+        }
+      )
+      .subscribe();
+
+    // Fetch current online users
+    const fetchOnlineUsers = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('user_presence')
+          .select('*')
+          .eq('status', 'online')
+          .gt('last_seen', new Date(Date.now() - 5 * 60 * 1000).toISOString()); // Active in last 5 minutes
+
+        if (error) throw error;
+        setOnlineUsers(data || []);
+      } catch (error) {
+        console.error('Failed to fetch online users:', error);
+      }
+    };
+
+    fetchOnlineUsers();
+
+    // Heartbeat to keep presence updated
+    const heartbeat = setInterval(() => {
+      if (!document.hidden) {
+        updatePresence('online');
+      }
+    }, 30000); // Update every 30 seconds
+
     return () => {
+      updatePresence('offline');
       document.removeEventListener('visibilitychange', handleVisibilityChange);
       window.removeEventListener('beforeunload', handleBeforeUnload);
+      clearInterval(heartbeat);
+      supabase.removeChannel(channel);
     };
-  }, [channel, updatePresence]);
-
-  const getUserPresence = useCallback((userId: string): UserPresence | null => {
-    const userPresences = presenceState[userId];
-    return userPresences && userPresences.length > 0 ? userPresences[0] : null;
-  }, [presenceState]);
-
-  const isUserOnline = useCallback((userId: string): boolean => {
-    const presence = getUserPresence(userId);
-    if (!presence) return false;
-    
-    // Consider user online if they were active in the last 5 minutes
-    const lastSeen = new Date(presence.online_at);
-    const now = new Date();
-    const diffMinutes = (now.getTime() - lastSeen.getTime()) / (1000 * 60);
-    
-    return diffMinutes < 5 && presence.status !== 'away';
-  }, [getUserPresence]);
+  }, [user, currentPage]);
 
   return {
-    presenceState,
     onlineUsers,
-    updatePresence,
-    getUserPresence,
-    isUserOnline,
-    onlineCount: onlineUsers.length
+    userStatus,
+    updateStatus: (status: 'online' | 'away' | 'busy' | 'offline') => {
+      if (user) {
+        supabase.rpc('update_user_presence', { status, current_page: currentPage });
+        setUserStatus(status);
+      }
+    }
   };
 };
