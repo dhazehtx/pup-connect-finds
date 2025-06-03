@@ -29,21 +29,14 @@ export const useStories = () => {
   const fetchActiveStories = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
-        .from('stories')
-        .select(`
-          *,
-          user_profile:profiles!user_id (
-            full_name,
-            username,
-            avatar_url
-          )
-        `)
-        .gt('expires_at', new Date().toISOString())
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      setStories(data || []);
+      
+      // For now, we'll simulate stories with local storage since the table doesn't exist yet
+      const localStories = JSON.parse(localStorage.getItem('app_stories') || '[]');
+      const activeStories = localStories.filter((story: Story) => 
+        new Date(story.expires_at) > new Date()
+      );
+      
+      setStories(activeStories);
     } catch (error) {
       console.error('Error fetching stories:', error);
       toast({
@@ -61,15 +54,13 @@ export const useStories = () => {
     if (!targetUserId) return;
 
     try {
-      const { data, error } = await supabase
-        .from('stories')
-        .select('*')
-        .eq('user_id', targetUserId)
-        .gt('expires_at', new Date().toISOString())
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      setUserStories(data || []);
+      // For now, we'll simulate user stories with local storage
+      const localStories = JSON.parse(localStorage.getItem('app_stories') || '[]');
+      const activeUserStories = localStories.filter((story: Story) => 
+        story.user_id === targetUserId && new Date(story.expires_at) > new Date()
+      );
+      
+      setUserStories(activeUserStories);
     } catch (error) {
       console.error('Error fetching user stories:', error);
     }
@@ -86,18 +77,20 @@ export const useStories = () => {
     }
 
     try {
-      const { data, error } = await supabase
-        .from('stories')
-        .insert([{
-          user_id: user.id,
-          content_type: contentType,
-          content_url: contentUrl,
-          caption
-        }])
-        .select()
-        .single();
+      const newStory: Story = {
+        id: Date.now().toString(),
+        user_id: user.id,
+        content_type: contentType,
+        content_url: contentUrl,
+        caption,
+        expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(), // 24 hours from now
+        created_at: new Date().toISOString()
+      };
 
-      if (error) throw error;
+      // For now, store in local storage
+      const localStories = JSON.parse(localStorage.getItem('app_stories') || '[]');
+      localStories.push(newStory);
+      localStorage.setItem('app_stories', JSON.stringify(localStories));
 
       toast({
         title: "Success",
@@ -108,7 +101,7 @@ export const useStories = () => {
       await fetchActiveStories();
       await fetchUserStories();
 
-      return data;
+      return newStory;
     } catch (error: any) {
       console.error('Error creating story:', error);
       toast({
@@ -124,13 +117,12 @@ export const useStories = () => {
     if (!user) return false;
 
     try {
-      const { error } = await supabase
-        .from('stories')
-        .delete()
-        .eq('id', storyId)
-        .eq('user_id', user.id);
-
-      if (error) throw error;
+      // For now, remove from local storage
+      const localStories = JSON.parse(localStorage.getItem('app_stories') || '[]');
+      const updatedStories = localStories.filter((story: Story) => 
+        story.id !== storyId || story.user_id !== user.id
+      );
+      localStorage.setItem('app_stories', JSON.stringify(updatedStories));
 
       toast({
         title: "Success",

@@ -50,7 +50,9 @@ export const useCreateListing = () => {
 
       if (listingError) throw listingError;
 
-      // Upload additional photos if provided
+      // For now, we'll skip the additional photos since the table doesn't exist yet
+      // In the future, when the listing_photos table is added, we can uncomment this:
+      /*
       if (photos.length > 0) {
         const photoPromises = photos.map(async (photo) => {
           // In a real app, you'd upload to Supabase Storage first
@@ -69,6 +71,7 @@ export const useCreateListing = () => {
 
         await Promise.all(photoPromises);
       }
+      */
 
       toast({
         title: "Success",

@@ -27,18 +27,9 @@ export const useFollowSystem = (userId?: string) => {
   const checkFollowStatus = async (targetUserId: string) => {
     if (!user) return false;
 
-    try {
-      const { data, error } = await supabase
-        .from('user_follows')
-        .select('id')
-        .eq('follower_id', user.id)
-        .eq('following_id', targetUserId)
-        .single();
-
-      return !!data;
-    } catch (error) {
-      return false;
-    }
+    // For now, use local storage to simulate follows
+    const follows = JSON.parse(localStorage.getItem(`user_follows_${user.id}`) || '[]');
+    return follows.includes(targetUserId);
   };
 
   const followUser = async (targetUserId: string) => {
@@ -52,14 +43,12 @@ export const useFollowSystem = (userId?: string) => {
     }
 
     try {
-      const { error } = await supabase
-        .from('user_follows')
-        .insert([{
-          follower_id: user.id,
-          following_id: targetUserId
-        }]);
-
-      if (error) throw error;
+      // For now, use local storage to simulate follows
+      const follows = JSON.parse(localStorage.getItem(`user_follows_${user.id}`) || '[]');
+      if (!follows.includes(targetUserId)) {
+        follows.push(targetUserId);
+        localStorage.setItem(`user_follows_${user.id}`, JSON.stringify(follows));
+      }
 
       setIsFollowing(true);
       toast({
@@ -83,13 +72,10 @@ export const useFollowSystem = (userId?: string) => {
     if (!user) return false;
 
     try {
-      const { error } = await supabase
-        .from('user_follows')
-        .delete()
-        .eq('follower_id', user.id)
-        .eq('following_id', targetUserId);
-
-      if (error) throw error;
+      // For now, use local storage to simulate follows
+      const follows = JSON.parse(localStorage.getItem(`user_follows_${user.id}`) || '[]');
+      const updatedFollows = follows.filter((id: string) => id !== targetUserId);
+      localStorage.setItem(`user_follows_${user.id}`, JSON.stringify(updatedFollows));
 
       setIsFollowing(false);
       toast({
@@ -112,20 +98,8 @@ export const useFollowSystem = (userId?: string) => {
   const getFollowers = async (targetUserId: string) => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
-        .from('user_follows')
-        .select(`
-          *,
-          follower_profile:profiles!follower_id (
-            full_name,
-            username,
-            avatar_url
-          )
-        `)
-        .eq('following_id', targetUserId);
-
-      if (error) throw error;
-      setFollowers(data || []);
+      // For now, return empty array since we're simulating
+      setFollowers([]);
     } catch (error) {
       console.error('Error fetching followers:', error);
     } finally {
@@ -136,20 +110,8 @@ export const useFollowSystem = (userId?: string) => {
   const getFollowing = async (targetUserId: string) => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
-        .from('user_follows')
-        .select(`
-          *,
-          following_profile:profiles!following_id (
-            full_name,
-            username,
-            avatar_url
-          )
-        `)
-        .eq('follower_id', targetUserId);
-
-      if (error) throw error;
-      setFollowing(data || []);
+      // For now, return empty array since we're simulating
+      setFollowing([]);
     } catch (error) {
       console.error('Error fetching following:', error);
     } finally {

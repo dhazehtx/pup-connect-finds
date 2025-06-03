@@ -24,7 +24,9 @@ interface SavedSearch {
 
 export const useAdvancedSearch = () => {
   const [loading, setLoading] = useState(false);
+  const [searchResults, setSearchResults] = useState<any[]>([]);
   const [savedSearches, setSavedSearches] = useState<SavedSearch[]>([]);
+  const [suggestions, setSuggestions] = useState<string[]>([]);
   const { user } = useAuth();
   const { toast } = useToast();
 
@@ -44,10 +46,6 @@ export const useAdvancedSearch = () => {
             rating,
             total_reviews,
             avatar_url
-          ),
-          listing_photos (
-            photo_url,
-            display_order
           )
         `)
         .eq('status', 'active');
@@ -87,6 +85,7 @@ export const useAdvancedSearch = () => {
         results = results.filter(listing => listing.profiles?.verified === filters.verified);
       }
 
+      setSearchResults(results);
       return results;
     } catch (error) {
       console.error('Error searching listings:', error);
@@ -101,6 +100,42 @@ export const useAdvancedSearch = () => {
     }
   }, [toast]);
 
+  const performSearch = useCallback(async (filters: SearchFilters) => {
+    return await searchListings('', filters);
+  }, [searchListings]);
+
+  const getSearchSuggestions = useCallback(async (query: string) => {
+    if (!query) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('dog_listings')
+        .select('breed, dog_name, location')
+        .or(`breed.ilike.%${query}%,dog_name.ilike.%${query}%,location.ilike.%${query}%`)
+        .limit(5);
+
+      if (error) throw error;
+
+      const suggestionSet = new Set<string>();
+      data?.forEach(item => {
+        if (item.breed?.toLowerCase().includes(query.toLowerCase())) {
+          suggestionSet.add(item.breed);
+        }
+        if (item.dog_name?.toLowerCase().includes(query.toLowerCase())) {
+          suggestionSet.add(item.dog_name);
+        }
+        if (item.location?.toLowerCase().includes(query.toLowerCase())) {
+          suggestionSet.add(item.location);
+        }
+      });
+
+      setSuggestions(Array.from(suggestionSet).slice(0, 5));
+    } catch (error) {
+      console.error('Error getting suggestions:', error);
+    }
+  }, []);
+
+  // Simplified save search without database storage for now
   const saveSearch = async (name: string, filters: SearchFilters, notifyNewMatches: boolean = false) => {
     if (!user) {
       toast({
@@ -111,83 +146,41 @@ export const useAdvancedSearch = () => {
       return null;
     }
 
-    try {
-      const { data, error } = await supabase
-        .from('saved_searches')
-        .insert([{
-          user_id: user.id,
-          name,
-          filters,
-          notify_new_matches: notifyNewMatches
-        }])
-        .select()
-        .single();
+    // For now, just store in local state
+    const newSavedSearch: SavedSearch = {
+      id: Date.now().toString(),
+      name,
+      filters,
+      notify_new_matches: notifyNewMatches,
+      created_at: new Date().toISOString()
+    };
 
-      if (error) throw error;
+    setSavedSearches(prev => [...prev, newSavedSearch]);
 
-      toast({
-        title: "Success",
-        description: "Search saved successfully",
-      });
+    toast({
+      title: "Success",
+      description: "Search saved successfully",
+    });
 
-      return data;
-    } catch (error: any) {
-      console.error('Error saving search:', error);
-      toast({
-        title: "Error",
-        description: "Failed to save search",
-        variant: "destructive",
-      });
-      return null;
-    }
+    return newSavedSearch;
   };
 
   const getSavedSearches = async () => {
-    if (!user) return;
-
-    try {
-      const { data, error } = await supabase
-        .from('saved_searches')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      setSavedSearches(data || []);
-    } catch (error) {
-      console.error('Error fetching saved searches:', error);
-    }
+    // For now, return empty array since we're not storing in database yet
+    return;
   };
 
   const deleteSavedSearch = async (searchId: string) => {
     if (!user) return false;
 
-    try {
-      const { error } = await supabase
-        .from('saved_searches')
-        .delete()
-        .eq('id', searchId)
-        .eq('user_id', user.id);
+    setSavedSearches(prev => prev.filter(search => search.id !== searchId));
+    
+    toast({
+      title: "Success",
+      description: "Saved search deleted",
+    });
 
-      if (error) throw error;
-
-      setSavedSearches(prev => prev.filter(search => search.id !== searchId));
-      
-      toast({
-        title: "Success",
-        description: "Saved search deleted",
-      });
-
-      return true;
-    } catch (error: any) {
-      console.error('Error deleting saved search:', error);
-      toast({
-        title: "Error",
-        description: "Failed to delete saved search",
-        variant: "destructive",
-      });
-      return false;
-    }
+    return true;
   };
 
   return {
@@ -196,6 +189,10 @@ export const useAdvancedSearch = () => {
     getSavedSearches,
     deleteSavedSearch,
     savedSearches,
+    searchResults,
+    suggestions,
+    performSearch,
+    getSearchSuggestions,
     loading
   };
 };
