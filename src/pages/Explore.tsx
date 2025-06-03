@@ -25,6 +25,19 @@ import { useToast } from '@/hooks/use-toast';
 import { Search, Filter, SlidersHorizontal, BarChart3, Settings, Star, Heart, Eye, TrendingUp, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
+interface FilterState {
+  searchTerm: string;
+  breed: string;
+  minPrice: string;
+  maxPrice: string;
+  ageGroup: string;
+  gender: string;
+  sourceType: string;
+  maxDistance: string;
+  verifiedOnly: boolean;
+  availableOnly: boolean;
+}
+
 interface ExplorePageProps {}
 
 const ExplorePage: React.FC<ExplorePageProps> = () => {
@@ -36,7 +49,22 @@ const ExplorePage: React.FC<ExplorePageProps> = () => {
   const [isQualityCheckerOpen, setIsQualityCheckerOpen] = useState(false);
   const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
   const [isMobileSortOpen, setIsMobileSortOpen] = useState(false);
-  const [isMobile, setIsMobile] = useIsMobile();
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [sortBy, setSortBy] = useState('newest');
+  const [filterState, setFilterState] = useState<FilterState>({
+    searchTerm: '',
+    breed: '',
+    minPrice: '',
+    maxPrice: '',
+    ageGroup: '',
+    gender: '',
+    sourceType: '',
+    maxDistance: '',
+    verifiedOnly: false,
+    availableOnly: false
+  });
+  
+  const isMobile = useIsMobile();
   const { user } = useAuth();
   const { toast } = useToast();
 
@@ -69,6 +97,33 @@ const ExplorePage: React.FC<ExplorePageProps> = () => {
     trackListingView,
     trackListingInquiry
   } = useEnhancedListings();
+
+  // Convert enhanced listings to the format expected by ListingsGrid
+  const convertedListings = enhancedListings.map(listing => ({
+    id: parseInt(listing.id),
+    title: listing.dog_name,
+    price: `$${listing.price.toLocaleString()}`,
+    location: listing.location || 'Location not specified',
+    distance: '0 miles', // You may want to calculate this
+    breed: listing.breed,
+    color: 'Unknown', // Add this to your database if needed
+    gender: 'Unknown', // Add this to your database if needed
+    age: `${listing.age} months`,
+    rating: listing.profiles?.rating || 0,
+    reviews: listing.profiles?.total_reviews || 0,
+    image: listing.image_url || '/placeholder.svg',
+    breeder: listing.profiles?.full_name || 'Unknown',
+    verified: listing.profiles?.verified || false,
+    verifiedBreeder: listing.profiles?.verified || false,
+    idVerified: listing.profiles?.verified || false,
+    vetVerified: false,
+    available: 1,
+    sourceType: 'breeder'
+  }));
+
+  const favoriteIds = enhancedListings
+    .filter(listing => isListingFavorited(listing.id))
+    .map(listing => parseInt(listing.id));
 
   const handleSearch = (query: string) => {
     setFilters(prev => ({ ...prev, searchTerm: query }));
@@ -127,6 +182,34 @@ const ExplorePage: React.FC<ExplorePageProps> = () => {
     setIsMobileSortOpen(false);
   };
 
+  const handleClearFilters = () => {
+    setFilterState({
+      searchTerm: '',
+      breed: '',
+      minPrice: '',
+      maxPrice: '',
+      ageGroup: '',
+      gender: '',
+      sourceType: '',
+      maxDistance: '',
+      verifiedOnly: false,
+      availableOnly: false
+    });
+    clearAllFilters();
+  };
+
+  const handleFavorite = (id: number) => {
+    favoriteListing(id.toString());
+  };
+
+  const handleContact = (id: number) => {
+    trackListingInquiry(id.toString());
+  };
+
+  const handleViewDetails = (id: number) => {
+    trackListingView(id.toString());
+  };
+
   useEffect(() => {
     // Track initial page view
     if (listings && listings.length > 0) {
@@ -137,7 +220,7 @@ const ExplorePage: React.FC<ExplorePageProps> = () => {
   }, [listings]);
 
   return (
-    <Layout title="Explore Dogs for Adoption">
+    <Layout>
       <div className="container mx-auto px-4 py-8">
         {/* Header Section */}
         <div className="flex flex-col md:flex-row items-center justify-between mb-6">
@@ -163,7 +246,10 @@ const ExplorePage: React.FC<ExplorePageProps> = () => {
                 }
               }}
             />
-            <Button onClick={() => handleSearch(document.querySelector('input[type="search"]')?.value || '')}>
+            <Button onClick={() => {
+              const searchInput = document.querySelector('input[type="search"]') as HTMLInputElement;
+              handleSearch(searchInput?.value || '');
+            }}>
               <Search className="h-4 w-4 mr-2" />
               Search
             </Button>
@@ -172,9 +258,9 @@ const ExplorePage: React.FC<ExplorePageProps> = () => {
 
         {/* Quick Filters */}
         <QuickFilters
-          quickFilter={quickFilter}
-          setQuickFilter={setQuickFilter}
-          onClearAll={clearAllFilters}
+          filters={filterState}
+          onFiltersChange={setFilterState}
+          onClearFilters={handleClearFilters}
         />
 
         {/* Mobile Filters and Sorting */}
@@ -191,16 +277,25 @@ const ExplorePage: React.FC<ExplorePageProps> = () => {
           </div>
         )}
 
+        {/* Sorting Options */}
+        <SortingOptions
+          sortBy={sortBy}
+          onSortChange={setSortBy}
+          viewMode={viewMode}
+          onViewModeChange={setViewMode}
+          resultsCount={totalCount || 0}
+        />
+
         {/* Filters and Sorting Options */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
           {/* Filters (Desktop) */}
           {!isMobile && (
             <div className="md:col-span-1">
               <SearchFilters
-                filters={filters}
-                onFilterChange={handleFilterChange}
-                isFilterOpen={isFilterOpen}
-                toggleFilterVisibility={toggleFilterVisibility}
+                filters={filterState}
+                onFiltersChange={setFilterState}
+                resultsCount={totalCount || 0}
+                onClearFilters={handleClearFilters}
               />
             </div>
           )}
@@ -216,22 +311,19 @@ const ExplorePage: React.FC<ExplorePageProps> = () => {
                 </CardContent>
               </Card>
             )}
-            {listings && listings.length > 0 && (
+            {convertedListings && convertedListings.length > 0 && (
               <ListingsGrid
-                listings={enhancedListings}
-                loading={loading}
-                error={error}
-                totalCount={totalCount}
-                page={page}
-                pageSize={pageSize}
-                setPage={handlePageChange}
-                setPageSize={handlePageSizeChange}
-                sortConfig={sortConfig}
-                setSortConfig={handleSortChange}
-                isListingFavorited={isListingFavorited}
-                onFavorite={favoriteListing}
-                onView={trackListingView}
-                onContact={trackListingInquiry}
+                listings={convertedListings}
+                viewMode={viewMode}
+                favorites={favoriteIds}
+                onFavorite={handleFavorite}
+                onContact={handleContact}
+                onViewDetails={handleViewDetails}
+                isLoading={loading}
+                onClearFilters={handleClearFilters}
+                hasActiveFilters={Object.values(filterState).some(value => 
+                  typeof value === 'boolean' ? value : value !== ''
+                )}
               />
             )}
           </div>
@@ -248,9 +340,10 @@ const ExplorePage: React.FC<ExplorePageProps> = () => {
             </div>
             <div className="p-4">
               <SearchFilters
-                filters={filters}
-                onFilterChange={handleFilterChange}
-                isMobile={true}
+                filters={filterState}
+                onFiltersChange={setFilterState}
+                resultsCount={totalCount || 0}
+                onClearFilters={handleClearFilters}
               />
             </div>
           </div>
@@ -267,9 +360,11 @@ const ExplorePage: React.FC<ExplorePageProps> = () => {
             </div>
             <div className="p-4">
               <SortingOptions
-                sortConfig={sortConfig}
-                onSortChange={handleSortChange}
-                isMobile={true}
+                sortBy={sortBy}
+                onSortChange={setSortBy}
+                viewMode={viewMode}
+                onViewModeChange={setViewMode}
+                resultsCount={totalCount || 0}
               />
             </div>
           </div>
