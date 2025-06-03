@@ -155,9 +155,9 @@ const RealTimeChatInterface = ({ conversationId, otherUser, listingInfo }: RealT
               <CardTitle className="text-lg flex items-center gap-2">
                 {otherUser.name}
                 {isEncryptionReady && encryptionEnabled ? (
-                  <Shield className="w-4 h-4 text-green-500" title="End-to-end encrypted" />
+                  <Shield className="w-4 h-4 text-green-500" />
                 ) : (
-                  <ShieldOff className="w-4 h-4 text-gray-400" title="Not encrypted" />
+                  <ShieldOff className="w-4 h-4 text-gray-400" />
                 )}
               </CardTitle>
               {listingInfo && (
@@ -179,7 +179,6 @@ const RealTimeChatInterface = ({ conversationId, otherUser, listingInfo }: RealT
               size="sm"
               onClick={() => setEncryptionEnabled(!encryptionEnabled)}
               disabled={!isEncryptionReady}
-              title={encryptionEnabled ? "Disable encryption" : "Enable encryption"}
             >
               {encryptionEnabled ? (
                 <Shield className="w-4 h-4 text-green-500" />

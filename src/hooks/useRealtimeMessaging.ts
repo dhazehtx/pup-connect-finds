@@ -1,4 +1,3 @@
-
 import { useEffect, useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -13,6 +12,9 @@ interface Message {
   image_url?: string;
   created_at: string;
   read_at?: string;
+  is_encrypted?: boolean;
+  encrypted_content?: string;
+  encryption_key_id?: string;
 }
 
 interface Conversation {
