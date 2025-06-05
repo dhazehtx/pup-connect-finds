@@ -29,35 +29,35 @@ export const EducationSections: React.FC<EducationSectionsProps> = ({
       title: 'Breed Guides',
       icon: '🐕',
       description: 'Complete guides for specific dog breeds',
-      color: 'bg-blue-50 border-blue-200'
+      color: 'bg-primary/10 border-primary/20'
     },
     {
       id: 'firsttime',
       title: 'First-Time Owners',
       icon: '👶',
       description: 'Essential information for new dog parents',
-      color: 'bg-green-50 border-green-200'
+      color: 'bg-secondary/10 border-secondary/20'
     },
     {
       id: 'vetcare',
       title: 'Veterinary Care',
       icon: '🏥',
       description: 'Health and medical care information',
-      color: 'bg-red-50 border-red-200'
+      color: 'bg-accent/10 border-accent/20'
     },
     {
       id: 'nutrition',
       title: 'Nutrition & Diet',
       icon: '🥗',
       description: 'Feeding and nutrition guidelines',
-      color: 'bg-orange-50 border-orange-200'
+      color: 'bg-primary/5 border-primary/10'
     },
     {
       id: 'legal',
       title: 'Legal Information',
       icon: '⚖️',
       description: 'Laws and regulations for dog ownership',
-      color: 'bg-purple-50 border-purple-200'
+      color: 'bg-accent/5 border-accent/10'
     }
   ];
 
@@ -73,17 +73,17 @@ export const EducationSections: React.FC<EducationSectionsProps> = ({
         if (sectionResources.length === 0) return null;
 
         return (
-          <Card key={section.id} className={`${section.color}`}>
+          <Card key={section.id} className={`${section.color} bg-card border-border`}>
             <CardHeader>
-              <CardTitle className="flex items-center gap-3 text-xl">
+              <CardTitle className="flex items-center gap-3 text-xl text-foreground">
                 <span className="text-2xl">{section.icon}</span>
                 <div>
                   <h3>{section.title}</h3>
-                  <p className="text-sm font-normal text-gray-600 mt-1">
+                  <p className="text-sm font-normal text-muted-foreground mt-1">
                     {section.description}
                   </p>
                 </div>
-                <Badge variant="secondary" className="ml-auto">
+                <Badge variant="secondary" className="ml-auto bg-secondary/20 text-secondary-foreground">
                   {sectionResources.length} articles
                 </Badge>
               </CardTitle>
@@ -95,53 +95,53 @@ export const EducationSections: React.FC<EducationSectionsProps> = ({
                   return (
                     <div
                       key={resource.id}
-                      className="bg-white rounded-lg border p-4 hover:shadow-md transition-shadow cursor-pointer group"
+                      className="bg-background rounded-lg border border-border p-4 hover:shadow-md transition-shadow cursor-pointer group hover:bg-muted/50"
                       onClick={() => onResourceClick(resource)}
                     >
                       <div className="flex justify-between items-start mb-2">
-                        <h4 className="font-medium text-sm group-hover:text-blue-600 transition-colors line-clamp-2">
+                        <h4 className="font-medium text-sm group-hover:text-primary transition-colors line-clamp-2 text-foreground">
                           {resource.title}
                         </h4>
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-6 w-6 ml-2 flex-shrink-0"
+                          className="h-6 w-6 ml-2 flex-shrink-0 hover:bg-muted"
                           onClick={(e) => {
                             e.stopPropagation();
                             onToggleBookmark(resource.id);
                           }}
                         >
                           {isBookmarked(resource.id) ? (
-                            <BookmarkCheck size={12} className="text-blue-600" />
+                            <BookmarkCheck size={12} className="text-primary" />
                           ) : (
-                            <Bookmark size={12} />
+                            <Bookmark size={12} className="text-muted-foreground" />
                           )}
                         </Button>
                       </div>
                       
-                      <div className="flex items-center gap-2 text-xs text-gray-500 mb-2">
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground mb-2">
                         <Clock size={12} />
                         <span>{resource.readTime}</span>
-                        <Star size={12} className="text-amber-500 fill-current ml-2" />
+                        <Star size={12} className="text-primary fill-current ml-2" />
                         <span>{resource.rating}</span>
                       </div>
 
                       <div className="flex items-center justify-between">
                         <Badge 
                           variant="outline" 
-                          className="text-xs"
+                          className="text-xs border-border text-muted-foreground"
                         >
                           {resource.difficulty}
                         </Badge>
                         
                         {isRead(resource.id) && (
-                          <Badge className="bg-green-100 text-green-800 text-xs">
+                          <Badge className="bg-primary/20 text-primary text-xs">
                             Read
                           </Badge>
                         )}
                         
                         {progress.progress > 0 && progress.progress < 100 && (
-                          <Badge variant="secondary" className="text-xs">
+                          <Badge variant="secondary" className="text-xs bg-secondary/20 text-secondary-foreground">
                             {Math.round(progress.progress)}%
                           </Badge>
                         )}
@@ -153,7 +153,7 @@ export const EducationSections: React.FC<EducationSectionsProps> = ({
               
               {sectionResources.length > 6 && (
                 <div className="mt-4 text-center">
-                  <Button variant="outline" className="group">
+                  <Button variant="outline" className="group border-border hover:bg-muted">
                     View all {sectionResources.length} articles
                     <ChevronRight size={16} className="ml-1 group-hover:translate-x-1 transition-transform" />
                   </Button>
