@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Settings, Star, Crown, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -137,6 +138,14 @@ const ProfileContent = ({
 
   console.log('ProfileContent: About to render components');
 
+  // Create a profile object for ProfileActions that matches the expected interface
+  const profileForActions = displayProfile.full_name ? {
+    id: displayProfile.id,
+    full_name: displayProfile.full_name,
+    email: displayProfile.email,
+    phone: displayProfile.phone
+  } : undefined;
+
   return (
     <>
       {/* Mobile Header */}
@@ -241,7 +250,7 @@ const ProfileContent = ({
         />
 
         <ProfileActions 
-          profile={displayProfile}
+          profile={profileForActions}
           isOwnProfile={isOwnProfile}
         />
 
