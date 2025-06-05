@@ -44,16 +44,34 @@ const ProfileAnalyticsEnhanced = ({ profile }: ProfileAnalyticsEnhancedProps) =>
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 p-4">
       {/* Header Controls */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+      <div className="flex flex-col space-y-4">
         <div>
           <h2 className="text-2xl font-bold">Profile Analytics</h2>
           <p className="text-gray-600">Track your profile performance and engagement</p>
         </div>
-        <div className="flex gap-2">
+        
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div className="flex gap-2">
+            <Button
+              variant={activeView === 'overview' ? 'default' : 'outline'}
+              onClick={() => setActiveView('overview')}
+              className="rounded-md"
+            >
+              Overview
+            </Button>
+            <Button
+              variant={activeView === 'detailed' ? 'default' : 'outline'}
+              onClick={() => setActiveView('detailed')}
+              className="rounded-md"
+            >
+              Detailed
+            </Button>
+          </div>
+          
           <Select value={timeRange} onValueChange={(value: any) => setTimeRange(value)}>
-            <SelectTrigger className="w-32">
+            <SelectTrigger className="w-40">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -62,26 +80,6 @@ const ProfileAnalyticsEnhanced = ({ profile }: ProfileAnalyticsEnhancedProps) =>
               <SelectItem value="year">This Year</SelectItem>
             </SelectContent>
           </Select>
-          <button
-            className={`px-4 py-2 text-sm font-medium transition-colors ${
-              activeView === 'overview'
-                ? 'bg-gray-900 text-white'
-                : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
-            }`}
-            onClick={() => setActiveView('overview')}
-          >
-            Overview
-          </button>
-          <button
-            className={`px-4 py-2 text-sm font-medium transition-colors ${
-              activeView === 'detailed'
-                ? 'bg-gray-900 text-white'
-                : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
-            }`}
-            onClick={() => setActiveView('detailed')}
-          >
-            Detailed
-          </button>
         </div>
       </div>
 
