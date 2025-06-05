@@ -1,18 +1,23 @@
 
-import React, { useState } from 'react';
-import { BookOpen, Heart, MapPin, Scale, Search, Filter, Download, Bookmark } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { BookOpen, Heart, MapPin, Scale, Search, Filter, Download, Bookmark, TrendingUp } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
 import { ResourceCard } from '../components/education/ResourceCard';
+import { RelatedArticles } from '../components/education/RelatedArticles';
 import { useEducationSearch } from '../hooks/useEducationSearch';
 import { useBookmarks } from '../hooks/useBookmarks';
+import { useReadingProgress } from '../hooks/useReadingProgress';
+import { usePagination } from '../hooks/usePagination';
 import { educationResources, categories } from '../data/educationResources';
 import { useToast } from '../hooks/use-toast';
 
 const Education = () => {
   const [showBookmarksOnly, setShowBookmarksOnly] = useState(false);
+  const [selectedResource, setSelectedResource] = useState<any>(null);
   const { toast } = useToast();
   
   const {
@@ -26,24 +31,65 @@ const Education = () => {
   } = useEducationSearch(educationResources);
 
   const { bookmarkedIds, toggleBookmark, isBookmarked } = useBookmarks();
+  const { markAsRead, getProgress, isRead, getReadCount } = useReadingProgress();
 
   const displayResources = showBookmarksOnly 
     ? filteredResources.filter(resource => isBookmarked(resource.id))
     : filteredResources;
 
+  const {
+    currentPage,
+    totalPages,
+    paginatedData,
+    goToPage,
+    nextPage,
+    prevPage,
+    hasNextPage,
+    hasPrevPage,
+    startIndex,
+    endIndex,
+    totalItems,
+    resetPagination
+  } = usePagination({ data: displayResources, itemsPerPage: 9 });
+
+  // Reset pagination when filters change
+  useEffect(() => {
+    resetPagination();
+  }, [searchTerm, selectedCategory, selectedDifficulty, showBookmarksOnly, resetPagination]);
+
   const handleDownload = (resource: any) => {
-    // Simulate download
     toast({
       title: "Download Started",
       description: `Downloading "${resource.title}" PDF guide...`,
     });
   };
 
+  const handleResourceClick = (resource: any) => {
+    setSelectedResource(resource);
+    // Simulate reading the article
+    markAsRead(resource.id);
+  };
+
+  const readCount = getReadCount();
+  const totalResourcesCount = educationResources.length;
+
   return (
     <div className="max-w-6xl mx-auto px-4 py-6">
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">Educational Resources</h1>
-        <p className="text-gray-600">Learn everything you need to know about dog ownership and care</p>
+        <p className="text-gray-600 mb-4">Learn everything you need to know about dog ownership and care</p>
+        
+        {/* Progress Summary */}
+        <div className="flex items-center gap-4 text-sm text-gray-600">
+          <div className="flex items-center gap-2">
+            <TrendingUp size={16} className="text-green-600" />
+            <span>{readCount} of {totalResourcesCount} articles completed</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <Bookmark size={16} className="text-blue-600" />
+            <span>{bookmarkedIds.length} bookmarked</span>
+          </div>
+        </div>
       </div>
 
       {/* Enhanced Search and Filters */}
@@ -98,7 +144,7 @@ const Education = () => {
       {/* Results Summary */}
       <div className="mb-6">
         <p className="text-gray-600">
-          Showing {displayResources.length} of {educationResources.length} resources
+          Showing {startIndex}-{endIndex} of {totalItems} resources
           {searchTerm && ` for "${searchTerm}"`}
           {showBookmarksOnly && " (bookmarked only)"}
         </p>
@@ -111,7 +157,7 @@ const Education = () => {
             <div>
               <h2 className="text-xl font-bold text-gray-900 mb-2">New Owner Starter Pack</h2>
               <p className="text-gray-600 mb-4">Complete guide for first-time dog owners with downloadable checklists</p>
-              <Button>Get Started</Button>
+              <Button onClick={() => handleResourceClick(educationResources[1])}>Get Started</Button>
             </div>
             <div className="hidden md:block">
               <img
@@ -125,17 +171,59 @@ const Education = () => {
       </Card>
 
       {/* Resources Grid */}
-      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
-        {displayResources.map((resource) => (
-          <ResourceCard
-            key={resource.id}
-            resource={resource}
-            isBookmarked={isBookmarked(resource.id)}
-            onToggleBookmark={toggleBookmark}
-            onDownload={handleDownload}
-          />
-        ))}
+      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+        {paginatedData.map((resource) => {
+          const progress = getProgress(resource.id);
+          return (
+            <div key={resource.id} onClick={() => handleResourceClick(resource)}>
+              <ResourceCard
+                resource={resource}
+                isBookmarked={isBookmarked(resource.id)}
+                onToggleBookmark={toggleBookmark}
+                onDownload={handleDownload}
+                isRead={isRead(resource.id)}
+                progress={progress.progress}
+                onMarkAsRead={markAsRead}
+              />
+            </div>
+          );
+        })}
       </div>
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="mb-12">
+          <Pagination>
+            <PaginationContent>
+              <PaginationItem>
+                <PaginationPrevious 
+                  onClick={prevPage}
+                  className={!hasPrevPage ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                />
+              </PaginationItem>
+              
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                <PaginationItem key={page}>
+                  <PaginationLink
+                    onClick={() => goToPage(page)}
+                    isActive={currentPage === page}
+                    className="cursor-pointer"
+                  >
+                    {page}
+                  </PaginationLink>
+                </PaginationItem>
+              ))}
+              
+              <PaginationItem>
+                <PaginationNext 
+                  onClick={nextPage}
+                  className={!hasNextPage ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                />
+              </PaginationItem>
+            </PaginationContent>
+          </Pagination>
+        </div>
+      )}
 
       {displayResources.length === 0 && (
         <div className="text-center py-12">
@@ -143,6 +231,15 @@ const Education = () => {
           <h3 className="text-lg font-semibold text-gray-900 mb-2">No resources found</h3>
           <p className="text-gray-600">Try adjusting your search criteria or filters</p>
         </div>
+      )}
+
+      {/* Related Articles - Show when a resource is selected */}
+      {selectedResource && (
+        <RelatedArticles
+          currentResource={selectedResource}
+          allResources={educationResources}
+          onResourceClick={handleResourceClick}
+        />
       )}
 
       {/* Vet Directory Section */}
