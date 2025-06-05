@@ -154,7 +154,7 @@ const Education = () => {
               <h2 className="text-xl font-bold text-gray-900 mb-2">New Owner Starter Pack</h2>
               <p className="text-gray-600 mb-4">Complete guide for first-time dog owners with downloadable checklists</p>
               <Button 
-                onClick={() => window.open('https://www.aspca.org/pet-care/dog-care/general-dog-care', '_blank')}
+                onClick={() => window.open('https://www.petmd.com/dog/puppies/evr_dg_puppy-proofing_your_home', '_blank')}
               >
                 Get Started
               </Button>
@@ -275,14 +275,14 @@ const Education = () => {
               <CardContent>
                 <p className="text-gray-600 mb-4">Complete journey from preparation to advanced care</p>
                 <div className="space-y-2 mb-4">
-                  <div className="text-sm text-gray-600">• <a href="https://www.aspca.org/pet-care/dog-care/puppy-care/puppy-proofing-your-home" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Puppy-Proofing Your Home</a></div>
+                  <div className="text-sm text-gray-600">• <a href="https://www.petmd.com/dog/puppies/evr_dg_puppy-proofing_your_home" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Puppy-Proofing Your Home</a></div>
                   <div className="text-sm text-gray-600">• <a href="https://www.akc.org/expert-advice/training/puppy-training-timeline/" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Puppy Training Basics</a></div>
-                  <div className="text-sm text-gray-600">• <a href="https://www.aspca.org/pet-care/general-pet-care/how-choose-veterinarian" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Finding the Right Veterinarian</a></div>
+                  <div className="text-sm text-gray-600">• <a href="https://www.avma.org/resources/pet-owners/yourvet/choosing-veterinarian" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Finding the Right Veterinarian</a></div>
                   <div className="text-sm text-gray-600">• <a href="https://www.akc.org/expert-advice/health/puppy-shots-complete-guide/" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">AKC Vaccination Schedule Guide</a></div>
                 </div>
                 <Button 
                   className="w-full"
-                  onClick={() => window.open('https://www.aspca.org/pet-care/dog-care/general-dog-care', '_blank')}
+                  onClick={() => window.open('https://www.petmd.com/dog/puppies/evr_dg_puppy-proofing_your_home', '_blank')}
                 >
                   Start Learning Path
                 </Button>
@@ -299,9 +299,9 @@ const Education = () => {
                 <p className="text-gray-600 mb-4">Master dog nutrition from puppyhood to senior years</p>
                 <div className="space-y-2 mb-4">
                   <div className="text-sm text-gray-600">• <a href="https://www.akc.org/expert-advice/nutrition/puppy-feeding-guide/" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Puppy Nutrition Fundamentals</a></div>
-                  <div className="text-sm text-gray-600">• <a href="https://www.petmd.com/dog/nutrition/evr_dg_feeding_your_adult_dog" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Adult Dog Diet Planning</a></div>
-                  <div className="text-sm text-gray-600">• <a href="https://vcahospitals.com/know-your-pet/feeding-your-senior-dog" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Senior Dog Nutrition</a></div>
-                  <div className="text-sm text-gray-600">• <a href="https://www.hillspet.com/dog-care/nutrition-feeding/special-diets-for-dogs" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Special Dietary Needs</a></div>
+                  <div className="text-sm text-gray-600">• <a href="https://www.akc.org/expert-advice/nutrition/adult-dog-nutrition/" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Adult Dog Diet Planning</a></div>
+                  <div className="text-sm text-gray-600">• <a href="https://www.akc.org/expert-advice/nutrition/senior-dog-nutrition/" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Senior Dog Nutrition</a></div>
+                  <div className="text-sm text-gray-600">• <a href="https://www.petmd.com/dog/nutrition/evr_dg_nutrition_for_dogs_with_special_dietary_needs" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Special Dietary Needs</a></div>
                 </div>
                 <Button 
                   className="w-full"
@@ -387,21 +387,21 @@ const Education = () => {
             <Button 
               variant="outline" 
               className="justify-start"
-              onClick={() => window.open('https://www.animallaw.info/statute/ca-dog-consolidated-dog-laws', '_blank')}
+              onClick={() => window.open('https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=HSC&sectionNum=122125', '_blank')}
             >
               California Laws
             </Button>
             <Button 
               variant="outline" 
               className="justify-start"
-              onClick={() => window.open('https://www.animallaw.info/statute/tx-dog-consolidated-dog-laws', '_blank')}
+              onClick={() => window.open('https://statutes.capitol.texas.gov/Docs/OC/htm/OC.802.htm', '_blank')}
             >
               Texas Laws
             </Button>
             <Button 
               variant="outline" 
               className="justify-start"
-              onClick={() => window.open('https://www.animallaw.info/statute/ny-dog-consolidated-dog-laws', '_blank')}
+              onClick={() => window.open('https://www.nysenate.gov/legislation/laws/AGM/350', '_blank')}
             >
               New York Laws
             </Button>
