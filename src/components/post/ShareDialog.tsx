@@ -1,10 +1,9 @@
 
 import React from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { MessageCircle, Phone, Share2, Copy, Mail } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import ShareOptions from './ShareOptions';
+import ShareContactsList from './ShareContactsList';
 
 interface ShareDialogProps {
   isOpen: boolean;
@@ -33,7 +32,6 @@ const ShareDialog = ({ isOpen, onClose, post }: ShareDialogProps) => {
   };
 
   const handleShareToMessages = () => {
-    // In a real app, this would open the messaging interface
     toast({
       title: "Share via Messages",
       description: "Opening messaging interface...",
@@ -52,7 +50,6 @@ const ShareDialog = ({ isOpen, onClose, post }: ShareDialogProps) => {
         url: postUrl,
       });
     } else {
-      // Fallback for desktop
       const smsUrl = `sms:?body=${encodeURIComponent(text)}`;
       window.open(smsUrl);
     }
@@ -80,7 +77,6 @@ const ShareDialog = ({ isOpen, onClose, post }: ShareDialogProps) => {
         url: postUrl,
       });
     } else {
-      // Fallback - copy to clipboard
       navigator.clipboard.writeText(text);
       toast({
         title: "Link copied!",
@@ -119,81 +115,18 @@ const ShareDialog = ({ isOpen, onClose, post }: ShareDialogProps) => {
           <DialogTitle>Share Post</DialogTitle>
         </DialogHeader>
         
-        <div className="space-y-4">
-          {/* Quick Share Options */}
-          <div className="grid grid-cols-4 gap-4">
-            <Button
-              variant="outline"
-              className="flex flex-col items-center gap-2 h-auto py-3"
-              onClick={handleShareToMessages}
-            >
-              <MessageCircle size={24} />
-              <span className="text-xs">Messages</span>
-            </Button>
-            
-            <Button
-              variant="outline"
-              className="flex flex-col items-center gap-2 h-auto py-3"
-              onClick={handleShareToPhone}
-            >
-              <Phone size={24} />
-              <span className="text-xs">SMS</span>
-            </Button>
-            
-            <Button
-              variant="outline"
-              className="flex flex-col items-center gap-2 h-auto py-3"
-              onClick={handleShareToEmail}
-            >
-              <Mail size={24} />
-              <span className="text-xs">Email</span>
-            </Button>
-            
-            <Button
-              variant="outline"
-              className="flex flex-col items-center gap-2 h-auto py-3"
-              onClick={handleShareToOtherApps}
-            >
-              <Share2 size={24} />
-              <span className="text-xs">More</span>
-            </Button>
-          </div>
+        <ShareOptions
+          onShareToMessages={handleShareToMessages}
+          onShareToPhone={handleShareToPhone}
+          onShareToEmail={handleShareToEmail}
+          onShareToOtherApps={handleShareToOtherApps}
+          onCopyLink={handleCopyLink}
+        />
 
-          {/* Recent Contacts */}
-          <div>
-            <h3 className="font-medium text-sm mb-3">Send to</h3>
-            <div className="space-y-2 max-h-32 overflow-y-auto">
-              {recentContacts.map((contact) => (
-                <div
-                  key={contact.id}
-                  className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 cursor-pointer"
-                  onClick={handleShareToMessages}
-                >
-                  <Avatar className="h-8 w-8">
-                    <AvatarImage src={contact.avatar} />
-                    <AvatarFallback>{contact.name.charAt(0)}</AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <p className="font-medium text-sm">{contact.name}</p>
-                    <p className="text-gray-600 text-xs">@{contact.username}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Copy Link */}
-          <div className="border-t pt-4">
-            <Button
-              variant="outline"
-              className="w-full flex items-center gap-2"
-              onClick={handleCopyLink}
-            >
-              <Copy size={16} />
-              Copy Link
-            </Button>
-          </div>
-        </div>
+        <ShareContactsList
+          contacts={recentContacts}
+          onContactClick={handleShareToMessages}
+        />
       </DialogContent>
     </Dialog>
   );

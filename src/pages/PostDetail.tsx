@@ -1,17 +1,19 @@
 import React, { useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, MoreHorizontal, MessageCircle, Send, UserPlus, UserCheck, Settings } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Input } from '@/components/ui/input';
-import AnimatedHeart from '@/components/ui/animated-heart';
+import { useParams } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
+import { useToast } from '@/hooks/use-toast';
+import PostHeader from '@/components/post/PostHeader';
+import PostUserInfo from '@/components/post/PostUserInfo';
+import PostImage from '@/components/post/PostImage';
+import PostActions from '@/components/post/PostActions';
+import PostLikes from '@/components/post/PostLikes';
+import PostCaption from '@/components/post/PostCaption';
 import CommentsSection from '@/components/post/CommentsSection';
+import AddCommentInput from '@/components/post/AddCommentInput';
 import ShareDialog from '@/components/post/ShareDialog';
 import LikesModal from '@/components/post/LikesModal';
 import PostPrivacySettings from '@/components/post/PostPrivacySettings';
-import { useAuth } from '@/contexts/AuthContext';
-import { useToast } from '@/hooks/use-toast';
-import { useFollowSystem } from '@/hooks/useFollowSystem';
+import { useNavigate } from 'react-router-dom';
 
 const PostDetail = () => {
   const { postId } = useParams();
@@ -21,7 +23,6 @@ const PostDetail = () => {
   
   const [isLiked, setIsLiked] = useState(false);
   const [likesCount, setLikesCount] = useState(243);
-  const [newComment, setNewComment] = useState('');
   const [showShareDialog, setShowShareDialog] = useState(false);
   const [showLikesModal, setShowLikesModal] = useState(false);
   const [showPrivacySettings, setShowPrivacySettings] = useState(false);
@@ -42,7 +43,7 @@ const PostDetail = () => {
       name: 'Golden Paws Kennel',
       username: 'goldenpaws',
       avatar: 'https://images.unsplash.com/photo-1560743173-567a3b5658b1?w=150&h=150&fit=crop&crop=face',
-      isOwnPost: user?.id === 'goldenpaws123' // Check if current user owns this post
+      isOwnPost: user?.id === 'goldenpaws123'
     },
     caption: 'Meet our beautiful Golden Retriever puppies! 🐕 These adorable little ones are looking for their forever homes. They are healthy, vaccinated, and ready to bring joy to your family. #GoldenRetriever #Puppies #DogsOfInstagram',
     timestamp: '2 hours ago'
@@ -177,7 +178,7 @@ const PostDetail = () => {
     });
   };
 
-  const handleAddComment = () => {
+  const handleAddComment = (commentText: string) => {
     if (!user) {
       toast({
         title: "Login required",
@@ -196,8 +197,6 @@ const PostDetail = () => {
       return;
     }
 
-    if (!newComment.trim()) return;
-
     const comment = {
       id: comments.length + 1,
       user: {
@@ -206,14 +205,13 @@ const PostDetail = () => {
         username: user.email?.split('@')[0] || 'user',
         avatar: ''
       },
-      text: newComment,
+      text: commentText,
       timestamp: 'now',
       likes: 0,
       isLiked: false
     };
 
     setComments([...comments, comment]);
-    setNewComment('');
     
     toast({
       title: "Comment added!",
@@ -223,14 +221,6 @@ const PostDetail = () => {
 
   const handleProfileClick = (userId: string) => {
     navigate(`/profile/${userId}`);
-  };
-
-  const handleHashtagClick = (hashtag: string) => {
-    navigate(`/?search=${encodeURIComponent(hashtag)}`);
-    toast({
-      title: "Hashtag Search",
-      description: `Searching for posts with ${hashtag}`,
-    });
   };
 
   const handleLikesClick = () => {
@@ -245,31 +235,6 @@ const PostDetail = () => {
     setShowLikesModal(true);
   };
 
-  const renderCaptionWithHashtags = (caption: string) => {
-    const parts = caption.split(/(#\w+)/g);
-    
-    return parts.map((part, index) => {
-      if (part.startsWith('#')) {
-        return (
-          <span
-            key={index}
-            className="text-blue-600 cursor-pointer hover:text-blue-800 font-medium"
-            onClick={() => handleHashtagClick(part)}
-          >
-            {part}
-          </span>
-        );
-      }
-      return part;
-    });
-  };
-
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      handleAddComment();
-    }
-  };
-
   const scrollToComments = () => {
     const commentsSection = document.getElementById('comments-section');
     if (commentsSection) {
@@ -279,176 +244,71 @@ const PostDetail = () => {
 
   return (
     <div className="max-w-md mx-auto bg-white min-h-screen">
-      {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b">
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => navigate(-1)}
-        >
-          <ArrowLeft size={20} />
-        </Button>
-        <h1 className="font-medium">Post</h1>
-        <Button 
-          variant="ghost" 
-          size="icon"
-          onClick={() => post.user.isOwnPost && setShowPrivacySettings(true)}
-        >
-          {post.user.isOwnPost ? <Settings size={20} /> : <MoreHorizontal size={20} />}
-        </Button>
-      </div>
+      <PostHeader
+        isOwnPost={post.user.isOwnPost}
+        onPrivacySettingsClick={() => setShowPrivacySettings(true)}
+      />
 
-      {/* Post content */}
       <div>
-        {/* User info */}
-        <div className="flex items-center gap-3 p-4">
-          <Avatar 
-            className="h-10 w-10 cursor-pointer" 
-            onClick={() => handleProfileClick(post.user.id)}
-          >
-            <AvatarImage src={post.user.avatar} />
-            <AvatarFallback>{post.user.name.charAt(0)}</AvatarFallback>
-          </Avatar>
-          <div className="flex-1">
-            <p 
-              className="font-medium text-sm cursor-pointer hover:underline"
-              onClick={() => handleProfileClick(post.user.id)}
-            >
-              {post.user.name}
-            </p>
-            <p className="text-gray-600 text-xs">{post.timestamp}</p>
-          </div>
-          {!post.user.isOwnPost && (
-            <Button 
-              size="sm" 
-              variant={isFollowing ? "outline" : "default"}
-              onClick={handleFollow}
-              className={isFollowing ? "border-gray-300 text-gray-700" : ""}
-            >
-              {isFollowing ? (
-                <>
-                  <UserCheck size={16} className="mr-1" />
-                  Following
-                </>
-              ) : (
-                <>
-                  <UserPlus size={16} className="mr-1" />
-                  Follow
-                </>
-              )}
-            </Button>
-          )}
-        </div>
-
-        {/* Post image */}
-        <img 
-          src={post.image} 
-          alt="Post" 
-          className="w-full aspect-square object-cover"
+        <PostUserInfo
+          user={post.user}
+          timestamp={post.timestamp}
+          isFollowing={isFollowing}
+          onProfileClick={handleProfileClick}
+          onFollowClick={handleFollow}
         />
 
-        {/* Actions */}
+        <PostImage src={post.image} alt="Post" />
+
         <div className="p-4">
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-4">
-              <AnimatedHeart 
-                isLiked={isLiked}
-                onToggle={handleLike}
-                size={24}
-              />
-              {postPrivacySettings.allowComments && (
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={scrollToComments}
-                  className="p-0 h-auto hover:bg-transparent"
-                >
-                  <MessageCircle size={24} className="text-gray-700 hover:text-gray-900" />
-                </Button>
-              )}
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setShowShareDialog(true)}
-                className="p-0 h-auto hover:bg-transparent"
-              >
-                <Send size={24} className="text-gray-700 hover:text-gray-900" />
-              </Button>
-            </div>
-          </div>
+          <PostActions
+            isLiked={isLiked}
+            allowComments={postPrivacySettings.allowComments}
+            onLikeToggle={handleLike}
+            onCommentClick={scrollToComments}
+            onShareClick={() => setShowShareDialog(true)}
+          />
 
-          {/* Likes */}
-          {postPrivacySettings.showLikes ? (
-            <p 
-              className="font-medium text-sm mb-2 cursor-pointer hover:underline"
-              onClick={handleLikesClick}
-            >
-              {likesCount.toLocaleString()} likes
-            </p>
-          ) : (
-            <p className="font-medium text-sm mb-2">
-              Likes hidden
-            </p>
-          )}
+          <PostLikes
+            likesCount={likesCount}
+            showLikes={postPrivacySettings.showLikes}
+            onLikesClick={handleLikesClick}
+          />
 
-          {/* Caption */}
-          <div className="mb-3">
-            <span 
-              className="font-medium text-sm mr-2 cursor-pointer hover:underline"
-              onClick={() => handleProfileClick(post.user.id)}
-            >
-              {post.user.username}
-            </span>
-            <span className="text-sm">{renderCaptionWithHashtags(post.caption)}</span>
-          </div>
+          <PostCaption
+            username={post.user.username}
+            caption={post.caption}
+            onProfileClick={handleProfileClick}
+            userId={post.user.id}
+          />
 
-          {/* Comments Section */}
-          {postPrivacySettings.allowComments ? (
-            <div id="comments-section">
+          <div id="comments-section">
+            {postPrivacySettings.allowComments ? (
               <CommentsSection 
                 comments={comments}
                 setComments={setComments}
                 onProfileClick={handleProfileClick}
               />
-            </div>
-          ) : (
-            <div className="text-gray-500 text-sm py-4 text-center">
-              Comments have been disabled for this post
-            </div>
-          )}
+            ) : (
+              <div className="text-gray-500 text-sm py-4 text-center">
+                Comments have been disabled for this post
+              </div>
+            )}
+          </div>
 
-          {/* Add comment */}
-          {postPrivacySettings.allowComments && (
-            <div className="flex items-center gap-2 mt-4 pt-4 border-t">
-              <Input
-                placeholder="Add a comment..."
-                value={newComment}
-                onChange={(e) => setNewComment(e.target.value)}
-                onKeyPress={handleKeyPress}
-                className="flex-1 border-none focus:ring-0"
-              />
-              <Button 
-                onClick={handleAddComment}
-                disabled={!newComment.trim()}
-                variant="ghost"
-                size="sm"
-                className="text-blue-500 hover:text-blue-600 disabled:text-gray-400"
-              >
-                Post
-              </Button>
-            </div>
-          )}
+          <AddCommentInput
+            onAddComment={handleAddComment}
+            disabled={!postPrivacySettings.allowComments}
+          />
         </div>
       </div>
 
-      {/* Share Dialog */}
       <ShareDialog
         isOpen={showShareDialog}
         onClose={() => setShowShareDialog(false)}
         post={post}
       />
 
-      {/* Likes Modal */}
       <LikesModal
         isOpen={showLikesModal}
         onClose={() => setShowLikesModal(false)}
@@ -456,7 +316,6 @@ const PostDetail = () => {
         onProfileClick={handleProfileClick}
       />
 
-      {/* Privacy Settings Modal */}
       {post.user.isOwnPost && (
         <PostPrivacySettings
           isOpen={showPrivacySettings}
