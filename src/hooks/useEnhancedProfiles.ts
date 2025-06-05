@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
@@ -50,6 +49,7 @@ interface PrivacySettings {
   show_social_media: boolean;
   show_breeding_history: boolean;
   show_achievements: boolean;
+  private_account: boolean;
   allow_messages_from: 'everyone' | 'verified_users' | 'followers_only';
   allow_profile_views: 'everyone' | 'registered_users' | 'followers_only';
   show_online_status: boolean;
@@ -83,7 +83,7 @@ export const useEnhancedProfiles = () => {
     }
   ];
 
-  // Mock privacy settings
+  // Mock privacy settings with private account
   const mockPrivacySettings: PrivacySettings = {
     show_email: false,
     show_phone: false,
@@ -91,6 +91,7 @@ export const useEnhancedProfiles = () => {
     show_social_media: true,
     show_breeding_history: true,
     show_achievements: true,
+    private_account: false,
     allow_messages_from: 'verified_users',
     allow_profile_views: 'everyone',
     show_online_status: true

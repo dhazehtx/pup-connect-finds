@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { User, Bell, Shield, MapPin, CreditCard, HelpCircle, LogOut, ChevronRight, Edit3 } from 'lucide-react';
 import { Label } from '@/components/ui/label';
@@ -7,14 +6,57 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Link } from 'react-router-dom';
 import SocialMediaConnections from '@/components/settings/SocialMediaConnections';
+import PrivacySettings from '@/components/profile/PrivacySettings';
+import FollowRequestsManager from '@/components/profile/FollowRequestsManager';
 
 const Settings = () => {
   const [bio, setBio] = useState("Passionate dog breeder specializing in Golden Retrievers and Labradors. Health tested puppies with health guarantees. Member since March 2023.");
   const [isEditingBio, setIsEditingBio] = useState(false);
+  
+  // Mock privacy settings state
+  const [privacySettings, setPrivacySettings] = useState({
+    show_email: false,
+    show_phone: false,
+    show_location: true,
+    show_bio: true,
+    show_social_links: true,
+    private_account: false,
+  });
+
+  // Mock follow requests data
+  const [followRequests, setFollowRequests] = useState([
+    {
+      id: '1',
+      requesterId: 'user1',
+      requesterName: 'Sarah Johnson',
+      requesterUsername: 'sarahj_dogs',
+      requesterAvatar: 'https://images.unsplash.com/photo-1494790108755-2616b612b77c?w=150&h=150&fit=crop&crop=face',
+      requesterVerified: true,
+      requestedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(), // 2 days ago
+    },
+    {
+      id: '2',
+      requesterId: 'user2',
+      requesterName: 'Mike Chen',
+      requesterUsername: 'mikechen',
+      requesterVerified: false,
+      requestedAt: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString(), // 5 hours ago
+    },
+  ]);
 
   const handleBioSave = () => {
     setIsEditingBio(false);
     console.log('Bio saved:', bio);
+  };
+
+  const handlePrivacyUpdate = (newSettings: any) => {
+    setPrivacySettings(newSettings);
+    console.log('Privacy settings updated:', newSettings);
+  };
+
+  const handleFollowRequestAction = (requestId: string, action: 'approve' | 'decline') => {
+    setFollowRequests(prev => prev.filter(req => req.id !== requestId));
+    console.log(`Follow request ${requestId} ${action}d`);
   };
 
   const settingsGroups = [
@@ -112,6 +154,24 @@ const Settings = () => {
           )}
         </CardContent>
       </Card>
+
+      {/* Privacy Settings */}
+      <div className="mb-6">
+        <PrivacySettings 
+          settings={privacySettings}
+          onUpdate={handlePrivacyUpdate}
+        />
+      </div>
+
+      {/* Follow Requests - only show if account is private */}
+      {privacySettings.private_account && (
+        <div className="mb-6">
+          <FollowRequestsManager 
+            requests={followRequests}
+            onRequestAction={handleFollowRequestAction}
+          />
+        </div>
+      )}
 
       {/* Social Media Connections */}
       <div className="mb-6">
