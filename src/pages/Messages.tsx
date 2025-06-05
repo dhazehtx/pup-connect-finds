@@ -160,9 +160,8 @@ const Messages = () => {
       {/* Enhanced messaging tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1">
         <div className="border-b">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="conversations">Chats</TabsTrigger>
-            <TabsTrigger value="templates">Templates</TabsTrigger>
             <TabsTrigger value="archived">Archived</TabsTrigger>
           </TabsList>
         </div>
@@ -181,39 +180,6 @@ const Messages = () => {
               selectedConversationId={selectedConversationId}
             />
           )}
-        </TabsContent>
-
-        <TabsContent value="templates" className="m-0 p-4">
-          <div className="space-y-3">
-            <h3 className="font-medium">Quick Message Templates</h3>
-            <div className="grid gap-2">
-              {[
-                "Is this still available?",
-                "Can we schedule a viewing?",
-                "What's the best time to visit?",
-                "Is the puppy vaccinated?",
-                "Can you provide health certificates?",
-                "What's included in the price?",
-                "Do you offer any guarantees?",
-                "When would the puppy be ready?"
-              ].map((template, index) => (
-                <Button
-                  key={index}
-                  variant="outline"
-                  className="justify-start text-left h-auto p-3"
-                  onClick={() => {
-                    navigator.clipboard.writeText(template);
-                    // toast notification would go here
-                  }}
-                >
-                  <div>
-                    <div className="font-medium">{template}</div>
-                    <div className="text-xs text-gray-500">Tap to copy</div>
-                  </div>
-                </Button>
-              ))}
-            </div>
-          </div>
         </TabsContent>
 
         <TabsContent value="archived" className="m-0 p-4">
