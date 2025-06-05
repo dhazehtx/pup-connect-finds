@@ -20,7 +20,7 @@ export const educationResources: EducationResource[] = [
     downloadable: true,
     content: 'Comprehensive guide covering all aspects of Golden Retriever ownership...',
     relatedArticles: [6, 4],
-    url: 'https://www.akc.org/dog-breeds/golden-retriever/'
+    url: 'https://www.petmd.com/dog/breeds/c_dg_golden_retriever'
   },
   {
     id: 2,
@@ -41,7 +41,7 @@ export const educationResources: EducationResource[] = [
     downloadable: true,
     content: 'Complete checklist for puppy-proofing your home...',
     relatedArticles: [6, 3],
-    url: 'https://www.aspca.org/pet-care/dog-care/puppy-care/puppy-proofing-your-home'
+    url: 'https://www.petfinder.com/dogs/bringing-a-dog-home/dog-proofing-home/'
   },
   {
     id: 3,
@@ -62,7 +62,7 @@ export const educationResources: EducationResource[] = [
     downloadable: true,
     content: 'Detailed overview of California dog sale regulations...',
     relatedArticles: [8, 9],
-    url: 'https://www.nolo.com/legal-encyclopedia/california-dog-laws.html'
+    url: 'https://www.animallaw.info/statute/ca-dog-consolidated-dog-laws'
   },
   {
     id: 4,
@@ -83,7 +83,7 @@ export const educationResources: EducationResource[] = [
     downloadable: false,
     content: 'Guide to selecting the right veterinarian...',
     relatedArticles: [5, 7],
-    url: 'https://pets.webmd.com/dogs/guide/how-to-choose-a-vet-for-your-dog'
+    url: 'https://www.petmd.com/dog/general-health/how-choose-veterinarian-your-dog'
   },
   {
     id: 5,
@@ -104,7 +104,7 @@ export const educationResources: EducationResource[] = [
     downloadable: true,
     content: 'Comprehensive health guide for French Bulldogs...',
     relatedArticles: [1, 4],
-    url: 'https://www.akc.org/dog-breeds/french-bulldog/'
+    url: 'https://www.petmd.com/dog/breeds/c_dg_french_bulldog'
   },
   {
     id: 6,
@@ -125,7 +125,7 @@ export const educationResources: EducationResource[] = [
     downloadable: true,
     content: 'Step-by-step puppy training guide...',
     relatedArticles: [2, 1],
-    url: 'https://www.akc.org/expert-advice/training/puppy-training-timeline/'
+    url: 'https://www.humanesociety.org/resources/how-train-your-puppy'
   },
   {
     id: 7,
@@ -146,7 +146,7 @@ export const educationResources: EducationResource[] = [
     downloadable: true,
     content: 'Complete vaccination guide...',
     relatedArticles: [4, 8],
-    url: 'https://www.akc.org/expert-advice/health/puppy-shots-complete-guide/'
+    url: 'https://www.petmd.com/dog/puppycenter/health/evr_dg_puppy_vaccination_schedule'
   },
   {
     id: 8,
@@ -167,7 +167,7 @@ export const educationResources: EducationResource[] = [
     downloadable: true,
     content: 'Comprehensive puppy nutrition guide...',
     relatedArticles: [7, 6],
-    url: 'https://www.akc.org/expert-advice/nutrition/puppy-feeding-guide/'
+    url: 'https://www.petmd.com/dog/puppycenter/nutrition/evr_dg_feeding-your-puppy'
   }
 ];
 
