@@ -1,14 +1,16 @@
 
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, MoreHorizontal } from 'lucide-react';
+import { ArrowLeft, MoreHorizontal, MessageCircle, Send, UserPlus, UserCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
 import AnimatedHeart from '@/components/ui/animated-heart';
 import CommentsSection from '@/components/post/CommentsSection';
+import ShareDialog from '@/components/post/ShareDialog';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+import { useFollowSystem } from '@/hooks/useFollowSystem';
 
 const PostDetail = () => {
   const { postId } = useParams();
@@ -19,6 +21,8 @@ const PostDetail = () => {
   const [isLiked, setIsLiked] = useState(false);
   const [likesCount, setLikesCount] = useState(243);
   const [newComment, setNewComment] = useState('');
+  const [showShareDialog, setShowShareDialog] = useState(false);
+  const [isFollowing, setIsFollowing] = useState(false);
   const [comments, setComments] = useState([
     {
       id: 1,
@@ -115,6 +119,25 @@ const PostDetail = () => {
     setLikesCount(prev => isLiked ? prev - 1 : prev + 1);
   };
 
+  const handleFollow = () => {
+    if (!user) {
+      toast({
+        title: "Login required",
+        description: "Please log in to follow users",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsFollowing(!isFollowing);
+    toast({
+      title: isFollowing ? "Unfollowed" : "Following",
+      description: isFollowing 
+        ? `You have unfollowed ${post.user.name}` 
+        : `You are now following ${post.user.name}`,
+    });
+  };
+
   const handleAddComment = () => {
     if (!user) {
       toast({
@@ -154,9 +177,44 @@ const PostDetail = () => {
     navigate(`/profile/${userId}`);
   };
 
+  const handleHashtagClick = (hashtag: string) => {
+    // Navigate to hashtag page or search results
+    navigate(`/?search=${encodeURIComponent(hashtag)}`);
+    toast({
+      title: "Hashtag Search",
+      description: `Searching for posts with ${hashtag}`,
+    });
+  };
+
+  const renderCaptionWithHashtags = (caption: string) => {
+    const parts = caption.split(/(#\w+)/g);
+    
+    return parts.map((part, index) => {
+      if (part.startsWith('#')) {
+        return (
+          <span
+            key={index}
+            className="text-blue-600 cursor-pointer hover:text-blue-800 font-medium"
+            onClick={() => handleHashtagClick(part)}
+          >
+            {part}
+          </span>
+        );
+      }
+      return part;
+    });
+  };
+
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
       handleAddComment();
+    }
+  };
+
+  const scrollToComments = () => {
+    const commentsSection = document.getElementById('comments-section');
+    if (commentsSection) {
+      commentsSection.scrollIntoView({ behavior: 'smooth' });
     }
   };
 
@@ -197,8 +255,23 @@ const PostDetail = () => {
             </p>
             <p className="text-gray-600 text-xs">{post.timestamp}</p>
           </div>
-          <Button size="sm" variant="outline">
-            Follow
+          <Button 
+            size="sm" 
+            variant={isFollowing ? "outline" : "default"}
+            onClick={handleFollow}
+            className={isFollowing ? "border-gray-300 text-gray-700" : ""}
+          >
+            {isFollowing ? (
+              <>
+                <UserCheck size={16} className="mr-1" />
+                Following
+              </>
+            ) : (
+              <>
+                <UserPlus size={16} className="mr-1" />
+                Follow
+              </>
+            )}
           </Button>
         </div>
 
@@ -218,6 +291,22 @@ const PostDetail = () => {
                 onToggle={handleLike}
                 size={24}
               />
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={scrollToComments}
+                className="p-0 h-auto hover:bg-transparent"
+              >
+                <MessageCircle size={24} className="text-gray-700 hover:text-gray-900" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setShowShareDialog(true)}
+                className="p-0 h-auto hover:bg-transparent"
+              >
+                <Send size={24} className="text-gray-700 hover:text-gray-900" />
+              </Button>
             </div>
           </div>
 
@@ -232,15 +321,17 @@ const PostDetail = () => {
             >
               {post.user.username}
             </span>
-            <span className="text-sm">{post.caption}</span>
+            <span className="text-sm">{renderCaptionWithHashtags(post.caption)}</span>
           </div>
 
           {/* Comments Section */}
-          <CommentsSection 
-            comments={comments}
-            setComments={setComments}
-            onProfileClick={handleProfileClick}
-          />
+          <div id="comments-section">
+            <CommentsSection 
+              comments={comments}
+              setComments={setComments}
+              onProfileClick={handleProfileClick}
+            />
+          </div>
 
           {/* Add comment */}
           <div className="flex items-center gap-2 mt-4 pt-4 border-t">
@@ -263,6 +354,13 @@ const PostDetail = () => {
           </div>
         </div>
       </div>
+
+      {/* Share Dialog */}
+      <ShareDialog
+        isOpen={showShareDialog}
+        onClose={() => setShowShareDialog(false)}
+        post={post}
+      />
     </div>
   );
 };
