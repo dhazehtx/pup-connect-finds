@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { BarChart3, TrendingUp, Users, Calendar } from 'lucide-react';
+import { BarChart3, TrendingUp, Users, Calendar, Eye, Heart, MessageCircle, Share } from 'lucide-react';
 import { UserProfile } from '@/types/profile';
 import AdvancedAnalytics from './AdvancedAnalytics';
 
@@ -18,151 +18,197 @@ const ProfileAnalyticsEnhanced = ({ profile }: ProfileAnalyticsEnhancedProps) =>
 
   const quickStats = [
     {
-      title: 'Total Views',
-      value: profile.stats?.totalViews?.toLocaleString() || '0',
+      title: 'Profile Views',
+      value: profile.stats?.totalViews?.toLocaleString() || '2,547',
       change: '+12%',
-      icon: <Users className="h-4 w-4" />
+      icon: <Eye className="h-5 w-5" />,
+      color: 'text-blue-600'
     },
     {
-      title: 'Profile Rating',
-      value: profile.rating?.toFixed(1) || '0.0',
-      change: '+0.2',
-      icon: <TrendingUp className="h-4 w-4" />
+      title: 'Likes',
+      value: '1,243',
+      change: '+8%',
+      icon: <Heart className="h-5 w-5" />,
+      color: 'text-red-500'
     },
     {
-      title: 'Total Reviews',
-      value: profile.total_reviews?.toString() || '0',
-      change: '+3',
-      icon: <BarChart3 className="h-4 w-4" />
+      title: 'Comments',
+      value: '324',
+      change: '+15%',
+      icon: <MessageCircle className="h-5 w-5" />,
+      color: 'text-green-600'
     },
     {
-      title: 'Experience',
-      value: `${profile.years_experience || 0} years`,
-      change: 'verified',
-      icon: <Calendar className="h-4 w-4" />
+      title: 'Shares',
+      value: '89',
+      change: '+5%',
+      icon: <Share className="h-5 w-5" />,
+      color: 'text-purple-600'
     }
   ];
 
   return (
-    <div className="space-y-6 p-4">
-      {/* Header Controls */}
-      <div className="flex flex-col space-y-4">
-        <div>
-          <h2 className="text-2xl font-bold">Profile Analytics</h2>
-          <p className="text-gray-600">Track your profile performance and engagement</p>
-        </div>
-        
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <div className="flex gap-2">
-            <Button
-              variant={activeView === 'overview' ? 'default' : 'outline'}
-              onClick={() => setActiveView('overview')}
-              className="rounded-md"
-            >
-              Overview
-            </Button>
-            <Button
-              variant={activeView === 'detailed' ? 'default' : 'outline'}
-              onClick={() => setActiveView('detailed')}
-              className="rounded-md"
-            >
-              Detailed
-            </Button>
+    <div className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <div className="bg-white border-b border-gray-200 sticky top-0 z-10">
+        <div className="max-w-lg mx-auto px-4 py-4">
+          <div className="flex items-center justify-between mb-4">
+            <h1 className="text-xl font-semibold text-gray-900">Insights</h1>
+            <Select value={timeRange} onValueChange={(value: any) => setTimeRange(value)}>
+              <SelectTrigger className="w-32 h-8 text-sm">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="week">7 days</SelectItem>
+                <SelectItem value="month">30 days</SelectItem>
+                <SelectItem value="year">1 year</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
           
-          <Select value={timeRange} onValueChange={(value: any) => setTimeRange(value)}>
-            <SelectTrigger className="w-40">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="week">This Week</SelectItem>
-              <SelectItem value="month">This Month</SelectItem>
-              <SelectItem value="year">This Year</SelectItem>
-            </SelectContent>
-          </Select>
+          {/* Tab Navigation */}
+          <div className="flex bg-gray-100 rounded-lg p-1">
+            <button
+              onClick={() => setActiveView('overview')}
+              className={`flex-1 py-2 px-4 text-sm font-medium rounded-md transition-all ${
+                activeView === 'overview'
+                  ? 'bg-white text-gray-900 shadow-sm'
+                  : 'text-gray-600'
+              }`}
+            >
+              Overview
+            </button>
+            <button
+              onClick={() => setActiveView('detailed')}
+              className={`flex-1 py-2 px-4 text-sm font-medium rounded-md transition-all ${
+                activeView === 'detailed'
+                  ? 'bg-white text-gray-900 shadow-sm'
+                  : 'text-gray-600'
+              }`}
+            >
+              Detailed
+            </button>
+          </div>
         </div>
       </div>
 
-      {/* Quick Stats */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        {quickStats.map((stat, index) => (
-          <Card key={index}>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-2">
-                  {stat.icon}
-                  <span className="text-sm font-medium text-gray-600">{stat.title}</span>
+      <div className="max-w-lg mx-auto px-4 pb-20">
+        {activeView === 'overview' ? (
+          <div className="space-y-6 py-6">
+            {/* Stats Grid */}
+            <div className="grid grid-cols-2 gap-3">
+              {quickStats.map((stat, index) => (
+                <Card key={index} className="border-0 shadow-sm">
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className={`${stat.color}`}>
+                        {stat.icon}
+                      </div>
+                      <span className="text-xs text-green-600 font-medium">{stat.change}</span>
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
+                      <p className="text-xs text-gray-600">{stat.title}</p>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+
+            {/* Profile Performance */}
+            <Card className="border-0 shadow-sm">
+              <CardContent className="p-4">
+                <h3 className="font-semibold text-gray-900 mb-4">Profile Performance</h3>
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                        <Users className="w-5 h-5 text-blue-600" />
+                      </div>
+                      <div>
+                        <p className="font-medium text-gray-900">Profile Visits</p>
+                        <p className="text-sm text-gray-600">+12% from last week</p>
+                      </div>
+                    </div>
+                    <span className="text-lg font-bold text-gray-900">2,547</span>
+                  </div>
+                  
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+                        <TrendingUp className="w-5 h-5 text-green-600" />
+                      </div>
+                      <div>
+                        <p className="font-medium text-gray-900">Engagement Rate</p>
+                        <p className="text-sm text-gray-600">Above average</p>
+                      </div>
+                    </div>
+                    <span className="text-lg font-bold text-gray-900">8.4%</span>
+                  </div>
                 </div>
-              </div>
-              <div className="mt-2">
-                <span className="text-2xl font-bold">{stat.value}</span>
-                <span className="ml-2 text-sm text-green-600">{stat.change}</span>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+              </CardContent>
+            </Card>
+
+            {/* Recent Activity */}
+            <Card className="border-0 shadow-sm">
+              <CardContent className="p-4">
+                <h3 className="font-semibold text-gray-900 mb-4">Recent Activity</h3>
+                <div className="space-y-3">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-2 h-2 rounded-full bg-blue-500" />
+                    <span className="text-sm text-gray-700">Profile viewed 47 times today</span>
+                  </div>
+                  <div className="flex items-center space-x-3">
+                    <div className="w-2 h-2 rounded-full bg-green-500" />
+                    <span className="text-sm text-gray-700">3 new followers this week</span>
+                  </div>
+                  <div className="flex items-center space-x-3">
+                    <div className="w-2 h-2 rounded-full bg-purple-500" />
+                    <span className="text-sm text-gray-700">Post shared 8 times</span>
+                  </div>
+                  <div className="flex items-center space-x-3">
+                    <div className="w-2 h-2 rounded-full bg-red-500" />
+                    <span className="text-sm text-gray-700">12 new likes on recent posts</span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Profile Completion */}
+            <Card className="border-0 shadow-sm">
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="font-semibold text-gray-900">Profile Strength</h3>
+                  <span className="text-sm font-medium text-green-600">85%</span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-2 mb-4">
+                  <div className="bg-green-500 h-2 rounded-full" style={{ width: '85%' }} />
+                </div>
+                <div className="space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-600">Basic Info</span>
+                    <span className="text-green-600">✓</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-600">Profile Photo</span>
+                    <span className="text-green-600">✓</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-600">Verification</span>
+                    <span className={profile.verified ? "text-green-600" : "text-orange-500"}>
+                      {profile.verified ? "✓" : "⚠"}
+                    </span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        ) : (
+          <div className="py-6">
+            <AdvancedAnalytics profile={profile} />
+          </div>
+        )}
       </div>
-
-      {/* Main Analytics Content */}
-      {activeView === 'overview' ? (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Profile Completion</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="flex justify-between">
-                  <span>Basic Info</span>
-                  <span className="text-green-600">✓ Complete</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Profile Photo</span>
-                  <span className="text-green-600">✓ Complete</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Verification</span>
-                  <span className={profile.verified ? "text-green-600" : "text-gray-600"}>
-                    {profile.verified ? "✓ Verified" : "⚠ Pending"}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Bio & Experience</span>
-                  <span className="text-green-600">✓ Complete</span>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Recent Activity</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                <div className="flex items-center gap-3">
-                  <div className="w-2 h-2 rounded-full bg-gray-500" />
-                  <span className="text-sm">Profile viewed 15 times today</span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <div className="w-2 h-2 rounded-full bg-green-500" />
-                  <span className="text-sm">New review received</span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <div className="w-2 h-2 rounded-full bg-gray-500" />
-                  <span className="text-sm">Contact information requested 3 times</span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <div className="w-2 h-2 rounded-full bg-gray-500" />
-                  <span className="text-sm">Profile shared 2 times</span>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      ) : (
-        <AdvancedAnalytics profile={profile} />
-      )}
     </div>
   );
 };
