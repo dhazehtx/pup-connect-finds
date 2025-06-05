@@ -62,17 +62,18 @@ const ProfileContainer = () => {
   }
 
   // Create display profile using utility function
-  // For own profile without userId param, use actual user data instead of mock data
+  // When logged out and no userId specified, always show demo enhanced profile
+  // When logged in and own profile, use actual user data
   const displayProfile = createDisplayProfile({
-    enhancedProfile: isOwnProfile && !userId ? null : enhancedProfile, // Don't use mock data for own profile
+    enhancedProfile: (!user && !userId) || (userId && userId !== user?.id) ? enhancedProfile : (isOwnProfile && !userId ? null : enhancedProfile),
     profile,
     user,
-    isOwnProfile,
+    isOwnProfile: user ? isOwnProfile : false, // When logged out, it's never own profile
     userId,
     portfolios,
     followers,
     following,
-    verificationBadges: isOwnProfile && !userId ? [] : verificationBadges // Don't use mock badges for own profile
+    verificationBadges: (!user && !userId) || (userId && userId !== user?.id) ? verificationBadges : (isOwnProfile && !userId ? [] : verificationBadges)
   });
 
   console.log('ProfileContainer: Created displayProfile:', displayProfile);
@@ -82,11 +83,11 @@ const ProfileContainer = () => {
       <div className="max-w-md mx-auto bg-white min-h-screen">
         <ProfileContent 
           displayProfile={displayProfile}
-          isOwnProfile={isOwnProfile}
+          isOwnProfile={user ? isOwnProfile : false}
           isMobile={isMobile}
           user={user}
           profile={profile}
-          verificationBadges={isOwnProfile && !userId ? [] : verificationBadges}
+          verificationBadges={(!user && !userId) || (userId && userId !== user?.id) ? verificationBadges : (isOwnProfile && !userId ? [] : verificationBadges)}
         />
       </div>
     </ProfileErrorBoundary>
