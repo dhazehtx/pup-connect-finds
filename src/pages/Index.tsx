@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import Home from './Home';
@@ -21,6 +22,12 @@ import Success from './Success';
 import Auth from './Auth';
 import AuthCallback from './AuthCallback';
 import PremiumDashboard from './PremiumDashboard';
+import BrowsePuppies from './BrowsePuppies';
+import Analytics from './Analytics';
+import HelpCenter from './HelpCenter';
+import TrustSafetyPublic from './TrustSafetyPublic';
+import ContactUs from './ContactUs';
+import PrivacyPolicy from './PrivacyPolicy';
 
 const Index = () => {
   return (
@@ -28,11 +35,17 @@ const Index = () => {
       {/* Public routes accessible to guests */}
       <Route path="/" element={<Home />} />
       <Route path="/explore" element={<Explore />} />
+      <Route path="/browse-puppies" element={<BrowsePuppies />} />
       <Route path="/map" element={<MapView />} />
       <Route path="/education" element={<Education />} />
       <Route path="/partnerships" element={<Partnerships />} />
       <Route path="/terms" element={<TermsOfService />} />
       <Route path="/help" element={<Help />} />
+      <Route path="/help-center" element={<HelpCenter />} />
+      <Route path="/trust-safety" element={<TrustSafetyPublic />} />
+      <Route path="/contact" element={<ContactUs />} />
+      <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+      <Route path="/analytics" element={<Analytics />} />
       <Route path="/sample-data" element={<SampleData />} />
       <Route path="/ai-assistant" element={<AIAssistant />} />
       <Route path="/auth" element={<Auth />} />

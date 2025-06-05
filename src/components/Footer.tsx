@@ -41,12 +41,12 @@ const Footer = () => {
             <h3 className="font-semibold mb-4">Quick Links</h3>
             <ul className="space-y-2">
               <li>
-                <Link to="/explore" className="text-cloud-white/80 hover:text-cloud-white transition-colors">
+                <Link to="/browse-puppies" className="text-cloud-white/80 hover:text-cloud-white transition-colors">
                   Browse Puppies
                 </Link>
               </li>
               <li>
-                <Link to="/location-explorer" className="text-cloud-white/80 hover:text-cloud-white transition-colors">
+                <Link to="/map" className="text-cloud-white/80 hover:text-cloud-white transition-colors">
                   Location Explorer
                 </Link>
               </li>
@@ -68,7 +68,7 @@ const Footer = () => {
             <h3 className="font-semibold mb-4">Support</h3>
             <ul className="space-y-2">
               <li>
-                <Link to="/help" className="text-cloud-white/80 hover:text-cloud-white transition-colors">
+                <Link to="/help-center" className="text-cloud-white/80 hover:text-cloud-white transition-colors">
                   Help Center
                 </Link>
               </li>
@@ -83,10 +83,10 @@ const Footer = () => {
                 </Link>
               </li>
               <li>
-                <a href="mailto:support@mypup.com" className="text-cloud-white/80 hover:text-cloud-white transition-colors flex items-center gap-2">
+                <Link to="/contact" className="text-cloud-white/80 hover:text-cloud-white transition-colors flex items-center gap-2">
                   <Mail size={16} />
                   Contact Us
-                </a>
+                </Link>
               </li>
             </ul>
           </div>
@@ -98,7 +98,7 @@ const Footer = () => {
             © 2024 MY PUP. All rights reserved.
           </div>
           <div className="flex items-center gap-6 text-sm text-cloud-white/60">
-            <Link to="/terms" className="hover:text-cloud-white transition-colors">
+            <Link to="/privacy-policy" className="hover:text-cloud-white transition-colors">
               Privacy Policy
             </Link>
             <Link to="/terms" className="hover:text-cloud-white transition-colors">
