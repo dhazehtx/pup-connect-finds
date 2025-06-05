@@ -1,4 +1,3 @@
-
 import { EducationResource } from '../hooks/useEducationSearch';
 
 export const educationResources: EducationResource[] = [
@@ -42,7 +41,7 @@ export const educationResources: EducationResource[] = [
     downloadable: true,
     content: 'Complete checklist for puppy-proofing your home...',
     relatedArticles: [6, 3],
-    url: 'https://www.petmd.com/dog/puppies/evr_dg_puppy-proofing_your_home'
+    url: 'https://www.aspca.org/pet-care/dog-care/puppy-care/puppy-proofing-your-home'
   },
   {
     id: 3,
@@ -63,7 +62,7 @@ export const educationResources: EducationResource[] = [
     downloadable: true,
     content: 'Detailed overview of California dog sale regulations...',
     relatedArticles: [8, 9],
-    url: 'https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=HSC&sectionNum=122125'
+    url: 'https://www.nolo.com/legal-encyclopedia/california-dog-laws.html'
   },
   {
     id: 4,
@@ -84,7 +83,7 @@ export const educationResources: EducationResource[] = [
     downloadable: false,
     content: 'Guide to selecting the right veterinarian...',
     relatedArticles: [5, 7],
-    url: 'https://www.avma.org/resources/pet-owners/yourvet/choosing-veterinarian'
+    url: 'https://pets.webmd.com/dogs/guide/how-to-choose-a-vet-for-your-dog'
   },
   {
     id: 5,

@@ -154,7 +154,7 @@ const Education = () => {
               <h2 className="text-xl font-bold text-gray-900 mb-2">New Owner Starter Pack</h2>
               <p className="text-gray-600 mb-4">Complete guide for first-time dog owners with downloadable checklists</p>
               <Button 
-                onClick={() => window.open('https://www.petmd.com/dog/puppies/evr_dg_puppy-proofing_your_home', '_blank')}
+                onClick={() => window.open('https://www.aspca.org/pet-care/dog-care/puppy-care/puppy-proofing-your-home', '_blank')}
               >
                 Get Started
               </Button>
@@ -275,14 +275,14 @@ const Education = () => {
               <CardContent>
                 <p className="text-gray-600 mb-4">Complete journey from preparation to advanced care</p>
                 <div className="space-y-2 mb-4">
-                  <div className="text-sm text-gray-600">• <a href="https://www.petmd.com/dog/puppies/evr_dg_puppy-proofing_your_home" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Puppy-Proofing Your Home</a></div>
+                  <div className="text-sm text-gray-600">• <a href="https://www.aspca.org/pet-care/dog-care/puppy-care/puppy-proofing-your-home" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Puppy-Proofing Your Home</a></div>
                   <div className="text-sm text-gray-600">• <a href="https://www.akc.org/expert-advice/training/puppy-training-timeline/" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Puppy Training Basics</a></div>
-                  <div className="text-sm text-gray-600">• <a href="https://www.avma.org/resources/pet-owners/yourvet/choosing-veterinarian" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Finding the Right Veterinarian</a></div>
+                  <div className="text-sm text-gray-600">• <a href="https://pets.webmd.com/dogs/guide/how-to-choose-a-vet-for-your-dog" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Finding the Right Veterinarian</a></div>
                   <div className="text-sm text-gray-600">• <a href="https://www.akc.org/expert-advice/health/puppy-shots-complete-guide/" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">AKC Vaccination Schedule Guide</a></div>
                 </div>
                 <Button 
                   className="w-full"
-                  onClick={() => window.open('https://www.petmd.com/dog/puppies/evr_dg_puppy-proofing_your_home', '_blank')}
+                  onClick={() => window.open('https://www.aspca.org/pet-care/dog-care/puppy-care/puppy-proofing-your-home', '_blank')}
                 >
                   Start Learning Path
                 </Button>
@@ -299,9 +299,9 @@ const Education = () => {
                 <p className="text-gray-600 mb-4">Master dog nutrition from puppyhood to senior years</p>
                 <div className="space-y-2 mb-4">
                   <div className="text-sm text-gray-600">• <a href="https://www.akc.org/expert-advice/nutrition/puppy-feeding-guide/" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Puppy Nutrition Fundamentals</a></div>
-                  <div className="text-sm text-gray-600">• <a href="https://www.akc.org/expert-advice/nutrition/adult-dog-nutrition/" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Adult Dog Diet Planning</a></div>
+                  <div className="text-sm text-gray-600">• <a href="https://www.akc.org/expert-advice/nutrition/what-to-feed-your-dog/" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Adult Dog Diet Planning</a></div>
                   <div className="text-sm text-gray-600">• <a href="https://www.akc.org/expert-advice/nutrition/senior-dog-nutrition/" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Senior Dog Nutrition</a></div>
-                  <div className="text-sm text-gray-600">• <a href="https://www.petmd.com/dog/nutrition/evr_dg_nutrition_for_dogs_with_special_dietary_needs" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Special Dietary Needs</a></div>
+                  <div className="text-sm text-gray-600">• <a href="https://pets.webmd.com/dogs/guide/healthy-dog-treats" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Special Dietary Needs</a></div>
                 </div>
                 <Button 
                   className="w-full"
@@ -339,7 +339,7 @@ const Education = () => {
                 <p className="text-gray-600 mb-4">Quick health assessment tool</p>
                 <Button 
                   className="w-full"
-                  onClick={() => window.open('https://www.petmd.com/symptom-checker', '_blank')}
+                  onClick={() => window.open('https://pets.webmd.com/dogs/dog-symptom-checker', '_blank')}
                 >
                   Start Assessment
                 </Button>
@@ -387,21 +387,21 @@ const Education = () => {
             <Button 
               variant="outline" 
               className="justify-start"
-              onClick={() => window.open('https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=HSC&sectionNum=122125', '_blank')}
+              onClick={() => window.open('https://www.nolo.com/legal-encyclopedia/california-dog-laws.html', '_blank')}
             >
               California Laws
             </Button>
             <Button 
               variant="outline" 
               className="justify-start"
-              onClick={() => window.open('https://statutes.capitol.texas.gov/Docs/OC/htm/OC.802.htm', '_blank')}
+              onClick={() => window.open('https://www.nolo.com/legal-encyclopedia/texas-dog-laws.html', '_blank')}
             >
               Texas Laws
             </Button>
             <Button 
               variant="outline" 
               className="justify-start"
-              onClick={() => window.open('https://www.nysenate.gov/legislation/laws/AGM/350', '_blank')}
+              onClick={() => window.open('https://www.nolo.com/legal-encyclopedia/new-york-dog-laws.html', '_blank')}
             >
               New York Laws
             </Button>
