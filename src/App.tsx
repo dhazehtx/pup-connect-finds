@@ -1,11 +1,12 @@
-
 import React from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { ThemeProvider } from '@/contexts/ThemeContext';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import ErrorBoundary from '@/components/ErrorBoundary';
+import { QueryClient } from '@tanstack/react-query';
+import ErrorBoundary from '@/components/ui/error-boundary';
 import Home from '@/pages/Home';
+import Login from '@/pages/Login';
+import Register from '@/pages/Register';
 import Profile from '@/pages/Profile';
 import Settings from '@/pages/Settings';
 import Verification from '@/pages/Verification';
@@ -14,18 +15,18 @@ import Notifications from '@/pages/Notifications';
 import Messages from '@/pages/Messages';
 import PostDetail from '@/pages/PostDetail';
 
-const queryClient = new QueryClient();
-
 function App() {
   return (
     <Router>
-      <QueryClientProvider client={queryClient}>
+      <QueryClient>
         <AuthProvider>
           <ThemeProvider>
             <ErrorBoundary>
               <div className="min-h-screen bg-gray-50">
                 <Routes>
                   <Route path="/" element={<Home />} />
+                  <Route path="/login" element={<Login />} />
+                  <Route path="/register" element={<Register />} />
                   <Route path="/profile/:userId?" element={<Profile />} />
                   <Route path="/settings" element={<Settings />} />
                   <Route path="/verification" element={<Verification />} />
@@ -38,7 +39,7 @@ function App() {
             </ErrorBoundary>
           </ThemeProvider>
         </AuthProvider>
-      </QueryClientProvider>
+      </QueryClient>
     </Router>
   );
 }
