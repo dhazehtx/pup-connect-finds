@@ -159,29 +159,29 @@ const Messages = () => {
 
       {/* Enhanced messaging tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1">
-        <div className="border-b border-soft-sky bg-cloud-white">
-          <TabsList className="grid w-full grid-cols-4 bg-soft-sky/20">
+        <div className="border-b border-soft-sky bg-cloud-white px-4">
+          <TabsList className="grid w-full grid-cols-4 bg-transparent h-auto p-0 gap-0">
             <TabsTrigger 
               value="all" 
-              className="data-[state=active]:bg-royal-blue data-[state=active]:text-cloud-white text-deep-navy"
+              className="data-[state=active]:bg-royal-blue data-[state=active]:text-cloud-white text-deep-navy border-b-2 border-transparent data-[state=active]:border-royal-blue rounded-none bg-transparent h-12 px-4 transition-all duration-200"
             >
               All
             </TabsTrigger>
             <TabsTrigger 
               value="primary" 
-              className="data-[state=active]:bg-royal-blue data-[state=active]:text-cloud-white text-deep-navy"
+              className="data-[state=active]:bg-royal-blue data-[state=active]:text-cloud-white text-deep-navy border-b-2 border-transparent data-[state=active]:border-royal-blue rounded-none bg-transparent h-12 px-4 transition-all duration-200"
             >
               Primary
             </TabsTrigger>
             <TabsTrigger 
               value="general" 
-              className="data-[state=active]:bg-royal-blue data-[state=active]:text-cloud-white text-deep-navy"
+              className="data-[state=active]:bg-royal-blue data-[state=active]:text-cloud-white text-deep-navy border-b-2 border-transparent data-[state=active]:border-royal-blue rounded-none bg-transparent h-12 px-4 transition-all duration-200"
             >
               General
             </TabsTrigger>
             <TabsTrigger 
               value="request" 
-              className="data-[state=active]:bg-royal-blue data-[state=active]:text-cloud-white text-deep-navy"
+              className="data-[state=active]:bg-royal-blue data-[state=active]:text-cloud-white text-deep-navy border-b-2 border-transparent data-[state=active]:border-royal-blue rounded-none bg-transparent h-12 px-4 transition-all duration-200"
             >
               Request
             </TabsTrigger>
