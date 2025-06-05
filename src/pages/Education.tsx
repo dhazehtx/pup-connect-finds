@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { BookOpen, Heart, MapPin, Scale, Search, Filter, Download, Bookmark, TrendingUp } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -167,11 +166,31 @@ const Education = () => {
 
       {/* Tabbed Content Sections */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-8">
-        <TabsList className="grid w-full grid-cols-4 bg-muted">
-          <TabsTrigger value="all" className="data-[state=active]:bg-background data-[state=active]:text-foreground">All Resources</TabsTrigger>
-          <TabsTrigger value="sections" className="data-[state=active]:bg-background data-[state=active]:text-foreground">Browse Sections</TabsTrigger>
-          <TabsTrigger value="guides" className="data-[state=active]:bg-background data-[state=active]:text-foreground">Learning Paths</TabsTrigger>
-          <TabsTrigger value="tools" className="data-[state=active]:bg-background data-[state=active]:text-foreground">Quick Tools</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-4 bg-muted/50">
+          <TabsTrigger 
+            value="all" 
+            className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+          >
+            All Resources
+          </TabsTrigger>
+          <TabsTrigger 
+            value="sections" 
+            className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+          >
+            Browse Sections
+          </TabsTrigger>
+          <TabsTrigger 
+            value="guides" 
+            className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+          >
+            Learning Paths
+          </TabsTrigger>
+          <TabsTrigger 
+            value="tools" 
+            className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+          >
+            Quick Tools
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="all" className="mt-6">
