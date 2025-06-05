@@ -75,7 +75,7 @@ const demoConversations = [
 const Messages = () => {
   const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
-  const [activeTab, setActiveTab] = useState('conversations');
+  const [activeTab, setActiveTab] = useState('all');
   const { user } = useAuth();
   const { conversations, loading } = useMessaging();
 
@@ -160,13 +160,15 @@ const Messages = () => {
       {/* Enhanced messaging tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1">
         <div className="border-b">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="conversations">Chats</TabsTrigger>
-            <TabsTrigger value="archived">Archived</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-4">
+            <TabsTrigger value="all">All</TabsTrigger>
+            <TabsTrigger value="primary">Primary</TabsTrigger>
+            <TabsTrigger value="general">General</TabsTrigger>
+            <TabsTrigger value="request">Request</TabsTrigger>
           </TabsList>
         </div>
 
-        <TabsContent value="conversations" className="m-0">
+        <TabsContent value="all" className="m-0">
           {/* Conversations List */}
           {user && loading ? (
             <div className="p-4 text-center">
@@ -182,14 +184,28 @@ const Messages = () => {
           )}
         </TabsContent>
 
-        <TabsContent value="archived" className="m-0 p-4">
-          <div className="text-center py-8">
-            <div className="text-gray-400 mb-2">📁</div>
-            <h3 className="font-medium mb-1">No archived conversations</h3>
-            <p className="text-sm text-gray-500">
-              Archived chats will appear here
-            </p>
-          </div>
+        <TabsContent value="primary" className="m-0">
+          <ConversationsList
+            conversations={filteredConversations.filter(conv => conv.id.includes('1'))}
+            onSelectConversation={(conv) => setSelectedConversationId(conv.id)}
+            selectedConversationId={selectedConversationId}
+          />
+        </TabsContent>
+
+        <TabsContent value="general" className="m-0">
+          <ConversationsList
+            conversations={filteredConversations.filter(conv => conv.id.includes('2'))}
+            onSelectConversation={(conv) => setSelectedConversationId(conv.id)}
+            selectedConversationId={selectedConversationId}
+          />
+        </TabsContent>
+
+        <TabsContent value="request" className="m-0">
+          <ConversationsList
+            conversations={filteredConversations.filter(conv => conv.id.includes('3'))}
+            onSelectConversation={(conv) => setSelectedConversationId(conv.id)}
+            selectedConversationId={selectedConversationId}
+          />
         </TabsContent>
       </Tabs>
     </div>
