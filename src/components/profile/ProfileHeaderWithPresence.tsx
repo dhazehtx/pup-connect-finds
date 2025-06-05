@@ -1,15 +1,23 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { MapPin, Calendar, CheckCircle, Star, Shield, Award } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import UserAvatarWithPresence from '@/components/ui/user-avatar-with-presence';
+import FollowersModal from '@/components/profile/FollowersModal';
 import { UserProfile } from '@/types/profile';
+import { useProfessionalNetwork } from '@/hooks/useProfessionalNetwork';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface ProfileHeaderWithPresenceProps {
   profile: UserProfile;
 }
 
 const ProfileHeaderWithPresence = ({ profile }: ProfileHeaderWithPresenceProps) => {
+  const [showFollowersModal, setShowFollowersModal] = useState(false);
+  const [showFollowingModal, setShowFollowingModal] = useState(false);
+  const { followers, following } = useProfessionalNetwork();
+  const { user } = useAuth();
+
   if (!profile) {
     return <div>Loading profile...</div>;
   }
@@ -22,6 +30,25 @@ const ProfileHeaderWithPresence = ({ profile }: ProfileHeaderWithPresenceProps) 
   };
 
   const trustScore = profile.trust_score || (profile.rating / 5);
+
+  // Convert followers/following data to the format expected by the modal
+  const followersData = followers.map(follower => ({
+    id: follower.follower_id,
+    full_name: follower.profile?.full_name || 'User',
+    username: follower.profile?.username || 'user',
+    avatar_url: follower.profile?.avatar_url,
+    verified: follower.profile?.verified || false,
+    user_type: follower.profile?.user_type || 'buyer'
+  }));
+
+  const followingData = following.map(follow => ({
+    id: follow.following_id,
+    full_name: follow.profile?.full_name || 'User',
+    username: follow.profile?.username || 'user',
+    avatar_url: follow.profile?.avatar_url,
+    verified: follow.profile?.verified || false,
+    user_type: follow.profile?.user_type || 'buyer'
+  }));
 
   return (
     <>
@@ -42,11 +69,17 @@ const ProfileHeaderWithPresence = ({ profile }: ProfileHeaderWithPresenceProps) 
               <div className="font-semibold text-black">{profile.stats?.posts || 0}</div>
               <div className="text-gray-600 text-sm">Posts</div>
             </div>
-            <div>
+            <div 
+              className="cursor-pointer hover:opacity-75 transition-opacity"
+              onClick={() => setShowFollowersModal(true)}
+            >
               <div className="font-semibold text-black">{(profile.stats?.followers || 0).toLocaleString()}</div>
               <div className="text-gray-600 text-sm">Followers</div>
             </div>
-            <div>
+            <div 
+              className="cursor-pointer hover:opacity-75 transition-opacity"
+              onClick={() => setShowFollowingModal(true)}
+            >
               <div className="font-semibold text-black">{profile.stats?.following || 0}</div>
               <div className="text-gray-600 text-sm">Following</div>
             </div>
@@ -116,6 +149,23 @@ const ProfileHeaderWithPresence = ({ profile }: ProfileHeaderWithPresenceProps) 
           </div>
         )}
       </div>
+
+      {/* Modals */}
+      <FollowersModal
+        isOpen={showFollowersModal}
+        onClose={() => setShowFollowersModal(false)}
+        type="followers"
+        users={followersData}
+        currentUserId={user?.id}
+      />
+      
+      <FollowersModal
+        isOpen={showFollowingModal}
+        onClose={() => setShowFollowingModal(false)}
+        type="following"
+        users={followingData}
+        currentUserId={user?.id}
+      />
     </>
   );
 };
