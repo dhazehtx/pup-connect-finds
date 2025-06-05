@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { BookOpen, Heart, MapPin, Scale, Search, Filter, Download, Bookmark, TrendingUp } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -75,19 +76,19 @@ const Education = () => {
   const totalResourcesCount = educationResources.length;
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-6 bg-background">
+    <div className="max-w-6xl mx-auto px-4 py-6">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-foreground mb-2">Educational Resources</h1>
-        <p className="text-muted-foreground mb-4">Learn everything you need to know about dog ownership and care</p>
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">Educational Resources</h1>
+        <p className="text-gray-600 mb-4">Learn everything you need to know about dog ownership and care</p>
         
         {/* Progress Summary */}
-        <div className="flex items-center gap-4 text-sm text-muted-foreground">
+        <div className="flex items-center gap-4 text-sm text-gray-600">
           <div className="flex items-center gap-2">
-            <TrendingUp size={16} className="text-primary" />
+            <TrendingUp size={16} className="text-green-600" />
             <span>{readCount} of {totalResourcesCount} articles completed</span>
           </div>
           <div className="flex items-center gap-2">
-            <Bookmark size={16} className="text-primary" />
+            <Bookmark size={16} className="text-blue-600" />
             <span>{bookmarkedIds.length} bookmarked</span>
           </div>
         </div>
@@ -96,23 +97,23 @@ const Education = () => {
       {/* Enhanced Search and Filters */}
       <div className="mb-6 space-y-4">
         <div className="relative max-w-md">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={20} />
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
           <Input
             placeholder="Search resources, tags, authors..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10 bg-card border-border"
+            className="pl-10"
           />
         </div>
 
         <div className="flex flex-wrap gap-4 items-center">
           <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-            <SelectTrigger className="w-48 bg-card border-border">
+            <SelectTrigger className="w-48">
               <SelectValue placeholder="All Categories" />
             </SelectTrigger>
-            <SelectContent className="bg-card border-border">
+            <SelectContent>
               {categories.map((category) => (
-                <SelectItem key={category.id} value={category.id} className="hover:bg-muted">
+                <SelectItem key={category.id} value={category.id}>
                   {category.icon} {category.name}
                 </SelectItem>
               ))}
@@ -120,14 +121,14 @@ const Education = () => {
           </Select>
 
           <Select value={selectedDifficulty} onValueChange={setSelectedDifficulty}>
-            <SelectTrigger className="w-48 bg-card border-border">
+            <SelectTrigger className="w-48">
               <SelectValue placeholder="All Levels" />
             </SelectTrigger>
-            <SelectContent className="bg-card border-border">
-              <SelectItem value="all" className="hover:bg-muted">All Levels</SelectItem>
-              <SelectItem value="Beginner" className="hover:bg-muted">Beginner</SelectItem>
-              <SelectItem value="Intermediate" className="hover:bg-muted">Intermediate</SelectItem>
-              <SelectItem value="Advanced" className="hover:bg-muted">Advanced</SelectItem>
+            <SelectContent>
+              <SelectItem value="all">All Levels</SelectItem>
+              <SelectItem value="Beginner">Beginner</SelectItem>
+              <SelectItem value="Intermediate">Intermediate</SelectItem>
+              <SelectItem value="Advanced">Advanced</SelectItem>
             </SelectContent>
           </Select>
 
@@ -143,15 +144,13 @@ const Education = () => {
       </div>
 
       {/* Featured Section */}
-      <Card className="mb-8 bg-gradient-to-r from-primary/10 to-accent/10 border-primary/20">
+      <Card className="mb-8 bg-gradient-to-r from-blue-50 to-purple-50 border-blue-200">
         <CardContent className="p-6">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-xl font-bold text-foreground mb-2">New Owner Starter Pack</h2>
-              <p className="text-muted-foreground mb-4">Complete guide for first-time dog owners with downloadable checklists</p>
-              <Button onClick={() => handleResourceClick(educationResources[1])} className="bg-primary text-primary-foreground hover:bg-primary/90">
-                Get Started
-              </Button>
+              <h2 className="text-xl font-bold text-gray-900 mb-2">New Owner Starter Pack</h2>
+              <p className="text-gray-600 mb-4">Complete guide for first-time dog owners with downloadable checklists</p>
+              <Button onClick={() => handleResourceClick(educationResources[1])}>Get Started</Button>
             </div>
             <div className="hidden md:block">
               <img
@@ -166,37 +165,17 @@ const Education = () => {
 
       {/* Tabbed Content Sections */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-8">
-        <TabsList className="grid w-full grid-cols-4 bg-muted/50">
-          <TabsTrigger 
-            value="all" 
-            className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
-          >
-            All Resources
-          </TabsTrigger>
-          <TabsTrigger 
-            value="sections" 
-            className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
-          >
-            Browse Sections
-          </TabsTrigger>
-          <TabsTrigger 
-            value="guides" 
-            className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
-          >
-            Learning Paths
-          </TabsTrigger>
-          <TabsTrigger 
-            value="tools" 
-            className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
-          >
-            Quick Tools
-          </TabsTrigger>
+        <TabsList className="grid w-full grid-cols-4">
+          <TabsTrigger value="all">All Resources</TabsTrigger>
+          <TabsTrigger value="sections">Browse Sections</TabsTrigger>
+          <TabsTrigger value="guides">Learning Paths</TabsTrigger>
+          <TabsTrigger value="tools">Quick Tools</TabsTrigger>
         </TabsList>
 
         <TabsContent value="all" className="mt-6">
           {/* Results Summary */}
           <div className="mb-6">
-            <p className="text-muted-foreground">
+            <p className="text-gray-600">
               Showing {startIndex}-{endIndex} of {totalItems} resources
               {searchTerm && ` for "${searchTerm}"`}
               {showBookmarksOnly && " (bookmarked only)"}
@@ -231,7 +210,7 @@ const Education = () => {
                   <PaginationItem>
                     <PaginationPrevious 
                       onClick={prevPage}
-                      className={!hasPrevPage ? 'pointer-events-none opacity-50' : 'cursor-pointer hover:bg-muted'}
+                      className={!hasPrevPage ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
                     />
                   </PaginationItem>
                   
@@ -240,7 +219,7 @@ const Education = () => {
                       <PaginationLink
                         onClick={() => goToPage(page)}
                         isActive={currentPage === page}
-                        className="cursor-pointer hover:bg-muted data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+                        className="cursor-pointer"
                       >
                         {page}
                       </PaginationLink>
@@ -250,7 +229,7 @@ const Education = () => {
                   <PaginationItem>
                     <PaginationNext 
                       onClick={nextPage}
-                      className={!hasNextPage ? 'pointer-events-none opacity-50' : 'cursor-pointer hover:bg-muted'}
+                      className={!hasNextPage ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
                     />
                   </PaginationItem>
                 </PaginationContent>
@@ -260,9 +239,9 @@ const Education = () => {
 
           {displayResources.length === 0 && (
             <div className="text-center py-12">
-              <BookOpen className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-              <h3 className="text-lg font-semibold text-foreground mb-2">No resources found</h3>
-              <p className="text-muted-foreground">Try adjusting your search criteria or filters</p>
+              <BookOpen className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">No resources found</h3>
+              <p className="text-gray-600">Try adjusting your search criteria or filters</p>
             </div>
           )}
         </TabsContent>
@@ -280,39 +259,39 @@ const Education = () => {
 
         <TabsContent value="guides" className="mt-6">
           <div className="grid md:grid-cols-2 gap-6">
-            <Card className="bg-card border-border">
+            <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-foreground">
+                <CardTitle className="flex items-center gap-2">
                   🐶 First-Time Owner Path
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-muted-foreground mb-4">Complete journey from preparation to advanced care</p>
+                <p className="text-gray-600 mb-4">Complete journey from preparation to advanced care</p>
                 <div className="space-y-2 mb-4">
-                  <div className="text-sm text-muted-foreground">• Puppy-Proofing Your Home</div>
-                  <div className="text-sm text-muted-foreground">• Puppy Training Basics</div>
-                  <div className="text-sm text-muted-foreground">• Finding the Right Veterinarian</div>
-                  <div className="text-sm text-muted-foreground">• Vaccination Schedule Guide</div>
+                  <div className="text-sm text-gray-600">• Puppy-Proofing Your Home</div>
+                  <div className="text-sm text-gray-600">• Puppy Training Basics</div>
+                  <div className="text-sm text-gray-600">• Finding the Right Veterinarian</div>
+                  <div className="text-sm text-gray-600">• Vaccination Schedule Guide</div>
                 </div>
-                <Button className="w-full bg-primary text-primary-foreground hover:bg-primary/90">Start Learning Path</Button>
+                <Button className="w-full">Start Learning Path</Button>
               </CardContent>
             </Card>
 
-            <Card className="bg-card border-border">
+            <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-foreground">
+                <CardTitle className="flex items-center gap-2">
                   🥗 Nutrition Expert Path
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-muted-foreground mb-4">Master dog nutrition from puppyhood to senior years</p>
+                <p className="text-gray-600 mb-4">Master dog nutrition from puppyhood to senior years</p>
                 <div className="space-y-2 mb-4">
-                  <div className="text-sm text-muted-foreground">• Puppy Nutrition Fundamentals</div>
-                  <div className="text-sm text-muted-foreground">• Adult Dog Diet Planning</div>
-                  <div className="text-sm text-muted-foreground">• Senior Dog Nutrition</div>
-                  <div className="text-sm text-muted-foreground">• Special Dietary Needs</div>
+                  <div className="text-sm text-gray-600">• Puppy Nutrition Fundamentals</div>
+                  <div className="text-sm text-gray-600">• Adult Dog Diet Planning</div>
+                  <div className="text-sm text-gray-600">• Senior Dog Nutrition</div>
+                  <div className="text-sm text-gray-600">• Special Dietary Needs</div>
                 </div>
-                <Button className="w-full bg-primary text-primary-foreground hover:bg-primary/90">Start Learning Path</Button>
+                <Button className="w-full">Start Learning Path</Button>
               </CardContent>
             </Card>
           </div>
@@ -320,36 +299,36 @@ const Education = () => {
 
         <TabsContent value="tools" className="mt-6">
           <div className="grid md:grid-cols-3 gap-6">
-            <Card className="bg-card border-border">
+            <Card>
               <CardHeader>
-                <CardTitle className="text-lg text-foreground">🏥 Vet Finder</CardTitle>
+                <CardTitle className="text-lg">🏥 Vet Finder</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-muted-foreground mb-4">Find trusted veterinarians in your area</p>
+                <p className="text-gray-600 mb-4">Find trusted veterinarians in your area</p>
                 <div className="flex gap-2">
-                  <Input placeholder="ZIP code" className="flex-1 bg-card border-border" />
-                  <Button className="bg-primary text-primary-foreground hover:bg-primary/90">Find</Button>
+                  <Input placeholder="ZIP code" className="flex-1" />
+                  <Button>Find</Button>
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="bg-card border-border">
+            <Card>
               <CardHeader>
-                <CardTitle className="text-lg text-foreground">📋 Health Checker</CardTitle>
+                <CardTitle className="text-lg">📋 Health Checker</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-muted-foreground mb-4">Quick health assessment tool</p>
-                <Button className="w-full bg-primary text-primary-foreground hover:bg-primary/90">Start Assessment</Button>
+                <p className="text-gray-600 mb-4">Quick health assessment tool</p>
+                <Button className="w-full">Start Assessment</Button>
               </CardContent>
             </Card>
 
-            <Card className="bg-card border-border">
+            <Card>
               <CardHeader>
-                <CardTitle className="text-lg text-foreground">📅 Care Planner</CardTitle>
+                <CardTitle className="text-lg">📅 Care Planner</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-muted-foreground mb-4">Create a personalized care schedule</p>
-                <Button className="w-full bg-primary text-primary-foreground hover:bg-primary/90">Create Plan</Button>
+                <p className="text-gray-600 mb-4">Create a personalized care schedule</p>
+                <Button className="w-full">Create Plan</Button>
               </CardContent>
             </Card>
           </div>
@@ -366,23 +345,23 @@ const Education = () => {
       )}
 
       {/* Legal Guide Section */}
-      <Card className="mt-6 bg-card border-border">
+      <Card className="mt-6">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-foreground">
-            <Scale className="w-5 h-5 text-primary" />
+          <CardTitle className="flex items-center gap-2">
+            <Scale className="w-5 h-5 text-green-500" />
             State-by-State Legal Guide
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-muted-foreground mb-4">Understand dog sale and adoption laws in your state</p>
+          <p className="text-gray-600 mb-4">Understand dog sale and adoption laws in your state</p>
           <div className="grid md:grid-cols-3 gap-4">
-            <Button variant="outline" className="justify-start border-border hover:bg-muted">
+            <Button variant="outline" className="justify-start">
               California Laws
             </Button>
-            <Button variant="outline" className="justify-start border-border hover:bg-muted">
+            <Button variant="outline" className="justify-start">
               Texas Laws
             </Button>
-            <Button variant="outline" className="justify-start border-border hover:bg-muted">
+            <Button variant="outline" className="justify-start">
               New York Laws
             </Button>
           </div>
