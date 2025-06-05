@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { BookOpen, Heart, MapPin, Scale, Search, Filter, Download, Bookmark, TrendingUp } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -155,7 +154,7 @@ const Education = () => {
               <h2 className="text-xl font-bold text-gray-900 mb-2">New Owner Starter Pack</h2>
               <p className="text-gray-600 mb-4">Complete guide for first-time dog owners with downloadable checklists</p>
               <Button 
-                onClick={() => window.open('https://www.petfinder.com/dogs/bringing-a-dog-home/dog-proofing-home/', '_blank')}
+                onClick={() => window.open('https://www.akc.org/expert-advice/home-living/puppy-proofing-your-home/', '_blank')}
               >
                 Get Started
               </Button>
@@ -276,14 +275,14 @@ const Education = () => {
               <CardContent>
                 <p className="text-gray-600 mb-4">Complete journey from preparation to advanced care</p>
                 <div className="space-y-2 mb-4">
-                  <div className="text-sm text-gray-600">• <a href="https://www.petfinder.com/dogs/bringing-a-dog-home/dog-proofing-home/" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Puppy-Proofing Your Home</a></div>
-                  <div className="text-sm text-gray-600">• <a href="https://www.humanesociety.org/resources/how-train-your-puppy" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Puppy Training Basics</a></div>
-                  <div className="text-sm text-gray-600">• <a href="https://www.petmd.com/dog/general-health/how-choose-veterinarian-your-dog" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Finding the Right Veterinarian</a></div>
-                  <div className="text-sm text-gray-600">• <a href="https://www.petmd.com/dog/puppycenter/health/evr_dg_puppy_vaccination_schedule" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">AKC Vaccination Schedule Guide</a></div>
+                  <div className="text-sm text-gray-600">• <a href="https://www.akc.org/expert-advice/home-living/puppy-proofing-your-home/" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Puppy-Proofing Your Home</a></div>
+                  <div className="text-sm text-gray-600">• <a href="https://www.akc.org/expert-advice/training/puppy-training-basics/" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Puppy Training Basics</a></div>
+                  <div className="text-sm text-gray-600">• <a href="https://www.akc.org/expert-advice/health/how-to-choose-a-veterinarian/" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Finding the Right Veterinarian</a></div>
+                  <div className="text-sm text-gray-600">• <a href="https://www.akc.org/expert-advice/health/puppy-shots-complete-guide/" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">AKC Vaccination Schedule Guide</a></div>
                 </div>
                 <Button 
                   className="w-full"
-                  onClick={() => window.open('https://www.petfinder.com/dogs/bringing-a-dog-home/dog-proofing-home/', '_blank')}
+                  onClick={() => window.open('https://www.akc.org/expert-advice/home-living/puppy-proofing-your-home/', '_blank')}
                 >
                   Start Learning Path
                 </Button>
@@ -299,14 +298,14 @@ const Education = () => {
               <CardContent>
                 <p className="text-gray-600 mb-4">Master dog nutrition from puppyhood to senior years</p>
                 <div className="space-y-2 mb-4">
-                  <div className="text-sm text-gray-600">• <a href="https://www.petmd.com/dog/puppycenter/nutrition/evr_dg_feeding-your-puppy" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Puppy Nutrition Fundamentals</a></div>
-                  <div className="text-sm text-gray-600">• <a href="https://www.petmd.com/dog/nutrition/evr_dg_how_much_food_should_i_feed_my_dog" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Adult Dog Diet Planning</a></div>
-                  <div className="text-sm text-gray-600">• <a href="https://www.petmd.com/dog/nutrition/evr_dg_senior_dog_nutrition" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Senior Dog Nutrition</a></div>
-                  <div className="text-sm text-gray-600">• <a href="https://www.petmd.com/dog/nutrition/evr_dg_healthy_treats_for_dogs" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Healthy Treats and Special Diets</a></div>
+                  <div className="text-sm text-gray-600">• <a href="https://www.akc.org/expert-advice/nutrition/puppy-feeding-guide/" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Puppy Nutrition Fundamentals</a></div>
+                  <div className="text-sm text-gray-600">• <a href="https://www.akc.org/expert-advice/nutrition/dog-feeding-guide/" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Adult Dog Diet Planning</a></div>
+                  <div className="text-sm text-gray-600">• <a href="https://www.akc.org/expert-advice/nutrition/senior-dog-nutrition/" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Senior Dog Nutrition</a></div>
+                  <div className="text-sm text-gray-600">• <a href="https://www.akc.org/expert-advice/nutrition/healthy-dog-treats/" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Healthy Treats and Special Diets</a></div>
                 </div>
                 <Button 
                   className="w-full"
-                  onClick={() => window.open('https://www.petmd.com/dog/nutrition', '_blank')}
+                  onClick={() => window.open('https://www.akc.org/expert-advice/nutrition/', '_blank')}
                 >
                   Start Learning Path
                 </Button>
@@ -325,7 +324,7 @@ const Education = () => {
                 <p className="text-gray-600 mb-4">Find trusted veterinarians in your area</p>
                 <div className="flex gap-2">
                   <Input placeholder="ZIP code" className="flex-1" />
-                  <Button onClick={() => window.open('https://www.petfinder.com/animal-shelters-and-rescues/', '_blank')}>
+                  <Button onClick={() => window.open('https://www.akc.org/vet-finder/', '_blank')}>
                     Find
                   </Button>
                 </div>
@@ -340,7 +339,7 @@ const Education = () => {
                 <p className="text-gray-600 mb-4">Quick health assessment tool</p>
                 <Button 
                   className="w-full"
-                  onClick={() => window.open('https://www.petmd.com/dog/conditions', '_blank')}
+                  onClick={() => window.open('https://www.akc.org/expert-advice/health/', '_blank')}
                 >
                   Start Assessment
                 </Button>
@@ -355,7 +354,7 @@ const Education = () => {
                 <p className="text-gray-600 mb-4">Create a personalized care schedule</p>
                 <Button 
                   className="w-full"
-                  onClick={() => window.open('https://www.petmd.com/dog/puppycenter', '_blank')}
+                  onClick={() => window.open('https://www.akc.org/expert-advice/puppy-information/', '_blank')}
                 >
                   Create Plan
                 </Button>
@@ -388,21 +387,21 @@ const Education = () => {
             <Button 
               variant="outline" 
               className="justify-start"
-              onClick={() => window.open('https://www.animallaw.info/statute/ca-dog-consolidated-dog-laws', '_blank')}
+              onClick={() => window.open('https://www.akc.org/expert-advice/lifestyle/dog-laws-what-you-need-to-know/', '_blank')}
             >
               California Laws
             </Button>
             <Button 
               variant="outline" 
               className="justify-start"
-              onClick={() => window.open('https://www.animallaw.info/statute/tx-dog-consolidated-dog-laws', '_blank')}
+              onClick={() => window.open('https://www.akc.org/expert-advice/lifestyle/dog-laws-what-you-need-to-know/', '_blank')}
             >
               Texas Laws
             </Button>
             <Button 
               variant="outline" 
               className="justify-start"
-              onClick={() => window.open('https://www.animallaw.info/statute/ny-dog-consolidated-dog-laws', '_blank')}
+              onClick={() => window.open('https://www.akc.org/expert-advice/lifestyle/dog-laws-what-you-need-to-know/', '_blank')}
             >
               New York Laws
             </Button>
