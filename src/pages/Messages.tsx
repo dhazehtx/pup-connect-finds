@@ -94,7 +94,7 @@ const Messages = () => {
     const isDemoConversation = selectedConversationId.startsWith('demo-');
     
     return (
-      <div className="max-w-md mx-auto bg-white min-h-screen">
+      <div className="max-w-md mx-auto bg-cloud-white min-h-screen">
         <div className="h-screen">
           {/* Use Enhanced Messaging Interface for both demo and real conversations */}
           <EnhancedMessagingInterface
@@ -114,10 +114,10 @@ const Messages = () => {
               variant="outline"
               size="sm"
               onClick={() => setSelectedConversationId(null)}
-              className="bg-white/90 backdrop-blur-sm"
+              className="bg-cloud-white/95 backdrop-blur-sm border-soft-sky hover:bg-soft-sky/20"
             >
-              <ArrowLeft size={16} className="mr-1" />
-              Back
+              <ArrowLeft size={16} className="mr-1 text-deep-navy" />
+              <span className="text-deep-navy">Back</span>
             </Button>
           </div>
         </div>
@@ -126,20 +126,20 @@ const Messages = () => {
   }
 
   return (
-    <div className="max-w-md mx-auto bg-white min-h-screen">
+    <div className="max-w-md mx-auto bg-cloud-white min-h-screen">
       {/* Header */}
-      <div className="p-4 border-b border-gray-100">
+      <div className="p-4 border-b border-soft-sky bg-cloud-white">
         <div className="flex items-center justify-between mb-4">
-          <h1 className="text-xl font-bold text-black">Messages</h1>
-          <Button variant="ghost" size="icon">
-            <Edit size={20} className="text-black" />
+          <h1 className="text-xl font-bold text-deep-navy">Messages</h1>
+          <Button variant="ghost" size="icon" className="hover:bg-soft-sky/30">
+            <Edit size={20} className="text-deep-navy" />
           </Button>
         </div>
         
         {/* Demo notice for non-authenticated users */}
         {!user && (
-          <div className="mb-4 p-3 bg-blue-50 rounded-lg">
-            <p className="text-sm text-blue-700">
+          <div className="mb-4 p-3 bg-soft-sky/30 rounded-lg border border-soft-sky">
+            <p className="text-sm text-royal-blue">
               <strong>Demo Mode:</strong> Showing sample conversations with enhanced messaging features
             </p>
           </div>
@@ -147,33 +147,53 @@ const Messages = () => {
         
         {/* Search */}
         <div className="relative">
-          <Search size={20} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+          <Search size={20} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-deep-navy/60" />
           <Input
             placeholder="Search conversations..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10 bg-white border-gray-200 text-black placeholder:text-black"
+            className="pl-10 bg-cloud-white border-soft-sky text-deep-navy placeholder:text-deep-navy/60 focus:border-royal-blue focus:ring-royal-blue"
           />
         </div>
       </div>
 
       {/* Enhanced messaging tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1">
-        <div className="border-b">
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="all">All</TabsTrigger>
-            <TabsTrigger value="primary">Primary</TabsTrigger>
-            <TabsTrigger value="general">General</TabsTrigger>
-            <TabsTrigger value="request">Request</TabsTrigger>
+        <div className="border-b border-soft-sky bg-cloud-white">
+          <TabsList className="grid w-full grid-cols-4 bg-soft-sky/20">
+            <TabsTrigger 
+              value="all" 
+              className="data-[state=active]:bg-royal-blue data-[state=active]:text-cloud-white text-deep-navy"
+            >
+              All
+            </TabsTrigger>
+            <TabsTrigger 
+              value="primary" 
+              className="data-[state=active]:bg-royal-blue data-[state=active]:text-cloud-white text-deep-navy"
+            >
+              Primary
+            </TabsTrigger>
+            <TabsTrigger 
+              value="general" 
+              className="data-[state=active]:bg-royal-blue data-[state=active]:text-cloud-white text-deep-navy"
+            >
+              General
+            </TabsTrigger>
+            <TabsTrigger 
+              value="request" 
+              className="data-[state=active]:bg-royal-blue data-[state=active]:text-cloud-white text-deep-navy"
+            >
+              Request
+            </TabsTrigger>
           </TabsList>
         </div>
 
         <TabsContent value="all" className="m-0">
           {/* Conversations List */}
           {user && loading ? (
-            <div className="p-4 text-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto"></div>
-              <p className="text-gray-500 mt-2">Loading conversations...</p>
+            <div className="p-4 text-center bg-cloud-white">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-royal-blue mx-auto"></div>
+              <p className="text-deep-navy/60 mt-2">Loading conversations...</p>
             </div>
           ) : (
             <ConversationsList
