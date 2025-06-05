@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Shield, CheckCircle, AlertTriangle, Users, Lock, Eye, FileText, Phone } from 'lucide-react';
+import { Shield, CheckCircle, AlertTriangle, Users, Lock, Eye, FileText, Phone, Video } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -38,6 +38,7 @@ const TrustSafetyPublic = () => {
       category: 'Before You Buy',
       tips: [
         'Always meet the puppy and breeder in person',
+        'Schedule a video call with the breeder to see the puppy and parents',
         'Verify health certificates and vaccination records',
         'Ask to see the puppy\'s parents if possible',
         'Research the breed and breeder thoroughly'
@@ -124,7 +125,11 @@ const TrustSafetyPublic = () => {
                   <ul className="space-y-3">
                     {section.tips.map((tip, tipIndex) => (
                       <li key={tipIndex} className="flex items-start space-x-2">
-                        <CheckCircle className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
+                        {section.category === 'Before You Buy' && tip.includes('video call') ? (
+                          <Video className="h-4 w-4 text-royal-blue mt-0.5 flex-shrink-0" />
+                        ) : (
+                          <CheckCircle className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
+                        )}
                         <span className="text-sm text-deep-navy/70">{tip}</span>
                       </li>
                     ))}
