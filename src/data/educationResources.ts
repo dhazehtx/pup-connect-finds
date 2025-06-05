@@ -42,7 +42,7 @@ export const educationResources: EducationResource[] = [
     downloadable: true,
     content: 'Complete checklist for puppy-proofing your home...',
     relatedArticles: [6, 3],
-    url: 'https://www.humanesociety.org/resources/how-prepare-your-home-new-dog'
+    url: 'https://www.aspca.org/pet-care/dog-care/puppy-care/puppy-proofing-your-home'
   },
   {
     id: 3,
@@ -63,7 +63,7 @@ export const educationResources: EducationResource[] = [
     downloadable: true,
     content: 'Detailed overview of California dog sale regulations...',
     relatedArticles: [8, 9],
-    url: 'https://www.nolo.com/legal-encyclopedia/california-dog-bite-law.html'
+    url: 'https://www.animallaw.info/statute/ca-dog-consolidated-dog-laws'
   },
   {
     id: 4,
@@ -84,7 +84,7 @@ export const educationResources: EducationResource[] = [
     downloadable: false,
     content: 'Guide to selecting the right veterinarian...',
     relatedArticles: [5, 7],
-    url: 'https://www.avma.org/resources/pet-owners/petcare/selecting-veterinarian'
+    url: 'https://www.aspca.org/pet-care/general-pet-care/how-choose-veterinarian'
   },
   {
     id: 5,
@@ -131,8 +131,8 @@ export const educationResources: EducationResource[] = [
   {
     id: 7,
     category: 'vetcare',
-    title: 'Vaccination Schedule Guide',
-    description: 'Complete puppy and adult dog vaccination timeline. Core vs non-core vaccines explained.',
+    title: 'AKC Vaccination Schedule Guide',
+    description: 'Complete puppy and adult dog vaccination timeline from the American Kennel Club. Core vs non-core vaccines explained.',
     readTime: '12 min read',
     rating: 4.7,
     reviews: 78,
@@ -147,7 +147,7 @@ export const educationResources: EducationResource[] = [
     downloadable: true,
     content: 'Complete vaccination guide...',
     relatedArticles: [4, 8],
-    url: 'https://www.cdc.gov/healthypets/pets/dogs/vaccination.html'
+    url: 'https://www.akc.org/expert-advice/health/puppy-shots-complete-guide/'
   },
   {
     id: 8,

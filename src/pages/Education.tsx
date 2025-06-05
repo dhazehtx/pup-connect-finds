@@ -275,10 +275,10 @@ const Education = () => {
               <CardContent>
                 <p className="text-gray-600 mb-4">Complete journey from preparation to advanced care</p>
                 <div className="space-y-2 mb-4">
-                  <div className="text-sm text-gray-600">• <a href="https://www.humanesociety.org/resources/how-prepare-your-home-new-dog" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Puppy-Proofing Your Home</a></div>
+                  <div className="text-sm text-gray-600">• <a href="https://www.aspca.org/pet-care/dog-care/puppy-care/puppy-proofing-your-home" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Puppy-Proofing Your Home</a></div>
                   <div className="text-sm text-gray-600">• <a href="https://www.akc.org/expert-advice/training/puppy-training-timeline/" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Puppy Training Basics</a></div>
-                  <div className="text-sm text-gray-600">• <a href="https://www.avma.org/resources/pet-owners/petcare/selecting-veterinarian" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Finding the Right Veterinarian</a></div>
-                  <div className="text-sm text-gray-600">• <a href="https://www.cdc.gov/healthypets/pets/dogs/vaccination.html" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Vaccination Schedule Guide</a></div>
+                  <div className="text-sm text-gray-600">• <a href="https://www.aspca.org/pet-care/general-pet-care/how-choose-veterinarian" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Finding the Right Veterinarian</a></div>
+                  <div className="text-sm text-gray-600">• <a href="https://www.akc.org/expert-advice/health/puppy-shots-complete-guide/" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">AKC Vaccination Schedule Guide</a></div>
                 </div>
                 <Button 
                   className="w-full"
@@ -387,21 +387,21 @@ const Education = () => {
             <Button 
               variant="outline" 
               className="justify-start"
-              onClick={() => window.open('https://www.nolo.com/legal-encyclopedia/california-dog-bite-law.html', '_blank')}
+              onClick={() => window.open('https://www.animallaw.info/statute/ca-dog-consolidated-dog-laws', '_blank')}
             >
               California Laws
             </Button>
             <Button 
               variant="outline" 
               className="justify-start"
-              onClick={() => window.open('https://www.nolo.com/legal-encyclopedia/texas-dog-bite-law.html', '_blank')}
+              onClick={() => window.open('https://www.animallaw.info/statute/tx-dog-consolidated-dog-laws', '_blank')}
             >
               Texas Laws
             </Button>
             <Button 
               variant="outline" 
               className="justify-start"
-              onClick={() => window.open('https://www.nolo.com/legal-encyclopedia/new-york-dog-bite-law.html', '_blank')}
+              onClick={() => window.open('https://www.animallaw.info/statute/ny-dog-consolidated-dog-laws', '_blank')}
             >
               New York Laws
             </Button>
