@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { BookOpen, Heart, MapPin, Scale, Search, Filter, Download, Bookmark, TrendingUp } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -70,6 +69,10 @@ const Education = () => {
   const handleResourceClick = (resource: any) => {
     setSelectedResource(resource);
     markAsRead(resource.id);
+    // Open the actual resource URL
+    if (resource.url) {
+      window.open(resource.url, '_blank');
+    }
   };
 
   const readCount = getReadCount();
@@ -150,7 +153,11 @@ const Education = () => {
             <div>
               <h2 className="text-xl font-bold text-gray-900 mb-2">New Owner Starter Pack</h2>
               <p className="text-gray-600 mb-4">Complete guide for first-time dog owners with downloadable checklists</p>
-              <Button onClick={() => handleResourceClick(educationResources[1])}>Get Started</Button>
+              <Button 
+                onClick={() => window.open('https://www.aspca.org/pet-care/dog-care/general-dog-care', '_blank')}
+              >
+                Get Started
+              </Button>
             </div>
             <div className="hidden md:block">
               <img
@@ -268,12 +275,17 @@ const Education = () => {
               <CardContent>
                 <p className="text-gray-600 mb-4">Complete journey from preparation to advanced care</p>
                 <div className="space-y-2 mb-4">
-                  <div className="text-sm text-gray-600">• Puppy-Proofing Your Home</div>
-                  <div className="text-sm text-gray-600">• Puppy Training Basics</div>
-                  <div className="text-sm text-gray-600">• Finding the Right Veterinarian</div>
-                  <div className="text-sm text-gray-600">• Vaccination Schedule Guide</div>
+                  <div className="text-sm text-gray-600">• <a href="https://www.humanesociety.org/resources/how-prepare-your-home-new-dog" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Puppy-Proofing Your Home</a></div>
+                  <div className="text-sm text-gray-600">• <a href="https://www.akc.org/expert-advice/training/puppy-training-timeline/" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Puppy Training Basics</a></div>
+                  <div className="text-sm text-gray-600">• <a href="https://www.avma.org/resources/pet-owners/petcare/selecting-veterinarian" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Finding the Right Veterinarian</a></div>
+                  <div className="text-sm text-gray-600">• <a href="https://www.cdc.gov/healthypets/pets/dogs/vaccination.html" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Vaccination Schedule Guide</a></div>
                 </div>
-                <Button className="w-full">Start Learning Path</Button>
+                <Button 
+                  className="w-full"
+                  onClick={() => window.open('https://www.aspca.org/pet-care/dog-care/general-dog-care', '_blank')}
+                >
+                  Start Learning Path
+                </Button>
               </CardContent>
             </Card>
 
@@ -286,12 +298,17 @@ const Education = () => {
               <CardContent>
                 <p className="text-gray-600 mb-4">Master dog nutrition from puppyhood to senior years</p>
                 <div className="space-y-2 mb-4">
-                  <div className="text-sm text-gray-600">• Puppy Nutrition Fundamentals</div>
-                  <div className="text-sm text-gray-600">• Adult Dog Diet Planning</div>
-                  <div className="text-sm text-gray-600">• Senior Dog Nutrition</div>
-                  <div className="text-sm text-gray-600">• Special Dietary Needs</div>
+                  <div className="text-sm text-gray-600">• <a href="https://www.akc.org/expert-advice/nutrition/puppy-feeding-guide/" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Puppy Nutrition Fundamentals</a></div>
+                  <div className="text-sm text-gray-600">• <a href="https://www.petmd.com/dog/nutrition/evr_dg_feeding_your_adult_dog" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Adult Dog Diet Planning</a></div>
+                  <div className="text-sm text-gray-600">• <a href="https://vcahospitals.com/know-your-pet/feeding-your-senior-dog" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Senior Dog Nutrition</a></div>
+                  <div className="text-sm text-gray-600">• <a href="https://www.hillspet.com/dog-care/nutrition-feeding/special-diets-for-dogs" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Special Dietary Needs</a></div>
                 </div>
-                <Button className="w-full">Start Learning Path</Button>
+                <Button 
+                  className="w-full"
+                  onClick={() => window.open('https://www.akc.org/expert-advice/nutrition/', '_blank')}
+                >
+                  Start Learning Path
+                </Button>
               </CardContent>
             </Card>
           </div>
@@ -307,7 +324,9 @@ const Education = () => {
                 <p className="text-gray-600 mb-4">Find trusted veterinarians in your area</p>
                 <div className="flex gap-2">
                   <Input placeholder="ZIP code" className="flex-1" />
-                  <Button>Find</Button>
+                  <Button onClick={() => window.open('https://www.avma.org/javma/vet-finder', '_blank')}>
+                    Find
+                  </Button>
                 </div>
               </CardContent>
             </Card>
@@ -318,7 +337,12 @@ const Education = () => {
               </CardHeader>
               <CardContent>
                 <p className="text-gray-600 mb-4">Quick health assessment tool</p>
-                <Button className="w-full">Start Assessment</Button>
+                <Button 
+                  className="w-full"
+                  onClick={() => window.open('https://www.petmd.com/symptom-checker', '_blank')}
+                >
+                  Start Assessment
+                </Button>
               </CardContent>
             </Card>
 
@@ -328,7 +352,12 @@ const Education = () => {
               </CardHeader>
               <CardContent>
                 <p className="text-gray-600 mb-4">Create a personalized care schedule</p>
-                <Button className="w-full">Create Plan</Button>
+                <Button 
+                  className="w-full"
+                  onClick={() => window.open('https://www.akc.org/expert-advice/health/puppy-schedule/', '_blank')}
+                >
+                  Create Plan
+                </Button>
               </CardContent>
             </Card>
           </div>
@@ -355,13 +384,25 @@ const Education = () => {
         <CardContent>
           <p className="text-gray-600 mb-4">Understand dog sale and adoption laws in your state</p>
           <div className="grid md:grid-cols-3 gap-4">
-            <Button variant="outline" className="justify-start">
+            <Button 
+              variant="outline" 
+              className="justify-start"
+              onClick={() => window.open('https://www.nolo.com/legal-encyclopedia/california-dog-bite-law.html', '_blank')}
+            >
               California Laws
             </Button>
-            <Button variant="outline" className="justify-start">
+            <Button 
+              variant="outline" 
+              className="justify-start"
+              onClick={() => window.open('https://www.nolo.com/legal-encyclopedia/texas-dog-bite-law.html', '_blank')}
+            >
               Texas Laws
             </Button>
-            <Button variant="outline" className="justify-start">
+            <Button 
+              variant="outline" 
+              className="justify-start"
+              onClick={() => window.open('https://www.nolo.com/legal-encyclopedia/new-york-dog-bite-law.html', '_blank')}
+            >
               New York Laws
             </Button>
           </div>

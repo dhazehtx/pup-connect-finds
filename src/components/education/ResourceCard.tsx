@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Star, ChevronRight, Download, Bookmark, BookmarkCheck, Clock, User, Share2, CheckCircle } from 'lucide-react';
+import { Star, ChevronRight, Download, Bookmark, BookmarkCheck, Clock, User, Share2, CheckCircle, ExternalLink } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -37,6 +37,15 @@ export const ResourceCard: React.FC<ResourceCardProps> = ({
   };
 
   const handleMarkAsRead = () => {
+    if (onMarkAsRead) {
+      onMarkAsRead(resource.id);
+    }
+  };
+
+  const handleReadArticle = () => {
+    if (resource.url) {
+      window.open(resource.url, '_blank');
+    }
     if (onMarkAsRead) {
       onMarkAsRead(resource.id);
     }
@@ -167,9 +176,17 @@ export const ResourceCard: React.FC<ResourceCardProps> = ({
           </div>
 
           <div className="flex gap-2">
-            <Button variant="outline" size="sm" className="flex-1 group">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="flex-1 group"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleReadArticle();
+              }}
+            >
               Read Article
-              <ChevronRight size={16} className="ml-1 group-hover:translate-x-1 transition-transform" />
+              <ExternalLink size={16} className="ml-1 group-hover:translate-x-1 transition-transform" />
             </Button>
             {!isRead && onMarkAsRead && (
               <Button

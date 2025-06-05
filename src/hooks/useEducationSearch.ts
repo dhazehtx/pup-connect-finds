@@ -20,6 +20,7 @@ export interface EducationResource {
   downloadable?: boolean;
   content?: string;
   relatedArticles?: number[];
+  url?: string;
 }
 
 export const useEducationSearch = (resources: EducationResource[]) => {
