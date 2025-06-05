@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Settings, Star, Crown, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -107,16 +106,32 @@ const ProfileContent = ({
     {
       id: 1,
       author: "Sarah M.",
+      avatar: "https://images.unsplash.com/photo-1494790108755-2616b612b47c?w=150&h=150&fit=crop&crop=face",
       rating: 5,
       date: "2 weeks ago",
-      text: "Amazing experience! Our Golden Retriever puppy is healthy, well-socialized, and came with all health records. Highly recommend!"
+      text: "Amazing experience! Our Golden Retriever puppy is healthy, well-socialized, and came with all health records. The breeding program is exceptional and Sarah was so helpful throughout the entire process. Highly recommend Golden Paws Kennel!",
+      helpful: 12,
+      verified: true
     },
     {
       id: 2,
       author: "Mike D.",
+      avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face",
       rating: 5,
       date: "1 month ago",
-      text: "Professional breeder with excellent facilities. The puppy training they provide is exceptional."
+      text: "Professional breeder with excellent facilities. The puppy training they provide is exceptional. Our lab is now 6 months old and perfectly trained!",
+      helpful: 8,
+      verified: true
+    },
+    {
+      id: 3,
+      author: "Emma W.",
+      avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face",
+      rating: 4,
+      date: "2 months ago",
+      text: "Great experience overall. The facilities are clean and the dogs are well cared for. Would definitely recommend!",
+      helpful: 5,
+      verified: true
     }
   ];
 
@@ -225,14 +240,20 @@ const ProfileContent = ({
           certifications={displayProfile.certifications}
         />
 
-        <ProfileActions />
+        <ProfileActions 
+          profile={displayProfile}
+          isOwnProfile={isOwnProfile}
+        />
 
         {/* Online Users Section */}
         <div className="mb-6">
           <OnlineUsersList variant="compact" maxVisible={3} />
         </div>
 
-        <ProfileHighlights highlights={highlights} />
+        <ProfileHighlights 
+          highlights={highlights} 
+          isOwnProfile={isOwnProfile}
+        />
 
         <ProfileTabs 
           activeTab={activeTab}
@@ -242,6 +263,8 @@ const ProfileContent = ({
           analyticsComponent={
             isOwnProfile ? <ProfileAnalyticsEnhanced profile={displayProfile} /> : undefined
           }
+          isOwnProfile={isOwnProfile}
+          userType={displayProfile.user_type}
         />
       </div>
 
