@@ -5,9 +5,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
 import { ResourceCard } from '../components/education/ResourceCard';
 import { RelatedArticles } from '../components/education/RelatedArticles';
+import { EducationSections } from '../components/education/EducationSections';
 import { useEducationSearch } from '../hooks/useEducationSearch';
 import { useBookmarks } from '../hooks/useBookmarks';
 import { useReadingProgress } from '../hooks/useReadingProgress';
@@ -18,6 +20,7 @@ import { useToast } from '../hooks/use-toast';
 const Education = () => {
   const [showBookmarksOnly, setShowBookmarksOnly] = useState(false);
   const [selectedResource, setSelectedResource] = useState<any>(null);
+  const [activeTab, setActiveTab] = useState('all');
   const { toast } = useToast();
   
   const {
@@ -55,7 +58,7 @@ const Education = () => {
   // Reset pagination when filters change
   useEffect(() => {
     resetPagination();
-  }, [searchTerm, selectedCategory, selectedDifficulty, showBookmarksOnly, resetPagination]);
+  }, [searchTerm, selectedCategory, selectedDifficulty, showBookmarksOnly, activeTab, resetPagination]);
 
   const handleDownload = (resource: any) => {
     toast({
@@ -66,7 +69,6 @@ const Education = () => {
 
   const handleResourceClick = (resource: any) => {
     setSelectedResource(resource);
-    // Simulate reading the article
     markAsRead(resource.id);
   };
 
@@ -141,15 +143,6 @@ const Education = () => {
         </div>
       </div>
 
-      {/* Results Summary */}
-      <div className="mb-6">
-        <p className="text-gray-600">
-          Showing {startIndex}-{endIndex} of {totalItems} resources
-          {searchTerm && ` for "${searchTerm}"`}
-          {showBookmarksOnly && " (bookmarked only)"}
-        </p>
-      </div>
-
       {/* Featured Section */}
       <Card className="mb-8 bg-gradient-to-r from-blue-50 to-purple-50 border-blue-200">
         <CardContent className="p-6">
@@ -170,68 +163,177 @@ const Education = () => {
         </CardContent>
       </Card>
 
-      {/* Resources Grid */}
-      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-        {paginatedData.map((resource) => {
-          const progress = getProgress(resource.id);
-          return (
-            <div key={resource.id} onClick={() => handleResourceClick(resource)}>
-              <ResourceCard
-                resource={resource}
-                isBookmarked={isBookmarked(resource.id)}
-                onToggleBookmark={toggleBookmark}
-                onDownload={handleDownload}
-                isRead={isRead(resource.id)}
-                progress={progress.progress}
-                onMarkAsRead={markAsRead}
-              />
+      {/* Tabbed Content Sections */}
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-8">
+        <TabsList className="grid w-full grid-cols-4">
+          <TabsTrigger value="all">All Resources</TabsTrigger>
+          <TabsTrigger value="sections">Browse Sections</TabsTrigger>
+          <TabsTrigger value="guides">Learning Paths</TabsTrigger>
+          <TabsTrigger value="tools">Quick Tools</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="all" className="mt-6">
+          {/* Results Summary */}
+          <div className="mb-6">
+            <p className="text-gray-600">
+              Showing {startIndex}-{endIndex} of {totalItems} resources
+              {searchTerm && ` for "${searchTerm}"`}
+              {showBookmarksOnly && " (bookmarked only)"}
+            </p>
+          </div>
+
+          {/* Resources Grid */}
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+            {paginatedData.map((resource) => {
+              const progress = getProgress(resource.id);
+              return (
+                <div key={resource.id} onClick={() => handleResourceClick(resource)}>
+                  <ResourceCard
+                    resource={resource}
+                    isBookmarked={isBookmarked(resource.id)}
+                    onToggleBookmark={toggleBookmark}
+                    onDownload={handleDownload}
+                    isRead={isRead(resource.id)}
+                    progress={progress.progress}
+                    onMarkAsRead={markAsRead}
+                  />
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="mb-8">
+              <Pagination>
+                <PaginationContent>
+                  <PaginationItem>
+                    <PaginationPrevious 
+                      onClick={prevPage}
+                      className={!hasPrevPage ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                    />
+                  </PaginationItem>
+                  
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                    <PaginationItem key={page}>
+                      <PaginationLink
+                        onClick={() => goToPage(page)}
+                        isActive={currentPage === page}
+                        className="cursor-pointer"
+                      >
+                        {page}
+                      </PaginationLink>
+                    </PaginationItem>
+                  ))}
+                  
+                  <PaginationItem>
+                    <PaginationNext 
+                      onClick={nextPage}
+                      className={!hasNextPage ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                    />
+                  </PaginationItem>
+                </PaginationContent>
+              </Pagination>
             </div>
-          );
-        })}
-      </div>
+          )}
 
-      {/* Pagination */}
-      {totalPages > 1 && (
-        <div className="mb-12">
-          <Pagination>
-            <PaginationContent>
-              <PaginationItem>
-                <PaginationPrevious 
-                  onClick={prevPage}
-                  className={!hasPrevPage ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
-                />
-              </PaginationItem>
-              
-              {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                <PaginationItem key={page}>
-                  <PaginationLink
-                    onClick={() => goToPage(page)}
-                    isActive={currentPage === page}
-                    className="cursor-pointer"
-                  >
-                    {page}
-                  </PaginationLink>
-                </PaginationItem>
-              ))}
-              
-              <PaginationItem>
-                <PaginationNext 
-                  onClick={nextPage}
-                  className={!hasNextPage ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
-                />
-              </PaginationItem>
-            </PaginationContent>
-          </Pagination>
-        </div>
-      )}
+          {displayResources.length === 0 && (
+            <div className="text-center py-12">
+              <BookOpen className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">No resources found</h3>
+              <p className="text-gray-600">Try adjusting your search criteria or filters</p>
+            </div>
+          )}
+        </TabsContent>
 
-      {displayResources.length === 0 && (
-        <div className="text-center py-12">
-          <BookOpen className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">No resources found</h3>
-          <p className="text-gray-600">Try adjusting your search criteria or filters</p>
-        </div>
-      )}
+        <TabsContent value="sections" className="mt-6">
+          <EducationSections 
+            resources={educationResources}
+            onResourceClick={handleResourceClick}
+            isBookmarked={isBookmarked}
+            onToggleBookmark={toggleBookmark}
+            isRead={isRead}
+            getProgress={getProgress}
+          />
+        </TabsContent>
+
+        <TabsContent value="guides" className="mt-6">
+          <div className="grid md:grid-cols-2 gap-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  🐶 First-Time Owner Path
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-gray-600 mb-4">Complete journey from preparation to advanced care</p>
+                <div className="space-y-2 mb-4">
+                  <div className="text-sm text-gray-600">• Puppy-Proofing Your Home</div>
+                  <div className="text-sm text-gray-600">• Puppy Training Basics</div>
+                  <div className="text-sm text-gray-600">• Finding the Right Veterinarian</div>
+                  <div className="text-sm text-gray-600">• Vaccination Schedule Guide</div>
+                </div>
+                <Button className="w-full">Start Learning Path</Button>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  🥗 Nutrition Expert Path
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-gray-600 mb-4">Master dog nutrition from puppyhood to senior years</p>
+                <div className="space-y-2 mb-4">
+                  <div className="text-sm text-gray-600">• Puppy Nutrition Fundamentals</div>
+                  <div className="text-sm text-gray-600">• Adult Dog Diet Planning</div>
+                  <div className="text-sm text-gray-600">• Senior Dog Nutrition</div>
+                  <div className="text-sm text-gray-600">• Special Dietary Needs</div>
+                </div>
+                <Button className="w-full">Start Learning Path</Button>
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="tools" className="mt-6">
+          <div className="grid md:grid-cols-3 gap-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">🏥 Vet Finder</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-gray-600 mb-4">Find trusted veterinarians in your area</p>
+                <div className="flex gap-2">
+                  <Input placeholder="ZIP code" className="flex-1" />
+                  <Button>Find</Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">📋 Health Checker</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-gray-600 mb-4">Quick health assessment tool</p>
+                <Button className="w-full">Start Assessment</Button>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">📅 Care Planner</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-gray-600 mb-4">Create a personalized care schedule</p>
+                <Button className="w-full">Create Plan</Button>
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+      </Tabs>
 
       {/* Related Articles - Show when a resource is selected */}
       {selectedResource && (
@@ -241,23 +343,6 @@ const Education = () => {
           onResourceClick={handleResourceClick}
         />
       )}
-
-      {/* Vet Directory Section */}
-      <Card className="mt-12">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <MapPin className="w-5 h-5 text-blue-500" />
-            Local Vet Directory
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-gray-600 mb-4">Find trusted veterinarians in your area</p>
-          <div className="flex gap-4">
-            <Input placeholder="Enter your ZIP code" className="max-w-xs" />
-            <Button>Find Vets</Button>
-          </div>
-        </CardContent>
-      </Card>
 
       {/* Legal Guide Section */}
       <Card className="mt-6">
