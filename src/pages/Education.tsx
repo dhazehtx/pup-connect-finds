@@ -165,11 +165,11 @@ const Education = () => {
 
       {/* Tabbed Content Sections */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-8">
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="all">All Resources</TabsTrigger>
-          <TabsTrigger value="sections">Browse Sections</TabsTrigger>
-          <TabsTrigger value="guides">Learning Paths</TabsTrigger>
-          <TabsTrigger value="tools">Quick Tools</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-4 bg-blue-50">
+          <TabsTrigger value="all" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">All Resources</TabsTrigger>
+          <TabsTrigger value="sections" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">Browse Sections</TabsTrigger>
+          <TabsTrigger value="guides" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">Learning Paths</TabsTrigger>
+          <TabsTrigger value="tools" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">Quick Tools</TabsTrigger>
         </TabsList>
 
         <TabsContent value="all" className="mt-6">
