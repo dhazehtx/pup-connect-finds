@@ -5,7 +5,6 @@ import { AuthProvider } from '@/contexts/AuthContext';
 import { ThemeProvider } from '@/contexts/ThemeContext';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import ErrorBoundary from '@/components/ErrorBoundary';
-import Layout from '@/components/Layout';
 import Home from '@/pages/Home';
 import Profile from '@/pages/Profile';
 import Settings from '@/pages/Settings';
@@ -24,7 +23,7 @@ function App() {
         <AuthProvider>
           <ThemeProvider>
             <ErrorBoundary>
-              <Layout>
+              <div className="min-h-screen bg-gray-50">
                 <Routes>
                   <Route path="/" element={<Home />} />
                   <Route path="/profile/:userId?" element={<Profile />} />
@@ -35,7 +34,7 @@ function App() {
                   <Route path="/messages" element={<Messages />} />
                   <Route path="/post/:postId" element={<PostDetail />} />
                 </Routes>
-              </Layout>
+              </div>
             </ErrorBoundary>
           </ThemeProvider>
         </AuthProvider>
