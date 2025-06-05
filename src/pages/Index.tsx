@@ -4,6 +4,7 @@ import { Routes, Route } from 'react-router-dom';
 import Home from './Home';
 import Explore from './Explore';
 import Post from './Post';
+import PostDetail from './PostDetail';
 import Messages from './Messages';
 import Notifications from './Notifications';
 import Settings from './Settings';
@@ -50,6 +51,7 @@ const Index = () => {
       <Route path="/ai-assistant" element={<AIAssistant />} />
       <Route path="/auth" element={<Auth />} />
       <Route path="/auth/callback" element={<AuthCallback />} />
+      <Route path="/post/:postId" element={<PostDetail />} />
       
       {/* Profile and Messages routes - temporarily public for design work */}
       <Route path="/profile/:userId" element={<Profile />} />
