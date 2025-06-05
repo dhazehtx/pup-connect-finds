@@ -39,7 +39,9 @@ const ProfileContainer = () => {
     user: !!user,
     profile: !!profile,
     enhancedProfile: !!enhancedProfile,
-    isOwnProfile
+    isOwnProfile,
+    userId,
+    currentUserId: user?.id
   });
   
   // Show optimized loading state while fetching user data
@@ -60,8 +62,9 @@ const ProfileContainer = () => {
   }
 
   // Create display profile using utility function
+  // For own profile without userId param, use actual user data instead of mock data
   const displayProfile = createDisplayProfile({
-    enhancedProfile,
+    enhancedProfile: isOwnProfile && !userId ? null : enhancedProfile, // Don't use mock data for own profile
     profile,
     user,
     isOwnProfile,
@@ -69,7 +72,7 @@ const ProfileContainer = () => {
     portfolios,
     followers,
     following,
-    verificationBadges
+    verificationBadges: isOwnProfile && !userId ? [] : verificationBadges // Don't use mock badges for own profile
   });
 
   console.log('ProfileContainer: Created displayProfile:', displayProfile);
@@ -83,7 +86,7 @@ const ProfileContainer = () => {
           isMobile={isMobile}
           user={user}
           profile={profile}
-          verificationBadges={verificationBadges}
+          verificationBadges={isOwnProfile && !userId ? [] : verificationBadges}
         />
       </div>
     </ProfileErrorBoundary>
