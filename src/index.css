@@ -96,39 +96,39 @@
   }
 }
 
-/* MOBILE-FIRST BUTTON IMPROVEMENTS */
-/* Enhanced mobile button visibility and touch targets */
+/* UNIFIED RESPONSIVE BUTTON IMPROVEMENTS */
+/* Enhanced button visibility and touch targets for all devices */
 @layer components {
-  .mobile-button-enhanced {
-    @apply min-h-[50px] px-4 py-3 text-base font-semibold rounded-lg border shadow-sm;
+  .enhanced-button {
+    @apply min-h-[44px] px-4 py-3 text-base font-semibold rounded-lg border shadow-sm;
     @apply transition-all duration-200 ease-in-out;
     @apply active:scale-95 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2;
     @apply touch-manipulation select-none;
   }
 
-  .mobile-button-primary {
-    @apply mobile-button-enhanced bg-primary text-primary-foreground border-primary;
+  .button-primary {
+    @apply enhanced-button bg-primary text-primary-foreground border-primary;
     @apply hover:bg-primary/90 active:bg-primary/80;
     @apply shadow-lg shadow-primary/20;
   }
 
-  .mobile-button-secondary {
-    @apply mobile-button-enhanced bg-secondary text-secondary-foreground border-secondary;
+  .button-secondary {
+    @apply enhanced-button bg-secondary text-secondary-foreground border-secondary;
     @apply hover:bg-secondary/80 active:bg-secondary/60;
   }
 
-  .mobile-button-outline {
-    @apply mobile-button-enhanced bg-background text-foreground border-border;
+  .button-outline {
+    @apply enhanced-button bg-background text-foreground border-border;
     @apply hover:bg-muted active:bg-muted/80;
   }
 
-  .mobile-button-ghost {
-    @apply mobile-button-enhanced bg-transparent border-transparent;
+  .button-ghost {
+    @apply enhanced-button bg-transparent border-transparent;
     @apply hover:bg-muted active:bg-muted/80;
   }
 
-  /* Mobile-optimized floating action buttons */
-  .mobile-fab {
+  /* Unified floating action buttons */
+  .floating-action-button {
     @apply fixed bottom-6 right-6 w-14 h-14 rounded-full shadow-lg;
     @apply bg-primary text-primary-foreground border-2 border-primary;
     @apply hover:bg-primary/90 active:bg-primary/80;
@@ -137,7 +137,7 @@
     @apply touch-manipulation select-none;
   }
 
-  /* Enhanced story viewer controls */
+  /* Enhanced story viewer controls - consistent across devices */
   .story-control-button {
     @apply p-3 rounded-full backdrop-blur-sm border;
     @apply bg-black/40 border-white/20 text-white;
@@ -146,18 +146,17 @@
     @apply touch-manipulation select-none;
   }
 
-  /* Story creator enhanced buttons */
+  /* Unified story creator buttons */
   .story-creator-button {
-    @apply w-full min-h-[50px] px-4 py-3 rounded-lg font-semibold;
+    @apply w-full min-h-[44px] px-4 py-3 rounded-lg font-semibold;
     @apply transition-all duration-200 shadow-sm border;
     @apply active:scale-98 touch-manipulation select-none;
   }
 }
 
-/* COMPREHENSIVE COLOR CONSISTENCY FIXES */
-/* Remove all remaining yellow highlights and ensure consistent theming */
+/* COMPREHENSIVE COLOR CONSISTENCY */
 @layer utilities {
-  /* Force consistent button styles across all components */
+  /* Force consistent button styles across all components and devices */
   button, .btn {
     @apply font-medium transition-colors duration-200;
   }
@@ -170,40 +169,34 @@
     @apply outline-none ring-2 ring-primary ring-offset-2 ring-offset-background;
   }
 
-  /* Mobile-specific improvements */
-  @media (max-width: 768px) {
-    button {
-      @apply min-h-[44px] text-base;
-    }
-
-    .touch-target {
-      @apply min-h-[44px] min-w-[44px];
-    }
-
-    /* Ensure story editor controls are always visible */
-    .story-editor-controls {
-      @apply bg-background/95 backdrop-blur-sm border border-border;
-      @apply shadow-lg rounded-lg p-4;
-    }
-
-    /* Enhanced story viewer for mobile */
-    .story-viewer-mobile {
-      @apply touch-none select-none;
-    }
-
-    .story-nav-button {
-      @apply w-12 h-12 rounded-full bg-black/60 backdrop-blur-sm;
-      @apply border border-white/30 text-white shadow-lg;
-      @apply hover:bg-black/80 active:bg-black/90;
-    }
+  /* Unified responsive improvements */
+  .touch-target {
+    @apply min-h-[44px] min-w-[44px];
   }
 
-  /* Remove any remaining yellow artifacts */
-  .no-yellow {
-    @apply !bg-transparent !text-current !border-current;
+  /* Ensure story editor controls are consistent across devices */
+  .story-editor-controls {
+    @apply bg-background/95 backdrop-blur-sm border border-border;
+    @apply shadow-lg rounded-lg p-4;
   }
 
-  /* Utility for safe area padding on mobile */
+  /* Enhanced story viewer for all devices */
+  .story-viewer {
+    @apply touch-none select-none;
+  }
+
+  .story-nav-button {
+    @apply w-12 h-12 rounded-full bg-black/60 backdrop-blur-sm;
+    @apply border border-white/30 text-white shadow-lg;
+    @apply hover:bg-black/80 active:bg-black/90;
+  }
+
+  /* Remove any remaining inconsistent styling */
+  .theme-consistent {
+    @apply !bg-background !text-foreground !border-border;
+  }
+
+  /* Utility for safe area padding */
   .pb-safe {
     padding-bottom: max(1rem, env(safe-area-inset-bottom));
   }
@@ -213,7 +206,7 @@
   }
 }
 
-/* ANIMATION ENHANCEMENTS FOR MOBILE */
+/* UNIFIED ANIMATION ENHANCEMENTS */
 @layer utilities {
   @keyframes ripple {
     0% {
@@ -266,7 +259,7 @@
     transform: translateY(-2px);
   }
 
-  /* Mobile-optimized active states */
+  /* Unified active states for all devices */
   .active-scale {
     transition: transform 0.1s ease-in-out;
   }
@@ -276,7 +269,7 @@
   }
 }
 
-/* ACCESSIBILITY IMPROVEMENTS */
+/* ACCESSIBILITY IMPROVEMENTS - CONSISTENT ACROSS DEVICES */
 @layer base {
   /* Ensure sufficient contrast for all text */
   .text-contrast {
@@ -306,5 +299,27 @@
     button, input, textarea {
       @apply text-lg;
     }
+  }
+}
+
+/* REMOVE DEVICE-SPECIFIC OVERRIDES */
+/* Ensure no mobile-specific styling conflicts with desktop theme */
+@layer utilities {
+  .unified-theme {
+    /* Force consistent theming regardless of device */
+    @apply bg-background text-foreground border-border;
+  }
+
+  .unified-button {
+    /* Consistent button styling across all devices */
+    @apply bg-primary text-primary-foreground border-primary;
+    @apply hover:bg-primary/90 active:bg-primary/80;
+    @apply shadow-lg shadow-primary/20;
+  }
+
+  .unified-card {
+    /* Consistent card styling across all devices */
+    @apply bg-card text-card-foreground border-border;
+    @apply shadow-sm rounded-lg;
   }
 }

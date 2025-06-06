@@ -32,7 +32,7 @@ export const MobileResponsive = ({
 
   return (
     <div className={cn(
-      'w-full',
+      'w-full unified-theme',
       isMobile ? 'px-4 py-2' : 'px-6 py-4',
       className
     )}>
@@ -58,7 +58,7 @@ export const ResponsiveGrid = ({
 }: ResponsiveGridProps) => {
   return (
     <div className={cn(
-      'grid gap-4',
+      'grid gap-4 unified-theme',
       `grid-cols-${cols.mobile}`,
       `md:grid-cols-${cols.tablet}`,
       `lg:grid-cols-${cols.desktop}`,
@@ -88,7 +88,7 @@ export const MobileOptimizedCard = ({
 
   return (
     <div className={cn(
-      'bg-white rounded-lg border shadow-sm',
+      'bg-card text-card-foreground rounded-lg border border-border shadow-sm unified-card',
       paddingConfig[padding],
       'touch-manipulation', // Improves touch responsiveness
       className
