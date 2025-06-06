@@ -47,6 +47,12 @@ const ProfileContent = ({
   });
 
   const handleStepClick = (stepId: string) => {
+    // Only allow step clicks if user is logged in
+    if (!user) {
+      navigate('/auth');
+      return;
+    }
+
     switch (stepId) {
       case 'basic_info':
       case 'profile_photo':
@@ -152,7 +158,7 @@ const ProfileContent = ({
       <MobileProfileHeader 
         profile={displayProfile}
         isOwnProfile={isOwnProfile}
-        onEdit={() => setIsEditDialogOpen(true)}
+        onEdit={() => user ? setIsEditDialogOpen(true) : navigate('/auth')}
       />
 
       <div className="p-4">
@@ -174,8 +180,8 @@ const ProfileContent = ({
           </div>
         )}
 
-        {/* Profile Completion Guide */}
-        {isOwnProfile && showCompletionGuide && (
+        {/* Profile Completion Guide - Only show for logged in users on their own profile */}
+        {isOwnProfile && user && showCompletionGuide && (
           <div className="mb-6">
             <ProfileCompletionGuideEnhanced
               profile={{
@@ -197,8 +203,8 @@ const ProfileContent = ({
           </div>
         )}
 
-        {/* Premium Features Card - Only show for own profile */}
-        {isOwnProfile && (
+        {/* Premium Features Card - Only show for own profile when logged in */}
+        {isOwnProfile && user && (
           <Card className="mb-6 bg-gradient-to-r from-blue-50 to-purple-50 border-blue-200">
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-2 text-lg">
@@ -254,10 +260,12 @@ const ProfileContent = ({
           isOwnProfile={isOwnProfile}
         />
 
-        {/* Online Users Section */}
-        <div className="mb-6">
-          <OnlineUsersList variant="compact" maxVisible={3} />
-        </div>
+        {/* Online Users Section - Only show for logged in users */}
+        {user && (
+          <div className="mb-6">
+            <OnlineUsersList variant="compact" maxVisible={3} />
+          </div>
+        )}
 
         <ProfileHighlights 
           highlights={highlights} 
@@ -270,15 +278,15 @@ const ProfileContent = ({
           posts={posts}
           reviews={reviews}
           analyticsComponent={
-            isOwnProfile ? <ProfileAnalyticsEnhanced profile={displayProfile} /> : undefined
+            isOwnProfile && user ? <ProfileAnalyticsEnhanced profile={displayProfile} /> : undefined
           }
           isOwnProfile={isOwnProfile}
           userType={displayProfile.user_type}
         />
       </div>
 
-      {/* Edit Dialog */}
-      {isEditDialogOpen && profile && (
+      {/* Edit Dialog - Only show if user is logged in */}
+      {isEditDialogOpen && profile && user && (
         <ProfileEditDialog 
           profile={profile}
           isOpen={isEditDialogOpen}
