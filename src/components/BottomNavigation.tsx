@@ -21,37 +21,47 @@ const BottomNavigation = () => {
     navigate(path);
   };
 
+  const handleProfileNavigation = () => {
+    // Always navigate to profile page - it now handles both logged in and guest users
+    navigate('/profile');
+  };
+
   const navItems = [
     {
       icon: Home,
       label: 'Home',
       path: '/',
-      protected: false
+      protected: false,
+      onClick: () => navigate('/')
     },
     {
       icon: Search,
       label: 'Explore',
       path: '/explore',
-      protected: false
+      protected: false,
+      onClick: () => navigate('/explore')
     },
     {
       icon: Plus,
       label: 'Post',
       path: '/post',
       protected: true,
-      action: 'create listings'
+      action: 'create listings',
+      onClick: () => handleProtectedNavigation('/post', 'create listings')
     },
     {
       icon: MessageCircle,
       label: 'Messages',
       path: '/messages',
-      protected: false  // Now accessible for demo
+      protected: false,
+      onClick: () => navigate('/messages')
     },
     {
       icon: User,
       label: 'Profile',
       path: '/profile',
-      protected: false  // Now accessible for demo
+      protected: false,
+      onClick: handleProfileNavigation
     }
   ];
 
@@ -73,13 +83,7 @@ const BottomNavigation = () => {
             return (
               <button
                 key={item.path}
-                onClick={() => {
-                  if (item.protected && !user) {
-                    handleProtectedNavigation(item.path, item.action || 'access this feature');
-                  } else {
-                    navigate(item.path);
-                  }
-                }}
+                onClick={item.onClick}
                 className={`flex flex-col items-center justify-center p-2 transition-colors ${
                   active 
                     ? 'text-white bg-blue-600 rounded-t-lg' 
