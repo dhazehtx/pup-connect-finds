@@ -53,9 +53,11 @@ const Index = () => {
       <Route path="/auth/callback" element={<AuthCallback />} />
       <Route path="/post/:postId" element={<PostDetail />} />
       
-      {/* Profile and Messages routes - temporarily public for design work */}
+      {/* Profile routes - fully public with guest support */}
       <Route path="/profile/:userId" element={<Profile />} />
       <Route path="/profile" element={<Profile />} />
+      
+      {/* Messages route - public for guest browsing */}
       <Route path="/messages" element={<Messages />} />
       
       {/* Protected routes requiring authentication */}

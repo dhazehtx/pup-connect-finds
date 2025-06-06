@@ -17,18 +17,25 @@ const ProfileContainer = () => {
   const { user, profile, loading } = useAuth();
   const { isMobile } = useMobileOptimized();
   
-  // Enhanced profile hooks
+  // Enhanced profile hooks - with error handling for guest users
   const { 
     profile: enhancedProfile, 
     verificationBadges, 
     loading: enhancedLoading 
   } = useEnhancedProfiles();
   
-  const { portfolios } = useBreedingPortfolio();
-  const { followers, following } = useProfessionalNetwork();
+  const { portfolios = [] } = useBreedingPortfolio();
+  const { followers = [], following = [] } = useProfessionalNetwork();
   
   // Initialize real-time verification notifications only if user is logged in
-  useRealtimeVerification();
+  // Wrap in try-catch to prevent errors for guest users
+  try {
+    if (user) {
+      useRealtimeVerification();
+    }
+  } catch (error) {
+    console.log('Real-time verification not available for guest users');
+  }
   
   // Check if this is the current user's profile or another user's profile
   const isOwnProfile = !userId || (user && userId === user?.id);
@@ -77,6 +84,26 @@ const ProfileContainer = () => {
   });
 
   console.log('ProfileContainer: Created displayProfile:', displayProfile);
+
+  // Error boundary to catch any remaining issues
+  if (!displayProfile) {
+    console.error('ProfileContainer: Failed to create display profile');
+    return (
+      <div className="max-w-md mx-auto bg-white min-h-screen">
+        <div className="p-4 flex items-center justify-center min-h-[400px]">
+          <div className="text-center">
+            <p className="text-gray-600 mb-4">Unable to load profile</p>
+            <button 
+              onClick={() => window.location.reload()} 
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            >
+              Try Again
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <ProfileErrorBoundary>
