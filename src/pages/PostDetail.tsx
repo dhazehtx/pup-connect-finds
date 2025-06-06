@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, MoreHorizontal, MessageCircle, Send, UserPlus, UserCheck, Settings } from 'lucide-react';
@@ -11,13 +12,18 @@ import LikesModal from '@/components/post/LikesModal';
 import PostPrivacySettings from '@/components/post/PostPrivacySettings';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
-import { useFollowSystem } from '@/hooks/useFollowSystem';
 
 const PostDetail = () => {
   const { postId } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
   const { toast } = useToast();
+  
+  // Early return if no postId
+  if (!postId) {
+    navigate('/');
+    return null;
+  }
   
   const [isLiked, setIsLiked] = useState(false);
   const [likesCount, setLikesCount] = useState(243);
@@ -42,7 +48,7 @@ const PostDetail = () => {
       name: 'Golden Paws Kennel',
       username: 'goldenpaws',
       avatar: 'https://images.unsplash.com/photo-1560743173-567a3b5658b1?w=150&h=150&fit=crop&crop=face',
-      isOwnPost: user?.id === 'goldenpaws123' // Check if current user owns this post
+      isOwnPost: user?.id === 'goldenpaws123'
     },
     caption: 'Meet our beautiful Golden Retriever puppies! 🐕 These adorable little ones are looking for their forever homes. They are healthy, vaccinated, and ready to bring joy to your family. #GoldenRetriever #Puppies #DogsOfInstagram',
     timestamp: '2 hours ago'
@@ -101,45 +107,6 @@ const PostDetail = () => {
       text: 'Are any of them still available?',
       timestamp: '45m',
       likes: 2,
-      isLiked: false
-    },
-    {
-      id: 3,
-      user: { 
-        id: 'emma789',
-        name: 'Emma W.', 
-        username: 'emma_w', 
-        avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face'
-      },
-      text: 'Beautiful puppies! Great breeding program 👏',
-      timestamp: '30m',
-      likes: 8,
-      isLiked: false
-    },
-    {
-      id: 4,
-      user: { 
-        id: 'john321',
-        name: 'John K.', 
-        username: 'john_k', 
-        avatar: ''
-      },
-      text: 'How much for one of these beauties?',
-      timestamp: '20m',
-      likes: 1,
-      isLiked: false
-    },
-    {
-      id: 5,
-      user: { 
-        id: 'lisa654',
-        name: 'Lisa P.', 
-        username: 'lisa_p', 
-        avatar: ''
-      },
-      text: 'My dream dogs! 🐕💕',
-      timestamp: '15m',
-      likes: 3,
       isLiked: false
     }
   ]);
