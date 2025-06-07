@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -31,6 +30,7 @@ const Home = () => {
     {
       id: 'post-1',
       username: 'golden_breeder_sf',
+      userId: '11111111-1111-1111-1111-111111111111',
       userAvatar: 'https://images.unsplash.com/photo-1552053831-71594a27632d?w=50&h=50&fit=crop&crop=face',
       location: 'San Francisco, CA',
       image: 'https://images.unsplash.com/photo-1552053831-71594a27632d?w=400&h=400&fit=crop',
@@ -46,6 +46,7 @@ const Home = () => {
     {
       id: 'post-2',
       username: 'frenchie_love_bay',
+      userId: '22222222-2222-2222-2222-222222222222',
       userAvatar: 'https://images.unsplash.com/photo-1583337130417-3346a1be7dee?w=50&h=50&fit=crop&crop=face',
       location: 'Oakland, CA',
       image: 'https://images.unsplash.com/photo-1583337130417-3346a1be7dee?w=400&h=400&fit=crop',
@@ -61,6 +62,7 @@ const Home = () => {
     {
       id: 'post-3',
       username: 'shepherd_sanctuary',
+      userId: '33333333-3333-3333-3333-333333333333',
       userAvatar: 'https://images.unsplash.com/photo-1589941013453-ec89f33b5e95?w=50&h=50&fit=crop&crop=face',
       location: 'San Jose, CA',
       image: 'https://images.unsplash.com/photo-1589941013453-ec89f33b5e95?w=400&h=400&fit=crop',
@@ -76,6 +78,7 @@ const Home = () => {
     {
       id: 'post-4',
       username: 'rescue_hearts_ca',
+      userId: '44444444-4444-4444-4444-444444444444',
       userAvatar: 'https://images.unsplash.com/photo-1529472119196-cb724127a98e?w=50&h=50&fit=crop&crop=face',
       location: 'Berkeley, CA',
       image: 'https://images.unsplash.com/photo-1529472119196-cb724127a98e?w=400&h=400&fit=crop',
@@ -91,6 +94,7 @@ const Home = () => {
     {
       id: 'post-5',
       username: 'labrador_love_ca',
+      userId: '55555555-5555-5555-5555-555555555555',
       userAvatar: 'https://images.unsplash.com/photo-1518717758536-85ae29035b6d?w=50&h=50&fit=crop&crop=face',
       location: 'Fremont, CA',
       image: 'https://images.unsplash.com/photo-1518717758536-85ae29035b6d?w=400&h=400&fit=crop',
@@ -106,6 +110,7 @@ const Home = () => {
     {
       id: 'post-6',
       username: 'beagle_breeders_norcal',
+      userId: '66666666-6666-6666-6666-666666666666',
       userAvatar: 'https://images.unsplash.com/photo-1544717342-7b6977ea1f8a?w=50&h=50&fit=crop&crop=face',
       location: 'Sacramento, CA',
       image: 'https://images.unsplash.com/photo-1544717342-7b6977ea1f8a?w=400&h=400&fit=crop',
@@ -122,6 +127,10 @@ const Home = () => {
 
   // Always use mock data to ensure content is visible
   const feedPosts = mockFeedPosts;
+
+  const handleProfileClick = (userId: string) => {
+    navigate(`/profile/${userId}`);
+  };
 
   const handleStoryClick = (index: number) => {
     const story = stories[index];
@@ -229,7 +238,12 @@ const Home = () => {
                     />
                   </div>
                   <div>
-                    <p className="font-semibold text-sm">{post.username}</p>
+                    <button
+                      onClick={() => handleProfileClick(post.userId)}
+                      className="font-semibold text-sm hover:text-blue-600 transition-colors cursor-pointer"
+                    >
+                      {post.username}
+                    </button>
                     <p className="text-xs text-gray-500">{post.location}</p>
                   </div>
                 </div>
@@ -278,7 +292,12 @@ const Home = () => {
                     <Badge variant="outline" className="text-xs">{post.age}</Badge>
                   </div>
                   <p className="text-sm">
-                    <span className="font-semibold">{post.username}</span> {post.caption}
+                    <button
+                      onClick={() => handleProfileClick(post.userId)}
+                      className="font-semibold hover:text-blue-600 transition-colors cursor-pointer"
+                    >
+                      {post.username}
+                    </button> {post.caption}
                   </p>
                   {post.comments > 0 && (
                     <p className="text-sm text-gray-500">
