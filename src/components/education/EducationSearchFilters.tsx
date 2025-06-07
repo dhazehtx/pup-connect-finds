@@ -5,12 +5,6 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 
-interface Category {
-  id: string;
-  name: string;
-  icon: string;
-}
-
 interface EducationSearchFiltersProps {
   searchTerm: string;
   setSearchTerm: (term: string) => void;
@@ -21,7 +15,7 @@ interface EducationSearchFiltersProps {
   showBookmarksOnly: boolean;
   setShowBookmarksOnly: (show: boolean) => void;
   bookmarkedCount: number;
-  categories: Category[];
+  categories: Array<{ id: string; name: string; icon: string }>;
 }
 
 export const EducationSearchFilters: React.FC<EducationSearchFiltersProps> = ({
@@ -38,9 +32,11 @@ export const EducationSearchFilters: React.FC<EducationSearchFiltersProps> = ({
 }) => {
   return (
     <div className="mb-6 space-y-4">
-      <div className="relative max-w-md">
+      {/* Search Bar */}
+      <div className="relative">
         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
         <Input
+          type="text"
           placeholder="Search resources, tags, authors..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
@@ -48,23 +44,29 @@ export const EducationSearchFilters: React.FC<EducationSearchFiltersProps> = ({
         />
       </div>
 
-      <div className="flex flex-wrap gap-4 items-center">
+      {/* Filters Row */}
+      <div className="flex flex-wrap gap-3 items-center">
+        {/* Category Filter */}
         <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-          <SelectTrigger className="w-48">
-            <SelectValue placeholder="All Categories" />
+          <SelectTrigger className="w-[180px]">
+            <SelectValue placeholder="Select category" />
           </SelectTrigger>
           <SelectContent>
             {categories.map((category) => (
               <SelectItem key={category.id} value={category.id}>
-                {category.icon} {category.name}
+                <span className="flex items-center gap-2">
+                  <span>{category.icon}</span>
+                  {category.name}
+                </span>
               </SelectItem>
             ))}
           </SelectContent>
         </Select>
 
+        {/* Difficulty Filter */}
         <Select value={selectedDifficulty} onValueChange={setSelectedDifficulty}>
-          <SelectTrigger className="w-48">
-            <SelectValue placeholder="All Levels" />
+          <SelectTrigger className="w-[140px]">
+            <SelectValue placeholder="Difficulty" />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Levels</SelectItem>
@@ -74,6 +76,7 @@ export const EducationSearchFilters: React.FC<EducationSearchFiltersProps> = ({
           </SelectContent>
         </Select>
 
+        {/* Bookmarks Filter */}
         <Button
           variant={showBookmarksOnly ? "default" : "outline"}
           onClick={() => setShowBookmarksOnly(!showBookmarksOnly)}
