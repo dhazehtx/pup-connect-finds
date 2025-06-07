@@ -225,6 +225,38 @@ export const educationSectionsData = [
         readTime: '14 min read',
         rating: 4.9,
         difficulty: 'Beginner'
+      },
+      {
+        title: 'Puppies Mental & Physical Exercise',
+        description: 'Essential exercise guidelines for growing puppies',
+        url: 'https://www.akc.org/expert-advice/health/puppies-mental-physical-exercise/',
+        readTime: '12 min read',
+        rating: 4.8,
+        difficulty: 'Beginner'
+      },
+      {
+        title: 'Puppy Proofing Tips for Your Home and Yard',
+        description: 'Complete guide to making your space puppy-safe',
+        url: 'https://www.akc.org/expert-advice/puppy-information/puppy-proofing-tips-for-your-home-and-yard/',
+        readTime: '15 min read',
+        rating: 4.9,
+        difficulty: 'Beginner'
+      },
+      {
+        title: 'Puppy Strangles',
+        description: 'Understanding and treating puppy strangles condition',
+        url: 'https://www.akc.org/expert-advice/health/puppy-strangles/',
+        readTime: '10 min read',
+        rating: 4.6,
+        difficulty: 'Intermediate'
+      },
+      {
+        title: 'Complete Puppy Information Guide',
+        description: 'Comprehensive resource for all puppy-related topics',
+        url: 'https://www.akc.org/expert-advice/puppy-information/',
+        readTime: '20 min read',
+        rating: 4.9,
+        difficulty: 'Beginner'
       }
     ]
   }
