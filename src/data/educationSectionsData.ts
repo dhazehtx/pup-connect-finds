@@ -18,15 +18,15 @@ export const educationSectionsData = [
       {
         title: 'Dog Health Symptoms to Watch For',
         description: 'Warning signs that require immediate veterinary attention',
-        url: 'https://www.akc.org/expert-advice/health/symptoms-to-watch-for-in-your-dog/',
+        url: 'https://www.akc.org/expert-advice/health/symptoms-sick-dog/',
         readTime: '14 min read',
         rating: 4.8,
         difficulty: 'Beginner'
       },
       {
-        title: 'Spaying and Neutering Guide',
+        title: 'Spaying and Neutering Your Dog',
         description: 'Everything you need to know about spaying and neutering',
-        url: 'https://www.akc.org/expert-advice/health/spaying-neutering/',
+        url: 'https://www.akc.org/expert-advice/health/spaying-and-neutering/',
         readTime: '11 min read',
         rating: 4.7,
         difficulty: 'Intermediate'
@@ -40,9 +40,9 @@ export const educationSectionsData = [
         difficulty: 'Intermediate'
       },
       {
-        title: 'Parasite Prevention and Treatment',
-        description: 'Protecting your dog from fleas, ticks, and worms',
-        url: 'https://www.akc.org/expert-advice/health/parasite-prevention/',
+        title: 'Fleas and Ticks on Dogs',
+        description: 'Protecting your dog from fleas and ticks',
+        url: 'https://www.akc.org/expert-advice/health/fleas-and-ticks/',
         readTime: '13 min read',
         rating: 4.8,
         difficulty: 'Beginner'
@@ -50,7 +50,7 @@ export const educationSectionsData = [
       {
         title: 'Senior Dog Health Care',
         description: 'Special health considerations for aging dogs',
-        url: 'https://www.akc.org/expert-advice/health/senior-dog-care/',
+        url: 'https://www.akc.org/expert-advice/health/senior-dog-health-care/',
         readTime: '15 min read',
         rating: 4.7,
         difficulty: 'Intermediate'
@@ -75,7 +75,7 @@ export const educationSectionsData = [
       {
         title: 'How Much Should I Feed My Dog?',
         description: 'Portion control and feeding guidelines for adult dogs',
-        url: 'https://www.akc.org/expert-advice/nutrition/dog-feeding-guide/',
+        url: 'https://www.akc.org/expert-advice/nutrition/how-much-food-should-i-feed-my-dog/',
         readTime: '9 min read',
         rating: 4.8,
         difficulty: 'Beginner'
@@ -89,25 +89,25 @@ export const educationSectionsData = [
         difficulty: 'Beginner'
       },
       {
-        title: 'Dog Food Ingredients to Avoid',
-        description: 'Understanding harmful ingredients in commercial dog food',
-        url: 'https://www.akc.org/expert-advice/nutrition/what-dog-food-ingredients-to-avoid/',
+        title: 'What to Look for in a Dog Food',
+        description: 'Understanding dog food labels and ingredients',
+        url: 'https://www.akc.org/expert-advice/nutrition/what-to-look-for-in-a-dog-food/',
         readTime: '12 min read',
         rating: 4.6,
         difficulty: 'Intermediate'
       },
       {
-        title: 'Senior Dog Nutrition',
+        title: 'Best Dog Food for Senior Dogs',
         description: 'Special dietary needs for older dogs',
-        url: 'https://www.akc.org/expert-advice/nutrition/senior-dog-nutrition/',
+        url: 'https://www.akc.org/expert-advice/nutrition/best-dog-food-for-senior-dogs/',
         readTime: '11 min read',
         rating: 4.7,
         difficulty: 'Intermediate'
       },
       {
-        title: 'Dog Nutrition Basics',
+        title: 'Dog Nutrition 101',
         description: 'Essential nutrients and feeding fundamentals',
-        url: 'https://www.akc.org/expert-advice/nutrition/nutrition-101-for-dogs/',
+        url: 'https://www.akc.org/expert-advice/nutrition/dog-nutrition-101/',
         readTime: '8 min read',
         rating: 4.5,
         difficulty: 'Beginner'
@@ -122,9 +122,9 @@ export const educationSectionsData = [
     color: 'bg-blue-50 border-blue-200',
     articles: [
       {
-        title: 'Puppy Training Basics',
-        description: 'Fundamental training techniques for puppies',
-        url: 'https://www.akc.org/expert-advice/training/puppy-training-basics/',
+        title: 'Puppy Training Timeline',
+        description: 'When and how to start training your puppy',
+        url: 'https://www.akc.org/expert-advice/training/puppy-training-timeline/',
         readTime: '14 min read',
         rating: 4.9,
         difficulty: 'Beginner'
@@ -138,25 +138,25 @@ export const educationSectionsData = [
         difficulty: 'Beginner'
       },
       {
-        title: 'Basic Dog Training Commands',
-        description: 'Essential commands every dog should know',
-        url: 'https://www.akc.org/expert-advice/training/basic-dog-training-commands/',
+        title: '5 Essential Commands Every Dog Should Know',
+        description: 'Basic commands for safety and good behavior',
+        url: 'https://www.akc.org/expert-advice/training/5-essential-commands-you-can-teach-your-dog/',
         readTime: '15 min read',
         rating: 4.8,
         difficulty: 'Beginner'
       },
       {
-        title: 'Stopping Destructive Behavior',
-        description: 'How to address common behavioral problems',
+        title: 'How to Stop Destructive Dog Behavior',
+        description: 'Addressing common behavioral problems',
         url: 'https://www.akc.org/expert-advice/training/destructive-behavior/',
         readTime: '13 min read',
         rating: 4.7,
         difficulty: 'Intermediate'
       },
       {
-        title: 'Positive Reinforcement Training',
-        description: 'Understanding reward-based training methods',
-        url: 'https://www.akc.org/expert-advice/training/positive-reinforcement/',
+        title: 'Positive Reinforcement Dog Training',
+        description: 'Reward-based training methods that work',
+        url: 'https://www.akc.org/expert-advice/training/positive-reinforcement-training/',
         readTime: '11 min read',
         rating: 4.8,
         difficulty: 'Beginner'
@@ -187,9 +187,9 @@ export const educationSectionsData = [
         difficulty: 'Beginner'
       },
       {
-        title: 'First Week With Your New Puppy',
+        title: 'Your Puppy\'s First Week Home',
         description: 'Essential guide for your puppy\'s first week at home',
-        url: 'https://www.akc.org/expert-advice/puppy-information/first-week-new-puppy/',
+        url: 'https://www.akc.org/expert-advice/puppy-information/first-week-puppy/',
         readTime: '12 min read',
         rating: 4.8,
         difficulty: 'Beginner'
@@ -203,15 +203,15 @@ export const educationSectionsData = [
         difficulty: 'Beginner'
       },
       {
-        title: 'Puppy Development Stages',
-        description: 'Understanding your puppy\'s growth and development',
-        url: 'https://www.akc.org/expert-advice/puppy-information/puppy-development-stages/',
+        title: 'Puppy Development From Birth to Adulthood',
+        description: 'Understanding your puppy\'s growth stages',
+        url: 'https://www.akc.org/expert-advice/puppy-information/puppy-development-from-birth-to-adulthood/',
         readTime: '13 min read',
         rating: 4.7,
         difficulty: 'Beginner'
       },
       {
-        title: 'Why Puppies Sleep So Much',
+        title: 'Why Do Puppies Sleep So Much?',
         description: 'Understanding puppy sleep patterns and needs',
         url: 'https://www.akc.org/expert-advice/puppy-information/why-do-puppies-sleep-so-much/',
         readTime: '9 min read',
@@ -219,7 +219,7 @@ export const educationSectionsData = [
         difficulty: 'Beginner'
       },
       {
-        title: 'When Puppies Open Their Eyes',
+        title: 'When Do Puppies Open Their Eyes?',
         description: 'Puppy development milestones and eye opening',
         url: 'https://www.akc.org/expert-advice/puppy-information/when-do-puppies-open-their-eyes/',
         readTime: '11 min read',
@@ -238,21 +238,21 @@ export const educationSectionsData = [
       {
         title: 'How to Choose a Veterinarian',
         description: 'Essential tips for finding the right vet for your dog',
-        url: 'https://www.akc.org/expert-advice/vets-corner/choosing-a-veterinarian/',
+        url: 'https://www.akc.org/expert-advice/health/finding-veterinarian/',
         readTime: '10 min read',
         rating: 4.8,
         difficulty: 'Beginner'
       },
       {
-        title: 'Emergency Veterinary Care',
-        description: 'When to seek immediate veterinary attention',
-        url: 'https://www.akc.org/expert-advice/vets-corner/emergency-vet-care/',
+        title: 'When to Take Your Dog to the Emergency Vet',
+        description: 'Recognizing emergency situations requiring immediate care',
+        url: 'https://www.akc.org/expert-advice/health/when-take-dog-emergency-vet/',
         readTime: '12 min read',
         rating: 4.9,
         difficulty: 'Intermediate'
       },
       {
-        title: 'Dog Dental Care and Cleaning',
+        title: 'Dog Dental Care and Health',
         description: 'Maintaining your dog\'s oral health',
         url: 'https://www.akc.org/expert-advice/health/dog-dental-care/',
         readTime: '8 min read',
@@ -260,27 +260,19 @@ export const educationSectionsData = [
         difficulty: 'Beginner'
       },
       {
-        title: 'Dog Insurance: What You Need to Know',
+        title: 'Dog Insurance Guide',
         description: 'Understanding pet insurance options and coverage',
-        url: 'https://www.akc.org/expert-advice/health/dog-insurance/',
+        url: 'https://www.akc.org/expert-advice/health/pet-insurance/',
         readTime: '11 min read',
         rating: 4.6,
         difficulty: 'Intermediate'
       },
       {
-        title: 'Annual Dog Health Checkups',
+        title: 'Regular Health Checkups for Dogs',
         description: 'What to expect during routine veterinary visits',
-        url: 'https://www.akc.org/expert-advice/health/annual-dog-health-checkups/',
+        url: 'https://www.akc.org/expert-advice/health/dog-health-checkups/',
         readTime: '9 min read',
         rating: 4.7,
-        difficulty: 'Beginner'
-      },
-      {
-        title: 'Dog X-Ray Costs and Procedures',
-        description: 'Understanding veterinary diagnostic procedures',
-        url: 'https://www.akc.org/expert-advice/health/dog-x-ray-cost/',
-        readTime: '13 min read',
-        rating: 4.8,
         difficulty: 'Beginner'
       }
     ]
