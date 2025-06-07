@@ -163,7 +163,7 @@ const CustomerReviews = () => {
           <div className="animate-pulse">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-12">
               {[...Array(4)].map((_, i) => (
-                <div key={i} className="h-24 bg-gray-200 rounded-lg"></div>
+                <div key={i} className="h-24 bg-muted rounded-lg"></div>
               ))}
             </div>
           </div>
