@@ -33,7 +33,9 @@ const HelpCenter = () => {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <FAQSection faqs={faqs} />
-          <HelpSidebar popularArticles={popularArticles} />
+          <div data-contact-section>
+            <HelpSidebar popularArticles={popularArticles} />
+          </div>
         </div>
       </div>
     </div>
