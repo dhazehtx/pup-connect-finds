@@ -52,10 +52,10 @@ const CustomerReviewsList: React.FC<CustomerReviewsListProps> = ({ reviews, load
   if (reviews.length === 0) {
     return (
       <div className="col-span-full text-center py-12">
-        <p className="text-muted-foreground text-lg mb-4">
+        <p className="text-black/70 text-lg mb-4">
           No reviews available yet
         </p>
-        <p className="text-sm text-muted-foreground">
+        <p className="text-sm text-black/50">
           Be the first to share your experience with MY PUP!
         </p>
       </div>
@@ -65,7 +65,7 @@ const CustomerReviewsList: React.FC<CustomerReviewsListProps> = ({ reviews, load
   return (
     <div id="reviews-section" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       {reviews.map((review) => (
-        <Card key={review.id} className="border-border h-full">
+        <Card key={review.id} className="border-royal-blue h-full bg-white">
           <CardHeader className="pb-4">
             <div className="flex items-center gap-3 mb-3">
               <Avatar className="w-12 h-12">
@@ -76,14 +76,14 @@ const CustomerReviewsList: React.FC<CustomerReviewsListProps> = ({ reviews, load
               </Avatar>
               <div className="flex-1">
                 <div className="flex items-center gap-2">
-                  <h4 className="font-semibold text-foreground">
+                  <h4 className="font-semibold text-black">
                     {review.reviewer_profile?.full_name || review.reviewer_profile?.username || 'Anonymous User'}
                   </h4>
                   {review.reviewed_user_profile?.verified && (
-                    <Badge variant="secondary" className="text-xs">Verified</Badge>
+                    <Badge variant="secondary" className="text-xs bg-royal-blue/20 text-royal-blue">Verified</Badge>
                   )}
                 </div>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-sm text-black/70">
                   Reviewed: {review.reviewed_user_profile?.full_name || 'Service Provider'}
                 </p>
               </div>
@@ -94,22 +94,22 @@ const CustomerReviewsList: React.FC<CustomerReviewsListProps> = ({ reviews, load
                 {renderStars(review.rating)}
               </div>
               {review.reviewed_user_profile?.user_type && (
-                <Badge variant="outline" className="text-xs capitalize">
+                <Badge variant="outline" className="text-xs capitalize border-royal-blue text-royal-blue">
                   {review.reviewed_user_profile.user_type}
                 </Badge>
               )}
             </div>
             
             {review.title && (
-              <h5 className="font-medium text-foreground">{review.title}</h5>
+              <h5 className="font-medium text-black">{review.title}</h5>
             )}
           </CardHeader>
           
           <CardContent className="pt-0">
-            <p className="text-muted-foreground text-sm leading-relaxed">
+            <p className="text-black/70 text-sm leading-relaxed">
               {review.comment || 'No detailed comment provided.'}
             </p>
-            <p className="text-xs text-muted-foreground mt-3">
+            <p className="text-xs text-black/50 mt-3">
               {new Date(review.created_at).toLocaleDateString()}
             </p>
           </CardContent>
