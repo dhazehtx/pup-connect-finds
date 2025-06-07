@@ -179,7 +179,7 @@ const Home = () => {
       {/* Instagram-like Feed */}
       <div className="max-w-md mx-auto bg-white min-h-screen">
         {/* Header */}
-        <div className="p-4 border-b border-gray-200 bg-white sticky top-0 z-20">
+        <div className="p-4 border-b border-gray-200 bg-white">
           <h1 className="text-2xl font-bold mb-4">Home</h1>
           
           {/* Stories Section */}
