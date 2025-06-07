@@ -1,39 +1,44 @@
-
 import React, { useState } from 'react';
 import { Search, Book, MessageCircle, Phone, Mail, ChevronDown, ChevronRight } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { useNavigate } from 'react-router-dom';
 
 const HelpCenter = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [openFAQ, setOpenFAQ] = useState<number | null>(null);
+  const navigate = useNavigate();
 
   const categories = [
     {
       title: 'Getting Started',
       icon: <Book className="h-6 w-6" />,
       articles: 15,
-      description: 'Learn the basics of using MY PUP'
+      description: 'Learn the basics of using MY PUP',
+      path: '/help/getting-started'
     },
     {
       title: 'Buying a Puppy',
       icon: <MessageCircle className="h-6 w-6" />,
       articles: 12,
-      description: 'Tips for finding and purchasing your perfect companion'
+      description: 'Tips for finding and purchasing your perfect companion',
+      path: '/help/buying-guide'
     },
     {
       title: 'Selling & Breeding',
       icon: <Phone className="h-6 w-6" />,
       articles: 18,
-      description: 'Guidelines for listing and selling puppies'
+      description: 'Guidelines for listing and selling puppies',
+      path: '/help/selling-breeding'
     },
     {
       title: 'Safety & Trust',
       icon: <Mail className="h-6 w-6" />,
       articles: 8,
-      description: 'Staying safe and building trust on the platform'
+      description: 'Staying safe and building trust on the platform',
+      path: '/help/safety-trust'
     }
   ];
 
@@ -99,7 +104,11 @@ const HelpCenter = () => {
           <h2 className="text-3xl font-bold text-deep-navy mb-8 text-center">Browse by Category</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {categories.map((category, index) => (
-              <Card key={index} className="border-soft-sky hover:shadow-lg transition-shadow cursor-pointer">
+              <Card 
+                key={index} 
+                className="border-soft-sky hover:shadow-lg transition-shadow cursor-pointer"
+                onClick={() => navigate(category.path)}
+              >
                 <CardContent className="p-6 text-center">
                   <div className="text-royal-blue mb-4 flex justify-center">
                     {category.icon}
