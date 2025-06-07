@@ -61,7 +61,7 @@ export const EducationFeaturedSection: React.FC = () => {
                     id={`item-${item.id}`}
                     checked={checkedItems.has(item.id)}
                     onCheckedChange={() => handleItemCheck(item.id)}
-                    className="flex-shrink-0"
+                    className="flex-shrink-0 border-black data-[state=checked]:bg-black data-[state=checked]:border-black"
                   />
                   <label 
                     htmlFor={`item-${item.id}`}
