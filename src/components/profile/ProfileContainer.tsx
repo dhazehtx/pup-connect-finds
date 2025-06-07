@@ -10,6 +10,7 @@ import { useRealtimeVerification } from '@/hooks/useRealtimeVerification';
 import OptimizedLoading from '@/components/ui/optimized-loading';
 import ProfileErrorBoundary from '@/components/profile/ProfileErrorBoundary';
 import ProfileContent from '@/components/profile/ProfileContent';
+import ProfileAuthScreen from '@/components/profile/ProfileAuthScreen';
 import { createDisplayProfile } from '@/utils/profileUtils';
 
 const ProfileContainer = () => {
@@ -52,6 +53,12 @@ const ProfileContainer = () => {
     userId,
     currentUserId: user?.id
   });
+
+  // Show auth screen for guest users trying to access their own profile
+  if (isGuestUser && isOwnProfile && !userId) {
+    console.log('ProfileContainer: Showing auth screen for guest user accessing own profile');
+    return <ProfileAuthScreen />;
+  }
   
   // Show optimized loading state while fetching user data (only if user is logged in)
   if (user && (loading || enhancedLoading)) {
