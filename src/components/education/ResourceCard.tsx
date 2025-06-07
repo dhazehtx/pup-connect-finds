@@ -64,11 +64,13 @@ export const ResourceCard: React.FC<ResourceCardProps> = ({
     <>
       <Card className="hover:shadow-lg transition-shadow cursor-pointer group">
         <div className="relative">
-          <img
-            src={resource.image}
-            alt={resource.title}
-            className="w-full h-48 object-cover rounded-t-lg"
-          />
+          <div className="w-full h-48 bg-gray-100 rounded-t-lg overflow-hidden">
+            <img
+              src={resource.image}
+              alt={resource.title}
+              className="w-full h-full object-contain"
+            />
+          </div>
           <div className="absolute top-3 left-3 flex gap-2">
             <Badge className={getDifficultyColor(resource.difficulty)}>
               {resource.difficulty}

@@ -4,6 +4,8 @@ export interface ImageOptimizationOptions {
   maxHeight?: number;
   quality?: number;
   format?: 'jpeg' | 'png' | 'webp';
+  aspectRatio?: number;
+  objectFit?: 'cover' | 'contain' | 'fill';
 }
 
 export const optimizeImage = async (
@@ -14,7 +16,9 @@ export const optimizeImage = async (
     maxWidth = 1920,
     maxHeight = 1080,
     quality = 0.8,
-    format = 'jpeg'
+    format = 'jpeg',
+    aspectRatio,
+    objectFit = 'contain'
   } = options;
 
   return new Promise((resolve, reject) => {
@@ -23,9 +27,20 @@ export const optimizeImage = async (
     const img = new Image();
 
     img.onload = () => {
-      // Calculate new dimensions
       let { width, height } = img;
       
+      // If aspect ratio is specified, adjust dimensions accordingly
+      if (aspectRatio) {
+        if (width / height > aspectRatio) {
+          // Image is wider than target aspect ratio
+          width = height * aspectRatio;
+        } else {
+          // Image is taller than target aspect ratio
+          height = width / aspectRatio;
+        }
+      }
+      
+      // Scale down if needed
       if (width > maxWidth) {
         height = (height * maxWidth) / width;
         width = maxWidth;
@@ -39,8 +54,26 @@ export const optimizeImage = async (
       canvas.width = width;
       canvas.height = height;
 
-      // Draw and compress
-      ctx?.drawImage(img, 0, 0, width, height);
+      // Clear canvas with white background for better compatibility
+      if (ctx) {
+        ctx.fillStyle = 'white';
+        ctx.fillRect(0, 0, width, height);
+        
+        // Draw image based on object fit preference
+        if (objectFit === 'contain') {
+          // Calculate scaling to fit entire image
+          const scale = Math.min(width / img.width, height / img.height);
+          const scaledWidth = img.width * scale;
+          const scaledHeight = img.height * scale;
+          const x = (width - scaledWidth) / 2;
+          const y = (height - scaledHeight) / 2;
+          
+          ctx.drawImage(img, x, y, scaledWidth, scaledHeight);
+        } else {
+          // Default cover behavior
+          ctx.drawImage(img, 0, 0, width, height);
+        }
+      }
       
       canvas.toBlob(
         (blob) => {
@@ -68,7 +101,24 @@ export const generateThumbnail = async (
     maxWidth: size,
     maxHeight: size,
     quality: 0.7,
-    format: 'jpeg'
+    format: 'jpeg',
+    aspectRatio: 1, // Square aspect ratio for thumbnails
+    objectFit: 'contain'
+  });
+};
+
+export const generateCardImage = async (
+  file: File,
+  width: number = 300,
+  height: number = 200
+): Promise<Blob> => {
+  return optimizeImage(file, {
+    maxWidth: width,
+    maxHeight: height,
+    quality: 0.8,
+    format: 'jpeg',
+    aspectRatio: width / height,
+    objectFit: 'contain'
   });
 };
 
