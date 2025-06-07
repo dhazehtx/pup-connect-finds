@@ -66,7 +66,7 @@ const ConversationsList = ({
               
               {conversation.listing && (
                 <div className="flex items-center gap-2 mb-1">
-                  <Badge variant="secondary" className="text-xs">
+                  <Badge variant="outline" className="text-xs bg-blue-50 text-blue-800 border-blue-200">
                     {conversation.listing.breed}
                   </Badge>
                   <span className="text-xs text-gray-600 truncate">

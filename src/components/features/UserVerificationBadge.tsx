@@ -24,7 +24,7 @@ const UserVerificationBadge = ({
       case 'professional':
         return {
           icon: Award,
-          color: 'bg-yellow-100 text-yellow-800 border-yellow-300',
+          color: 'bg-blue-100 text-blue-800 border-blue-300',
           label: 'Professional Breeder',
           description: 'Licensed breeder with health testing and breeding certifications'
         };
@@ -66,8 +66,8 @@ const UserVerificationBadge = ({
             </Badge>
           </TooltipTrigger>
           <TooltipContent>
-            <p className="font-medium">{verificationInfo.label}</p>
-            <p className="text-sm">{verificationInfo.description}</p>
+            <p className="font-medium text-black">{verificationInfo.label}</p>
+            <p className="text-sm text-black">{verificationInfo.description}</p>
             {memberSince && (
               <p className="text-xs text-gray-500 mt-1">Member since {memberSince}</p>
             )}
@@ -77,8 +77,8 @@ const UserVerificationBadge = ({
 
       {rating && totalReviews && (
         <div className="flex items-center gap-1">
-          <Star size={14} className="text-yellow-500 fill-current" />
-          <span className="text-sm font-medium">{rating.toFixed(1)}</span>
+          <Star size={14} className="text-blue-500 fill-current" />
+          <span className="text-sm font-medium text-black">{rating.toFixed(1)}</span>
           <span className="text-xs text-gray-500">({totalReviews})</span>
         </div>
       )}

@@ -116,8 +116,8 @@ const Messages = () => {
               onClick={() => setSelectedConversationId(null)}
               className="bg-cloud-white/95 backdrop-blur-sm border-soft-sky hover:bg-soft-sky/20"
             >
-              <ArrowLeft size={16} className="mr-1 text-deep-navy" />
-              <span className="text-deep-navy">Back</span>
+              <ArrowLeft size={16} className="mr-1" style={{ color: 'black' }} />
+              <span style={{ color: 'black' }}>Back</span>
             </Button>
           </div>
         </div>
@@ -130,9 +130,9 @@ const Messages = () => {
       {/* Header */}
       <div className="p-4 border-b border-soft-sky bg-cloud-white">
         <div className="flex items-center justify-between mb-4">
-          <h1 className="text-xl font-bold text-deep-navy">Messages</h1>
+          <h1 className="text-xl font-bold" style={{ color: 'black' }}>Messages</h1>
           <Button variant="ghost" size="icon" className="hover:bg-soft-sky/30">
-            <Edit size={20} className="text-deep-navy" />
+            <Edit size={20} style={{ color: 'black' }} />
           </Button>
         </div>
         
@@ -152,7 +152,8 @@ const Messages = () => {
             placeholder="Search conversations..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10 bg-cloud-white border-soft-sky text-deep-navy placeholder:text-deep-navy/60 focus:border-royal-blue focus:ring-royal-blue"
+            className="pl-10 bg-cloud-white border-soft-sky text-black placeholder:text-deep-navy/60 focus:border-royal-blue focus:ring-royal-blue"
+            style={{ color: 'black' }}
           />
         </div>
       </div>
@@ -163,25 +164,29 @@ const Messages = () => {
           <TabsList className="grid w-full grid-cols-4 bg-transparent h-auto p-0 gap-0">
             <TabsTrigger 
               value="all" 
-              className="data-[state=active]:bg-royal-blue data-[state=active]:text-cloud-white text-deep-navy border-b-2 border-transparent data-[state=active]:border-royal-blue rounded-none bg-transparent h-12 px-4 transition-all duration-200"
+              className="data-[state=active]:bg-royal-blue data-[state=active]:text-cloud-white border-b-2 border-transparent data-[state=active]:border-royal-blue rounded-none bg-transparent h-12 px-4 transition-all duration-200"
+              style={{ color: 'black' }}
             >
               All
             </TabsTrigger>
             <TabsTrigger 
               value="primary" 
-              className="data-[state=active]:bg-royal-blue data-[state=active]:text-cloud-white text-deep-navy border-b-2 border-transparent data-[state=active]:border-royal-blue rounded-none bg-transparent h-12 px-4 transition-all duration-200"
+              className="data-[state=active]:bg-royal-blue data-[state=active]:text-cloud-white border-b-2 border-transparent data-[state=active]:border-royal-blue rounded-none bg-transparent h-12 px-4 transition-all duration-200"
+              style={{ color: 'black' }}
             >
               Primary
             </TabsTrigger>
             <TabsTrigger 
               value="general" 
-              className="data-[state=active]:bg-royal-blue data-[state=active]:text-cloud-white text-deep-navy border-b-2 border-transparent data-[state=active]:border-royal-blue rounded-none bg-transparent h-12 px-4 transition-all duration-200"
+              className="data-[state=active]:bg-royal-blue data-[state=active]:text-cloud-white border-b-2 border-transparent data-[state=active]:border-royal-blue rounded-none bg-transparent h-12 px-4 transition-all duration-200"
+              style={{ color: 'black' }}
             >
               General
             </TabsTrigger>
             <TabsTrigger 
               value="request" 
-              className="data-[state=active]:bg-royal-blue data-[state=active]:text-cloud-white text-deep-navy border-b-2 border-transparent data-[state=active]:border-royal-blue rounded-none bg-transparent h-12 px-4 transition-all duration-200"
+              className="data-[state=active]:bg-royal-blue data-[state=active]:text-cloud-white border-b-2 border-transparent data-[state=active]:border-royal-blue rounded-none bg-transparent h-12 px-4 transition-all duration-200"
+              style={{ color: 'black' }}
             >
               Request
             </TabsTrigger>
@@ -193,7 +198,7 @@ const Messages = () => {
           {user && loading ? (
             <div className="p-4 text-center bg-cloud-white">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-royal-blue mx-auto"></div>
-              <p className="text-deep-navy/60 mt-2">Loading conversations...</p>
+              <p className="text-deep-navy/60 mt-2" style={{ color: 'black' }}>Loading conversations...</p>
             </div>
           ) : (
             <ConversationsList
