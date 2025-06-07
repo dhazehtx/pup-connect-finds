@@ -8,7 +8,6 @@ import { EducationTabsContainer } from '../components/education/EducationTabsCon
 import { EducationLegalGuide } from '../components/education/EducationLegalGuide';
 import { useEducationSearch } from '../hooks/useEducationSearch';
 import { useBookmarks } from '../hooks/useBookmarks';
-import { useReadingProgress } from '../hooks/useReadingProgress';
 import { usePagination } from '../hooks/usePagination';
 import { educationResources, categories } from '../data/educationResources';
 import { useToast } from '../hooks/use-toast';
@@ -18,6 +17,7 @@ const Education = () => {
   const [showBookmarksOnly, setShowBookmarksOnly] = useState(false);
   const [selectedResource, setSelectedResource] = useState<any>(null);
   const [activeTab, setActiveTab] = useState('all');
+  const [readItems, setReadItems] = useState<Set<string>>(new Set());
   const { toast } = useToast();
   const navigate = useNavigate();
   
@@ -32,7 +32,15 @@ const Education = () => {
   } = useEducationSearch(educationResources);
 
   const { bookmarkedIds, toggleBookmark, isBookmarked } = useBookmarks();
-  const { markAsRead, getProgress, isRead, getReadCount } = useReadingProgress();
+
+  // Simple reading progress implementation
+  const markAsRead = (id: string) => {
+    setReadItems(prev => new Set([...prev, id]));
+  };
+
+  const isRead = (id: string) => readItems.has(id);
+  const getReadCount = () => readItems.size;
+  const getProgress = (id: string) => isRead(id) ? 100 : 0;
 
   const displayResources = showBookmarksOnly 
     ? filteredResources.filter(resource => isBookmarked(resource.id))
