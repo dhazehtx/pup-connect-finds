@@ -72,7 +72,7 @@ export const educationResources: EducationResource[] = [
     readTime: '10 min read',
     rating: 4.8,
     reviews: 156,
-    image: 'https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?w=300&h=200&fit=crop',
+    image: '/lovable-uploads/75316943-0598-40bc-bcb4-84665859ea00.png',
     author: {
       name: 'American Kennel Club',
       credentials: 'Official AKC Home Living Guide',
