@@ -1,3 +1,4 @@
+
 export const educationSectionsData = [
   {
     id: 'health',
@@ -15,20 +16,76 @@ export const educationSectionsData = [
         difficulty: 'Intermediate'
       },
       {
-        title: 'Dog Health Symptoms to Watch For',
-        description: 'Warning signs that require immediate veterinary attention',
-        url: 'https://www.akc.org/expert-advice/health/symptoms-sick-dog/',
-        readTime: '14 min read',
+        title: 'Vaginitis in Dogs',
+        description: 'Understanding and treating vaginitis in female dogs',
+        url: 'https://www.akc.org/expert-advice/health/vaginitis-in-dogs/',
+        readTime: '8 min read',
+        rating: 4.7,
+        difficulty: 'Intermediate'
+      },
+      {
+        title: 'Flea & Tick Protection for Puppies',
+        description: 'Essential guide to protecting puppies from fleas and ticks',
+        url: 'https://www.akc.org/expert-advice/health/flea-tick-protection-puppies/',
+        readTime: '10 min read',
         rating: 4.8,
         difficulty: 'Beginner'
       },
       {
-        title: 'Spaying and Neutering Your Dog',
-        description: 'Everything you need to know about spaying and neutering',
-        url: 'https://www.akc.org/expert-advice/health/spaying-and-neutering/',
-        readTime: '11 min read',
-        rating: 4.7,
+        title: 'Parvo in Puppies',
+        description: 'Critical information about parvovirus in puppies',
+        url: 'https://www.akc.org/expert-advice/health/parvo-in-puppies/',
+        readTime: '12 min read',
+        rating: 4.9,
         difficulty: 'Intermediate'
+      },
+      {
+        title: 'Are Toads Poisonous to Dogs?',
+        description: 'What to know about toad toxicity and dog safety',
+        url: 'https://www.akc.org/expert-advice/health/are-toads-poisonous-to-dogs/',
+        readTime: '6 min read',
+        rating: 4.6,
+        difficulty: 'Beginner'
+      },
+      {
+        title: 'CBD Dog Treats vs Oils',
+        description: 'Comparing CBD treatment options for dogs',
+        url: 'https://www.akc.org/expert-advice/health/cbd-dog-treats-vs-oils/',
+        readTime: '9 min read',
+        rating: 4.5,
+        difficulty: 'Intermediate'
+      },
+      {
+        title: 'How Long Are Dogs in Heat?',
+        description: 'Understanding the canine heat cycle',
+        url: 'https://www.akc.org/expert-advice/health/how-long-dogs-in-heat/',
+        readTime: '8 min read',
+        rating: 4.7,
+        difficulty: 'Beginner'
+      },
+      {
+        title: 'Miscarriage in Dogs',
+        description: 'Understanding pregnancy loss in dogs',
+        url: 'https://www.akc.org/expert-advice/dog-breeding/miscarriage-in-dogs/',
+        readTime: '10 min read',
+        rating: 4.6,
+        difficulty: 'Advanced'
+      },
+      {
+        title: 'How to Wash Dog Bowls',
+        description: 'Proper hygiene for your dog\'s feeding bowls',
+        url: 'https://www.akc.org/expert-advice/health/wash-dog-bowl/',
+        readTime: '5 min read',
+        rating: 4.4,
+        difficulty: 'Beginner'
+      },
+      {
+        title: 'How Much Exercise Does a Dog Need?',
+        description: 'Exercise requirements for different dog breeds and ages',
+        url: 'https://www.akc.org/expert-advice/health/how-much-exercise-does-dog-need/',
+        readTime: '11 min read',
+        rating: 4.8,
+        difficulty: 'Beginner'
       }
     ]
   },
@@ -40,11 +97,51 @@ export const educationSectionsData = [
     color: 'bg-orange-50 border-orange-200',
     articles: [
       {
-        title: 'Human Foods Dogs Can and Cannot Eat',
-        description: 'Comprehensive list of safe and toxic foods for dogs',
-        url: 'https://www.akc.org/expert-advice/nutrition/human-foods-dogs-can-and-cannot-eat/',
-        readTime: '16 min read',
+        title: 'Essential Dog Food Ingredients',
+        description: 'Key ingredients for healthy dog nutrition',
+        url: 'https://www.akc.org/expert-advice/nutrition/essential-dog-food-ingredients-for-healthy-dogs/',
+        readTime: '13 min read',
+        rating: 4.8,
+        difficulty: 'Intermediate'
+      },
+      {
+        title: 'Choosing the Right Dog Food',
+        description: 'Complete guide to selecting the best food for your dog',
+        url: 'https://www.akc.org/expert-advice/nutrition/choosing-right-dog-food/',
+        readTime: '15 min read',
         rating: 4.9,
+        difficulty: 'Beginner'
+      },
+      {
+        title: 'Multivitamins for Dogs',
+        description: 'Understanding when and why dogs need supplements',
+        url: 'https://www.akc.org/expert-advice/nutrition/multivitamins-for-dogs/',
+        readTime: '9 min read',
+        rating: 4.6,
+        difficulty: 'Intermediate'
+      },
+      {
+        title: 'Feeding Your Dog Once Daily',
+        description: 'Benefits and considerations of once-daily feeding',
+        url: 'https://www.akc.org/expert-advice/nutrition/feeding-your-dog-once-daily/',
+        readTime: '8 min read',
+        rating: 4.5,
+        difficulty: 'Intermediate'
+      },
+      {
+        title: 'Intermittent Fasting for Dogs',
+        description: 'Understanding intermittent fasting benefits for dogs',
+        url: 'https://www.akc.org/expert-advice/nutrition/intermittent-fasting-for-dogs/',
+        readTime: '10 min read',
+        rating: 4.4,
+        difficulty: 'Advanced'
+      },
+      {
+        title: 'How Many Treats Can a Dog Have?',
+        description: 'Guidelines for healthy treat portions',
+        url: 'https://www.akc.org/expert-advice/nutrition/how-many-treats-can-dog-have/',
+        readTime: '7 min read',
+        rating: 4.7,
         difficulty: 'Beginner'
       }
     ]
@@ -57,10 +154,58 @@ export const educationSectionsData = [
     color: 'bg-blue-50 border-blue-200',
     articles: [
       {
-        title: 'How to Stop Destructive Dog Behavior',
-        description: 'Addressing common behavioral problems',
-        url: 'https://www.akc.org/expert-advice/training/destructive-behavior/',
-        readTime: '13 min read',
+        title: 'New Puppy Owner Questions',
+        description: 'Essential answers for first-time puppy parents',
+        url: 'https://www.akc.org/expert-advice/training/new-puppy-owner-questions/',
+        readTime: '14 min read',
+        rating: 4.9,
+        difficulty: 'Beginner'
+      },
+      {
+        title: 'Walking Multiple Dogs',
+        description: 'Tips for successfully walking more than one dog',
+        url: 'https://www.akc.org/expert-advice/training/walk-multiple-dogs/',
+        readTime: '9 min read',
+        rating: 4.6,
+        difficulty: 'Intermediate'
+      },
+      {
+        title: 'Socializing Small Dogs',
+        description: 'Special considerations for small breed socialization',
+        url: 'https://www.akc.org/expert-advice/training/socialize-small-dogs/',
+        readTime: '11 min read',
+        rating: 4.7,
+        difficulty: 'Intermediate'
+      },
+      {
+        title: 'Potty Training in Bad Weather',
+        description: 'Maintaining house training during challenging weather',
+        url: 'https://www.akc.org/expert-advice/training/potty-in-bad-weather/',
+        readTime: '8 min read',
+        rating: 4.5,
+        difficulty: 'Beginner'
+      },
+      {
+        title: 'Urban Dog Skills',
+        description: 'Essential training for city living with dogs',
+        url: 'https://www.akc.org/expert-advice/training/urban-dog-skills/',
+        readTime: '12 min read',
+        rating: 4.8,
+        difficulty: 'Intermediate'
+      },
+      {
+        title: 'Training Tips for Small Dogs',
+        description: 'Specialized training approaches for small breeds',
+        url: 'https://www.akc.org/expert-advice/training/training-tips-small-dogs/',
+        readTime: '10 min read',
+        rating: 4.6,
+        difficulty: 'Beginner'
+      },
+      {
+        title: 'How to Advocate for Your Dog',
+        description: 'Protecting your dog in social situations',
+        url: 'https://www.akc.org/expert-advice/training/advocate-for-dog/',
+        readTime: '9 min read',
         rating: 4.7,
         difficulty: 'Intermediate'
       }
@@ -74,60 +219,11 @@ export const educationSectionsData = [
     color: 'bg-green-50 border-green-200',
     articles: [
       {
-        title: 'Preparing for Your New Puppy',
-        description: 'Complete checklist for bringing your puppy home',
-        url: 'https://www.akc.org/expert-advice/puppy-information/preparing-for-your-new-puppy/',
-        readTime: '16 min read',
-        rating: 4.9,
-        difficulty: 'Beginner'
-      },
-      {
         title: 'Puppy Socialization Guide',
         description: 'Critical socialization period and techniques',
         url: 'https://www.akc.org/expert-advice/puppy-information/puppy-socialization/',
         readTime: '14 min read',
         rating: 4.9,
-        difficulty: 'Beginner'
-      },
-      {
-        title: 'Puppy Development Stages',
-        description: 'Understanding your puppy\'s growth from birth to adulthood',
-        url: 'https://www.akc.org/expert-advice/puppy-information/puppy-development-from-birth-to-adulthood/',
-        readTime: '13 min read',
-        rating: 4.7,
-        difficulty: 'Beginner'
-      }
-    ]
-  },
-  {
-    id: 'veterinary',
-    title: 'Veterinary Corner',
-    icon: '👨‍⚕️',
-    description: 'Professional veterinary advice and insights',
-    color: 'bg-purple-50 border-purple-200',
-    articles: [
-      {
-        title: 'How to Choose a Veterinarian',
-        description: 'Essential tips for finding the right vet for your dog',
-        url: 'https://www.akc.org/expert-advice/health/finding-veterinarian/',
-        readTime: '10 min read',
-        rating: 4.8,
-        difficulty: 'Beginner'
-      },
-      {
-        title: 'Emergency Veterinary Care',
-        description: 'Recognizing emergency situations requiring immediate care',
-        url: 'https://www.akc.org/expert-advice/health/when-take-dog-emergency-vet/',
-        readTime: '12 min read',
-        rating: 4.9,
-        difficulty: 'Intermediate'
-      },
-      {
-        title: 'Dog Dental Care and Health',
-        description: 'Maintaining your dog\'s oral health',
-        url: 'https://www.akc.org/expert-advice/health/dog-dental-care/',
-        readTime: '8 min read',
-        rating: 4.5,
         difficulty: 'Beginner'
       }
     ]
