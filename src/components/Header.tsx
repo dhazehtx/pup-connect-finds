@@ -72,22 +72,6 @@ const Header = () => {
               </div>
               <span className="text-xl font-bold text-gray-900">MY PUP</span>
             </Link>
-            
-            {/* Navigation Links */}
-            <div className="hidden md:ml-8 md:flex md:space-x-6">
-              <Link
-                to="/explore"
-                className="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium transition-colors"
-              >
-                Explore
-              </Link>
-              <Link
-                to="/education"
-                className="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium transition-colors"
-              >
-                Education
-              </Link>
-            </div>
           </div>
 
           {/* Search Bar */}
