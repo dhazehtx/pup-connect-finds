@@ -22,7 +22,7 @@ export const EmergencyGuideTool: React.FC = () => {
         <Button 
           variant="outline" 
           size="sm"
-          onClick={() => window.open('https://www.akc.org/expert-advice/health/dog-dental-care/', '_blank')}
+          onClick={() => window.open('https://www.akc.org/expert-advice/health/dog-first-aid-kit/', '_blank')}
         >
           First Aid Guide
         </Button>
