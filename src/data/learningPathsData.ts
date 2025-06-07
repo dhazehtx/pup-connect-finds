@@ -1,4 +1,3 @@
-
 export const learningPathsData = [
   {
     id: 'new-puppy-parent',
@@ -33,13 +32,6 @@ export const learningPathsData = [
         duration: '50 min'
       },
       {
-        week: 'Week 4',
-        title: 'Feeding & Nutrition Foundation',
-        description: 'Establishing proper feeding routines and nutrition',
-        url: 'https://www.akc.org/expert-advice/nutrition/puppy-feeding-guide/',
-        duration: '40 min'
-      },
-      {
         week: 'Week 5',
         title: 'Basic Training & Socialization',
         description: 'Start basic training and critical socialization',
@@ -66,13 +58,6 @@ export const learningPathsData = [
     completion: 0,
     color: 'bg-orange-50 border-orange-200',
     lessons: [
-      {
-        week: 'Module 1',
-        title: 'Puppy Nutrition Fundamentals',
-        description: 'Essential nutrition for growing puppies',
-        url: 'https://www.akc.org/expert-advice/nutrition/puppy-feeding-guide/',
-        duration: '40 min'
-      },
       {
         week: 'Module 2',
         title: 'Adult Dog Diet Planning',
