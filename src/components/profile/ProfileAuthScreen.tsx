@@ -95,8 +95,8 @@ const ProfileAuthScreen = () => {
             className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-full border-0"
             disabled={loading}
           >
-            <User size={18} className="mr-3" />
-            CONTINUE WITH FACEBOOK
+            <User size={18} className="mr-3 text-white" />
+            <span className="text-white">CONTINUE WITH FACEBOOK</span>
           </Button>
           
           <Button
@@ -109,8 +109,8 @@ const ProfileAuthScreen = () => {
             className="w-full h-12 bg-black hover:bg-gray-800 text-white font-semibold rounded-full border-0"
             disabled={loading}
           >
-            <Apple size={18} className="mr-3" />
-            CONTINUE WITH APPLE
+            <Apple size={18} className="mr-3 text-white" />
+            <span className="text-white">CONTINUE WITH APPLE</span>
           </Button>
           
           <Button
