@@ -21,9 +21,8 @@ const BottomNavigation = () => {
     navigate(path);
   };
 
-  const handleProfileNavigation = () => {
-    // Always navigate to profile page - it now handles both logged in and guest users
-    navigate('/profile');
+  const handleNavigation = (path: string) => {
+    navigate(path);
   };
 
   const navItems = [
@@ -32,14 +31,14 @@ const BottomNavigation = () => {
       label: 'Home',
       path: '/',
       protected: false,
-      onClick: () => navigate('/')
+      onClick: () => handleNavigation('/')
     },
     {
       icon: Search,
       label: 'Explore',
       path: '/explore',
       protected: false,
-      onClick: () => navigate('/explore')
+      onClick: () => handleNavigation('/explore')
     },
     {
       icon: Plus,
@@ -54,14 +53,14 @@ const BottomNavigation = () => {
       label: 'Messages',
       path: '/messages',
       protected: false,
-      onClick: () => navigate('/messages')
+      onClick: () => handleNavigation('/messages')
     },
     {
       icon: User,
       label: 'Profile',
       path: '/profile',
       protected: false,
-      onClick: handleProfileNavigation
+      onClick: () => handleNavigation('/profile')
     }
   ];
 
@@ -83,11 +82,7 @@ const BottomNavigation = () => {
             return (
               <button
                 key={item.path}
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  item.onClick();
-                }}
+                onClick={item.onClick}
                 className={`flex flex-col items-center justify-center p-2 transition-colors relative ${
                   active 
                     ? 'text-white bg-blue-600 rounded-t-lg' 
