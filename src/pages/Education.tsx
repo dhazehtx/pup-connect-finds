@@ -77,6 +77,10 @@ const Education = () => {
     }
   };
 
+  const handleRegulationClick = (category: string) => {
+    navigate(`/legal?category=${category}`);
+  };
+
   const readCount = getReadCount();
   const totalResourcesCount = educationResources.length;
 
@@ -389,21 +393,21 @@ const Education = () => {
             <Button 
               variant="outline" 
               className="justify-start bg-red-50 border-red-200 text-red-800 hover:bg-red-100"
-              onClick={() => navigate('/legal')}
+              onClick={() => handleRegulationClick('strict')}
             >
               Strict Regulations
             </Button>
             <Button 
               variant="outline" 
               className="justify-start bg-yellow-50 border-yellow-200 text-yellow-800 hover:bg-yellow-100"
-              onClick={() => navigate('/legal')}
+              onClick={() => handleRegulationClick('moderate')}
             >
               Moderate Regulations
             </Button>
             <Button 
               variant="outline" 
               className="justify-start bg-green-50 border-green-200 text-green-800 hover:bg-green-100"
-              onClick={() => navigate('/legal')}
+              onClick={() => handleRegulationClick('lenient')}
             >
               Lenient Regulations
             </Button>

@@ -1,5 +1,5 @@
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Scale, Search } from 'lucide-react';
 import StateCard from '@/components/legal/StateCard';
 import SearchAndFilter from '@/components/legal/SearchAndFilter';
@@ -7,10 +7,12 @@ import StatsSummary from '@/components/legal/StatsSummary';
 import FederalSection from '@/components/legal/FederalSection';
 import ResourcesSection from '@/components/legal/ResourcesSection';
 import { stateBreedingLaws } from '@/data/stateBreedingLaws';
+import { useSearchParams } from 'react-router-dom';
 
 const Legal = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
+  const [searchParams] = useSearchParams();
 
   const filteredStates = useMemo(() => {
     return stateBreedingLaws.filter(state => {
@@ -23,6 +25,25 @@ const Legal = () => {
   const strictCount = stateBreedingLaws.filter(state => state.category === 'strict').length;
   const moderateCount = stateBreedingLaws.filter(state => state.category === 'moderate').length;
   const lenientCount = stateBreedingLaws.filter(state => state.category === 'lenient').length;
+
+  // Handle auto-scrolling based on category parameter
+  useEffect(() => {
+    const category = searchParams.get('category');
+    if (category && ['strict', 'moderate', 'lenient'].includes(category)) {
+      setSelectedCategory(category);
+      
+      // Small delay to ensure the filtered content has rendered
+      setTimeout(() => {
+        const element = document.getElementById('states-grid');
+        if (element) {
+          element.scrollIntoView({ 
+            behavior: 'smooth', 
+            block: 'start' 
+          });
+        }
+      }, 100);
+    }
+  }, [searchParams]);
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
@@ -63,7 +84,7 @@ const Legal = () => {
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+        <div id="states-grid" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
           {filteredStates.map((state) => (
             <StateCard key={state.name} state={state} />
           ))}
