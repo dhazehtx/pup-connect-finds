@@ -164,28 +164,28 @@ const Messages = () => {
           <TabsList className="grid w-full grid-cols-4 bg-transparent h-auto p-0 gap-0">
             <TabsTrigger 
               value="all" 
-              className="data-[state=active]:bg-royal-blue data-[state=active]:text-cloud-white border-b-2 border-transparent data-[state=active]:border-royal-blue rounded-none bg-transparent h-12 px-4 transition-all duration-200"
+              className="data-[state=active]:bg-royal-blue data-[state=active]:text-cloud-white border-b-2 border-transparent data-[state=active]:border-royal-blue rounded-none bg-transparent h-10 px-4 transition-all duration-200"
               style={{ color: 'black' }}
             >
               All
             </TabsTrigger>
             <TabsTrigger 
               value="primary" 
-              className="data-[state=active]:bg-royal-blue data-[state=active]:text-cloud-white border-b-2 border-transparent data-[state=active]:border-royal-blue rounded-none bg-transparent h-12 px-4 transition-all duration-200"
+              className="data-[state=active]:bg-royal-blue data-[state=active]:text-cloud-white border-b-2 border-transparent data-[state=active]:border-royal-blue rounded-none bg-transparent h-10 px-4 transition-all duration-200"
               style={{ color: 'black' }}
             >
               Primary
             </TabsTrigger>
             <TabsTrigger 
               value="general" 
-              className="data-[state=active]:bg-royal-blue data-[state=active]:text-cloud-white border-b-2 border-transparent data-[state=active]:border-royal-blue rounded-none bg-transparent h-12 px-4 transition-all duration-200"
+              className="data-[state=active]:bg-royal-blue data-[state=active]:text-cloud-white border-b-2 border-transparent data-[state=active]:border-royal-blue rounded-none bg-transparent h-10 px-4 transition-all duration-200"
               style={{ color: 'black' }}
             >
               General
             </TabsTrigger>
             <TabsTrigger 
               value="request" 
-              className="data-[state=active]:bg-royal-blue data-[state=active]:text-cloud-white border-b-2 border-transparent data-[state=active]:border-royal-blue rounded-none bg-transparent h-12 px-4 transition-all duration-200"
+              className="data-[state=active]:bg-royal-blue data-[state=active]:text-cloud-white border-b-2 border-transparent data-[state=active]:border-royal-blue rounded-none bg-transparent h-10 px-4 transition-all duration-200"
               style={{ color: 'black' }}
             >
               Request
