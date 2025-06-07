@@ -2,10 +2,15 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { MessageCircle, Mail, Phone } from 'lucide-react';
+import { MessageCircle, Mail, Phone, ExternalLink } from 'lucide-react';
+
+interface PopularArticle {
+  title: string;
+  url: string;
+}
 
 interface HelpSidebarProps {
-  popularArticles: string[];
+  popularArticles: PopularArticle[];
 }
 
 const HelpSidebar: React.FC<HelpSidebarProps> = ({ popularArticles }) => {
@@ -20,8 +25,14 @@ const HelpSidebar: React.FC<HelpSidebarProps> = ({ popularArticles }) => {
           <ul className="space-y-3">
             {popularArticles.map((article, index) => (
               <li key={index}>
-                <a href="#" className="text-sm text-royal-blue hover:underline">
-                  {article}
+                <a 
+                  href={article.url} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-sm text-royal-blue hover:underline flex items-center justify-between group"
+                >
+                  <span>{article.title}</span>
+                  <ExternalLink className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0 ml-2" />
                 </a>
               </li>
             ))}
