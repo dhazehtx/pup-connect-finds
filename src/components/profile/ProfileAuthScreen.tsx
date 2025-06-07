@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -85,33 +86,33 @@ const ProfileAuthScreen = () => {
 
         {/* Social Login Buttons */}
         <div className="space-y-4 mb-6">
-          <Button
+          <button
             onClick={() => {
               toast({
                 title: "Coming Soon!",
                 description: "Facebook sign-in will be available soon.",
               });
             }}
-            className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-full border-0"
+            className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-full border-0 flex items-center justify-center gap-3 disabled:opacity-50"
             disabled={loading}
           >
-            <User size={18} className="mr-3 text-white" />
-            <span className="text-white">CONTINUE WITH FACEBOOK</span>
-          </Button>
+            <User size={18} className="text-white" />
+            <span className="text-white font-semibold">CONTINUE WITH FACEBOOK</span>
+          </button>
           
-          <Button
+          <button
             onClick={() => {
               toast({
                 title: "Coming Soon!",
                 description: "Apple sign-in will be available soon.",
               });
             }}
-            className="w-full h-12 bg-black hover:bg-gray-800 text-white font-semibold rounded-full border-0"
+            className="w-full h-12 bg-black hover:bg-gray-800 text-white font-semibold rounded-full border-0 flex items-center justify-center gap-3 disabled:opacity-50"
             disabled={loading}
           >
-            <Apple size={18} className="mr-3 text-white" />
-            <span className="text-white">CONTINUE WITH APPLE</span>
-          </Button>
+            <Apple size={18} className="text-white" />
+            <span className="text-white font-semibold">CONTINUE WITH APPLE</span>
+          </button>
           
           <Button
             onClick={() => {
