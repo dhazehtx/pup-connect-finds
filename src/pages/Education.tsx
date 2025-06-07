@@ -17,7 +17,7 @@ const Education = () => {
   const [showBookmarksOnly, setShowBookmarksOnly] = useState(false);
   const [selectedResource, setSelectedResource] = useState<any>(null);
   const [activeTab, setActiveTab] = useState('all');
-  const [readItems, setReadItems] = useState<Set<string>>(new Set());
+  const [readItems, setReadItems] = useState<Set<number>>(new Set());
   const { toast } = useToast();
   const navigate = useNavigate();
   
@@ -34,13 +34,13 @@ const Education = () => {
   const { bookmarkedIds, toggleBookmark, isBookmarked } = useBookmarks();
 
   // Simple reading progress implementation
-  const markAsRead = (id: string) => {
+  const markAsRead = (id: number) => {
     setReadItems(prev => new Set([...prev, id]));
   };
 
-  const isRead = (id: string) => readItems.has(id);
+  const isRead = (id: number) => readItems.has(id);
   const getReadCount = () => readItems.size;
-  const getProgress = (id: string) => isRead(id) ? 100 : 0;
+  const getProgress = (id: number) => ({ progress: isRead(id) ? 100 : 0 });
 
   const displayResources = showBookmarksOnly 
     ? filteredResources.filter(resource => isBookmarked(resource.id))
