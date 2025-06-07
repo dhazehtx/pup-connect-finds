@@ -19,7 +19,28 @@ import {
 const Header = () => {
   const { user, signOut, profile } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedLanguage, setSelectedLanguage] = useState('English');
   const navigate = useNavigate();
+
+  const languages = [
+    { code: 'en', name: 'English', flag: 'https://flagcdn.com/us.svg' },
+    { code: 'es', name: 'Español', flag: 'https://flagcdn.com/es.svg' },
+    { code: 'fr', name: 'Français', flag: 'https://flagcdn.com/fr.svg' },
+    { code: 'de', name: 'Deutsch', flag: 'https://flagcdn.com/de.svg' },
+    { code: 'it', name: 'Italiano', flag: 'https://flagcdn.com/it.svg' },
+    { code: 'pt', name: 'Português', flag: 'https://flagcdn.com/pt.svg' },
+    { code: 'ru', name: 'Русский', flag: 'https://flagcdn.com/ru.svg' },
+    { code: 'ja', name: '日本語', flag: 'https://flagcdn.com/jp.svg' },
+    { code: 'ko', name: '한국어', flag: 'https://flagcdn.com/kr.svg' },
+    { code: 'zh', name: '中文', flag: 'https://flagcdn.com/cn.svg' },
+    { code: 'ar', name: 'العربية', flag: 'https://flagcdn.com/sa.svg' },
+    { code: 'hi', name: 'हिन्दी', flag: 'https://flagcdn.com/in.svg' },
+    { code: 'nl', name: 'Nederlands', flag: 'https://flagcdn.com/nl.svg' },
+    { code: 'sv', name: 'Svenska', flag: 'https://flagcdn.com/se.svg' },
+    { code: 'pl', name: 'Polski', flag: 'https://flagcdn.com/pl.svg' }
+  ];
+
+  const currentLanguage = languages.find(lang => lang.name === selectedLanguage) || languages[0];
 
   const handleNotificationClick = () => {
     navigate('/notifications');
@@ -32,6 +53,12 @@ const Header = () => {
     } catch (error) {
       console.error('Sign out error:', error);
     }
+  };
+
+  const handleLanguageChange = (language: typeof languages[0]) => {
+    setSelectedLanguage(language.name);
+    // Here you would typically integrate with i18n to actually change the language
+    console.log('Language changed to:', language.code);
   };
 
   return (
@@ -75,23 +102,23 @@ const Header = () => {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" size="sm" className="flex items-center space-x-2">
-                  <img src="https://flagcdn.com/us.svg" alt="US" className="w-4 h-4" />
-                  <span>English</span>
+                  <img src={currentLanguage.flag} alt={currentLanguage.code} className="w-4 h-4" />
+                  <span className="hidden sm:inline">{currentLanguage.name}</span>
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent>
-                <DropdownMenuItem>
-                  <img src="https://flagcdn.com/us.svg" alt="US" className="w-4 h-4 mr-2" />
-                  English
-                </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <img src="https://flagcdn.com/es.svg" alt="ES" className="w-4 h-4 mr-2" />
-                  Español
-                </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <img src="https://flagcdn.com/fr.svg" alt="FR" className="w-4 h-4 mr-2" />
-                  Français
-                </DropdownMenuItem>
+              <DropdownMenuContent className="w-48 max-h-80 overflow-y-auto">
+                <DropdownMenuLabel>Select Language</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                {languages.map((language) => (
+                  <DropdownMenuItem
+                    key={language.code}
+                    onClick={() => handleLanguageChange(language)}
+                    className="cursor-pointer"
+                  >
+                    <img src={language.flag} alt={language.code} className="w-4 h-4 mr-2" />
+                    {language.name}
+                  </DropdownMenuItem>
+                ))}
               </DropdownMenuContent>
             </DropdownMenu>
 
