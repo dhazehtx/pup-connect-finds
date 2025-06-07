@@ -82,6 +82,61 @@ export const useLocationServices = () => {
     }
   }, [getCurrentLocation, locationPreferences.allowLocationSharing, toast]);
 
+  const searchLocation = async (query: string): Promise<Location[]> => {
+    try {
+      // Mock location search - in production, use Google Places API or similar
+      const mockLocations: Location[] = [
+        {
+          lat: 37.7749,
+          lng: -122.4194,
+          address: `${query}, San Francisco, CA`,
+          city: 'San Francisco',
+          state: 'CA',
+          country: 'United States'
+        },
+        {
+          lat: 34.0522,
+          lng: -118.2437,
+          address: `${query}, Los Angeles, CA`,
+          city: 'Los Angeles',
+          state: 'CA',
+          country: 'United States'
+        }
+      ];
+      
+      return mockLocations;
+    } catch (error) {
+      console.error('Location search failed:', error);
+      return [];
+    }
+  };
+
+  const saveLocation = (location: Location, customName?: string) => {
+    const locationToSave = customName 
+      ? { ...location, address: customName }
+      : location;
+    
+    const updatedLocations = [...savedLocations, locationToSave];
+    setSavedLocations(updatedLocations);
+    localStorage.setItem('savedLocations', JSON.stringify(updatedLocations));
+    
+    toast({
+      title: "Location saved",
+      description: `${locationToSave.address} has been saved to your locations`,
+    });
+  };
+
+  const removeLocation = (index: number) => {
+    const updatedLocations = savedLocations.filter((_, i) => i !== index);
+    setSavedLocations(updatedLocations);
+    localStorage.setItem('savedLocations', JSON.stringify(updatedLocations));
+    
+    toast({
+      title: "Location removed",
+      description: "Location has been removed from your saved locations",
+    });
+  };
+
   const reverseGeocode = async (lat: number, lng: number) => {
     // Mock reverse geocoding - in production, use Google Maps Geocoding API
     try {
@@ -152,6 +207,9 @@ export const useLocationServices = () => {
     locationPreferences,
     loading,
     detectCurrentLocation,
+    searchLocation,
+    saveLocation,
+    removeLocation,
     updatePreferences,
     getDistanceToLocation,
     filterLocationsByDistance,
