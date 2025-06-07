@@ -73,7 +73,7 @@ const BottomNavigation = () => {
 
   return (
     <>
-      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-40">
+      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-40 safe-area-pb">
         <div className="grid grid-cols-5 h-16">
           {navItems.map((item) => {
             const Icon = item.icon;
@@ -83,19 +83,20 @@ const BottomNavigation = () => {
               <button
                 key={item.path}
                 onClick={item.onClick}
-                className={`flex flex-col items-center justify-center p-2 transition-colors relative ${
+                className={`flex flex-col items-center justify-center p-2 transition-colors relative touch-manipulation ${
                   active 
-                    ? 'text-white bg-blue-600 rounded-t-lg' 
+                    ? 'text-white bg-blue-600' 
                     : user || !item.protected
-                      ? 'text-gray-600 hover:text-blue-600'
+                      ? 'text-gray-600 hover:text-blue-600 active:bg-gray-100'
                       : 'text-gray-400'
                 }`}
                 type="button"
+                aria-label={item.label}
               >
-                <Icon size={20} />
-                <span className="text-xs mt-1 font-medium">{item.label}</span>
+                <Icon size={20} className="flex-shrink-0" />
+                <span className="text-xs mt-1 font-medium truncate">{item.label}</span>
                 {item.protected && !user && (
-                  <div className="absolute top-0 right-0 w-2 h-2 bg-orange-500 rounded-full"></div>
+                  <div className="absolute top-1 right-1 w-2 h-2 bg-orange-500 rounded-full"></div>
                 )}
               </button>
             );
