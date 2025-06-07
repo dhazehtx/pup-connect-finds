@@ -39,12 +39,6 @@ const Navbar = () => {
                 Browse Puppies
               </Link>
               <Link
-                to="/map"
-                className="text-gray-500 hover:text-gray-700 px-3 py-2 rounded-md text-sm font-medium"
-              >
-                Map View
-              </Link>
-              <Link
                 to="/analytics"
                 className="text-gray-500 hover:text-gray-700 px-3 py-2 rounded-md text-sm font-medium"
               >
@@ -129,12 +123,6 @@ const Navbar = () => {
             className="text-gray-500 hover:text-gray-700 block px-3 py-2 rounded-md text-base font-medium"
           >
             Browse Puppies
-          </Link>
-          <Link
-            to="/map"
-            className="text-gray-500 hover:text-gray-700 block px-3 py-2 rounded-md text-base font-medium"
-          >
-            Map View
           </Link>
           <Link
             to="/analytics"
