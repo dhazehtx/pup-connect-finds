@@ -15,12 +15,14 @@ import { useReadingProgress } from '../hooks/useReadingProgress';
 import { usePagination } from '../hooks/usePagination';
 import { educationResources, categories } from '../data/educationResources';
 import { useToast } from '../hooks/use-toast';
+import { useNavigate } from 'react-router-dom';
 
 const Education = () => {
   const [showBookmarksOnly, setShowBookmarksOnly] = useState(false);
   const [selectedResource, setSelectedResource] = useState<any>(null);
   const [activeTab, setActiveTab] = useState('all');
   const { toast } = useToast();
+  const navigate = useNavigate();
   
   const {
     searchTerm,
@@ -386,24 +388,24 @@ const Education = () => {
           <div className="grid md:grid-cols-3 gap-4">
             <Button 
               variant="outline" 
-              className="justify-start"
-              onClick={() => window.open('https://www.akc.org/expert-advice/lifestyle/dog-laws-what-you-need-to-know/', '_blank')}
+              className="justify-start bg-red-50 border-red-200 text-red-800 hover:bg-red-100"
+              onClick={() => navigate('/legal')}
             >
-              California Laws
+              Strict Regulations
             </Button>
             <Button 
               variant="outline" 
-              className="justify-start"
-              onClick={() => window.open('https://www.akc.org/expert-advice/lifestyle/dog-laws-what-you-need-to-know/', '_blank')}
+              className="justify-start bg-yellow-50 border-yellow-200 text-yellow-800 hover:bg-yellow-100"
+              onClick={() => navigate('/legal')}
             >
-              Texas Laws
+              Moderate Regulations
             </Button>
             <Button 
               variant="outline" 
-              className="justify-start"
-              onClick={() => window.open('https://www.akc.org/expert-advice/lifestyle/dog-laws-what-you-need-to-know/', '_blank')}
+              className="justify-start bg-green-50 border-green-200 text-green-800 hover:bg-green-100"
+              onClick={() => navigate('/legal')}
             >
-              New York Laws
+              Lenient Regulations
             </Button>
           </div>
         </CardContent>
