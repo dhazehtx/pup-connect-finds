@@ -39,6 +39,7 @@ const ProfileContainer = () => {
   
   // Check if this is the current user's profile or another user's profile
   const isOwnProfile = !userId || (user && userId === user?.id);
+  const isGuestUser = !user && !loading;
   
   console.log('ProfileContainer render:', {
     loading,
@@ -47,6 +48,7 @@ const ProfileContainer = () => {
     profile: !!profile,
     enhancedProfile: !!enhancedProfile,
     isOwnProfile,
+    isGuestUser,
     userId,
     currentUserId: user?.id
   });
@@ -55,7 +57,7 @@ const ProfileContainer = () => {
   if (user && (loading || enhancedLoading)) {
     console.log('ProfileContainer: Showing loading spinner for authenticated user');
     return (
-      <div className="max-w-md mx-auto bg-white min-h-screen">
+      <div className="max-w-md mx-auto bg-background min-h-screen">
         <div className="p-4 flex items-center justify-center min-h-[400px]">
           <OptimizedLoading 
             size="lg" 
@@ -69,19 +71,54 @@ const ProfileContainer = () => {
   }
 
   // Create display profile using utility function
-  // For logged out users or viewing specific profiles, show enhanced demo profile
+  // For guest users or viewing specific profiles, show enhanced demo profile
   // For logged in users viewing their own profile, use their actual data
-  const displayProfile = createDisplayProfile({
-    enhancedProfile: (!user || (userId && userId !== user?.id)) ? enhancedProfile : (isOwnProfile && user ? null : enhancedProfile),
-    profile: (user && isOwnProfile && !userId) ? profile : null,
-    user: (user && isOwnProfile && !userId) ? user : null,
-    isOwnProfile: user ? isOwnProfile : false,
-    userId,
-    portfolios: (!user || (userId && userId !== user?.id)) ? portfolios : (isOwnProfile && user ? [] : portfolios),
-    followers: (!user || (userId && userId !== user?.id)) ? followers : (isOwnProfile && user ? [] : followers),
-    following: (!user || (userId && userId !== user?.id)) ? following : (isOwnProfile && user ? [] : following),
-    verificationBadges: (!user || (userId && userId !== user?.id)) ? verificationBadges : (isOwnProfile && user ? [] : verificationBadges)
-  });
+  let displayProfile;
+  
+  try {
+    displayProfile = createDisplayProfile({
+      enhancedProfile: isGuestUser || (userId && userId !== user?.id) ? enhancedProfile : (isOwnProfile && user ? null : enhancedProfile),
+      profile: (user && isOwnProfile && !userId) ? profile : null,
+      user: (user && isOwnProfile && !userId) ? user : null,
+      isOwnProfile: user ? isOwnProfile : false,
+      userId,
+      portfolios: isGuestUser || (userId && userId !== user?.id) ? portfolios : (isOwnProfile && user ? [] : portfolios),
+      followers: isGuestUser || (userId && userId !== user?.id) ? followers : (isOwnProfile && user ? [] : followers),
+      following: isGuestUser || (userId && userId !== user?.id) ? following : (isOwnProfile && user ? [] : following),
+      verificationBadges: isGuestUser || (userId && userId !== user?.id) ? verificationBadges : (isOwnProfile && user ? [] : verificationBadges)
+    });
+  } catch (error) {
+    console.error('Error creating display profile:', error);
+    // Fallback for guest users - create a simple demo profile
+    if (isGuestUser) {
+      displayProfile = {
+        id: 'guest-demo',
+        full_name: 'Golden Paws Kennel',
+        username: 'goldenpaws',
+        email: 'contact@goldenpaws.com',
+        bio: 'Specializing in Golden Retrievers and Labradors for over 15 years. Join MY PUP to see more!',
+        location: 'San Francisco, CA',
+        avatar_url: 'https://images.unsplash.com/photo-1560743173-567a3b5658b1?w=150&h=150&fit=crop&crop=face',
+        user_type: 'breeder',
+        verified: true,
+        trust_score: 0.95,
+        verification_level: 3,
+        profile_completion_percentage: 85,
+        breeding_program_name: 'Golden Paws Breeding Program',
+        specializations: ['Golden Retrievers', 'Labradors', 'Puppy Training'],
+        certifications: ['AKC Registered Breeder', 'USDA Licensed'],
+        verification_badges: [
+          { type: 'identity', name: 'ID Verified' },
+          { type: 'breeder_license', name: 'Licensed Breeder' }
+        ],
+        years_experience: 15,
+        rating: 4.9,
+        total_reviews: 156,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      };
+    }
+  }
 
   console.log('ProfileContainer: Created displayProfile:', displayProfile);
 
@@ -89,13 +126,13 @@ const ProfileContainer = () => {
   if (!displayProfile) {
     console.error('ProfileContainer: Failed to create display profile');
     return (
-      <div className="max-w-md mx-auto bg-white min-h-screen">
+      <div className="max-w-md mx-auto bg-background min-h-screen">
         <div className="p-4 flex items-center justify-center min-h-[400px]">
           <div className="text-center">
-            <p className="text-gray-600 mb-4">Unable to load profile</p>
+            <p className="text-muted-foreground mb-4">Unable to load profile</p>
             <button 
               onClick={() => window.location.reload()} 
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+              className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90"
             >
               Try Again
             </button>
@@ -107,14 +144,14 @@ const ProfileContainer = () => {
 
   return (
     <ProfileErrorBoundary>
-      <div className="max-w-md mx-auto bg-white min-h-screen">
+      <div className="max-w-md mx-auto bg-background min-h-screen">
         <ProfileContent 
           displayProfile={displayProfile}
           isOwnProfile={user ? isOwnProfile : false}
           isMobile={isMobile}
           user={user}
           profile={profile}
-          verificationBadges={(!user || (userId && userId !== user?.id)) ? verificationBadges : (isOwnProfile && user ? [] : verificationBadges)}
+          verificationBadges={isGuestUser || (userId && userId !== user?.id) ? verificationBadges : (isOwnProfile && user ? [] : verificationBadges)}
         />
       </div>
     </ProfileErrorBoundary>

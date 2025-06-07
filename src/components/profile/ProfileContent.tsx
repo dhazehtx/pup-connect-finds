@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Settings, Star, Crown, Zap } from 'lucide-react';
+import { Settings, Star, Crown, Zap, UserPlus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useNavigate } from 'react-router-dom';
@@ -37,13 +37,15 @@ const ProfileContent = ({
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [showCompletionGuide, setShowCompletionGuide] = useState(true);
   const navigate = useNavigate();
+  const isGuestUser = !user;
 
   console.log('ProfileContent render:', {
     displayProfile: !!displayProfile,
     isOwnProfile,
     isMobile,
     hasUser: !!user,
-    hasProfile: !!profile
+    hasProfile: !!profile,
+    isGuestUser
   });
 
   const handleStepClick = (stepId: string) => {
@@ -69,7 +71,7 @@ const ProfileContent = ({
   // Add verification badges from enhanced system
   const allVerificationBadges = verificationBadges.length > 0 
     ? verificationBadges.map(badge => badge.badge_name)
-    : displayProfile.verification_badges.map(badge => badge.type);
+    : displayProfile.verification_badges?.map(badge => badge.type) || [];
 
   const highlights = [
     {
@@ -165,7 +167,7 @@ const ProfileContent = ({
         {/* Desktop Header */}
         {!isMobile && (
           <div className="flex justify-between items-center mb-6">
-            <h1 className="text-xl font-medium text-black">
+            <h1 className="text-xl font-medium text-foreground">
               @{displayProfile.username}
             </h1>
             {isOwnProfile && user && (
@@ -178,6 +180,50 @@ const ProfileContent = ({
               </Button>
             )}
           </div>
+        )}
+
+        {/* Guest Welcome Card - Only show for guest users */}
+        {isGuestUser && (
+          <Card className="mb-6 bg-gradient-to-r from-blue-50 to-purple-50 border-primary/20">
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-lg text-foreground">
+                <UserPlus className="w-5 h-5 text-primary" />
+                Welcome to MY PUP!
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-muted-foreground mb-4">
+                You're viewing a sample breeder profile. Create your MY PUP account to connect with verified breeders and find your perfect puppy!
+              </p>
+              <div className="grid grid-cols-3 gap-3 mb-4">
+                <div className="text-center">
+                  <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                    <Crown className="w-5 h-5 text-blue-600" />
+                  </div>
+                  <div className="text-xs text-muted-foreground">Verified Breeders</div>
+                </div>
+                <div className="text-center">
+                  <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                    <Zap className="w-5 h-5 text-purple-600" />
+                  </div>
+                  <div className="text-xs text-muted-foreground">Safe Messaging</div>
+                </div>
+                <div className="text-center">
+                  <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                    <Star className="w-5 h-5 text-green-600" />
+                  </div>
+                  <div className="text-xs text-muted-foreground">Reviews & Ratings</div>
+                </div>
+              </div>
+              <Button 
+                onClick={() => navigate('/auth')} 
+                className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
+                size="sm"
+              >
+                Join MY PUP - It's Free!
+              </Button>
+            </CardContent>
+          </Card>
         )}
 
         {/* Profile Completion Guide - Only show for logged in users on their own profile */}
@@ -213,7 +259,7 @@ const ProfileContent = ({
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-sm text-gray-600 mb-4">
+              <p className="text-sm text-muted-foreground mb-4">
                 Unlock professional tools to help more families find their perfect puppy
               </p>
               <div className="grid grid-cols-3 gap-3 mb-4">
@@ -221,19 +267,19 @@ const ProfileContent = ({
                   <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-2">
                     <Crown className="w-5 h-5 text-blue-600" />
                   </div>
-                  <div className="text-xs text-gray-600">Priority Placement</div>
+                  <div className="text-xs text-muted-foreground">Priority Placement</div>
                 </div>
                 <div className="text-center">
                   <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-2">
                     <Zap className="w-5 h-5 text-purple-600" />
                   </div>
-                  <div className="text-xs text-gray-600">Advanced Analytics</div>
+                  <div className="text-xs text-muted-foreground">Advanced Analytics</div>
                 </div>
                 <div className="text-center">
                   <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-2">
                     <Star className="w-5 h-5 text-green-600" />
                   </div>
-                  <div className="text-xs text-gray-600">Verification Badge</div>
+                  <div className="text-xs text-muted-foreground">Verification Badge</div>
                 </div>
               </div>
               <Button 
