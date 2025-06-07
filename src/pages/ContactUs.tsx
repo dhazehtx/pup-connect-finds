@@ -98,18 +98,18 @@ const ContactUs = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {/* Contact Methods */}
         <div className="mb-12">
-          <h2 className="text-3xl font-bold text-deep-navy mb-8 text-center">How Can We Help?</h2>
+          <h2 className="text-3xl font-bold text-black mb-8 text-center">How Can We Help?</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {contactMethods.map((method, index) => (
-              <Card key={index} className="border-soft-sky hover:shadow-lg transition-shadow cursor-pointer">
+              <Card key={index} className="border-royal-blue hover:shadow-lg transition-shadow cursor-pointer">
                 <CardContent className="p-6 text-center">
                   <div className="text-royal-blue mb-4 flex justify-center">
                     {method.icon}
                   </div>
-                  <h3 className="font-semibold text-deep-navy mb-2">{method.title}</h3>
-                  <p className="text-sm text-deep-navy/70 mb-3">{method.description}</p>
+                  <h3 className="font-semibold text-black mb-2">{method.title}</h3>
+                  <p className="text-sm text-black/70 mb-3">{method.description}</p>
                   <p className="text-sm font-medium text-royal-blue mb-2">{method.contact}</p>
-                  <p className="text-xs text-deep-navy/60">{method.responseTime}</p>
+                  <p className="text-xs text-black/60">{method.responseTime}</p>
                 </CardContent>
               </Card>
             ))}
@@ -118,25 +118,26 @@ const ContactUs = () => {
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
           {/* Contact Form */}
-          <Card className="border-soft-sky">
+          <Card className="border-royal-blue">
             <CardHeader>
-              <CardTitle className="text-deep-navy">Send us a Message</CardTitle>
+              <CardTitle className="text-black">Send us a Message</CardTitle>
             </CardHeader>
             <CardContent>
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-deep-navy mb-2">Name</label>
+                    <label className="block text-sm font-medium text-black mb-2">Name</label>
                     <Input
                       value={formData.name}
                       onChange={(e) => setFormData({...formData, name: e.target.value})}
                       placeholder="Your full name"
                       required
                       disabled={isSubmitting}
+                      className="border-royal-blue/30 focus:border-royal-blue"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-deep-navy mb-2">Email</label>
+                    <label className="block text-sm font-medium text-black mb-2">Email</label>
                     <Input
                       type="email"
                       value={formData.email}
@@ -144,18 +145,19 @@ const ContactUs = () => {
                       placeholder="your@email.com"
                       required
                       disabled={isSubmitting}
+                      className="border-royal-blue/30 focus:border-royal-blue"
                     />
                   </div>
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium text-deep-navy mb-2">Category</label>
+                  <label className="block text-sm font-medium text-black mb-2">Category</label>
                   <Select 
                     value={formData.category} 
                     onValueChange={(value) => setFormData({...formData, category: value})}
                     disabled={isSubmitting}
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className="border-royal-blue/30 focus:border-royal-blue">
                       <SelectValue placeholder="Select a category" />
                     </SelectTrigger>
                     <SelectContent>
@@ -170,18 +172,19 @@ const ContactUs = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-deep-navy mb-2">Subject</label>
+                  <label className="block text-sm font-medium text-black mb-2">Subject</label>
                   <Input
                     value={formData.subject}
                     onChange={(e) => setFormData({...formData, subject: e.target.value})}
                     placeholder="Brief description of your inquiry"
                     required
                     disabled={isSubmitting}
+                    className="border-royal-blue/30 focus:border-royal-blue"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-deep-navy mb-2">Message</label>
+                  <label className="block text-sm font-medium text-black mb-2">Message</label>
                   <Textarea
                     value={formData.message}
                     onChange={(e) => setFormData({...formData, message: e.target.value})}
@@ -189,12 +192,13 @@ const ContactUs = () => {
                     rows={5}
                     required
                     disabled={isSubmitting}
+                    className="border-royal-blue/30 focus:border-royal-blue"
                   />
                 </div>
 
                 <Button 
                   type="submit" 
-                  className="w-full bg-royal-blue hover:bg-deep-navy"
+                  className="w-full bg-royal-blue hover:bg-deep-navy text-white"
                   disabled={isSubmitting}
                 >
                   <Send className="mr-2" size={16} />
@@ -207,9 +211,9 @@ const ContactUs = () => {
           {/* Contact Information */}
           <div className="space-y-8">
             {/* Business Hours */}
-            <Card className="border-soft-sky">
+            <Card className="border-royal-blue">
               <CardHeader>
-                <CardTitle className="text-deep-navy flex items-center">
+                <CardTitle className="text-black flex items-center">
                   <Clock className="mr-2" />
                   Business Hours
                 </CardTitle>
@@ -217,19 +221,19 @@ const ContactUs = () => {
               <CardContent>
                 <div className="space-y-3">
                   <div className="flex justify-between">
-                    <span className="text-deep-navy/70">Monday - Friday</span>
-                    <span className="font-medium text-deep-navy">9:00 AM - 8:00 PM EST</span>
+                    <span className="text-black/70">Monday - Friday</span>
+                    <span className="font-medium text-black">9:00 AM - 8:00 PM EST</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-deep-navy/70">Saturday</span>
-                    <span className="font-medium text-deep-navy">10:00 AM - 6:00 PM EST</span>
+                    <span className="text-black/70">Saturday</span>
+                    <span className="font-medium text-black">10:00 AM - 6:00 PM EST</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-deep-navy/70">Sunday</span>
-                    <span className="font-medium text-deep-navy">12:00 PM - 5:00 PM EST</span>
+                    <span className="text-black/70">Sunday</span>
+                    <span className="font-medium text-black">12:00 PM - 5:00 PM EST</span>
                   </div>
-                  <div className="mt-4 p-3 bg-soft-sky/20 rounded-lg">
-                    <p className="text-sm text-deep-navy/70">
+                  <div className="mt-4 p-3 bg-royal-blue/10 rounded-lg">
+                    <p className="text-sm text-black/70">
                       <strong>Live Chat:</strong> Available 24/7 for immediate assistance
                     </p>
                   </div>
@@ -240,16 +244,16 @@ const ContactUs = () => {
             {/* Important Notice */}
             <Card className="border-royal-blue bg-royal-blue/5">
               <CardHeader>
-                <CardTitle className="text-deep-navy">Important Notice</CardTitle>
+                <CardTitle className="text-black">Important Notice</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-deep-navy/70 mb-4">
+                <p className="text-black/70 mb-4">
                   For all emergency situations, safety concerns, or urgent fraud reports, please contact us immediately via email at:
                 </p>
-                <div className="bg-white p-3 rounded-lg border">
+                <div className="bg-white p-3 rounded-lg border border-royal-blue">
                   <p className="text-royal-blue font-medium">emergency@mypup.com</p>
                 </div>
-                <p className="text-sm text-deep-navy/60 mt-3">
+                <p className="text-sm text-black/60 mt-3">
                   We monitor emergency emails 24/7 and will respond immediately to urgent matters.
                 </p>
               </CardContent>
@@ -259,13 +263,13 @@ const ContactUs = () => {
 
         {/* FAQ Link */}
         <div className="mt-12 text-center">
-          <Card className="border-soft-sky">
+          <Card className="border-royal-blue">
             <CardContent className="p-8">
-              <h3 className="text-xl font-bold text-deep-navy mb-4">Looking for Quick Answers?</h3>
-              <p className="text-deep-navy/70 mb-6">
+              <h3 className="text-xl font-bold text-black mb-4">Looking for Quick Answers?</h3>
+              <p className="text-black/70 mb-6">
                 Check out our comprehensive FAQ section for instant answers to common questions.
               </p>
-              <Button variant="outline" className="border-royal-blue text-royal-blue hover:bg-royal-blue hover:text-white">
+              <Button variant="outline" className="border-royal-blue text-black hover:bg-royal-blue hover:text-white">
                 <HelpCircle className="mr-2" size={16} />
                 Visit Help Center
               </Button>
