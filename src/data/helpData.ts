@@ -61,12 +61,12 @@ export const faqs = [
 
 export const popularArticles = [
   {
-    title: 'How to Choose the Right Puppy Breed for Your Family',
-    url: 'https://www.akc.org/dog-breeds/choosing-the-best-dog-breed-for-your-lifestyle/'
+    title: 'How to Walk Multiple Dogs at Once',
+    url: 'https://www.akc.org/expert-advice/training/how-to-walk-multiple-dogs-at-once/'
   },
   {
-    title: 'Understanding Puppy Health Certificates',
-    url: 'https://www.avma.org/resources/pet-owners/petcare/health-certificates-traveling-pets'
+    title: 'Dog Wound Care: What to Know',
+    url: 'https://www.akc.org/expert-advice/health/dog-wound-care/'
   },
   {
     title: 'First-Time Buyer\'s Guide to Puppy Adoption',
@@ -77,7 +77,7 @@ export const popularArticles = [
     url: 'https://www.humanesociety.org/resources/how-find-responsible-dog-breeder'
   },
   {
-    title: 'Preparing Your Home for a New Puppy',
-    url: 'https://www.akc.org/expert-advice/puppy-information/puppy-proofing-tips/'
+    title: 'Dog Training Basics for New Owners',
+    url: 'https://www.akc.org/expert-advice/training/puppy-training-101-10-tips-to-prepare-your-dog-for-success/'
   }
 ];
