@@ -885,6 +885,538 @@ const Legal = () => {
         'Cannot sell animals under 8 weeks'
       ],
       penalties: 'Class A misdemeanor, fines up to $2,000, license revocation'
+    },
+    {
+      id: 'alaska',
+      state: 'Alaska',
+      severity: 'lenient',
+      lastUpdated: '2023',
+      keyPoints: [
+        'Alaska Statutes Title 3 - Animal regulations',
+        'Basic animal welfare requirements',
+        'Limited commercial oversight',
+        'Health certificate for interstate transport',
+        'Municipal regulations may apply'
+      ],
+      requirements: {
+        minAge: '8 weeks minimum age for sale',
+        licensing: 'No state commercial breeder license required',
+        healthCerts: 'Health certificate for interstate sales',
+        records: 'Basic sales documentation recommended',
+        inspections: 'No mandatory state inspections'
+      },
+      restrictions: [
+        'Cannot sell animals under 8 weeks',
+        'Basic animal welfare standards',
+        'Cannot sell sick animals',
+        'Interstate transport requirements',
+        'Local ordinances may apply'
+      ],
+      penalties: 'Misdemeanor for animal cruelty, fines vary by municipality'
+    },
+    {
+      id: 'hawaii',
+      state: 'Hawaii',
+      severity: 'strict',
+      lastUpdated: '2024',
+      keyPoints: [
+        'Hawaii Revised Statutes Chapter 143 - Animal quarantine',
+        'Strict import/export regulations',
+        'Commercial breeder licensing',
+        'Health certificate requirements',
+        'Quarantine protocols for inter-island transport'
+      ],
+      requirements: {
+        minAge: '8 weeks minimum age for sale',
+        licensing: 'Pet dealer license for commercial operations',
+        healthCerts: 'Health certificate and quarantine compliance',
+        records: 'Detailed health and breeding records',
+        inspections: 'Regular facility inspections required'
+      },
+      restrictions: [
+        'Strict quarantine requirements for imported animals',
+        'Cannot breed females under 12 months',
+        'Health testing requirements',
+        'Cannot sell animals under 8 weeks',
+        'Inter-island transport regulations'
+      ],
+      penalties: 'Fines up to $1,000, license suspension, criminal charges'
+    },
+    {
+      id: 'idaho',
+      state: 'Idaho',
+      severity: 'lenient',
+      lastUpdated: '2023',
+      keyPoints: [
+        'Idaho Code Title 25 - Animal regulations',
+        'Basic commercial kennel licensing',
+        'Health certificate requirements',
+        'Animal welfare standards',
+        'County-level oversight'
+      ],
+      requirements: {
+        minAge: '8 weeks minimum age for sale',
+        licensing: 'Commercial kennel license for 15+ dogs',
+        healthCerts: 'Health certificate within 30 days',
+        records: 'Basic breeding and sales records',
+        inspections: 'Annual inspections for licensed kennels'
+      },
+      restrictions: [
+        'Cannot sell animals under 8 weeks',
+        'Basic housing and care standards',
+        'Cannot sell sick animals',
+        'Proper identification required',
+        'Local zoning compliance'
+      ],
+      penalties: 'Misdemeanor charges, fines up to $300'
+    },
+    {
+      id: 'montana',
+      state: 'Montana',
+      severity: 'lenient',
+      lastUpdated: '2023',
+      keyPoints: [
+        'Montana Code Title 81 - Animal regulations',
+        'Basic commercial breeder oversight',
+        'Health requirements for sales',
+        'Animal welfare standards',
+        'County regulations may apply'
+      ],
+      requirements: {
+        minAge: '8 weeks minimum age for sale',
+        licensing: 'No state commercial breeder license required',
+        healthCerts: 'Health certificate for interstate sales',
+        records: 'Basic documentation recommended',
+        inspections: 'No mandatory state inspections'
+      },
+      restrictions: [
+        'Cannot sell animals under 8 weeks',
+        'Basic animal care requirements',
+        'Cannot sell diseased animals',
+        'Local ordinance compliance',
+        'Interstate transport regulations'
+      ],
+      penalties: 'Misdemeanor for animal cruelty, fines up to $500'
+    },
+    {
+      id: 'wyoming',
+      state: 'Wyoming',
+      severity: 'lenient',
+      lastUpdated: '2023',
+      keyPoints: [
+        'Wyoming Statutes Title 11 - Animal regulations',
+        'Basic animal welfare laws',
+        'Limited commercial oversight',
+        'Health certificate requirements',
+        'County-level enforcement'
+      ],
+      requirements: {
+        minAge: '8 weeks minimum age for sale',
+        licensing: 'No state commercial breeder license required',
+        healthCerts: 'Health certificate for interstate transport',
+        records: 'Basic sales records recommended',
+        inspections: 'No mandatory state inspections'
+      },
+      restrictions: [
+        'Cannot sell animals under 8 weeks',
+        'Basic animal welfare standards',
+        'Cannot sell sick animals',
+        'Interstate health requirements',
+        'Local zoning may apply'
+      ],
+      penalties: 'Misdemeanor charges, fines vary by county'
+    },
+    {
+      id: 'northdakota',
+      state: 'North Dakota',
+      severity: 'lenient',
+      lastUpdated: '2023',
+      keyPoints: [
+        'North Dakota Century Code Title 36 - Animal regulations',
+        'Basic commercial kennel licensing',
+        'Health certificate requirements',
+        'Animal welfare standards',
+        'County oversight'
+      ],
+      requirements: {
+        minAge: '8 weeks minimum age for sale',
+        licensing: 'Commercial kennel license for 20+ dogs',
+        healthCerts: 'Health certificate within 30 days',
+        records: 'Basic breeding and sales records',
+        inspections: 'Annual inspections for licensed kennels'
+      },
+      restrictions: [
+        'Cannot sell animals under 8 weeks',
+        'Basic housing standards',
+        'Cannot sell sick animals',
+        'Proper identification',
+        'Local ordinance compliance'
+      ],
+      penalties: 'Class B misdemeanor, fines up to $1,000'
+    },
+    {
+      id: 'southdakota',
+      state: 'South Dakota',
+      severity: 'lenient',
+      lastUpdated: '2023',
+      keyPoints: [
+        'South Dakota Codified Laws Title 40 - Animal regulations',
+        'Basic commercial kennel licensing',
+        'Health requirements',
+        'Animal welfare standards',
+        'County-level enforcement'
+      ],
+      requirements: {
+        minAge: '8 weeks minimum age for sale',
+        licensing: 'Commercial kennel license for 15+ dogs',
+        healthCerts: 'Health certificate for sales',
+        records: 'Basic documentation required',
+        inspections: 'Annual inspections for licensed kennels'
+      },
+      restrictions: [
+        'Cannot sell animals under 8 weeks',
+        'Basic care and housing standards',
+        'Cannot sell diseased animals',
+        'Proper record keeping',
+        'Local zoning compliance'
+      ],
+      penalties: 'Class 2 misdemeanor, fines up to $500'
+    },
+    {
+      id: 'nebraska',
+      state: 'Nebraska',
+      severity: 'lenient',
+      lastUpdated: '2023',
+      keyPoints: [
+        'Nebraska Revised Statutes Chapter 54 - Animal regulations',
+        'Commercial kennel licensing',
+        'Health certificate requirements',
+        'Basic welfare standards',
+        'County oversight'
+      ],
+      requirements: {
+        minAge: '8 weeks minimum age for sale',
+        licensing: 'Commercial kennel license for 10+ dogs',
+        healthCerts: 'Health certificate within 30 days',
+        records: 'Sales and breeding documentation',
+        inspections: 'Annual inspections for licensed kennels'
+      },
+      restrictions: [
+        'Cannot sell animals under 8 weeks',
+        'Adequate housing and care',
+        'Cannot sell sick animals',
+        'Proper identification required',
+        'Local ordinance compliance'
+      ],
+      penalties: 'Class III misdemeanor, fines up to $500'
+    },
+    {
+      id: 'iowa',
+      state: 'Iowa',
+      severity: 'moderate',
+      lastUpdated: '2024',
+      keyPoints: [
+        'Iowa Code Chapter 162 - Commercial establishments',
+        'Commercial kennel licensing',
+        'Health and safety standards',
+        'Record keeping requirements',
+        'Inspection protocols'
+      ],
+      requirements: {
+        minAge: '8 weeks minimum age for sale',
+        licensing: 'Commercial establishment license for breeding',
+        healthCerts: 'Health certificate from veterinarian',
+        records: 'Detailed breeding and health records',
+        inspections: 'Annual facility inspections'
+      },
+      restrictions: [
+        'Cannot breed females under 12 months',
+        'Maximum breeding age of 8 years',
+        'Adequate space and exercise requirements',
+        'Cannot sell animals under 8 weeks',
+        'Health screening requirements'
+      ],
+      penalties: 'Simple misdemeanor, fines up to $855, license suspension'
+    },
+    {
+      id: 'indiana',
+      state: 'Indiana',
+      severity: 'moderate',
+      lastUpdated: '2024',
+      keyPoints: [
+        'Indiana Code Title 15 - Animals and food',
+        'Commercial dog breeding regulations',
+        'Health certificate requirements',
+        'Facility standards',
+        'Consumer protection measures'
+      ],
+      requirements: {
+        minAge: '8 weeks minimum age for sale',
+        licensing: 'Commercial dog breeder license for 20+ females',
+        healthCerts: 'Health certificate within 30 days',
+        records: 'Breeding and health records for 2 years',
+        inspections: 'Annual inspections for commercial breeders'
+      },
+      restrictions: [
+        'Cannot breed females under 12 months',
+        'Maximum 2 litters per female per year',
+        'Adequate housing and care standards',
+        'Cannot sell sick animals',
+        'Proper identification required'
+      ],
+      penalties: 'Class B misdemeanor, fines up to $1,000, license revocation'
+    },
+    {
+      id: 'westvirginia',
+      state: 'West Virginia',
+      severity: 'lenient',
+      lastUpdated: '2023',
+      keyPoints: [
+        'West Virginia Code Chapter 19 - Animal regulations',
+        'Basic commercial kennel licensing',
+        'Health certificate requirements',
+        'Animal welfare standards',
+        'County-level oversight'
+      ],
+      requirements: {
+        minAge: '8 weeks minimum age for sale',
+        licensing: 'Commercial kennel license for 25+ dogs',
+        healthCerts: 'Health certificate within 30 days',
+        records: 'Basic sales and health records',
+        inspections: 'Annual inspections for licensed kennels'
+      },
+      restrictions: [
+        'Cannot sell animals under 8 weeks',
+        'Basic housing and care standards',
+        'Cannot sell sick animals',
+        'Proper identification',
+        'Local ordinance compliance'
+      ],
+      penalties: 'Misdemeanor charges, fines up to $500'
+    },
+    {
+      id: 'delaware',
+      state: 'Delaware',
+      severity: 'strict',
+      lastUpdated: '2024',
+      keyPoints: [
+        'Delaware Code Title 3 - Agriculture',
+        'Commercial breeding facility regulations',
+        'Pet store sourcing restrictions',
+        'Health certificate requirements',
+        'Consumer protection laws'
+      ],
+      requirements: {
+        minAge: '8 weeks minimum age for sale',
+        licensing: 'Commercial breeding facility license',
+        healthCerts: 'Health certificate within 14 days',
+        records: 'Complete health and breeding documentation',
+        inspections: 'Regular facility inspections'
+      },
+      restrictions: [
+        'Pet stores must source from shelters/rescues',
+        'Cannot breed females under 12 months',
+        'Maximum 2 litters per female per year',
+        'Facility standards for space and sanitation',
+        'Cannot sell sick animals'
+      ],
+      penalties: 'Fines up to $2,000, license suspension, criminal charges'
+    },
+    {
+      id: 'rhodeisland',
+      state: 'Rhode Island',
+      severity: 'strict',
+      lastUpdated: '2024',
+      keyPoints: [
+        'Rhode Island General Laws Title 4 - Animals',
+        'Commercial breeder licensing',
+        'Pet shop regulations',
+        'Health certificate requirements',
+        'Animal welfare standards'
+      ],
+      requirements: {
+        minAge: '8 weeks minimum age for sale',
+        licensing: 'Commercial breeder license for operations',
+        healthCerts: 'Health certificate from veterinarian',
+        records: 'Detailed breeding and health records',
+        inspections: 'Annual facility inspections'
+      },
+      restrictions: [
+        'Cannot breed females under 12 months',
+        'Maximum breeding frequency limits',
+        'Adequate space and exercise requirements',
+        'Cannot sell animals under 8 weeks',
+        'Health guarantee requirements'
+      ],
+      penalties: 'Fines up to $1,000, license revocation, criminal prosecution'
+    },
+    {
+      id: 'vermont',
+      state: 'Vermont',
+      severity: 'strict',
+      lastUpdated: '2024',
+      keyPoints: [
+        'Vermont Statutes Title 20 - Fish and game',
+        'Commercial breeding regulations',
+        'Pet dealer licensing',
+        'Health and safety standards',
+        'Consumer protection measures'
+      ],
+      requirements: {
+        minAge: '8 weeks minimum age for sale',
+        licensing: 'Pet dealer license for commercial operations',
+        healthCerts: 'Health certificate within 10 days',
+        records: 'Comprehensive breeding and health records',
+        inspections: 'Regular facility inspections'
+      },
+      restrictions: [
+        'Cannot breed females under 18 months',
+        'Maximum 2 litters per female per year',
+        'Facility standards for housing and care',
+        'Cannot sell sick animals',
+        'Health testing requirements'
+      ],
+      penalties: 'Fines up to $1,000, license suspension, criminal charges'
+    },
+    {
+      id: 'newhampshire',
+      state: 'New Hampshire',
+      severity: 'moderate',
+      lastUpdated: '2024',
+      keyPoints: [
+        'New Hampshire Revised Statutes Title XL - Agriculture',
+        'Commercial kennel licensing',
+        'Health certificate requirements',
+        'Animal welfare standards',
+        'Consumer protection laws'
+      ],
+      requirements: {
+        minAge: '8 weeks minimum age for sale',
+        licensing: 'Commercial kennel license for 5+ females',
+        healthCerts: 'Health certificate within 14 days',
+        records: 'Breeding and health documentation',
+        inspections: 'Annual inspections for commercial kennels'
+      },
+      restrictions: [
+        'Cannot breed females under 12 months',
+        'Maximum breeding age of 8 years',
+        'Adequate housing and care standards',
+        'Cannot sell animals under 8 weeks',
+        'Proper identification required'
+      ],
+      penalties: 'Misdemeanor charges, fines up to $1,000, license suspension'
+    },
+    {
+      id: 'maine',
+      state: 'Maine',
+      severity: 'strict',
+      lastUpdated: '2024',
+      keyPoints: [
+        'Maine Revised Statutes Title 7 - Agriculture',
+        'Commercial breeding kennel regulations',
+        'Pet shop licensing requirements',
+        'Health certificate mandates',
+        'Consumer protection measures'
+      ],
+      requirements: {
+        minAge: '8 weeks minimum age for sale',
+        licensing: 'Commercial breeding kennel license for 5+ females',
+        healthCerts: 'Health certificate within 10 days',
+        records: 'Detailed breeding and health records for 3 years',
+        inspections: 'Annual inspections for commercial kennels'
+      },
+      restrictions: [
+        'Cannot breed females under 12 months or over 8 years',
+        'Maximum 2 litters per female per year',
+        'Adequate space and exercise requirements',
+        'Cannot sell animals under 8 weeks',
+        'Health screening for breeding stock'
+      ],
+      penalties: 'Class D crime, fines up to $2,000, license revocation'
+    },
+    {
+      id: 'nevada',
+      state: 'Nevada',
+      severity: 'moderate',
+      lastUpdated: '2024',
+      keyPoints: [
+        'Nevada Revised Statutes Chapter 574 - Cruelty to animals',
+        'Commercial breeding regulations',
+        'Pet dealer licensing',
+        'Health certificate requirements',
+        'Facility standards'
+      ],
+      requirements: {
+        minAge: '8 weeks minimum age for sale',
+        licensing: 'Pet dealer license for commercial operations',
+        healthCerts: 'Health certificate within 15 days',
+        records: 'Sales and breeding documentation',
+        inspections: 'Annual inspections for licensed dealers'
+      },
+      restrictions: [
+        'Cannot breed females under 12 months',
+        'Maximum breeding frequency limits',
+        'Adequate housing and care standards',
+        'Cannot sell sick animals',
+        'Proper identification required'
+      ],
+      penalties: 'Misdemeanor charges, fines up to $1,000, license suspension'
+    },
+    {
+      id: 'utah',
+      state: 'Utah',
+      severity: 'moderate',
+      lastUpdated: '2024',
+      keyPoints: [
+        'Utah Code Title 4 - Agriculture code',
+        'Commercial kennel licensing',
+        'Health and safety standards',
+        'Record keeping requirements',
+        'Consumer protection measures'
+      ],
+      requirements: {
+        minAge: '8 weeks minimum age for sale',
+        licensing: 'Commercial kennel license for 11+ dogs',
+        healthCerts: 'Health certificate from veterinarian',
+        records: 'Breeding and health records for 2 years',
+        inspections: 'Annual inspections for commercial kennels'
+      },
+      restrictions: [
+        'Cannot breed females under 12 months',
+        'Maximum 2 litters per female per year',
+        'Facility standards for space and sanitation',
+        'Cannot sell animals under 8 weeks',
+        'Health testing requirements'
+      ],
+      penalties: 'Class B misdemeanor, fines up to $1,000, license revocation'
+    },
+    {
+      id: 'newmexico',
+      state: 'New Mexico',
+      severity: 'moderate',
+      lastUpdated: '2024',
+      keyPoints: [
+        'New Mexico Statutes Chapter 77 - Animals',
+        'Commercial breeder regulations',
+        'Pet dealer licensing',
+        'Health certificate requirements',
+        'Animal welfare standards'
+      ],
+      requirements: {
+        minAge: '8 weeks minimum age for sale',
+        licensing: 'Pet dealer license for commercial operations',
+        healthCerts: 'Health certificate within 30 days',
+        records: 'Sales and breeding documentation',
+        inspections: 'Annual inspections for licensed dealers'
+      },
+      restrictions: [
+        'Cannot breed females under 12 months',
+        'Maximum breeding age of 8 years',
+        'Adequate housing and care standards',
+        'Cannot sell sick animals',
+        'Proper identification required'
+      ],
+      penalties: 'Petty misdemeanor, fines up to $500, license suspension'
     }
   ];
 
