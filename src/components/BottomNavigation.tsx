@@ -73,7 +73,7 @@ const BottomNavigation = () => {
 
   return (
     <>
-      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-40 safe-area-pb">
+      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-40">
         <div className="grid grid-cols-5 h-16">
           {navItems.map((item) => {
             const Icon = item.icon;
@@ -82,24 +82,17 @@ const BottomNavigation = () => {
             return (
               <button
                 key={item.path}
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  item.onClick();
-                }}
-                className={`flex flex-col items-center justify-center p-2 transition-colors relative touch-manipulation cursor-pointer ${
+                onClick={item.onClick}
+                className={`flex flex-col items-center justify-center p-2 transition-colors ${
                   active 
                     ? 'text-white bg-blue-600' 
-                    : user || !item.protected
-                      ? 'text-gray-600 hover:text-blue-600 active:bg-gray-100'
-                      : 'text-gray-400'
+                    : 'text-gray-600 hover:text-blue-600 hover:bg-gray-50'
                 }`}
                 type="button"
                 aria-label={item.label}
-                style={{ pointerEvents: 'auto' }}
               >
                 <Icon size={20} className="flex-shrink-0" />
-                <span className="text-xs mt-1 font-medium truncate">{item.label}</span>
+                <span className="text-xs mt-1 font-medium">{item.label}</span>
                 {item.protected && !user && (
                   <div className="absolute top-1 right-1 w-2 h-2 bg-orange-500 rounded-full"></div>
                 )}
