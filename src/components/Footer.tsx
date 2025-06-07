@@ -49,7 +49,7 @@ const Footer = () => {
             <h3 className="font-semibold mb-4">Quick Links</h3>
             <ul className="space-y-2">
               <li>
-                <Link to="/browse-puppies" onClick={handleLinkClick} className="text-cloud-white/80 hover:text-cloud-white transition-colors">
+                <Link to="/explore" onClick={handleLinkClick} className="text-cloud-white/80 hover:text-cloud-white transition-colors">
                   Browse Puppies
                 </Link>
               </li>
