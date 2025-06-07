@@ -61,16 +61,16 @@ export const faqs = [
 
 export const popularArticles = [
   {
-    title: 'How to Walk Multiple Dogs at Once',
-    url: 'https://www.akc.org/expert-advice/training/how-to-walk-multiple-dogs-at-once/'
+    title: 'Choosing the Best Dog Breed for Your Lifestyle',
+    url: 'https://www.akc.org/dog-breeds/choosing-the-best-dog-breed-for-your-lifestyle/'
   },
   {
-    title: 'Dog Wound Care: What to Know',
-    url: 'https://www.akc.org/expert-advice/health/dog-wound-care/'
+    title: 'Puppy Health Certificates and What They Mean',
+    url: 'https://www.akc.org/expert-advice/health/puppy-health-certificate/'
   },
   {
-    title: 'First-Time Buyer\'s Guide to Puppy Adoption',
-    url: 'https://www.aspca.org/pet-care/dog-care/general-dog-care'
+    title: 'Puppy Proofing Your Home: Essential Tips',
+    url: 'https://www.akc.org/expert-advice/puppy-information/puppy-proofing-tips/'
   },
   {
     title: 'Red Flags to Watch Out for When Buying a Puppy',
