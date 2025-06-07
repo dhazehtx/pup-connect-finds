@@ -35,14 +35,14 @@ export const FeedingCalculatorTool: React.FC = () => {
         <Button 
           variant="outline" 
           size="sm"
-          onClick={() => window.open('https://www.akc.org/expert-advice/nutrition/puppy-feeding-guide/', '_blank')}
+          onClick={() => window.open('https://www.akc.org/expert-advice/nutrition/puppy-feeding-fundamentals/', '_blank')}
         >
           Puppy Feeding Guide
         </Button>
         <Button 
           variant="outline" 
           size="sm"
-          onClick={() => window.open('https://www.akc.org/expert-advice/nutrition/senior-dog-nutrition/', '_blank')}
+          onClick={() => window.open('https://www.akc.org/expert-advice/nutrition/nutrition-and-supplements-for-senior-dogs/', '_blank')}
         >
           Senior Dog Nutrition
         </Button>

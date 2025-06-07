@@ -24,7 +24,7 @@ export const BreedSelectorTool: React.FC = () => {
         <Button 
           variant="outline" 
           size="sm"
-          onClick={() => window.open('https://www.akc.org/expert-advice/dog-breeds/how-to-choose-a-dog-breed/', '_blank')}
+          onClick={() => window.open('https://www.akc.org/breed-selector-tool/', '_blank')}
         >
           Breed Selection Guide
         </Button>

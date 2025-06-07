@@ -37,7 +37,7 @@ export const VetFinderTool: React.FC = () => {
           variant="outline" 
           size="sm" 
           className="w-full justify-start"
-          onClick={() => window.open('https://www.akc.org/expert-advice/vets-corner/choosing-a-veterinarian/', '_blank')}
+          onClick={() => window.open('https://www.akc.org/expert-advice/health/how-to-find-best-veterinarian/', '_blank')}
         >
           <FileText size={16} className="mr-2" />
           How to Choose a Vet

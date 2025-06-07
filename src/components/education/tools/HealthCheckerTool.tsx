@@ -24,16 +24,16 @@ export const HealthCheckerTool: React.FC = () => {
         <Button 
           variant="outline" 
           size="sm"
-          onClick={() => window.open('https://www.akc.org/expert-advice/health/parasite-prevention/', '_blank')}
+          onClick={() => window.open('https://www.akc.org/expert-advice/health/deworming-dogs-what-you-need-to-know/', '_blank')}
         >
           Parasite Prevention
         </Button>
         <Button 
           variant="outline" 
           size="sm"
-          onClick={() => window.open('https://www.akc.org/expert-advice/health/dog-allergies/', '_blank')}
+          onClick={() => window.open('https://www.akc.org/expert-advice/health/flea-tick/', '_blank')}
         >
-          Allergy Information
+          Flea & Tick Information
         </Button>
       </div>
     </div>

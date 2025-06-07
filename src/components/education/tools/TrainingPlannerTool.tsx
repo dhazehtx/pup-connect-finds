@@ -17,7 +17,7 @@ export const TrainingPlannerTool: React.FC = () => {
         <Button 
           variant="outline" 
           size="sm"
-          onClick={() => window.open('https://www.akc.org/expert-advice/training/basic-dog-training-commands/', '_blank')}
+          onClick={() => window.open('https://www.akc.org/expert-advice/training/teach-your-puppy-these-5-basic-commands/', '_blank')}
         >
           Basic Commands Guide
         </Button>

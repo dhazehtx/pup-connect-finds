@@ -22,14 +22,14 @@ export const EmergencyGuideTool: React.FC = () => {
         <Button 
           variant="outline" 
           size="sm"
-          onClick={() => window.open('https://www.akc.org/expert-advice/health/dog-first-aid-kit/', '_blank')}
+          onClick={() => window.open('https://www.akc.org/expert-advice/health/first-aid-dogs/', '_blank')}
         >
           First Aid Guide
         </Button>
         <Button 
           variant="outline" 
           size="sm"
-          onClick={() => window.open('https://www.akc.org/expert-advice/vets-corner/emergency-vet-care/', '_blank')}
+          onClick={() => window.open('https://www.akc.org/expert-advice/health/should-i-call-my-dogs-vet/#:~:text=You%20should%20call%20the%20vet,and%20linking%20to%20akc.org', '_blank')}
         >
           When to Seek Emergency Care
         </Button>
