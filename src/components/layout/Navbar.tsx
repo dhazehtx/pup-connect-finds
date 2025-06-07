@@ -39,10 +39,10 @@ const Navbar = () => {
                 Browse Puppies
               </Link>
               <Link
-                to="/location-explorer"
+                to="/map"
                 className="text-gray-500 hover:text-gray-700 px-3 py-2 rounded-md text-sm font-medium"
               >
-                Location Explorer
+                Map View
               </Link>
               <Link
                 to="/analytics"
@@ -131,10 +131,10 @@ const Navbar = () => {
             Browse Puppies
           </Link>
           <Link
-            to="/location-explorer"
+            to="/map"
             className="text-gray-500 hover:text-gray-700 block px-3 py-2 rounded-md text-base font-medium"
           >
-            Location Explorer
+            Map View
           </Link>
           <Link
             to="/analytics"
