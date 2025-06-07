@@ -24,6 +24,13 @@ export const BreedSelectorTool: React.FC = () => {
         <Button 
           variant="outline" 
           size="sm"
+          onClick={() => window.open('https://www.akc.org/expert-advice/home-living/', '_blank')}
+        >
+          Home Living Guide
+        </Button>
+        <Button 
+          variant="outline" 
+          size="sm"
           onClick={() => window.open('https://www.akc.org/breed-selector-tool/', '_blank')}
         >
           Breed Selection Guide

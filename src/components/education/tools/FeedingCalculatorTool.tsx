@@ -42,6 +42,13 @@ export const FeedingCalculatorTool: React.FC = () => {
         <Button 
           variant="outline" 
           size="sm"
+          onClick={() => window.open('https://www.akc.org/expert-advice/home-living/', '_blank')}
+        >
+          Home Living Guide
+        </Button>
+        <Button 
+          variant="outline" 
+          size="sm"
           onClick={() => window.open('https://www.akc.org/expert-advice/nutrition/nutrition-and-supplements-for-senior-dogs/', '_blank')}
         >
           Senior Dog Nutrition

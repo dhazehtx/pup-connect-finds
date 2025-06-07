@@ -64,6 +64,27 @@ export const educationResources: EducationResource[] = [
     content: 'Comprehensive Labrador Retriever breed guide...',
     relatedArticles: [5, 7],
     url: 'https://www.akc.org/dog-breeds/labrador-retriever/'
+  },
+  {
+    id: 10,
+    category: 'firsttime',
+    title: 'Home Living with Dogs',
+    description: 'Essential AKC guide to creating a dog-friendly home environment and living harmoniously with your pet.',
+    readTime: '10 min read',
+    rating: 4.8,
+    reviews: 156,
+    image: 'https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=300&h=200&fit=crop',
+    author: {
+      name: 'American Kennel Club',
+      credentials: 'Official AKC Home Living Guide',
+      avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=face'
+    },
+    difficulty: 'Beginner',
+    tags: ['home living', 'dog care', 'environment', 'lifestyle'],
+    downloadable: true,
+    content: 'Complete guide to home living with dogs...',
+    relatedArticles: [5, 7, 9],
+    url: 'https://www.akc.org/expert-advice/home-living/'
   }
 ];
 
