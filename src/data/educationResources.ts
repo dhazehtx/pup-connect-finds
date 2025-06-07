@@ -1,3 +1,4 @@
+
 import { EducationResource } from '../hooks/useEducationSearch';
 
 export const educationResources: EducationResource[] = [
@@ -72,7 +73,7 @@ export const educationResources: EducationResource[] = [
     readTime: '10 min read',
     rating: 4.8,
     reviews: 156,
-    image: '/lovable-uploads/75316943-0598-40bc-bcb4-84665859ea00.png',
+    image: '/lovable-uploads/5c25f5ac-d644-465c-abc2-dc66bbdf3a94.png',
     author: {
       name: 'American Kennel Club',
       credentials: 'Official AKC Home Living Guide',
