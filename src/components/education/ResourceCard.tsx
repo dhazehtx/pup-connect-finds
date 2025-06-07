@@ -68,7 +68,7 @@ export const ResourceCard: React.FC<ResourceCardProps> = ({
             <img
               src={resource.image}
               alt={resource.title}
-              className="w-full h-full object-contain"
+              className="w-full h-full object-cover"
             />
           </div>
           <div className="absolute top-3 left-3 flex gap-2">
