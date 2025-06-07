@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { MessageCircle, Mail, Phone, ExternalLink, Bot, Headphones } from 'lucide-react';
+import { MessageCircle, Mail, ExternalLink, Bot } from 'lucide-react';
 import SupportChatbot from '@/components/ai/SupportChatbot';
 import { useEnhancedAI } from '@/hooks/useEnhancedAI';
 
@@ -100,19 +100,6 @@ const HelpSidebar: React.FC<HelpSidebarProps> = ({ popularArticles }) => {
                 </div>
               </DialogContent>
             </Dialog>
-
-            {/* Enhanced Call Us with AI Pre-screening */}
-            <Button 
-              variant="outline" 
-              className="w-full border-royal-blue text-royal-blue hover:bg-royal-blue hover:text-white"
-              onClick={() => {
-                // Open AI pre-screening before call
-                setIsAIAssistantOpen(true);
-              }}
-            >
-              <Phone className="mr-2" size={16} />
-              Call Us (AI-Assisted)
-            </Button>
           </div>
         </CardContent>
       </Card>
@@ -129,10 +116,6 @@ const HelpSidebar: React.FC<HelpSidebarProps> = ({ popularArticles }) => {
               <Mail className="mr-2" size={16} />
               Email Support
             </Button>
-            <Button variant="outline" className="w-full border-royal-blue text-royal-blue hover:bg-royal-blue hover:text-white">
-              <Headphones className="mr-2" size={16} />
-              Direct Call
-            </Button>
           </div>
         </CardContent>
       </Card>
@@ -147,14 +130,6 @@ const HelpSidebar: React.FC<HelpSidebarProps> = ({ popularArticles }) => {
             <div className="flex justify-between">
               <span>AI Support</span>
               <span className="text-green-600 font-medium">24/7 Available</span>
-            </div>
-            <div className="flex justify-between">
-              <span>Human Support</span>
-              <span>9AM - 8PM EST</span>
-            </div>
-            <div className="flex justify-between">
-              <span>Weekend</span>
-              <span>10AM - 6PM EST</span>
             </div>
           </div>
         </CardContent>

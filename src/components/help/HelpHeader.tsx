@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Search, Bot, MessageCircle } from 'lucide-react';
+import { Search, Bot } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
@@ -31,8 +31,8 @@ const HelpHeader: React.FC<HelpHeaderProps> = ({ searchTerm, setSearchTerm }) =>
           />
         </div>
 
-        {/* Quick AI Support Access */}
-        <div className="flex justify-center gap-4">
+        {/* AI Assistant Access - Centered */}
+        <div className="flex justify-center">
           <Dialog open={isQuickChatOpen} onOpenChange={setIsQuickChatOpen}>
             <DialogTrigger asChild>
               <Button 
@@ -55,19 +55,6 @@ const HelpHeader: React.FC<HelpHeaderProps> = ({ searchTerm, setSearchTerm }) =>
               </div>
             </DialogContent>
           </Dialog>
-
-          <Button 
-            variant="outline" 
-            className="bg-white/10 border-white/20 text-white hover:bg-white/20"
-            onClick={() => {
-              // Scroll to contact section
-              const element = document.querySelector('[data-contact-section]');
-              element?.scrollIntoView({ behavior: 'smooth' });
-            }}
-          >
-            <MessageCircle className="mr-2" size={16} />
-            Get Human Help
-          </Button>
         </div>
       </div>
     </div>
