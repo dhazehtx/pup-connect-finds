@@ -38,6 +38,13 @@ export const TrainingPlannerTool: React.FC = () => {
         <Button 
           variant="outline" 
           size="sm"
+          onClick={() => window.open('https://www.akc.org/expert-advice/lifestyle/', '_blank')}
+        >
+          Lifestyle Guide
+        </Button>
+        <Button 
+          variant="outline" 
+          size="sm"
           onClick={() => window.open('https://www.akc.org/expert-advice/puppy-information/puppy-socialization/', '_blank')}
         >
           Socialization Checklist

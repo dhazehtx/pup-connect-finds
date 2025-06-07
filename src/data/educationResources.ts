@@ -85,6 +85,27 @@ export const educationResources: EducationResource[] = [
     content: 'Complete guide to home living with dogs...',
     relatedArticles: [5, 7, 9],
     url: 'https://www.akc.org/expert-advice/home-living/'
+  },
+  {
+    id: 11,
+    category: 'firsttime',
+    title: 'Dog Lifestyle Guide',
+    description: 'Comprehensive AKC lifestyle guide for dog owners covering daily routines, exercise, and enrichment activities.',
+    readTime: '8 min read',
+    rating: 4.7,
+    reviews: 134,
+    image: 'https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=300&h=200&fit=crop',
+    author: {
+      name: 'American Kennel Club',
+      credentials: 'Official AKC Lifestyle Guide',
+      avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=face'
+    },
+    difficulty: 'Beginner',
+    tags: ['lifestyle', 'daily care', 'exercise', 'enrichment'],
+    downloadable: true,
+    content: 'Complete lifestyle guide for dog owners...',
+    relatedArticles: [5, 7, 9, 10],
+    url: 'https://www.akc.org/expert-advice/lifestyle/'
   }
 ];
 

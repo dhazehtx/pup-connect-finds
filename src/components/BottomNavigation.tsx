@@ -18,10 +18,12 @@ const BottomNavigation = () => {
       setShowGuestPrompt(true);
       return;
     }
+    console.log('Navigating to protected route:', path);
     navigate(path);
   };
 
   const handleNavigation = (path: string) => {
+    console.log('Navigating to public route:', path);
     navigate(path);
   };
 
@@ -82,7 +84,12 @@ const BottomNavigation = () => {
             return (
               <button
                 key={item.path}
-                onClick={item.onClick}
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  console.log('Button clicked for:', item.label, item.path);
+                  item.onClick();
+                }}
                 className={`flex flex-col items-center justify-center p-2 transition-colors ${
                   active 
                     ? 'text-white bg-blue-600' 
