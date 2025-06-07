@@ -7,8 +7,7 @@ import {
   MessageCircle, 
   Share2, 
   MoreHorizontal,
-  Plus,
-  BarChart3
+  Plus
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useDogListings } from '@/hooks/useDogListings';
@@ -179,20 +178,9 @@ const Home = () => {
     <div className="min-h-screen bg-gray-50">
       {/* Instagram-like Feed */}
       <div className="max-w-md mx-auto bg-white min-h-screen">
-        {/* Header with Progress Button */}
+        {/* Header */}
         <div className="p-4 border-b border-gray-200 bg-white sticky top-0 z-20">
-          <div className="flex items-center justify-between mb-4">
-            <h1 className="text-2xl font-bold">Home</h1>
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={() => navigate('/completion-dashboard')}
-              className="flex items-center gap-2"
-            >
-              <BarChart3 className="w-4 h-4" />
-              Progress
-            </Button>
-          </div>
+          <h1 className="text-2xl font-bold mb-4">Home</h1>
           
           {/* Stories Section */}
           <div className="flex space-x-4 overflow-x-auto scrollbar-hide">
