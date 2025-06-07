@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useToast } from '@/hooks/use-toast';
 
 const ContactUs = () => {
   const [formData, setFormData] = useState({
@@ -15,11 +16,42 @@ const ContactUs = () => {
     category: '',
     message: ''
   });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { toast } = useToast();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Form submitted:', formData);
-    // Handle form submission
+    setIsSubmitting(true);
+    
+    try {
+      // Simulate form submission delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      console.log('Form submitted:', formData);
+      
+      // Show success toast
+      toast({
+        title: "Message Sent Successfully!",
+        description: "Thank you for contacting us. We'll respond to your inquiry within 24 hours.",
+      });
+      
+      // Reset form
+      setFormData({
+        name: '',
+        email: '',
+        subject: '',
+        category: '',
+        message: ''
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "There was an issue sending your message. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const contactMethods = [
@@ -50,24 +82,6 @@ const ContactUs = () => {
       description: 'Browse our knowledge base',
       contact: 'Self-service support',
       responseTime: 'Immediate access'
-    }
-  ];
-
-  const officeLocations = [
-    {
-      city: 'Austin, TX',
-      address: '123 Puppy Lane, Austin, TX 78701',
-      phone: '(512) 555-0123'
-    },
-    {
-      city: 'Denver, CO',
-      address: '456 Dog Street, Denver, CO 80202',
-      phone: '(303) 555-0456'
-    },
-    {
-      city: 'Miami, FL',
-      address: '789 Pet Avenue, Miami, FL 33101',
-      phone: '(305) 555-0789'
     }
   ];
 
@@ -118,6 +132,7 @@ const ContactUs = () => {
                       onChange={(e) => setFormData({...formData, name: e.target.value})}
                       placeholder="Your full name"
                       required
+                      disabled={isSubmitting}
                     />
                   </div>
                   <div>
@@ -128,13 +143,18 @@ const ContactUs = () => {
                       onChange={(e) => setFormData({...formData, email: e.target.value})}
                       placeholder="your@email.com"
                       required
+                      disabled={isSubmitting}
                     />
                   </div>
                 </div>
                 
                 <div>
                   <label className="block text-sm font-medium text-deep-navy mb-2">Category</label>
-                  <Select value={formData.category} onValueChange={(value) => setFormData({...formData, category: value})}>
+                  <Select 
+                    value={formData.category} 
+                    onValueChange={(value) => setFormData({...formData, category: value})}
+                    disabled={isSubmitting}
+                  >
                     <SelectTrigger>
                       <SelectValue placeholder="Select a category" />
                     </SelectTrigger>
@@ -156,6 +176,7 @@ const ContactUs = () => {
                     onChange={(e) => setFormData({...formData, subject: e.target.value})}
                     placeholder="Brief description of your inquiry"
                     required
+                    disabled={isSubmitting}
                   />
                 </div>
 
@@ -167,18 +188,23 @@ const ContactUs = () => {
                     placeholder="Please provide details about your inquiry..."
                     rows={5}
                     required
+                    disabled={isSubmitting}
                   />
                 </div>
 
-                <Button type="submit" className="w-full bg-royal-blue hover:bg-deep-navy">
+                <Button 
+                  type="submit" 
+                  className="w-full bg-royal-blue hover:bg-deep-navy"
+                  disabled={isSubmitting}
+                >
                   <Send className="mr-2" size={16} />
-                  Send Message
+                  {isSubmitting ? 'Sending...' : 'Send Message'}
                 </Button>
               </form>
             </CardContent>
           </Card>
 
-          {/* Contact Information & Office Locations */}
+          {/* Contact Information */}
           <div className="space-y-8">
             {/* Business Hours */}
             <Card className="border-soft-sky">
@@ -211,40 +237,21 @@ const ContactUs = () => {
               </CardContent>
             </Card>
 
-            {/* Office Locations */}
-            <Card className="border-soft-sky">
+            {/* Important Notice */}
+            <Card className="border-royal-blue bg-royal-blue/5">
               <CardHeader>
-                <CardTitle className="text-deep-navy flex items-center">
-                  <MapPin className="mr-2" />
-                  Office Locations
-                </CardTitle>
+                <CardTitle className="text-deep-navy">Important Notice</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  {officeLocations.map((office, index) => (
-                    <div key={index} className="border-b border-soft-sky last:border-b-0 pb-4 last:pb-0">
-                      <h4 className="font-semibold text-deep-navy mb-2">{office.city}</h4>
-                      <p className="text-sm text-deep-navy/70 mb-1">{office.address}</p>
-                      <p className="text-sm text-royal-blue">{office.phone}</p>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Emergency Contact */}
-            <Card className="border-red-200 bg-red-50">
-              <CardHeader>
-                <CardTitle className="text-red-800">Emergency Support</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-red-700 mb-4">
-                  For urgent safety concerns, fraud reports, or emergency situations:
+                <p className="text-deep-navy/70 mb-4">
+                  For all emergency situations, safety concerns, or urgent fraud reports, please contact us immediately via email at:
                 </p>
-                <Button className="bg-red-600 hover:bg-red-700 text-white">
-                  <Phone className="mr-2" size={16} />
-                  Emergency Hotline: 1-800-URGENT-1
-                </Button>
+                <div className="bg-white p-3 rounded-lg border">
+                  <p className="text-royal-blue font-medium">emergency@mypup.com</p>
+                </div>
+                <p className="text-sm text-deep-navy/60 mt-3">
+                  We monitor emergency emails 24/7 and will respond immediately to urgent matters.
+                </p>
               </CardContent>
             </Card>
           </div>
