@@ -30,7 +30,7 @@ export const educationResources: EducationResource[] = [
     readTime: '12 min read',
     rating: 4.7,
     reviews: 78,
-    image: 'https://images.unsplash.com/photo-1535268647677-300dbf3d78d1?w=300&h=200&fit=crop',
+    image: 'https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=300&h=200&fit=crop',
     author: {
       name: 'American Kennel Club',
       credentials: 'Official AKC Health Guide',
