@@ -10,7 +10,7 @@ export const educationSectionsData = [
       {
         title: 'Puppy Vaccination Schedule',
         description: 'Complete guide to puppy shots and vaccination timeline',
-        url: 'https://www.akc.org/expert-advice/health/puppy-shots-complete-guide/',
+        url: 'https://www.petmd.com/dog/puppies/evr_puppy_vaccination_schedule',
         readTime: '12 min read',
         rating: 4.9,
         difficulty: 'Intermediate'
@@ -18,7 +18,7 @@ export const educationSectionsData = [
       {
         title: 'Dog Health Symptoms to Watch For',
         description: 'Warning signs that require immediate veterinary attention',
-        url: 'https://www.akc.org/expert-advice/health/symptoms-sick-dog/',
+        url: 'https://www.petmd.com/dog/symptoms',
         readTime: '14 min read',
         rating: 4.8,
         difficulty: 'Beginner'
@@ -26,7 +26,7 @@ export const educationSectionsData = [
       {
         title: 'Spaying and Neutering Your Dog',
         description: 'Everything you need to know about spaying and neutering',
-        url: 'https://www.akc.org/expert-advice/health/spaying-and-neutering/',
+        url: 'https://www.aspca.org/pet-care/general-pet-care/spayneuter-your-pet',
         readTime: '11 min read',
         rating: 4.7,
         difficulty: 'Intermediate'
@@ -34,7 +34,7 @@ export const educationSectionsData = [
       {
         title: 'Dog Allergies: Causes and Treatment',
         description: 'Understanding and managing allergies in dogs',
-        url: 'https://www.akc.org/expert-advice/health/dog-allergies/',
+        url: 'https://www.petmd.com/dog/conditions/skin/c_dg_allergies',
         readTime: '10 min read',
         rating: 4.6,
         difficulty: 'Intermediate'
@@ -42,7 +42,7 @@ export const educationSectionsData = [
       {
         title: 'Fleas and Ticks on Dogs',
         description: 'Protecting your dog from fleas and ticks',
-        url: 'https://www.akc.org/expert-advice/health/fleas-and-ticks/',
+        url: 'https://www.petmd.com/dog/parasites/evr_multi_fleas_and_tick_control',
         readTime: '13 min read',
         rating: 4.8,
         difficulty: 'Beginner'
@@ -50,7 +50,7 @@ export const educationSectionsData = [
       {
         title: 'Senior Dog Health Care',
         description: 'Special health considerations for aging dogs',
-        url: 'https://www.akc.org/expert-advice/health/senior-dog-health-care/',
+        url: 'https://www.aspca.org/pet-care/dog-care/senior-dog-care',
         readTime: '15 min read',
         rating: 4.7,
         difficulty: 'Intermediate'
@@ -67,7 +67,7 @@ export const educationSectionsData = [
       {
         title: 'Puppy Feeding Guide',
         description: 'Complete nutrition guide for puppies from 8 weeks to 1 year',
-        url: 'https://www.akc.org/expert-advice/nutrition/puppy-feeding-guide/',
+        url: 'https://www.petmd.com/dog/puppies/evr_puppy_feeding',
         readTime: '13 min read',
         rating: 4.9,
         difficulty: 'Beginner'
@@ -75,7 +75,7 @@ export const educationSectionsData = [
       {
         title: 'How Much Should I Feed My Dog?',
         description: 'Portion control and feeding guidelines for adult dogs',
-        url: 'https://www.akc.org/expert-advice/nutrition/how-much-food-should-i-feed-my-dog/',
+        url: 'https://www.petmd.com/dog/nutrition/evr_multi_how_much_to_feed_dog',
         readTime: '9 min read',
         rating: 4.8,
         difficulty: 'Beginner'
@@ -83,7 +83,7 @@ export const educationSectionsData = [
       {
         title: 'Human Foods Dogs Can and Cannot Eat',
         description: 'Comprehensive list of safe and toxic foods for dogs',
-        url: 'https://www.akc.org/expert-advice/nutrition/human-foods-dogs-can-and-cannot-eat/',
+        url: 'https://www.aspca.org/pet-care/animal-poison-control/people-foods-avoid-feeding-your-pets',
         readTime: '16 min read',
         rating: 4.9,
         difficulty: 'Beginner'
@@ -91,7 +91,7 @@ export const educationSectionsData = [
       {
         title: 'What to Look for in a Dog Food',
         description: 'Understanding dog food labels and ingredients',
-        url: 'https://www.akc.org/expert-advice/nutrition/what-to-look-for-in-a-dog-food/',
+        url: 'https://www.petmd.com/dog/nutrition/evr_multi_selecting_dog_food',
         readTime: '12 min read',
         rating: 4.6,
         difficulty: 'Intermediate'
@@ -99,7 +99,7 @@ export const educationSectionsData = [
       {
         title: 'Best Dog Food for Senior Dogs',
         description: 'Special dietary needs for older dogs',
-        url: 'https://www.akc.org/expert-advice/nutrition/best-dog-food-for-senior-dogs/',
+        url: 'https://www.petmd.com/dog/nutrition/best-senior-dog-food',
         readTime: '11 min read',
         rating: 4.7,
         difficulty: 'Intermediate'
@@ -107,7 +107,7 @@ export const educationSectionsData = [
       {
         title: 'Dog Nutrition 101',
         description: 'Essential nutrients and feeding fundamentals',
-        url: 'https://www.akc.org/expert-advice/nutrition/dog-nutrition-101/',
+        url: 'https://www.petmd.com/dog/nutrition/evr_multi_basic_nutrition_for_dogs',
         readTime: '8 min read',
         rating: 4.5,
         difficulty: 'Beginner'
@@ -124,7 +124,7 @@ export const educationSectionsData = [
       {
         title: 'Puppy Training Timeline',
         description: 'When and how to start training your puppy',
-        url: 'https://www.akc.org/expert-advice/training/puppy-training-timeline/',
+        url: 'https://www.aspca.org/pet-care/dog-care/common-dog-behavior-issues/teaching-your-dog-basic-commands',
         readTime: '14 min read',
         rating: 4.9,
         difficulty: 'Beginner'
@@ -132,7 +132,7 @@ export const educationSectionsData = [
       {
         title: 'House Training Your Puppy',
         description: 'Step-by-step guide to potty training',
-        url: 'https://www.akc.org/expert-advice/training/how-to-potty-train-a-puppy/',
+        url: 'https://www.aspca.org/pet-care/dog-care/common-dog-behavior-issues/house-training-your-puppy',
         readTime: '12 min read',
         rating: 4.8,
         difficulty: 'Beginner'
@@ -140,7 +140,7 @@ export const educationSectionsData = [
       {
         title: '5 Essential Commands Every Dog Should Know',
         description: 'Basic commands for safety and good behavior',
-        url: 'https://www.akc.org/expert-advice/training/5-essential-commands-you-can-teach-your-dog/',
+        url: 'https://www.petmd.com/dog/training/basic-dog-training-commands',
         readTime: '15 min read',
         rating: 4.8,
         difficulty: 'Beginner'
@@ -148,7 +148,7 @@ export const educationSectionsData = [
       {
         title: 'How to Stop Destructive Dog Behavior',
         description: 'Addressing common behavioral problems',
-        url: 'https://www.akc.org/expert-advice/training/destructive-behavior/',
+        url: 'https://www.aspca.org/pet-care/dog-care/common-dog-behavior-issues/destructive-chewing',
         readTime: '13 min read',
         rating: 4.7,
         difficulty: 'Intermediate'
@@ -156,7 +156,7 @@ export const educationSectionsData = [
       {
         title: 'Positive Reinforcement Dog Training',
         description: 'Reward-based training methods that work',
-        url: 'https://www.akc.org/expert-advice/training/positive-reinforcement-training/',
+        url: 'https://www.aspca.org/pet-care/dog-care/common-dog-behavior-issues/positive-reinforcement-training',
         readTime: '11 min read',
         rating: 4.8,
         difficulty: 'Beginner'
@@ -164,7 +164,7 @@ export const educationSectionsData = [
       {
         title: 'Teaching Your Dog to Walk on a Leash',
         description: 'Step-by-step leash training guide',
-        url: 'https://www.akc.org/expert-advice/training/teach-your-puppy-to-walk-on-a-leash/',
+        url: 'https://www.aspca.org/pet-care/dog-care/common-dog-behavior-issues/teaching-your-dog-not-pull-leash',
         readTime: '10 min read',
         rating: 4.6,
         difficulty: 'Beginner'
@@ -181,7 +181,7 @@ export const educationSectionsData = [
       {
         title: 'Preparing for Your New Puppy',
         description: 'Complete checklist for bringing your puppy home',
-        url: 'https://www.akc.org/expert-advice/puppy-information/preparing-for-your-new-puppy/',
+        url: 'https://www.aspca.org/pet-care/dog-care/bringing-dog-home',
         readTime: '16 min read',
         rating: 4.9,
         difficulty: 'Beginner'
@@ -189,7 +189,7 @@ export const educationSectionsData = [
       {
         title: 'Your Puppy\'s First Week Home',
         description: 'Essential guide for your puppy\'s first week at home',
-        url: 'https://www.akc.org/expert-advice/puppy-information/first-week-puppy/',
+        url: 'https://www.petmd.com/dog/puppies/puppy-first-week-home',
         readTime: '12 min read',
         rating: 4.8,
         difficulty: 'Beginner'
@@ -197,7 +197,7 @@ export const educationSectionsData = [
       {
         title: 'Puppy Socialization Guide',
         description: 'Critical socialization period and techniques',
-        url: 'https://www.akc.org/expert-advice/puppy-information/puppy-socialization/',
+        url: 'https://www.aspca.org/pet-care/dog-care/common-dog-behavior-issues/socializing-your-puppy',
         readTime: '14 min read',
         rating: 4.9,
         difficulty: 'Beginner'
@@ -205,7 +205,7 @@ export const educationSectionsData = [
       {
         title: 'Puppy Development From Birth to Adulthood',
         description: 'Understanding your puppy\'s growth stages',
-        url: 'https://www.akc.org/expert-advice/puppy-information/puppy-development-from-birth-to-adulthood/',
+        url: 'https://www.petmd.com/dog/puppies/puppy-development-stages',
         readTime: '13 min read',
         rating: 4.7,
         difficulty: 'Beginner'
@@ -213,7 +213,7 @@ export const educationSectionsData = [
       {
         title: 'Why Do Puppies Sleep So Much?',
         description: 'Understanding puppy sleep patterns and needs',
-        url: 'https://www.akc.org/expert-advice/puppy-information/why-do-puppies-sleep-so-much/',
+        url: 'https://www.petmd.com/dog/puppies/why-do-puppies-sleep-so-much',
         readTime: '9 min read',
         rating: 4.6,
         difficulty: 'Beginner'
@@ -221,7 +221,7 @@ export const educationSectionsData = [
       {
         title: 'When Do Puppies Open Their Eyes?',
         description: 'Puppy development milestones and eye opening',
-        url: 'https://www.akc.org/expert-advice/puppy-information/when-do-puppies-open-their-eyes/',
+        url: 'https://www.petmd.com/dog/puppies/when-do-puppies-open-their-eyes',
         readTime: '11 min read',
         rating: 4.7,
         difficulty: 'Beginner'
@@ -238,7 +238,7 @@ export const educationSectionsData = [
       {
         title: 'How to Choose a Veterinarian',
         description: 'Essential tips for finding the right vet for your dog',
-        url: 'https://www.akc.org/expert-advice/health/finding-veterinarian/',
+        url: 'https://www.aspca.org/pet-care/general-pet-care/how-choose-veterinarian',
         readTime: '10 min read',
         rating: 4.8,
         difficulty: 'Beginner'
@@ -246,7 +246,7 @@ export const educationSectionsData = [
       {
         title: 'When to Take Your Dog to the Emergency Vet',
         description: 'Recognizing emergency situations requiring immediate care',
-        url: 'https://www.akc.org/expert-advice/health/when-take-dog-emergency-vet/',
+        url: 'https://www.petmd.com/dog/emergency/common-emergencies/when-take-your-dog-emergency-vet',
         readTime: '12 min read',
         rating: 4.9,
         difficulty: 'Intermediate'
@@ -254,7 +254,7 @@ export const educationSectionsData = [
       {
         title: 'Dog Dental Care and Health',
         description: 'Maintaining your dog\'s oral health',
-        url: 'https://www.akc.org/expert-advice/health/dog-dental-care/',
+        url: 'https://www.aspca.org/pet-care/dog-care/dog-care-dental-care',
         readTime: '8 min read',
         rating: 4.5,
         difficulty: 'Beginner'
@@ -262,7 +262,7 @@ export const educationSectionsData = [
       {
         title: 'Dog Insurance Guide',
         description: 'Understanding pet insurance options and coverage',
-        url: 'https://www.akc.org/expert-advice/health/pet-insurance/',
+        url: 'https://www.aspca.org/pet-care/pet-insurance',
         readTime: '11 min read',
         rating: 4.6,
         difficulty: 'Intermediate'
@@ -270,7 +270,7 @@ export const educationSectionsData = [
       {
         title: 'Regular Health Checkups for Dogs',
         description: 'What to expect during routine veterinary visits',
-        url: 'https://www.akc.org/expert-advice/health/dog-health-checkups/',
+        url: 'https://www.petmd.com/dog/wellness/evr_multi_routine_wellness_care',
         readTime: '9 min read',
         rating: 4.7,
         difficulty: 'Beginner'
