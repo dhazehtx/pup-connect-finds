@@ -106,13 +106,42 @@ export const useGeolocation = () => {
     });
   };
 
+  const watchLocation = (): number | null => {
+    if (!navigator.geolocation) return null;
+
+    return navigator.geolocation.watchPosition(
+      (position) => {
+        const locationData: GeolocationPosition = {
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude,
+          accuracy: position.coords.accuracy,
+          timestamp: position.timestamp
+        };
+        
+        setPosition(locationData);
+      },
+      (error) => {
+        console.error('Location watch error:', error);
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 60000 // 1 minute
+      }
+    );
+  };
+
+  const clearWatch = (watchId: number) => {
+    navigator.geolocation.clearWatch(watchId);
+  };
+
   const calculateDistance = (
     lat1: number, 
     lng1: number, 
     lat2: number, 
     lng2: number
   ): number => {
-    const R = 3959; // Earth's radius in miles
+    const R = 6371; // Earth's radius in kilometers
     const dLat = (lat2 - lat1) * Math.PI / 180;
     const dLng = (lng2 - lng1) * Math.PI / 180;
     const a = 
@@ -125,9 +154,11 @@ export const useGeolocation = () => {
 
   const formatDistance = (distance: number): string => {
     if (distance < 1) {
-      return `${Math.round(distance * 5280)}ft`; // Convert to feet for distances less than 1 mile
+      return `${Math.round(distance * 1000)}m`;
+    } else if (distance < 100) {
+      return `${distance.toFixed(1)}km`;
     } else {
-      return `${distance.toFixed(1)}mi`;
+      return `${Math.round(distance)}km`;
     }
   };
 
@@ -141,6 +172,8 @@ export const useGeolocation = () => {
     error,
     permission,
     getCurrentLocation,
+    watchLocation,
+    clearWatch,
     calculateDistance,
     formatDistance,
     checkPermission

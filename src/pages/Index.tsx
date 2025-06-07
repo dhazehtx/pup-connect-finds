@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route } from 'react-router-dom';
 import Home from './Home';
 import Explore from './Explore';
 import Post from './Post';
@@ -60,10 +60,6 @@ const Index = () => {
       <Route path="/auth" element={<Auth />} />
       <Route path="/auth/callback" element={<AuthCallback />} />
       <Route path="/post/:postId" element={<PostDetail />} />
-      
-      {/* Redirect old map routes to explore with location enabled */}
-      <Route path="/map" element={<Navigate to="/explore" replace />} />
-      <Route path="/location-explorer" element={<Navigate to="/explore" replace />} />
       
       {/* Profile routes - fully public with guest support */}
       <Route path="/profile/:userId" element={<Profile />} />
