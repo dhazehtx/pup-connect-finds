@@ -24,7 +24,6 @@ import Auth from './Auth';
 import AuthCallback from './AuthCallback';
 import PremiumDashboard from './PremiumDashboard';
 import BrowsePuppies from './BrowsePuppies';
-import Analytics from './Analytics';
 import HelpCenter from './HelpCenter';
 import TrustSafetyPublic from './TrustSafetyPublic';
 import ContactUs from './ContactUs';
@@ -46,7 +45,6 @@ const Index = () => {
       <Route path="/trust-safety" element={<TrustSafetyPublic />} />
       <Route path="/contact" element={<ContactUs />} />
       <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-      <Route path="/analytics" element={<Analytics />} />
       <Route path="/sample-data" element={<SampleData />} />
       <Route path="/ai-assistant" element={<AIAssistant />} />
       <Route path="/auth" element={<Auth />} />
