@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
-import { Heart, Mail, User, Eye, EyeOff, Shield, Lock } from 'lucide-react';
+import { Heart, Mail, User, Eye, EyeOff, Shield, Lock, Apple } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 
@@ -73,7 +73,7 @@ const ProfileAuthScreen = () => {
 
   return (
     <div className="max-w-md mx-auto bg-background min-h-screen flex items-center justify-center p-4">
-      <Card className="w-full bg-card border-border shadow-lg">
+      <Card className="w-full bg-card border-black shadow-lg">
         <CardHeader className="text-center pb-4">
           <div className="w-16 h-16 mx-auto mb-4 bg-primary rounded-full flex items-center justify-center">
             <Heart size={32} className="text-primary-foreground" />
@@ -100,7 +100,7 @@ const ProfileAuthScreen = () => {
                   description: "Google sign-in will be available soon.",
                 });
               }}
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white border-2 border-black"
               disabled={loading}
             >
               <Mail size={18} className="mr-2" />
@@ -111,11 +111,26 @@ const ProfileAuthScreen = () => {
               onClick={() => {
                 toast({
                   title: "Coming Soon!",
+                  description: "Apple sign-in will be available soon.",
+                });
+              }}
+              variant="outline"
+              className="w-full border-2 border-black text-foreground hover:bg-muted"
+              disabled={loading}
+            >
+              <Apple size={18} className="mr-2" />
+              Continue with Apple
+            </Button>
+            
+            <Button
+              onClick={() => {
+                toast({
+                  title: "Coming Soon!",
                   description: "Facebook sign-in will be available soon.",
                 });
               }}
               variant="outline"
-              className="w-full border-border text-foreground hover:bg-muted"
+              className="w-full border-2 border-black text-foreground hover:bg-muted"
               disabled={loading}
             >
               <User size={18} className="mr-2" />
@@ -141,7 +156,7 @@ const ProfileAuthScreen = () => {
                     placeholder="Enter your full name"
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
-                    className={`mt-1 ${errors.fullName ? 'border-destructive' : ''}`}
+                    className={`mt-1 border-2 border-black ${errors.fullName ? 'border-destructive' : ''}`}
                     disabled={loading}
                   />
                   {errors.fullName && (
@@ -157,7 +172,7 @@ const ProfileAuthScreen = () => {
                     placeholder="Choose a username"
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
-                    className={`mt-1 ${errors.username ? 'border-destructive' : ''}`}
+                    className={`mt-1 border-2 border-black ${errors.username ? 'border-destructive' : ''}`}
                     disabled={loading}
                   />
                   {errors.username && (
@@ -175,7 +190,7 @@ const ProfileAuthScreen = () => {
                 placeholder="Enter your email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className={`mt-1 ${errors.email ? 'border-destructive' : ''}`}
+                className={`mt-1 border-2 border-black ${errors.email ? 'border-destructive' : ''}`}
                 disabled={loading}
               />
               {errors.email && (
@@ -192,7 +207,7 @@ const ProfileAuthScreen = () => {
                   placeholder="Enter your password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className={`mt-1 pr-10 ${errors.password ? 'border-destructive' : ''}`}
+                  className={`mt-1 pr-10 border-2 border-black ${errors.password ? 'border-destructive' : ''}`}
                   disabled={loading}
                 />
                 <button
@@ -212,7 +227,7 @@ const ProfileAuthScreen = () => {
             <Button
               type="submit"
               disabled={loading}
-              className="w-full bg-primary hover:bg-primary/90 text-primary-foreground disabled:opacity-50"
+              className="w-full bg-primary hover:bg-primary/90 text-primary-foreground disabled:opacity-50 border-2 border-black"
             >
               {loading ? (
                 <>
