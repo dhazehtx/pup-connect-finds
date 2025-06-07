@@ -25,9 +25,9 @@ const Footer = () => {
               <div className="w-8 h-8 bg-royal-blue rounded-full flex items-center justify-center">
                 <Heart size={20} className="text-white" />
               </div>
-              <span className="text-xl font-bold text-white">MY PUP</span>
+              <span className="text-xl font-bold text-white !text-white">MY PUP</span>
             </div>
-            <p className="text-white/80 mb-4 max-w-md">
+            <p className="text-white/80 mb-4 max-w-md !text-white">
               Connecting loving families with their perfect puppy companions. 
               Find trusted breeders, verified sellers, and your next best friend.
             </p>
@@ -46,30 +46,30 @@ const Footer = () => {
 
           {/* Quick Links */}
           <div>
-            <h3 className="font-semibold mb-4 text-white">Quick Links</h3>
+            <h3 className="font-semibold mb-4 text-white !text-white">Quick Links</h3>
             <ul className="space-y-2">
               <li>
-                <Link to="/explore" onClick={handleLinkClick} className="text-white/80 hover:text-white transition-colors">
+                <Link to="/explore" onClick={handleLinkClick} className="text-white/80 hover:text-white transition-colors !text-white">
                   Browse Puppies
                 </Link>
               </li>
               <li>
-                <Link to="/education" onClick={handleLinkClick} className="text-white/80 hover:text-white transition-colors">
+                <Link to="/education" onClick={handleLinkClick} className="text-white/80 hover:text-white transition-colors !text-white">
                   Education
                 </Link>
               </li>
               <li>
-                <Link to="/faq" onClick={handleLinkClick} className="text-white/80 hover:text-white transition-colors">
+                <Link to="/faq" onClick={handleLinkClick} className="text-white/80 hover:text-white transition-colors !text-white">
                   FAQ
                 </Link>
               </li>
               <li>
-                <Link to="/customer-reviews" onClick={handleLinkClick} className="text-white/80 hover:text-white transition-colors">
+                <Link to="/customer-reviews" onClick={handleLinkClick} className="text-white/80 hover:text-white transition-colors !text-white">
                   Customer Reviews
                 </Link>
               </li>
               <li>
-                <Link to="/legal" onClick={handleLinkClick} className="text-white/80 hover:text-white transition-colors">
+                <Link to="/legal" onClick={handleLinkClick} className="text-white/80 hover:text-white transition-colors !text-white">
                   Legal
                 </Link>
               </li>
@@ -78,25 +78,25 @@ const Footer = () => {
 
           {/* Support */}
           <div>
-            <h3 className="font-semibold mb-4 text-white">Support</h3>
+            <h3 className="font-semibold mb-4 text-white !text-white">Support</h3>
             <ul className="space-y-2">
               <li>
-                <Link to="/help-center" onClick={handleLinkClick} className="text-white/80 hover:text-white transition-colors">
+                <Link to="/help-center" onClick={handleLinkClick} className="text-white/80 hover:text-white transition-colors !text-white">
                   Help Center
                 </Link>
               </li>
               <li>
-                <Link to="/terms" onClick={handleLinkClick} className="text-white/80 hover:text-white transition-colors">
+                <Link to="/terms" onClick={handleLinkClick} className="text-white/80 hover:text-white transition-colors !text-white">
                   Terms of Service
                 </Link>
               </li>
               <li>
-                <Link to="/trust-safety" onClick={handleLinkClick} className="text-white/80 hover:text-white transition-colors">
+                <Link to="/trust-safety" onClick={handleLinkClick} className="text-white/80 hover:text-white transition-colors !text-white">
                   Trust & Safety
                 </Link>
               </li>
               <li>
-                <Link to="/contact" onClick={handleLinkClick} className="text-white/80 hover:text-white transition-colors flex items-center gap-2">
+                <Link to="/contact" onClick={handleLinkClick} className="text-white/80 hover:text-white transition-colors flex items-center gap-2 !text-white">
                   <Mail size={16} />
                   Contact Us
                 </Link>
@@ -107,17 +107,17 @@ const Footer = () => {
 
         {/* Bottom Section */}
         <div className="border-t border-white/20 mt-8 pt-8 flex flex-col md:flex-row justify-between items-center">
-          <div className="text-white/60 text-sm mb-4 md:mb-0">
+          <div className="text-white/60 text-sm mb-4 md:mb-0 !text-white">
             © 2024 MY PUP. All rights reserved.
           </div>
           <div className="flex items-center gap-6 text-sm text-white/60">
-            <Link to="/privacy-policy" onClick={handleLinkClick} className="hover:text-white transition-colors">
+            <Link to="/privacy-policy" onClick={handleLinkClick} className="hover:text-white transition-colors !text-white">
               Privacy Policy
             </Link>
-            <Link to="/terms" onClick={handleLinkClick} className="hover:text-white transition-colors">
+            <Link to="/terms" onClick={handleLinkClick} className="hover:text-white transition-colors !text-white">
               Terms of Use
             </Link>
-            <span className="flex items-center gap-2 text-white/60">
+            <span className="flex items-center gap-2 text-white/60 !text-white">
               <MapPin size={16} />
               Made with ❤️ in the USA
             </span>
