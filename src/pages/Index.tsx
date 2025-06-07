@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import Home from './Home';
@@ -27,6 +26,8 @@ import HelpCenter from './HelpCenter';
 import TrustSafetyPublic from './TrustSafetyPublic';
 import ContactUs from './ContactUs';
 import PrivacyPolicy from './PrivacyPolicy';
+import FAQ from './FAQ';
+import CustomerReviews from './CustomerReviews';
 
 const Index = () => {
   return (
@@ -36,6 +37,8 @@ const Index = () => {
       <Route path="/explore" element={<Explore />} />
       <Route path="/map" element={<MapView />} />
       <Route path="/education" element={<Education />} />
+      <Route path="/faq" element={<FAQ />} />
+      <Route path="/customer-reviews" element={<CustomerReviews />} />
       <Route path="/partnerships" element={<Partnerships />} />
       <Route path="/terms" element={<TermsOfService />} />
       <Route path="/help" element={<Help />} />

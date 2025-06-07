@@ -63,6 +63,16 @@ const Footer = () => {
                   Education
                 </Link>
               </li>
+              <li>
+                <Link to="/faq" onClick={handleLinkClick} className="text-cloud-white/80 hover:text-cloud-white transition-colors">
+                  FAQ
+                </Link>
+              </li>
+              <li>
+                <Link to="/customer-reviews" onClick={handleLinkClick} className="text-cloud-white/80 hover:text-cloud-white transition-colors">
+                  Customer Reviews
+                </Link>
+              </li>
             </ul>
           </div>
 
