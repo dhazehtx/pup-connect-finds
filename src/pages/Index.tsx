@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import Home from './Home';
@@ -9,7 +10,6 @@ import Notifications from './Notifications';
 import Settings from './Settings';
 import Profile from './Profile';
 import Verification from './Verification';
-import MapView from './MapView';
 import Education from './Education';
 import Monetization from './Monetization';
 import Partnerships from './Partnerships';
@@ -40,7 +40,6 @@ const Index = () => {
       {/* Public routes accessible to guests */}
       <Route path="/" element={<Home />} />
       <Route path="/explore" element={<Explore />} />
-      <Route path="/map" element={<MapView />} />
       <Route path="/education" element={<Education />} />
       <Route path="/faq" element={<FAQ />} />
       <Route path="/customer-reviews" element={<CustomerReviews />} />
