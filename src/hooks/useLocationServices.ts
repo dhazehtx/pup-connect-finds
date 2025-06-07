@@ -14,7 +14,7 @@ interface Location {
 }
 
 interface LocationPreferences {
-  maxDistance: number; // in km
+  maxDistance: number; // in miles
   allowLocationSharing: boolean;
   autoDetectLocation: boolean;
 }
@@ -25,7 +25,7 @@ export const useLocationServices = () => {
   const [locationPreferences, setLocationPreferences] = useState<LocationPreferences>({
     maxDistance: 50,
     allowLocationSharing: true,
-    autoDetectLocation: true
+    autoDetectLocation: false
   });
   const [loading, setLoading] = useState(false);
   
@@ -44,13 +44,6 @@ export const useLocationServices = () => {
       setLocationPreferences(JSON.parse(prefs));
     }
   }, []);
-
-  // Auto-detect location on mount if enabled
-  useEffect(() => {
-    if (locationPreferences.autoDetectLocation) {
-      detectCurrentLocation();
-    }
-  }, [locationPreferences.autoDetectLocation]);
 
   const detectCurrentLocation = useCallback(async () => {
     if (!locationPreferences.allowLocationSharing) {
@@ -89,15 +82,90 @@ export const useLocationServices = () => {
     }
   }, [getCurrentLocation, locationPreferences.allowLocationSharing, toast]);
 
+  const searchLocation = async (query: string): Promise<Location[]> => {
+    try {
+      // Mock location search - in production, use Google Places API or similar
+      const mockLocations: Location[] = [
+        {
+          lat: 37.7749,
+          lng: -122.4194,
+          address: `${query}, San Francisco, CA`,
+          city: 'San Francisco',
+          state: 'CA',
+          country: 'United States'
+        },
+        {
+          lat: 34.0522,
+          lng: -118.2437,
+          address: `${query}, Los Angeles, CA`,
+          city: 'Los Angeles',
+          state: 'CA',
+          country: 'United States'
+        }
+      ];
+      
+      return mockLocations;
+    } catch (error) {
+      console.error('Location search failed:', error);
+      return [];
+    }
+  };
+
+  const saveLocation = (location: Location, customName?: string) => {
+    const locationToSave = customName 
+      ? { ...location, address: customName }
+      : location;
+    
+    const updatedLocations = [...savedLocations, locationToSave];
+    setSavedLocations(updatedLocations);
+    localStorage.setItem('savedLocations', JSON.stringify(updatedLocations));
+    
+    toast({
+      title: "Location saved",
+      description: `${locationToSave.address} has been saved to your locations`,
+    });
+  };
+
+  const removeLocation = (index: number) => {
+    const updatedLocations = savedLocations.filter((_, i) => i !== index);
+    setSavedLocations(updatedLocations);
+    localStorage.setItem('savedLocations', JSON.stringify(updatedLocations));
+    
+    toast({
+      title: "Location removed",
+      description: "Location has been removed from your saved locations",
+    });
+  };
+
   const reverseGeocode = async (lat: number, lng: number) => {
     // Mock reverse geocoding - in production, use Google Maps Geocoding API
     try {
-      // Simulated API response
+      // Simulated API response based on common US locations
+      const mockCities = [
+        { name: 'San Francisco, CA', lat: 37.7749, lng: -122.4194 },
+        { name: 'Los Angeles, CA', lat: 34.0522, lng: -118.2437 },
+        { name: 'New York, NY', lat: 40.7128, lng: -74.0060 },
+        { name: 'Chicago, IL', lat: 41.8781, lng: -87.6298 },
+        { name: 'Austin, TX', lat: 30.2672, lng: -97.7431 },
+      ];
+      
+      // Find closest city for demo purposes
+      let closestCity = mockCities[0];
+      let minDistance = calculateDistance(lat, lng, closestCity.lat, closestCity.lng);
+      
+      for (const city of mockCities) {
+        const distance = calculateDistance(lat, lng, city.lat, city.lng);
+        if (distance < minDistance) {
+          minDistance = distance;
+          closestCity = city;
+        }
+      }
+      
       return {
-        formatted_address: `${lat.toFixed(4)}, ${lng.toFixed(4)}`,
-        city: 'Unknown City',
-        state: 'Unknown State',
-        country: 'Unknown Country',
+        formatted_address: closestCity.name,
+        city: closestCity.name.split(',')[0],
+        state: closestCity.name.split(',')[1]?.trim(),
+        country: 'United States',
         postalCode: '00000'
       };
     } catch (error) {
@@ -106,41 +174,6 @@ export const useLocationServices = () => {
         formatted_address: `${lat.toFixed(4)}, ${lng.toFixed(4)}`
       };
     }
-  };
-
-  const searchLocation = async (query: string): Promise<Location[]> => {
-    // Mock location search - in production, use Google Places API
-    const mockResults: Location[] = [
-      { lat: 40.7128, lng: -74.0060, address: "New York, NY", city: "New York", state: "NY" },
-      { lat: 34.0522, lng: -118.2437, address: "Los Angeles, CA", city: "Los Angeles", state: "CA" },
-      { lat: 41.8781, lng: -87.6298, address: "Chicago, IL", city: "Chicago", state: "IL" },
-    ];
-    
-    return mockResults.filter(location => 
-      location.address.toLowerCase().includes(query.toLowerCase())
-    );
-  };
-
-  const saveLocation = (location: Location, name?: string) => {
-    const locationToSave = {
-      ...location,
-      address: name || location.address
-    };
-    
-    const updated = [...savedLocations, locationToSave];
-    setSavedLocations(updated);
-    localStorage.setItem('savedLocations', JSON.stringify(updated));
-    
-    toast({
-      title: "Location saved",
-      description: `Saved "${locationToSave.address}"`,
-    });
-  };
-
-  const removeLocation = (index: number) => {
-    const updated = savedLocations.filter((_, i) => i !== index);
-    setSavedLocations(updated);
-    localStorage.setItem('savedLocations', JSON.stringify(updated));
   };
 
   const updatePreferences = (newPrefs: Partial<LocationPreferences>) => {
@@ -168,15 +201,6 @@ export const useLocationServices = () => {
     });
   };
 
-  const getNearbyListings = async (location?: Location) => {
-    const searchLocation = location || currentLocation;
-    if (!searchLocation) return [];
-
-    // This would integrate with your listings search to filter by location
-    // For now, return empty array as placeholder
-    return [];
-  };
-
   return {
     currentLocation,
     savedLocations,
@@ -189,7 +213,6 @@ export const useLocationServices = () => {
     updatePreferences,
     getDistanceToLocation,
     filterLocationsByDistance,
-    getNearbyListings,
     calculateDistance,
     formatDistance
   };

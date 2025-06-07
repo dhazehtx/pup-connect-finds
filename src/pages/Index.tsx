@@ -1,5 +1,6 @@
+
 import React from 'react';
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import Home from './Home';
 import Explore from './Explore';
 import Post from './Post';
@@ -9,7 +10,6 @@ import Notifications from './Notifications';
 import Settings from './Settings';
 import Profile from './Profile';
 import Verification from './Verification';
-import MapView from './MapView';
 import Education from './Education';
 import Monetization from './Monetization';
 import Partnerships from './Partnerships';
@@ -40,7 +40,6 @@ const Index = () => {
       {/* Public routes accessible to guests */}
       <Route path="/" element={<Home />} />
       <Route path="/explore" element={<Explore />} />
-      <Route path="/map" element={<MapView />} />
       <Route path="/education" element={<Education />} />
       <Route path="/faq" element={<FAQ />} />
       <Route path="/customer-reviews" element={<CustomerReviews />} />
@@ -61,6 +60,10 @@ const Index = () => {
       <Route path="/auth" element={<Auth />} />
       <Route path="/auth/callback" element={<AuthCallback />} />
       <Route path="/post/:postId" element={<PostDetail />} />
+      
+      {/* Redirect old map routes to explore with location enabled */}
+      <Route path="/map" element={<Navigate to="/explore" replace />} />
+      <Route path="/location-explorer" element={<Navigate to="/explore" replace />} />
       
       {/* Profile routes - fully public with guest support */}
       <Route path="/profile/:userId" element={<Profile />} />
