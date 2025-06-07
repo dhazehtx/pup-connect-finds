@@ -73,6 +73,11 @@ const Footer = () => {
                   Customer Reviews
                 </Link>
               </li>
+              <li>
+                <Link to="/legal" onClick={handleLinkClick} className="text-cloud-white/80 hover:text-cloud-white transition-colors">
+                  Legal
+                </Link>
+              </li>
             </ul>
           </div>
 

@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { star } from 'lucide-react';
+import { Star } from 'lucide-react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -78,7 +78,7 @@ const CustomerReviews = () => {
 
   const renderStars = (rating: number) => {
     return Array.from({ length: 5 }, (_, i) => (
-      <star
+      <Star
         key={i}
         size={16}
         className={`${i < rating ? 'text-yellow-400 fill-current' : 'text-gray-300'}`}

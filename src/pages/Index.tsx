@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import Home from './Home';
@@ -28,6 +29,7 @@ import ContactUs from './ContactUs';
 import PrivacyPolicy from './PrivacyPolicy';
 import FAQ from './FAQ';
 import CustomerReviews from './CustomerReviews';
+import Legal from './Legal';
 
 const Index = () => {
   return (
@@ -39,6 +41,7 @@ const Index = () => {
       <Route path="/education" element={<Education />} />
       <Route path="/faq" element={<FAQ />} />
       <Route path="/customer-reviews" element={<CustomerReviews />} />
+      <Route path="/legal" element={<Legal />} />
       <Route path="/partnerships" element={<Partnerships />} />
       <Route path="/terms" element={<TermsOfService />} />
       <Route path="/help" element={<Help />} />

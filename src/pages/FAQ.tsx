@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { ChevronDown, ChevronUp, help } from 'lucide-react';
+import { ChevronDown, ChevronUp, HelpCircle } from 'lucide-react';
 import { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -63,7 +63,7 @@ const FAQ = () => {
     <div className="max-w-4xl mx-auto px-4 py-8">
       <div className="text-center mb-8">
         <div className="w-16 h-16 mx-auto mb-4 bg-primary rounded-full flex items-center justify-center">
-          <help size={32} className="text-primary-foreground" />
+          <HelpCircle size={32} className="text-primary-foreground" />
         </div>
         <h1 className="text-3xl font-bold text-foreground mb-4">
           Frequently Asked Questions
