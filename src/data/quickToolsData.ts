@@ -34,5 +34,12 @@ export const quickToolsData = [
     description: 'Find the perfect dog breed for your lifestyle',
     color: 'bg-yellow-50 border-yellow-200',
     type: 'breed-selector'
+  },
+  {
+    id: 'emergency-guide',
+    title: '🚨 Emergency Quick Reference',
+    description: 'Essential emergency contacts and first aid guidance',
+    color: 'bg-orange-50 border-orange-200',
+    type: 'emergency-guide'
   }
 ];

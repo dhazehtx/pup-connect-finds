@@ -1,12 +1,13 @@
 
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Search, Calculator, Calendar, Heart } from 'lucide-react';
+import { Search, Calculator, Calendar, Phone, Heart } from 'lucide-react';
 import { VetFinderTool } from './tools/VetFinderTool';
 import { HealthCheckerTool } from './tools/HealthCheckerTool';
 import { FeedingCalculatorTool } from './tools/FeedingCalculatorTool';
 import { TrainingPlannerTool } from './tools/TrainingPlannerTool';
 import { BreedSelectorTool } from './tools/BreedSelectorTool';
+import { EmergencyGuideTool } from './tools/EmergencyGuideTool';
 
 interface QuickTool {
   id: string;
@@ -28,6 +29,7 @@ export const QuickToolCard: React.FC<QuickToolCardProps> = ({ tool }) => {
       case 'feeding-calculator': return <Calculator size={20} />;
       case 'training-planner': return <Calendar size={20} />;
       case 'breed-selector': return <Search size={20} />;
+      case 'emergency-guide': return <Phone size={20} />;
       default: return <Search size={20} />;
     }
   };
@@ -39,6 +41,7 @@ export const QuickToolCard: React.FC<QuickToolCardProps> = ({ tool }) => {
       case 'feeding-calculator': return <FeedingCalculatorTool />;
       case 'training-planner': return <TrainingPlannerTool />;
       case 'breed-selector': return <BreedSelectorTool />;
+      case 'emergency-guide': return <EmergencyGuideTool />;
       default: return null;
     }
   };
