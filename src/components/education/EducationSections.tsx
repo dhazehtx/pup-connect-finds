@@ -113,9 +113,9 @@ export const EducationSections: React.FC<EducationSectionsProps> = ({
           difficulty: 'Beginner'
         },
         {
-          title: 'Dog Food Allergies and Sensitivities',
-          description: 'Identifying and managing food allergies in dogs',
-          url: 'https://www.akc.org/expert-advice/nutrition/food-allergies/',
+          title: 'Dog Food Ingredients to Avoid',
+          description: 'Understanding harmful ingredients in commercial dog food',
+          url: 'https://www.akc.org/expert-advice/nutrition/what-dog-food-ingredients-to-avoid/',
           readTime: '12 min read',
           rating: 4.6,
           difficulty: 'Intermediate'
@@ -129,9 +129,9 @@ export const EducationSections: React.FC<EducationSectionsProps> = ({
           difficulty: 'Intermediate'
         },
         {
-          title: 'Dog Treats and Healthy Snacks',
-          description: 'Choosing nutritious treats and making healthy snacks',
-          url: 'https://www.akc.org/expert-advice/nutrition/healthy-dog-treats/',
+          title: 'Dog Nutrition Basics',
+          description: 'Essential nutrients and feeding fundamentals',
+          url: 'https://www.akc.org/expert-advice/nutrition/nutrition-101-for-dogs/',
           readTime: '8 min read',
           rating: 4.5,
           difficulty: 'Beginner'
@@ -186,9 +186,9 @@ export const EducationSections: React.FC<EducationSectionsProps> = ({
           difficulty: 'Beginner'
         },
         {
-          title: 'Leash Training Your Dog',
-          description: 'Teaching your dog to walk properly on a leash',
-          url: 'https://www.akc.org/expert-advice/training/leash-training/',
+          title: 'Teaching Your Dog to Walk on a Leash',
+          description: 'Step-by-step leash training guide',
+          url: 'https://www.akc.org/expert-advice/training/teach-your-puppy-to-walk-on-a-leash/',
           readTime: '10 min read',
           rating: 4.6,
           difficulty: 'Beginner'
@@ -235,17 +235,17 @@ export const EducationSections: React.FC<EducationSectionsProps> = ({
           difficulty: 'Beginner'
         },
         {
-          title: 'Puppy Sleep Schedule and Training',
-          description: 'Establishing healthy sleep patterns for puppies',
-          url: 'https://www.akc.org/expert-advice/puppy-information/puppy-sleep-schedule/',
+          title: 'Why Puppies Sleep So Much',
+          description: 'Understanding puppy sleep patterns and needs',
+          url: 'https://www.akc.org/expert-advice/puppy-information/why-do-puppies-sleep-so-much/',
           readTime: '9 min read',
           rating: 4.6,
           difficulty: 'Beginner'
         },
         {
-          title: 'Puppy Teething and Chewing',
-          description: 'Managing the teething phase and inappropriate chewing',
-          url: 'https://www.akc.org/expert-advice/puppy-information/puppy-teething/',
+          title: 'When Puppies Open Their Eyes',
+          description: 'Puppy development milestones and eye opening',
+          url: 'https://www.akc.org/expert-advice/puppy-information/when-do-puppies-open-their-eyes/',
           readTime: '11 min read',
           rating: 4.7,
           difficulty: 'Beginner'
@@ -276,33 +276,33 @@ export const EducationSections: React.FC<EducationSectionsProps> = ({
           difficulty: 'Intermediate'
         },
         {
-          title: 'Understanding Veterinary Costs',
-          description: 'Planning and budgeting for veterinary expenses',
-          url: 'https://www.akc.org/expert-advice/vets-corner/veterinary-costs/',
+          title: 'Dog Dental Care and Cleaning',
+          description: 'Maintaining your dog\'s oral health',
+          url: 'https://www.akc.org/expert-advice/health/dog-dental-care/',
           readTime: '8 min read',
           rating: 4.5,
           difficulty: 'Beginner'
         },
         {
-          title: 'Pet Insurance Guide',
-          description: 'Understanding pet insurance options and benefits',
-          url: 'https://www.akc.org/expert-advice/vets-corner/pet-insurance/',
+          title: 'Dog Insurance: What You Need to Know',
+          description: 'Understanding pet insurance options and coverage',
+          url: 'https://www.akc.org/expert-advice/health/dog-insurance/',
           readTime: '11 min read',
           rating: 4.6,
           difficulty: 'Intermediate'
         },
         {
-          title: 'Veterinary Dental Care',
-          description: 'Professional dental care and at-home maintenance',
-          url: 'https://www.akc.org/expert-advice/vets-corner/dental-care/',
+          title: 'Annual Dog Health Checkups',
+          description: 'What to expect during routine veterinary visits',
+          url: 'https://www.akc.org/expert-advice/health/annual-dog-health-checkups/',
           readTime: '9 min read',
           rating: 4.7,
           difficulty: 'Beginner'
         },
         {
-          title: 'Preventive Care Schedule',
-          description: 'Annual health check-ups and preventive care timeline',
-          url: 'https://www.akc.org/expert-advice/vets-corner/preventive-care/',
+          title: 'Dog X-Ray Costs and Procedures',
+          description: 'Understanding veterinary diagnostic procedures',
+          url: 'https://www.akc.org/expert-advice/health/dog-x-ray-cost/',
           readTime: '13 min read',
           rating: 4.8,
           difficulty: 'Beginner'

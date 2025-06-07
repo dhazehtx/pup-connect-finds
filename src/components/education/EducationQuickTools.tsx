@@ -28,7 +28,7 @@ export const EducationQuickTools: React.FC = () => {
               className="flex-1" 
             />
             <Button 
-              onClick={() => window.open(`https://www.akc.org/vet-finder/?zip=${zipCode}`, '_blank')}
+              onClick={() => window.open(`https://www.google.com/search?q=veterinarian+near+${zipCode}`, '_blank')}
               disabled={!zipCode}
             >
               Find Vets
@@ -42,7 +42,7 @@ export const EducationQuickTools: React.FC = () => {
               onClick={() => window.open('https://www.akc.org/expert-advice/vets-corner/emergency-vet-care/', '_blank')}
             >
               <Phone size={16} className="mr-2" />
-              Emergency Vet Locator
+              Emergency Vet Guide
             </Button>
             <Button 
               variant="outline" 
@@ -246,7 +246,7 @@ export const EducationQuickTools: React.FC = () => {
             <Button 
               variant="outline" 
               size="sm"
-              onClick={() => window.open('https://www.akc.org/expert-advice/health/dog-first-aid/', '_blank')}
+              onClick={() => window.open('https://www.akc.org/expert-advice/health/dog-dental-care/', '_blank')}
             >
               First Aid Guide
             </Button>
