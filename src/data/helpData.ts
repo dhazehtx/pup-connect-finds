@@ -62,11 +62,11 @@ export const faqs = [
 export const popularArticles = [
   {
     title: 'How to Choose the Right Puppy Breed for Your Family',
-    url: 'https://www.akc.org/expert-advice/dog-breeds/how-to-choose-the-right-dog-breed-for-your-lifestyle/'
+    url: 'https://www.petmd.com/dog/breeds/how-choose-right-dog-breed-you'
   },
   {
     title: 'Understanding Puppy Health Certificates',
-    url: 'https://www.avma.org/resources/pet-owners/petcare/health-certificates-pets'
+    url: 'https://www.petmd.com/dog/general-health/what-health-certificate-dogs'
   },
   {
     title: 'First-Time Buyer\'s Guide to Puppy Adoption',
@@ -78,6 +78,6 @@ export const popularArticles = [
   },
   {
     title: 'Preparing Your Home for a New Puppy',
-    url: 'https://www.akc.org/expert-advice/puppy-information/puppy-proofing-home/'
+    url: 'https://www.petmd.com/dog/puppies/puppy-proofing-your-home-checklist'
   }
 ];
