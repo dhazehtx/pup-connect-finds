@@ -82,12 +82,8 @@ const BottomNavigation = () => {
             return (
               <button
                 key={item.path}
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  item.onClick();
-                }}
-                className={`flex flex-col items-center justify-center p-2 transition-colors relative touch-manipulation cursor-pointer ${
+                onClick={item.onClick}
+                className={`flex flex-col items-center justify-center p-2 transition-colors relative ${
                   active 
                     ? 'text-white bg-blue-600' 
                     : user || !item.protected
@@ -96,7 +92,6 @@ const BottomNavigation = () => {
                 }`}
                 type="button"
                 aria-label={item.label}
-                style={{ pointerEvents: 'auto' }}
               >
                 <Icon size={20} className="flex-shrink-0" />
                 <span className="text-xs mt-1 font-medium truncate">{item.label}</span>
