@@ -83,14 +83,19 @@ const BottomNavigation = () => {
             return (
               <button
                 key={item.path}
-                onClick={item.onClick}
-                className={`flex flex-col items-center justify-center p-2 transition-colors ${
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  item.onClick();
+                }}
+                className={`flex flex-col items-center justify-center p-2 transition-colors relative ${
                   active 
                     ? 'text-white bg-blue-600 rounded-t-lg' 
                     : user || !item.protected
                       ? 'text-gray-600 hover:text-blue-600'
                       : 'text-gray-400'
                 }`}
+                type="button"
               >
                 <Icon size={20} />
                 <span className="text-xs mt-1 font-medium">{item.label}</span>
