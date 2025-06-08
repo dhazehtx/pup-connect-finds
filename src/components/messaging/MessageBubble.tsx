@@ -1,115 +1,66 @@
 
 import React from 'react';
-import { formatDistanceToNow } from 'date-fns';
-import { Check, CheckCheck, Download } from 'lucide-react';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
+import { Badge } from '@/components/ui/badge';
+import { formatDistanceToNow } from 'date-fns';
 
 interface MessageBubbleProps {
   message: {
     id: string;
     content: string;
-    message_type: string;
-    image_url?: string;
-    created_at: string;
-    read_at?: string;
     sender_id: string;
-  };
-  sender: {
-    full_name: string;
-    avatar_url?: string;
+    created_at: string;
+    message_type?: string;
+    image_url?: string;
+    read_at?: string;
   };
   isOwn: boolean;
-  isLast?: boolean;
+  senderName?: string;
+  senderAvatar?: string;
+  showAvatar?: boolean;
 }
 
-const MessageBubble = ({ message, sender, isOwn, isLast }: MessageBubbleProps) => {
+const MessageBubble = ({ message, isOwn, senderName, senderAvatar, showAvatar = true }: MessageBubbleProps) => {
   const timeAgo = formatDistanceToNow(new Date(message.created_at), { addSuffix: true });
 
-  const renderMessageContent = () => {
-    switch (message.message_type) {
-      case 'image':
-        return (
-          <div className="max-w-xs">
-            {message.image_url && (
-              <img
-                src={message.image_url}
-                alt="Shared image"
-                className="rounded-lg max-w-full h-auto cursor-pointer hover:opacity-90 transition-opacity"
-                onClick={() => window.open(message.image_url, '_blank')}
-              />
-            )}
-            {message.content && (
-              <p className="mt-2 text-sm">{message.content}</p>
-            )}
-          </div>
-        );
-      
-      case 'file':
-        return (
-          <div className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg max-w-xs">
-            <div className="flex-1">
-              <p className="text-sm font-medium truncate">{message.content}</p>
-              <p className="text-xs text-gray-500">Document</p>
-            </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => message.image_url && window.open(message.image_url, '_blank')}
-            >
-              <Download size={16} />
-            </Button>
-          </div>
-        );
-      
-      default:
-        return <p className="text-sm break-words">{message.content}</p>;
-    }
-  };
-
-  const getStatusIcon = () => {
-    if (!isOwn) return null;
-    
-    if (message.read_at) {
-      return <CheckCheck size={14} className="text-blue-500" />;
-    }
-    return <Check size={14} className="text-gray-400" />;
-  };
-
   return (
-    <div className={cn(
-      "flex gap-3 mb-4",
-      isOwn ? "flex-row-reverse" : "flex-row"
-    )}>
-      {!isOwn && (
-        <Avatar className="w-8 h-8 shrink-0">
-          <AvatarImage src={sender.avatar_url} />
+    <div className={`flex gap-3 mb-4 ${isOwn ? 'flex-row-reverse' : 'flex-row'}`}>
+      {showAvatar && (
+        <Avatar className="w-8 h-8 flex-shrink-0">
+          <AvatarImage src={senderAvatar} />
           <AvatarFallback>
-            {sender.full_name?.charAt(0) || 'U'}
+            {senderName?.charAt(0) || (isOwn ? 'Y' : 'U')}
           </AvatarFallback>
         </Avatar>
       )}
 
-      <div className={cn(
-        "max-w-[70%] space-y-1",
-        isOwn ? "items-end" : "items-start"
-      )}>
-        <div className={cn(
-          "rounded-2xl px-3 py-2",
-          isOwn 
-            ? "bg-blue-500 text-white rounded-br-md" 
-            : "bg-gray-100 text-gray-900 rounded-bl-md"
-        )}>
-          {renderMessageContent()}
+      <div className={`max-w-xs lg:max-w-md ${isOwn ? 'text-right' : 'text-left'}`}>
+        <div
+          className={`rounded-lg px-3 py-2 ${
+            isOwn
+              ? 'bg-blue-500 text-white'
+              : 'bg-gray-100 text-gray-900'
+          }`}
+        >
+          {message.message_type === 'image' && message.image_url && (
+            <img
+              src={message.image_url}
+              alt="Shared image"
+              className="rounded mb-2 max-w-full h-auto"
+            />
+          )}
+          {message.content && (
+            <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+          )}
         </div>
         
-        <div className={cn(
-          "flex items-center gap-1 text-xs text-gray-500",
-          isOwn ? "justify-end" : "justify-start"
-        )}>
+        <div className={`flex items-center gap-2 mt-1 text-xs text-gray-500 ${isOwn ? 'justify-end' : 'justify-start'}`}>
           <span>{timeAgo}</span>
-          {getStatusIcon()}
+          {isOwn && message.read_at && (
+            <Badge variant="secondary" className="text-xs">
+              Read
+            </Badge>
+          )}
         </div>
       </div>
     </div>
