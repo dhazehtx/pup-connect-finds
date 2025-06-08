@@ -1,12 +1,11 @@
 
 import React, { useState } from 'react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Map, List, Search } from 'lucide-react';
+import { Tabs, TabsContent } from '@/components/ui/tabs';
 import EnhancedSearchInterface from '@/components/search/EnhancedSearchInterface';
 import ListingsMapView from '@/components/maps/ListingsMapView';
 import ListingsComparison from '@/components/comparison/ListingsComparison';
+import ListView from './ListView';
+import ViewSelector from './ViewSelector';
 import { useToast } from '@/hooks/use-toast';
 
 interface Listing {
@@ -148,94 +147,22 @@ const EnhancedMarketplace = () => {
       />
 
       {/* View selector */}
-      <div className="flex items-center justify-between">
-        <Tabs value={activeView} onValueChange={(value: any) => setActiveView(value)}>
-          <TabsList>
-            <TabsTrigger value="list" className="flex items-center gap-2">
-              <List className="w-4 h-4" />
-              List View
-            </TabsTrigger>
-            <TabsTrigger value="map" className="flex items-center gap-2">
-              <Map className="w-4 h-4" />
-              Map View
-            </TabsTrigger>
-            <TabsTrigger value="compare" className="flex items-center gap-2">
-              <Search className="w-4 h-4" />
-              Compare ({comparisonListings.length})
-            </TabsTrigger>
-          </TabsList>
-        </Tabs>
-
-        <div className="flex items-center gap-2">
-          <Badge variant="outline">
-            {filteredListings.length} listings found
-          </Badge>
-          {comparisonListings.length > 0 && (
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={() => setActiveView('compare')}
-            >
-              Compare ({comparisonListings.length})
-            </Button>
-          )}
-        </div>
-      </div>
+      <ViewSelector
+        activeView={activeView}
+        onViewChange={setActiveView}
+        listingsCount={filteredListings.length}
+        comparisonCount={comparisonListings.length}
+      />
 
       {/* Content views */}
       <Tabs value={activeView} className="w-full">
         <TabsContent value="list" className="space-y-4">
-          <div className="grid gap-4">
-            {filteredListings.map((listing) => (
-              <div key={listing.id} className="bg-white p-4 rounded-lg border hover:shadow-md transition-shadow">
-                <div className="flex gap-4">
-                  {listing.image_url && (
-                    <img 
-                      src={listing.image_url} 
-                      alt={listing.dog_name}
-                      className="w-24 h-24 rounded-lg object-cover"
-                    />
-                  )}
-                  <div className="flex-1">
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <h3 className="font-semibold text-lg">{listing.dog_name}</h3>
-                        <p className="text-gray-600">{listing.breed}</p>
-                        <p className="text-sm text-gray-500">{listing.location}</p>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-xl font-bold">${listing.price}</p>
-                        <p className="text-sm text-gray-500">{listing.age} months old</p>
-                      </div>
-                    </div>
-                    
-                    <div className="flex gap-2 mt-3">
-                      <Button 
-                        size="sm" 
-                        onClick={() => handleContactSeller(listing)}
-                      >
-                        Contact Seller
-                      </Button>
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => handleAddToFavorites(listing)}
-                      >
-                        ♡ Save
-                      </Button>
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => handleAddToComparison(listing)}
-                      >
-                        Compare
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
+          <ListView
+            listings={filteredListings}
+            onContactSeller={handleContactSeller}
+            onAddToFavorites={handleAddToFavorites}
+            onAddToComparison={handleAddToComparison}
+          />
         </TabsContent>
 
         <TabsContent value="map">
