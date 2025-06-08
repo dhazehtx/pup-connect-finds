@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Map, List, Compare, Search } from 'lucide-react';
+import { Map, List, Search } from 'lucide-react';
 import EnhancedSearchInterface from '@/components/search/EnhancedSearchInterface';
 import ListingsMapView from '@/components/maps/ListingsMapView';
 import ListingsComparison from '@/components/comparison/ListingsComparison';
@@ -57,7 +57,7 @@ const AVAILABLE_BREEDS = [
 const EnhancedMarketplace = () => {
   const [activeView, setActiveView] = useState<'list' | 'map' | 'compare'>('list');
   const [filteredListings, setFilteredListings] = useState<Listing[]>(SAMPLE_LISTINGS);
-  const [selectedListing, setSelectedListing] = useState<Listing>();
+  const [selectedListing, setSelectedListing] = useState<Listing | undefined>();
   const [comparisonListings, setComparisonListings] = useState<Listing[]>([]);
   const [savedSearches, setSavedSearches] = useState<any[]>([]);
   const { toast } = useToast();
@@ -133,6 +133,10 @@ const EnhancedMarketplace = () => {
     setComparisonListings(prev => prev.filter(l => l.id !== listingId));
   };
 
+  const handleListingSelect = (listing: Listing) => {
+    setSelectedListing(listing);
+  };
+
   return (
     <div className="space-y-6">
       {/* Enhanced search */}
@@ -156,7 +160,7 @@ const EnhancedMarketplace = () => {
               Map View
             </TabsTrigger>
             <TabsTrigger value="compare" className="flex items-center gap-2">
-              <Compare className="w-4 h-4" />
+              <Search className="w-4 h-4" />
               Compare ({comparisonListings.length})
             </TabsTrigger>
           </TabsList>
@@ -238,7 +242,7 @@ const EnhancedMarketplace = () => {
           <ListingsMapView
             listings={filteredListings}
             selectedListing={selectedListing}
-            onListingSelect={setSelectedListing}
+            onListingSelect={handleListingSelect}
             userLocation={{ lat: 37.7749, lng: -122.4194 }} // San Francisco
           />
         </TabsContent>
