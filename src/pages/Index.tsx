@@ -69,8 +69,9 @@ const Index = () => {
       <Route path="/profile/:userId" element={<Profile />} />
       <Route path="/profile" element={<Profile />} />
       
-      {/* Messages route - public for guest browsing */}
+      {/* Messages route - now properly integrated */}
       <Route path="/messages" element={<Messages />} />
+      <Route path="/messages/:conversationId" element={<Messages />} />
       
       {/* Protected routes requiring authentication */}
       <Route 

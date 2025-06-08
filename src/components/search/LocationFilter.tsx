@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { MapPin, Navigation, Slider as SliderIcon } from 'lucide-react';
+import { MapPin, Navigation, Sliders } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
 import { Badge } from '@/components/ui/badge';
@@ -162,7 +162,7 @@ const LocationFilter = ({
         {location && (
           <div className="text-xs text-gray-600 p-2 bg-blue-50 rounded">
             <div className="flex items-center gap-1">
-              <SliderIcon className="w-3 h-3" />
+              <Sliders className="w-3 h-3" />
               <span>
                 Searching within {formatDistance ? formatDistance(radius[0]) : `${radius[0]} miles`} of {location.city || 'selected location'}
               </span>

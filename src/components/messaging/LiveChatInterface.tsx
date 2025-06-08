@@ -61,15 +61,6 @@ const LiveChatInterface = ({ conversationId, otherUserId, onBack }: LiveChatInte
     }
   };
 
-  const handleSendFile = async (file: File) => {
-    try {
-      // For demo, we'll just send the file name
-      await sendMessage(conversationId, file.name, 'file');
-    } catch (err) {
-      setError('Failed to send file');
-    }
-  };
-
   if (loading) {
     return (
       <div className="flex items-center justify-center h-full">
@@ -124,9 +115,9 @@ const LiveChatInterface = ({ conversationId, otherUserId, onBack }: LiveChatInte
             <MessageBubble
               key={message.id}
               message={message}
-              sender={message.sender_id === user?.id ? { full_name: user.user_metadata?.full_name || 'You' } : otherUser}
               isOwn={message.sender_id === user?.id}
-              isLast={index === messages.length - 1}
+              senderName={message.sender_id === user?.id ? (user.user_metadata?.full_name || 'You') : otherUser.full_name}
+              senderAvatar={message.sender_id === user?.id ? user.user_metadata?.avatar_url : otherUser.avatar_url}
             />
           ))
         )}
@@ -135,7 +126,6 @@ const LiveChatInterface = ({ conversationId, otherUserId, onBack }: LiveChatInte
 
       <MessageInput
         onSendMessage={handleSendMessage}
-        onSendFile={handleSendFile}
         disabled={!user}
       />
     </div>

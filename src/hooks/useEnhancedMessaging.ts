@@ -3,6 +3,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+import { useRealtimeNotifications } from '@/hooks/useRealtimeNotifications';
 
 interface Conversation {
   id: string;
@@ -41,6 +42,7 @@ export const useEnhancedMessaging = () => {
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
   const { toast } = useToast();
+  const { triggerMessageNotification } = useRealtimeNotifications();
 
   const fetchConversations = useCallback(async () => {
     if (!user) return;
@@ -134,6 +136,16 @@ export const useEnhancedMessaging = () => {
         .single();
 
       if (error) throw error;
+
+      // Find the conversation and trigger notification to the other user
+      const conversation = conversations.find(c => c.id === conversationId);
+      if (conversation) {
+        const recipientId = conversation.buyer_id === user.id ? conversation.seller_id : conversation.buyer_id;
+        const senderName = user.user_metadata?.full_name || user.email || 'Someone';
+        
+        // Trigger push notification
+        await triggerMessageNotification(recipientId, senderName, content);
+      }
 
       // Refresh messages
       await fetchMessages(conversationId);
