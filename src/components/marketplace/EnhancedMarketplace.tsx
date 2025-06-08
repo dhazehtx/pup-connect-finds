@@ -1,0 +1,259 @@
+
+import React, { useState } from 'react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Map, List, Compare, Search } from 'lucide-react';
+import EnhancedSearchInterface from '@/components/search/EnhancedSearchInterface';
+import ListingsMapView from '@/components/maps/ListingsMapView';
+import ListingsComparison from '@/components/comparison/ListingsComparison';
+import { useToast } from '@/hooks/use-toast';
+
+interface Listing {
+  id: string;
+  dog_name: string;
+  breed: string;
+  price: number;
+  age: number;
+  location: string;
+  image_url?: string;
+  description?: string;
+  user_id: string;
+  created_at: string;
+}
+
+const SAMPLE_LISTINGS: Listing[] = [
+  {
+    id: '1',
+    dog_name: 'Luna',
+    breed: 'Golden Retriever',
+    price: 1200,
+    age: 8,
+    location: 'San Francisco, CA',
+    image_url: '/placeholder.svg',
+    description: 'Beautiful golden retriever puppy, well-socialized and ready for a loving home.',
+    user_id: 'user1',
+    created_at: '2024-01-15T10:00:00Z'
+  },
+  {
+    id: '2',
+    dog_name: 'Max',
+    breed: 'Labrador',
+    price: 900,
+    age: 12,
+    location: 'Los Angeles, CA',
+    image_url: '/placeholder.svg',
+    description: 'Friendly lab puppy with great temperament.',
+    user_id: 'user2',
+    created_at: '2024-01-14T15:30:00Z'
+  }
+];
+
+const AVAILABLE_BREEDS = [
+  'Golden Retriever', 'Labrador', 'German Shepherd', 'Bulldog', 
+  'Poodle', 'Beagle', 'Rottweiler', 'Yorkshire Terrier'
+];
+
+const EnhancedMarketplace = () => {
+  const [activeView, setActiveView] = useState<'list' | 'map' | 'compare'>('list');
+  const [filteredListings, setFilteredListings] = useState<Listing[]>(SAMPLE_LISTINGS);
+  const [selectedListing, setSelectedListing] = useState<Listing>();
+  const [comparisonListings, setComparisonListings] = useState<Listing[]>([]);
+  const [savedSearches, setSavedSearches] = useState<any[]>([]);
+  const { toast } = useToast();
+
+  const handleSearch = (filters: any) => {
+    // Simulate filtering
+    let filtered = SAMPLE_LISTINGS;
+    
+    if (filters.query) {
+      filtered = filtered.filter(listing => 
+        listing.dog_name.toLowerCase().includes(filters.query.toLowerCase()) ||
+        listing.breed.toLowerCase().includes(filters.query.toLowerCase())
+      );
+    }
+    
+    if (filters.breeds.length > 0) {
+      filtered = filtered.filter(listing => 
+        filters.breeds.includes(listing.breed)
+      );
+    }
+    
+    if (filters.priceRange) {
+      filtered = filtered.filter(listing => 
+        listing.price >= filters.priceRange[0] && listing.price <= filters.priceRange[1]
+      );
+    }
+    
+    setFilteredListings(filtered);
+  };
+
+  const handleSaveSearch = (filters: any, name: string) => {
+    setSavedSearches(prev => [...prev, { name, filters }]);
+    toast({
+      title: "Search Saved",
+      description: `"${name}" has been saved to your searches.`,
+    });
+  };
+
+  const handleContactSeller = (listing: Listing) => {
+    toast({
+      title: "Contact Seller",
+      description: `Opening conversation with seller of ${listing.dog_name}`,
+    });
+  };
+
+  const handleAddToFavorites = (listing: Listing) => {
+    toast({
+      title: "Added to Favorites",
+      description: `${listing.dog_name} has been added to your favorites.`,
+    });
+  };
+
+  const handleAddToComparison = (listing: Listing) => {
+    if (comparisonListings.length >= 4) {
+      toast({
+        title: "Comparison Limit",
+        description: "You can compare up to 4 listings at a time.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    if (!comparisonListings.find(l => l.id === listing.id)) {
+      setComparisonListings(prev => [...prev, listing]);
+      toast({
+        title: "Added to Comparison",
+        description: `${listing.dog_name} added to comparison.`,
+      });
+    }
+  };
+
+  const handleRemoveFromComparison = (listingId: string) => {
+    setComparisonListings(prev => prev.filter(l => l.id !== listingId));
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Enhanced search */}
+      <EnhancedSearchInterface
+        onSearch={handleSearch}
+        availableBreeds={AVAILABLE_BREEDS}
+        savedSearches={savedSearches}
+        onSaveSearch={handleSaveSearch}
+      />
+
+      {/* View selector */}
+      <div className="flex items-center justify-between">
+        <Tabs value={activeView} onValueChange={(value: any) => setActiveView(value)}>
+          <TabsList>
+            <TabsTrigger value="list" className="flex items-center gap-2">
+              <List className="w-4 h-4" />
+              List View
+            </TabsTrigger>
+            <TabsTrigger value="map" className="flex items-center gap-2">
+              <Map className="w-4 h-4" />
+              Map View
+            </TabsTrigger>
+            <TabsTrigger value="compare" className="flex items-center gap-2">
+              <Compare className="w-4 h-4" />
+              Compare ({comparisonListings.length})
+            </TabsTrigger>
+          </TabsList>
+        </Tabs>
+
+        <div className="flex items-center gap-2">
+          <Badge variant="outline">
+            {filteredListings.length} listings found
+          </Badge>
+          {comparisonListings.length > 0 && (
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => setActiveView('compare')}
+            >
+              Compare ({comparisonListings.length})
+            </Button>
+          )}
+        </div>
+      </div>
+
+      {/* Content views */}
+      <Tabs value={activeView} className="w-full">
+        <TabsContent value="list" className="space-y-4">
+          <div className="grid gap-4">
+            {filteredListings.map((listing) => (
+              <div key={listing.id} className="bg-white p-4 rounded-lg border hover:shadow-md transition-shadow">
+                <div className="flex gap-4">
+                  {listing.image_url && (
+                    <img 
+                      src={listing.image_url} 
+                      alt={listing.dog_name}
+                      className="w-24 h-24 rounded-lg object-cover"
+                    />
+                  )}
+                  <div className="flex-1">
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <h3 className="font-semibold text-lg">{listing.dog_name}</h3>
+                        <p className="text-gray-600">{listing.breed}</p>
+                        <p className="text-sm text-gray-500">{listing.location}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-xl font-bold">${listing.price}</p>
+                        <p className="text-sm text-gray-500">{listing.age} months old</p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex gap-2 mt-3">
+                      <Button 
+                        size="sm" 
+                        onClick={() => handleContactSeller(listing)}
+                      >
+                        Contact Seller
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => handleAddToFavorites(listing)}
+                      >
+                        ♡ Save
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => handleAddToComparison(listing)}
+                      >
+                        Compare
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </TabsContent>
+
+        <TabsContent value="map">
+          <ListingsMapView
+            listings={filteredListings}
+            selectedListing={selectedListing}
+            onListingSelect={setSelectedListing}
+            userLocation={{ lat: 37.7749, lng: -122.4194 }} // San Francisco
+          />
+        </TabsContent>
+
+        <TabsContent value="compare">
+          <ListingsComparison
+            listings={comparisonListings}
+            onRemoveListing={handleRemoveFromComparison}
+            onContactSeller={handleContactSeller}
+            onAddToFavorites={handleAddToFavorites}
+          />
+        </TabsContent>
+      </Tabs>
+    </div>
+  );
+};
+
+export default EnhancedMarketplace;

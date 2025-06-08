@@ -6,6 +6,7 @@ import { useAuth } from '@/contexts/AuthContext';
 export const useTypingIndicator = (conversationId: string) => {
   const [isTyping, setIsTyping] = useState(false);
   const [otherUserTyping, setOtherUserTyping] = useState(false);
+  const [typingTimeout, setTypingTimeout] = useState<NodeJS.Timeout | null>(null);
   const { user } = useAuth();
 
   const broadcastTyping = useCallback(async (typing: boolean) => {
@@ -26,12 +27,30 @@ export const useTypingIndicator = (conversationId: string) => {
   const startTyping = useCallback(() => {
     setIsTyping(true);
     broadcastTyping(true);
-  }, [broadcastTyping]);
+    
+    // Clear existing timeout
+    if (typingTimeout) {
+      clearTimeout(typingTimeout);
+    }
+    
+    // Auto-stop typing after 3 seconds
+    const newTimeout = setTimeout(() => {
+      setIsTyping(false);
+      broadcastTyping(false);
+    }, 3000);
+    
+    setTypingTimeout(newTimeout);
+  }, [broadcastTyping, typingTimeout]);
 
   const stopTyping = useCallback(() => {
     setIsTyping(false);
     broadcastTyping(false);
-  }, [broadcastTyping]);
+    
+    if (typingTimeout) {
+      clearTimeout(typingTimeout);
+      setTypingTimeout(null);
+    }
+  }, [broadcastTyping, typingTimeout]);
 
   useEffect(() => {
     if (!user) return;
@@ -45,18 +64,21 @@ export const useTypingIndicator = (conversationId: string) => {
         if (user_id !== user.id) {
           setOtherUserTyping(typing);
           
-          // Auto-hide typing indicator after 3 seconds
+          // Auto-hide typing indicator after 5 seconds
           if (typing) {
-            setTimeout(() => setOtherUserTyping(false), 3000);
+            setTimeout(() => setOtherUserTyping(false), 5000);
           }
         }
       })
       .subscribe();
 
     return () => {
+      if (typingTimeout) {
+        clearTimeout(typingTimeout);
+      }
       supabase.removeChannel(channel);
     };
-  }, [conversationId, user]);
+  }, [conversationId, user, typingTimeout]);
 
   return {
     isTyping,

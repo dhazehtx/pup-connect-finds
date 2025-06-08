@@ -1,232 +1,351 @@
-
-import React, { useState, useCallback } from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Slider } from '@/components/ui/slider';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Search, Filter, Sparkles, MapPin, Heart } from 'lucide-react';
-import { useDebounce } from '@/hooks/useDebounce';
+import { 
+  Search, 
+  Filter, 
+  MapPin, 
+  Sort, 
+  Star, 
+  Clock,
+  DollarSign,
+  Heart,
+  X
+} from 'lucide-react';
+import LocationFilter from './LocationFilter';
 
 interface SearchFilters {
   query: string;
-  breed: string;
+  breeds: string[];
   priceRange: [number, number];
   ageRange: [number, number];
-  location: string;
-  distance: number;
+  location?: any;
+  radius: number;
+  verified: boolean;
+  sortBy: 'distance' | 'price' | 'date' | 'popularity';
+  sortOrder: 'asc' | 'desc';
 }
 
 interface EnhancedSearchInterfaceProps {
   onSearch: (filters: SearchFilters) => void;
-  onAISearch?: (query: string) => void;
-  suggestions?: string[];
-  loading?: boolean;
+  availableBreeds: string[];
+  savedSearches?: any[];
+  onSaveSearch?: (filters: SearchFilters, name: string) => void;
 }
 
 const EnhancedSearchInterface = ({ 
   onSearch, 
-  onAISearch, 
-  suggestions = [],
-  loading = false 
+  availableBreeds, 
+  savedSearches = [],
+  onSaveSearch 
 }: EnhancedSearchInterfaceProps) => {
   const [filters, setFilters] = useState<SearchFilters>({
     query: '',
-    breed: '',
+    breeds: [],
     priceRange: [0, 5000],
-    ageRange: [0, 10],
-    location: '',
-    distance: 50
+    ageRange: [0, 24],
+    radius: 50,
+    verified: false,
+    sortBy: 'distance',
+    sortOrder: 'asc'
   });
-
+  
   const [showAdvanced, setShowAdvanced] = useState(false);
-  const [aiMode, setAiMode] = useState(false);
+  const [searchName, setSearchName] = useState('');
+  const [showSaveDialog, setShowSaveDialog] = useState(false);
 
-  const debouncedSearch = useDebounce((searchFilters: SearchFilters) => {
-    onSearch(searchFilters);
-  }, 500);
-
-  const handleFilterChange = useCallback((key: keyof SearchFilters, value: any) => {
+  const handleFilterChange = (key: keyof SearchFilters, value: any) => {
     const newFilters = { ...filters, [key]: value };
     setFilters(newFilters);
-    debouncedSearch(newFilters);
-  }, [filters, debouncedSearch]);
+    onSearch(newFilters);
+  };
 
-  const handleAISearch = () => {
-    if (onAISearch && filters.query) {
-      onAISearch(filters.query);
+  const handleBreedToggle = (breed: string) => {
+    const newBreeds = filters.breeds.includes(breed)
+      ? filters.breeds.filter(b => b !== breed)
+      : [...filters.breeds, breed];
+    handleFilterChange('breeds', newBreeds);
+  };
+
+  const handleLocationChange = (location: any, radius: number) => {
+    setFilters(prev => ({ ...prev, location, radius }));
+    onSearch({ ...filters, location, radius });
+  };
+
+  const clearFilters = () => {
+    const defaultFilters: SearchFilters = {
+      query: '',
+      breeds: [],
+      priceRange: [0, 5000],
+      ageRange: [0, 24],
+      radius: 50,
+      verified: false,
+      sortBy: 'distance',
+      sortOrder: 'asc'
+    };
+    setFilters(defaultFilters);
+    onSearch(defaultFilters);
+  };
+
+  const handleSaveSearch = () => {
+    if (searchName.trim() && onSaveSearch) {
+      onSaveSearch(filters, searchName);
+      setSearchName('');
+      setShowSaveDialog(false);
     }
   };
 
-  const popularBreeds = [
-    'Golden Retriever', 'Labrador', 'German Shepherd', 'Bulldog',
-    'Poodle', 'Beagle', 'Rottweiler', 'Yorkshire Terrier'
-  ];
-
-  const quickFilters = [
-    { label: 'Puppies', filters: { ageRange: [0, 1] } },
-    { label: 'Small Dogs', filters: { breed: 'small' } },
-    { label: 'Large Dogs', filters: { breed: 'large' } },
-    { label: 'Under $1000', filters: { priceRange: [0, 1000] } },
+  const sortOptions = [
+    { value: 'distance', label: 'Distance', icon: MapPin },
+    { value: 'price', label: 'Price', icon: DollarSign },
+    { value: 'date', label: 'Date Listed', icon: Clock },
+    { value: 'popularity', label: 'Popularity', icon: Star }
   ];
 
   return (
     <div className="space-y-4">
-      {/* Main Search Bar */}
+      {/* Main search bar */}
       <Card>
         <CardContent className="p-4">
           <div className="flex gap-2">
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
               <Input
-                placeholder={aiMode ? "Describe your perfect dog..." : "Search for dogs..."}
                 value={filters.query}
                 onChange={(e) => handleFilterChange('query', e.target.value)}
+                placeholder="Search by breed, name, or location..."
                 className="pl-10"
               />
             </div>
-            
-            <Button
-              variant={aiMode ? "default" : "outline"}
-              onClick={() => setAiMode(!aiMode)}
-              size="icon"
-            >
-              <Sparkles className="h-4 w-4" />
-            </Button>
-
-            {aiMode && (
-              <Button onClick={handleAISearch} disabled={loading || !filters.query}>
-                AI Search
-              </Button>
-            )}
-
             <Button
               variant="outline"
               onClick={() => setShowAdvanced(!showAdvanced)}
-              size="icon"
+              className="flex items-center gap-2"
             >
-              <Filter className="h-4 w-4" />
+              <Filter className="w-4 h-4" />
+              Filters
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => setShowSaveDialog(true)}
+              className="flex items-center gap-2"
+            >
+              <Heart className="w-4 h-4" />
+              Save
             </Button>
           </div>
 
-          {/* Quick Filters */}
-          <div className="flex flex-wrap gap-2 mt-3">
-            {quickFilters.map((filter, index) => (
-              <Badge
-                key={index}
-                variant="secondary"
-                className="cursor-pointer hover:bg-blue-100"
-                onClick={() => {
-                  Object.entries(filter.filters).forEach(([key, value]) => {
-                    handleFilterChange(key as keyof SearchFilters, value);
-                  });
-                }}
+          {/* Active filters */}
+          {(filters.breeds.length > 0 || filters.verified || filters.location) && (
+            <div className="flex flex-wrap gap-2 mt-3">
+              {filters.breeds.map(breed => (
+                <Badge key={breed} variant="secondary" className="flex items-center gap-1">
+                  {breed}
+                  <X 
+                    className="w-3 h-3 cursor-pointer" 
+                    onClick={() => handleBreedToggle(breed)}
+                  />
+                </Badge>
+              ))}
+              {filters.verified && (
+                <Badge variant="secondary" className="flex items-center gap-1">
+                  Verified only
+                  <X 
+                    className="w-3 h-3 cursor-pointer" 
+                    onClick={() => handleFilterChange('verified', false)}
+                  />
+                </Badge>
+              )}
+              {filters.location && (
+                <Badge variant="secondary" className="flex items-center gap-1">
+                  <MapPin className="w-3 h-3" />
+                  {filters.location.address}
+                  <X 
+                    className="w-3 h-3 cursor-pointer" 
+                    onClick={() => handleFilterChange('location', null)}
+                  />
+                </Badge>
+              )}
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={clearFilters}
+                className="h-6 px-2 text-xs"
               >
-                {filter.label}
-              </Badge>
-            ))}
-          </div>
-
-          {/* Suggestions */}
-          {suggestions.length > 0 && (
-            <div className="mt-3">
-              <Label className="text-xs text-gray-500">Suggestions:</Label>
-              <div className="flex flex-wrap gap-1 mt-1">
-                {suggestions.slice(0, 5).map((suggestion, index) => (
-                  <Badge
-                    key={index}
-                    variant="outline"
-                    className="cursor-pointer text-xs"
-                    onClick={() => handleFilterChange('query', suggestion)}
-                  >
-                    {suggestion}
-                  </Badge>
-                ))}
-              </div>
+                Clear all
+              </Button>
             </div>
           )}
         </CardContent>
       </Card>
 
-      {/* Advanced Filters */}
+      {/* Advanced filters */}
       {showAdvanced && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">Advanced Filters</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            {/* Breed Selection */}
-            <div className="space-y-2">
-              <Label>Breed</Label>
-              <Select 
-                value={filters.breed} 
-                onValueChange={(value) => handleFilterChange('breed', value)}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select a breed" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="">Any breed</SelectItem>
-                  {popularBreeds.map(breed => (
-                    <SelectItem key={breed} value={breed}>{breed}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+        <div className="grid md:grid-cols-2 gap-4">
+          {/* Location filter */}
+          <LocationFilter
+            onLocationChange={handleLocationChange}
+            selectedLocation={filters.location}
+            selectedRadius={filters.radius}
+          />
 
-            {/* Price Range */}
-            <div className="space-y-2">
-              <Label>Price Range: ${filters.priceRange[0]} - ${filters.priceRange[1]}</Label>
-              <Slider
-                value={filters.priceRange}
-                onValueChange={(value) => handleFilterChange('priceRange', value)}
-                max={5000}
-                min={0}
-                step={100}
-                className="w-full"
-              />
-            </div>
-
-            {/* Age Range */}
-            <div className="space-y-2">
-              <Label>Age Range: {filters.ageRange[0]} - {filters.ageRange[1]} years</Label>
-              <Slider
-                value={filters.ageRange}
-                onValueChange={(value) => handleFilterChange('ageRange', value)}
-                max={15}
-                min={0}
-                step={1}
-                className="w-full"
-              />
-            </div>
-
-            {/* Location */}
-            <div className="space-y-2">
-              <Label>Location</Label>
-              <div className="relative">
-                <MapPin className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                <Input
-                  placeholder="Enter city or zip code"
-                  value={filters.location}
-                  onChange={(e) => handleFilterChange('location', e.target.value)}
-                  className="pl-10"
+          {/* Other filters */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">Preferences</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {/* Price range */}
+              <div>
+                <label className="text-sm font-medium mb-2 block">
+                  Price Range: ${filters.priceRange[0]} - ${filters.priceRange[1]}
+                </label>
+                <Slider
+                  value={filters.priceRange}
+                  onValueChange={(value) => handleFilterChange('priceRange', value)}
+                  max={10000}
+                  min={0}
+                  step={100}
+                  className="w-full"
                 />
               </div>
-            </div>
 
-            {/* Distance */}
-            <div className="space-y-2">
-              <Label>Distance: {filters.distance} miles</Label>
-              <Slider
-                value={[filters.distance]}
-                onValueChange={(value) => handleFilterChange('distance', value[0])}
-                max={500}
-                min={5}
-                step={5}
-                className="w-full"
+              {/* Age range */}
+              <div>
+                <label className="text-sm font-medium mb-2 block">
+                  Age Range: {filters.ageRange[0]} - {filters.ageRange[1]} months
+                </label>
+                <Slider
+                  value={filters.ageRange}
+                  onValueChange={(value) => handleFilterChange('ageRange', value)}
+                  max={36}
+                  min={0}
+                  step={1}
+                  className="w-full"
+                />
+              </div>
+
+              {/* Breeds */}
+              <div>
+                <label className="text-sm font-medium mb-2 block">Popular Breeds</label>
+                <div className="flex flex-wrap gap-2">
+                  {availableBreeds.slice(0, 8).map(breed => (
+                    <Badge
+                      key={breed}
+                      variant={filters.breeds.includes(breed) ? "default" : "outline"}
+                      className="cursor-pointer"
+                      onClick={() => handleBreedToggle(breed)}
+                    >
+                      {breed}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+
+              {/* Verified toggle */}
+              <div className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  id="verified"
+                  checked={filters.verified}
+                  onChange={(e) => handleFilterChange('verified', e.target.checked)}
+                  className="rounded"
+                />
+                <label htmlFor="verified" className="text-sm">
+                  Verified breeders only
+                </label>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* Sort options */}
+      <Card>
+        <CardContent className="p-4">
+          <div className="flex items-center justify-between">
+            <span className="text-sm font-medium">Sort by:</span>
+            <div className="flex gap-2">
+              {sortOptions.map(option => {
+                const Icon = option.icon;
+                return (
+                  <Button
+                    key={option.value}
+                    variant={filters.sortBy === option.value ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => handleFilterChange('sortBy', option.value)}
+                    className="flex items-center gap-1"
+                  >
+                    <Icon className="w-3 h-3" />
+                    {option.label}
+                    {filters.sortBy === option.value && (
+                      <span 
+                        className="ml-1 cursor-pointer"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleFilterChange('sortOrder', filters.sortOrder === 'asc' ? 'desc' : 'asc');
+                        }}
+                      >
+                        {filters.sortOrder === 'asc' ? '↑' : '↓'}
+                      </span>
+                    )}
+                  </Button>
+                );
+              })}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Saved searches */}
+      {savedSearches.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">Saved Searches</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-wrap gap-2">
+              {savedSearches.map((search, index) => (
+                <Badge
+                  key={index}
+                  variant="outline"
+                  className="cursor-pointer hover:bg-gray-100"
+                  onClick={() => {
+                    setFilters(search.filters);
+                    onSearch(search.filters);
+                  }}
+                >
+                  {search.name}
+                </Badge>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Save search dialog */}
+      {showSaveDialog && (
+        <Card className="border-blue-200 bg-blue-50">
+          <CardContent className="p-4">
+            <div className="flex gap-2">
+              <Input
+                value={searchName}
+                onChange={(e) => setSearchName(e.target.value)}
+                placeholder="Name your search..."
+                className="flex-1"
               />
+              <Button onClick={handleSaveSearch} disabled={!searchName.trim()}>
+                Save
+              </Button>
+              <Button 
+                variant="outline" 
+                onClick={() => setShowSaveDialog(false)}
+              >
+                Cancel
+              </Button>
             </div>
           </CardContent>
         </Card>
