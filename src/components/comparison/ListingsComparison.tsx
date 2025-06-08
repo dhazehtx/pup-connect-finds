@@ -1,9 +1,9 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { X, Star, MapPin, Calendar, DollarSign, Heart, MessageCircle } from 'lucide-react';
+import { X, Heart, MessageCircle } from 'lucide-react';
 
 interface Listing {
   id: string;
@@ -31,209 +31,132 @@ const ListingsComparison = ({
   onContactSeller, 
   onAddToFavorites 
 }: ListingsComparisonProps) => {
-  const [selectedFeatures, setSelectedFeatures] = useState<string[]>([
-    'price', 'age', 'location', 'breed'
-  ]);
-
-  const features = [
-    { key: 'price', label: 'Price', icon: DollarSign },
-    { key: 'age', label: 'Age', icon: Calendar },
-    { key: 'location', label: 'Location', icon: MapPin },
-    { key: 'breed', label: 'Breed', icon: Star },
-    { key: 'description', label: 'Description', icon: MessageCircle }
-  ];
-
-  const toggleFeature = (feature: string) => {
-    setSelectedFeatures(prev => 
-      prev.includes(feature) 
-        ? prev.filter(f => f !== feature)
-        : [...prev, feature]
-    );
-  };
-
-  const renderFeatureValue = (listing: Listing, feature: string) => {
-    switch (feature) {
-      case 'price':
-        return (
-          <div className="flex items-center gap-1">
-            <DollarSign className="w-4 h-4" />
-            <span className="font-semibold">${listing.price}</span>
-          </div>
-        );
-      case 'age':
-        return (
-          <div className="flex items-center gap-1">
-            <Calendar className="w-4 h-4" />
-            <span>{listing.age} months</span>
-          </div>
-        );
-      case 'location':
-        return (
-          <div className="flex items-center gap-1">
-            <MapPin className="w-4 h-4" />
-            <span className="text-sm">{listing.location}</span>
-          </div>
-        );
-      case 'breed':
-        return (
-          <Badge variant="secondary" className="w-fit">
-            {listing.breed}
-          </Badge>
-        );
-      case 'description':
-        return (
-          <p className="text-sm text-gray-600 line-clamp-3">
-            {listing.description || 'No description available'}
-          </p>
-        );
-      default:
-        return null;
-    }
-  };
-
   if (listings.length === 0) {
     return (
       <Card>
         <CardContent className="p-8 text-center">
-          <div className="text-gray-500">
-            <Star className="w-12 h-12 mx-auto mb-4 opacity-50" />
-            <h3 className="text-lg font-medium mb-2">No listings to compare</h3>
-            <p className="text-sm">Add listings to your comparison to see them side by side</p>
-          </div>
+          <p className="text-gray-500 mb-4">No listings to compare</p>
+          <p className="text-sm text-gray-400">Add listings from the search results to compare them here</p>
         </CardContent>
       </Card>
     );
   }
 
   return (
-    <div className="space-y-4">
-      {/* Feature selector */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">Compare Features</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-wrap gap-2">
-            {features.map(feature => {
-              const Icon = feature.icon;
-              return (
-                <Badge
-                  key={feature.key}
-                  variant={selectedFeatures.includes(feature.key) ? "default" : "outline"}
-                  className="cursor-pointer flex items-center gap-1"
-                  onClick={() => toggleFeature(feature.key)}
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h2 className="text-xl font-semibold">Compare Listings ({listings.length}/4)</h2>
+        <Badge variant="outline">Side by side comparison</Badge>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        {listings.map((listing) => (
+          <Card key={listing.id} className="relative">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => onRemoveListing(listing.id)}
+              className="absolute top-2 right-2 z-10 h-8 w-8 p-0"
+            >
+              <X className="w-4 h-4" />
+            </Button>
+
+            <CardHeader className="pb-3">
+              {listing.image_url && (
+                <img 
+                  src={listing.image_url} 
+                  alt={listing.dog_name}
+                  className="w-full h-32 object-cover rounded-lg mb-3"
+                />
+              )}
+              <CardTitle className="text-lg">{listing.dog_name}</CardTitle>
+            </CardHeader>
+
+            <CardContent className="space-y-3">
+              <div className="space-y-2">
+                <div className="flex justify-between">
+                  <span className="text-sm text-gray-600">Breed:</span>
+                  <span className="text-sm font-medium">{listing.breed}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-sm text-gray-600">Price:</span>
+                  <Badge variant="secondary">${listing.price}</Badge>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-sm text-gray-600">Age:</span>
+                  <span className="text-sm">{listing.age} months</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-sm text-gray-600">Location:</span>
+                  <span className="text-sm">{listing.location}</span>
+                </div>
+              </div>
+
+              <div className="pt-3 border-t space-y-2">
+                <Button 
+                  size="sm" 
+                  className="w-full"
+                  onClick={() => onContactSeller(listing)}
                 >
-                  <Icon className="w-3 h-3" />
-                  {feature.label}
-                </Badge>
-              );
-            })}
-          </div>
-        </CardContent>
-      </Card>
+                  <MessageCircle className="w-4 h-4 mr-2" />
+                  Contact
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  className="w-full"
+                  onClick={() => onAddToFavorites(listing)}
+                >
+                  <Heart className="w-4 h-4 mr-2" />
+                  Add to Favorites
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
 
-      {/* Comparison table */}
-      <Card>
-        <CardContent className="p-0">
-          <div className="overflow-x-auto">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-4">
-              {listings.map((listing) => (
-                <Card key={listing.id} className="relative">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => onRemoveListing(listing.id)}
-                    className="absolute top-2 right-2 w-8 h-8 p-0 z-10"
-                  >
-                    <X className="w-4 h-4" />
-                  </Button>
-
-                  <CardContent className="p-4">
-                    {/* Listing image and name */}
-                    <div className="mb-4">
-                      {listing.image_url && (
-                        <img
-                          src={listing.image_url}
-                          alt={listing.dog_name}
-                          className="w-full h-32 object-cover rounded-lg mb-2"
-                        />
-                      )}
-                      <h3 className="font-semibold text-lg">{listing.dog_name}</h3>
-                    </div>
-
-                    {/* Features comparison */}
-                    <div className="space-y-3">
-                      {selectedFeatures.map(feature => (
-                        <div key={feature} className="border-b pb-2 last:border-b-0">
-                          <label className="text-xs text-gray-500 uppercase tracking-wide">
-                            {features.find(f => f.key === feature)?.label}
-                          </label>
-                          <div className="mt-1">
-                            {renderFeatureValue(listing, feature)}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-
-                    {/* Actions */}
-                    <div className="flex gap-2 mt-4 pt-4 border-t">
-                      <Button
-                        size="sm"
-                        onClick={() => onContactSeller(listing)}
-                        className="flex-1"
-                      >
-                        <MessageCircle className="w-3 h-3 mr-1" />
-                        Contact
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => onAddToFavorites(listing)}
-                        className="flex items-center gap-1"
-                      >
-                        <Heart className="w-3 h-3" />
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+      {listings.length > 1 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Quick Comparison</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b">
+                    <th className="text-left p-2">Feature</th>
+                    {listings.map(listing => (
+                      <th key={listing.id} className="text-center p-2">{listing.dog_name}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr className="border-b">
+                    <td className="p-2 font-medium">Price</td>
+                    {listings.map(listing => (
+                      <td key={listing.id} className="text-center p-2">${listing.price}</td>
+                    ))}
+                  </tr>
+                  <tr className="border-b">
+                    <td className="p-2 font-medium">Age</td>
+                    {listings.map(listing => (
+                      <td key={listing.id} className="text-center p-2">{listing.age} months</td>
+                    ))}
+                  </tr>
+                  <tr className="border-b">
+                    <td className="p-2 font-medium">Breed</td>
+                    {listings.map(listing => (
+                      <td key={listing.id} className="text-center p-2">{listing.breed}</td>
+                    ))}
+                  </tr>
+                </tbody>
+              </table>
             </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Comparison summary */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">Quick Comparison</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-            <div>
-              <p className="text-sm text-gray-600">Price Range</p>
-              <p className="font-semibold">
-                ${Math.min(...listings.map(l => l.price))} - ${Math.max(...listings.map(l => l.price))}
-              </p>
-            </div>
-            <div>
-              <p className="text-sm text-gray-600">Age Range</p>
-              <p className="font-semibold">
-                {Math.min(...listings.map(l => l.age))} - {Math.max(...listings.map(l => l.age))} months
-              </p>
-            </div>
-            <div>
-              <p className="text-sm text-gray-600">Breeds</p>
-              <p className="font-semibold">
-                {[...new Set(listings.map(l => l.breed))].length} different
-              </p>
-            </div>
-            <div>
-              <p className="text-sm text-gray-600">Total Listings</p>
-              <p className="font-semibold">{listings.length}</p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 };
