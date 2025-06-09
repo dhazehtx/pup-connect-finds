@@ -1,5 +1,6 @@
 
 import { useCallback } from 'react';
+import { GoogleMapsService } from '@/services/GoogleMapsService';
 
 interface Location {
   lat: number;
@@ -14,27 +15,16 @@ interface Location {
 export const useLocationSearch = () => {
   const searchLocation = useCallback(async (query: string): Promise<Location[]> => {
     try {
-      // Mock location search - in production, use Google Places API or similar
-      const mockLocations: Location[] = [
-        {
-          lat: 37.7749,
-          lng: -122.4194,
-          address: `${query}, San Francisco, CA`,
-          city: 'San Francisco',
-          state: 'CA',
-          country: 'United States'
-        },
-        {
-          lat: 34.0522,
-          lng: -118.2437,
-          address: `${query}, Los Angeles, CA`,
-          city: 'Los Angeles',
-          state: 'CA',
-          country: 'United States'
-        }
-      ];
+      const results = await GoogleMapsService.searchPlaces(query);
       
-      return mockLocations;
+      return results.map(result => ({
+        lat: result.lat,
+        lng: result.lng,
+        address: result.address,
+        city: result.address.split(',')[0]?.trim(),
+        state: result.address.split(',')[1]?.trim(),
+        country: 'United States'
+      }));
     } catch (error) {
       console.error('Location search failed:', error);
       return [];
