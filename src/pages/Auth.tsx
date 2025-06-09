@@ -4,15 +4,15 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import AuthForm from '@/components/auth/AuthForm';
 import SocialLogin from '@/components/auth/SocialLogin';
-import GuestCheckout from '@/components/auth/GuestCheckout';
 
 const Auth = () => {
   const [activeTab, setActiveTab] = useState('signin');
   const [resetMode, setResetMode] = useState(false);
-  const { user } = useAuth();
+  const { user, continueAsGuest } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
@@ -28,6 +28,11 @@ const Auth = () => {
       navigate('/');
     }
   }, [user, navigate, searchParams]);
+
+  const handleGuestAccess = () => {
+    continueAsGuest();
+    navigate('/');
+  };
 
   if (user) {
     return null;
@@ -72,7 +77,7 @@ const Auth = () => {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-3 bg-white border border-gray-200 rounded-none h-12 p-0">
+          <TabsList className="grid w-full grid-cols-2 bg-white border border-gray-200 rounded-none h-12 p-0">
             <TabsTrigger 
               value="signin"
               className="data-[state=active]:bg-black data-[state=active]:text-white text-gray-600 font-medium border-0 rounded-none h-full transition-colors"
@@ -84,12 +89,6 @@ const Auth = () => {
               className="data-[state=active]:bg-black data-[state=active]:text-white text-gray-600 font-medium border-0 rounded-none h-full transition-colors"
             >
               Sign Up
-            </TabsTrigger>
-            <TabsTrigger 
-              value="guest"
-              className="data-[state=active]:bg-black data-[state=active]:text-white text-gray-600 font-medium border-0 rounded-none h-full transition-colors"
-            >
-              Guest
             </TabsTrigger>
           </TabsList>
 
@@ -132,13 +131,26 @@ const Auth = () => {
               </CardContent>
             </Card>
           </TabsContent>
-
-          <TabsContent value="guest">
-            <GuestCheckout 
-              onComplete={() => navigate('/')}
-            />
-          </TabsContent>
         </Tabs>
+
+        {/* Simple Guest Access Button */}
+        <div className="text-center">
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <span className="w-full border-t border-gray-200" />
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-gray-50 px-3 text-gray-500 font-medium">Just browsing?</span>
+            </div>
+          </div>
+          <Button
+            onClick={handleGuestAccess}
+            variant="ghost"
+            className="w-full mt-4 text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+          >
+            Continue as Guest
+          </Button>
+        </div>
       </div>
     </div>
   );

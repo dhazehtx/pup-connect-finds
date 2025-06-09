@@ -37,7 +37,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const continueAsGuest = () => {
     localStorage.setItem('guestMode', 'true');
-    console.log('Continuing as guest');
+    console.log('Continuing as guest - full browsing access enabled');
   };
 
   const resetPassword = async (email: string) => {
@@ -57,8 +57,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     await authState.updateProfile(updates);
   };
 
-  // Fixed guest detection logic
-  const isGuest = !authState.user && !authState.loading && localStorage.getItem('guestMode') === 'true';
+  // Updated guest detection - simpler logic
+  const isGuest = !authState.user && localStorage.getItem('guestMode') === 'true';
 
   const value: AuthContextType = {
     user: authState.user,

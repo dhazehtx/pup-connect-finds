@@ -5,6 +5,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import SEOHead from '@/components/seo/SEOHead';
 import LoadingState from '@/components/ui/loading-state';
 import ErrorState from '@/components/ui/error-state';
+import ProtectedRoute from '@/components/ProtectedRoute';
 
 // Lazy load components for better performance
 const Explore = React.lazy(() => import('@/pages/Explore'));
@@ -19,11 +20,19 @@ const Index = () => {
   const routes = useRoutes([
     {
       path: '/',
-      element: user || isGuest ? <Explore /> : <Auth />
+      element: user || isGuest ? (
+        <ProtectedRoute allowGuest={true}>
+          <Explore />
+        </ProtectedRoute>
+      ) : <Auth />
     },
     {
       path: '/explore',
-      element: <Explore />
+      element: (
+        <ProtectedRoute allowGuest={true}>
+          <Explore />
+        </ProtectedRoute>
+      )
     },
     {
       path: '/auth',
@@ -31,15 +40,27 @@ const Index = () => {
     },
     {
       path: '/messages',
-      element: user ? <Messages /> : <Auth />
+      element: (
+        <ProtectedRoute guestMessage="Sign in to access your messages and start conversations with sellers.">
+          <Messages />
+        </ProtectedRoute>
+      )
     },
     {
       path: '/profile',
-      element: user ? <Profile /> : <Auth />
+      element: (
+        <ProtectedRoute guestMessage="Sign in to view and manage your profile.">
+          <Profile />
+        </ProtectedRoute>
+      )
     },
     {
       path: '/listing/:id',
-      element: <Listing />
+      element: (
+        <ProtectedRoute allowGuest={true}>
+          <Listing />
+        </ProtectedRoute>
+      )
     },
     {
       path: '*',
