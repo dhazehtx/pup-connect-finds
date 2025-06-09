@@ -77,8 +77,14 @@ const CreateListingDialog = ({ onSuccess }: CreateListingDialogProps) => {
         }
       }
 
+      // Ensure all required fields are present and properly typed
       const listingData = {
-        ...data,
+        dog_name: data.dog_name,
+        breed: data.breed,
+        age: data.age,
+        price: data.price,
+        description: data.description,
+        location: data.location,
         image_url: imageUrl,
       };
 
