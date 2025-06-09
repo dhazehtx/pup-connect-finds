@@ -3,26 +3,7 @@ import { useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
-
-interface ExtendedConversation {
-  id: string;
-  buyer_id: string;
-  seller_id: string;
-  listing_id?: string;
-  last_message_at?: string;
-  created_at: string;
-  updated_at: string;
-  listing?: {
-    dog_name: string;
-    breed: string;
-    image_url: string | null;
-  };
-  other_user?: {
-    full_name: string | null;
-    username: string | null;
-    avatar_url: string | null;
-  };
-}
+import { ExtendedConversation } from '@/types/messaging';
 
 export const useRealtimeConversations = () => {
   const [conversations, setConversations] = useState<ExtendedConversation[]>([]);
@@ -38,19 +19,55 @@ export const useRealtimeConversations = () => {
         .from('conversations')
         .select(`
           *,
-          listing:dog_listings(dog_name, breed, image_url),
-          buyer_profile:profiles!buyer_id(full_name, username, avatar_url),
-          seller_profile:profiles!seller_id(full_name, username, avatar_url)
+          listing:dog_listings(dog_name, breed, image_url)
         `)
         .or(`buyer_id.eq.${user.id},seller_id.eq.${user.id}`)
-        .order('last_message_at', { ascending: false });
+        .order('last_message_at', { ascending: false, nullsFirst: false });
 
       if (error) throw error;
 
+      // Fetch profiles separately to avoid relationship issues
+      const userIds = new Set<string>();
+      (data || []).forEach(conv => {
+        if (conv.buyer_id !== user.id) userIds.add(conv.buyer_id);
+        if (conv.seller_id !== user.id) userIds.add(conv.seller_id);
+      });
+
+      let profilesMap = new Map();
+      if (userIds.size > 0) {
+        const { data: profiles } = await supabase
+          .from('profiles')
+          .select('id, full_name, username, avatar_url')
+          .in('id', Array.from(userIds));
+
+        profiles?.forEach(profile => {
+          profilesMap.set(profile.id, profile);
+        });
+      }
+
       // Transform data to include other_user based on current user's role
-      const transformedData = (data || []).map(conv => ({
-        ...conv,
-        other_user: conv.buyer_id === user.id ? conv.seller_profile : conv.buyer_profile
+      const transformedData: ExtendedConversation[] = (data || []).map(conv => ({
+        id: conv.id,
+        buyer_id: conv.buyer_id,
+        seller_id: conv.seller_id,
+        listing_id: conv.listing_id,
+        last_message_at: conv.last_message_at,
+        created_at: conv.created_at,
+        updated_at: conv.updated_at,
+        listing: conv.listing ? {
+          dog_name: conv.listing.dog_name,
+          breed: conv.listing.breed,
+          image_url: conv.listing.image_url
+        } : undefined,
+        other_user: (() => {
+          const otherUserId = conv.buyer_id === user.id ? conv.seller_id : conv.buyer_id;
+          const profile = profilesMap.get(otherUserId);
+          return profile ? {
+            full_name: profile.full_name,
+            username: profile.username,
+            avatar_url: profile.avatar_url
+          } : undefined;
+        })()
       }));
 
       setConversations(transformedData);
