@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Send, Image, Paperclip } from 'lucide-react';
@@ -60,7 +61,7 @@ const EnhancedChatInterface = ({ conversationId, otherUserId, listingId }: Enhan
       }) || undefined;
     }
 
-    // Send message
+    // Send message with correct parameters
     await sendMessage(
       conversationId,
       newMessage.trim() || (selectedFile ? t('messaging.imageMessage') : ''),

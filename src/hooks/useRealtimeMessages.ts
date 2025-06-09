@@ -13,6 +13,9 @@ interface Message {
   image_url?: string;
   read_at?: string;
   created_at: string;
+  is_encrypted?: boolean;
+  encrypted_content?: string;
+  encryption_key_id?: string;
 }
 
 export const useRealtimeMessages = () => {
@@ -40,7 +43,7 @@ export const useRealtimeMessages = () => {
     }
   }, [toast]);
 
-  const sendMessage = async (conversationId: string, content: string, messageType: string = 'text') => {
+  const sendMessage = async (conversationId: string, content: string, messageType: string = 'text', imageUrl?: string) => {
     if (!user) return null;
 
     try {
@@ -50,7 +53,8 @@ export const useRealtimeMessages = () => {
           conversation_id: conversationId,
           sender_id: user.id,
           content,
-          message_type: messageType
+          message_type: messageType,
+          image_url: imageUrl
         }])
         .select()
         .single();
@@ -78,14 +82,16 @@ export const useRealtimeMessages = () => {
     }
   };
 
-  const markAsRead = async (messageId: string) => {
+  const markAsRead = async (conversationId: string) => {
     try {
+      // Mark all unread messages in the conversation as read
       await supabase
         .from('messages')
         .update({ read_at: new Date().toISOString() })
-        .eq('id', messageId);
+        .eq('conversation_id', conversationId)
+        .is('read_at', null);
     } catch (error) {
-      console.error('Error marking message as read:', error);
+      console.error('Error marking messages as read:', error);
     }
   };
 
