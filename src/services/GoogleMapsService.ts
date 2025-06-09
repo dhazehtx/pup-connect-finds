@@ -3,7 +3,7 @@ export class GoogleMapsService {
   private static apiKey = process.env.REACT_APP_GOOGLE_MAPS_API_KEY || '';
   private static isLoaded = false;
 
-  static async loadGoogleMaps(): Promise<typeof google> {
+  static async loadGoogleMaps(): Promise<typeof google | null> {
     if (this.isLoaded && window.google) {
       return window.google;
     }
@@ -12,17 +12,22 @@ export class GoogleMapsService {
       throw new Error('Google Maps API key is not configured');
     }
 
-    const { Loader } = await import('@googlemaps/js-api-loader');
-    
-    const loader = new Loader({
-      apiKey: this.apiKey,
-      version: 'weekly',
-      libraries: ['places', 'geometry']
-    });
+    try {
+      const { Loader } = await import('@googlemaps/js-api-loader');
+      
+      const loader = new Loader({
+        apiKey: this.apiKey,
+        version: 'weekly',
+        libraries: ['places', 'geometry']
+      });
 
-    await loader.load();
-    this.isLoaded = true;
-    return window.google;
+      await loader.load();
+      this.isLoaded = true;
+      return window.google;
+    } catch (error) {
+      console.error('Failed to load Google Maps:', error);
+      return null;
+    }
   }
 
   static async getCurrentLocation(): Promise<{lat: number; lng: number; accuracy: number}> {
@@ -65,7 +70,11 @@ export class GoogleMapsService {
   }
 
   static async reverseGeocode(lat: number, lng: number): Promise<string> {
-    await this.loadGoogleMaps();
+    const google = await this.loadGoogleMaps();
+    
+    if (!google) {
+      throw new Error('Google Maps not available');
+    }
     
     return new Promise((resolve, reject) => {
       const geocoder = new google.maps.Geocoder();
@@ -83,7 +92,11 @@ export class GoogleMapsService {
   }
 
   static async searchPlaces(query: string): Promise<Array<{lat: number; lng: number; address: string}>> {
-    await this.loadGoogleMaps();
+    const google = await this.loadGoogleMaps();
+    
+    if (!google) {
+      throw new Error('Google Maps not available');
+    }
     
     return new Promise((resolve, reject) => {
       const service = new google.maps.places.PlacesService(document.createElement('div'));

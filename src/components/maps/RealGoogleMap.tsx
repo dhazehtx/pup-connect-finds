@@ -37,7 +37,11 @@ const RealGoogleMap: React.FC<RealGoogleMapProps> = ({
     const initializeMap = async () => {
       try {
         setIsLoading(true);
-        await GoogleMapsService.loadGoogleMaps();
+        const google = await GoogleMapsService.loadGoogleMaps();
+        
+        if (!google) {
+          throw new Error('Failed to load Google Maps');
+        }
         
         if (mapRef.current) {
           const newMap = new google.maps.Map(mapRef.current, {
@@ -78,24 +82,24 @@ const RealGoogleMap: React.FC<RealGoogleMapProps> = ({
   }, [map, center, zoom]);
 
   useEffect(() => {
-    if (map) {
+    if (map && window.google) {
       // Clear existing markers
       googleMarkers.forEach(marker => marker.setMap(null));
 
       // Add new markers
       const newMarkers = markers.map(markerData => {
-        const marker = new google.maps.Marker({
+        const marker = new window.google.maps.Marker({
           position: { lat: markerData.lat, lng: markerData.lng },
           map,
           title: markerData.title,
-          animation: google.maps.Animation.DROP,
+          animation: window.google.maps.Animation.DROP,
           icon: markerData.type === 'user' ? {
             url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(`
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <circle cx="12" cy="12" r="8" fill="#3B82F6" stroke="white" stroke-width="2"/>
               </svg>
             `),
-            scaledSize: new google.maps.Size(24, 24)
+            scaledSize: new window.google.maps.Size(24, 24)
           } : undefined
         });
 
