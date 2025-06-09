@@ -2,9 +2,8 @@
 import { useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { useConversations } from '@/hooks/useConversations';
-import { useMessages } from '@/hooks/useMessages';
-import { useMessagingNotifications } from '@/hooks/useMessagingNotifications';
+import { useRealtimeConversations } from '@/hooks/useRealtimeConversations';
+import { useRealtimeMessages } from '@/hooks/useRealtimeMessages';
 
 interface Message {
   id: string;
@@ -24,25 +23,17 @@ export const useEnhancedMessaging = () => {
     loading, 
     fetchConversations, 
     createConversation 
-  } = useConversations();
+  } = useRealtimeConversations();
   
   const { 
     messages, 
     setMessages, 
     fetchMessages, 
     sendMessage: sendMessageBase 
-  } = useMessages();
-  
-  const { sendNotificationForMessage } = useMessagingNotifications();
+  } = useRealtimeMessages();
 
   const sendMessage = async (conversationId: string, content: string, messageType: string = 'text') => {
-    // Send the message
-    const result = await sendMessageBase(conversationId, content, messageType);
-    
-    // Send notification
-    await sendNotificationForMessage(conversations, conversationId, content);
-    
-    return result;
+    return await sendMessageBase(conversationId, content, messageType);
   };
 
   useEffect(() => {
