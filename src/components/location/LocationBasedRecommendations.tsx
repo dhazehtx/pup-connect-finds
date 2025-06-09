@@ -8,7 +8,7 @@ import RecommendationHeader from './RecommendationHeader';
 import CurrentLocationDisplay from './CurrentLocationDisplay';
 import RecommendationCategory from './RecommendationCategory';
 
-interface RecommendationCategory {
+interface RecommendationCategoryData {
   id: string;
   title: string;
   description: string;
@@ -25,7 +25,7 @@ const LocationBasedRecommendations = () => {
   
   const { performSearch } = useAdvancedSearch();
   
-  const [recommendations, setRecommendations] = useState<RecommendationCategory[]>([]);
+  const [recommendations, setRecommendations] = useState<RecommendationCategoryData[]>([]);
   const [loading, setLoading] = useState(false);
 
   const generateRecommendations = async () => {
@@ -62,7 +62,7 @@ const LocationBasedRecommendations = () => {
       });
 
       // Create recommendation categories
-      const categories: RecommendationCategory[] = [
+      const categories: RecommendationCategoryData[] = [
         {
           id: 'nearby',
           title: 'Closest to You',
