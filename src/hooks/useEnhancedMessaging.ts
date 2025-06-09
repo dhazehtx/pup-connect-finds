@@ -33,7 +33,17 @@ export const useEnhancedMessaging = () => {
   } = useRealtimeMessages();
 
   const sendMessage = async (conversationId: string, content: string, messageType: string = 'text') => {
-    return await sendMessageBase(conversationId, content, messageType);
+    const result = await sendMessageBase(conversationId, content, messageType);
+    
+    // Simple notification logic - could be expanded later
+    if (result && user) {
+      const conversation = conversations.find(c => c.id === conversationId);
+      if (conversation?.other_user) {
+        console.log(`New message sent in conversation ${conversationId}`);
+      }
+    }
+    
+    return result;
   };
 
   useEffect(() => {

@@ -4,7 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 
-interface Conversation {
+interface ExtendedConversation {
   id: string;
   buyer_id: string;
   seller_id: string;
@@ -12,10 +12,20 @@ interface Conversation {
   last_message_at?: string;
   created_at: string;
   updated_at: string;
+  listing?: {
+    dog_name: string;
+    breed: string;
+    image_url: string | null;
+  };
+  other_user?: {
+    full_name: string | null;
+    username: string | null;
+    avatar_url: string | null;
+  };
 }
 
 export const useRealtimeConversations = () => {
-  const [conversations, setConversations] = useState<Conversation[]>([]);
+  const [conversations, setConversations] = useState<ExtendedConversation[]>([]);
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
   const { toast } = useToast();
@@ -36,7 +46,14 @@ export const useRealtimeConversations = () => {
         .order('last_message_at', { ascending: false });
 
       if (error) throw error;
-      setConversations(data || []);
+
+      // Transform data to include other_user based on current user's role
+      const transformedData = (data || []).map(conv => ({
+        ...conv,
+        other_user: conv.buyer_id === user.id ? conv.seller_profile : conv.buyer_profile
+      }));
+
+      setConversations(transformedData);
     } catch (error) {
       console.error('Error fetching conversations:', error);
       toast({

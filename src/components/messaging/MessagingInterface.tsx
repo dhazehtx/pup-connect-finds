@@ -9,6 +9,7 @@ import MessageInput from './MessageInput';
 import ConversationList from './ConversationList';
 import { useEnhancedMessaging } from '@/hooks/useEnhancedMessaging';
 import { useAuth } from '@/contexts/AuthContext';
+import { ExtendedConversation } from '@/types/messaging';
 
 const MessagingInterface = () => {
   const { user } = useAuth();
@@ -58,7 +59,7 @@ const MessagingInterface = () => {
         <div className="p-4">
           <h1 className="text-xl font-bold mb-4">Messages</h1>
           <ConversationList
-            conversations={conversations}
+            conversations={conversations as ExtendedConversation[]}
             selectedConversationId={selectedConversationId || ''}
             onSelectConversation={handleSelectConversation}
             loading={loading}

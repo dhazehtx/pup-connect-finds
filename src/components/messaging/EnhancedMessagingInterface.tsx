@@ -11,6 +11,7 @@ import ConversationsList from './ConversationsList';
 import ConversationView from './ConversationView';
 import EnhancedMessageInput from './EnhancedMessageInput';
 import EnhancedMessageBubble from './EnhancedMessageBubble';
+import { ExtendedConversation } from '@/types/messaging';
 
 const EnhancedMessagingInterface = () => {
   const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);

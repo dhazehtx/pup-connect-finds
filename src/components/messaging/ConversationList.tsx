@@ -4,25 +4,10 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { formatDistanceToNow } from 'date-fns';
-
-interface Conversation {
-  id: string;
-  other_user?: {
-    full_name: string | null;
-    username: string | null;
-    avatar_url: string | null;
-  };
-  listing?: {
-    dog_name: string;
-    breed: string;
-    image_url: string | null;
-  };
-  last_message_at: string | null;
-  unread_count?: number;
-}
+import { ExtendedConversation } from '@/types/messaging';
 
 interface ConversationListProps {
-  conversations: Conversation[];
+  conversations: ExtendedConversation[];
   selectedConversationId?: string;
   onSelectConversation: (conversationId: string) => void;
   loading?: boolean;
