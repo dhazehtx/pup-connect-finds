@@ -4,18 +4,22 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { MessageCircle, Search, Users, Plus } from 'lucide-react';
+import { MessageCircle, Search, Users, Plus, Video, Paperclip, Mic } from 'lucide-react';
 import { useEnhancedMessaging } from '@/hooks/useEnhancedMessaging';
 import { useAuth } from '@/contexts/AuthContext';
 import ConversationsList from './ConversationsList';
 import ConversationView from './ConversationView';
 import EnhancedMessageInput from './EnhancedMessageInput';
 import EnhancedMessageBubble from './EnhancedMessageBubble';
+import FileShareDialog from './FileShareDialog';
+import VoiceMessageRecorder from './VoiceMessageRecorder';
+import VideoCallManager from './VideoCallManager';
 import { ExtendedConversation } from '@/types/messaging';
 
 const EnhancedMessagingInterface = () => {
   const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [showVideoCall, setShowVideoCall] = useState(false);
   const { 
     conversations, 
     messages, 
@@ -44,6 +48,17 @@ const EnhancedMessagingInterface = () => {
     await sendMessage(selectedConversationId, content, type);
   };
 
+  const handleFileShare = async (url: string, type: string, fileName: string) => {
+    if (!selectedConversationId) return;
+    await sendMessage(selectedConversationId, `Shared file: ${fileName}`, type, url);
+  };
+
+  const handleVoiceMessage = async (audioBlob: Blob, duration: number) => {
+    if (!selectedConversationId) return;
+    const audioUrl = URL.createObjectURL(audioBlob);
+    await sendMessage(selectedConversationId, `Voice message (${duration}s)`, 'voice', audioUrl);
+  };
+
   if (loading) {
     return (
       <div className="h-screen flex items-center justify-center">
@@ -62,7 +77,7 @@ const EnhancedMessagingInterface = () => {
         <CardHeader className="border-b">
           <CardTitle className="flex items-center gap-2">
             <MessageCircle className="w-5 h-5" />
-            Messages
+            Enhanced Messages
           </CardTitle>
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
@@ -130,24 +145,51 @@ const EnhancedMessagingInterface = () => {
       <div className="flex-1 flex flex-col">
         {selectedConversation ? (
           <>
-            {/* Conversation Header */}
+            {/* Enhanced Conversation Header */}
             <div className="bg-white border-b p-4">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center">
-                  {selectedConversation.other_user?.full_name?.charAt(0) || 'U'}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center">
+                    {selectedConversation.other_user?.full_name?.charAt(0) || 'U'}
+                  </div>
+                  <div>
+                    <h2 className="font-semibold">
+                      {selectedConversation.other_user?.full_name || 'Unknown User'}
+                    </h2>
+                    {selectedConversation.listing && (
+                      <p className="text-sm text-gray-600">
+                        About {selectedConversation.listing.dog_name} - {selectedConversation.listing.breed}
+                      </p>
+                    )}
+                  </div>
                 </div>
-                <div>
-                  <h2 className="font-semibold">
-                    {selectedConversation.other_user?.full_name || 'Unknown User'}
-                  </h2>
-                  {selectedConversation.listing && (
-                    <p className="text-sm text-gray-600">
-                      About {selectedConversation.listing.dog_name} - {selectedConversation.listing.breed}
-                    </p>
-                  )}
+                
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowVideoCall(!showVideoCall)}
+                  >
+                    <Video size={16} className="mr-2" />
+                    Video
+                  </Button>
                 </div>
               </div>
             </div>
+
+            {/* Video Call Panel */}
+            {showVideoCall && selectedConversation.other_user && (
+              <div className="border-b p-4 bg-gray-50">
+                <VideoCallManager
+                  conversationId={selectedConversationId!}
+                  otherUser={{
+                    id: selectedConversation.buyer_id === user?.id ? selectedConversation.seller_id : selectedConversation.buyer_id,
+                    name: selectedConversation.other_user.full_name || 'Unknown User',
+                    avatar: selectedConversation.other_user.avatar_url || undefined
+                  }}
+                />
+              </div>
+            )}
 
             {/* Messages */}
             <div className="flex-1 overflow-y-auto p-4 space-y-4">
@@ -166,19 +208,31 @@ const EnhancedMessagingInterface = () => {
               ))}
             </div>
 
-            {/* Message Input */}
-            <EnhancedMessageInput
-              conversationId={selectedConversationId}
-              onSendMessage={handleSendMessage}
-              placeholder={`Message ${selectedConversation.other_user?.full_name || 'seller'}...`}
-            />
+            {/* Enhanced Message Input */}
+            <div className="border-t p-4 bg-white">
+              <div className="flex items-center gap-2 mb-2">
+                <FileShareDialog onFileShare={handleFileShare}>
+                  <Button variant="outline" size="sm">
+                    <Paperclip size={16} />
+                  </Button>
+                </FileShareDialog>
+                
+                <VoiceMessageRecorder onVoiceMessage={handleVoiceMessage} />
+              </div>
+              
+              <EnhancedMessageInput
+                conversationId={selectedConversationId}
+                onSendMessage={handleSendMessage}
+                placeholder={`Message ${selectedConversation.other_user?.full_name || 'seller'}...`}
+              />
+            </div>
           </>
         ) : (
           <div className="flex-1 flex items-center justify-center">
             <div className="text-center">
               <MessageCircle className="w-16 h-16 mx-auto mb-4 text-gray-400" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">No conversation selected</h3>
-              <p className="text-gray-600">Choose a conversation from the sidebar to start messaging</p>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">Enhanced Messaging Ready</h3>
+              <p className="text-gray-600">Choose a conversation to start messaging with file sharing, voice messages, and video calls</p>
             </div>
           </div>
         )}

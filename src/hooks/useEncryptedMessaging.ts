@@ -1,102 +1,140 @@
 
-import { useCallback } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { useEncryption } from './useEncryption';
-import { useToast } from '@/hooks/use-toast';
+import { useRealtimeMessages } from '@/hooks/useRealtimeMessages';
+
+interface EncryptedMessage {
+  id: string;
+  conversation_id: string;
+  sender_id: string;
+  content: string;
+  message_type: string;
+  image_url?: string;
+  created_at: string;
+  is_encrypted: boolean;
+  encrypted_content?: string;
+  encryption_key_id?: string;
+}
 
 export const useEncryptedMessaging = () => {
   const { user } = useAuth();
-  const { encryptMessage, decryptMessage, isInitialized } = useEncryption();
-  const { toast } = useToast();
+  const { sendMessage } = useRealtimeMessages();
+  const [encryptionKeys, setEncryptionKeys] = useState<Map<string, CryptoKey>>(new Map());
+  const [isEncryptionReady, setIsEncryptionReady] = useState(false);
 
-  // Send an encrypted message
-  const sendEncryptedMessage = useCallback(async (
+  // Initialize encryption
+  useEffect(() => {
+    if (user) {
+      initializeEncryption();
+    }
+  }, [user]);
+
+  const initializeEncryption = async () => {
+    try {
+      // Generate or retrieve encryption key for the user
+      const key = await window.crypto.subtle.generateKey(
+        {
+          name: 'AES-GCM',
+          length: 256,
+        },
+        true,
+        ['encrypt', 'decrypt']
+      );
+
+      setEncryptionKeys(prev => new Map(prev.set(user?.id || '', key)));
+      setIsEncryptionReady(true);
+    } catch (error) {
+      console.error('Failed to initialize encryption:', error);
+    }
+  };
+
+  const encryptMessage = async (message: string, recipientId: string): Promise<{ encryptedContent: string; keyId: string } | null> => {
+    try {
+      const key = encryptionKeys.get(user?.id || '');
+      if (!key) return null;
+
+      const encoder = new TextEncoder();
+      const data = encoder.encode(message);
+      
+      const iv = window.crypto.getRandomValues(new Uint8Array(12));
+      const encryptedData = await window.crypto.subtle.encrypt(
+        { name: 'AES-GCM', iv },
+        key,
+        data
+      );
+
+      const encryptedArray = new Uint8Array(encryptedData);
+      const combinedArray = new Uint8Array(iv.length + encryptedArray.length);
+      combinedArray.set(iv);
+      combinedArray.set(encryptedArray, iv.length);
+
+      const encryptedContent = btoa(String.fromCharCode(...combinedArray));
+      
+      return {
+        encryptedContent,
+        keyId: user?.id || ''
+      };
+    } catch (error) {
+      console.error('Encryption failed:', error);
+      return null;
+    }
+  };
+
+  const decryptMessage = async (encryptedContent: string, keyId: string): Promise<string> => {
+    try {
+      const key = encryptionKeys.get(keyId);
+      if (!key) throw new Error('Decryption key not found');
+
+      const combinedArray = Uint8Array.from(atob(encryptedContent), c => c.charCodeAt(0));
+      const iv = combinedArray.slice(0, 12);
+      const encryptedData = combinedArray.slice(12);
+
+      const decryptedData = await window.crypto.subtle.decrypt(
+        { name: 'AES-GCM', iv },
+        key,
+        encryptedData
+      );
+
+      const decoder = new TextDecoder();
+      return decoder.decode(decryptedData);
+    } catch (error) {
+      console.error('Decryption failed:', error);
+      throw error;
+    }
+  };
+
+  const sendEncryptedMessage = async (
     conversationId: string,
     content: string,
     messageType: string = 'text',
     imageUrl?: string,
     recipientId?: string
   ) => {
-    if (!user || !isInitialized) {
-      throw new Error('Encryption not initialized');
-    }
-
     if (!recipientId) {
-      // Get recipient ID from conversation
-      const { data: conversation } = await supabase
-        .from('conversations')
-        .select('buyer_id, seller_id')
-        .eq('id', conversationId)
-        .single();
-
-      if (!conversation) {
-        throw new Error('Conversation not found');
-      }
-
-      recipientId = conversation.buyer_id === user.id 
-        ? conversation.seller_id 
-        : conversation.buyer_id;
+      throw new Error('Recipient ID required for encrypted messaging');
     }
 
-    try {
-      // Encrypt the message content
-      const encrypted = await encryptMessage(content, recipientId);
-
-      // Store encrypted message in database
-      const { data, error } = await supabase
-        .from('messages')
-        .insert([{
-          conversation_id: conversationId,
-          sender_id: user.id,
-          content: null, // Clear text content is null for encrypted messages
-          encrypted_content: JSON.stringify({
-            message: encrypted.encryptedMessage,
-            key: encrypted.encryptedKey,
-            iv: encrypted.iv
-          }),
-          message_type: messageType,
-          image_url: imageUrl,
-          is_encrypted: true
-        }])
-        .select()
-        .single();
-
-      if (error) throw error;
-      return data;
-    } catch (error) {
-      console.error('Failed to send encrypted message:', error);
-      toast({
-        title: "Failed to send message",
-        description: "Unable to encrypt and send message",
-        variant: "destructive",
-      });
-      throw error;
+    const encrypted = await encryptMessage(content, recipientId);
+    if (!encrypted) {
+      throw new Error('Failed to encrypt message');
     }
-  }, [user, isInitialized, encryptMessage, toast]);
 
-  // Decrypt a received message
-  const decryptReceivedMessage = useCallback(async (message: any): Promise<string> => {
+    return sendMessage(conversationId, '', messageType, imageUrl);
+  };
+
+  const decryptReceivedMessage = async (message: EncryptedMessage): Promise<string> => {
     if (!message.is_encrypted || !message.encrypted_content) {
-      return message.content || '';
+      return message.content;
     }
 
-    try {
-      const encryptedData = JSON.parse(message.encrypted_content);
-      return await decryptMessage(
-        encryptedData.message,
-        encryptedData.key,
-        encryptedData.iv
-      );
-    } catch (error) {
-      console.error('Failed to decrypt message:', error);
-      return '[Encrypted message - unable to decrypt]';
-    }
-  }, [decryptMessage]);
+    return decryptMessage(message.encrypted_content, message.encryption_key_id || '');
+  };
 
   return {
     sendEncryptedMessage,
     decryptReceivedMessage,
-    isEncryptionReady: isInitialized
+    isEncryptionReady,
+    encryptMessage,
+    decryptMessage
   };
 };
