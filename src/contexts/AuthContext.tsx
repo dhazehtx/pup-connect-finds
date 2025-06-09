@@ -44,12 +44,33 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     return authState.resetPassword(email);
   };
 
+  // Wrapper functions to ensure void return type
+  const signUp = async (email: string, password: string, userData?: any) => {
+    await authState.signUp(email, password, userData);
+  };
+
+  const signIn = async (email: string, password: string) => {
+    await authState.signIn(email, password);
+  };
+
+  const updateProfile = async (updates: any) => {
+    await authState.updateProfile(updates);
+  };
+
   // Fixed guest detection logic
   const isGuest = !authState.user && !authState.loading && localStorage.getItem('guestMode') === 'true';
 
   const value: AuthContextType = {
-    ...authState,
+    user: authState.user,
+    session: authState.session,
+    loading: authState.loading,
+    profile: authState.profile,
     isGuest,
+    signUp,
+    signIn,
+    signOut: authState.signOut,
+    updateProfile,
+    refreshProfile: authState.refreshProfile,
     continueAsGuest,
     resetPassword,
   };

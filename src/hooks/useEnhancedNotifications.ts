@@ -14,6 +14,10 @@ interface Notification {
   created_at: string;
   related_id?: string;
   sender_id?: string;
+  sender_profile?: {
+    full_name?: string;
+    username?: string;
+  };
 }
 
 export const useEnhancedNotifications = () => {
@@ -30,7 +34,10 @@ export const useEnhancedNotifications = () => {
       setLoading(true);
       const { data, error } = await supabase
         .from('notifications')
-        .select('*')
+        .select(`
+          *,
+          sender_profile:profiles!sender_id(full_name, username)
+        `)
         .eq('user_id', user.id)
         .order('created_at', { ascending: false })
         .limit(50);
@@ -92,6 +99,30 @@ export const useEnhancedNotifications = () => {
       toast({
         title: "Error",
         description: "Failed to mark notifications as read",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const deleteNotification = async (notificationId: string) => {
+    try {
+      const { error } = await supabase
+        .from('notifications')
+        .delete()
+        .eq('id', notificationId);
+
+      if (error) throw error;
+
+      setNotifications(prev => prev.filter(n => n.id !== notificationId));
+      setUnreadCount(prev => {
+        const notification = notifications.find(n => n.id === notificationId);
+        return notification && !notification.is_read ? Math.max(0, prev - 1) : prev;
+      });
+    } catch (error: any) {
+      console.error('Error deleting notification:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete notification",
         variant: "destructive",
       });
     }
@@ -166,6 +197,7 @@ export const useEnhancedNotifications = () => {
     fetchNotifications,
     markAsRead,
     markAllAsRead,
+    deleteNotification,
     createNotification
   };
 };
