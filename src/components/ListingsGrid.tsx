@@ -5,35 +5,29 @@ import EmptyState from './EmptyState';
 import LoadingSkeleton from './LoadingSkeleton';
 
 interface Listing {
-  id: number;
-  title: string;
-  price: string;
-  location: string;
-  distance: string;
+  id: string; // Changed from number to string to match ListingCard
+  dog_name: string;
   breed: string;
-  color: string;
-  gender: string;
-  age: string;
-  rating: number;
-  reviews: number;
-  image: string;
-  breeder: string;
-  verified: boolean;
-  verifiedBreeder?: boolean;
-  idVerified?: boolean;
-  vetVerified?: boolean;
-  available: number;
-  sourceType: string;
-  isKillShelter?: boolean;
+  price: number;
+  age: number;
+  location: string;
+  image_url?: string;
+  profiles?: {
+    verified?: boolean;
+    location?: string;
+    rating?: number;
+    total_reviews?: number;
+  };
+  status?: string;
 }
 
 interface ListingsGridProps {
   listings: Listing[];
   viewMode: 'grid' | 'list';
-  favorites: number[];
-  onFavorite: (id: number) => void;
-  onContact: (id: number) => void;
-  onViewDetails: (id: number) => void;
+  favorites: string[]; // Changed from number[] to string[]
+  onFavorite: (id: string) => void; // Changed from number to string
+  onContact: (id: string) => void; // Changed from number to string
+  onViewDetails: (id: string) => void; // Changed from number to string
   isLoading?: boolean;
   onClearFilters?: () => void;
   hasActiveFilters?: boolean;
@@ -74,12 +68,11 @@ const ListingsGrid: React.FC<ListingsGridProps> = ({
       {listings.map((listing) => (
         <ListingCard
           key={listing.id}
-          {...listing}
+          listing={listing}
           isFavorited={favorites.includes(listing.id)}
           onFavorite={onFavorite}
           onContact={onContact}
           onViewDetails={onViewDetails}
-          viewMode={viewMode}
           showEnhancedActions={showEnhancedActions}
         />
       ))}
