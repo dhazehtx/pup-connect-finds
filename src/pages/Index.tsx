@@ -1,129 +1,87 @@
 
 import React from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
-import Home from './Home';
-import Explore from './Explore';
-import Post from './Post';
-import PostDetail from './PostDetail';
-import Messages from './Messages';
-import Notifications from './Notifications';
-import Settings from './Settings';
-import Profile from './Profile';
-import Verification from './Verification';
-import Education from './Education';
-import Monetization from './Monetization';
-import Partnerships from './Partnerships';
-import TermsOfService from './TermsOfService';
-import Help from './Help';
-import SampleData from './SampleData';
-import AIAssistant from './AIAssistant';
-import ProtectedRoute from '../components/ProtectedRoute';
-import Success from './Success';
-import Auth from './Auth';
-import AuthCallback from './AuthCallback';
-import PremiumDashboard from './PremiumDashboard';
-import HelpCenter from './HelpCenter';
-import TrustSafetyPublic from './TrustSafetyPublic';
-import ContactUs from './ContactUs';
-import PrivacyPolicy from './PrivacyPolicy';
-import FAQ from './FAQ';
-import CustomerReviews from './CustomerReviews';
-import Legal from './Legal';
-import GettingStarted from './help/GettingStarted';
-import BuyingGuide from './help/BuyingGuide';
-import SellingBreeding from './help/SellingBreeding';
-import SafetyTrust from './help/SafetyTrust';
+import { useRoutes } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
+import SEOHead from '@/components/seo/SEOHead';
+import LoadingState from '@/components/ui/loading-state';
+import ErrorState from '@/components/ui/error-state';
+
+// Lazy load components for better performance
+const Explore = React.lazy(() => import('@/pages/Explore'));
+const Auth = React.lazy(() => import('@/pages/Auth'));
+const Messages = React.lazy(() => import('@/pages/Messages'));
+const Profile = React.lazy(() => import('@/pages/Profile'));
+const Listing = React.lazy(() => import('@/pages/Listing'));
 
 const Index = () => {
+  const { user, loading, isGuest } = useAuth();
+
+  const routes = useRoutes([
+    {
+      path: '/',
+      element: user || isGuest ? <Explore /> : <Auth />
+    },
+    {
+      path: '/explore',
+      element: <Explore />
+    },
+    {
+      path: '/auth',
+      element: <Auth />
+    },
+    {
+      path: '/messages',
+      element: user ? <Messages /> : <Auth />
+    },
+    {
+      path: '/profile',
+      element: user ? <Profile /> : <Auth />
+    },
+    {
+      path: '/listing/:id',
+      element: <Listing />
+    },
+    {
+      path: '*',
+      element: (
+        <ErrorState
+          title="Page Not Found"
+          message="The page you're looking for doesn't exist."
+          retryText="Go Home"
+          showHomeButton={true}
+        />
+      )
+    }
+  ]);
+
+  if (loading) {
+    return (
+      <>
+        <SEOHead />
+        <LoadingState 
+          message="Loading MY PUP..." 
+          size="lg" 
+          variant="card" 
+          className="min-h-screen flex items-center justify-center"
+        />
+      </>
+    );
+  }
+
   return (
-    <Routes>
-      {/* Public routes accessible to guests */}
-      <Route path="/" element={<Home />} />
-      <Route path="/explore" element={<Explore />} />
-      <Route path="/education" element={<Education />} />
-      <Route path="/faq" element={<FAQ />} />
-      <Route path="/customer-reviews" element={<CustomerReviews />} />
-      <Route path="/legal" element={<Legal />} />
-      <Route path="/partnerships" element={<Partnerships />} />
-      <Route path="/terms" element={<TermsOfService />} />
-      <Route path="/help" element={<Help />} />
-      <Route path="/help-center" element={<HelpCenter />} />
-      <Route path="/help/getting-started" element={<GettingStarted />} />
-      <Route path="/help/buying-guide" element={<BuyingGuide />} />
-      <Route path="/help/selling-breeding" element={<SellingBreeding />} />
-      <Route path="/help/safety-trust" element={<SafetyTrust />} />
-      <Route path="/trust-safety" element={<TrustSafetyPublic />} />
-      <Route path="/contact" element={<ContactUs />} />
-      <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-      <Route path="/sample-data" element={<SampleData />} />
-      <Route path="/ai-assistant" element={<AIAssistant />} />
-      <Route path="/auth" element={<Auth />} />
-      <Route path="/auth/callback" element={<AuthCallback />} />
-      <Route path="/post/:postId" element={<PostDetail />} />
-      
-      {/* Redirect old map routes to explore with location enabled */}
-      <Route path="/map" element={<Navigate to="/explore" replace />} />
-      <Route path="/location-explorer" element={<Navigate to="/explore" replace />} />
-      
-      {/* Profile routes - fully public with guest support */}
-      <Route path="/profile/:userId" element={<Profile />} />
-      <Route path="/profile" element={<Profile />} />
-      
-      {/* Messages route - now properly integrated */}
-      <Route path="/messages" element={<Messages />} />
-      <Route path="/messages/:conversationId" element={<Messages />} />
-      
-      {/* Protected routes requiring authentication */}
-      <Route 
-        path="/post" 
-        element={
-          <ProtectedRoute guestMessage="Create and manage listings with a MY PUP account.">
-            <Post />
-          </ProtectedRoute>
-        } 
-      />
-      <Route 
-        path="/notifications" 
-        element={
-          <ProtectedRoute guestMessage="Stay updated with personalized notifications about your listings and messages.">
-            <Notifications />
-          </ProtectedRoute>
-        } 
-      />
-      <Route 
-        path="/verification" 
-        element={
-          <ProtectedRoute guestMessage="Build trust with verified breeder status and enhanced credibility.">
-            <Verification />
-          </ProtectedRoute>
-        } 
-      />
-      <Route 
-        path="/settings" 
-        element={
-          <ProtectedRoute guestMessage="Customize your MY PUP experience with personalized settings.">
-            <Settings />
-          </ProtectedRoute>
-        } 
-      />
-      <Route 
-        path="/monetization" 
-        element={
-          <ProtectedRoute guestMessage="Access premium features and monetization tools for verified breeders.">
-            <Monetization />
-          </ProtectedRoute>
-        } 
-      />
-      <Route 
-        path="/premium-dashboard" 
-        element={
-          <ProtectedRoute guestMessage="Access premium analytics and advanced features with a verified account.">
-            <PremiumDashboard />
-          </ProtectedRoute>
-        } 
-      />
-      <Route path="/success" element={<Success />} />
-    </Routes>
+    <>
+      <SEOHead />
+      <React.Suspense 
+        fallback={
+          <LoadingState 
+            message="Loading page..." 
+            className="min-h-screen flex items-center justify-center"
+          />
+        }
+      >
+        {routes}
+      </React.Suspense>
+    </>
   );
 };
 
