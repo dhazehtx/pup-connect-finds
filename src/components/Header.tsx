@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Heart, Search, Globe, User } from 'lucide-react';
@@ -155,7 +156,7 @@ const Header = () => {
             ) : (
               <Button 
                 onClick={() => navigate('/auth')}
-                className="bg-blue-600 hover:bg-blue-700 text-white"
+                className="bg-blue-600 hover:bg-blue-700 text-white font-medium"
               >
                 Sign In
               </Button>
