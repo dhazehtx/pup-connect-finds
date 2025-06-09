@@ -4,7 +4,6 @@ import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import LoadingSkeleton from '@/components/LoadingSkeleton';
 import GuestPrompt from '@/components/GuestPrompt';
-import { useState } from 'react';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -15,15 +14,9 @@ interface ProtectedRouteProps {
 const ProtectedRoute = ({ children, allowGuest = false, guestMessage }: ProtectedRouteProps) => {
   const { user, loading, isGuest } = useAuth();
   const location = useLocation();
-  const [showGuestPrompt, setShowGuestPrompt] = useState(false);
 
   if (loading) {
     return <LoadingSkeleton viewMode="grid" count={3} />;
-  }
-
-  // If route allows guests and user is a guest, show content
-  if (allowGuest && isGuest) {
-    return <>{children}</>;
   }
 
   // If user is authenticated, show content
@@ -31,23 +24,22 @@ const ProtectedRoute = ({ children, allowGuest = false, guestMessage }: Protecte
     return <>{children}</>;
   }
 
-  // If route allows guests but user is not authenticated at all, redirect to auth
-  if (allowGuest && !isGuest) {
-    return <Navigate to="/auth" state={{ from: location }} replace />;
+  // If route allows guests and user is a guest, show content
+  if (allowGuest && isGuest) {
+    return <>{children}</>;
   }
 
-  // For protected routes, show guest prompt if user is guest
-  if (isGuest && !allowGuest) {
+  // For protected routes, show guest prompt if user is guest or not authenticated
+  if (!user && !allowGuest) {
     return (
       <GuestPrompt
         action="access this feature"
         description={guestMessage || "This feature requires a MY PUP account to continue."}
-        onCancel={() => setShowGuestPrompt(false)}
       />
     );
   }
 
-  // Redirect unauthenticated users to auth page
+  // Default fallback to auth page
   return <Navigate to="/auth" state={{ from: location }} replace />;
 };
 

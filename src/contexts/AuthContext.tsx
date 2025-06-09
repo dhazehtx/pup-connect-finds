@@ -57,8 +57,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     await authState.updateProfile(updates);
   };
 
-  // Fixed guest detection logic
-  const isGuest = !authState.user && !authState.loading && localStorage.getItem('guestMode') === 'true';
+  // Guest detection logic
+  const isGuest = !authState.user && localStorage.getItem('guestMode') === 'true';
 
   const value: AuthContextType = {
     user: authState.user,
