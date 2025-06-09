@@ -70,14 +70,14 @@ export class GoogleMapsService {
   }
 
   static async reverseGeocode(lat: number, lng: number): Promise<string> {
-    const google = await this.loadGoogleMaps();
+    const googleMaps = await this.loadGoogleMaps();
     
-    if (!google) {
+    if (!googleMaps) {
       throw new Error('Google Maps not available');
     }
     
     return new Promise((resolve, reject) => {
-      const geocoder = new google.maps.Geocoder();
+      const geocoder = new googleMaps.maps.Geocoder();
       geocoder.geocode(
         { location: { lat, lng } },
         (results, status) => {
@@ -92,19 +92,19 @@ export class GoogleMapsService {
   }
 
   static async searchPlaces(query: string): Promise<Array<{lat: number; lng: number; address: string}>> {
-    const google = await this.loadGoogleMaps();
+    const googleMaps = await this.loadGoogleMaps();
     
-    if (!google) {
+    if (!googleMaps) {
       throw new Error('Google Maps not available');
     }
     
     return new Promise((resolve, reject) => {
-      const service = new google.maps.places.PlacesService(document.createElement('div'));
+      const service = new googleMaps.maps.places.PlacesService(document.createElement('div'));
       
       service.textSearch(
         { query },
         (results, status) => {
-          if (status === google.maps.places.PlacesServiceStatus.OK && results) {
+          if (status === googleMaps.maps.places.PlacesServiceStatus.OK && results) {
             const locations = results.map(result => ({
               lat: result.geometry?.location?.lat() || 0,
               lng: result.geometry?.location?.lng() || 0,

@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef, useState } from 'react';
 import { GoogleMapsService } from '@/services/GoogleMapsService';
 import { useToast } from '@/hooks/use-toast';
@@ -37,17 +36,17 @@ const RealGoogleMap: React.FC<RealGoogleMapProps> = ({
     const initializeMap = async () => {
       try {
         setIsLoading(true);
-        const google = await GoogleMapsService.loadGoogleMaps();
+        const googleMaps = await GoogleMapsService.loadGoogleMaps();
         
-        if (!google) {
+        if (!googleMaps) {
           throw new Error('Failed to load Google Maps');
         }
         
         if (mapRef.current) {
-          const newMap = new google.maps.Map(mapRef.current, {
+          const newMap = new googleMaps.maps.Map(mapRef.current, {
             center,
             zoom,
-            mapTypeId: google.maps.MapTypeId.ROADMAP,
+            mapTypeId: googleMaps.maps.MapTypeId.ROADMAP,
             styles: [
               {
                 featureType: 'poi',
