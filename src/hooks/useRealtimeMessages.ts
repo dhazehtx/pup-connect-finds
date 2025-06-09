@@ -11,11 +11,8 @@ interface Message {
   content: string;
   message_type: string;
   image_url?: string;
-  created_at: string;
   read_at?: string;
-  is_encrypted?: boolean;
-  encrypted_content?: string;
-  encryption_key_id?: string;
+  created_at: string;
 }
 
 export const useRealtimeMessages = () => {
@@ -27,10 +24,7 @@ export const useRealtimeMessages = () => {
     try {
       const { data, error } = await supabase
         .from('messages')
-        .select(`
-          *,
-          sender:profiles!sender_id(full_name, username, avatar_url)
-        `)
+        .select('*')
         .eq('conversation_id', conversationId)
         .order('created_at', { ascending: true });
 
@@ -46,13 +40,8 @@ export const useRealtimeMessages = () => {
     }
   }, [toast]);
 
-  const sendMessage = useCallback(async (
-    conversationId: string,
-    content: string,
-    messageType: string = 'text',
-    imageUrl?: string
-  ) => {
-    if (!user) return;
+  const sendMessage = async (conversationId: string, content: string, messageType: string = 'text') => {
+    if (!user) return null;
 
     try {
       const { data, error } = await supabase
@@ -61,9 +50,7 @@ export const useRealtimeMessages = () => {
           conversation_id: conversationId,
           sender_id: user.id,
           content,
-          message_type: messageType,
-          image_url: imageUrl,
-          is_encrypted: false
+          message_type: messageType
         }])
         .select()
         .single();
@@ -87,29 +74,26 @@ export const useRealtimeMessages = () => {
         description: "Failed to send message",
         variant: "destructive",
       });
+      throw error;
     }
-  }, [user, toast]);
+  };
 
-  const markAsRead = useCallback(async (conversationId: string) => {
-    if (!user) return;
-
+  const markAsRead = async (messageId: string) => {
     try {
       await supabase
         .from('messages')
         .update({ read_at: new Date().toISOString() })
-        .eq('conversation_id', conversationId)
-        .neq('sender_id', user.id)
-        .is('read_at', null);
+        .eq('id', messageId);
     } catch (error) {
-      console.error('Error marking messages as read:', error);
+      console.error('Error marking message as read:', error);
     }
-  }, [user]);
+  };
 
   return {
     messages,
     setMessages,
     fetchMessages,
     sendMessage,
-    markAsRead,
+    markAsRead
   };
 };
