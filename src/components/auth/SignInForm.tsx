@@ -76,7 +76,7 @@ const SignInForm = ({ onSubmit, loading }: SignInFormProps) => {
           placeholder="Enter your email"
           value={formData.email}
           onChange={(e) => handleInputChange('email', e.target.value)}
-          className={`mt-1 ${errors.email ? 'border-red-500' : ''}`}
+          className={`mt-1 border-gray-300 focus:border-blue-500 focus:ring-blue-500 ${errors.email ? 'border-red-500' : ''}`}
           disabled={loading}
         />
         {errors.email && (
@@ -93,7 +93,7 @@ const SignInForm = ({ onSubmit, loading }: SignInFormProps) => {
             placeholder="Enter your password"
             value={formData.password}
             onChange={(e) => handleInputChange('password', e.target.value)}
-            className={`mt-1 pr-10 ${errors.password ? 'border-red-500' : ''}`}
+            className={`mt-1 pr-10 border-gray-300 focus:border-blue-500 focus:ring-blue-500 ${errors.password ? 'border-red-500' : ''}`}
             disabled={loading}
           />
           <button
@@ -113,7 +113,7 @@ const SignInForm = ({ onSubmit, loading }: SignInFormProps) => {
       <Button
         type="submit"
         disabled={loading}
-        className="w-full bg-black hover:bg-gray-800 text-white"
+        className="w-full bg-blue-600 hover:bg-blue-700 text-white border-0"
       >
         {loading ? (
           <>
@@ -129,7 +129,7 @@ const SignInForm = ({ onSubmit, loading }: SignInFormProps) => {
         <button
           type="button"
           onClick={() => setShowResetForm(true)}
-          className="text-sm text-gray-600 hover:text-black underline"
+          className="text-sm text-gray-600 hover:text-blue-600 underline"
           disabled={loading}
         >
           Forgot your password?

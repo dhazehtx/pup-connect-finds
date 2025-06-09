@@ -51,7 +51,7 @@ const SignUpForm = ({ onSubmit, loading }: SignUpFormProps) => {
                   placeholder="Enter your full name"
                   disabled={loading}
                   {...field}
-                  className="h-11 border-gray-300 rounded-none focus:border-black focus:ring-0"
+                  className="h-11 border-gray-300 focus:border-blue-500 focus:ring-blue-500 rounded-md"
                 />
               </FormControl>
               <FormMessage />
@@ -71,7 +71,7 @@ const SignUpForm = ({ onSubmit, loading }: SignUpFormProps) => {
                   placeholder="Choose a username"
                   disabled={loading}
                   {...field}
-                  className="h-11 border-gray-300 rounded-none focus:border-black focus:ring-0"
+                  className="h-11 border-gray-300 focus:border-blue-500 focus:ring-blue-500 rounded-md"
                 />
               </FormControl>
               <FormMessage />
@@ -91,7 +91,7 @@ const SignUpForm = ({ onSubmit, loading }: SignUpFormProps) => {
                   placeholder="Enter your email"
                   disabled={loading}
                   {...field}
-                  className="h-11 border-gray-300 rounded-none focus:border-black focus:ring-0"
+                  className="h-11 border-gray-300 focus:border-blue-500 focus:ring-blue-500 rounded-md"
                 />
               </FormControl>
               <FormMessage />
@@ -111,7 +111,7 @@ const SignUpForm = ({ onSubmit, loading }: SignUpFormProps) => {
                     type={showPassword ? 'text' : 'password'}
                     placeholder="Create a password"
                     disabled={loading}
-                    className="h-11 border-gray-300 rounded-none focus:border-black focus:ring-0 pr-10"
+                    className="h-11 border-gray-300 focus:border-blue-500 focus:ring-blue-500 rounded-md pr-10"
                     {...field}
                   />
                   <button
@@ -132,7 +132,7 @@ const SignUpForm = ({ onSubmit, loading }: SignUpFormProps) => {
         <Button
           type="submit"
           disabled={loading}
-          className="w-full h-11 bg-black hover:bg-gray-800 text-white rounded-none font-medium"
+          className="w-full h-11 bg-blue-600 hover:bg-blue-700 text-white rounded-md font-medium"
         >
           {loading ? (
             <>
