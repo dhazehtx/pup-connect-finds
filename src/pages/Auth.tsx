@@ -1,8 +1,9 @@
 
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useAuth } from '@/contexts/AuthContext';
 import AuthForm from '@/components/auth/AuthForm';
 import SocialLogin from '@/components/auth/SocialLogin';
@@ -10,24 +11,63 @@ import GuestCheckout from '@/components/auth/GuestCheckout';
 
 const Auth = () => {
   const [activeTab, setActiveTab] = useState('signin');
+  const [resetMode, setResetMode] = useState(false);
   const { user } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
   useEffect(() => {
+    // Check if we're in password reset mode
+    const mode = searchParams.get('mode');
+    if (mode === 'reset') {
+      setResetMode(true);
+    }
+
+    // Redirect if user is already logged in
     if (user) {
       navigate('/');
     }
-  }, [user, navigate]);
+  }, [user, navigate, searchParams]);
 
   if (user) {
     return null;
+  }
+
+  if (resetMode) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+        <Card className="max-w-md w-full">
+          <CardHeader>
+            <CardTitle className="text-center">Password Reset</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Alert>
+              <AlertDescription>
+                Your password has been reset successfully. You can now sign in with your new password.
+              </AlertDescription>
+            </Alert>
+            <div className="mt-4 text-center">
+              <button 
+                onClick={() => {
+                  setResetMode(false);
+                  setActiveTab('signin');
+                }}
+                className="text-blue-600 hover:text-blue-800 underline"
+              >
+                Continue to Sign In
+              </button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
   }
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
       <div className="max-w-md w-full space-y-6">
         <div className="text-center">
-          <h1 className="text-3xl font-bold text-gray-900">DogFinder</h1>
+          <h1 className="text-3xl font-bold text-gray-900">MY PUP</h1>
           <p className="text-gray-600 mt-2">Find your perfect companion</p>
         </div>
 

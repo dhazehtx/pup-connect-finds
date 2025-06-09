@@ -47,18 +47,18 @@ export const useAuthState = () => {
       async (event, session) => {
         console.log('Auth state changed:', event, session?.user?.id);
         
-        let profile = null;
         if (session?.user) {
-          // Fetch profile data with a small delay to ensure the trigger has completed
-          setTimeout(async () => {
-            profile = await fetchProfile(session.user.id);
-            setAuthState({
-              user: session.user,
-              session,
-              loading: false,
-              profile
-            });
-          }, 100);
+          // Clear guest mode when user logs in
+          localStorage.removeItem('guestMode');
+          
+          // Fetch profile data
+          const profile = await fetchProfile(session.user.id);
+          setAuthState({
+            user: session.user,
+            session,
+            loading: false,
+            profile
+          });
         } else {
           setAuthState({
             user: null,
@@ -80,17 +80,22 @@ export const useAuthState = () => {
         return;
       }
 
-      let profile = null;
       if (session?.user) {
-        profile = await fetchProfile(session.user.id);
+        const profile = await fetchProfile(session.user.id);
+        setAuthState({
+          user: session.user,
+          session,
+          loading: false,
+          profile
+        });
+      } else {
+        setAuthState({
+          user: null,
+          session: null,
+          loading: false,
+          profile: null
+        });
       }
-
-      setAuthState({
-        user: session?.user ?? null,
-        session,
-        loading: false,
-        profile
-      });
     };
 
     getInitialSession();
@@ -100,7 +105,7 @@ export const useAuthState = () => {
 
   const signUp = async (email: string, password: string, userData?: any) => {
     try {
-      const { error } = await supabase.auth.signUp({
+      const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -111,10 +116,18 @@ export const useAuthState = () => {
 
       if (error) throw error;
 
-      toast({
-        title: "Account created!",
-        description: "Welcome to MY PUP! Your account has been created successfully.",
-      });
+      // Check if user needs to confirm email
+      if (data.user && !data.session) {
+        toast({
+          title: "Check your email!",
+          description: "We've sent you a confirmation link to complete your registration.",
+        });
+      } else {
+        toast({
+          title: "Account created!",
+          description: "Welcome to MY PUP! Your account has been created successfully.",
+        });
+      }
     } catch (error: any) {
       toast({
         title: "Sign up failed",
@@ -153,7 +166,7 @@ export const useAuthState = () => {
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
 
-      // Clear guest mode
+      // Clear guest mode and any cached data
       localStorage.removeItem('guestMode');
 
       toast({
@@ -197,7 +210,10 @@ export const useAuthState = () => {
 
       const { error } = await supabase
         .from('profiles')
-        .update(updates)
+        .update({
+          ...updates,
+          updated_at: new Date().toISOString()
+        })
         .eq('id', authState.user.id);
 
       if (error) throw error;

@@ -41,13 +41,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   const resetPassword = async (email: string) => {
-    // This will be implemented in the auth hook
     return authState.resetPassword(email);
   };
 
+  // Fixed guest detection logic
+  const isGuest = !authState.user && !authState.loading && localStorage.getItem('guestMode') === 'true';
+
   const value: AuthContextType = {
     ...authState,
-    isGuest: !authState.user && !authState.loading,
+    isGuest,
     continueAsGuest,
     resetPassword,
   };
