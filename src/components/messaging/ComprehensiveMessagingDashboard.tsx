@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -12,7 +11,7 @@ import {
   Shield, 
   Zap,
   Search,
-  Template,
+  FileText,
   TestTube
 } from 'lucide-react';
 import EnhancedMessagingInterface from './EnhancedMessagingInterface';
@@ -127,7 +126,7 @@ const ComprehensiveMessagingDashboard = () => {
               Messages
             </TabsTrigger>
             <TabsTrigger value="templates" className="flex items-center gap-2">
-              <Template className="w-4 h-4" />
+              <FileText className="w-4 h-4" />
               Templates
             </TabsTrigger>
             <TabsTrigger value="search" className="flex items-center gap-2">
