@@ -9,6 +9,7 @@ import { useOfflineMessages } from '@/hooks/useOfflineMessages';
 import EnhancedChatInterface from './EnhancedChatInterface';
 import ConversationsList from './ConversationsList';
 import { useEnhancedMessaging } from '@/hooks/useEnhancedMessaging';
+import { ExtendedConversation } from '@/types/messaging';
 
 const MobileMessagingInterface = () => {
   const { isMobile } = useMobileOptimized();
@@ -23,8 +24,8 @@ const MobileMessagingInterface = () => {
 
   const selectedConversation = conversations.find(c => c.id === selectedConversationId);
 
-  const handleSelectConversation = (conversationId: string) => {
-    setSelectedConversationId(conversationId);
+  const handleSelectConversation = (conversation: ExtendedConversation) => {
+    setSelectedConversationId(conversation.id);
   };
 
   if (!isMobile) {
