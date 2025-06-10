@@ -7,9 +7,15 @@ interface EncryptionKey {
   created_at: string;
 }
 
+interface EncryptionResult {
+  encryptedContent: string;
+  keyId: string;
+}
+
 export const useMessageEncryption = () => {
   const [encryptionEnabled, setEncryptionEnabled] = useState(false);
   const [currentKey, setCurrentKey] = useState<EncryptionKey | null>(null);
+  const [isEncrypting, setIsEncrypting] = useState(false);
 
   const generateKey = useCallback((): string => {
     const array = new Uint8Array(32);
@@ -17,9 +23,10 @@ export const useMessageEncryption = () => {
     return Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('');
   }, []);
 
-  const encryptMessage = useCallback(async (message: string, key?: string): Promise<string> => {
-    if (!encryptionEnabled || !message) return message;
+  const encryptMessage = useCallback(async (message: string, key?: string): Promise<EncryptionResult | null> => {
+    if (!encryptionEnabled || !message) return null;
     
+    setIsEncrypting(true);
     const encryptionKey = key || currentKey?.key || generateKey();
     
     try {
@@ -33,10 +40,17 @@ export const useMessageEncryption = () => {
         encrypted[i] = data[i] ^ keyData[i % keyData.length];
       }
       
-      return btoa(String.fromCharCode(...encrypted));
+      const encryptedContent = btoa(String.fromCharCode(...encrypted));
+      
+      return {
+        encryptedContent,
+        keyId: currentKey?.id || 'default'
+      };
     } catch (error) {
       console.error('Encryption failed:', error);
-      return message;
+      return null;
+    } finally {
+      setIsEncrypting(false);
     }
   }, [encryptionEnabled, currentKey, generateKey]);
 
@@ -82,6 +96,7 @@ export const useMessageEncryption = () => {
   return {
     encryptionEnabled,
     currentKey,
+    isEncrypting,
     encryptMessage,
     decryptMessage,
     createEncryptionKey,
