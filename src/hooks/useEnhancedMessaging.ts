@@ -32,8 +32,13 @@ export const useEnhancedMessaging = () => {
     sendMessage: sendMessageBase 
   } = useRealtimeMessages();
 
-  const sendMessage = async (conversationId: string, content: string, messageType: string = 'text') => {
-    const result = await sendMessageBase(conversationId, content, messageType);
+  const sendMessage = async (
+    conversationId: string, 
+    content: string, 
+    messageType: string = 'text', 
+    imageUrl?: string
+  ) => {
+    const result = await sendMessageBase(conversationId, content, messageType, imageUrl);
     
     // Simple notification logic - could be expanded later
     if (result && user) {

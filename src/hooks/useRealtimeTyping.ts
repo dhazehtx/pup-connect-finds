@@ -1,5 +1,5 @@
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -10,39 +10,36 @@ export const useRealtimeTyping = () => {
   const sendTypingIndicator = useCallback(async (conversationId: string, isTyping: boolean) => {
     if (!user) return;
 
-    const channel = supabase.channel(`typing-${conversationId}`);
-    await channel.send({
-      type: 'broadcast',
-      event: 'typing',
-      payload: {
-        user_id: user.id,
-        typing: isTyping,
-        timestamp: new Date().toISOString()
-      }
-    });
+    try {
+      await supabase
+        .channel(`typing:${conversationId}`)
+        .send({
+          type: 'broadcast',
+          event: 'typing',
+          payload: {
+            user_id: user.id,
+            is_typing: isTyping,
+            conversation_id: conversationId
+          }
+        });
+    } catch (error) {
+      console.error('Error sending typing indicator:', error);
+    }
   }, [user]);
 
   const setupTypingSubscription = useCallback((conversationId: string) => {
-    if (!user) return;
+    if (!user) return null;
 
-    const typingChannel = supabase
-      .channel(`typing-${conversationId}`)
+    const channel = supabase
+      .channel(`typing:${conversationId}`)
       .on('broadcast', { event: 'typing' }, (payload) => {
-        const { user_id, typing } = payload.payload;
+        const { user_id, is_typing } = payload.payload;
         
         if (user_id !== user.id) {
           setTypingUsers(prev => {
             const newSet = new Set(prev);
-            if (typing) {
+            if (is_typing) {
               newSet.add(user_id);
-              // Auto-remove after 3 seconds
-              setTimeout(() => {
-                setTypingUsers(current => {
-                  const updated = new Set(current);
-                  updated.delete(user_id);
-                  return updated;
-                });
-              }, 3000);
             } else {
               newSet.delete(user_id);
             }
@@ -52,12 +49,14 @@ export const useRealtimeTyping = () => {
       })
       .subscribe();
 
-    return typingChannel;
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [user]);
 
   return {
     typingUsers,
     sendTypingIndicator,
-    setupTypingSubscription,
+    setupTypingSubscription
   };
 };
