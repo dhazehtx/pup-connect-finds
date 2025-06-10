@@ -24,12 +24,9 @@ const EnhancedMessagingInterface = () => {
     createConversation,
   } = useEnhancedMessaging();
 
-  const handleConversationSelect = async (conversationId: string) => {
-    const conversation = conversations.find(c => c.id === conversationId);
-    if (conversation) {
-      setSelectedConversation(conversation);
-      await fetchMessages(conversation.id);
-    }
+  const handleConversationSelect = async (conversation: any) => {
+    setSelectedConversation(conversation);
+    await fetchMessages(conversation.id);
   };
 
   const handleSendMessage = async (content: string) => {
