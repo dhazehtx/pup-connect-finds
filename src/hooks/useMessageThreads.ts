@@ -18,7 +18,8 @@ export const useMessageThreads = () => {
         .select(`
           *,
           profiles:sender_id (
-            full_name
+            full_name,
+            username
           )
         `)
         .eq('parent_message_id', parentMessageId)
@@ -28,7 +29,7 @@ export const useMessageThreads = () => {
 
       const formattedMessages = (data || []).map(msg => ({
         ...msg,
-        sender_name: msg.profiles?.full_name || 'Unknown User'
+        sender_name: msg.profiles?.full_name || msg.profiles?.username || 'Unknown User'
       }));
 
       setThreads(prev => ({
@@ -72,7 +73,8 @@ export const useMessageThreads = () => {
         .select(`
           *,
           profiles:sender_id (
-            full_name
+            full_name,
+            username
           )
         `)
         .single();
@@ -81,7 +83,7 @@ export const useMessageThreads = () => {
 
       const formattedMessage = {
         ...data,
-        sender_name: data.profiles?.full_name || 'Unknown User'
+        sender_name: data.profiles?.full_name || data.profiles?.username || 'Unknown User'
       };
 
       // Update local thread state

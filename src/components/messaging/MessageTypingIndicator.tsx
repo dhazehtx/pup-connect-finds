@@ -1,6 +1,6 @@
 
-import React, { useState, useEffect } from 'react';
-import { useRealtimeTyping } from '@/hooks/useRealtimeTyping';
+import React, { useState, useEffect, useCallback } from 'react';
+import { useTypingIndicators } from '@/hooks/useTypingIndicators';
 
 interface MessageTypingIndicatorProps {
   conversationId: string;
@@ -13,54 +13,56 @@ const MessageTypingIndicator = ({
   currentUserId, 
   onTyping 
 }: MessageTypingIndicatorProps) => {
-  const [isTyping, setIsTyping] = useState(false);
-  const { typingUsers, sendTypingIndicator, setupTypingSubscription } = useRealtimeTyping();
+  const [isCurrentUserTyping, setIsCurrentUserTyping] = useState(false);
+  const { typingUsers, startTyping, stopTyping, getTypingUsers } = useTypingIndicators();
 
-  useEffect(() => {
-    const cleanup = setupTypingSubscription(conversationId);
-    return cleanup;
-  }, [conversationId, setupTypingSubscription]);
+  const conversationTypingUsers = getTypingUsers(conversationId).filter(
+    user => user.user_id !== currentUserId
+  );
 
-  useEffect(() => {
-    onTyping?.(isTyping);
-    
-    if (isTyping) {
-      sendTypingIndicator(conversationId, true);
-      
-      const timeout = setTimeout(() => {
-        setIsTyping(false);
-        sendTypingIndicator(conversationId, false);
-      }, 3000);
-      
-      return () => clearTimeout(timeout);
-    } else {
-      sendTypingIndicator(conversationId, false);
+  const onTypingStart = useCallback(() => {
+    if (!isCurrentUserTyping) {
+      setIsCurrentUserTyping(true);
+      startTyping(conversationId);
+      onTyping?.(true);
     }
-  }, [isTyping, conversationId, sendTypingIndicator, onTyping]);
+  }, [isCurrentUserTyping, startTyping, conversationId, onTyping]);
 
-  const handleTypingStart = () => setIsTyping(true);
-  const handleTypingStop = () => setIsTyping(false);
+  const onTypingStop = useCallback(() => {
+    if (isCurrentUserTyping) {
+      setIsCurrentUserTyping(false);
+      stopTyping(conversationId);
+      onTyping?.(false);
+    }
+  }, [isCurrentUserTyping, stopTyping, conversationId, onTyping]);
 
-  // Fix: Compare the id property of TypingUser objects with currentUserId
-  const otherUsersTyping = typingUsers.filter(user => user.id !== currentUserId);
+  // Auto-stop typing after 3 seconds of inactivity
+  useEffect(() => {
+    if (isCurrentUserTyping) {
+      const timeout = setTimeout(onTypingStop, 3000);
+      return () => clearTimeout(timeout);
+    }
+  }, [isCurrentUserTyping, onTypingStop]);
+
+  const typingIndicator = conversationTypingUsers.length > 0 ? (
+    <div className="px-4 py-2 text-sm text-muted-foreground animate-pulse">
+      <div className="flex items-center gap-2">
+        <div className="flex gap-1">
+          <div className="w-2 h-2 bg-current rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+          <div className="w-2 h-2 bg-current rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+          <div className="w-2 h-2 bg-current rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+        </div>
+        <span>
+          {conversationTypingUsers.map(u => u.username).join(', ')} {conversationTypingUsers.length === 1 ? 'is' : 'are'} typing...
+        </span>
+      </div>
+    </div>
+  ) : null;
 
   return {
-    onTypingStart: handleTypingStart,
-    onTypingStop: handleTypingStop,
-    typingIndicator: otherUsersTyping.length > 0 && (
-      <div className="flex justify-start px-4 py-2">
-        <div className="bg-muted text-muted-foreground px-3 py-2 rounded-lg">
-          <div className="flex items-center gap-1">
-            <div className="flex space-x-1">
-              <div className="h-2 w-2 bg-muted-foreground rounded-full animate-bounce"></div>
-              <div className="h-2 w-2 bg-muted-foreground rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
-              <div className="h-2 w-2 bg-muted-foreground rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
-            </div>
-            <span className="text-xs ml-2">typing...</span>
-          </div>
-        </div>
-      </div>
-    )
+    onTypingStart,
+    onTypingStop,
+    typingIndicator
   };
 };
 

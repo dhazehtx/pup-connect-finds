@@ -1,174 +1,85 @@
 
 import { useState, useCallback } from 'react';
-import { useFileUpload } from '@/hooks/useFileUpload';
+import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
-interface EnhancedFileUploadState {
-  uploading: boolean;
-  progress: number;
-  error: string | null;
-  uploadedFiles: Array<{
-    id: string;
-    url: string;
-    name: string;
-    type: string;
-    size: number;
-  }>;
-}
-
 export const useEnhancedFileUpload = () => {
-  const [state, setState] = useState<EnhancedFileUploadState>({
-    uploading: false,
-    progress: 0,
-    error: null,
-    uploadedFiles: []
-  });
-
-  const { uploadFile, uploadImage, isUploading } = useFileUpload({
-    bucket: 'message-attachments',
-    folder: 'conversations',
-    maxSize: 50, // 50MB
-    allowedTypes: ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'application/pdf', 'text/plain']
-  });
-
+  const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const { toast } = useToast();
 
-  console.log('📎 useEnhancedFileUpload - State:', {
-    uploading: state.uploading || isUploading,
-    progress: state.progress,
-    uploadedFilesCount: state.uploadedFiles.length,
-    hasError: !!state.error
-  });
-
-  const uploadFiles = useCallback(async (files: FileList | File[]) => {
-    const fileArray = Array.from(files);
-    
-    if (fileArray.length === 0) return [];
-
-    console.log('📎 useEnhancedFileUpload - Starting upload:', {
-      fileCount: fileArray.length,
-      files: fileArray.map(f => ({ name: f.name, size: f.size, type: f.type }))
-    });
-
-    setState(prev => ({
-      ...prev,
-      uploading: true,
-      progress: 0,
-      error: null
-    }));
-
-    const uploadedFiles: typeof state.uploadedFiles = [];
-    const totalFiles = fileArray.length;
+  const uploadFile = useCallback(async (file: File): Promise<string | null> => {
+    if (!file) return null;
 
     try {
-      for (let i = 0; i < fileArray.length; i++) {
-        const file = fileArray[i];
-        
-        console.log(`📎 useEnhancedFileUpload - Uploading file ${i + 1}/${totalFiles}:`, file.name);
-        
-        // Update progress
-        setState(prev => ({
-          ...prev,
-          progress: (i / totalFiles) * 100
-        }));
+      setUploading(true);
+      setUploadProgress(0);
+      
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
+      const filePath = `uploads/${fileName}`;
 
-        let url: string | null = null;
-        
-        if (file.type.startsWith('image/')) {
-          url = await uploadImage(file);
-        } else {
-          url = await uploadFile(file);
-        }
+      const { error: uploadError } = await supabase.storage
+        .from('message-files')
+        .upload(filePath, file, {
+          onUploadProgress: (progress) => {
+            const percent = (progress.loaded / progress.total) * 100;
+            setUploadProgress(percent);
+          }
+        });
 
-        if (url) {
-          const uploadedFile = {
-            id: `${Date.now()}-${i}`,
-            url,
-            name: file.name,
-            type: file.type,
-            size: file.size
-          };
-          
-          uploadedFiles.push(uploadedFile);
-          
-          console.log('✅ useEnhancedFileUpload - File uploaded successfully:', {
-            name: file.name,
-            url,
-            size: file.size
-          });
-        } else {
-          throw new Error(`Failed to upload ${file.name}`);
-        }
-      }
+      if (uploadError) throw uploadError;
 
-      // Complete upload
-      setState(prev => ({
-        ...prev,
-        uploading: false,
-        progress: 100,
-        uploadedFiles: [...prev.uploadedFiles, ...uploadedFiles]
-      }));
+      const { data: { publicUrl } } = supabase.storage
+        .from('message-files')
+        .getPublicUrl(filePath);
 
       toast({
-        title: "Upload Complete",
-        description: `Successfully uploaded ${uploadedFiles.length} file${uploadedFiles.length > 1 ? 's' : ''}`,
+        title: "File uploaded",
+        description: `${file.name} was uploaded successfully`,
       });
 
-      console.log('🎉 useEnhancedFileUpload - All files uploaded successfully:', uploadedFiles.length);
-      
-      return uploadedFiles;
-
+      return publicUrl;
     } catch (error) {
-      console.error('❌ useEnhancedFileUpload - Upload error:', error);
-      
-      setState(prev => ({
-        ...prev,
-        uploading: false,
-        progress: 0,
-        error: error instanceof Error ? error.message : 'Upload failed'
-      }));
-
+      console.error('Error uploading file:', error);
       toast({
-        title: "Upload Failed",
-        description: error instanceof Error ? error.message : 'Failed to upload files',
+        title: "Upload failed",
+        description: "Failed to upload file. Please try again.",
         variant: "destructive",
       });
-
-      return [];
+      return null;
+    } finally {
+      setUploading(false);
+      setUploadProgress(0);
     }
-  }, [uploadFile, uploadImage, toast]);
+  }, [toast]);
 
-  const uploadSingleFile = useCallback(async (file: File) => {
-    const results = await uploadFiles([file]);
-    return results[0] || null;
-  }, [uploadFiles]);
+  const uploadImage = useCallback(async (file: File): Promise<string | null> => {
+    if (!file.type.startsWith('image/')) {
+      toast({
+        title: "Invalid file type",
+        description: "Please select an image file",
+        variant: "destructive",
+      });
+      return null;
+    }
 
-  const clearUploads = useCallback(() => {
-    console.log('🧹 useEnhancedFileUpload - Clearing uploads');
-    setState({
-      uploading: false,
-      progress: 0,
-      error: null,
-      uploadedFiles: []
+    return uploadFile(file);
+  }, [uploadFile, toast]);
+
+  const uploadAudio = useCallback(async (audioBlob: Blob): Promise<string | null> => {
+    const audioFile = new File([audioBlob], `voice-${Date.now()}.webm`, {
+      type: 'audio/webm'
     });
-  }, []);
 
-  const removeUploadedFile = useCallback((fileId: string) => {
-    console.log('🗑️ useEnhancedFileUpload - Removing file:', fileId);
-    setState(prev => ({
-      ...prev,
-      uploadedFiles: prev.uploadedFiles.filter(f => f.id !== fileId)
-    }));
-  }, []);
+    return uploadFile(audioFile);
+  }, [uploadFile]);
 
   return {
-    uploading: state.uploading || isUploading,
-    progress: state.progress,
-    error: state.error,
-    uploadedFiles: state.uploadedFiles,
-    uploadFiles,
-    uploadSingleFile,
-    clearUploads,
-    removeUploadedFile
+    uploading,
+    uploadProgress,
+    uploadFile,
+    uploadImage,
+    uploadAudio
   };
 };

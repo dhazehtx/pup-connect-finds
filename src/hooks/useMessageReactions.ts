@@ -118,6 +118,33 @@ export const useMessageReactions = () => {
     return reactions[messageId]?.some(r => r.user_id === user.id && r.emoji === emoji) || false;
   }, [reactions, user]);
 
+  // Set up real-time subscription for reactions
+  useEffect(() => {
+    const channel = supabase
+      .channel('message_reactions_changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'message_reactions'
+        },
+        (payload) => {
+          console.log('Reaction change:', payload);
+          // Refresh reactions when they change
+          const messageIds = Object.keys(reactions);
+          if (messageIds.length > 0) {
+            fetchReactions(messageIds);
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [reactions, fetchReactions]);
+
   return {
     reactions,
     addReaction,

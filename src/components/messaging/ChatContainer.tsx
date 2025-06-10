@@ -1,9 +1,12 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import MessagesList from './MessagesList';
-import MessageInputArea from './MessageInputArea';
-import MessageReactionsPicker from './MessageReactionsPicker';
+import EnhancedMessageInput from './EnhancedMessageInput';
 import MessageThread from './MessageThread';
+import MessageReactionsPicker from './MessageReactionsPicker';
+import { useMessageReactions } from '@/hooks/useMessageReactions';
+import { useMessageThreads } from '@/hooks/useMessageThreads';
+import { useTypingIndicators } from '@/hooks/useTypingIndicators';
 
 interface ChatContainerProps {
   messages: any[];
@@ -23,7 +26,7 @@ interface ChatContainerProps {
   onSendVoiceMessage: (audioUrl: string, duration: number) => void;
   onFileSelect: (event: React.ChangeEvent<HTMLInputElement>) => void;
   onKeyPress: (event: React.KeyboardEvent) => void;
-  sendMessage: (conversationId: string, content: string, messageType?: string, imageUrl?: string) => Promise<any>;
+  sendMessage: (conversationId: string, content: string, type?: string, fileUrl?: string) => Promise<any>;
   conversationId: string;
   reactionPickerState: {
     isOpen: boolean;
@@ -48,16 +51,6 @@ const ChatContainer = ({
   onReactionButtonClick,
   onReplyToMessage,
   onReactionToggle,
-  newMessage,
-  setNewMessage,
-  selectedFile,
-  setSelectedFile,
-  uploading,
-  sendingMessage,
-  onSendMessage,
-  onSendVoiceMessage,
-  onFileSelect,
-  onKeyPress,
   sendMessage,
   conversationId,
   reactionPickerState,
@@ -66,19 +59,26 @@ const ChatContainer = ({
   threadState,
   closeThread
 }: ChatContainerProps) => {
-  console.log('📦 ChatContainer - Rendering with props:', {
-    messageCount: messages.length,
-    userId: user?.id,
-    reactionPickerOpen: reactionPickerState.isOpen,
-    threadOpen: threadState.isOpen,
-    uploading,
-    sendingMessage,
-    hasSelectedFile: !!selectedFile,
-    newMessageLength: newMessage.length
-  });
+  const { fetchReactions } = useMessageReactions();
+  const { getTypingUsers } = useTypingIndicators();
+
+  // Fetch reactions when messages change
+  useEffect(() => {
+    if (messages.length > 0) {
+      const messageIds = messages.map(m => m.id);
+      fetchReactions(messageIds);
+    }
+  }, [messages, fetchReactions]);
+
+  const typingUsers = getTypingUsers(conversationId);
+
+  const handleSendMessage = async (content: string, type = 'text', fileUrl?: string) => {
+    await sendMessage(conversationId, content, type, fileUrl);
+  };
 
   return (
-    <div className="flex flex-col h-full bg-background">
+    <div className="flex flex-col h-full">
+      {/* Messages list */}
       <MessagesList
         messages={messages}
         user={user}
@@ -90,47 +90,40 @@ const ChatContainer = ({
         conversationId={conversationId}
       />
 
-      {/* Thread Dialog */}
-      {threadState.parentMessage && (
-        <>
-          {console.log('🧵 ChatContainer - Rendering thread for parent message:', threadState.parentMessageId)}
-          <MessageThread
-            parentMessageId={threadState.parentMessageId || ''}
-            isOpen={threadState.isOpen}
-            onClose={closeThread}
-            parentMessage={threadState.parentMessage}
-          />
-        </>
+      {/* Typing indicators */}
+      {typingUsers.length > 0 && (
+        <div className="px-4 py-2 text-sm text-muted-foreground">
+          {typingUsers.map(u => u.username).join(', ')} {typingUsers.length === 1 ? 'is' : 'are'} typing...
+        </div>
       )}
 
-      {/* Reaction Picker */}
-      {reactionPickerState.isOpen && (
-        <>
-          {console.log('😊 ChatContainer - Rendering reaction picker for message:', reactionPickerState.messageId)}
-          <MessageReactionsPicker
-            messageId={reactionPickerState.messageId || ''}
-            onReactionAdd={onReactionAdd}
-            isOpen={reactionPickerState.isOpen}
-            onClose={closeReactionPicker}
-            position={reactionPickerState.position || undefined}
-          />
-        </>
-      )}
-
-      <MessageInputArea
-        newMessage={newMessage}
-        setNewMessage={setNewMessage}
-        selectedFile={selectedFile}
-        setSelectedFile={setSelectedFile}
-        uploading={uploading}
-        sendingMessage={sendingMessage}
-        onSendMessage={onSendMessage}
-        onSendVoiceMessage={onSendVoiceMessage}
-        onFileSelect={onFileSelect}
-        onKeyPress={onKeyPress}
-        sendMessage={sendMessage}
+      {/* Message input */}
+      <EnhancedMessageInput
         conversationId={conversationId}
+        onSendMessage={handleSendMessage}
+        placeholder="Type a message..."
       />
+
+      {/* Reaction picker */}
+      {reactionPickerState.isOpen && reactionPickerState.messageId && (
+        <MessageReactionsPicker
+          messageId={reactionPickerState.messageId}
+          onReactionAdd={onReactionAdd}
+          isOpen={reactionPickerState.isOpen}
+          onClose={closeReactionPicker}
+          position={reactionPickerState.position || undefined}
+        />
+      )}
+
+      {/* Message thread */}
+      {threadState.isOpen && threadState.parentMessageId && (
+        <MessageThread
+          parentMessageId={threadState.parentMessageId}
+          isOpen={threadState.isOpen}
+          onClose={closeThread}
+          parentMessage={threadState.parentMessage}
+        />
+      )}
     </div>
   );
 };
