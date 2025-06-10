@@ -51,7 +51,7 @@ const MessageItem = ({
     if (messageReactions.length === 0) return null;
 
     // Group reactions by emoji with proper typing
-    const groupedReactions = messageReactions.reduce((acc, reaction) => {
+    const groupedReactions = messageReactions.reduce((acc: Record<string, { count: number; userReacted: boolean }>, reaction: any) => {
       const emoji = reaction.emoji;
       if (!acc[emoji]) {
         acc[emoji] = { count: 0, userReacted: false };
@@ -61,7 +61,7 @@ const MessageItem = ({
         acc[emoji].userReacted = true;
       }
       return acc;
-    }, {} as Record<string, { count: number; userReacted: boolean }>);
+    }, {});
 
     return (
       <div className="flex flex-wrap gap-1 mt-2">
