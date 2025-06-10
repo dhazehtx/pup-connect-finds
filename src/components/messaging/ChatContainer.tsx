@@ -66,6 +66,17 @@ const ChatContainer = ({
   threadState,
   closeThread
 }: ChatContainerProps) => {
+  console.log('📦 ChatContainer - Rendering with props:', {
+    messageCount: messages.length,
+    userId: user?.id,
+    reactionPickerOpen: reactionPickerState.isOpen,
+    threadOpen: threadState.isOpen,
+    uploading,
+    sendingMessage,
+    hasSelectedFile: !!selectedFile,
+    newMessageLength: newMessage.length
+  });
+
   return (
     <div className="flex flex-col h-full bg-background">
       <MessagesList
@@ -80,22 +91,30 @@ const ChatContainer = ({
 
       {/* Thread Dialog */}
       {threadState.parentMessage && (
-        <MessageThread
-          parentMessageId={threadState.parentMessageId || ''}
-          isOpen={threadState.isOpen}
-          onClose={closeThread}
-          parentMessage={threadState.parentMessage}
-        />
+        <>
+          {console.log('🧵 ChatContainer - Rendering thread for parent message:', threadState.parentMessageId)}
+          <MessageThread
+            parentMessageId={threadState.parentMessageId || ''}
+            isOpen={threadState.isOpen}
+            onClose={closeThread}
+            parentMessage={threadState.parentMessage}
+          />
+        </>
       )}
 
       {/* Reaction Picker */}
-      <MessageReactionsPicker
-        messageId={reactionPickerState.messageId || ''}
-        onReactionAdd={onReactionAdd}
-        isOpen={reactionPickerState.isOpen}
-        onClose={closeReactionPicker}
-        position={reactionPickerState.position || undefined}
-      />
+      {reactionPickerState.isOpen && (
+        <>
+          {console.log('😊 ChatContainer - Rendering reaction picker for message:', reactionPickerState.messageId)}
+          <MessageReactionsPicker
+            messageId={reactionPickerState.messageId || ''}
+            onReactionAdd={onReactionAdd}
+            isOpen={reactionPickerState.isOpen}
+            onClose={closeReactionPicker}
+            position={reactionPickerState.position || undefined}
+          />
+        </>
+      )}
 
       <MessageInputArea
         newMessage={newMessage}
