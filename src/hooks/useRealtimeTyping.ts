@@ -1,45 +1,61 @@
 
-import { useState, useCallback } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 
 export const useRealtimeTyping = () => {
   const [typingUsers, setTypingUsers] = useState<Set<string>>(new Set());
   const { user } = useAuth();
+  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  const sendTypingIndicator = useCallback(async (conversationId: string, isTyping: boolean) => {
+  const sendTypingIndicator = (conversationId: string, isTyping: boolean) => {
     if (!user) return;
 
-    try {
-      await supabase
-        .channel(`typing:${conversationId}`)
-        .send({
-          type: 'broadcast',
-          event: 'typing',
-          payload: {
-            user_id: user.id,
-            is_typing: isTyping,
-            conversation_id: conversationId
-          }
-        });
-    } catch (error) {
-      console.error('Error sending typing indicator:', error);
+    const channel = supabase.channel(`typing_${conversationId}`);
+    
+    if (isTyping) {
+      channel.send({
+        type: 'broadcast',
+        event: 'typing',
+        payload: { 
+          user_id: user.id,
+          typing: true,
+          timestamp: Date.now()
+        }
+      });
+    } else {
+      channel.send({
+        type: 'broadcast',
+        event: 'typing',
+        payload: { 
+          user_id: user.id,
+          typing: false,
+          timestamp: Date.now()
+        }
+      });
     }
-  }, [user]);
+  };
 
-  const setupTypingSubscription = useCallback((conversationId: string) => {
-    if (!user) return null;
-
+  const setupTypingSubscription = (conversationId: string) => {
     const channel = supabase
-      .channel(`typing:${conversationId}`)
+      .channel(`typing_${conversationId}`)
       .on('broadcast', { event: 'typing' }, (payload) => {
-        const { user_id, is_typing } = payload.payload;
+        const { user_id, typing } = payload.payload;
         
-        if (user_id !== user.id) {
+        if (user_id !== user?.id) {
           setTypingUsers(prev => {
             const newSet = new Set(prev);
-            if (is_typing) {
+            if (typing) {
               newSet.add(user_id);
+              
+              // Auto-remove after 5 seconds
+              setTimeout(() => {
+                setTypingUsers(current => {
+                  const updated = new Set(current);
+                  updated.delete(user_id);
+                  return updated;
+                });
+              }, 5000);
             } else {
               newSet.delete(user_id);
             }
@@ -52,7 +68,7 @@ export const useRealtimeTyping = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [user]);
+  };
 
   return {
     typingUsers,

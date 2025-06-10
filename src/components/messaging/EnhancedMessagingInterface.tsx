@@ -3,18 +3,21 @@ import React, { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { useAuth } from '@/contexts/AuthContext';
 import { useEnhancedMessaging } from '@/hooks/useEnhancedMessaging';
+import { useMobileOptimized } from '@/hooks/useMobileOptimized';
 import ConversationsList from './ConversationsList';
 import EnhancedChatInterface from './EnhancedChatInterface';
 import EnhancedChatHeader from './EnhancedChatHeader';
 import MessageNotifications from './MessageNotifications';
 import ConversationSearch from './ConversationSearch';
 import MessageSearchDialog from './MessageSearchDialog';
+import MobileMessagingInterface from './MobileMessagingInterface';
 import { ExtendedConversation } from '@/types/messaging';
 import { useToast } from '@/hooks/use-toast';
 
 const EnhancedMessagingInterface = () => {
   const { user } = useAuth();
   const { toast } = useToast();
+  const { isMobile } = useMobileOptimized();
   const [selectedConversation, setSelectedConversation] = useState<ExtendedConversation | null>(null);
   const [showMessageSearch, setShowMessageSearch] = useState(false);
   const [filteredConversations, setFilteredConversations] = useState<any[]>([]);
@@ -28,6 +31,11 @@ const EnhancedMessagingInterface = () => {
     sendMessage,
     createConversation,
   } = useEnhancedMessaging();
+
+  // Use mobile interface on mobile devices
+  if (isMobile) {
+    return <MobileMessagingInterface />;
+  }
 
   // Initialize filtered conversations
   useEffect(() => {

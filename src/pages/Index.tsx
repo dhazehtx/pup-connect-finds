@@ -11,6 +11,8 @@ import ProtectedRoute from '@/components/ProtectedRoute';
 const Explore = React.lazy(() => import('@/pages/Explore'));
 const Auth = React.lazy(() => import('@/pages/Auth'));
 const Messages = React.lazy(() => import('@/pages/Messages'));
+const MessagingTest = React.lazy(() => import('@/pages/MessagingTest'));
+const MessagingAnalytics = React.lazy(() => import('@/pages/MessagingAnalytics'));
 const Profile = React.lazy(() => import('@/pages/Profile'));
 const Home = React.lazy(() => import('@/pages/Home'));
 const Listing = React.lazy(() => import('@/pages/Listing'));
@@ -40,6 +42,22 @@ const Index = () => {
       element: (
         <ProtectedRoute guestMessage="Sign in to access your messages and connect with other dog lovers.">
           <Messages />
+        </ProtectedRoute>
+      )
+    },
+    {
+      path: '/messaging-test',
+      element: (
+        <ProtectedRoute guestMessage="Sign in to access messaging test features.">
+          <MessagingTest />
+        </ProtectedRoute>
+      )
+    },
+    {
+      path: '/messaging-analytics',
+      element: (
+        <ProtectedRoute guestMessage="Sign in to access messaging analytics.">
+          <MessagingAnalytics />
         </ProtectedRoute>
       )
     },

@@ -1,9 +1,15 @@
 
 import React from 'react';
-import MessagingInterface from '@/components/messaging/MessagingInterface';
+import EnhancedMessagingInterface from '@/components/messaging/EnhancedMessagingInterface';
 
 const Messages = () => {
-  return <MessagingInterface />;
+  return (
+    <div className="h-screen flex flex-col">
+      <div className="flex-1 overflow-hidden">
+        <EnhancedMessagingInterface />
+      </div>
+    </div>
+  );
 };
 
 export default Messages;

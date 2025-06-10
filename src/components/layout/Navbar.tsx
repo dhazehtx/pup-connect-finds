@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Heart, Menu, X } from 'lucide-react';
@@ -43,6 +44,14 @@ const Navbar = () => {
               >
                 Explore
               </Link>
+              {user && (
+                <Link
+                  to="/messages"
+                  className="text-gray-500 hover:text-gray-700 px-3 py-2 rounded-md text-sm font-medium"
+                >
+                  Messages
+                </Link>
+              )}
               <Link
                 to="/education"
                 className="text-gray-500 hover:text-gray-700 px-3 py-2 rounded-md text-sm font-medium"
@@ -55,6 +64,22 @@ const Navbar = () => {
               >
                 Analytics
               </Link>
+              {user && (
+                <>
+                  <Link
+                    to="/messaging-test"
+                    className="text-gray-500 hover:text-gray-700 px-3 py-2 rounded-md text-sm font-medium"
+                  >
+                    Msg Test
+                  </Link>
+                  <Link
+                    to="/messaging-analytics"
+                    className="text-gray-500 hover:text-gray-700 px-3 py-2 rounded-md text-sm font-medium"
+                  >
+                    Msg Analytics
+                  </Link>
+                </>
+              )}
             </div>
           </div>
 
@@ -93,6 +118,11 @@ const Navbar = () => {
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem>
+                    <Link to="/messages" className="w-full h-full block">
+                      Messages
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem>
                     <Link to="/my-listings" className="w-full h-full block">
                       My Listings
                     </Link>
@@ -100,6 +130,17 @@ const Navbar = () => {
                   <DropdownMenuItem>
                     <Link to="/create-listing" className="w-full h-full block">
                       Create Listing
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem>
+                    <Link to="/messaging-test" className="w-full h-full block">
+                      Message Testing
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem>
+                    <Link to="/messaging-analytics" className="w-full h-full block">
+                      Message Analytics
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
@@ -141,6 +182,14 @@ const Navbar = () => {
           >
             Explore
           </Link>
+          {user && (
+            <Link
+              to="/messages"
+              className="text-gray-500 hover:text-gray-700 block px-3 py-2 rounded-md text-base font-medium"
+            >
+              Messages
+            </Link>
+          )}
           <Link
             to="/education"
             className="text-gray-500 hover:text-gray-700 block px-3 py-2 rounded-md text-base font-medium"
@@ -172,6 +221,18 @@ const Navbar = () => {
                 className="text-gray-500 hover:text-gray-700 block px-3 py-2 rounded-md text-base font-medium"
               >
                 Create Listing
+              </Link>
+              <Link
+                to="/messaging-test"
+                className="text-gray-500 hover:text-gray-700 block px-3 py-2 rounded-md text-base font-medium"
+              >
+                Message Testing
+              </Link>
+              <Link
+                to="/messaging-analytics"
+                className="text-gray-500 hover:text-gray-700 block px-3 py-2 rounded-md text-base font-medium"
+              >
+                Message Analytics
               </Link>
               <button
                 onClick={signOut}
