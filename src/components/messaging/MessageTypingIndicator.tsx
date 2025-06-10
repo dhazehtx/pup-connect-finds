@@ -41,7 +41,8 @@ const MessageTypingIndicator = ({
   const handleTypingStart = () => setIsTyping(true);
   const handleTypingStop = () => setIsTyping(false);
 
-  const otherUsersTyping = Array.from(typingUsers).filter(userId => userId !== currentUserId);
+  // Fix: Compare the id property of TypingUser objects with currentUserId
+  const otherUsersTyping = typingUsers.filter(user => user.id !== currentUserId);
 
   return {
     onTypingStart: handleTypingStart,
