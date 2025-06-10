@@ -1,9 +1,9 @@
 
 import React from 'react';
-import MessagingHub from '@/components/messaging/MessagingHub';
+import ComprehensiveMessagingDashboard from '@/components/messaging/ComprehensiveMessagingDashboard';
 
 const MessagingDashboard = () => {
-  return <MessagingHub />;
+  return <ComprehensiveMessagingDashboard />;
 };
 
 export default MessagingDashboard;
