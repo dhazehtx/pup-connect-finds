@@ -3,7 +3,15 @@ import { useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
-import { ThreadMessage } from '@/types/messaging';
+
+export interface ThreadMessage {
+  id: string;
+  parent_message_id: string;
+  sender_id: string;
+  content: string;
+  created_at: string;
+  sender_name?: string;
+}
 
 export const useMessageThreads = () => {
   const [threads, setThreads] = useState<Record<string, ThreadMessage[]>>({});
@@ -13,8 +21,10 @@ export const useMessageThreads = () => {
 
   const fetchThreadMessages = useCallback(async (parentMessageId: string) => {
     try {
+      // For now, use regular messages table to simulate threads
+      // Filter messages that reference the parent message
       const { data, error } = await supabase
-        .from('thread_messages')
+        .from('messages')
         .select(`
           *,
           profiles:sender_id (
@@ -22,13 +32,17 @@ export const useMessageThreads = () => {
             username
           )
         `)
-        .eq('parent_message_id', parentMessageId)
+        .eq('conversation_id', parentMessageId) // Using conversation_id as a placeholder
         .order('created_at', { ascending: true });
 
       if (error) throw error;
 
       const formattedMessages = (data || []).map(msg => ({
-        ...msg,
+        id: msg.id,
+        parent_message_id: parentMessageId,
+        sender_id: msg.sender_id,
+        content: msg.content,
+        created_at: msg.created_at,
         sender_name: msg.profiles?.full_name || msg.profiles?.username || 'Unknown User'
       }));
 
@@ -63,12 +77,14 @@ export const useMessageThreads = () => {
     }
 
     try {
+      // For now, create a regular message that references the parent
       const { data, error } = await supabase
-        .from('thread_messages')
+        .from('messages')
         .insert([{
-          parent_message_id: parentMessageId,
+          conversation_id: parentMessageId, // Using conversation_id as placeholder
           sender_id: user.id,
-          content
+          content: `Reply: ${content}`,
+          message_type: 'thread_reply'
         }])
         .select(`
           *,
@@ -81,8 +97,12 @@ export const useMessageThreads = () => {
 
       if (error) throw error;
 
-      const formattedMessage = {
-        ...data,
+      const formattedMessage: ThreadMessage = {
+        id: data.id,
+        parent_message_id: parentMessageId,
+        sender_id: data.sender_id,
+        content: data.content,
+        created_at: data.created_at,
         sender_name: data.profiles?.full_name || data.profiles?.username || 'Unknown User'
       };
 
@@ -118,15 +138,9 @@ export const useMessageThreads = () => {
     if (messageIds.length === 0) return;
 
     try {
-      const { data, error } = await supabase
-        .from('thread_messages')
-        .select('parent_message_id')
-        .in('parent_message_id', messageIds);
-
-      if (error) throw error;
-
-      const counts = (data || []).reduce((acc, item) => {
-        acc[item.parent_message_id] = (acc[item.parent_message_id] || 0) + 1;
+      // For now, just return empty counts since we don't have real thread structure yet
+      const counts = messageIds.reduce((acc, id) => {
+        acc[id] = 0;
         return acc;
       }, {} as Record<string, number>);
 

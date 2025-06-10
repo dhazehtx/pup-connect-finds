@@ -4,7 +4,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import { LoadingSkeleton } from '@/components/LoadingSkeleton';
+import LoadingSkeleton from '@/components/LoadingSkeleton';
 import { ExtendedConversation } from '@/types/messaging';
 
 interface ConversationListProps {
@@ -26,7 +26,7 @@ const ConversationList = ({
     return (
       <div className="space-y-3">
         {[...Array(5)].map((_, i) => (
-          <LoadingSkeleton key={i} className="h-16 w-full" />
+          <LoadingSkeleton key={i} viewMode="list" count={1} />
         ))}
       </div>
     );
@@ -45,7 +45,8 @@ const ConversationList = ({
     <div className="space-y-2">
       {conversations.map((conversation) => {
         const isSelected = conversation.id === selectedConversationId;
-        const isOnline = isUserOnline ? isUserOnline(conversation.other_user?.id || '') : false;
+        const otherUser = conversation.other_user || {};
+        const isOnline = isUserOnline ? isUserOnline(otherUser.id || '') : false;
 
         return (
           <Card
@@ -59,9 +60,9 @@ const ConversationList = ({
               <div className="flex items-center gap-3">
                 <div className="relative">
                   <Avatar className="w-12 h-12">
-                    <AvatarImage src={conversation.other_user?.avatar_url || ''} />
+                    <AvatarImage src={otherUser.avatar_url || ''} />
                     <AvatarFallback>
-                      {conversation.other_user?.full_name?.charAt(0) || 'U'}
+                      {otherUser.full_name?.charAt(0) || 'U'}
                     </AvatarFallback>
                   </Avatar>
                   {isOnline && (
@@ -72,8 +73,8 @@ const ConversationList = ({
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between">
                     <h3 className="font-semibold text-sm truncate">
-                      {conversation.other_user?.full_name || 
-                       conversation.other_user?.username || 
+                      {otherUser.full_name || 
+                       otherUser.username || 
                        'Anonymous User'}
                     </h3>
                     {conversation.last_message_at && (
@@ -98,7 +99,7 @@ const ConversationList = ({
 
                   <div className="flex items-center justify-between mt-2">
                     <p className="text-sm text-muted-foreground truncate">
-                      {conversation.other_user?.location || 'Location not specified'}
+                      {otherUser.bio || 'No bio available'}
                     </p>
                     {conversation.unread_count && conversation.unread_count > 0 && (
                       <Badge variant="destructive" className="text-xs">

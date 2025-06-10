@@ -49,9 +49,11 @@ const EnhancedMessageInput = ({
     stopTyping(conversationId);
     
     if (selectedFile) {
-      const fileUrl = await uploadFile(selectedFile);
-      if (fileUrl) {
+      try {
+        const fileUrl = await uploadFile(selectedFile);
         onSendMessage(message || `Shared ${selectedFile.name}`, 'file', fileUrl);
+      } catch (error) {
+        console.error('File upload failed:', error);
       }
       setSelectedFile(null);
     } else {
@@ -78,10 +80,12 @@ const EnhancedMessageInput = ({
   const handleImageSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      const imageUrl = await uploadImage(file);
-      if (imageUrl) {
+      try {
+        const imageUrl = await uploadImage(file);
         onSendMessage(message || 'Shared an image', 'image', imageUrl);
         setMessage('');
+      } catch (error) {
+        console.error('Image upload failed:', error);
       }
     }
   };
@@ -98,9 +102,11 @@ const EnhancedMessageInput = ({
 
       mediaRecorderRef.current.onstop = async () => {
         const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
-        const audioUrl = await uploadAudio(audioBlob);
-        if (audioUrl) {
+        try {
+          const audioUrl = await uploadAudio(audioBlob);
           onSendMessage('Voice message', 'voice', audioUrl);
+        } catch (error) {
+          console.error('Voice upload failed:', error);
         }
         stream.getTracks().forEach(track => track.stop());
       };

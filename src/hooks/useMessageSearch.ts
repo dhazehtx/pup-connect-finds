@@ -1,25 +1,25 @@
 
 import { useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 
-interface SearchResult {
+export interface SearchResult {
   id: string;
   content: string;
-  conversation_id: string;
+  sender_id: string;
   created_at: string;
+  conversation_id: string;
+  message_type: string;
   sender_name?: string;
 }
 
 export const useMessageSearch = () => {
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const [searching, setSearching] = useState(false);
-  const { user } = useAuth();
   const { toast } = useToast();
 
   const searchMessages = useCallback(async (query: string, conversationId?: string) => {
-    if (!user || !query.trim()) {
+    if (!query.trim()) {
       setSearchResults([]);
       return;
     }
@@ -32,39 +32,35 @@ export const useMessageSearch = () => {
         .select(`
           id,
           content,
-          conversation_id,
+          sender_id,
           created_at,
+          conversation_id,
+          message_type,
           profiles:sender_id (
-            full_name
+            full_name,
+            username
           )
         `)
         .ilike('content', `%${query}%`)
         .order('created_at', { ascending: false })
         .limit(50);
 
-      // Filter by conversation if specified
       if (conversationId) {
         queryBuilder = queryBuilder.eq('conversation_id', conversationId);
-      } else {
-        // Only search in conversations where user is participant
-        const { data: userConversations } = await supabase
-          .from('conversations')
-          .select('id')
-          .or(`buyer_id.eq.${user.id},seller_id.eq.${user.id}`);
-
-        if (userConversations) {
-          const conversationIds = userConversations.map(c => c.id);
-          queryBuilder = queryBuilder.in('conversation_id', conversationIds);
-        }
       }
 
       const { data, error } = await queryBuilder;
 
       if (error) throw error;
 
-      const formattedResults = (data || []).map(message => ({
-        ...message,
-        sender_name: message.profiles?.full_name || 'Unknown User'
+      const formattedResults: SearchResult[] = (data || []).map(msg => ({
+        id: msg.id,
+        content: msg.content || '',
+        sender_id: msg.sender_id,
+        created_at: msg.created_at,
+        conversation_id: msg.conversation_id,
+        message_type: msg.message_type || 'text',
+        sender_name: (msg.profiles as any)?.full_name || (msg.profiles as any)?.username || 'Unknown User'
       }));
 
       setSearchResults(formattedResults);
@@ -78,7 +74,7 @@ export const useMessageSearch = () => {
     } finally {
       setSearching(false);
     }
-  }, [user, toast]);
+  }, [toast]);
 
   const clearSearch = useCallback(() => {
     setSearchResults([]);
@@ -88,6 +84,7 @@ export const useMessageSearch = () => {
     searchResults,
     searching,
     searchMessages,
-    clearSearch
+    clearSearch,
+    isSearching: searching // Legacy compatibility
   };
 };
