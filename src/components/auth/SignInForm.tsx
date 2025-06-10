@@ -112,17 +112,17 @@ const SignInForm = ({ onSubmit, loading }: SignInFormProps) => {
       <Button
         type="submit"
         disabled={loading}
-        className="w-full h-11 bg-primary hover:bg-primary/90 text-primary-foreground font-medium mt-6"
+        className="w-full h-11 bg-primary hover:bg-primary/90 font-medium mt-6 text-white"
       >
         {loading ? (
           <>
             <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2" />
-            Signing In...
+            <span className="text-white">Signing In...</span>
           </>
         ) : (
           <>
             <Lock size={16} className="mr-2" />
-            Sign In
+            <span className="text-white">Sign In</span>
           </>
         )}
       </Button>

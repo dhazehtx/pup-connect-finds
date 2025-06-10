@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -241,15 +240,15 @@ const EnhancedSignInForm = ({ onSubmit, loading }: EnhancedSignInFormProps) => {
       <Button
         type="submit"
         disabled={loading}
-        className="w-full bg-blue-600 hover:bg-blue-700 text-white border-0"
+        className="w-full bg-blue-600 hover:bg-blue-700 border-0 text-white font-semibold"
       >
         {loading ? (
           <>
             <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2" />
-            Signing In...
+            <span className="text-white">Signing In...</span>
           </>
         ) : (
-          'Sign In'
+          <span className="text-white">Sign In</span>
         )}
       </Button>
     </form>

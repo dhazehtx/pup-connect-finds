@@ -24,10 +24,10 @@ const SocialLogin = ({ onSuccess }: SocialLoginProps) => {
       {/* Facebook Login */}
       <Button
         onClick={() => handleSocialLogin('Facebook')}
-        className="w-full h-12 bg-[#1877F2] hover:bg-[#166FE5] text-white font-semibold rounded-lg border-0 flex items-center justify-center gap-3 transition-colors"
+        className="w-full h-12 bg-[#1877F2] hover:bg-[#166FE5] border-0 flex items-center justify-center gap-3 transition-colors text-white font-semibold rounded-lg"
       >
-        <User size={18} className="text-white" />
-        <span className="text-white font-semibold">Continue with Facebook</span>
+        <User size={18} />
+        <span className="font-semibold text-white">Continue with Facebook</span>
       </Button>
       
       {/* Google Login */}
@@ -37,16 +37,16 @@ const SocialLogin = ({ onSuccess }: SocialLoginProps) => {
         className="w-full h-12 bg-white hover:bg-gray-50 text-gray-700 font-semibold rounded-lg border-2 border-gray-300 flex items-center justify-center gap-3 transition-colors"
       >
         <Mail size={18} className="text-gray-700" />
-        <span className="text-gray-700 font-semibold">Continue with Google</span>
+        <span className="font-semibold text-gray-700">Continue with Google</span>
       </Button>
       
       {/* Apple Login */}
       <Button
         onClick={() => handleSocialLogin('Apple')}
-        className="w-full h-12 bg-black hover:bg-gray-900 text-white font-semibold rounded-lg border-0 flex items-center justify-center gap-3 transition-colors"
+        className="w-full h-12 bg-black hover:bg-gray-900 border-0 flex items-center justify-center gap-3 transition-colors text-white font-semibold rounded-lg"
       >
-        <Apple size={18} className="text-white" />
-        <span className="text-white font-semibold">Continue with Apple</span>
+        <Apple size={18} />
+        <span className="font-semibold text-white">Continue with Apple</span>
       </Button>
     </div>
   );
