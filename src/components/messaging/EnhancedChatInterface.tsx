@@ -116,8 +116,7 @@ const EnhancedChatInterface = ({ conversationId, otherUserId, listingId }: Enhan
   // Handle voice message - updated to match expected interface
   const onSendVoiceMessage = (audioUrl: string, duration: number) => {
     console.log('🎤 EnhancedChatInterface - Voice message triggered:', { audioUrl, duration });
-    // Send the voice message using the URL
-    sendMessage(conversationId, '', 'voice', audioUrl);
+    handleSendVoiceMessage(audioUrl, duration);
   };
 
   if (!user) {
