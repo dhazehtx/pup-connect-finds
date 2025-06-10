@@ -1,223 +1,211 @@
 
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
+import React, { useState } from 'react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Separator } from '@/components/ui/separator';
-import { Search, Filter, Calendar, User, FileText, Image, Mic } from 'lucide-react';
+import { Search, Filter, X } from 'lucide-react';
 import { useMessageSearch } from '@/hooks/useMessageSearch';
 import { formatDistanceToNow } from 'date-fns';
 
 interface AdvancedMessageSearchProps {
-  onMessageSelect: (messageId: string) => void;
+  conversationId?: string;
+  onResultSelect?: (messageId: string) => void;
 }
 
-const AdvancedMessageSearch = ({ onMessageSelect }: AdvancedMessageSearchProps) => {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedFilters, setSelectedFilters] = useState<string[]>([]);
+const AdvancedMessageSearch = ({ conversationId, onResultSelect }: AdvancedMessageSearchProps) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [query, setQuery] = useState('');
+  const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
   const [dateRange, setDateRange] = useState({ start: '', end: '' });
-  const [senderFilter, setSenderFilter] = useState('');
-  
+  const [selectedSender, setSelectedSender] = useState('');
+
   const { searchResults, isSearching, searchMessages, clearSearch } = useMessageSearch();
 
-  const messageTypeFilters = [
-    { id: 'text', label: 'Text', icon: FileText },
-    { id: 'image', label: 'Images', icon: Image },
-    { id: 'voice', label: 'Voice', icon: Mic },
+  const messageTypes = [
+    { value: 'text', label: 'Text Messages' },
+    { value: 'image', label: 'Images' },
+    { value: 'voice', label: 'Voice Messages' },
+    { value: 'file', label: 'Files' },
   ];
 
-  useEffect(() => {
-    if (searchQuery.trim() || selectedFilters.length || dateRange.start || senderFilter) {
-      const debounceTimer = setTimeout(() => {
-        searchMessages(searchQuery, undefined, {
-          messageTypes: selectedFilters,
-          dateRange: dateRange.start && dateRange.end ? dateRange : undefined,
-          sender: senderFilter || undefined
-        });
-      }, 300);
-      return () => clearTimeout(debounceTimer);
-    } else {
-      clearSearch();
-    }
-  }, [searchQuery, selectedFilters, dateRange, senderFilter, searchMessages, clearSearch]);
+  const handleSearch = async () => {
+    if (!query.trim()) return;
 
-  const handleFilterToggle = (filterId: string) => {
-    setSelectedFilters(prev => 
-      prev.includes(filterId) 
-        ? prev.filter(id => id !== filterId)
-        : [...prev, filterId]
-    );
+    const filters: any = {};
+    
+    if (selectedTypes.length > 0) {
+      filters.messageTypes = selectedTypes;
+    }
+    
+    if (dateRange.start && dateRange.end) {
+      filters.dateRange = dateRange;
+    }
+    
+    if (selectedSender) {
+      filters.sender = selectedSender;
+    }
+
+    await searchMessages(query, conversationId, filters);
+  };
+
+  const handleResultClick = (messageId: string) => {
+    onResultSelect?.(messageId);
+    setIsOpen(false);
+  };
+
+  const removeTypeFilter = (type: string) => {
+    setSelectedTypes(prev => prev.filter(t => t !== type));
   };
 
   const clearAllFilters = () => {
-    setSearchQuery('');
-    setSelectedFilters([]);
+    setSelectedTypes([]);
     setDateRange({ start: '', end: '' });
-    setSenderFilter('');
+    setSelectedSender('');
+    setQuery('');
     clearSearch();
   };
 
-  const activeFiltersCount = selectedFilters.length + 
-    (dateRange.start ? 1 : 0) + 
-    (senderFilter ? 1 : 0);
-
   return (
-    <Card className="h-full">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Search size={20} />
-          Advanced Message Search
-          {activeFiltersCount > 0 && (
-            <Badge variant="secondary" className="text-xs">
-              {activeFiltersCount} filter{activeFiltersCount !== 1 ? 's' : ''} active
-            </Badge>
-          )}
-        </CardTitle>
-      </CardHeader>
-      
-      <CardContent className="space-y-4">
-        {/* Search Input */}
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
-          <Input
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search messages..."
-            className="pl-10"
-          />
-        </div>
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+      <DialogTrigger asChild>
+        <Button variant="outline" size="sm" className="gap-2">
+          <Search className="w-4 h-4" />
+          Advanced Search
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-2xl max-h-[80vh] overflow-hidden flex flex-col">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <Filter className="w-5 h-5" />
+            Advanced Message Search
+          </DialogTitle>
+        </DialogHeader>
 
-        {/* Filters Section */}
-        <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <h4 className="text-sm font-medium flex items-center gap-2">
-              <Filter size={16} />
-              Filters
-            </h4>
-            {activeFiltersCount > 0 && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={clearAllFilters}
-                className="text-xs"
-              >
-                Clear all
+        <div className="space-y-4 flex-shrink-0">
+          {/* Search Query */}
+          <div>
+            <Label htmlFor="search-query">Search Query</Label>
+            <div className="flex gap-2">
+              <Input
+                id="search-query"
+                placeholder="Enter search terms..."
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+              />
+              <Button onClick={handleSearch} disabled={isSearching || !query.trim()}>
+                {isSearching ? 'Searching...' : 'Search'}
               </Button>
-            )}
-          </div>
-
-          {/* Message Type Filters */}
-          <div className="space-y-2">
-            <label className="text-xs font-medium text-muted-foreground">Message Type</label>
-            <div className="flex flex-wrap gap-2">
-              {messageTypeFilters.map(({ id, label, icon: Icon }) => (
-                <Button
-                  key={id}
-                  variant={selectedFilters.includes(id) ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => handleFilterToggle(id)}
-                  className="h-8 text-xs"
-                >
-                  <Icon size={12} className="mr-1" />
-                  {label}
-                </Button>
-              ))}
             </div>
           </div>
 
-          {/* Date Range Filter */}
-          <div className="space-y-2">
-            <label className="text-xs font-medium text-muted-foreground flex items-center gap-1">
-              <Calendar size={12} />
-              Date Range
-            </label>
-            <div className="grid grid-cols-2 gap-2">
+          {/* Message Types Filter */}
+          <div>
+            <Label>Message Types</Label>
+            <Select
+              onValueChange={(value) => {
+                if (!selectedTypes.includes(value)) {
+                  setSelectedTypes(prev => [...prev, value]);
+                }
+              }}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select message types to filter" />
+              </SelectTrigger>
+              <SelectContent>
+                {messageTypes.map((type) => (
+                  <SelectItem key={type.value} value={type.value}>
+                    {type.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {selectedTypes.length > 0 && (
+              <div className="flex flex-wrap gap-1 mt-2">
+                {selectedTypes.map((type) => (
+                  <Badge key={type} variant="secondary" className="text-xs">
+                    {messageTypes.find(t => t.value === type)?.label}
+                    <button
+                      onClick={() => removeTypeFilter(type)}
+                      className="ml-1 hover:text-destructive"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  </Badge>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Date Range */}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="start-date">Start Date</Label>
               <Input
+                id="start-date"
                 type="date"
                 value={dateRange.start}
                 onChange={(e) => setDateRange(prev => ({ ...prev, start: e.target.value }))}
-                className="text-xs"
               />
+            </div>
+            <div>
+              <Label htmlFor="end-date">End Date</Label>
               <Input
+                id="end-date"
                 type="date"
                 value={dateRange.end}
                 onChange={(e) => setDateRange(prev => ({ ...prev, end: e.target.value }))}
-                className="text-xs"
               />
             </div>
           </div>
 
-          {/* Sender Filter */}
-          <div className="space-y-2">
-            <label className="text-xs font-medium text-muted-foreground flex items-center gap-1">
-              <User size={12} />
-              Sender
-            </label>
-            <Input
-              value={senderFilter}
-              onChange={(e) => setSenderFilter(e.target.value)}
-              placeholder="Filter by sender name..."
-              className="text-xs"
-            />
+          <div className="flex justify-between">
+            <Button variant="outline" onClick={clearAllFilters}>
+              Clear All Filters
+            </Button>
+            <span className="text-sm text-muted-foreground">
+              {searchResults.length} results found
+            </span>
           </div>
         </div>
 
-        <Separator />
-
-        {/* Results */}
-        <div className="space-y-2">
-          <h4 className="text-sm font-medium">
-            Results ({searchResults.length})
-          </h4>
+        {/* Search Results */}
+        <div className="flex-1 overflow-y-auto space-y-2 mt-4">
+          {searchResults.length === 0 && !isSearching && query && (
+            <p className="text-center text-muted-foreground py-8">
+              No messages found matching your search criteria.
+            </p>
+          )}
           
-          <ScrollArea className="h-64">
-            {isSearching ? (
-              <div className="flex items-center justify-center py-8">
-                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
-              </div>
-            ) : searchResults.length > 0 ? (
-              <div className="space-y-2">
-                {searchResults.map((result) => (
-                  <div
-                    key={result.id}
-                    onClick={() => onMessageSelect(result.id)}
-                    className="p-2 border rounded cursor-pointer hover:bg-muted/50 transition-colors"
-                  >
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <p className="text-xs font-medium line-clamp-2">
-                          {result.content}
-                        </p>
-                        <div className="flex items-center gap-2 mt-1">
-                          <Badge variant="outline" className="text-xs">
-                            {result.message_type}
-                          </Badge>
-                          <span className="text-xs text-muted-foreground">
-                            {formatDistanceToNow(new Date(result.created_at), { addSuffix: true })}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
+          {searchResults.map((result) => (
+            <div
+              key={result.id}
+              className="p-3 border rounded-lg hover:bg-muted/50 cursor-pointer transition-colors"
+              onClick={() => handleResultClick(result.id)}
+            >
+              <div className="flex items-start justify-between">
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium truncate">
+                    {result.content || 'No content preview'}
+                  </p>
+                  <div className="flex items-center gap-2 mt-1">
+                    <Badge variant="outline" className="text-xs">
+                      {result.message_type}
+                    </Badge>
+                    <span className="text-xs text-muted-foreground">
+                      {formatDistanceToNow(new Date(result.created_at), { addSuffix: true })}
+                    </span>
                   </div>
-                ))}
+                </div>
               </div>
-            ) : (searchQuery || activeFiltersCount > 0) ? (
-              <div className="text-center py-8 text-muted-foreground">
-                <Search size={32} className="mx-auto mb-2 opacity-50" />
-                <p className="text-sm">No messages found</p>
-              </div>
-            ) : (
-              <div className="text-center py-8 text-muted-foreground">
-                <Search size={32} className="mx-auto mb-2 opacity-50" />
-                <p className="text-sm">Enter search terms or apply filters</p>
-              </div>
-            )}
-          </ScrollArea>
+            </div>
+          ))}
         </div>
-      </CardContent>
-    </Card>
+      </DialogContent>
+    </Dialog>
   );
 };
 

@@ -38,21 +38,33 @@ export const useMessageSearch = () => {
       let queryBuilder = supabase
         .from('messages')
         .select('id, content, message_type, created_at, conversation_id, sender_id')
-        .or(`content.ilike.%${query}%,encrypted_content.ilike.%${query}%`);
+        .ilike('content', `%${query}%`);
 
       // Filter by conversation if provided
       if (conversationId) {
         queryBuilder = queryBuilder.eq('conversation_id', conversationId);
       } else {
         // Only search in conversations where user is a participant
-        const { data: userConversations } = await supabase
+        const { data: userConversations, error: convError } = await supabase
           .from('conversations')
           .select('id')
           .or(`buyer_id.eq.${user.id},seller_id.eq.${user.id}`);
         
+        if (convError) {
+          console.error('Error fetching user conversations:', convError);
+          setSearchResults([]);
+          setIsSearching(false);
+          return;
+        }
+        
         const conversationIds = userConversations?.map(c => c.id) || [];
         if (conversationIds.length > 0) {
           queryBuilder = queryBuilder.in('conversation_id', conversationIds);
+        } else {
+          // User has no conversations, return empty results
+          setSearchResults([]);
+          setIsSearching(false);
+          return;
         }
       }
 
@@ -80,9 +92,8 @@ export const useMessageSearch = () => {
 
         // Apply sender filter if provided (client-side filtering for now)
         if (filters?.sender) {
-          // This would require joining with profiles table for better implementation
           results = results.filter(result => 
-            result.sender_id.includes(filters.sender!) // Simplified for demo
+            result.sender_id === filters.sender
           );
         }
 
