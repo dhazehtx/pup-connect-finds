@@ -119,6 +119,7 @@ const EnhancedMessageInput = ({
       {showVoiceRecorder ? (
         <VoiceMessageRecorder
           onSendVoiceMessage={handleVoiceMessage}
+          onCancel={() => setShowVoiceRecorder(false)}
         />
       ) : (
         <div className="flex gap-2 items-end">

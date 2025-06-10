@@ -16,6 +16,7 @@ import MessageReactionsPicker from './MessageReactionsPicker';
 import MessageReactionsDisplay from './MessageReactionsDisplay';
 import MessageThread from './MessageThread';
 import { useMessageThreads } from '@/hooks/useMessageThreads';
+import EnhancedMessageInput from './EnhancedMessageInput';
 
 interface EnhancedChatInterfaceProps {
   conversationId: string;
@@ -258,6 +259,52 @@ const EnhancedChatInterface = ({ conversationId, otherUserId, listingId }: Enhan
     });
   };
 
+  // Add voice message handling
+  const handleSendVoiceMessage = async (audioBlob: Blob, duration: number) => {
+    if (!user) return;
+
+    console.log('Sending voice message:', { size: audioBlob.size, duration });
+    setSendingMessage(true);
+
+    try {
+      // Upload voice file
+      const voiceUrl = await uploadFile(audioBlob, {
+        bucket: 'dog-images',
+        folder: 'voice-messages',
+        maxSize: 50, // 50MB for voice messages
+        allowedTypes: ['audio/webm', 'audio/wav', 'audio/mp3']
+      });
+
+      if (voiceUrl) {
+        const result = await sendMessage(
+          conversationId, 
+          `Voice message (${Math.floor(duration / 60)}:${(duration % 60).toString().padStart(2, '0')})`, 
+          'voice', 
+          voiceUrl
+        );
+
+        if (result) {
+          console.log('Voice message sent successfully:', result.id);
+          toast({
+            title: "Voice message sent",
+            description: "Your voice message was sent successfully",
+          });
+        }
+      } else {
+        throw new Error('Failed to upload voice message');
+      }
+    } catch (error) {
+      console.error('Failed to send voice message:', error);
+      toast({
+        title: "Failed to send voice message",
+        description: "Please try again",
+        variant: "destructive",
+      });
+    } finally {
+      setSendingMessage(false);
+    }
+  };
+
   if (!user) {
     return (
       <div className="flex items-center justify-center h-full">
@@ -316,6 +363,20 @@ const EnhancedChatInterface = ({ conversationId, otherUserId, listingId }: Enhan
                             e.currentTarget.style.display = 'none';
                           }}
                         />
+                      )}
+                      {message.message_type === 'voice' && message.image_url && (
+                        <div className="flex items-center gap-2 mb-2">
+                          <audio 
+                            controls 
+                            src={message.image_url}
+                            className="max-w-full"
+                            onError={(e) => {
+                              console.log('Audio failed to load:', message.image_url);
+                            }}
+                          >
+                            Your browser does not support the audio element.
+                          </audio>
+                        </div>
                       )}
                       {message.content && (
                         <p className="text-sm break-words">{message.content}</p>
@@ -476,6 +537,18 @@ const EnhancedChatInterface = ({ conversationId, otherUserId, listingId }: Enhan
               className="resize-none"
             />
           </div>
+
+          {/* Voice Message Button */}
+          <EnhancedMessageInput
+            onSendMessage={(content, messageType, options) => 
+              sendMessage(conversationId, content, messageType || 'text', options?.imageUrl)
+            }
+            onSendVoiceMessage={handleSendVoiceMessage}
+            onFileSelect={(file) => setSelectedFile(file)}
+            disabled={uploading || sendingMessage}
+            placeholder={t('messaging.typeMessage') || 'Type your message...'}
+            showEncryption={false}
+          />
 
           <Button
             onClick={handleSendMessage}
