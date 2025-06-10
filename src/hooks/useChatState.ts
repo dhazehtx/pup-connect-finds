@@ -1,0 +1,85 @@
+
+import { useState } from 'react';
+
+export const useChatState = () => {
+  const [newMessage, setNewMessage] = useState('');
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [sendingMessage, setSendingMessage] = useState(false);
+  const [reactionPickerState, setReactionPickerState] = useState<{
+    isOpen: boolean;
+    messageId: string | null;
+    position: { x: number; y: number } | null;
+  }>({
+    isOpen: false,
+    messageId: null,
+    position: null
+  });
+  const [threadState, setThreadState] = useState<{
+    isOpen: boolean;
+    parentMessageId: string | null;
+    parentMessage: any | null;
+  }>({
+    isOpen: false,
+    parentMessageId: null,
+    parentMessage: null
+  });
+
+  const clearInputs = () => {
+    setNewMessage('');
+    setSelectedFile(null);
+  };
+
+  const handleReactionButtonClick = (event: React.MouseEvent, messageId: string) => {
+    event.preventDefault();
+    const rect = event.currentTarget.getBoundingClientRect();
+    setReactionPickerState({
+      isOpen: true,
+      messageId,
+      position: {
+        x: rect.left + rect.width / 2,
+        y: rect.top
+      }
+    });
+  };
+
+  const closeReactionPicker = () => {
+    setReactionPickerState({ isOpen: false, messageId: null, position: null });
+  };
+
+  const handleReplyToMessage = (message: any, user: any) => {
+    setThreadState({
+      isOpen: true,
+      parentMessageId: message.id,
+      parentMessage: {
+        content: message.content,
+        sender_name: message.sender_id === user?.id ? 'You' : 'User',
+        created_at: message.created_at,
+        sender_id: message.sender_id
+      }
+    });
+  };
+
+  const closeThread = () => {
+    setThreadState({
+      isOpen: false,
+      parentMessageId: null,
+      parentMessage: null
+    });
+  };
+
+  return {
+    newMessage,
+    setNewMessage,
+    selectedFile,
+    setSelectedFile,
+    sendingMessage,
+    setSendingMessage,
+    reactionPickerState,
+    threadState,
+    clearInputs,
+    handleReactionButtonClick,
+    closeReactionPicker,
+    handleReplyToMessage,
+    closeThread
+  };
+};
