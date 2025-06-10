@@ -33,6 +33,7 @@ const EnhancedChatInterface = ({ conversationId, otherUserId, listingId }: Enhan
 
   console.log('EnhancedChatInterface loaded for conversation:', conversationId);
   console.log('Current messages:', messages);
+  console.log('User:', user?.id);
 
   // Auto-scroll to bottom
   const scrollToBottom = () => {
@@ -41,21 +42,39 @@ const EnhancedChatInterface = ({ conversationId, otherUserId, listingId }: Enhan
 
   // Load messages when conversation changes
   useEffect(() => {
-    if (conversationId) {
+    if (conversationId && user) {
       console.log('Loading messages for conversation:', conversationId);
-      fetchMessages(conversationId);
-      markAsRead(conversationId);
+      fetchMessages(conversationId).then(() => {
+        console.log('Messages loaded successfully');
+        markAsRead(conversationId);
+      }).catch(error => {
+        console.error('Failed to load messages:', error);
+        toast({
+          title: "Error loading messages",
+          description: "Please refresh and try again",
+          variant: "destructive",
+        });
+      });
     }
-  }, [conversationId, fetchMessages, markAsRead]);
+  }, [conversationId, user, fetchMessages, markAsRead, toast]);
 
   // Scroll to bottom when messages change
   useEffect(() => {
-    scrollToBottom();
+    const timer = setTimeout(scrollToBottom, 100);
+    return () => clearTimeout(timer);
   }, [messages]);
 
   // Handle sending message
   const handleSendMessage = async () => {
-    if ((!newMessage.trim() && !selectedFile) || !user || sendingMessage) return;
+    if ((!newMessage.trim() && !selectedFile) || !user || sendingMessage) {
+      console.log('Cannot send message:', { 
+        hasContent: !!newMessage.trim(), 
+        hasFile: !!selectedFile, 
+        hasUser: !!user, 
+        sending: sendingMessage 
+      });
+      return;
+    }
 
     console.log('Sending message:', { content: newMessage, hasFile: !!selectedFile });
     setSendingMessage(true);
@@ -66,21 +85,31 @@ const EnhancedChatInterface = ({ conversationId, otherUserId, listingId }: Enhan
       // Upload file if selected
       if (selectedFile) {
         console.log('Uploading file:', selectedFile.name);
-        imageUrl = await uploadFile(selectedFile, {
-          bucket: 'dog-images',
-          folder: 'messages',
-          maxSize: 10,
-          allowedTypes: ['image/jpeg', 'image/png', 'image/webp']
-        }) || undefined;
+        try {
+          imageUrl = await uploadFile(selectedFile, {
+            bucket: 'dog-images',
+            folder: 'messages',
+            maxSize: 10,
+            allowedTypes: ['image/jpeg', 'image/png', 'image/webp']
+          }) || undefined;
+          console.log('File uploaded successfully:', imageUrl);
+        } catch (uploadError) {
+          console.error('File upload failed:', uploadError);
+          toast({
+            title: "Upload failed",
+            description: "Failed to upload image. Sending text only.",
+            variant: "destructive",
+          });
+        }
       }
 
       // Send message
-      const result = await sendMessage(
-        conversationId,
-        newMessage.trim() || (selectedFile ? t('messaging.imageMessage') || 'Image' : ''),
-        selectedFile ? 'image' : 'text',
-        imageUrl
-      );
+      const messageContent = newMessage.trim() || (selectedFile ? t('messaging.imageMessage') || 'Image' : '');
+      const messageType = selectedFile ? 'image' : 'text';
+      
+      console.log('Sending message with:', { messageContent, messageType, imageUrl });
+      
+      const result = await sendMessage(conversationId, messageContent, messageType, imageUrl);
 
       if (result) {
         console.log('Message sent successfully:', result.id);
@@ -90,6 +119,13 @@ const EnhancedChatInterface = ({ conversationId, otherUserId, listingId }: Enhan
         if (fileInputRef.current) {
           fileInputRef.current.value = '';
         }
+        
+        toast({
+          title: "Message sent",
+          description: selectedFile ? "Image sent successfully" : "Message sent",
+        });
+      } else {
+        throw new Error('No result returned from sendMessage');
       }
     } catch (error) {
       console.error('Failed to send message:', error);
@@ -107,7 +143,29 @@ const EnhancedChatInterface = ({ conversationId, otherUserId, listingId }: Enhan
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      console.log('File selected:', file.name);
+      console.log('File selected:', file.name, file.size, file.type);
+      
+      // Validate file type
+      const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+      if (!allowedTypes.includes(file.type)) {
+        toast({
+          title: "Invalid file type",
+          description: "Please select a JPEG, PNG, or WebP image",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      // Validate file size (10MB max)
+      if (file.size > 10 * 1024 * 1024) {
+        toast({
+          title: "File too large",
+          description: "Please select an image smaller than 10MB",
+          variant: "destructive",
+        });
+        return;
+      }
+      
       setSelectedFile(file);
     }
   };
@@ -128,14 +186,22 @@ const EnhancedChatInterface = ({ conversationId, otherUserId, listingId }: Enhan
     return 'delivered';
   };
 
+  if (!user) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <p className="text-gray-500">Please sign in to access messages</p>
+      </div>
+    );
+  }
+
   return (
-    <div className="flex flex-col h-full bg-white">
+    <div className="flex flex-col h-full bg-background">
       {/* Messages List */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {messages.length === 0 ? (
-          <div className="flex items-center justify-center h-full text-gray-500">
+          <div className="flex items-center justify-center h-full text-muted-foreground">
             <div className="text-center">
-              <Smile className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+              <Smile className="w-12 h-12 mx-auto mb-4 text-muted-foreground/50" />
               <p>No messages yet. Start the conversation!</p>
             </div>
           </div>
@@ -160,15 +226,16 @@ const EnhancedChatInterface = ({ conversationId, otherUserId, listingId }: Enhan
                   <div
                     className={`rounded-lg px-3 py-2 ${
                       isOwn
-                        ? 'bg-blue-500 text-white'
-                        : 'bg-gray-100 text-gray-900'
+                        ? 'bg-primary text-primary-foreground'
+                        : 'bg-muted text-muted-foreground'
                     }`}
                   >
                     {message.message_type === 'image' && message.image_url && (
                       <img
                         src={message.image_url}
                         alt="Shared image"
-                        className="rounded mb-2 max-w-full h-auto"
+                        className="rounded mb-2 max-w-full h-auto cursor-pointer hover:opacity-90 transition-opacity"
+                        onClick={() => window.open(message.image_url, '_blank')}
                         onError={(e) => {
                           console.log('Image failed to load:', message.image_url);
                           e.currentTarget.style.display = 'none';
@@ -181,7 +248,7 @@ const EnhancedChatInterface = ({ conversationId, otherUserId, listingId }: Enhan
                   </div>
                   
                   <div className={`flex items-center gap-1 mt-1 ${isOwn ? 'justify-end' : 'justify-start'}`}>
-                    <span className="text-xs text-gray-500">{messageTime}</span>
+                    <span className="text-xs text-muted-foreground">{messageTime}</span>
                     {isOwn && (
                       <MessageStatusIndicator 
                         status={getMessageStatus(message) || 'sent'} 
@@ -199,10 +266,10 @@ const EnhancedChatInterface = ({ conversationId, otherUserId, listingId }: Enhan
 
       {/* File Preview */}
       {selectedFile && (
-        <div className="px-4 py-2 bg-gray-50 border-t">
+        <div className="px-4 py-2 bg-muted/50 border-t">
           <div className="flex items-center gap-2">
-            <Image className="w-4 h-4 text-gray-500" />
-            <span className="text-sm text-gray-600 flex-1 truncate">
+            <Image className="w-4 h-4 text-muted-foreground" />
+            <span className="text-sm text-muted-foreground flex-1 truncate">
               Selected: {selectedFile.name}
             </span>
             <Button
@@ -223,7 +290,7 @@ const EnhancedChatInterface = ({ conversationId, otherUserId, listingId }: Enhan
       )}
 
       {/* Message Input */}
-      <div className="p-4 border-t bg-white">
+      <div className="p-4 border-t bg-background">
         <div className="flex gap-2 items-end">
           <input
             type="file"
@@ -260,7 +327,7 @@ const EnhancedChatInterface = ({ conversationId, otherUserId, listingId }: Enhan
             className="flex-shrink-0"
           >
             {sendingMessage ? (
-              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
             ) : (
               <Send size={16} />
             )}
