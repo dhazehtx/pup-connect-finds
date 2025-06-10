@@ -62,7 +62,7 @@ const ConversationList = ({
                   <Avatar className="w-12 h-12">
                     <AvatarImage src={otherUser.avatar_url || ''} />
                     <AvatarFallback>
-                      {otherUser.full_name?.charAt(0) || 'U'}
+                      {(otherUser.full_name || 'U').charAt(0)}
                     </AvatarFallback>
                   </Avatar>
                   {isOnline && (

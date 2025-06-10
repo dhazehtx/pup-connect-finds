@@ -11,12 +11,14 @@ import EmojiPicker from './EmojiPicker';
 interface EnhancedMessageInputProps {
   conversationId: string;
   onSendMessage: (content: string, type?: string, fileUrl?: string) => void;
+  onSendVoiceMessage?: (audioUrl: string, duration: number) => void;
   placeholder?: string;
 }
 
 const EnhancedMessageInput = ({
   conversationId,
   onSendMessage,
+  onSendVoiceMessage,
   placeholder = "Type a message..."
 }: EnhancedMessageInputProps) => {
   const [message, setMessage] = useState('');
@@ -104,7 +106,11 @@ const EnhancedMessageInput = ({
         const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
         try {
           const audioUrl = await uploadAudio(audioBlob);
-          onSendMessage('Voice message', 'voice', audioUrl);
+          if (onSendVoiceMessage) {
+            onSendVoiceMessage(audioUrl, 0); // Duration calculation can be added later
+          } else {
+            onSendMessage('Voice message', 'voice', audioUrl);
+          }
         } catch (error) {
           console.error('Voice upload failed:', error);
         }

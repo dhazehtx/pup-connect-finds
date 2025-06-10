@@ -9,19 +9,23 @@ interface VoiceRecorderProps {
   onSendVoiceMessage: (audioUrl: string, duration: number) => void;
   isRecording: boolean;
   setIsRecording: (recording: boolean) => void;
+  onRecordingComplete?: (audioBlob: Blob, duration: number) => void;
+  onCancel?: () => void;
 }
 
 const VoiceRecorder = ({ 
   onSendVoiceMessage, 
   isRecording, 
-  setIsRecording 
+  setIsRecording,
+  onRecordingComplete,
+  onCancel
 }: VoiceRecorderProps) => {
   const [recordingTime, setRecordingTime] = useState(0);
   const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
-  const { uploadAudio } = useFileUpload();
+  const { uploadAudio } = useFileUpload({ bucket: 'images', folder: 'voice' });
 
   useEffect(() => {
     if (isRecording) {
@@ -52,6 +56,9 @@ const VoiceRecorder = ({
       mediaRecorderRef.current.onstop = () => {
         const blob = new Blob(chunksRef.current, { type: 'audio/webm' });
         setAudioBlob(blob);
+        if (onRecordingComplete) {
+          onRecordingComplete(blob, recordingTime);
+        }
         stream.getTracks().forEach(track => track.stop());
       };
 
@@ -92,6 +99,9 @@ const VoiceRecorder = ({
     setAudioBlob(null);
     setRecordingTime(0);
     setIsRecording(false);
+    if (onCancel) {
+      onCancel();
+    }
   };
 
   const formatTime = (seconds: number) => {
