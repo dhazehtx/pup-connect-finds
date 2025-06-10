@@ -468,6 +468,110 @@ export type Database = {
           },
         ]
       }
+      message_reactions: {
+        Row: {
+          created_at: string | null
+          emoji: string
+          id: string
+          message_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          emoji: string
+          id?: string
+          message_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          emoji?: string
+          id?: string
+          message_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "message_reactions_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "messages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      message_templates: {
+        Row: {
+          category: string | null
+          content: string
+          created_at: string | null
+          id: string
+          is_public: boolean | null
+          title: string
+          updated_at: string | null
+          usage_count: number | null
+          user_id: string
+        }
+        Insert: {
+          category?: string | null
+          content: string
+          created_at?: string | null
+          id?: string
+          is_public?: boolean | null
+          title: string
+          updated_at?: string | null
+          usage_count?: number | null
+          user_id: string
+        }
+        Update: {
+          category?: string | null
+          content?: string
+          created_at?: string | null
+          id?: string
+          is_public?: boolean | null
+          title?: string
+          updated_at?: string | null
+          usage_count?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      message_threads: {
+        Row: {
+          created_at: string | null
+          id: string
+          parent_message_id: string
+          reply_message_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          parent_message_id: string
+          reply_message_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          parent_message_id?: string
+          reply_message_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "message_threads_parent_message_id_fkey"
+            columns: ["parent_message_id"]
+            isOneToOne: false
+            referencedRelation: "messages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "message_threads_reply_message_id_fkey"
+            columns: ["reply_message_id"]
+            isOneToOne: false
+            referencedRelation: "messages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       messages: {
         Row: {
           content: string | null
@@ -1473,6 +1577,27 @@ export type Database = {
           id?: string
           matching_criteria?: Json
           updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_presence: {
+        Row: {
+          last_seen_at: string | null
+          status: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          last_seen_at?: string | null
+          status?: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          last_seen_at?: string | null
+          status?: string
+          updated_at?: string | null
           user_id?: string
         }
         Relationships: []

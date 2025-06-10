@@ -1,40 +1,18 @@
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
-
-interface Conversation {
-  id: string;
-  listing_id: string | null;
-  buyer_id: string;
-  seller_id: string;
-  created_at: string;
-  updated_at: string;
-  last_message_at: string | null;
-  listing?: {
-    dog_name: string;
-    breed: string;
-    image_url: string | null;
-  };
-  other_user?: {
-    full_name: string | null;
-    username: string | null;
-    avatar_url: string | null;
-  };
-}
+import { ExtendedConversation } from '@/types/messaging';
 
 export const useRealtimeConversations = () => {
-  const [conversations, setConversations] = useState<Conversation[]>([]);
+  const [conversations, setConversations] = useState<ExtendedConversation[]>([]);
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
   const { toast } = useToast();
 
   const fetchConversations = useCallback(async () => {
-    if (!user) {
-      setLoading(false);
-      return;
-    }
+    if (!user) return;
 
     try {
       setLoading(true);
@@ -64,6 +42,14 @@ export const useRealtimeConversations = () => {
             .eq('id', otherUserId)
             .single();
 
+          // Get unread message count
+          const { count: unreadCount } = await supabase
+            .from('messages')
+            .select('*', { count: 'exact', head: true })
+            .eq('conversation_id', conv.id)
+            .neq('sender_id', user.id)
+            .is('read_at', null);
+
           return {
             ...conv,
             listing: conv.dog_listings,
@@ -71,7 +57,8 @@ export const useRealtimeConversations = () => {
               full_name: null,
               username: null,
               avatar_url: null
-            }
+            },
+            unread_count: unreadCount || 0
           };
         })
       );
@@ -89,7 +76,7 @@ export const useRealtimeConversations = () => {
     }
   }, [user, toast]);
 
-  const createConversation = async (listingId: string, sellerId: string) => {
+  const createConversation = useCallback(async (listingId: string, sellerId: string) => {
     if (!user) return null;
 
     try {
@@ -130,42 +117,13 @@ export const useRealtimeConversations = () => {
       });
       throw error;
     }
-  };
-
-  // Set up real-time subscription for conversations
-  useEffect(() => {
-    if (!user) return;
-
-    const channel = supabase
-      .channel('conversations-changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'conversations',
-          filter: `or(buyer_id.eq.${user.id},seller_id.eq.${user.id})`
-        },
-        () => {
-          fetchConversations();
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [user, fetchConversations]);
-
-  useEffect(() => {
-    fetchConversations();
-  }, [fetchConversations]);
+  }, [user, fetchConversations, toast]);
 
   return {
     conversations,
     loading,
+    setLoading,
     fetchConversations,
-    createConversation,
-    setLoading
+    createConversation
   };
 };

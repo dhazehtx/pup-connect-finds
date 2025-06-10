@@ -1,191 +1,200 @@
 
-import React, { useState, useEffect } from 'react';
-import { Card } from '@/components/ui/card';
+import React, { useState, useEffect, useRef } from 'react';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
+import { ArrowLeft, Users, Settings } from 'lucide-react';
+import { useRealtimeMessaging } from '@/hooks/useRealtimeMessaging';
+import { useUserPresence } from '@/hooks/useUserPresence';
 import { useAuth } from '@/contexts/AuthContext';
-import { useEnhancedMessaging } from '@/hooks/useEnhancedMessaging';
-import { useMobileOptimized } from '@/hooks/useMobileOptimized';
-import ConversationsList from './ConversationsList';
-import EnhancedChatInterface from './EnhancedChatInterface';
-import EnhancedChatHeader from './EnhancedChatHeader';
-import MessageNotifications from './MessageNotifications';
-import ConversationSearch from './ConversationSearch';
-import MessageSearchDialog from './MessageSearchDialog';
-import MobileMessagingInterface from './MobileMessagingInterface';
-import { ExtendedConversation } from '@/types/messaging';
-import { useToast } from '@/hooks/use-toast';
+import ConversationList from './ConversationList';
+import MessagesList from './MessagesList';
+import EnhancedMessageInput from './EnhancedMessageInput';
+import MessagingStatusIndicator from './MessagingStatusIndicator';
+import { useMessageReactions } from '@/hooks/useMessageReactions';
+import { useMessageThreads } from '@/hooks/useMessageThreads';
+import { useFileUpload } from '@/hooks/useFileUpload';
 
 const EnhancedMessagingInterface = () => {
   const { user } = useAuth();
-  const { toast } = useToast();
-  const { isMobile } = useMobileOptimized();
-  const [selectedConversation, setSelectedConversation] = useState<ExtendedConversation | null>(null);
-  const [showMessageSearch, setShowMessageSearch] = useState(false);
-  const [filteredConversations, setFilteredConversations] = useState<any[]>([]);
-  const [newMessage, setNewMessage] = useState<any>(null);
-  
+  const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
+  const [showConversationList, setShowConversationList] = useState(true);
+  const [showReactionPicker, setShowReactionPicker] = useState<string | null>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
   const {
-    conversations,
     messages,
+    conversations,
     loading,
     fetchMessages,
     sendMessage,
-    createConversation,
-  } = useEnhancedMessaging();
+    markAsRead
+  } = useRealtimeMessaging();
 
-  // Use mobile interface on mobile devices
-  if (isMobile) {
-    return <MobileMessagingInterface />;
-  }
+  const { onlineUsers, isUserOnline } = useUserPresence();
+  const { reactions, toggleReaction } = useMessageReactions();
+  const { getThreadCount, sendThreadReply } = useMessageThreads();
+  const { uploadFile, uploadImage } = useFileUpload();
 
-  // Initialize filtered conversations
-  useEffect(() => {
-    setFilteredConversations(conversations);
-  }, [conversations]);
-
-  const handleConversationSelect = async (conversation: any) => {
-    try {
-      console.log('Selecting conversation:', conversation.id);
-      setSelectedConversation(conversation);
-      await fetchMessages(conversation.id);
-    } catch (error) {
-      console.error('Failed to load conversation:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load conversation messages",
-        variant: "destructive",
-      });
-    }
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  const handleSendMessage = async (content: string) => {
-    if (!selectedConversation || !content.trim()) return;
-    
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
+
+  useEffect(() => {
+    if (selectedConversationId) {
+      fetchMessages(selectedConversationId);
+      markAsRead(selectedConversationId);
+    }
+  }, [selectedConversationId, fetchMessages, markAsRead]);
+
+  const handleSelectConversation = (conversationId: string) => {
+    setSelectedConversationId(conversationId);
+    setShowConversationList(false);
+  };
+
+  const handleSendMessage = async (content: string, messageType = 'text', options: any = {}) => {
+    if (!selectedConversationId) return;
+
     try {
-      console.log('Sending message to conversation:', selectedConversation.id);
-      const message = await sendMessage(selectedConversation.id, content);
-      if (message) {
-        setNewMessage(message);
-        console.log('Message sent successfully:', message.id);
-      }
+      await sendMessage(selectedConversationId, content, messageType, options.imageUrl);
     } catch (error) {
       console.error('Failed to send message:', error);
-      toast({
-        title: "Error",
-        description: "Failed to send message. Please try again.",
-        variant: "destructive",
-      });
     }
   };
 
-  const handleBack = () => {
-    console.log('Going back to conversations list');
-    setSelectedConversation(null);
-  };
-
-  const handleSearch = () => {
-    setShowMessageSearch(!showMessageSearch);
-  };
-
-  const handleArchive = () => {
-    if (selectedConversation) {
-      console.log('Archiving conversation:', selectedConversation.id);
-      toast({
-        title: "Archive",
-        description: "Archive functionality coming soon",
-      });
+  const handleFileSelect = async (file: File) => {
+    if (file.type.startsWith('image/')) {
+      const imageUrl = await uploadImage(file);
+      if (imageUrl) {
+        await handleSendMessage(`Shared an image: ${file.name}`, 'image', { imageUrl });
+      }
+    } else {
+      const fileUrl = await uploadFile(file);
+      if (fileUrl) {
+        await handleSendMessage(`Shared a file: ${file.name}`, 'file', { imageUrl: fileUrl });
+      }
     }
   };
 
-  const handleBlock = () => {
-    if (selectedConversation) {
-      console.log('Blocking user in conversation:', selectedConversation.id);
-      toast({
-        title: "Block",
-        description: "Block functionality coming soon",
-      });
-    }
+  const handleVoiceMessage = async (audioUrl: string, duration: number) => {
+    await handleSendMessage(`Voice message (${duration}s)`, 'voice', { imageUrl: audioUrl });
   };
 
-  const handleMessageSelect = (messageId: string) => {
-    console.log('Jumping to message:', messageId);
-    setShowMessageSearch(false);
-    // TODO: Implement scroll to message functionality
+  const handleReactionButtonClick = (event: React.MouseEvent, messageId: string) => {
+    event.preventDefault();
+    setShowReactionPicker(showReactionPicker === messageId ? null : messageId);
   };
 
-  // Clear new message notification after showing it
-  useEffect(() => {
-    if (newMessage) {
-      const timer = setTimeout(() => setNewMessage(null), 3000);
-      return () => clearTimeout(timer);
-    }
-  }, [newMessage]);
+  const handleReplyToMessage = (message: any) => {
+    // For now, just focus the input - you could implement threading here
+    console.log('Reply to message:', message.id);
+  };
 
-  if (loading) {
+  const selectedConversation = conversations.find(c => c.id === selectedConversationId);
+  const otherUser = selectedConversation?.other_user;
+
+  if (showConversationList || !selectedConversationId) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2"></div>
-          <p className="text-gray-600">Loading conversations...</p>
+      <div className="h-screen flex flex-col bg-background">
+        {/* Header */}
+        <div className="border-b p-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-xl font-bold">Messages</h1>
+              <p className="text-sm text-muted-foreground">
+                {onlineUsers.length} users online
+              </p>
+            </div>
+            <div className="flex items-center gap-2">
+              <Badge variant="secondary">
+                <Users className="w-3 h-3 mr-1" />
+                {conversations.length} chats
+              </Badge>
+            </div>
+          </div>
+        </div>
+
+        {/* Status Indicator */}
+        <div className="p-4">
+          <MessagingStatusIndicator />
+        </div>
+
+        {/* Conversations */}
+        <div className="flex-1 overflow-hidden">
+          <ConversationList
+            conversations={conversations}
+            selectedConversationId={selectedConversationId || ''}
+            onSelectConversation={handleSelectConversation}
+            loading={loading}
+          />
         </div>
       </div>
     );
   }
 
   return (
-    <div className="h-full flex">
-      <MessageNotifications newMessage={newMessage} />
-      
-      {/* Conversations List */}
-      <div className={`${selectedConversation ? 'hidden md:block' : 'block'} w-full md:w-1/3 border-r flex flex-col`}>
-        <ConversationSearch
-          conversations={conversations}
-          onFilteredConversations={setFilteredConversations}
-        />
-        <div className="flex-1 overflow-hidden">
-          <ConversationsList
-            conversations={filteredConversations}
-            selectedConversationId={selectedConversation?.id}
-            onSelectConversation={handleConversationSelect}
-          />
+    <div className="h-screen flex flex-col bg-background">
+      {/* Chat Header */}
+      <CardHeader className="flex flex-row items-center gap-3 border-b p-4">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => setShowConversationList(true)}
+          className="p-2"
+        >
+          <ArrowLeft className="w-4 h-4" />
+        </Button>
+
+        <Avatar className="w-10 h-10">
+          <AvatarImage src={otherUser?.avatar_url || ''} />
+          <AvatarFallback>
+            {otherUser?.full_name?.charAt(0) || 'U'}
+          </AvatarFallback>
+        </Avatar>
+
+        <div className="flex-1">
+          <h3 className="font-semibold">
+            {otherUser?.full_name || otherUser?.username || 'Anonymous'}
+          </h3>
+          <div className="flex items-center gap-2">
+            <div className={`w-2 h-2 rounded-full ${isUserOnline(selectedConversation?.seller_id === user?.id ? selectedConversation?.buyer_id : selectedConversation?.seller_id || '') ? 'bg-green-500' : 'bg-gray-400'}`} />
+            <span className="text-xs text-muted-foreground">
+              {isUserOnline(selectedConversation?.seller_id === user?.id ? selectedConversation?.buyer_id : selectedConversation?.seller_id || '') ? 'Online' : 'Offline'}
+            </span>
+          </div>
         </div>
+
+        <Button variant="ghost" size="sm" className="p-2">
+          <Settings className="w-4 h-4" />
+        </Button>
+      </CardHeader>
+
+      {/* Messages */}
+      <div className="flex-1 overflow-hidden">
+        <MessagesList
+          messages={messages}
+          user={user}
+          reactions={reactions}
+          getThreadCount={getThreadCount}
+          onReactionButtonClick={handleReactionButtonClick}
+          onReplyToMessage={handleReplyToMessage}
+          onReactionToggle={toggleReaction}
+          conversationId={selectedConversationId}
+        />
+        <div ref={messagesEndRef} />
       </div>
 
-      {/* Chat Interface */}
-      <div className={`${selectedConversation ? 'block' : 'hidden md:block'} flex-1`}>
-        {selectedConversation ? (
-          <div className="h-full flex flex-col">
-            <EnhancedChatHeader
-              otherUser={selectedConversation.other_user!}
-              conversationId={selectedConversation.id}
-              onBack={handleBack}
-              onSearch={handleSearch}
-              onArchive={handleArchive}
-              onBlock={handleBlock}
-            />
-            <div className="flex-1">
-              <EnhancedChatInterface
-                conversationId={selectedConversation.id}
-                otherUserId={selectedConversation.other_user?.full_name || 'Unknown'}
-                listingId={selectedConversation.listing_id}
-              />
-            </div>
-          </div>
-        ) : (
-          <div className="hidden md:flex items-center justify-center h-full">
-            <div className="text-center text-gray-500">
-              <h3 className="text-lg font-medium mb-2">Select a conversation</h3>
-              <p>Choose a conversation from the list to start messaging</p>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Message Search Dialog */}
-      <MessageSearchDialog
-        isOpen={showMessageSearch}
-        onClose={() => setShowMessageSearch(false)}
-        conversationId={selectedConversation?.id}
-        onMessageSelect={handleMessageSelect}
+      {/* Input */}
+      <EnhancedMessageInput
+        onSendMessage={handleSendMessage}
+        onSendVoiceMessage={handleVoiceMessage}
+        onFileSelect={handleFileSelect}
+        placeholder="Type your message..."
       />
     </div>
   );
