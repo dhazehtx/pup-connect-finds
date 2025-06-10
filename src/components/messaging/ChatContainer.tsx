@@ -20,7 +20,7 @@ interface ChatContainerProps {
   uploading: boolean;
   sendingMessage: boolean;
   onSendMessage: () => void;
-  onSendVoiceMessage: (audioBlob: Blob, duration: number) => void;
+  onSendVoiceMessage: (audioUrl: string, duration: number) => void;
   onFileSelect: (event: React.ChangeEvent<HTMLInputElement>) => void;
   onKeyPress: (event: React.KeyboardEvent) => void;
   sendMessage: (conversationId: string, content: string, messageType?: string, imageUrl?: string) => Promise<any>;
