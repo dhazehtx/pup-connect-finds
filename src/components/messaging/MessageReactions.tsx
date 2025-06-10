@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Heart, ThumbsUp, Laugh, Angry, Sad, Plus } from 'lucide-react';
+import { Heart, ThumbsUp, Laugh, Angry, Frown, Plus } from 'lucide-react';
 
 interface MessageReactionsProps {
   messageId: string;
@@ -23,7 +23,7 @@ const MessageReactions = ({
     { emoji: '❤️', icon: Heart, label: 'Love' },
     { emoji: '👍', icon: ThumbsUp, label: 'Like' },
     { emoji: '😂', icon: Laugh, label: 'Laugh' },
-    { emoji: '😢', icon: Sad, label: 'Sad' },
+    { emoji: '😢', icon: Frown, label: 'Sad' },
     { emoji: '😠', icon: Angry, label: 'Angry' },
   ];
 
