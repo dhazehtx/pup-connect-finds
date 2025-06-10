@@ -46,7 +46,9 @@ const ConversationList = ({
       {conversations.map((conversation) => {
         const isSelected = conversation.id === selectedConversationId;
         const otherUser = conversation.other_user || {};
-        const isOnline = isUserOnline ? isUserOnline(otherUser.id || '') : false;
+        const isOnline = isUserOnline && otherUser && typeof otherUser === 'object' && 'id' in otherUser 
+          ? isUserOnline(otherUser.id as string) 
+          : false;
 
         return (
           <Card
@@ -60,9 +62,15 @@ const ConversationList = ({
               <div className="flex items-center gap-3">
                 <div className="relative">
                   <Avatar className="w-12 h-12">
-                    <AvatarImage src={otherUser.avatar_url || ''} />
+                    <AvatarImage src={
+                      otherUser && typeof otherUser === 'object' && 'avatar_url' in otherUser 
+                        ? otherUser.avatar_url as string || '' 
+                        : ''
+                    } />
                     <AvatarFallback>
-                      {(otherUser.full_name || 'U').charAt(0)}
+                      {otherUser && typeof otherUser === 'object' && 'full_name' in otherUser
+                        ? (otherUser.full_name as string || 'U').charAt(0)
+                        : 'U'}
                     </AvatarFallback>
                   </Avatar>
                   {isOnline && (
@@ -73,9 +81,10 @@ const ConversationList = ({
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between">
                     <h3 className="font-semibold text-sm truncate">
-                      {otherUser.full_name || 
-                       otherUser.username || 
-                       'Anonymous User'}
+                      {otherUser && typeof otherUser === 'object' && 'full_name' in otherUser
+                        ? otherUser.full_name as string ||
+                          ('username' in otherUser ? otherUser.username as string : 'Anonymous User')
+                        : 'Anonymous User'}
                     </h3>
                     {conversation.last_message_at && (
                       <span className="text-xs text-muted-foreground">
@@ -99,7 +108,9 @@ const ConversationList = ({
 
                   <div className="flex items-center justify-between mt-2">
                     <p className="text-sm text-muted-foreground truncate">
-                      {otherUser.bio || 'No bio available'}
+                      {otherUser && typeof otherUser === 'object' && 'bio' in otherUser
+                        ? otherUser.bio as string || 'No bio available'
+                        : 'No bio available'}
                     </p>
                     {conversation.unread_count && conversation.unread_count > 0 && (
                       <Badge variant="destructive" className="text-xs">

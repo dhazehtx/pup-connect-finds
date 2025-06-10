@@ -46,6 +46,7 @@ const EnhancedChatControls = ({
   const [showVideoCall, setShowVideoCall] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
   const [isCallActive, setIsCallActive] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
 
   const handleVoiceRecording = (audioBlob: Blob, duration: number) => {
     onVoiceMessage(audioBlob, duration);
@@ -66,6 +67,13 @@ const EnhancedChatControls = ({
     setShowVideoCall(false);
   };
 
+  const handleSendVoiceMessage = (audioUrl: string, duration: number) => {
+    // Convert URL back to blob for compatibility
+    fetch(audioUrl)
+      .then(response => response.blob())
+      .then(blob => handleVoiceRecording(blob, duration));
+  };
+
   return (
     <div className="flex items-center gap-2 p-2 border-t bg-background">
       {/* Voice Recording */}
@@ -77,6 +85,9 @@ const EnhancedChatControls = ({
         </PopoverTrigger>
         <PopoverContent className="w-80">
           <VoiceRecorder
+            onSendVoiceMessage={handleSendVoiceMessage}
+            isRecording={isRecording}
+            setIsRecording={setIsRecording}
             onRecordingComplete={handleVoiceRecording}
             onCancel={() => setShowVoiceRecorder(false)}
           />
