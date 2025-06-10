@@ -1,55 +1,75 @@
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 
 interface TypingUser {
   user_id: string;
   username: string;
-  avatar_url?: string;
   conversation_id: string;
+  timestamp: number;
 }
 
 export const useTypingIndicators = () => {
-  const [typingUsers, setTypingUsers] = useState<Record<string, TypingUser[]>>({});
+  const [typingUsers, setTypingUsers] = useState<TypingUser[]>([]);
   const { user } = useAuth();
+  const typingTimeoutRef = useRef<NodeJS.Timeout>();
 
-  const startTyping = useCallback(async (conversationId: string) => {
+  const startTyping = useCallback((conversationId: string) => {
     if (!user) return;
 
-    // Add current user to typing users for the conversation
-    setTypingUsers(prev => ({
-      ...prev,
-      [conversationId]: [
-        ...(prev[conversationId] || []).filter(u => u.user_id !== user.id),
-        {
-          user_id: user.id,
-          username: user.email?.split('@')[0] || 'User',
-          conversation_id: conversationId
-        }
-      ]
-    }));
+    const channel = supabase.channel(`typing-${conversationId}`);
+    channel.track({
+      user_id: user.id,
+      username: user.email || 'Anonymous',
+      conversation_id: conversationId,
+      is_typing: true,
+      timestamp: Date.now()
+    });
 
-    // Remove typing indicator after 3 seconds
-    setTimeout(() => {
-      setTypingUsers(prev => ({
-        ...prev,
-        [conversationId]: (prev[conversationId] || []).filter(u => u.user_id !== user.id)
-      }));
+    // Clear existing timeout
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+    }
+
+    // Auto-stop typing after 3 seconds
+    typingTimeoutRef.current = setTimeout(() => {
+      stopTyping(conversationId);
     }, 3000);
   }, [user]);
 
-  const stopTyping = useCallback(async (conversationId: string) => {
+  const stopTyping = useCallback((conversationId: string) => {
     if (!user) return;
 
-    setTypingUsers(prev => ({
-      ...prev,
-      [conversationId]: (prev[conversationId] || []).filter(u => u.user_id !== user.id)
-    }));
+    const channel = supabase.channel(`typing-${conversationId}`);
+    channel.track({
+      user_id: user.id,
+      username: user.email || 'Anonymous',
+      conversation_id: conversationId,
+      is_typing: false,
+      timestamp: Date.now()
+    });
+
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+    }
   }, [user]);
 
   const getTypingUsers = useCallback((conversationId: string) => {
-    return typingUsers[conversationId] || [];
-  }, [typingUsers]);
+    return typingUsers.filter(u => 
+      u.conversation_id === conversationId && 
+      u.user_id !== user?.id &&
+      Date.now() - u.timestamp < 5000 // Consider typing for 5 seconds
+    );
+  }, [typingUsers, user]);
+
+  useEffect(() => {
+    return () => {
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+      }
+    };
+  }, []);
 
   return {
     typingUsers,
