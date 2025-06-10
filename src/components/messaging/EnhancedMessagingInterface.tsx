@@ -1,69 +1,74 @@
 
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
-import { MessageCircle, Search, Users, Plus, Video, Paperclip, Mic } from 'lucide-react';
-import { useEnhancedMessaging } from '@/hooks/useEnhancedMessaging';
+import { Card } from '@/components/ui/card';
 import { useAuth } from '@/contexts/AuthContext';
+import { useEnhancedMessaging } from '@/hooks/useEnhancedMessaging';
 import ConversationsList from './ConversationsList';
-import ConversationView from './ConversationView';
-import EnhancedMessageInput from './EnhancedMessageInput';
-import EnhancedMessageBubble from './EnhancedMessageBubble';
-import FileShareDialog from './FileShareDialog';
-import VoiceMessageRecorder from './VoiceMessageRecorder';
-import VideoCallManager from './VideoCallManager';
+import EnhancedChatInterface from './EnhancedChatInterface';
+import EnhancedChatHeader from './EnhancedChatHeader';
+import MessageNotifications from './MessageNotifications';
 import { ExtendedConversation } from '@/types/messaging';
 
 const EnhancedMessagingInterface = () => {
-  const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [showVideoCall, setShowVideoCall] = useState(false);
-  const { 
-    conversations, 
-    messages, 
+  const { user } = useAuth();
+  const [selectedConversation, setSelectedConversation] = useState<ExtendedConversation | null>(null);
+  const [showSearch, setShowSearch] = useState(false);
+  const [newMessage, setNewMessage] = useState<any>(null);
+  
+  const {
+    conversations,
+    messages,
     loading,
     fetchMessages,
     sendMessage,
-    createConversation 
+    createConversation,
   } = useEnhancedMessaging();
-  const { user } = useAuth();
 
-  const filteredConversations = conversations.filter(conv => 
-    conv.other_user?.full_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    conv.listing?.dog_name?.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const handleConversationSelect = async (conversation: ExtendedConversation) => {
+    setSelectedConversation(conversation);
+    await fetchMessages(conversation.id);
+  };
 
-  const selectedConversation = conversations.find(c => c.id === selectedConversationId);
-
-  useEffect(() => {
-    if (selectedConversationId) {
-      fetchMessages(selectedConversationId);
+  const handleSendMessage = async (content: string) => {
+    if (!selectedConversation) return;
+    
+    try {
+      const message = await sendMessage(selectedConversation.id, content);
+      if (message) {
+        setNewMessage(message);
+      }
+    } catch (error) {
+      console.error('Failed to send message:', error);
     }
-  }, [selectedConversationId, fetchMessages]);
-
-  const handleSendMessage = async (content: string, type: string = 'text') => {
-    if (!selectedConversationId) return;
-    await sendMessage(selectedConversationId, content, type);
   };
 
-  const handleFileShare = async (url: string, type: string, fileName: string) => {
-    if (!selectedConversationId) return;
-    await sendMessage(selectedConversationId, `Shared file: ${fileName}`, type, url);
+  const handleBack = () => {
+    setSelectedConversation(null);
   };
 
-  const handleVoiceMessage = async (audioBlob: Blob, duration: number) => {
-    if (!selectedConversationId) return;
-    const audioUrl = URL.createObjectURL(audioBlob);
-    await sendMessage(selectedConversationId, `Voice message (${duration}s)`, 'voice', audioUrl);
+  const handleSearch = () => {
+    setShowSearch(!showSearch);
+  };
+
+  const handleArchive = () => {
+    if (selectedConversation) {
+      console.log('Archiving conversation:', selectedConversation.id);
+      // Archive logic would go here
+    }
+  };
+
+  const handleBlock = () => {
+    if (selectedConversation) {
+      console.log('Blocking user in conversation:', selectedConversation.id);
+      // Block logic would go here
+    }
   };
 
   if (loading) {
     return (
-      <div className="h-screen flex items-center justify-center">
+      <div className="flex items-center justify-center h-64">
         <div className="text-center">
-          <MessageCircle className="w-12 h-12 mx-auto mb-4 text-gray-400 animate-pulse" />
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2"></div>
           <p className="text-gray-600">Loading conversations...</p>
         </div>
       </div>
@@ -71,168 +76,45 @@ const EnhancedMessagingInterface = () => {
   }
 
   return (
-    <div className="h-screen flex bg-gray-50">
-      {/* Conversations Sidebar */}
-      <div className="w-80 bg-white border-r flex flex-col">
-        <CardHeader className="border-b">
-          <CardTitle className="flex items-center gap-2">
-            <MessageCircle className="w-5 h-5" />
-            Enhanced Messages
-          </CardTitle>
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-            <Input
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search conversations..."
-              className="pl-10"
-            />
-          </div>
-        </CardHeader>
-
-        <div className="flex-1 overflow-y-auto">
-          {filteredConversations.length === 0 ? (
-            <div className="p-6 text-center">
-              <Users className="w-12 h-12 mx-auto mb-4 text-gray-400" />
-              <p className="text-gray-600 mb-2">No conversations yet</p>
-              <p className="text-sm text-gray-500">Start chatting with sellers to see conversations here</p>
-            </div>
-          ) : (
-            <div className="divide-y">
-              {filteredConversations.map((conversation) => (
-                <div
-                  key={conversation.id}
-                  onClick={() => setSelectedConversationId(conversation.id)}
-                  className={`p-4 cursor-pointer hover:bg-gray-50 transition-colors ${
-                    selectedConversationId === conversation.id ? 'bg-blue-50 border-r-2 border-blue-500' : ''
-                  }`}
-                >
-                  <div className="flex gap-3">
-                    <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center">
-                      {conversation.other_user?.full_name?.charAt(0) || 'U'}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between mb-1">
-                        <h3 className="font-medium text-sm truncate">
-                          {conversation.other_user?.full_name || 'Unknown User'}
-                        </h3>
-                        <span className="text-xs text-gray-500">
-                          {conversation.last_message_at && 
-                            new Date(conversation.last_message_at).toLocaleDateString()
-                          }
-                        </span>
-                      </div>
-                      {conversation.listing && (
-                        <div className="flex items-center gap-2 mb-1">
-                          <Badge variant="outline" className="text-xs">
-                            {conversation.listing.dog_name}
-                          </Badge>
-                        </div>
-                      )}
-                      <p className="text-xs text-gray-600 truncate">
-                        {conversation.listing?.breed}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
+    <div className="h-full flex">
+      <MessageNotifications newMessage={newMessage} />
+      
+      {/* Conversations List */}
+      <div className={`${selectedConversation ? 'hidden md:block' : 'block'} w-full md:w-1/3 border-r`}>
+        <ConversationsList
+          conversations={conversations}
+          selectedConversationId={selectedConversation?.id}
+          onConversationSelect={handleConversationSelect}
+          onCreateConversation={createConversation}
+        />
       </div>
 
-      {/* Conversation View */}
-      <div className="flex-1 flex flex-col">
+      {/* Chat Interface */}
+      <div className={`${selectedConversation ? 'block' : 'hidden md:block'} flex-1`}>
         {selectedConversation ? (
-          <>
-            {/* Enhanced Conversation Header */}
-            <div className="bg-white border-b p-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center">
-                    {selectedConversation.other_user?.full_name?.charAt(0) || 'U'}
-                  </div>
-                  <div>
-                    <h2 className="font-semibold">
-                      {selectedConversation.other_user?.full_name || 'Unknown User'}
-                    </h2>
-                    {selectedConversation.listing && (
-                      <p className="text-sm text-gray-600">
-                        About {selectedConversation.listing.dog_name} - {selectedConversation.listing.breed}
-                      </p>
-                    )}
-                  </div>
-                </div>
-                
-                <div className="flex items-center gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setShowVideoCall(!showVideoCall)}
-                  >
-                    <Video size={16} className="mr-2" />
-                    Video
-                  </Button>
-                </div>
-              </div>
-            </div>
-
-            {/* Video Call Panel */}
-            {showVideoCall && selectedConversation.other_user && (
-              <div className="border-b p-4 bg-gray-50">
-                <VideoCallManager
-                  conversationId={selectedConversationId!}
-                  otherUser={{
-                    id: selectedConversation.buyer_id === user?.id ? selectedConversation.seller_id : selectedConversation.buyer_id,
-                    name: selectedConversation.other_user.full_name || 'Unknown User',
-                    avatar: selectedConversation.other_user.avatar_url || undefined
-                  }}
-                />
-              </div>
-            )}
-
-            {/* Messages */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-4">
-              {messages.map((message) => (
-                <EnhancedMessageBubble
-                  key={message.id}
-                  message={message}
-                  isOwn={message.sender_id === user?.id}
-                  senderName={
-                    message.sender_id === user?.id 
-                      ? 'You' 
-                      : selectedConversation.other_user?.full_name
-                  }
-                  showReadReceipt={true}
-                />
-              ))}
-            </div>
-
-            {/* Enhanced Message Input */}
-            <div className="border-t p-4 bg-white">
-              <div className="flex items-center gap-2 mb-2">
-                <FileShareDialog onFileShare={handleFileShare}>
-                  <Button variant="outline" size="sm">
-                    <Paperclip size={16} />
-                  </Button>
-                </FileShareDialog>
-                
-                <VoiceMessageRecorder onVoiceMessage={handleVoiceMessage} />
-              </div>
-              
-              <EnhancedMessageInput
-                conversationId={selectedConversationId}
+          <div className="h-full flex flex-col">
+            <EnhancedChatHeader
+              otherUser={selectedConversation.other_user!}
+              conversationId={selectedConversation.id}
+              onBack={handleBack}
+              onSearch={handleSearch}
+              onArchive={handleArchive}
+              onBlock={handleBlock}
+            />
+            <div className="flex-1">
+              <EnhancedChatInterface
+                conversationId={selectedConversation.id}
+                messages={messages}
                 onSendMessage={handleSendMessage}
-                placeholder={`Message ${selectedConversation.other_user?.full_name || 'seller'}...`}
+                showSearch={showSearch}
               />
             </div>
-          </>
+          </div>
         ) : (
-          <div className="flex-1 flex items-center justify-center">
-            <div className="text-center">
-              <MessageCircle className="w-16 h-16 mx-auto mb-4 text-gray-400" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">Enhanced Messaging Ready</h3>
-              <p className="text-gray-600">Choose a conversation to start messaging with file sharing, voice messages, and video calls</p>
+          <div className="hidden md:flex items-center justify-center h-full">
+            <div className="text-center text-gray-500">
+              <h3 className="text-lg font-medium mb-2">Select a conversation</h3>
+              <p>Choose a conversation from the list to start messaging</p>
             </div>
           </div>
         )}

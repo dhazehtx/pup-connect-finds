@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Smile, ThumbsUp, Heart, Laugh, Angry, Sad } from 'lucide-react';
+import { Smile, ThumbsUp, Heart, Laugh, Angry, Frown } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface MessageReactionsProps {
@@ -18,7 +18,7 @@ const DEFAULT_EMOJIS = [
   { emoji: '❤️', icon: Heart, label: 'Love' },
   { emoji: '😂', icon: Laugh, label: 'Laugh' },
   { emoji: '😮', icon: Smile, label: 'Wow' },
-  { emoji: '😢', icon: Sad, label: 'Sad' },
+  { emoji: '😢', icon: Frown, label: 'Sad' },
   { emoji: '😡', icon: Angry, label: 'Angry' },
 ];
 
