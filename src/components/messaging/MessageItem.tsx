@@ -65,7 +65,7 @@ const MessageItem = ({
 
     return (
       <div className="flex flex-wrap gap-1 mt-2">
-        {Object.entries(groupedReactions).map(([emoji, data]) => (
+        {Object.entries(groupedReactions).map(([emoji, data]: [string, { count: number; userReacted: boolean }]) => (
           <Button
             key={emoji}
             variant={data.userReacted ? "default" : "outline"}
