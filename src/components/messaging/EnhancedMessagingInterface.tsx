@@ -85,7 +85,6 @@ const EnhancedMessagingInterface = () => {
           conversations={conversations}
           selectedConversationId={selectedConversation?.id}
           onSelectConversation={handleConversationSelect}
-          onCreateConversation={createConversation}
         />
       </div>
 
