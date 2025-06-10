@@ -7,6 +7,8 @@ import ConversationsList from './ConversationsList';
 import EnhancedChatInterface from './EnhancedChatInterface';
 import EnhancedChatHeader from './EnhancedChatHeader';
 import MessageNotifications from './MessageNotifications';
+import ConversationSearch from './ConversationSearch';
+import MessageSearchDialog from './MessageSearchDialog';
 import { ExtendedConversation } from '@/types/messaging';
 import { useToast } from '@/hooks/use-toast';
 
@@ -14,7 +16,8 @@ const EnhancedMessagingInterface = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const [selectedConversation, setSelectedConversation] = useState<ExtendedConversation | null>(null);
-  const [showSearch, setShowSearch] = useState(false);
+  const [showMessageSearch, setShowMessageSearch] = useState(false);
+  const [filteredConversations, setFilteredConversations] = useState<any[]>([]);
   const [newMessage, setNewMessage] = useState<any>(null);
   
   const {
@@ -25,6 +28,11 @@ const EnhancedMessagingInterface = () => {
     sendMessage,
     createConversation,
   } = useEnhancedMessaging();
+
+  // Initialize filtered conversations
+  useEffect(() => {
+    setFilteredConversations(conversations);
+  }, [conversations]);
 
   const handleConversationSelect = async (conversation: any) => {
     try {
@@ -67,7 +75,7 @@ const EnhancedMessagingInterface = () => {
   };
 
   const handleSearch = () => {
-    setShowSearch(!showSearch);
+    setShowMessageSearch(!showMessageSearch);
   };
 
   const handleArchive = () => {
@@ -88,6 +96,12 @@ const EnhancedMessagingInterface = () => {
         description: "Block functionality coming soon",
       });
     }
+  };
+
+  const handleMessageSelect = (messageId: string) => {
+    console.log('Jumping to message:', messageId);
+    setShowMessageSearch(false);
+    // TODO: Implement scroll to message functionality
   };
 
   // Clear new message notification after showing it
@@ -114,12 +128,18 @@ const EnhancedMessagingInterface = () => {
       <MessageNotifications newMessage={newMessage} />
       
       {/* Conversations List */}
-      <div className={`${selectedConversation ? 'hidden md:block' : 'block'} w-full md:w-1/3 border-r`}>
-        <ConversationsList
+      <div className={`${selectedConversation ? 'hidden md:block' : 'block'} w-full md:w-1/3 border-r flex flex-col`}>
+        <ConversationSearch
           conversations={conversations}
-          selectedConversationId={selectedConversation?.id}
-          onSelectConversation={handleConversationSelect}
+          onFilteredConversations={setFilteredConversations}
         />
+        <div className="flex-1 overflow-hidden">
+          <ConversationsList
+            conversations={filteredConversations}
+            selectedConversationId={selectedConversation?.id}
+            onSelectConversation={handleConversationSelect}
+          />
+        </div>
       </div>
 
       {/* Chat Interface */}
@@ -151,6 +171,14 @@ const EnhancedMessagingInterface = () => {
           </div>
         )}
       </div>
+
+      {/* Message Search Dialog */}
+      <MessageSearchDialog
+        isOpen={showMessageSearch}
+        onClose={() => setShowMessageSearch(false)}
+        conversationId={selectedConversation?.id}
+        onMessageSelect={handleMessageSelect}
+      />
     </div>
   );
 };
