@@ -8,7 +8,8 @@ import ConversationArchive from './ConversationArchive';
 import { useEnhancedMessaging } from '@/hooks/useEnhancedMessaging';
 
 const AdvancedMessagingHub = () => {
-  const { conversations } = useEnhancedMessaging();
+  const { conversations, messages = [] } = useEnhancedMessaging();
+  const [searchResults, setSearchResults] = useState<any[]>([]);
 
   // Filter archived conversations (assuming there's an archived property)
   const archivedConversations = conversations.filter(conv => (conv as any).archived === true);
@@ -31,6 +32,16 @@ const AdvancedMessagingHub = () => {
   const handleResultSelect = (messageId: string) => {
     // Implementation would navigate to message
     console.log('Navigating to message:', messageId);
+  };
+
+  const handleSearchResults = (results: any[]) => {
+    console.log('Search results received:', results);
+    setSearchResults(results);
+  };
+
+  const handleClearSearch = () => {
+    console.log('Clearing search results');
+    setSearchResults([]);
   };
 
   return (
@@ -64,7 +75,31 @@ const AdvancedMessagingHub = () => {
         <TabsContent value="search" className="flex-1 m-0 p-4">
           <div className="max-w-2xl mx-auto">
             <h2 className="text-xl font-semibold mb-4">Advanced Message Search</h2>
-            <AdvancedMessageSearch onResultSelect={handleResultSelect} />
+            <AdvancedMessageSearch 
+              messages={messages}
+              onSearchResults={handleSearchResults}
+              onClearSearch={handleClearSearch}
+              onResultSelect={handleResultSelect} 
+            />
+            {searchResults.length > 0 && (
+              <div className="mt-4">
+                <h3 className="text-lg font-medium mb-2">Search Results ({searchResults.length})</h3>
+                <div className="space-y-2">
+                  {searchResults.map((message, index) => (
+                    <div 
+                      key={message.id || index} 
+                      className="p-3 border rounded-lg cursor-pointer hover:bg-muted"
+                      onClick={() => handleResultSelect(message.id)}
+                    >
+                      <p className="text-sm">{message.content}</p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {message.sender_name} • {new Date(message.created_at).toLocaleString()}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </TabsContent>
 

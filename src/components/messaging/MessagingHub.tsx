@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useMemo } from 'react';
 import { Card } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -12,9 +13,10 @@ import { useAuth } from '@/contexts/AuthContext';
 
 const MessagingHub = () => {
   const { user } = useAuth();
-  const { conversations, loading } = useEnhancedMessaging();
+  const { conversations, loading, messages = [] } = useEnhancedMessaging();
   const [activeTab, setActiveTab] = useState('messages');
   const [unreadCount, setUnreadCount] = useState(0);
+  const [searchResults, setSearchResults] = useState<any[]>([]);
 
   // Calculate unread messages count - using a fallback of 0 if unread_count doesn't exist
   const totalUnreadCount = useMemo(() => {
@@ -33,6 +35,16 @@ const MessagingHub = () => {
     setActiveTab('messages');
     // TODO: Navigate to specific message
     console.log('Navigating to message:', messageId);
+  };
+
+  const handleSearchResults = (results: any[]) => {
+    console.log('Search results received:', results);
+    setSearchResults(results);
+  };
+
+  const handleClearSearch = () => {
+    console.log('Clearing search results');
+    setSearchResults([]);
   };
 
   const handleArchiveConversation = (conversationId: string) => {
@@ -119,8 +131,33 @@ const MessagingHub = () => {
 
           <TabsContent value="search" className="h-full m-0 p-4">
             <div className="container mx-auto max-w-4xl h-full">
-              <Card className="h-full">
-                <AdvancedMessageSearch onResultSelect={handleResultSelect} />
+              <Card className="h-full p-6">
+                <h2 className="text-xl font-semibold mb-4">Advanced Message Search</h2>
+                <AdvancedMessageSearch 
+                  messages={messages}
+                  onSearchResults={handleSearchResults}
+                  onClearSearch={handleClearSearch}
+                  onResultSelect={handleResultSelect} 
+                />
+                {searchResults.length > 0 && (
+                  <div className="mt-4">
+                    <h3 className="text-lg font-medium mb-2">Search Results ({searchResults.length})</h3>
+                    <div className="space-y-2 max-h-96 overflow-y-auto">
+                      {searchResults.map((message, index) => (
+                        <div 
+                          key={message.id || index} 
+                          className="p-3 border rounded-lg cursor-pointer hover:bg-muted transition-colors"
+                          onClick={() => handleResultSelect(message.id)}
+                        >
+                          <p className="text-sm">{message.content}</p>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            {message.sender_name} • {new Date(message.created_at).toLocaleString()}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </Card>
             </div>
           </TabsContent>
