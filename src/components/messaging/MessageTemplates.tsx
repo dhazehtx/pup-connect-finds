@@ -1,161 +1,240 @@
 
 import React, { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Search, MessageSquare } from 'lucide-react';
+import { Textarea } from '@/components/ui/textarea';
+import { Badge } from '@/components/ui/badge';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { MessageSquare, Plus, Edit, Trash2, Send } from 'lucide-react';
 
 interface MessageTemplate {
   id: string;
   title: string;
   content: string;
   category: string;
+  usage_count: number;
+  created_at: string;
 }
 
 interface MessageTemplatesProps {
-  isOpen: boolean;
-  onClose: () => void;
   onSelectTemplate: (content: string) => void;
 }
 
-const defaultTemplates: MessageTemplate[] = [
-  {
-    id: '1',
-    title: 'Initial Interest',
-    content: 'Hi! I\'m interested in your puppy listing. Could you tell me more about the puppy\'s temperament and health history?',
-    category: 'inquiry'
-  },
-  {
-    id: '2',
-    title: 'Availability Check',
-    content: 'Is this puppy still available? I\'d love to schedule a time to meet them.',
-    category: 'inquiry'
-  },
-  {
-    id: '3',
-    title: 'Health Questions',
-    content: 'Could you provide information about the puppy\'s vaccinations, health clearances, and any health testing done on the parents?',
-    category: 'health'
-  },
-  {
-    id: '4',
-    title: 'Meeting Request',
-    content: 'I\'d like to schedule a visit to meet the puppy and see your facility. What times work best for you?',
-    category: 'meeting'
-  },
-  {
-    id: '5',
-    title: 'Price Inquiry',
-    content: 'What is the price for this puppy? Are there any additional costs I should be aware of?',
-    category: 'pricing'
-  },
-  {
-    id: '6',
-    title: 'Contract Questions',
-    content: 'Could you share details about your puppy contract and any health guarantees you provide?',
-    category: 'contract'
-  },
-  {
-    id: '7',
-    title: 'References Request',
-    content: 'Could you provide references from previous puppy buyers? I\'d like to hear about their experiences.',
-    category: 'references'
-  },
-  {
-    id: '8',
-    title: 'Follow Up',
-    content: 'Thank you for the information! I\'m very interested and would like to move forward. What are the next steps?',
-    category: 'followup'
-  }
-];
+const MessageTemplates = ({ onSelectTemplate }: MessageTemplatesProps) => {
+  const [templates, setTemplates] = useState<MessageTemplate[]>([
+    {
+      id: '1',
+      title: 'Meeting Request',
+      content: 'Hi! Would you be available for a meeting to discuss this further? Let me know what times work best for you.',
+      category: 'business',
+      usage_count: 15,
+      created_at: '2024-01-01'
+    },
+    {
+      id: '2',
+      title: 'Thank You',
+      content: 'Thank you so much for your help! I really appreciate your assistance.',
+      category: 'courtesy',
+      usage_count: 28,
+      created_at: '2024-01-02'
+    },
+    {
+      id: '3',
+      title: 'Follow Up',
+      content: 'Just wanted to follow up on our previous conversation. Any updates on this?',
+      category: 'business',
+      usage_count: 12,
+      created_at: '2024-01-03'
+    }
+  ]);
 
-const MessageTemplates = ({ isOpen, onClose, onSelectTemplate }: MessageTemplatesProps) => {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState<string>('all');
-
-  const categories = ['all', 'inquiry', 'health', 'meeting', 'pricing', 'contract', 'references', 'followup'];
-
-  const filteredTemplates = defaultTemplates.filter(template => {
-    const matchesSearch = template.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         template.content.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesCategory = selectedCategory === 'all' || template.category === selectedCategory;
-    
-    return matchesSearch && matchesCategory;
+  const [newTemplate, setNewTemplate] = useState({
+    title: '',
+    content: '',
+    category: 'general'
   });
+  const [editingTemplate, setEditingTemplate] = useState<MessageTemplate | null>(null);
+  const [showCreateDialog, setShowCreateDialog] = useState(false);
 
-  const handleSelectTemplate = (template: MessageTemplate) => {
+  const categories = ['general', 'business', 'courtesy', 'greeting', 'inquiry'];
+
+  const handleCreateTemplate = () => {
+    if (!newTemplate.title.trim() || !newTemplate.content.trim()) return;
+
+    const template: MessageTemplate = {
+      id: Date.now().toString(),
+      title: newTemplate.title,
+      content: newTemplate.content,
+      category: newTemplate.category,
+      usage_count: 0,
+      created_at: new Date().toISOString()
+    };
+
+    setTemplates(prev => [...prev, template]);
+    setNewTemplate({ title: '', content: '', category: 'general' });
+    setShowCreateDialog(false);
+  };
+
+  const handleEditTemplate = (template: MessageTemplate) => {
+    setEditingTemplate(template);
+  };
+
+  const handleUpdateTemplate = () => {
+    if (!editingTemplate) return;
+
+    setTemplates(prev => prev.map(t => 
+      t.id === editingTemplate.id ? editingTemplate : t
+    ));
+    setEditingTemplate(null);
+  };
+
+  const handleDeleteTemplate = (templateId: string) => {
+    setTemplates(prev => prev.filter(t => t.id !== templateId));
+  };
+
+  const handleUseTemplate = (template: MessageTemplate) => {
+    setTemplates(prev => prev.map(t => 
+      t.id === template.id ? { ...t, usage_count: t.usage_count + 1 } : t
+    ));
     onSelectTemplate(template.content);
-    onClose();
+  };
+
+  const getCategoryColor = (category: string) => {
+    const colors = {
+      business: 'bg-blue-100 text-blue-800',
+      courtesy: 'bg-green-100 text-green-800',
+      greeting: 'bg-purple-100 text-purple-800',
+      inquiry: 'bg-orange-100 text-orange-800',
+      general: 'bg-gray-100 text-gray-800'
+    };
+    return colors[category as keyof typeof colors] || colors.general;
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[600px]">
-        <DialogHeader>
-          <DialogTitle>Message Templates</DialogTitle>
-        </DialogHeader>
-        
-        <div className="space-y-4">
-          {/* Search */}
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={16} />
-            <Input
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search templates..."
-              className="pl-10"
-            />
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <MessageSquare className="w-5 h-5" />
+            Message Templates
           </div>
-
-          {/* Category Filter */}
-          <div className="flex gap-2 flex-wrap">
-            {categories.map(category => (
-              <Button
-                key={category}
-                variant={selectedCategory === category ? "default" : "outline"}
-                size="sm"
-                onClick={() => setSelectedCategory(category)}
-                className="capitalize"
-              >
-                {category}
+          <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
+            <DialogTrigger asChild>
+              <Button size="sm" className="flex items-center gap-1">
+                <Plus className="w-4 h-4" />
+                New Template
               </Button>
-            ))}
-          </div>
-
-          {/* Templates Grid */}
-          <div className="max-h-96 overflow-y-auto space-y-2">
-            {filteredTemplates.map(template => (
-              <Card 
-                key={template.id}
-                className="cursor-pointer hover:bg-muted/50 transition-colors"
-                onClick={() => handleSelectTemplate(template)}
-              >
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm flex items-center gap-2">
-                    <MessageSquare size={14} />
-                    {template.title}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-sm text-muted-foreground line-clamp-2">
-                    {template.content}
-                  </p>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-
-          {filteredTemplates.length === 0 && (
-            <div className="text-center py-8">
-              <MessageSquare className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <p className="text-muted-foreground">No templates found</p>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Create Message Template</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                <Input
+                  placeholder="Template title"
+                  value={newTemplate.title}
+                  onChange={(e) => setNewTemplate(prev => ({ ...prev, title: e.target.value }))}
+                />
+                <select
+                  className="w-full p-2 border rounded"
+                  value={newTemplate.category}
+                  onChange={(e) => setNewTemplate(prev => ({ ...prev, category: e.target.value }))}
+                >
+                  {categories.map(cat => (
+                    <option key={cat} value={cat}>{cat}</option>
+                  ))}
+                </select>
+                <Textarea
+                  placeholder="Template content"
+                  value={newTemplate.content}
+                  onChange={(e) => setNewTemplate(prev => ({ ...prev, content: e.target.value }))}
+                  rows={4}
+                />
+                <Button onClick={handleCreateTemplate} className="w-full">
+                  Create Template
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-3">
+          {templates.map((template) => (
+            <div key={template.id} className="p-3 border rounded-lg">
+              <div className="flex items-start justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  <h4 className="font-medium">{template.title}</h4>
+                  <Badge className={getCategoryColor(template.category)}>
+                    {template.category}
+                  </Badge>
+                  <span className="text-xs text-muted-foreground">
+                    Used {template.usage_count} times
+                  </span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => handleEditTemplate(template)}
+                  >
+                    <Edit className="w-3 h-3" />
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => handleDeleteTemplate(template.id)}
+                  >
+                    <Trash2 className="w-3 h-3" />
+                  </Button>
+                  <Button
+                    size="sm"
+                    onClick={() => handleUseTemplate(template)}
+                    className="flex items-center gap-1"
+                  >
+                    <Send className="w-3 h-3" />
+                    Use
+                  </Button>
+                </div>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                {template.content}
+              </p>
             </div>
-          )}
+          ))}
         </div>
-      </DialogContent>
-    </Dialog>
+
+        {/* Edit Dialog */}
+        {editingTemplate && (
+          <Dialog open={!!editingTemplate} onOpenChange={() => setEditingTemplate(null)}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Edit Template</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                <Input
+                  value={editingTemplate.title}
+                  onChange={(e) => setEditingTemplate(prev => 
+                    prev ? { ...prev, title: e.target.value } : null
+                  )}
+                />
+                <Textarea
+                  value={editingTemplate.content}
+                  onChange={(e) => setEditingTemplate(prev => 
+                    prev ? { ...prev, content: e.target.value } : null
+                  )}
+                  rows={4}
+                />
+                <Button onClick={handleUpdateTemplate} className="w-full">
+                  Update Template
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+        )}
+      </CardContent>
+    </Card>
   );
 };
 

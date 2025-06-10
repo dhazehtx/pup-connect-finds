@@ -1,88 +1,90 @@
 
-import { useState } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
-import { useToast } from '@/hooks/use-toast';
+import { useState, useCallback } from 'react';
 
-interface EncryptionResult {
-  encryptedContent: string;
-  keyId: string;
+interface EncryptionKey {
+  id: string;
+  key: string;
+  created_at: string;
 }
 
 export const useMessageEncryption = () => {
-  const [isEncrypting, setIsEncrypting] = useState(false);
-  const { user } = useAuth();
-  const { toast } = useToast();
+  const [encryptionEnabled, setEncryptionEnabled] = useState(false);
+  const [currentKey, setCurrentKey] = useState<EncryptionKey | null>(null);
 
-  // Simple encryption for demo purposes - in production, use proper crypto libraries
-  const generateKey = (): string => {
-    return Array.from(crypto.getRandomValues(new Uint8Array(32)))
-      .map(b => b.toString(16).padStart(2, '0'))
-      .join('');
-  };
+  const generateKey = useCallback((): string => {
+    const array = new Uint8Array(32);
+    crypto.getRandomValues(array);
+    return Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('');
+  }, []);
 
-  const encryptMessage = async (content: string): Promise<EncryptionResult | null> => {
-    if (!user) return null;
-
-    setIsEncrypting(true);
+  const encryptMessage = useCallback(async (message: string, key?: string): Promise<string> => {
+    if (!encryptionEnabled || !message) return message;
+    
+    const encryptionKey = key || currentKey?.key || generateKey();
+    
     try {
-      // Generate a unique key for this message
-      const keyId = `key_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      // Simple encryption for demo - in production use proper crypto libraries
+      const encoder = new TextEncoder();
+      const data = encoder.encode(message);
+      const keyData = encoder.encode(encryptionKey.slice(0, 16));
       
-      // Simple XOR encryption for demo (use proper encryption in production)
-      const key = generateKey();
-      const encryptedContent = btoa(
-        content.split('').map((char, index) => 
-          String.fromCharCode(char.charCodeAt(0) ^ key.charCodeAt(index % key.length))
-        ).join('')
-      );
-
-      // In production, store the key securely (e.g., in a key management service)
-      localStorage.setItem(`encryption_key_${keyId}`, key);
-
-      return {
-        encryptedContent,
-        keyId
-      };
+      const encrypted = new Uint8Array(data.length);
+      for (let i = 0; i < data.length; i++) {
+        encrypted[i] = data[i] ^ keyData[i % keyData.length];
+      }
+      
+      return btoa(String.fromCharCode(...encrypted));
     } catch (error) {
       console.error('Encryption failed:', error);
-      toast({
-        title: "Encryption failed",
-        description: "Unable to encrypt message",
-        variant: "destructive",
-      });
-      return null;
-    } finally {
-      setIsEncrypting(false);
+      return message;
     }
-  };
+  }, [encryptionEnabled, currentKey, generateKey]);
 
-  const decryptMessage = async (encryptedContent: string, keyId: string): Promise<string | null> => {
+  const decryptMessage = useCallback(async (encryptedMessage: string, key?: string): Promise<string> => {
+    if (!encryptionEnabled || !encryptedMessage) return encryptedMessage;
+    
+    const decryptionKey = key || currentKey?.key;
+    if (!decryptionKey) return encryptedMessage;
+    
     try {
-      // Retrieve the key (in production, this would be from a secure key store)
-      const key = localStorage.getItem(`encryption_key_${keyId}`);
-      if (!key) {
-        console.error('Decryption key not found');
-        return 'Message could not be decrypted';
+      const data = new Uint8Array(atob(encryptedMessage).split('').map(char => char.charCodeAt(0)));
+      const encoder = new TextEncoder();
+      const keyData = encoder.encode(decryptionKey.slice(0, 16));
+      
+      const decrypted = new Uint8Array(data.length);
+      for (let i = 0; i < data.length; i++) {
+        decrypted[i] = data[i] ^ keyData[i % keyData.length];
       }
-
-      // Decrypt using XOR
-      const decryptedContent = atob(encryptedContent)
-        .split('')
-        .map((char, index) => 
-          String.fromCharCode(char.charCodeAt(0) ^ key.charCodeAt(index % key.length))
-        )
-        .join('');
-
-      return decryptedContent;
+      
+      const decoder = new TextDecoder();
+      return decoder.decode(decrypted);
     } catch (error) {
       console.error('Decryption failed:', error);
-      return 'Message could not be decrypted';
+      return encryptedMessage;
     }
-  };
+  }, [encryptionEnabled, currentKey]);
+
+  const createEncryptionKey = useCallback(async (conversationId: string): Promise<EncryptionKey> => {
+    const key: EncryptionKey = {
+      id: `key_${Date.now()}`,
+      key: generateKey(),
+      created_at: new Date().toISOString()
+    };
+    
+    setCurrentKey(key);
+    return key;
+  }, [generateKey]);
+
+  const toggleEncryption = useCallback(() => {
+    setEncryptionEnabled(prev => !prev);
+  }, []);
 
   return {
+    encryptionEnabled,
+    currentKey,
     encryptMessage,
     decryptMessage,
-    isEncrypting
+    createEncryptionKey,
+    toggleEncryption
   };
 };
