@@ -11,6 +11,12 @@ const EnhancedTypingIndicator = ({ conversationId }: EnhancedTypingIndicatorProp
   const { getTypingUsers } = usePresenceManager();
   const typingUsers = getTypingUsers(conversationId);
 
+  console.log('⌨️ EnhancedTypingIndicator - Typing users:', {
+    conversationId,
+    typingCount: typingUsers.length,
+    users: typingUsers.map(u => u.username)
+  });
+
   if (typingUsers.length === 0) return null;
 
   const getTypingText = () => {

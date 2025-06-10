@@ -1,131 +1,164 @@
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 
 interface PresenceUser {
   user_id: string;
-  username?: string;
+  username: string;
   avatar_url?: string;
-  status: 'online' | 'away' | 'busy' | 'offline';
-  last_seen: string;
-}
-
-interface TypingUser {
-  user_id: string;
-  username?: string;
-  conversation_id: string;
+  last_seen?: string;
+  typing?: boolean;
 }
 
 export const usePresenceManager = () => {
   const { user } = useAuth();
-  const [onlineUsers, setOnlineUsers] = useState<PresenceUser[]>([]);
-  const [typingUsers, setTypingUsers] = useState<TypingUser[]>([]);
-  const [onlineCount, setOnlineCount] = useState(0);
+  const [onlineUsers, setOnlineUsers] = useState<Record<string, PresenceUser[]>>({});
+  const [typingUsers, setTypingUsers] = useState<Record<string, PresenceUser[]>>({});
+  const channelsRef = useRef<Record<string, any>>({});
 
-  const updatePresence = useCallback(async (status: 'online' | 'away' | 'busy' | 'offline') => {
-    if (!user) return;
+  console.log('👥 usePresenceManager - State:', {
+    userId: user?.id,
+    onlineChannels: Object.keys(onlineUsers),
+    typingChannels: Object.keys(typingUsers)
+  });
 
-    const channel = supabase.channel('presence-channel');
-    
+  const joinPresence = useCallback(async (conversationId: string) => {
+    if (!user || channelsRef.current[conversationId]) return;
+
+    console.log('🟢 usePresenceManager - Joining presence for conversation:', conversationId);
+
+    const channel = supabase.channel(`presence-${conversationId}`, {
+      config: {
+        presence: {
+          key: user.id,
+        },
+      },
+    });
+
+    // Track user presence
     await channel.track({
       user_id: user.id,
-      username: user.email?.split('@')[0] || 'User',
-      status,
+      username: user.user_metadata?.full_name || user.email?.split('@')[0] || 'Anonymous',
+      avatar_url: user.user_metadata?.avatar_url,
       last_seen: new Date().toISOString(),
+      typing: false
     });
-  }, [user]);
 
-  const setTyping = useCallback(async (conversationId: string, isTyping: boolean) => {
-    if (!user) return;
-
-    const channel = supabase.channel(`typing-${conversationId}`);
-    
-    if (isTyping) {
-      await channel.track({
-        user_id: user.id,
-        username: user.email?.split('@')[0] || 'User',
-        conversation_id: conversationId,
-      });
-    } else {
-      await channel.untrack();
-    }
-  }, [user]);
-
-  const getTypingUsers = useCallback((conversationId: string) => {
-    return typingUsers.filter(u => u.conversation_id === conversationId && u.user_id !== user?.id);
-  }, [typingUsers, user]);
-
-  useEffect(() => {
-    if (!user) return;
-
-    // Set up presence tracking
-    const presenceChannel = supabase
-      .channel('presence-channel')
-      .on('presence', { event: 'sync' }, () => {
-        const state = presenceChannel.presenceState();
-        // Properly handle the presence state data
-        const users: PresenceUser[] = [];
-        Object.values(state).forEach((presences: any) => {
-          if (Array.isArray(presences)) {
-            presences.forEach((presence: any) => {
-              if (presence.user_id && presence.status && presence.last_seen) {
-                users.push({
-                  user_id: presence.user_id,
-                  username: presence.username,
-                  avatar_url: presence.avatar_url,
-                  status: presence.status,
-                  last_seen: presence.last_seen,
-                });
-              }
-            });
+    // Listen for presence changes
+    channel.on('presence', { event: 'sync' }, () => {
+      const state = channel.presenceState();
+      const users: PresenceUser[] = [];
+      
+      Object.values(state).forEach((presences: any) => {
+        presences.forEach((presence: any) => {
+          if (presence.user_id !== user.id) {
+            users.push(presence);
           }
         });
-        setOnlineUsers(users);
-        setOnlineCount(users.filter(u => u.status === 'online').length);
-      })
-      .on('presence', { event: 'join' }, ({ newPresences }) => {
-        console.log('User joined:', newPresences);
-      })
-      .on('presence', { event: 'leave' }, ({ leftPresences }) => {
-        console.log('User left:', leftPresences);
-      })
-      .subscribe(async (status) => {
-        if (status === 'SUBSCRIBED') {
-          await updatePresence('online');
-        }
       });
 
-    // Set user offline when they leave
-    const handleBeforeUnload = () => {
-      updatePresence('offline');
-    };
+      console.log('👥 usePresenceManager - Presence sync:', {
+        conversationId,
+        onlineUsers: users.length
+      });
 
-    window.addEventListener('beforeunload', handleBeforeUnload);
+      setOnlineUsers(prev => ({ ...prev, [conversationId]: users }));
+    });
 
-    return () => {
-      presenceChannel.unsubscribe();
-      window.removeEventListener('beforeunload', handleBeforeUnload);
-    };
-  }, [user, updatePresence]);
+    // Listen for typing indicators
+    channel.on('presence', { event: 'join' }, ({ key, newPresences }) => {
+      console.log('🟢 usePresenceManager - User joined:', key);
+    });
 
-  // Update presence periodically
+    channel.on('presence', { event: 'leave' }, ({ key, leftPresences }) => {
+      console.log('🔴 usePresenceManager - User left:', key);
+    });
+
+    await channel.subscribe();
+    channelsRef.current[conversationId] = channel;
+  }, [user]);
+
+  const leavePresence = useCallback(async (conversationId: string) => {
+    const channel = channelsRef.current[conversationId];
+    if (!channel) return;
+
+    console.log('🔴 usePresenceManager - Leaving presence for conversation:', conversationId);
+
+    await channel.untrack();
+    await supabase.removeChannel(channel);
+    delete channelsRef.current[conversationId];
+    
+    setOnlineUsers(prev => {
+      const newState = { ...prev };
+      delete newState[conversationId];
+      return newState;
+    });
+    
+    setTypingUsers(prev => {
+      const newState = { ...prev };
+      delete newState[conversationId];
+      return newState;
+    });
+  }, []);
+
+  const updateTypingStatus = useCallback(async (conversationId: string, isTyping: boolean) => {
+    const channel = channelsRef.current[conversationId];
+    if (!channel || !user) return;
+
+    console.log('⌨️ usePresenceManager - Updating typing status:', {
+      conversationId,
+      isTyping,
+      userId: user.id
+    });
+
+    await channel.track({
+      user_id: user.id,
+      username: user.user_metadata?.full_name || user.email?.split('@')[0] || 'Anonymous',
+      avatar_url: user.user_metadata?.avatar_url,
+      last_seen: new Date().toISOString(),
+      typing: isTyping
+    });
+
+    // Update typing users state
+    const state = channel.presenceState();
+    const typing: PresenceUser[] = [];
+    
+    Object.values(state).forEach((presences: any) => {
+      presences.forEach((presence: any) => {
+        if (presence.user_id !== user.id && presence.typing) {
+          typing.push(presence);
+        }
+      });
+    });
+
+    setTypingUsers(prev => ({ ...prev, [conversationId]: typing }));
+  }, [user]);
+
+  const getOnlineUsers = useCallback((conversationId: string): PresenceUser[] => {
+    return onlineUsers[conversationId] || [];
+  }, [onlineUsers]);
+
+  const getTypingUsers = useCallback((conversationId: string): PresenceUser[] => {
+    return typingUsers[conversationId] || [];
+  }, [typingUsers]);
+
+  // Cleanup on unmount
   useEffect(() => {
-    if (!user) return;
-
-    const interval = setInterval(() => {
-      updatePresence('online');
-    }, 30000); // Update every 30 seconds
-
-    return () => clearInterval(interval);
-  }, [user, updatePresence]);
+    return () => {
+      Object.values(channelsRef.current).forEach(channel => {
+        supabase.removeChannel(channel);
+      });
+    };
+  }, []);
 
   return {
-    onlineUsers,
-    onlineCount,
-    typingUsers,
-    updatePresence,
-    setTyping,
+    joinPresence,
+    leavePresence,
+    updateTypingStatus,
+    getOnlineUsers,
     getTypingUsers,
+    onlineUsers: onlineUsers,
+    typingUsers: typingUsers
   };
 };
