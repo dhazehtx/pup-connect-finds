@@ -1,42 +1,40 @@
 
 import React from 'react';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import PresenceIndicator from '@/components/ui/presence-indicator';
 import { useUserPresence } from '@/hooks/useUserPresence';
 import { cn } from '@/lib/utils';
 
 interface UserAvatarWithPresenceProps {
   userId: string;
-  username?: string;
+  username: string;
   avatarUrl?: string;
   size?: 'sm' | 'md' | 'lg';
-  showPresence?: boolean;
   className?: string;
+  showStatus?: boolean;
 }
 
-const UserAvatarWithPresence = ({
-  userId,
-  username,
-  avatarUrl,
+const UserAvatarWithPresence = ({ 
+  userId, 
+  username, 
+  avatarUrl, 
   size = 'md',
-  showPresence = true,
-  className
+  className,
+  showStatus = true
 }: UserAvatarWithPresenceProps) => {
-  const { getUserPresence, isUserOnline } = useUserPresence();
-  
+  const { getUserPresence } = useUserPresence();
   const presence = getUserPresence(userId);
-  const online = isUserOnline(userId);
-  
+  const isOnline = presence?.status === 'online';
+
   const sizeClasses = {
     sm: 'w-8 h-8',
-    md: 'w-10 h-10',
+    md: 'w-10 h-10', 
     lg: 'w-12 h-12'
   };
 
-  const presenceSize = {
-    sm: 'sm' as const,
-    md: 'sm' as const,
-    lg: 'md' as const
+  const statusSizeClasses = {
+    sm: 'w-2 h-2',
+    md: 'w-3 h-3',
+    lg: 'w-4 h-4'
   };
 
   return (
@@ -44,17 +42,14 @@ const UserAvatarWithPresence = ({
       <Avatar className={sizeClasses[size]}>
         <AvatarImage src={avatarUrl} alt={username} />
         <AvatarFallback>
-          {username?.charAt(0)?.toUpperCase() || 'U'}
+          {username.charAt(0).toUpperCase()}
         </AvatarFallback>
       </Avatar>
-      
-      {showPresence && (
-        <div className="absolute -bottom-0.5 -right-0.5">
-          <PresenceIndicator 
-            status={online ? (presence?.status || 'online') : 'offline'}
-            size={presenceSize[size]}
-          />
-        </div>
+      {showStatus && isOnline && (
+        <div className={cn(
+          'absolute bottom-0 right-0 rounded-full bg-green-500 border-2 border-white',
+          statusSizeClasses[size]
+        )} />
       )}
     </div>
   );

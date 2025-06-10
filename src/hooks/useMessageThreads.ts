@@ -7,6 +7,9 @@ interface ThreadMessage {
   id: string;
   parent_message_id: string;
   reply_message_id: string;
+  content: string;
+  sender_id: string;
+  sender_name: string;
   created_at: string;
 }
 
@@ -22,11 +25,10 @@ export const useMessageThreads = () => {
     if (!user) return;
 
     try {
-      // First create the reply message
       const { data: replyMessage, error: replyError } = await supabase
         .from('messages')
         .insert({
-          conversation_id: parentMessageId, // This should be the actual conversation_id
+          conversation_id: parentMessageId,
           sender_id: user.id,
           content: replyContent,
           message_type: 'text'
@@ -36,7 +38,6 @@ export const useMessageThreads = () => {
 
       if (replyError) throw replyError;
 
-      // Then create the thread relationship
       const { data: threadData, error: threadError } = await supabase
         .from('message_threads')
         .insert({
@@ -48,9 +49,19 @@ export const useMessageThreads = () => {
 
       if (threadError) throw threadError;
 
+      const threadMessage: ThreadMessage = {
+        id: replyMessage.id,
+        parent_message_id: parentMessageId,
+        reply_message_id: replyMessage.id,
+        content: replyContent,
+        sender_id: user.id,
+        sender_name: user.email || 'Anonymous',
+        created_at: replyMessage.created_at
+      };
+
       setThreads(prev => ({
         ...prev,
-        [parentMessageId]: [...(prev[parentMessageId] || []), threadData]
+        [parentMessageId]: [...(prev[parentMessageId] || []), threadMessage]
       }));
 
       return replyMessage;
@@ -78,10 +89,51 @@ export const useMessageThreads = () => {
     }
   }, []);
 
+  const fetchThreadMessages = useCallback(async (parentMessageId: string) => {
+    try {
+      const { data: threadData, error: threadError } = await supabase
+        .from('message_threads')
+        .select(`
+          *,
+          messages:reply_message_id (
+            id,
+            content,
+            sender_id,
+            created_at,
+            profiles:sender_id (
+              username,
+              full_name
+            )
+          )
+        `)
+        .eq('parent_message_id', parentMessageId);
+
+      if (threadError) throw threadError;
+
+      const threadMessages: ThreadMessage[] = (threadData || []).map((thread: any) => ({
+        id: thread.messages.id,
+        parent_message_id: parentMessageId,
+        reply_message_id: thread.reply_message_id,
+        content: thread.messages.content,
+        sender_id: thread.messages.sender_id,
+        sender_name: thread.messages.profiles?.full_name || thread.messages.profiles?.username || 'Unknown',
+        created_at: thread.messages.created_at
+      }));
+
+      setThreads(prev => ({
+        ...prev,
+        [parentMessageId]: threadMessages
+      }));
+    } catch (error) {
+      console.error('Error fetching thread messages:', error);
+    }
+  }, []);
+
   return {
     threads,
     getThreadCount,
     sendThreadReply,
-    fetchThreads
+    fetchThreads,
+    fetchThreadMessages
   };
 };

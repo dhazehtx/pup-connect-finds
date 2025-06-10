@@ -1,4 +1,3 @@
-
 import React, { useEffect } from 'react';
 import MessagesList from './MessagesList';
 import EnhancedMessageInput from './EnhancedMessageInput';
@@ -62,11 +61,10 @@ const ChatContainer = ({
   const { fetchReactions } = useMessageReactions();
   const { getTypingUsers } = useTypingIndicators();
 
-  // Fetch reactions when messages change
   useEffect(() => {
     if (messages.length > 0) {
       const messageIds = messages.map(m => m.id);
-      fetchReactions(messageIds);
+      messageIds.forEach(id => fetchReactions(id));
     }
   }, [messages, fetchReactions]);
 
@@ -78,7 +76,6 @@ const ChatContainer = ({
 
   return (
     <div className="flex flex-col h-full">
-      {/* Messages list */}
       <MessagesList
         messages={messages}
         user={user}
@@ -90,21 +87,18 @@ const ChatContainer = ({
         conversationId={conversationId}
       />
 
-      {/* Typing indicators */}
       {typingUsers.length > 0 && (
         <div className="px-4 py-2 text-sm text-muted-foreground">
           {typingUsers.map(u => u.username).join(', ')} {typingUsers.length === 1 ? 'is' : 'are'} typing...
         </div>
       )}
 
-      {/* Message input */}
       <EnhancedMessageInput
         conversationId={conversationId}
         onSendMessage={handleSendMessage}
         placeholder="Type a message..."
       />
 
-      {/* Reaction picker */}
       {reactionPickerState.isOpen && reactionPickerState.messageId && (
         <MessageReactionsPicker
           messageId={reactionPickerState.messageId}
@@ -115,7 +109,6 @@ const ChatContainer = ({
         />
       )}
 
-      {/* Message thread */}
       {threadState.isOpen && threadState.parentMessageId && (
         <MessageThread
           parentMessageId={threadState.parentMessageId}

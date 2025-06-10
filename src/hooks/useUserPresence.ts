@@ -5,6 +5,8 @@ import { useAuth } from '@/contexts/AuthContext';
 
 interface OnlineUser {
   user_id: string;
+  username: string;
+  avatar_url: string;
   status: 'online' | 'offline' | 'away';
   last_seen_at: string;
 }
@@ -35,22 +37,41 @@ export const useUserPresence = () => {
     return userPresence?.status === 'online';
   }, [onlineUsers]);
 
+  const getUserPresence = useCallback((userId: string) => {
+    return onlineUsers.find(u => u.user_id === userId);
+  }, [onlineUsers]);
+
+  const onlineCount = onlineUsers.length;
+
   useEffect(() => {
     if (!user) return;
 
-    // Set user as online when component mounts
     updatePresence('online');
 
-    // Fetch current online users
     const fetchOnlineUsers = async () => {
       try {
         const { data } = await supabase
           .from('user_presence')
-          .select('*')
+          .select(`
+            user_id,
+            status,
+            last_seen_at,
+            profiles:user_id (
+              username,
+              avatar_url
+            )
+          `)
           .eq('status', 'online');
         
         if (data) {
-          setOnlineUsers(data);
+          const formattedUsers = data.map((item: any) => ({
+            user_id: item.user_id,
+            username: item.profiles?.username || 'Anonymous',
+            avatar_url: item.profiles?.avatar_url || '',
+            status: item.status as 'online' | 'offline' | 'away',
+            last_seen_at: item.last_seen_at
+          }));
+          setOnlineUsers(formattedUsers);
         }
       } catch (error) {
         console.error('Error fetching online users:', error);
@@ -59,7 +80,6 @@ export const useUserPresence = () => {
 
     fetchOnlineUsers();
 
-    // Subscribe to presence changes
     const channel = supabase
       .channel('user-presence')
       .on(
@@ -75,12 +95,10 @@ export const useUserPresence = () => {
       )
       .subscribe();
 
-    // Update presence periodically
     const interval = setInterval(() => {
       updatePresence('online');
-    }, 30000); // Every 30 seconds
+    }, 30000);
 
-    // Set user as offline when leaving
     const handleBeforeUnload = () => {
       updatePresence('offline');
     };
@@ -97,7 +115,9 @@ export const useUserPresence = () => {
 
   return {
     onlineUsers,
+    onlineCount,
     isUserOnline,
+    getUserPresence,
     updatePresence
   };
 };
