@@ -122,13 +122,12 @@ const VirtualizedMessagesList = ({
             message={message}
             isOwn={isOwn}
             user={user}
-            messageReactions={messageReactions}
+            reactions={messageReactions}
             threadCount={threadCount}
             onReactionButtonClick={onReactionButtonClick}
-            onReplyToMessage={onReplyToMessage}
+            onReplyButtonClick={() => onReplyToMessage(message)}
             onReactionToggle={onReactionToggle}
-            onEditMessage={onEditMessage}
-            onDeleteMessage={onDeleteMessage}
+            conversationId={message.conversation_id}
           />
         </div>
       </div>
