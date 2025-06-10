@@ -1,20 +1,17 @@
+
 import React, { useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { User, Eye, EyeOff } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Eye, EyeOff, Lock } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
-const signUpSchema = z.object({
-  email: z.string().email('Please enter a valid email address'),
-  password: z.string().min(6, 'Password must be at least 6 characters'),
-  fullName: z.string().min(2, 'Full name must be at least 2 characters'),
-  username: z.string().min(3, 'Username must be at least 3 characters'),
-});
-
-type SignUpData = z.infer<typeof signUpSchema>;
+interface SignUpData {
+  email: string;
+  password: string;
+  fullName: string;
+  username: string;
+}
 
 interface SignUpFormProps {
   onSubmit: (data: SignUpData) => Promise<void>;
@@ -22,131 +19,160 @@ interface SignUpFormProps {
 }
 
 const SignUpForm = ({ onSubmit, loading }: SignUpFormProps) => {
-  const [showPassword, setShowPassword] = useState(false);
-
-  const form = useForm<SignUpData>({
-    resolver: zodResolver(signUpSchema),
-    defaultValues: {
-      email: '',
-      password: '',
-      fullName: '',
-      username: '',
-    },
-    mode: 'onChange',
+  const [formData, setFormData] = useState<SignUpData>({
+    email: '',
+    password: '',
+    fullName: '',
+    username: ''
   });
+  const [showPassword, setShowPassword] = useState(false);
+  const [errors, setErrors] = useState<{[key: string]: string}>({});
+  const { toast } = useToast();
+
+  const validateForm = () => {
+    const newErrors: {[key: string]: string} = {};
+    
+    if (!formData.email) {
+      newErrors.email = 'Email is required';
+    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+      newErrors.email = 'Please enter a valid email address';
+    }
+    
+    if (!formData.password) {
+      newErrors.password = 'Password is required';
+    } else if (formData.password.length < 6) {
+      newErrors.password = 'Password must be at least 6 characters';
+    }
+
+    if (!formData.fullName.trim()) {
+      newErrors.fullName = 'Full name is required';
+    }
+
+    if (!formData.username.trim()) {
+      newErrors.username = 'Username is required';
+    }
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!validateForm()) return;
+    
+    try {
+      await onSubmit(formData);
+    } catch (error) {
+      console.error('Sign up error:', error);
+      toast({
+        title: "Sign up failed",
+        description: "Please check your information and try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleInputChange = (field: keyof SignUpData, value: string) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+    if (errors[field]) {
+      setErrors(prev => ({ ...prev, [field]: '' }));
+    }
+  };
 
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-        <FormField
-          control={form.control}
-          name="fullName"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className="text-sm font-medium text-gray-700">Full Name</FormLabel>
-              <FormControl>
-                <Input
-                  type="text"
-                  placeholder="Enter your full name"
-                  disabled={loading}
-                  {...field}
-                  className="h-11 border-gray-300 focus:border-blue-500 focus:ring-blue-500 rounded-md"
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="username"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className="text-sm font-medium text-gray-700">Username</FormLabel>
-              <FormControl>
-                <Input
-                  type="text"
-                  placeholder="Choose a username"
-                  disabled={loading}
-                  {...field}
-                  className="h-11 border-gray-300 focus:border-blue-500 focus:ring-blue-500 rounded-md"
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="email"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className="text-sm font-medium text-gray-700">Email</FormLabel>
-              <FormControl>
-                <Input
-                  type="email"
-                  placeholder="Enter your email"
-                  disabled={loading}
-                  {...field}
-                  className="h-11 border-gray-300 focus:border-blue-500 focus:ring-blue-500 rounded-md"
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="password"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className="text-sm font-medium text-gray-700">Password</FormLabel>
-              <FormControl>
-                <div className="relative">
-                  <Input
-                    type={showPassword ? 'text' : 'password'}
-                    placeholder="Create a password"
-                    disabled={loading}
-                    className="h-11 border-gray-300 focus:border-blue-500 focus:ring-blue-500 rounded-md pr-10"
-                    {...field}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
-                    disabled={loading}
-                  >
-                    {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                  </button>
-                </div>
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <Button
-          type="submit"
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div>
+        <Label htmlFor="fullName" className="text-sm font-medium text-foreground">Full Name</Label>
+        <Input
+          id="fullName"
+          type="text"
+          placeholder="Enter your full name"
+          value={formData.fullName}
+          onChange={(e) => handleInputChange('fullName', e.target.value)}
+          className={`mt-1 h-11 ${errors.fullName ? 'border-destructive' : ''}`}
           disabled={loading}
-          className="w-full h-11 bg-blue-600 hover:bg-blue-700 text-white rounded-md font-medium"
-        >
-          {loading ? (
-            <>
-              <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2" />
-              Creating Account...
-            </>
-          ) : (
-            <>
-              <User size={16} className="mr-2" />
-              Create Account
-            </>
-          )}
-        </Button>
-      </form>
-    </Form>
+        />
+        {errors.fullName && (
+          <p className="text-destructive text-xs mt-1">{errors.fullName}</p>
+        )}
+      </div>
+
+      <div>
+        <Label htmlFor="username" className="text-sm font-medium text-foreground">Username</Label>
+        <Input
+          id="username"
+          type="text"
+          placeholder="Choose a username"
+          value={formData.username}
+          onChange={(e) => handleInputChange('username', e.target.value)}
+          className={`mt-1 h-11 ${errors.username ? 'border-destructive' : ''}`}
+          disabled={loading}
+        />
+        {errors.username && (
+          <p className="text-destructive text-xs mt-1">{errors.username}</p>
+        )}
+      </div>
+
+      <div>
+        <Label htmlFor="email" className="text-sm font-medium text-foreground">Email</Label>
+        <Input
+          id="email"
+          type="email"
+          placeholder="Enter your email"
+          value={formData.email}
+          onChange={(e) => handleInputChange('email', e.target.value)}
+          className={`mt-1 h-11 ${errors.email ? 'border-destructive' : ''}`}
+          disabled={loading}
+        />
+        {errors.email && (
+          <p className="text-destructive text-xs mt-1">{errors.email}</p>
+        )}
+      </div>
+      
+      <div>
+        <Label htmlFor="password" className="text-sm font-medium text-foreground">Password</Label>
+        <div className="relative">
+          <Input
+            id="password"
+            type={showPassword ? 'text' : 'password'}
+            placeholder="Create a password"
+            value={formData.password}
+            onChange={(e) => handleInputChange('password', e.target.value)}
+            className={`mt-1 h-11 pr-10 ${errors.password ? 'border-destructive' : ''}`}
+            disabled={loading}
+          />
+          <button
+            type="button"
+            onClick={() => setShowPassword(!showPassword)}
+            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-foreground"
+            disabled={loading}
+          >
+            {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+          </button>
+        </div>
+        {errors.password && (
+          <p className="text-destructive text-xs mt-1">{errors.password}</p>
+        )}
+      </div>
+
+      <Button
+        type="submit"
+        disabled={loading}
+        className="w-full h-11 bg-primary hover:bg-primary/90 text-primary-foreground font-medium mt-6"
+      >
+        {loading ? (
+          <>
+            <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2" />
+            Creating Account...
+          </>
+        ) : (
+          <>
+            <Lock size={16} className="mr-2" />
+            Create Account
+          </>
+        )}
+      </Button>
+    </form>
   );
 };
 
