@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { ArrowLeft, MoreVertical, Phone, Video, Search } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import VideoCallDialog from './VideoCallDialog';
+import ConnectionStatus from './ConnectionStatus';
 
 interface EnhancedChatHeaderProps {
   otherUser: {
@@ -38,7 +39,7 @@ const EnhancedChatHeader = ({
   return (
     <div className="flex items-center justify-between p-4 border-b bg-white">
       <div className="flex items-center gap-3">
-        <Button variant="ghost" size="sm" onClick={onBack}>
+        <Button variant="ghost" size="sm" onClick={onBack} className="md:hidden">
           <ArrowLeft size={20} />
         </Button>
         
@@ -67,6 +68,8 @@ const EnhancedChatHeader = ({
       </div>
 
       <div className="flex items-center gap-2">
+        <ConnectionStatus />
+        
         <Button variant="ghost" size="sm">
           <Phone size={16} />
         </Button>

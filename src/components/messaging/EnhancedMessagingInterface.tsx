@@ -8,9 +8,11 @@ import EnhancedChatInterface from './EnhancedChatInterface';
 import EnhancedChatHeader from './EnhancedChatHeader';
 import MessageNotifications from './MessageNotifications';
 import { ExtendedConversation } from '@/types/messaging';
+import { useToast } from '@/hooks/use-toast';
 
 const EnhancedMessagingInterface = () => {
   const { user } = useAuth();
+  const { toast } = useToast();
   const [selectedConversation, setSelectedConversation] = useState<ExtendedConversation | null>(null);
   const [showSearch, setShowSearch] = useState(false);
   const [newMessage, setNewMessage] = useState<any>(null);
@@ -25,24 +27,42 @@ const EnhancedMessagingInterface = () => {
   } = useEnhancedMessaging();
 
   const handleConversationSelect = async (conversation: any) => {
-    setSelectedConversation(conversation);
-    await fetchMessages(conversation.id);
+    try {
+      console.log('Selecting conversation:', conversation.id);
+      setSelectedConversation(conversation);
+      await fetchMessages(conversation.id);
+    } catch (error) {
+      console.error('Failed to load conversation:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load conversation messages",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleSendMessage = async (content: string) => {
-    if (!selectedConversation) return;
+    if (!selectedConversation || !content.trim()) return;
     
     try {
+      console.log('Sending message to conversation:', selectedConversation.id);
       const message = await sendMessage(selectedConversation.id, content);
       if (message) {
         setNewMessage(message);
+        console.log('Message sent successfully:', message.id);
       }
     } catch (error) {
       console.error('Failed to send message:', error);
+      toast({
+        title: "Error",
+        description: "Failed to send message. Please try again.",
+        variant: "destructive",
+      });
     }
   };
 
   const handleBack = () => {
+    console.log('Going back to conversations list');
     setSelectedConversation(null);
   };
 
@@ -53,16 +73,30 @@ const EnhancedMessagingInterface = () => {
   const handleArchive = () => {
     if (selectedConversation) {
       console.log('Archiving conversation:', selectedConversation.id);
-      // Archive logic would go here
+      toast({
+        title: "Archive",
+        description: "Archive functionality coming soon",
+      });
     }
   };
 
   const handleBlock = () => {
     if (selectedConversation) {
       console.log('Blocking user in conversation:', selectedConversation.id);
-      // Block logic would go here
+      toast({
+        title: "Block",
+        description: "Block functionality coming soon",
+      });
     }
   };
+
+  // Clear new message notification after showing it
+  useEffect(() => {
+    if (newMessage) {
+      const timer = setTimeout(() => setNewMessage(null), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [newMessage]);
 
   if (loading) {
     return (
