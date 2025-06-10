@@ -199,6 +199,7 @@ const MessageInputArea = ({
           const file = e.target.files?.[0];
           if (file) {
             setSelectedFile(file);
+            handleFileUpload(file);
           }
         }}
       />
@@ -212,6 +213,7 @@ const MessageInputArea = ({
           const file = e.target.files?.[0];
           if (file) {
             setSelectedFile(file);
+            handleFileUpload(file);
           }
         }}
       />

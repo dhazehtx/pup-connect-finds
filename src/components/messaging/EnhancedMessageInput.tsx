@@ -5,12 +5,12 @@ import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { Send, Paperclip, Mic, Image, Smile } from 'lucide-react';
 import { useTypingIndicators } from '@/hooks/useTypingIndicators';
-import { useEnhancedFileUpload } from '@/hooks/useEnhancedFileUpload';
+import { useFileUpload } from '@/hooks/useFileUpload';
 import EmojiPicker from './EmojiPicker';
 
 interface EnhancedMessageInputProps {
   conversationId: string;
-  onSendMessage: (content: string, type?: string, fileUrl?: string) => void;
+  onSendMessage: (content: string, type?: string, options?: any) => void;
   onSendVoiceMessage?: (audioUrl: string, duration: number) => void;
   onFileSelect?: (file: File) => void;
   placeholder?: string;
@@ -34,7 +34,7 @@ const EnhancedMessageInput = ({
   const audioChunksRef = useRef<Blob[]>([]);
   
   const { startTyping, stopTyping } = useTypingIndicators();
-  const { uploading, uploadProgress, uploadFile, uploadImage, uploadAudio } = useEnhancedFileUpload();
+  const { uploadFile, uploadImage, uploadAudio, isUploading, uploadProgress } = useFileUpload();
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
@@ -58,7 +58,7 @@ const EnhancedMessageInput = ({
       } else {
         try {
           const fileUrl = await uploadFile(selectedFile);
-          onSendMessage(message || `Shared ${selectedFile.name}`, 'file', fileUrl);
+          onSendMessage(message || `Shared ${selectedFile.name}`, 'file', { imageUrl: fileUrl });
         } catch (error) {
           console.error('File upload failed:', error);
         }
@@ -90,7 +90,7 @@ const EnhancedMessageInput = ({
     if (file) {
       try {
         const imageUrl = await uploadImage(file);
-        onSendMessage(message || 'Shared an image', 'image', imageUrl);
+        onSendMessage(message || 'Shared an image', 'image', { imageUrl });
         setMessage('');
       } catch (error) {
         console.error('Image upload failed:', error);
@@ -115,7 +115,7 @@ const EnhancedMessageInput = ({
           if (onSendVoiceMessage) {
             onSendVoiceMessage(audioUrl, 0);
           } else {
-            onSendMessage('Voice message', 'voice', audioUrl);
+            onSendMessage('Voice message', 'voice', { imageUrl: audioUrl });
           }
         } catch (error) {
           console.error('Voice upload failed:', error);
@@ -157,7 +157,7 @@ const EnhancedMessageInput = ({
               ×
             </Button>
           </div>
-          {uploading && (
+          {isUploading && (
             <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
               <div 
                 className="bg-blue-600 h-2 rounded-full transition-all duration-300"
@@ -184,7 +184,7 @@ const EnhancedMessageInput = ({
           variant="ghost"
           size="icon"
           onClick={() => fileInputRef.current?.click()}
-          disabled={uploading}
+          disabled={isUploading}
         >
           <Paperclip size={20} />
         </Button>
@@ -194,7 +194,7 @@ const EnhancedMessageInput = ({
           variant="ghost"
           size="icon"
           onClick={() => imageInputRef.current?.click()}
-          disabled={uploading}
+          disabled={isUploading}
         >
           <Image size={20} />
         </Button>
@@ -215,7 +215,7 @@ const EnhancedMessageInput = ({
           onKeyPress={handleKeyPress}
           placeholder={placeholder}
           className="flex-1"
-          disabled={uploading}
+          disabled={isUploading}
         />
 
         {/* Voice recording button */}
@@ -233,7 +233,7 @@ const EnhancedMessageInput = ({
         {/* Send button */}
         <Button
           onClick={handleSend}
-          disabled={!message.trim() && !selectedFile || uploading}
+          disabled={!message.trim() && !selectedFile || isUploading}
           size="icon"
         >
           <Send size={16} />
