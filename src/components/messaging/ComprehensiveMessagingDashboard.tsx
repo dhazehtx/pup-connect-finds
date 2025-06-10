@@ -163,7 +163,10 @@ const ComprehensiveMessagingDashboard = () => {
           </TabsContent>
 
           <TabsContent value="templates" className="space-y-6">
-            <MessageTemplates onSelectTemplate={handleTemplateSelect} />
+            <MessageTemplates 
+              onSelectTemplate={handleTemplateSelect} 
+              onClose={() => console.log('Templates closed')}
+            />
           </TabsContent>
 
           <TabsContent value="search" className="space-y-6">

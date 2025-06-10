@@ -50,7 +50,7 @@ const MessageItem = ({
   const renderReactions = () => {
     if (messageReactions.length === 0) return null;
 
-    // Group reactions by emoji
+    // Group reactions by emoji with proper typing
     const groupedReactions = messageReactions.reduce((acc, reaction) => {
       const emoji = reaction.emoji;
       if (!acc[emoji]) {
