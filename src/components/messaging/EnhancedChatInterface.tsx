@@ -1,16 +1,19 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Send, Image, Paperclip, Smile } from 'lucide-react';
+import { Send, Image, Paperclip, Smile, MoreHorizontal } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useRealtimeMessages } from '@/hooks/useRealtimeMessages';
 import { useEnhancedFileUpload } from '@/hooks/useEnhancedFileUpload';
+import { useMessageReactions } from '@/hooks/useMessageReactions';
 import { useAuth } from '@/contexts/AuthContext';
 import { formatDistanceToNow } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
 import MessageStatusIndicator from './MessageStatusIndicator';
+import MessageReactionsPicker from './MessageReactionsPicker';
+import MessageReactionsDisplay from './MessageReactionsDisplay';
 
 interface EnhancedChatInterfaceProps {
   conversationId: string;
@@ -23,6 +26,15 @@ const EnhancedChatInterface = ({ conversationId, otherUserId, listingId }: Enhan
   const [newMessage, setNewMessage] = useState('');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [sendingMessage, setSendingMessage] = useState(false);
+  const [reactionPickerState, setReactionPickerState] = useState<{
+    isOpen: boolean;
+    messageId: string | null;
+    position: { x: number; y: number } | null;
+  }>({
+    isOpen: false,
+    messageId: null,
+    position: null
+  });
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
@@ -30,6 +42,7 @@ const EnhancedChatInterface = ({ conversationId, otherUserId, listingId }: Enhan
   const { toast } = useToast();
   const { messages, fetchMessages, sendMessage, markAsRead } = useRealtimeMessages();
   const { uploadFile, uploading } = useEnhancedFileUpload();
+  const { reactions, addReaction, toggleReaction } = useMessageReactions();
 
   console.log('EnhancedChatInterface loaded for conversation:', conversationId);
   console.log('Current messages:', messages);
@@ -186,6 +199,32 @@ const EnhancedChatInterface = ({ conversationId, otherUserId, listingId }: Enhan
     return 'delivered';
   };
 
+  const handleReactionButtonClick = (event: React.MouseEvent, messageId: string) => {
+    event.preventDefault();
+    const rect = event.currentTarget.getBoundingClientRect();
+    setReactionPickerState({
+      isOpen: true,
+      messageId,
+      position: {
+        x: rect.left + rect.width / 2,
+        y: rect.top
+      }
+    });
+  };
+
+  const handleReactionAdd = (messageId: string, emoji: string) => {
+    addReaction(messageId, emoji);
+    setReactionPickerState({ isOpen: false, messageId: null, position: null });
+  };
+
+  const handleReactionToggle = (messageId: string, emoji: string) => {
+    toggleReaction(messageId, emoji);
+  };
+
+  const closeReactionPicker = () => {
+    setReactionPickerState({ isOpen: false, messageId: null, position: null });
+  };
+
   if (!user) {
     return (
       <div className="flex items-center justify-center h-full">
@@ -209,11 +248,12 @@ const EnhancedChatInterface = ({ conversationId, otherUserId, listingId }: Enhan
           messages.map((message) => {
             const isOwn = message.sender_id === user?.id;
             const messageTime = formatDistanceToNow(new Date(message.created_at), { addSuffix: true });
+            const messageReactions = reactions[message.id] || [];
 
             return (
               <div
                 key={message.id}
-                className={`flex gap-3 ${isOwn ? 'flex-row-reverse' : 'flex-row'}`}
+                className={`flex gap-3 ${isOwn ? 'flex-row-reverse' : 'flex-row'} group`}
               >
                 <Avatar className="w-8 h-8 flex-shrink-0">
                   <AvatarImage src="/placeholder.svg" />
@@ -223,35 +263,74 @@ const EnhancedChatInterface = ({ conversationId, otherUserId, listingId }: Enhan
                 </Avatar>
 
                 <div className={`max-w-xs lg:max-w-md ${isOwn ? 'text-right' : 'text-left'}`}>
-                  <div
-                    className={`rounded-lg px-3 py-2 ${
-                      isOwn
-                        ? 'bg-primary text-primary-foreground'
-                        : 'bg-muted text-muted-foreground'
-                    }`}
-                  >
-                    {message.message_type === 'image' && message.image_url && (
-                      <img
-                        src={message.image_url}
-                        alt="Shared image"
-                        className="rounded mb-2 max-w-full h-auto cursor-pointer hover:opacity-90 transition-opacity"
-                        onClick={() => window.open(message.image_url, '_blank')}
-                        onError={(e) => {
-                          console.log('Image failed to load:', message.image_url);
-                          e.currentTarget.style.display = 'none';
-                        }}
-                      />
-                    )}
-                    {message.content && (
-                      <p className="text-sm break-words">{message.content}</p>
-                    )}
+                  <div className="relative">
+                    <div
+                      className={`rounded-lg px-3 py-2 ${
+                        isOwn
+                          ? 'bg-primary text-primary-foreground'
+                          : 'bg-muted text-muted-foreground'
+                      }`}
+                    >
+                      {message.message_type === 'image' && message.image_url && (
+                        <img
+                          src={message.image_url}
+                          alt="Shared image"
+                          className="rounded mb-2 max-w-full h-auto cursor-pointer hover:opacity-90 transition-opacity"
+                          onClick={() => window.open(message.image_url, '_blank')}
+                          onError={(e) => {
+                            console.log('Image failed to load:', message.image_url);
+                            e.currentTarget.style.display = 'none';
+                          }}
+                        />
+                      )}
+                      {message.content && (
+                        <p className="text-sm break-words">{message.content}</p>
+                      )}
+                    </div>
+
+                    {/* Message Actions - shown on hover */}
+                    <div className={`absolute top-0 ${isOwn ? 'left-0' : 'right-0'} transform ${isOwn ? '-translate-x-full' : 'translate-x-full'} opacity-0 group-hover:opacity-100 transition-opacity`}>
+                      <div className="flex items-center gap-1 bg-background border rounded-md shadow-sm p-1">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-6 w-6 p-0"
+                          onClick={(e) => handleReactionButtonClick(e, message.id)}
+                        >
+                          <Smile className="w-3 h-3" />
+                        </Button>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
+                              <MoreHorizontal className="w-3 h-3" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent>
+                            <DropdownMenuItem>Reply</DropdownMenuItem>
+                            <DropdownMenuItem>Forward</DropdownMenuItem>
+                            {isOwn && <DropdownMenuItem>Edit</DropdownMenuItem>}
+                            <DropdownMenuItem className="text-destructive">Delete</DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
+                    </div>
                   </div>
+
+                  {/* Message Reactions */}
+                  {messageReactions.length > 0 && (
+                    <MessageReactionsDisplay
+                      reactions={messageReactions}
+                      currentUserId={user.id}
+                      onReactionToggle={(emoji) => handleReactionToggle(message.id, emoji)}
+                      className={isOwn ? 'justify-end' : 'justify-start'}
+                    />
+                  )}
                   
                   <div className={`flex items-center gap-1 mt-1 ${isOwn ? 'justify-end' : 'justify-start'}`}>
                     <span className="text-xs text-muted-foreground">{messageTime}</span>
                     {isOwn && (
                       <MessageStatusIndicator 
-                        status={getMessageStatus(message) || 'sent'} 
+                        status={message.read_at ? 'read' : 'delivered'} 
                         size={12}
                       />
                     )}
@@ -263,6 +342,15 @@ const EnhancedChatInterface = ({ conversationId, otherUserId, listingId }: Enhan
         )}
         <div ref={messagesEndRef} />
       </div>
+
+      {/* Reaction Picker */}
+      <MessageReactionsPicker
+        messageId={reactionPickerState.messageId || ''}
+        onReactionAdd={handleReactionAdd}
+        isOpen={reactionPickerState.isOpen}
+        onClose={closeReactionPicker}
+        position={reactionPickerState.position || undefined}
+      />
 
       {/* File Preview */}
       {selectedFile && (

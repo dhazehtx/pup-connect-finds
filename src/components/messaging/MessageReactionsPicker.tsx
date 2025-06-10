@@ -1,65 +1,93 @@
 
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Smile } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
+import { Smile, Heart, ThumbsUp, ThumbsDown, Laugh, Angry } from 'lucide-react';
 
 interface MessageReactionsPickerProps {
   messageId: string;
-  onReact: (messageId: string, reaction: string) => void;
-  existingReactions?: { emoji: string; count: number; userReacted: boolean }[];
+  onReactionAdd: (messageId: string, emoji: string) => void;
+  isOpen: boolean;
+  onClose: () => void;
+  position?: { x: number; y: number };
 }
 
-const EMOJI_REACTIONS = ['👍', '👎', '❤️', '😂', '😮', '😢', '😡'];
+const commonEmojis = [
+  { emoji: '👍', icon: ThumbsUp, label: 'thumbs up' },
+  { emoji: '❤️', icon: Heart, label: 'heart' },
+  { emoji: '😂', icon: Laugh, label: 'laugh' },
+  { emoji: '😮', icon: Smile, label: 'wow' },
+  { emoji: '😢', label: 'sad' },
+  { emoji: '😡', icon: Angry, label: 'angry' },
+  { emoji: '👎', icon: ThumbsDown, label: 'thumbs down' },
+  { emoji: '🎉', label: 'party' },
+  { emoji: '🔥', label: 'fire' },
+  { emoji: '💯', label: 'hundred' },
+];
 
-const MessageReactionsPicker = ({ 
-  messageId, 
-  onReact, 
-  existingReactions = [] 
+const MessageReactionsPicker = ({
+  messageId,
+  onReactionAdd,
+  isOpen,
+  onClose,
+  position
 }: MessageReactionsPickerProps) => {
-  const [isOpen, setIsOpen] = useState(false);
+  const pickerRef = useRef<HTMLDivElement>(null);
 
-  const handleReaction = (emoji: string) => {
-    onReact(messageId, emoji);
-    setIsOpen(false);
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (pickerRef.current && !pickerRef.current.contains(event.target as Node)) {
+        onClose();
+      }
+    };
+
+    if (isOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isOpen, onClose]);
+
+  if (!isOpen) return null;
+
+  const handleReactionClick = (emoji: string) => {
+    onReactionAdd(messageId, emoji);
+    onClose();
   };
 
   return (
-    <div className="flex items-center gap-1">
-      {existingReactions.map((reaction, index) => (
-        <Button
-          key={index}
-          variant={reaction.userReacted ? "default" : "outline"}
-          size="sm"
-          onClick={() => handleReaction(reaction.emoji)}
-          className="h-6 px-2 text-xs"
-        >
-          {reaction.emoji} {reaction.count}
-        </Button>
-      ))}
-      
-      <Popover open={isOpen} onOpenChange={setIsOpen}>
-        <PopoverTrigger asChild>
-          <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
-            <Smile size={14} />
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent className="w-48 p-2">
-          <div className="grid grid-cols-4 gap-2">
-            {EMOJI_REACTIONS.map((emoji) => (
+    <div
+      className="fixed z-50"
+      style={{
+        left: position?.x || 0,
+        top: position?.y || 0,
+        transform: 'translate(-50%, -100%)'
+      }}
+    >
+      <Card ref={pickerRef} className="shadow-lg border">
+        <CardContent className="p-2">
+          <div className="flex gap-1">
+            {commonEmojis.map((reaction) => (
               <Button
-                key={emoji}
+                key={reaction.emoji}
                 variant="ghost"
                 size="sm"
-                onClick={() => handleReaction(emoji)}
-                className="h-8 w-8 p-0 text-lg hover:bg-muted"
+                className="w-8 h-8 p-0 hover:bg-muted text-lg"
+                onClick={() => handleReactionClick(reaction.emoji)}
+                title={reaction.label}
               >
-                {emoji}
+                {reaction.icon ? (
+                  <reaction.icon className="w-4 h-4" />
+                ) : (
+                  reaction.emoji
+                )}
               </Button>
             ))}
           </div>
-        </PopoverContent>
-      </Popover>
+        </CardContent>
+      </Card>
     </div>
   );
 };
