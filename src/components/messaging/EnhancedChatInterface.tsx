@@ -1,23 +1,15 @@
 
-import React, { useState, useEffect, useRef } from 'react';
-import { useTranslation } from 'react-i18next';
-import { Send, Image, Paperclip, Smile, MoreHorizontal, MessageSquare } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import React, { useState, useEffect } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
+import { useToast } from '@/hooks/use-toast';
 import { useRealtimeMessages } from '@/hooks/useRealtimeMessages';
 import { useEnhancedFileUpload } from '@/hooks/useEnhancedFileUpload';
 import { useMessageReactions } from '@/hooks/useMessageReactions';
-import { useAuth } from '@/contexts/AuthContext';
-import { formatDistanceToNow } from 'date-fns';
-import { useToast } from '@/hooks/use-toast';
-import MessageStatusIndicator from './MessageStatusIndicator';
-import MessageReactionsPicker from './MessageReactionsPicker';
-import MessageReactionsDisplay from './MessageReactionsDisplay';
-import MessageThread from './MessageThread';
 import { useMessageThreads } from '@/hooks/useMessageThreads';
-import EnhancedMessageInput from './EnhancedMessageInput';
+import MessagesList from './MessagesList';
+import MessageInputArea from './MessageInputArea';
+import MessageReactionsPicker from './MessageReactionsPicker';
+import MessageThread from './MessageThread';
 
 interface EnhancedChatInterfaceProps {
   conversationId: string;
@@ -26,7 +18,6 @@ interface EnhancedChatInterfaceProps {
 }
 
 const EnhancedChatInterface = ({ conversationId, otherUserId, listingId }: EnhancedChatInterfaceProps) => {
-  const { t } = useTranslation();
   const [newMessage, setNewMessage] = useState('');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [sendingMessage, setSendingMessage] = useState(false);
@@ -48,8 +39,6 @@ const EnhancedChatInterface = ({ conversationId, otherUserId, listingId }: Enhan
     parentMessageId: null,
     parentMessage: null
   });
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
   
   const { user } = useAuth();
   const { toast } = useToast();
@@ -61,11 +50,6 @@ const EnhancedChatInterface = ({ conversationId, otherUserId, listingId }: Enhan
   console.log('EnhancedChatInterface loaded for conversation:', conversationId);
   console.log('Current messages:', messages);
   console.log('User:', user?.id);
-
-  // Auto-scroll to bottom
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
 
   // Load messages when conversation changes
   useEffect(() => {
@@ -84,12 +68,6 @@ const EnhancedChatInterface = ({ conversationId, otherUserId, listingId }: Enhan
       });
     }
   }, [conversationId, user, fetchMessages, markAsRead, toast]);
-
-  // Scroll to bottom when messages change
-  useEffect(() => {
-    const timer = setTimeout(scrollToBottom, 100);
-    return () => clearTimeout(timer);
-  }, [messages]);
 
   // Handle sending message
   const handleSendMessage = async () => {
@@ -131,7 +109,7 @@ const EnhancedChatInterface = ({ conversationId, otherUserId, listingId }: Enhan
       }
 
       // Send message
-      const messageContent = newMessage.trim() || (selectedFile ? t('messaging.imageMessage') || 'Image' : '');
+      const messageContent = newMessage.trim() || (selectedFile ? 'Image' : '');
       const messageType = selectedFile ? 'image' : 'text';
       
       console.log('Sending message with:', { messageContent, messageType, imageUrl });
@@ -143,9 +121,6 @@ const EnhancedChatInterface = ({ conversationId, otherUserId, listingId }: Enhan
         // Clear inputs
         setNewMessage('');
         setSelectedFile(null);
-        if (fileInputRef.current) {
-          fileInputRef.current.value = '';
-        }
         
         toast({
           title: "Message sent",
@@ -203,14 +178,6 @@ const EnhancedChatInterface = ({ conversationId, otherUserId, listingId }: Enhan
       event.preventDefault();
       handleSendMessage();
     }
-  };
-
-  const getMessageStatus = (message: any) => {
-    if (message.sender_id !== user?.id) return null;
-    
-    if (message.read_at) return 'read';
-    // For now, assume messages are delivered when created
-    return 'delivered';
   };
 
   const handleReactionButtonClick = (event: React.MouseEvent, messageId: string) => {
@@ -322,152 +289,15 @@ const EnhancedChatInterface = ({ conversationId, otherUserId, listingId }: Enhan
 
   return (
     <div className="flex flex-col h-full bg-background">
-      {/* Messages List */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
-        {messages.length === 0 ? (
-          <div className="flex items-center justify-center h-full text-muted-foreground">
-            <div className="text-center">
-              <Smile className="w-12 h-12 mx-auto mb-4 text-muted-foreground/50" />
-              <p>No messages yet. Start the conversation!</p>
-            </div>
-          </div>
-        ) : (
-          messages.map((message) => {
-            const isOwn = message.sender_id === user?.id;
-            const messageTime = formatDistanceToNow(new Date(message.created_at), { addSuffix: true });
-            const messageReactions = reactions[message.id] || [];
-            const threadCount = getThreadCount(message.id);
-
-            return (
-              <div
-                key={message.id}
-                className={`flex gap-3 ${isOwn ? 'flex-row-reverse' : 'flex-row'} group`}
-              >
-                <Avatar className="w-8 h-8 flex-shrink-0">
-                  <AvatarImage src="/placeholder.svg" />
-                  <AvatarFallback className="text-xs">
-                    {isOwn ? 'Me' : 'U'}
-                  </AvatarFallback>
-                </Avatar>
-
-                <div className={`max-w-xs lg:max-w-md ${isOwn ? 'text-right' : 'text-left'}`}>
-                  <div className="relative">
-                    <div
-                      className={`rounded-lg px-3 py-2 ${
-                        isOwn
-                          ? 'bg-primary text-primary-foreground'
-                          : 'bg-muted text-muted-foreground'
-                      }`}
-                    >
-                      {message.message_type === 'image' && message.image_url && (
-                        <img
-                          src={message.image_url}
-                          alt="Shared image"
-                          className="rounded mb-2 max-w-full h-auto cursor-pointer hover:opacity-90 transition-opacity"
-                          onClick={() => window.open(message.image_url, '_blank')}
-                          onError={(e) => {
-                            console.log('Image failed to load:', message.image_url);
-                            e.currentTarget.style.display = 'none';
-                          }}
-                        />
-                      )}
-                      {message.message_type === 'voice' && message.image_url && (
-                        <div className="flex items-center gap-2 mb-2">
-                          <audio 
-                            controls 
-                            src={message.image_url}
-                            className="max-w-full"
-                            onError={(e) => {
-                              console.log('Audio failed to load:', message.image_url);
-                            }}
-                          >
-                            Your browser does not support the audio element.
-                          </audio>
-                        </div>
-                      )}
-                      {message.content && (
-                        <p className="text-sm break-words">{message.content}</p>
-                      )}
-                    </div>
-
-                    {/* Message Actions - shown on hover */}
-                    <div className={`absolute top-0 ${isOwn ? 'left-0' : 'right-0'} transform ${isOwn ? '-translate-x-full' : 'translate-x-full'} opacity-0 group-hover:opacity-100 transition-opacity`}>
-                      <div className="flex items-center gap-1 bg-background border rounded-md shadow-sm p-1">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-6 w-6 p-0"
-                          onClick={(e) => handleReactionButtonClick(e, message.id)}
-                        >
-                          <Smile className="w-3 h-3" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-6 w-6 p-0"
-                          onClick={() => handleReplyToMessage(message)}
-                          title="Reply in thread"
-                        >
-                          <MessageSquare className="w-3 h-3" />
-                        </Button>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
-                              <MoreHorizontal className="w-3 h-3" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent>
-                            <DropdownMenuItem onClick={() => handleReplyToMessage(message)}>
-                              Reply in thread
-                            </DropdownMenuItem>
-                            <DropdownMenuItem>Forward</DropdownMenuItem>
-                            {isOwn && <DropdownMenuItem>Edit</DropdownMenuItem>}
-                            <DropdownMenuItem className="text-destructive">Delete</DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Thread indicator */}
-                  {threadCount > 0 && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className={`mt-1 h-6 text-xs ${isOwn ? 'ml-auto' : 'mr-auto'} flex items-center gap-1`}
-                      onClick={() => handleReplyToMessage(message)}
-                    >
-                      <MessageSquare className="w-3 h-3" />
-                      {threadCount} {threadCount === 1 ? 'reply' : 'replies'}
-                    </Button>
-                  )}
-
-                  {/* Message Reactions */}
-                  {messageReactions.length > 0 && (
-                    <MessageReactionsDisplay
-                      reactions={messageReactions}
-                      currentUserId={user.id}
-                      onReactionToggle={(emoji) => handleReactionToggle(message.id, emoji)}
-                      className={isOwn ? 'justify-end' : 'justify-start'}
-                    />
-                  )}
-                  
-                  <div className={`flex items-center gap-1 mt-1 ${isOwn ? 'justify-end' : 'justify-start'}`}>
-                    <span className="text-xs text-muted-foreground">{messageTime}</span>
-                    {isOwn && (
-                      <MessageStatusIndicator 
-                        status={message.read_at ? 'read' : 'delivered'} 
-                        size={12}
-                      />
-                    )}
-                  </div>
-                </div>
-              </div>
-            );
-          })
-        )}
-        <div ref={messagesEndRef} />
-      </div>
+      <MessagesList
+        messages={messages}
+        user={user}
+        reactions={reactions}
+        getThreadCount={getThreadCount}
+        onReactionButtonClick={handleReactionButtonClick}
+        onReplyToMessage={handleReplyToMessage}
+        onReactionToggle={handleReactionToggle}
+      />
 
       {/* Thread Dialog */}
       {threadState.parentMessage && (
@@ -488,88 +318,20 @@ const EnhancedChatInterface = ({ conversationId, otherUserId, listingId }: Enhan
         position={reactionPickerState.position || undefined}
       />
 
-      {/* File Preview */}
-      {selectedFile && (
-        <div className="px-4 py-2 bg-muted/50 border-t">
-          <div className="flex items-center gap-2">
-            <Image className="w-4 h-4 text-muted-foreground" />
-            <span className="text-sm text-muted-foreground flex-1 truncate">
-              Selected: {selectedFile.name}
-            </span>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => {
-                setSelectedFile(null);
-                if (fileInputRef.current) {
-                  fileInputRef.current.value = '';
-                }
-              }}
-              className="h-6 px-2 text-xs"
-            >
-              Remove
-            </Button>
-          </div>
-        </div>
-      )}
-
-      {/* Message Input */}
-      <div className="p-4 border-t bg-background">
-        <div className="flex gap-2 items-end">
-          <input
-            type="file"
-            ref={fileInputRef}
-            onChange={handleFileSelect}
-            accept="image/*"
-            className="hidden"
-          />
-          
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={() => fileInputRef.current?.click()}
-            disabled={uploading || sendingMessage}
-            className="flex-shrink-0"
-          >
-            <Image size={16} />
-          </Button>
-
-          <div className="flex-1">
-            <Input
-              value={newMessage}
-              onChange={(e) => setNewMessage(e.target.value)}
-              onKeyPress={handleKeyPress}
-              placeholder={t('messaging.typeMessage') || 'Type your message...'}
-              disabled={uploading || sendingMessage}
-              className="resize-none"
-            />
-          </div>
-
-          {/* Voice Message Button */}
-          <EnhancedMessageInput
-            onSendMessage={(content, messageType, options) => 
-              sendMessage(conversationId, content, messageType || 'text', options?.imageUrl)
-            }
-            onSendVoiceMessage={handleSendVoiceMessage}
-            onFileSelect={(file) => setSelectedFile(file)}
-            disabled={uploading || sendingMessage}
-            placeholder={t('messaging.typeMessage') || 'Type your message...'}
-            showEncryption={false}
-          />
-
-          <Button
-            onClick={handleSendMessage}
-            disabled={(!newMessage.trim() && !selectedFile) || uploading || sendingMessage}
-            className="flex-shrink-0"
-          >
-            {sendingMessage ? (
-              <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
-            ) : (
-              <Send size={16} />
-            )}
-          </Button>
-        </div>
-      </div>
+      <MessageInputArea
+        newMessage={newMessage}
+        setNewMessage={setNewMessage}
+        selectedFile={selectedFile}
+        setSelectedFile={setSelectedFile}
+        uploading={uploading}
+        sendingMessage={sendingMessage}
+        onSendMessage={handleSendMessage}
+        onSendVoiceMessage={handleSendVoiceMessage}
+        onFileSelect={handleFileSelect}
+        onKeyPress={handleKeyPress}
+        sendMessage={sendMessage}
+        conversationId={conversationId}
+      />
     </div>
   );
 };
