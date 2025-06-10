@@ -4,27 +4,11 @@ import { formatDistanceToNow } from 'date-fns';
 import { Avatar } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { MessageCircle } from 'lucide-react';
-
-interface Conversation {
-  id: string;
-  listing_id: string | null;
-  last_message_at: string | null;
-  listing?: {
-    dog_name: string;
-    breed: string;
-    image_url: string | null;
-  };
-  other_user?: {
-    full_name: string | null;
-    username: string | null;
-    avatar_url: string | null;
-  };
-  unread_count?: number;
-}
+import { ExtendedConversation } from '@/types/messaging';
 
 interface ConversationsListProps {
-  conversations: Conversation[];
-  onSelectConversation: (conversation: Conversation) => void;
+  conversations: ExtendedConversation[];
+  onSelectConversation: (conversation: ExtendedConversation) => void;
   selectedConversationId?: string;
   loading?: boolean;
 }
