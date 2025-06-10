@@ -10,6 +10,7 @@ interface SearchResult {
   created_at: string;
   sender_id: string;
   conversation_id: string;
+  message_type: string;
 }
 
 export const useMessageSearch = () => {
@@ -25,7 +26,7 @@ export const useMessageSearch = () => {
     try {
       let queryBuilder = supabase
         .from('messages')
-        .select('id, content, created_at, sender_id, conversation_id')
+        .select('id, content, created_at, sender_id, conversation_id, message_type')
         .textSearch('content', query)
         .order('created_at', { ascending: false })
         .limit(50);
@@ -61,7 +62,7 @@ export const useMessageSearch = () => {
     }
   };
 
-  const clearResults = () => {
+  const clearSearch = () => {
     setSearchResults([]);
   };
 
@@ -69,6 +70,6 @@ export const useMessageSearch = () => {
     searchResults,
     isSearching,
     searchMessages,
-    clearResults
+    clearSearch
   };
 };

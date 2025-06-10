@@ -23,6 +23,10 @@ const MobileMessagingInterface = () => {
 
   const selectedConversation = conversations.find(c => c.id === selectedConversationId);
 
+  const handleSelectConversation = (conversationId: string) => {
+    setSelectedConversationId(conversationId);
+  };
+
   if (!isMobile) {
     return null; // Use desktop version
   }
@@ -107,7 +111,7 @@ const MobileMessagingInterface = () => {
               <ConversationsList
                 conversations={conversations}
                 selectedConversationId={null}
-                onSelectConversation={setSelectedConversationId}
+                onSelectConversation={handleSelectConversation}
               />
             </div>
           </div>
