@@ -99,9 +99,10 @@ const LiveChatInterface = ({ conversationId, otherUserId, onBack }: LiveChatInte
   return (
     <div className="flex flex-col h-full bg-white">
       <ChatHeader
-        user={otherUser}
-        isOnline={isUserOnline(otherUserId)}
         onBack={onBack}
+        otherUser={otherUser}
+        isUserOnline={isUserOnline(otherUserId)}
+        selectedConversation={null}
       />
 
       {/* Messages */}

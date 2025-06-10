@@ -87,6 +87,7 @@ const ChatContainer = ({
         onReactionButtonClick={onReactionButtonClick}
         onReplyToMessage={onReplyToMessage}
         onReactionToggle={onReactionToggle}
+        conversationId={conversationId}
       />
 
       {/* Thread Dialog */}
