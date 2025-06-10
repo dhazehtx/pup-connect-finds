@@ -10,24 +10,22 @@ import { useEnhancedMessaging } from '@/hooks/useEnhancedMessaging';
 const AdvancedMessagingHub = () => {
   const { conversations } = useEnhancedMessaging();
 
-  const handleArchiveConversation = (conversationId: string) => {
-    // Implementation would update conversation archived status
-    console.log('Archiving conversation:', conversationId);
-  };
+  // Filter archived conversations (assuming there's an archived property)
+  const archivedConversations = conversations.filter(conv => (conv as any).archived === true);
 
-  const handleUnarchiveConversation = (conversationId: string) => {
+  const handleRestoreConversation = (conversationId: string) => {
     // Implementation would update conversation archived status
-    console.log('Unarchiving conversation:', conversationId);
+    console.log('Restoring conversation:', conversationId);
   };
 
   const handleDeleteConversation = (conversationId: string) => {
-    // Implementation would delete conversation
+    // Implementation would delete conversation permanently
     console.log('Deleting conversation:', conversationId);
   };
 
-  const handleStarConversation = (conversationId: string) => {
-    // Implementation would star conversation
-    console.log('Starring conversation:', conversationId);
+  const handleExportConversation = (conversationId: string) => {
+    // Implementation would export conversation data
+    console.log('Exporting conversation:', conversationId);
   };
 
   const handleMessageSelect = (messageId: string) => {
@@ -74,11 +72,10 @@ const AdvancedMessagingHub = () => {
           <div className="max-w-2xl mx-auto">
             <h2 className="text-xl font-semibold mb-4">Conversation Archive</h2>
             <ConversationArchive
-              conversations={conversations}
-              onArchiveConversation={handleArchiveConversation}
-              onUnarchiveConversation={handleUnarchiveConversation}
+              archivedConversations={archivedConversations}
+              onRestoreConversation={handleRestoreConversation}
               onDeleteConversation={handleDeleteConversation}
-              onStarConversation={handleStarConversation}
+              onExportConversation={handleExportConversation}
             />
           </div>
         </TabsContent>
