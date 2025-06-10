@@ -64,7 +64,23 @@ export const usePresenceManager = () => {
       .channel('presence-channel')
       .on('presence', { event: 'sync' }, () => {
         const state = presenceChannel.presenceState();
-        const users = Object.values(state).flat() as PresenceUser[];
+        // Properly handle the presence state data
+        const users: PresenceUser[] = [];
+        Object.values(state).forEach((presences: any) => {
+          if (Array.isArray(presences)) {
+            presences.forEach((presence: any) => {
+              if (presence.user_id && presence.status && presence.last_seen) {
+                users.push({
+                  user_id: presence.user_id,
+                  username: presence.username,
+                  avatar_url: presence.avatar_url,
+                  status: presence.status,
+                  last_seen: presence.last_seen,
+                });
+              }
+            });
+          }
+        });
         setOnlineUsers(users);
         setOnlineCount(users.filter(u => u.status === 'online').length);
       })
