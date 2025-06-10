@@ -2,94 +2,78 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Smile, ThumbsUp, Heart, Laugh, Angry, Frown } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import { Heart, ThumbsUp, Laugh, Angry, Sad, Plus } from 'lucide-react';
 
 interface MessageReactionsProps {
   messageId: string;
-  reactions?: Record<string, string[]>; // emoji -> user_ids
+  reactions?: { [emoji: string]: string[] }; // emoji -> user IDs
   onAddReaction: (messageId: string, emoji: string) => void;
-  onRemoveReaction: (messageId: string, emoji: string) => void;
   currentUserId: string;
 }
-
-const DEFAULT_EMOJIS = [
-  { emoji: '👍', icon: ThumbsUp, label: 'Like' },
-  { emoji: '❤️', icon: Heart, label: 'Love' },
-  { emoji: '😂', icon: Laugh, label: 'Laugh' },
-  { emoji: '😮', icon: Smile, label: 'Wow' },
-  { emoji: '😢', icon: Frown, label: 'Sad' },
-  { emoji: '😡', icon: Angry, label: 'Angry' },
-];
 
 const MessageReactions = ({ 
   messageId, 
   reactions = {}, 
   onAddReaction, 
-  onRemoveReaction, 
   currentUserId 
 }: MessageReactionsProps) => {
-  const [isOpen, setIsOpen] = useState(false);
-  const { toast } = useToast();
+  const [showPicker, setShowPicker] = useState(false);
 
-  const handleReactionClick = (emoji: string) => {
-    const userReactions = reactions[emoji] || [];
-    const hasReacted = userReactions.includes(currentUserId);
+  const reactionEmojis = [
+    { emoji: '❤️', icon: Heart, label: 'Love' },
+    { emoji: '👍', icon: ThumbsUp, label: 'Like' },
+    { emoji: '😂', icon: Laugh, label: 'Laugh' },
+    { emoji: '😢', icon: Sad, label: 'Sad' },
+    { emoji: '😠', icon: Angry, label: 'Angry' },
+  ];
 
-    if (hasReacted) {
-      onRemoveReaction(messageId, emoji);
-    } else {
-      onAddReaction(messageId, emoji);
-    }
-    setIsOpen(false);
+  const handleReaction = (emoji: string) => {
+    onAddReaction(messageId, emoji);
+    setShowPicker(false);
   };
 
-  const getReactionCount = (emoji: string) => {
-    return reactions[emoji]?.length || 0;
-  };
-
-  const hasUserReacted = (emoji: string) => {
-    return reactions[emoji]?.includes(currentUserId) || false;
-  };
-
-  // Get reactions that have been used
-  const usedReactions = Object.entries(reactions).filter(([, userIds]) => userIds.length > 0);
+  const hasReactions = Object.keys(reactions).length > 0;
 
   return (
     <div className="flex items-center gap-1 mt-1">
       {/* Display existing reactions */}
-      {usedReactions.map(([emoji, userIds]) => (
-        <Button
-          key={emoji}
-          variant={hasUserReacted(emoji) ? "default" : "outline"}
-          size="sm"
-          className="h-6 px-2 text-xs"
-          onClick={() => handleReactionClick(emoji)}
-        >
-          <span className="mr-1">{emoji}</span>
-          {userIds.length > 1 && <span>{userIds.length}</span>}
-        </Button>
-      ))}
+      {hasReactions && (
+        <div className="flex gap-1">
+          {Object.entries(reactions).map(([emoji, userIds]) => (
+            <Button
+              key={emoji}
+              variant="ghost"
+              size="sm"
+              className={`h-6 px-2 text-xs ${
+                userIds.includes(currentUserId) ? 'bg-blue-100 text-blue-800' : ''
+              }`}
+              onClick={() => handleReaction(emoji)}
+            >
+              {emoji} {userIds.length}
+            </Button>
+          ))}
+        </div>
+      )}
 
       {/* Add reaction button */}
-      <Popover open={isOpen} onOpenChange={setIsOpen}>
+      <Popover open={showPicker} onOpenChange={setShowPicker}>
         <PopoverTrigger asChild>
           <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
-            <Smile size={14} />
+            <Plus size={12} />
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-auto p-2">
-          <div className="grid grid-cols-3 gap-1">
-            {DEFAULT_EMOJIS.map(({ emoji, label }) => (
+        <PopoverContent className="w-48">
+          <div className="grid grid-cols-5 gap-2">
+            {reactionEmojis.map(({ emoji, icon: Icon, label }) => (
               <Button
                 key={emoji}
                 variant="ghost"
                 size="sm"
+                onClick={() => handleReaction(emoji)}
                 className="h-8 w-8 p-0"
-                onClick={() => handleReactionClick(emoji)}
                 title={label}
               >
-                <span className="text-lg">{emoji}</span>
+                {emoji}
               </Button>
             ))}
           </div>

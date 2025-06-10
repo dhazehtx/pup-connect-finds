@@ -1,123 +1,111 @@
 
 import React, { useState } from 'react';
-import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Video, Phone, PhoneOff } from 'lucide-react';
-import { useWebRTC } from '@/hooks/useWebRTC';
+import { Button } from '@/components/ui/button';
+import { Video, VideoOff, Mic, MicOff, Phone } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface VideoCallDialogProps {
   conversationId: string;
   recipientName: string;
-  onCallStart?: () => void;
-  onCallEnd?: () => void;
 }
 
-const VideoCallDialog = ({ 
-  conversationId, 
-  recipientName, 
-  onCallStart, 
-  onCallEnd 
-}: VideoCallDialogProps) => {
+const VideoCallDialog = ({ conversationId, recipientName }: VideoCallDialogProps) => {
   const [isOpen, setIsOpen] = useState(false);
-  const { 
-    isCallActive, 
-    isMuted, 
-    isVideoOff, 
-    initializeConnection, 
-    endCall, 
-    toggleMute, 
-    toggleVideo 
-  } = useWebRTC();
+  const [isCallActive, setIsCallActive] = useState(false);
+  const [isMuted, setIsMuted] = useState(false);
+  const [isVideoOn, setIsVideoOn] = useState(true);
   const { toast } = useToast();
 
-  const handleStartCall = async () => {
-    try {
-      await initializeConnection(conversationId);
-      onCallStart?.();
-      toast({
-        title: "Call started",
-        description: `Video call with ${recipientName} has been initiated`,
-      });
-    } catch (error) {
-      toast({
-        title: "Call failed",
-        description: "Unable to start video call. Please check your camera and microphone permissions.",
-        variant: "destructive",
-      });
-    }
+  const startCall = () => {
+    setIsCallActive(true);
+    toast({
+      title: "Video Call Starting",
+      description: `Calling ${recipientName}...`,
+    });
   };
 
-  const handleEndCall = () => {
-    endCall();
-    onCallEnd?.();
+  const endCall = () => {
+    setIsCallActive(false);
     setIsOpen(false);
     toast({
-      title: "Call ended",
-      description: "Video call has been terminated",
+      title: "Call Ended",
+      description: "Video call has ended",
     });
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" size="sm">
-          <Video size={16} className="mr-2" />
-          Video Call
+        <Button variant="ghost" size="sm">
+          <Video size={16} />
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-4xl max-h-[80vh]">
+      <DialogContent className="max-w-4xl h-[600px]">
         <DialogHeader>
           <DialogTitle>Video Call with {recipientName}</DialogTitle>
         </DialogHeader>
         
-        <div className="space-y-4">
+        <div className="flex-1 bg-gray-900 rounded-lg relative overflow-hidden">
           {!isCallActive ? (
-            <div className="text-center py-8">
-              <Video size={48} className="mx-auto mb-4 text-gray-400" />
-              <p className="text-gray-600 mb-4">
-                Start a video call to connect face-to-face
-              </p>
-              <Button onClick={handleStartCall} size="lg">
-                <Phone size={20} className="mr-2" />
-                Start Call
-              </Button>
+            <div className="flex items-center justify-center h-full">
+              <div className="text-center text-white">
+                <Video className="w-16 h-16 mx-auto mb-4" />
+                <h3 className="text-xl mb-4">Ready to start video call?</h3>
+                <Button onClick={startCall} size="lg">
+                  Start Call
+                </Button>
+              </div>
             </div>
           ) : (
-            <div className="space-y-4">
-              {/* Video area placeholder */}
-              <div className="bg-gray-900 rounded-lg aspect-video flex items-center justify-center">
-                <p className="text-white">Video call in progress...</p>
+            <div className="h-full relative">
+              <div className="absolute inset-0 bg-gray-800 flex items-center justify-center">
+                <div className="text-white text-center">
+                  <div className="w-32 h-32 bg-gray-600 rounded-full mx-auto mb-4 flex items-center justify-center">
+                    <Video className="w-12 h-12" />
+                  </div>
+                  <p className="text-lg">{recipientName}</p>
+                  <p className="text-sm text-gray-400">Connected</p>
+                </div>
               </div>
               
-              {/* Call controls */}
-              <div className="flex justify-center gap-2">
-                <Button
-                  variant={isMuted ? "destructive" : "default"}
-                  size="sm"
-                  onClick={toggleMute}
-                >
-                  {isMuted ? "Unmute" : "Mute"}
-                </Button>
-                <Button
-                  variant={isVideoOff ? "destructive" : "default"}
-                  size="sm"
-                  onClick={toggleVideo}
-                >
-                  {isVideoOff ? "Turn On Video" : "Turn Off Video"}
-                </Button>
-                <Button
-                  variant="destructive"
-                  size="sm"
-                  onClick={handleEndCall}
-                >
-                  <PhoneOff size={16} className="mr-2" />
-                  End Call
-                </Button>
+              {/* Self video preview */}
+              <div className="absolute top-4 right-4 w-32 h-24 bg-gray-700 rounded border-2 border-white">
+                <div className="w-full h-full flex items-center justify-center text-white text-xs">
+                  You
+                </div>
               </div>
             </div>
           )}
         </div>
+
+        {isCallActive && (
+          <div className="flex justify-center gap-4 p-4">
+            <Button
+              variant={isMuted ? "destructive" : "outline"}
+              size="sm"
+              onClick={() => setIsMuted(!isMuted)}
+            >
+              {isMuted ? <MicOff size={16} /> : <Mic size={16} />}
+            </Button>
+            
+            <Button
+              variant={isVideoOn ? "outline" : "destructive"}
+              size="sm"
+              onClick={() => setIsVideoOn(!isVideoOn)}
+            >
+              {isVideoOn ? <Video size={16} /> : <VideoOff size={16} />}
+            </Button>
+            
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={endCall}
+            >
+              <Phone size={16} className="rotate-45" />
+            </Button>
+          </div>
+        )}
       </DialogContent>
     </Dialog>
   );

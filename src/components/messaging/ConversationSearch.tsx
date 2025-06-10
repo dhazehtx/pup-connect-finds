@@ -1,56 +1,51 @@
 
-import React, { useState, useMemo } from 'react';
-import { Search, X } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
+import { Search, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { ExtendedConversation } from '@/types/messaging';
 
 interface ConversationSearchProps {
-  conversations: any[];
-  onFilteredConversations: (filtered: any[]) => void;
-  placeholder?: string;
+  conversations: ExtendedConversation[];
+  onFilteredConversations: (filtered: ExtendedConversation[]) => void;
 }
 
-const ConversationSearch = ({ 
-  conversations, 
-  onFilteredConversations, 
-  placeholder = "Search conversations..." 
-}: ConversationSearchProps) => {
+const ConversationSearch = ({ conversations, onFilteredConversations }: ConversationSearchProps) => {
   const [searchQuery, setSearchQuery] = useState('');
 
-  const filteredConversations = useMemo(() => {
+  useEffect(() => {
     if (!searchQuery.trim()) {
-      return conversations;
+      onFilteredConversations(conversations);
+      return;
     }
 
-    return conversations.filter(conversation => {
-      const userName = conversation.other_user?.full_name || 
-                     conversation.other_user?.username || '';
+    const filtered = conversations.filter(conversation => {
+      const userName = conversation.other_user?.full_name || conversation.other_user?.username || '';
       const dogName = conversation.listing?.dog_name || '';
       const breed = conversation.listing?.breed || '';
       
-      const searchTerms = searchQuery.toLowerCase().split(' ');
-      const searchableText = `${userName} ${dogName} ${breed}`.toLowerCase();
-      
-      return searchTerms.every(term => searchableText.includes(term));
+      return (
+        userName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        dogName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        breed.toLowerCase().includes(searchQuery.toLowerCase())
+      );
     });
-  }, [conversations, searchQuery]);
 
-  React.useEffect(() => {
-    onFilteredConversations(filteredConversations);
-  }, [filteredConversations, onFilteredConversations]);
+    onFilteredConversations(filtered);
+  }, [searchQuery, conversations, onFilteredConversations]);
 
   const clearSearch = () => {
     setSearchQuery('');
   };
 
   return (
-    <div className="relative p-4 border-b">
+    <div className="p-4 border-b">
       <div className="relative">
-        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={16} />
+        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
         <Input
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder={placeholder}
+          placeholder="Search conversations..."
           className="pl-10 pr-10"
         />
         {searchQuery && (
@@ -58,17 +53,12 @@ const ConversationSearch = ({
             variant="ghost"
             size="sm"
             onClick={clearSearch}
-            className="absolute right-1 top-1/2 transform -translate-y-1/2 h-8 w-8 p-0"
+            className="absolute right-2 top-1/2 transform -translate-y-1/2 h-6 w-6 p-0"
           >
-            <X size={14} />
+            <X className="w-3 h-3" />
           </Button>
         )}
       </div>
-      {searchQuery && (
-        <p className="text-xs text-muted-foreground mt-2">
-          Found {filteredConversations.length} conversation{filteredConversations.length !== 1 ? 's' : ''}
-        </p>
-      )}
     </div>
   );
 };
