@@ -44,7 +44,7 @@ const OnlineUsersList = ({
                 username={user.username}
                 avatarUrl={user.avatar_url}
                 isOnline={true}
-                lastSeen={user.last_seen}
+                lastSeen={new Date(user.last_seen).toISOString()}
                 size="sm"
               />
             ))
@@ -73,7 +73,7 @@ const OnlineUsersList = ({
               username={user.username}
               avatarUrl={user.avatar_url}
               isOnline={true}
-              lastSeen={user.last_seen}
+              lastSeen={new Date(user.last_seen).toISOString()}
               size="sm"
               showStatus={false}
             />
