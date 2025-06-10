@@ -11,8 +11,8 @@ interface VirtualizedMessagesListProps {
   onReactionButtonClick: (event: React.MouseEvent, messageId: string) => void;
   onReplyToMessage: (message: any) => void;
   onReactionToggle: (messageId: string, emoji: string) => void;
-  onEditMessage: (messageId: string, newContent: string) => void;
-  onDeleteMessage: (messageId: string) => void;
+  onEditMessage?: (messageId: string, newContent: string) => void;
+  onDeleteMessage?: (messageId: string) => void;
   height: number;
 }
 
@@ -24,8 +24,8 @@ const VirtualizedMessagesList = ({
   onReactionButtonClick,
   onReplyToMessage,
   onReactionToggle,
-  onEditMessage,
-  onDeleteMessage,
+  onEditMessage = () => {},
+  onDeleteMessage = () => {},
   height
 }: VirtualizedMessagesListProps) => {
   const listRef = useRef<List>(null);

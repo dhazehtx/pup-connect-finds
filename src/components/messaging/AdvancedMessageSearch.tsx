@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useMemo } from 'react';
 import { Search, Filter, Calendar, User, Hash } from 'lucide-react';
 import { Input } from '@/components/ui/input';
@@ -12,6 +11,7 @@ interface AdvancedMessageSearchProps {
   messages: any[];
   onSearchResults: (results: any[]) => void;
   onClearSearch: () => void;
+  onResultSelect?: (messageId: string) => void;
 }
 
 interface SearchFilters {
@@ -23,7 +23,12 @@ interface SearchFilters {
   hasMedia: boolean | null;
 }
 
-const AdvancedMessageSearch = ({ messages, onSearchResults, onClearSearch }: AdvancedMessageSearchProps) => {
+const AdvancedMessageSearch = ({ 
+  messages, 
+  onSearchResults, 
+  onClearSearch, 
+  onResultSelect 
+}: AdvancedMessageSearchProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [filters, setFilters] = useState<SearchFilters>({
     query: '',

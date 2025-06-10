@@ -17,6 +17,8 @@ interface MessageItemProps {
   onReactionButtonClick: (event: React.MouseEvent, messageId: string) => void;
   onReplyToMessage: (message: any) => void;
   onReactionToggle: (messageId: string, emoji: string) => void;
+  onEditMessage?: (messageId: string, newContent: string) => void;
+  onDeleteMessage?: (messageId: string) => void;
 }
 
 const MessageItem = ({
@@ -27,7 +29,9 @@ const MessageItem = ({
   threadCount,
   onReactionButtonClick,
   onReplyToMessage,
-  onReactionToggle
+  onReactionToggle,
+  onEditMessage,
+  onDeleteMessage
 }: MessageItemProps) => {
   const messageTime = formatDistanceToNow(new Date(message.created_at), { addSuffix: true });
 
@@ -111,8 +115,19 @@ const MessageItem = ({
                     Reply in thread
                   </DropdownMenuItem>
                   <DropdownMenuItem>Forward</DropdownMenuItem>
-                  {isOwn && <DropdownMenuItem>Edit</DropdownMenuItem>}
-                  <DropdownMenuItem className="text-destructive">Delete</DropdownMenuItem>
+                  {isOwn && onEditMessage && (
+                    <DropdownMenuItem onClick={() => onEditMessage(message.id, message.content)}>
+                      Edit
+                    </DropdownMenuItem>
+                  )}
+                  {isOwn && onDeleteMessage && (
+                    <DropdownMenuItem 
+                      className="text-destructive"
+                      onClick={() => onDeleteMessage(message.id)}
+                    >
+                      Delete
+                    </DropdownMenuItem>
+                  )}
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
@@ -136,7 +151,7 @@ const MessageItem = ({
         {messageReactions.length > 0 && (
           <MessageReactionsDisplay
             reactions={messageReactions}
-            currentUserId={user.id}
+            currentUserId={user?.id || ''}
             onReactionToggle={(emoji) => onReactionToggle(message.id, emoji)}
             className={isOwn ? 'justify-end' : 'justify-start'}
           />

@@ -9,17 +9,19 @@ import UserPresenceIndicator from './UserPresenceIndicator';
 interface OnlineUsersListProps {
   variant?: 'sidebar' | 'popup';
   maxVisible?: number;
+  conversationId: string;
 }
 
 const OnlineUsersList = ({ 
   variant = 'sidebar', 
-  maxVisible = 10 
+  maxVisible = 10,
+  conversationId 
 }: OnlineUsersListProps) => {
-  const { onlineUsers, onlineCount } = usePresenceManager();
+  const { getOnlineUsers } = usePresenceManager();
+  const onlineUsers = getOnlineUsers(conversationId);
 
-  const visibleUsers = onlineUsers
-    .filter(user => user.status === 'online')
-    .slice(0, maxVisible);
+  const visibleUsers = onlineUsers.slice(0, maxVisible);
+  const onlineCount = onlineUsers.length;
 
   if (variant === 'popup') {
     return (
@@ -41,7 +43,7 @@ const OnlineUsersList = ({
                 userId={user.user_id}
                 username={user.username}
                 avatarUrl={user.avatar_url}
-                isOnline={user.status === 'online'}
+                isOnline={true}
                 lastSeen={user.last_seen}
                 size="sm"
               />
@@ -70,7 +72,7 @@ const OnlineUsersList = ({
               userId={user.user_id}
               username={user.username}
               avatarUrl={user.avatar_url}
-              isOnline={user.status === 'online'}
+              isOnline={true}
               lastSeen={user.last_seen}
               size="sm"
               showStatus={false}

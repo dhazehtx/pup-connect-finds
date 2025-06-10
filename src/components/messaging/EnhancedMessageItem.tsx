@@ -142,6 +142,7 @@ const EnhancedMessageItem = ({
         {messageReactions.length > 0 && (
           <MessageReactionsDisplay
             reactions={messageReactions}
+            currentUserId={user?.id || ''}
             onReactionToggle={(emoji) => onReactionToggle(message.id, emoji)}
           />
         )}
