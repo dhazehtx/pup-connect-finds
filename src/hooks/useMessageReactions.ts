@@ -1,16 +1,15 @@
 
-import { useState, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 
 interface MessageReaction {
+  id: string;
+  message_id: string;
+  user_id: string;
   emoji: string;
-  users: Array<{
-    id: string;
-    name: string;
-  }>;
-  count: number;
+  created_at: string;
 }
 
 export const useMessageReactions = () => {
@@ -18,142 +17,113 @@ export const useMessageReactions = () => {
   const { user } = useAuth();
   const { toast } = useToast();
 
-  const fetchReactions = useCallback(async (messageId: string) => {
+  const fetchReactions = useCallback(async (messageIds: string[]) => {
+    if (messageIds.length === 0) return;
+
     try {
-      // This would fetch from a message_reactions table
-      // For now, return empty array as we don't have the table structure
-      console.log('Fetching reactions for message:', messageId);
-      return [];
+      const { data, error } = await supabase
+        .from('message_reactions')
+        .select('*')
+        .in('message_id', messageIds);
+
+      if (error) throw error;
+
+      const reactionsByMessage = (data || []).reduce((acc, reaction) => {
+        if (!acc[reaction.message_id]) {
+          acc[reaction.message_id] = [];
+        }
+        acc[reaction.message_id].push(reaction);
+        return acc;
+      }, {} as Record<string, MessageReaction[]>);
+
+      setReactions(prev => ({ ...prev, ...reactionsByMessage }));
     } catch (error) {
       console.error('Error fetching reactions:', error);
-      return [];
     }
   }, []);
 
   const addReaction = useCallback(async (messageId: string, emoji: string) => {
-    if (!user) return;
+    if (!user) {
+      toast({
+        title: "Authentication required",
+        description: "Please sign in to react to messages",
+        variant: "destructive",
+      });
+      return;
+    }
 
     try {
-      // This would add to a message_reactions table
-      console.log('Adding reaction:', { messageId, emoji, userId: user.id });
-      
-      // Optimistically update local state
-      setReactions(prev => {
-        const messageReactions = prev[messageId] || [];
-        const existingReaction = messageReactions.find(r => r.emoji === emoji);
-        
-        if (existingReaction) {
-          // User already reacted with this emoji, so remove it
-          const userIndex = existingReaction.users.findIndex(u => u.id === user.id);
-          if (userIndex > -1) {
-            existingReaction.users.splice(userIndex, 1);
-            existingReaction.count = existingReaction.users.length;
-            
-            if (existingReaction.count === 0) {
-              return {
-                ...prev,
-                [messageId]: messageReactions.filter(r => r.emoji !== emoji)
-              };
-            }
-          } else {
-            // Add user to existing reaction
-            existingReaction.users.push({
-              id: user.id,
-              name: user.email?.split('@')[0] || 'You'
-            });
-            existingReaction.count = existingReaction.users.length;
-          }
-        } else {
-          // Create new reaction
-          messageReactions.push({
-            emoji,
-            users: [{
-              id: user.id,
-              name: user.email?.split('@')[0] || 'You'
-            }],
-            count: 1
-          });
-        }
-        
-        return {
-          ...prev,
-          [messageId]: [...messageReactions]
-        };
-      });
+      // Check if user already reacted with this emoji
+      const existingReaction = reactions[messageId]?.find(
+        r => r.user_id === user.id && r.emoji === emoji
+      );
 
-      toast({
-        title: "Reaction added",
-        description: `Added ${emoji} reaction`,
-      });
+      if (existingReaction) {
+        // Remove reaction
+        await supabase
+          .from('message_reactions')
+          .delete()
+          .eq('id', existingReaction.id);
+
+        setReactions(prev => ({
+          ...prev,
+          [messageId]: prev[messageId]?.filter(r => r.id !== existingReaction.id) || []
+        }));
+      } else {
+        // Add reaction
+        const { data, error } = await supabase
+          .from('message_reactions')
+          .insert([{
+            message_id: messageId,
+            user_id: user.id,
+            emoji
+          }])
+          .select()
+          .single();
+
+        if (error) throw error;
+
+        setReactions(prev => ({
+          ...prev,
+          [messageId]: [...(prev[messageId] || []), data]
+        }));
+      }
     } catch (error) {
-      console.error('Error adding reaction:', error);
+      console.error('Error toggling reaction:', error);
       toast({
         title: "Error",
-        description: "Failed to add reaction",
+        description: "Failed to update reaction",
         variant: "destructive",
       });
     }
-  }, [user, toast]);
+  }, [user, reactions, toast]);
 
-  const removeReaction = useCallback(async (messageId: string, emoji: string) => {
-    if (!user) return;
+  const toggleReaction = useCallback((messageId: string, emoji: string) => {
+    addReaction(messageId, emoji);
+  }, [addReaction]);
 
-    try {
-      console.log('Removing reaction:', { messageId, emoji, userId: user.id });
-      
-      setReactions(prev => {
-        const messageReactions = prev[messageId] || [];
-        const updatedReactions = messageReactions.map(reaction => {
-          if (reaction.emoji === emoji) {
-            const updatedUsers = reaction.users.filter(u => u.id !== user.id);
-            return {
-              ...reaction,
-              users: updatedUsers,
-              count: updatedUsers.length
-            };
-          }
-          return reaction;
-        }).filter(reaction => reaction.count > 0);
-        
-        return {
-          ...prev,
-          [messageId]: updatedReactions
-        };
-      });
-
-      toast({
-        title: "Reaction removed",
-        description: `Removed ${emoji} reaction`,
-      });
-    } catch (error) {
-      console.error('Error removing reaction:', error);
-      toast({
-        title: "Error",
-        description: "Failed to remove reaction",
-        variant: "destructive",
-      });
-    }
-  }, [user, toast]);
-
-  const toggleReaction = useCallback(async (messageId: string, emoji: string) => {
-    if (!user) return;
-
+  const getReactionCounts = useCallback((messageId: string) => {
     const messageReactions = reactions[messageId] || [];
-    const existingReaction = messageReactions.find(r => r.emoji === emoji);
-    const userHasReacted = existingReaction?.users.some(u => u.id === user.id);
+    const counts: Record<string, number> = {};
+    
+    messageReactions.forEach(reaction => {
+      counts[reaction.emoji] = (counts[reaction.emoji] || 0) + 1;
+    });
+    
+    return counts;
+  }, [reactions]);
 
-    if (userHasReacted) {
-      await removeReaction(messageId, emoji);
-    } else {
-      await addReaction(messageId, emoji);
-    }
-  }, [reactions, user, addReaction, removeReaction]);
+  const hasUserReacted = useCallback((messageId: string, emoji: string) => {
+    if (!user) return false;
+    return reactions[messageId]?.some(r => r.user_id === user.id && r.emoji === emoji) || false;
+  }, [reactions, user]);
 
   return {
     reactions,
-    fetchReactions,
     addReaction,
-    removeReaction,
     toggleReaction,
+    fetchReactions,
+    getReactionCounts,
+    hasUserReacted
   };
 };

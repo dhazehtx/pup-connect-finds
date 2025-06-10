@@ -1,8 +1,10 @@
 
 import React from 'react';
-import { Avatar } from '@/components/ui/avatar';
+import { formatDistanceToNow } from 'date-fns';
 import { Button } from '@/components/ui/button';
-import { MessageCircle, ThumbsUp } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import { Heart, MessageCircle, MoreHorizontal, Reply } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface MessageItemProps {
@@ -26,115 +28,129 @@ const MessageItem = ({
   onReactionButtonClick,
   onReplyButtonClick,
   onReactionToggle,
-  conversationId
 }: MessageItemProps) => {
-  const messageTime = new Date(message.created_at).toLocaleTimeString([], {
-    hour: '2-digit',
-    minute: '2-digit'
-  });
-
-  const hasReactions = reactions && reactions.length > 0;
-
-  const renderMessageContent = () => {
-    switch (message.message_type) {
-      case 'image':
-        return message.image_url ? (
-          <div className="mt-2 rounded-md overflow-hidden">
-            <img
-              src={message.image_url}
-              alt="Shared image"
-              className="max-w-[240px] max-h-[240px] object-contain"
-            />
-            <p className="mt-1">{message.content}</p>
-          </div>
-        ) : (
-          <p>{message.content}</p>
-        );
-      case 'voice':
-        return (
-          <div className="mt-2">
-            <audio src={message.image_url} controls className="max-w-full" />
-            <p className="mt-1 text-xs opacity-75">{message.content}</p>
-          </div>
-        );
-      case 'file':
-        return (
-          <div className="mt-2">
-            <a
-              href={message.image_url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-2 p-2 bg-background rounded-md border"
-            >
-              <span className="truncate">{message.content}</span>
-            </a>
-          </div>
-        );
-      default:
-        return <p>{message.content}</p>;
-    }
+  const formatTime = (date: string) => {
+    return formatDistanceToNow(new Date(date), { addSuffix: true });
   };
 
+  const getReactionCounts = () => {
+    const counts: Record<string, number> = {};
+    reactions.forEach(reaction => {
+      counts[reaction.emoji] = (counts[reaction.emoji] || 0) + 1;
+    });
+    return counts;
+  };
+
+  const hasUserReacted = (emoji: string) => {
+    return reactions.some(r => r.user_id === user?.id && r.emoji === emoji);
+  };
+
+  const reactionCounts = getReactionCounts();
+
   return (
-    <div className={cn("flex", isOwn ? "justify-end" : "justify-start")}>
-      <div
-        className={cn(
-          "max-w-[75%] rounded-lg p-3",
-          isOwn
-            ? "bg-primary text-primary-foreground rounded-tr-none"
-            : "bg-muted rounded-tl-none"
-        )}
-      >
-        {renderMessageContent()}
-        
-        <div className="flex items-center justify-between mt-1 text-xs">
-          <span className={cn("opacity-70", isOwn ? "text-primary-foreground" : "text-muted-foreground")}>
-            {messageTime}
-          </span>
+    <div className={cn(
+      "flex gap-3 p-4 hover:bg-muted/30 transition-colors group",
+      isOwn ? "flex-row-reverse" : "flex-row"
+    )}>
+      {!isOwn && (
+        <Avatar className="w-8 h-8 mt-1">
+          <AvatarImage src="" />
+          <AvatarFallback className="text-xs">U</AvatarFallback>
+        </Avatar>
+      )}
+      
+      <div className={cn("flex-1 space-y-2", isOwn ? "text-right" : "text-left")}>
+        <div className={cn(
+          "inline-block max-w-[70%] rounded-2xl px-4 py-2 text-sm",
+          isOwn 
+            ? "bg-primary text-primary-foreground rounded-br-sm" 
+            : "bg-muted rounded-bl-sm"
+        )}>
+          {message.message_type === 'text' ? (
+            <p>{message.content}</p>
+          ) : message.message_type === 'image' ? (
+            <div className="space-y-2">
+              <img 
+                src={message.image_url} 
+                alt="Shared image" 
+                className="max-w-full rounded-lg"
+              />
+              {message.content && <p>{message.content}</p>}
+            </div>
+          ) : message.message_type === 'voice' ? (
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 bg-current rounded-full"></div>
+              <span>Voice message</span>
+            </div>
+          ) : (
+            <p>{message.content}</p>
+          )}
         </div>
-        
-        {hasReactions && (
-          <div className="flex flex-wrap gap-1 mt-1">
-            {reactions.map((reaction, index) => (
-              <Button 
-                key={`${reaction.emoji}-${index}`}
-                variant="ghost" 
+
+        {/* Reactions */}
+        {Object.keys(reactionCounts).length > 0 && (
+          <div className="flex gap-1 flex-wrap">
+            {Object.entries(reactionCounts).map(([emoji, count]) => (
+              <Button
+                key={emoji}
+                variant="outline"
                 size="sm"
-                className="h-6 px-1 py-0 text-xs"
-                onClick={() => onReactionToggle(message.id, reaction.emoji)}
+                className={cn(
+                  "h-6 px-2 text-xs rounded-full",
+                  hasUserReacted(emoji) && "bg-primary/10 border-primary"
+                )}
+                onClick={() => onReactionToggle(message.id, emoji)}
               >
-                {reaction.emoji} {reaction.count}
+                {emoji} {count}
               </Button>
             ))}
           </div>
         )}
-        
-        <div className="flex items-center gap-1 mt-1 opacity-0 group-hover:opacity-100 transition-opacity">
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            className="h-6 w-6 p-0 rounded-full"
+
+        {/* Message actions and info */}
+        <div className={cn(
+          "flex items-center gap-2 text-xs text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity",
+          isOwn ? "justify-end" : "justify-start"
+        )}>
+          <span>{formatTime(message.created_at)}</span>
+          
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-6 px-2"
             onClick={(e) => onReactionButtonClick(e, message.id)}
           >
-            <ThumbsUp className="h-3 w-3" />
-            <span className="sr-only">React</span>
+            <Heart size={12} />
           </Button>
           
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            className="h-6 w-6 p-0 rounded-full"
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-6 px-2"
             onClick={onReplyButtonClick}
           >
-            <MessageCircle className="h-3 w-3" />
-            <span className="sr-only">Reply</span>
+            <Reply size={12} />
           </Button>
-          
+
           {threadCount > 0 && (
-            <span className="text-xs ml-1">
-              {threadCount} {threadCount === 1 ? 'reply' : 'replies'}
-            </span>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-6 px-2"
+              onClick={onReplyButtonClick}
+            >
+              <MessageCircle size={12} />
+              <span className="ml-1">{threadCount}</span>
+            </Button>
           )}
+
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-6 px-2"
+          >
+            <MoreHorizontal size={12} />
+          </Button>
         </div>
       </div>
     </div>

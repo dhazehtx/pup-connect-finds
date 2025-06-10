@@ -22,29 +22,22 @@ export const useMessageFetcher = () => {
 
   const fetchMessages = useCallback(async (conversationId: string): Promise<Message[]> => {
     try {
-      console.log('Fetching messages for conversation:', conversationId);
-      
       const { data, error } = await supabase
         .from('messages')
         .select('*')
         .eq('conversation_id', conversationId)
         .order('created_at', { ascending: true });
 
-      if (error) {
-        console.error('Error fetching messages:', error);
-        throw error;
-      }
-      
-      console.log('Messages fetched:', data?.length || 0);
+      if (error) throw error;
       return data || [];
     } catch (error) {
-      console.error('Error in fetchMessages:', error);
+      console.error('Error fetching messages:', error);
       toast({
         title: "Error",
         description: "Failed to load messages",
         variant: "destructive",
       });
-      throw error;
+      return [];
     }
   }, [toast]);
 

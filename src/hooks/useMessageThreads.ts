@@ -1,33 +1,42 @@
 
 import { useState, useCallback } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { ThreadMessage } from '@/types/messaging';
 
 export const useMessageThreads = () => {
-  const [threadMessages, setThreadMessages] = useState<Record<string, ThreadMessage[]>>({});
-  const [loadingThreads, setLoadingThreads] = useState<Record<string, boolean>>({});
+  const [threads, setThreads] = useState<Record<string, ThreadMessage[]>>({});
+  const [threadCounts, setThreadCounts] = useState<Record<string, number>>({});
   const { user } = useAuth();
   const { toast } = useToast();
 
   const fetchThreadMessages = useCallback(async (parentMessageId: string) => {
-    if (loadingThreads[parentMessageId]) return;
-    
-    setLoadingThreads(prev => ({ ...prev, [parentMessageId]: true }));
-    
     try {
-      // This would fetch from a message_threads table in a real implementation
-      console.log('Fetching thread messages for:', parentMessageId);
-      
-      // Simulate API call - replace with actual implementation
-      const mockThreadMessages: ThreadMessage[] = [];
-      
-      setThreadMessages(prev => ({
-        ...prev,
-        [parentMessageId]: mockThreadMessages
+      const { data, error } = await supabase
+        .from('thread_messages')
+        .select(`
+          *,
+          profiles:sender_id (
+            full_name
+          )
+        `)
+        .eq('parent_message_id', parentMessageId)
+        .order('created_at', { ascending: true });
+
+      if (error) throw error;
+
+      const formattedMessages = (data || []).map(msg => ({
+        ...msg,
+        sender_name: msg.profiles?.full_name || 'Unknown User'
       }));
-      
-      return mockThreadMessages;
+
+      setThreads(prev => ({
+        ...prev,
+        [parentMessageId]: formattedMessages
+      }));
+
+      return formattedMessages;
     } catch (error) {
       console.error('Error fetching thread messages:', error);
       toast({
@@ -36,46 +45,58 @@ export const useMessageThreads = () => {
         variant: "destructive",
       });
       return [];
-    } finally {
-      setLoadingThreads(prev => ({ ...prev, [parentMessageId]: false }));
     }
-  }, [loadingThreads, toast]);
+  }, [toast]);
 
-  const sendThreadReply = useCallback(async (parentMessageId: string, content: string) => {
-    if (!user || !content.trim()) return;
+  const sendThreadReply = useCallback(async (
+    parentMessageId: string, 
+    content: string
+  ) => {
+    if (!user) {
+      toast({
+        title: "Authentication required",
+        description: "Please sign in to reply to messages",
+        variant: "destructive",
+      });
+      return;
+    }
 
     try {
-      console.log('Sending thread reply:', { parentMessageId, content, userId: user.id });
-      
-      // Create optimistic update
-      const newThreadMessage: ThreadMessage = {
-        id: `temp_${Date.now()}`,
-        parent_message_id: parentMessageId,
-        sender_id: user.id,
-        content: content.trim(),
-        created_at: new Date().toISOString(),
-        sender_name: user.email?.split('@')[0] || 'You'
+      const { data, error } = await supabase
+        .from('thread_messages')
+        .insert([{
+          parent_message_id: parentMessageId,
+          sender_id: user.id,
+          content
+        }])
+        .select(`
+          *,
+          profiles:sender_id (
+            full_name
+          )
+        `)
+        .single();
+
+      if (error) throw error;
+
+      const formattedMessage = {
+        ...data,
+        sender_name: data.profiles?.full_name || 'Unknown User'
       };
 
-      setThreadMessages(prev => ({
+      // Update local thread state
+      setThreads(prev => ({
         ...prev,
-        [parentMessageId]: [...(prev[parentMessageId] || []), newThreadMessage]
+        [parentMessageId]: [...(prev[parentMessageId] || []), formattedMessage]
       }));
 
-      // In a real implementation, this would save to the database
-      // const result = await supabase.from('message_threads').insert({
-      //   parent_message_id: parentMessageId,
-      //   sender_id: user.id,
-      //   content: content.trim(),
-      //   conversation_id: conversationId
-      // });
+      // Update thread count
+      setThreadCounts(prev => ({
+        ...prev,
+        [parentMessageId]: (prev[parentMessageId] || 0) + 1
+      }));
 
-      toast({
-        title: "Reply sent",
-        description: "Your reply has been added to the thread",
-      });
-
-      return newThreadMessage;
+      return formattedMessage;
     } catch (error) {
       console.error('Error sending thread reply:', error);
       toast({
@@ -83,24 +104,42 @@ export const useMessageThreads = () => {
         description: "Failed to send reply",
         variant: "destructive",
       });
-      
-      // Remove optimistic update on error
-      setThreadMessages(prev => ({
-        ...prev,
-        [parentMessageId]: prev[parentMessageId]?.slice(0, -1) || []
-      }));
+      throw error;
     }
   }, [user, toast]);
 
-  const getThreadCount = useCallback((parentMessageId: string) => {
-    return threadMessages[parentMessageId]?.length || 0;
-  }, [threadMessages]);
+  const getThreadCount = useCallback((messageId: string) => {
+    return threadCounts[messageId] || 0;
+  }, [threadCounts]);
+
+  const fetchThreadCounts = useCallback(async (messageIds: string[]) => {
+    if (messageIds.length === 0) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('thread_messages')
+        .select('parent_message_id')
+        .in('parent_message_id', messageIds);
+
+      if (error) throw error;
+
+      const counts = (data || []).reduce((acc, item) => {
+        acc[item.parent_message_id] = (acc[item.parent_message_id] || 0) + 1;
+        return acc;
+      }, {} as Record<string, number>);
+
+      setThreadCounts(prev => ({ ...prev, ...counts }));
+    } catch (error) {
+      console.error('Error fetching thread counts:', error);
+    }
+  }, []);
 
   return {
-    threadMessages,
-    loadingThreads,
+    threads,
+    threadCounts,
     fetchThreadMessages,
     sendThreadReply,
     getThreadCount,
+    fetchThreadCounts
   };
 };
