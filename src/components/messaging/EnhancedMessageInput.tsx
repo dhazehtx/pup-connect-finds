@@ -1,55 +1,88 @@
 
 import React, { useState, useRef } from 'react';
-import { Send, Paperclip, Image, Smile } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { useTypingIndicator } from '@/hooks/useTypingIndicator';
+import { Textarea } from '@/components/ui/textarea';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { 
+  Send, 
+  Paperclip, 
+  Smile, 
+  Mic, 
+  Shield, 
+  ShieldOff,
+  Image,
+  Calendar,
+  MoreHorizontal
+} from 'lucide-react';
+import { useMessageEncryption } from '@/hooks/useMessageEncryption';
+import VoiceMessageRecorder from './VoiceMessageRecorder';
+import { useToast } from '@/hooks/use-toast';
 
 interface EnhancedMessageInputProps {
-  conversationId: string;
-  onSendMessage: (content: string, type?: string) => void;
+  onSendMessage: (content: string, messageType?: string, options?: any) => void;
+  onSendVoiceMessage?: (audioBlob: Blob, duration: number) => void;
+  onFileSelect?: (file: File) => void;
   disabled?: boolean;
   placeholder?: string;
+  showEncryption?: boolean;
 }
 
-const EnhancedMessageInput = ({ 
-  conversationId, 
-  onSendMessage, 
-  disabled = false, 
-  placeholder = "Type a message..." 
+const EnhancedMessageInput = ({
+  onSendMessage,
+  onSendVoiceMessage,
+  onFileSelect,
+  disabled = false,
+  placeholder = "Type your message...",
+  showEncryption = true
 }: EnhancedMessageInputProps) => {
   const [message, setMessage] = useState('');
-  const [isComposing, setIsComposing] = useState(false);
+  const [isEncryptionEnabled, setIsEncryptionEnabled] = useState(false);
+  const [showVoiceRecorder, setShowVoiceRecorder] = useState(false);
+  const [isScheduled, setIsScheduled] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const { startTyping, stopTyping, otherUserTyping } = useTypingIndicator(conversationId);
+  const { encryptMessage, isEncrypting } = useMessageEncryption();
+  const { toast } = useToast();
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    setMessage(value);
-    
-    if (value.trim() && !isComposing) {
-      setIsComposing(true);
-      startTyping();
-    } else if (!value.trim() && isComposing) {
-      setIsComposing(false);
-      stopTyping();
-    }
-  };
+  const handleSendMessage = async () => {
+    if (!message.trim() || disabled) return;
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (message.trim() && !disabled) {
-      onSendMessage(message.trim());
+    try {
+      let messageOptions: any = {
+        isEncrypted: isEncryptionEnabled,
+        isScheduled: isScheduled
+      };
+
+      if (isEncryptionEnabled) {
+        const encryptionResult = await encryptMessage(message);
+        if (encryptionResult) {
+          messageOptions.encryptedContent = encryptionResult.encryptedContent;
+          messageOptions.encryptionKeyId = encryptionResult.keyId;
+        } else {
+          toast({
+            title: "Encryption failed",
+            description: "Sending message without encryption",
+            variant: "destructive",
+          });
+        }
+      }
+
+      await onSendMessage(message, 'text', messageOptions);
       setMessage('');
-      setIsComposing(false);
-      stopTyping();
+      setIsScheduled(false);
+    } catch (error) {
+      console.error('Failed to send message:', error);
+      toast({
+        title: "Failed to send message",
+        description: "Please try again",
+        variant: "destructive",
+      });
     }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
-      handleSubmit(e);
+      handleSendMessage();
     }
   };
 
@@ -59,85 +92,166 @@ const EnhancedMessageInput = ({
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      // For now, just send the filename as a message
-      onSendMessage(`📎 ${file.name}`, 'file');
+    if (file && onFileSelect) {
+      onFileSelect(file);
     }
   };
 
+  const handleVoiceMessage = (audioBlob: Blob, duration: number) => {
+    if (onSendVoiceMessage) {
+      onSendVoiceMessage(audioBlob, duration);
+    }
+    setShowVoiceRecorder(false);
+  };
+
+  const emojiOptions = ['😀', '😂', '❤️', '👍', '👎', '😢', '😮', '😡'];
+
   return (
-    <div className="border-t bg-white">
-      {otherUserTyping && (
-        <div className="px-4 py-2 text-sm text-gray-500 border-b">
-          <div className="flex items-center gap-2">
-            <div className="flex space-x-1">
-              <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-              <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
-              <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
-            </div>
-            <span>typing...</span>
+    <div className="border-t bg-background p-4">
+      <input
+        type="file"
+        ref={fileInputRef}
+        onChange={handleFileChange}
+        className="hidden"
+        accept="image/*,video/*,audio/*,.pdf,.doc,.docx"
+      />
+      
+      {showVoiceRecorder ? (
+        <VoiceMessageRecorder
+          onSendVoiceMessage={handleVoiceMessage}
+        />
+      ) : (
+        <div className="flex gap-2 items-end">
+          {/* File Upload Button */}
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={handleFileUpload}
+            disabled={disabled}
+            className="flex-shrink-0"
+          >
+            <Paperclip size={16} />
+          </Button>
+
+          {/* Main Input Area */}
+          <div className="flex-1 space-y-2">
+            {/* Encryption & Schedule Status */}
+            {(isEncryptionEnabled || isScheduled) && (
+              <div className="flex gap-2">
+                {isEncryptionEnabled && (
+                  <div className="flex items-center gap-1 text-xs text-green-600 bg-green-50 px-2 py-1 rounded-full">
+                    <Shield size={12} />
+                    Encrypted
+                  </div>
+                )}
+                {isScheduled && (
+                  <div className="flex items-center gap-1 text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded-full">
+                    <Calendar size={12} />
+                    Scheduled
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Message Input */}
+            <Textarea
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              onKeyPress={handleKeyPress}
+              placeholder={placeholder}
+              disabled={disabled || isEncrypting}
+              className="min-h-[44px] max-h-32 resize-none"
+              rows={1}
+            />
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex gap-1 flex-shrink-0">
+            {/* Emoji Picker */}
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="ghost" size="icon" disabled={disabled}>
+                  <Smile size={16} />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-64 p-2">
+                <div className="grid grid-cols-8 gap-1">
+                  {emojiOptions.map((emoji) => (
+                    <Button
+                      key={emoji}
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setMessage(prev => prev + emoji)}
+                      className="h-8 w-8 p-0"
+                    >
+                      {emoji}
+                    </Button>
+                  ))}
+                </div>
+              </PopoverContent>
+            </Popover>
+
+            {/* Voice Message */}
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setShowVoiceRecorder(true)}
+              disabled={disabled}
+            >
+              <Mic size={16} />
+            </Button>
+
+            {/* More Options */}
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="ghost" size="icon" disabled={disabled}>
+                  <MoreHorizontal size={16} />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-56">
+                <div className="space-y-2">
+                  {showEncryption && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setIsEncryptionEnabled(!isEncryptionEnabled)}
+                      className="w-full justify-start"
+                    >
+                      {isEncryptionEnabled ? <Shield size={16} /> : <ShieldOff size={16} />}
+                      <span className="ml-2">
+                        {isEncryptionEnabled ? 'Disable' : 'Enable'} Encryption
+                      </span>
+                    </Button>
+                  )}
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setIsScheduled(!isScheduled)}
+                    className="w-full justify-start"
+                  >
+                    <Calendar size={16} />
+                    <span className="ml-2">Schedule Message</span>
+                  </Button>
+                </div>
+              </PopoverContent>
+            </Popover>
+
+            {/* Send Button */}
+            <Button
+              onClick={handleSendMessage}
+              disabled={!message.trim() || disabled || isEncrypting}
+              size="icon"
+              className="flex-shrink-0"
+            >
+              {isEncrypting ? (
+                <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+              ) : (
+                <Send size={16} />
+              )}
+            </Button>
           </div>
         </div>
       )}
-      
-      <form onSubmit={handleSubmit} className="flex items-center gap-2 p-4">
-        <input
-          type="file"
-          ref={fileInputRef}
-          onChange={handleFileChange}
-          className="hidden"
-          accept="image/*,application/pdf,.doc,.docx"
-        />
-        
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          onClick={handleFileUpload}
-          disabled={disabled}
-          className="p-2"
-        >
-          <Paperclip className="w-4 h-4" />
-        </Button>
-        
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          disabled={disabled}
-          className="p-2"
-        >
-          <Image className="w-4 h-4" />
-        </Button>
-
-        <Input
-          value={message}
-          onChange={handleInputChange}
-          onKeyPress={handleKeyPress}
-          placeholder={placeholder}
-          disabled={disabled}
-          className="flex-1"
-        />
-
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          disabled={disabled}
-          className="p-2"
-        >
-          <Smile className="w-4 h-4" />
-        </Button>
-
-        <Button 
-          type="submit" 
-          size="sm"
-          disabled={!message.trim() || disabled}
-          className="px-4"
-        >
-          <Send className="w-4 h-4" />
-        </Button>
-      </form>
     </div>
   );
 };
