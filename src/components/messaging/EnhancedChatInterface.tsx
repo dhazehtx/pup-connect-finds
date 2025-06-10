@@ -1,14 +1,16 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Send, Image, Paperclip } from 'lucide-react';
+import { Send, Image, Paperclip, Smile } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import { useRealtimeMessaging } from '@/hooks/useRealtimeMessaging';
+import { useRealtimeMessages } from '@/hooks/useRealtimeMessages';
 import { useEnhancedFileUpload } from '@/hooks/useEnhancedFileUpload';
 import { useAuth } from '@/contexts/AuthContext';
 import { formatDistanceToNow } from 'date-fns';
+import { useToast } from '@/hooks/use-toast';
+import MessageStatusIndicator from './MessageStatusIndicator';
 
 interface EnhancedChatInterfaceProps {
   conversationId: string;
@@ -20,12 +22,17 @@ const EnhancedChatInterface = ({ conversationId, otherUserId, listingId }: Enhan
   const { t } = useTranslation();
   const [newMessage, setNewMessage] = useState('');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [sendingMessage, setSendingMessage] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   const { user } = useAuth();
-  const { messages, fetchMessages, sendMessage, markAsRead } = useRealtimeMessaging();
+  const { toast } = useToast();
+  const { messages, fetchMessages, sendMessage, markAsRead } = useRealtimeMessages();
   const { uploadFile, uploading } = useEnhancedFileUpload();
+
+  console.log('EnhancedChatInterface loaded for conversation:', conversationId);
+  console.log('Current messages:', messages);
 
   // Auto-scroll to bottom
   const scrollToBottom = () => {
@@ -35,6 +42,7 @@ const EnhancedChatInterface = ({ conversationId, otherUserId, listingId }: Enhan
   // Load messages when conversation changes
   useEffect(() => {
     if (conversationId) {
+      console.log('Loading messages for conversation:', conversationId);
       fetchMessages(conversationId);
       markAsRead(conversationId);
     }
@@ -47,33 +55,51 @@ const EnhancedChatInterface = ({ conversationId, otherUserId, listingId }: Enhan
 
   // Handle sending message
   const handleSendMessage = async () => {
-    if ((!newMessage.trim() && !selectedFile) || !user) return;
+    if ((!newMessage.trim() && !selectedFile) || !user || sendingMessage) return;
 
-    let imageUrl: string | undefined;
+    console.log('Sending message:', { content: newMessage, hasFile: !!selectedFile });
+    setSendingMessage(true);
 
-    // Upload file if selected
-    if (selectedFile) {
-      imageUrl = await uploadFile(selectedFile, {
-        bucket: 'dog-images',
-        folder: 'messages',
-        maxSize: 10,
-        allowedTypes: ['image/jpeg', 'image/png', 'image/webp']
-      }) || undefined;
-    }
+    try {
+      let imageUrl: string | undefined;
 
-    // Send message with correct parameters
-    await sendMessage(
-      conversationId,
-      newMessage.trim() || (selectedFile ? t('messaging.imageMessage') : ''),
-      selectedFile ? 'image' : 'text',
-      imageUrl
-    );
+      // Upload file if selected
+      if (selectedFile) {
+        console.log('Uploading file:', selectedFile.name);
+        imageUrl = await uploadFile(selectedFile, {
+          bucket: 'dog-images',
+          folder: 'messages',
+          maxSize: 10,
+          allowedTypes: ['image/jpeg', 'image/png', 'image/webp']
+        }) || undefined;
+      }
 
-    // Clear inputs
-    setNewMessage('');
-    setSelectedFile(null);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
+      // Send message
+      const result = await sendMessage(
+        conversationId,
+        newMessage.trim() || (selectedFile ? t('messaging.imageMessage') || 'Image' : ''),
+        selectedFile ? 'image' : 'text',
+        imageUrl
+      );
+
+      if (result) {
+        console.log('Message sent successfully:', result.id);
+        // Clear inputs
+        setNewMessage('');
+        setSelectedFile(null);
+        if (fileInputRef.current) {
+          fileInputRef.current.value = '';
+        }
+      }
+    } catch (error) {
+      console.error('Failed to send message:', error);
+      toast({
+        title: "Failed to send message",
+        description: "Please check your connection and try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setSendingMessage(false);
     }
   };
 
@@ -81,6 +107,7 @@ const EnhancedChatInterface = ({ conversationId, otherUserId, listingId }: Enhan
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
+      console.log('File selected:', file.name);
       setSelectedFile(file);
     }
   };
@@ -93,50 +120,80 @@ const EnhancedChatInterface = ({ conversationId, otherUserId, listingId }: Enhan
     }
   };
 
+  const getMessageStatus = (message: any) => {
+    if (message.sender_id !== user?.id) return null;
+    
+    if (message.read_at) return 'read';
+    // For now, assume messages are delivered when created
+    return 'delivered';
+  };
+
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full bg-white">
       {/* Messages List */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
-        {messages.map((message) => {
-          const isOwn = message.sender_id === user?.id;
-          const messageTime = formatDistanceToNow(new Date(message.created_at), { addSuffix: true });
-
-          return (
-            <div
-              key={message.id}
-              className={`flex gap-3 ${isOwn ? 'flex-row-reverse' : 'flex-row'}`}
-            >
-              <Avatar className="w-8 h-8">
-                <AvatarImage src="/placeholder.svg" />
-                <AvatarFallback>
-                  {isOwn ? 'Y' : 'T'}
-                </AvatarFallback>
-              </Avatar>
-
-              <div className={`max-w-xs lg:max-w-md ${isOwn ? 'text-right' : 'text-left'}`}>
-                <div
-                  className={`rounded-lg px-3 py-2 ${
-                    isOwn
-                      ? 'bg-blue-500 text-white'
-                      : 'bg-gray-100 text-gray-900'
-                  }`}
-                >
-                  {message.message_type === 'image' && message.image_url && (
-                    <img
-                      src={message.image_url}
-                      alt="Shared image"
-                      className="rounded mb-2 max-w-full h-auto"
-                    />
-                  )}
-                  {message.content && (
-                    <p className="text-sm">{message.content}</p>
-                  )}
-                </div>
-                <p className="text-xs text-gray-500 mt-1">{messageTime}</p>
-              </div>
+        {messages.length === 0 ? (
+          <div className="flex items-center justify-center h-full text-gray-500">
+            <div className="text-center">
+              <Smile className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+              <p>No messages yet. Start the conversation!</p>
             </div>
-          );
-        })}
+          </div>
+        ) : (
+          messages.map((message) => {
+            const isOwn = message.sender_id === user?.id;
+            const messageTime = formatDistanceToNow(new Date(message.created_at), { addSuffix: true });
+
+            return (
+              <div
+                key={message.id}
+                className={`flex gap-3 ${isOwn ? 'flex-row-reverse' : 'flex-row'}`}
+              >
+                <Avatar className="w-8 h-8 flex-shrink-0">
+                  <AvatarImage src="/placeholder.svg" />
+                  <AvatarFallback className="text-xs">
+                    {isOwn ? 'Me' : 'U'}
+                  </AvatarFallback>
+                </Avatar>
+
+                <div className={`max-w-xs lg:max-w-md ${isOwn ? 'text-right' : 'text-left'}`}>
+                  <div
+                    className={`rounded-lg px-3 py-2 ${
+                      isOwn
+                        ? 'bg-blue-500 text-white'
+                        : 'bg-gray-100 text-gray-900'
+                    }`}
+                  >
+                    {message.message_type === 'image' && message.image_url && (
+                      <img
+                        src={message.image_url}
+                        alt="Shared image"
+                        className="rounded mb-2 max-w-full h-auto"
+                        onError={(e) => {
+                          console.log('Image failed to load:', message.image_url);
+                          e.currentTarget.style.display = 'none';
+                        }}
+                      />
+                    )}
+                    {message.content && (
+                      <p className="text-sm break-words">{message.content}</p>
+                    )}
+                  </div>
+                  
+                  <div className={`flex items-center gap-1 mt-1 ${isOwn ? 'justify-end' : 'justify-start'}`}>
+                    <span className="text-xs text-gray-500">{messageTime}</span>
+                    {isOwn && (
+                      <MessageStatusIndicator 
+                        status={getMessageStatus(message) || 'sent'} 
+                        size={12}
+                      />
+                    )}
+                  </div>
+                </div>
+              </div>
+            );
+          })
+        )}
         <div ref={messagesEndRef} />
       </div>
 
@@ -144,11 +201,20 @@ const EnhancedChatInterface = ({ conversationId, otherUserId, listingId }: Enhan
       {selectedFile && (
         <div className="px-4 py-2 bg-gray-50 border-t">
           <div className="flex items-center gap-2">
-            <span className="text-sm text-gray-600">Selected: {selectedFile.name}</span>
+            <Image className="w-4 h-4 text-gray-500" />
+            <span className="text-sm text-gray-600 flex-1 truncate">
+              Selected: {selectedFile.name}
+            </span>
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => setSelectedFile(null)}
+              onClick={() => {
+                setSelectedFile(null);
+                if (fileInputRef.current) {
+                  fileInputRef.current.value = '';
+                }
+              }}
+              className="h-6 px-2 text-xs"
             >
               Remove
             </Button>
@@ -157,8 +223,8 @@ const EnhancedChatInterface = ({ conversationId, otherUserId, listingId }: Enhan
       )}
 
       {/* Message Input */}
-      <div className="p-4 border-t">
-        <div className="flex gap-2">
+      <div className="p-4 border-t bg-white">
+        <div className="flex gap-2 items-end">
           <input
             type="file"
             ref={fileInputRef}
@@ -171,25 +237,33 @@ const EnhancedChatInterface = ({ conversationId, otherUserId, listingId }: Enhan
             variant="outline"
             size="icon"
             onClick={() => fileInputRef.current?.click()}
-            disabled={uploading}
+            disabled={uploading || sendingMessage}
+            className="flex-shrink-0"
           >
             <Image size={16} />
           </Button>
 
-          <Input
-            value={newMessage}
-            onChange={(e) => setNewMessage(e.target.value)}
-            onKeyPress={handleKeyPress}
-            placeholder={t('messaging.typeMessage')}
-            className="flex-1"
-            disabled={uploading}
-          />
+          <div className="flex-1">
+            <Input
+              value={newMessage}
+              onChange={(e) => setNewMessage(e.target.value)}
+              onKeyPress={handleKeyPress}
+              placeholder={t('messaging.typeMessage') || 'Type your message...'}
+              disabled={uploading || sendingMessage}
+              className="resize-none"
+            />
+          </div>
 
           <Button
             onClick={handleSendMessage}
-            disabled={(!newMessage.trim() && !selectedFile) || uploading}
+            disabled={(!newMessage.trim() && !selectedFile) || uploading || sendingMessage}
+            className="flex-shrink-0"
           >
-            <Send size={16} />
+            {sendingMessage ? (
+              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+            ) : (
+              <Send size={16} />
+            )}
           </Button>
         </div>
       </div>
