@@ -1,70 +1,105 @@
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { useToast } from '@/hooks/use-toast';
 
 interface SearchResult {
   id: string;
   content: string;
-  created_at: string;
-  sender_id: string;
-  conversation_id: string;
   message_type: string;
+  created_at: string;
+  conversation_id: string;
+  sender_id: string;
+}
+
+interface SearchFilters {
+  messageTypes?: string[];
+  dateRange?: { start: string; end: string };
+  sender?: string;
 }
 
 export const useMessageSearch = () => {
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const { user } = useAuth();
-  const { toast } = useToast();
 
-  const searchMessages = async (query: string, conversationId?: string) => {
-    if (!user || !query.trim()) return;
+  const searchMessages = useCallback(async (
+    query: string, 
+    conversationId?: string,
+    filters?: SearchFilters
+  ) => {
+    if (!user || !query.trim()) {
+      setSearchResults([]);
+      return;
+    }
 
     setIsSearching(true);
     try {
       let queryBuilder = supabase
         .from('messages')
-        .select('id, content, created_at, sender_id, conversation_id, message_type')
-        .textSearch('content', query)
-        .order('created_at', { ascending: false })
-        .limit(50);
+        .select('id, content, message_type, created_at, conversation_id, sender_id')
+        .or(`content.ilike.%${query}%,encrypted_content.ilike.%${query}%`);
 
+      // Filter by conversation if provided
       if (conversationId) {
         queryBuilder = queryBuilder.eq('conversation_id', conversationId);
       } else {
-        // Search only in conversations where user is participant
+        // Only search in conversations where user is a participant
         const { data: userConversations } = await supabase
           .from('conversations')
           .select('id')
           .or(`buyer_id.eq.${user.id},seller_id.eq.${user.id}`);
-
-        if (userConversations) {
-          const conversationIds = userConversations.map(c => c.id);
+        
+        const conversationIds = userConversations?.map(c => c.id) || [];
+        if (conversationIds.length > 0) {
           queryBuilder = queryBuilder.in('conversation_id', conversationIds);
         }
       }
 
+      // Apply filters
+      if (filters?.messageTypes && filters.messageTypes.length > 0) {
+        queryBuilder = queryBuilder.in('message_type', filters.messageTypes);
+      }
+
+      if (filters?.dateRange?.start && filters?.dateRange?.end) {
+        queryBuilder = queryBuilder
+          .gte('created_at', filters.dateRange.start)
+          .lte('created_at', filters.dateRange.end);
+      }
+
+      // Order by relevance (most recent first)
+      queryBuilder = queryBuilder.order('created_at', { ascending: false }).limit(50);
+
       const { data, error } = await queryBuilder;
 
-      if (error) throw error;
-      setSearchResults(data || []);
+      if (error) {
+        console.error('Search error:', error);
+        setSearchResults([]);
+      } else {
+        let results = data || [];
+
+        // Apply sender filter if provided (client-side filtering for now)
+        if (filters?.sender) {
+          // This would require joining with profiles table for better implementation
+          results = results.filter(result => 
+            result.sender_id.includes(filters.sender!) // Simplified for demo
+          );
+        }
+
+        setSearchResults(results);
+      }
     } catch (error) {
       console.error('Search error:', error);
-      toast({
-        title: "Search failed",
-        description: "Unable to search messages. Please try again.",
-        variant: "destructive",
-      });
+      setSearchResults([]);
     } finally {
       setIsSearching(false);
     }
-  };
+  }, [user]);
 
-  const clearSearch = () => {
+  const clearSearch = useCallback(() => {
     setSearchResults([]);
-  };
+    setIsSearching(false);
+  }, []);
 
   return {
     searchResults,

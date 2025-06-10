@@ -1,74 +1,75 @@
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 
-export const useRealtimeTyping = () => {
-  const [typingUsers, setTypingUsers] = useState<Set<string>>(new Set());
-  const { user } = useAuth();
-  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+interface TypingUser {
+  id: string;
+  name: string;
+  avatar?: string;
+}
 
-  const sendTypingIndicator = (conversationId: string, isTyping: boolean) => {
+export const useRealtimeTyping = () => {
+  const [typingUsers, setTypingUsers] = useState<TypingUser[]>([]);
+  const { user } = useAuth();
+
+  const sendTypingIndicator = useCallback(async (conversationId: string, isTyping: boolean) => {
     if (!user) return;
 
-    const channel = supabase.channel(`typing_${conversationId}`);
-    
-    if (isTyping) {
-      channel.send({
-        type: 'broadcast',
-        event: 'typing',
-        payload: { 
+    try {
+      const channel = supabase.channel(`typing-${conversationId}`);
+      
+      if (isTyping) {
+        await channel.track({
           user_id: user.id,
+          name: user.user_metadata?.full_name || user.email?.split('@')[0] || 'Anonymous',
+          avatar: user.user_metadata?.avatar_url,
           typing: true,
           timestamp: Date.now()
-        }
-      });
-    } else {
-      channel.send({
-        type: 'broadcast',
-        event: 'typing',
-        payload: { 
-          user_id: user.id,
-          typing: false,
-          timestamp: Date.now()
-        }
-      });
+        });
+      } else {
+        await channel.untrack();
+      }
+    } catch (error) {
+      console.error('Error sending typing indicator:', error);
     }
-  };
+  }, [user]);
 
-  const setupTypingSubscription = (conversationId: string) => {
+  const setupTypingSubscription = useCallback((conversationId: string) => {
+    if (!user) return () => {};
+
     const channel = supabase
-      .channel(`typing_${conversationId}`)
-      .on('broadcast', { event: 'typing' }, (payload) => {
-        const { user_id, typing } = payload.payload;
+      .channel(`typing-${conversationId}`)
+      .on('presence', { event: 'sync' }, () => {
+        const state = channel.presenceState();
+        const users: TypingUser[] = [];
         
-        if (user_id !== user?.id) {
-          setTypingUsers(prev => {
-            const newSet = new Set(prev);
-            if (typing) {
-              newSet.add(user_id);
-              
-              // Auto-remove after 5 seconds
-              setTimeout(() => {
-                setTypingUsers(current => {
-                  const updated = new Set(current);
-                  updated.delete(user_id);
-                  return updated;
+        Object.values(state).forEach((presences: any) => {
+          presences.forEach((presence: any) => {
+            if (presence.user_id !== user.id && presence.typing) {
+              // Check if timestamp is recent (within last 5 seconds)
+              const isRecent = Date.now() - presence.timestamp < 5000;
+              if (isRecent) {
+                users.push({
+                  id: presence.user_id,
+                  name: presence.name,
+                  avatar: presence.avatar
                 });
-              }, 5000);
-            } else {
-              newSet.delete(user_id);
+              }
             }
-            return newSet;
           });
-        }
+        });
+        
+        setTypingUsers(users);
       })
       .subscribe();
 
+    // Cleanup function
     return () => {
       supabase.removeChannel(channel);
+      setTypingUsers([]);
     };
-  };
+  }, [user]);
 
   return {
     typingUsers,
