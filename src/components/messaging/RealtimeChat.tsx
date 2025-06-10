@@ -1,7 +1,7 @@
 
 import React, { useEffect, useRef } from 'react';
 import { useRealtimeMessages } from '@/hooks/useRealtime';
-import { useMessaging } from '@/hooks/useMessaging';
+import { useMessagingRefactored } from '@/hooks/messaging/useMessagingRefactored';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 
@@ -12,7 +12,7 @@ interface RealtimeChatProps {
 
 const RealtimeChat = ({ conversationId, children }: RealtimeChatProps) => {
   const { user } = useAuth();
-  const { fetchMessages } = useMessaging();
+  const { fetchMessages } = useMessagingRefactored();
   const { toast } = useToast();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const lastMessageCountRef = useRef(0);
