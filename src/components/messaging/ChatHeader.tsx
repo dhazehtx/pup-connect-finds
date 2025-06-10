@@ -1,69 +1,59 @@
 
 import React from 'react';
-import { ArrowLeft, Phone, Video, MoreVertical } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
+import { ArrowLeft, Settings } from 'lucide-react';
+import { CardHeader } from '@/components/ui/card';
 
 interface ChatHeaderProps {
-  user: {
-    full_name: string;
-    avatar_url?: string;
-    username?: string;
-  };
-  isOnline?: boolean;
   onBack: () => void;
-  onCall?: () => void;
-  onVideoCall?: () => void;
+  otherUser: any;
+  isUserOnline: boolean;
+  selectedConversation: any;
 }
 
-const ChatHeader = ({ user, isOnline, onBack, onCall, onVideoCall }: ChatHeaderProps) => {
+const ChatHeader = ({ 
+  onBack, 
+  otherUser, 
+  isUserOnline, 
+  selectedConversation 
+}: ChatHeaderProps) => {
   return (
-    <div className="flex items-center justify-between p-4 border-b bg-white">
-      <div className="flex items-center gap-3">
-        <Button variant="ghost" size="icon" onClick={onBack}>
-          <ArrowLeft size={20} />
-        </Button>
-        
-        <Avatar className="w-10 h-10">
-          <AvatarImage src={user.avatar_url} />
-          <AvatarFallback>
-            {user.full_name?.charAt(0) || 'U'}
-          </AvatarFallback>
-        </Avatar>
-        
-        <div className="flex-1">
-          <h3 className="font-semibold text-gray-900">
-            {user.full_name || user.username || 'Unknown User'}
-          </h3>
-          <div className="flex items-center gap-2">
-            {isOnline && (
-              <Badge variant="secondary" className="text-xs">
-                Online
-              </Badge>
-            )}
-          </div>
+    <CardHeader className="flex flex-row items-center gap-3 border-b p-4">
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={onBack}
+        className="p-2"
+      >
+        <ArrowLeft className="w-4 h-4" />
+      </Button>
+
+      <Avatar className="w-10 h-10">
+        <AvatarImage src={otherUser?.avatar_url || ''} />
+        <AvatarFallback>
+          {otherUser?.full_name?.charAt(0) || 'U'}
+        </AvatarFallback>
+      </Avatar>
+
+      <div className="flex-1">
+        <h3 className="font-semibold">
+          {otherUser?.full_name || otherUser?.username || 'Anonymous'}
+        </h3>
+        <div className="flex items-center gap-2">
+          <div className={`w-2 h-2 rounded-full ${
+            isUserOnline ? 'bg-green-500' : 'bg-gray-400'
+          }`} />
+          <span className="text-xs text-muted-foreground">
+            {isUserOnline ? 'Online' : 'Offline'}
+          </span>
         </div>
       </div>
 
-      <div className="flex items-center gap-1">
-        {onCall && (
-          <Button variant="ghost" size="icon" onClick={onCall}>
-            <Phone size={20} />
-          </Button>
-        )}
-        
-        {onVideoCall && (
-          <Button variant="ghost" size="icon" onClick={onVideoCall}>
-            <Video size={20} />
-          </Button>
-        )}
-        
-        <Button variant="ghost" size="icon">
-          <MoreVertical size={20} />
-        </Button>
-      </div>
-    </div>
+      <Button variant="ghost" size="sm" className="p-2">
+        <Settings className="w-4 h-4" />
+      </Button>
+    </CardHeader>
   );
 };
 
