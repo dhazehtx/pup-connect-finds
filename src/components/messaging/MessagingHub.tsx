@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useMemo } from 'react';
 import { Card } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -30,7 +29,7 @@ const MessagingHub = () => {
     setUnreadCount(totalUnreadCount);
   }, [totalUnreadCount]);
 
-  const handleMessageSelect = (messageId: string) => {
+  const handleResultSelect = (messageId: string) => {
     setActiveTab('messages');
     // TODO: Navigate to specific message
     console.log('Navigating to message:', messageId);
@@ -121,7 +120,7 @@ const MessagingHub = () => {
           <TabsContent value="search" className="h-full m-0 p-4">
             <div className="container mx-auto max-w-4xl h-full">
               <Card className="h-full">
-                <AdvancedMessageSearch onMessageSelect={handleMessageSelect} />
+                <AdvancedMessageSearch onResultSelect={handleResultSelect} />
               </Card>
             </div>
           </TabsContent>

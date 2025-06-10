@@ -28,7 +28,7 @@ const AdvancedMessagingHub = () => {
     console.log('Exporting conversation:', conversationId);
   };
 
-  const handleMessageSelect = (messageId: string) => {
+  const handleResultSelect = (messageId: string) => {
     // Implementation would navigate to message
     console.log('Navigating to message:', messageId);
   };
@@ -64,7 +64,7 @@ const AdvancedMessagingHub = () => {
         <TabsContent value="search" className="flex-1 m-0 p-4">
           <div className="max-w-2xl mx-auto">
             <h2 className="text-xl font-semibold mb-4">Advanced Message Search</h2>
-            <AdvancedMessageSearch onMessageSelect={handleMessageSelect} />
+            <AdvancedMessageSearch onResultSelect={handleResultSelect} />
           </div>
         </TabsContent>
 
