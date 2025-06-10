@@ -21,30 +21,8 @@ export const useMessageThreads = () => {
 
   const fetchThreadMessages = useCallback(async (parentMessageId: string) => {
     try {
-      // For now, use regular messages table to simulate threads
-      // Filter messages that reference the parent message
-      const { data, error } = await supabase
-        .from('messages')
-        .select(`
-          *,
-          profiles:sender_id (
-            full_name,
-            username
-          )
-        `)
-        .eq('conversation_id', parentMessageId) // Using conversation_id as a placeholder
-        .order('created_at', { ascending: true });
-
-      if (error) throw error;
-
-      const formattedMessages = (data || []).map(msg => ({
-        id: msg.id,
-        parent_message_id: parentMessageId,
-        sender_id: msg.sender_id,
-        content: msg.content,
-        created_at: msg.created_at,
-        sender_name: msg.profiles?.full_name || msg.profiles?.username || 'Unknown User'
-      }));
+      // For now, return empty array since we don't have thread_messages table
+      const formattedMessages: ThreadMessage[] = [];
 
       setThreads(prev => ({
         ...prev,
@@ -86,13 +64,7 @@ export const useMessageThreads = () => {
           content: `Reply: ${content}`,
           message_type: 'thread_reply'
         }])
-        .select(`
-          *,
-          profiles:sender_id (
-            full_name,
-            username
-          )
-        `)
+        .select()
         .single();
 
       if (error) throw error;
@@ -101,9 +73,9 @@ export const useMessageThreads = () => {
         id: data.id,
         parent_message_id: parentMessageId,
         sender_id: data.sender_id,
-        content: data.content,
+        content: data.content || '',
         created_at: data.created_at,
-        sender_name: data.profiles?.full_name || data.profiles?.username || 'Unknown User'
+        sender_name: user.email?.split('@')[0] || 'Unknown User'
       };
 
       // Update local thread state
