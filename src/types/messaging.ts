@@ -37,3 +37,9 @@ export interface Message {
   encrypted_content?: string;
   encryption_key_id?: string;
 }
+
+export interface EncryptedMessage extends Message {
+  is_encrypted: boolean;
+  encrypted_content?: string;
+  encryption_key_id?: string;
+}

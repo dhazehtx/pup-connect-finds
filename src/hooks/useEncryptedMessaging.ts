@@ -2,19 +2,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRealtimeMessages } from '@/hooks/useRealtimeMessages';
-
-interface EncryptedMessage {
-  id: string;
-  conversation_id: string;
-  sender_id: string;
-  content: string;
-  message_type: string;
-  image_url?: string;
-  created_at: string;
-  is_encrypted: boolean;
-  encrypted_content?: string;
-  encryption_key_id?: string;
-}
+import { Message } from '@/types/messaging';
 
 export const useEncryptedMessaging = () => {
   const { user } = useAuth();
@@ -119,10 +107,10 @@ export const useEncryptedMessaging = () => {
       throw new Error('Failed to encrypt message');
     }
 
-    return sendMessage(conversationId, '', messageType, imageUrl);
+    return sendMessage(conversationId, content, messageType, imageUrl);
   };
 
-  const decryptReceivedMessage = async (message: EncryptedMessage): Promise<string> => {
+  const decryptReceivedMessage = async (message: Message): Promise<string> => {
     if (!message.is_encrypted || !message.encrypted_content) {
       return message.content;
     }
