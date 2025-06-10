@@ -17,9 +17,13 @@ const MessagingHub = () => {
   const [activeTab, setActiveTab] = useState('messages');
   const [unreadCount, setUnreadCount] = useState(0);
 
-  // Calculate unread messages count
+  // Calculate unread messages count - using a fallback of 0 if unread_count doesn't exist
   const totalUnreadCount = useMemo(() => {
-    return conversations.reduce((total, conv) => total + (conv.unread_count || 0), 0);
+    return conversations.reduce((total, conv) => {
+      // Safely access unread_count with fallback
+      const unreadCount = (conv as any).unread_count || 0;
+      return total + unreadCount;
+    }, 0);
   }, [conversations]);
 
   useEffect(() => {
