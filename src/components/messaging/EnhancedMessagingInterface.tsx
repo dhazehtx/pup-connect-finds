@@ -51,16 +51,22 @@ const EnhancedMessagingInterface = () => {
   };
 
   const handleFileSelect = async (file: File) => {
-    if (file.type.startsWith('image/')) {
-      const imageUrl = await uploadImage(file);
-      if (imageUrl) {
-        await handleSendMessage(`Shared an image: ${file.name}`, 'image', { imageUrl });
+    if (!selectedConversationId) return;
+    
+    try {
+      if (file.type.startsWith('image/')) {
+        const imageUrl = await uploadImage(file);
+        if (imageUrl) {
+          await handleSendMessage(`Shared an image: ${file.name}`, 'image', { imageUrl });
+        }
+      } else {
+        const fileUrl = await uploadFile(file);
+        if (fileUrl) {
+          await handleSendMessage(`Shared a file: ${file.name}`, 'file', { imageUrl: fileUrl });
+        }
       }
-    } else {
-      const fileUrl = await uploadFile(file);
-      if (fileUrl) {
-        await handleSendMessage(`Shared a file: ${file.name}`, 'file', { imageUrl: fileUrl });
-      }
+    } catch (error) {
+      console.error('File upload failed:', error);
     }
   };
 
@@ -131,6 +137,7 @@ const EnhancedMessagingInterface = () => {
       />
 
       <EnhancedMessageInput
+        conversationId={selectedConversationId}
         onSendMessage={handleSendMessage}
         onSendVoiceMessage={handleVoiceMessage}
         onFileSelect={handleFileSelect}

@@ -54,16 +54,20 @@ const MessageInputArea = ({
   const { uploadImage, uploadFile } = useFileUpload();
 
   const handleFileUpload = async (file: File) => {
-    if (file.type.startsWith('image/')) {
-      const imageUrl = await uploadImage(file);
-      if (imageUrl) {
-        await sendMessage(conversationId, `Shared an image: ${file.name}`, 'image', imageUrl);
+    try {
+      if (file.type.startsWith('image/')) {
+        const imageUrl = await uploadImage(file);
+        if (imageUrl) {
+          await sendMessage(conversationId, `Shared an image: ${file.name}`, 'image', imageUrl);
+        }
+      } else {
+        const fileUrl = await uploadFile(file);
+        if (fileUrl) {
+          await sendMessage(conversationId, `Shared a file: ${file.name}`, 'file', fileUrl);
+        }
       }
-    } else {
-      const fileUrl = await uploadFile(file);
-      if (fileUrl) {
-        await sendMessage(conversationId, `Shared a file: ${file.name}`, 'file', fileUrl);
-      }
+    } catch (error) {
+      console.error('File upload failed:', error);
     }
     setSelectedFile(null);
   };

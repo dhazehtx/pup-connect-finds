@@ -64,6 +64,18 @@ export const useFileUpload = (options?: UseFileUploadOptions) => {
     }
   }, [toast, options]);
 
+  const uploadImage = useCallback(async (file: File): Promise<string> => {
+    if (!file.type.startsWith('image/')) {
+      toast({
+        title: "Invalid file type",
+        description: "Please select an image file",
+        variant: "destructive",
+      });
+      throw new Error('Invalid file type');
+    }
+    return uploadFile(file);
+  }, [uploadFile, toast]);
+
   const uploadAudio = useCallback(async (audioBlob: Blob): Promise<string> => {
     const audioFile = new File([audioBlob], `voice-${Date.now()}.webm`, {
       type: 'audio/webm'
@@ -78,6 +90,7 @@ export const useFileUpload = (options?: UseFileUploadOptions) => {
 
   return {
     uploadFile,
+    uploadImage,
     uploadAudio,
     uploadVoiceMessage,
     isUploading,

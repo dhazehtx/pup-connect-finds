@@ -12,6 +12,7 @@ interface EnhancedMessageInputProps {
   conversationId: string;
   onSendMessage: (content: string, type?: string, fileUrl?: string) => void;
   onSendVoiceMessage?: (audioUrl: string, duration: number) => void;
+  onFileSelect?: (file: File) => void;
   placeholder?: string;
 }
 
@@ -19,6 +20,7 @@ const EnhancedMessageInput = ({
   conversationId,
   onSendMessage,
   onSendVoiceMessage,
+  onFileSelect,
   placeholder = "Type a message..."
 }: EnhancedMessageInputProps) => {
   const [message, setMessage] = useState('');
@@ -51,11 +53,15 @@ const EnhancedMessageInput = ({
     stopTyping(conversationId);
     
     if (selectedFile) {
-      try {
-        const fileUrl = await uploadFile(selectedFile);
-        onSendMessage(message || `Shared ${selectedFile.name}`, 'file', fileUrl);
-      } catch (error) {
-        console.error('File upload failed:', error);
+      if (onFileSelect) {
+        onFileSelect(selectedFile);
+      } else {
+        try {
+          const fileUrl = await uploadFile(selectedFile);
+          onSendMessage(message || `Shared ${selectedFile.name}`, 'file', fileUrl);
+        } catch (error) {
+          console.error('File upload failed:', error);
+        }
       }
       setSelectedFile(null);
     } else {
@@ -107,7 +113,7 @@ const EnhancedMessageInput = ({
         try {
           const audioUrl = await uploadAudio(audioBlob);
           if (onSendVoiceMessage) {
-            onSendVoiceMessage(audioUrl, 0); // Duration calculation can be added later
+            onSendVoiceMessage(audioUrl, 0);
           } else {
             onSendMessage('Voice message', 'voice', audioUrl);
           }
