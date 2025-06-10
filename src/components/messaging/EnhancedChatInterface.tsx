@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Send, Image, Paperclip, Smile, MoreHorizontal } from 'lucide-react';
+import { Send, Image, Paperclip, Smile, MoreHorizontal, MessageSquare } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
@@ -14,6 +14,8 @@ import { useToast } from '@/hooks/use-toast';
 import MessageStatusIndicator from './MessageStatusIndicator';
 import MessageReactionsPicker from './MessageReactionsPicker';
 import MessageReactionsDisplay from './MessageReactionsDisplay';
+import MessageThread from './MessageThread';
+import { useMessageThreads } from '@/hooks/useMessageThreads';
 
 interface EnhancedChatInterfaceProps {
   conversationId: string;
@@ -35,6 +37,15 @@ const EnhancedChatInterface = ({ conversationId, otherUserId, listingId }: Enhan
     messageId: null,
     position: null
   });
+  const [threadState, setThreadState] = useState<{
+    isOpen: boolean;
+    parentMessageId: string | null;
+    parentMessage: any | null;
+  }>({
+    isOpen: false,
+    parentMessageId: null,
+    parentMessage: null
+  });
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
@@ -43,6 +54,7 @@ const EnhancedChatInterface = ({ conversationId, otherUserId, listingId }: Enhan
   const { messages, fetchMessages, sendMessage, markAsRead } = useRealtimeMessages();
   const { uploadFile, uploading } = useEnhancedFileUpload();
   const { reactions, addReaction, toggleReaction } = useMessageReactions();
+  const { getThreadCount } = useMessageThreads();
 
   console.log('EnhancedChatInterface loaded for conversation:', conversationId);
   console.log('Current messages:', messages);
@@ -225,6 +237,27 @@ const EnhancedChatInterface = ({ conversationId, otherUserId, listingId }: Enhan
     setReactionPickerState({ isOpen: false, messageId: null, position: null });
   };
 
+  const handleReplyToMessage = (message: any) => {
+    setThreadState({
+      isOpen: true,
+      parentMessageId: message.id,
+      parentMessage: {
+        content: message.content,
+        sender_name: message.sender_id === user?.id ? 'You' : 'User',
+        created_at: message.created_at,
+        sender_id: message.sender_id
+      }
+    });
+  };
+
+  const closeThread = () => {
+    setThreadState({
+      isOpen: false,
+      parentMessageId: null,
+      parentMessage: null
+    });
+  };
+
   if (!user) {
     return (
       <div className="flex items-center justify-center h-full">
@@ -249,6 +282,7 @@ const EnhancedChatInterface = ({ conversationId, otherUserId, listingId }: Enhan
             const isOwn = message.sender_id === user?.id;
             const messageTime = formatDistanceToNow(new Date(message.created_at), { addSuffix: true });
             const messageReactions = reactions[message.id] || [];
+            const threadCount = getThreadCount(message.id);
 
             return (
               <div
@@ -299,6 +333,15 @@ const EnhancedChatInterface = ({ conversationId, otherUserId, listingId }: Enhan
                         >
                           <Smile className="w-3 h-3" />
                         </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-6 w-6 p-0"
+                          onClick={() => handleReplyToMessage(message)}
+                          title="Reply in thread"
+                        >
+                          <MessageSquare className="w-3 h-3" />
+                        </Button>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
                             <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
@@ -306,7 +349,9 @@ const EnhancedChatInterface = ({ conversationId, otherUserId, listingId }: Enhan
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent>
-                            <DropdownMenuItem>Reply</DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleReplyToMessage(message)}>
+                              Reply in thread
+                            </DropdownMenuItem>
                             <DropdownMenuItem>Forward</DropdownMenuItem>
                             {isOwn && <DropdownMenuItem>Edit</DropdownMenuItem>}
                             <DropdownMenuItem className="text-destructive">Delete</DropdownMenuItem>
@@ -315,6 +360,19 @@ const EnhancedChatInterface = ({ conversationId, otherUserId, listingId }: Enhan
                       </div>
                     </div>
                   </div>
+
+                  {/* Thread indicator */}
+                  {threadCount > 0 && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className={`mt-1 h-6 text-xs ${isOwn ? 'ml-auto' : 'mr-auto'} flex items-center gap-1`}
+                      onClick={() => handleReplyToMessage(message)}
+                    >
+                      <MessageSquare className="w-3 h-3" />
+                      {threadCount} {threadCount === 1 ? 'reply' : 'replies'}
+                    </Button>
+                  )}
 
                   {/* Message Reactions */}
                   {messageReactions.length > 0 && (
@@ -342,6 +400,16 @@ const EnhancedChatInterface = ({ conversationId, otherUserId, listingId }: Enhan
         )}
         <div ref={messagesEndRef} />
       </div>
+
+      {/* Thread Dialog */}
+      {threadState.parentMessage && (
+        <MessageThread
+          parentMessageId={threadState.parentMessageId || ''}
+          isOpen={threadState.isOpen}
+          onClose={closeThread}
+          parentMessage={threadState.parentMessage}
+        />
+      )}
 
       {/* Reaction Picker */}
       <MessageReactionsPicker

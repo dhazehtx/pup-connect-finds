@@ -34,6 +34,8 @@ export interface Message {
   encrypted_content?: string;
   encryption_key_id?: string;
   reactions?: { [emoji: string]: string[] };
+  parent_message_id?: string;
+  thread_count?: number;
 }
 
 export interface MessageReaction {
@@ -49,4 +51,13 @@ export interface TypingIndicator {
   conversation_id: string;
   is_typing: boolean;
   timestamp: string;
+}
+
+export interface ThreadMessage {
+  id: string;
+  parent_message_id: string;
+  sender_id: string;
+  content: string;
+  created_at: string;
+  sender_name?: string;
 }
