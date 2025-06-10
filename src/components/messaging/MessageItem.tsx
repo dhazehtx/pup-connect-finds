@@ -1,9 +1,10 @@
 
 import React from 'react';
 import { formatDistanceToNow } from 'date-fns';
-import { Smile, MessageSquare, MoreHorizontal } from 'lucide-react';
+import { MessageSquare, MoreHorizontal } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import MessageStatusIndicator from './MessageStatusIndicator';
 import MessageReactionsDisplay from './MessageReactionsDisplay';
@@ -35,119 +36,148 @@ const MessageItem = ({
 }: MessageItemProps) => {
   const messageTime = formatDistanceToNow(new Date(message.created_at), { addSuffix: true });
 
-  return (
-    <div className={`flex gap-3 ${isOwn ? 'flex-row-reverse' : 'flex-row'} group`}>
-      <Avatar className="w-8 h-8 flex-shrink-0">
-        <AvatarImage src="/placeholder.svg" />
-        <AvatarFallback className="text-xs">
-          {isOwn ? 'Me' : 'U'}
-        </AvatarFallback>
-      </Avatar>
+  console.log('💬 MessageItem - Rendering message:', {
+    messageId: message.id,
+    isOwn,
+    messageType: message.message_type,
+    hasReactions: messageReactions.length > 0,
+    threadCount
+  });
 
-      <div className={`max-w-xs lg:max-w-md ${isOwn ? 'text-right' : 'text-left'}`}>
-        <div className="relative">
-          <div
-            className={`rounded-lg px-3 py-2 ${
-              isOwn
-                ? 'bg-primary text-primary-foreground'
-                : 'bg-muted text-muted-foreground'
-            }`}
-          >
-            {message.message_type === 'image' && message.image_url && (
+  return (
+    <div className={`flex gap-3 group hover:bg-muted/20 rounded-lg p-2 ${isOwn ? 'flex-row-reverse' : 'flex-row'}`}>
+      {/* Avatar */}
+      {!isOwn && (
+        <Avatar className="w-8 h-8 flex-shrink-0">
+          <AvatarImage src={user?.avatar_url} />
+          <AvatarFallback className="text-xs">
+            {user?.full_name?.charAt(0) || 'U'}
+          </AvatarFallback>
+        </Avatar>
+      )}
+
+      <div className={`flex-1 max-w-xs lg:max-w-md ${isOwn ? 'text-right' : 'text-left'}`}>
+        {/* Message Bubble */}
+        <div
+          className={`rounded-lg px-3 py-2 break-words ${
+            isOwn
+              ? 'bg-primary text-primary-foreground ml-auto'
+              : 'bg-muted text-muted-foreground'
+          }`}
+        >
+          {/* Image Message */}
+          {message.message_type === 'image' && message.image_url && (
+            <div className="mb-2">
               <img
                 src={message.image_url}
                 alt="Shared image"
-                className="rounded mb-2 max-w-full h-auto cursor-pointer hover:opacity-90 transition-opacity"
+                className="rounded max-w-full h-auto cursor-pointer hover:opacity-90 transition-opacity"
                 onClick={() => window.open(message.image_url, '_blank')}
-                onError={(e) => {
-                  console.log('Image failed to load:', message.image_url);
-                  e.currentTarget.style.display = 'none';
-                }}
+                loading="lazy"
               />
-            )}
-            {message.message_type === 'voice' && message.image_url && (
-              <div className="flex items-center gap-2 mb-2">
-                <audio 
-                  controls 
-                  src={message.image_url}
-                  className="max-w-full"
-                  onError={(e) => {
-                    console.log('Audio failed to load:', message.image_url);
-                  }}
-                >
-                  Your browser does not support the audio element.
-                </audio>
-              </div>
-            )}
-            {message.content && (
-              <p className="text-sm break-words">{message.content}</p>
-            )}
-          </div>
+            </div>
+          )}
 
-          {/* Message Actions - shown on hover */}
-          <div className={`absolute top-0 ${isOwn ? 'left-0' : 'right-0'} transform ${isOwn ? '-translate-x-full' : 'translate-x-full'} opacity-0 group-hover:opacity-100 transition-opacity`}>
-            <div className="flex items-center gap-1 bg-background border rounded-md shadow-sm p-1">
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-6 w-6 p-0"
-                onClick={(e) => onReactionButtonClick(e, message.id)}
-              >
-                <Smile className="w-3 h-3" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-6 w-6 p-0"
-                onClick={() => onReplyToMessage(message)}
-                title="Reply in thread"
-              >
-                <MessageSquare className="w-3 h-3" />
-              </Button>
+          {/* Voice Message */}
+          {message.message_type === 'voice' && (
+            <div className="flex items-center gap-2 mb-2">
+              <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
+                🎤
+              </div>
+              <div className="flex-1">
+                <div className="h-1 bg-primary/20 rounded">
+                  <div className="h-1 bg-primary rounded" style={{ width: '60%' }}></div>
+                </div>
+              </div>
+              <span className="text-xs opacity-70">0:45</span>
+            </div>
+          )}
+
+          {/* Text Content */}
+          {message.content && (
+            <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+          )}
+        </div>
+
+        {/* Message Info */}
+        <div className={`flex items-center gap-2 mt-1 text-xs text-muted-foreground ${isOwn ? 'justify-end' : 'justify-start'}`}>
+          <span>{messageTime}</span>
+          
+          {/* Status for own messages */}
+          {isOwn && (
+            <MessageStatusIndicator 
+              status={message.read_at ? 'read' : 'delivered'} 
+              size={12}
+            />
+          )}
+
+          {/* Thread Count */}
+          {threadCount > 0 && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => onReplyToMessage(message)}
+              className="h-5 px-1 text-xs text-primary hover:text-primary/80"
+            >
+              <MessageSquare className="w-3 h-3 mr-1" />
+              {threadCount} {threadCount === 1 ? 'reply' : 'replies'}
+            </Button>
+          )}
+
+          {/* Quick Actions (visible on hover) */}
+          <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={(e) => onReactionButtonClick(e, message.id)}
+              className="h-5 w-5 p-0"
+              title="Add reaction"
+            >
+              😊
+            </Button>
+            
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => onReplyToMessage(message)}
+              className="h-5 w-5 p-0"
+              title="Reply in thread"
+            >
+              💬
+            </Button>
+
+            {(isOwn || user?.id === message.sender_id) && (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-5 w-5 p-0"
+                  >
                     <MoreHorizontal className="w-3 h-3" />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent>
-                  <DropdownMenuItem onClick={() => onReplyToMessage(message)}>
-                    Reply in thread
-                  </DropdownMenuItem>
-                  <DropdownMenuItem>Forward</DropdownMenuItem>
-                  {isOwn && onEditMessage && (
+                <DropdownMenuContent align="end">
+                  {onEditMessage && (
                     <DropdownMenuItem onClick={() => onEditMessage(message.id, message.content)}>
                       Edit
                     </DropdownMenuItem>
                   )}
-                  {isOwn && onDeleteMessage && (
+                  {onDeleteMessage && (
                     <DropdownMenuItem 
-                      className="text-destructive"
                       onClick={() => onDeleteMessage(message.id)}
+                      className="text-destructive"
                     >
                       Delete
                     </DropdownMenuItem>
                   )}
                 </DropdownMenuContent>
               </DropdownMenu>
-            </div>
+            )}
           </div>
         </div>
 
-        {/* Thread indicator */}
-        {threadCount > 0 && (
-          <Button
-            variant="ghost"
-            size="sm"
-            className={`mt-1 h-6 text-xs ${isOwn ? 'ml-auto' : 'mr-auto'} flex items-center gap-1`}
-            onClick={() => onReplyToMessage(message)}
-          >
-            <MessageSquare className="w-3 h-3" />
-            {threadCount} {threadCount === 1 ? 'reply' : 'replies'}
-          </Button>
-        )}
-
-        {/* Message Reactions */}
+        {/* Reactions Display */}
         {messageReactions.length > 0 && (
           <MessageReactionsDisplay
             reactions={messageReactions}
@@ -156,16 +186,6 @@ const MessageItem = ({
             className={isOwn ? 'justify-end' : 'justify-start'}
           />
         )}
-        
-        <div className={`flex items-center gap-1 mt-1 ${isOwn ? 'justify-end' : 'justify-start'}`}>
-          <span className="text-xs text-muted-foreground">{messageTime}</span>
-          {isOwn && (
-            <MessageStatusIndicator 
-              status={message.read_at ? 'read' : 'delivered'} 
-              size={12}
-            />
-          )}
-        </div>
       </div>
     </div>
   );

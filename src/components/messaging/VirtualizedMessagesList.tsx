@@ -1,6 +1,6 @@
 
-import React, { useMemo, useRef, useEffect } from 'react';
-import { FixedSizeList as List } from 'react-window';
+import React, { useEffect, useRef } from 'react';
+import { VariableSizeList as List } from 'react-window';
 import MessageItem from './MessageItem';
 
 interface VirtualizedMessagesListProps {
@@ -24,68 +24,121 @@ const VirtualizedMessagesList = ({
   onReactionButtonClick,
   onReplyToMessage,
   onReactionToggle,
-  onEditMessage = () => {},
-  onDeleteMessage = () => {},
+  onEditMessage,
+  onDeleteMessage,
   height
 }: VirtualizedMessagesListProps) => {
   const listRef = useRef<List>(null);
-  
-  console.log('🔄 VirtualizedMessagesList - Rendering with:', {
+  const itemHeights = useRef<Map<number, number>>(new Map());
+
+  console.log('📜 VirtualizedMessagesList - Rendering:', {
     messageCount: messages.length,
     height,
-    userId: user?.id
+    cachedHeights: itemHeights.current.size
   });
 
-  // Auto-scroll to bottom when new messages arrive
+  // Scroll to bottom when new messages arrive
   useEffect(() => {
     if (listRef.current && messages.length > 0) {
       listRef.current.scrollToItem(messages.length - 1, 'end');
     }
   }, [messages.length]);
 
-  // Memoized item data to prevent unnecessary re-renders
-  const itemData = useMemo(() => ({
-    messages,
-    user,
-    reactions,
-    getThreadCount,
-    onReactionButtonClick,
-    onReplyToMessage,
-    onReactionToggle,
-    onEditMessage,
-    onDeleteMessage
-  }), [messages, user, reactions, getThreadCount, onReactionButtonClick, onReplyToMessage, onReactionToggle, onEditMessage, onDeleteMessage]);
+  // Estimate item height based on message content
+  const getItemSize = (index: number) => {
+    if (itemHeights.current.has(index)) {
+      return itemHeights.current.get(index)!;
+    }
 
-  const Row = ({ index, style }: any) => {
+    const message = messages[index];
+    if (!message) return 80;
+
+    // Base height
+    let estimatedHeight = 60;
+
+    // Add height for content
+    if (message.content) {
+      const contentLines = Math.ceil(message.content.length / 50);
+      estimatedHeight += contentLines * 20;
+    }
+
+    // Add height for images
+    if (message.message_type === 'image') {
+      estimatedHeight += 200;
+    }
+
+    // Add height for voice messages
+    if (message.message_type === 'voice') {
+      estimatedHeight += 50;
+    }
+
+    // Add height for reactions
+    const messageReactions = reactions[message.id] || [];
+    if (messageReactions.length > 0) {
+      estimatedHeight += 30;
+    }
+
+    // Add height for thread indicator
+    const threadCount = getThreadCount(message.id);
+    if (threadCount > 0) {
+      estimatedHeight += 25;
+    }
+
+    // Cache the height
+    itemHeights.current.set(index, estimatedHeight);
+    return estimatedHeight;
+  };
+
+  // Update cached height when item is measured
+  const setItemHeight = (index: number, height: number) => {
+    if (itemHeights.current.get(index) !== height) {
+      itemHeights.current.set(index, height);
+      // Trigger list re-render to update scroll
+      if (listRef.current) {
+        listRef.current.resetAfterIndex(index);
+      }
+    }
+  };
+
+  const MessageItemWrapper = ({ index, style }: { index: number; style: any }) => {
     const message = messages[index];
     const isOwn = message.sender_id === user?.id;
     const messageReactions = reactions[message.id] || [];
     const threadCount = getThreadCount(message.id);
+    const itemRef = useRef<HTMLDivElement>(null);
+
+    // Measure item height after render
+    useEffect(() => {
+      if (itemRef.current) {
+        const height = itemRef.current.getBoundingClientRect().height;
+        setItemHeight(index, height);
+      }
+    });
 
     return (
       <div style={style}>
-        <MessageItem
-          message={message}
-          isOwn={isOwn}
-          user={user}
-          messageReactions={messageReactions}
-          threadCount={threadCount}
-          onReactionButtonClick={onReactionButtonClick}
-          onReplyToMessage={onReplyToMessage}
-          onReactionToggle={onReactionToggle}
-          onEditMessage={onEditMessage}
-          onDeleteMessage={onDeleteMessage}
-        />
+        <div ref={itemRef} className="px-4 py-2">
+          <MessageItem
+            message={message}
+            isOwn={isOwn}
+            user={user}
+            messageReactions={messageReactions}
+            threadCount={threadCount}
+            onReactionButtonClick={onReactionButtonClick}
+            onReplyToMessage={onReplyToMessage}
+            onReactionToggle={onReactionToggle}
+            onEditMessage={onEditMessage}
+            onDeleteMessage={onDeleteMessage}
+          />
+        </div>
       </div>
     );
   };
 
   if (messages.length === 0) {
     return (
-      <div className="flex items-center justify-center h-full text-muted-foreground">
-        <div className="text-center">
-          <p>No messages yet. Start the conversation!</p>
-        </div>
+      <div className="flex-1 flex items-center justify-center text-muted-foreground">
+        <p>No messages to display</p>
       </div>
     );
   }
@@ -95,11 +148,10 @@ const VirtualizedMessagesList = ({
       ref={listRef}
       height={height}
       itemCount={messages.length}
-      itemSize={120} // Estimated height per message
-      itemData={itemData}
-      overscanCount={5} // Render 5 extra items for smoother scrolling
+      itemSize={getItemSize}
+      className="scrollbar-thin scrollbar-thumb-border scrollbar-track-transparent"
     >
-      {Row}
+      {MessageItemWrapper}
     </List>
   );
 };

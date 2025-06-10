@@ -1,121 +1,174 @@
 
-import { useState } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { useState, useCallback } from 'react';
+import { useFileUpload } from '@/hooks/useFileUpload';
 import { useToast } from '@/hooks/use-toast';
-import { useImageCompression } from './useImageCompression';
 
-interface UploadOptions {
-  bucket: string;
-  folder?: string;
-  maxSize?: number; // in MB
-  allowedTypes?: string[];
-  compress?: boolean;
+interface EnhancedFileUploadState {
+  uploading: boolean;
+  progress: number;
+  error: string | null;
+  uploadedFiles: Array<{
+    id: string;
+    url: string;
+    name: string;
+    type: string;
+    size: number;
+  }>;
 }
 
 export const useEnhancedFileUpload = () => {
-  const [uploading, setUploading] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState(0);
+  const [state, setState] = useState<EnhancedFileUploadState>({
+    uploading: false,
+    progress: 0,
+    error: null,
+    uploadedFiles: []
+  });
+
+  const { uploadFile, uploadImage, isUploading } = useFileUpload({
+    bucket: 'message-attachments',
+    folder: 'conversations',
+    maxSize: 50, // 50MB
+    allowedTypes: ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'application/pdf', 'text/plain']
+  });
+
   const { toast } = useToast();
-  const { compressImage } = useImageCompression();
 
-  const uploadFile = async (
-    file: File,
-    options: UploadOptions
-  ): Promise<string | null> => {
-    const {
-      bucket,
-      folder = '',
-      maxSize = 10,
-      allowedTypes = ['image/jpeg', 'image/png', 'image/webp'],
-      compress = true
-    } = options;
+  console.log('📎 useEnhancedFileUpload - State:', {
+    uploading: state.uploading || isUploading,
+    progress: state.progress,
+    uploadedFilesCount: state.uploadedFiles.length,
+    hasError: !!state.error
+  });
 
-    // Validate file type
-    if (!allowedTypes.includes(file.type)) {
-      toast({
-        title: "Invalid file type",
-        description: `Please select a file of type: ${allowedTypes.join(', ')}`,
-        variant: "destructive",
-      });
-      return null;
-    }
+  const uploadFiles = useCallback(async (files: FileList | File[]) => {
+    const fileArray = Array.from(files);
+    
+    if (fileArray.length === 0) return [];
 
-    // Validate file size
-    if (file.size > maxSize * 1024 * 1024) {
-      toast({
-        title: "File too large",
-        description: `Please select a file smaller than ${maxSize}MB`,
-        variant: "destructive",
-      });
-      return null;
-    }
+    console.log('📎 useEnhancedFileUpload - Starting upload:', {
+      fileCount: fileArray.length,
+      files: fileArray.map(f => ({ name: f.name, size: f.size, type: f.type }))
+    });
 
-    setUploading(true);
-    setUploadProgress(0);
+    setState(prev => ({
+      ...prev,
+      uploading: true,
+      progress: 0,
+      error: null
+    }));
+
+    const uploadedFiles: typeof state.uploadedFiles = [];
+    const totalFiles = fileArray.length;
 
     try {
-      let fileToUpload = file;
+      for (let i = 0; i < fileArray.length; i++) {
+        const file = fileArray[i];
+        
+        console.log(`📎 useEnhancedFileUpload - Uploading file ${i + 1}/${totalFiles}:`, file.name);
+        
+        // Update progress
+        setState(prev => ({
+          ...prev,
+          progress: (i / totalFiles) * 100
+        }));
 
-      // Compress image if it's an image file
-      if (compress && file.type.startsWith('image/')) {
-        const compressedFile = await compressImage(file, {
-          maxWidth: 1920,
-          maxHeight: 1080,
-          quality: 0.8
-        });
-        if (compressedFile) {
-          fileToUpload = compressedFile;
+        let url: string | null = null;
+        
+        if (file.type.startsWith('image/')) {
+          url = await uploadImage(file);
+        } else {
+          url = await uploadFile(file);
+        }
+
+        if (url) {
+          const uploadedFile = {
+            id: `${Date.now()}-${i}`,
+            url,
+            name: file.name,
+            type: file.type,
+            size: file.size
+          };
+          
+          uploadedFiles.push(uploadedFile);
+          
+          console.log('✅ useEnhancedFileUpload - File uploaded successfully:', {
+            name: file.name,
+            url,
+            size: file.size
+          });
+        } else {
+          throw new Error(`Failed to upload ${file.name}`);
         }
       }
 
-      // Generate unique filename
-      const fileExt = fileToUpload.name.split('.').pop();
-      const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
-      const filePath = folder ? `${folder}/${fileName}` : fileName;
+      // Complete upload
+      setState(prev => ({
+        ...prev,
+        uploading: false,
+        progress: 100,
+        uploadedFiles: [...prev.uploadedFiles, ...uploadedFiles]
+      }));
 
-      // Upload to Supabase Storage
-      const { data, error } = await supabase.storage
-        .from(bucket)
-        .upload(filePath, fileToUpload, {
-          cacheControl: '3600',
-          upsert: false,
-        });
-
-      if (error) {
-        console.error('Upload error:', error);
-        throw error;
-      }
-
-      // Get public URL
-      const { data: urlData } = supabase.storage
-        .from(bucket)
-        .getPublicUrl(data.path);
-
-      setUploadProgress(100);
-      
       toast({
-        title: "Upload successful",
-        description: "File uploaded successfully",
+        title: "Upload Complete",
+        description: `Successfully uploaded ${uploadedFiles.length} file${uploadedFiles.length > 1 ? 's' : ''}`,
       });
 
-      return urlData.publicUrl;
+      console.log('🎉 useEnhancedFileUpload - All files uploaded successfully:', uploadedFiles.length);
+      
+      return uploadedFiles;
+
     } catch (error) {
-      console.error('Upload failed:', error);
+      console.error('❌ useEnhancedFileUpload - Upload error:', error);
+      
+      setState(prev => ({
+        ...prev,
+        uploading: false,
+        progress: 0,
+        error: error instanceof Error ? error.message : 'Upload failed'
+      }));
+
       toast({
-        title: "Upload failed",
-        description: "Failed to upload file. Please try again.",
+        title: "Upload Failed",
+        description: error instanceof Error ? error.message : 'Failed to upload files',
         variant: "destructive",
       });
-      return null;
-    } finally {
-      setUploading(false);
-      setUploadProgress(0);
+
+      return [];
     }
-  };
+  }, [uploadFile, uploadImage, toast]);
+
+  const uploadSingleFile = useCallback(async (file: File) => {
+    const results = await uploadFiles([file]);
+    return results[0] || null;
+  }, [uploadFiles]);
+
+  const clearUploads = useCallback(() => {
+    console.log('🧹 useEnhancedFileUpload - Clearing uploads');
+    setState({
+      uploading: false,
+      progress: 0,
+      error: null,
+      uploadedFiles: []
+    });
+  }, []);
+
+  const removeUploadedFile = useCallback((fileId: string) => {
+    console.log('🗑️ useEnhancedFileUpload - Removing file:', fileId);
+    setState(prev => ({
+      ...prev,
+      uploadedFiles: prev.uploadedFiles.filter(f => f.id !== fileId)
+    }));
+  }, []);
 
   return {
-    uploadFile,
-    uploading,
-    uploadProgress
+    uploading: state.uploading || isUploading,
+    progress: state.progress,
+    error: state.error,
+    uploadedFiles: state.uploadedFiles,
+    uploadFiles,
+    uploadSingleFile,
+    clearUploads,
+    removeUploadedFile
   };
 };

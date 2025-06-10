@@ -1,6 +1,8 @@
 
-import { useToast } from '@/hooks/use-toast';
+import { useCallback } from 'react';
 import { useEnhancedFileUpload } from '@/hooks/useEnhancedFileUpload';
+import { usePresenceManager } from '@/hooks/usePresenceManager';
+import { useToast } from '@/hooks/use-toast';
 
 interface UseChatHandlersProps {
   user: any;
@@ -9,219 +11,190 @@ interface UseChatHandlersProps {
 }
 
 export const useChatHandlers = ({ user, conversationId, sendMessage }: UseChatHandlersProps) => {
+  const { uploadSingleFile } = useEnhancedFileUpload();
+  const { sendTypingIndicator } = usePresenceManager();
   const { toast } = useToast();
-  const { uploadFile } = useEnhancedFileUpload();
 
-  console.log('🔧 useChatHandlers - Initialized with:', {
+  console.log('🎛️ useChatHandlers - Initialized:', {
     userId: user?.id,
-    conversationId,
-    hasUploadFile: !!uploadFile
+    conversationId
   });
 
-  const handleSendMessage = async (
+  const handleSendMessage = useCallback(async (
     newMessage: string,
     selectedFile: File | null,
     setSendingMessage: (sending: boolean) => void,
     clearInputs: () => void
   ) => {
-    console.log('📤 useChatHandlers - Starting to send message:', {
-      hasContent: !!newMessage.trim(),
-      hasFile: !!selectedFile,
-      hasUser: !!user,
-      messageLength: newMessage.trim().length
-    });
-
     if ((!newMessage.trim() && !selectedFile) || !user) {
-      console.log('❌ useChatHandlers - Cannot send message - validation failed:', { 
-        hasContent: !!newMessage.trim(), 
-        hasFile: !!selectedFile, 
-        hasUser: !!user
-      });
+      console.log('❌ useChatHandlers - Cannot send empty message or no user');
       return;
     }
 
-    console.log('✅ useChatHandlers - Validation passed, proceeding with send');
+    console.log('📤 useChatHandlers - Sending message:', {
+      hasContent: !!newMessage.trim(),
+      hasFile: !!selectedFile,
+      userId: user.id
+    });
+
     setSendingMessage(true);
 
     try {
       let imageUrl: string | undefined;
 
-      // Upload file if selected
+      // Upload file if present
       if (selectedFile) {
-        console.log('📁 useChatHandlers - Starting file upload:', {
-          fileName: selectedFile.name,
-          fileSize: selectedFile.size,
-          fileType: selectedFile.type
-        });
-        try {
-          imageUrl = await uploadFile(selectedFile, {
-            bucket: 'dog-images',
-            folder: 'messages',
-            maxSize: 10,
-            allowedTypes: ['image/jpeg', 'image/png', 'image/webp']
-          }) || undefined;
-          console.log('✅ useChatHandlers - File uploaded successfully:', imageUrl);
-        } catch (uploadError) {
-          console.error('❌ useChatHandlers - File upload failed:', uploadError);
-          toast({
-            title: "Upload failed",
-            description: "Failed to upload image. Sending text only.",
-            variant: "destructive",
-          });
+        console.log('📎 useChatHandlers - Uploading file:', selectedFile.name);
+        const uploadedFile = await uploadSingleFile(selectedFile);
+        if (uploadedFile) {
+          imageUrl = uploadedFile.url;
+          console.log('✅ useChatHandlers - File uploaded:', imageUrl);
+        } else {
+          throw new Error('Failed to upload file');
         }
       }
 
       // Send message
-      const messageContent = newMessage.trim() || (selectedFile ? 'Image' : '');
-      const messageType = selectedFile ? 'image' : 'text';
-      
-      console.log('📨 useChatHandlers - Sending message with data:', {
-        messageContent: messageContent.substring(0, 50),
+      const messageType = selectedFile ? 
+        (selectedFile.type.startsWith('image/') ? 'image' : 'file') : 
+        'text';
+
+      const result = await sendMessage(
+        conversationId,
+        newMessage.trim() || `Shared ${selectedFile?.type.startsWith('image/') ? 'an image' : 'a file'}: ${selectedFile?.name}`,
         messageType,
-        hasImageUrl: !!imageUrl,
-        conversationId
-      });
-      
-      const result = await sendMessage(conversationId, messageContent, messageType, imageUrl);
+        imageUrl
+      );
 
       if (result) {
-        console.log('✅ useChatHandlers - Message sent successfully:', {
-          messageId: result.id,
-          timestamp: result.created_at
-        });
+        console.log('✅ useChatHandlers - Message sent successfully:', result.id);
         clearInputs();
+        
+        // Stop typing indicator
+        await sendTypingIndicator(conversationId, false);
         
         toast({
           title: "Message sent",
-          description: selectedFile ? "Image sent successfully" : "Message sent",
+          description: selectedFile ? "File shared successfully" : "Message delivered",
         });
-      } else {
-        console.error('❌ useChatHandlers - No result returned from sendMessage');
-        throw new Error('No result returned from sendMessage');
       }
     } catch (error) {
-      console.error('❌ useChatHandlers - Failed to send message:', error);
+      console.error('❌ useChatHandlers - Error sending message:', error);
       toast({
         title: "Failed to send message",
-        description: "Please check your connection and try again.",
+        description: error instanceof Error ? error.message : "Please try again",
         variant: "destructive",
       });
     } finally {
-      console.log('🏁 useChatHandlers - Send message process completed');
       setSendingMessage(false);
     }
-  };
+  }, [user, conversationId, sendMessage, uploadSingleFile, sendTypingIndicator, toast]);
 
-  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileSelect = useCallback((event: React.ChangeEvent<HTMLInputElement>): File | null => {
     const file = event.target.files?.[0];
-    console.log('📁 useChatHandlers - File selection event:', {
-      hasFile: !!file,
-      fileName: file?.name,
-      fileSize: file?.size,
-      fileType: file?.type
-    });
-    
-    if (file) {
-      console.log('📁 useChatHandlers - Processing selected file:', {
-        name: file.name,
-        size: file.size,
-        type: file.type,
-        lastModified: new Date(file.lastModified).toISOString()
-      });
-      
-      // Validate file type
-      const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
-      if (!allowedTypes.includes(file.type)) {
-        console.error('❌ useChatHandlers - Invalid file type:', file.type);
-        toast({
-          title: "Invalid file type",
-          description: "Please select a JPEG, PNG, or WebP image",
-          variant: "destructive",
-        });
-        return;
-      }
-      
-      // Validate file size (10MB max)
-      if (file.size > 10 * 1024 * 1024) {
-        console.error('❌ useChatHandlers - File too large:', `${file.size} bytes`);
-        toast({
-          title: "File too large",
-          description: "Please select an image smaller than 10MB",
-          variant: "destructive",
-        });
-        return;
-      }
-      
-      console.log('✅ useChatHandlers - File validation passed');
-      return file;
+    if (!file) {
+      console.log('❌ useChatHandlers - No file selected');
+      return null;
     }
-  };
 
-  const handleSendVoiceMessage = async (audioBlob: Blob, duration: number) => {
+    console.log('📎 useChatHandlers - File selected:', {
+      name: file.name,
+      size: file.size,
+      type: file.type
+    });
+
+    // Validate file size (50MB limit)
+    if (file.size > 50 * 1024 * 1024) {
+      toast({
+        title: "File too large",
+        description: "Please select a file smaller than 50MB",
+        variant: "destructive",
+      });
+      return null;
+    }
+
+    // Validate file type
+    const allowedTypes = [
+      'image/jpeg', 'image/png', 'image/webp', 'image/gif',
+      'application/pdf', 'text/plain', 'application/msword',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+    ];
+
+    if (!allowedTypes.includes(file.type)) {
+      toast({
+        title: "Unsupported file type",
+        description: "Please select an image, PDF, or document file",
+        variant: "destructive",
+      });
+      return null;
+    }
+
+    return file;
+  }, [toast]);
+
+  const handleSendVoiceMessage = useCallback(async (audioBlob: Blob, duration: number) => {
     if (!user) {
-      console.log('❌ useChatHandlers - Cannot send voice message: no user');
+      console.log('❌ useChatHandlers - No user for voice message');
       return;
     }
 
-    console.log('🎙️ useChatHandlers - Starting voice message send:', {
-      blobSize: audioBlob.size,
+    console.log('🎤 useChatHandlers - Sending voice message:', {
       duration,
+      size: audioBlob.size,
       userId: user.id
     });
 
     try {
-      // Convert Blob to File
-      const audioFile = new File([audioBlob], `voice-message-${Date.now()}.webm`, { 
-        type: 'audio/webm',
-        lastModified: Date.now()
+      // Convert blob to file for upload
+      const audioFile = new File([audioBlob], `voice-${Date.now()}.webm`, {
+        type: 'audio/webm'
       });
 
-      console.log('🎙️ useChatHandlers - Voice file created:', {
-        fileName: audioFile.name,
-        fileSize: audioFile.size,
-        fileType: audioFile.type
-      });
-
-      // Upload voice file
-      const voiceUrl = await uploadFile(audioFile, {
-        bucket: 'dog-images',
-        folder: 'voice-messages',
-        maxSize: 50, // 50MB for voice messages
-        allowedTypes: ['audio/webm', 'audio/wav', 'audio/mp3']
-      });
-
-      if (voiceUrl) {
-        console.log('✅ useChatHandlers - Voice file uploaded successfully:', voiceUrl);
-        const result = await sendMessage(
-          conversationId, 
-          `Voice message (${Math.floor(duration / 60)}:${(duration % 60).toString().padStart(2, '0')})`, 
-          'voice', 
-          voiceUrl
-        );
-
-        if (result) {
-          console.log('✅ useChatHandlers - Voice message sent successfully:', result.id);
-          toast({
-            title: "Voice message sent",
-            description: "Your voice message was sent successfully",
-          });
-        }
-      } else {
+      const uploadedFile = await uploadSingleFile(audioFile);
+      if (!uploadedFile) {
         throw new Error('Failed to upload voice message');
       }
+
+      console.log('✅ useChatHandlers - Voice file uploaded:', uploadedFile.url);
+
+      // Send voice message
+      await sendMessage(
+        conversationId,
+        `Voice message (${Math.round(duration)}s)`,
+        'voice',
+        uploadedFile.url
+      );
+
+      toast({
+        title: "Voice message sent",
+        description: `${Math.round(duration)} second recording shared`,
+      });
+
     } catch (error) {
-      console.error('❌ useChatHandlers - Failed to send voice message:', error);
+      console.error('❌ useChatHandlers - Error sending voice message:', error);
       toast({
         title: "Failed to send voice message",
-        description: "Please try again",
+        description: error instanceof Error ? error.message : "Please try again",
         variant: "destructive",
       });
     }
-  };
+  }, [user, conversationId, sendMessage, uploadSingleFile, toast]);
+
+  const handleStartTyping = useCallback(() => {
+    console.log('⌨️ useChatHandlers - User started typing');
+    sendTypingIndicator(conversationId, true);
+  }, [conversationId, sendTypingIndicator]);
+
+  const handleStopTyping = useCallback(() => {
+    console.log('⌨️ useChatHandlers - User stopped typing');
+    sendTypingIndicator(conversationId, false);
+  }, [conversationId, sendTypingIndicator]);
 
   return {
     handleSendMessage,
     handleFileSelect,
-    handleSendVoiceMessage
+    handleSendVoiceMessage,
+    handleStartTyping,
+    handleStopTyping
   };
 };

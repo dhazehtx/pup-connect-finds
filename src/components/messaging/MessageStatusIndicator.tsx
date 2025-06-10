@@ -1,9 +1,9 @@
 
 import React from 'react';
-import { Check, CheckCheck, Clock, AlertCircle } from 'lucide-react';
+import { Check, CheckCheck, Clock } from 'lucide-react';
 
 interface MessageStatusIndicatorProps {
-  status: 'sending' | 'sent' | 'delivered' | 'read' | 'failed';
+  status: 'sending' | 'sent' | 'delivered' | 'read';
   size?: number;
   className?: string;
 }
@@ -11,46 +11,27 @@ interface MessageStatusIndicatorProps {
 const MessageStatusIndicator = ({ 
   status, 
   size = 16, 
-  className = "" 
+  className = '' 
 }: MessageStatusIndicatorProps) => {
   const getStatusIcon = () => {
     switch (status) {
       case 'sending':
-        return <Clock size={size} className={`text-gray-400 ${className}`} />;
+        return <Clock size={size} className={`text-muted-foreground ${className}`} />;
       case 'sent':
-        return <Check size={size} className={`text-gray-400 ${className}`} />;
+        return <Check size={size} className={`text-muted-foreground ${className}`} />;
       case 'delivered':
-        return <CheckCheck size={size} className={`text-gray-400 ${className}`} />;
+        return <CheckCheck size={size} className={`text-muted-foreground ${className}`} />;
       case 'read':
-        return <CheckCheck size={size} className={`text-blue-500 ${className}`} />;
-      case 'failed':
-        return <AlertCircle size={size} className={`text-red-500 ${className}`} />;
+        return <CheckCheck size={size} className={`text-primary ${className}`} />;
       default:
         return null;
     }
   };
 
-  const getStatusLabel = () => {
-    switch (status) {
-      case 'sending':
-        return 'Sending...';
-      case 'sent':
-        return 'Sent';
-      case 'delivered':
-        return 'Delivered';
-      case 'read':
-        return 'Read';
-      case 'failed':
-        return 'Failed to send';
-      default:
-        return '';
-    }
-  };
-
   return (
-    <div className="flex items-center" title={getStatusLabel()}>
+    <span className="inline-flex items-center" title={`Message ${status}`}>
       {getStatusIcon()}
-    </div>
+    </span>
   );
 };
 
