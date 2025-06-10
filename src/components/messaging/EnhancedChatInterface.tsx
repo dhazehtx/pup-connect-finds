@@ -113,6 +113,13 @@ const EnhancedChatInterface = ({ conversationId, otherUserId, listingId }: Enhan
     handleReplyToMessage(message, user);
   };
 
+  // Handle voice message - updated to match expected interface
+  const onSendVoiceMessage = (audioUrl: string, duration: number) => {
+    console.log('🎤 EnhancedChatInterface - Voice message triggered:', { audioUrl, duration });
+    // Send the voice message using the URL
+    sendMessage(conversationId, '', 'voice', audioUrl);
+  };
+
   if (!user) {
     console.log('❌ EnhancedChatInterface - No user found, showing sign-in prompt');
     return (
@@ -145,7 +152,7 @@ const EnhancedChatInterface = ({ conversationId, otherUserId, listingId }: Enhan
       uploading={uploading}
       sendingMessage={sendingMessage}
       onSendMessage={onSendMessage}
-      onSendVoiceMessage={handleSendVoiceMessage}
+      onSendVoiceMessage={onSendVoiceMessage}
       onFileSelect={onFileSelect}
       onKeyPress={handleKeyPress}
       sendMessage={sendMessage}
