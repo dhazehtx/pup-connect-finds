@@ -1,11 +1,10 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { Send, Paperclip, Smile, Phone, Video, MoreVertical, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Avatar } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { useMessaging } from '@/hooks/useMessaging';
+import { useMessagingRefactored } from '@/hooks/messaging/useMessagingRefactored';
 import { useAuth } from '@/contexts/AuthContext';
 
 interface ChatInterfaceProps {
@@ -121,7 +120,7 @@ const ChatInterface = ({
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { user } = useAuth();
   
-  const { messages, sendMessage, fetchMessages } = useMessaging();
+  const { messages, sendMessage, fetchMessages } = useMessagingRefactored();
 
   // Check if this is a demo conversation
   const isDemoConversation = conversationId.startsWith('demo-');

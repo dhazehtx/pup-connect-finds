@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useDogListings } from '@/hooks/useDogListings';
 import { useFavorites } from '@/hooks/useFavorites';
-import { useMessaging } from '@/hooks/useMessaging';
+import { useMessagingRefactored } from '@/hooks/messaging/useMessagingRefactored';
 import ListingCard from '@/components/ListingCard';
 import LoadingSkeleton from '@/components/LoadingSkeleton';
 import EmptyState from '@/components/EmptyState';
@@ -38,7 +38,7 @@ const Explore = () => {
   const { user } = useAuth();
   const { listings, loading, fetchListings } = useDogListings();
   const { toggleFavorite, isFavorited } = useFavorites();
-  const { createConversation } = useMessaging();
+  const { createConversation } = useMessagingRefactored();
   const { toast } = useToast();
   const navigate = useNavigate();
 

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -6,12 +5,12 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { MessageCircle, DollarSign, Bell, Search, Plus, Heart, Eye, Calendar } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
-import { useMessaging } from '@/hooks/useMessaging';
+import { useMessagingRefactored } from '@/hooks/messaging/useMessagingRefactored';
 import { useNavigate } from 'react-router-dom';
 
 const UserDashboard = () => {
   const { user } = useAuth();
-  const { conversations, loading } = useMessaging();
+  const { conversations, loading } = useMessagingRefactored();
   const navigate = useNavigate();
   const [activeTransactions] = useState([
     {

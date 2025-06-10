@@ -1,18 +1,17 @@
-
 import React, { useState } from 'react';
 import { ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import LiveChatInterface from '@/components/messaging/LiveChatInterface';
 import ConversationsList from '@/components/messaging/ConversationsList';
 import { MobileResponsive } from '@/components/ui/mobile-responsive';
-import { useMessaging } from '@/hooks/useMessaging';
+import { useMessagingRefactored } from '@/hooks/messaging/useMessagingRefactored';
 import LoadingState from '@/components/ui/loading-state';
 import ErrorState from '@/components/ui/error-state';
 
 const Chat = () => {
   const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
-  const { conversations, loading } = useMessaging();
+  const { conversations, loading } = useMessagingRefactored();
 
   const handleSelectConversation = (conversation: any) => {
     setSelectedConversationId(conversation.id);
