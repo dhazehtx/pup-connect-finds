@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Camera, X, Upload } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -17,6 +18,7 @@ const ImageUpload = ({ value, onChange, className, folder = 'listings' }: ImageU
     bucket: 'images',
     folder,
     maxSize: 50, // 50MB
+    allowedTypes: ['image/jpeg', 'image/png', 'image/webp']
   });
 
   const handleFile = async (file: File) => {

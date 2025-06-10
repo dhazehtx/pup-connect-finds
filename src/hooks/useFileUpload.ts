@@ -9,13 +9,27 @@ interface UploadProgress {
   isUploading: boolean;
 }
 
-export const useFileUpload = () => {
+interface UseFileUploadOptions {
+  bucket?: string;
+  folder?: string;
+  maxSize?: number; // in MB
+  allowedTypes?: string[];
+}
+
+export const useFileUpload = (options: UseFileUploadOptions = {}) => {
   const [uploadProgress, setUploadProgress] = useState<UploadProgress>({
     progress: 0,
     isUploading: false
   });
   const { user } = useAuth();
   const { toast } = useToast();
+
+  const {
+    bucket = 'message-attachments',
+    folder = '',
+    maxSize = 10,
+    allowedTypes = ['image/jpeg', 'image/png', 'image/webp']
+  } = options;
 
   const uploadFile = useCallback(async (file: File, conversationId?: string): Promise<string | null> => {
     if (!user) {
@@ -27,22 +41,38 @@ export const useFileUpload = () => {
       return null;
     }
 
+    // Validate file type
+    if (allowedTypes.length > 0 && !allowedTypes.includes(file.type)) {
+      toast({
+        title: "Invalid file type",
+        description: `Please select a file of type: ${allowedTypes.join(', ')}`,
+        variant: "destructive",
+      });
+      return null;
+    }
+
+    // Validate file size
+    if (file.size > maxSize * 1024 * 1024) {
+      toast({
+        title: "File too large",
+        description: `Please select a file smaller than ${maxSize}MB`,
+        variant: "destructive",
+      });
+      return null;
+    }
+
     setUploadProgress({ progress: 0, isUploading: true });
 
     try {
-      // Validate file size (max 10MB)
-      const maxSize = 10 * 1024 * 1024;
-      if (file.size > maxSize) {
-        throw new Error('File size must be less than 10MB');
-      }
-
       // Create unique filename
       const fileExt = file.name.split('.').pop();
-      const fileName = `${user.id}/${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
+      const fileName = folder 
+        ? `${folder}/${user.id}/${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`
+        : `${user.id}/${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
 
       // Upload to Supabase Storage
       const { data, error } = await supabase.storage
-        .from('message-attachments')
+        .from(bucket)
         .upload(fileName, file, {
           cacheControl: '3600',
           upsert: false
@@ -52,7 +82,7 @@ export const useFileUpload = () => {
 
       // Get public URL
       const { data: { publicUrl } } = supabase.storage
-        .from('message-attachments')
+        .from(bucket)
         .getPublicUrl(fileName);
 
       setUploadProgress({ progress: 100, isUploading: false });
@@ -75,7 +105,7 @@ export const useFileUpload = () => {
       
       return null;
     }
-  }, [user, toast]);
+  }, [user, toast, bucket, folder, maxSize, allowedTypes]);
 
   const uploadImage = useCallback(async (file: File): Promise<string | null> => {
     // Validate image file
@@ -105,7 +135,7 @@ export const useFileUpload = () => {
     uploadFile,
     uploadImage,
     uploadVoiceMessage,
-    uploadProgress,
+    uploadProgress: uploadProgress.progress,
     isUploading: uploadProgress.isUploading
   };
 };

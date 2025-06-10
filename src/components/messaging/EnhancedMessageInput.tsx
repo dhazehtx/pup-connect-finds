@@ -1,3 +1,4 @@
+
 import React, { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -19,7 +20,7 @@ import { useToast } from '@/hooks/use-toast';
 
 interface EnhancedMessageInputProps {
   onSendMessage: (content: string, messageType?: string, options?: any) => void;
-  onSendVoiceMessage?: (audioBlob: Blob, duration: number) => void;
+  onSendVoiceMessage?: (audioUrl: string, duration: number) => void;
   onFileSelect?: (file: File) => void;
   disabled?: boolean;
   placeholder?: string;
@@ -96,9 +97,9 @@ const EnhancedMessageInput = ({
     }
   };
 
-  const handleVoiceMessage = (audioBlob: Blob, duration: number) => {
+  const handleVoiceMessage = (audioUrl: string, duration: number) => {
     if (onSendVoiceMessage) {
-      onSendVoiceMessage(audioBlob, duration);
+      onSendVoiceMessage(audioUrl, duration);
     }
     setShowVoiceRecorder(false);
   };
