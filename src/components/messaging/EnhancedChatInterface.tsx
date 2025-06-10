@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Send, Image, Paperclip, Smile, MoreHorizontal, MessageSquare } from 'lucide-react';
@@ -267,8 +268,14 @@ const EnhancedChatInterface = ({ conversationId, otherUserId, listingId }: Enhan
     setSendingMessage(true);
 
     try {
+      // Convert Blob to File
+      const audioFile = new File([audioBlob], `voice-message-${Date.now()}.webm`, { 
+        type: 'audio/webm',
+        lastModified: Date.now()
+      });
+
       // Upload voice file
-      const voiceUrl = await uploadFile(audioBlob, {
+      const voiceUrl = await uploadFile(audioFile, {
         bucket: 'dog-images',
         folder: 'voice-messages',
         maxSize: 50, // 50MB for voice messages
