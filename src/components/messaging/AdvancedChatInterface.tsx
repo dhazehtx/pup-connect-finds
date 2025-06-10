@@ -48,7 +48,7 @@ const AdvancedChatInterface = ({ conversationId, otherUser, listingInfo }: Advan
     stopRecording, 
     cancelRecording 
   } = useVoiceRecording();
-  const { uploadFile } = useEnhancedFileUpload();
+  const { uploadSingleFile } = useEnhancedFileUpload();
   const { 
     isCallActive, 
     initializeConnection, 
@@ -138,17 +138,15 @@ const AdvancedChatInterface = ({ conversationId, otherUser, listingInfo }: Advan
     } else {
       if (audioBlob) {
         // Send the voice message
-        const voiceUrl = await uploadFile(
-          new File([audioBlob], 'voice-message.webm', { type: 'audio/webm' }),
-          { bucket: 'messages', folder: 'voice' }
-        );
+        const voiceFile = new File([audioBlob], 'voice-message.webm', { type: 'audio/webm' });
+        const uploadedFile = await uploadSingleFile(voiceFile);
         
-        if (voiceUrl) {
+        if (uploadedFile) {
           if (encryptionEnabled && isEncryptionReady) {
-            await sendEncryptedMessage(conversationId, 'Voice message', 'voice', voiceUrl, otherUser.id);
+            await sendEncryptedMessage(conversationId, 'Voice message', 'voice', uploadedFile.url, otherUser.id);
           } else {
             const { sendMessage } = useRealtimeMessaging();
-            await sendMessage(conversationId, 'Voice message', 'voice', voiceUrl);
+            await sendMessage(conversationId, 'Voice message', 'voice', uploadedFile.url);
           }
         }
       } else {

@@ -181,6 +181,14 @@ export const usePresenceManager = () => {
     );
   }, [typingUsers]);
 
+  // Get online users for a specific conversation
+  const getOnlineUsers = useCallback((conversationId: string) => {
+    return onlineUsers.filter(user => 
+      user.status === 'online' &&
+      Date.now() - user.last_seen < 30000 // Consider online if seen in last 30s
+    );
+  }, [onlineUsers]);
+
   // Check if user is online
   const isUserOnline = useCallback((userId: string) => {
     return onlineUsers.some(user => 
@@ -218,6 +226,7 @@ export const usePresenceManager = () => {
     sendTypingIndicator,
     updateUserStatus,
     getTypingUsers,
+    getOnlineUsers,
     isUserOnline
   };
 };

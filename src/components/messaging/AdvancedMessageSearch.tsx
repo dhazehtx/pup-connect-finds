@@ -13,12 +13,14 @@ interface AdvancedMessageSearchProps {
   messages: any[];
   onSearchResults: (results: any[]) => void;
   onClearSearch: () => void;
+  onResultSelect?: (messageId: string) => void;
 }
 
 const AdvancedMessageSearch = ({
   messages,
   onSearchResults,
-  onClearSearch
+  onClearSearch,
+  onResultSelect
 }: AdvancedMessageSearchProps) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [isFilterOpen, setIsFilterOpen] = useState(false);
@@ -246,6 +248,24 @@ const AdvancedMessageSearch = ({
               )}
             </div>
           )}
+        </div>
+      )}
+
+      {/* Quick search results */}
+      {showResults && localResults.length > 0 && onResultSelect && (
+        <div className="mt-2 max-h-40 overflow-y-auto">
+          {localResults.slice(0, 5).map((message) => (
+            <div
+              key={message.id}
+              className="p-2 hover:bg-muted/50 cursor-pointer rounded text-sm border-b last:border-b-0"
+              onClick={() => onResultSelect(message.id)}
+            >
+              <p className="truncate">{message.content}</p>
+              <p className="text-xs text-muted-foreground">
+                {formatDistanceToNow(new Date(message.created_at), { addSuffix: true })}
+              </p>
+            </div>
+          ))}
         </div>
       )}
     </div>
