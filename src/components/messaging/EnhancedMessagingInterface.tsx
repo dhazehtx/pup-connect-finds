@@ -24,9 +24,12 @@ const EnhancedMessagingInterface = () => {
     createConversation,
   } = useEnhancedMessaging();
 
-  const handleConversationSelect = async (conversation: ExtendedConversation) => {
-    setSelectedConversation(conversation);
-    await fetchMessages(conversation.id);
+  const handleConversationSelect = async (conversationId: string) => {
+    const conversation = conversations.find(c => c.id === conversationId);
+    if (conversation) {
+      setSelectedConversation(conversation);
+      await fetchMessages(conversation.id);
+    }
   };
 
   const handleSendMessage = async (content: string) => {
@@ -84,7 +87,7 @@ const EnhancedMessagingInterface = () => {
         <ConversationsList
           conversations={conversations}
           selectedConversationId={selectedConversation?.id}
-          onConversationSelect={handleConversationSelect}
+          onSelectConversation={handleConversationSelect}
           onCreateConversation={createConversation}
         />
       </div>
@@ -104,9 +107,8 @@ const EnhancedMessagingInterface = () => {
             <div className="flex-1">
               <EnhancedChatInterface
                 conversationId={selectedConversation.id}
-                messages={messages}
-                onSendMessage={handleSendMessage}
-                showSearch={showSearch}
+                otherUserId={selectedConversation.other_user?.full_name || 'Unknown'}
+                listingId={selectedConversation.listing_id}
               />
             </div>
           </div>
