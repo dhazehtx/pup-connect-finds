@@ -13,20 +13,34 @@ interface Notification {
   created_at: string;
   related_id?: string;
   sender_id?: string;
+  sender_profile?: {
+    full_name: string;
+    username: string;
+    avatar_url: string;
+  };
 }
 
 export const useEnhancedNotifications = () => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [loading, setLoading] = useState(false);
   const { user } = useAuth();
 
   const fetchNotifications = useCallback(async () => {
     if (!user) return;
 
     try {
+      setLoading(true);
       const { data, error } = await supabase
         .from('notifications')
-        .select('*')
+        .select(`
+          *,
+          sender_profile:profiles!notifications_sender_id_fkey (
+            full_name,
+            username,
+            avatar_url
+          )
+        `)
         .eq('user_id', user.id)
         .order('created_at', { ascending: false });
 
@@ -36,6 +50,8 @@ export const useEnhancedNotifications = () => {
       setUnreadCount(data?.filter(n => !n.is_read).length || 0);
     } catch (error) {
       console.error('Error fetching notifications:', error);
+    } finally {
+      setLoading(false);
     }
   }, [user]);
 
@@ -79,6 +95,25 @@ export const useEnhancedNotifications = () => {
     }
   }, [user]);
 
+  const deleteNotification = useCallback(async (notificationId: string) => {
+    if (!user) return;
+
+    try {
+      const { error } = await supabase
+        .from('notifications')
+        .delete()
+        .eq('id', notificationId)
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+
+      setNotifications(prev => prev.filter(n => n.id !== notificationId));
+      setUnreadCount(prev => Math.max(0, prev - 1));
+    } catch (error) {
+      console.error('Error deleting notification:', error);
+    }
+  }, [user]);
+
   useEffect(() => {
     fetchNotifications();
   }, [fetchNotifications]);
@@ -113,8 +148,10 @@ export const useEnhancedNotifications = () => {
   return {
     notifications,
     unreadCount,
+    loading,
     fetchNotifications,
     markAsRead,
-    markAllAsRead
+    markAllAsRead,
+    deleteNotification
   };
 };

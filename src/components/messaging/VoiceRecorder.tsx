@@ -8,9 +8,10 @@ interface VoiceRecorderProps {
   onSendVoiceMessage: (audioUrl: string, duration: number) => void;
   isRecording: boolean;
   setIsRecording: (recording: boolean) => void;
+  onCancel?: () => void;
 }
 
-const VoiceRecorder = ({ onSendVoiceMessage, isRecording, setIsRecording }: VoiceRecorderProps) => {
+const VoiceRecorder = ({ onSendVoiceMessage, isRecording, setIsRecording, onCancel }: VoiceRecorderProps) => {
   const [recordingDuration, setRecordingDuration] = useState(0);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
@@ -63,6 +64,13 @@ const VoiceRecorder = ({ onSendVoiceMessage, isRecording, setIsRecording }: Voic
     }
   };
 
+  const handleCancel = () => {
+    if (isRecording) {
+      stopRecording();
+    }
+    onCancel?.();
+  };
+
   return (
     <div className="flex items-center gap-2">
       {isRecording && (
@@ -82,6 +90,16 @@ const VoiceRecorder = ({ onSendVoiceMessage, isRecording, setIsRecording }: Voic
       >
         {isRecording ? <Square size={20} /> : <Mic size={20} />}
       </Button>
+
+      {onCancel && (
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={handleCancel}
+        >
+          Cancel
+        </Button>
+      )}
     </div>
   );
 };

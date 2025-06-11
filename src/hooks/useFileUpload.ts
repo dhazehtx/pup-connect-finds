@@ -3,7 +3,14 @@ import { useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
-export const useFileUpload = () => {
+interface UseFileUploadOptions {
+  bucket?: string;
+  folder?: string;
+  maxSize?: number;
+  allowedTypes?: string[];
+}
+
+export const useFileUpload = (options?: UseFileUploadOptions) => {
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const { toast } = useToast();
@@ -17,7 +24,7 @@ export const useFileUpload = () => {
       
       const fileExt = file.name.split('.').pop();
       const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
-      const filePath = `uploads/${fileName}`;
+      const filePath = `${options?.folder || 'uploads'}/${fileName}`;
 
       // Simulate progress updates
       const progressInterval = setInterval(() => {
@@ -25,7 +32,7 @@ export const useFileUpload = () => {
       }, 100);
 
       const { error: uploadError } = await supabase.storage
-        .from('message-files')
+        .from(options?.bucket || 'message-files')
         .upload(filePath, file);
 
       clearInterval(progressInterval);
@@ -34,7 +41,7 @@ export const useFileUpload = () => {
       if (uploadError) throw uploadError;
 
       const { data: { publicUrl } } = supabase.storage
-        .from('message-files')
+        .from(options?.bucket || 'message-files')
         .getPublicUrl(filePath);
 
       toast({
@@ -55,7 +62,7 @@ export const useFileUpload = () => {
       setUploading(false);
       setUploadProgress(0);
     }
-  }, [toast]);
+  }, [toast, options]);
 
   const uploadImage = useCallback(async (file: File): Promise<string> => {
     if (!file.type.startsWith('image/')) {
@@ -78,12 +85,21 @@ export const useFileUpload = () => {
     return uploadFile(audioFile);
   }, [uploadFile]);
 
+  const uploadVoiceMessage = useCallback(async (audioBlob: Blob, duration: number): Promise<string> => {
+    const audioFile = new File([audioBlob], `voice-${Date.now()}.webm`, {
+      type: 'audio/webm'
+    });
+
+    return uploadFile(audioFile);
+  }, [uploadFile]);
+
   return {
     uploading,
     uploadProgress,
     uploadFile,
     uploadImage,
     uploadAudio,
+    uploadVoiceMessage,
     isUploading: uploading
   };
 };

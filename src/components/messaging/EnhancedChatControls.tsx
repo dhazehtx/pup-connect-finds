@@ -88,7 +88,6 @@ const EnhancedChatControls = ({
             onSendVoiceMessage={handleSendVoiceMessage}
             isRecording={isRecording}
             setIsRecording={setIsRecording}
-            onRecordingComplete={handleVoiceRecording}
             onCancel={() => setShowVoiceRecorder(false)}
           />
         </PopoverContent>
