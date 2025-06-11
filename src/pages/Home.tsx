@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -8,11 +7,16 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import AnimatedHeart from '@/components/ui/animated-heart';
 import CommentsSection from '@/components/post/CommentsSection';
+import LikesModal from '@/components/post/LikesModal';
 
 const Home = () => {
   const { user, isGuest } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
+  
+  // Modal states
+  const [showLikesModal, setShowLikesModal] = useState(false);
+  const [selectedPostLikes, setSelectedPostLikes] = useState([]);
 
   // Sample posts data with interactive functionality
   const [posts, setPosts] = useState([
@@ -30,6 +34,32 @@ const Home = () => {
       isLiked: false,
       caption: 'Beautiful day at the park! 🐕',
       timeAgo: '2 hours ago',
+      likedBy: [
+        {
+          id: 'user1',
+          name: 'Sarah Johnson',
+          username: 'sarah_j',
+          avatar: '/lovable-uploads/75316943-0598-40bc-bcb4-84665859ea00.png',
+          verified: true,
+          isFollowing: false
+        },
+        {
+          id: 'user2', 
+          name: 'Mike Davis',
+          username: 'mike_d',
+          avatar: '/lovable-uploads/5c25f5ac-d644-465c-abc2-dc66bbdf3a94.png',
+          verified: false,
+          isFollowing: true
+        },
+        {
+          id: 'user3',
+          name: 'Emma Wilson',
+          username: 'emma_w',
+          avatar: '/lovable-uploads/252c4abe-53d4-48e1-a356-bf715001c720.png',
+          verified: true,
+          isFollowing: false
+        }
+      ],
       comments: [
         {
           id: 1,
@@ -42,7 +72,17 @@ const Home = () => {
           text: 'Such a beautiful pup! 🥰',
           timestamp: '1h ago',
           likes: 12,
-          isLiked: false
+          isLiked: false,
+          likedBy: [
+            {
+              id: 'user4',
+              name: 'Alex Brown',
+              username: 'alex_b',
+              avatar: '/lovable-uploads/5c25f5ac-d644-465c-abc2-dc66bbdf3a94.png',
+              verified: false,
+              isFollowing: false
+            }
+          ]
         },
         {
           id: 2,
@@ -55,7 +95,17 @@ const Home = () => {
           text: 'Where is this park? Looks amazing!',
           timestamp: '45m ago',
           likes: 5,
-          isLiked: false
+          isLiked: false,
+          likedBy: [
+            {
+              id: 'user5',
+              name: 'Lisa Chen',
+              username: 'lisa_c',
+              avatar: '/lovable-uploads/252c4abe-53d4-48e1-a356-bf715001c720.png',
+              verified: true,
+              isFollowing: true
+            }
+          ]
         }
       ]
     },
@@ -73,6 +123,7 @@ const Home = () => {
       isLiked: false,
       caption: 'Training session complete! Good boy! 🎾',
       timeAgo: '4 hours ago',
+      likedBy: [],
       comments: [
         {
           id: 3,
@@ -85,7 +136,8 @@ const Home = () => {
           text: 'Great training technique! What method do you use?',
           timestamp: '3h ago',
           likes: 8,
-          isLiked: false
+          isLiked: false,
+          likedBy: []
         }
       ]
     },
@@ -103,6 +155,7 @@ const Home = () => {
       isLiked: false,
       caption: 'Playtime with friends! 🐾',
       timeAgo: '6 hours ago',
+      likedBy: [],
       comments: []
     }
   ]);
@@ -214,6 +267,14 @@ const Home = () => {
     // Comment functionality would be implemented here
   };
 
+  const handleShowLikes = (postId: number) => {
+    const post = posts.find(p => p.id === postId);
+    if (post && post.likedBy) {
+      setSelectedPostLikes(post.likedBy);
+      setShowLikesModal(true);
+    }
+  };
+
   // Main social media feed layout like in the demo
   return (
     <div className="max-w-md mx-auto bg-white min-h-screen">
@@ -289,7 +350,10 @@ const Home = () => {
                 </div>
 
                 {/* Likes */}
-                <p className="font-semibold text-sm mb-1">
+                <p 
+                  className="font-semibold text-sm mb-1 cursor-pointer hover:text-gray-600"
+                  onClick={() => handleShowLikes(post.id)}
+                >
                   {post.likes.toLocaleString()} likes
                 </p>
 
@@ -326,6 +390,14 @@ const Home = () => {
           </Card>
         ))}
       </div>
+
+      {/* Likes Modal */}
+      <LikesModal
+        isOpen={showLikesModal}
+        onClose={() => setShowLikesModal(false)}
+        likes={selectedPostLikes}
+        onProfileClick={handleProfileClick}
+      />
     </div>
   );
 };

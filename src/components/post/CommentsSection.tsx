@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import AnimatedHeart from '@/components/ui/animated-heart';
+import LikesModal from '@/components/post/LikesModal';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 
@@ -17,6 +18,14 @@ interface Comment {
   timestamp: string;
   likes: number;
   isLiked: boolean;
+  likedBy?: Array<{
+    id: string;
+    name: string;
+    username: string;
+    avatar: string;
+    verified?: boolean;
+    isFollowing?: boolean;
+  }>;
 }
 
 interface CommentsSectionProps {
@@ -27,6 +36,8 @@ interface CommentsSectionProps {
 
 const CommentsSection = ({ comments, setComments, onProfileClick }: CommentsSectionProps) => {
   const [showAllComments, setShowAllComments] = useState(false);
+  const [showCommentLikesModal, setShowCommentLikesModal] = useState(false);
+  const [selectedCommentLikes, setSelectedCommentLikes] = useState([]);
   const { user } = useAuth();
   const { toast } = useToast();
   
@@ -52,6 +63,14 @@ const CommentsSection = ({ comments, setComments, onProfileClick }: CommentsSect
           }
         : comment
     ));
+  };
+
+  const handleShowCommentLikes = (commentId: number) => {
+    const comment = comments.find(c => c.id === commentId);
+    if (comment && comment.likedBy && comment.likes > 0) {
+      setSelectedCommentLikes(comment.likedBy);
+      setShowCommentLikesModal(true);
+    }
   };
 
   return (
@@ -102,7 +121,12 @@ const CommentsSection = ({ comments, setComments, onProfileClick }: CommentsSect
               <div className="flex items-center gap-4 mt-1">
                 <p className="text-gray-500 text-xs">{comment.timestamp}</p>
                 {comment.likes > 0 && (
-                  <p className="text-gray-500 text-xs">{comment.likes} likes</p>
+                  <p 
+                    className="text-gray-500 text-xs cursor-pointer hover:text-gray-700"
+                    onClick={() => handleShowCommentLikes(comment.id)}
+                  >
+                    {comment.likes} likes
+                  </p>
                 )}
               </div>
             </div>
@@ -119,6 +143,14 @@ const CommentsSection = ({ comments, setComments, onProfileClick }: CommentsSect
           Show less
         </button>
       )}
+
+      {/* Comment Likes Modal */}
+      <LikesModal
+        isOpen={showCommentLikesModal}
+        onClose={() => setShowCommentLikesModal(false)}
+        likes={selectedCommentLikes}
+        onProfileClick={onProfileClick}
+      />
     </div>
   );
 };
