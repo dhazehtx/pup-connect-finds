@@ -41,6 +41,7 @@ interface ChatContainerProps {
     parentMessage: any | null;
   };
   closeThread: () => void;
+  onBack?: () => void;
 }
 
 const ChatContainer = ({
@@ -58,7 +59,8 @@ const ChatContainer = ({
   closeReactionPicker,
   threadState,
   closeThread,
-  onSendVoiceMessage
+  onSendVoiceMessage,
+  onBack
 }: ChatContainerProps) => {
   const { fetchReactions } = useMessageReactions();
   const { getTypingUsers } = useTypingIndicators();
