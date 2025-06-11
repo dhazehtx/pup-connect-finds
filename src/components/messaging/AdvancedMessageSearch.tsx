@@ -25,7 +25,7 @@ import {
   Bookmark
 } from 'lucide-react';
 import { useMessageSearch } from '@/hooks/useMessageSearch';
-import { format, formatDistanceToNow } from 'date-fns';
+import { formatDistanceToNow } from 'date-fns';
 
 interface AdvancedMessageSearchProps {
   messages: any[];
@@ -172,115 +172,6 @@ const AdvancedMessageSearch = ({
     setLocalResults([]);
     setShowResults(false);
     onClearSearch();
-  };
-
-  const performSearch = useCallback(async () => {
-    let results = messages;
-
-    // Text search
-    if (filters.query.trim()) {
-      if (conversationId) {
-        await searchMessages(filters.query, conversationId);
-        results = searchResults;
-      } else {
-        results = results.filter(msg => 
-          msg.content?.toLowerCase().includes(filters.query.toLowerCase())
-        );
-      }
-    }
-
-    // Message type filter
-    if (filters.messageType !== 'all') {
-      results = results.filter(msg => msg.message_type === filters.messageType);
-    }
-
-    // Sender filter
-    if (filters.sender !== 'all') {
-      results = results.filter(msg => msg.sender_id === filters.sender);
-    }
-
-    // Date range filter
-    if (filters.dateRange.from) {
-      results = results.filter(msg => 
-        new Date(msg.created_at) >= filters.dateRange.from!
-      );
-    }
-    if (filters.dateRange.to) {
-      results = results.filter(msg => 
-        new Date(msg.created_at) <= filters.dateRange.to!
-      );
-    }
-
-    // Attachments filter
-    if (filters.hasAttachments) {
-      results = results.filter(msg => 
-        msg.image_url || msg.message_type !== 'text'
-      );
-    }
-
-    // Starred filter
-    if (filters.isStarred) {
-      results = results.filter(msg => msg.is_starred);
-    }
-
-    // Tags filter
-    if (filters.tags.length > 0) {
-      results = results.filter(msg => 
-        filters.tags.some(tag => msg.tags?.includes(tag))
-      );
-    }
-
-    onSearchResults(results);
-
-    // Add to search history
-    if (filters.query.trim() && !searchHistory.includes(filters.query)) {
-      setSearchHistory(prev => [filters.query, ...prev.slice(0, 9)]);
-    }
-  }, [filters, messages, conversationId, searchMessages, searchResults, onSearchResults, searchHistory]);
-
-  const clearAllFilters = () => {
-    setFilters({
-      query: '',
-      messageType: 'all',
-      messageTypes: [],
-      sender: 'all',
-      dateRange: { from: null, to: null, start: '', end: '' },
-      hasAttachments: false,
-      isStarred: false,
-      tags: []
-    });
-    onClearSearch();
-  };
-
-  const saveCurrentSearch = () => {
-    const searchName = prompt('Enter a name for this search:');
-    if (searchName) {
-      const savedSearch = {
-        id: Date.now().toString(),
-        name: searchName,
-        filters: { ...filters },
-        created_at: new Date().toISOString()
-      };
-      setSavedSearches(prev => [...prev, savedSearch]);
-    }
-  };
-
-  const loadSavedSearch = (search: any) => {
-    setFilters(search.filters);
-  };
-
-  const exportResults = () => {
-    const results = searchResults.length > 0 ? searchResults : messages;
-    const csv = results.map(msg => 
-      `"${msg.created_at}","${msg.sender_name || 'Unknown'}","${msg.content}","${msg.message_type}"`
-    ).join('\n');
-    
-    const blob = new Blob([csv], { type: 'text/csv' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'message-search-results.csv';
-    a.click();
   };
 
   const toggleMessageType = (type: string) => {
