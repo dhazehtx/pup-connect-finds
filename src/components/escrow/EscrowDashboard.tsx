@@ -1,330 +1,135 @@
+
 import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress';
-import { useEscrowTransactions } from '@/hooks/useEscrowTransactions';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Shield, CreditCard, AlertTriangle, BarChart3 } from 'lucide-react';
+import EscrowTransactionsList from './EscrowTransactionsList';
+import EscrowAnalytics from './EscrowAnalytics';
+import DisputeManagementDashboard from '@/components/payments/DisputeManagementDashboard';
 import { useAuth } from '@/contexts/AuthContext';
-import { Clock, CheckCircle, AlertTriangle, DollarSign, Eye } from 'lucide-react';
-import EscrowTransactionStatus from '@/components/payments/EscrowTransactionStatus';
+import { useEscrowTransactions } from '@/hooks/useEscrowTransactions';
 
 const EscrowDashboard = () => {
   const { user } = useAuth();
-  const { transactions, loading, getTransactionStats } = useEscrowTransactions(user?.id);
-  const [selectedTransaction, setSelectedTransaction] = useState<string | null>(null);
+  const { transactions, getTransactionStats } = useEscrowTransactions(user?.id);
+  const [activeTab, setActiveTab] = useState('overview');
+
   const stats = getTransactionStats();
-
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'completed': return <CheckCircle className="text-green-600" size={16} />;
-      case 'disputed': return <AlertTriangle className="text-red-600" size={16} />;
-      default: return <Clock className="text-yellow-600" size={16} />;
-    }
-  };
-
-  const getProgressValue = (status: string) => {
-    switch (status) {
-      case 'pending': return 25;
-      case 'funds_held': return 50;
-      case 'buyer_confirmed': return 75;
-      case 'seller_confirmed': return 75;
-      case 'completed': return 100;
-      case 'disputed': return 40;
-      default: return 0;
-    }
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'completed': return 'bg-green-100 text-green-800';
-      case 'disputed': return 'bg-red-100 text-red-800';
-      case 'pending': return 'bg-yellow-100 text-yellow-800';
-      default: return 'bg-blue-100 text-blue-800';
-    }
-  };
-
-  if (loading) {
-    return (
-      <div className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          {[...Array(4)].map((_, i) => (
-            <Card key={i}>
-              <CardContent className="p-6">
-                <div className="animate-pulse">
-                  <div className="h-4 bg-gray-200 rounded w-1/2 mb-2"></div>
-                  <div className="h-8 bg-gray-200 rounded w-3/4"></div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="space-y-6">
       {/* Stats Overview */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center gap-2">
-              <DollarSign className="text-blue-600" size={20} />
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">Total Transactions</p>
                 <p className="text-2xl font-bold">{stats.total}</p>
               </div>
+              <CreditCard className="w-8 h-8 text-blue-500" />
             </div>
           </CardContent>
         </Card>
+
         <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center gap-2">
-              <Clock className="text-yellow-600" size={20} />
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">Pending</p>
                 <p className="text-2xl font-bold">{stats.pending}</p>
               </div>
+              <Shield className="w-8 h-8 text-orange-500" />
             </div>
           </CardContent>
         </Card>
+
         <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center gap-2">
-              <CheckCircle className="text-green-600" size={20} />
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">Completed</p>
                 <p className="text-2xl font-bold">{stats.completed}</p>
               </div>
+              <Shield className="w-8 h-8 text-green-500" />
             </div>
           </CardContent>
         </Card>
+
         <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center gap-2">
-              <AlertTriangle className="text-red-600" size={20} />
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Disputed</p>
+                <p className="text-sm text-gray-600">Disputes</p>
                 <p className="text-2xl font-bold">{stats.disputed}</p>
               </div>
+              <AlertTriangle className="w-8 h-8 text-red-500" />
             </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Transaction Details */}
-      {selectedTransaction ? (
-        <div className="space-y-4">
-          <Button 
-            variant="outline" 
-            onClick={() => setSelectedTransaction(null)}
-          >
-            ← Back to Dashboard
-          </Button>
-          <EscrowTransactionStatus 
-            escrowTransactionId={selectedTransaction}
-            userRole={transactions.find(t => t.id === selectedTransaction)?.buyer_id === user?.id ? 'buyer' : 'seller'}
-          />
-        </div>
-      ) : (
-        <Tabs defaultValue="all" className="space-y-4">
-          <TabsList>
-            <TabsTrigger value="all">All Transactions</TabsTrigger>
-            <TabsTrigger value="pending">Pending</TabsTrigger>
-            <TabsTrigger value="completed">Completed</TabsTrigger>
-            <TabsTrigger value="disputed">Disputed</TabsTrigger>
-          </TabsList>
+      {/* Main Content Tabs */}
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <TabsList className="grid w-full grid-cols-4">
+          <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="transactions">Transactions</TabsTrigger>
+          <TabsTrigger value="disputes">Disputes</TabsTrigger>
+          <TabsTrigger value="analytics">Analytics</TabsTrigger>
+        </TabsList>
 
-          <TabsContent value="all" className="space-y-4">
-            {transactions.map((transaction) => (
-              <Card key={transaction.id} className="hover:shadow-md transition-shadow">
-                <CardContent className="p-6">
-                  <div className="flex justify-between items-start mb-4">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-2">
-                        {getStatusIcon(transaction.status)}
-                        <h3 className="font-semibold">
-                          {transaction.dog_listings?.dog_name} - {transaction.dog_listings?.breed}
-                        </h3>
-                        <Badge className={getStatusColor(transaction.status)}>
-                          {transaction.status.replace('_', ' ').toUpperCase()}
-                        </Badge>
-                      </div>
-                      <div className="grid grid-cols-2 gap-4 text-sm text-gray-600">
-                        <div>Amount: ${transaction.amount}</div>
-                        <div>Role: {transaction.buyer_id === user?.id ? 'Buyer' : 'Seller'}</div>
-                        <div>Created: {new Date(transaction.created_at).toLocaleDateString()}</div>
-                        <div>
-                          {transaction.meeting_scheduled_at && (
-                            <>Meeting: {new Date(transaction.meeting_scheduled_at).toLocaleDateString()}</>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={() => setSelectedTransaction(transaction.id)}
-                    >
-                      <Eye size={16} className="mr-2" />
-                      View Details
-                    </Button>
-                  </div>
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span>Progress</span>
-                      <span>{getProgressValue(transaction.status)}%</span>
-                    </div>
-                    <Progress value={getProgressValue(transaction.status)} className="h-2" />
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </TabsContent>
+        <TabsContent value="overview">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Recent Transactions</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <EscrowTransactionsList limit={5} />
+              </CardContent>
+            </Card>
 
-          <TabsContent value="pending" className="space-y-4">
-            {transactions.filter(t => ['pending', 'funds_held', 'buyer_confirmed', 'seller_confirmed'].includes(t.status)).map((transaction) => (
-              <Card key={transaction.id} className="hover:shadow-md transition-shadow">
-                <CardContent className="p-6">
-                  <div className="flex justify-between items-start mb-4">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-2">
-                        {getStatusIcon(transaction.status)}
-                        <h3 className="font-semibold">
-                          {transaction.dog_listings?.dog_name} - {transaction.dog_listings?.breed}
-                        </h3>
-                        <Badge className={getStatusColor(transaction.status)}>
-                          {transaction.status.replace('_', ' ').toUpperCase()}
-                        </Badge>
-                      </div>
-                      <div className="grid grid-cols-2 gap-4 text-sm text-gray-600">
-                        <div>Amount: ${transaction.amount}</div>
-                        <div>Role: {transaction.buyer_id === user?.id ? 'Buyer' : 'Seller'}</div>
-                        <div>Created: {new Date(transaction.created_at).toLocaleDateString()}</div>
-                        <div>
-                          {transaction.meeting_scheduled_at && (
-                            <>Meeting: {new Date(transaction.meeting_scheduled_at).toLocaleDateString()}</>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setSelectedTransaction(transaction.id)}
-                    >
-                      <Eye size={16} className="mr-2" />
-                      View Details
-                    </Button>
-                  </div>
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span>Progress</span>
-                      <span>{getProgressValue(transaction.status)}%</span>
-                    </div>
-                    <Progress value={getProgressValue(transaction.status)} className="h-2" />
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </TabsContent>
+            <Card>
+              <CardHeader>
+                <CardTitle>Quick Actions</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div className="p-3 border rounded-lg">
+                  <h4 className="font-medium">How Escrow Works</h4>
+                  <p className="text-sm text-gray-600">
+                    Funds are held securely until both parties confirm the transaction
+                  </p>
+                </div>
+                <div className="p-3 border rounded-lg">
+                  <h4 className="font-medium">Need Help?</h4>
+                  <p className="text-sm text-gray-600">
+                    Contact support if you have issues with any transaction
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
 
-          <TabsContent value="completed" className="space-y-4">
-            {transactions.filter(t => t.status === 'completed').map((transaction) => (
-              <Card key={transaction.id} className="hover:shadow-md transition-shadow">
-                <CardContent className="p-6">
-                  <div className="flex justify-between items-start mb-4">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-2">
-                        {getStatusIcon(transaction.status)}
-                        <h3 className="font-semibold">
-                          {transaction.dog_listings?.dog_name} - {transaction.dog_listings?.breed}
-                        </h3>
-                        <Badge className={getStatusColor(transaction.status)}>
-                          {transaction.status.replace('_', ' ').toUpperCase()}
-                        </Badge>
-                      </div>
-                      <div className="grid grid-cols-2 gap-4 text-sm text-gray-600">
-                        <div>Amount: ${transaction.amount}</div>
-                        <div>Role: {transaction.buyer_id === user?.id ? 'Buyer' : 'Seller'}</div>
-                        <div>Created: {new Date(transaction.created_at).toLocaleDateString()}</div>
-                        <div>
-                          {transaction.meeting_scheduled_at && (
-                            <>Meeting: {new Date(transaction.meeting_scheduled_at).toLocaleDateString()}</>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setSelectedTransaction(transaction.id)}
-                    >
-                      <Eye size={16} className="mr-2" />
-                      View Details
-                    </Button>
-                  </div>
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span>Progress</span>
-                      <span>{getProgressValue(transaction.status)}%</span>
-                    </div>
-                    <Progress value={getProgressValue(transaction.status)} className="h-2" />
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </TabsContent>
+        <TabsContent value="transactions">
+          <Card>
+            <CardHeader>
+              <CardTitle>All Transactions</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <EscrowTransactionsList />
+            </CardContent>
+          </Card>
+        </TabsContent>
 
-          <TabsContent value="disputed" className="space-y-4">
-            {transactions.filter(t => t.status === 'disputed').map((transaction) => (
-              <Card key={transaction.id} className="hover:shadow-md transition-shadow">
-                <CardContent className="p-6">
-                  <div className="flex justify-between items-start mb-4">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-2">
-                        {getStatusIcon(transaction.status)}
-                        <h3 className="font-semibold">
-                          {transaction.dog_listings?.dog_name} - {transaction.dog_listings?.breed}
-                        </h3>
-                        <Badge className={getStatusColor(transaction.status)}>
-                          {transaction.status.replace('_', ' ').toUpperCase()}
-                        </Badge>
-                      </div>
-                      <div className="grid grid-cols-2 gap-4 text-sm text-gray-600">
-                        <div>Amount: ${transaction.amount}</div>
-                        <div>Role: {transaction.buyer_id === user?.id ? 'Buyer' : 'Seller'}</div>
-                        <div>Created: {new Date(transaction.created_at).toLocaleDateString()}</div>
-                        <div>
-                          {transaction.meeting_scheduled_at && (
-                            <>Meeting: {new Date(transaction.meeting_scheduled_at).toLocaleDateString()}</>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setSelectedTransaction(transaction.id)}
-                    >
-                      <Eye size={16} className="mr-2" />
-                      View Details
-                    </Button>
-                  </div>
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span>Progress</span>
-                      <span>{getProgressValue(transaction.status)}%</span>
-                    </div>
-                    <Progress value={getProgressValue(transaction.status)} className="h-2" />
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </TabsContent>
-        </Tabs>
-      )}
+        <TabsContent value="disputes">
+          <DisputeManagementDashboard />
+        </TabsContent>
+
+        <TabsContent value="analytics">
+          <EscrowAnalytics />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };
