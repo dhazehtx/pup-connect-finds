@@ -5,6 +5,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface Message {
   id: string;
+  conversation_id: string;
   content: string;
   message_type: string;
   image_url?: string;

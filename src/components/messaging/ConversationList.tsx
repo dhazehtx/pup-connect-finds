@@ -31,13 +31,15 @@ interface ConversationListProps {
   selectedConversationId: string;
   onSelectConversation: (conversationId: string) => void;
   loading: boolean;
+  isUserOnline?: (userId: string) => boolean;
 }
 
 const ConversationList = ({ 
   conversations, 
   selectedConversationId, 
   onSelectConversation, 
-  loading 
+  loading,
+  isUserOnline 
 }: ConversationListProps) => {
   if (loading) {
     return (
