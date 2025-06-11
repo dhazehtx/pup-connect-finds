@@ -190,11 +190,25 @@ const EnhancedMobileFeatures = () => {
       }
     } else {
       // Fallback for browsers without Web Share API
-      if (navigator.clipboard) {
-        await navigator.clipboard.writeText(window.location.href);
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        try {
+          await navigator.clipboard.writeText(window.location.href);
+          toast({
+            title: "Link copied",
+            description: "Link copied to clipboard",
+          });
+        } catch (error) {
+          toast({
+            title: "Copy failed",
+            description: "Unable to copy link to clipboard",
+            variant: "destructive",
+          });
+        }
+      } else {
         toast({
-          title: "Link copied",
-          description: "Link copied to clipboard",
+          title: "Share not supported",
+          description: "Sharing is not supported on this device",
+          variant: "destructive",
         });
       }
     }

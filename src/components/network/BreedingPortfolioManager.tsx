@@ -30,7 +30,9 @@ const BreedingPortfolioManager = () => {
     breeding_philosophy: '',
     available_breeds: [] as string[],
     health_testing_protocols: [] as string[],
-    is_public: true
+    is_public: true,
+    achievements: [] as string[],
+    facility_photos: [] as string[]
   });
   
   const { 
@@ -54,7 +56,9 @@ const BreedingPortfolioManager = () => {
         breeding_philosophy: '',
         available_breeds: [],
         health_testing_protocols: [],
-        is_public: true
+        is_public: true,
+        achievements: [],
+        facility_photos: []
       });
     } catch (error) {
       console.error('Error creating portfolio:', error);
