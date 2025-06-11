@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -31,6 +30,7 @@ interface AdvancedMessageSearchProps {
   messages: any[];
   onSearchResults: (results: any[]) => void;
   onClearSearch: () => void;
+  onResultSelect?: (messageId: string) => void;
   conversationId?: string;
 }
 
@@ -50,7 +50,8 @@ interface SearchFilters {
 const AdvancedMessageSearch = ({ 
   messages, 
   onSearchResults, 
-  onClearSearch, 
+  onClearSearch,
+  onResultSelect,
   conversationId 
 }: AdvancedMessageSearchProps) => {
   const [filters, setFilters] = useState<SearchFilters>({
@@ -65,6 +66,8 @@ const AdvancedMessageSearch = ({
   const [searchHistory, setSearchHistory] = useState<string[]>([]);
   const [savedSearches, setSavedSearches] = useState<any[]>([]);
   const [showAdvanced, setShowAdvanced] = useState(false);
+  const [localResults, setLocalResults] = useState<any[]>([]);
+  const [showResults, setShowResults] = useState(false);
 
   const { searchResults, searching, searchMessages } = useMessageSearch();
 
@@ -86,6 +89,78 @@ const AdvancedMessageSearch = ({
       }))
     ];
   }, [messages]);
+
+  // Local search function for instant results
+  const performLocalSearch = useCallback((query: string, appliedFilters: typeof filters) => {
+    if (!query.trim() && !Object.values(appliedFilters).some(f => Array.isArray(f) ? f.length > 0 : f !== '' && f !== 'all' && f !== false && f !== null)) {
+      setLocalResults([]);
+      setShowResults(false);
+      onClearSearch();
+      return;
+    }
+
+    let results = messages.filter(message => {
+      // Text search
+      if (query.trim() && !message.content?.toLowerCase().includes(query.toLowerCase())) {
+        return false;
+      }
+      
+      // Message type filter
+      if (appliedFilters.messageType !== 'all' && appliedFilters.messageTypes.length > 0 && !appliedFilters.messageTypes.includes(message.message_type)) {
+        return false;
+      }
+      
+      // Date range filter
+      if (appliedFilters.dateRange.start && new Date(message.created_at) < new Date(appliedFilters.dateRange.start)) {
+        return false;
+      }
+      if (appliedFilters.dateRange.end && new Date(message.created_at) > new Date(appliedFilters.dateRange.end)) {
+        return false;
+      }
+      
+      // Sender filter
+      if (appliedFilters.sender && message.sender_id !== appliedFilters.sender) {
+        return false;
+      }
+      
+      return true;
+    });
+
+    // Sort by relevance (most recent first)
+    results = results.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+
+    console.log('🔍 AdvancedMessageSearch - Search results:', {
+      query,
+      filters: appliedFilters,
+      resultCount: results.length
+    });
+
+    setLocalResults(results);
+    setShowResults(true);
+    onSearchResults(results);
+  }, [messages, onSearchResults, onClearSearch]);
+
+  // Search as user types
+  React.useEffect(() => {
+    const debounceTimer = setTimeout(() => {
+      performLocalSearch(searchQuery, filters);
+    }, 300);
+
+    return () => clearTimeout(debounceTimer);
+  }, [searchQuery, filters, performLocalSearch]);
+
+  const handleClearSearch = () => {
+    console.log('🔍 AdvancedMessageSearch - Clearing search');
+    setSearchQuery('');
+    setFilters({
+      messageTypes: [],
+      dateRange: { start: '', end: '' },
+      sender: ''
+    });
+    setLocalResults([]);
+    setShowResults(false);
+    onClearSearch();
+  };
 
   const performSearch = useCallback(async () => {
     let results = messages;
@@ -195,266 +270,165 @@ const AdvancedMessageSearch = ({
     a.click();
   };
 
+  const toggleMessageType = (type: string) => {
+    setFilters(prev => ({
+      ...prev,
+      messageTypes: prev.messageTypes.includes(type)
+        ? prev.messageTypes.filter(t => t !== type)
+        : [...prev.messageTypes, type]
+    }));
+  };
+
+  const hasActiveFilters = searchQuery.trim() !== '' ||
+    filters.messageTypes.length > 0 ||
+    filters.dateRange.start !== '' ||
+    filters.dateRange.end !== '' ||
+    filters.sender !== '';
+
   return (
-    <Card className="w-full max-w-4xl">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Search className="w-5 h-5" />
-          Advanced Message Search
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <Tabs defaultValue="search" className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="search">Search</TabsTrigger>
-            <TabsTrigger value="history">History</TabsTrigger>
-            <TabsTrigger value="saved">Saved</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="search" className="space-y-4">
-            {/* Basic Search */}
-            <div className="flex gap-2">
-              <div className="flex-1">
-                <Input
-                  placeholder="Search messages..."
-                  value={filters.query}
-                  onChange={(e) => setFilters(prev => ({ ...prev, query: e.target.value }))}
-                  onKeyDown={(e) => e.key === 'Enter' && performSearch()}
-                />
-              </div>
-              <Button onClick={performSearch} disabled={searching}>
-                <Search className="w-4 h-4" />
-              </Button>
-              <Button
-                variant="outline"
-                onClick={() => setShowAdvanced(!showAdvanced)}
-              >
+    <div className="p-3 border-b bg-background">
+      <div className="flex items-center gap-2">
+        <div className="relative flex-1">
+          <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+          <Input
+            placeholder="Search messages..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-8 pr-8"
+          />
+          {hasActiveFilters && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleClearSearch}
+              className="absolute right-1 top-1/2 transform -translate-y-1/2 h-6 w-6 p-0"
+            >
+              <X className="w-3 h-3" />
+            </Button>
+          )}
+        </div>
+        {hasActiveFilters && (
+          <Popover open={isFilterOpen} onOpenChange={setIsFilterOpen}>
+            <PopoverTrigger asChild>
+              <Button variant="outline" size="sm" className="gap-1">
                 <Filter className="w-4 h-4" />
+                Filters
+                {(Object.values(filters).some(f => Array.isArray(f) ? f.length > 0 : f !== '')) && (
+                  <Badge variant="secondary" className="ml-1 h-4 w-4 p-0 text-xs">
+                    {f !== ''}
+                  </Badge>
+                )}
               </Button>
-            </div>
-
-            {/* Advanced Filters */}
-            {showAdvanced && (
-              <div className="space-y-4 p-4 border rounded-lg bg-gray-50">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {/* Message Type */}
-                  <div>
-                    <Label>Message Type</Label>
-                    <Select
-                      value={filters.messageType}
-                      onValueChange={(value) => setFilters(prev => ({ ...prev, messageType: value }))}
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {messageTypes.map(type => (
-                          <SelectItem key={type.value} value={type.value}>
-                            <div className="flex items-center gap-2">
-                              <type.icon className="w-4 h-4" />
-                              {type.label}
-                            </div>
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  {/* Sender */}
-                  <div>
-                    <Label>Sender</Label>
-                    <Select
-                      value={filters.sender}
-                      onValueChange={(value) => setFilters(prev => ({ ...prev, sender: value }))}
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {senders.map(sender => (
-                          <SelectItem key={sender.value} value={sender.value}>
-                            <div className="flex items-center gap-2">
-                              <User className="w-4 h-4" />
-                              {sender.label}
-                            </div>
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  {/* Date Range */}
-                  <div>
-                    <Label>Date From</Label>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button variant="outline" className="w-full justify-start">
-                          <CalendarIcon className="mr-2 h-4 w-4" />
-                          {filters.dateRange.from ? format(filters.dateRange.from, "PPP") : "Pick a date"}
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0">
-                        <Calendar
-                          mode="single"
-                          selected={filters.dateRange.from || undefined}
-                          onSelect={(date) => setFilters(prev => ({
-                            ...prev,
-                            dateRange: { ...prev.dateRange, from: date || null }
-                          }))}
-                          initialFocus
-                        />
-                      </PopoverContent>
-                    </Popover>
-                  </div>
-
-                  <div>
-                    <Label>Date To</Label>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button variant="outline" className="w-full justify-start">
-                          <CalendarIcon className="mr-2 h-4 w-4" />
-                          {filters.dateRange.to ? format(filters.dateRange.to, "PPP") : "Pick a date"}
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0">
-                        <Calendar
-                          mode="single"
-                          selected={filters.dateRange.to || undefined}
-                          onSelect={(date) => setFilters(prev => ({
-                            ...prev,
-                            dateRange: { ...prev.dateRange, to: date || null }
-                          }))}
-                          initialFocus
-                        />
-                      </PopoverContent>
-                    </Popover>
+            </PopoverTrigger>
+            <PopoverContent className="w-80">
+              <div className="space-y-4">
+                <div>
+                  <label className="text-sm font-medium mb-2 block">Message Types</label>
+                  <div className="flex flex-wrap gap-1">
+                    {['text', 'image', 'voice', 'file'].map(type => (
+                      <Button
+                        key={type}
+                        variant={filters.messageTypes.includes(type) ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => toggleMessageType(type)}
+                        className="text-xs"
+                      >
+                        {type}
+                      </Button>
+                    ))}
                   </div>
                 </div>
 
-                {/* Boolean Filters */}
-                <div className="flex gap-6">
-                  <div className="flex items-center space-x-2">
-                    <Switch
-                      id="attachments"
-                      checked={filters.hasAttachments}
-                      onCheckedChange={(checked) => setFilters(prev => ({ ...prev, hasAttachments: checked }))}
+                <div>
+                  <label className="text-sm font-medium mb-2 block">Date Range</label>
+                  <div className="space-y-2">
+                    <Input
+                      type="date"
+                      value={filters.dateRange.start}
+                      onChange={(e) => setFilters(prev => ({
+                        ...prev,
+                        dateRange: { ...prev.dateRange, start: e.target.value }
+                      }))}
+                      placeholder="Start date"
+                      className="text-sm"
                     />
-                    <Label htmlFor="attachments">Has Attachments</Label>
-                  </div>
-                  
-                  <div className="flex items-center space-x-2">
-                    <Switch
-                      id="starred"
-                      checked={filters.isStarred}
-                      onCheckedChange={(checked) => setFilters(prev => ({ ...prev, isStarred: checked }))}
+                    <Input
+                      type="date"
+                      value={filters.dateRange.end}
+                      onChange={(e) => setFilters(prev => ({
+                        ...prev,
+                        dateRange: { ...prev.dateRange, end: e.target.value }
+                      }))}
+                      placeholder="End date"
+                      className="text-sm"
                     />
-                    <Label htmlFor="starred">Starred Only</Label>
                   </div>
                 </div>
 
-                {/* Action Buttons */}
-                <div className="flex gap-2">
-                  <Button onClick={performSearch} disabled={searching}>
-                    Search
-                  </Button>
-                  <Button variant="outline" onClick={clearAllFilters}>
-                    Clear All
-                  </Button>
-                  <Button variant="outline" onClick={saveCurrentSearch}>
-                    <Bookmark className="w-4 h-4 mr-2" />
-                    Save Search
-                  </Button>
-                  <Button variant="outline" onClick={exportResults}>
-                    <Download className="w-4 h-4 mr-2" />
-                    Export
-                  </Button>
-                </div>
-              </div>
-            )}
-
-            {/* Active Filters */}
-            {(filters.query || filters.messageType !== 'all' || filters.sender !== 'all' || 
-              filters.hasAttachments || filters.isStarred) && (
-              <div className="flex flex-wrap gap-2">
-                {filters.query && (
-                  <Badge variant="secondary">
-                    Query: {filters.query}
-                    <X 
-                      className="w-3 h-3 ml-1 cursor-pointer" 
-                      onClick={() => setFilters(prev => ({ ...prev, query: '' }))}
-                    />
-                  </Badge>
-                )}
-                {filters.messageType !== 'all' && (
-                  <Badge variant="secondary">
-                    Type: {filters.messageType}
-                    <X 
-                      className="w-3 h-3 ml-1 cursor-pointer" 
-                      onClick={() => setFilters(prev => ({ ...prev, messageType: 'all' }))}
-                    />
-                  </Badge>
-                )}
-                {filters.hasAttachments && (
-                  <Badge variant="secondary">
-                    Has Attachments
-                    <X 
-                      className="w-3 h-3 ml-1 cursor-pointer" 
-                      onClick={() => setFilters(prev => ({ ...prev, hasAttachments: false }))}
-                    />
-                  </Badge>
-                )}
-              </div>
-            )}
-          </TabsContent>
-
-          <TabsContent value="history" className="space-y-2">
-            <div className="text-sm text-gray-600 mb-2">Recent Searches</div>
-            {searchHistory.map((query, index) => (
-              <div key={index} className="flex items-center justify-between p-2 border rounded hover:bg-gray-50">
-                <span>{query}</span>
                 <Button
+                  variant="outline"
                   size="sm"
-                  variant="ghost"
-                  onClick={() => setFilters(prev => ({ ...prev, query }))}
+                  onClick={() => {
+                    setFilters({
+                      messageTypes: [],
+                      dateRange: { start: '', end: '' },
+                      sender: ''
+                    });
+                  }}
+                  className="w-full"
                 >
-                  Use
+                  Clear Filters
                 </Button>
               </div>
-            ))}
-          </TabsContent>
+            </PopoverContent>
+          </Popover>
+        )}
+      </div>
 
-          <TabsContent value="saved" className="space-y-2">
-            <div className="text-sm text-gray-600 mb-2">Saved Searches</div>
-            {savedSearches.map((search) => (
-              <div key={search.id} className="flex items-center justify-between p-2 border rounded hover:bg-gray-50">
-                <div>
-                  <div className="font-medium">{search.name}</div>
-                  <div className="text-xs text-gray-500">
-                    {format(new Date(search.created_at), 'PPP')}
-                  </div>
-                </div>
-                <div className="flex gap-2">
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => loadSavedSearch(search)}
-                  >
-                    Load
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => setSavedSearches(prev => prev.filter(s => s.id !== search.id))}
-                  >
-                    <X className="w-4 h-4" />
-                  </Button>
-                </div>
-              </div>
-            ))}
-          </TabsContent>
-        </Tabs>
-      </CardContent>
-    </Card>
+      {/* Search Results Summary */}
+      {showResults && (
+        <div className="mt-2 flex items-center justify-between text-sm text-muted-foreground">
+          <span>{localResults.length} messages found</span>
+          {hasActiveFilters && (
+            <div className="flex items-center gap-1">
+              {filters.messageTypes.map(type => (
+                <Badge key={type} variant="outline" className="text-xs">
+                  {type}
+                </Badge>
+              ))}
+              {filters.dateRange.start && (
+                <Badge variant="outline" className="text-xs">
+                  After {new Date(filters.dateRange.start).toLocaleDateString()}
+                </Badge>
+              )}
+              {filters.dateRange.end && (
+                <Badge variant="outline" className="text-xs">
+                  Before {new Date(filters.dateRange.end).toLocaleDateString()}
+                </Badge>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Quick search results */}
+      {showResults && localResults.length > 0 && onResultSelect && (
+        <div className="mt-2 max-h-40 overflow-y-auto">
+          {localResults.slice(0, 5).map((message) => (
+            <div
+              key={message.id}
+              className="p-2 hover:bg-muted/50 cursor-pointer rounded text-sm border-b last:border-b-0"
+              onClick={() => onResultSelect(message.id)}
+            >
+              <p className="truncate">{message.content}</p>
+              <p className="text-xs text-muted-foreground">
+                {formatDistanceToNow(new Date(message.created_at), { addSuffix: true })}
+              </p>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
   );
 };
 
