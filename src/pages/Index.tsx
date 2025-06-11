@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useRoutes } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -16,6 +17,7 @@ const Profile = React.lazy(() => import('@/pages/Profile'));
 const Home = React.lazy(() => import('@/pages/Home'));
 const Listing = React.lazy(() => import('@/pages/Listing'));
 const Admin = React.lazy(() => import('@/pages/Admin'));
+const Network = React.lazy(() => import('@/pages/Network'));
 
 const Index = () => {
   const { user, loading, isGuest } = useAuth();
@@ -42,6 +44,14 @@ const Index = () => {
       element: (
         <ProtectedRoute guestMessage="Admin access requires authentication.">
           <Admin />
+        </ProtectedRoute>
+      )
+    },
+    {
+      path: '/network',
+      element: (
+        <ProtectedRoute guestMessage="Professional networking requires authentication.">
+          <Network />
         </ProtectedRoute>
       )
     },
