@@ -3,15 +3,8 @@ import { useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
-interface UseFileUploadOptions {
-  bucket: string;
-  folder?: string;
-  maxSize?: number; // in MB
-  allowedTypes?: string[];
-}
-
-export const useFileUpload = (options?: UseFileUploadOptions) => {
-  const [isUploading, setIsUploading] = useState(false);
+export const useFileUpload = () => {
+  const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const { toast } = useToast();
 
@@ -19,12 +12,12 @@ export const useFileUpload = (options?: UseFileUploadOptions) => {
     if (!file) throw new Error('No file provided');
 
     try {
-      setIsUploading(true);
+      setUploading(true);
       setUploadProgress(0);
       
       const fileExt = file.name.split('.').pop();
       const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
-      const filePath = `${options?.folder || 'uploads'}/${fileName}`;
+      const filePath = `uploads/${fileName}`;
 
       // Simulate progress updates
       const progressInterval = setInterval(() => {
@@ -32,7 +25,7 @@ export const useFileUpload = (options?: UseFileUploadOptions) => {
       }, 100);
 
       const { error: uploadError } = await supabase.storage
-        .from(options?.bucket || 'images')
+        .from('message-files')
         .upload(filePath, file);
 
       clearInterval(progressInterval);
@@ -41,7 +34,7 @@ export const useFileUpload = (options?: UseFileUploadOptions) => {
       if (uploadError) throw uploadError;
 
       const { data: { publicUrl } } = supabase.storage
-        .from(options?.bucket || 'images')
+        .from('message-files')
         .getPublicUrl(filePath);
 
       toast({
@@ -59,10 +52,10 @@ export const useFileUpload = (options?: UseFileUploadOptions) => {
       });
       throw error;
     } finally {
-      setIsUploading(false);
+      setUploading(false);
       setUploadProgress(0);
     }
-  }, [toast, options]);
+  }, [toast]);
 
   const uploadImage = useCallback(async (file: File): Promise<string> => {
     if (!file.type.startsWith('image/')) {
@@ -73,6 +66,7 @@ export const useFileUpload = (options?: UseFileUploadOptions) => {
       });
       throw new Error('Invalid file type');
     }
+
     return uploadFile(file);
   }, [uploadFile, toast]);
 
@@ -84,16 +78,12 @@ export const useFileUpload = (options?: UseFileUploadOptions) => {
     return uploadFile(audioFile);
   }, [uploadFile]);
 
-  const uploadVoiceMessage = useCallback(async (audioBlob: Blob, duration: number): Promise<string> => {
-    return uploadAudio(audioBlob);
-  }, [uploadAudio]);
-
   return {
+    uploading,
+    uploadProgress,
     uploadFile,
     uploadImage,
     uploadAudio,
-    uploadVoiceMessage,
-    isUploading,
-    uploadProgress
+    isUploading: uploading
   };
 };
