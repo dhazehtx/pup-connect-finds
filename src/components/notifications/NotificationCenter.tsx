@@ -8,7 +8,12 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { useNotifications } from '@/hooks/useNotifications';
 import { formatDistanceToNow } from 'date-fns';
 
-const NotificationCenter = () => {
+interface NotificationCenterProps {
+  isOpen?: boolean;
+  onClose?: () => void;
+}
+
+const NotificationCenter = ({ isOpen, onClose }: NotificationCenterProps) => {
   const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotifications();
 
   const getNotificationIcon = (type: string) => {
@@ -22,6 +27,11 @@ const NotificationCenter = () => {
     }
   };
 
+  // If used as a modal/overlay, check if it should be hidden
+  if (isOpen === false) {
+    return null;
+  }
+
   return (
     <Card className="w-full max-w-md">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
@@ -34,11 +44,18 @@ const NotificationCenter = () => {
             </Badge>
           )}
         </CardTitle>
-        {unreadCount > 0 && (
-          <Button variant="ghost" size="sm" onClick={markAllAsRead}>
-            Mark all read
-          </Button>
-        )}
+        <div className="flex items-center gap-2">
+          {unreadCount > 0 && (
+            <Button variant="ghost" size="sm" onClick={markAllAsRead}>
+              Mark all read
+            </Button>
+          )}
+          {onClose && (
+            <Button variant="ghost" size="sm" onClick={onClose}>
+              ×
+            </Button>
+          )}
+        </div>
       </CardHeader>
       <CardContent className="p-0">
         <ScrollArea className="h-96">

@@ -36,8 +36,14 @@ export const useNotifications = () => {
 
       if (error) throw error;
 
-      setNotifications(data || []);
-      setUnreadCount(data?.filter(n => !n.read).length || 0);
+      // Transform data to match our interface
+      const transformedData = (data || []).map(item => ({
+        ...item,
+        read: item.is_read || item.read || false
+      }));
+
+      setNotifications(transformedData);
+      setUnreadCount(transformedData.filter(n => !n.read).length);
     } catch (error) {
       console.error('Error fetching notifications:', error);
     } finally {
@@ -49,7 +55,7 @@ export const useNotifications = () => {
     try {
       const { error } = await supabase
         .from('notifications')
-        .update({ read: true })
+        .update({ is_read: true })
         .eq('id', notificationId);
 
       if (error) throw error;
@@ -69,9 +75,9 @@ export const useNotifications = () => {
     try {
       const { error } = await supabase
         .from('notifications')
-        .update({ read: true })
+        .update({ is_read: true })
         .eq('user_id', user.id)
-        .eq('read', false);
+        .eq('is_read', false);
 
       if (error) throw error;
 
@@ -116,13 +122,18 @@ export const useNotifications = () => {
             filter: `user_id=eq.${user.id}`
           },
           (payload) => {
-            const newNotification = payload.new as Notification;
-            setNotifications(prev => [newNotification, ...prev]);
+            const newNotification = payload.new as any;
+            const transformedNotification: Notification = {
+              ...newNotification,
+              read: newNotification.is_read || false
+            };
+            
+            setNotifications(prev => [transformedNotification, ...prev]);
             setUnreadCount(prev => prev + 1);
             
             toast({
-              title: newNotification.title,
-              description: newNotification.message,
+              title: transformedNotification.title,
+              description: transformedNotification.message,
             });
           }
         )
@@ -132,7 +143,7 @@ export const useNotifications = () => {
         supabase.removeChannel(channel);
       };
     }
-  }, [user]);
+  }, [user, toast]);
 
   return {
     notifications,
