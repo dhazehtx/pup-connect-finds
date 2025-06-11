@@ -4,6 +4,7 @@ import Header from './Header';
 import BottomNavigation from './BottomNavigation';
 import MobileTabBar from './mobile/MobileTabBar';
 import { useMobileOptimized } from '@/hooks/useMobileOptimized';
+import { cn } from '@/lib/utils';
 
 interface LayoutProps {
   children: React.ReactNode;
