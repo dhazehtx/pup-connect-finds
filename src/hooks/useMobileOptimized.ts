@@ -1,64 +1,38 @@
 
 import { useState, useEffect } from 'react';
-import { useIsMobile } from './use-mobile';
 
-interface MobileOptimizedOptions {
-  breakpoint?: number;
-  orientation?: 'portrait' | 'landscape' | 'any';
-}
-
-export const useMobileOptimized = (options: MobileOptimizedOptions = {}) => {
-  const { breakpoint = 768, orientation = 'any' } = options;
-  const isMobile = useIsMobile();
-  const [isLandscape, setIsLandscape] = useState(false);
-  const [viewportHeight, setViewportHeight] = useState(0);
-  const [safeAreaInsets, setSafeAreaInsets] = useState({
-    top: 0,
-    bottom: 0,
-    left: 0,
-    right: 0
+export const useMobileOptimized = () => {
+  const [isMobile, setIsMobile] = useState(false);
+  const [windowSize, setWindowSize] = useState({
+    width: typeof window !== 'undefined' ? window.innerWidth : 1024,
+    height: typeof window !== 'undefined' ? window.innerHeight : 768,
   });
 
   useEffect(() => {
-    const updateViewport = () => {
-      setViewportHeight(window.innerHeight);
-      setIsLandscape(window.innerWidth > window.innerHeight);
+    const handleResize = () => {
+      const width = window.innerWidth;
+      const height = window.innerHeight;
       
-      // Get safe area insets for mobile devices
-      const computedStyle = getComputedStyle(document.documentElement);
-      setSafeAreaInsets({
-        top: parseInt(computedStyle.getPropertyValue('--safe-area-inset-top') || '0'),
-        bottom: parseInt(computedStyle.getPropertyValue('--safe-area-inset-bottom') || '0'),
-        left: parseInt(computedStyle.getPropertyValue('--safe-area-inset-left') || '0'),
-        right: parseInt(computedStyle.getPropertyValue('--safe-area-inset-right') || '0')
-      });
+      setWindowSize({ width, height });
+      setIsMobile(width < 768);
     };
 
-    updateViewport();
-    window.addEventListener('resize', updateViewport);
-    window.addEventListener('orientationchange', updateViewport);
-
-    return () => {
-      window.removeEventListener('resize', updateViewport);
-      window.removeEventListener('orientationchange', updateViewport);
-    };
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    
+    return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  const isOrientationMatch = orientation === 'any' || 
-    (orientation === 'landscape' && isLandscape) ||
-    (orientation === 'portrait' && !isLandscape);
+  const safeAreaInsets = {
+    top: 0,
+    bottom: isMobile ? 16 : 0,
+    left: 0,
+    right: 0,
+  };
 
   return {
     isMobile,
-    isLandscape,
-    isPortrait: !isLandscape,
-    viewportHeight,
+    windowSize,
     safeAreaInsets,
-    isOrientationMatch,
-    // Helper functions
-    getMobileClasses: (mobileClasses: string, desktopClasses: string = '') => 
-      isMobile ? mobileClasses : desktopClasses,
-    getResponsiveSpacing: (mobile: string, desktop: string) => 
-      isMobile ? mobile : desktop
   };
 };
