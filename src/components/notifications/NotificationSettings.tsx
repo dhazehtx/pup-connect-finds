@@ -10,10 +10,38 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
+interface NotificationSettingsData {
+  // Push Notifications
+  push_enabled: boolean;
+  push_messages: boolean;
+  push_likes: boolean;
+  push_comments: boolean;
+  push_follows: boolean;
+  push_payments: boolean;
+  
+  // Email Notifications
+  email_enabled: boolean;
+  email_messages: boolean;
+  email_weekly_digest: boolean;
+  email_marketing: boolean;
+  email_security: boolean;
+  
+  // SMS Notifications
+  sms_enabled: boolean;
+  sms_critical_only: boolean;
+  sms_payments: boolean;
+  sms_security: boolean;
+  
+  // In-App Settings
+  sound_enabled: boolean;
+  desktop_notifications: boolean;
+  notification_frequency: string;
+}
+
 const NotificationSettings = () => {
   const { user } = useAuth();
   const { toast } = useToast();
-  const [settings, setSettings] = useState({
+  const [settings, setSettings] = useState<NotificationSettingsData>({
     // Push Notifications
     push_enabled: true,
     push_messages: true,
@@ -38,7 +66,7 @@ const NotificationSettings = () => {
     // In-App Settings
     sound_enabled: true,
     desktop_notifications: true,
-    notification_frequency: 'immediate' // immediate, hourly, daily
+    notification_frequency: 'immediate'
   });
 
   const [loading, setLoading] = useState(false);
@@ -59,11 +87,14 @@ const NotificationSettings = () => {
 
       if (error && error.code !== 'PGRST116') throw error;
 
-      if (data?.matching_criteria?.notification_settings) {
-        setSettings(prev => ({
-          ...prev,
-          ...data.matching_criteria.notification_settings
-        }));
+      if (data?.matching_criteria && typeof data.matching_criteria === 'object' && data.matching_criteria !== null) {
+        const criteria = data.matching_criteria as any;
+        if (criteria.notification_settings) {
+          setSettings(prev => ({
+            ...prev,
+            ...criteria.notification_settings
+          }));
+        }
       }
     } catch (error: any) {
       console.error('Error loading notification settings:', error);
@@ -102,7 +133,7 @@ const NotificationSettings = () => {
     }
   };
 
-  const updateSetting = (key: keyof typeof settings, value: boolean | string) => {
+  const updateSetting = (key: keyof NotificationSettingsData, value: boolean | string) => {
     setSettings(prev => ({ ...prev, [key]: value }));
   };
 
