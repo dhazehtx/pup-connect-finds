@@ -1,140 +1,182 @@
 
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { Heart, MessageCircle, User, Menu, X, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { 
-  DropdownMenu, 
-  DropdownMenuContent, 
-  DropdownMenuItem, 
-  DropdownMenuTrigger,
-  DropdownMenuSeparator 
-} from '@/components/ui/dropdown-menu';
-import { Heart, User, MessageSquare, Bell, LogOut, Settings, Shield } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
-import NotificationCenter from '@/components/notifications/NotificationCenter';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 const Header = () => {
-  const { user, signOut, isGuest } = useAuth();
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { user, isGuest, signOut } = useAuth();
   const navigate = useNavigate();
-  const [showNotifications, setShowNotifications] = useState(false);
 
   const handleSignOut = async () => {
     try {
       await signOut();
       navigate('/');
     } catch (error) {
-      console.error('Error signing out:', error);
+      console.error('Sign out error:', error);
     }
   };
 
+  const isAuthenticated = user || isGuest;
+
   return (
-    <header className="bg-cloud-white border-b border-soft-sky shadow-sm sticky top-0 z-50">
-      <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-        <Link to="/" className="flex items-center gap-2">
-          <Heart className="w-8 h-8 text-royal-blue" />
-          <span className="text-xl font-bold text-deep-navy">MY PUP</span>
-        </Link>
-
-        <nav className="hidden md:flex items-center gap-6">
-          <Link to="/explore" className="text-deep-navy hover:text-royal-blue transition-colors">
-            Explore
+    <header className="bg-white border-b border-gray-200 sticky top-0 z-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex justify-between items-center h-16">
+          {/* Logo */}
+          <Link to="/" className="flex items-center space-x-2">
+            <div className="text-2xl font-bold text-blue-600">🐕</div>
+            <span className="text-xl font-bold text-gray-900">MY PUP</span>
           </Link>
-          {!isGuest && user && (
-            <>
-              <Link to="/messages" className="text-deep-navy hover:text-royal-blue transition-colors">
-                Messages
-              </Link>
-              <Link to="/profile" className="text-deep-navy hover:text-royal-blue transition-colors">
-                Profile
-              </Link>
-            </>
-          )}
-        </nav>
 
-        <div className="flex items-center gap-4">
-          {user && !isGuest ? (
-            <>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setShowNotifications(!showNotifications)}
-                className="relative"
-              >
-                <Bell className="w-5 h-5" />
-                <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full text-xs"></span>
-              </Button>
+          {/* Desktop Navigation */}
+          <nav className="hidden md:flex items-center space-x-8">
+            <Link to="/explore" className="text-gray-700 hover:text-blue-600 transition-colors">
+              Explore
+            </Link>
+            {isAuthenticated && (
+              <>
+                <Link to="/messages" className="text-gray-700 hover:text-blue-600 transition-colors flex items-center space-x-1">
+                  <MessageCircle size={16} />
+                  <span>Messages</span>
+                </Link>
+                <Link to="/favorites" className="text-gray-700 hover:text-blue-600 transition-colors flex items-center space-x-1">
+                  <Heart size={16} />
+                  <span>Favorites</span>
+                </Link>
+              </>
+            )}
+          </nav>
 
-              <NotificationCenter 
-                isOpen={showNotifications} 
-                onClose={() => setShowNotifications(false)} 
-              />
-
+          {/* User Menu */}
+          <div className="flex items-center space-x-4">
+            {!isAuthenticated ? (
+              <div className="hidden md:flex items-center space-x-2">
+                <Button 
+                  variant="ghost" 
+                  onClick={() => navigate('/auth')}
+                  className="text-gray-700 hover:text-blue-600"
+                >
+                  Sign In
+                </Button>
+                <Button 
+                  onClick={() => navigate('/auth?mode=signup')}
+                  className="bg-blue-600 hover:bg-blue-700 text-white"
+                >
+                  Sign Up
+                </Button>
+              </div>
+            ) : (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-                    <Avatar className="h-8 w-8">
-                      <AvatarImage src="/placeholder-avatar.jpg" />
-                      <AvatarFallback>
-                        {user.email?.charAt(0).toUpperCase()}
-                      </AvatarFallback>
-                    </Avatar>
+                  <Button variant="ghost" size="sm" className="flex items-center space-x-2">
+                    <User size={16} />
+                    <span className="hidden md:inline">
+                      {user ? (user.email?.split('@')[0] || 'User') : 'Guest'}
+                    </span>
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-56" align="end" forceMount>
-                  <DropdownMenuItem asChild>
-                    <Link to="/profile" className="flex items-center">
-                      <User className="mr-2 h-4 w-4" />
-                      Profile
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link to="/messages" className="flex items-center">
-                      <MessageSquare className="mr-2 h-4 w-4" />
-                      Messages
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link to="/settings" className="flex items-center">
-                      <Settings className="mr-2 h-4 w-4" />
-                      Settings
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem asChild>
-                    <Link to="/admin" className="flex items-center">
-                      <Shield className="mr-2 h-4 w-4" />
-                      Admin Panel
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
+                <DropdownMenuContent align="end">
+                  {user && (
+                    <>
+                      <DropdownMenuItem onClick={() => navigate('/profile')}>
+                        <User className="mr-2 h-4 w-4" />
+                        Profile
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                    </>
+                  )}
+                  {isGuest && (
+                    <>
+                      <DropdownMenuItem onClick={() => navigate('/auth')}>
+                        <User className="mr-2 h-4 w-4" />
+                        Sign In
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                    </>
+                  )}
                   <DropdownMenuItem onClick={handleSignOut}>
                     <LogOut className="mr-2 h-4 w-4" />
-                    Sign Out
+                    {user ? 'Sign Out' : 'Exit Guest Mode'}
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
-            </>
-          ) : (
-            <div className="flex items-center gap-2">
-              {isGuest && (
-                <Button variant="outline" asChild>
-                  <Link to="/auth">Sign In</Link>
-                </Button>
-              )}
-              {!user && !isGuest && (
+            )}
+
+            {/* Mobile Menu Button */}
+            <button
+              className="md:hidden p-2 rounded-md text-gray-700 hover:text-blue-600 hover:bg-gray-100"
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+            >
+              {isMenuOpen ? <X size={20} /> : <Menu size={20} />}
+            </button>
+          </div>
+        </div>
+
+        {/* Mobile Menu */}
+        {isMenuOpen && (
+          <div className="md:hidden">
+            <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 border-t border-gray-200">
+              <Link
+                to="/explore"
+                className="block px-3 py-2 text-gray-700 hover:text-blue-600 transition-colors"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Explore
+              </Link>
+              {isAuthenticated && (
                 <>
-                  <Button variant="outline" asChild>
-                    <Link to="/auth">Sign In</Link>
-                  </Button>
-                  <Button asChild>
-                    <Link to="/auth">Get Started</Link>
-                  </Button>
+                  <Link
+                    to="/messages"
+                    className="block px-3 py-2 text-gray-700 hover:text-blue-600 transition-colors"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    Messages
+                  </Link>
+                  <Link
+                    to="/favorites"
+                    className="block px-3 py-2 text-gray-700 hover:text-blue-600 transition-colors"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    Favorites
+                  </Link>
                 </>
               )}
+              {!isAuthenticated && (
+                <div className="space-y-2 px-3 py-2">
+                  <Button 
+                    variant="outline" 
+                    className="w-full"
+                    onClick={() => {
+                      navigate('/auth');
+                      setIsMenuOpen(false);
+                    }}
+                  >
+                    Sign In
+                  </Button>
+                  <Button 
+                    className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                    onClick={() => {
+                      navigate('/auth?mode=signup');
+                      setIsMenuOpen(false);
+                    }}
+                  >
+                    Sign Up
+                  </Button>
+                </div>
+              )}
             </div>
-          )}
-        </div>
+          </div>
+        )}
       </div>
     </header>
   );
