@@ -42,7 +42,7 @@ const Header = () => {
           </Link>
 
           {/* Right side icons */}
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-3">
             <Button variant="ghost" size="sm" asChild>
               <Link to="/explore">
                 <Search className="h-5 w-5" />

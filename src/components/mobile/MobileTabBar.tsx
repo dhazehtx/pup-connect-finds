@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Home, Search, MessageCircle, Bell, Settings } from 'lucide-react';
+import { Home, Search, Plus, MessageCircle, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useMobileOptimized } from '@/hooks/useMobileOptimized';
 
@@ -23,9 +23,9 @@ const MobileTabBar = () => {
   const tabs: TabItem[] = [
     { id: 'home', label: 'Home', icon: <Home size={24} />, path: '/' },
     { id: 'explore', label: 'Explore', icon: <Search size={24} />, path: '/explore' },
+    { id: 'post', label: 'Post', icon: <Plus size={24} />, path: '/post' },
     { id: 'messages', label: 'Messages', icon: <MessageCircle size={24} />, path: '/messages' },
-    { id: 'notifications', label: 'Notifications', icon: <Bell size={24} />, path: '/notifications' },
-    { id: 'settings', label: 'Settings', icon: <Settings size={24} />, path: '/settings' }
+    { id: 'profile', label: 'Profile', icon: <User size={24} />, path: '/profile' }
   ];
 
   const handleTabClick = (tab: TabItem) => {

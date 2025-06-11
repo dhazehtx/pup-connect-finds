@@ -19,7 +19,7 @@ const Home = () => {
   const [showAnalytics, setShowAnalytics] = useState(false);
 
   // Mobile feed design for authenticated users
-  if (isMobile && (user || isGuest)) {
+  if (isMobile) {
     return (
       <div className="bg-white min-h-screen">
         {/* Stories Section */}
@@ -88,7 +88,7 @@ const Home = () => {
             </div>
           </div>
 
-          {/* More sample posts can be added here */}
+          {/* More sample posts */}
           <div className="bg-white border-b border-gray-200">
             <div className="flex items-center justify-between p-3">
               <div className="flex items-center space-x-3">
@@ -190,7 +190,7 @@ const Home = () => {
     );
   }
 
-  // Desktop authenticated user homepage (existing code)
+  // Desktop authenticated user homepage
   const stats = {
     listings: userListings.length,
     conversations: conversations.length,

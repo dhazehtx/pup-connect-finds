@@ -9,6 +9,8 @@ import Post from './Post';
 import Explore from './Explore';
 import Messages from './Messages';
 import Profile from './Profile';
+import Settings from './Settings';
+import Notifications from './Notifications';
 
 const Index = () => {
   const { user, loading, isGuest } = useAuth();
@@ -24,11 +26,6 @@ const Index = () => {
     );
   }
 
-  // If not authenticated and not a guest, redirect to auth
-  if (!user && !isGuest) {
-    return <Auth />;
-  }
-
   return (
     <Layout>
       <Routes>
@@ -38,6 +35,8 @@ const Index = () => {
         <Route path="/post" element={<Post />} />
         <Route path="/messages" element={<Messages />} />
         <Route path="/profile" element={<Profile />} />
+        <Route path="/settings" element={<Settings />} />
+        <Route path="/notifications" element={<Notifications />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Layout>
