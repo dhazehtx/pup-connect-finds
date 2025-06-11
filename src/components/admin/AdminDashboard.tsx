@@ -3,6 +3,10 @@ import React, { useState } from 'react';
 import AdminNavigation from './AdminNavigation';
 import UserManagement from './UserManagement';
 import ContentModeration from './ContentModeration';
+import AdminAnalyticsDashboard from './AdminAnalyticsDashboard';
+import TrustSafetyTools from './TrustSafetyTools';
+import MessagingOversight from './MessagingOversight';
+import PlatformSettings from './PlatformSettings';
 import MonetizationDashboard from '@/components/monetization/MonetizationDashboard';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -50,49 +54,13 @@ const AdminDashboard = () => {
       case 'payments':
         return <MonetizationDashboard />;
       case 'analytics':
-        return (
-          <Card>
-            <CardHeader>
-              <CardTitle>Analytics Dashboard</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-gray-600">Advanced analytics coming soon...</p>
-            </CardContent>
-          </Card>
-        );
+        return <AdminAnalyticsDashboard />;
       case 'safety':
-        return (
-          <Card>
-            <CardHeader>
-              <CardTitle>Trust & Safety</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-gray-600">Safety monitoring tools coming soon...</p>
-            </CardContent>
-          </Card>
-        );
+        return <TrustSafetyTools />;
       case 'messaging':
-        return (
-          <Card>
-            <CardHeader>
-              <CardTitle>Messaging Oversight</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-gray-600">Message monitoring dashboard coming soon...</p>
-            </CardContent>
-          </Card>
-        );
+        return <MessagingOversight />;
       case 'settings':
-        return (
-          <Card>
-            <CardHeader>
-              <CardTitle>Platform Settings</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-gray-600">Platform configuration coming soon...</p>
-            </CardContent>
-          </Card>
-        );
+        return <PlatformSettings />;
       default:
         return (
           <div className="space-y-6">
@@ -254,7 +222,7 @@ const AdminDashboard = () => {
             {activeTab === 'users' && 'User Management'}
             {activeTab === 'content' && 'Content Moderation'}
             {activeTab === 'payments' && 'Revenue Dashboard'}
-            {activeTab === 'analytics' && 'Analytics'}
+            {activeTab === 'analytics' && 'Analytics Dashboard'}
             {activeTab === 'safety' && 'Trust & Safety'}
             {activeTab === 'messaging' && 'Messaging Oversight'}
             {activeTab === 'settings' && 'Platform Settings'}
@@ -265,7 +233,7 @@ const AdminDashboard = () => {
             {activeTab === 'content' && 'Review reported content and moderate platform activity'}
             {activeTab === 'payments' && 'Track revenue streams and financial performance'}
             {activeTab === 'analytics' && 'View detailed analytics and performance metrics'}
-            {activeTab === 'safety' && 'Monitor platform safety and security'}
+            {activeTab === 'safety' && 'Monitor platform safety and security incidents'}
             {activeTab === 'messaging' && 'Oversee messaging activity and moderation'}
             {activeTab === 'settings' && 'Configure platform settings and preferences'}
           </p>
