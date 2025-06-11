@@ -107,13 +107,16 @@ const NotificationSettings = () => {
     try {
       setLoading(true);
 
+      // Create the matching_criteria object with proper typing
+      const matchingCriteria = {
+        notification_settings: settings
+      };
+
       const { error } = await supabase
         .from('user_preferences')
         .upsert({
           user_id: user.id,
-          matching_criteria: {
-            notification_settings: settings
-          }
+          matching_criteria: matchingCriteria as any // Cast to any to satisfy Json type
         });
 
       if (error) throw error;
