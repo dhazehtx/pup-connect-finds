@@ -143,6 +143,7 @@ export const useDogListings = () => {
 
       // Refresh listings
       fetchUserListings();
+      fetchListings();
       return data;
     } catch (error: any) {
       console.error('Error creating listing:', error);

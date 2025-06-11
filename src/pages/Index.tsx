@@ -1,141 +1,46 @@
 
 import React from 'react';
-import { useRoutes } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import SEOHead from '@/components/seo/SEOHead';
-import LoadingState from '@/components/ui/loading-state';
-import ErrorState from '@/components/ui/error-state';
-import ProtectedRoute from '@/components/ProtectedRoute';
-
-// Lazy load components for better performance
-const Explore = React.lazy(() => import('@/pages/Explore'));
-const Auth = React.lazy(() => import('@/pages/Auth'));
-const Messages = React.lazy(() => import('@/pages/Messages'));
-const MessagingTest = React.lazy(() => import('@/pages/MessagingTest'));
-const MessagingAnalytics = React.lazy(() => import('@/pages/MessagingAnalytics'));
-const Profile = React.lazy(() => import('@/pages/Profile'));
-const Home = React.lazy(() => import('@/pages/Home'));
-const Listing = React.lazy(() => import('@/pages/Listing'));
-const Admin = React.lazy(() => import('@/pages/Admin'));
-const Network = React.lazy(() => import('@/pages/Network'));
+import Layout from '@/components/Layout';
+import Auth from './Auth';
+import Home from './Home';
+import Post from './Post';
+import Explore from './Explore';
+import Messages from './Messages';
+import Profile from './Profile';
 
 const Index = () => {
   const { user, loading, isGuest } = useAuth();
 
-  const routes = useRoutes([
-    {
-      path: '/',
-      element: user ? <Home /> : <Auth />
-    },
-    {
-      path: '/explore',
-      element: (
-        <ProtectedRoute allowGuest={true}>
-          <Explore />
-        </ProtectedRoute>
-      )
-    },
-    {
-      path: '/auth',
-      element: <Auth />
-    },
-    {
-      path: '/admin',
-      element: (
-        <ProtectedRoute guestMessage="Admin access requires authentication.">
-          <Admin />
-        </ProtectedRoute>
-      )
-    },
-    {
-      path: '/network',
-      element: (
-        <ProtectedRoute guestMessage="Professional networking requires authentication.">
-          <Network />
-        </ProtectedRoute>
-      )
-    },
-    {
-      path: '/messages',
-      element: (
-        <ProtectedRoute guestMessage="Sign in to access your messages and connect with other dog lovers.">
-          <Messages />
-        </ProtectedRoute>
-      )
-    },
-    {
-      path: '/messaging-test',
-      element: (
-        <ProtectedRoute guestMessage="Sign in to access messaging test features.">
-          <MessagingTest />
-        </ProtectedRoute>
-      )
-    },
-    {
-      path: '/messaging-analytics',
-      element: (
-        <ProtectedRoute guestMessage="Sign in to access messaging analytics.">
-          <MessagingAnalytics />
-        </ProtectedRoute>
-      )
-    },
-    {
-      path: '/profile',
-      element: (
-        <ProtectedRoute guestMessage="Create an account to build your profile and showcase your dogs.">
-          <Profile />
-        </ProtectedRoute>
-      )
-    },
-    {
-      path: '/listing/:id',
-      element: (
-        <ProtectedRoute allowGuest={true}>
-          <Listing />
-        </ProtectedRoute>
-      )
-    },
-    {
-      path: '*',
-      element: (
-        <ErrorState
-          title="Page Not Found"
-          message="The page you're looking for doesn't exist."
-          retryText="Go Home"
-          showHomeButton={true}
-        />
-      )
-    }
-  ]);
-
   if (loading) {
     return (
-      <>
-        <SEOHead />
-        <LoadingState 
-          message="Loading MY PUP..." 
-          size="lg" 
-          variant="card" 
-          className="min-h-screen flex items-center justify-center"
-        />
-      </>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-600 border-t-transparent mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading...</p>
+        </div>
+      </div>
     );
   }
 
+  // If not authenticated and not a guest, redirect to auth
+  if (!user && !isGuest) {
+    return <Auth />;
+  }
+
   return (
-    <>
-      <SEOHead />
-      <React.Suspense 
-        fallback={
-          <LoadingState 
-            message="Loading page..." 
-            className="min-h-screen flex items-center justify-center"
-          />
-        }
-      >
-        {routes}
-      </React.Suspense>
-    </>
+    <Layout>
+      <Routes>
+        <Route path="/" element={user ? <Home /> : <Explore />} />
+        <Route path="/auth" element={<Auth />} />
+        <Route path="/explore" element={<Explore />} />
+        <Route path="/post" element={<Post />} />
+        <Route path="/messages" element={<Messages />} />
+        <Route path="/profile" element={<Profile />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </Layout>
   );
 };
 
