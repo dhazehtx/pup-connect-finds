@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -191,8 +190,9 @@ const EnhancedMobileFeatures = () => {
     } else {
       // Fallback for browsers without Web Share API
       try {
-        if (typeof navigator !== 'undefined' && 'clipboard' in navigator && navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
-          await navigator.clipboard.writeText(window.location.href);
+        const clipboardAPI = (navigator as any).clipboard;
+        if (clipboardAPI && typeof clipboardAPI.writeText === 'function') {
+          await clipboardAPI.writeText(window.location.href);
           toast({
             title: "Link copied",
             description: "Link copied to clipboard",
@@ -464,3 +464,5 @@ const EnhancedMobileFeatures = () => {
 };
 
 export default EnhancedMobileFeatures;
+
+}
