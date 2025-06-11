@@ -75,14 +75,36 @@ export const useMessageThreads = () => {
     try {
       const { data, error } = await supabase
         .from('message_threads')
-        .select('*')
+        .select(`
+          *,
+          messages:reply_message_id (
+            id,
+            content,
+            sender_id,
+            created_at,
+            profiles:sender_id (
+              username,
+              full_name
+            )
+          )
+        `)
         .eq('parent_message_id', messageId);
 
       if (error) throw error;
 
+      const threadMessages: ThreadMessage[] = (data || []).map((thread: any) => ({
+        id: thread.messages.id,
+        parent_message_id: messageId,
+        reply_message_id: thread.reply_message_id,
+        content: thread.messages.content,
+        sender_id: thread.messages.sender_id,
+        sender_name: thread.messages.profiles?.full_name || thread.messages.profiles?.username || 'Unknown',
+        created_at: thread.messages.created_at
+      }));
+
       setThreads(prev => ({
         ...prev,
-        [messageId]: data || []
+        [messageId]: threadMessages
       }));
     } catch (error) {
       console.error('Error fetching threads:', error);
