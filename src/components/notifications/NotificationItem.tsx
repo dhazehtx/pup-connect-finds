@@ -1,100 +1,84 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { getNotificationIcon } from '@/utils/notificationUtils';
-import FollowButton from './FollowButton';
+import { Heart, MessageCircle, UserPlus, MoreHorizontal } from 'lucide-react';
+import { formatDistanceToNow } from 'date-fns';
 
 interface NotificationItemProps {
-  notification: {
-    id: number;
-    type: string;
-    title: string;
-    description: string;
-    time: string;
-    read: boolean;
-    avatar?: string | null;
-    username?: string;
-    actionable?: boolean;
-    postImage?: string;
-  };
+  notification: any;
   followingUsers: Set<string>;
   onFollowToggle: (username: string) => void;
 }
 
 const NotificationItem = ({ notification, followingUsers, onFollowToggle }: NotificationItemProps) => {
+  const getIcon = () => {
+    switch (notification.type) {
+      case 'like':
+        return <Heart className="w-5 h-5 text-red-500" />;
+      case 'comment':
+        return <MessageCircle className="w-5 h-5 text-blue-500" />;
+      case 'follow':
+        return <UserPlus className="w-5 h-5 text-green-500" />;
+      default:
+        return <MessageCircle className="w-5 h-5 text-gray-500" />;
+    }
+  };
+
+  const isFollowing = followingUsers.has(notification.username);
+
   return (
-    <div className="flex items-center gap-3 px-4 py-3 hover:bg-soft-sky/30 transition-colors">
-      {/* Avatar */}
-      <div className="flex-shrink-0">
-        {notification.avatar ? (
-          <img
-            src={notification.avatar}
-            alt=""
-            className="w-11 h-11 rounded-full object-cover"
-          />
-        ) : (
-          <div className="w-11 h-11 bg-soft-sky rounded-full flex items-center justify-center">
-            {getNotificationIcon(notification.type)}
-          </div>
-        )}
-      </div>
-
-      {/* Content */}
-      <div className="flex-1 min-w-0">
+    <div className={`flex items-start gap-3 p-4 ${!notification.read ? 'bg-blue-50' : 'bg-white'}`}>
+      <img
+        src={notification.avatar}
+        alt={notification.username}
+        className="w-10 h-10 rounded-full object-cover"
+      />
+      
+      <div className="flex-1">
         <div className="flex items-start justify-between">
-          <div className="flex-1 min-w-0">
-            <p className="text-deep-navy text-sm leading-tight">
-              <span className="font-semibold">
-                {notification.username || 'System'}
-              </span>{' '}
-              <span className="text-gray-600">
-                {notification.description}
-              </span>{' '}
-              <span className="text-gray-500 text-xs">
-                {notification.time}
+          <div className="flex-1">
+            <div className="flex items-center gap-2 mb-1">
+              {getIcon()}
+              <span className="font-medium text-deep-navy">
+                {notification.username}
               </span>
-            </p>
+              <span className="text-gray-600 text-sm">
+                {notification.description}
+              </span>
+            </div>
             
-            {/* Action buttons for certain notification types */}
-            {(notification.type === 'comment' || notification.type === 'like') && (
-              <div className="flex gap-2 mt-2">
-                <Button 
-                  size="sm" 
-                  variant="outline" 
-                  className="h-7 px-3 text-xs bg-cloud-white border-soft-sky text-deep-navy hover:bg-soft-sky"
-                >
-                  Reply
-                </Button>
-              </div>
-            )}
+            <div className="text-xs text-gray-500 mb-2">
+              {notification.time}
+            </div>
           </div>
-
-          {/* Right side content */}
-          <div className="flex items-center gap-2 ml-3">
-            {/* Follow button for follow notifications */}
-            {notification.type === 'follow' && notification.username && (
-              <FollowButton
-                username={notification.username}
-                isFollowing={followingUsers.has(notification.username)}
-                onToggle={onFollowToggle}
-              />
+          
+          <div className="flex items-center gap-2">
+            {notification.type === 'follow' && (
+              <Button
+                variant={isFollowing ? "outline" : "default"}
+                size="sm"
+                onClick={() => onFollowToggle(notification.username)}
+                className="text-xs h-7 px-3"
+              >
+                {isFollowing ? 'Following' : 'Follow'}
+              </Button>
             )}
             
-            {/* Post thumbnail */}
-            {notification.postImage && (
-              <img
-                src={notification.postImage}
-                alt=""
-                className="w-11 h-11 rounded object-cover"
-              />
-            )}
-            
-            {/* Unread indicator */}
-            {!notification.read && (
-              <div className="w-2 h-2 bg-royal-blue rounded-full flex-shrink-0"></div>
-            )}
+            <Button variant="ghost" size="sm" className="h-7 w-7 p-0">
+              <MoreHorizontal className="w-4 h-4" />
+            </Button>
           </div>
         </div>
+        
+        {notification.postImage && (
+          <div className="mt-2">
+            <img
+              src={notification.postImage}
+              alt="Post"
+              className="w-12 h-12 rounded object-cover"
+            />
+          </div>
+        )}
       </div>
     </div>
   );

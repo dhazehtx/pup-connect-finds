@@ -10,24 +10,23 @@ interface NotificationTabsProps {
 const NotificationTabs = ({ activeTab, onTabChange }: NotificationTabsProps) => {
   const tabs = [
     { id: 'all', label: 'All' },
-    { id: 'following', label: 'People you follow' },
+    { id: 'following', label: 'Following' },
     { id: 'comments', label: 'Comments' },
     { id: 'follows', label: 'Follows' }
   ];
 
   return (
-    <div className="flex gap-2 px-4 mb-4 overflow-x-auto">
+    <div className="flex border-b bg-white">
       {tabs.map((tab) => (
         <Button
           key={tab.id}
-          variant={activeTab === tab.id ? "default" : "outline"}
-          size="sm"
-          className={`flex-shrink-0 rounded-full text-xs px-4 py-2 ${
-            activeTab === tab.id 
-              ? 'bg-royal-blue text-cloud-white hover:bg-deep-navy' 
-              : 'bg-cloud-white text-deep-navy border-soft-sky hover:bg-soft-sky'
-          }`}
+          variant="ghost"
           onClick={() => onTabChange(tab.id)}
+          className={`flex-1 rounded-none border-b-2 transition-colors ${
+            activeTab === tab.id
+              ? 'border-warm-brown text-warm-brown font-medium'
+              : 'border-transparent text-gray-600 hover:text-deep-navy'
+          }`}
         >
           {tab.label}
         </Button>
