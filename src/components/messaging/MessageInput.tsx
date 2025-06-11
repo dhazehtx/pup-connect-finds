@@ -1,73 +1,87 @@
 
 import React, { useState } from 'react';
-import { Send, Paperclip, Image } from 'lucide-react';
+import { Send, Paperclip, Smile } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 
 interface MessageInputProps {
-  onSendMessage: (content: string, type?: string) => void;
-  disabled?: boolean;
+  onSendMessage: (content: string, messageType?: string) => void;
   placeholder?: string;
+  disabled?: boolean;
 }
 
-const MessageInput = ({ onSendMessage, disabled = false, placeholder = "Type a message..." }: MessageInputProps) => {
+const MessageInput = ({ 
+  onSendMessage, 
+  placeholder = "Type a message...", 
+  disabled = false 
+}: MessageInputProps) => {
   const [message, setMessage] = useState('');
+  const [sending, setSending] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (message.trim() && !disabled) {
-      onSendMessage(message.trim());
+  const handleSend = async () => {
+    if (!message.trim() || sending) return;
+
+    setSending(true);
+    try {
+      await onSendMessage(message.trim());
       setMessage('');
+    } catch (error) {
+      console.error('Failed to send message:', error);
+    } finally {
+      setSending(false);
     }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
-      handleSubmit(e);
+      handleSend();
     }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="flex items-center gap-2 p-4 border-t bg-white">
-      <Button
-        type="button"
-        variant="ghost"
-        size="sm"
-        className="p-2"
-        disabled={disabled}
-      >
-        <Paperclip className="w-4 h-4" />
-      </Button>
-      
-      <Button
-        type="button"
-        variant="ghost"
-        size="sm"
-        className="p-2"
-        disabled={disabled}
-      >
-        <Image className="w-4 h-4" />
-      </Button>
-
-      <Input
-        value={message}
-        onChange={(e) => setMessage(e.target.value)}
-        onKeyPress={handleKeyPress}
-        placeholder={placeholder}
-        disabled={disabled}
-        className="flex-1"
-      />
-
-      <Button 
-        type="submit" 
-        size="sm"
-        disabled={!message.trim() || disabled}
-        className="px-4"
-      >
-        <Send className="w-4 h-4" />
-      </Button>
-    </form>
+    <div className="border-t bg-white p-4">
+      <div className="flex items-end space-x-2">
+        <Button
+          variant="ghost"
+          size="icon"
+          className="mb-2"
+          disabled={disabled}
+        >
+          <Paperclip className="w-4 h-4" />
+        </Button>
+        
+        <div className="flex-1">
+          <Textarea
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+            onKeyPress={handleKeyPress}
+            placeholder={placeholder}
+            disabled={disabled || sending}
+            className="min-h-[40px] max-h-32 resize-none"
+            rows={1}
+          />
+        </div>
+        
+        <Button
+          variant="ghost"
+          size="icon"
+          className="mb-2"
+          disabled={disabled}
+        >
+          <Smile className="w-4 h-4" />
+        </Button>
+        
+        <Button
+          onClick={handleSend}
+          disabled={!message.trim() || disabled || sending}
+          size="icon"
+          className="mb-2"
+        >
+          <Send className="w-4 h-4" />
+        </Button>
+      </div>
+    </div>
   );
 };
 

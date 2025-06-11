@@ -1,16 +1,20 @@
 
 import React, { useState, useEffect } from 'react';
-import { Search, Filter, Heart, MapPin, DollarSign } from 'lucide-react';
+import { Search, Filter, Heart, MapPin, MessageCircle } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useDogListings } from '@/hooks/useDogListings';
+import { useMessaging } from '@/hooks/useMessaging';
 import { useAuth } from '@/contexts/AuthContext';
+import { useToast } from '@/hooks/use-toast';
 
 const Explore = () => {
   const { listings, loading, fetchListings } = useDogListings();
+  const { createConversation } = useMessaging();
   const { user, isGuest } = useAuth();
+  const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
   const [filters, setFilters] = useState({
     breed: '',
@@ -46,6 +50,38 @@ const Explore = () => {
       currency: 'USD',
       minimumFractionDigits: 0,
     }).format(price);
+  };
+
+  const handleContactSeller = async (listing: any) => {
+    if (!user) {
+      toast({
+        title: "Sign in required",
+        description: "Please sign in to contact sellers",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (user.id === listing.user_id) {
+      toast({
+        title: "Cannot contact yourself",
+        description: "You cannot start a conversation with yourself",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const conversationId = await createConversation(listing.id, listing.user_id);
+      if (conversationId) {
+        toast({
+          title: "Conversation started",
+          description: "You can now message the seller in your Messages",
+        });
+      }
+    } catch (error) {
+      console.error('Error creating conversation:', error);
+    }
   };
 
   return (
@@ -180,9 +216,19 @@ const Explore = () => {
                       </div>
                     )}
 
-                    <Button className="w-full" size="sm">
-                      View Details
-                    </Button>
+                    <div className="flex gap-2">
+                      <Button className="flex-1" size="sm">
+                        View Details
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => handleContactSeller(listing)}
+                        disabled={!user || user.id === listing.user_id}
+                      >
+                        <MessageCircle className="w-4 h-4" />
+                      </Button>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
