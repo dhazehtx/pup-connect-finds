@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { Camera, X, Upload } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useFileUpload } from '@/hooks/useFileUpload';
+import { useUnifiedFileUpload } from '@/hooks/useUnifiedFileUpload';
 import { cn } from '@/lib/utils';
 
 interface ImageUploadProps {
@@ -14,17 +14,23 @@ interface ImageUploadProps {
 
 const ImageUpload = ({ value, onChange, className, folder = 'listings' }: ImageUploadProps) => {
   const [dragActive, setDragActive] = useState(false);
-  const { uploadFile, isUploading, uploadProgress } = useFileUpload({
+  const { uploadImage, uploading, uploadProgress } = useUnifiedFileUpload({
     bucket: 'images',
     folder,
-    maxSize: 50, // 50MB
-    allowedTypes: ['image/jpeg', 'image/png', 'image/webp']
+    maxSize: 50 * 1024 * 1024, // 50MB
+    allowedTypes: ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
   });
 
+  const progressValue = Object.values(uploadProgress)[0] || 0;
+
   const handleFile = async (file: File) => {
-    const url = await uploadFile(file);
-    if (url) {
-      onChange(url);
+    try {
+      const url = await uploadImage(file);
+      if (url) {
+        onChange(url);
+      }
+    } catch (error) {
+      console.error('Upload failed:', error);
     }
   };
 
@@ -78,7 +84,7 @@ const ImageUpload = ({ value, onChange, className, folder = 'listings' }: ImageU
           className={cn(
             "border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-gray-400 transition-colors",
             dragActive && "border-blue-400 bg-blue-50",
-            isUploading && "opacity-50 pointer-events-none"
+            uploading && "opacity-50 pointer-events-none"
           )}
           onDragEnter={handleDrag}
           onDragLeave={handleDrag}
@@ -86,10 +92,10 @@ const ImageUpload = ({ value, onChange, className, folder = 'listings' }: ImageU
           onDrop={handleDrop}
         >
           <div className="flex flex-col items-center space-y-2">
-            {isUploading ? (
+            {uploading ? (
               <>
                 <Upload className="h-8 w-8 text-blue-500 animate-pulse" />
-                <p className="text-sm text-gray-600">Uploading... {uploadProgress}%</p>
+                <p className="text-sm text-gray-600">Uploading... {progressValue}%</p>
               </>
             ) : (
               <>

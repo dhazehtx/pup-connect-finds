@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { useDropzone } from 'react-dropzone';
 import { Upload, File, Image, X, Check } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import { useUnifiedFileUpload } from '@/hooks/useUnifiedFileUpload';
 
 interface FileUpload {
   id: string;
@@ -33,7 +33,13 @@ const EnhancedFileShare = ({
   acceptedTypes = ['image/*', 'application/pdf', 'text/*']
 }: EnhancedFileShareProps) => {
   const [uploads, setUploads] = useState<FileUpload[]>([]);
-  const { toast } = useToast();
+  
+  const { uploadMultipleFiles, uploading } = useUnifiedFileUpload({
+    bucket: 'message-files',
+    folder: 'shared',
+    maxSize: maxSize * 1024 * 1024,
+    allowedTypes: acceptedTypes
+  });
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
     const newUploads: FileUpload[] = acceptedFiles.map(file => ({
@@ -50,18 +56,7 @@ const EnhancedFileShare = ({
     onDrop,
     accept: acceptedTypes.reduce((acc, type) => ({ ...acc, [type]: [] }), {}),
     maxSize: maxSize * 1024 * 1024,
-    maxFiles,
-    onDropRejected: (rejectedFiles) => {
-      rejectedFiles.forEach(({ errors }) => {
-        errors.forEach(error => {
-          toast({
-            title: "File rejected",
-            description: error.message,
-            variant: "destructive"
-          });
-        });
-      });
-    }
+    maxFiles
   });
 
   const removeFile = (id: string) => {
@@ -71,27 +66,39 @@ const EnhancedFileShare = ({
   const startUpload = async () => {
     const pendingUploads = uploads.filter(upload => upload.status === 'pending');
     
-    for (const upload of pendingUploads) {
+    try {
+      // Update status to uploading
       setUploads(prev => prev.map(u => 
-        u.id === upload.id ? { ...u, status: 'uploading' } : u
+        pendingUploads.find(p => p.id === u.id) ? { ...u, status: 'uploading' } : u
       ));
 
-      // Simulate upload progress
-      for (let progress = 0; progress <= 100; progress += 10) {
-        await new Promise(resolve => setTimeout(resolve, 100));
-        setUploads(prev => prev.map(u => 
-          u.id === upload.id ? { ...u, progress } : u
-        ));
-      }
+      // Upload files
+      const urls = await uploadMultipleFiles(pendingUploads.map(u => u.file));
+      
+      // Update with completed status and URLs
+      const completedUploads = uploads.map((upload, index) => {
+        if (pendingUploads.includes(upload)) {
+          const urlIndex = pendingUploads.findIndex(p => p.id === upload.id);
+          return {
+            ...upload,
+            status: 'completed' as const,
+            progress: 100,
+            url: urls[urlIndex]
+          };
+        }
+        return upload;
+      });
 
+      setUploads(completedUploads);
+      onFilesUpload(completedUploads);
+      onClose();
+      setUploads([]);
+    } catch (error) {
+      console.error('Upload failed:', error);
       setUploads(prev => prev.map(u => 
-        u.id === upload.id ? { ...u, status: 'completed', url: URL.createObjectURL(upload.file) } : u
+        pendingUploads.find(p => p.id === u.id) ? { ...u, status: 'error' } : u
       ));
     }
-
-    onFilesUpload(uploads);
-    onClose();
-    setUploads([]);
   };
 
   const getFileIcon = (file: File) => {
@@ -167,9 +174,9 @@ const EnhancedFileShare = ({
             </Button>
             <Button 
               onClick={startUpload}
-              disabled={uploads.length === 0 || uploads.some(u => u.status === 'uploading')}
+              disabled={uploads.length === 0 || uploading}
             >
-              Upload & Send
+              {uploading ? 'Uploading...' : 'Upload & Send'}
             </Button>
           </div>
         </div>
