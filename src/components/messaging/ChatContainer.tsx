@@ -1,3 +1,4 @@
+
 import React, { useEffect } from 'react';
 import MessagesList from './MessagesList';
 import EnhancedMessageInput from './EnhancedMessageInput';
@@ -56,7 +57,8 @@ const ChatContainer = ({
   onReactionAdd,
   closeReactionPicker,
   threadState,
-  closeThread
+  closeThread,
+  onSendVoiceMessage
 }: ChatContainerProps) => {
   const { fetchReactions } = useMessageReactions();
   const { getTypingUsers } = useTypingIndicators();
@@ -70,8 +72,8 @@ const ChatContainer = ({
 
   const typingUsers = getTypingUsers(conversationId);
 
-  const handleSendMessage = async (content: string, type = 'text', fileUrl?: string) => {
-    await sendMessage(conversationId, content, type, fileUrl);
+  const handleSendMessage = async (content: string, type = 'text', options?: any) => {
+    await sendMessage(conversationId, content, type, options?.imageUrl || options?.fileUrl);
   };
 
   return (
@@ -96,6 +98,7 @@ const ChatContainer = ({
       <EnhancedMessageInput
         conversationId={conversationId}
         onSendMessage={handleSendMessage}
+        onSendVoiceMessage={onSendVoiceMessage}
         placeholder="Type a message..."
       />
 
