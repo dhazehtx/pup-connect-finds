@@ -41,11 +41,11 @@ const SignUpForm = ({ onSubmit, loading }: SignUpFormProps) => {
     } else if (formData.password.length < 6) {
       newErrors.password = 'Password must be at least 6 characters';
     }
-
+    
     if (!formData.fullName) {
       newErrors.fullName = 'Full name is required';
     }
-
+    
     if (!formData.username) {
       newErrors.username = 'Username is required';
     }
@@ -117,16 +117,16 @@ const SignUpForm = ({ onSubmit, loading }: SignUpFormProps) => {
           <Input
             id="password"
             type={showPassword ? 'text' : 'password'}
-            placeholder="Create a password (min 6 characters)"
+            placeholder="Create a password"
             value={formData.password}
             onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-            className={errors.password ? 'border-destructive pr-10' : 'pr-10'}
+            className={errors.password ? 'border-destructive' : ''}
             disabled={loading}
           />
           <button
             type="button"
             onClick={() => setShowPassword(!showPassword)}
-            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-foreground"
+            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
             disabled={loading}
           >
             {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
@@ -142,14 +142,7 @@ const SignUpForm = ({ onSubmit, loading }: SignUpFormProps) => {
         disabled={loading}
         className="w-full"
       >
-        {loading ? (
-          <>
-            <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2" />
-            Creating Account...
-          </>
-        ) : (
-          'Create Account'
-        )}
+        {loading ? 'Creating Account...' : 'Create Account'}
       </Button>
     </form>
   );

@@ -5,6 +5,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import SignUpForm from './SignUpForm';
 import SignInForm from './SignInForm';
 import AuthToggle from './AuthToggle';
+import ForgotPassword from './ForgotPassword';
+import { Button } from '@/components/ui/button';
 
 interface SignUpData {
   email: string;
@@ -25,11 +27,19 @@ interface AuthFormProps {
 
 const AuthForm = ({ mode = 'signin', onSuccess }: AuthFormProps) => {
   const [isSignUp, setIsSignUp] = useState(mode === 'signup');
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
   const { signUp, signIn, user, loading } = useAuth();
 
   // Redirect if user is already logged in
   if (user) {
     return <Navigate to="/" replace />;
+  }
+
+  // Show forgot password form
+  if (showForgotPassword) {
+    return (
+      <ForgotPassword onBack={() => setShowForgotPassword(false)} />
+    );
   }
 
   const handleSignUp = async (data: SignUpData) => {
@@ -60,7 +70,20 @@ const AuthForm = ({ mode = 'signin', onSuccess }: AuthFormProps) => {
       {isSignUp ? (
         <SignUpForm onSubmit={handleSignUp} loading={loading} />
       ) : (
-        <SignInForm onSubmit={handleSignIn} loading={loading} />
+        <>
+          <SignInForm onSubmit={handleSignIn} loading={loading} />
+          <div className="text-center">
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={() => setShowForgotPassword(true)}
+              disabled={loading}
+              className="text-sm text-blue-600 hover:text-blue-800 underline"
+            >
+              Forgot your password?
+            </Button>
+          </div>
+        </>
       )}
 
       <AuthToggle 
