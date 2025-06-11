@@ -1,67 +1,156 @@
 
 import React from 'react';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
 import { formatDistanceToNow } from 'date-fns';
+import VoiceMessagePlayer from './VoiceMessagePlayer';
+import FileMessageDisplay from './FileMessageDisplay';
+
+interface Message {
+  id: string;
+  content: string;
+  message_type: string;
+  image_url?: string;
+  voice_url?: string;
+  created_at: string;
+  sender_id: string;
+  file_name?: string;
+  file_size?: number;
+  file_type?: string;
+}
 
 interface MessageBubbleProps {
-  message: {
-    id: string;
-    content: string;
-    sender_id: string;
-    created_at: string;
-    message_type?: string;
-    image_url?: string;
-    read_at?: string;
-  };
+  message: Message;
   isOwn: boolean;
   senderName?: string;
   senderAvatar?: string;
   showAvatar?: boolean;
 }
 
-const MessageBubble = ({ message, isOwn, senderName, senderAvatar, showAvatar = true }: MessageBubbleProps) => {
-  const timeAgo = formatDistanceToNow(new Date(message.created_at), { addSuffix: true });
+const MessageBubble = ({ 
+  message, 
+  isOwn, 
+  senderName, 
+  senderAvatar, 
+  showAvatar = true 
+}: MessageBubbleProps) => {
+  const renderMessageContent = () => {
+    switch (message.message_type) {
+      case 'voice':
+        if (message.voice_url || message.image_url) {
+          // Extract duration from content if available
+          const durationMatch = message.content.match(/\((\d+)s\)/);
+          const duration = durationMatch ? parseInt(durationMatch[1]) : 30;
+          
+          return (
+            <VoiceMessagePlayer
+              audioUrl={message.voice_url || message.image_url || ''}
+              duration={duration}
+              timestamp={message.created_at}
+              isOwn={isOwn}
+            />
+          );
+        }
+        break;
+
+      case 'file':
+      case 'image':
+        if (message.image_url) {
+          return (
+            <FileMessageDisplay
+              fileUrl={message.image_url}
+              fileName={message.file_name || extractFileNameFromContent(message.content)}
+              fileType={message.file_type || getFileTypeFromUrl(message.image_url)}
+              fileSize={message.file_size}
+              timestamp={message.created_at}
+              isOwn={isOwn}
+            />
+          );
+        }
+        break;
+
+      default:
+        // Regular text message
+        if (message.image_url && message.message_type === 'text') {
+          return (
+            <div className="space-y-2">
+              <img 
+                src={message.image_url} 
+                alt="Shared image"
+                className="rounded-lg max-w-full h-auto"
+              />
+              {message.content && (
+                <p className="text-sm">{message.content}</p>
+              )}
+            </div>
+          );
+        }
+        
+        return <p className="text-sm">{message.content}</p>;
+    }
+
+    // Fallback for unhandled message types
+    return <p className="text-sm">{message.content}</p>;
+  };
+
+  const extractFileNameFromContent = (content: string): string => {
+    const match = content.match(/Shared (?:a file|an image): (.+)/);
+    return match ? match[1] : 'Unknown file';
+  };
+
+  const getFileTypeFromUrl = (url: string): string => {
+    const extension = url.split('.').pop()?.toLowerCase();
+    switch (extension) {
+      case 'jpg':
+      case 'jpeg':
+        return 'image/jpeg';
+      case 'png':
+        return 'image/png';
+      case 'gif':
+        return 'image/gif';
+      case 'webp':
+        return 'image/webp';
+      case 'mp4':
+        return 'video/mp4';
+      case 'webm':
+        return 'video/webm';
+      case 'pdf':
+        return 'application/pdf';
+      default:
+        return 'application/octet-stream';
+    }
+  };
 
   return (
     <div className={`flex gap-3 mb-4 ${isOwn ? 'flex-row-reverse' : 'flex-row'}`}>
-      {showAvatar && (
-        <Avatar className="w-8 h-8 flex-shrink-0">
+      {showAvatar && !isOwn && (
+        <Avatar className="w-8 h-8">
           <AvatarImage src={senderAvatar} />
           <AvatarFallback>
-            {senderName?.charAt(0) || (isOwn ? 'Y' : 'U')}
+            {senderName?.charAt(0) || 'U'}
           </AvatarFallback>
         </Avatar>
       )}
 
-      <div className={`max-w-xs lg:max-w-md ${isOwn ? 'text-right' : 'text-left'}`}>
-        <div
-          className={`rounded-lg px-3 py-2 ${
-            isOwn
-              ? 'bg-blue-500 text-white'
-              : 'bg-gray-100 text-gray-900'
-          }`}
-        >
-          {message.message_type === 'image' && message.image_url && (
-            <img
-              src={message.image_url}
-              alt="Shared image"
-              className="rounded mb-2 max-w-full h-auto"
-            />
-          )}
-          {message.content && (
-            <p className="text-sm whitespace-pre-wrap">{message.content}</p>
-          )}
-        </div>
+      <div className={`flex flex-col ${isOwn ? 'items-end' : 'items-start'} max-w-xs sm:max-w-md`}>
+        {!isOwn && senderName && (
+          <span className="text-xs text-muted-foreground mb-1 px-1">
+            {senderName}
+          </span>
+        )}
         
-        <div className={`flex items-center gap-2 mt-1 text-xs text-gray-500 ${isOwn ? 'justify-end' : 'justify-start'}`}>
-          <span>{timeAgo}</span>
-          {isOwn && message.read_at && (
-            <Badge variant="secondary" className="text-xs">
-              Read
-            </Badge>
-          )}
+        <div className={`rounded-lg ${
+          message.message_type === 'voice' || message.message_type === 'file' || message.message_type === 'image'
+            ? 'p-0' // No padding for voice/file messages as they handle their own styling
+            : isOwn 
+              ? 'bg-primary text-primary-foreground p-3'
+              : 'bg-muted p-3'
+        }`}>
+          {renderMessageContent()}
         </div>
+
+        <span className="text-xs text-muted-foreground mt-1 px-1">
+          {formatDistanceToNow(new Date(message.created_at), { addSuffix: true })}
+        </span>
       </div>
     </div>
   );

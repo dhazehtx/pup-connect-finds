@@ -1,14 +1,28 @@
 
-import React, { useRef, useEffect } from 'react';
-import MessageItem from './MessageItem';
+import React, { useEffect, useRef } from 'react';
+import MessageBubble from './MessageBubble';
+import { ScrollArea } from '@/components/ui/scroll-area';
+
+interface Message {
+  id: string;
+  content: string;
+  message_type: string;
+  image_url?: string;
+  voice_url?: string;
+  created_at: string;
+  sender_id: string;
+  file_name?: string;
+  file_size?: number;
+  file_type?: string;
+}
 
 interface MessagesListProps {
-  messages: any[];
+  messages: Message[];
   user: any;
-  reactions: Record<string, any[]>;
+  reactions: any;
   getThreadCount: (messageId: string) => number;
   onReactionButtonClick: (event: React.MouseEvent, messageId: string) => void;
-  onReplyToMessage: (message: any) => void;
+  onReplyToMessage: (message: Message) => void;
   onReactionToggle: (messageId: string, emoji: string) => void;
   conversationId: string;
 }
@@ -24,40 +38,38 @@ const MessagesList = ({
   conversationId
 }: MessagesListProps) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
 
-  // Scroll to bottom when messages change
-  useEffect(() => {
+  const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
   }, [messages]);
 
   return (
-    <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-background/5">
-      {messages.length === 0 ? (
-        <div className="flex items-center justify-center h-full">
-          <p className="text-muted-foreground text-center">
-            No messages yet. Start the conversation!
-          </p>
-        </div>
-      ) : (
-        <>
-          {messages.map((message) => (
-            <MessageItem
+    <ScrollArea ref={scrollAreaRef} className="flex-1 p-4">
+      <div className="space-y-4">
+        {messages.map((message, index) => {
+          const isOwn = message.sender_id === user?.id;
+          const prevMessage = index > 0 ? messages[index - 1] : null;
+          const showAvatar = !isOwn && (!prevMessage || prevMessage.sender_id !== message.sender_id);
+          
+          return (
+            <MessageBubble
               key={message.id}
               message={message}
-              isOwn={message.sender_id === user?.id}
-              user={user}
-              reactions={reactions[message.id] || []}
-              threadCount={getThreadCount(message.id)}
-              onReactionButtonClick={onReactionButtonClick}
-              onReplyButtonClick={() => onReplyToMessage(message)}
-              onReactionToggle={onReactionToggle}
-              conversationId={conversationId}
+              isOwn={isOwn}
+              senderName={!isOwn ? "User" : undefined}
+              senderAvatar=""
+              showAvatar={showAvatar}
             />
-          ))}
-          <div ref={messagesEndRef} />
-        </>
-      )}
-    </div>
+          );
+        })}
+        <div ref={messagesEndRef} />
+      </div>
+    </ScrollArea>
   );
 };
 

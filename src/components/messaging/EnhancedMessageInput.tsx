@@ -1,19 +1,21 @@
 
 import React, { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Card } from '@/components/ui/card';
+import { Textarea } from '@/components/ui/textarea';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Send, Paperclip, Mic, Image, Smile } from 'lucide-react';
-import { useTypingIndicators } from '@/hooks/useTypingIndicators';
-import { useFileUpload } from '@/hooks/useFileUpload';
-import EmojiPicker from './EmojiPicker';
+import VoiceRecorder from './VoiceRecorder';
+import EnhancedFileShare from './EnhancedFileShare';
+import { useUnifiedFileUpload } from '@/hooks/useUnifiedFileUpload';
+import { useToast } from '@/hooks/use-toast';
 
 interface EnhancedMessageInputProps {
   conversationId: string;
-  onSendMessage: (content: string, type?: string, options?: any) => void;
-  onSendVoiceMessage?: (audioUrl: string, duration: number) => void;
+  onSendMessage: (content: string, messageType?: string, options?: any) => void;
+  onSendVoiceMessage: (audioUrl: string, duration: number) => void;
   onFileSelect?: (file: File) => void;
   placeholder?: string;
+  disabled?: boolean;
 }
 
 const EnhancedMessageInput = ({
@@ -21,53 +23,28 @@ const EnhancedMessageInput = ({
   onSendMessage,
   onSendVoiceMessage,
   onFileSelect,
-  placeholder = "Type a message..."
+  placeholder = "Type your message...",
+  disabled = false
 }: EnhancedMessageInputProps) => {
   const [message, setMessage] = useState('');
-  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [showVoiceRecorder, setShowVoiceRecorder] = useState(false);
+  const [showFileShare, setShowFileShare] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const imageInputRef = useRef<HTMLInputElement>(null);
-  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
-  const audioChunksRef = useRef<Blob[]>([]);
-  
-  const { startTyping, stopTyping } = useTypingIndicators();
-  const { uploadFile, uploadImage, uploadAudio, isUploading, uploadProgress } = useFileUpload();
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    setMessage(value);
-    
-    if (value.length === 1) {
-      startTyping(conversationId);
-    } else if (value.length === 0) {
-      stopTyping(conversationId);
-    }
-  };
+  const { uploadImage, uploading } = useUnifiedFileUpload({
+    bucket: 'message-files',
+    folder: 'images',
+    maxSize: 50 * 1024 * 1024,
+    allowedTypes: ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
+  });
 
-  const handleSend = async () => {
-    if (!message.trim() && !selectedFile) return;
-    
-    stopTyping(conversationId);
-    
-    if (selectedFile) {
-      if (onFileSelect) {
-        onFileSelect(selectedFile);
-      } else {
-        try {
-          const fileUrl = await uploadFile(selectedFile);
-          onSendMessage(message || `Shared ${selectedFile.name}`, 'file', { imageUrl: fileUrl });
-        } catch (error) {
-          console.error('File upload failed:', error);
-        }
-      }
-      setSelectedFile(null);
-    } else {
-      onSendMessage(message, 'text');
-    }
-    
+  const { toast } = useToast();
+
+  const handleSend = () => {
+    if (!message.trim() || disabled) return;
+    onSendMessage(message);
     setMessage('');
   };
 
@@ -78,182 +55,147 @@ const EnhancedMessageInput = ({
     }
   };
 
-  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setSelectedFile(file);
-    }
+  const handleVoiceMessage = (audioUrl: string, duration: number) => {
+    onSendVoiceMessage(audioUrl, duration);
+    setShowVoiceRecorder(false);
   };
 
-  const handleImageSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      try {
-        const imageUrl = await uploadImage(file);
-        onSendMessage(message || 'Shared an image', 'image', { imageUrl });
-        setMessage('');
-      } catch (error) {
-        console.error('Image upload failed:', error);
-      }
-    }
-  };
+  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
 
-  const startVoiceRecording = async () => {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      mediaRecorderRef.current = new MediaRecorder(stream);
-      audioChunksRef.current = [];
-
-      mediaRecorderRef.current.ondataavailable = (event) => {
-        audioChunksRef.current.push(event.data);
-      };
-
-      mediaRecorderRef.current.onstop = async () => {
-        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
-        try {
-          const audioUrl = await uploadAudio(audioBlob);
-          if (onSendVoiceMessage) {
-            onSendVoiceMessage(audioUrl, 0);
-          } else {
-            onSendMessage('Voice message', 'voice', { imageUrl: audioUrl });
-          }
-        } catch (error) {
-          console.error('Voice upload failed:', error);
-        }
-        stream.getTracks().forEach(track => track.stop());
-      };
-
-      mediaRecorderRef.current.start();
-      setIsRecording(true);
+      const imageUrl = await uploadImage(file);
+      if (imageUrl) {
+        onSendMessage(`Shared an image: ${file.name}`, 'image', { imageUrl });
+        toast({
+          title: "Image sent",
+          description: "Your image was shared successfully",
+        });
+      }
     } catch (error) {
-      console.error('Error starting voice recording:', error);
+      console.error('Image upload failed:', error);
+      toast({
+        title: "Upload failed",
+        description: "Failed to upload image. Please try again.",
+        variant: "destructive",
+      });
+    }
+    
+    // Reset file input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
     }
   };
 
-  const stopVoiceRecording = () => {
-    if (mediaRecorderRef.current && isRecording) {
-      mediaRecorderRef.current.stop();
-      setIsRecording(false);
-    }
-  };
-
-  const handleEmojiSelect = (emoji: string) => {
-    setMessage(prev => prev + emoji);
-    setShowEmojiPicker(false);
+  const handleFilesUpload = (files: any[]) => {
+    files.forEach(fileUpload => {
+      if (fileUpload.url) {
+        const fileType = fileUpload.file.type.startsWith('image/') ? 'image' : 'file';
+        onSendMessage(
+          `Shared ${fileType === 'image' ? 'an image' : 'a file'}: ${fileUpload.file.name}`, 
+          fileType, 
+          { 
+            imageUrl: fileUpload.url,
+            fileName: fileUpload.file.name,
+            fileSize: fileUpload.file.size,
+            fileType: fileUpload.file.type
+          }
+        );
+      }
+    });
+    setShowFileShare(false);
   };
 
   return (
-    <div className="relative">
-      {/* File preview */}
-      {selectedFile && (
-        <Card className="p-3 mb-2">
-          <div className="flex items-center justify-between">
-            <span className="text-sm">{selectedFile.name}</span>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setSelectedFile(null)}
-            >
-              ×
-            </Button>
-          </div>
-          {isUploading && (
-            <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
-              <div 
-                className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-                style={{ width: `${uploadProgress}%` }}
-              />
-            </div>
-          )}
-        </Card>
-      )}
-
-      {/* Emoji picker */}
-      {showEmojiPicker && (
-        <div className="absolute bottom-full mb-2 left-0 z-50">
-          <EmojiPicker
-            onEmojiSelect={handleEmojiSelect}
-            onClose={() => setShowEmojiPicker(false)}
+    <div className="border-t bg-background p-4">
+      <div className="flex items-end gap-2">
+        <div className="flex-1">
+          <Textarea
+            ref={textareaRef}
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+            onKeyPress={handleKeyPress}
+            placeholder={placeholder}
+            disabled={disabled || uploading}
+            className="min-h-[44px] max-h-32 resize-none"
+            rows={1}
           />
         </div>
-      )}
 
-      <div className="flex items-center gap-2 p-3 border-t bg-background">
-        {/* File upload button */}
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => fileInputRef.current?.click()}
-          disabled={isUploading}
-        >
-          <Paperclip size={20} />
-        </Button>
+        <div className="flex items-center gap-1">
+          {/* Image upload */}
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={disabled || uploading}
+          >
+            <Image size={20} />
+          </Button>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            onChange={handleImageUpload}
+            className="hidden"
+          />
 
-        {/* Image upload button */}
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => imageInputRef.current?.click()}
-          disabled={isUploading}
-        >
-          <Image size={20} />
-        </Button>
+          {/* File share */}
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setShowFileShare(true)}
+            disabled={disabled}
+          >
+            <Paperclip size={20} />
+          </Button>
 
-        {/* Emoji button */}
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-        >
-          <Smile size={20} />
-        </Button>
+          {/* Voice recorder */}
+          <Popover open={showVoiceRecorder} onOpenChange={setShowVoiceRecorder}>
+            <PopoverTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                disabled={disabled}
+              >
+                <Mic size={20} />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-80">
+              <VoiceRecorder
+                onSendVoiceMessage={handleVoiceMessage}
+                isRecording={isRecording}
+                setIsRecording={setIsRecording}
+                onCancel={() => setShowVoiceRecorder(false)}
+              />
+            </PopoverContent>
+          </Popover>
 
-        {/* Message input */}
-        <Input
-          value={message}
-          onChange={handleInputChange}
-          onKeyPress={handleKeyPress}
-          placeholder={placeholder}
-          className="flex-1"
-          disabled={isUploading}
-        />
-
-        {/* Voice recording button */}
-        <Button
-          variant="ghost"
-          size="icon"
-          onMouseDown={startVoiceRecording}
-          onMouseUp={stopVoiceRecording}
-          onMouseLeave={stopVoiceRecording}
-          className={isRecording ? 'bg-red-100' : ''}
-        >
-          <Mic size={20} className={isRecording ? 'text-red-500' : ''} />
-        </Button>
-
-        {/* Send button */}
-        <Button
-          onClick={handleSend}
-          disabled={!message.trim() && !selectedFile || isUploading}
-          size="icon"
-        >
-          <Send size={16} />
-        </Button>
-
-        {/* Hidden file inputs */}
-        <input
-          ref={fileInputRef}
-          type="file"
-          className="hidden"
-          onChange={handleFileSelect}
-        />
-        <input
-          ref={imageInputRef}
-          type="file"
-          accept="image/*"
-          className="hidden"
-          onChange={handleImageSelect}
-        />
+          {/* Send button */}
+          <Button
+            onClick={handleSend}
+            disabled={!message.trim() || disabled || uploading}
+            size="icon"
+          >
+            <Send size={20} />
+          </Button>
+        </div>
       </div>
+
+      {/* Enhanced File Share Dialog */}
+      <EnhancedFileShare
+        isOpen={showFileShare}
+        onClose={() => setShowFileShare(false)}
+        onFilesUpload={handleFilesUpload}
+        maxFiles={5}
+        maxSize={50}
+        acceptedTypes={[
+          'image/jpeg', 'image/png', 'image/webp', 'image/gif',
+          'video/mp4', 'video/webm',
+          'application/pdf', 'text/plain'
+        ]}
+      />
     </div>
   );
 };
