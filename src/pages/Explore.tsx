@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Search, Filter, Heart, MapPin, MessageCircle } from 'lucide-react';
+import { Search, Filter, Heart, MapPin, MessageCircle, Sliders } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -9,6 +9,12 @@ import { useDogListings } from '@/hooks/useDogListings';
 import { useMessaging } from '@/hooks/useMessaging';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+import AdvancedSearch from '@/components/search/AdvancedSearch';
+import {
+  Dialog,
+  DialogContent,
+  DialogTrigger,
+} from '@/components/ui/dialog';
 
 const Explore = () => {
   const { listings, loading, fetchListings } = useDogListings();
@@ -16,32 +22,52 @@ const Explore = () => {
   const { user, isGuest } = useAuth();
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
-  const [filters, setFilters] = useState({
-    breed: '',
-    minPrice: '',
-    maxPrice: '',
-    location: '',
-  });
+  const [showAdvancedSearch, setShowAdvancedSearch] = useState(false);
+  const [appliedFilters, setAppliedFilters] = useState<any>(null);
+  const [favorites, setFavorites] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     fetchListings();
   }, []);
 
+  const applyAdvancedFilters = (filters: any) => {
+    setAppliedFilters(filters);
+    setShowAdvancedSearch(false);
+  };
+
   const filteredListings = listings.filter(listing => {
+    // Basic search filter
     const matchesSearch = 
       listing.dog_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       listing.breed.toLowerCase().includes(searchTerm.toLowerCase());
     
-    const matchesBreed = !filters.breed || 
-      listing.breed.toLowerCase().includes(filters.breed.toLowerCase());
-    
-    const matchesLocation = !filters.location || 
-      (listing.location && listing.location.toLowerCase().includes(filters.location.toLowerCase()));
-    
-    const matchesMinPrice = !filters.minPrice || listing.price >= Number(filters.minPrice);
-    const matchesMaxPrice = !filters.maxPrice || listing.price <= Number(filters.maxPrice);
+    if (!matchesSearch) return false;
 
-    return matchesSearch && matchesBreed && matchesLocation && matchesMinPrice && matchesMaxPrice;
+    // Advanced filters
+    if (appliedFilters) {
+      if (appliedFilters.breed && !listing.breed.toLowerCase().includes(appliedFilters.breed.toLowerCase())) {
+        return false;
+      }
+      
+      if (appliedFilters.location && listing.location && 
+          !listing.location.toLowerCase().includes(appliedFilters.location.toLowerCase())) {
+        return false;
+      }
+      
+      if (listing.price < appliedFilters.priceRange[0] || listing.price > appliedFilters.priceRange[1]) {
+        return false;
+      }
+      
+      if (listing.age < appliedFilters.ageRange[0] || listing.age > appliedFilters.ageRange[1]) {
+        return false;
+      }
+
+      if (appliedFilters.verified && !listing.profiles?.verified) {
+        return false;
+      }
+    }
+
+    return true;
   });
 
   const formatPrice = (price: number) => {
@@ -84,6 +110,31 @@ const Explore = () => {
     }
   };
 
+  const toggleFavorite = (listingId: string) => {
+    setFavorites(prev => {
+      const newFavorites = new Set(prev);
+      if (newFavorites.has(listingId)) {
+        newFavorites.delete(listingId);
+        toast({
+          title: "Removed from favorites",
+          description: "Dog removed from your favorites list",
+        });
+      } else {
+        newFavorites.add(listingId);
+        toast({
+          title: "Added to favorites",
+          description: "Dog added to your favorites list",
+        });
+      }
+      return newFavorites;
+    });
+  };
+
+  const clearFilters = () => {
+    setAppliedFilters(null);
+    setSearchTerm('');
+  };
+
   return (
     <div className="max-w-7xl mx-auto px-4 py-6">
       {/* Header */}
@@ -94,8 +145,8 @@ const Explore = () => {
 
       {/* Search and Filters */}
       <div className="bg-white rounded-lg shadow-sm border p-6 mb-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-          <div className="lg:col-span-2">
+        <div className="flex flex-col md:flex-row gap-4">
+          <div className="flex-1">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
               <Input
@@ -107,35 +158,56 @@ const Explore = () => {
             </div>
           </div>
           
-          <Input
-            placeholder="Breed"
-            value={filters.breed}
-            onChange={(e) => setFilters({ ...filters, breed: e.target.value })}
-          />
-          
-          <Input
-            placeholder="Location"
-            value={filters.location}
-            onChange={(e) => setFilters({ ...filters, location: e.target.value })}
-          />
-          
           <div className="flex gap-2">
-            <Input
-              placeholder="Min $"
-              type="number"
-              value={filters.minPrice}
-              onChange={(e) => setFilters({ ...filters, minPrice: e.target.value })}
-              className="w-1/2"
-            />
-            <Input
-              placeholder="Max $"
-              type="number"
-              value={filters.maxPrice}
-              onChange={(e) => setFilters({ ...filters, maxPrice: e.target.value })}
-              className="w-1/2"
-            />
+            <Dialog open={showAdvancedSearch} onOpenChange={setShowAdvancedSearch}>
+              <DialogTrigger asChild>
+                <Button variant="outline">
+                  <Sliders className="w-4 h-4 mr-2" />
+                  Advanced Search
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+                <AdvancedSearch 
+                  onSearch={applyAdvancedFilters}
+                  onClose={() => setShowAdvancedSearch(false)}
+                />
+              </DialogContent>
+            </Dialog>
+            
+            {appliedFilters && (
+              <Button variant="ghost" onClick={clearFilters}>
+                Clear Filters
+              </Button>
+            )}
           </div>
         </div>
+
+        {/* Active Filters Display */}
+        {appliedFilters && (
+          <div className="mt-4 flex flex-wrap gap-2">
+            {appliedFilters.breed && (
+              <Badge variant="secondary">
+                Breed: {appliedFilters.breed}
+              </Badge>
+            )}
+            {appliedFilters.location && (
+              <Badge variant="secondary">
+                Location: {appliedFilters.location}
+              </Badge>
+            )}
+            <Badge variant="secondary">
+              Price: ${appliedFilters.priceRange[0]} - ${appliedFilters.priceRange[1]}
+            </Badge>
+            <Badge variant="secondary">
+              Age: {appliedFilters.ageRange[0]} - {appliedFilters.ageRange[1]} months
+            </Badge>
+            {appliedFilters.verified && (
+              <Badge variant="secondary">
+                Verified Only
+              </Badge>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Results */}
@@ -151,6 +223,11 @@ const Explore = () => {
           </div>
           <h3 className="text-lg font-semibold mb-2">No dogs found</h3>
           <p className="text-gray-600">Try adjusting your search criteria</p>
+          {appliedFilters && (
+            <Button variant="outline" onClick={clearFilters} className="mt-4">
+              Clear Filters
+            </Button>
+          )}
         </div>
       ) : (
         <>
@@ -174,8 +251,17 @@ const Explore = () => {
                         target.style.display = 'none';
                       }}
                     />
-                    <button className="absolute top-3 right-3 p-2 bg-white rounded-full shadow-md hover:bg-gray-50">
-                      <Heart className="w-4 h-4 text-gray-600" />
+                    <button 
+                      className="absolute top-3 right-3 p-2 bg-white rounded-full shadow-md hover:bg-gray-50"
+                      onClick={() => toggleFavorite(listing.id)}
+                    >
+                      <Heart 
+                        className={`w-4 h-4 ${
+                          favorites.has(listing.id) 
+                            ? 'text-red-500 fill-current' 
+                            : 'text-gray-600'
+                        }`} 
+                      />
                     </button>
                   </div>
                 )}

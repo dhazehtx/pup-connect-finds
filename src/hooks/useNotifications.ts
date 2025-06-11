@@ -1,8 +1,8 @@
 
 import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { useRealtimeData } from './useRealtimeData';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 interface Notification {
   id: string;
@@ -10,111 +10,56 @@ interface Notification {
   type: string;
   title: string;
   message: string;
-  related_id?: string;
-  sender_id?: string;
-  is_read: boolean;
+  read: boolean;
+  action_url?: string;
+  metadata?: any;
   created_at: string;
-  sender_profile?: {
-    full_name: string;
-    username: string;
-    avatar_url: string;
-  };
 }
 
 export const useNotifications = () => {
-  const { user } = useAuth();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(true);
-
-  // Real-time updates for new notifications
-  useRealtimeData({
-    table: 'notifications',
-    filter: user ? `user_id=eq.${user.id}` : undefined,
-    onInsert: (payload) => {
-      if (payload.new && payload.new.user_id === user?.id) {
-        fetchNotifications(); // Refetch to get sender profile data
-        
-        // Show browser notification if permission granted
-        if (Notification.permission === 'granted') {
-          new Notification(payload.new.title, {
-            body: payload.new.message,
-            icon: '/favicon.ico'
-          });
-        }
-      }
-    },
-    onUpdate: (payload) => {
-      if (payload.new && payload.new.user_id === user?.id) {
-        setNotifications(prev => prev.map(notification => 
-          notification.id === payload.new.id 
-            ? { ...notification, ...payload.new } 
-            : notification
-        ));
-        updateUnreadCount();
-      }
-    }
-  });
+  const { user } = useAuth();
+  const { toast } = useToast();
 
   const fetchNotifications = async () => {
     if (!user) return;
 
     try {
-      setLoading(true);
       const { data, error } = await supabase
         .from('notifications')
-        .select(`
-          *,
-          sender_profile:profiles!notifications_sender_id_fkey (
-            full_name,
-            username,
-            avatar_url
-          )
-        `)
+        .select('*')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false })
         .limit(50);
 
       if (error) throw error;
 
-      const formattedNotifications = data?.map(notification => ({
-        ...notification,
-        sender_profile: notification.sender_profile
-      })) || [];
-
-      setNotifications(formattedNotifications);
-      updateUnreadCount(formattedNotifications);
-    } catch (err: any) {
-      console.error('Error fetching notifications:', err);
+      setNotifications(data || []);
+      setUnreadCount(data?.filter(n => !n.read).length || 0);
+    } catch (error) {
+      console.error('Error fetching notifications:', error);
     } finally {
       setLoading(false);
     }
-  };
-
-  const updateUnreadCount = (notificationsList?: Notification[]) => {
-    const list = notificationsList || notifications;
-    const count = list.filter(n => !n.is_read).length;
-    setUnreadCount(count);
   };
 
   const markAsRead = async (notificationId: string) => {
     try {
       const { error } = await supabase
         .from('notifications')
-        .update({ is_read: true })
-        .eq('id', notificationId)
-        .eq('user_id', user?.id);
+        .update({ read: true })
+        .eq('id', notificationId);
 
       if (error) throw error;
 
-      setNotifications(prev => prev.map(notification =>
-        notification.id === notificationId
-          ? { ...notification, is_read: true }
-          : notification
-      ));
-      updateUnreadCount();
-    } catch (err: any) {
-      console.error('Error marking notification as read:', err);
+      setNotifications(prev => 
+        prev.map(n => n.id === notificationId ? { ...n, read: true } : n)
+      );
+      setUnreadCount(prev => Math.max(0, prev - 1));
+    } catch (error) {
+      console.error('Error marking notification as read:', error);
     }
   };
 
@@ -124,64 +69,78 @@ export const useNotifications = () => {
     try {
       const { error } = await supabase
         .from('notifications')
-        .update({ is_read: true })
+        .update({ read: true })
         .eq('user_id', user.id)
-        .eq('is_read', false);
+        .eq('read', false);
 
       if (error) throw error;
 
-      setNotifications(prev => prev.map(notification => ({
-        ...notification,
-        is_read: true
-      })));
+      setNotifications(prev => prev.map(n => ({ ...n, read: true })));
       setUnreadCount(0);
-    } catch (err: any) {
-      console.error('Error marking all notifications as read:', err);
+    } catch (error) {
+      console.error('Error marking all notifications as read:', error);
     }
   };
 
-  const deleteNotification = async (notificationId: string) => {
+  const sendEmailNotification = async (
+    recipientEmail: string,
+    type: string,
+    data: any
+  ) => {
     try {
-      const { error } = await supabase
-        .from('notifications')
-        .delete()
-        .eq('id', notificationId)
-        .eq('user_id', user?.id);
-
-      if (error) throw error;
-
-      setNotifications(prev => prev.filter(n => n.id !== notificationId));
-      updateUnreadCount();
-    } catch (err: any) {
-      console.error('Error deleting notification:', err);
-    }
-  };
-
-  // Request notification permission
-  const requestNotificationPermission = async () => {
-    if ('Notification' in window && Notification.permission === 'default') {
-      await Notification.requestPermission();
+      await supabase.functions.invoke('send-email-notification', {
+        body: {
+          to: recipientEmail,
+          type,
+          data
+        }
+      });
+    } catch (error) {
+      console.error('Error sending email notification:', error);
     }
   };
 
   useEffect(() => {
     if (user) {
       fetchNotifications();
-      requestNotificationPermission();
+
+      // Set up real-time subscription
+      const channel = supabase
+        .channel('notifications')
+        .on(
+          'postgres_changes',
+          {
+            event: 'INSERT',
+            schema: 'public',
+            table: 'notifications',
+            filter: `user_id=eq.${user.id}`
+          },
+          (payload) => {
+            const newNotification = payload.new as Notification;
+            setNotifications(prev => [newNotification, ...prev]);
+            setUnreadCount(prev => prev + 1);
+            
+            toast({
+              title: newNotification.title,
+              description: newNotification.message,
+            });
+          }
+        )
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(channel);
+      };
     }
   }, [user]);
-
-  useEffect(() => {
-    updateUnreadCount();
-  }, [notifications]);
 
   return {
     notifications,
     unreadCount,
     loading,
+    fetchNotifications,
     markAsRead,
     markAllAsRead,
-    deleteNotification,
-    refetch: fetchNotifications
+    sendEmailNotification
   };
 };

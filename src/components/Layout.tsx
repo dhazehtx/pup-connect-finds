@@ -1,93 +1,175 @@
 
-import React, { useState, useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
-import { HelmetProvider } from 'react-helmet-async';
-import Header from './Header';
-import BottomNavigation from './BottomNavigation';
-import Footer from './Footer';
-import OnboardingFlow from './onboarding/OnboardingFlow';
-import MobileOptimizedLayout from './mobile/MobileOptimizedLayout';
-import MobileTabBar from './mobile/MobileTabBar';
-import SEOHead from './seo/SEOHead';
+import React from 'react';
+import { Outlet, useLocation, Link } from 'react-router-dom';
+import { Home, Search, MessageCircle, User, PlusCircle, Bell } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/contexts/AuthContext';
-import { useOnboarding } from '@/hooks/useOnboarding';
-import { useMobileOptimized } from '@/hooks/useMobileOptimized';
-import { usePerformanceMonitor } from '@/hooks/usePerformanceMonitor';
+import { useNotifications } from '@/hooks/useNotifications';
+import NotificationCenter from '@/components/notifications/NotificationCenter';
+import PWAInstallPrompt from '@/components/pwa/PWAInstallPrompt';
+import LanguageSelector from '@/components/i18n/LanguageSelector';
+import { TranslationProvider } from '@/components/i18n/LanguageSelector';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
-interface LayoutProps {
-  children: React.ReactNode;
-}
-
-const Layout = ({ children }: LayoutProps) => {
-  const { user, loading, isGuest } = useAuth();
-  const { hasSeenOnboarding, completeOnboarding } = useOnboarding();
-  const { isMobile } = useMobileOptimized();
-  const { reportVitals } = usePerformanceMonitor();
-  const [showOnboarding, setShowOnboarding] = useState(false);
+const Layout = ({ children }: { children: React.ReactNode }) => {
   const location = useLocation();
+  const { user, signOut } = useAuth();
+  const { unreadCount } = useNotifications();
 
-  useEffect(() => {
-    // Show onboarding if user hasn't seen it and isn't logged in or guest
-    if (!loading && !user && !isGuest && !hasSeenOnboarding) {
-      setShowOnboarding(true);
-    } else {
-      setShowOnboarding(false);
-    }
-  }, [loading, user, isGuest, hasSeenOnboarding]);
+  const navigation = [
+    { name: 'Home', href: '/', icon: Home },
+    { name: 'Explore', href: '/explore', icon: Search },
+    { name: 'Messages', href: '/messages', icon: MessageCircle },
+    { name: 'Profile', href: '/profile', icon: User },
+  ];
 
-  useEffect(() => {
-    // Report page navigation performance
-    const navigationTime = performance.now();
-    reportVitals('page-navigation', navigationTime);
-  }, [location.pathname, reportVitals]);
-
-  const handleOnboardingComplete = () => {
-    setShowOnboarding(false);
-    completeOnboarding();
+  const isActive = (path: string) => {
+    return location.pathname === path;
   };
 
-  // Show onboarding flow for new visitors
-  if (showOnboarding) {
-    return (
-      <HelmetProvider>
-        <SEOHead title="Welcome to MY PUP" />
-        <OnboardingFlow onComplete={handleOnboardingComplete} />
-      </HelmetProvider>
-    );
-  }
-
-  // Show loading state
-  if (loading) {
-    return (
-      <HelmetProvider>
-        <SEOHead title="Loading..." />
-        <MobileOptimizedLayout>
-          <div className="min-h-screen bg-gradient-to-br from-royal-blue/10 to-mint-green/10 flex items-center justify-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-2 border-royal-blue border-t-transparent" />
-          </div>
-        </MobileOptimizedLayout>
-      </HelmetProvider>
-    );
-  }
-
-  // Only hide header on auth page
-  const isAuthPage = location.pathname === '/auth';
-
   return (
-    <HelmetProvider>
-      <SEOHead />
-      <MobileOptimizedLayout enableSafeArea={true}>
-        <div className="min-h-screen bg-gradient-to-br from-royal-blue/10 to-mint-green/10 flex flex-col">
-          {!isAuthPage && !isMobile && <Header />}
-          <main className={`flex-1 ${isMobile ? 'pb-20' : 'pb-20'}`}>
-            {children}
-          </main>
-          {!isAuthPage && !isMobile && <Footer />}
-          {!isAuthPage && isMobile && <MobileTabBar />}
-          {!isAuthPage && !isMobile && <BottomNavigation />}
+    <TranslationProvider>
+      <div className="min-h-screen bg-gray-50">
+        {/* Header */}
+        <header className="bg-white shadow-sm border-b">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex justify-between items-center h-16">
+              {/* Logo */}
+              <Link to="/" className="flex items-center">
+                <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+                  <span className="text-white font-bold text-sm">MP</span>
+                </div>
+                <span className="ml-2 text-xl font-bold text-gray-900">MY PUP</span>
+              </Link>
+
+              {/* Desktop Navigation */}
+              <nav className="hidden md:flex space-x-8">
+                {navigation.map((item) => {
+                  const Icon = item.icon;
+                  return (
+                    <Link
+                      key={item.name}
+                      to={item.href}
+                      className={`flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                        isActive(item.href)
+                          ? 'text-blue-600 bg-blue-50'
+                          : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                      }`}
+                    >
+                      <Icon className="w-4 h-4 mr-2" />
+                      {item.name}
+                    </Link>
+                  );
+                })}
+              </nav>
+
+              {/* Right side actions */}
+              <div className="flex items-center space-x-4">
+                {user && (
+                  <Button size="sm" asChild>
+                    <Link to="/post">
+                      <PlusCircle className="w-4 h-4 mr-2" />
+                      List a Dog
+                    </Link>
+                  </Button>
+                )}
+
+                {/* Notifications */}
+                {user && (
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="sm" className="relative">
+                        <Bell className="w-4 h-4" />
+                        {unreadCount > 0 && (
+                          <Badge 
+                            variant="destructive" 
+                            className="absolute -top-2 -right-2 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs"
+                          >
+                            {unreadCount}
+                          </Badge>
+                        )}
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-80 p-0">
+                      <NotificationCenter />
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                )}
+
+                {/* Language Selector */}
+                <LanguageSelector />
+
+                {/* User Menu */}
+                {user ? (
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="sm">
+                        <User className="w-4 h-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <div className="px-3 py-2">
+                        <p className="text-sm font-medium">{user.email}</p>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        className="w-full justify-start"
+                        onClick={signOut}
+                      >
+                        Sign out
+                      </Button>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                ) : (
+                  <Button size="sm" asChild>
+                    <Link to="/auth">Sign In</Link>
+                  </Button>
+                )}
+              </div>
+            </div>
+          </div>
+        </header>
+
+        {/* Main content */}
+        <main>
+          {children}
+        </main>
+
+        {/* Mobile Navigation */}
+        <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t">
+          <div className="grid grid-cols-4 gap-1">
+            {navigation.map((item) => {
+              const Icon = item.icon;
+              return (
+                <Link
+                  key={item.name}
+                  to={item.href}
+                  className={`flex flex-col items-center justify-center py-3 text-xs ${
+                    isActive(item.href)
+                      ? 'text-blue-600'
+                      : 'text-gray-600'
+                  }`}
+                >
+                  <Icon className="w-5 h-5 mb-1" />
+                  {item.name}
+                </Link>
+              );
+            })}
+          </div>
         </div>
-      </MobileOptimizedLayout>
-    </HelmetProvider>
+
+        {/* PWA Install Prompt */}
+        <PWAInstallPrompt />
+
+        {/* Add bottom padding for mobile nav */}
+        <div className="md:hidden h-16" />
+      </div>
+    </TranslationProvider>
   );
 };
 

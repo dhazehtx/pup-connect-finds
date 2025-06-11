@@ -10,11 +10,13 @@ import { useMessaging } from '@/hooks/useMessaging';
 import ConversationList from '@/components/messaging/ConversationList';
 import MessageBubble from '@/components/messaging/MessageBubble';
 import MessageInput from '@/components/messaging/MessageInput';
+import VideoCall from '@/components/video/VideoCall';
 
 const Messages = () => {
   const { user, isGuest } = useAuth();
   const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
   const [showConversationList, setShowConversationList] = useState(true);
+  const [isVideoCallActive, setIsVideoCallActive] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const {
@@ -52,6 +54,14 @@ const Messages = () => {
     }
   };
 
+  const handleStartVideoCall = () => {
+    setIsVideoCallActive(true);
+  };
+
+  const handleEndVideoCall = () => {
+    setIsVideoCallActive(false);
+  };
+
   const selectedConversation = conversations.find(c => c.id === selectedConversationId);
   const otherUser = selectedConversation?.other_user;
 
@@ -66,6 +76,17 @@ const Messages = () => {
           </CardContent>
         </Card>
       </div>
+    );
+  }
+
+  // Video call overlay
+  if (isVideoCallActive && selectedConversationId) {
+    return (
+      <VideoCall
+        conversationId={selectedConversationId}
+        isInitiator={true}
+        onEndCall={handleEndVideoCall}
+      />
     );
   }
 
@@ -175,7 +196,7 @@ const Messages = () => {
                 <Button variant="ghost" size="sm">
                   <Phone className="w-4 h-4" />
                 </Button>
-                <Button variant="ghost" size="sm">
+                <Button variant="ghost" size="sm" onClick={handleStartVideoCall}>
                   <Video className="w-4 h-4" />
                 </Button>
                 <Button variant="ghost" size="sm">
