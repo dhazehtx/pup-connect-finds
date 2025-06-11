@@ -1,9 +1,7 @@
 
 import React, { useState } from 'react';
 import { Navigate } from 'react-router-dom';
-import { Card, CardContent } from '@/components/ui/card';
 import { useAuth } from '@/contexts/AuthContext';
-import AuthHeader from './AuthHeader';
 import SignUpForm from './SignUpForm';
 import SignInForm from './SignInForm';
 import AuthToggle from './AuthToggle';

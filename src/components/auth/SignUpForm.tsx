@@ -3,8 +3,7 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Eye, EyeOff, Lock } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import { Eye, EyeOff } from 'lucide-react';
 
 interface SignUpData {
   email: string;
@@ -26,11 +25,10 @@ const SignUpForm = ({ onSubmit, loading }: SignUpFormProps) => {
     username: ''
   });
   const [showPassword, setShowPassword] = useState(false);
-  const [errors, setErrors] = useState<{[key: string]: string}>({});
-  const { toast } = useToast();
+  const [errors, setErrors] = useState<Partial<SignUpData>>({});
 
   const validateForm = () => {
-    const newErrors: {[key: string]: string} = {};
+    const newErrors: Partial<SignUpData> = {};
     
     if (!formData.email) {
       newErrors.email = 'Email is required';
@@ -44,11 +42,11 @@ const SignUpForm = ({ onSubmit, loading }: SignUpFormProps) => {
       newErrors.password = 'Password must be at least 6 characters';
     }
 
-    if (!formData.fullName.trim()) {
+    if (!formData.fullName) {
       newErrors.fullName = 'Full name is required';
     }
 
-    if (!formData.username.trim()) {
+    if (!formData.username) {
       newErrors.username = 'Username is required';
     }
     
@@ -60,85 +58,69 @@ const SignUpForm = ({ onSubmit, loading }: SignUpFormProps) => {
     e.preventDefault();
     if (!validateForm()) return;
     
-    try {
-      await onSubmit(formData);
-    } catch (error) {
-      console.error('Sign up error:', error);
-      toast({
-        title: "Sign up failed",
-        description: "Please check your information and try again.",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const handleInputChange = (field: keyof SignUpData, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-    if (errors[field]) {
-      setErrors(prev => ({ ...prev, [field]: '' }));
-    }
+    await onSubmit(formData);
   };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
-        <Label htmlFor="fullName" className="text-sm font-medium text-foreground">Full Name</Label>
+        <Label htmlFor="fullName">Full Name</Label>
         <Input
           id="fullName"
           type="text"
           placeholder="Enter your full name"
           value={formData.fullName}
-          onChange={(e) => handleInputChange('fullName', e.target.value)}
-          className={`mt-1 h-11 ${errors.fullName ? 'border-destructive' : ''}`}
+          onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
+          className={errors.fullName ? 'border-destructive' : ''}
           disabled={loading}
         />
         {errors.fullName && (
-          <p className="text-destructive text-xs mt-1">{errors.fullName}</p>
+          <p className="text-destructive text-sm mt-1">{errors.fullName}</p>
         )}
       </div>
 
       <div>
-        <Label htmlFor="username" className="text-sm font-medium text-foreground">Username</Label>
+        <Label htmlFor="username">Username</Label>
         <Input
           id="username"
           type="text"
           placeholder="Choose a username"
           value={formData.username}
-          onChange={(e) => handleInputChange('username', e.target.value)}
-          className={`mt-1 h-11 ${errors.username ? 'border-destructive' : ''}`}
+          onChange={(e) => setFormData({ ...formData, username: e.target.value })}
+          className={errors.username ? 'border-destructive' : ''}
           disabled={loading}
         />
         {errors.username && (
-          <p className="text-destructive text-xs mt-1">{errors.username}</p>
+          <p className="text-destructive text-sm mt-1">{errors.username}</p>
         )}
       </div>
 
       <div>
-        <Label htmlFor="email" className="text-sm font-medium text-foreground">Email</Label>
+        <Label htmlFor="email">Email</Label>
         <Input
           id="email"
           type="email"
           placeholder="Enter your email"
           value={formData.email}
-          onChange={(e) => handleInputChange('email', e.target.value)}
-          className={`mt-1 h-11 ${errors.email ? 'border-destructive' : ''}`}
+          onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+          className={errors.email ? 'border-destructive' : ''}
           disabled={loading}
         />
         {errors.email && (
-          <p className="text-destructive text-xs mt-1">{errors.email}</p>
+          <p className="text-destructive text-sm mt-1">{errors.email}</p>
         )}
       </div>
       
       <div>
-        <Label htmlFor="password" className="text-sm font-medium text-foreground">Password</Label>
+        <Label htmlFor="password">Password</Label>
         <div className="relative">
           <Input
             id="password"
             type={showPassword ? 'text' : 'password'}
-            placeholder="Create a password"
+            placeholder="Create a password (min 6 characters)"
             value={formData.password}
-            onChange={(e) => handleInputChange('password', e.target.value)}
-            className={`mt-1 h-11 pr-10 ${errors.password ? 'border-destructive' : ''}`}
+            onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+            className={errors.password ? 'border-destructive pr-10' : 'pr-10'}
             disabled={loading}
           />
           <button
@@ -151,14 +133,14 @@ const SignUpForm = ({ onSubmit, loading }: SignUpFormProps) => {
           </button>
         </div>
         {errors.password && (
-          <p className="text-destructive text-xs mt-1">{errors.password}</p>
+          <p className="text-destructive text-sm mt-1">{errors.password}</p>
         )}
       </div>
 
       <Button
         type="submit"
         disabled={loading}
-        className="w-full h-11 bg-primary hover:bg-primary/90 text-primary-foreground font-medium mt-6"
+        className="w-full"
       >
         {loading ? (
           <>
@@ -166,10 +148,7 @@ const SignUpForm = ({ onSubmit, loading }: SignUpFormProps) => {
             Creating Account...
           </>
         ) : (
-          <>
-            <Lock size={16} className="mr-2" />
-            Create Account
-          </>
+          'Create Account'
         )}
       </Button>
     </form>

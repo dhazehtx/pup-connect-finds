@@ -3,8 +3,7 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Eye, EyeOff, Lock } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import { Eye, EyeOff } from 'lucide-react';
 
 interface SignInData {
   email: string;
@@ -22,11 +21,10 @@ const SignInForm = ({ onSubmit, loading }: SignInFormProps) => {
     password: ''
   });
   const [showPassword, setShowPassword] = useState(false);
-  const [errors, setErrors] = useState<{[key: string]: string}>({});
-  const { toast } = useToast();
+  const [errors, setErrors] = useState<Partial<SignInData>>({});
 
   const validateForm = () => {
-    const newErrors: {[key: string]: string} = {};
+    const newErrors: Partial<SignInData> = {};
     
     if (!formData.email) {
       newErrors.email = 'Email is required';
@@ -46,53 +44,37 @@ const SignInForm = ({ onSubmit, loading }: SignInFormProps) => {
     e.preventDefault();
     if (!validateForm()) return;
     
-    try {
-      await onSubmit(formData);
-    } catch (error) {
-      console.error('Sign in error:', error);
-      toast({
-        title: "Sign in failed",
-        description: "Please check your email and password and try again.",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const handleInputChange = (field: keyof SignInData, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-    if (errors[field]) {
-      setErrors(prev => ({ ...prev, [field]: '' }));
-    }
+    await onSubmit(formData);
   };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
-        <Label htmlFor="email" className="text-sm font-medium text-foreground">Email</Label>
+        <Label htmlFor="email">Email</Label>
         <Input
           id="email"
           type="email"
           placeholder="Enter your email"
           value={formData.email}
-          onChange={(e) => handleInputChange('email', e.target.value)}
-          className={`mt-1 h-11 ${errors.email ? 'border-destructive' : ''}`}
+          onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+          className={errors.email ? 'border-destructive' : ''}
           disabled={loading}
         />
         {errors.email && (
-          <p className="text-destructive text-xs mt-1">{errors.email}</p>
+          <p className="text-destructive text-sm mt-1">{errors.email}</p>
         )}
       </div>
       
       <div>
-        <Label htmlFor="password" className="text-sm font-medium text-foreground">Password</Label>
+        <Label htmlFor="password">Password</Label>
         <div className="relative">
           <Input
             id="password"
             type={showPassword ? 'text' : 'password'}
             placeholder="Enter your password"
             value={formData.password}
-            onChange={(e) => handleInputChange('password', e.target.value)}
-            className={`mt-1 h-11 pr-10 ${errors.password ? 'border-destructive' : ''}`}
+            onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+            className={errors.password ? 'border-destructive pr-10' : 'pr-10'}
             disabled={loading}
           />
           <button
@@ -105,25 +87,22 @@ const SignInForm = ({ onSubmit, loading }: SignInFormProps) => {
           </button>
         </div>
         {errors.password && (
-          <p className="text-destructive text-xs mt-1">{errors.password}</p>
+          <p className="text-destructive text-sm mt-1">{errors.password}</p>
         )}
       </div>
 
       <Button
         type="submit"
         disabled={loading}
-        className="w-full h-11 bg-primary hover:bg-primary/90 font-medium mt-6 text-white"
+        className="w-full"
       >
         {loading ? (
           <>
             <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2" />
-            <span className="text-white">Signing In...</span>
+            Signing In...
           </>
         ) : (
-          <>
-            <Lock size={16} className="mr-2" />
-            <span className="text-white">Sign In</span>
-          </>
+          'Sign In'
         )}
       </Button>
     </form>
