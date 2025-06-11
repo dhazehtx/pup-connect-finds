@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Heart, MessageCircle, User, Menu, X, LogOut, Search, Settings, Bell } from 'lucide-react';
+import { Heart, User, Menu, X, LogOut, Settings, Bell } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import { useMobileOptimized } from '@/hooks/useMobileOptimized';
@@ -104,25 +104,6 @@ const Header = () => {
             <span className="text-xl font-bold text-gray-900">MY PUP</span>
           </Link>
 
-          {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center space-x-8">
-            <Link to="/explore" className="text-gray-700 hover:text-blue-600 transition-colors">
-              Explore
-            </Link>
-            {isAuthenticated && (
-              <>
-                <Link to="/messages" className="text-gray-700 hover:text-blue-600 transition-colors flex items-center space-x-1">
-                  <MessageCircle size={16} />
-                  <span>Messages</span>
-                </Link>
-                <Link to="/favorites" className="text-gray-700 hover:text-blue-600 transition-colors flex items-center space-x-1">
-                  <Heart size={16} />
-                  <span>Favorites</span>
-                </Link>
-              </>
-            )}
-          </nav>
-
           {/* User Menu */}
           <div className="flex items-center space-x-4">
             {!isAuthenticated ? (
@@ -192,31 +173,6 @@ const Header = () => {
         {isMenuOpen && (
           <div className="md:hidden">
             <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 border-t border-gray-200">
-              <Link
-                to="/explore"
-                className="block px-3 py-2 text-gray-700 hover:text-blue-600 transition-colors"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                Explore
-              </Link>
-              {isAuthenticated && (
-                <>
-                  <Link
-                    to="/messages"
-                    className="block px-3 py-2 text-gray-700 hover:text-blue-600 transition-colors"
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    Messages
-                  </Link>
-                  <Link
-                    to="/favorites"
-                    className="block px-3 py-2 text-gray-700 hover:text-blue-600 transition-colors"
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    Favorites
-                  </Link>
-                </>
-              )}
               {!isAuthenticated && (
                 <div className="space-y-2 px-3 py-2">
                   <Button 
