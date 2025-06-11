@@ -7,15 +7,19 @@ import { Button } from '@/components/ui/button';
 interface ErrorStateProps {
   title?: string;
   message?: string;
-  variant?: 'card' | 'inline' | 'minimal';
+  variant?: 'card' | 'inline' | 'minimal' | 'detailed';
   onRetry?: () => void;
+  retryText?: string;
+  error?: Error;
 }
 
 const ErrorState = ({ 
   title = 'Something went wrong', 
   message = 'Please try again later',
   variant = 'inline',
-  onRetry 
+  onRetry,
+  retryText = 'Try Again',
+  error
 }: ErrorStateProps) => {
   const ErrorContent = () => (
     <div className="flex flex-col items-center justify-center gap-3 py-8 text-center">
@@ -23,10 +27,18 @@ const ErrorState = ({
       <div>
         <h3 className="font-semibold text-gray-900">{title}</h3>
         <p className="text-gray-600 mt-1">{message}</p>
+        {variant === 'detailed' && error && (
+          <details className="mt-2 text-xs text-gray-500">
+            <summary className="cursor-pointer">Technical details</summary>
+            <pre className="mt-2 text-left bg-gray-100 p-2 rounded overflow-auto">
+              {error.message}
+            </pre>
+          </details>
+        )}
       </div>
       {onRetry && (
         <Button onClick={onRetry} variant="outline" size="sm">
-          Try Again
+          {retryText}
         </Button>
       )}
     </div>
@@ -48,7 +60,7 @@ const ErrorState = ({
         <p className="text-gray-600">{message}</p>
         {onRetry && (
           <Button onClick={onRetry} variant="ghost" size="sm" className="mt-2">
-            Try Again
+            {retryText}
           </Button>
         )}
       </div>

@@ -14,9 +14,10 @@ interface EnhancedChatInterfaceProps {
   conversationId: string;
   otherUserId: string;
   listingId?: string;
+  onBack?: () => void;
 }
 
-const EnhancedChatInterface = ({ conversationId, otherUserId, listingId }: EnhancedChatInterfaceProps) => {
+const EnhancedChatInterface = ({ conversationId, otherUserId, listingId, onBack }: EnhancedChatInterfaceProps) => {
   const { user } = useAuth();
   const { toast } = useToast();
   const { messages, fetchMessages, sendMessage, markAsRead } = useRealtimeMessages();
@@ -161,6 +162,7 @@ const EnhancedChatInterface = ({ conversationId, otherUserId, listingId }: Enhan
       closeReactionPicker={closeReactionPicker}
       threadState={threadState}
       closeThread={closeThread}
+      onBack={onBack}
     />
   );
 };

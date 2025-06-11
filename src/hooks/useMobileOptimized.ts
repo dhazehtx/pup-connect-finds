@@ -30,9 +30,14 @@ export const useMobileOptimized = () => {
     right: 0,
   };
 
+  const getMobileClasses = (mobileClasses: string, desktopClasses: string = '') => {
+    return isMobile ? mobileClasses : desktopClasses;
+  };
+
   return {
     isMobile,
     windowSize,
     safeAreaInsets,
+    getMobileClasses,
   };
 };
