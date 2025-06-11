@@ -65,11 +65,10 @@ const Header = () => {
                 <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full text-xs"></span>
               </Button>
 
-              {showNotifications && (
-                <div className="absolute top-16 right-4 z-50">
-                  <NotificationCenter onClose={() => setShowNotifications(false)} />
-                </div>
-              )}
+              <NotificationCenter 
+                isOpen={showNotifications} 
+                onClose={() => setShowNotifications(false)} 
+              />
 
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
