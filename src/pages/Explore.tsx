@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Search, Filter, Heart, MapPin, MessageCircle, Sliders } from 'lucide-react';
+import { Search, Filter, Heart, MapPin, MessageCircle, Sliders, Plus, Home, User } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -9,74 +9,35 @@ import { useDogListings } from '@/hooks/useDogListings';
 import { useMessaging } from '@/hooks/useMessaging';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
-import AdvancedSearch from '@/components/search/AdvancedSearch';
-import {
-  Dialog,
-  DialogContent,
-  DialogTrigger,
-} from '@/components/ui/dialog';
+import { useNavigate } from 'react-router-dom';
 
 const Explore = () => {
   const { listings, loading, fetchListings } = useDogListings();
   const { createConversation } = useMessaging();
   const { user, isGuest } = useAuth();
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
-  const [showAdvancedSearch, setShowAdvancedSearch] = useState(false);
-  const [appliedFilters, setAppliedFilters] = useState<any>(null);
+  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
+  const [filters, setFilters] = useState({
+    breed: 'All Breeds',
+    source: 'All Sources', 
+    ageGroup: 'All Ages',
+    gender: 'All Genders',
+    minPrice: '',
+    maxPrice: '',
+    maxDistance: 'Any distance',
+    verifiedOnly: false,
+    availableNow: false
+  });
   const [favorites, setFavorites] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     fetchListings();
   }, []);
 
-  const applyAdvancedFilters = (filters: any) => {
-    setAppliedFilters(filters);
-    setShowAdvancedSearch(false);
-  };
-
-  const filteredListings = listings.filter(listing => {
-    // Basic search filter
-    const matchesSearch = 
-      listing.dog_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      listing.breed.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    if (!matchesSearch) return false;
-
-    // Advanced filters
-    if (appliedFilters) {
-      if (appliedFilters.breed && !listing.breed.toLowerCase().includes(appliedFilters.breed.toLowerCase())) {
-        return false;
-      }
-      
-      if (appliedFilters.location && listing.location && 
-          !listing.location.toLowerCase().includes(appliedFilters.location.toLowerCase())) {
-        return false;
-      }
-      
-      if (listing.price < appliedFilters.priceRange[0] || listing.price > appliedFilters.priceRange[1]) {
-        return false;
-      }
-      
-      if (listing.age < appliedFilters.ageRange[0] || listing.age > appliedFilters.ageRange[1]) {
-        return false;
-      }
-
-      if (appliedFilters.verified && !listing.profiles?.verified) {
-        return false;
-      }
-    }
-
-    return true;
-  });
-
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 0,
-    }).format(price);
-  };
+  const popularBreeds = ['French Bulldog', 'Golden Retriever', 'German Shepherd', 'Labrador', 'Beagle'];
+  const quickFilters = ['Under $1000', 'Puppies Only', 'Verified Only', 'Nearby (10mi)'];
 
   const handleContactSeller = async (listing: any) => {
     if (!user) {
@@ -130,198 +91,273 @@ const Explore = () => {
     });
   };
 
-  const clearFilters = () => {
-    setAppliedFilters(null);
-    setSearchTerm('');
+  const formatPrice = (price: number) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: 0,
+    }).format(price);
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-6">
-      {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Explore Dogs</h1>
-        <p className="text-gray-600">Find your perfect companion from verified breeders</p>
-      </div>
-
-      {/* Search and Filters */}
-      <div className="bg-white rounded-lg shadow-sm border p-6 mb-6">
-        <div className="flex flex-col md:flex-row gap-4">
-          <div className="flex-1">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-              <Input
-                placeholder="Search by name or breed..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
-              />
+    <div className="min-h-screen bg-gray-50 pb-20">
+      {/* Header with logo and search */}
+      <div className="bg-white border-b border-gray-200 px-4 py-4">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center space-x-2">
+            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+              <Heart className="w-5 h-5 text-white" />
             </div>
+            <span className="text-xl font-bold">MY PUP</span>
           </div>
-          
-          <div className="flex gap-2">
-            <Dialog open={showAdvancedSearch} onOpenChange={setShowAdvancedSearch}>
-              <DialogTrigger asChild>
-                <Button variant="outline">
-                  <Sliders className="w-4 h-4 mr-2" />
-                  Advanced Search
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-                <AdvancedSearch 
-                  onSearch={applyAdvancedFilters}
-                  onClose={() => setShowAdvancedSearch(false)}
-                />
-              </DialogContent>
-            </Dialog>
-            
-            {appliedFilters && (
-              <Button variant="ghost" onClick={clearFilters}>
-                Clear Filters
-              </Button>
-            )}
+          <div className="flex items-center space-x-2">
+            <span className="text-sm text-gray-600">🇺🇸 English</span>
+            <span className="text-sm text-gray-600">danieluke97</span>
+            <Button variant="outline" size="sm">auth.signOut</Button>
+          </div>
+        </div>
+        
+        {/* Main search bar */}
+        <div className="relative mb-4">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+          <Input
+            placeholder="Search by breed, breeder name, or keywords..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10 pr-20"
+          />
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="absolute right-2 top-1/2 transform -translate-y-1/2"
+            onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
+          >
+            <Filter className="w-4 h-4 mr-1" />
+            Filters
+          </Button>
+        </div>
+
+        {/* Popular Breeds */}
+        <div className="mb-4">
+          <h3 className="text-sm font-medium text-gray-700 mb-2">Popular Breeds</h3>
+          <div className="flex flex-wrap gap-2">
+            {popularBreeds.map((breed) => (
+              <Badge
+                key={breed}
+                variant="outline"
+                className="cursor-pointer hover:bg-gray-100"
+                onClick={() => setFilters(prev => ({ ...prev, breed }))}
+              >
+                {breed}
+              </Badge>
+            ))}
           </div>
         </div>
 
-        {/* Active Filters Display */}
-        {appliedFilters && (
-          <div className="mt-4 flex flex-wrap gap-2">
-            {appliedFilters.breed && (
-              <Badge variant="secondary">
-                Breed: {appliedFilters.breed}
+        {/* Quick Filters */}
+        <div>
+          <h3 className="text-sm font-medium text-gray-700 mb-2">Quick Filters</h3>
+          <div className="flex flex-wrap gap-2">
+            {quickFilters.map((filter) => (
+              <Badge
+                key={filter}
+                variant="outline"
+                className="cursor-pointer hover:bg-gray-100"
+              >
+                {filter}
               </Badge>
-            )}
-            {appliedFilters.location && (
-              <Badge variant="secondary">
-                Location: {appliedFilters.location}
-              </Badge>
-            )}
-            <Badge variant="secondary">
-              Price: ${appliedFilters.priceRange[0]} - ${appliedFilters.priceRange[1]}
-            </Badge>
-            <Badge variant="secondary">
-              Age: {appliedFilters.ageRange[0]} - {appliedFilters.ageRange[1]} months
-            </Badge>
-            {appliedFilters.verified && (
-              <Badge variant="secondary">
-                Verified Only
-              </Badge>
-            )}
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Advanced Filters Panel */}
+      {showAdvancedFilters && (
+        <div className="bg-white border-b border-gray-200 px-4 py-4">
+          <div className="space-y-4">
+            {/* Filter dropdowns row */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Breed</label>
+                <select 
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                  value={filters.breed}
+                  onChange={(e) => setFilters(prev => ({ ...prev, breed: e.target.value }))}
+                >
+                  <option>All Breeds</option>
+                  {popularBreeds.map(breed => (
+                    <option key={breed} value={breed}>{breed}</option>
+                  ))}
+                </select>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Source</label>
+                <select 
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                  value={filters.source}
+                  onChange={(e) => setFilters(prev => ({ ...prev, source: e.target.value }))}
+                >
+                  <option>All Sources</option>
+                  <option>Breeders</option>
+                  <option>Shelters</option>
+                </select>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Age Group</label>
+                <select 
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                  value={filters.ageGroup}
+                  onChange={(e) => setFilters(prev => ({ ...prev, ageGroup: e.target.value }))}
+                >
+                  <option>All Ages</option>
+                  <option>Puppies (0-1 year)</option>
+                  <option>Young (1-3 years)</option>
+                  <option>Adult (3+ years)</option>
+                </select>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Gender</label>
+                <select 
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                  value={filters.gender}
+                  onChange={(e) => setFilters(prev => ({ ...prev, gender: e.target.value }))}
+                >
+                  <option>All Genders</option>
+                  <option>Male</option>
+                  <option>Female</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Price and distance row */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Min Price</label>
+                <Input
+                  placeholder="$0"
+                  value={filters.minPrice}
+                  onChange={(e) => setFilters(prev => ({ ...prev, minPrice: e.target.value }))}
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Max Price</label>
+                <Input
+                  placeholder="$10,000"
+                  value={filters.maxPrice}
+                  onChange={(e) => setFilters(prev => ({ ...prev, maxPrice: e.target.value }))}
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Max Distance</label>
+                <select 
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                  value={filters.maxDistance}
+                  onChange={(e) => setFilters(prev => ({ ...prev, maxDistance: e.target.value }))}
+                >
+                  <option>Any distance</option>
+                  <option>Within 10 miles</option>
+                  <option>Within 25 miles</option>
+                  <option>Within 50 miles</option>
+                  <option>Within 100 miles</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Checkboxes */}
+            <div className="flex space-x-6">
+              <label className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  checked={filters.verifiedOnly}
+                  onChange={(e) => setFilters(prev => ({ ...prev, verifiedOnly: e.target.checked }))}
+                  className="rounded border-gray-300"
+                />
+                <span className="text-sm text-gray-700">Verified only</span>
+              </label>
+              
+              <label className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  checked={filters.availableNow}
+                  onChange={(e) => setFilters(prev => ({ ...prev, availableNow: e.target.checked }))}
+                  className="rounded border-gray-300"
+                />
+                <span className="text-sm text-gray-700">Available now</span>
+              </label>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Results count */}
+      <div className="px-4 py-3 bg-white border-b">
+        <p className="text-sm text-gray-600">0 puppies found</p>
+      </div>
+
+      {/* Results area */}
+      <div className="px-4 py-6">
+        {loading ? (
+          <div className="text-center py-12">
+            <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-600 border-t-transparent mx-auto mb-4"></div>
+            <p className="text-gray-600">Loading listings...</p>
+          </div>
+        ) : (
+          <div className="text-center py-12">
+            <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Search className="w-8 h-8 text-gray-400" />
+            </div>
+            <h3 className="text-lg font-semibold mb-2">No dogs found</h3>
+            <p className="text-gray-600">Try adjusting your search criteria</p>
           </div>
         )}
       </div>
 
-      {/* Results */}
-      {loading ? (
-        <div className="text-center py-12">
-          <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-600 border-t-transparent mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading listings...</p>
+      {/* Bottom Navigation */}
+      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200">
+        <div className="grid grid-cols-5 py-2">
+          <button 
+            className="flex flex-col items-center py-2 text-gray-600 hover:text-gray-900"
+            onClick={() => navigate('/')}
+          >
+            <Home className="w-6 h-6" />
+            <span className="text-xs mt-1">Home</span>
+          </button>
+          
+          <button className="flex flex-col items-center py-2 text-blue-600">
+            <Search className="w-6 h-6" />
+            <span className="text-xs mt-1">Explore</span>
+          </button>
+          
+          <button 
+            className="flex flex-col items-center py-2 text-gray-600 hover:text-gray-900"
+            onClick={() => navigate('/create-listing')}
+          >
+            <Plus className="w-6 h-6" />
+            <span className="text-xs mt-1">Post</span>
+          </button>
+          
+          <button 
+            className="flex flex-col items-center py-2 text-gray-600 hover:text-gray-900"
+            onClick={() => navigate('/messages')}
+          >
+            <MessageCircle className="w-6 h-6" />
+            <span className="text-xs mt-1">Messages</span>
+          </button>
+          
+          <button 
+            className="flex flex-col items-center py-2 text-gray-600 hover:text-gray-900"
+            onClick={() => navigate('/profile')}
+          >
+            <User className="w-6 h-6" />
+            <span className="text-xs mt-1">Profile</span>
+          </button>
         </div>
-      ) : filteredListings.length === 0 ? (
-        <div className="text-center py-12">
-          <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <Search className="w-8 h-8 text-gray-400" />
-          </div>
-          <h3 className="text-lg font-semibold mb-2">No dogs found</h3>
-          <p className="text-gray-600">Try adjusting your search criteria</p>
-          {appliedFilters && (
-            <Button variant="outline" onClick={clearFilters} className="mt-4">
-              Clear Filters
-            </Button>
-          )}
-        </div>
-      ) : (
-        <>
-          <div className="flex justify-between items-center mb-6">
-            <p className="text-gray-600">
-              Found {filteredListings.length} dog{filteredListings.length !== 1 ? 's' : ''}
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {filteredListings.map((listing) => (
-              <Card key={listing.id} className="overflow-hidden hover:shadow-lg transition-shadow">
-                {listing.image_url && (
-                  <div className="aspect-square w-full bg-gray-100 relative">
-                    <img
-                      src={listing.image_url}
-                      alt={listing.dog_name}
-                      className="w-full h-full object-cover"
-                      onError={(e) => {
-                        const target = e.target as HTMLImageElement;
-                        target.style.display = 'none';
-                      }}
-                    />
-                    <button 
-                      className="absolute top-3 right-3 p-2 bg-white rounded-full shadow-md hover:bg-gray-50"
-                      onClick={() => toggleFavorite(listing.id)}
-                    >
-                      <Heart 
-                        className={`w-4 h-4 ${
-                          favorites.has(listing.id) 
-                            ? 'text-red-500 fill-current' 
-                            : 'text-gray-600'
-                        }`} 
-                      />
-                    </button>
-                  </div>
-                )}
-                
-                <CardContent className="p-4">
-                  <div className="space-y-3">
-                    <div>
-                      <h3 className="font-semibold text-lg">{listing.dog_name}</h3>
-                      <p className="text-gray-600">{listing.breed}</p>
-                    </div>
-
-                    <div className="flex items-center justify-between">
-                      <span className="font-bold text-lg text-green-600">
-                        {formatPrice(listing.price)}
-                      </span>
-                      <Badge variant="secondary">
-                        {listing.age} months
-                      </Badge>
-                    </div>
-
-                    {listing.location && (
-                      <div className="flex items-center text-sm text-gray-600">
-                        <MapPin className="w-3 h-3 mr-1" />
-                        {listing.location}
-                      </div>
-                    )}
-
-                    {listing.profiles && (
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="text-gray-600">
-                          by {listing.profiles.full_name || listing.profiles.username}
-                        </span>
-                        {listing.profiles.verified && (
-                          <Badge variant="outline" className="text-xs">
-                            Verified
-                          </Badge>
-                        )}
-                      </div>
-                    )}
-
-                    <div className="flex gap-2">
-                      <Button className="flex-1" size="sm">
-                        View Details
-                      </Button>
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => handleContactSeller(listing)}
-                        disabled={!user || user.id === listing.user_id}
-                      >
-                        <MessageCircle className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </>
-      )}
+      </div>
     </div>
   );
 };
