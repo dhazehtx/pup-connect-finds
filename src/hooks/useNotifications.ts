@@ -39,7 +39,7 @@ export const useNotifications = () => {
       // Transform data to match our interface
       const transformedData = (data || []).map(item => ({
         ...item,
-        read: item.is_read || item.read || false
+        read: item.is_read || false
       }));
 
       setNotifications(transformedData);
