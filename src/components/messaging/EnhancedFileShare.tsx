@@ -3,9 +3,13 @@ import React, { useState, useCallback } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Badge } from '@/components/ui/badge';
 import { useDropzone } from 'react-dropzone';
-import { Upload, File, Image, X, Check } from 'lucide-react';
+import { Upload, File, Image, X, Check, Trash2, Download } from 'lucide-react';
 import { useUnifiedFileUpload } from '@/hooks/useUnifiedFileUpload';
+import { generateFileThumbnail, generateImageThumbnail } from '@/utils/fileThumbnailGenerator';
+import { compressFile } from '@/utils/fileCompression';
 
 interface FileUpload {
   id: string;
@@ -13,6 +17,8 @@ interface FileUpload {
   progress: number;
   status: 'pending' | 'uploading' | 'completed' | 'error';
   url?: string;
+  thumbnail?: string;
+  compressed?: boolean;
 }
 
 interface EnhancedFileShareProps {
@@ -22,6 +28,7 @@ interface EnhancedFileShareProps {
   maxFiles?: number;
   maxSize?: number; // in MB
   acceptedTypes?: string[];
+  enableCompression?: boolean;
 }
 
 const EnhancedFileShare = ({
@@ -30,9 +37,11 @@ const EnhancedFileShare = ({
   onFilesUpload,
   maxFiles = 5,
   maxSize = 10,
-  acceptedTypes = ['image/*', 'application/pdf', 'text/*']
+  acceptedTypes = ['image/*', 'application/pdf', 'text/*'],
+  enableCompression = true
 }: EnhancedFileShareProps) => {
   const [uploads, setUploads] = useState<FileUpload[]>([]);
+  const [selectedFiles, setSelectedFiles] = useState<Set<string>>(new Set());
   
   const { uploadMultipleFiles, uploading } = useUnifiedFileUpload({
     bucket: 'message-files',
@@ -41,16 +50,46 @@ const EnhancedFileShare = ({
     allowedTypes: acceptedTypes
   });
 
-  const onDrop = useCallback((acceptedFiles: File[]) => {
-    const newUploads: FileUpload[] = acceptedFiles.map(file => ({
-      id: crypto.randomUUID(),
-      file,
-      progress: 0,
-      status: 'pending' as const
-    }));
+  const onDrop = useCallback(async (acceptedFiles: File[]) => {
+    const newUploads: FileUpload[] = [];
+
+    for (const file of acceptedFiles) {
+      const fileId = crypto.randomUUID();
+      let processedFile = file;
+      let compressed = false;
+
+      // Compress if enabled and file is large
+      if (enableCompression && file.size > 2 * 1024 * 1024) {
+        try {
+          processedFile = await compressFile(file);
+          compressed = file.size !== processedFile.size;
+        } catch (error) {
+          console.warn('Compression failed:', error);
+        }
+      }
+
+      // Generate thumbnail
+      let thumbnail: string | undefined;
+      try {
+        if (file.type.startsWith('image/')) {
+          thumbnail = await generateImageThumbnail(file);
+        }
+      } catch (error) {
+        console.warn('Thumbnail generation failed:', error);
+      }
+
+      newUploads.push({
+        id: fileId,
+        file: processedFile,
+        progress: 0,
+        status: 'pending',
+        thumbnail,
+        compressed
+      });
+    }
 
     setUploads(prev => [...prev, ...newUploads].slice(0, maxFiles));
-  }, [maxFiles]);
+  }, [maxFiles, enableCompression]);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
@@ -59,8 +98,38 @@ const EnhancedFileShare = ({
     maxFiles
   });
 
+  const toggleFileSelection = (id: string) => {
+    setSelectedFiles(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(id)) {
+        newSet.delete(id);
+      } else {
+        newSet.add(id);
+      }
+      return newSet;
+    });
+  };
+
+  const selectAllFiles = () => {
+    setSelectedFiles(new Set(uploads.map(f => f.id)));
+  };
+
+  const deselectAllFiles = () => {
+    setSelectedFiles(new Set());
+  };
+
+  const removeSelectedFiles = () => {
+    setUploads(prev => prev.filter(upload => !selectedFiles.has(upload.id)));
+    setSelectedFiles(new Set());
+  };
+
   const removeFile = (id: string) => {
     setUploads(prev => prev.filter(upload => upload.id !== id));
+    setSelectedFiles(prev => {
+      const newSet = new Set(prev);
+      newSet.delete(id);
+      return newSet;
+    });
   };
 
   const startUpload = async () => {
@@ -93,6 +162,7 @@ const EnhancedFileShare = ({
       onFilesUpload(completedUploads);
       onClose();
       setUploads([]);
+      setSelectedFiles(new Set());
     } catch (error) {
       console.error('Upload failed:', error);
       setUploads(prev => prev.map(u => 
@@ -101,9 +171,29 @@ const EnhancedFileShare = ({
     }
   };
 
-  const getFileIcon = (file: File) => {
-    if (file.type.startsWith('image/')) return <Image className="w-4 h-4" />;
-    return <File className="w-4 h-4" />;
+  const getFileIcon = (upload: FileUpload) => {
+    if (upload.thumbnail) {
+      return (
+        <img 
+          src={upload.thumbnail} 
+          alt={upload.file.name}
+          className="w-10 h-10 object-cover rounded"
+        />
+      );
+    }
+
+    const config = generateFileThumbnail(upload.file);
+    const IconComponent = config.icon;
+
+    if (IconComponent) {
+      return (
+        <div className={`w-10 h-10 rounded flex items-center justify-center ${config.bgColor}`}>
+          <IconComponent className={`w-5 h-5 ${config.color}`} />
+        </div>
+      );
+    }
+
+    return <File className="w-5 h-5 text-gray-400" />;
   };
 
   const getStatusIcon = (status: FileUpload['status']) => {
@@ -113,6 +203,9 @@ const EnhancedFileShare = ({
       default: return null;
     }
   };
+
+  const hasSelectedFiles = selectedFiles.size > 0;
+  const allFilesSelected = uploads.length > 0 && selectedFiles.size === uploads.length;
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -135,36 +228,78 @@ const EnhancedFileShare = ({
             </p>
             <p className="text-xs text-muted-foreground mt-1">
               Max {maxFiles} files, {maxSize}MB each
+              {enableCompression && ' • Auto compression enabled'}
             </p>
           </div>
 
           {uploads.length > 0 && (
-            <div className="space-y-2 max-h-40 overflow-y-auto">
-              {uploads.map((upload) => (
-                <div key={upload.id} className="flex items-center gap-3 p-2 border rounded">
-                  {getFileIcon(upload.file)}
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium truncate">{upload.file.name}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {(upload.file.size / 1024 / 1024).toFixed(2)} MB
-                    </p>
-                    {upload.status === 'uploading' && (
-                      <Progress value={upload.progress} className="h-1 mt-1" />
-                    )}
-                  </div>
-                  <div className="flex items-center gap-2">
-                    {getStatusIcon(upload.status)}
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => removeFile(upload.id)}
-                      disabled={upload.status === 'uploading'}
-                    >
-                      <X className="w-3 h-3" />
-                    </Button>
-                  </div>
+            <div className="space-y-2">
+              {/* Batch Controls */}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Checkbox
+                    checked={allFilesSelected}
+                    onCheckedChange={allFilesSelected ? deselectAllFiles : selectAllFiles}
+                  />
+                  <span className="text-sm text-muted-foreground">
+                    {selectedFiles.size} of {uploads.length} selected
+                  </span>
                 </div>
-              ))}
+                
+                {hasSelectedFiles && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={removeSelectedFiles}
+                  >
+                    <Trash2 className="w-3 h-3 mr-1" />
+                    Remove ({selectedFiles.size})
+                  </Button>
+                )}
+              </div>
+
+              {/* Files List */}
+              <div className="space-y-2 max-h-60 overflow-y-auto">
+                {uploads.map((upload) => (
+                  <div key={upload.id} className="flex items-center gap-3 p-2 border rounded">
+                    <Checkbox
+                      checked={selectedFiles.has(upload.id)}
+                      onCheckedChange={() => toggleFileSelection(upload.id)}
+                    />
+                    
+                    {getFileIcon(upload)}
+                    
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <p className="text-sm font-medium truncate">{upload.file.name}</p>
+                        {upload.compressed && (
+                          <Badge variant="secondary" className="text-xs">
+                            Compressed
+                          </Badge>
+                        )}
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        {(upload.file.size / 1024 / 1024).toFixed(2)} MB
+                      </p>
+                      {upload.status === 'uploading' && (
+                        <Progress value={upload.progress} className="h-1 mt-1" />
+                      )}
+                    </div>
+                    
+                    <div className="flex items-center gap-2">
+                      {getStatusIcon(upload.status)}
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => removeFile(upload.id)}
+                        disabled={upload.status === 'uploading'}
+                      >
+                        <X className="w-3 h-3" />
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
 

@@ -5,8 +5,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
-import { Upload, X, File, Image, CheckCircle, AlertCircle } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Upload, X, File, Image, CheckCircle, AlertCircle, Trash2, Download } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { generateFileThumbnail, generateImageThumbnail } from '@/utils/fileThumbnailGenerator';
+import { compressFile } from '@/utils/fileCompression';
 
 interface UploadedFile {
   id: string;
@@ -15,6 +18,8 @@ interface UploadedFile {
   status: 'uploading' | 'completed' | 'error';
   url?: string;
   error?: string;
+  thumbnail?: string;
+  compressed?: boolean;
 }
 
 interface FileUploadManagerProps {
@@ -23,6 +28,7 @@ interface FileUploadManagerProps {
   maxFiles?: number;
   maxSize?: number;
   multiple?: boolean;
+  enableCompression?: boolean;
 }
 
 const FileUploadManager = ({
@@ -30,22 +36,53 @@ const FileUploadManager = ({
   acceptedTypes = ['image/*', 'application/pdf'],
   maxFiles = 10,
   maxSize = 10 * 1024 * 1024, // 10MB
-  multiple = true
+  multiple = true,
+  enableCompression = true
 }: FileUploadManagerProps) => {
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
+  const [selectedFiles, setSelectedFiles] = useState<Set<string>>(new Set());
   const [isUploading, setIsUploading] = useState(false);
   const { toast } = useToast();
 
   const onDrop = useCallback(async (acceptedFiles: File[]) => {
     if (acceptedFiles.length === 0) return;
 
-    // Create file objects with initial state
-    const newFiles: UploadedFile[] = acceptedFiles.map(file => ({
-      id: Math.random().toString(36).substr(2, 9),
-      file,
-      progress: 0,
-      status: 'uploading'
-    }));
+    const newFiles: UploadedFile[] = [];
+
+    for (const file of acceptedFiles) {
+      const fileId = Math.random().toString(36).substr(2, 9);
+      let processedFile = file;
+      let compressed = false;
+
+      // Compress if enabled and file is large
+      if (enableCompression && file.size > 2 * 1024 * 1024) { // 2MB threshold
+        try {
+          processedFile = await compressFile(file);
+          compressed = file.size !== processedFile.size;
+        } catch (error) {
+          console.warn('Compression failed:', error);
+        }
+      }
+
+      // Generate thumbnail
+      let thumbnail: string | undefined;
+      try {
+        if (file.type.startsWith('image/')) {
+          thumbnail = await generateImageThumbnail(file);
+        }
+      } catch (error) {
+        console.warn('Thumbnail generation failed:', error);
+      }
+
+      newFiles.push({
+        id: fileId,
+        file: processedFile,
+        progress: 0,
+        status: 'uploading',
+        thumbnail,
+        compressed
+      });
+    }
 
     setUploadedFiles(prev => [...prev, ...newFiles]);
     setIsUploading(true);
@@ -84,7 +121,7 @@ const FileUploadManager = ({
       }
 
       if (onUpload) {
-        const urls = await onUpload(acceptedFiles);
+        const urls = await onUpload(newFiles.map(f => f.file));
         // Update with real URLs if provided
         urls.forEach((url, index) => {
           const uploadFile = newFiles[index];
@@ -125,7 +162,7 @@ const FileUploadManager = ({
     } finally {
       setIsUploading(false);
     }
-  }, [onUpload, toast]);
+  }, [onUpload, toast, enableCompression]);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
@@ -137,6 +174,47 @@ const FileUploadManager = ({
     maxSize,
     multiple
   });
+
+  const toggleFileSelection = (id: string) => {
+    setSelectedFiles(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(id)) {
+        newSet.delete(id);
+      } else {
+        newSet.add(id);
+      }
+      return newSet;
+    });
+  };
+
+  const selectAllFiles = () => {
+    setSelectedFiles(new Set(uploadedFiles.map(f => f.id)));
+  };
+
+  const deselectAllFiles = () => {
+    setSelectedFiles(new Set());
+  };
+
+  const deleteSelectedFiles = () => {
+    setUploadedFiles(prev => prev.filter(f => !selectedFiles.has(f.id)));
+    setSelectedFiles(new Set());
+    toast({
+      title: "Files deleted",
+      description: `${selectedFiles.size} file(s) removed.`,
+    });
+  };
+
+  const downloadSelectedFiles = () => {
+    selectedFiles.forEach(fileId => {
+      const file = uploadedFiles.find(f => f.id === fileId);
+      if (file?.url) {
+        const link = document.createElement('a');
+        link.href = file.url;
+        link.download = file.file.name;
+        link.click();
+      }
+    });
+  };
 
   const removeFile = (id: string) => {
     setUploadedFiles(prev => prev.filter(f => f.id !== id));
@@ -150,23 +228,41 @@ const FileUploadManager = ({
     }
   };
 
-  const getFileIcon = (file: File) => {
-    if (file.type.startsWith('image/')) {
-      return <Image className="w-4 h-4" />;
+  const getFileIcon = (file: UploadedFile) => {
+    if (file.thumbnail) {
+      return (
+        <img 
+          src={file.thumbnail} 
+          alt={file.file.name}
+          className="w-10 h-10 object-cover rounded"
+        />
+      );
     }
-    return <File className="w-4 h-4" />;
+
+    const config = generateFileThumbnail(file.file);
+    const IconComponent = config.icon;
+
+    if (IconComponent) {
+      return (
+        <div className={`w-10 h-10 rounded flex items-center justify-center ${config.bgColor}`}>
+          <IconComponent className={`w-5 h-5 ${config.color}`} />
+        </div>
+      );
+    }
+
+    return <File className="w-5 h-5 text-gray-400" />;
   };
 
   const getStatusIcon = (status: UploadedFile['status']) => {
     switch (status) {
-      case 'completed':
-        return <CheckCircle className="w-4 h-4 text-green-500" />;
-      case 'error':
-        return <AlertCircle className="w-4 h-4 text-red-500" />;
-      default:
-        return null;
+      case 'completed': return <CheckCircle className="w-4 h-4 text-green-500" />;
+      case 'error': return <AlertCircle className="w-4 h-4 text-red-500" />;
+      default: return null;
     }
   };
+
+  const hasSelectedFiles = selectedFiles.size > 0;
+  const allFilesSelected = uploadedFiles.length > 0 && selectedFiles.size === uploadedFiles.length;
 
   return (
     <div className="space-y-4">
@@ -193,6 +289,7 @@ const FileUploadManager = ({
                 </p>
                 <p className="text-sm text-gray-400">
                   Supports: {acceptedTypes.join(', ')} • Max {maxFiles} files • {Math.round(maxSize / 1024 / 1024)}MB each
+                  {enableCompression && ' • Auto compression enabled'}
                 </p>
               </div>
             )}
@@ -204,15 +301,54 @@ const FileUploadManager = ({
       {uploadedFiles.length > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg">
-              Uploaded Files ({uploadedFiles.length})
-            </CardTitle>
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-lg">
+                Uploaded Files ({uploadedFiles.length})
+              </CardTitle>
+              
+              {/* Batch Actions */}
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={allFilesSelected ? deselectAllFiles : selectAllFiles}
+                >
+                  {allFilesSelected ? 'Deselect All' : 'Select All'}
+                </Button>
+                
+                {hasSelectedFiles && (
+                  <>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={downloadSelectedFiles}
+                    >
+                      <Download className="w-4 h-4 mr-1" />
+                      Download ({selectedFiles.size})
+                    </Button>
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={deleteSelectedFiles}
+                    >
+                      <Trash2 className="w-4 h-4 mr-1" />
+                      Delete ({selectedFiles.size})
+                    </Button>
+                  </>
+                )}
+              </div>
+            </div>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
               {uploadedFiles.map((uploadFile) => (
                 <div key={uploadFile.id} className="flex items-center gap-3 p-3 border rounded-lg">
-                  {getFileIcon(uploadFile.file)}
+                  <Checkbox
+                    checked={selectedFiles.has(uploadFile.id)}
+                    onCheckedChange={() => toggleFileSelection(uploadFile.id)}
+                  />
+                  
+                  {getFileIcon(uploadFile)}
                   
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between mb-1">
@@ -220,6 +356,11 @@ const FileUploadManager = ({
                         {uploadFile.file.name}
                       </p>
                       <div className="flex items-center gap-2">
+                        {uploadFile.compressed && (
+                          <Badge variant="secondary" className="text-xs">
+                            Compressed
+                          </Badge>
+                        )}
                         <Badge 
                           variant={uploadFile.status === 'completed' ? 'default' : 
                                   uploadFile.status === 'error' ? 'destructive' : 'secondary'}
