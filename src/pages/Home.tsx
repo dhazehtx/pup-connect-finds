@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -9,6 +10,48 @@ import AnimatedHeart from '@/components/ui/animated-heart';
 import CommentsSection from '@/components/post/CommentsSection';
 import LikesModal from '@/components/post/LikesModal';
 
+interface User {
+  id: string;
+  name: string;
+  username: string;
+  avatar: string;
+  verified?: boolean;
+  isFollowing?: boolean;
+}
+
+interface Comment {
+  id: number;
+  user: {
+    id: string;
+    name: string;
+    username: string;
+    avatar: string;
+  };
+  text: string;
+  timestamp: string;
+  likes: number;
+  isLiked: boolean;
+  likedBy?: User[];
+}
+
+interface Post {
+  id: number;
+  user: {
+    id: string;
+    username: string;
+    name: string;
+    location: string;
+    avatar: string;
+  };
+  image: string;
+  likes: number;
+  isLiked: boolean;
+  caption: string;
+  timeAgo: string;
+  likedBy: User[];
+  comments: Comment[];
+}
+
 const Home = () => {
   const { user, isGuest } = useAuth();
   const navigate = useNavigate();
@@ -16,10 +59,10 @@ const Home = () => {
   
   // Modal states
   const [showLikesModal, setShowLikesModal] = useState(false);
-  const [selectedPostLikes, setSelectedPostLikes] = useState([]);
+  const [selectedPostLikes, setSelectedPostLikes] = useState<User[]>([]);
 
   // Sample posts data with interactive functionality
-  const [posts, setPosts] = useState([
+  const [posts, setPosts] = useState<Post[]>([
     {
       id: 1,
       user: {
