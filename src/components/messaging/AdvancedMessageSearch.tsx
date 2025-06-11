@@ -126,7 +126,7 @@ const AdvancedMessageSearch = ({
       }
       
       // Sender filter
-      if (appliedFilters.sender && message.sender_id !== appliedFilters.sender) {
+      if (appliedFilters.sender && appliedFilters.sender !== 'all' && message.sender_id !== appliedFilters.sender) {
         return false;
       }
       
@@ -296,7 +296,7 @@ const AdvancedMessageSearch = ({
     filters.messageTypes.length > 0 ||
     filters.dateRange.start !== '' ||
     filters.dateRange.end !== '' ||
-    filters.sender !== '';
+    filters.sender !== 'all';
 
   return (
     <div className="p-3 border-b bg-background">
