@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -24,7 +25,7 @@ import {
   Bookmark
 } from 'lucide-react';
 import { useMessageSearch } from '@/hooks/useMessageSearch';
-import { format } from 'date-fns';
+import { format, formatDistanceToNow } from 'date-fns';
 
 interface AdvancedMessageSearchProps {
   messages: any[];
@@ -37,10 +38,13 @@ interface AdvancedMessageSearchProps {
 interface SearchFilters {
   query: string;
   messageType: string;
+  messageTypes: string[];
   sender: string;
   dateRange: {
     from: Date | null;
     to: Date | null;
+    start: string;
+    end: string;
   };
   hasAttachments: boolean;
   isStarred: boolean;
@@ -54,11 +58,14 @@ const AdvancedMessageSearch = ({
   onResultSelect,
   conversationId 
 }: AdvancedMessageSearchProps) => {
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [filters, setFilters] = useState<SearchFilters>({
     query: '',
     messageType: 'all',
+    messageTypes: [],
     sender: 'all',
-    dateRange: { from: null, to: null },
+    dateRange: { from: null, to: null, start: '', end: '' },
     hasAttachments: false,
     isStarred: false,
     tags: []
@@ -153,9 +160,14 @@ const AdvancedMessageSearch = ({
     console.log('🔍 AdvancedMessageSearch - Clearing search');
     setSearchQuery('');
     setFilters({
+      query: '',
+      messageType: 'all',
       messageTypes: [],
-      dateRange: { start: '', end: '' },
-      sender: ''
+      sender: 'all',
+      dateRange: { from: null, to: null, start: '', end: '' },
+      hasAttachments: false,
+      isStarred: false,
+      tags: []
     });
     setLocalResults([]);
     setShowResults(false);
@@ -230,8 +242,9 @@ const AdvancedMessageSearch = ({
     setFilters({
       query: '',
       messageType: 'all',
+      messageTypes: [],
       sender: 'all',
-      dateRange: { from: null, to: null },
+      dateRange: { from: null, to: null, start: '', end: '' },
       hasAttachments: false,
       isStarred: false,
       tags: []
@@ -313,9 +326,9 @@ const AdvancedMessageSearch = ({
               <Button variant="outline" size="sm" className="gap-1">
                 <Filter className="w-4 h-4" />
                 Filters
-                {(Object.values(filters).some(f => Array.isArray(f) ? f.length > 0 : f !== '')) && (
+                {(Object.values(filters).some(f => Array.isArray(f) ? f.length > 0 : f !== '' && f !== 'all' && f !== false && f !== null)) && (
                   <Badge variant="secondary" className="ml-1 h-4 w-4 p-0 text-xs">
-                    {f !== ''}
+                    {filters.messageTypes.length + (filters.dateRange.start ? 1 : 0) + (filters.dateRange.end ? 1 : 0) + (filters.sender !== 'all' ? 1 : 0)}
                   </Badge>
                 )}
               </Button>
@@ -370,9 +383,14 @@ const AdvancedMessageSearch = ({
                   size="sm"
                   onClick={() => {
                     setFilters({
+                      query: '',
+                      messageType: 'all',
                       messageTypes: [],
-                      dateRange: { start: '', end: '' },
-                      sender: ''
+                      sender: 'all',
+                      dateRange: { from: null, to: null, start: '', end: '' },
+                      hasAttachments: false,
+                      isStarred: false,
+                      tags: []
                     });
                   }}
                   className="w-full"
