@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { PlusCircle, TrendingUp, Users, MessageCircle } from 'lucide-react';
+import { PlusCircle, TrendingUp, Users, MessageCircle, Heart, Search } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useDogListings } from '@/hooks/useDogListings';
 import { useMessaging } from '@/hooks/useMessaging';
@@ -11,11 +11,75 @@ import AnalyticsDashboard from '@/components/analytics/AnalyticsDashboard';
 import { Link } from 'react-router-dom';
 
 const Home = () => {
-  const { user } = useAuth();
+  const { user, isGuest } = useAuth();
   const { userListings } = useDogListings();
   const { conversations } = useMessaging();
   const [showAnalytics, setShowAnalytics] = useState(false);
 
+  // Show guest homepage for non-authenticated users
+  if (!user && !isGuest) {
+    return (
+      <div className="max-w-7xl mx-auto px-4 py-6 space-y-6">
+        {/* Hero Section for Guests */}
+        <div className="text-center py-12">
+          <h1 className="text-4xl font-bold text-gray-900 mb-4">
+            Welcome to MY PUP! 🐕
+          </h1>
+          <p className="text-lg text-gray-600 mb-8">
+            Find your perfect companion from trusted breeders and connect with fellow dog lovers
+          </p>
+          <div className="flex justify-center gap-4 flex-wrap">
+            <Button size="lg" asChild>
+              <Link to="/explore">
+                <Search className="w-5 h-5 mr-2" />
+                Browse Dogs
+              </Link>
+            </Button>
+            <Button size="lg" variant="outline" asChild>
+              <Link to="/auth">
+                Sign Up Free
+              </Link>
+            </Button>
+          </div>
+        </div>
+
+        {/* Features for Guests */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <Card>
+            <CardContent className="p-6 text-center">
+              <Heart className="w-12 h-12 text-red-500 mx-auto mb-4" />
+              <h3 className="text-lg font-semibold mb-2">Find Your Match</h3>
+              <p className="text-gray-600">
+                Browse hundreds of dogs from verified breeders
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="p-6 text-center">
+              <MessageCircle className="w-12 h-12 text-blue-500 mx-auto mb-4" />
+              <h3 className="text-lg font-semibold mb-2">Connect Directly</h3>
+              <p className="text-gray-600">
+                Message breeders and ask questions about their dogs
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="p-6 text-center">
+              <Users className="w-12 h-12 text-green-500 mx-auto mb-4" />
+              <h3 className="text-lg font-semibold mb-2">Trusted Community</h3>
+              <p className="text-gray-600">
+                Join a community of verified breeders and dog lovers
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
+
+  // Authenticated user homepage
   const stats = {
     listings: userListings.length,
     conversations: conversations.length,

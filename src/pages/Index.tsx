@@ -32,7 +32,7 @@ const Index = () => {
   return (
     <Layout>
       <Routes>
-        <Route path="/" element={user ? <Home /> : <Explore />} />
+        <Route path="/" element={<Home />} />
         <Route path="/auth" element={<Auth />} />
         <Route path="/explore" element={<Explore />} />
         <Route path="/post" element={<Post />} />
