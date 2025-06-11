@@ -16,11 +16,14 @@ const Layout = ({ children }: LayoutProps) => {
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <Header />
       
-      <main className="flex-1 pb-16 md:pb-0">
+      <main className={cn(
+        "flex-1",
+        isMobile ? "pb-20" : "pb-16 md:pb-0"
+      )}>
         {children}
       </main>
 
-      {/* Bottom Navigation for Mobile */}
+      {/* Bottom Navigation */}
       {isMobile ? <MobileTabBar /> : <BottomNavigation />}
     </div>
   );

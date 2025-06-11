@@ -1,9 +1,10 @@
 
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Heart, MessageCircle, User, Menu, X, LogOut } from 'lucide-react';
+import { Heart, MessageCircle, User, Menu, X, LogOut, Search, Settings, Bell } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
+import { useMobileOptimized } from '@/hooks/useMobileOptimized';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -15,6 +16,7 @@ import {
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { user, isGuest, signOut } = useAuth();
+  const { isMobile } = useMobileOptimized();
   const navigate = useNavigate();
 
   const handleSignOut = async () => {
@@ -28,6 +30,76 @@ const Header = () => {
 
   const isAuthenticated = user || isGuest;
 
+  // Mobile header design
+  if (isMobile) {
+    return (
+      <header className="bg-white border-b border-gray-200 sticky top-0 z-50">
+        <div className="flex justify-between items-center h-14 px-4">
+          {/* Logo */}
+          <Link to="/" className="flex items-center space-x-2">
+            <Heart className="h-6 w-6 text-blue-600" />
+            <span className="text-xl font-bold text-gray-900">MY PUP</span>
+          </Link>
+
+          {/* Right side icons */}
+          <div className="flex items-center space-x-4">
+            <Button variant="ghost" size="sm" asChild>
+              <Link to="/explore">
+                <Search className="h-5 w-5" />
+              </Link>
+            </Button>
+            
+            {isAuthenticated && (
+              <>
+                <Button variant="ghost" size="sm" asChild>
+                  <Link to="/notifications">
+                    <Bell className="h-5 w-5" />
+                  </Link>
+                </Button>
+                
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="sm">
+                      <Settings className="h-5 w-5" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    {user && (
+                      <>
+                        <DropdownMenuItem onClick={() => navigate('/profile')}>
+                          Profile
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                      </>
+                    )}
+                    {isGuest && (
+                      <>
+                        <DropdownMenuItem onClick={() => navigate('/auth')}>
+                          Sign In
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                      </>
+                    )}
+                    <DropdownMenuItem onClick={handleSignOut}>
+                      {user ? 'Sign Out' : 'Exit Guest Mode'}
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </>
+            )}
+
+            {!isAuthenticated && (
+              <Button variant="ghost" size="sm" onClick={() => navigate('/auth')}>
+                <User className="h-5 w-5" />
+              </Button>
+            )}
+          </div>
+        </div>
+      </header>
+    );
+  }
+
+  // Desktop header design (existing code)
   return (
     <header className="bg-white border-b border-gray-200 sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

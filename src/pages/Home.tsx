@@ -2,10 +2,11 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { PlusCircle, TrendingUp, Users, MessageCircle, Heart, Search } from 'lucide-react';
+import { PlusCircle, TrendingUp, Users, MessageCircle, Heart, Search, MoreHorizontal, Bookmark } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useDogListings } from '@/hooks/useDogListings';
 import { useMessaging } from '@/hooks/useMessaging';
+import { useMobileOptimized } from '@/hooks/useMobileOptimized';
 import RecommendationEngine from '@/components/ai/RecommendationEngine';
 import AnalyticsDashboard from '@/components/analytics/AnalyticsDashboard';
 import { Link } from 'react-router-dom';
@@ -14,7 +15,117 @@ const Home = () => {
   const { user, isGuest } = useAuth();
   const { userListings } = useDogListings();
   const { conversations } = useMessaging();
+  const { isMobile } = useMobileOptimized();
   const [showAnalytics, setShowAnalytics] = useState(false);
+
+  // Mobile feed design for authenticated users
+  if (isMobile && (user || isGuest)) {
+    return (
+      <div className="bg-white min-h-screen">
+        {/* Stories Section */}
+        <div className="border-b border-gray-200 p-4">
+          <div className="flex space-x-3 overflow-x-auto">
+            <div className="flex-shrink-0 text-center">
+              <div className="w-16 h-16 bg-gradient-to-br from-pink-500 to-orange-500 rounded-full flex items-center justify-center">
+                <PlusCircle className="w-8 h-8 text-white" />
+              </div>
+              <span className="text-xs mt-1 block">Your Story</span>
+            </div>
+            {/* Sample story items */}
+            {[1, 2, 3, 4, 5].map((i) => (
+              <div key={i} className="flex-shrink-0 text-center">
+                <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full p-0.5">
+                  <div className="w-full h-full bg-gray-200 rounded-full"></div>
+                </div>
+                <span className="text-xs mt-1 block">User {i}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Feed */}
+        <div className="space-y-0">
+          {/* Sample post */}
+          <div className="bg-white border-b border-gray-200">
+            {/* Post header */}
+            <div className="flex items-center justify-between p-3">
+              <div className="flex items-center space-x-3">
+                <div className="w-8 h-8 bg-blue-500 rounded-full"></div>
+                <div>
+                  <span className="font-semibold text-sm">goldenpaws_official</span>
+                  <div className="text-xs text-gray-500">San Francisco, CA</div>
+                </div>
+              </div>
+              <MoreHorizontal className="w-5 h-5 text-gray-500" />
+            </div>
+
+            {/* Post image */}
+            <div className="aspect-square bg-gray-100">
+              <img 
+                src="/lovable-uploads/3ae80125-17a2-47bf-85a7-2e69d508dee0.png" 
+                alt="Golden retriever in field"
+                className="w-full h-full object-cover"
+              />
+            </div>
+
+            {/* Post actions */}
+            <div className="flex items-center justify-between p-3">
+              <div className="flex items-center space-x-4">
+                <Heart className="w-6 h-6" />
+                <MessageCircle className="w-6 h-6" />
+                <Search className="w-6 h-6" />
+              </div>
+              <Bookmark className="w-6 h-6" />
+            </div>
+
+            {/* Post info */}
+            <div className="px-3 pb-3">
+              <div className="font-semibold text-sm mb-1">128 likes</div>
+              <div className="text-sm">
+                <span className="font-semibold">goldenpaws_official</span> Beautiful day at the park! This sweet husky is looking for a loving home. 🐕 #AdoptDontShop
+              </div>
+              <div className="text-xs text-gray-500 mt-1">2 hours ago</div>
+            </div>
+          </div>
+
+          {/* More sample posts can be added here */}
+          <div className="bg-white border-b border-gray-200">
+            <div className="flex items-center justify-between p-3">
+              <div className="flex items-center space-x-3">
+                <div className="w-8 h-8 bg-green-500 rounded-full"></div>
+                <div>
+                  <span className="font-semibold text-sm">puppy_paradise</span>
+                  <div className="text-xs text-gray-500">Los Angeles, CA</div>
+                </div>
+              </div>
+              <MoreHorizontal className="w-5 h-5 text-gray-500" />
+            </div>
+
+            <div className="aspect-square bg-gray-200 flex items-center justify-center">
+              <span className="text-gray-500">Sample Dog Photo</span>
+            </div>
+
+            <div className="flex items-center justify-between p-3">
+              <div className="flex items-center space-x-4">
+                <Heart className="w-6 h-6" />
+                <MessageCircle className="w-6 h-6" />
+                <Search className="w-6 h-6" />
+              </div>
+              <Bookmark className="w-6 h-6" />
+            </div>
+
+            <div className="px-3 pb-3">
+              <div className="font-semibold text-sm mb-1">64 likes</div>
+              <div className="text-sm">
+                <span className="font-semibold">puppy_paradise</span> Meet Luna! She's a 3-month-old golden retriever ready for her forever family ✨
+              </div>
+              <div className="text-xs text-gray-500 mt-1">4 hours ago</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   // Show guest homepage for non-authenticated users
   if (!user && !isGuest) {
@@ -79,7 +190,7 @@ const Home = () => {
     );
   }
 
-  // Authenticated user homepage
+  // Desktop authenticated user homepage (existing code)
   const stats = {
     listings: userListings.length,
     conversations: conversations.length,
