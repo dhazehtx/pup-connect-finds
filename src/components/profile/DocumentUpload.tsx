@@ -27,10 +27,13 @@ const DocumentUpload = ({
   const { uploadFile, isUploading, uploadProgress } = useFileUpload({
     bucket: 'images',
     folder: 'documents',
-    maxSize: 10, // 10MB
+    maxSize: 10 * 1024 * 1024, // 10MB
     allowedTypes: ['image/jpeg', 'image/png', 'image/webp', 'application/pdf']
   });
   const { toast } = useToast();
+
+  // Extract the first progress value from the uploadProgress object
+  const progressValue = Object.values(uploadProgress)[0] || 0;
 
   const handleFile = async (file: File) => {
     const url = await uploadFile(file);
@@ -115,9 +118,9 @@ const DocumentUpload = ({
               {isUploading ? (
                 <>
                   <Upload className="h-6 w-6 text-blue-500 animate-pulse" />
-                  <p className="text-xs text-gray-600">Uploading... {uploadProgress}%</p>
+                  <p className="text-xs text-gray-600">Uploading... {progressValue}%</p>
                   <div className="w-full max-w-xs">
-                    <Progress value={uploadProgress} className="w-full h-2" />
+                    <Progress value={progressValue} className="w-full h-2" />
                   </div>
                 </>
               ) : (
