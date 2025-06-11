@@ -25,15 +25,15 @@ interface DisputeTransaction {
   dog_listings?: {
     dog_name: string;
     breed: string;
-  };
+  } | null;
   buyer_profile?: {
     full_name: string;
     email: string;
-  };
+  } | null;
   seller_profile?: {
     full_name: string;
     email: string;
-  };
+  } | null;
 }
 
 const DisputeManagementDashboard = () => {
@@ -84,7 +84,31 @@ const DisputeManagementDashboard = () => {
       const { data, error } = await query;
 
       if (error) throw error;
-      setDisputes(data || []);
+      
+      // Transform the data to match our interface
+      const transformedData = (data || []).map(item => ({
+        id: item.id,
+        stripe_payment_intent_id: item.stripe_payment_intent_id,
+        listing_id: item.listing_id,
+        buyer_id: item.buyer_id,
+        seller_id: item.seller_id,
+        amount: item.amount,
+        status: item.status,
+        dispute_reason: item.dispute_reason || '',
+        dispute_created_at: item.dispute_created_at || '',
+        dispute_resolved_at: item.dispute_resolved_at,
+        dog_listings: Array.isArray(item.dog_listings) && item.dog_listings.length > 0 
+          ? item.dog_listings[0] 
+          : null,
+        buyer_profile: Array.isArray(item.buyer_profile) && item.buyer_profile.length > 0 
+          ? item.buyer_profile[0] 
+          : null,
+        seller_profile: Array.isArray(item.seller_profile) && item.seller_profile.length > 0 
+          ? item.seller_profile[0] 
+          : null,
+      }));
+
+      setDisputes(transformedData);
     } catch (error: any) {
       toast({
         title: "Failed to load disputes",
@@ -308,8 +332,8 @@ const DisputesList: React.FC<DisputesListProps> = ({
                 </p>
                 
                 <div className="text-xs text-gray-500">
-                  <div>Buyer: {dispute.buyer_profile?.full_name}</div>
-                  <div>Seller: {dispute.seller_profile?.full_name}</div>
+                  <div>Buyer: {dispute.buyer_profile?.full_name || 'Unknown'}</div>
+                  <div>Seller: {dispute.seller_profile?.full_name || 'Unknown'}</div>
                 </div>
               </div>
               
