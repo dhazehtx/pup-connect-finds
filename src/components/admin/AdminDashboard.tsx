@@ -1,9 +1,11 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
+import AdminNavigation from './AdminNavigation';
+import UserManagement from './UserManagement';
+import ContentModeration from './ContentModeration';
+import MonetizationDashboard from '@/components/monetization/MonetizationDashboard';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   Users, 
   MessageSquare, 
@@ -22,202 +24,33 @@ interface AdminStats {
   pendingVerifications: number;
   totalRevenue: number;
   monthlyRevenue: number;
+  pendingReports: number;
+  resolvedToday: number;
 }
 
 const AdminDashboard = () => {
-  const [stats, setStats] = useState<AdminStats>({
+  const [activeTab, setActiveTab] = useState('overview');
+  const [stats] = useState<AdminStats>({
     totalUsers: 1250,
     activeUsers: 450,
     totalListings: 320,
     pendingVerifications: 15,
     totalRevenue: 45000,
-    monthlyRevenue: 8500
+    monthlyRevenue: 8500,
+    pendingReports: 7,
+    resolvedToday: 12
   });
 
-  const [recentActivity] = useState([
-    { id: 1, type: 'user_signup', description: 'New user registration: john@example.com', time: '2 minutes ago' },
-    { id: 2, type: 'listing_created', description: 'New listing: Golden Retriever Puppy', time: '5 minutes ago' },
-    { id: 3, type: 'verification_request', description: 'Verification request from Sarah Wilson', time: '10 minutes ago' },
-    { id: 4, type: 'payment_completed', description: 'Payment completed: $1,200', time: '15 minutes ago' },
-  ]);
-
-  const [pendingActions] = useState([
-    { id: 1, type: 'verification', description: 'Review breeder verification documents', count: 8, priority: 'high' },
-    { id: 2, type: 'content', description: 'Moderate flagged listings', count: 3, priority: 'medium' },
-    { id: 3, type: 'support', description: 'Respond to support tickets', count: 12, priority: 'medium' },
-    { id: 4, type: 'refund', description: 'Process refund requests', count: 2, priority: 'high' },
-  ]);
-
-  const getActivityIcon = (type: string) => {
-    switch (type) {
-      case 'user_signup': return <Users className="w-4 h-4 text-blue-500" />;
-      case 'listing_created': return <MessageSquare className="w-4 h-4 text-green-500" />;
-      case 'verification_request': return <Shield className="w-4 h-4 text-orange-500" />;
-      case 'payment_completed': return <DollarSign className="w-4 h-4 text-green-600" />;
-      default: return <Clock className="w-4 h-4 text-gray-500" />;
-    }
-  };
-
-  const getPriorityColor = (priority: string) => {
-    switch (priority) {
-      case 'high': return 'bg-red-100 text-red-800';
-      case 'medium': return 'bg-orange-100 text-orange-800';
-      case 'low': return 'bg-green-100 text-green-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
-  };
-
-  return (
-    <div className="space-y-6">
-      {/* Stats Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Total Users</p>
-                <p className="text-2xl font-bold">{stats.totalUsers.toLocaleString()}</p>
-              </div>
-              <Users className="w-8 h-8 text-blue-500" />
-            </div>
-            <p className="text-xs text-gray-500 mt-2">
-              {stats.activeUsers} active this month
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Total Listings</p>
-                <p className="text-2xl font-bold">{stats.totalListings}</p>
-              </div>
-              <MessageSquare className="w-8 h-8 text-green-500" />
-            </div>
-            <p className="text-xs text-gray-500 mt-2">
-              {stats.pendingVerifications} pending verification
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Monthly Revenue</p>
-                <p className="text-2xl font-bold">${stats.monthlyRevenue.toLocaleString()}</p>
-              </div>
-              <TrendingUp className="w-8 h-8 text-green-600" />
-            </div>
-            <p className="text-xs text-gray-500 mt-2">
-              ${stats.totalRevenue.toLocaleString()} total
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Pending Actions</p>
-                <p className="text-2xl font-bold">{pendingActions.reduce((sum, action) => sum + action.count, 0)}</p>
-              </div>
-              <AlertTriangle className="w-8 h-8 text-orange-500" />
-            </div>
-            <p className="text-xs text-gray-500 mt-2">
-              Requires attention
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Main Dashboard */}
-      <Tabs defaultValue="overview" className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="users">Users</TabsTrigger>
-          <TabsTrigger value="content">Content</TabsTrigger>
-          <TabsTrigger value="analytics">Analytics</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="overview" className="space-y-4">
-          <div className="grid md:grid-cols-2 gap-6">
-            {/* Recent Activity */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Recent Activity</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {recentActivity.map((activity) => (
-                    <div key={activity.id} className="flex items-start gap-3 p-3 rounded-lg bg-gray-50">
-                      {getActivityIcon(activity.type)}
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium">{activity.description}</p>
-                        <p className="text-xs text-gray-500">{activity.time}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                <Button variant="outline" className="w-full mt-4">
-                  View All Activity
-                </Button>
-              </CardContent>
-            </Card>
-
-            {/* Pending Actions */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Pending Actions</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {pendingActions.map((action) => (
-                    <div key={action.id} className="flex items-center justify-between p-3 rounded-lg border">
-                      <div className="flex-1">
-                        <p className="text-sm font-medium">{action.description}</p>
-                        <div className="flex items-center gap-2 mt-1">
-                          <Badge variant="secondary">{action.count} items</Badge>
-                          <Badge className={getPriorityColor(action.priority)}>
-                            {action.priority} priority
-                          </Badge>
-                        </div>
-                      </div>
-                      <Button size="sm">
-                        Review
-                      </Button>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </TabsContent>
-
-        <TabsContent value="users" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>User Management</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-gray-600">User management features coming soon...</p>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="content" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Content Moderation</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-gray-600">Content moderation tools coming soon...</p>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="analytics" className="space-y-4">
+  const renderContent = () => {
+    switch (activeTab) {
+      case 'users':
+        return <UserManagement />;
+      case 'content':
+        return <ContentModeration />;
+      case 'payments':
+        return <MonetizationDashboard />;
+      case 'analytics':
+        return (
           <Card>
             <CardHeader>
               <CardTitle>Analytics Dashboard</CardTitle>
@@ -226,8 +59,219 @@ const AdminDashboard = () => {
               <p className="text-gray-600">Advanced analytics coming soon...</p>
             </CardContent>
           </Card>
-        </TabsContent>
-      </Tabs>
+        );
+      case 'safety':
+        return (
+          <Card>
+            <CardHeader>
+              <CardTitle>Trust & Safety</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-gray-600">Safety monitoring tools coming soon...</p>
+            </CardContent>
+          </Card>
+        );
+      case 'messaging':
+        return (
+          <Card>
+            <CardHeader>
+              <CardTitle>Messaging Oversight</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-gray-600">Message monitoring dashboard coming soon...</p>
+            </CardContent>
+          </Card>
+        );
+      case 'settings':
+        return (
+          <Card>
+            <CardHeader>
+              <CardTitle>Platform Settings</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-gray-600">Platform configuration coming soon...</p>
+            </CardContent>
+          </Card>
+        );
+      default:
+        return (
+          <div className="space-y-6">
+            {/* Stats Overview */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-gray-600">Total Users</p>
+                      <p className="text-2xl font-bold">{stats.totalUsers.toLocaleString()}</p>
+                    </div>
+                    <Users className="w-8 h-8 text-blue-500" />
+                  </div>
+                  <p className="text-xs text-gray-500 mt-2">
+                    {stats.activeUsers} active this month
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-gray-600">Total Listings</p>
+                      <p className="text-2xl font-bold">{stats.totalListings}</p>
+                    </div>
+                    <MessageSquare className="w-8 h-8 text-green-500" />
+                  </div>
+                  <p className="text-xs text-gray-500 mt-2">
+                    {stats.pendingVerifications} pending verification
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-gray-600">Monthly Revenue</p>
+                      <p className="text-2xl font-bold">${stats.monthlyRevenue.toLocaleString()}</p>
+                    </div>
+                    <TrendingUp className="w-8 h-8 text-green-600" />
+                  </div>
+                  <p className="text-xs text-gray-500 mt-2">
+                    ${stats.totalRevenue.toLocaleString()} total
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-gray-600">Pending Reports</p>
+                      <p className="text-2xl font-bold">{stats.pendingReports}</p>
+                    </div>
+                    <AlertTriangle className="w-8 h-8 text-orange-500" />
+                  </div>
+                  <p className="text-xs text-gray-500 mt-2">
+                    {stats.resolvedToday} resolved today
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Quick Actions */}
+            <div className="grid md:grid-cols-2 gap-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Recent Activity</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    <div className="flex items-start gap-3 p-3 rounded-lg bg-gray-50">
+                      <Users className="w-4 h-4 text-blue-500" />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium">New user registration: john@example.com</p>
+                        <p className="text-xs text-gray-500">2 minutes ago</p>
+                      </div>
+                    </div>
+                    <div className="flex items-start gap-3 p-3 rounded-lg bg-gray-50">
+                      <MessageSquare className="w-4 h-4 text-green-500" />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium">New listing: Golden Retriever Puppy</p>
+                        <p className="text-xs text-gray-500">5 minutes ago</p>
+                      </div>
+                    </div>
+                    <div className="flex items-start gap-3 p-3 rounded-lg bg-gray-50">
+                      <Shield className="w-4 h-4 text-orange-500" />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium">Verification request from Sarah Wilson</p>
+                        <p className="text-xs text-gray-500">10 minutes ago</p>
+                      </div>
+                    </div>
+                    <div className="flex items-start gap-3 p-3 rounded-lg bg-gray-50">
+                      <DollarSign className="w-4 h-4 text-green-600" />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium">Payment completed: $1,200</p>
+                        <p className="text-xs text-gray-500">15 minutes ago</p>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Pending Actions</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between p-3 rounded-lg border">
+                      <div className="flex-1">
+                        <p className="text-sm font-medium">Review breeder verification documents</p>
+                        <div className="flex items-center gap-2 mt-1">
+                          <Badge variant="secondary">8 items</Badge>
+                          <Badge className="bg-red-100 text-red-800">high priority</Badge>
+                        </div>
+                      </div>
+                      <Clock className="w-4 h-4 text-gray-400" />
+                    </div>
+                    <div className="flex items-center justify-between p-3 rounded-lg border">
+                      <div className="flex-1">
+                        <p className="text-sm font-medium">Moderate flagged listings</p>
+                        <div className="flex items-center gap-2 mt-1">
+                          <Badge variant="secondary">3 items</Badge>
+                          <Badge className="bg-orange-100 text-orange-800">medium priority</Badge>
+                        </div>
+                      </div>
+                      <Clock className="w-4 h-4 text-gray-400" />
+                    </div>
+                    <div className="flex items-center justify-between p-3 rounded-lg border">
+                      <div className="flex-1">
+                        <p className="text-sm font-medium">Respond to support tickets</p>
+                        <div className="flex items-center gap-2 mt-1">
+                          <Badge variant="secondary">12 items</Badge>
+                          <Badge className="bg-orange-100 text-orange-800">medium priority</Badge>
+                        </div>
+                      </div>
+                      <Clock className="w-4 h-4 text-gray-400" />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        );
+    }
+  };
+
+  return (
+    <div className="flex min-h-screen bg-gray-50">
+      <AdminNavigation activeTab={activeTab} onTabChange={setActiveTab} />
+      <div className="flex-1 p-6">
+        <div className="mb-6">
+          <h1 className="text-3xl font-bold text-gray-900">
+            {activeTab === 'overview' && 'Dashboard Overview'}
+            {activeTab === 'users' && 'User Management'}
+            {activeTab === 'content' && 'Content Moderation'}
+            {activeTab === 'payments' && 'Revenue Dashboard'}
+            {activeTab === 'analytics' && 'Analytics'}
+            {activeTab === 'safety' && 'Trust & Safety'}
+            {activeTab === 'messaging' && 'Messaging Oversight'}
+            {activeTab === 'settings' && 'Platform Settings'}
+          </h1>
+          <p className="text-gray-600">
+            {activeTab === 'overview' && 'Monitor your platform performance and manage critical tasks'}
+            {activeTab === 'users' && 'Manage users, verify accounts, and handle user-related issues'}
+            {activeTab === 'content' && 'Review reported content and moderate platform activity'}
+            {activeTab === 'payments' && 'Track revenue streams and financial performance'}
+            {activeTab === 'analytics' && 'View detailed analytics and performance metrics'}
+            {activeTab === 'safety' && 'Monitor platform safety and security'}
+            {activeTab === 'messaging' && 'Oversee messaging activity and moderation'}
+            {activeTab === 'settings' && 'Configure platform settings and preferences'}
+          </p>
+        </div>
+        {renderContent()}
+      </div>
     </div>
   );
 };
