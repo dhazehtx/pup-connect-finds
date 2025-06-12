@@ -1,17 +1,13 @@
 
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Separator } from '@/components/ui/separator';
 import { Heart, Mail, User, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
-import SocialLogin from '@/components/auth/SocialLogin';
 
 const Auth = () => {
   const [activeTab, setActiveTab] = useState('signin');
@@ -25,6 +21,7 @@ const Auth = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const location = useLocation();
 
   useEffect(() => {
     // Check if we're in password reset mode
@@ -35,9 +32,15 @@ const Auth = () => {
 
     // Redirect if user is already logged in
     if (user) {
-      navigate('/');
+      // Check if there's a redirect location from protected routes
+      const from = location.state?.from?.pathname || '/explore';
+      navigate(from, { replace: true });
     }
-  }, [user, navigate, searchParams]);
+  }, [user, navigate, searchParams, location]);
+
+  // Check if user is coming from a protected route
+  const isFromProtectedRoute = location.state?.from;
+  const showWelcomeMessage = !isFromProtectedRoute;
 
   const validateForm = () => {
     const newErrors: {[key: string]: string} = {};
@@ -72,7 +75,10 @@ const Auth = () => {
       } else {
         await signIn(email, password);
       }
-      navigate('/');
+      
+      // Redirect to the original destination or explore page
+      const from = location.state?.from?.pathname || '/explore';
+      navigate(from, { replace: true });
     } catch (error) {
       console.error('Auth error:', error);
     }
@@ -125,16 +131,30 @@ const Auth = () => {
           <div className="w-16 h-16 mx-auto mb-6 bg-blue-600 rounded-full flex items-center justify-center">
             <Heart size={32} className="text-white" />
           </div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            {activeTab === 'signup' ? 'Sign up for MY PUP' : 'Sign in'}
-          </h1>
-          {activeTab === 'signin' && (
-            <button
-              onClick={() => setActiveTab('signup')}
-              className="text-blue-600 hover:text-blue-800 underline text-sm"
-            >
-              I don't have an account
-            </button>
+          
+          {showWelcomeMessage && activeTab === 'signin' ? (
+            <>
+              <h1 className="text-3xl font-bold text-gray-900 mb-2">
+                Welcome to MY PUP! 🐕
+              </h1>
+              <p className="text-lg text-gray-600 mb-8">
+                Find your perfect companion from trusted breeders and connect with fellow dog lovers
+              </p>
+            </>
+          ) : (
+            <>
+              <h1 className="text-3xl font-bold text-gray-900 mb-2">
+                {activeTab === 'signup' ? 'Sign up for MY PUP' : 'Sign in'}
+              </h1>
+              {activeTab === 'signin' && (
+                <button
+                  onClick={() => setActiveTab('signup')}
+                  className="text-blue-600 hover:text-blue-800 underline text-sm"
+                >
+                  I don't have an account
+                </button>
+              )}
+            </>
           )}
         </div>
 

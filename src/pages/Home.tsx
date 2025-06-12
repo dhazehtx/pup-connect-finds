@@ -1,7 +1,6 @@
 
 import React from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import GuestHero from '@/components/home/GuestHero';
 import { Navigate } from 'react-router-dom';
 
 const Home = () => {
@@ -18,18 +17,13 @@ const Home = () => {
     );
   }
 
-  // If user is authenticated, redirect to explore page (or implement user feed later)
+  // If user is authenticated, redirect to explore page
   if (user) {
     return <Navigate to="/explore" replace />;
   }
 
-  // If user is a guest, redirect to auth page
-  if (isGuest) {
-    return <Navigate to="/auth" replace />;
-  }
-
-  // For non-authenticated users, show the guest hero page
-  return <GuestHero />;
+  // For all non-authenticated users (including guests), redirect to auth page
+  return <Navigate to="/auth" replace />;
 };
 
 export default Home;
