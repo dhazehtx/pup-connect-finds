@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { User, Settings, Star, MapPin, Phone, Mail, Globe, Heart, MessageCircle, X } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -10,6 +9,7 @@ import { useNavigate } from 'react-router-dom';
 import FollowersModal from '@/components/profile/FollowersModal';
 import PostViewModal from '@/components/profile/PostViewModal';
 import LikesModal from '@/components/post/LikesModal';
+import ProfileEditDialog from '@/components/profile/ProfileEditDialog';
 
 const SimpleProfileContent = () => {
   const { user, profile, signOut } = useAuth();
@@ -19,6 +19,7 @@ const SimpleProfileContent = () => {
   const [selectedPost, setSelectedPost] = useState<string | null>(null);
   const [showLikesModal, setShowLikesModal] = useState(false);
   const [selectedPostLikes, setSelectedPostLikes] = useState<any[]>([]);
+  const [showEditDialog, setShowEditDialog] = useState(false);
 
   // Demo data for guest users or fallback
   const demoProfile = {
@@ -258,6 +259,21 @@ const SimpleProfileContent = () => {
   // Authenticated user view
   return (
     <div className="max-w-md mx-auto bg-background min-h-screen">
+      {/* Header with Edit Button for authenticated users */}
+      {user && (
+        <div className="flex justify-between items-center p-4 border-b">
+          <h1 className="text-xl font-semibold">{displayProfile.username}</h1>
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={() => setShowEditDialog(true)}
+          >
+            <Settings className="w-4 h-4 mr-2" />
+            Edit Profile
+          </Button>
+        </div>
+      )}
+
       {/* Profile Section */}
       <div className="p-4">
         <div className="flex items-center space-x-4 mb-4">
@@ -342,11 +358,17 @@ const SimpleProfileContent = () => {
         </div>
 
         {/* Action Button for own profile */}
-        <div className="mb-6">
-          <Button variant="outline" className="w-full" onClick={() => navigate('/profile/edit')}>
-            Edit Profile
-          </Button>
-        </div>
+        {user && (
+          <div className="mb-6">
+            <Button 
+              variant="outline" 
+              className="w-full" 
+              onClick={() => setShowEditDialog(true)}
+            >
+              Edit Profile
+            </Button>
+          </div>
+        )}
 
         {/* Posts Grid */}
         <div className="grid grid-cols-3 gap-1">
@@ -398,6 +420,15 @@ const SimpleProfileContent = () => {
         likes={selectedPostLikes}
         onProfileClick={handleProfileClick}
       />
+
+      {/* Edit Profile Dialog */}
+      {showEditDialog && user && profile && (
+        <ProfileEditDialog
+          profile={profile}
+          isOpen={showEditDialog}
+          onClose={() => setShowEditDialog(false)}
+        />
+      )}
     </div>
   );
 };
