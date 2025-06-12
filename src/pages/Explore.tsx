@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Search, Filter, Heart, MapPin, MessageCircle, Sliders, Plus, Home, User, DollarSign, Calendar } from 'lucide-react';
 import { Input } from '@/components/ui/input';
@@ -28,6 +29,7 @@ const Explore = () => {
     ageGroup: 'All Ages',
     gender: 'All Genders',
     color: 'All Colors',
+    coatLength: 'All Coat Types',
     minPrice: 0,
     maxPrice: 10000,
     priceRange: [0, 10000],
@@ -123,7 +125,7 @@ const Explore = () => {
     'West Highland White Terrier', 'Havanese', 'Bichon Frise', 'Akita', 'Bloodhound',
     'Doberman Pinscher', 'Vizsla', 'Collie', 'Papillon', 'Samoyed',
     'Basset Hound', 'Jack Russell Terrier', 'Saint Bernard', 'Great Pyrenees', 'Portuguese Water Dog',
-    'Mixed Breed'
+    'Dapple', 'Mixed Breed'
   ];
 
   const quickFilters = ['Under $1000', 'Puppies Only', 'Verified Only', 'Nearby (10mi)', 'Health Checked', 'Vaccinated'];
@@ -131,6 +133,7 @@ const Explore = () => {
   const sizeOptions = ['Toy (under 10 lbs)', 'Small (10-25 lbs)', 'Medium (25-60 lbs)', 'Large (60-90 lbs)', 'Giant (over 90 lbs)'];
   const energyLevels = ['Low', 'Moderate', 'High', 'Very High'];
   const trainingLevels = ['Untrained', 'Basic', 'Intermediate', 'Advanced'];
+  const coatLengthOptions = ['Short Hair', 'Medium Hair', 'Long Hair'];
   const dogColors = [
     'Black', 'White', 'Brown', 'Golden', 'Cream', 'Red', 'Blue', 'Gray', 'Silver', 'Tan', 
     'Brindle', 'Sable', 'Merle', 'Tri-color', 'Bi-color', 'Spotted', 'Parti-color', 
@@ -195,6 +198,7 @@ const Explore = () => {
       ageGroup: 'All Ages',
       gender: 'All Genders',
       color: 'All Colors',
+      coatLength: 'All Coat Types',
       minPrice: 0,
       maxPrice: 10000,
       priceRange: [0, 10000],
@@ -387,15 +391,15 @@ const Explore = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Size</label>
-                <Select value={filters.size} onValueChange={(value) => updateFilter('size', value)}>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Coat Length</label>
+                <Select value={filters.coatLength} onValueChange={(value) => updateFilter('coatLength', value)}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="Any Size">Any Size</SelectItem>
-                    {sizeOptions.map(size => (
-                      <SelectItem key={size} value={size}>{size}</SelectItem>
+                    <SelectItem value="All Coat Types">All Coat Types</SelectItem>
+                    {coatLengthOptions.map(coatType => (
+                      <SelectItem key={coatType} value={coatType}>{coatType}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -418,7 +422,7 @@ const Explore = () => {
             </div>
 
             {/* Age and Location */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-1">
                   <Calendar size={14} />
@@ -467,6 +471,21 @@ const Explore = () => {
                     <SelectItem value="Any distance">Any distance</SelectItem>
                     {distanceOptions.map(distance => (
                       <SelectItem key={distance} value={distance}>{distance} miles</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Size</label>
+                <Select value={filters.size} onValueChange={(value) => updateFilter('size', value)}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Any Size">Any Size</SelectItem>
+                    {sizeOptions.map(size => (
+                      <SelectItem key={size} value={size}>{size}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
