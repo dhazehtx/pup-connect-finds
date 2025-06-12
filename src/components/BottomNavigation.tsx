@@ -32,6 +32,7 @@ const BottomNavigation = () => {
   };
 
   const handleCreateAction = () => {
+    console.log('Create button clicked');
     if (!user && !isGuest) {
       setPromptAction('create content');
       setShowGuestPrompt(true);
@@ -123,15 +124,15 @@ const BottomNavigation = () => {
                   active 
                     ? 'text-blue-600 bg-blue-50' 
                     : isCreateBtn
-                    ? 'text-white hover:bg-blue-700'
+                    ? 'text-gray-600 hover:text-blue-600'
                     : 'text-gray-600 hover:text-blue-600 hover:bg-gray-50'
                 }`}
                 type="button"
                 aria-label={item.label}
               >
                 {isCreateBtn ? (
-                  <div className="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center shadow-lg transform hover:scale-105 transition-transform">
-                    <Icon size={24} className="text-white" />
+                  <div className="w-14 h-14 bg-blue-600 rounded-full flex items-center justify-center shadow-lg hover:bg-blue-700 transition-colors">
+                    <Icon size={28} className="text-white" />
                   </div>
                 ) : (
                   <>
