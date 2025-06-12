@@ -32,7 +32,7 @@ const BottomNavigation = () => {
   };
 
   const handleCreateAction = () => {
-    console.log('Create button clicked');
+    console.log('Create button clicked - opening post creator');
     if (!user && !isGuest) {
       setPromptAction('create content');
       setShowGuestPrompt(true);
@@ -102,14 +102,18 @@ const BottomNavigation = () => {
     return location.pathname.startsWith(path);
   };
 
+  console.log('BottomNavigation rendering with navItems:', navItems);
+
   return (
     <>
       <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-40 shadow-lg">
         <div className="grid grid-cols-5 h-16">
-          {navItems.map((item) => {
+          {navItems.map((item, index) => {
             const Icon = item.icon;
             const active = isActive(item.path);
             const isCreateBtn = item.isCreateButton;
+            
+            console.log(`Rendering nav item ${index}: ${item.label}, isCreateButton: ${isCreateBtn}`);
             
             return (
               <button
@@ -124,15 +128,15 @@ const BottomNavigation = () => {
                   active 
                     ? 'text-blue-600 bg-blue-50' 
                     : isCreateBtn
-                    ? 'text-gray-600 hover:text-blue-600'
+                    ? 'text-white'
                     : 'text-gray-600 hover:text-blue-600 hover:bg-gray-50'
                 }`}
                 type="button"
                 aria-label={item.label}
               >
                 {isCreateBtn ? (
-                  <div className="w-14 h-14 bg-blue-600 rounded-full flex items-center justify-center shadow-lg hover:bg-blue-700 transition-colors">
-                    <Icon size={28} className="text-white" />
+                  <div className="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center shadow-lg hover:bg-blue-700 transition-colors">
+                    <Icon size={24} className="text-white" />
                   </div>
                 ) : (
                   <>
