@@ -111,40 +111,21 @@ const Explore = () => {
     setFilteredListings(filtered);
   }, [searchTerm, filters]);
 
-  // Complete list of dog breeds
-  const allDogBreeds = [
-    'Affenpinscher', 'Afghan Hound', 'Airedale Terrier', 'Akbash', 'Akita', 'Alaskan Malamute', 'American Bulldog', 
-    'American Eskimo Dog', 'American Foxhound', 'American Pit Bull Terrier', 'American Staffordshire Terrier', 
-    'American Water Spaniel', 'Anatolian Shepherd', 'Australian Cattle Dog', 'Australian Shepherd', 'Australian Terrier',
-    'Basenji', 'Basset Hound', 'Beagle', 'Bearded Collie', 'Bedlington Terrier', 'Belgian Malinois', 'Belgian Sheepdog',
-    'Belgian Tervuren', 'Bernese Mountain Dog', 'Bichon Frise', 'Black and Tan Coonhound', 'Bloodhound', 
-    'Border Collie', 'Border Terrier', 'Borzoi', 'Boston Terrier', 'Bouvier des Flandres', 'Boxer', 'Briard',
-    'Brittany', 'Brussels Griffon', 'Bull Terrier', 'Bulldog', 'Bullmastiff', 'Cairn Terrier', 'Canaan Dog',
-    'Cardigan Welsh Corgi', 'Cavalier King Charles Spaniel', 'Chesapeake Bay Retriever', 'Chihuahua', 'Chinese Crested',
-    'Chinese Shar-Pei', 'Chow Chow', 'Clumber Spaniel', 'Cocker Spaniel', 'Collie', 'Coonhound', 'Corgi',
-    'Coton de Tulear', 'Curly-Coated Retriever', 'Dachshund', 'Dalmatian', 'Dandie Dinmont Terrier', 'Doberman Pinscher',
-    'English Bulldog', 'English Cocker Spaniel', 'English Foxhound', 'English Setter', 'English Springer Spaniel',
-    'English Toy Spaniel', 'Field Spaniel', 'Finnish Spitz', 'Flat-Coated Retriever', 'Fox Terrier', 'Foxhound',
-    'French Bulldog', 'German Pinscher', 'German Shepherd', 'German Shorthaired Pointer', 'German Wirehaired Pointer',
-    'Giant Schnauzer', 'Glen of Imaal Terrier', 'Golden Retriever', 'Gordon Setter', 'Great Dane', 'Great Pyrenees',
-    'Greater Swiss Mountain Dog', 'Greyhound', 'Harrier', 'Havanese', 'Ibizan Hound', 'Icelandic Sheepdog',
-    'Irish Red and White Setter', 'Irish Setter', 'Irish Terrier', 'Irish Water Spaniel', 'Irish Wolfhound',
-    'Italian Greyhound', 'Jack Russell Terrier', 'Japanese Chin', 'Keeshond', 'Kerry Blue Terrier', 'Komondor',
-    'Kuvasz', 'Labrador Retriever', 'Lakeland Terrier', 'Leonberger', 'Lhasa Apso', 'Lowchen', 'Maltese',
-    'Manchester Terrier', 'Mastiff', 'Miniature Bull Terrier', 'Miniature Pinscher', 'Miniature Schnauzer',
-    'Mixed Breed', 'Neapolitan Mastiff', 'Newfoundland', 'Norfolk Terrier', 'Norwegian Elkhound', 'Norwich Terrier',
-    'Nova Scotia Duck Tolling Retriever', 'Old English Sheepdog', 'Otterhound', 'Papillon', 'Parson Russell Terrier',
-    'Pekingese', 'Pembroke Welsh Corgi', 'Petit Basset Griffon Vendeen', 'Pharaoh Hound', 'Pointer', 'Polish Lowland Sheepdog',
-    'Pomeranian', 'Poodle', 'Portuguese Water Dog', 'Pug', 'Puli', 'Pyrenean Shepherd', 'Redbone Coonh', 'Rhodesian Ridgeback',
-    'Rottweiler', 'Saint Bernard', 'Saluki', 'Samoyed', 'Schipperke', 'Scottish Deerhound', 'Scottish Terrier',
-    'Sealyham Terrier', 'Shetland Sheepdog', 'Shiba Inu', 'Shih Tzu', 'Siberian Husky', 'Silky Terrier',
-    'Skye Terrier', 'Smooth Fox Terrier', 'Soft Coated Wheaten Terrier', 'Spinone Italiano', 'Staffordshire Bull Terrier',
-    'Standard Schnauzer', 'Sussex Spaniel', 'Tibetan Mastiff', 'Tibetan Spaniel', 'Tibetan Terrier', 'Toy Fox Terrier',
-    'Treeing Walker Coonhound', 'Vizsla', 'Weimaraner', 'Welsh Springer Spaniel', 'Welsh Terrier', 'West Highland White Terrier',
-    'Whippet', 'Wire Fox Terrier', 'Wirehaired Pointing Griffon', 'Yorkshire Terrier'
+  // Most popular dog breeds in the US based on AKC registration data
+  const popularBreeds = [
+    'Labrador Retriever', 'Golden Retriever', 'German Shepherd', 'French Bulldog', 'Bulldog', 
+    'Poodle', 'Beagle', 'Rottweiler', 'German Shorthaired Pointer', 'Yorkshire Terrier',
+    'Australian Shepherd', 'Siberian Husky', 'Dachshund', 'Pembroke Welsh Corgi', 'Boston Terrier',
+    'Border Collie', 'Great Dane', 'Boxer', 'Bernese Mountain Dog', 'Cocker Spaniel',
+    'Chihuahua', 'Shih Tzu', 'Miniature Schnauzer', 'Mastiff', 'Australian Cattle Dog',
+    'Cane Corso', 'English Springer Spaniel', 'Brittany', 'Pomeranian', 'Maltese',
+    'Cavalier King Charles Spaniel', 'Weimaraner', 'Belgian Malinois', 'Newfoundland', 'Rhodesian Ridgeback',
+    'West Highland White Terrier', 'Havanese', 'Bichon Frise', 'Akita', 'Bloodhound',
+    'Doberman Pinscher', 'Vizsla', 'Collie', 'Papillon', 'Samoyed',
+    'Basset Hound', 'Jack Russell Terrier', 'Saint Bernard', 'Great Pyrenees', 'Portuguese Water Dog',
+    'Mixed Breed'
   ];
 
-  const popularBreeds = ['French Bulldog', 'Golden Retriever', 'German Shepherd', 'Labrador Retriever', 'Beagle', 'Poodle', 'Bulldog', 'Rottweiler'];
   const quickFilters = ['Under $1000', 'Puppies Only', 'Verified Only', 'Nearby (10mi)', 'Health Checked', 'Vaccinated'];
   const distanceOptions = ['5', '10', '25', '50', '100'];
   const sizeOptions = ['Toy (under 10 lbs)', 'Small (10-25 lbs)', 'Medium (25-60 lbs)', 'Large (60-90 lbs)', 'Giant (over 90 lbs)'];
@@ -272,7 +253,7 @@ const Explore = () => {
         <div className="mb-4">
           <h3 className="text-sm font-medium text-gray-700 mb-2">Popular Breeds</h3>
           <div className="flex flex-wrap gap-2">
-            {popularBreeds.map((breed) => (
+            {popularBreeds.slice(0, 8).map((breed) => (
               <Badge
                 key={breed}
                 variant={filters.breed === breed ? "default" : "outline"}
@@ -338,7 +319,7 @@ const Explore = () => {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="All Breeds">All Breeds</SelectItem>
-                    {allDogBreeds.map(breed => (
+                    {popularBreeds.map(breed => (
                       <SelectItem key={breed} value={breed}>{breed}</SelectItem>
                     ))}
                   </SelectContent>
