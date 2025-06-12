@@ -3,7 +3,6 @@ import React from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import LoadingSkeleton from '@/components/LoadingSkeleton';
-import GuestPrompt from '@/components/GuestPrompt';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -29,14 +28,10 @@ const ProtectedRoute = ({ children, allowGuest = false, guestMessage }: Protecte
     return <>{children}</>;
   }
 
-  // For protected routes, show guest prompt if user is guest or not authenticated
-  if (!user && !allowGuest) {
-    return (
-      <GuestPrompt
-        action="access this feature"
-        description={guestMessage || "This feature requires a MY PUP account to continue."}
-      />
-    );
+  // For routes that don't allow guests or when user is not authenticated,
+  // redirect to auth page
+  if (!user || (isGuest && !allowGuest)) {
+    return <Navigate to="/auth" state={{ from: location }} replace />;
   }
 
   // Default fallback to auth page

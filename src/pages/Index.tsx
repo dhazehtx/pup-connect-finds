@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -20,6 +19,7 @@ import HelpCenter from './HelpCenter';
 import Contact from './Contact';
 import CustomerReviews from './CustomerReviews';
 import TrustSafety from './TrustSafety';
+import ProtectedRoute from '@/components/ProtectedRoute';
 
 const Index = () => {
   const { user, loading, isGuest } = useAuth();
@@ -41,11 +41,52 @@ const Index = () => {
         <Route path="/" element={<Home />} />
         <Route path="/auth" element={<Auth />} />
         <Route path="/explore" element={<Explore />} />
-        <Route path="/post" element={<Post />} />
-        <Route path="/messages" element={<Messages />} />
-        <Route path="/profile" element={<Profile />} />
-        <Route path="/settings" element={<Settings />} />
-        <Route path="/notifications" element={<Notifications />} />
+        
+        {/* Protected routes that redirect guests to auth */}
+        <Route 
+          path="/post" 
+          element={
+            <ProtectedRoute allowGuest={false} guestMessage="Please sign up or sign in to create posts.">
+              <Post />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/messages" 
+          element={
+            <ProtectedRoute allowGuest={false} guestMessage="Please sign up or sign in to access messages.">
+              <Messages />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/profile" 
+          element={
+            <ProtectedRoute allowGuest={false} guestMessage="Please sign up or sign in to access your profile.">
+              <Profile />
+            </ProtectedRoute>
+          } 
+        />
+        
+        {/* Other protected routes */}
+        <Route 
+          path="/settings" 
+          element={
+            <ProtectedRoute allowGuest={false}>
+              <Settings />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/notifications" 
+          element={
+            <ProtectedRoute allowGuest={false}>
+              <Notifications />
+            </ProtectedRoute>
+          } 
+        />
+        
+        {/* Public routes */}
         <Route path="/education" element={<Education />} />
         <Route path="/legal" element={<Legal />} />
         <Route path="/faq" element={<FAQ />} />
