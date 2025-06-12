@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Bell, X, MessageCircle, Heart, Star, DollarSign } from 'lucide-react';
+import { Bell, X, MessageCircle, Heart, Star, DollarSign, User } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 
 interface NotificationToastProps {
@@ -22,80 +22,88 @@ const NotificationToast: React.FC<NotificationToastProps> = ({
     setIsVisible(true);
     const timer = setTimeout(() => {
       handleClose();
-    }, 5000); // Auto-close after 5 seconds
+    }, 5000);
 
     return () => clearTimeout(timer);
   }, []);
 
   const handleClose = () => {
     setIsVisible(false);
-    setTimeout(onClose, 300); // Wait for animation
+    setTimeout(onClose, 300);
   };
 
   const getIcon = () => {
     switch (notification.type) {
-      case 'message': return <MessageCircle className="w-5 h-5 text-blue-500" />;
-      case 'like': return <Heart className="w-5 h-5 text-red-500" />;
-      case 'review': return <Star className="w-5 h-5 text-yellow-500" />;
-      case 'payment_confirmation': return <DollarSign className="w-5 h-5 text-green-500" />;
-      default: return <Bell className="w-5 h-5 text-gray-500" />;
+      case 'message': 
+        return <MessageCircle className="w-5 h-5 text-royal-blue" />;
+      case 'like': 
+        return <Heart className="w-5 h-5 text-red-500" />;
+      case 'review': 
+        return <Star className="w-5 h-5 text-yellow-500" />;
+      case 'payment_confirmation': 
+        return <DollarSign className="w-5 h-5 text-mint-green" />;
+      case 'follow':
+        return <User className="w-5 h-5 text-royal-blue" />;
+      default: 
+        return <Bell className="w-5 h-5 text-deep-navy" />;
     }
   };
 
-  const getBgColor = () => {
+  const getGradientClass = () => {
     switch (notification.type) {
-      case 'message': return 'bg-blue-50 border-blue-200';
-      case 'like': return 'bg-red-50 border-red-200';
-      case 'review': return 'bg-yellow-50 border-yellow-200';
-      case 'payment_confirmation': return 'bg-green-50 border-green-200';
-      default: return 'bg-gray-50 border-gray-200';
+      case 'message': return 'from-royal-blue/10 to-soft-sky/20 border-royal-blue/20';
+      case 'like': return 'from-red-50 to-red-100 border-red-200';
+      case 'review': return 'from-yellow-50 to-yellow-100 border-yellow-200';
+      case 'payment_confirmation': return 'from-mint-green/10 to-mint-green/20 border-mint-green/30';
+      case 'follow': return 'from-royal-blue/10 to-soft-sky/20 border-royal-blue/20';
+      default: return 'from-cloud-white to-soft-sky/10 border-soft-sky/20';
     }
   };
 
   return (
     <div
       className={`transform transition-all duration-300 ease-in-out ${
-        isVisible ? 'translate-x-0 opacity-100' : 'translate-x-full opacity-0'
+        isVisible ? 'translate-x-0 opacity-100 scale-100' : 'translate-x-full opacity-0 scale-95'
       }`}
     >
-      <Card className={`w-80 shadow-lg ${getBgColor()}`}>
+      <Card className={`w-80 shadow-xl bg-gradient-to-br ${getGradientClass()} backdrop-blur-sm border-l-4`}>
         <CardContent className="p-4">
           <div className="flex items-start gap-3">
-            <div className="flex-shrink-0 mt-0.5">
+            <div className="flex-shrink-0 mt-0.5 p-2 bg-white/80 rounded-full shadow-sm">
               {getIcon()}
             </div>
             
             <div className="flex-1 min-w-0">
-              <h4 className="font-semibold text-sm text-gray-900 mb-1">
-                {notification.title}
-              </h4>
-              <p className="text-sm text-gray-600 mb-2 line-clamp-2">
+              <div className="flex items-start justify-between mb-2">
+                <h4 className="font-semibold text-sm text-deep-navy line-clamp-1">
+                  {notification.title}
+                </h4>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={handleClose}
+                  className="h-6 w-6 p-0 text-deep-navy/60 hover:text-deep-navy hover:bg-white/60"
+                >
+                  <X className="w-3 h-3" />
+                </Button>
+              </div>
+              
+              <p className="text-sm text-deep-navy/80 mb-3 line-clamp-2">
                 {notification.message}
               </p>
               
               <div className="flex items-center justify-between">
-                <span className="text-xs text-gray-500">
+                <span className="text-xs text-deep-navy/60">
                   {formatDistanceToNow(new Date(notification.created_at), { addSuffix: true })}
                 </span>
                 
-                <div className="flex gap-2">
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={onAction}
-                    className="text-xs h-7 px-2"
-                  >
-                    View
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={handleClose}
-                    className="h-7 w-7 p-0"
-                  >
-                    <X className="w-3 h-3" />
-                  </Button>
-                </div>
+                <Button
+                  size="sm"
+                  onClick={onAction}
+                  className="h-7 px-3 text-xs bg-royal-blue hover:bg-royal-blue/90 text-white shadow-sm"
+                >
+                  View
+                </Button>
               </div>
             </div>
           </div>

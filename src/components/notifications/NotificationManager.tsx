@@ -65,16 +65,13 @@ const NotificationManager = () => {
     // Handle notification action based on type
     switch (notification.type) {
       case 'message':
-        // Navigate to messages
         console.log('Navigate to messages');
         break;
       case 'like':
       case 'follow':
-        // Navigate to profile
         console.log('Navigate to profile');
         break;
       case 'review':
-        // Navigate to reviews
         console.log('Navigate to reviews');
         break;
       default:
@@ -97,19 +94,18 @@ const NotificationManager = () => {
 
   return (
     <>
-      {/* Notification Bell */}
+      {/* Modern Notification Bell */}
       <div className="relative">
         <Button
           variant="ghost"
           size="sm"
           onClick={handleBellClick}
-          className="relative text-gray-700 hover:text-blue-600 hover:bg-gray-100"
+          className="relative text-deep-navy hover:text-royal-blue hover:bg-soft-sky/20 h-10 w-10 p-0 rounded-full transition-all duration-200"
         >
           <Bell className="w-5 h-5" />
           {unreadCount > 0 && (
             <Badge
-              variant="destructive"
-              className="absolute -top-2 -right-2 h-5 w-5 p-0 flex items-center justify-center text-xs bg-red-500 text-white"
+              className="absolute -top-2 -right-2 h-5 w-5 p-0 flex items-center justify-center text-xs bg-royal-blue text-white border-2 border-white shadow-lg animate-pulse"
             >
               {unreadCount > 99 ? '99+' : unreadCount}
             </Badge>
@@ -124,7 +120,7 @@ const NotificationManager = () => {
       />
 
       {/* Toast Notifications */}
-      <div className="fixed top-4 right-4 z-50 space-y-2">
+      <div className="fixed top-4 right-4 z-50 space-y-3">
         {toastNotifications.map((toast) => (
           <NotificationToast
             key={toast.id}
