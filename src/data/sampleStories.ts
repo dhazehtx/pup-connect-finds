@@ -1,89 +1,82 @@
 
 export interface StoryContent {
-  type: 'image' | 'video' | 'ai-generated';
-  url: string;
-  prompt?: string;
+  id: string;
+  type: 'image' | 'text';
+  content: string;
+  timestamp: string;
 }
 
 export interface Story {
-  id: string | number;
+  id: string;
   username: string;
-  avatar: string | null;
-  content: StoryContent[];
-  timestamp: string;
+  avatar?: string;
   isAddStory?: boolean;
+  stories: StoryContent[];
 }
 
 export const sampleStories: Story[] = [
   {
     id: 'add-story',
     username: 'Your Story',
-    avatar: null,
-    content: [],
-    timestamp: '',
-    isAddStory: true
+    isAddStory: true,
+    stories: []
   },
   {
-    id: 2,
-    username: 'goldenbreeder',
-    avatar: 'https://images.unsplash.com/photo-1552053831-71594a27632d?w=100&h=100&fit=crop&crop=face',
-    content: [
+    id: '1',
+    username: 'goldenpaws',
+    avatar: '/lovable-uploads/64114b5b-ae93-4c5b-a6d4-be95ec65c954.png',
+    stories: [
       {
+        id: '1-1',
         type: 'image',
-        url: 'https://images.unsplash.com/photo-1552053831-71594a27632d?w=400&h=600&fit=crop'
+        content: '/lovable-uploads/e5a0f017-3263-4e2a-b8eb-c15611287ed7.png',
+        timestamp: '2h ago'
       },
       {
-        type: 'ai-generated',
-        url: 'https://images.unsplash.com/photo-1518717758536-85ae29035b6d?w=400&h=600&fit=crop',
-        prompt: 'A golden retriever puppy playing in a sunny garden'
+        id: '1-2',
+        type: 'text',
+        content: 'Beautiful day at the dog park! 🐕',
+        timestamp: '1h ago'
       }
-    ],
-    timestamp: '2h ago'
+    ]
   },
   {
-    id: 3,
-    username: 'puppylover',
-    avatar: 'https://images.unsplash.com/photo-1518717758536-85ae29035b6d?w=100&h=100&fit=crop&crop=face',
-    content: [
+    id: '2',
+    username: 'puppylove',
+    avatar: '/lovable-uploads/75316943-0598-40bc-bcb4-84665859ea00.png',
+    stories: [
       {
-        type: 'video',
-        url: 'https://sample-videos.com/zip/10/mp4/SampleVideo_1280x720_1mb.mp4'
-      },
-      {
+        id: '2-1',
         type: 'image',
-        url: 'https://images.unsplash.com/photo-1518717758536-85ae29035b6d?w=400&h=600&fit=crop'
+        content: '/lovable-uploads/3ae80125-17a2-47bf-85a7-2e69d508dee0.png',
+        timestamp: '3h ago'
       }
-    ],
-    timestamp: '4h ago'
+    ]
   },
   {
-    id: 4,
-    username: 'dogrescue',
-    avatar: 'https://images.unsplash.com/photo-1529472119196-cb724127a98e?w=100&h=100&fit=crop&crop=face',
-    content: [
+    id: '3',
+    username: 'dogtrainer',
+    avatar: '/lovable-uploads/5c25f5ac-d644-465c-abc2-dc66bbdf3a94.png',
+    stories: [
       {
-        type: 'ai-generated',
-        url: 'https://images.unsplash.com/photo-1529472119196-cb724127a98e?w=400&h=600&fit=crop',
-        prompt: 'A rescue dog finding its forever home with a happy family'
+        id: '3-1',
+        type: 'text',
+        content: 'Training session complete! 🎾',
+        timestamp: '4h ago'
       }
-    ],
-    timestamp: '6h ago'
+    ]
   },
   {
-    id: 5,
-    username: 'frenchbulldog',
-    avatar: 'https://images.unsplash.com/photo-1583337130417-3346a1be7dee?w=100&h=100&fit=crop&crop=face',
-    content: [
+    id: '4',
+    username: 'furryfrends',
+    avatar: '/lovable-uploads/252c4abe-53d4-48e1-a356-bf715001c720.png',
+    stories: [
       {
+        id: '4-1',
         type: 'image',
-        url: 'https://images.unsplash.com/photo-1583337130417-3346a1be7dee?w=400&h=600&fit=crop'
-      },
-      {
-        type: 'ai-generated',
-        url: 'https://images.unsplash.com/photo-1552053831-71594a27632d?w=400&h=600&fit=crop',
-        prompt: 'French bulldog wearing sunglasses at the beach'
+        content: '/lovable-uploads/252c4abe-53d4-48e1-a356-bf715001c720.png',
+        timestamp: '5h ago'
       }
-    ],
-    timestamp: '8h ago'
+    ]
   }
 ];
