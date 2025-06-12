@@ -4,7 +4,6 @@ import { Button } from '@/components/ui/button';
 import { User, LogOut } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import LanguageSelector from '@/components/i18n/LanguageSelector';
-import NotificationManager from '@/components/notifications/NotificationManager';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -31,8 +30,6 @@ const DesktopUserMenu = ({
   return (
     <div className="flex items-center space-x-4">
       <LanguageSelector />
-      
-      {isAuthenticated && <NotificationManager />}
       
       {!isAuthenticated ? (
         <div className="hidden md:flex items-center space-x-2">
