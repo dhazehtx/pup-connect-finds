@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { User, Settings, Star, MessageCircle, Heart, Sparkles } from 'lucide-react';
+import { User, Settings, Star, MessageCircle, Heart, Sparkles, MapPin } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -108,18 +108,18 @@ const SimpleProfileContent = () => {
 
   if (!user && !profile) {
     return (
-      <div className="max-w-md mx-auto bg-background min-h-screen">
-        {/* Instagram-style Header */}
-        <div className="sticky top-0 z-40 bg-background/95 backdrop-blur-md border-b border-border/40">
-          <div className="px-4 py-3">
+      <div className="max-w-md mx-auto bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 min-h-screen">
+        {/* Enhanced Header with gradient */}
+        <div className="sticky top-0 z-40 bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-700 backdrop-blur-md shadow-lg">
+          <div className="px-4 py-4">
             <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-2">
-                <h1 className="text-xl font-semibold text-foreground">
+              <div className="flex items-center space-x-3">
+                <h1 className="text-xl font-bold text-white">
                   @{displayProfile.username}
                 </h1>
                 {displayProfile.verified && (
-                  <div className="w-4 h-4 bg-gradient-to-br from-royal-blue to-primary rounded-full flex items-center justify-center">
-                    <Sparkles className="w-2.5 h-2.5 text-white" />
+                  <div className="w-5 h-5 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center shadow-md">
+                    <Sparkles className="w-3 h-3 text-white" />
                   </div>
                 )}
               </div>
@@ -127,101 +127,120 @@ const SimpleProfileContent = () => {
           </div>
         </div>
 
-        {/* Profile Section */}
+        {/* Profile Section - Enhanced with cards */}
         <div className="px-4 py-6 space-y-6">
-          {/* Profile Header - Instagram style */}
-          <div className="flex items-center space-x-4">
-            <div className="relative">
-              <Avatar className="w-20 h-20 ring-2 ring-border">
-                <AvatarImage src={displayProfile.avatar_url} alt={displayProfile.full_name} />
-                <AvatarFallback className="bg-gradient-to-br from-royal-blue to-primary text-white text-lg">
-                  <User className="w-8 h-8" />
-                </AvatarFallback>
-              </Avatar>
-              {displayProfile.verified && (
-                <div className="absolute -bottom-1 -right-1 bg-gradient-to-br from-royal-blue to-primary rounded-full p-1.5">
-                  <Sparkles className="w-3 h-3 text-white" />
+          {/* Profile Header Card */}
+          <Card className="bg-white border-0 shadow-xl">
+            <CardContent className="p-6">
+              <div className="flex items-center space-x-4 mb-4">
+                <div className="relative">
+                  <Avatar className="w-24 h-24 ring-4 ring-blue-200 shadow-lg">
+                    <AvatarImage src={displayProfile.avatar_url} alt={displayProfile.full_name} />
+                    <AvatarFallback className="bg-gradient-to-br from-blue-600 to-indigo-700 text-white text-2xl">
+                      <User className="w-10 h-10" />
+                    </AvatarFallback>
+                  </Avatar>
+                  {displayProfile.verified && (
+                    <div className="absolute -bottom-1 -right-1 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full p-2 shadow-lg">
+                      <Sparkles className="w-4 h-4 text-white" />
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
-            
-            <div className="flex-1">
-              <div className="flex items-center space-x-2 mb-2">
-                <h2 className="text-xl font-bold text-foreground">
-                  {displayProfile.full_name}
-                </h2>
-                {displayProfile.verified && (
-                  <Badge variant="secondary" className="bg-royal-blue/10 text-royal-blue border-royal-blue/30 text-xs">
-                    Verified
-                  </Badge>
-                )}
+                
+                <div className="flex-1">
+                  <div className="flex items-center space-x-2 mb-2">
+                    <h2 className="text-2xl font-bold text-gray-800">
+                      {displayProfile.full_name}
+                    </h2>
+                    {displayProfile.verified && (
+                      <Badge className="bg-gradient-to-r from-blue-600 to-indigo-700 text-white border-0 shadow-md">
+                        Verified
+                      </Badge>
+                    )}
+                  </div>
+                  
+                  {displayProfile.rating > 0 && (
+                    <div className="flex items-center space-x-2">
+                      <div className="flex items-center space-x-1 bg-yellow-50 px-2 py-1 rounded-full">
+                        <Star className="w-4 h-4 text-yellow-500 fill-current" />
+                        <span className="text-sm font-medium text-gray-800">{displayProfile.rating}</span>
+                      </div>
+                      <span className="text-sm text-gray-600">({displayProfile.total_reviews} reviews)</span>
+                    </div>
+                  )}
+                </div>
               </div>
-              
-              {displayProfile.rating > 0 && (
-                <div className="flex items-center space-x-1">
-                  <Star className="w-4 h-4 text-yellow-500 fill-current" />
-                  <span className="text-sm font-medium text-foreground">{displayProfile.rating}</span>
-                  <span className="text-sm text-muted-foreground">({displayProfile.total_reviews} reviews)</span>
-                </div>
-              )}
-            </div>
-          </div>
 
-          {/* Stats - Instagram style */}
-          <ProfileStats
-            stats={displayProfile.stats}
-            onFollowersClick={() => setShowFollowersModal(true)}
-            onFollowingClick={() => setShowFollowingModal(true)}
-          />
-
-          {/* Bio and Info */}
-          <ProfileInfo
-            bio={displayProfile.bio}
-            location={displayProfile.location}
-            website_url={displayProfile.website_url}
-            specializations={displayProfile.specializations}
-          />
-
-          {/* Action Buttons */}
-          <div className="flex space-x-3">
-            <Button 
-              className="flex-1 bg-gradient-to-r from-royal-blue to-primary hover:from-royal-blue/90 hover:to-primary/90 text-white h-9" 
-              onClick={() => navigate('/auth')}
-            >
-              <MessageCircle className="w-4 h-4 mr-2" />
-              Message
-            </Button>
-            <Button 
-              variant="outline" 
-              className="flex-1 border-border hover:bg-muted h-9"
-            >
-              <Heart className="w-4 h-4 mr-2" />
-              Follow
-            </Button>
-          </div>
-
-          {/* Posts Grid - Instagram style */}
-          <div>
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-foreground">Posts</h3>
-              <span className="text-sm text-muted-foreground">{posts.length} posts</span>
-            </div>
-            <div className="grid grid-cols-3 gap-1">
-              {posts.map((post, index) => (
-                <div 
-                  key={index} 
-                  className="aspect-square cursor-pointer hover:opacity-90 transition-opacity rounded-sm overflow-hidden"
-                  onClick={() => handlePostClick(post)}
-                >
-                  <img 
-                    src={post} 
-                    alt={`Post ${index + 1}`}
-                    className="w-full h-full object-cover"
+              {/* Stats Card */}
+              <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
+                <CardContent className="p-4">
+                  <ProfileStats
+                    stats={displayProfile.stats}
+                    onFollowersClick={() => setShowFollowersModal(true)}
+                    onFollowingClick={() => setShowFollowingModal(true)}
                   />
-                </div>
-              ))}
-            </div>
-          </div>
+                </CardContent>
+              </Card>
+
+              {/* Bio and Info */}
+              <div className="mt-4">
+                <ProfileInfo
+                  bio={displayProfile.bio}
+                  location={displayProfile.location}
+                  website_url={displayProfile.website_url}
+                  specializations={displayProfile.specializations}
+                />
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Action Buttons Card */}
+          <Card className="bg-white border-0 shadow-lg">
+            <CardContent className="p-4">
+              <div className="flex space-x-3">
+                <Button 
+                  className="flex-1 bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800 text-white h-11 font-semibold shadow-lg transform hover:scale-105 transition-all duration-300" 
+                  onClick={() => navigate('/auth')}
+                >
+                  <MessageCircle className="w-5 h-5 mr-2" />
+                  Message
+                </Button>
+                <Button 
+                  className="flex-1 bg-gradient-to-r from-pink-500 to-rose-600 hover:from-pink-600 hover:to-rose-700 text-white h-11 font-semibold shadow-lg transform hover:scale-105 transition-all duration-300"
+                >
+                  <Heart className="w-5 h-5 mr-2" />
+                  Follow
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Posts Grid Card */}
+          <Card className="bg-white border-0 shadow-xl">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-xl font-bold text-gray-800">Posts</h3>
+                <Badge className="bg-gradient-to-r from-blue-100 to-indigo-100 text-blue-800 border-0">
+                  {posts.length} posts
+                </Badge>
+              </div>
+              <div className="grid grid-cols-3 gap-2">
+                {posts.map((post, index) => (
+                  <div 
+                    key={index} 
+                    className="aspect-square cursor-pointer hover:opacity-90 transition-all duration-300 rounded-lg overflow-hidden shadow-md hover:shadow-lg transform hover:scale-105"
+                    onClick={() => handlePostClick(post)}
+                  >
+                    <img 
+                      src={post} 
+                      alt={`Post ${index + 1}`}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
         {/* Modals */}
@@ -260,27 +279,27 @@ const SimpleProfileContent = () => {
     );
   }
 
-  // Authenticated user view
+  // Authenticated user view - Enhanced
   return (
-    <div className="max-w-md mx-auto bg-background min-h-screen">
-      {/* Instagram-style Header */}
-      <div className="sticky top-0 z-40 bg-background/95 backdrop-blur-md border-b border-border/40">
-        <div className="px-4 py-3">
+    <div className="max-w-md mx-auto bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 min-h-screen">
+      {/* Enhanced Header */}
+      <div className="sticky top-0 z-40 bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-700 backdrop-blur-md shadow-lg">
+        <div className="px-4 py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2">
-              <h1 className="text-xl font-semibold text-foreground">
+            <div className="flex items-center space-x-3">
+              <h1 className="text-xl font-bold text-white">
                 @{displayProfile.username}
               </h1>
               {displayProfile.verified && (
-                <div className="w-4 h-4 bg-gradient-to-br from-royal-blue to-primary rounded-full flex items-center justify-center">
-                  <Sparkles className="w-2.5 h-2.5 text-white" />
+                <div className="w-5 h-5 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center shadow-md">
+                  <Sparkles className="w-3 h-3 text-white" />
                 </div>
               )}
             </div>
             <Button 
               variant="ghost" 
               size="sm"
-              className="text-royal-blue hover:bg-royal-blue/10"
+              className="text-white hover:bg-white/20 transition-all duration-300"
               onClick={() => setShowEditDialog(true)}
             >
               <Settings className="w-5 h-5" />
@@ -289,93 +308,112 @@ const SimpleProfileContent = () => {
         </div>
       </div>
 
-      {/* Profile Section */}
+      {/* Profile Section - Enhanced */}
       <div className="px-4 py-6 space-y-6">
-        {/* Profile Header */}
-        <div className="flex items-center space-x-4">
-          <div className="relative">
-            <Avatar className="w-20 h-20 ring-2 ring-border">
-              <AvatarImage src={displayProfile.avatar_url} alt={displayProfile.full_name} />
-              <AvatarFallback className="bg-gradient-to-br from-royal-blue to-primary text-white text-lg">
-                <User className="w-8 h-8" />
-              </AvatarFallback>
-            </Avatar>
-            {displayProfile.verified && (
-              <div className="absolute -bottom-1 -right-1 bg-gradient-to-br from-royal-blue to-primary rounded-full p-1.5">
-                <Sparkles className="w-3 h-3 text-white" />
+        {/* Profile Header Card */}
+        <Card className="bg-white border-0 shadow-xl">
+          <CardContent className="p-6">
+            <div className="flex items-center space-x-4 mb-4">
+              <div className="relative">
+                <Avatar className="w-24 h-24 ring-4 ring-blue-200 shadow-lg">
+                  <AvatarImage src={displayProfile.avatar_url} alt={displayProfile.full_name} />
+                  <AvatarFallback className="bg-gradient-to-br from-blue-600 to-indigo-700 text-white text-2xl">
+                    <User className="w-10 h-10" />
+                  </AvatarFallback>
+                </Avatar>
+                {displayProfile.verified && (
+                  <div className="absolute -bottom-1 -right-1 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full p-2 shadow-lg">
+                    <Sparkles className="w-4 h-4 text-white" />
+                  </div>
+                )}
               </div>
-            )}
-          </div>
-          
-          <div className="flex-1">
-            <div className="flex items-center space-x-2 mb-2">
-              <h2 className="text-xl font-bold text-foreground">
-                {displayProfile.full_name}
-              </h2>
-              {displayProfile.verified && (
-                <Badge variant="secondary" className="bg-royal-blue/10 text-royal-blue border-royal-blue/30 text-xs">
-                  Verified
-                </Badge>
-              )}
+              
+              <div className="flex-1">
+                <div className="flex items-center space-x-2 mb-2">
+                  <h2 className="text-2xl font-bold text-gray-800">
+                    {displayProfile.full_name}
+                  </h2>
+                  {displayProfile.verified && (
+                    <Badge className="bg-gradient-to-r from-blue-600 to-indigo-700 text-white border-0 shadow-md">
+                      Verified
+                    </Badge>
+                  )}
+                </div>
+                
+                {displayProfile.rating > 0 && (
+                  <div className="flex items-center space-x-2">
+                    <div className="flex items-center space-x-1 bg-yellow-50 px-2 py-1 rounded-full">
+                      <Star className="w-4 h-4 text-yellow-500 fill-current" />
+                      <span className="text-sm font-medium text-gray-800">{displayProfile.rating}</span>
+                    </div>
+                    <span className="text-sm text-gray-600">({displayProfile.total_reviews} reviews)</span>
+                  </div>
+                )}
+              </div>
             </div>
-            
-            {displayProfile.rating > 0 && (
-              <div className="flex items-center space-x-1">
-                <Star className="w-4 h-4 text-yellow-500 fill-current" />
-                <span className="text-sm font-medium text-foreground">{displayProfile.rating}</span>
-                <span className="text-sm text-muted-foreground">({displayProfile.total_reviews} reviews)</span>
-              </div>
-            )}
-          </div>
-        </div>
 
-        {/* Stats */}
-        <ProfileStats
-          stats={displayProfile.stats}
-          onFollowersClick={() => setShowFollowersModal(true)}
-          onFollowingClick={() => setShowFollowingModal(true)}
-        />
-
-        {/* Bio and Info */}
-        <ProfileInfo
-          bio={displayProfile.bio}
-          location={displayProfile.location}
-          website_url={displayProfile.website_url}
-          specializations={displayProfile.specializations}
-        />
-
-        {/* Edit Profile Button */}
-        <Button 
-          variant="outline" 
-          className="w-full border-border hover:bg-muted h-9" 
-          onClick={() => setShowEditDialog(true)}
-        >
-          <Settings className="w-4 h-4 mr-2" />
-          Edit Profile
-        </Button>
-
-        {/* Posts Grid */}
-        <div>
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-foreground">Your Posts</h3>
-            <span className="text-sm text-muted-foreground">{posts.length} posts</span>
-          </div>
-          <div className="grid grid-cols-3 gap-1">
-            {posts.map((post, index) => (
-              <div 
-                key={index} 
-                className="aspect-square cursor-pointer hover:opacity-90 transition-opacity rounded-sm overflow-hidden"
-                onClick={() => handlePostClick(post)}
-              >
-                <img 
-                  src={post} 
-                  alt={`Post ${index + 1}`}
-                  className="w-full h-full object-cover"
+            {/* Stats */}
+            <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
+              <CardContent className="p-4">
+                <ProfileStats
+                  stats={displayProfile.stats}
+                  onFollowersClick={() => setShowFollowersModal(true)}
+                  onFollowingClick={() => setShowFollowingModal(true)}
                 />
-              </div>
-            ))}
-          </div>
-        </div>
+              </CardContent>
+            </Card>
+
+            {/* Bio and Info */}
+            <div className="mt-4">
+              <ProfileInfo
+                bio={displayProfile.bio}
+                location={displayProfile.location}
+                website_url={displayProfile.website_url}
+                specializations={displayProfile.specializations}
+              />
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Edit Profile Button Card */}
+        <Card className="bg-white border-0 shadow-lg">
+          <CardContent className="p-4">
+            <Button 
+              className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white h-11 font-semibold shadow-lg transform hover:scale-105 transition-all duration-300" 
+              onClick={() => setShowEditDialog(true)}
+            >
+              <Settings className="w-5 h-5 mr-2" />
+              Edit Profile
+            </Button>
+          </CardContent>
+        </Card>
+
+        {/* Posts Grid Card */}
+        <Card className="bg-white border-0 shadow-xl">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-xl font-bold text-gray-800">Your Posts</h3>
+              <Badge className="bg-gradient-to-r from-blue-100 to-indigo-100 text-blue-800 border-0">
+                {posts.length} posts
+              </Badge>
+            </div>
+            <div className="grid grid-cols-3 gap-2">
+              {posts.map((post, index) => (
+                <div 
+                  key={index} 
+                  className="aspect-square cursor-pointer hover:opacity-90 transition-all duration-300 rounded-lg overflow-hidden shadow-md hover:shadow-lg transform hover:scale-105"
+                  onClick={() => handlePostClick(post)}
+                >
+                  <img 
+                    src={post} 
+                    alt={`Post ${index + 1}`}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Modals */}

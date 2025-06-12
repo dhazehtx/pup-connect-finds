@@ -13,24 +13,24 @@ interface ProfileStatsProps {
 
 const ProfileStats = ({ stats, onFollowersClick, onFollowingClick }: ProfileStatsProps) => {
   return (
-    <div className="flex justify-around py-4 border-y border-border/40">
+    <div className="flex justify-around py-2">
       <div className="text-center">
-        <div className="font-semibold text-lg text-foreground">{stats.posts}</div>
-        <div className="text-sm text-muted-foreground">Posts</div>
+        <div className="font-bold text-xl text-gray-800">{stats.posts}</div>
+        <div className="text-sm text-gray-600 font-medium">Posts</div>
       </div>
       <div 
-        className="text-center cursor-pointer hover:opacity-75 transition-opacity"
+        className="text-center cursor-pointer hover:opacity-75 transition-all duration-300 transform hover:scale-105"
         onClick={onFollowersClick}
       >
-        <div className="font-semibold text-lg text-foreground">{stats.followers.toLocaleString()}</div>
-        <div className="text-sm text-muted-foreground">Followers</div>
+        <div className="font-bold text-xl text-gray-800">{stats.followers.toLocaleString()}</div>
+        <div className="text-sm text-gray-600 font-medium">Followers</div>
       </div>
       <div 
-        className="text-center cursor-pointer hover:opacity-75 transition-opacity"
+        className="text-center cursor-pointer hover:opacity-75 transition-all duration-300 transform hover:scale-105"
         onClick={onFollowingClick}
       >
-        <div className="font-semibold text-lg text-foreground">{stats.following}</div>
-        <div className="text-sm text-muted-foreground">Following</div>
+        <div className="font-bold text-xl text-gray-800">{stats.following}</div>
+        <div className="text-sm text-gray-600 font-medium">Following</div>
       </div>
     </div>
   );

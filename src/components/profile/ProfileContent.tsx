@@ -155,18 +155,18 @@ const ProfileContent = ({
   } : undefined;
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Mobile Header - Instagram style */}
-      <div className="sticky top-0 z-40 bg-background/95 backdrop-blur-md border-b border-border/40">
-        <div className="max-w-md mx-auto px-4 py-3">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
+      {/* Mobile Header - Enhanced with gradient */}
+      <div className="sticky top-0 z-40 bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-700 backdrop-blur-md shadow-lg">
+        <div className="max-w-md mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2">
-              <h1 className="text-xl font-semibold text-foreground">
+            <div className="flex items-center space-x-3">
+              <h1 className="text-xl font-bold text-white">
                 @{displayProfile.username}
               </h1>
               {displayProfile.verified && (
-                <div className="w-4 h-4 bg-gradient-to-br from-royal-blue to-primary rounded-full flex items-center justify-center">
-                  <Sparkles className="w-2.5 h-2.5 text-white" />
+                <div className="w-5 h-5 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center shadow-md">
+                  <Sparkles className="w-3 h-3 text-white" />
                 </div>
               )}
             </div>
@@ -174,7 +174,7 @@ const ProfileContent = ({
               <Button 
                 variant="ghost"
                 size="sm"
-                className="text-royal-blue hover:bg-royal-blue/10"
+                className="text-white hover:bg-white/20 transition-all duration-300"
                 onClick={() => setIsEditDialogOpen(true)}
               >
                 <Settings size={20} />
@@ -185,123 +185,149 @@ const ProfileContent = ({
       </div>
 
       <div className="max-w-md mx-auto">
-        {/* Guest Welcome Card */}
+        {/* Guest Welcome Card - Enhanced with gradient */}
         {isGuestUser && (
-          <div className="mx-4 mt-4 mb-6">
-            <Card className="bg-gradient-to-br from-royal-blue/5 via-soft-sky/10 to-white border-royal-blue/20 shadow-sm">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-10 h-10 bg-gradient-to-br from-royal-blue to-primary rounded-xl flex items-center justify-center">
-                    <UserPlus className="w-5 h-5 text-white" />
+          <div className="mx-4 mt-6 mb-6">
+            <Card className="bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-700 border-0 shadow-xl">
+              <CardContent className="p-6">
+                <div className="flex items-center gap-4 mb-4">
+                  <div className="w-12 h-12 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-2xl flex items-center justify-center shadow-lg">
+                    <UserPlus className="w-6 h-6 text-white" />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-foreground">Welcome to MY PUP!</h3>
-                    <p className="text-sm text-muted-foreground">Connect with verified breeders</p>
+                    <h3 className="font-bold text-white text-lg">Welcome to MY PUP!</h3>
+                    <p className="text-blue-100">Connect with verified breeders worldwide</p>
                   </div>
                 </div>
                 <Button 
                   onClick={() => navigate('/auth')} 
-                  className="w-full bg-gradient-to-r from-royal-blue to-primary hover:from-royal-blue/90 hover:to-primary/90 text-white h-9"
+                  className="w-full bg-gradient-to-r from-yellow-400 to-orange-500 hover:from-yellow-500 hover:to-orange-600 text-white font-semibold h-11 shadow-lg transform hover:scale-105 transition-all duration-300"
                   size="sm"
                 >
-                  <Sparkles className="w-4 h-4 mr-2" />
-                  Join MY PUP
+                  <Sparkles className="w-5 h-5 mr-2" />
+                  Join MY PUP Today
                 </Button>
               </CardContent>
             </Card>
           </div>
         )}
 
-        {/* Profile Completion Guide */}
+        {/* Profile Completion Guide - Enhanced */}
         {isOwnProfile && user && showCompletionGuide && (
-          <div className="mx-4 mt-4 mb-6">
-            <ProfileCompletionGuideEnhanced
-              profile={{
-                full_name: displayProfile.full_name,
-                username: displayProfile.username,
-                bio: displayProfile.bio,
-                location: displayProfile.location,
-                phone: displayProfile.phone,
-                website_url: displayProfile.website_url,
-                avatar_url: displayProfile.avatar_url,
-                verified: displayProfile.verified,
-                trust_score: displayProfile.trust_score,
-                profile_completion_percentage: 85,
-                specializations: displayProfile.specializations
-              }}
-              onStepClick={handleStepClick}
-              onDismiss={() => setShowCompletionGuide(false)}
-            />
+          <div className="mx-4 mt-6 mb-6">
+            <Card className="bg-gradient-to-r from-emerald-500 to-blue-600 border-0 shadow-xl">
+              <CardContent className="p-1">
+                <div className="bg-white rounded-lg p-4">
+                  <ProfileCompletionGuideEnhanced
+                    profile={{
+                      full_name: displayProfile.full_name,
+                      username: displayProfile.username,
+                      bio: displayProfile.bio,
+                      location: displayProfile.location,
+                      phone: displayProfile.phone,
+                      website_url: displayProfile.website_url,
+                      avatar_url: displayProfile.avatar_url,
+                      verified: displayProfile.verified,
+                      trust_score: displayProfile.trust_score,
+                      profile_completion_percentage: 85,
+                      specializations: displayProfile.specializations
+                    }}
+                    onStepClick={handleStepClick}
+                    onDismiss={() => setShowCompletionGuide(false)}
+                  />
+                </div>
+              </CardContent>
+            </Card>
           </div>
         )}
 
-        {/* Premium Features Card - Instagram story style */}
+        {/* Premium Features Card - Enhanced */}
         {isOwnProfile && user && (
           <div className="mx-4 mb-6">
-            <Card className="bg-gradient-to-r from-royal-blue/5 to-primary/5 border-royal-blue/20">
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center gap-2">
-                    <Crown className="w-5 h-5 text-royal-blue" />
-                    <span className="font-semibold text-foreground">Premium Features</span>
+            <Card className="bg-gradient-to-r from-purple-600 via-pink-600 to-red-500 border-0 shadow-xl">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-3">
+                    <Crown className="w-6 h-6 text-yellow-300" />
+                    <span className="font-bold text-white text-lg">Premium Features</span>
                   </div>
                   <Button
                     size="sm"
-                    className="bg-gradient-to-r from-royal-blue to-primary text-white h-8 px-3 text-xs"
+                    className="bg-white text-purple-600 hover:bg-gray-100 font-semibold h-9 px-4 shadow-md transform hover:scale-105 transition-all duration-300"
                     onClick={() => navigate('/monetization')}
                   >
-                    Explore
+                    Upgrade
                   </Button>
                 </div>
-                <p className="text-sm text-muted-foreground">
-                  Unlock professional tools and priority placement
+                <p className="text-purple-100">
+                  Unlock advanced analytics, priority support, and exclusive features
                 </p>
               </CardContent>
             </Card>
           </div>
         )}
 
-        {/* Main Profile Section - Instagram style */}
+        {/* Main Profile Section - Enhanced with cards */}
         <div className="px-4 pb-6">
-          <div className="bg-background">
+          <div className="bg-white rounded-2xl shadow-xl border-0 p-6 mb-6">
             <ProfileHeaderWithPresence profile={displayProfile} />
           </div>
           
-          {/* Badges Section */}
-          <div className="mt-4">
-            <ProfileBadges 
-              verificationBadges={allVerificationBadges}
-              specializations={displayProfile.specializations}
-              certifications={displayProfile.certifications}
-            />
+          {/* Badges Section - Enhanced card */}
+          <div className="mb-6">
+            <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200 shadow-lg">
+              <CardContent className="p-4">
+                <ProfileBadges 
+                  verificationBadges={allVerificationBadges}
+                  specializations={displayProfile.specializations}
+                  certifications={displayProfile.certifications}
+                />
+              </CardContent>
+            </Card>
           </div>
 
-          {/* Actions Section */}
-          <div className="mt-4">
-            <ProfileActions 
-              profile={profileForActions}
-              isOwnProfile={isOwnProfile}
-            />
+          {/* Actions Section - Enhanced */}
+          <div className="mb-6">
+            <Card className="bg-white border-0 shadow-lg">
+              <CardContent className="p-4">
+                <ProfileActions 
+                  profile={profileForActions}
+                  isOwnProfile={isOwnProfile}
+                />
+              </CardContent>
+            </Card>
           </div>
 
-          {/* Online Users Section */}
+          {/* Online Users Section - Enhanced */}
           {user && (
-            <div className="mt-6">
-              <OnlineUsersList variant="compact" maxVisible={3} />
+            <div className="mb-6">
+              <Card className="bg-gradient-to-r from-green-50 to-emerald-50 border-green-200 shadow-lg">
+                <CardContent className="p-4">
+                  <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
+                    <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
+                    Active Members
+                  </h3>
+                  <OnlineUsersList variant="compact" maxVisible={3} />
+                </CardContent>
+              </Card>
             </div>
           )}
 
-          {/* Highlights Section - Instagram style */}
-          <div className="mt-6">
-            <ProfileHighlights 
-              highlights={highlights} 
-              isOwnProfile={isOwnProfile}
-            />
+          {/* Highlights Section - Enhanced */}
+          <div className="mb-6">
+            <Card className="bg-white border-0 shadow-lg">
+              <CardContent className="p-4">
+                <ProfileHighlights 
+                  highlights={highlights} 
+                  isOwnProfile={isOwnProfile}
+                />
+              </CardContent>
+            </Card>
           </div>
 
-          {/* Tabs Section - Instagram style */}
-          <div className="mt-6 -mx-4">
-            <div className="bg-background border-t border-border/40">
+          {/* Tabs Section - Enhanced */}
+          <div className="-mx-4">
+            <div className="bg-white shadow-xl">
               <ProfileTabs 
                 activeTab={activeTab}
                 setActiveTab={setActiveTab}
