@@ -4,13 +4,12 @@ import { sampleUsers } from '@/data/sampleUsers';
 import { sampleDogListings } from '@/data/sampleDogListings';
 import { sampleReviews } from '@/data/sampleReviews';
 import { sampleConversations, sampleMessages } from '@/data/sampleConversations';
-import { sampleListings } from '@/data/sampleListings';
 
 export const loadSampleData = async () => {
   try {
-    console.log('Loading sample data...');
+    console.log('Loading comprehensive sample data...');
 
-    // Load sample profiles (users)
+    // Load sample profiles (users) first
     const { error: profilesError } = await supabase
       .from('profiles')
       .upsert(sampleUsers, { onConflict: 'id' });
@@ -60,8 +59,14 @@ export const loadSampleData = async () => {
       return false;
     }
 
-    console.log('Sample data loaded successfully!');
-    console.log(`Loaded ${sampleListings.length} sample listings from sampleListings.ts`);
+    console.log('All sample data loaded successfully!');
+    console.log(`Loaded:
+    - ${sampleUsers.length} users
+    - ${sampleDogListings.length} dog listings  
+    - ${sampleReviews.length} reviews
+    - ${sampleConversations.length} conversations
+    - ${sampleMessages.length} messages`);
+    
     return true;
   } catch (error) {
     console.error('Error loading sample data:', error);

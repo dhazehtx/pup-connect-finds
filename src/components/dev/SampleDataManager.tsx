@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import RippleButton from '@/components/ui/ripple-button';
 import { useToast } from '@/hooks/use-toast';
 import { loadSampleData, clearSampleData } from '@/utils/sampleDataLoader';
-import { Database, Trash2, Users, Heart, MessageCircle, Star } from 'lucide-react';
+import { Database, Trash2, Users, Heart, MessageCircle, Star, RefreshCw } from 'lucide-react';
 
 const SampleDataManager = () => {
   const [loading, setLoading] = useState(false);
@@ -16,13 +16,13 @@ const SampleDataManager = () => {
       const success = await loadSampleData();
       if (success) {
         toast({
-          title: "Sample Data Loaded",
-          description: "All sample data has been loaded successfully!",
+          title: "Demo Data Loaded Successfully! 🎉",
+          description: "All demo listings, posts, messages, and profiles are now available. Navigate to different pages to see the data.",
         });
       } else {
         toast({
           title: "Error",
-          description: "Failed to load sample data. Check console for details.",
+          description: "Failed to load demo data. Check console for details.",
           variant: "destructive",
         });
       }
@@ -43,13 +43,13 @@ const SampleDataManager = () => {
       const success = await clearSampleData();
       if (success) {
         toast({
-          title: "Sample Data Cleared",
-          description: "All sample data has been removed successfully!",
+          title: "Demo Data Cleared",
+          description: "All demo data has been removed successfully!",
         });
       } else {
         toast({
           title: "Error",
-          description: "Failed to clear sample data. Check console for details.",
+          description: "Failed to clear demo data. Check console for details.",
           variant: "destructive",
         });
       }
@@ -69,22 +69,22 @@ const SampleDataManager = () => {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Database className="w-5 h-5" />
-          Sample Data Manager
+          Demo Data Manager
         </CardTitle>
         <p className="text-sm text-muted-foreground">
-          Load or clear sample data for testing the application
+          Load comprehensive demo data for Home, Explore, Messages, and Profile pages
         </p>
       </CardHeader>
       <CardContent className="space-y-6">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
           <div className="space-y-2">
             <Users className="w-8 h-8 mx-auto text-blue-500" />
-            <div className="text-sm font-medium">4 Users</div>
-            <div className="text-xs text-muted-foreground">Breeders & Buyers</div>
+            <div className="text-sm font-medium">6 Users</div>
+            <div className="text-xs text-muted-foreground">Breeders & Profiles</div>
           </div>
           <div className="space-y-2">
             <Heart className="w-8 h-8 mx-auto text-red-500" />
-            <div className="text-sm font-medium">12 Listings</div>
+            <div className="text-sm font-medium">6 Listings</div>
             <div className="text-xs text-muted-foreground">Dog Listings</div>
           </div>
           <div className="space-y-2">
@@ -107,13 +107,13 @@ const SampleDataManager = () => {
           >
             {loading ? (
               <>
-                <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2" />
-                Loading...
+                <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                Loading Demo Data...
               </>
             ) : (
               <>
                 <Database className="w-4 h-4 mr-2" />
-                Load Sample Data
+                Load Demo Data
               </>
             )}
           </RippleButton>
@@ -126,22 +126,26 @@ const SampleDataManager = () => {
           >
             {loading ? (
               <>
-                <div className="animate-spin rounded-full h-4 w-4 border-2 border-red-500 border-t-transparent mr-2" />
+                <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
                 Clearing...
               </>
             ) : (
               <>
                 <Trash2 className="w-4 h-4 mr-2" />
-                Clear Sample Data
+                Clear Demo Data
               </>
             )}
           </RippleButton>
         </div>
 
         <div className="text-xs text-muted-foreground bg-gray-50 p-3 rounded-lg">
-          <strong>Note:</strong> This manager is for development and testing purposes only. 
-          It loads realistic sample data to help you test all the app features including 
-          search, messaging, reviews, and user profiles. The explore page now shows 12 sample listings.
+          <strong>What gets loaded:</strong>
+          <ul className="mt-2 space-y-1">
+            <li>• <strong>Home Page:</strong> Social media posts with likes, comments, and interactions</li>
+            <li>• <strong>Explore Page:</strong> Dog listings with breeders, prices, and locations</li>
+            <li>• <strong>Messages Page:</strong> Sample conversations between buyers and sellers</li>
+            <li>• <strong>Profile Page:</strong> User profiles with ratings, reviews, and verification status</li>
+          </ul>
         </div>
       </CardContent>
     </Card>
