@@ -1,173 +1,114 @@
 
-import React from 'react';
-import { Book, MessageCircle, Shield, Users, Search, Phone, Mail, Clock } from 'lucide-react';
+import React, { useState } from 'react';
+import { Search, BookOpen, MessageCircle, Phone, Mail, HelpCircle, Users, Shield, CreditCard, Settings } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 
 const HelpCenter = () => {
+  const [searchTerm, setSearchTerm] = useState('');
   const navigate = useNavigate();
 
   const helpCategories = [
     {
       id: 'getting-started',
       title: 'Getting Started',
+      icon: <BookOpen className="w-6 h-6" />,
       description: 'Learn the basics of using MY PUP',
-      icon: <Book className="w-8 h-8" />,
-      color: 'bg-royal-blue/10 border-royal-blue',
-      articles: [
-        'How to create an account',
-        'Setting up your profile',
-        'Finding your first puppy',
-        'Understanding our verification process'
-      ],
-      action: () => navigate('/help/getting-started')
+      articles: 5,
+      color: 'bg-blue-500'
     },
     {
-      id: 'buying-guide',
-      title: 'Buying Guide',
-      description: 'Everything you need to know about buying a puppy',
-      icon: <Users className="w-8 h-8" />,
-      color: 'bg-royal-blue/10 border-royal-blue',
-      articles: [
-        'How to choose the right breed',
-        'Questions to ask breeders',
-        'Health certificates and documentation',
-        'Safe payment methods'
-      ],
-      action: () => navigate('/help/buying-guide')
+      id: 'buying-selling',
+      title: 'Buying & Selling',
+      icon: <CreditCard className="w-6 h-6" />,
+      description: 'Complete transactions safely',
+      articles: 8,
+      color: 'bg-green-500'
+    },
+    {
+      id: 'account-settings',
+      title: 'Account & Settings',
+      icon: <Settings className="w-6 h-6" />,
+      description: 'Manage your profile and preferences',
+      articles: 6,
+      color: 'bg-purple-500'
     },
     {
       id: 'safety-trust',
       title: 'Safety & Trust',
-      description: 'Stay safe while using our platform',
-      icon: <Shield className="w-8 h-8" />,
-      color: 'bg-royal-blue/10 border-royal-blue',
-      articles: [
-        'Recognizing trusted breeders',
-        'Avoiding scams and fraud',
-        'Reporting suspicious activity',
-        'Our safety guidelines'
-      ],
-      action: () => navigate('/help/safety-trust')
+      icon: <Shield className="w-6 h-6" />,
+      description: 'Stay safe on our platform',
+      articles: 4,
+      color: 'bg-red-500'
     },
     {
-      id: 'selling-breeding',
-      title: 'Selling & Breeding',
-      description: 'Resources for breeders and sellers',
-      icon: <MessageCircle className="w-8 h-8" />,
-      color: 'bg-royal-blue/10 border-royal-blue',
-      articles: [
-        'Creating effective listings',
-        'Breeder verification process',
-        'Managing inquiries and messages',
-        'Best practices for responsible breeding'
-      ],
-      action: () => navigate('/help/selling-breeding')
+      id: 'community',
+      title: 'Community Guidelines',
+      icon: <Users className="w-6 h-6" />,
+      description: 'How to be a good community member',
+      articles: 3,
+      color: 'bg-yellow-500'
+    },
+    {
+      id: 'troubleshooting',
+      title: 'Troubleshooting',
+      icon: <HelpCircle className="w-6 h-6" />,
+      description: 'Fix common issues',
+      articles: 7,
+      color: 'bg-gray-500'
     }
   ];
 
-  const quickActions = [
-    {
-      title: 'Live Chat',
-      description: 'Chat with our support team',
-      icon: <MessageCircle className="w-6 h-6" />,
-      action: () => console.log('Start live chat'),
-      available: '24/7'
-    },
-    {
-      title: 'Phone Support',
-      description: 'Call us for immediate help',
-      icon: <Phone className="w-6 h-6" />,
-      action: () => window.open('tel:1-800-MY-PUPPY'),
-      available: 'Mon-Fri 9AM-8PM EST'
-    },
-    {
-      title: 'Email Support',
-      description: 'Send us a detailed message',
-      icon: <Mail className="w-6 h-6" />,
-      action: () => navigate('/contact'),
-      available: 'Usually responds within 2 hours'
-    }
+  const popularArticles = [
+    'How to create your first listing',
+    'Verifying your breeder credentials',
+    'Safe payment methods',
+    'How to contact sellers',
+    'Understanding our verification process',
+    'Reporting suspicious activity'
   ];
 
   return (
     <div className="min-h-screen bg-cloud-white">
       {/* Header */}
       <div className="bg-gradient-to-r from-royal-blue to-deep-navy text-cloud-white py-12">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h1 className="text-4xl font-bold mb-4">Help Center</h1>
-          <p className="text-xl opacity-90 mb-8">Find answers, guides, and support for all your MY PUP needs</p>
+          <p className="text-xl opacity-90 mb-8">How can we help you today?</p>
           
           {/* Search */}
-          <div className="max-w-md mx-auto">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-cloud-white/60" size={20} />
-              <Input
-                placeholder="Search help articles..."
-                className="pl-10 bg-white text-black"
-              />
-            </div>
+          <div className="max-w-2xl mx-auto relative">
+            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+            <Input
+              placeholder="Search for help articles..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-12 py-3 text-lg bg-white text-black"
+            />
           </div>
         </div>
       </div>
 
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        {/* Quick Actions */}
-        <div className="mb-12">
-          <h2 className="text-2xl font-bold text-black mb-6">Get Quick Help</h2>
-          <div className="grid md:grid-cols-3 gap-6">
-            {quickActions.map((action, index) => (
-              <Card key={index} className="border-royal-blue hover:shadow-lg transition-shadow cursor-pointer" onClick={action.action}>
-                <CardContent className="p-6">
-                  <div className="flex items-center gap-4 mb-3">
-                    <div className="text-royal-blue">{action.icon}</div>
-                    <div>
-                      <h3 className="font-semibold text-black">{action.title}</h3>
-                      <p className="text-sm text-black/70">{action.description}</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2 text-xs text-black/60">
-                    <Clock size={12} />
-                    <span>{action.available}</span>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-
         {/* Help Categories */}
         <div className="mb-12">
-          <h2 className="text-2xl font-bold text-black mb-6">Browse Help Topics</h2>
-          <div className="grid md:grid-cols-2 gap-6">
+          <h2 className="text-2xl font-bold text-black mb-6">Browse by Category</h2>
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {helpCategories.map((category) => (
-              <Card key={category.id} className={`${category.color} hover:shadow-lg transition-shadow cursor-pointer`} onClick={category.action}>
+              <Card key={category.id} className="border-royal-blue hover:shadow-lg transition-shadow cursor-pointer">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-3 text-black">
-                    <div className="text-royal-blue">{category.icon}</div>
-                    <div>
-                      <h3>{category.title}</h3>
-                      <p className="text-sm font-normal text-black/70 mt-1">{category.description}</p>
+                    <div className={`${category.color} text-white p-2 rounded-lg`}>
+                      {category.icon}
                     </div>
+                    {category.title}
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <ul className="space-y-2">
-                    {category.articles.map((article, index) => (
-                      <li key={index} className="text-sm text-black/70 flex items-center">
-                        <span className="w-1.5 h-1.5 bg-royal-blue rounded-full mr-3"></span>
-                        {article}
-                      </li>
-                    ))}
-                  </ul>
-                  <Button 
-                    variant="outline" 
-                    className="w-full mt-4 border-royal-blue text-black hover:bg-royal-blue/20"
-                  >
-                    View All Articles
-                  </Button>
+                  <p className="text-black/70 mb-2">{category.description}</p>
+                  <p className="text-sm text-royal-blue font-medium">{category.articles} articles</p>
                 </CardContent>
               </Card>
             ))}
@@ -177,24 +118,11 @@ const HelpCenter = () => {
         {/* Popular Articles */}
         <div className="mb-12">
           <h2 className="text-2xl font-bold text-black mb-6">Popular Articles</h2>
-          <div className="grid md:grid-cols-3 gap-6">
-            {[
-              { title: 'How to verify a breeder', category: 'Safety', readTime: '5 min read' },
-              { title: 'Understanding puppy health certificates', category: 'Buying Guide', readTime: '7 min read' },
-              { title: 'Creating your first listing', category: 'Selling', readTime: '4 min read' },
-              { title: 'Safe payment methods', category: 'Safety', readTime: '6 min read' },
-              { title: 'Choosing the right breed', category: 'Buying Guide', readTime: '10 min read' },
-              { title: 'Communication best practices', category: 'General', readTime: '3 min read' }
-            ].map((article, index) => (
-              <Card key={index} className="border-royal-blue hover:shadow-md transition-shadow cursor-pointer">
-                <CardContent className="p-6">
-                  <h3 className="font-semibold text-black mb-2">{article.title}</h3>
-                  <div className="flex items-center justify-between text-sm text-black/60">
-                    <span className="bg-royal-blue/10 text-royal-blue px-2 py-1 rounded-full text-xs">
-                      {article.category}
-                    </span>
-                    <span>{article.readTime}</span>
-                  </div>
+          <div className="grid md:grid-cols-2 gap-4">
+            {popularArticles.map((article, index) => (
+              <Card key={index} className="border-royal-blue hover:bg-royal-blue/5 transition-colors cursor-pointer">
+                <CardContent className="p-4">
+                  <p className="text-black font-medium">{article}</p>
                 </CardContent>
               </Card>
             ))}
@@ -204,23 +132,31 @@ const HelpCenter = () => {
         {/* Contact Support */}
         <Card className="border-royal-blue bg-royal-blue/5">
           <CardContent className="p-8 text-center">
-            <h3 className="text-xl font-bold text-black mb-4">Still need help?</h3>
+            <h3 className="text-2xl font-bold text-black mb-4">Still Need Help?</h3>
             <p className="text-black/70 mb-6">
-              Our support team is standing by to help you with any questions or concerns.
+              Can't find what you're looking for? Our support team is here to help.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <div className="grid md:grid-cols-3 gap-4">
               <Button 
                 onClick={() => navigate('/contact')}
                 className="bg-royal-blue text-white hover:bg-royal-blue/90"
               >
-                Contact Support
+                <Mail className="mr-2" size={16} />
+                Email Support
               </Button>
               <Button 
-                variant="outline" 
-                onClick={() => navigate('/faq')}
+                variant="outline"
                 className="border-royal-blue text-black hover:bg-royal-blue/20"
               >
-                View FAQ
+                <MessageCircle className="mr-2" size={16} />
+                Live Chat
+              </Button>
+              <Button 
+                variant="outline"
+                className="border-royal-blue text-black hover:bg-royal-blue/20"
+              >
+                <Phone className="mr-2" size={16} />
+                Call Support
               </Button>
             </div>
           </CardContent>

@@ -11,6 +11,15 @@ import Messages from './Messages';
 import Profile from './Profile';
 import Settings from './Settings';
 import Notifications from './Notifications';
+import Education from './Education';
+import Legal from './Legal';
+import FAQ from './FAQ';
+import TermsOfService from './TermsOfService';
+import PrivacyPolicy from './PrivacyPolicy';
+import HelpCenter from './HelpCenter';
+import Contact from './Contact';
+import CustomerReviews from './CustomerReviews';
+import TrustSafety from './TrustSafety';
 
 const Index = () => {
   const { user, loading, isGuest } = useAuth();
@@ -37,6 +46,15 @@ const Index = () => {
         <Route path="/profile" element={<Profile />} />
         <Route path="/settings" element={<Settings />} />
         <Route path="/notifications" element={<Notifications />} />
+        <Route path="/education" element={<Education />} />
+        <Route path="/legal" element={<Legal />} />
+        <Route path="/faq" element={<FAQ />} />
+        <Route path="/terms" element={<TermsOfService />} />
+        <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+        <Route path="/help-center" element={<HelpCenter />} />
+        <Route path="/contact" element={<Contact />} />
+        <Route path="/customer-reviews" element={<CustomerReviews />} />
+        <Route path="/trust-safety" element={<TrustSafety />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Layout>

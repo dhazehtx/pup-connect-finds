@@ -1,6 +1,7 @@
 
 import React from 'react';
 import Header from './Header';
+import Footer from './Footer';
 import BottomNavigation from './BottomNavigation';
 import MobileTabBar from './mobile/MobileTabBar';
 import { useMobileOptimized } from '@/hooks/useMobileOptimized';
@@ -24,8 +25,8 @@ const Layout = ({ children }: LayoutProps) => {
         {children}
       </main>
 
-      {/* Bottom Navigation */}
-      {isMobile ? <MobileTabBar /> : <BottomNavigation />}
+      {/* Footer for desktop, bottom nav for mobile */}
+      {isMobile ? <MobileTabBar /> : <Footer />}
     </div>
   );
 };

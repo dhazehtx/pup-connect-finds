@@ -1,9 +1,8 @@
 
 import React from 'react';
-import { Shield, Eye, AlertTriangle, CheckCircle, Flag, Phone, Mail } from 'lucide-react';
+import { Shield, CheckCircle, AlertTriangle, Lock, Eye, Users, Phone, Flag } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { useNavigate } from 'react-router-dom';
 
 const TrustSafety = () => {
@@ -11,28 +10,28 @@ const TrustSafety = () => {
 
   const safetyFeatures = [
     {
-      icon: <CheckCircle className="w-6 h-6" />,
+      icon: <Shield className="w-8 h-8" />,
       title: 'Verified Breeders',
-      description: 'All breeders undergo thorough verification including identity confirmation, facility inspection, and reference checks.',
-      status: 'Active'
+      description: 'All breeders undergo thorough verification including identity, location, and credential checks.',
+      color: 'bg-green-500'
     },
     {
-      icon: <Shield className="w-6 h-6" />,
+      icon: <Lock className="w-8 h-8" />,
       title: 'Secure Payments',
-      description: 'Protected payment processing with escrow services to ensure safe transactions for both buyers and sellers.',
-      status: 'Active'
+      description: 'Protected payment processing with escrow services and fraud protection.',
+      color: 'bg-blue-500'
     },
     {
-      icon: <Eye className="w-6 h-6" />,
-      title: 'Review System',
-      description: 'Transparent review system allowing buyers to share experiences and help others make informed decisions.',
-      status: 'Active'
+      icon: <Eye className="w-8 h-8" />,
+      title: 'Listing Monitoring',
+      description: 'AI-powered monitoring of all listings for suspicious activity and policy violations.',
+      color: 'bg-purple-500'
     },
     {
-      icon: <AlertTriangle className="w-6 h-6" />,
-      title: 'Fraud Detection',
-      description: 'Advanced monitoring systems to detect and prevent fraudulent activity and protect our community.',
-      status: 'Active'
+      icon: <Users className="w-8 h-8" />,
+      title: 'Community Reporting',
+      description: 'Easy reporting tools for community members to flag concerning behavior.',
+      color: 'bg-red-500'
     }
   ];
 
@@ -40,58 +39,40 @@ const TrustSafety = () => {
     {
       category: 'Before You Buy',
       tips: [
-        'Always verify the breeder\'s credentials and certifications',
-        'Ask for health certificates and vaccination records',
-        'Request to see the puppy\'s parents if possible',
-        'Research the breed and understand their specific needs',
-        'Check reviews and ratings from other buyers'
+        'Always verify the breeder is verified on our platform',
+        'Ask to see health certificates and vaccination records',
+        'Request to video call or visit the breeder if possible',
+        'Research the breed and typical pricing',
+        'Read reviews from other buyers'
       ]
     },
     {
-      category: 'During Communication',
-      tips: [
-        'Keep all communications within the MY PUP platform',
-        'Be wary of sellers who ask for immediate payment',
-        'Ask detailed questions about the puppy\'s health and history',
-        'Request additional photos and videos',
-        'Arrange to meet the puppy in person when possible'
-      ]
-    },
-    {
-      category: 'Payment Safety',
+      category: 'During the Transaction',
       tips: [
         'Use only our secure payment system',
-        'Never send money through wire transfers or cryptocurrency',
-        'Be cautious of deals that seem too good to be true',
-        'Understand our refund and dispute resolution process',
-        'Keep records of all communications and transactions'
+        'Never send money outside the platform',
+        'Keep all communication within our messaging system',
+        'Document all agreements in writing',
+        'Report any red flags immediately'
       ]
     },
     {
-      category: 'Red Flags',
+      category: 'Red Flags to Watch For',
       tips: [
-        'Seller refuses video calls or in-person meetings',
-        'Pressures you to make immediate decisions',
         'Prices significantly below market value',
-        'Unable to provide proper documentation',
-        'Requests payment outside our platform'
+        'Pressure to pay immediately or outside the platform',
+        'Refusal to provide health documentation',
+        'No verification badge on breeder profile',
+        'Poor communication or evasive answers'
       ]
     }
-  ];
-
-  const reportTypes = [
-    { type: 'Fraud', description: 'Suspicious or fraudulent activity' },
-    { type: 'Scam', description: 'Attempts to deceive or steal money' },
-    { type: 'Fake Listing', description: 'Misleading or false information' },
-    { type: 'Harassment', description: 'Inappropriate or threatening behavior' },
-    { type: 'Safety Concern', description: 'Animal welfare or safety issues' }
   ];
 
   return (
     <div className="min-h-screen bg-cloud-white">
       {/* Header */}
       <div className="bg-gradient-to-r from-royal-blue to-deep-navy text-cloud-white py-12">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <div className="flex items-center justify-center gap-3 mb-4">
             <Shield className="w-8 h-8" />
             <h1 className="text-4xl font-bold">Trust & Safety</h1>
@@ -103,23 +84,16 @@ const TrustSafety = () => {
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {/* Safety Features */}
         <div className="mb-12">
-          <h2 className="text-2xl font-bold text-black mb-6">Our Safety Features</h2>
-          <div className="grid md:grid-cols-2 gap-6">
+          <h2 className="text-3xl font-bold text-black text-center mb-8">How We Keep You Safe</h2>
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
             {safetyFeatures.map((feature, index) => (
-              <Card key={index} className="border-royal-blue">
+              <Card key={index} className="border-royal-blue text-center">
                 <CardContent className="p-6">
-                  <div className="flex items-start gap-4">
-                    <div className="text-royal-blue">{feature.icon}</div>
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-2">
-                        <h3 className="font-semibold text-black">{feature.title}</h3>
-                        <Badge className="bg-green-100 text-green-800 text-xs">
-                          {feature.status}
-                        </Badge>
-                      </div>
-                      <p className="text-black/70 text-sm">{feature.description}</p>
-                    </div>
+                  <div className={`${feature.color} text-white p-4 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center`}>
+                    {feature.icon}
                   </div>
+                  <h3 className="font-bold text-black mb-2">{feature.title}</h3>
+                  <p className="text-black/70 text-sm">{feature.description}</p>
                 </CardContent>
               </Card>
             ))}
@@ -128,19 +102,24 @@ const TrustSafety = () => {
 
         {/* Safety Tips */}
         <div className="mb-12">
-          <h2 className="text-2xl font-bold text-black mb-6">Safety Tips</h2>
-          <div className="grid md:grid-cols-2 gap-6">
+          <h2 className="text-3xl font-bold text-black text-center mb-8">Safety Tips</h2>
+          <div className="grid lg:grid-cols-3 gap-6">
             {safetyTips.map((section, index) => (
               <Card key={index} className="border-royal-blue">
                 <CardHeader>
-                  <CardTitle className="text-black">{section.category}</CardTitle>
+                  <CardTitle className="text-black flex items-center gap-2">
+                    {index === 0 && <CheckCircle className="w-5 h-5 text-green-500" />}
+                    {index === 1 && <Lock className="w-5 h-5 text-blue-500" />}
+                    {index === 2 && <AlertTriangle className="w-5 h-5 text-red-500" />}
+                    {section.category}
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <ul className="space-y-2">
                     {section.tips.map((tip, tipIndex) => (
-                      <li key={tipIndex} className="flex items-start gap-2 text-sm">
-                        <CheckCircle className="w-4 h-4 text-royal-blue flex-shrink-0 mt-0.5" />
-                        <span className="text-black/70">{tip}</span>
+                      <li key={tipIndex} className="flex items-start gap-2 text-black/70">
+                        <div className="w-1.5 h-1.5 bg-royal-blue rounded-full mt-2 flex-shrink-0" />
+                        <span className="text-sm">{tip}</span>
                       </li>
                     ))}
                   </ul>
@@ -150,122 +129,46 @@ const TrustSafety = () => {
           </div>
         </div>
 
-        {/* Report Issues */}
-        <div className="mb-12">
-          <h2 className="text-2xl font-bold text-black mb-6">Report Safety Issues</h2>
-          <div className="grid md:grid-cols-2 gap-8">
-            <Card className="border-royal-blue">
-              <CardHeader>
-                <CardTitle className="text-black flex items-center gap-3">
-                  <Flag className="w-5 h-5 text-royal-blue" />
-                  Report Types
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {reportTypes.map((report, index) => (
-                    <div key={index} className="flex items-center justify-between p-3 bg-royal-blue/5 rounded-lg">
-                      <div>
-                        <h4 className="font-medium text-black">{report.type}</h4>
-                        <p className="text-sm text-black/70">{report.description}</p>
-                      </div>
-                      <Button 
-                        size="sm" 
-                        variant="outline"
-                        className="border-royal-blue text-black hover:bg-royal-blue/20"
-                      >
-                        Report
-                      </Button>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="border-royal-blue bg-royal-blue/5">
-              <CardHeader>
-                <CardTitle className="text-black">Emergency Contact</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div>
-                    <h4 className="font-medium text-black mb-2">For Immediate Safety Concerns:</h4>
-                    <div className="space-y-2">
-                      <Button 
-                        className="w-full bg-royal-blue text-white hover:bg-royal-blue/90"
-                        onClick={() => window.open('tel:1-800-MY-PUPPY')}
-                      >
-                        <Phone className="mr-2" size={16} />
-                        Call Emergency Hotline
-                      </Button>
-                      <Button 
-                        variant="outline" 
-                        className="w-full border-royal-blue text-black hover:bg-royal-blue/20"
-                        onClick={() => window.open('mailto:emergency@mypup.com')}
-                      >
-                        <Mail className="mr-2" size={16} />
-                        Email Emergency Team
-                      </Button>
-                    </div>
-                  </div>
-                  
-                  <div className="border-t pt-4">
-                    <p className="text-sm text-black/70">
-                      Our emergency team is available 24/7 for urgent safety matters. 
-                      We respond to emergency reports immediately.
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-
-        {/* Community Guidelines */}
-        <Card className="border-royal-blue bg-royal-blue/5">
-          <CardHeader>
-            <CardTitle className="text-black flex items-center gap-3">
-              <Shield className="w-6 h-6 text-royal-blue" />
-              Community Guidelines
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid md:grid-cols-2 gap-6">
-              <div>
-                <h4 className="font-semibold text-black mb-3">We Expect All Users To:</h4>
-                <ul className="space-y-2 text-sm text-black/70">
-                  <li>• Provide accurate and truthful information</li>
-                  <li>• Treat all community members with respect</li>
-                  <li>• Follow all applicable laws and regulations</li>
-                  <li>• Report suspicious or harmful activity</li>
-                  <li>• Maintain the privacy of others</li>
-                </ul>
-              </div>
-              <div>
-                <h4 className="font-semibold text-black mb-3">We Do Not Tolerate:</h4>
-                <ul className="space-y-2 text-sm text-black/70">
-                  <li>• Fraudulent or deceptive practices</li>
-                  <li>• Harassment or threatening behavior</li>
-                  <li>• Spam or unsolicited communications</li>
-                  <li>• Violation of animal welfare standards</li>
-                  <li>• Attempts to circumvent our safety measures</li>
-                </ul>
-              </div>
+        {/* Reporting Section */}
+        <Card className="mb-8 border-royal-blue bg-royal-blue/5">
+          <CardContent className="p-8">
+            <div className="text-center">
+              <Flag className="w-12 h-12 text-royal-blue mx-auto mb-4" />
+              <h3 className="text-2xl font-bold text-black mb-4">Report Suspicious Activity</h3>
+              <p className="text-black/70 mb-6 max-w-2xl mx-auto">
+                If you encounter suspicious behavior, fraudulent listings, or safety concerns, 
+                please report it immediately. Our team investigates all reports within 24 hours.
+              </p>
+              <Button className="bg-royal-blue text-white hover:bg-royal-blue/90">
+                <Flag className="mr-2" size={16} />
+                Report an Issue
+              </Button>
             </div>
-            <div className="mt-6 pt-6 border-t">
+          </CardContent>
+        </Card>
+
+        {/* Emergency Contact */}
+        <Card className="border-royal-blue">
+          <CardContent className="p-8">
+            <div className="text-center">
+              <Phone className="w-12 h-12 text-royal-blue mx-auto mb-4" />
+              <h3 className="text-2xl font-bold text-black mb-4">Emergency Support</h3>
+              <p className="text-black/70 mb-6">
+                For urgent safety concerns or emergencies, contact our support team immediately.
+              </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Button 
                   onClick={() => navigate('/contact')}
                   className="bg-royal-blue text-white hover:bg-royal-blue/90"
                 >
-                  Contact Trust & Safety Team
+                  <Phone className="mr-2" size={16} />
+                  Call Emergency Line
                 </Button>
                 <Button 
-                  variant="outline" 
-                  onClick={() => navigate('/terms')}
+                  variant="outline"
                   className="border-royal-blue text-black hover:bg-royal-blue/20"
                 >
-                  View Community Guidelines
+                  Live Chat Support
                 </Button>
               </div>
             </div>
