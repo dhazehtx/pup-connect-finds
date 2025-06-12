@@ -1,17 +1,24 @@
 
 import React, { useState } from 'react';
-import { User, Settings, Star, MapPin, Phone, Mail, Globe, Heart, MessageCircle } from 'lucide-react';
+import { User, Settings, Star, MapPin, Phone, Mail, Globe, Heart, MessageCircle, X } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import FollowersModal from '@/components/profile/FollowersModal';
+import PostViewModal from '@/components/profile/PostViewModal';
+import LikesModal from '@/components/post/LikesModal';
 
 const SimpleProfileContent = () => {
   const { user, profile, signOut } = useAuth();
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState('posts');
+  const [showFollowersModal, setShowFollowersModal] = useState(false);
+  const [showFollowingModal, setShowFollowingModal] = useState(false);
+  const [selectedPost, setSelectedPost] = useState<string | null>(null);
+  const [showLikesModal, setShowLikesModal] = useState(false);
+  const [selectedPostLikes, setSelectedPostLikes] = useState<any[]>([]);
 
   // Demo data for guest users or fallback
   const demoProfile = {
@@ -63,17 +70,42 @@ const SimpleProfileContent = () => {
     "https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=300&h=300&fit=crop"
   ];
 
+  // Mock followers/following data
+  const mockFollowers = [
+    { id: '1', full_name: 'Sarah Johnson', username: 'sarahj', avatar_url: 'https://images.unsplash.com/photo-1494790108755-2616b612b494?w=150&h=150&fit=crop&crop=face', verified: true, user_type: 'breeder' },
+    { id: '2', full_name: 'Mike Chen', username: 'mikechen', avatar_url: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face', verified: false, user_type: 'buyer' },
+    { id: '3', full_name: 'Emma Wilson', username: 'emmaw', avatar_url: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face', verified: true, user_type: 'shelter' }
+  ];
+
+  const mockFollowing = [
+    { id: '4', full_name: 'Dog Rescue Center', username: 'dogrescue', avatar_url: 'https://images.unsplash.com/photo-1529472119196-cb724127a98e?w=150&h=150&fit=crop&crop=face', verified: true, user_type: 'shelter' },
+    { id: '5', full_name: 'Puppy Paradise', username: 'puppyparadise', avatar_url: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&h=150&fit=crop&crop=face', verified: true, user_type: 'breeder' }
+  ];
+
+  // Mock post likes data
+  const mockPostLikes = [
+    { id: '1', name: 'Sarah Johnson', username: 'sarahj', avatar: 'https://images.unsplash.com/photo-1494790108755-2616b612b494?w=150&h=150&fit=crop&crop=face', verified: true, isFollowing: false },
+    { id: '2', name: 'Mike Chen', username: 'mikechen', avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face', verified: false, isFollowing: true },
+    { id: '3', name: 'Emma Wilson', username: 'emmaw', avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face', verified: true, isFollowing: false }
+  ];
+
+  const handlePostClick = (postUrl: string) => {
+    setSelectedPost(postUrl);
+  };
+
+  const handleShowLikes = () => {
+    setSelectedPostLikes(mockPostLikes);
+    setShowLikesModal(true);
+  };
+
+  const handleProfileClick = (userId: string) => {
+    // Navigate to user profile or handle profile view
+    console.log('Navigating to profile:', userId);
+  };
+
   if (!user && !profile) {
     return (
       <div className="max-w-md mx-auto bg-background min-h-screen">
-        {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b">
-          <h1 className="text-xl font-medium">@{displayProfile.username}</h1>
-          <Button variant="outline" size="sm" onClick={() => navigate('/auth')}>
-            Sign In
-          </Button>
-        </div>
-
         {/* Profile Section */}
         <div className="p-4">
           <div className="flex items-center space-x-4 mb-4">
@@ -110,11 +142,17 @@ const SimpleProfileContent = () => {
               <div className="font-semibold">{displayProfile.stats.posts}</div>
               <div className="text-sm text-gray-600">Posts</div>
             </div>
-            <div className="text-center">
+            <div 
+              className="text-center cursor-pointer hover:opacity-75 transition-opacity"
+              onClick={() => setShowFollowersModal(true)}
+            >
               <div className="font-semibold">{displayProfile.stats.followers}</div>
               <div className="text-sm text-gray-600">Followers</div>
             </div>
-            <div className="text-center">
+            <div 
+              className="text-center cursor-pointer hover:opacity-75 transition-opacity"
+              onClick={() => setShowFollowingModal(true)}
+            >
               <div className="font-semibold">{displayProfile.stats.following}</div>
               <div className="text-sm text-gray-600">Following</div>
             </div>
@@ -166,7 +204,11 @@ const SimpleProfileContent = () => {
           {/* Posts Grid */}
           <div className="grid grid-cols-3 gap-1">
             {posts.map((post, index) => (
-              <div key={index} className="aspect-square">
+              <div 
+                key={index} 
+                className="aspect-square cursor-pointer hover:opacity-75 transition-opacity"
+                onClick={() => handlePostClick(post)}
+              >
                 <img 
                   src={post} 
                   alt={`Post ${index + 1}`}
@@ -176,6 +218,39 @@ const SimpleProfileContent = () => {
             ))}
           </div>
         </div>
+
+        {/* Modals */}
+        <FollowersModal
+          isOpen={showFollowersModal}
+          onClose={() => setShowFollowersModal(false)}
+          type="followers"
+          users={mockFollowers}
+          currentUserId={user?.id}
+        />
+        
+        <FollowersModal
+          isOpen={showFollowingModal}
+          onClose={() => setShowFollowingModal(false)}
+          type="following"
+          users={mockFollowing}
+          currentUserId={user?.id}
+        />
+
+        {selectedPost && (
+          <PostViewModal
+            isOpen={!!selectedPost}
+            onClose={() => setSelectedPost(null)}
+            postUrl={selectedPost}
+            onShowLikes={handleShowLikes}
+          />
+        )}
+
+        <LikesModal
+          isOpen={showLikesModal}
+          onClose={() => setShowLikesModal(false)}
+          likes={selectedPostLikes}
+          onProfileClick={handleProfileClick}
+        />
       </div>
     );
   }
@@ -183,19 +258,6 @@ const SimpleProfileContent = () => {
   // Authenticated user view
   return (
     <div className="max-w-md mx-auto bg-background min-h-screen">
-      {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b">
-        <h1 className="text-xl font-medium">@{displayProfile.username}</h1>
-        <div className="flex space-x-2">
-          <Button variant="outline" size="sm" onClick={() => navigate('/profile/edit')}>
-            <Settings className="w-4 h-4" />
-          </Button>
-          <Button variant="outline" size="sm" onClick={signOut}>
-            Sign Out
-          </Button>
-        </div>
-      </div>
-
       {/* Profile Section */}
       <div className="p-4">
         <div className="flex items-center space-x-4 mb-4">
@@ -232,11 +294,17 @@ const SimpleProfileContent = () => {
             <div className="font-semibold">{displayProfile.stats.posts}</div>
             <div className="text-sm text-gray-600">Posts</div>
           </div>
-          <div className="text-center">
+          <div 
+            className="text-center cursor-pointer hover:opacity-75 transition-opacity"
+            onClick={() => setShowFollowersModal(true)}
+          >
             <div className="font-semibold">{displayProfile.stats.followers}</div>
             <div className="text-sm text-gray-600">Followers</div>
           </div>
-          <div className="text-center">
+          <div 
+            className="text-center cursor-pointer hover:opacity-75 transition-opacity"
+            onClick={() => setShowFollowingModal(true)}
+          >
             <div className="font-semibold">{displayProfile.stats.following}</div>
             <div className="text-sm text-gray-600">Following</div>
           </div>
@@ -283,7 +351,11 @@ const SimpleProfileContent = () => {
         {/* Posts Grid */}
         <div className="grid grid-cols-3 gap-1">
           {posts.map((post, index) => (
-            <div key={index} className="aspect-square">
+            <div 
+              key={index} 
+              className="aspect-square cursor-pointer hover:opacity-75 transition-opacity"
+              onClick={() => handlePostClick(post)}
+            >
               <img 
                 src={post} 
                 alt={`Post ${index + 1}`}
@@ -293,6 +365,39 @@ const SimpleProfileContent = () => {
           ))}
         </div>
       </div>
+
+      {/* Modals */}
+      <FollowersModal
+        isOpen={showFollowersModal}
+        onClose={() => setShowFollowersModal(false)}
+        type="followers"
+        users={mockFollowers}
+        currentUserId={user?.id}
+      />
+      
+      <FollowersModal
+        isOpen={showFollowingModal}
+        onClose={() => setShowFollowingModal(false)}
+        type="following"
+        users={mockFollowing}
+        currentUserId={user?.id}
+      />
+
+      {selectedPost && (
+        <PostViewModal
+          isOpen={!!selectedPost}
+          onClose={() => setSelectedPost(null)}
+          postUrl={selectedPost}
+          onShowLikes={handleShowLikes}
+        />
+      )}
+
+      <LikesModal
+        isOpen={showLikesModal}
+        onClose={() => setShowLikesModal(false)}
+        likes={selectedPostLikes}
+        onProfileClick={handleProfileClick}
+      />
     </div>
   );
 };
