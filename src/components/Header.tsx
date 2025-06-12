@@ -104,22 +104,6 @@ const Header = () => {
             <span className="text-xl font-bold text-gray-900">MY PUP</span>
           </Link>
 
-          {/* Navigation Links */}
-          <nav className="hidden md:flex items-center space-x-8">
-            <Link to="/explore" className="text-gray-700 hover:text-primary transition-colors">
-              Browse
-            </Link>
-            <Link to="/education" className="text-gray-700 hover:text-primary transition-colors">
-              Education
-            </Link>
-            <Link to="/help-center" className="text-gray-700 hover:text-primary transition-colors">
-              Help
-            </Link>
-            <Link to="/trust-safety" className="text-gray-700 hover:text-primary transition-colors">
-              Safety
-            </Link>
-          </nav>
-
           {/* User Menu */}
           <div className="flex items-center space-x-4">
             {!isAuthenticated ? (
@@ -189,35 +173,6 @@ const Header = () => {
         {isMenuOpen && (
           <div className="md:hidden">
             <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 border-t border-gray-200">
-              <Link 
-                to="/explore" 
-                className="block px-3 py-2 rounded-md text-gray-700 hover:text-blue-600 hover:bg-gray-50"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                Browse
-              </Link>
-              <Link 
-                to="/education" 
-                className="block px-3 py-2 rounded-md text-gray-700 hover:text-blue-600 hover:bg-gray-50"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                Education
-              </Link>
-              <Link 
-                to="/help-center" 
-                className="block px-3 py-2 rounded-md text-gray-700 hover:text-blue-600 hover:bg-gray-50"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                Help
-              </Link>
-              <Link 
-                to="/trust-safety" 
-                className="block px-3 py-2 rounded-md text-gray-700 hover:text-blue-600 hover:bg-gray-50"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                Safety
-              </Link>
-              
               {!isAuthenticated && (
                 <div className="space-y-2 px-3 py-2">
                   <Button 

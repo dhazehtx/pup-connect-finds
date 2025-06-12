@@ -4,6 +4,7 @@ import Header from './Header';
 import Footer from './Footer';
 import BottomNavigation from './BottomNavigation';
 import MobileTabBar from './mobile/MobileTabBar';
+import StickyBottomNavigation from './StickyBottomNavigation';
 import { useMobileOptimized } from '@/hooks/useMobileOptimized';
 import { cn } from '@/lib/utils';
 
@@ -20,12 +21,15 @@ const Layout = ({ children }: LayoutProps) => {
       
       <main className={cn(
         "flex-1",
-        isMobile ? "pb-20" : "pb-16 md:pb-0"
+        isMobile ? "pb-20" : "pb-32"
       )}>
         {children}
       </main>
 
-      {/* Footer for desktop, bottom nav for mobile */}
+      {/* Add sticky bottom navigation for all screens */}
+      <StickyBottomNavigation />
+
+      {/* Footer for desktop, mobile tab bar for mobile */}
       {isMobile ? <MobileTabBar /> : <Footer />}
     </div>
   );
