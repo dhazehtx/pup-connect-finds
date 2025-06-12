@@ -68,6 +68,17 @@ const Navbar = () => {
                 >
                   Explore
                 </Link>
+                
+                {/* Post Button in Navigation */}
+                <Button
+                  onClick={handleCreatePost}
+                  className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-full flex items-center space-x-1 shadow-lg"
+                  size="sm"
+                >
+                  <Plus className="h-4 w-4" />
+                  <span className="font-medium text-xs">Post</span>
+                </Button>
+                
                 {user && (
                   <Link
                     to="/messages"
