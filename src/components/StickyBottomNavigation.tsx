@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Search, BookOpen, HelpCircle, Shield } from 'lucide-react';
+import { Home, Search, MessageCircle, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const StickyBottomNavigation = () => {
@@ -10,24 +10,24 @@ const StickyBottomNavigation = () => {
 
   const navItems = [
     {
+      icon: Home,
+      label: 'Home',
+      path: '/'
+    },
+    {
       icon: Search,
-      label: 'Browse',
+      label: 'Explore',
       path: '/explore'
     },
     {
-      icon: BookOpen,
-      label: 'Education',
-      path: '/education'
+      icon: MessageCircle,
+      label: 'Messages',
+      path: '/messages'
     },
     {
-      icon: HelpCircle,
-      label: 'Help',
-      path: '/help-center'
-    },
-    {
-      icon: Shield,
-      label: 'Safety',
-      path: '/trust-safety'
+      icon: User,
+      label: 'Profile',
+      path: '/profile'
     }
   ];
 

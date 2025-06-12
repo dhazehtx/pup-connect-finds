@@ -5,6 +5,7 @@ import { Heart, User, Menu, X, LogOut, Settings, Bell } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import { useMobileOptimized } from '@/hooks/useMobileOptimized';
+import LanguageSelector from '@/components/i18n/LanguageSelector';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -43,6 +44,8 @@ const Header = () => {
 
           {/* Right side icons */}
           <div className="flex items-center space-x-3">
+            <LanguageSelector />
+            
             {isAuthenticated && (
               <>
                 <Button variant="ghost" size="sm" asChild>
@@ -106,6 +109,8 @@ const Header = () => {
 
           {/* User Menu */}
           <div className="flex items-center space-x-4">
+            <LanguageSelector />
+            
             {!isAuthenticated ? (
               <div className="hidden md:flex items-center space-x-2">
                 <Button 

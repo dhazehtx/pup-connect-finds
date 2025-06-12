@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -9,6 +8,7 @@ import { useToast } from '@/hooks/use-toast';
 import AnimatedHeart from '@/components/ui/animated-heart';
 import CommentsSection from '@/components/post/CommentsSection';
 import LikesModal from '@/components/post/LikesModal';
+import StoriesReel from '@/components/stories/StoriesReel';
 
 interface User {
   id: string;
@@ -318,9 +318,12 @@ const Home = () => {
     }
   };
 
-  // Main social media feed layout like in the demo
+  // Main social media feed layout with stories
   return (
     <div className="max-w-md mx-auto bg-white min-h-screen">
+      {/* Stories Section */}
+      <StoriesReel />
+      
       {/* Feed */}
       <div className="space-y-0">
         {posts.map((post) => (
