@@ -61,12 +61,13 @@ const Explore = () => {
   const quickFilters = ['Under $1000', 'Puppies Only', 'Verified Only', 'Nearby (10mi)'];
 
   const handleContactSeller = async (listing: any) => {
-    if (!user) {
+    if (!user && !isGuest) {
       toast({
         title: "Sign in required",
         description: "Please sign in to contact sellers",
         variant: "destructive",
       });
+      navigate('/auth');
       return;
     }
 
@@ -77,6 +78,16 @@ const Explore = () => {
   };
 
   const toggleFavorite = (listingId: number) => {
+    if (!user && !isGuest) {
+      toast({
+        title: "Sign in required",
+        description: "Please sign in to save favorites",
+        variant: "destructive",
+      });
+      navigate('/auth');
+      return;
+    }
+
     setFavorites(prev => {
       const newFavorites = new Set(prev);
       if (newFavorites.has(listingId)) {
@@ -109,8 +120,19 @@ const Explore = () => {
           </div>
           <div className="flex items-center space-x-2">
             <span className="text-sm text-gray-600">🇺🇸 English</span>
-            <span className="text-sm text-gray-600">danieluke97</span>
-            <Button variant="outline" size="sm">auth.signOut</Button>
+            {user ? (
+              <>
+                <span className="text-sm text-gray-600">{user.email?.split('@')[0]}</span>
+                <Button variant="outline" size="sm" onClick={() => navigate('/auth')}>Sign Out</Button>
+              </>
+            ) : isGuest ? (
+              <>
+                <span className="text-sm text-gray-600">Guest User</span>
+                <Button variant="outline" size="sm" onClick={() => navigate('/auth')}>Sign In</Button>
+              </>
+            ) : (
+              <Button variant="outline" size="sm" onClick={() => navigate('/auth')}>Sign In</Button>
+            )}
           </div>
         </div>
         
