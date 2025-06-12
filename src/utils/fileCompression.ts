@@ -1,49 +1,42 @@
 
-export interface CompressionOptions {
-  maxSize?: number; // in MB
-  quality?: number; // 0-1 for images
-  maxWidth?: number;
-  maxHeight?: number;
+interface CompressionOptions {
+  maxSize: number; // in MB
+  quality?: number;
 }
 
-export const compressFile = async (
-  file: File, 
-  options: CompressionOptions = {}
-): Promise<File> => {
-  const {
-    maxSize = 10, // 10MB default
-    quality = 0.8,
-    maxWidth = 1920,
-    maxHeight = 1080
-  } = options;
+export const compressFile = async (file: File, options: CompressionOptions): Promise<File> => {
+  const { maxSize, quality = 0.8 } = options;
 
-  // If file is already small enough, return as-is
+  // If file is already small enough, return as is
   if (file.size <= maxSize * 1024 * 1024) {
     return file;
   }
 
-  // Only compress images for now
+  // Only compress images
   if (!file.type.startsWith('image/')) {
     return file;
   }
 
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
     const img = new Image();
 
     img.onload = () => {
+      // Calculate new dimensions
+      const maxDimension = 1920; // Max width or height
       let { width, height } = img;
 
-      // Calculate new dimensions
-      if (width > maxWidth) {
-        height = (height * maxWidth) / width;
-        width = maxWidth;
-      }
-      
-      if (height > maxHeight) {
-        width = (width * maxHeight) / height;
-        height = maxHeight;
+      if (width > height) {
+        if (width > maxDimension) {
+          height = (height * maxDimension) / width;
+          width = maxDimension;
+        }
+      } else {
+        if (height > maxDimension) {
+          width = (width * maxDimension) / height;
+          height = maxDimension;
+        }
       }
 
       canvas.width = width;
@@ -69,16 +62,6 @@ export const compressFile = async (
       );
     };
 
-    img.onerror = () => resolve(file);
     img.src = URL.createObjectURL(file);
   });
-};
-
-export const getCompressionEstimate = (file: File, quality: number = 0.8): number => {
-  if (!file.type.startsWith('image/')) {
-    return file.size;
-  }
-  
-  // Rough estimation based on quality
-  return Math.round(file.size * quality);
 };

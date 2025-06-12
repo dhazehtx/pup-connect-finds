@@ -1,14 +1,14 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { SupportedAudioFormat } from '@/utils/audioFormatConverter';
+import { X } from 'lucide-react';
 
 interface VoiceRecorderStatusProps {
   recordingDuration: number;
   estimatedSize: number;
   isRecording: boolean;
   uploading: boolean;
-  selectedFormat: SupportedAudioFormat;
+  selectedFormat: string;
   audioUrl: string | null;
   audioBlob: Blob | null;
   onCancel?: () => void;
@@ -30,47 +30,54 @@ const VoiceRecorderStatus = ({
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
+  const formatSize = (bytes: number) => {
+    if (bytes === 0) return '0 B';
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+  };
+
   return (
-    <>
-      <div className="text-center">
-        <h3 className="font-medium mb-2">Voice Message</h3>
-        <p className="text-lg font-mono">
-          {formatDuration(recordingDuration)}
-        </p>
-        {estimatedSize > 0 && (
-          <p className="text-xs text-muted-foreground">
-            ~{(estimatedSize / 1024).toFixed(1)}KB
-          </p>
-        )}
-      </div>
-
-      {/* Audio preview */}
-      {audioUrl && (
-        <audio controls className="w-full max-w-xs">
-          <source src={audioUrl} type={audioBlob?.type} />
-          Your browser does not support audio playback.
-        </audio>
-      )}
-
-      {/* Status indicators */}
-      <div className="text-center">
-        {isRecording && (
-          <div className="flex items-center gap-2 text-red-500">
-            <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
-            <span className="text-sm">Recording {selectedFormat.toUpperCase()}...</span>
+    <div className="text-center space-y-2">
+      <div className="flex items-center justify-between">
+        <div className="flex-1">
+          <h3 className="font-medium">Voice Message</h3>
+          <div className="text-sm text-muted-foreground space-y-1">
+            <p>Duration: {formatDuration(recordingDuration)}</p>
+            {estimatedSize > 0 && <p>Size: {formatSize(estimatedSize)}</p>}
+            <p>Format: {selectedFormat.toUpperCase()}</p>
           </div>
-        )}
-        {uploading && (
-          <p className="text-sm text-muted-foreground">Uploading voice message...</p>
+        </div>
+        {onCancel && (
+          <Button variant="ghost" size="sm" onClick={onCancel}>
+            <X size={16} />
+          </Button>
         )}
       </div>
 
-      {onCancel && (
-        <Button variant="ghost" onClick={onCancel}>
-          Cancel
-        </Button>
+      {isRecording && (
+        <div className="flex items-center justify-center gap-2 text-red-500">
+          <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse" />
+          <span className="text-sm font-medium">Recording...</span>
+        </div>
       )}
-    </>
+
+      {uploading && (
+        <div className="text-sm text-blue-500">
+          Uploading voice message...
+        </div>
+      )}
+
+      {audioUrl && audioBlob && (
+        <div className="w-full">
+          <audio controls className="w-full">
+            <source src={audioUrl} type={audioBlob.type} />
+            Your browser does not support audio playback.
+          </audio>
+        </div>
+      )}
+    </div>
   );
 };
 

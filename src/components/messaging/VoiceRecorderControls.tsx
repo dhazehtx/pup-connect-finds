@@ -1,8 +1,7 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Mic, Square, Send, X } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { Mic, Square, Send, X, Loader2 } from 'lucide-react';
 
 interface VoiceRecorderControlsProps {
   isRecording: boolean;
@@ -24,18 +23,25 @@ const VoiceRecorderControls = ({
   onCancel
 }: VoiceRecorderControlsProps) => {
   return (
-    <div className="flex items-center gap-3">
-      {!audioBlob && (
+    <div className="flex items-center justify-center gap-3">
+      {!isRecording && !audioBlob && (
         <Button
-          onClick={isRecording ? onStopRecording : onStartRecording}
+          onClick={onStartRecording}
           size="lg"
-          variant={isRecording ? "destructive" : "default"}
-          className={cn(
-            "rounded-full w-16 h-16",
-            isRecording && "animate-pulse"
-          )}
+          className="rounded-full w-16 h-16 bg-red-500 hover:bg-red-600"
         >
-          {isRecording ? <Square size={24} /> : <Mic size={24} />}
+          <Mic size={24} />
+        </Button>
+      )}
+
+      {isRecording && (
+        <Button
+          onClick={onStopRecording}
+          variant="destructive"
+          size="lg"
+          className="rounded-full w-16 h-16"
+        >
+          <Square size={24} />
         </Button>
       )}
 
@@ -46,6 +52,7 @@ const VoiceRecorderControls = ({
             variant="outline"
             size="lg"
             className="rounded-full w-12 h-12"
+            disabled={uploading}
           >
             <X size={20} />
           </Button>
@@ -55,7 +62,11 @@ const VoiceRecorderControls = ({
             size="lg"
             className="rounded-full w-12 h-12"
           >
-            <Send size={20} />
+            {uploading ? (
+              <Loader2 size={20} className="animate-spin" />
+            ) : (
+              <Send size={20} />
+            )}
           </Button>
         </>
       )}
