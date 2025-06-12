@@ -112,10 +112,11 @@ const Navbar = () => {
               <div className="hidden md:block">
                 <Button
                   onClick={handleCreatePost}
-                  className="bg-blue-600 hover:bg-blue-700 text-white rounded-full p-2 shadow-lg"
+                  className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-full flex items-center space-x-2 shadow-lg"
                   size="sm"
                 >
                   <Plus className="h-5 w-5" />
+                  <span className="font-medium">Post</span>
                 </Button>
               </div>
 
