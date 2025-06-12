@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Search, Filter, Heart, MapPin, MessageCircle, Sliders, Plus, Home, User } from 'lucide-react';
 import { Input } from '@/components/ui/input';
@@ -125,22 +126,6 @@ const Explore = () => {
               <Heart className="w-5 h-5 text-white" />
             </div>
             <span className="text-xl font-bold">MY PUP</span>
-          </div>
-          <div className="flex items-center space-x-2">
-            <span className="text-sm text-gray-600">🇺🇸 English</span>
-            {user ? (
-              <>
-                <span className="text-sm text-gray-600">{user.email?.split('@')[0]}</span>
-                <Button variant="outline" size="sm" onClick={() => navigate('/auth')}>Sign Out</Button>
-              </>
-            ) : isGuest ? (
-              <>
-                <span className="text-sm text-gray-600">Guest User</span>
-                <Button variant="outline" size="sm" onClick={() => navigate('/auth')}>Sign In</Button>
-              </>
-            ) : (
-              <Button variant="outline" size="sm" onClick={() => navigate('/auth')}>Sign In</Button>
-            )}
           </div>
         </div>
         
