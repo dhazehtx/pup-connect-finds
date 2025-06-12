@@ -1,11 +1,12 @@
 
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Heart, User, Menu, X, LogOut, Settings, Bell } from 'lucide-react';
+import { Heart, User, Menu, X, LogOut, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import { useMobileOptimized } from '@/hooks/useMobileOptimized';
 import LanguageSelector from '@/components/i18n/LanguageSelector';
+import NotificationManager from '@/components/notifications/NotificationManager';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -48,11 +49,7 @@ const Header = () => {
             
             {isAuthenticated && (
               <>
-                <Button variant="ghost" size="sm" asChild>
-                  <Link to="/notifications">
-                    <Bell className="h-5 w-5" />
-                  </Link>
-                </Button>
+                <NotificationManager />
                 
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
@@ -110,6 +107,9 @@ const Header = () => {
           {/* User Menu */}
           <div className="flex items-center space-x-4">
             <LanguageSelector />
+            
+            {/* Notifications for authenticated users */}
+            {isAuthenticated && <NotificationManager />}
             
             {!isAuthenticated ? (
               <div className="hidden md:flex items-center space-x-2">
