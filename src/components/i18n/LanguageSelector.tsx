@@ -117,9 +117,9 @@ const LanguageSelector = () => {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="sm" className="h-9 w-9 p-0">
-          <span className="text-lg">{currentLang.flag}</span>
-          <span className="sr-only">Select language</span>
+        <Button variant="ghost" size="sm" className="h-9 px-3">
+          <Globe size={16} className="mr-2" />
+          <span className="text-sm">{currentLang.name}</span>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-48">
@@ -131,7 +131,6 @@ const LanguageSelector = () => {
               currentLanguage === language.code ? 'bg-blue-50 text-blue-700' : ''
             }`}
           >
-            <span className="text-lg">{language.flag}</span>
             <span>{language.name}</span>
             {currentLanguage === language.code && (
               <div className="ml-auto w-2 h-2 bg-blue-600 rounded-full" />
