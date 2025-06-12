@@ -109,6 +109,10 @@ const Notifications = () => {
         )}
 
         {/* All Notifications Section */}
+        <div className="px-4 mb-4">
+          <h2 className="text-deep-navy font-semibold text-base mb-3">All Notifications</h2>
+        </div>
+
         <div className="px-4 space-y-1">
           {notifications.length > 0 ? (
             notifications.map((notification) => (
