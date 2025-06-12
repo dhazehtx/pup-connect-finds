@@ -1,57 +1,50 @@
 
 import React from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { AuthProvider, useAuth } from "@/contexts/AuthContext";
-import Home from './pages/Home';
-import Profile from './pages/Profile';
-import Explore from './pages/Explore';
-import Education from './pages/Education';
-import MessagingDashboard from './pages/MessagingDashboard';
-import AdvancedMessaging from './pages/AdvancedMessaging';
-import EnhancedMessages from './pages/EnhancedMessages';
-import MessagingAnalytics from './pages/MessagingAnalytics';
-import Auth from './pages/Auth';
-import Notifications from './pages/Notifications';
+import { AuthProvider } from '@/contexts/AuthContext';
+import { ThemeProvider } from '@/contexts/ThemeContext';
+import { Toaster } from '@/components/ui/toaster';
+import Layout from '@/components/Layout';
+import Index from '@/pages/Index';
+import AppCompletion from '@/pages/AppCompletion';
+import AdminDashboard from '@/components/admin/AdminDashboard';
+import SampleDataManager from '@/components/dev/SampleDataManager';
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 5 * 60 * 1000, // 5 minutes
+      retry: 1,
+    },
+  },
+});
 
-const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  const { user, isGuest } = useAuth();
-  if (!user && !isGuest) {
-    return <Navigate to="/auth" />;
-  }
-  return <>{children}</>;
-};
-
-const App = () => {
+function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
+      <ThemeProvider>
+        <AuthProvider>
+          <Router>
             <Routes>
-              <Route path="/auth" element={<Auth />} />
-              <Route path="/" element={<Home />} />
-              <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
-              <Route path="/explore" element={<Explore />} />
-              <Route path="/education" element={<Education />} />
-              <Route path="/messages" element={<ProtectedRoute><MessagingDashboard /></ProtectedRoute>} />
-              <Route path="/messaging-test" element={<ProtectedRoute><AdvancedMessaging /></ProtectedRoute>} />
-              <Route path="/enhanced-messages" element={<ProtectedRoute><EnhancedMessages /></ProtectedRoute>} />
-              <Route path="/messaging-analytics" element={<ProtectedRoute><MessagingAnalytics /></ProtectedRoute>} />
-              <Route path="/notifications" element={<ProtectedRoute><Notifications /></ProtectedRoute>} />
+              {/* Admin routes - no layout needed */}
+              <Route path="/admin/*" element={<AdminDashboard />} />
+              <Route path="/app-completion" element={<AppCompletion />} />
+              <Route path="/sample-data" element={<SampleDataManager />} />
+              
+              {/* All other routes go through Layout which includes navigation */}
+              <Route path="/*" element={
+                <Layout>
+                  <Index />
+                </Layout>
+              } />
             </Routes>
-          </BrowserRouter>
-        </TooltipProvider>
-      </AuthProvider>
+          </Router>
+          <Toaster />
+        </AuthProvider>
+      </ThemeProvider>
     </QueryClientProvider>
   );
-};
+}
 
 export default App;

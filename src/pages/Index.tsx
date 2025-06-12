@@ -1,7 +1,6 @@
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import Layout from '@/components/Layout';
 import Auth from './Auth';
 import Home from './Home';
 import Post from './Post';
@@ -36,69 +35,67 @@ const Index = () => {
   }
 
   return (
-    <Layout>
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/auth" element={<Auth />} />
-        <Route path="/explore" element={<Explore />} />
-        
-        {/* Protected routes that redirect guests to auth */}
-        <Route 
-          path="/post" 
-          element={
-            <ProtectedRoute allowGuest={false} guestMessage="Please sign up or sign in to create posts.">
-              <Post />
-            </ProtectedRoute>
-          } 
-        />
-        <Route 
-          path="/messages" 
-          element={
-            <ProtectedRoute allowGuest={false} guestMessage="Please sign up or sign in to access messages.">
-              <Messages />
-            </ProtectedRoute>
-          } 
-        />
-        <Route 
-          path="/profile" 
-          element={
-            <ProtectedRoute allowGuest={false} guestMessage="Please sign up or sign in to access your profile.">
-              <Profile />
-            </ProtectedRoute>
-          } 
-        />
-        
-        {/* Other protected routes */}
-        <Route 
-          path="/settings" 
-          element={
-            <ProtectedRoute allowGuest={false}>
-              <Settings />
-            </ProtectedRoute>
-          } 
-        />
-        <Route 
-          path="/notifications" 
-          element={
-            <ProtectedRoute allowGuest={false}>
-              <Notifications />
-            </ProtectedRoute>
-          } 
-        />
-        
-        {/* Public routes */}
-        <Route path="/education" element={<Education />} />
-        <Route path="/legal" element={<Legal />} />
-        <Route path="/faq" element={<FAQ />} />
-        <Route path="/terms" element={<TermsOfService />} />
-        <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-        <Route path="/help-center" element={<HelpCenter />} />
-        <Route path="/contact" element={<Contact />} />
-        <Route path="/customer-reviews" element={<CustomerReviews />} />
-        <Route path="/trust-safety" element={<TrustSafety />} />
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
-    </Layout>
+    <Routes>
+      <Route path="/" element={<Home />} />
+      <Route path="/auth" element={<Auth />} />
+      <Route path="/explore" element={<Explore />} />
+      
+      {/* Protected routes that redirect guests to auth */}
+      <Route 
+        path="/post" 
+        element={
+          <ProtectedRoute allowGuest={false} guestMessage="Please sign up or sign in to create posts.">
+            <Post />
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/messages" 
+        element={
+          <ProtectedRoute allowGuest={false} guestMessage="Please sign up or sign in to access messages.">
+            <Messages />
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/profile" 
+        element={
+          <ProtectedRoute allowGuest={false} guestMessage="Please sign up or sign in to access your profile.">
+            <Profile />
+          </ProtectedRoute>
+        } 
+      />
+      
+      {/* Other protected routes */}
+      <Route 
+        path="/settings" 
+        element={
+          <ProtectedRoute allowGuest={false}>
+            <Settings />
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/notifications" 
+        element={
+          <ProtectedRoute allowGuest={false}>
+            <Notifications />
+          </ProtectedRoute>
+        } 
+      />
+      
+      {/* Public routes */}
+      <Route path="/education" element={<Education />} />
+      <Route path="/legal" element={<Legal />} />
+      <Route path="/faq" element={<FAQ />} />
+      <Route path="/terms" element={<TermsOfService />} />
+      <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+      <Route path="/help-center" element={<HelpCenter />} />
+      <Route path="/contact" element={<Contact />} />
+      <Route path="/customer-reviews" element={<CustomerReviews />} />
+      <Route path="/trust-safety" element={<TrustSafety />} />
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
   );
 };
 
