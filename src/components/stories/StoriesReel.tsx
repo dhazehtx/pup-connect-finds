@@ -1,73 +1,115 @@
 
 import React, { useState } from 'react';
 import { Plus } from 'lucide-react';
-import { sampleStories, Story } from '@/data/sampleStories';
+import { useAuth } from '@/contexts/AuthContext';
+import { useStories } from '@/hooks/useStories';
+import StoryCreator from './StoryCreator';
 import StoryViewer from './StoryViewer';
+import { sampleStories } from '@/data/sampleStories';
+
+interface Story {
+  id: string;
+  username: string;
+  avatar?: string;
+  isAddStory?: boolean;
+  stories: Array<{
+    id: string;
+    type: 'image' | 'text';
+    content: string;
+    timestamp: string;
+  }>;
+}
 
 const StoriesReel = () => {
-  const [selectedStory, setSelectedStory] = useState<Story | null>(null);
-  const [isStoryViewerOpen, setIsStoryViewerOpen] = useState(false);
+  const { user } = useAuth();
+  const { stories: userStories, createStory } = useStories();
+  const [showStoryCreator, setShowStoryCreator] = useState(false);
+  const [showStoryViewer, setShowStoryViewer] = useState(false);
+  const [selectedStoryIndex, setSelectedStoryIndex] = useState(0);
+  const [allStories, setAllStories] = useState<Story[]>(sampleStories);
 
-  const handleStoryClick = (story: Story) => {
-    if (story.isAddStory) {
-      // Handle add story logic here
-      console.log('Add story clicked');
-      return;
+  const handleStoryClick = (index: number) => {
+    if (allStories[index].isAddStory) {
+      setShowStoryCreator(true);
+    } else {
+      setSelectedStoryIndex(index);
+      setShowStoryViewer(true);
     }
-    
-    setSelectedStory(story);
-    setIsStoryViewerOpen(true);
   };
 
-  const handleCloseStoryViewer = () => {
-    setIsStoryViewerOpen(false);
-    setSelectedStory(null);
+  const handleStoryCreated = (newStory: any) => {
+    const story: Story = {
+      id: newStory.id.toString(),
+      username: newStory.username,
+      avatar: newStory.avatar,
+      stories: newStory.content.map((item: any, idx: number) => ({
+        id: `${newStory.id}-${idx}`,
+        type: item.type,
+        content: item.url || item.content,
+        timestamp: newStory.timestamp
+      }))
+    };
+
+    setAllStories(prev => {
+      const withoutAddStory = prev.filter(s => !s.isAddStory);
+      return [
+        {
+          id: 'add-story',
+          username: 'Your Story',
+          isAddStory: true,
+          stories: []
+        },
+        story,
+        ...withoutAddStory
+      ];
+    });
   };
 
   return (
     <>
-      <div className="bg-white border-b border-gray-200 p-4">
-        <div className="flex space-x-3 overflow-x-auto scrollbar-hide">
-          {sampleStories.map((story) => (
-            <div
+      <div className="bg-white border-b border-gray-200 p-4 overflow-x-auto">
+        <div className="flex space-x-4">
+          {allStories.map((story, index) => (
+            <button
               key={story.id}
-              className="flex-shrink-0 cursor-pointer"
-              onClick={() => handleStoryClick(story)}
+              onClick={() => handleStoryClick(index)}
+              className="flex-shrink-0 text-center"
             >
-              <div className="flex flex-col items-center space-y-1">
-                <div className={`w-16 h-16 rounded-full p-0.5 ${
-                  story.isAddStory 
-                    ? 'bg-gray-200' 
-                    : 'bg-gradient-to-tr from-pink-500 via-red-500 to-yellow-500'
-                }`}>
-                  <div className="w-full h-full bg-white rounded-full p-0.5">
-                    {story.isAddStory ? (
-                      <div className="w-full h-full bg-gray-100 rounded-full flex items-center justify-center">
-                        <Plus size={20} className="text-gray-600" />
-                      </div>
-                    ) : (
+              <div className="relative">
+                {story.isAddStory ? (
+                  <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center border-2 border-dashed border-gray-300">
+                    <Plus className="w-6 h-6 text-gray-400" />
+                  </div>
+                ) : (
+                  <div className="w-16 h-16 rounded-full bg-gradient-to-tr from-yellow-400 to-pink-500 p-0.5">
+                    <div className="w-full h-full rounded-full bg-white p-0.5">
                       <img
                         src={story.avatar || '/placeholder.svg'}
                         alt={story.username}
                         className="w-full h-full rounded-full object-cover"
                       />
-                    )}
+                    </div>
                   </div>
-                </div>
-                <span className="text-xs text-gray-700 max-w-[64px] truncate">
-                  {story.username}
-                </span>
+                )}
               </div>
-            </div>
+              <p className="text-xs mt-1 truncate w-16">{story.username}</p>
+            </button>
           ))}
         </div>
       </div>
 
-      {/* Story Viewer */}
-      {isStoryViewerOpen && selectedStory && (
+      {showStoryCreator && (
+        <StoryCreator
+          onClose={() => setShowStoryCreator(false)}
+          onStoryCreated={handleStoryCreated}
+        />
+      )}
+
+      {showStoryViewer && (
         <StoryViewer
-          story={selectedStory}
-          onClose={handleCloseStoryViewer}
+          stories={allStories.filter(s => !s.isAddStory)}
+          initialIndex={selectedStoryIndex - 1}
+          onClose={() => setShowStoryViewer(false)}
         />
       )}
     </>

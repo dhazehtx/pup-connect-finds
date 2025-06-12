@@ -3,17 +3,19 @@ import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Home, Search, Plus, MessageCircle, User } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useToast } from '@/hooks/use-toast';
 import GuestPrompt from '@/components/GuestPrompt';
 
 const BottomNavigation = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user } = useAuth();
+  const { user, isGuest } = useAuth();
+  const { toast } = useToast();
   const [showGuestPrompt, setShowGuestPrompt] = useState(false);
   const [promptAction, setPromptAction] = useState('');
 
   const handleProtectedNavigation = (path: string, action: string) => {
-    if (!user) {
+    if (!user && !isGuest) {
       setPromptAction(action);
       setShowGuestPrompt(true);
       return;
@@ -25,6 +27,21 @@ const BottomNavigation = () => {
   const handleNavigation = (path: string) => {
     console.log('Navigating to public route:', path);
     navigate(path);
+  };
+
+  const handleCreateAction = () => {
+    if (!user && !isGuest) {
+      setPromptAction('create content');
+      setShowGuestPrompt(true);
+      return;
+    }
+    
+    // Show options for creating content
+    toast({
+      title: "Create",
+      description: "Navigate to home to create posts or stories",
+    });
+    navigate('/');
   };
 
   const navItems = [
@@ -44,11 +61,11 @@ const BottomNavigation = () => {
     },
     {
       icon: Plus,
-      label: 'Post',
-      path: '/post',
+      label: 'Create',
+      path: '/create',
       protected: true,
-      action: 'create listings',
-      onClick: () => handleProtectedNavigation('/post', 'create listings')
+      action: 'create content',
+      onClick: handleCreateAction
     },
     {
       icon: MessageCircle,
@@ -70,12 +87,15 @@ const BottomNavigation = () => {
     if (path === '/') {
       return location.pathname === '/';
     }
+    if (path === '/create') {
+      return false; // Create button should not show as active
+    }
     return location.pathname.startsWith(path);
   };
 
   return (
     <>
-      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-40">
+      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-40 shadow-lg">
         <div className="grid grid-cols-5 h-16">
           {navItems.map((item) => {
             const Icon = item.icon;
@@ -92,7 +112,7 @@ const BottomNavigation = () => {
                 }}
                 className={`flex flex-col items-center justify-center p-2 transition-colors ${
                   active 
-                    ? 'text-white bg-blue-600' 
+                    ? 'text-blue-600 bg-blue-50' 
                     : 'text-gray-600 hover:text-blue-600 hover:bg-gray-50'
                 }`}
                 type="button"
@@ -100,7 +120,7 @@ const BottomNavigation = () => {
               >
                 <Icon size={20} className="flex-shrink-0" />
                 <span className="text-xs mt-1 font-medium">{item.label}</span>
-                {item.protected && !user && (
+                {item.protected && !user && !isGuest && (
                   <div className="absolute top-1 right-1 w-2 h-2 bg-orange-500 rounded-full"></div>
                 )}
               </button>

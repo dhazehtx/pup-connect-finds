@@ -24,7 +24,7 @@ const Header = () => {
     }
   };
 
-  const isAuthenticated = user || isGuest;
+  const isAuthenticated = Boolean(user || isGuest);
 
   // Mobile header design
   if (isMobile) {
