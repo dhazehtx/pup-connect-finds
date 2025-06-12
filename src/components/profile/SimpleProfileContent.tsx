@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { User, Settings, Star, MessageCircle, Heart, Sparkles } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -107,92 +108,109 @@ const SimpleProfileContent = () => {
 
   if (!user && !profile) {
     return (
-      <div className="max-w-md mx-auto bg-gradient-to-b from-royal-blue/5 via-soft-sky/10 to-background min-h-screen">
-        {/* Profile Section with enhanced styling */}
-        <div className="p-4 space-y-6">
-          {/* Enhanced Profile Header */}
-          <div className="bg-white/70 backdrop-blur-sm rounded-2xl p-6 border border-royal-blue/10 shadow-lg">
-            <div className="flex items-center space-x-4 mb-6">
-              <div className="relative">
-                <Avatar className="w-20 h-20 ring-4 ring-royal-blue/20 ring-offset-2">
-                  <AvatarImage src={displayProfile.avatar_url} alt={displayProfile.full_name} />
-                  <AvatarFallback className="bg-gradient-to-br from-royal-blue to-primary text-white text-lg">
-                    <User className="w-8 h-8" />
-                  </AvatarFallback>
-                </Avatar>
+      <div className="max-w-md mx-auto bg-background min-h-screen">
+        {/* Instagram-style Header */}
+        <div className="sticky top-0 z-40 bg-background/95 backdrop-blur-md border-b border-border/40">
+          <div className="px-4 py-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <h1 className="text-xl font-semibold text-foreground">
+                  @{displayProfile.username}
+                </h1>
                 {displayProfile.verified && (
-                  <div className="absolute -bottom-1 -right-1 bg-gradient-to-br from-royal-blue to-primary rounded-full p-1.5 shadow-md">
-                    <Sparkles className="w-3 h-3 text-white" />
+                  <div className="w-4 h-4 bg-gradient-to-br from-royal-blue to-primary rounded-full flex items-center justify-center">
+                    <Sparkles className="w-2.5 h-2.5 text-white" />
                   </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Profile Section */}
+        <div className="px-4 py-6 space-y-6">
+          {/* Profile Header - Instagram style */}
+          <div className="flex items-center space-x-4">
+            <div className="relative">
+              <Avatar className="w-20 h-20 ring-2 ring-border">
+                <AvatarImage src={displayProfile.avatar_url} alt={displayProfile.full_name} />
+                <AvatarFallback className="bg-gradient-to-br from-royal-blue to-primary text-white text-lg">
+                  <User className="w-8 h-8" />
+                </AvatarFallback>
+              </Avatar>
+              {displayProfile.verified && (
+                <div className="absolute -bottom-1 -right-1 bg-gradient-to-br from-royal-blue to-primary rounded-full p-1.5">
+                  <Sparkles className="w-3 h-3 text-white" />
+                </div>
+              )}
+            </div>
+            
+            <div className="flex-1">
+              <div className="flex items-center space-x-2 mb-2">
+                <h2 className="text-xl font-bold text-foreground">
+                  {displayProfile.full_name}
+                </h2>
+                {displayProfile.verified && (
+                  <Badge variant="secondary" className="bg-royal-blue/10 text-royal-blue border-royal-blue/30 text-xs">
+                    Verified
+                  </Badge>
                 )}
               </div>
               
-              <div className="flex-1">
-                <div className="flex items-center space-x-2 mb-2">
-                  <h2 className="text-lg font-bold bg-gradient-to-r from-royal-blue to-primary bg-clip-text text-transparent">
-                    {displayProfile.full_name}
-                  </h2>
-                  {displayProfile.verified && (
-                    <Badge variant="secondary" className="bg-gradient-to-r from-royal-blue/20 to-primary/20 text-royal-blue border-royal-blue/30">
-                      Verified
-                    </Badge>
-                  )}
+              {displayProfile.rating > 0 && (
+                <div className="flex items-center space-x-1">
+                  <Star className="w-4 h-4 text-yellow-500 fill-current" />
+                  <span className="text-sm font-medium text-foreground">{displayProfile.rating}</span>
+                  <span className="text-sm text-muted-foreground">({displayProfile.total_reviews} reviews)</span>
                 </div>
-                
-                {displayProfile.rating > 0 && (
-                  <div className="flex items-center space-x-1">
-                    <Star className="w-4 h-4 text-yellow-500 fill-current" />
-                    <span className="text-sm font-medium text-foreground">{displayProfile.rating}</span>
-                    <span className="text-sm text-muted-foreground">({displayProfile.total_reviews} reviews)</span>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Enhanced Stats */}
-            <ProfileStats
-              stats={displayProfile.stats}
-              onFollowersClick={() => setShowFollowersModal(true)}
-              onFollowingClick={() => setShowFollowingModal(true)}
-            />
-
-            {/* Enhanced Bio and Info */}
-            <ProfileInfo
-              bio={displayProfile.bio}
-              location={displayProfile.location}
-              website_url={displayProfile.website_url}
-              specializations={displayProfile.specializations}
-            />
-
-            {/* Enhanced Action Buttons */}
-            <div className="flex space-x-3 mb-6">
-              <Button 
-                className="flex-1 bg-gradient-to-r from-royal-blue to-primary hover:from-royal-blue/90 hover:to-primary/90 text-white shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-[1.02]" 
-                onClick={() => navigate('/auth')}
-              >
-                <MessageCircle className="w-4 h-4 mr-2" />
-                Message
-              </Button>
-              <Button 
-                variant="outline" 
-                className="flex-1 border-royal-blue/30 text-royal-blue hover:bg-royal-blue/5 hover:border-royal-blue/50 transition-all duration-200"
-              >
-                <Heart className="w-4 h-4 mr-2" />
-                Follow
-              </Button>
+              )}
             </div>
           </div>
 
-          {/* Enhanced Posts Grid */}
-          <div className="bg-white/70 backdrop-blur-sm rounded-2xl p-6 border border-royal-blue/10 shadow-lg">
-            <h3 className="text-lg font-semibold mb-4 bg-gradient-to-r from-royal-blue to-primary bg-clip-text text-transparent">
-              Recent Posts
-            </h3>
-            <div className="grid grid-cols-3 gap-2">
+          {/* Stats - Instagram style */}
+          <ProfileStats
+            stats={displayProfile.stats}
+            onFollowersClick={() => setShowFollowersModal(true)}
+            onFollowingClick={() => setShowFollowingModal(true)}
+          />
+
+          {/* Bio and Info */}
+          <ProfileInfo
+            bio={displayProfile.bio}
+            location={displayProfile.location}
+            website_url={displayProfile.website_url}
+            specializations={displayProfile.specializations}
+          />
+
+          {/* Action Buttons */}
+          <div className="flex space-x-3">
+            <Button 
+              className="flex-1 bg-gradient-to-r from-royal-blue to-primary hover:from-royal-blue/90 hover:to-primary/90 text-white h-9" 
+              onClick={() => navigate('/auth')}
+            >
+              <MessageCircle className="w-4 h-4 mr-2" />
+              Message
+            </Button>
+            <Button 
+              variant="outline" 
+              className="flex-1 border-border hover:bg-muted h-9"
+            >
+              <Heart className="w-4 h-4 mr-2" />
+              Follow
+            </Button>
+          </div>
+
+          {/* Posts Grid - Instagram style */}
+          <div>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-foreground">Posts</h3>
+              <span className="text-sm text-muted-foreground">{posts.length} posts</span>
+            </div>
+            <div className="grid grid-cols-3 gap-1">
               {posts.map((post, index) => (
                 <div 
                   key={index} 
-                  className="aspect-square cursor-pointer hover:opacity-75 transition-all duration-200 hover:scale-105 rounded-lg overflow-hidden shadow-md"
+                  className="aspect-square cursor-pointer hover:opacity-90 transition-opacity rounded-sm overflow-hidden"
                   onClick={() => handlePostClick(post)}
                 >
                   <img 
@@ -242,110 +260,111 @@ const SimpleProfileContent = () => {
     );
   }
 
-  // Authenticated user view with enhanced styling
+  // Authenticated user view
   return (
-    <div className="max-w-md mx-auto bg-gradient-to-b from-royal-blue/5 via-soft-sky/10 to-background min-h-screen">
-      {/* Enhanced Header with Edit Button for authenticated users */}
-      {user && (
-        <div className="flex justify-between items-center p-4 bg-white/70 backdrop-blur-sm border-b border-royal-blue/10">
-          <div className="flex items-center space-x-3">
-            <div className="w-1 h-6 bg-gradient-to-b from-royal-blue to-primary rounded-full"></div>
-            <h1 className="text-xl font-bold bg-gradient-to-r from-royal-blue to-primary bg-clip-text text-transparent">
-              {displayProfile.username}
-            </h1>
-          </div>
-          <Button 
-            variant="outline" 
-            size="sm"
-            className="border-royal-blue/30 text-royal-blue hover:bg-royal-blue/5 hover:border-royal-blue/50 transition-all duration-200"
-            onClick={() => setShowEditDialog(true)}
-          >
-            <Settings className="w-4 h-4 mr-2" />
-            Edit Profile
-          </Button>
-        </div>
-      )}
-
-      {/* Enhanced Profile Section */}
-      <div className="p-4 space-y-6">
-        <div className="bg-white/70 backdrop-blur-sm rounded-2xl p-6 border border-royal-blue/10 shadow-lg">
-          <div className="flex items-center space-x-4 mb-6">
-            <div className="relative">
-              <Avatar className="w-20 h-20 ring-4 ring-royal-blue/20 ring-offset-2">
-                <AvatarImage src={displayProfile.avatar_url} alt={displayProfile.full_name} />
-                <AvatarFallback className="bg-gradient-to-br from-royal-blue to-primary text-white text-lg">
-                  <User className="w-8 h-8" />
-                </AvatarFallback>
-              </Avatar>
+    <div className="max-w-md mx-auto bg-background min-h-screen">
+      {/* Instagram-style Header */}
+      <div className="sticky top-0 z-40 bg-background/95 backdrop-blur-md border-b border-border/40">
+        <div className="px-4 py-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <h1 className="text-xl font-semibold text-foreground">
+                @{displayProfile.username}
+              </h1>
               {displayProfile.verified && (
-                <div className="absolute -bottom-1 -right-1 bg-gradient-to-br from-royal-blue to-primary rounded-full p-1.5 shadow-md">
-                  <Sparkles className="w-3 h-3 text-white" />
+                <div className="w-4 h-4 bg-gradient-to-br from-royal-blue to-primary rounded-full flex items-center justify-center">
+                  <Sparkles className="w-2.5 h-2.5 text-white" />
                 </div>
+              )}
+            </div>
+            <Button 
+              variant="ghost" 
+              size="sm"
+              className="text-royal-blue hover:bg-royal-blue/10"
+              onClick={() => setShowEditDialog(true)}
+            >
+              <Settings className="w-5 h-5" />
+            </Button>
+          </div>
+        </div>
+      </div>
+
+      {/* Profile Section */}
+      <div className="px-4 py-6 space-y-6">
+        {/* Profile Header */}
+        <div className="flex items-center space-x-4">
+          <div className="relative">
+            <Avatar className="w-20 h-20 ring-2 ring-border">
+              <AvatarImage src={displayProfile.avatar_url} alt={displayProfile.full_name} />
+              <AvatarFallback className="bg-gradient-to-br from-royal-blue to-primary text-white text-lg">
+                <User className="w-8 h-8" />
+              </AvatarFallback>
+            </Avatar>
+            {displayProfile.verified && (
+              <div className="absolute -bottom-1 -right-1 bg-gradient-to-br from-royal-blue to-primary rounded-full p-1.5">
+                <Sparkles className="w-3 h-3 text-white" />
+              </div>
+            )}
+          </div>
+          
+          <div className="flex-1">
+            <div className="flex items-center space-x-2 mb-2">
+              <h2 className="text-xl font-bold text-foreground">
+                {displayProfile.full_name}
+              </h2>
+              {displayProfile.verified && (
+                <Badge variant="secondary" className="bg-royal-blue/10 text-royal-blue border-royal-blue/30 text-xs">
+                  Verified
+                </Badge>
               )}
             </div>
             
-            <div className="flex-1">
-              <div className="flex items-center space-x-2 mb-2">
-                <h2 className="text-lg font-bold bg-gradient-to-r from-royal-blue to-primary bg-clip-text text-transparent">
-                  {displayProfile.full_name}
-                </h2>
-                {displayProfile.verified && (
-                  <Badge variant="secondary" className="bg-gradient-to-r from-royal-blue/20 to-primary/20 text-royal-blue border-royal-blue/30">
-                    Verified
-                  </Badge>
-                )}
+            {displayProfile.rating > 0 && (
+              <div className="flex items-center space-x-1">
+                <Star className="w-4 h-4 text-yellow-500 fill-current" />
+                <span className="text-sm font-medium text-foreground">{displayProfile.rating}</span>
+                <span className="text-sm text-muted-foreground">({displayProfile.total_reviews} reviews)</span>
               </div>
-              
-              {displayProfile.rating > 0 && (
-                <div className="flex items-center space-x-1">
-                  <Star className="w-4 h-4 text-yellow-500 fill-current" />
-                  <span className="text-sm font-medium text-foreground">{displayProfile.rating}</span>
-                  <span className="text-sm text-muted-foreground">({displayProfile.total_reviews} reviews)</span>
-                </div>
-              )}
-            </div>
+            )}
           </div>
-
-          {/* Enhanced Stats */}
-          <ProfileStats
-            stats={displayProfile.stats}
-            onFollowersClick={() => setShowFollowersModal(true)}
-            onFollowingClick={() => setShowFollowingModal(true)}
-          />
-
-          {/* Enhanced Bio and Info */}
-          <ProfileInfo
-            bio={displayProfile.bio}
-            location={displayProfile.location}
-            website_url={displayProfile.website_url}
-            specializations={displayProfile.specializations}
-          />
-
-          {/* Enhanced Action Button for own profile */}
-          {user && (
-            <div className="mb-6">
-              <Button 
-                variant="outline" 
-                className="w-full border-royal-blue/30 text-royal-blue hover:bg-royal-blue/5 hover:border-royal-blue/50 transition-all duration-200" 
-                onClick={() => setShowEditDialog(true)}
-              >
-                <Settings className="w-4 h-4 mr-2" />
-                Edit Profile
-              </Button>
-            </div>
-          )}
         </div>
 
-        {/* Enhanced Posts Grid */}
-        <div className="bg-white/70 backdrop-blur-sm rounded-2xl p-6 border border-royal-blue/10 shadow-lg">
-          <h3 className="text-lg font-semibold mb-4 bg-gradient-to-r from-royal-blue to-primary bg-clip-text text-transparent">
-            Your Posts
-          </h3>
-          <div className="grid grid-cols-3 gap-2">
+        {/* Stats */}
+        <ProfileStats
+          stats={displayProfile.stats}
+          onFollowersClick={() => setShowFollowersModal(true)}
+          onFollowingClick={() => setShowFollowingModal(true)}
+        />
+
+        {/* Bio and Info */}
+        <ProfileInfo
+          bio={displayProfile.bio}
+          location={displayProfile.location}
+          website_url={displayProfile.website_url}
+          specializations={displayProfile.specializations}
+        />
+
+        {/* Edit Profile Button */}
+        <Button 
+          variant="outline" 
+          className="w-full border-border hover:bg-muted h-9" 
+          onClick={() => setShowEditDialog(true)}
+        >
+          <Settings className="w-4 h-4 mr-2" />
+          Edit Profile
+        </Button>
+
+        {/* Posts Grid */}
+        <div>
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold text-foreground">Your Posts</h3>
+            <span className="text-sm text-muted-foreground">{posts.length} posts</span>
+          </div>
+          <div className="grid grid-cols-3 gap-1">
             {posts.map((post, index) => (
               <div 
                 key={index} 
-                className="aspect-square cursor-pointer hover:opacity-75 transition-all duration-200 hover:scale-105 rounded-lg overflow-hidden shadow-md"
+                className="aspect-square cursor-pointer hover:opacity-90 transition-opacity rounded-sm overflow-hidden"
                 onClick={() => handlePostClick(post)}
               >
                 <img 

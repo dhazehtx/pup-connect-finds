@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Settings, Star, Crown, Zap, UserPlus, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -154,89 +155,66 @@ const ProfileContent = ({
   } : undefined;
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-royal-blue/5 via-soft-sky/10 to-background">
-      {/* Mobile Header */}
-      <MobileProfileHeader 
-        profile={displayProfile}
-        isOwnProfile={isOwnProfile}
-        onEdit={() => user ? setIsEditDialogOpen(true) : navigate('/auth')}
-      />
-
-      <div className="p-4 space-y-6">
-        {/* Desktop Header */}
-        {!isMobile && (
-          <div className="flex justify-between items-center mb-6">
-            <div className="flex items-center space-x-3">
-              <div className="w-2 h-8 bg-gradient-to-b from-royal-blue to-primary rounded-full"></div>
-              <h1 className="text-2xl font-bold bg-gradient-to-r from-royal-blue to-primary bg-clip-text text-transparent">
+    <div className="min-h-screen bg-background">
+      {/* Mobile Header - Instagram style */}
+      <div className="sticky top-0 z-40 bg-background/95 backdrop-blur-md border-b border-border/40">
+        <div className="max-w-md mx-auto px-4 py-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <h1 className="text-xl font-semibold text-foreground">
                 @{displayProfile.username}
               </h1>
+              {displayProfile.verified && (
+                <div className="w-4 h-4 bg-gradient-to-br from-royal-blue to-primary rounded-full flex items-center justify-center">
+                  <Sparkles className="w-2.5 h-2.5 text-white" />
+                </div>
+              )}
             </div>
             {isOwnProfile && user && (
               <Button 
-                variant="outline"
+                variant="ghost"
                 size="sm"
-                className="border-royal-blue/20 hover:bg-royal-blue/5 hover:border-royal-blue/40 transition-all duration-200"
+                className="text-royal-blue hover:bg-royal-blue/10"
                 onClick={() => setIsEditDialogOpen(true)}
               >
-                <Settings size={20} className="text-royal-blue" />
+                <Settings size={20} />
               </Button>
             )}
           </div>
-        )}
+        </div>
+      </div>
 
-        {/* Guest Welcome Card - Enhanced with royal blue theme */}
+      <div className="max-w-md mx-auto">
+        {/* Guest Welcome Card */}
         {isGuestUser && (
-          <Card className="mb-6 bg-gradient-to-br from-royal-blue/10 via-soft-sky/20 to-white border-royal-blue/20 shadow-lg backdrop-blur-sm">
-            <CardHeader className="pb-3">
-              <CardTitle className="flex items-center gap-3 text-xl text-foreground">
-                <div className="w-10 h-10 bg-gradient-to-br from-royal-blue to-primary rounded-xl flex items-center justify-center shadow-md">
-                  <UserPlus className="w-5 h-5 text-white" />
-                </div>
-                <span className="bg-gradient-to-r from-royal-blue to-primary bg-clip-text text-transparent">
-                  Welcome to MY PUP!
-                </span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground mb-6">
-                You're viewing a sample breeder profile. Create your MY PUP account to connect with verified breeders and find your perfect puppy!
-              </p>
-              <div className="grid grid-cols-3 gap-4 mb-6">
-                <div className="text-center group">
-                  <div className="w-12 h-12 bg-gradient-to-br from-royal-blue/20 to-royal-blue/10 rounded-2xl flex items-center justify-center mx-auto mb-3 group-hover:scale-105 transition-transform duration-200">
-                    <Crown className="w-6 h-6 text-royal-blue" />
+          <div className="mx-4 mt-4 mb-6">
+            <Card className="bg-gradient-to-br from-royal-blue/5 via-soft-sky/10 to-white border-royal-blue/20 shadow-sm">
+              <CardContent className="p-4">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-10 h-10 bg-gradient-to-br from-royal-blue to-primary rounded-xl flex items-center justify-center">
+                    <UserPlus className="w-5 h-5 text-white" />
                   </div>
-                  <div className="text-xs font-medium text-foreground">Verified Breeders</div>
-                </div>
-                <div className="text-center group">
-                  <div className="w-12 h-12 bg-gradient-to-br from-primary/20 to-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-3 group-hover:scale-105 transition-transform duration-200">
-                    <Zap className="w-6 h-6 text-primary" />
+                  <div>
+                    <h3 className="font-semibold text-foreground">Welcome to MY PUP!</h3>
+                    <p className="text-sm text-muted-foreground">Connect with verified breeders</p>
                   </div>
-                  <div className="text-xs font-medium text-foreground">Safe Messaging</div>
                 </div>
-                <div className="text-center group">
-                  <div className="w-12 h-12 bg-gradient-to-br from-mint-green/40 to-mint-green/20 rounded-2xl flex items-center justify-center mx-auto mb-3 group-hover:scale-105 transition-transform duration-200">
-                    <Star className="w-6 h-6 text-green-600" />
-                  </div>
-                  <div className="text-xs font-medium text-foreground">Reviews & Ratings</div>
-                </div>
-              </div>
-              <Button 
-                onClick={() => navigate('/auth')} 
-                className="w-full bg-gradient-to-r from-royal-blue to-primary hover:from-royal-blue/90 hover:to-primary/90 text-white shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-[1.02]"
-                size="sm"
-              >
-                <Sparkles className="w-4 h-4 mr-2" />
-                Join MY PUP - It's Free!
-              </Button>
-            </CardContent>
-          </Card>
+                <Button 
+                  onClick={() => navigate('/auth')} 
+                  className="w-full bg-gradient-to-r from-royal-blue to-primary hover:from-royal-blue/90 hover:to-primary/90 text-white h-9"
+                  size="sm"
+                >
+                  <Sparkles className="w-4 h-4 mr-2" />
+                  Join MY PUP
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
         )}
 
-        {/* Profile Completion Guide - Enhanced styling */}
+        {/* Profile Completion Guide */}
         {isOwnProfile && user && showCompletionGuide && (
-          <div className="mb-6">
+          <div className="mx-4 mt-4 mb-6">
             <ProfileCompletionGuideEnhanced
               profile={{
                 full_name: displayProfile.full_name,
@@ -257,109 +235,90 @@ const ProfileContent = ({
           </div>
         )}
 
-        {/* Premium Features Card - Enhanced with royal blue theme */}
+        {/* Premium Features Card - Instagram story style */}
         {isOwnProfile && user && (
-          <Card className="mb-6 bg-gradient-to-br from-royal-blue/5 via-primary/5 to-white border-royal-blue/20 shadow-lg">
-            <CardHeader className="pb-3">
-              <CardTitle className="flex items-center gap-3 text-lg">
-                <div className="w-8 h-8 bg-gradient-to-br from-yellow-400 to-yellow-500 rounded-lg flex items-center justify-center shadow-md">
-                  <Star className="w-4 h-4 text-white" />
-                </div>
-                <span className="bg-gradient-to-r from-royal-blue to-primary bg-clip-text text-transparent">
-                  Premium Features
-                </span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground mb-6">
-                Unlock professional tools to help more families find their perfect puppy
-              </p>
-              <div className="grid grid-cols-3 gap-4 mb-6">
-                <div className="text-center group">
-                  <div className="w-12 h-12 bg-gradient-to-br from-royal-blue/20 to-royal-blue/10 rounded-2xl flex items-center justify-center mx-auto mb-3 group-hover:scale-105 transition-transform duration-200">
-                    <Crown className="w-6 h-6 text-royal-blue" />
+          <div className="mx-4 mb-6">
+            <Card className="bg-gradient-to-r from-royal-blue/5 to-primary/5 border-royal-blue/20">
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <Crown className="w-5 h-5 text-royal-blue" />
+                    <span className="font-semibold text-foreground">Premium Features</span>
                   </div>
-                  <div className="text-xs font-medium text-foreground">Priority Placement</div>
+                  <Button
+                    size="sm"
+                    className="bg-gradient-to-r from-royal-blue to-primary text-white h-8 px-3 text-xs"
+                    onClick={() => navigate('/monetization')}
+                  >
+                    Explore
+                  </Button>
                 </div>
-                <div className="text-center group">
-                  <div className="w-12 h-12 bg-gradient-to-br from-primary/20 to-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-3 group-hover:scale-105 transition-transform duration-200">
-                    <Zap className="w-6 h-6 text-primary" />
-                  </div>
-                  <div className="text-xs font-medium text-foreground">Advanced Analytics</div>
-                </div>
-                <div className="text-center group">
-                  <div className="w-12 h-12 bg-gradient-to-br from-mint-green/40 to-mint-green/20 rounded-2xl flex items-center justify-center mx-auto mb-3 group-hover:scale-105 transition-transform duration-200">
-                    <Star className="w-6 h-6 text-green-600" />
-                  </div>
-                  <div className="text-xs font-medium text-foreground">Verification Badge</div>
-                </div>
-              </div>
-              <Button 
-                onClick={() => navigate('/monetization')} 
-                className="w-full bg-gradient-to-r from-royal-blue to-primary hover:from-royal-blue/90 hover:to-primary/90 text-white shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-[1.02]"
-                size="sm"
-              >
-                <Crown className="w-4 h-4 mr-2" />
-                Explore Premium Features
-              </Button>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Enhanced Profile Header with modern styling */}
-        <div className="bg-white/70 backdrop-blur-sm rounded-2xl p-6 border border-royal-blue/10 shadow-lg">
-          <ProfileHeaderWithPresence profile={displayProfile} />
-        </div>
-        
-        {/* Enhanced Badges Section */}
-        <div className="bg-white/70 backdrop-blur-sm rounded-2xl p-6 border border-royal-blue/10 shadow-lg">
-          <ProfileBadges 
-            verificationBadges={allVerificationBadges}
-            specializations={displayProfile.specializations}
-            certifications={displayProfile.certifications}
-          />
-        </div>
-
-        {/* Enhanced Actions Section */}
-        <div className="bg-white/70 backdrop-blur-sm rounded-2xl p-6 border border-royal-blue/10 shadow-lg">
-          <ProfileActions 
-            profile={profileForActions}
-            isOwnProfile={isOwnProfile}
-          />
-        </div>
-
-        {/* Online Users Section - Enhanced styling */}
-        {user && (
-          <div className="bg-white/70 backdrop-blur-sm rounded-2xl p-6 border border-royal-blue/10 shadow-lg">
-            <OnlineUsersList variant="compact" maxVisible={3} />
+                <p className="text-sm text-muted-foreground">
+                  Unlock professional tools and priority placement
+                </p>
+              </CardContent>
+            </Card>
           </div>
         )}
 
-        {/* Enhanced Highlights Section */}
-        <div className="bg-white/70 backdrop-blur-sm rounded-2xl p-6 border border-royal-blue/10 shadow-lg">
-          <ProfileHighlights 
-            highlights={highlights} 
-            isOwnProfile={isOwnProfile}
-          />
-        </div>
+        {/* Main Profile Section - Instagram style */}
+        <div className="px-4 pb-6">
+          <div className="bg-background">
+            <ProfileHeaderWithPresence profile={displayProfile} />
+          </div>
+          
+          {/* Badges Section */}
+          <div className="mt-4">
+            <ProfileBadges 
+              verificationBadges={allVerificationBadges}
+              specializations={displayProfile.specializations}
+              certifications={displayProfile.certifications}
+            />
+          </div>
 
-        {/* Enhanced Tabs Section */}
-        <div className="bg-white/70 backdrop-blur-sm rounded-2xl border border-royal-blue/10 shadow-lg overflow-hidden">
-          <ProfileTabs 
-            activeTab={activeTab}
-            setActiveTab={setActiveTab}
-            posts={posts}
-            reviews={reviews}
-            analyticsComponent={
-              isOwnProfile && user ? <ProfileAnalyticsEnhanced profile={displayProfile} /> : undefined
-            }
-            isOwnProfile={isOwnProfile}
-            userType={displayProfile.user_type}
-          />
+          {/* Actions Section */}
+          <div className="mt-4">
+            <ProfileActions 
+              profile={profileForActions}
+              isOwnProfile={isOwnProfile}
+            />
+          </div>
+
+          {/* Online Users Section */}
+          {user && (
+            <div className="mt-6">
+              <OnlineUsersList variant="compact" maxVisible={3} />
+            </div>
+          )}
+
+          {/* Highlights Section - Instagram style */}
+          <div className="mt-6">
+            <ProfileHighlights 
+              highlights={highlights} 
+              isOwnProfile={isOwnProfile}
+            />
+          </div>
+
+          {/* Tabs Section - Instagram style */}
+          <div className="mt-6 -mx-4">
+            <div className="bg-background border-t border-border/40">
+              <ProfileTabs 
+                activeTab={activeTab}
+                setActiveTab={setActiveTab}
+                posts={posts}
+                reviews={reviews}
+                analyticsComponent={
+                  isOwnProfile && user ? <ProfileAnalyticsEnhanced profile={displayProfile} /> : undefined
+                }
+                isOwnProfile={isOwnProfile}
+                userType={displayProfile.user_type}
+              />
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* Edit Dialog - Only show if user is logged in */}
+      {/* Edit Dialog */}
       {isEditDialogOpen && profile && user && (
         <ProfileEditDialog 
           profile={profile}
