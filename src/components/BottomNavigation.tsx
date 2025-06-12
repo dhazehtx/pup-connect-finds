@@ -72,7 +72,8 @@ const BottomNavigation = () => {
       path: '/create',
       protected: true,
       action: 'create content',
-      onClick: handleCreateAction
+      onClick: handleCreateAction,
+      isCreateButton: true
     },
     {
       icon: MessageCircle,
@@ -107,6 +108,7 @@ const BottomNavigation = () => {
           {navItems.map((item) => {
             const Icon = item.icon;
             const active = isActive(item.path);
+            const isCreateBtn = item.isCreateButton;
             
             return (
               <button
@@ -117,16 +119,26 @@ const BottomNavigation = () => {
                   console.log('Button clicked for:', item.label, item.path);
                   item.onClick();
                 }}
-                className={`flex flex-col items-center justify-center p-2 transition-colors ${
+                className={`flex flex-col items-center justify-center p-2 transition-colors relative ${
                   active 
                     ? 'text-blue-600 bg-blue-50' 
+                    : isCreateBtn
+                    ? 'text-blue-600 hover:text-blue-700 hover:bg-blue-50'
                     : 'text-gray-600 hover:text-blue-600 hover:bg-gray-50'
                 }`}
                 type="button"
                 aria-label={item.label}
               >
-                <Icon size={20} className="flex-shrink-0" />
-                <span className="text-xs mt-1 font-medium">{item.label}</span>
+                {isCreateBtn ? (
+                  <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center mb-1">
+                    <Icon size={18} className="text-white" />
+                  </div>
+                ) : (
+                  <Icon size={20} className="flex-shrink-0" />
+                )}
+                <span className={`text-xs mt-1 font-medium ${isCreateBtn ? 'text-blue-600' : ''}`}>
+                  {item.label}
+                </span>
                 {item.protected && !user && !isGuest && (
                   <div className="absolute top-1 right-1 w-2 h-2 bg-orange-500 rounded-full"></div>
                 )}
