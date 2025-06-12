@@ -10,6 +10,7 @@ import Index from '@/pages/Index';
 import AppCompletion from '@/pages/AppCompletion';
 import AdminDashboard from '@/components/admin/AdminDashboard';
 import SampleDataManager from '@/components/dev/SampleDataManager';
+import '@/i18n/config'; // Import i18n configuration
 
 const queryClient = new QueryClient({
   defaultOptions: {
