@@ -103,7 +103,7 @@ const Header = () => {
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <Link to="/" className="flex items-center space-x-2">
-            <Heart className="h-8 w-8 text-primary" />
+            <Heart className="h-8 w-8 text-blue-600" />
             <span className="text-xl font-bold text-gray-900">MY PUP</span>
           </Link>
 
