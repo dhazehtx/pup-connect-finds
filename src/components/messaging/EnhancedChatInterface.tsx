@@ -8,7 +8,11 @@ import { useMessageReactions } from '@/hooks/useMessageReactions';
 import { useMessageThreads } from '@/hooks/useMessageThreads';
 import { useChatState } from '@/hooks/useChatState';
 import { useChatHandlers } from '@/hooks/useChatHandlers';
-import ChatContainer from './ChatContainer';
+import { Button } from '@/components/ui/button';
+import { ArrowLeft, User } from 'lucide-react';
+import UnifiedMessageBubble from './UnifiedMessageBubble';
+import UnifiedMessageInput from './UnifiedMessageInput';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface EnhancedChatInterfaceProps {
   conversationId: string;
@@ -24,28 +28,6 @@ const EnhancedChatInterface = ({ conversationId, otherUserId, listingId, onBack 
   const { uploading } = useEnhancedFileUpload();
   const { reactions, addReaction, toggleReaction } = useMessageReactions();
   const { getThreadCount } = useMessageThreads();
-  
-  const {
-    newMessage,
-    setNewMessage,
-    selectedFile,
-    setSelectedFile,
-    sendingMessage,
-    setSendingMessage,
-    reactionPickerState,
-    threadState,
-    clearInputs,
-    handleReactionButtonClick,
-    closeReactionPicker,
-    handleReplyToMessage,
-    closeThread
-  } = useChatState();
-
-  const {
-    handleSendMessage,
-    handleFileSelect,
-    handleSendVoiceMessage
-  } = useChatHandlers({ user, conversationId, sendMessage });
 
   console.log('💬 EnhancedChatInterface - Component rendered with props:', {
     conversationId,
@@ -74,50 +56,38 @@ const EnhancedChatInterface = ({ conversationId, otherUserId, listingId, onBack 
   }, [conversationId, user, fetchMessages, markAsRead, toast]);
 
   // Handle sending message
-  const onSendMessage = async () => {
+  const handleSendMessage = async (content: string, type = 'text', options: any = {}) => {
     console.log('📤 EnhancedChatInterface - Send message triggered');
-    await handleSendMessage(newMessage, selectedFile, setSendingMessage, clearInputs);
+    try {
+      await sendMessage(conversationId, content, type, options.imageUrl);
+    } catch (error) {
+      console.error('❌ Failed to send message:', error);
+      toast({
+        title: "Failed to send message",
+        description: "Please try again",
+        variant: "destructive",
+      });
+    }
   };
 
   // Handle file selection
-  const onFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileSelect = (file: File) => {
     console.log('📁 EnhancedChatInterface - File select triggered');
-    const file = handleFileSelect(event);
-    if (file) {
-      console.log('✅ EnhancedChatInterface - File selected successfully:', file.name);
-      setSelectedFile(file);
-    }
+    toast({
+      title: "File Upload",
+      description: "File upload functionality coming soon!",
+    });
   };
 
-  // Handle key press
-  const handleKeyPress = (event: React.KeyboardEvent) => {
-    if (event.key === 'Enter' && !event.shiftKey) {
-      console.log('⌨️ EnhancedChatInterface - Enter key pressed, sending message');
-      event.preventDefault();
-      onSendMessage();
-    }
-  };
-
-  const handleReactionAdd = (messageId: string, emoji: string) => {
-    console.log('😊 EnhancedChatInterface - Adding reaction:', { messageId, emoji });
-    addReaction(messageId, emoji);
-    closeReactionPicker();
-  };
-
-  const handleReactionToggle = (messageId: string, emoji: string) => {
-    console.log('🔄 EnhancedChatInterface - Toggling reaction:', { messageId, emoji });
-    toggleReaction(messageId, emoji);
-  };
-
-  const onReplyToMessage = (message: any) => {
-    console.log('💬 EnhancedChatInterface - Reply to message triggered:', message.id);
-    handleReplyToMessage(message, user);
-  };
-
-  // Handle voice message - updated to match expected interface
-  const onSendVoiceMessage = (audioUrl: string, duration: number) => {
+  // Handle voice message
+  const handleSendVoiceMessage = (audioUrl: string, duration: number) => {
     console.log('🎤 EnhancedChatInterface - Voice message triggered:', { audioUrl, duration });
-    handleSendVoiceMessage(audioUrl, duration);
+    handleSendMessage(`Voice message (${duration}s)`, 'voice', { imageUrl: audioUrl });
+  };
+
+  const handleReactionClick = (messageId: string) => {
+    console.log('😊 EnhancedChatInterface - Reaction click:', messageId);
+    // Toggle reaction picker or add default reaction
   };
 
   if (!user) {
@@ -129,41 +99,56 @@ const EnhancedChatInterface = ({ conversationId, otherUserId, listingId, onBack 
     );
   }
 
-  console.log('🎯 EnhancedChatInterface - Rendering ChatContainer with:', {
+  console.log('🎯 EnhancedChatInterface - Rendering with:', {
     messageCount: messages.length,
     reactionCount: Object.keys(reactions).length,
-    isUploading: uploading,
-    isSending: sendingMessage
+    isUploading: uploading
   });
 
   return (
-    <ChatContainer
-      messages={messages}
-      user={user}
-      reactions={reactions}
-      getThreadCount={getThreadCount}
-      onReactionButtonClick={handleReactionButtonClick}
-      onReplyToMessage={onReplyToMessage}
-      onReactionToggle={handleReactionToggle}
-      newMessage={newMessage}
-      setNewMessage={setNewMessage}
-      selectedFile={selectedFile}
-      setSelectedFile={setSelectedFile}
-      uploading={uploading}
-      sendingMessage={sendingMessage}
-      onSendMessage={onSendMessage}
-      onSendVoiceMessage={onSendVoiceMessage}
-      onFileSelect={onFileSelect}
-      onKeyPress={handleKeyPress}
-      sendMessage={sendMessage}
-      conversationId={conversationId}
-      reactionPickerState={reactionPickerState}
-      onReactionAdd={handleReactionAdd}
-      closeReactionPicker={closeReactionPicker}
-      threadState={threadState}
-      closeThread={closeThread}
-      onBack={onBack}
-    />
+    <div className="flex flex-col h-full bg-white">
+      {/* Header */}
+      <div className="flex items-center gap-3 p-4 border-b bg-white">
+        {onBack && (
+          <Button variant="ghost" size="sm" onClick={onBack}>
+            <ArrowLeft size={16} />
+          </Button>
+        )}
+        <div className="flex items-center gap-2">
+          <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
+            <User size={16} className="text-gray-600" />
+          </div>
+          <div>
+            <h3 className="font-semibold">Chat</h3>
+            <p className="text-xs text-gray-500">Active now</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Messages */}
+      <ScrollArea className="flex-1 p-4">
+        <div className="space-y-2">
+          {messages.map((message) => (
+            <UnifiedMessageBubble
+              key={message.id}
+              message={message}
+              isOwn={message.sender_id === user?.id}
+              onReactionClick={handleReactionClick}
+              reactions={reactions[message.id] || []}
+            />
+          ))}
+        </div>
+      </ScrollArea>
+
+      {/* Input */}
+      <UnifiedMessageInput
+        conversationId={conversationId}
+        onSendMessage={handleSendMessage}
+        onSendVoiceMessage={handleSendVoiceMessage}
+        onFileSelect={handleFileSelect}
+        disabled={uploading}
+      />
+    </div>
   );
 };
 
