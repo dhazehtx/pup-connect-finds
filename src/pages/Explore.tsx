@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Search, Filter, Heart, MapPin, MessageCircle, Sliders, Plus, Home, User, DollarSign, Calendar } from 'lucide-react';
 import { Input } from '@/components/ui/input';
@@ -313,6 +312,25 @@ const Explore = () => {
               </Button>
             </div>
 
+            {/* Sort Options - Moved to top */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Sort By</label>
+              <Select value={filters.sortBy} onValueChange={(value) => updateFilter('sortBy', value)}>
+                <SelectTrigger className="w-48">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="newest">Newest First</SelectItem>
+                  <SelectItem value="oldest">Oldest First</SelectItem>
+                  <SelectItem value="price-low">Price: Low to High</SelectItem>
+                  <SelectItem value="price-high">Price: High to Low</SelectItem>
+                  <SelectItem value="distance">Distance</SelectItem>
+                  <SelectItem value="age-young">Age: Youngest First</SelectItem>
+                  <SelectItem value="age-old">Age: Oldest First</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
             {/* Basic Filters Row */}
             <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
               <div>
@@ -611,25 +629,6 @@ const Explore = () => {
                 />
                 <span className="text-sm text-gray-700">Good with pets</span>
               </label>
-            </div>
-
-            {/* Sort Options */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Sort By</label>
-              <Select value={filters.sortBy} onValueChange={(value) => updateFilter('sortBy', value)}>
-                <SelectTrigger className="w-48">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="newest">Newest First</SelectItem>
-                  <SelectItem value="oldest">Oldest First</SelectItem>
-                  <SelectItem value="price-low">Price: Low to High</SelectItem>
-                  <SelectItem value="price-high">Price: High to Low</SelectItem>
-                  <SelectItem value="distance">Distance</SelectItem>
-                  <SelectItem value="age-young">Age: Youngest First</SelectItem>
-                  <SelectItem value="age-old">Age: Oldest First</SelectItem>
-                </SelectContent>
-              </Select>
             </div>
           </div>
         </div>
