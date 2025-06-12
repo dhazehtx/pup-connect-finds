@@ -1,9 +1,9 @@
 
 import React from 'react';
-import ComprehensiveMessagingDashboard from '@/components/messaging/ComprehensiveMessagingDashboard';
+import UnifiedMessagingInterface from '@/components/messaging/UnifiedMessagingInterface';
 
 const EnhancedMessages = () => {
-  return <ComprehensiveMessagingDashboard />;
+  return <UnifiedMessagingInterface />;
 };
 
 export default EnhancedMessages;

@@ -1,9 +1,9 @@
 
 import React from 'react';
-import AdvancedMessagingHub from '@/components/messaging/AdvancedMessagingHub';
+import UnifiedMessagingInterface from '@/components/messaging/UnifiedMessagingInterface';
 
 const AdvancedMessaging = () => {
-  return <AdvancedMessagingHub />;
+  return <UnifiedMessagingInterface />;
 };
 
 export default AdvancedMessaging;

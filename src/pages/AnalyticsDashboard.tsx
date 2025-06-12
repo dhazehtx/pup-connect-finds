@@ -2,9 +2,7 @@
 import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { BarChart3, TrendingUp, Users, Activity } from 'lucide-react';
-import RealTimeAnalyticsDashboard from '@/components/analytics/RealTimeAnalyticsDashboard';
 import ListingAnalyticsDashboard from '@/components/analytics/ListingAnalyticsDashboard';
-import AdvancedAnalyticsDashboard from '@/components/analytics/AdvancedAnalyticsDashboard';
 import ProfileAnalytics from '@/components/profile/ProfileAnalytics';
 
 const AnalyticsDashboard = () => {
@@ -17,19 +15,11 @@ const AnalyticsDashboard = () => {
         </p>
       </div>
 
-      <Tabs defaultValue="overview" className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="overview" className="flex items-center gap-2">
-            <BarChart3 className="w-4 h-4" />
-            Overview
-          </TabsTrigger>
+      <Tabs defaultValue="listings" className="w-full">
+        <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="listings" className="flex items-center gap-2">
             <TrendingUp className="w-4 h-4" />
             Listing Analytics
-          </TabsTrigger>
-          <TabsTrigger value="realtime" className="flex items-center gap-2">
-            <Activity className="w-4 h-4" />
-            Real-time
           </TabsTrigger>
           <TabsTrigger value="profile" className="flex items-center gap-2">
             <Users className="w-4 h-4" />
@@ -37,16 +27,8 @@ const AnalyticsDashboard = () => {
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="overview" className="mt-6">
-          <AdvancedAnalyticsDashboard />
-        </TabsContent>
-
         <TabsContent value="listings" className="mt-6">
           <ListingAnalyticsDashboard />
-        </TabsContent>
-
-        <TabsContent value="realtime" className="mt-6">
-          <RealTimeAnalyticsDashboard />
         </TabsContent>
 
         <TabsContent value="profile" className="mt-6">

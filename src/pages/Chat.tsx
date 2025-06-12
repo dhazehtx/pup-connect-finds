@@ -1,7 +1,8 @@
+
 import React, { useState } from 'react';
 import { ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import LiveChatInterface from '@/components/messaging/LiveChatInterface';
+import EnhancedChatInterface from '@/components/messaging/EnhancedChatInterface';
 import ConversationsList from '@/components/messaging/ConversationsList';
 import { MobileResponsive } from '@/components/ui/mobile-responsive';
 import { useMessagingRefactored } from '@/hooks/messaging/useMessagingRefactored';
@@ -26,7 +27,7 @@ const Chat = () => {
   if (selectedConversationId && selectedUserId) {
     return (
       <div className="h-screen bg-white">
-        <LiveChatInterface
+        <EnhancedChatInterface
           conversationId={selectedConversationId}
           otherUserId={selectedUserId}
           onBack={handleBackToList}
