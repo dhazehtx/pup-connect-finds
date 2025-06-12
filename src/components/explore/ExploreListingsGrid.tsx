@@ -16,9 +16,16 @@ interface Listing {
   image: string;
   verified: boolean;
   sourceType?: string;
-  rating: string;
-  reviews: string;
+  rating: number;
+  reviews: number;
   breeder: string;
+  color?: string;
+  gender?: string;
+  verifiedBreeder?: boolean;
+  idVerified?: boolean;
+  vetVerified?: boolean;
+  available?: number;
+  isKillShelter?: boolean;
 }
 
 interface ExploreListingsGridProps {
