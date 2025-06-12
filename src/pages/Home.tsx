@@ -1,13 +1,9 @@
-
 import React, { useState } from 'react';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Heart, MessageCircle, Share, Bookmark, MoreHorizontal } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
-import AnimatedHeart from '@/components/ui/animated-heart';
-import CommentsSection from '@/components/post/CommentsSection';
+import PostCard from '@/components/home/PostCard';
+import GuestHero from '@/components/home/GuestHero';
 import LikesModal from '@/components/post/LikesModal';
 import StoriesReel from '@/components/stories/StoriesReel';
 
@@ -240,31 +236,7 @@ const Home = () => {
 
   // Show guest homepage for non-authenticated users
   if (!user && !isGuest) {
-    return (
-      <div className="max-w-md mx-auto px-4 py-6 space-y-6">
-        {/* Hero Section for Guests */}
-        <div className="text-center py-12">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">
-            Welcome to MY PUP! 🐕
-          </h1>
-          <p className="text-lg text-gray-600 mb-8">
-            Find your perfect companion from trusted breeders and connect with fellow dog lovers
-          </p>
-          <div className="flex justify-center gap-4 flex-wrap">
-            <Button size="lg" asChild>
-              <Link to="/explore">
-                Browse Dogs
-              </Link>
-            </Button>
-            <Button size="lg" variant="outline" asChild>
-              <Link to="/auth">
-                Sign Up Free
-              </Link>
-            </Button>
-          </div>
-        </div>
-      </div>
-    );
+    return <GuestHero />;
   }
 
   const handleLike = (postId: number) => {
@@ -362,113 +334,23 @@ const Home = () => {
       {/* Feed */}
       <div className="space-y-0">
         {posts.map((post) => (
-          <Card key={post.id} className="rounded-none border-x-0 border-t-0 shadow-none">
-            <CardContent className="p-0">
-              {/* Post Header */}
-              <div className="flex items-center justify-between p-3">
-                <div 
-                  className="flex items-center space-x-3 cursor-pointer"
-                  onClick={() => handleProfileClick(post.user.id)}
-                >
-                  <img
-                    src={post.user.avatar}
-                    alt={post.user.username}
-                    className="w-8 h-8 rounded-full object-cover"
-                  />
-                  <div>
-                    <p className="font-semibold text-sm hover:underline">{post.user.username}</p>
-                    <p className="text-xs text-gray-500">{post.user.location}</p>
-                  </div>
-                </div>
-                <Button variant="ghost" size="sm">
-                  <MoreHorizontal className="w-4 h-4" />
-                </Button>
-              </div>
-
-              {/* Post Image */}
-              <div className="aspect-square">
-                <img
-                  src={post.image}
-                  alt="Dog post"
-                  className="w-full h-full object-cover"
-                />
-              </div>
-
-              {/* Post Actions */}
-              <div className="p-3">
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center space-x-4">
-                    <AnimatedHeart
-                      isLiked={post.isLiked}
-                      onToggle={() => handleLike(post.id)}
-                      size={24}
-                    />
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      className="p-0 h-auto"
-                      onClick={() => handleComment(post.id)}
-                    >
-                      <MessageCircle className="w-6 h-6" />
-                    </Button>
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      className="p-0 h-auto"
-                      onClick={() => handleShare(post.id)}
-                    >
-                      <Share className="w-6 h-6" />
-                    </Button>
-                  </div>
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    className="p-0 h-auto"
-                    onClick={() => handleBookmark(post.id)}
-                  >
-                    <Bookmark className="w-6 h-6" />
-                  </Button>
-                </div>
-
-                {/* Likes */}
-                <p 
-                  className="font-semibold text-sm mb-1 cursor-pointer hover:text-gray-600"
-                  onClick={() => handleShowLikes(post.id)}
-                >
-                  {post.likes.toLocaleString()} likes
-                </p>
-
-                {/* Caption */}
-                <p className="text-sm mb-2">
-                  <span 
-                    className="font-semibold cursor-pointer hover:underline"
-                    onClick={() => handleProfileClick(post.user.id)}
-                  >
-                    {post.user.username}
-                  </span>{' '}
-                  {post.caption}
-                </p>
-
-                {/* Comments Section */}
-                {post.comments.length > 0 && (
-                  <CommentsSection
-                    comments={post.comments}
-                    setComments={(updateFn) => {
-                      setPosts(prev => prev.map(p => 
-                        p.id === post.id 
-                          ? { ...p, comments: typeof updateFn === 'function' ? updateFn(p.comments) : updateFn }
-                          : p
-                      ));
-                    }}
-                    onProfileClick={handleProfileClick}
-                  />
-                )}
-
-                {/* Time */}
-                <p className="text-xs text-gray-500 mt-2">{post.timeAgo}</p>
-              </div>
-            </CardContent>
-          </Card>
+          <PostCard
+            key={post.id}
+            post={post}
+            onLike={handleLike}
+            onProfileClick={handleProfileClick}
+            onShare={handleShare}
+            onBookmark={handleBookmark}
+            onComment={handleComment}
+            onShowLikes={handleShowLikes}
+            onCommentsUpdate={(updateFn) => {
+              setPosts(prev => prev.map(p => 
+                p.id === post.id 
+                  ? { ...p, comments: typeof updateFn === 'function' ? updateFn(p.comments) : updateFn }
+                  : p
+              ));
+            }}
+          />
         ))}
       </div>
 

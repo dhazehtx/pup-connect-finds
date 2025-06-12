@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { User, Settings, Star, MapPin, Phone, Mail, Globe, Heart, MessageCircle, X } from 'lucide-react';
+import { User, Settings, Star, MessageCircle, Heart } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -10,6 +10,8 @@ import FollowersModal from '@/components/profile/FollowersModal';
 import PostViewModal from '@/components/profile/PostViewModal';
 import LikesModal from '@/components/post/LikesModal';
 import ProfileEditDialog from '@/components/profile/ProfileEditDialog';
+import ProfileStats from '@/components/profile/ProfileStats';
+import ProfileInfo from '@/components/profile/ProfileInfo';
 
 const SimpleProfileContent = () => {
   const { user, profile, signOut } = useAuth();
@@ -100,7 +102,6 @@ const SimpleProfileContent = () => {
   };
 
   const handleProfileClick = (userId: string) => {
-    // Navigate to user profile or handle profile view
     console.log('Navigating to profile:', userId);
   };
 
@@ -138,57 +139,19 @@ const SimpleProfileContent = () => {
           </div>
 
           {/* Stats */}
-          <div className="flex justify-around py-4 border-y">
-            <div className="text-center">
-              <div className="font-semibold">{displayProfile.stats.posts}</div>
-              <div className="text-sm text-gray-600">Posts</div>
-            </div>
-            <div 
-              className="text-center cursor-pointer hover:opacity-75 transition-opacity"
-              onClick={() => setShowFollowersModal(true)}
-            >
-              <div className="font-semibold">{displayProfile.stats.followers}</div>
-              <div className="text-sm text-gray-600">Followers</div>
-            </div>
-            <div 
-              className="text-center cursor-pointer hover:opacity-75 transition-opacity"
-              onClick={() => setShowFollowingModal(true)}
-            >
-              <div className="font-semibold">{displayProfile.stats.following}</div>
-              <div className="text-sm text-gray-600">Following</div>
-            </div>
-          </div>
+          <ProfileStats
+            stats={displayProfile.stats}
+            onFollowersClick={() => setShowFollowersModal(true)}
+            onFollowingClick={() => setShowFollowingModal(true)}
+          />
 
           {/* Bio and Info */}
-          <div className="py-4 space-y-3">
-            <p className="text-sm">{displayProfile.bio}</p>
-            
-            {displayProfile.location && (
-              <div className="flex items-center space-x-2 text-sm text-gray-600">
-                <MapPin className="w-4 h-4" />
-                <span>{displayProfile.location}</span>
-              </div>
-            )}
-            
-            {displayProfile.website_url && (
-              <div className="flex items-center space-x-2 text-sm text-blue-600">
-                <Globe className="w-4 h-4" />
-                <a href={displayProfile.website_url} target="_blank" rel="noopener noreferrer">
-                  {displayProfile.website_url}
-                </a>
-              </div>
-            )}
-
-            {displayProfile.specializations.length > 0 && (
-              <div className="flex flex-wrap gap-2">
-                {displayProfile.specializations.map((spec, index) => (
-                  <Badge key={index} variant="outline" className="text-xs">
-                    {spec}
-                  </Badge>
-                ))}
-              </div>
-            )}
-          </div>
+          <ProfileInfo
+            bio={displayProfile.bio}
+            location={displayProfile.location}
+            website_url={displayProfile.website_url}
+            specializations={displayProfile.specializations}
+          />
 
           {/* Action Buttons */}
           <div className="flex space-x-2 mb-6">
@@ -305,57 +268,19 @@ const SimpleProfileContent = () => {
         </div>
 
         {/* Stats */}
-        <div className="flex justify-around py-4 border-y">
-          <div className="text-center">
-            <div className="font-semibold">{displayProfile.stats.posts}</div>
-            <div className="text-sm text-gray-600">Posts</div>
-          </div>
-          <div 
-            className="text-center cursor-pointer hover:opacity-75 transition-opacity"
-            onClick={() => setShowFollowersModal(true)}
-          >
-            <div className="font-semibold">{displayProfile.stats.followers}</div>
-            <div className="text-sm text-gray-600">Followers</div>
-          </div>
-          <div 
-            className="text-center cursor-pointer hover:opacity-75 transition-opacity"
-            onClick={() => setShowFollowingModal(true)}
-          >
-            <div className="font-semibold">{displayProfile.stats.following}</div>
-            <div className="text-sm text-gray-600">Following</div>
-          </div>
-        </div>
+        <ProfileStats
+          stats={displayProfile.stats}
+          onFollowersClick={() => setShowFollowersModal(true)}
+          onFollowingClick={() => setShowFollowingModal(true)}
+        />
 
         {/* Bio and Info */}
-        <div className="py-4 space-y-3">
-          <p className="text-sm">{displayProfile.bio}</p>
-          
-          {displayProfile.location && (
-            <div className="flex items-center space-x-2 text-sm text-gray-600">
-              <MapPin className="w-4 h-4" />
-              <span>{displayProfile.location}</span>
-            </div>
-          )}
-          
-          {displayProfile.website_url && (
-            <div className="flex items-center space-x-2 text-sm text-blue-600">
-              <Globe className="w-4 h-4" />
-              <a href={displayProfile.website_url} target="_blank" rel="noopener noreferrer">
-                {displayProfile.website_url}
-              </a>
-            </div>
-          )}
-
-          {displayProfile.specializations.length > 0 && (
-            <div className="flex flex-wrap gap-2">
-              {displayProfile.specializations.map((spec, index) => (
-                <Badge key={index} variant="outline" className="text-xs">
-                  {spec}
-                </Badge>
-              ))}
-            </div>
-          )}
-        </div>
+        <ProfileInfo
+          bio={displayProfile.bio}
+          location={displayProfile.location}
+          website_url={displayProfile.website_url}
+          specializations={displayProfile.specializations}
+        />
 
         {/* Action Button for own profile */}
         {user && (
