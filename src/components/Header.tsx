@@ -8,6 +8,7 @@ import { useMobileOptimized } from '@/hooks/useMobileOptimized';
 import HeaderLogo from '@/components/header/HeaderLogo';
 import MobileHeaderActions from '@/components/header/MobileHeaderActions';
 import DesktopUserMenu from '@/components/header/DesktopUserMenu';
+import NotificationBell from '@/components/ui/notification-bell';
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -24,6 +25,10 @@ const Header = () => {
     }
   };
 
+  const handleNotificationClick = () => {
+    navigate('/notifications');
+  };
+
   const isAuthenticated = Boolean(user || isGuest);
 
   // Mobile header design
@@ -32,12 +37,17 @@ const Header = () => {
       <header className="bg-white border-b border-gray-200 sticky top-0 z-50 shadow-sm">
         <div className="flex justify-between items-center h-14 px-4">
           <HeaderLogo />
-          <MobileHeaderActions
-            isAuthenticated={isAuthenticated}
-            user={user}
-            isGuest={isGuest}
-            onSignOut={handleSignOut}
-          />
+          <div className="flex items-center gap-3">
+            {isAuthenticated && (
+              <NotificationBell onClick={handleNotificationClick} />
+            )}
+            <MobileHeaderActions
+              isAuthenticated={isAuthenticated}
+              user={user}
+              isGuest={isGuest}
+              onSignOut={handleSignOut}
+            />
+          </div>
         </div>
       </header>
     );
@@ -49,12 +59,18 @@ const Header = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           <HeaderLogo />
-          <DesktopUserMenu
-            isAuthenticated={isAuthenticated}
-            user={user}
-            isGuest={isGuest}
-            onSignOut={handleSignOut}
-          />
+          
+          <div className="flex items-center gap-4">
+            {isAuthenticated && (
+              <NotificationBell onClick={handleNotificationClick} />
+            )}
+            <DesktopUserMenu
+              isAuthenticated={isAuthenticated}
+              user={user}
+              isGuest={isGuest}
+              onSignOut={handleSignOut}
+            />
+          </div>
 
           {/* Mobile Menu Button */}
           <button

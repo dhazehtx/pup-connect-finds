@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import GuestPrompt from '@/components/GuestPrompt';
 import PostCreator from '@/components/home/PostCreator';
+import NotificationBell from '@/components/ui/notification-bell';
 
 const Navbar = () => {
   const { user, signOut, profile, isGuest } = useAuth();
@@ -131,6 +132,13 @@ const Navbar = () => {
                 </Button>
               </div>
 
+              {/* Notification Bell */}
+              {user && (
+                <Link to="/notifications">
+                  <NotificationBell />
+                </Link>
+              )}
+
               <div className="md:hidden">
                 <button
                   onClick={toggleMobileMenu}
@@ -167,6 +175,11 @@ const Navbar = () => {
                     <DropdownMenuItem>
                       <Link to="/messages" className="w-full h-full block">
                         Messages
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem>
+                      <Link to="/notifications" className="w-full h-full block">
+                        Notifications
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem>
@@ -230,12 +243,20 @@ const Navbar = () => {
               Explore
             </Link>
             {user && (
-              <Link
-                to="/messages"
-                className="text-gray-500 hover:text-gray-700 block px-3 py-2 rounded-md text-base font-medium"
-              >
-                Messages
-              </Link>
+              <>
+                <Link
+                  to="/messages"
+                  className="text-gray-500 hover:text-gray-700 block px-3 py-2 rounded-md text-base font-medium"
+                >
+                  Messages
+                </Link>
+                <Link
+                  to="/notifications"
+                  className="text-gray-500 hover:text-gray-700 block px-3 py-2 rounded-md text-base font-medium"
+                >
+                  Notifications
+                </Link>
+              </>
             )}
             <Link
               to="/education"
