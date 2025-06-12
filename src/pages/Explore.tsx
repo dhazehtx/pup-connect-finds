@@ -1,10 +1,12 @@
 
 import React, { useState, useEffect } from 'react';
-import { Search, Filter, Heart, MapPin, MessageCircle, Sliders, Plus, Home, User } from 'lucide-react';
+import { Search, Filter, Heart, MapPin, MessageCircle, Sliders, Plus, Home, User, DollarSign, Calendar } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Slider } from '@/components/ui/slider';
 import { sampleListings } from '@/data/sampleListings';
 import { useDogListings } from '@/hooks/useDogListings';
 import { useMessaging } from '@/hooks/useMessaging';
@@ -26,11 +28,25 @@ const Explore = () => {
     source: 'All Sources', 
     ageGroup: 'All Ages',
     gender: 'All Genders',
-    minPrice: '',
-    maxPrice: '',
+    minPrice: 0,
+    maxPrice: 10000,
+    priceRange: [0, 10000],
+    minAge: '',
+    maxAge: '',
+    location: '',
     maxDistance: 'Any distance',
     verifiedOnly: false,
-    availableNow: false
+    availableNow: false,
+    healthChecked: false,
+    vaccinated: false,
+    spayedNeutered: false,
+    paperwork: 'Any',
+    trainingLevel: 'Any',
+    size: 'Any Size',
+    energyLevel: 'Any',
+    goodWithKids: false,
+    goodWithPets: false,
+    sortBy: 'newest'
   });
   const [favorites, setFavorites] = useState<Set<number>>(new Set());
 
@@ -57,6 +73,36 @@ const Explore = () => {
         return listingDistance <= maxDist;
       });
     }
+
+    // Price range filter
+    const minPrice = filters.priceRange[0];
+    const maxPrice = filters.priceRange[1];
+    filtered = filtered.filter(listing => {
+      const price = parseInt(listing.price.replace(/[$,]/g, ''));
+      return price >= minPrice && price <= maxPrice;
+    });
+
+    // Age filters
+    if (filters.minAge) {
+      filtered = filtered.filter(listing => {
+        const ageWeeks = parseInt(listing.age);
+        return ageWeeks >= parseInt(filters.minAge);
+      });
+    }
+
+    if (filters.maxAge) {
+      filtered = filtered.filter(listing => {
+        const ageWeeks = parseInt(listing.age);
+        return ageWeeks <= parseInt(filters.maxAge);
+      });
+    }
+
+    // Location filter
+    if (filters.location) {
+      filtered = filtered.filter(listing => 
+        listing.location.toLowerCase().includes(filters.location.toLowerCase())
+      );
+    }
     
     if (filters.verifiedOnly) {
       filtered = filtered.filter(listing => listing.verified);
@@ -65,9 +111,12 @@ const Explore = () => {
     setFilteredListings(filtered);
   }, [searchTerm, filters]);
 
-  const popularBreeds = ['French Bulldog', 'Golden Retriever', 'German Shepherd', 'Labrador', 'Beagle'];
-  const quickFilters = ['Under $1000', 'Puppies Only', 'Verified Only', 'Nearby (10mi)'];
+  const popularBreeds = ['French Bulldog', 'Golden Retriever', 'German Shepherd', 'Labrador', 'Beagle', 'Poodle', 'Bulldog', 'Rottweiler'];
+  const quickFilters = ['Under $1000', 'Puppies Only', 'Verified Only', 'Nearby (10mi)', 'Health Checked', 'Vaccinated'];
   const distanceOptions = ['5', '10', '25', '50', '100'];
+  const sizeOptions = ['Toy (under 10 lbs)', 'Small (10-25 lbs)', 'Medium (25-60 lbs)', 'Large (60-90 lbs)', 'Giant (over 90 lbs)'];
+  const energyLevels = ['Low', 'Moderate', 'High', 'Very High'];
+  const trainingLevels = ['Untrained', 'Basic', 'Intermediate', 'Advanced'];
 
   const handleContactSeller = async (listing: any) => {
     if (!user && !isGuest) {
@@ -116,17 +165,48 @@ const Explore = () => {
     });
   };
 
+  const updateFilter = (key: string, value: any) => {
+    setFilters(prev => ({ ...prev, [key]: value }));
+  };
+
+  const clearAllFilters = () => {
+    setFilters({
+      breed: 'All Breeds',
+      source: 'All Sources', 
+      ageGroup: 'All Ages',
+      gender: 'All Genders',
+      minPrice: 0,
+      maxPrice: 10000,
+      priceRange: [0, 10000],
+      minAge: '',
+      maxAge: '',
+      location: '',
+      maxDistance: 'Any distance',
+      verifiedOnly: false,
+      availableNow: false,
+      healthChecked: false,
+      vaccinated: false,
+      spayedNeutered: false,
+      paperwork: 'Any',
+      trainingLevel: 'Any',
+      size: 'Any Size',
+      energyLevel: 'Any',
+      goodWithKids: false,
+      goodWithPets: false,
+      sortBy: 'newest'
+    });
+    setSearchTerm('');
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 pb-20">
       {/* Header with logo and search */}
-      <div className="bg-white border-b border-gray-200 px-4 py-4">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center space-x-2">
-            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-              <Heart className="w-5 h-5 text-white" />
-            </div>
-            <span className="text-xl font-bold">MY PUP</span>
+      <div className="bg-white border-b border-gray-200 px-4 py-4 sticky top-0 z-10">
+        <div className="flex items-center space-x-2 mb-4">
+          <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+            <Heart className="w-5 h-5 text-white" />
           </div>
+          <span className="text-xl font-bold">MY PUP</span>
         </div>
         
         {/* Main search bar */}
@@ -156,9 +236,9 @@ const Explore = () => {
             {popularBreeds.map((breed) => (
               <Badge
                 key={breed}
-                variant="outline"
+                variant={filters.breed === breed ? "default" : "outline"}
                 className="cursor-pointer hover:bg-gray-100"
-                onClick={() => setFilters(prev => ({ ...prev, breed }))}
+                onClick={() => updateFilter('breed', breed)}
               >
                 {breed}
               </Badge>
@@ -176,10 +256,18 @@ const Explore = () => {
                 variant="outline"
                 className="cursor-pointer hover:bg-gray-100"
                 onClick={() => {
-                  if (filter === 'Verified Only') {
-                    setFilters(prev => ({ ...prev, verifiedOnly: !prev.verifiedOnly }));
+                  if (filter === 'Under $1000') {
+                    updateFilter('priceRange', [0, 1000]);
+                  } else if (filter === 'Puppies Only') {
+                    updateFilter('ageGroup', 'Puppies (0-1 year)');
+                  } else if (filter === 'Verified Only') {
+                    updateFilter('verifiedOnly', !filters.verifiedOnly);
                   } else if (filter === 'Nearby (10mi)') {
-                    setFilters(prev => ({ ...prev, maxDistance: '10' }));
+                    updateFilter('maxDistance', '10');
+                  } else if (filter === 'Health Checked') {
+                    updateFilter('healthChecked', !filters.healthChecked);
+                  } else if (filter === 'Vaccinated') {
+                    updateFilter('vaccinated', !filters.vaccinated);
                   }
                 }}
               >
@@ -192,86 +280,218 @@ const Explore = () => {
 
       {/* Advanced Filters Panel */}
       {showAdvancedFilters && (
-        <div className="bg-white border-b border-gray-200 px-4 py-4">
-          <div className="space-y-4">
-            {/* Filter dropdowns row */}
+        <div className="bg-white border-b border-gray-200 px-4 py-6">
+          <div className="space-y-6">
+            <div className="flex justify-between items-center">
+              <h3 className="text-lg font-semibold">Advanced Filters</h3>
+              <Button variant="outline" size="sm" onClick={clearAllFilters}>
+                Clear All
+              </Button>
+            </div>
+
+            {/* Basic Filters Row */}
             <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Breed</label>
-                <select 
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
-                  value={filters.breed}
-                  onChange={(e) => setFilters(prev => ({ ...prev, breed: e.target.value }))}
-                >
-                  <option>All Breeds</option>
-                  {popularBreeds.map(breed => (
-                    <option key={breed} value={breed}>{breed}</option>
-                  ))}
-                </select>
+                <Select value={filters.breed} onValueChange={(value) => updateFilter('breed', value)}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="All Breeds">All Breeds</SelectItem>
+                    {popularBreeds.map(breed => (
+                      <SelectItem key={breed} value={breed}>{breed}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Source</label>
-                <select 
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
-                  value={filters.source}
-                  onChange={(e) => setFilters(prev => ({ ...prev, source: e.target.value }))}
-                >
-                  <option>All Sources</option>
-                  <option>Breeders</option>
-                  <option>Shelters</option>
-                </select>
+                <Select value={filters.source} onValueChange={(value) => updateFilter('source', value)}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="All Sources">All Sources</SelectItem>
+                    <SelectItem value="Breeders">Breeders</SelectItem>
+                    <SelectItem value="Shelters">Shelters</SelectItem>
+                    <SelectItem value="Rescue">Rescue</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
               
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Age Group</label>
-                <select 
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
-                  value={filters.ageGroup}
-                  onChange={(e) => setFilters(prev => ({ ...prev, ageGroup: e.target.value }))}
-                >
-                  <option>All Ages</option>
-                  <option>Puppies (0-1 year)</option>
-                  <option>Young (1-3 years)</option>
-                  <option>Adult (3+ years)</option>
-                </select>
+                <Select value={filters.ageGroup} onValueChange={(value) => updateFilter('ageGroup', value)}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="All Ages">All Ages</SelectItem>
+                    <SelectItem value="Puppies (0-1 year)">Puppies (0-1 year)</SelectItem>
+                    <SelectItem value="Young (1-3 years)">Young (1-3 years)</SelectItem>
+                    <SelectItem value="Adult (3+ years)">Adult (3+ years)</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
               
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Gender</label>
-                <select 
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
-                  value={filters.gender}
-                  onChange={(e) => setFilters(prev => ({ ...prev, gender: e.target.value }))}
-                >
-                  <option>All Genders</option>
-                  <option>Male</option>
-                  <option>Female</option>
-                </select>
+                <Select value={filters.gender} onValueChange={(value) => updateFilter('gender', value)}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="All Genders">All Genders</SelectItem>
+                    <SelectItem value="Male">Male</SelectItem>
+                    <SelectItem value="Female">Female</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Size</label>
+                <Select value={filters.size} onValueChange={(value) => updateFilter('size', value)}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Any Size">Any Size</SelectItem>
+                    {sizeOptions.map(size => (
+                      <SelectItem key={size} value={size}>{size}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            {/* Price Range */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Price Range: ${filters.priceRange[0]} - ${filters.priceRange[1]}
+              </label>
+              <Slider
+                value={filters.priceRange}
+                onValueChange={(value) => updateFilter('priceRange', value)}
+                max={10000}
+                min={0}
+                step={100}
+                className="w-full"
+              />
+            </div>
+
+            {/* Age and Location */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-1">
+                  <Calendar size={14} />
+                  Min Age (weeks)
+                </label>
+                <Input
+                  type="number"
+                  placeholder="0"
+                  value={filters.minAge}
+                  onChange={(e) => updateFilter('minAge', e.target.value)}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-1">
+                  <Calendar size={14} />
+                  Max Age (weeks)
+                </label>
+                <Input
+                  type="number"
+                  placeholder="104"
+                  value={filters.maxAge}
+                  onChange={(e) => updateFilter('maxAge', e.target.value)}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-1">
+                  <MapPin size={14} />
+                  Location
+                </label>
+                <Input
+                  placeholder="City, State"
+                  value={filters.location}
+                  onChange={(e) => updateFilter('location', e.target.value)}
+                />
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Distance</label>
-                <select 
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
-                  value={filters.maxDistance}
-                  onChange={(e) => setFilters(prev => ({ ...prev, maxDistance: e.target.value }))}
-                >
-                  <option value="Any distance">Any distance</option>
-                  {distanceOptions.map(distance => (
-                    <option key={distance} value={distance}>{distance} miles</option>
-                  ))}
-                </select>
+                <Select value={filters.maxDistance} onValueChange={(value) => updateFilter('maxDistance', value)}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Any distance">Any distance</SelectItem>
+                    {distanceOptions.map(distance => (
+                      <SelectItem key={distance} value={distance}>{distance} miles</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            {/* Additional Filters */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Training Level</label>
+                <Select value={filters.trainingLevel} onValueChange={(value) => updateFilter('trainingLevel', value)}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Any">Any Level</SelectItem>
+                    {trainingLevels.map(level => (
+                      <SelectItem key={level} value={level}>{level}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Energy Level</label>
+                <Select value={filters.energyLevel} onValueChange={(value) => updateFilter('energyLevel', value)}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Any">Any Level</SelectItem>
+                    {energyLevels.map(level => (
+                      <SelectItem key={level} value={level}>{level}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Paperwork</label>
+                <Select value={filters.paperwork} onValueChange={(value) => updateFilter('paperwork', value)}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Any">Any</SelectItem>
+                    <SelectItem value="AKC Registered">AKC Registered</SelectItem>
+                    <SelectItem value="Champion Bloodline">Champion Bloodline</SelectItem>
+                    <SelectItem value="Health Certificate">Health Certificate</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
 
             {/* Checkboxes */}
-            <div className="flex space-x-6">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <label className="flex items-center space-x-2">
                 <input
                   type="checkbox"
                   checked={filters.verifiedOnly}
-                  onChange={(e) => setFilters(prev => ({ ...prev, verifiedOnly: e.target.checked }))}
+                  onChange={(e) => updateFilter('verifiedOnly', e.target.checked)}
                   className="rounded border-gray-300"
                 />
                 <span className="text-sm text-gray-700">Verified only</span>
@@ -281,11 +501,80 @@ const Explore = () => {
                 <input
                   type="checkbox"
                   checked={filters.availableNow}
-                  onChange={(e) => setFilters(prev => ({ ...prev, availableNow: e.target.checked }))}
+                  onChange={(e) => updateFilter('availableNow', e.target.checked)}
                   className="rounded border-gray-300"
                 />
                 <span className="text-sm text-gray-700">Available now</span>
               </label>
+
+              <label className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  checked={filters.healthChecked}
+                  onChange={(e) => updateFilter('healthChecked', e.target.checked)}
+                  className="rounded border-gray-300"
+                />
+                <span className="text-sm text-gray-700">Health checked</span>
+              </label>
+
+              <label className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  checked={filters.vaccinated}
+                  onChange={(e) => updateFilter('vaccinated', e.target.checked)}
+                  className="rounded border-gray-300"
+                />
+                <span className="text-sm text-gray-700">Vaccinated</span>
+              </label>
+
+              <label className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  checked={filters.spayedNeutered}
+                  onChange={(e) => updateFilter('spayedNeutered', e.target.checked)}
+                  className="rounded border-gray-300"
+                />
+                <span className="text-sm text-gray-700">Spayed/Neutered</span>
+              </label>
+
+              <label className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  checked={filters.goodWithKids}
+                  onChange={(e) => updateFilter('goodWithKids', e.target.checked)}
+                  className="rounded border-gray-300"
+                />
+                <span className="text-sm text-gray-700">Good with kids</span>
+              </label>
+
+              <label className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  checked={filters.goodWithPets}
+                  onChange={(e) => updateFilter('goodWithPets', e.target.checked)}
+                  className="rounded border-gray-300"
+                />
+                <span className="text-sm text-gray-700">Good with pets</span>
+              </label>
+            </div>
+
+            {/* Sort Options */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Sort By</label>
+              <Select value={filters.sortBy} onValueChange={(value) => updateFilter('sortBy', value)}>
+                <SelectTrigger className="w-48">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="newest">Newest First</SelectItem>
+                  <SelectItem value="oldest">Oldest First</SelectItem>
+                  <SelectItem value="price-low">Price: Low to High</SelectItem>
+                  <SelectItem value="price-high">Price: High to Low</SelectItem>
+                  <SelectItem value="distance">Distance</SelectItem>
+                  <SelectItem value="age-young">Age: Youngest First</SelectItem>
+                  <SelectItem value="age-old">Age: Oldest First</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
         </div>
