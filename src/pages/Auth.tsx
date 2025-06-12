@@ -5,14 +5,24 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Separator } from '@/components/ui/separator';
+import { Heart, Mail, User, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
-import AuthForm from '@/components/auth/AuthForm';
+import { useToast } from '@/hooks/use-toast';
 import SocialLogin from '@/components/auth/SocialLogin';
 
 const Auth = () => {
   const [activeTab, setActiveTab] = useState('signin');
   const [resetMode, setResetMode] = useState(false);
-  const { user, continueAsGuest } = useAuth();
+  const [showPassword, setShowPassword] = useState(false);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [fullName, setFullName] = useState('');
+  const [errors, setErrors] = useState<{[key: string]: string}>({});
+  const { user, continueAsGuest, signIn, signUp, loading } = useAuth();
+  const { toast } = useToast();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
@@ -28,6 +38,45 @@ const Auth = () => {
       navigate('/');
     }
   }, [user, navigate, searchParams]);
+
+  const validateForm = () => {
+    const newErrors: {[key: string]: string} = {};
+    
+    if (!email) {
+      newErrors.email = 'Email is required';
+    } else if (!/\S+@\S+\.\S+/.test(email)) {
+      newErrors.email = 'Please enter a valid email address';
+    }
+    
+    if (!password) {
+      newErrors.password = 'Password is required';
+    } else if (password.length < 6) {
+      newErrors.password = 'Password must be at least 6 characters';
+    }
+
+    if (activeTab === 'signup' && !fullName) {
+      newErrors.fullName = 'Full name is required';
+    }
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!validateForm()) return;
+    
+    try {
+      if (activeTab === 'signup') {
+        await signUp(email, password, { full_name: fullName });
+      } else {
+        await signIn(email, password);
+      }
+      navigate('/');
+    } catch (error) {
+      console.error('Auth error:', error);
+    }
+  };
 
   const handleGuestAccess = () => {
     continueAsGuest();
@@ -71,82 +120,207 @@ const Auth = () => {
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
       <div className="max-w-md w-full space-y-6">
+        {/* Logo and Title */}
         <div className="text-center">
-          <h1 className="text-3xl font-bold text-gray-900">MY PUP</h1>
-          <p className="text-gray-600 mt-2">Find your perfect companion</p>
+          <div className="w-16 h-16 mx-auto mb-6 bg-blue-600 rounded-full flex items-center justify-center">
+            <Heart size={32} className="text-white" />
+          </div>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            {activeTab === 'signup' ? 'Sign up for MY PUP' : 'Sign in'}
+          </h1>
+          {activeTab === 'signin' && (
+            <button
+              onClick={() => setActiveTab('signup')}
+              className="text-blue-600 hover:text-blue-800 underline text-sm"
+            >
+              I don't have an account
+            </button>
+          )}
         </div>
 
-        <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-2 bg-white border border-gray-200 rounded-none h-12 p-0">
-            <TabsTrigger 
-              value="signin"
-              className="data-[state=active]:bg-black data-[state=active]:text-white text-gray-600 font-medium border-0 rounded-none h-full transition-colors"
-            >
-              Sign In
-            </TabsTrigger>
-            <TabsTrigger 
-              value="signup"
-              className="data-[state=active]:bg-black data-[state=active]:text-white text-gray-600 font-medium border-0 rounded-none h-full transition-colors"
-            >
-              Sign Up
-            </TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="signin">
-            <Card className="border border-gray-200 shadow-sm rounded-none bg-white">
-              <CardHeader className="pb-4">
-                <CardTitle className="text-xl font-semibold text-gray-900 text-center">Sign In</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-6 px-6 pb-6">
-                <SocialLogin onSuccess={() => navigate('/')} />
-                <div className="relative">
-                  <div className="absolute inset-0 flex items-center">
-                    <span className="w-full border-t border-gray-200" />
-                  </div>
-                  <div className="relative flex justify-center text-xs uppercase">
-                    <span className="bg-white px-3 text-gray-500 font-medium">Or continue with email</span>
-                  </div>
+        {/* Main Auth Card */}
+        <Card className="border border-gray-200 shadow-sm bg-white">
+          <CardContent className="p-6">
+            {activeTab === 'signin' ? (
+              // Sign In Form
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div>
+                  <Input
+                    type="email"
+                    placeholder="Email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className={`h-12 rounded-md border-2 border-gray-300 bg-gray-100 px-4 text-gray-900 placeholder:text-gray-500 focus:border-blue-600 focus:bg-white ${errors.email ? 'border-red-500' : ''}`}
+                    disabled={loading}
+                  />
+                  {errors.email && (
+                    <p className="text-red-500 text-xs mt-1">{errors.email}</p>
+                  )}
                 </div>
-                <AuthForm mode="signin" onSuccess={() => navigate('/')} />
-              </CardContent>
-            </Card>
-          </TabsContent>
 
-          <TabsContent value="signup">
-            <Card className="border border-gray-200 shadow-sm rounded-none bg-white">
-              <CardHeader className="pb-4">
-                <CardTitle className="text-xl font-semibold text-gray-900 text-center">Create Account</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-6 px-6 pb-6">
-                <SocialLogin onSuccess={() => navigate('/')} />
                 <div className="relative">
-                  <div className="absolute inset-0 flex items-center">
-                    <span className="w-full border-t border-gray-200" />
-                  </div>
-                  <div className="relative flex justify-center text-xs uppercase">
-                    <span className="bg-white px-3 text-gray-500 font-medium">Or continue with email</span>
-                  </div>
+                  <Input
+                    type={showPassword ? 'text' : 'password'}
+                    placeholder="Password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className={`h-12 rounded-md border-2 border-gray-300 bg-gray-100 px-4 pr-12 text-gray-900 placeholder:text-gray-500 focus:border-blue-600 focus:bg-white ${errors.password ? 'border-red-500' : ''}`}
+                    disabled={loading}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                    disabled={loading}
+                  >
+                    {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </button>
+                  {errors.password && (
+                    <p className="text-red-500 text-xs mt-1">{errors.password}</p>
+                  )}
                 </div>
-                <AuthForm mode="signup" onSuccess={() => navigate('/')} />
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
 
-        {/* Guest Access Button */}
+                <Button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full h-12 bg-green-500 hover:bg-green-600 text-white font-semibold rounded-md"
+                >
+                  {loading ? 'Signing In...' : 'Continue'}
+                </Button>
+              </form>
+            ) : (
+              // Sign Up Form
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div>
+                  <Input
+                    type="text"
+                    placeholder="Full Name"
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
+                    className={`h-12 rounded-md border-2 border-gray-300 bg-gray-100 px-4 text-gray-900 placeholder:text-gray-500 focus:border-blue-600 focus:bg-white ${errors.fullName ? 'border-red-500' : ''}`}
+                    disabled={loading}
+                  />
+                  {errors.fullName && (
+                    <p className="text-red-500 text-xs mt-1">{errors.fullName}</p>
+                  )}
+                </div>
+
+                <div>
+                  <Input
+                    type="email"
+                    placeholder="Email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className={`h-12 rounded-md border-2 border-gray-300 bg-gray-100 px-4 text-gray-900 placeholder:text-gray-500 focus:border-blue-600 focus:bg-white ${errors.email ? 'border-red-500' : ''}`}
+                    disabled={loading}
+                  />
+                  {errors.email && (
+                    <p className="text-red-500 text-xs mt-1">{errors.email}</p>
+                  )}
+                </div>
+
+                <div className="relative">
+                  <Input
+                    type={showPassword ? 'text' : 'password'}
+                    placeholder="Password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className={`h-12 rounded-md border-2 border-gray-300 bg-gray-100 px-4 pr-12 text-gray-900 placeholder:text-gray-500 focus:border-blue-600 focus:bg-white ${errors.password ? 'border-red-500' : ''}`}
+                    disabled={loading}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                    disabled={loading}
+                  >
+                    {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </button>
+                  {errors.password && (
+                    <p className="text-red-500 text-xs mt-1">{errors.password}</p>
+                  )}
+                </div>
+
+                <Button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full h-12 bg-green-500 hover:bg-green-600 text-white font-semibold rounded-md"
+                >
+                  {loading ? 'Creating Account...' : 'Continue'}
+                </Button>
+              </form>
+            )}
+
+            {/* "Can't sign in?" link for sign in page */}
+            {activeTab === 'signin' && (
+              <div className="text-center mt-4">
+                <button className="text-gray-600 hover:text-gray-800 underline text-sm">
+                  Can't sign in?
+                </button>
+              </div>
+            )}
+
+            {/* Social Login Buttons */}
+            <div className="space-y-3 mt-6">
+              <Button
+                onClick={() => {
+                  toast({
+                    title: "Coming Soon!",
+                    description: "Google sign-in will be available soon.",
+                  });
+                }}
+                variant="outline"
+                className="w-full h-12 bg-white hover:bg-gray-50 text-gray-700 font-medium rounded-md border-2 border-gray-300"
+                disabled={loading}
+              >
+                <Mail size={18} className="mr-3" />
+                Sign in with Google
+              </Button>
+              
+              <Button
+                onClick={() => {
+                  toast({
+                    title: "Coming Soon!",
+                    description: "Facebook sign-in will be available soon.",
+                  });
+                }}
+                className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-md"
+                disabled={loading}
+              >
+                <User size={18} className="mr-3" />
+                Sign in with Facebook
+              </Button>
+            </div>
+
+            {/* Toggle between sign in and sign up */}
+            {activeTab === 'signup' && (
+              <div className="text-center mt-6">
+                <button
+                  onClick={() => setActiveTab('signin')}
+                  className="text-gray-600 hover:text-gray-800 underline text-sm"
+                >
+                  Already have an account? Sign in here.
+                </button>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Guest Access */}
         <div className="relative">
           <div className="absolute inset-0 flex items-center">
             <span className="w-full border-t border-gray-200" />
           </div>
           <div className="relative flex justify-center text-xs uppercase">
-            <span className="bg-gray-50 px-3 text-gray-500 font-medium">OR</span>
+            <span className="bg-gray-50 px-3 text-gray-500 font-medium">Just browsing?</span>
           </div>
         </div>
         
         <Button 
           onClick={handleGuestAccess}
-          variant="outline" 
-          className="w-full border border-gray-300 text-gray-700 hover:bg-gray-50"
+          variant="ghost" 
+          className="w-full text-gray-600 hover:text-gray-800 hover:bg-transparent underline"
+          disabled={loading}
         >
           Continue as Guest
         </Button>
