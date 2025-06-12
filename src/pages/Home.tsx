@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -61,7 +62,7 @@ const Home = () => {
   const [showLikesModal, setShowLikesModal] = useState(false);
   const [selectedPostLikes, setSelectedPostLikes] = useState<User[]>([]);
 
-  // Sample posts data with interactive functionality
+  // Sample posts data with better demo images
   const [posts, setPosts] = useState<Post[]>([
     {
       id: 1,
@@ -70,19 +71,19 @@ const Home = () => {
         username: 'goldenpaws_official',
         name: 'Golden Paws',
         location: 'San Francisco, CA',
-        avatar: '/lovable-uploads/64114b5b-ae93-4c5b-a6d4-be95ec65c954.png'
+        avatar: 'https://images.unsplash.com/photo-1560743173-567a3b5658b1?w=150&h=150&fit=crop&crop=face'
       },
-      image: '/lovable-uploads/e5a0f017-3263-4e2a-b8eb-c15611287ed7.png',
+      image: 'https://images.unsplash.com/photo-1605568427561-40dd23c2acea?w=600&h=600&fit=crop',
       likes: 1234,
       isLiked: false,
-      caption: 'Beautiful day at the park! 🐕',
+      caption: 'Beautiful day at the park with my golden retriever! 🐕✨ Nothing beats those sunny afternoon walks.',
       timeAgo: '2 hours ago',
       likedBy: [
         {
           id: 'user1',
           name: 'Sarah Johnson',
           username: 'sarah_j',
-          avatar: '/lovable-uploads/75316943-0598-40bc-bcb4-84665859ea00.png',
+          avatar: 'https://images.unsplash.com/photo-1494790108755-2616b612b494?w=150&h=150&fit=crop&crop=face',
           verified: true,
           isFollowing: false
         },
@@ -90,7 +91,7 @@ const Home = () => {
           id: 'user2', 
           name: 'Mike Davis',
           username: 'mike_d',
-          avatar: '/lovable-uploads/5c25f5ac-d644-465c-abc2-dc66bbdf3a94.png',
+          avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face',
           verified: false,
           isFollowing: true
         },
@@ -98,7 +99,7 @@ const Home = () => {
           id: 'user3',
           name: 'Emma Wilson',
           username: 'emma_w',
-          avatar: '/lovable-uploads/252c4abe-53d4-48e1-a356-bf715001c720.png',
+          avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face',
           verified: true,
           isFollowing: false
         }
@@ -110,7 +111,7 @@ const Home = () => {
             id: '2',
             name: 'Dog Lover',
             username: 'doglover123',
-            avatar: '/lovable-uploads/75316943-0598-40bc-bcb4-84665859ea00.png'
+            avatar: 'https://images.unsplash.com/photo-1494790108755-2616b612b494?w=150&h=150&fit=crop&crop=face'
           },
           text: 'Such a beautiful pup! 🥰',
           timestamp: '1h ago',
@@ -121,7 +122,7 @@ const Home = () => {
               id: 'user4',
               name: 'Alex Brown',
               username: 'alex_b',
-              avatar: '/lovable-uploads/5c25f5ac-d644-465c-abc2-dc66bbdf3a94.png',
+              avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face',
               verified: false,
               isFollowing: false
             }
@@ -133,7 +134,7 @@ const Home = () => {
             id: '3',
             name: 'Puppy Fan',
             username: 'puppyfan',
-            avatar: '/lovable-uploads/5c25f5ac-d644-465c-abc2-dc66bbdf3a94.png'
+            avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face'
           },
           text: 'Where is this park? Looks amazing!',
           timestamp: '45m ago',
@@ -144,7 +145,7 @@ const Home = () => {
               id: 'user5',
               name: 'Lisa Chen',
               username: 'lisa_c',
-              avatar: '/lovable-uploads/252c4abe-53d4-48e1-a356-bf715001c720.png',
+              avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face',
               verified: true,
               isFollowing: true
             }
@@ -156,15 +157,15 @@ const Home = () => {
       id: 2,
       user: {
         id: '4',
-        username: 'happypuppies',
+        username: 'puppylove',
         name: 'Happy Puppies',
         location: 'Los Angeles, CA',
-        avatar: '/lovable-uploads/75316943-0598-40bc-bcb4-84665859ea00.png'
+        avatar: 'https://images.unsplash.com/photo-1529472119196-cb724127a98e?w=150&h=150&fit=crop&crop=face'
       },
-      image: '/lovable-uploads/3ae80125-17a2-47bf-85a7-2e69d508dee0.png',
+      image: 'https://images.unsplash.com/photo-1518717758536-85ae29035b6d?w=600&h=600&fit=crop',
       likes: 856,
       isLiked: false,
-      caption: 'Training session complete! Good boy! 🎾',
+      caption: 'Training session complete! Good boy! 🎾 Teaching sit, stay, and fetch today.',
       timeAgo: '4 hours ago',
       likedBy: [],
       comments: [
@@ -174,7 +175,7 @@ const Home = () => {
             id: '5',
             name: 'Trainer Pro',
             username: 'trainerpro',
-            avatar: '/lovable-uploads/252c4abe-53d4-48e1-a356-bf715001c720.png'
+            avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face'
           },
           text: 'Great training technique! What method do you use?',
           timestamp: '3h ago',
@@ -191,13 +192,47 @@ const Home = () => {
         username: 'dogloversclub',
         name: 'Dog Lovers Club',
         location: 'New York, NY',
-        avatar: '/lovable-uploads/5c25f5ac-d644-465c-abc2-dc66bbdf3a94.png'
+        avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&h=150&fit=crop&crop=face'
       },
-      image: '/lovable-uploads/252c4abe-53d4-48e1-a356-bf715001c720.png',
+      image: 'https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=600&h=600&fit=crop',
       likes: 642,
       isLiked: false,
-      caption: 'Playtime with friends! 🐾',
+      caption: 'Playtime with friends! 🐾 Best day ever at the dog park.',
       timeAgo: '6 hours ago',
+      likedBy: [],
+      comments: []
+    },
+    {
+      id: 4,
+      user: {
+        id: '7',
+        username: 'labradorlove',
+        name: 'Labrador Love',
+        location: 'Chicago, IL',
+        avatar: 'https://images.unsplash.com/photo-1581888227599-779811939961?w=150&h=150&fit=crop&crop=face'
+      },
+      image: 'https://images.unsplash.com/photo-1552053831-71594a27632d?w=600&h=600&fit=crop',
+      likes: 923,
+      isLiked: false,
+      caption: 'Morning walk vibes! 🌅 Starting the day right with my best buddy.',
+      timeAgo: '8 hours ago',
+      likedBy: [],
+      comments: []
+    },
+    {
+      id: 5,
+      user: {
+        id: '8',
+        username: 'puppyparadise',
+        name: 'Puppy Paradise',
+        location: 'Miami, FL',
+        avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&h=150&fit=crop&crop=face'
+      },
+      image: 'https://images.unsplash.com/photo-1583337130417-3346a1be7dee?w=600&h=600&fit=crop',
+      likes: 567,
+      isLiked: false,
+      caption: 'Sleepy Sunday afternoon 😴 This little one had a big day!',
+      timeAgo: '12 hours ago',
       likedBy: [],
       comments: []
     }
