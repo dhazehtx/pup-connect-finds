@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Search, Filter, Heart, MapPin, MessageCircle, Sliders, Plus, Home, User, DollarSign, Calendar } from 'lucide-react';
 import { Input } from '@/components/ui/input';
@@ -28,6 +27,7 @@ const Explore = () => {
     source: 'All Sources', 
     ageGroup: 'All Ages',
     gender: 'All Genders',
+    color: 'All Colors',
     minPrice: 0,
     maxPrice: 10000,
     priceRange: [0, 10000],
@@ -111,12 +111,50 @@ const Explore = () => {
     setFilteredListings(filtered);
   }, [searchTerm, filters]);
 
-  const popularBreeds = ['French Bulldog', 'Golden Retriever', 'German Shepherd', 'Labrador', 'Beagle', 'Poodle', 'Bulldog', 'Rottweiler'];
+  // Complete list of dog breeds
+  const allDogBreeds = [
+    'Affenpinscher', 'Afghan Hound', 'Airedale Terrier', 'Akbash', 'Akita', 'Alaskan Malamute', 'American Bulldog', 
+    'American Eskimo Dog', 'American Foxhound', 'American Pit Bull Terrier', 'American Staffordshire Terrier', 
+    'American Water Spaniel', 'Anatolian Shepherd', 'Australian Cattle Dog', 'Australian Shepherd', 'Australian Terrier',
+    'Basenji', 'Basset Hound', 'Beagle', 'Bearded Collie', 'Bedlington Terrier', 'Belgian Malinois', 'Belgian Sheepdog',
+    'Belgian Tervuren', 'Bernese Mountain Dog', 'Bichon Frise', 'Black and Tan Coonhound', 'Bloodhound', 
+    'Border Collie', 'Border Terrier', 'Borzoi', 'Boston Terrier', 'Bouvier des Flandres', 'Boxer', 'Briard',
+    'Brittany', 'Brussels Griffon', 'Bull Terrier', 'Bulldog', 'Bullmastiff', 'Cairn Terrier', 'Canaan Dog',
+    'Cardigan Welsh Corgi', 'Cavalier King Charles Spaniel', 'Chesapeake Bay Retriever', 'Chihuahua', 'Chinese Crested',
+    'Chinese Shar-Pei', 'Chow Chow', 'Clumber Spaniel', 'Cocker Spaniel', 'Collie', 'Coonhound', 'Corgi',
+    'Coton de Tulear', 'Curly-Coated Retriever', 'Dachshund', 'Dalmatian', 'Dandie Dinmont Terrier', 'Doberman Pinscher',
+    'English Bulldog', 'English Cocker Spaniel', 'English Foxhound', 'English Setter', 'English Springer Spaniel',
+    'English Toy Spaniel', 'Field Spaniel', 'Finnish Spitz', 'Flat-Coated Retriever', 'Fox Terrier', 'Foxhound',
+    'French Bulldog', 'German Pinscher', 'German Shepherd', 'German Shorthaired Pointer', 'German Wirehaired Pointer',
+    'Giant Schnauzer', 'Glen of Imaal Terrier', 'Golden Retriever', 'Gordon Setter', 'Great Dane', 'Great Pyrenees',
+    'Greater Swiss Mountain Dog', 'Greyhound', 'Harrier', 'Havanese', 'Ibizan Hound', 'Icelandic Sheepdog',
+    'Irish Red and White Setter', 'Irish Setter', 'Irish Terrier', 'Irish Water Spaniel', 'Irish Wolfhound',
+    'Italian Greyhound', 'Jack Russell Terrier', 'Japanese Chin', 'Keeshond', 'Kerry Blue Terrier', 'Komondor',
+    'Kuvasz', 'Labrador Retriever', 'Lakeland Terrier', 'Leonberger', 'Lhasa Apso', 'Lowchen', 'Maltese',
+    'Manchester Terrier', 'Mastiff', 'Miniature Bull Terrier', 'Miniature Pinscher', 'Miniature Schnauzer',
+    'Mixed Breed', 'Neapolitan Mastiff', 'Newfoundland', 'Norfolk Terrier', 'Norwegian Elkhound', 'Norwich Terrier',
+    'Nova Scotia Duck Tolling Retriever', 'Old English Sheepdog', 'Otterhound', 'Papillon', 'Parson Russell Terrier',
+    'Pekingese', 'Pembroke Welsh Corgi', 'Petit Basset Griffon Vendeen', 'Pharaoh Hound', 'Pointer', 'Polish Lowland Sheepdog',
+    'Pomeranian', 'Poodle', 'Portuguese Water Dog', 'Pug', 'Puli', 'Pyrenean Shepherd', 'Redbone Coonh', 'Rhodesian Ridgeback',
+    'Rottweiler', 'Saint Bernard', 'Saluki', 'Samoyed', 'Schipperke', 'Scottish Deerhound', 'Scottish Terrier',
+    'Sealyham Terrier', 'Shetland Sheepdog', 'Shiba Inu', 'Shih Tzu', 'Siberian Husky', 'Silky Terrier',
+    'Skye Terrier', 'Smooth Fox Terrier', 'Soft Coated Wheaten Terrier', 'Spinone Italiano', 'Staffordshire Bull Terrier',
+    'Standard Schnauzer', 'Sussex Spaniel', 'Tibetan Mastiff', 'Tibetan Spaniel', 'Tibetan Terrier', 'Toy Fox Terrier',
+    'Treeing Walker Coonhound', 'Vizsla', 'Weimaraner', 'Welsh Springer Spaniel', 'Welsh Terrier', 'West Highland White Terrier',
+    'Whippet', 'Wire Fox Terrier', 'Wirehaired Pointing Griffon', 'Yorkshire Terrier'
+  ];
+
+  const popularBreeds = ['French Bulldog', 'Golden Retriever', 'German Shepherd', 'Labrador Retriever', 'Beagle', 'Poodle', 'Bulldog', 'Rottweiler'];
   const quickFilters = ['Under $1000', 'Puppies Only', 'Verified Only', 'Nearby (10mi)', 'Health Checked', 'Vaccinated'];
   const distanceOptions = ['5', '10', '25', '50', '100'];
   const sizeOptions = ['Toy (under 10 lbs)', 'Small (10-25 lbs)', 'Medium (25-60 lbs)', 'Large (60-90 lbs)', 'Giant (over 90 lbs)'];
   const energyLevels = ['Low', 'Moderate', 'High', 'Very High'];
   const trainingLevels = ['Untrained', 'Basic', 'Intermediate', 'Advanced'];
+  const dogColors = [
+    'Black', 'White', 'Brown', 'Golden', 'Cream', 'Red', 'Blue', 'Gray', 'Silver', 'Tan', 
+    'Brindle', 'Sable', 'Merle', 'Tri-color', 'Bi-color', 'Spotted', 'Parti-color', 
+    'Chocolate', 'Liver', 'Fawn', 'Apricot', 'Champagne', 'Platinum', 'Salt and Pepper'
+  ];
 
   const handleContactSeller = async (listing: any) => {
     if (!user && !isGuest) {
@@ -175,6 +213,7 @@ const Explore = () => {
       source: 'All Sources', 
       ageGroup: 'All Ages',
       gender: 'All Genders',
+      color: 'All Colors',
       minPrice: 0,
       maxPrice: 10000,
       priceRange: [0, 10000],
@@ -290,7 +329,7 @@ const Explore = () => {
             </div>
 
             {/* Basic Filters Row */}
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Breed</label>
                 <Select value={filters.breed} onValueChange={(value) => updateFilter('breed', value)}>
@@ -299,7 +338,7 @@ const Explore = () => {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="All Breeds">All Breeds</SelectItem>
-                    {popularBreeds.map(breed => (
+                    {allDogBreeds.map(breed => (
                       <SelectItem key={breed} value={breed}>{breed}</SelectItem>
                     ))}
                   </SelectContent>
@@ -316,6 +355,7 @@ const Explore = () => {
                     <SelectItem value="All Sources">All Sources</SelectItem>
                     <SelectItem value="Breeders">Breeders</SelectItem>
                     <SelectItem value="Shelters">Shelters</SelectItem>
+                    <SelectItem value="Kill Shelter">Kill Shelter</SelectItem>
                     <SelectItem value="Rescue">Rescue</SelectItem>
                   </SelectContent>
                 </Select>
@@ -346,6 +386,21 @@ const Explore = () => {
                     <SelectItem value="All Genders">All Genders</SelectItem>
                     <SelectItem value="Male">Male</SelectItem>
                     <SelectItem value="Female">Female</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Color</label>
+                <Select value={filters.color} onValueChange={(value) => updateFilter('color', value)}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="All Colors">All Colors</SelectItem>
+                    {dogColors.map(color => (
+                      <SelectItem key={color} value={color}>{color}</SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
