@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { sampleListings } from '@/data/sampleListings';
 import { useDogListings } from '@/hooks/useDogListings';
 import { useMessaging } from '@/hooks/useMessaging';
 import { useAuth } from '@/contexts/AuthContext';
@@ -19,6 +20,7 @@ const Explore = () => {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
+  const [filteredListings, setFilteredListings] = useState(sampleListings);
   const [filters, setFilters] = useState({
     breed: 'All Breeds',
     source: 'All Sources', 
@@ -30,11 +32,30 @@ const Explore = () => {
     verifiedOnly: false,
     availableNow: false
   });
-  const [favorites, setFavorites] = useState<Set<string>>(new Set());
+  const [favorites, setFavorites] = useState<Set<number>>(new Set());
 
   useEffect(() => {
-    fetchListings();
-  }, []);
+    // Filter listings based on search term and filters
+    let filtered = sampleListings;
+    
+    if (searchTerm) {
+      filtered = filtered.filter(listing => 
+        listing.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        listing.breed.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        listing.breeder.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+    
+    if (filters.breed !== 'All Breeds') {
+      filtered = filtered.filter(listing => listing.breed === filters.breed);
+    }
+    
+    if (filters.verifiedOnly) {
+      filtered = filtered.filter(listing => listing.verified);
+    }
+    
+    setFilteredListings(filtered);
+  }, [searchTerm, filters]);
 
   const popularBreeds = ['French Bulldog', 'Golden Retriever', 'German Shepherd', 'Labrador', 'Beagle'];
   const quickFilters = ['Under $1000', 'Puppies Only', 'Verified Only', 'Nearby (10mi)'];
@@ -49,29 +70,13 @@ const Explore = () => {
       return;
     }
 
-    if (user.id === listing.user_id) {
-      toast({
-        title: "Cannot contact yourself",
-        description: "You cannot start a conversation with yourself",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    try {
-      const conversationId = await createConversation(listing.id, listing.user_id);
-      if (conversationId) {
-        toast({
-          title: "Conversation started",
-          description: "You can now message the seller in your Messages",
-        });
-      }
-    } catch (error) {
-      console.error('Error creating conversation:', error);
-    }
+    toast({
+      title: "Message sent!",
+      description: `Contacting ${listing.breeder} about ${listing.title}`,
+    });
   };
 
-  const toggleFavorite = (listingId: string) => {
+  const toggleFavorite = (listingId: number) => {
     setFavorites(prev => {
       const newFavorites = new Set(prev);
       if (newFavorites.has(listingId)) {
@@ -89,14 +94,6 @@ const Explore = () => {
       }
       return newFavorites;
     });
-  };
-
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 0,
-    }).format(price);
   };
 
   return (
@@ -163,6 +160,11 @@ const Explore = () => {
                 key={filter}
                 variant="outline"
                 className="cursor-pointer hover:bg-gray-100"
+                onClick={() => {
+                  if (filter === 'Verified Only') {
+                    setFilters(prev => ({ ...prev, verifiedOnly: !prev.verifiedOnly }));
+                  }
+                }}
               >
                 {filter}
               </Badge>
@@ -232,42 +234,6 @@ const Explore = () => {
               </div>
             </div>
 
-            {/* Price and distance row */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Min Price</label>
-                <Input
-                  placeholder="$0"
-                  value={filters.minPrice}
-                  onChange={(e) => setFilters(prev => ({ ...prev, minPrice: e.target.value }))}
-                />
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Max Price</label>
-                <Input
-                  placeholder="$10,000"
-                  value={filters.maxPrice}
-                  onChange={(e) => setFilters(prev => ({ ...prev, maxPrice: e.target.value }))}
-                />
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Max Distance</label>
-                <select 
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
-                  value={filters.maxDistance}
-                  onChange={(e) => setFilters(prev => ({ ...prev, maxDistance: e.target.value }))}
-                >
-                  <option>Any distance</option>
-                  <option>Within 10 miles</option>
-                  <option>Within 25 miles</option>
-                  <option>Within 50 miles</option>
-                  <option>Within 100 miles</option>
-                </select>
-              </div>
-            </div>
-
             {/* Checkboxes */}
             <div className="flex space-x-6">
               <label className="flex items-center space-x-2">
@@ -296,25 +262,114 @@ const Explore = () => {
 
       {/* Results count */}
       <div className="px-4 py-3 bg-white border-b">
-        <p className="text-sm text-gray-600">0 puppies found</p>
+        <p className="text-sm text-gray-600">{filteredListings.length} puppies found</p>
       </div>
 
-      {/* Results area */}
+      {/* Listings Grid */}
       <div className="px-4 py-6">
-        {loading ? (
-          <div className="text-center py-12">
-            <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-600 border-t-transparent mx-auto mb-4"></div>
-            <p className="text-gray-600">Loading listings...</p>
-          </div>
-        ) : (
-          <div className="text-center py-12">
-            <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Search className="w-8 h-8 text-gray-400" />
-            </div>
-            <h3 className="text-lg font-semibold mb-2">No dogs found</h3>
-            <p className="text-gray-600">Try adjusting your search criteria</p>
-          </div>
-        )}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredListings.map((listing) => (
+            <Card key={listing.id} className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer">
+              <div className="relative">
+                <img
+                  src={listing.image}
+                  alt={listing.title}
+                  className="w-full h-48 object-cover"
+                />
+                
+                {/* Price badge */}
+                <div className="absolute top-3 right-3">
+                  <Badge className="bg-black/70 text-white font-bold">
+                    {listing.price}
+                  </Badge>
+                </div>
+                
+                {/* Verification badges */}
+                <div className="absolute top-3 left-3 flex gap-2">
+                  {listing.verified && (
+                    <Badge className="bg-blue-600 text-white text-xs">
+                      Verified
+                    </Badge>
+                  )}
+                  {listing.sourceType === 'shelter' && (
+                    <Badge className="bg-green-600 text-white text-xs">
+                      Shelter
+                    </Badge>
+                  )}
+                </div>
+                
+                {/* Favorite button */}
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="absolute bottom-3 right-3 h-8 w-8 p-0 bg-white/90 hover:bg-white backdrop-blur-sm"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    toggleFavorite(listing.id);
+                  }}
+                >
+                  <Heart 
+                    className={`h-4 w-4 transition-colors ${
+                      favorites.has(listing.id) ? "text-red-500 fill-current" : "text-gray-600"
+                    }`} 
+                  />
+                </Button>
+              </div>
+              
+              <CardContent className="p-4 space-y-3">
+                <div>
+                  <h3 className="font-semibold text-lg leading-tight">{listing.title}</h3>
+                  <p className="text-muted-foreground">{listing.breed}</p>
+                </div>
+                
+                <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                  <span>{listing.age}</span>
+                  <span>•</span>
+                  <div className="flex items-center gap-1">
+                    <MapPin className="h-3 w-3" />
+                    <span>{listing.location}</span>
+                  </div>
+                </div>
+                
+                <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1">
+                    <span className="text-sm font-medium">⭐ {listing.rating}</span>
+                  </div>
+                  <span className="text-sm text-muted-foreground">
+                    ({listing.reviews} reviews)
+                  </span>
+                </div>
+                
+                <div className="flex gap-2 pt-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="flex-1"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleContactSeller(listing);
+                    }}
+                  >
+                    <MessageCircle className="h-4 w-4 mr-2" />
+                    Contact
+                  </Button>
+                  <Button
+                    size="sm"
+                    className="flex-1"
+                    onClick={() => {
+                      toast({
+                        title: "View Details",
+                        description: `Viewing details for ${listing.title}`,
+                      });
+                    }}
+                  >
+                    View Details
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
       </div>
 
       {/* Bottom Navigation */}
