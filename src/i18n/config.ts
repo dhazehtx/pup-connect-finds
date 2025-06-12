@@ -28,7 +28,7 @@ if (!i18n.isInitialized) {
     .init({
       resources,
       fallbackLng: 'en',
-      debug: process.env.NODE_ENV === 'development',
+      debug: false, // Set to false to reduce console noise
       
       interpolation: {
         escapeValue: false
@@ -37,6 +37,15 @@ if (!i18n.isInitialized) {
       detection: {
         order: ['localStorage', 'navigator', 'htmlTag'],
         caches: ['localStorage']
+      },
+
+      // Add missing namespace configuration
+      defaultNS: 'translation',
+      ns: ['translation'],
+
+      // Add error handling
+      missingKeyHandler: (lng, ns, key) => {
+        console.warn(`Missing translation key: ${key} for language: ${lng}`);
       }
     });
 }

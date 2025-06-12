@@ -1,5 +1,6 @@
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Globe } from 'lucide-react';
 import {
@@ -27,92 +28,13 @@ const languages: Language[] = [
   { code: 'ko', name: '한국어', flag: '🇰🇷' }
 ];
 
-// Translation context (simplified)
-interface TranslationContextType {
-  currentLanguage: string;
-  setLanguage: (lang: string) => void;
-  t: (key: string) => string;
-}
-
-const TranslationContext = React.createContext<TranslationContextType | null>(null);
-
-// Sample translations
-const translations: Record<string, Record<string, string>> = {
-  en: {
-    'nav.home': 'Home',
-    'nav.explore': 'Explore',
-    'nav.messages': 'Messages',
-    'nav.profile': 'Profile',
-    'search.placeholder': 'Search for dogs...',
-    'listing.price': 'Price',
-    'listing.age': 'Age',
-    'listing.location': 'Location',
-    'button.contact': 'Contact Seller',
-    'button.viewDetails': 'View Details'
-  },
-  es: {
-    'nav.home': 'Inicio',
-    'nav.explore': 'Explorar',
-    'nav.messages': 'Mensajes',
-    'nav.profile': 'Perfil',
-    'search.placeholder': 'Buscar perros...',
-    'listing.price': 'Precio',
-    'listing.age': 'Edad',
-    'listing.location': 'Ubicación',
-    'button.contact': 'Contactar Vendedor',
-    'button.viewDetails': 'Ver Detalles'
-  },
-  fr: {
-    'nav.home': 'Accueil',
-    'nav.explore': 'Explorer',
-    'nav.messages': 'Messages',
-    'nav.profile': 'Profil',
-    'search.placeholder': 'Rechercher des chiens...',
-    'listing.price': 'Prix',
-    'listing.age': 'Âge',
-    'listing.location': 'Emplacement',
-    'button.contact': 'Contacter le Vendeur',
-    'button.viewDetails': 'Voir les Détails'
-  }
-};
-
-export const TranslationProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [currentLanguage, setCurrentLanguage] = useState('en');
-
-  useEffect(() => {
-    const savedLanguage = localStorage.getItem('preferred-language');
-    if (savedLanguage && languages.some(lang => lang.code === savedLanguage)) {
-      setCurrentLanguage(savedLanguage);
-    }
-  }, []);
-
-  const setLanguage = (lang: string) => {
-    setCurrentLanguage(lang);
-    localStorage.setItem('preferred-language', lang);
-  };
-
-  const t = (key: string): string => {
-    return translations[currentLanguage]?.[key] || translations.en[key] || key;
-  };
-
-  return (
-    <TranslationContext.Provider value={{ currentLanguage, setLanguage, t }}>
-      {children}
-    </TranslationContext.Provider>
-  );
-};
-
-export const useTranslation = () => {
-  const context = React.useContext(TranslationContext);
-  if (!context) {
-    throw new Error('useTranslation must be used within a TranslationProvider');
-  }
-  return context;
-};
-
 const LanguageSelector = () => {
-  const { currentLanguage, setLanguage } = useTranslation();
-  const currentLang = languages.find(lang => lang.code === currentLanguage) || languages[0];
+  const { i18n } = useTranslation();
+  const currentLang = languages.find(lang => lang.code === i18n.language) || languages[0];
+
+  const changeLanguage = (languageCode: string) => {
+    i18n.changeLanguage(languageCode);
+  };
 
   return (
     <DropdownMenu>
@@ -126,13 +48,13 @@ const LanguageSelector = () => {
         {languages.map((language) => (
           <DropdownMenuItem
             key={language.code}
-            onClick={() => setLanguage(language.code)}
+            onClick={() => changeLanguage(language.code)}
             className={`flex items-center gap-2 ${
-              currentLanguage === language.code ? 'bg-blue-50 text-blue-700' : ''
+              i18n.language === language.code ? 'bg-blue-50 text-blue-700' : ''
             }`}
           >
             <span>{language.name}</span>
-            {currentLanguage === language.code && (
+            {i18n.language === language.code && (
               <div className="ml-auto w-2 h-2 bg-blue-600 rounded-full" />
             )}
           </DropdownMenuItem>
