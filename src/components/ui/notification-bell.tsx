@@ -13,8 +13,8 @@ const NotificationBell = ({ className = "", onClick }: NotificationBellProps) =>
   const { unreadCount } = useEnhancedNotifications();
 
   return (
-    <div className={`relative cursor-pointer ${className}`} onClick={onClick}>
-      <Bell className="h-5 w-5" />
+    <div className={`relative cursor-pointer text-gray-700 hover:text-blue-600 ${className}`} onClick={onClick}>
+      <Bell className="h-6 w-6" />
       {unreadCount > 0 && (
         <NotificationBadge 
           count={unreadCount} 
