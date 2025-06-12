@@ -29,8 +29,11 @@ const Layout = ({ children }: LayoutProps) => {
       {/* Add sticky bottom navigation for all screens */}
       <StickyBottomNavigation />
 
-      {/* Footer for desktop, mobile tab bar for mobile */}
-      {isMobile ? <MobileTabBar /> : <Footer />}
+      {/* Footer for all screens */}
+      <Footer />
+
+      {/* Mobile tab bar for mobile */}
+      {isMobile && <MobileTabBar />}
     </div>
   );
 };
