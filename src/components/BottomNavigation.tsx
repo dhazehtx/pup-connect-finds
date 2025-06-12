@@ -5,6 +5,7 @@ import { Home, Search, Plus, MessageCircle, User } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import GuestPrompt from '@/components/GuestPrompt';
+import PostCreator from '@/components/home/PostCreator';
 
 const BottomNavigation = () => {
   const navigate = useNavigate();
@@ -13,6 +14,7 @@ const BottomNavigation = () => {
   const { toast } = useToast();
   const [showGuestPrompt, setShowGuestPrompt] = useState(false);
   const [promptAction, setPromptAction] = useState('');
+  const [showPostCreator, setShowPostCreator] = useState(false);
 
   const handleProtectedNavigation = (path: string, action: string) => {
     if (!user && !isGuest) {
@@ -36,11 +38,16 @@ const BottomNavigation = () => {
       return;
     }
     
-    // Show options for creating content
+    setShowPostCreator(true);
+  };
+
+  const handlePostCreated = (newPost: any) => {
     toast({
-      title: "Create",
-      description: "Navigate to home to create posts or stories",
+      title: "Post shared! 🎉",
+      description: "Your post is now live!",
     });
+    setShowPostCreator(false);
+    // Navigate to home to see the new post
     navigate('/');
   };
 
@@ -134,6 +141,13 @@ const BottomNavigation = () => {
           action={promptAction}
           description={`To ${promptAction}, you need to create a MY PUP account.`}
           onCancel={() => setShowGuestPrompt(false)}
+        />
+      )}
+
+      {showPostCreator && (
+        <PostCreator
+          onClose={() => setShowPostCreator(false)}
+          onPostCreated={handlePostCreated}
         />
       )}
     </>

@@ -2,11 +2,8 @@ import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
-import { Plus } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import PostCard from '@/components/home/PostCard';
 import GuestHero from '@/components/home/GuestHero';
-import PostCreator from '@/components/home/PostCreator';
 import LikesModal from '@/components/post/LikesModal';
 import StoriesReel from '@/components/stories/StoriesReel';
 
@@ -59,7 +56,6 @@ const Home = () => {
   
   // Modal states
   const [showLikesModal, setShowLikesModal] = useState(false);
-  const [showPostCreator, setShowPostCreator] = useState(false);
   const [selectedPostLikes, setSelectedPostLikes] = useState<User[]>([]);
 
   // Sample posts data with better demo images
@@ -339,19 +335,6 @@ const Home = () => {
       {/* Stories Section */}
       <StoriesReel />
       
-      {/* Create Post Button */}
-      {(user || isGuest) && (
-        <div className="bg-white border-b border-gray-200 p-4">
-          <Button
-            onClick={() => setShowPostCreator(true)}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-xl min-h-[48px]"
-          >
-            <Plus className="w-5 h-5 mr-2" />
-            Share a moment with your pup
-          </Button>
-        </div>
-      )}
-      
       {/* Feed */}
       <div className="space-y-0">
         {posts.map((post) => (
@@ -374,14 +357,6 @@ const Home = () => {
           />
         ))}
       </div>
-
-      {/* Post Creator Modal */}
-      {showPostCreator && (
-        <PostCreator
-          onClose={() => setShowPostCreator(false)}
-          onPostCreated={handlePostCreated}
-        />
-      )}
 
       {/* Likes Modal */}
       <LikesModal
