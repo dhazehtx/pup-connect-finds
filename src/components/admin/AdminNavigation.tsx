@@ -1,63 +1,126 @@
 
 import React from 'react';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { 
-  LayoutDashboard, 
   Users, 
-  Flag, 
-  DollarSign, 
-  Shield,
-  Settings,
-  BarChart3,
-  MessageSquare
+  BarChart3, 
+  Shield, 
+  Settings, 
+  MessageSquare,
+  CheckCircle,
+  AlertTriangle,
+  DollarSign,
+  Database
 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
-interface AdminNavigationProps {
-  activeTab: string;
-  onTabChange: (tab: string) => void;
-}
+const AdminNavigation = () => {
+  const navigate = useNavigate();
 
-const AdminNavigation = ({ activeTab, onTabChange }: AdminNavigationProps) => {
-  const navItems = [
-    { id: 'overview', label: 'Overview', icon: LayoutDashboard },
-    { id: 'users', label: 'Users', icon: Users },
-    { id: 'content', label: 'Content', icon: Flag },
-    { id: 'payments', label: 'Payments', icon: DollarSign },
-    { id: 'analytics', label: 'Analytics', icon: BarChart3 },
-    { id: 'safety', label: 'Safety', icon: Shield },
-    { id: 'messaging', label: 'Messaging', icon: MessageSquare },
-    { id: 'settings', label: 'Settings', icon: Settings },
+  const adminSections = [
+    {
+      title: 'App Completion',
+      description: 'View development progress and feature completion status',
+      icon: CheckCircle,
+      path: '/app-completion',
+      color: 'from-blue-500 to-cyan-600'
+    },
+    {
+      title: 'User Management',
+      description: 'Manage users, roles, and permissions',
+      icon: Users,
+      path: '/admin/users',
+      color: 'from-purple-500 to-pink-600'
+    },
+    {
+      title: 'Analytics Dashboard',
+      description: 'Platform metrics and performance insights',
+      icon: BarChart3,
+      path: '/admin/analytics',
+      color: 'from-green-500 to-emerald-600'
+    },
+    {
+      title: 'Trust & Safety',
+      description: 'Content moderation and safety tools',
+      icon: Shield,
+      path: '/admin/safety',
+      color: 'from-red-500 to-orange-600'
+    },
+    {
+      title: 'Platform Settings',
+      description: 'System configuration and feature flags',
+      icon: Settings,
+      path: '/admin/settings',
+      color: 'from-indigo-500 to-blue-600'
+    },
+    {
+      title: 'Messaging Oversight',
+      description: 'Monitor and moderate communications',
+      icon: MessageSquare,
+      path: '/admin/messaging',
+      color: 'from-teal-500 to-cyan-600'
+    },
+    {
+      title: 'Content Moderation',
+      description: 'Review flagged content and listings',
+      icon: AlertTriangle,
+      path: '/admin/moderation',
+      color: 'from-yellow-500 to-amber-600'
+    },
+    {
+      title: 'Revenue Analytics',
+      description: 'Financial metrics and revenue tracking',
+      icon: DollarSign,
+      path: '/admin/revenue',
+      color: 'from-emerald-500 to-green-600'
+    },
+    {
+      title: 'Sample Data',
+      description: 'Manage test data and development tools',
+      icon: Database,
+      path: '/sample-data',
+      color: 'from-gray-500 to-slate-600'
+    }
   ];
 
   return (
-    <div className="bg-white border-r border-gray-200 min-h-screen w-64 p-4">
-      <div className="mb-8">
-        <h2 className="text-xl font-bold text-gray-900">Admin Panel</h2>
-        <p className="text-sm text-gray-600">Manage your platform</p>
+    <div className="max-w-7xl mx-auto p-6">
+      <div className="text-center mb-8">
+        <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-indigo-700 bg-clip-text text-transparent">
+          Admin Dashboard
+        </h1>
+        <p className="text-gray-600 mt-2">
+          Comprehensive platform management and monitoring tools
+        </p>
       </div>
-      
-      <nav className="space-y-2">
-        {navItems.map((item) => {
-          const Icon = item.icon;
-          const isActive = activeTab === item.id;
-          
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {adminSections.map((section) => {
+          const IconComponent = section.icon;
           return (
-            <Button
-              key={item.id}
-              variant={isActive ? 'default' : 'ghost'}
-              className={`w-full justify-start gap-3 ${
-                isActive 
-                  ? 'bg-blue-600 text-white' 
-                  : 'text-gray-700 hover:bg-gray-100'
-              }`}
-              onClick={() => onTabChange(item.id)}
-            >
-              <Icon className="w-4 h-4" />
-              {item.label}
-            </Button>
+            <Card key={section.title} className="hover:shadow-lg transition-shadow cursor-pointer group">
+              <CardContent className="p-6">
+                <div className={`w-16 h-16 rounded-2xl bg-gradient-to-r ${section.color} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}>
+                  <IconComponent className="w-8 h-8 text-white" />
+                </div>
+                <h3 className="text-xl font-semibold mb-2 text-gray-800">
+                  {section.title}
+                </h3>
+                <p className="text-gray-600 mb-4">
+                  {section.description}
+                </p>
+                <Button 
+                  onClick={() => navigate(section.path)}
+                  className={`w-full bg-gradient-to-r ${section.color} hover:opacity-90 text-white font-semibold`}
+                >
+                  Access {section.title}
+                </Button>
+              </CardContent>
+            </Card>
           );
         })}
-      </nav>
+      </div>
     </div>
   );
 };
