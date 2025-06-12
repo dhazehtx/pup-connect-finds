@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Search, Filter, Heart, MapPin, MessageCircle, Sliders, Plus, Home, User } from 'lucide-react';
 import { Input } from '@/components/ui/input';
@@ -49,6 +48,14 @@ const Explore = () => {
     if (filters.breed !== 'All Breeds') {
       filtered = filtered.filter(listing => listing.breed === filters.breed);
     }
+
+    if (filters.maxDistance !== 'Any distance') {
+      const maxDist = parseInt(filters.maxDistance);
+      filtered = filtered.filter(listing => {
+        const listingDistance = parseFloat(listing.distance);
+        return listingDistance <= maxDist;
+      });
+    }
     
     if (filters.verifiedOnly) {
       filtered = filtered.filter(listing => listing.verified);
@@ -59,6 +66,7 @@ const Explore = () => {
 
   const popularBreeds = ['French Bulldog', 'Golden Retriever', 'German Shepherd', 'Labrador', 'Beagle'];
   const quickFilters = ['Under $1000', 'Puppies Only', 'Verified Only', 'Nearby (10mi)'];
+  const distanceOptions = ['5', '10', '25', '50', '100'];
 
   const handleContactSeller = async (listing: any) => {
     if (!user && !isGuest) {
@@ -185,6 +193,8 @@ const Explore = () => {
                 onClick={() => {
                   if (filter === 'Verified Only') {
                     setFilters(prev => ({ ...prev, verifiedOnly: !prev.verifiedOnly }));
+                  } else if (filter === 'Nearby (10mi)') {
+                    setFilters(prev => ({ ...prev, maxDistance: '10' }));
                   }
                 }}
               >
@@ -200,7 +210,7 @@ const Explore = () => {
         <div className="bg-white border-b border-gray-200 px-4 py-4">
           <div className="space-y-4">
             {/* Filter dropdowns row */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Breed</label>
                 <select 
@@ -254,6 +264,20 @@ const Explore = () => {
                   <option>Female</option>
                 </select>
               </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Distance</label>
+                <select 
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                  value={filters.maxDistance}
+                  onChange={(e) => setFilters(prev => ({ ...prev, maxDistance: e.target.value }))}
+                >
+                  <option value="Any distance">Any distance</option>
+                  {distanceOptions.map(distance => (
+                    <option key={distance} value={distance}>{distance} miles</option>
+                  ))}
+                </select>
+              </div>
             </div>
 
             {/* Checkboxes */}
@@ -284,7 +308,10 @@ const Explore = () => {
 
       {/* Results count */}
       <div className="px-4 py-3 bg-white border-b">
-        <p className="text-sm text-gray-600">{filteredListings.length} puppies found</p>
+        <p className="text-sm text-gray-600">
+          {filteredListings.length} puppies found
+          {filters.maxDistance !== 'Any distance' && ` within ${filters.maxDistance} miles`}
+        </p>
       </div>
 
       {/* Listings Grid */}
@@ -351,6 +378,8 @@ const Explore = () => {
                     <MapPin className="h-3 w-3" />
                     <span>{listing.location}</span>
                   </div>
+                  <span>•</span>
+                  <span>{listing.distance} mi</span>
                 </div>
                 
                 <div className="flex items-center gap-2">
