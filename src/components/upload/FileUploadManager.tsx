@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -57,7 +56,10 @@ const FileUploadManager = ({
       // Compress if enabled and file is large
       if (enableCompression && file.size > 2 * 1024 * 1024) { // 2MB threshold
         try {
-          processedFile = await compressFile(file);
+          processedFile = await compressFile(file, {
+            maxSize: maxSize / (1024 * 1024), // Convert to MB
+            quality: 0.8
+          });
           compressed = file.size !== processedFile.size;
         } catch (error) {
           console.warn('Compression failed:', error);
@@ -162,7 +164,7 @@ const FileUploadManager = ({
     } finally {
       setIsUploading(false);
     }
-  }, [onUpload, toast, enableCompression]);
+  }, [onUpload, toast, enableCompression, maxSize]);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,

@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -61,7 +60,10 @@ const EnhancedFileShare = ({
       // Compress if enabled and file is large
       if (enableCompression && file.size > 2 * 1024 * 1024) {
         try {
-          processedFile = await compressFile(file);
+          processedFile = await compressFile(file, {
+            maxSize: maxSize,
+            quality: 0.8
+          });
           compressed = file.size !== processedFile.size;
         } catch (error) {
           console.warn('Compression failed:', error);
@@ -89,7 +91,7 @@ const EnhancedFileShare = ({
     }
 
     setUploads(prev => [...prev, ...newUploads].slice(0, maxFiles));
-  }, [maxFiles, enableCompression]);
+  }, [maxFiles, enableCompression, maxSize]);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
