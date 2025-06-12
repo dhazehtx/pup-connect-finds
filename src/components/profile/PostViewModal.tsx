@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Heart, MessageCircle, Share, MoreHorizontal, X } from 'lucide-react';
+import { Heart, MessageCircle, Share, MoreHorizontal } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 
 interface PostViewModalProps {
@@ -82,9 +82,6 @@ const PostViewModal = ({ isOpen, onClose, postUrl, onShowLikes }: PostViewModalP
                 )}
               </div>
             </div>
-            <Button variant="ghost" size="sm" onClick={onClose}>
-              <X size={16} />
-            </Button>
           </div>
 
           {/* Image */}
