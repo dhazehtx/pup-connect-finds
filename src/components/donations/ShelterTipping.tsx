@@ -12,7 +12,8 @@ import {
   Star,
   MapPin,
   Users,
-  CheckCircle
+  CheckCircle,
+  Candy
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
@@ -42,6 +43,7 @@ const ShelterTipping = () => {
   const { toast } = useToast();
 
   const tipOptions: TipOption[] = [
+    { amount: 1, message: 'Small treat 🍪', icon: Candy },
     { amount: 5, message: 'Buy a coffee ☕', icon: Coffee },
     { amount: 10, message: 'Small thank you 💝', icon: Gift },
     { amount: 25, message: 'Big appreciation 🙏', icon: Heart },
@@ -134,7 +136,7 @@ const ShelterTipping = () => {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
             {tipOptions.map((option) => {
               const Icon = option.icon;
               return (

@@ -283,7 +283,7 @@ const ProfileContent = ({
                   certifications={displayProfile.certifications || []}
                   userId={displayProfile.id}
                   userType={displayProfile.user_type || 'buyer'}
-                  professionalStatus={displayProfile.professional_status}
+                  professionalStatus={displayProfile.professional_status || 'standard'}
                   subscriptionTier="basic"
                 />
               </CardContent>
