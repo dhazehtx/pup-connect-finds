@@ -80,7 +80,11 @@ export const useSmartRecommendations = () => {
       }
 
       if (filters.age) {
-        query = query.eq('age', filters.age);
+        // Convert age string to number for proper comparison
+        const ageValue = parseInt(filters.age);
+        if (!isNaN(ageValue)) {
+          query = query.eq('age', ageValue);
+        }
       }
 
       const { data: listings, error: listingsError } = await query.limit(limit * 2);
@@ -120,8 +124,6 @@ export const useSmartRecommendations = () => {
         .slice(0, limit);
 
       setRecommendations(topRecommendations);
-
-      // Set trending listings (mock data for now)
       setTrendingListings(topRecommendations.slice(0, 5));
 
     } catch (err) {
