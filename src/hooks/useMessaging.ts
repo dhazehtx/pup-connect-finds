@@ -10,11 +10,11 @@ interface Message {
   sender_id: string;
   content: string;
   message_type: 'text' | 'image' | 'voice' | 'video' | 'file';
-  file_url?: string;
   created_at: string;
   read_at?: string;
   edited_at?: string;
   reply_to?: string;
+  image_url?: string;
 }
 
 interface Conversation {
@@ -38,8 +38,16 @@ interface Conversation {
   listing?: {
     id: string;
     title: string;
-    images?: string[];
+    dog_name: string;
+    breed?: string;
+    image_url?: string;
   };
+  other_user?: {
+    id: string;
+    full_name: string;
+    avatar_url?: string;
+  };
+  unread_count?: number;
 }
 
 export const useMessaging = () => {
@@ -62,22 +70,35 @@ export const useMessaging = () => {
           *,
           buyer:profiles!conversations_buyer_id_fkey(id, full_name, avatar_url),
           seller:profiles!conversations_seller_id_fkey(id, full_name, avatar_url),
-          listing:dog_listings(id, dog_name, images)
+          listing:dog_listings(id, dog_name, breed, image_url)
         `)
         .or(`buyer_id.eq.${user.id},seller_id.eq.${user.id}`)
         .order('last_message_at', { ascending: false });
 
       if (error) throw error;
       
-      // Transform the data to match our interface
-      const transformedData = (data || []).map(conv => ({
-        ...conv,
-        listing: conv.listing ? {
-          id: conv.listing.id,
-          title: conv.listing.dog_name,
-          images: conv.listing.images
-        } : undefined
-      }));
+      // Transform the data to include other_user and proper listing format
+      const transformedData = (data || []).map(conv => {
+        const isUserBuyer = conv.buyer_id === user.id;
+        const otherUser = isUserBuyer ? conv.seller : conv.buyer;
+        
+        return {
+          ...conv,
+          other_user: otherUser ? {
+            id: otherUser.id,
+            full_name: otherUser.full_name,
+            avatar_url: otherUser.avatar_url
+          } : undefined,
+          listing: conv.listing ? {
+            id: conv.listing.id,
+            title: conv.listing.dog_name,
+            dog_name: conv.listing.dog_name,
+            breed: conv.listing.breed,
+            image_url: conv.listing.image_url
+          } : undefined,
+          unread_count: 0 // TODO: Implement unread count logic
+        };
+      });
       
       setConversations(transformedData);
     } catch (error) {
@@ -104,9 +125,9 @@ export const useMessaging = () => {
           sender_id,
           content,
           message_type,
-          file_url,
           created_at,
-          read_at
+          read_at,
+          image_url
         `)
         .eq('conversation_id', conversationId)
         .order('created_at', { ascending: true });
@@ -145,15 +166,20 @@ export const useMessaging = () => {
     if (!user) return;
 
     try {
+      const messageData: any = {
+        conversation_id: conversationId,
+        sender_id: user.id,
+        content,
+        message_type: messageType,
+      };
+
+      if (fileUrl) {
+        messageData.image_url = fileUrl;
+      }
+
       const { data, error } = await supabase
         .from('messages')
-        .insert({
-          conversation_id: conversationId,
-          sender_id: user.id,
-          content,
-          message_type: messageType,
-          file_url: fileUrl,
-        })
+        .insert(messageData)
         .select()
         .single();
 

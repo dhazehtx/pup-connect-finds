@@ -5,31 +5,31 @@ import { Button } from '@/components/ui/button';
 import EnhancedChatInterface from '@/components/messaging/EnhancedChatInterface';
 import ConversationsList from '@/components/messaging/ConversationsList';
 import { MobileResponsive } from '@/components/ui/mobile-responsive';
-import { useEnhancedMessaging } from '@/hooks/useEnhancedMessaging';
+import { useMessaging } from '@/hooks/useMessaging';
 import LoadingState from '@/components/ui/loading-state';
 import ErrorState from '@/components/ui/error-state';
 
 const Chat = () => {
   const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
-  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
-  const { conversations, loading } = useEnhancedMessaging();
+  const [selectedUser, setSelectedUser] = useState<any>(null);
+  const { conversations, loading } = useMessaging();
 
-  const handleSelectConversation = (conversation: any) => {
-    setSelectedConversationId(conversation.id);
-    setSelectedUserId(conversation.other_user?.id || 'demo-user');
+  const handleSelectConversation = (conversationId: string, otherUser: any) => {
+    setSelectedConversationId(conversationId);
+    setSelectedUser(otherUser);
   };
 
   const handleBackToList = () => {
     setSelectedConversationId(null);
-    setSelectedUserId(null);
+    setSelectedUser(null);
   };
 
-  if (selectedConversationId && selectedUserId) {
+  if (selectedConversationId && selectedUser) {
     return (
       <div className="h-screen bg-background">
         <EnhancedChatInterface
           conversationId={selectedConversationId}
-          otherUserId={selectedUserId}
+          otherUser={selectedUser}
           onBack={handleBackToList}
         />
       </div>

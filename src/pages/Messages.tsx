@@ -3,10 +3,12 @@ import React, { useState } from 'react';
 import Layout from '@/components/Layout';
 import ConversationsList from '@/components/messaging/ConversationsList';
 import EnhancedChatInterface from '@/components/messaging/EnhancedChatInterface';
+import { useMessaging } from '@/hooks/useMessaging';
 
 const Messages = () => {
   const [selectedConversationId, setSelectedConversationId] = useState<string | undefined>();
   const [selectedUser, setSelectedUser] = useState<any>(null);
+  const { conversations } = useMessaging();
 
   const handleSelectConversation = (conversationId: string, otherUser: any) => {
     setSelectedConversationId(conversationId);
@@ -21,6 +23,7 @@ const Messages = () => {
             {/* Conversations List */}
             <div className="lg:col-span-1">
               <ConversationsList
+                conversations={conversations}
                 onSelectConversation={handleSelectConversation}
                 selectedConversationId={selectedConversationId}
               />

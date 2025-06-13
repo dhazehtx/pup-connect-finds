@@ -5,23 +5,37 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Search, MessageCircle } from 'lucide-react';
-import { useMessaging } from '@/hooks/useMessaging';
-import { useAuth } from '@/contexts/AuthContext';
+
+interface Conversation {
+  id: string;
+  buyer_id: string;
+  seller_id: string;
+  listing_id?: string;
+  last_message_at: string;
+  created_at: string;
+  updated_at: string;
+  other_user?: {
+    id: string;
+    full_name: string;
+    avatar_url?: string;
+  };
+  listing?: {
+    id: string;
+    title: string;
+    dog_name: string;
+    breed?: string;
+    image_url?: string;
+  };
+  unread_count?: number;
+}
 
 interface ConversationsListProps {
+  conversations: Conversation[];
   onSelectConversation: (conversationId: string, otherUser: any) => void;
   selectedConversationId?: string;
 }
 
-const ConversationsList = ({ onSelectConversation, selectedConversationId }: ConversationsListProps) => {
-  const { conversations } = useMessaging();
-  const { user } = useAuth();
-
-  const getOtherUser = (conversation: any) => {
-    const isUserBuyer = conversation.buyer_id === user?.id;
-    return isUserBuyer ? conversation.seller : conversation.buyer;
-  };
-
+const ConversationsList = ({ conversations, onSelectConversation, selectedConversationId }: ConversationsListProps) => {
   const formatLastMessageTime = (timestamp: string) => {
     const date = new Date(timestamp);
     const now = new Date();
@@ -62,13 +76,12 @@ const ConversationsList = ({ onSelectConversation, selectedConversationId }: Con
             </div>
           ) : (
             conversations.map((conversation) => {
-              const otherUser = getOtherUser(conversation);
               const isSelected = conversation.id === selectedConversationId;
 
               return (
                 <div
                   key={conversation.id}
-                  onClick={() => onSelectConversation(conversation.id, otherUser)}
+                  onClick={() => onSelectConversation(conversation.id, conversation.other_user)}
                   className={`flex items-center p-4 cursor-pointer transition-colors hover:bg-gray-50 border-l-4 ${
                     isSelected 
                       ? 'bg-blue-50 border-l-blue-500' 
@@ -76,16 +89,16 @@ const ConversationsList = ({ onSelectConversation, selectedConversationId }: Con
                   }`}
                 >
                   <Avatar className="w-12 h-12">
-                    <AvatarImage src={otherUser?.avatar_url} />
+                    <AvatarImage src={conversation.other_user?.avatar_url} />
                     <AvatarFallback>
-                      {otherUser?.full_name?.charAt(0).toUpperCase() || 'U'}
+                      {conversation.other_user?.full_name?.charAt(0).toUpperCase() || 'U'}
                     </AvatarFallback>
                   </Avatar>
 
                   <div className="ml-3 flex-1 min-w-0">
                     <div className="flex items-center justify-between">
                       <h4 className="font-medium text-sm truncate">
-                        {otherUser?.full_name || 'Unknown User'}
+                        {conversation.other_user?.full_name || 'Unknown User'}
                       </h4>
                       <span className="text-xs text-gray-500 ml-2">
                         {formatLastMessageTime(conversation.last_message_at)}
@@ -102,9 +115,11 @@ const ConversationsList = ({ onSelectConversation, selectedConversationId }: Con
                       <p className="text-sm text-gray-500 truncate">
                         Tap to continue conversation...
                       </p>
-                      <Badge variant="secondary" className="text-xs">
-                        Active
-                      </Badge>
+                      {conversation.unread_count && conversation.unread_count > 0 && (
+                        <Badge variant="secondary" className="text-xs">
+                          {conversation.unread_count}
+                        </Badge>
+                      )}
                     </div>
                   </div>
                 </div>
