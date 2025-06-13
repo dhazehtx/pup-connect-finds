@@ -279,8 +279,12 @@ const ProfileContent = ({
               <CardContent className="p-4">
                 <ProfileBadges 
                   verificationBadges={allVerificationBadges}
-                  specializations={displayProfile.specializations}
-                  certifications={displayProfile.certifications}
+                  specializations={displayProfile.specializations || []}
+                  certifications={displayProfile.certifications || []}
+                  userId={displayProfile.id}
+                  userType={displayProfile.user_type || 'buyer'}
+                  professionalStatus={displayProfile.professional_status}
+                  subscriptionTier="basic"
                 />
               </CardContent>
             </Card>

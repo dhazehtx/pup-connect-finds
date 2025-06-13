@@ -1,72 +1,55 @@
 
-import { Toaster } from '@/components/ui/toaster';
-import { Toaster as Sonner } from '@/components/ui/sonner';
-import { TooltipProvider } from '@/components/ui/tooltip';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import { AuthProvider } from '@/contexts/AuthContext';
-import { RealtimeProvider } from '@/contexts/RealtimeContext';
-import { ThemeProvider } from '@/contexts/ThemeContext';
-import Layout from '@/components/Layout';
-import ErrorBoundary from '@/components/ErrorBoundary';
-import Home from '@/pages/Home';
-import Explore from '@/pages/Explore';
-import Search from '@/pages/Search';
-import Analytics from '@/pages/Analytics';
-import Messages from '@/pages/Messages';
-import Profile from '@/pages/Profile';
-import Settings from '@/pages/Settings';
-import Help from '@/pages/Help';
-import Admin from '@/pages/Admin';
-import SampleData from '@/pages/SampleData';
-import DatabaseInitializer from '@/components/database/DatabaseInitializer';
-import AppCompletion from '@/pages/AppCompletion';
-import VerifyEmail from '@/pages/VerifyEmail';
-import ResetPassword from '@/pages/ResetPassword';
-import Services from '@/pages/Services';
-import ProfessionalUpgrade from '@/pages/ProfessionalUpgrade';
-import PawBox from '@/pages/PawBox';
+import { Toaster } from "@/components/ui/toaster";
+import { Toaster as Sonner } from "@/components/ui/sonner";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { AuthProvider } from "@/contexts/AuthContext";
+import { RealtimeProvider } from "@/contexts/RealtimeContext";
+import { ThemeProvider } from "@/contexts/ThemeContext";
+import Layout from "./components/Layout";
+import Index from "./pages/Index";
+import Profile from "./pages/Profile";
+import SimpleProfile from "./pages/SimpleProfile";
+import Explore from "./pages/Explore";
+import Messages from "./pages/Messages";
+import Notifications from "./pages/Notifications";
+import Settings from "./pages/Settings";
+import Help from "./pages/Help";
+import MonetizationPage from "./pages/MonetizationPage";
+import B2BDashboard from "./pages/B2BDashboard";
+import DonationsPage from "./pages/DonationsPage";
 
 const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <ThemeProvider>
-      <AuthProvider>
-        <RealtimeProvider>
-          <TooltipProvider>
-            <Toaster />
-            <Sonner />
+    <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme">
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <AuthProvider>
+          <RealtimeProvider>
             <BrowserRouter>
-              <ErrorBoundary>
-                <Layout>
-                  <Routes>
-                    <Route path="/" element={<Home />} />
-                    <Route path="/home" element={<Home />} />
-                    <Route path="/explore" element={<Explore />} />
-                    <Route path="/search" element={<Search />} />
-                    <Route path="/analytics" element={<Analytics />} />
-                    <Route path="/messages" element={<Messages />} />
-                    <Route path="/profile/:id" element={<Profile />} />
-                    <Route path="/profile" element={<Profile />} />
-                    <Route path="/settings" element={<Settings />} />
-                    <Route path="/help" element={<Help />} />
-                    <Route path="/admin" element={<Admin />} />
-                    <Route path="/sample-data" element={<SampleData />} />
-                    <Route path="/database-init" element={<DatabaseInitializer />} />
-                    <Route path="/app-completion" element={<AppCompletion />} />
-                    <Route path="/verify-email" element={<VerifyEmail />} />
-                    <Route path="/reset-password" element={<ResetPassword />} />
-                    <Route path="/services" element={<Services />} />
-                    <Route path="/professional-upgrade" element={<ProfessionalUpgrade />} />
-                    <Route path="/pawbox" element={<PawBox />} />
-                  </Routes>
-                </Layout>
-              </ErrorBoundary>
+              <Routes>
+                <Route path="/" element={<Layout />}>
+                  <Route index element={<Index />} />
+                  <Route path="profile" element={<Profile />} />
+                  <Route path="simple-profile" element={<SimpleProfile />} />
+                  <Route path="explore" element={<Explore />} />
+                  <Route path="messages" element={<Messages />} />
+                  <Route path="notifications" element={<Notifications />} />
+                  <Route path="settings" element={<Settings />} />
+                  <Route path="help" element={<Help />} />
+                  <Route path="monetization" element={<MonetizationPage />} />
+                  <Route path="b2b-dashboard" element={<B2BDashboard />} />
+                  <Route path="donations" element={<DonationsPage />} />
+                </Route>
+              </Routes>
             </BrowserRouter>
-          </TooltipProvider>
-        </RealtimeProvider>
-      </AuthProvider>
+          </RealtimeProvider>
+        </AuthProvider>
+      </TooltipProvider>
     </ThemeProvider>
   </QueryClientProvider>
 );
