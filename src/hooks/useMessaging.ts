@@ -25,6 +25,21 @@ interface Conversation {
   last_message_at: string;
   created_at: string;
   updated_at: string;
+  buyer?: {
+    id: string;
+    full_name: string;
+    avatar_url?: string;
+  };
+  seller?: {
+    id: string;
+    full_name: string;
+    avatar_url?: string;
+  };
+  listing?: {
+    id: string;
+    title: string;
+    images?: string[];
+  };
 }
 
 export const useMessaging = () => {
@@ -47,13 +62,24 @@ export const useMessaging = () => {
           *,
           buyer:profiles!conversations_buyer_id_fkey(id, full_name, avatar_url),
           seller:profiles!conversations_seller_id_fkey(id, full_name, avatar_url),
-          listing:dog_listings(id, title, images)
+          listing:dog_listings(id, dog_name, images)
         `)
         .or(`buyer_id.eq.${user.id},seller_id.eq.${user.id}`)
         .order('last_message_at', { ascending: false });
 
       if (error) throw error;
-      setConversations(data || []);
+      
+      // Transform the data to match our interface
+      const transformedData = (data || []).map(conv => ({
+        ...conv,
+        listing: conv.listing ? {
+          id: conv.listing.id,
+          title: conv.listing.dog_name,
+          images: conv.listing.images
+        } : undefined
+      }));
+      
+      setConversations(transformedData);
     } catch (error) {
       console.error('Error loading conversations:', error);
       toast({
@@ -64,6 +90,8 @@ export const useMessaging = () => {
     }
   }, [user, toast]);
 
+  const fetchConversations = loadConversations;
+
   // Load messages for a conversation
   const loadMessages = useCallback(async (conversationId: string) => {
     try {
@@ -71,14 +99,29 @@ export const useMessaging = () => {
       const { data, error } = await supabase
         .from('messages')
         .select(`
-          *,
-          sender:profiles!messages_sender_id_fkey(id, full_name, avatar_url)
+          id,
+          conversation_id,
+          sender_id,
+          content,
+          message_type,
+          file_url,
+          created_at,
+          read_at
         `)
         .eq('conversation_id', conversationId)
         .order('created_at', { ascending: true });
 
       if (error) throw error;
-      setMessages(data || []);
+      
+      // Ensure message_type matches our union type
+      const validMessages = (data || []).map(msg => ({
+        ...msg,
+        message_type: ['text', 'image', 'voice', 'video', 'file'].includes(msg.message_type) 
+          ? msg.message_type as 'text' | 'image' | 'voice' | 'video' | 'file'
+          : 'text' as const
+      }));
+      
+      setMessages(validMessages);
       setActiveConversation(conversationId);
     } catch (error) {
       console.error('Error loading messages:', error);
@@ -198,7 +241,8 @@ export const useMessaging = () => {
             filter: `conversation_id=eq.${activeConversation}`,
           },
           (payload) => {
-            setMessages(prev => [...prev, payload.new as Message]);
+            const newMessage = payload.new as Message;
+            setMessages(prev => [...prev, newMessage]);
           }
         )
         .subscribe();
@@ -244,5 +288,6 @@ export const useMessaging = () => {
     sendMessage,
     startConversation,
     setActiveConversation,
+    fetchConversations,
   };
 };

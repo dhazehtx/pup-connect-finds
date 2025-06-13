@@ -13,7 +13,8 @@ import {
   Phone, 
   MoreVertical,
   Smile,
-  Image as ImageIcon
+  Image as ImageIcon,
+  ArrowLeft
 } from 'lucide-react';
 import { useMessaging } from '@/hooks/useMessaging';
 import { useAuth } from '@/contexts/AuthContext';
@@ -29,13 +30,16 @@ interface EnhancedChatInterfaceProps {
   conversationId?: string;
   otherUser?: {
     id: string;
-    name: string;
+    full_name?: string;
+    name?: string;
     avatar?: string;
+    avatar_url?: string;
     status?: 'online' | 'offline' | 'away';
   };
+  onBack?: () => void;
 }
 
-const EnhancedChatInterface = ({ conversationId, otherUser }: EnhancedChatInterfaceProps) => {
+const EnhancedChatInterface = ({ conversationId, otherUser, onBack }: EnhancedChatInterfaceProps) => {
   const { user } = useAuth();
   const { messages, loadMessages, sendMessage, loading } = useMessaging();
   const [messageText, setMessageText] = useState('');
@@ -118,19 +122,27 @@ const EnhancedChatInterface = ({ conversationId, otherUser }: EnhancedChatInterf
     );
   }
 
+  const displayName = otherUser?.full_name || otherUser?.name || 'Unknown User';
+  const avatarUrl = otherUser?.avatar_url || otherUser?.avatar;
+
   return (
     <Card className="h-full flex flex-col">
       {/* Chat Header */}
       <CardHeader className="flex-row items-center justify-between space-y-0 pb-3 border-b">
         <div className="flex items-center space-x-3">
+          {onBack && (
+            <Button variant="ghost" size="sm" onClick={onBack}>
+              <ArrowLeft className="w-4 h-4" />
+            </Button>
+          )}
           <Avatar>
-            <AvatarImage src={otherUser?.avatar} />
+            <AvatarImage src={avatarUrl} />
             <AvatarFallback>
-              {otherUser?.name?.charAt(0).toUpperCase() || 'U'}
+              {displayName?.charAt(0).toUpperCase() || 'U'}
             </AvatarFallback>
           </Avatar>
           <div>
-            <h3 className="font-semibold">{otherUser?.name || 'Unknown User'}</h3>
+            <h3 className="font-semibold">{displayName}</h3>
             <div className="flex items-center space-x-2">
               <Badge 
                 variant={otherUser?.status === 'online' ? 'default' : 'secondary'}
