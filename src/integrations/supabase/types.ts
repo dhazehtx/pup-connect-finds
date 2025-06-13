@@ -780,6 +780,51 @@ export type Database = {
           },
         ]
       }
+      pawbox_subscriptions: {
+        Row: {
+          created_at: string
+          delivery_address: Json
+          dog_profile: Json
+          frequency: string
+          id: string
+          next_delivery_date: string | null
+          price: number
+          status: string
+          stripe_subscription_id: string | null
+          subscription_tier: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          delivery_address: Json
+          dog_profile?: Json
+          frequency?: string
+          id?: string
+          next_delivery_date?: string | null
+          price: number
+          status?: string
+          stripe_subscription_id?: string | null
+          subscription_tier: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          delivery_address?: Json
+          dog_profile?: Json
+          frequency?: string
+          id?: string
+          next_delivery_date?: string | null
+          price?: number
+          status?: string
+          stripe_subscription_id?: string | null
+          subscription_tier?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       payment_intents: {
         Row: {
           amount: number
@@ -941,10 +986,68 @@ export type Database = {
         }
         Relationships: []
       }
+      professional_account_requests: {
+        Row: {
+          admin_notes: string | null
+          business_address: Json | null
+          business_name: string
+          business_references: Json | null
+          business_type: string
+          certifications: Json | null
+          created_at: string
+          id: string
+          insurance_info: Json | null
+          license_number: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          updated_at: string
+          user_id: string
+          years_in_business: number | null
+        }
+        Insert: {
+          admin_notes?: string | null
+          business_address?: Json | null
+          business_name: string
+          business_references?: Json | null
+          business_type: string
+          certifications?: Json | null
+          created_at?: string
+          id?: string
+          insurance_info?: Json | null
+          license_number?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+          years_in_business?: number | null
+        }
+        Update: {
+          admin_notes?: string | null
+          business_address?: Json | null
+          business_name?: string
+          business_references?: Json | null
+          business_type?: string
+          certifications?: Json | null
+          created_at?: string
+          id?: string
+          insurance_info?: Json | null
+          license_number?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+          years_in_business?: number | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
           bio: string | null
+          business_info: Json | null
           created_at: string | null
           email: string
           full_name: string | null
@@ -952,6 +1055,7 @@ export type Database = {
           location: string | null
           phone: string | null
           privacy_settings: Json | null
+          professional_status: string | null
           rating: number | null
           social_links: Json | null
           social_providers: Json | null
@@ -968,6 +1072,7 @@ export type Database = {
         Insert: {
           avatar_url?: string | null
           bio?: string | null
+          business_info?: Json | null
           created_at?: string | null
           email: string
           full_name?: string | null
@@ -975,6 +1080,7 @@ export type Database = {
           location?: string | null
           phone?: string | null
           privacy_settings?: Json | null
+          professional_status?: string | null
           rating?: number | null
           social_links?: Json | null
           social_providers?: Json | null
@@ -991,6 +1097,7 @@ export type Database = {
         Update: {
           avatar_url?: string | null
           bio?: string | null
+          business_info?: Json | null
           created_at?: string | null
           email?: string
           full_name?: string | null
@@ -998,6 +1105,7 @@ export type Database = {
           location?: string | null
           phone?: string | null
           privacy_settings?: Json | null
+          professional_status?: string | null
           rating?: number | null
           social_links?: Json | null
           social_providers?: Json | null
@@ -1428,6 +1536,188 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      service_bookings: {
+        Row: {
+          booking_date: string
+          booking_time: string | null
+          commission_amount: number
+          commission_rate: number
+          created_at: string
+          customer_id: string
+          customer_notes: string | null
+          duration_hours: number | null
+          id: string
+          provider_id: string
+          provider_notes: string | null
+          service_id: string
+          status: string
+          stripe_payment_intent_id: string | null
+          total_amount: number
+          updated_at: string
+        }
+        Insert: {
+          booking_date: string
+          booking_time?: string | null
+          commission_amount?: number
+          commission_rate?: number
+          created_at?: string
+          customer_id: string
+          customer_notes?: string | null
+          duration_hours?: number | null
+          id?: string
+          provider_id: string
+          provider_notes?: string | null
+          service_id: string
+          status?: string
+          stripe_payment_intent_id?: string | null
+          total_amount: number
+          updated_at?: string
+        }
+        Update: {
+          booking_date?: string
+          booking_time?: string | null
+          commission_amount?: number
+          commission_rate?: number
+          created_at?: string
+          customer_id?: string
+          customer_notes?: string | null
+          duration_hours?: number | null
+          id?: string
+          provider_id?: string
+          provider_notes?: string | null
+          service_id?: string
+          status?: string
+          stripe_payment_intent_id?: string | null
+          total_amount?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_bookings_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "services"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      service_reviews: {
+        Row: {
+          booking_id: string | null
+          comment: string | null
+          created_at: string
+          helpful_count: number | null
+          id: string
+          provider_id: string
+          rating: number
+          reviewer_id: string
+          service_id: string
+          title: string | null
+          updated_at: string
+        }
+        Insert: {
+          booking_id?: string | null
+          comment?: string | null
+          created_at?: string
+          helpful_count?: number | null
+          id?: string
+          provider_id: string
+          rating: number
+          reviewer_id: string
+          service_id: string
+          title?: string | null
+          updated_at?: string
+        }
+        Update: {
+          booking_id?: string | null
+          comment?: string | null
+          created_at?: string
+          helpful_count?: number | null
+          id?: string
+          provider_id?: string
+          rating?: number
+          reviewer_id?: string
+          service_id?: string
+          title?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_reviews_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "service_bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_reviews_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "services"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      services: {
+        Row: {
+          availability: Json | null
+          certifications: Json | null
+          created_at: string
+          description: string | null
+          experience_years: number | null
+          featured_until: string | null
+          id: string
+          images: Json | null
+          location: string | null
+          price: number
+          price_type: string
+          service_areas: Json | null
+          service_type: string
+          status: string
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          availability?: Json | null
+          certifications?: Json | null
+          created_at?: string
+          description?: string | null
+          experience_years?: number | null
+          featured_until?: string | null
+          id?: string
+          images?: Json | null
+          location?: string | null
+          price: number
+          price_type: string
+          service_areas?: Json | null
+          service_type: string
+          status?: string
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          availability?: Json | null
+          certifications?: Json | null
+          created_at?: string
+          description?: string | null
+          experience_years?: number | null
+          featured_until?: string | null
+          id?: string
+          images?: Json | null
+          location?: string | null
+          price?: number
+          price_type?: string
+          service_areas?: Json | null
+          service_type?: string
+          status?: string
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       sms_notifications: {
         Row: {
