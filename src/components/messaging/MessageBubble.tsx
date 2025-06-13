@@ -1,18 +1,9 @@
 
 import React from 'react';
-import { Check, CheckCheck } from 'lucide-react';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-
-interface Message {
-  id: string;
-  conversation_id: string;
-  sender_id: string;
-  content: string;
-  message_type: string;
-  image_url?: string;
-  read_at?: string;
-  created_at: string;
-}
+import { Check, CheckCheck, User, Shield } from 'lucide-react';
+import { formatDistanceToNow } from 'date-fns';
+import { Message } from '@/types/chat';
 
 interface MessageBubbleProps {
   message: Message;
@@ -29,64 +20,64 @@ const MessageBubble = ({
   senderAvatar,
   showAvatar = true 
 }: MessageBubbleProps) => {
-  const formatTime = (timestamp: string) => {
-    return new Date(timestamp).toLocaleTimeString([], { 
-      hour: '2-digit', 
-      minute: '2-digit' 
-    });
+  const messageTime = formatDistanceToNow(new Date(message.created_at), { addSuffix: true });
+
+  const getMessageStatusIcon = () => {
+    if (!isOwn) return null;
+    
+    if (message.read_at) {
+      return <CheckCheck size={14} className="text-blue-500" />;
+    }
+    if (message.created_at) {
+      return <Check size={14} className="text-gray-400" />;
+    }
+    return null;
   };
 
   return (
-    <div className={`flex items-end space-x-2 mb-4 ${isOwn ? 'justify-end' : 'justify-start'}`}>
-      {!isOwn && showAvatar && (
+    <div className={`flex gap-3 ${isOwn ? 'flex-row-reverse' : 'flex-row'}`}>
+      {showAvatar && (
         <Avatar className="w-8 h-8">
           <AvatarImage src={senderAvatar} />
           <AvatarFallback>
-            {senderName?.charAt(0) || 'U'}
+            <User className="w-4 h-4" />
           </AvatarFallback>
         </Avatar>
       )}
-      
-      <div className={`max-w-xs lg:max-w-md ${isOwn ? 'order-1' : 'order-2'}`}>
-        <div
-          className={`px-4 py-2 rounded-2xl ${
-            isOwn
-              ? 'bg-blue-600 text-white rounded-br-md'
-              : 'bg-gray-100 text-gray-900 rounded-bl-md'
-          }`}
-        >
-          {message.image_url && (
+
+      <div className={`max-w-xs lg:max-w-md ${isOwn ? 'text-right' : 'text-left'}`}>
+        {/* Media Messages */}
+        {(message.message_type === 'image' || message.message_type === 'file') && message.image_url && (
+          <div className="mb-2">
             <img
               src={message.image_url}
-              alt="Shared image"
-              className="rounded-lg mb-2 max-w-full h-auto"
+              alt="Shared content"
+              className="max-w-full h-auto rounded"
             />
-          )}
-          
-          <p className="text-sm whitespace-pre-wrap">{message.content}</p>
-          
-          <div className={`flex items-center justify-between mt-1 text-xs ${
-            isOwn ? 'text-blue-100' : 'text-gray-500'
-          }`}>
-            <span>{formatTime(message.created_at)}</span>
-            {isOwn && (
-              <div className="ml-2">
-                {message.read_at ? (
-                  <CheckCheck className="w-3 h-3" />
-                ) : (
-                  <Check className="w-3 h-3" />
-                )}
-              </div>
+          </div>
+        )}
+        
+        {/* Text Messages */}
+        {message.message_type === 'text' && (
+          <div
+            className={`rounded-lg px-3 py-2 relative ${
+              isOwn
+                ? 'bg-blue-500 text-white'
+                : 'bg-gray-100 text-gray-900'
+            }`}
+          >
+            <p className="text-sm break-words">{message.content}</p>
+            {message.is_encrypted && (
+              <Shield className="w-3 h-3 absolute top-1 right-1 opacity-60" />
             )}
           </div>
+        )}
+        
+        <div className="flex items-center justify-between mt-1 gap-2">
+          <span className="text-xs text-gray-500">{messageTime}</span>
+          {getMessageStatusIcon()}
         </div>
       </div>
-      
-      {isOwn && showAvatar && (
-        <Avatar className="w-8 h-8 order-2">
-          <AvatarFallback>You</AvatarFallback>
-        </Avatar>
-      )}
     </div>
   );
 };

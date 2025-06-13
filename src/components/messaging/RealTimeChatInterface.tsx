@@ -1,47 +1,25 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
-import { Send, Check, CheckCheck, Clock, User, Camera, Shield, ShieldOff } from 'lucide-react';
+import { Send, Camera } from 'lucide-react';
 import { useRealtimeMessaging } from '@/hooks/useRealtimeMessaging';
 import { useAuth } from '@/contexts/AuthContext';
-import { formatDistanceToNow } from 'date-fns';
-
-interface Message {
-  id: string;
-  conversation_id: string;
-  sender_id: string;
-  message_type: 'image' | 'text' | 'file' | 'voice';
-  content: string;
-  image_url?: string;
-  created_at: string;
-  read_at?: string;
-  is_encrypted?: boolean;
-}
+import RealTimeChatHeader from './RealTimeChatHeader';
+import MessageBubble from './MessageBubble';
+import { Message, ChatUser, ListingInfo } from '@/types/chat';
 
 interface RealTimeChatInterfaceProps {
   conversationId: string;
-  otherUser: {
-    id: string;
-    name: string;
-    avatar?: string;
-  };
-  listingInfo?: {
-    name: string;
-    breed: string;
-    price: number;
-    image?: string;
-  };
+  otherUser: ChatUser;
+  listingInfo?: ListingInfo;
 }
 
 const RealTimeChatInterface = ({ conversationId, otherUser, listingInfo }: RealTimeChatInterfaceProps) => {
   const { user } = useAuth();
   const { messages, markAsRead } = useRealtimeMessaging();
   const [newMessage, setNewMessage] = useState('');
-  const [isTyping, setIsTyping] = useState(false);
   const [otherUserTyping, setOtherUserTyping] = useState(false);
   const [encryptionEnabled, setEncryptionEnabled] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -69,18 +47,6 @@ const RealTimeChatInterface = ({ conversationId, otherUser, listingInfo }: RealT
     }
   };
 
-  const handleMediaUpload = async (url: string, type: 'image' | 'video', caption?: string) => {
-    if (!user) return;
-
-    try {
-      const messageContent = caption || (type === 'image' ? 'Shared an image' : 'Shared a video');
-      const { sendMessage } = useRealtimeMessaging();
-      await sendMessage(conversationId, messageContent, type === 'video' ? 'file' : type, url);
-    } catch (error) {
-      console.error('Error sending media message:', error);
-    }
-  };
-
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
@@ -88,27 +54,12 @@ const RealTimeChatInterface = ({ conversationId, otherUser, listingInfo }: RealT
     }
   };
 
-  const getMessageStatusIcon = (message: Message) => {
-    if (message.sender_id !== user?.id) return null;
-    
-    if (message.read_at) {
-      return <CheckCheck size={14} className="text-blue-500" />;
-    }
-    if (message.created_at) {
-      return <Check size={14} className="text-gray-400" />;
-    }
-    return <Clock size={14} className="text-gray-300" />;
-  };
-
-  const getMessageContent = (message: Message) => {
-    return message.content || '';
-  };
-
   // Type-safe message filtering
-  const typedMessages = messages.filter((msg): msg is Message => {
+  const typedMessages: Message[] = messages.filter((msg): msg is Message => {
     const validTypes: Array<Message['message_type']> = ['image', 'text', 'file', 'voice'];
     return (
       typeof msg.id === 'string' &&
+      typeof msg.conversation_id === 'string' &&
       typeof msg.sender_id === 'string' &&
       typeof msg.content === 'string' &&
       typeof msg.created_at === 'string' &&
@@ -118,112 +69,30 @@ const RealTimeChatInterface = ({ conversationId, otherUser, listingInfo }: RealT
 
   return (
     <div className="flex flex-col h-full max-h-[600px]">
-      {/* Chat Header */}
-      <CardHeader className="border-b bg-white sticky top-0 z-10">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Avatar className="w-10 h-10">
-              <AvatarImage src={otherUser.avatar} />
-              <AvatarFallback>
-                <User className="w-5 h-5" />
-              </AvatarFallback>
-            </Avatar>
-            <div>
-              <CardTitle className="text-lg flex items-center gap-2">
-                {otherUser.name}
-                {encryptionEnabled ? (
-                  <Shield className="w-4 h-4 text-green-500" />
-                ) : (
-                  <ShieldOff className="w-4 h-4 text-gray-400" />
-                )}
-              </CardTitle>
-              {listingInfo && (
-                <p className="text-sm text-gray-500">
-                  About: {listingInfo.name} - ${listingInfo.price}
-                </p>
-              )}
-              {otherUserTyping && (
-                <p className="text-xs text-blue-500">typing...</p>
-              )}
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            {listingInfo && (
-              <Badge variant="outline">{listingInfo.breed}</Badge>
-            )}
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setEncryptionEnabled(!encryptionEnabled)}
-            >
-              {encryptionEnabled ? (
-                <Shield className="w-4 h-4 text-green-500" />
-              ) : (
-                <ShieldOff className="w-4 h-4 text-gray-400" />
-              )}
-            </Button>
-          </div>
-        </div>
-      </CardHeader>
+      <RealTimeChatHeader
+        otherUser={otherUser}
+        listingInfo={listingInfo}
+        otherUserTyping={otherUserTyping}
+        encryptionEnabled={encryptionEnabled}
+        onToggleEncryption={() => setEncryptionEnabled(!encryptionEnabled)}
+      />
 
       {/* Messages Area */}
       <CardContent className="flex-1 overflow-y-auto p-4 space-y-4">
-        {typedMessages.map((message) => {
+        {typedMessages.map((message, index) => {
           const isOwn = message.sender_id === user?.id;
-          const messageTime = formatDistanceToNow(new Date(message.created_at), { addSuffix: true });
+          const prevMessage = index > 0 ? typedMessages[index - 1] : null;
+          const showAvatar = !isOwn && (!prevMessage || prevMessage.sender_id !== message.sender_id);
 
           return (
-            <div
+            <MessageBubble
               key={message.id}
-              className={`flex gap-3 ${isOwn ? 'flex-row-reverse' : 'flex-row'}`}
-            >
-              <Avatar className="w-8 h-8">
-                <AvatarImage src={isOwn ? user?.user_metadata?.avatar_url : otherUser.avatar} />
-                <AvatarFallback>
-                  <User className="w-4 h-4" />
-                </AvatarFallback>
-              </Avatar>
-
-              <div className={`max-w-xs lg:max-w-md ${isOwn ? 'text-right' : 'text-left'}`}>
-                {/* Media Messages */}
-                {(message.message_type === 'image' || message.message_type === 'file') && message.image_url && (
-                  <div className="mb-2">
-                    <img
-                      src={message.image_url}
-                      alt="Shared content"
-                      className="max-w-full h-auto rounded"
-                    />
-                    {(() => {
-                      const content = getMessageContent(message);
-                      return content !== 'Shared an image' && content !== 'Shared a video' ? (
-                        <p className="text-xs text-gray-600 mt-1">{content}</p>
-                      ) : null;
-                    })()}
-                  </div>
-                )}
-                
-                {/* Text Messages */}
-                {message.message_type === 'text' && (
-                  <div
-                    className={`rounded-lg px-3 py-2 relative ${
-                      isOwn
-                        ? 'bg-blue-500 text-white'
-                        : 'bg-gray-100 text-gray-900'
-                    }`}
-                  >
-                    <p className="text-sm break-words">{getMessageContent(message)}</p>
-                    {message.is_encrypted && (
-                      <Shield className="w-3 h-3 absolute top-1 right-1 opacity-60" />
-                    )}
-                  </div>
-                )}
-                
-                <div className="flex items-center justify-between mt-1 gap-2">
-                  <span className="text-xs text-gray-500">{messageTime}</span>
-                  {getMessageStatusIcon(message)}
-                </div>
-              </div>
-            </div>
+              message={message}
+              isOwn={isOwn}
+              senderName={isOwn ? user?.user_metadata?.full_name : otherUser.name}
+              senderAvatar={isOwn ? user?.user_metadata?.avatar_url : otherUser.avatar}
+              showAvatar={showAvatar}
+            />
           );
         })}
         

@@ -5,7 +5,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import ChatHeader from './ChatHeader';
 import MessageList from './MessageList';
 import MessageInput from './MessageInput';
-import { ChatUser, ListingInfo } from '@/types/chat';
+import { ChatUser, ListingInfo, Message } from '@/types/chat';
 
 interface AdvancedChatInterfaceProps {
   conversationId: string;
@@ -44,6 +44,19 @@ const AdvancedChatInterface = ({ conversationId, otherUser, listingInfo }: Advan
     }
   };
 
+  // Filter and type-check messages to ensure they match our Message interface
+  const typedMessages: Message[] = messages.filter((msg): msg is Message => {
+    const validTypes: Array<Message['message_type']> = ['image', 'text', 'file', 'voice'];
+    return (
+      typeof msg.id === 'string' &&
+      typeof msg.conversation_id === 'string' &&
+      typeof msg.sender_id === 'string' &&
+      typeof msg.content === 'string' &&
+      typeof msg.created_at === 'string' &&
+      validTypes.includes(msg.message_type as Message['message_type'])
+    );
+  });
+
   return (
     <div className="flex flex-col h-full max-h-[600px]">
       <ChatHeader 
@@ -53,7 +66,7 @@ const AdvancedChatInterface = ({ conversationId, otherUser, listingInfo }: Advan
       />
 
       <MessageList
-        messages={messages}
+        messages={typedMessages}
         currentUserId={user?.id}
         otherUserAvatar={otherUser.avatar}
         currentUserAvatar={user?.user_metadata?.avatar_url}
