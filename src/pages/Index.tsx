@@ -21,6 +21,7 @@ import CustomerReviews from './CustomerReviews';
 import TrustSafety from './TrustSafety';
 import Services from './Services';
 import B2BDashboard from './B2BDashboard';
+import Monetization from './Monetization';
 import ProtectedRoute from '@/components/ProtectedRoute';
 
 const Index = () => {
@@ -43,6 +44,7 @@ const Index = () => {
       <Route path="/auth" element={<Auth />} />
       <Route path="/explore" element={<Explore />} />
       <Route path="/services" element={<Services />} />
+      <Route path="/monetization" element={<Monetization />} />
       
       {/* B2B Dashboard - protected route for business users */}
       <Route 

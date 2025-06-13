@@ -7,6 +7,7 @@ import { Switch } from '@/components/ui/switch';
 import { Check, Crown, Star, Zap, Settings } from 'lucide-react';
 import { useSubscription } from '@/hooks/useSubscription';
 import { useAuth } from '@/contexts/AuthContext';
+import { PRICING_CONFIG } from '@/config/pricing';
 
 const PricingPlans = () => {
   const [isYearly, setIsYearly] = useState(false);
@@ -21,14 +22,9 @@ const PricingPlans = () => {
       bgColor: 'bg-blue-50',
       borderColor: 'border-blue-200',
       popular: false,
-      monthlyPrice: 7.99,
-      yearlyPrice: 79.99,
-      features: [
-        'Up to 5 dog listings',
-        'Basic messaging',
-        'Standard support',
-        'Basic analytics'
-      ]
+      monthlyPrice: PRICING_CONFIG.subscriptions.basic.monthly,
+      yearlyPrice: PRICING_CONFIG.subscriptions.basic.yearly,
+      features: PRICING_CONFIG.subscriptions.basic.features
     },
     {
       name: 'Pro',
@@ -37,16 +33,9 @@ const PricingPlans = () => {
       bgColor: 'bg-yellow-50',
       borderColor: 'border-yellow-200',
       popular: true,
-      monthlyPrice: 14.99,
-      yearlyPrice: 149.99,
-      features: [
-        'Unlimited dog listings',
-        'Priority messaging',
-        'Advanced search filters',
-        'Detailed analytics',
-        'Verification badge',
-        'Priority support'
-      ]
+      monthlyPrice: PRICING_CONFIG.subscriptions.pro.monthly,
+      yearlyPrice: PRICING_CONFIG.subscriptions.pro.yearly,
+      features: PRICING_CONFIG.subscriptions.pro.features
     },
     {
       name: 'Enterprise',
@@ -55,16 +44,9 @@ const PricingPlans = () => {
       bgColor: 'bg-purple-50',
       borderColor: 'border-purple-200',
       popular: false,
-      monthlyPrice: 29.99,
-      yearlyPrice: 299.99,
-      features: [
-        'Everything in Pro',
-        'Custom branding',
-        'API access',
-        'Dedicated account manager',
-        'Custom integrations',
-        'White-label options'
-      ]
+      monthlyPrice: PRICING_CONFIG.subscriptions.business.monthly,
+      yearlyPrice: PRICING_CONFIG.subscriptions.business.yearly,
+      features: PRICING_CONFIG.subscriptions.business.features
     }
   ];
 
@@ -157,7 +139,7 @@ const PricingPlans = () => {
                   ${price}
                   <span className="text-base font-normal text-gray-600">/{period}</span>
                 </div>
-                {isYearly && (
+                {isYearly && plan.monthlyPrice > 0 && (
                   <div className="text-sm text-green-600 font-medium">
                     Save {savings(plan)}% annually
                   </div>

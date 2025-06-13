@@ -2298,6 +2298,14 @@ export type Database = {
         Args: { recovery_token_param: string }
         Returns: Json
       }
+      upsert_analytics: {
+        Args: {
+          analytics_date: string
+          metric_name: string
+          metric_value: number
+        }
+        Returns: undefined
+      }
     }
     Enums: {
       user_type: "buyer" | "breeder" | "shelter" | "admin"
