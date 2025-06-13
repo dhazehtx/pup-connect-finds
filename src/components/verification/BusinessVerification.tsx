@@ -29,8 +29,7 @@ const BusinessVerification = ({ currentStatus }: BusinessVerificationProps) => {
   });
   const [documents, setDocuments] = useState({
     business_license: '',
-    tax_certificate: '',
-    insurance_proof: ''
+    address_proof: ''
   });
 
   const handleDocumentUpload = (url: string, type: string) => {
@@ -196,18 +195,10 @@ Description: ${formData.businessDescription}`
 
             <DocumentUpload
               onDocumentUploaded={handleDocumentUpload}
-              documentType="tax_certificate"
-              title="Tax Certificate (Optional)"
-              description="Business tax registration or EIN certificate"
-              currentDocument={documents.tax_certificate}
-            />
-
-            <DocumentUpload
-              onDocumentUploaded={handleDocumentUpload}
-              documentType="insurance_proof"
-              title="Insurance Proof (Optional)"
-              description="Liability insurance certificate"
-              currentDocument={documents.insurance_proof}
+              documentType="address_proof"
+              title="Address Proof (Optional)"
+              description="Business address verification document"
+              currentDocument={documents.address_proof}
             />
           </div>
         </div>

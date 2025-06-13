@@ -169,12 +169,22 @@ export const useMessageTemplates = () => {
 
   const useTemplate = useCallback(async (id: string) => {
     try {
-      const { error } = await supabase
-        .from('message_templates')
-        .update({ usage_count: supabase.raw('usage_count + 1') })
-        .eq('id', id);
+      // Use a custom SQL function or direct update instead of supabase.raw
+      const { error } = await supabase.rpc('increment_template_usage', {
+        template_id: id
+      });
 
-      if (error) throw error;
+      if (error) {
+        // Fallback to direct update if RPC doesn't exist
+        const { error: updateError } = await supabase
+          .from('message_templates')
+          .update({ 
+            usage_count: templates.find(t => t.id === id)?.usage_count + 1 || 1
+          })
+          .eq('id', id);
+        
+        if (updateError) throw updateError;
+      }
 
       // Update local state
       setTemplates(prev => prev.map(t => 
@@ -183,7 +193,7 @@ export const useMessageTemplates = () => {
     } catch (err: any) {
       console.error('Error updating template usage:', err);
     }
-  }, []);
+  }, [templates]);
 
   useEffect(() => {
     fetchTemplates();

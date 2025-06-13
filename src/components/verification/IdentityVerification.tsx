@@ -20,8 +20,7 @@ const IdentityVerification = ({ currentStatus }: IdentityVerificationProps) => {
   const { submitVerificationRequest, loading } = useVerificationSystem();
   const { toast } = useToast();
   const [documents, setDocuments] = useState({
-    id_front: '',
-    id_back: '',
+    id_document: '',
     address_proof: ''
   });
   const [idType, setIdType] = useState('');
@@ -31,7 +30,7 @@ const IdentityVerification = ({ currentStatus }: IdentityVerificationProps) => {
   };
 
   const handleSubmit = async () => {
-    if (!documents.id_front) {
+    if (!documents.id_document) {
       toast({
         title: "Missing Document",
         description: "Please upload your ID document",
@@ -42,7 +41,7 @@ const IdentityVerification = ({ currentStatus }: IdentityVerificationProps) => {
 
     try {
       await submitVerificationRequest('identity', {
-        idDocument: documents.id_front,
+        idDocument: documents.id_document,
         addressProof: documents.address_proof,
         experienceDetails: `ID Type: ${idType}`
       });
@@ -133,10 +132,10 @@ const IdentityVerification = ({ currentStatus }: IdentityVerificationProps) => {
           <div className="space-y-4">
             <DocumentUpload
               onDocumentUploaded={handleDocumentUpload}
-              documentType="id_front"
+              documentType="id_document"
               title="ID Document"
               description="Upload a clear photo of your government-issued ID"
-              currentDocument={documents.id_front}
+              currentDocument={documents.id_document}
             />
 
             <DocumentUpload
@@ -161,7 +160,7 @@ const IdentityVerification = ({ currentStatus }: IdentityVerificationProps) => {
 
         <Button 
           onClick={handleSubmit} 
-          disabled={loading || !documents.id_front || !idType}
+          disabled={loading || !documents.id_document || !idType}
           className="w-full"
         >
           {loading ? 'Submitting...' : 'Submit for Verification'}
