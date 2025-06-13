@@ -83,20 +83,20 @@ export const useSmartRecommendations = () => {
     setUserBehavior(prev => {
       if (!prev) return prev;
 
+      const updatedBehavior = { ...prev };
+
       switch (interactionType) {
         case 'view':
-          return {
-            ...prev,
-            viewed_listings: [...new Set([...prev.viewed_listings, targetId])]
-          };
+          updatedBehavior.viewed_listings = [...new Set([...prev.viewed_listings, targetId])];
+          break;
         case 'favorite':
-          return {
-            ...prev,
-            favorited_listings: [...new Set([...prev.favorited_listings, targetId])]
-          };
+          updatedBehavior.favorited_listings = [...new Set([...prev.favorited_listings, targetId])];
+          break;
         default:
-          return prev;
+          break;
       }
+
+      return updatedBehavior;
     });
   };
 

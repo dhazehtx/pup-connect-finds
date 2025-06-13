@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Search, Filter, BookmarkPlus, TrendingUp, MapPin, Sparkles } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -27,7 +26,7 @@ const AISearchInterface = () => {
     radius: 50,
     verifiedOnly: false,
     availableOnly: true,
-    sortBy: 'relevance'
+    sortBy: 'relevance' as 'relevance' | 'price' | 'age' | 'distance' | 'newest'
   });
 
   const { toast } = useToast();
@@ -97,7 +96,7 @@ const AISearchInterface = () => {
       radius: search.filters.radius || 50,
       verifiedOnly: search.filters.verifiedOnly || false,
       availableOnly: search.filters.availableOnly || true,
-      sortBy: search.filters.sortBy || 'relevance'
+      sortBy: (search.filters.sortBy || 'relevance') as 'relevance' | 'price' | 'age' | 'distance' | 'newest'
     });
     handleSearch();
   };

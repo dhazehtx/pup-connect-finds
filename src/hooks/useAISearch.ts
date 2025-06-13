@@ -1,4 +1,3 @@
-
 import { useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -208,14 +207,42 @@ export const useAISearch = () => {
 
       if (error) throw error;
 
-      const searches: SavedSearch[] = data.map(item => ({
-        id: item.id,
-        name: item.name,
-        filters: item.filters as AISearchFilters,
-        notify_on_new_matches: item.notify_new_matches,
-        created_at: item.created_at,
-        match_count: 0
-      }));
+      const searches: SavedSearch[] = data.map(item => {
+        // Safe type conversion with fallback
+        let parsedFilters: AISearchFilters;
+        try {
+          if (typeof item.filters === 'string') {
+            parsedFilters = JSON.parse(item.filters);
+          } else if (typeof item.filters === 'object' && item.filters !== null) {
+            parsedFilters = item.filters as AISearchFilters;
+          } else {
+            // Fallback to default filters
+            parsedFilters = {
+              query: '',
+              breeds: [],
+              priceRange: [0, 5000],
+              sortBy: 'relevance'
+            };
+          }
+        } catch {
+          // Fallback on parse error
+          parsedFilters = {
+            query: '',
+            breeds: [],
+            priceRange: [0, 5000],
+            sortBy: 'relevance'
+          };
+        }
+
+        return {
+          id: item.id,
+          name: item.name,
+          filters: parsedFilters,
+          notify_on_new_matches: item.notify_new_matches,
+          created_at: item.created_at,
+          match_count: 0
+        };
+      });
 
       setSavedSearches(searches);
     } catch (error) {
