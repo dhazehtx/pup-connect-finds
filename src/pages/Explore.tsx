@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Layout from '@/components/Layout';
@@ -61,7 +60,7 @@ const Explore = () => {
     isKillShelter: false
   }));
 
-  const { filteredListings } = useListingFilters(transformedListings, filters, sortBy);
+  const { sortedListings } = useListingFilters(transformedListings, filters, sortBy);
 
   const updateFilters = (newFilters: any) => {
     setFilters(prev => ({ ...prev, ...newFilters }));
@@ -191,7 +190,7 @@ const Explore = () => {
 
             <div className="lg:col-span-3">
               <ExploreListingsGrid 
-                listings={filteredListings}
+                listings={sortedListings}
                 favorites={favorites}
                 onToggleFavorite={handleToggleFavorite}
                 onContactSeller={handleContactSeller}
