@@ -1,41 +1,41 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Clock, MessageCircle } from 'lucide-react';
+import { Zap } from 'lucide-react';
 
 interface QuickRepliesProps {
-  onQuickReply: (message: string) => void;
+  onQuickReply: (reply: string) => void;
 }
 
-const QuickReplies: React.FC<QuickRepliesProps> = ({ onQuickReply }) => {
+const QuickReplies = ({ onQuickReply }: QuickRepliesProps) => {
   const quickReplies = [
-    "Thank you for your interest!",
-    "Yes, still available",
-    "Let me check and get back to you",
-    "Would you like to schedule a visit?",
-    "I'll send you more photos",
-    "What specific questions do you have?"
+    "Thanks for your interest!",
+    "I'll get back to you soon.",
+    "Yes, still available.",
+    "Let me know if you have questions.",
+    "Happy to schedule a meeting.",
+    "Check out our other listings too!",
+    "Price is negotiable.",
+    "Puppies are ready to go home."
   ];
 
   return (
-    <div className="bg-gray-50 p-3 rounded-lg">
-      <div className="flex items-center gap-2 mb-2">
-        <Clock size={14} className="text-gray-600" />
-        <span className="text-sm font-medium text-gray-700">Quick Replies</span>
+    <div className="flex flex-wrap gap-2 p-2 bg-gray-50 rounded-lg">
+      <div className="flex items-center gap-2 text-xs text-gray-600 mb-1 w-full">
+        <Zap className="w-3 h-3" />
+        Quick Replies
       </div>
-      <div className="flex flex-wrap gap-1">
-        {quickReplies.map((reply, index) => (
-          <Button
-            key={index}
-            size="sm"
-            variant="outline"
-            onClick={() => onQuickReply(reply)}
-            className="text-xs h-7"
-          >
-            {reply}
-          </Button>
-        ))}
-      </div>
+      {quickReplies.map((reply, index) => (
+        <Button
+          key={index}
+          variant="outline"
+          size="sm"
+          className="text-xs h-7"
+          onClick={() => onQuickReply(reply)}
+        >
+          {reply}
+        </Button>
+      ))}
     </div>
   );
 };

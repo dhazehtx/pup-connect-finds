@@ -1,199 +1,184 @@
+
 import React, { useState } from 'react';
-import { useRealtimeVerification } from '@/hooks/useRealtimeVerification';
-import { useFileUpload } from '@/hooks/useFileUpload';
-import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import DocumentUpload from '@/components/profile/DocumentUpload';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Badge } from '@/components/ui/badge';
+import { CheckCircle, Clock, Shield, FileText, User, Phone } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
+import { useRealtimeVerification } from '@/hooks/useRealtimeVerification';
+import IdentityVerification from './IdentityVerification';
+import BusinessVerification from './BusinessVerification';
+import PhoneVerification from './PhoneVerification';
 import VerificationStatus from './VerificationStatus';
-import { Loader2, Shield } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
 
 const VerificationWorkflow = () => {
-  const { verificationRequests, isLoading, submitVerificationRequest } = useRealtimeVerification();
-  const { toast } = useToast();
-  
-  const [formData, setFormData] = useState({
-    verificationType: '',
-    businessLicense: '',
-    idDocument: '',
-    addressProof: '',
-    experienceDetails: ''
-  });
-  const [submitting, setSubmitting] = useState(false);
+  const { user } = useAuth();
+  const { verificationRequests, isLoading } = useRealtimeVerification();
+  const [activeTab, setActiveTab] = useState('identity');
 
-  const handleDocumentUpload = (url: string, type: string) => {
-    setFormData(prev => ({
-      ...prev,
-      [type]: url
-    }));
+  const getVerificationStatus = (type: string) => {
+    return verificationRequests.find(req => req.verification_type === type);
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!formData.verificationType) {
-      toast({
-        title: "Error",
-        description: "Please select a verification type",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setSubmitting(true);
-    
-    try {
-      await submitVerificationRequest({
-        verification_type: formData.verificationType,
-        business_license: formData.businessLicense,
-        id_document: formData.idDocument,
-        address_proof: formData.addressProof,
-        experience_details: formData.experienceDetails
-      });
-
-      toast({
-        title: "Verification Submitted",
-        description: "Your verification request has been submitted for review.",
-      });
-
-      // Reset form
-      setFormData({
-        verificationType: '',
-        businessLicense: '',
-        idDocument: '',
-        addressProof: '',
-        experienceDetails: ''
-      });
-    } catch (error) {
-      toast({
-        title: "Submission Failed",
-        description: "Failed to submit verification request. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setSubmitting(false);
+  const getStatusIcon = (status?: string) => {
+    switch (status) {
+      case 'approved':
+        return <CheckCircle className="w-5 h-5 text-green-600" />;
+      case 'pending':
+      case 'in_review':
+        return <Clock className="w-5 h-5 text-yellow-600" />;
+      default:
+        return <Shield className="w-5 h-5 text-gray-400" />;
     }
   };
+
+  const verificationTypes = [
+    {
+      id: 'identity',
+      title: 'Identity Verification',
+      description: 'Verify your identity with government-issued ID',
+      icon: User,
+      required: true,
+      status: getVerificationStatus('identity')?.status
+    },
+    {
+      id: 'business',
+      title: 'Business Verification',
+      description: 'Verify your business credentials and licenses',
+      icon: FileText,
+      required: false,
+      status: getVerificationStatus('business')?.status
+    },
+    {
+      id: 'phone',
+      title: 'Phone Verification',
+      description: 'Verify your phone number for secure communication',
+      icon: Phone,
+      required: true,
+      status: getVerificationStatus('phone')?.status
+    }
+  ];
 
   if (isLoading) {
     return (
       <div className="flex items-center justify-center p-8">
         <div className="text-center">
-          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-2" />
-          <p className="text-gray-500">Loading verification status...</p>
+          <Shield className="w-8 h-8 animate-pulse mx-auto mb-4 text-blue-600" />
+          <p>Loading verification status...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="max-w-4xl mx-auto p-6 space-y-6">
-      <div className="text-center mb-8">
-        <Shield className="h-12 w-12 mx-auto mb-4 text-blue-600" />
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Account Verification</h1>
-        <p className="text-gray-600">
-          Get verified to build trust and access premium features
-        </p>
-      </div>
-
-      {/* Existing Verification Requests */}
-      {verificationRequests.length > 0 && (
-        <div className="space-y-4">
-          <h2 className="text-xl font-semibold">Your Verification Requests</h2>
-          {verificationRequests.map((request) => (
-            <VerificationStatus
-              key={request.id}
-              status={request.status}
-              type={request.verification_type}
-              submittedAt={request.submitted_at}
-              reviewedAt={request.reviewed_at}
-              rejectionReason={request.rejection_reason}
-            />
-          ))}
-        </div>
-      )}
-
-      {/* New Verification Request Form */}
+    <div className="max-w-4xl mx-auto space-y-6">
+      {/* Overview */}
       <Card>
         <CardHeader>
-          <CardTitle>Submit New Verification Request</CardTitle>
+          <CardTitle className="flex items-center gap-2">
+            <Shield className="text-blue-600" />
+            Account Verification
+          </CardTitle>
+          <p className="text-gray-600">
+            Complete verification to build trust and unlock premium features
+          </p>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div>
-              <Label htmlFor="verificationType">Verification Type</Label>
-              <Select 
-                value={formData.verificationType} 
-                onValueChange={(value) => setFormData(prev => ({ ...prev, verificationType: value }))}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select verification type" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="breeder">Professional Breeder</SelectItem>
-                  <SelectItem value="shelter">Animal Shelter</SelectItem>
-                  <SelectItem value="rescue">Rescue Organization</SelectItem>
-                  <SelectItem value="individual">Individual Seller</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {verificationTypes.map((type) => {
+              const IconComponent = type.icon;
+              return (
+                <div
+                  key={type.id}
+                  className={`border rounded-lg p-4 cursor-pointer transition-colors ${
+                    activeTab === type.id 
+                      ? 'border-blue-500 bg-blue-50' 
+                      : 'border-gray-200 hover:border-gray-300'
+                  }`}
+                  onClick={() => setActiveTab(type.id)}
+                >
+                  <div className="flex items-start justify-between mb-2">
+                    <IconComponent className="w-5 h-5 text-blue-600" />
+                    {getStatusIcon(type.status)}
+                  </div>
+                  <h3 className="font-medium mb-1">{type.title}</h3>
+                  <p className="text-sm text-gray-600 mb-2">{type.description}</p>
+                  <div className="flex items-center gap-2">
+                    {type.required && (
+                      <Badge variant="secondary" className="text-xs">Required</Badge>
+                    )}
+                    {type.status && (
+                      <Badge 
+                        className={`text-xs ${
+                          type.status === 'approved' 
+                            ? 'bg-green-100 text-green-800' 
+                            : type.status === 'pending' || type.status === 'in_review'
+                            ? 'bg-yellow-100 text-yellow-800'
+                            : 'bg-gray-100 text-gray-800'
+                        }`}
+                      >
+                        {type.status}
+                      </Badge>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </CardContent>
+      </Card>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <DocumentUpload
-                onDocumentUploaded={handleDocumentUpload}
-                documentType="business_license"
-                title="Business License"
-                description="Upload your business license or registration"
-                currentDocument={formData.businessLicense}
-              />
+      {/* Verification Tabs */}
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="identity">Identity</TabsTrigger>
+          <TabsTrigger value="business">Business</TabsTrigger>
+          <TabsTrigger value="phone">Phone</TabsTrigger>
+        </TabsList>
 
-              <DocumentUpload
-                onDocumentUploaded={handleDocumentUpload}
-                documentType="id_document"
-                title="ID Document"
-                description="Upload a government-issued ID"
-                currentDocument={formData.idDocument}
-              />
+        <TabsContent value="identity">
+          <IdentityVerification 
+            currentStatus={getVerificationStatus('identity')}
+          />
+        </TabsContent>
 
-              <DocumentUpload
-                onDocumentUploaded={handleDocumentUpload}
-                documentType="address_proof"
-                title="Address Proof"
-                description="Upload utility bill or bank statement"
-                currentDocument={formData.addressProof}
-              />
-            </div>
+        <TabsContent value="business">
+          <BusinessVerification 
+            currentStatus={getVerificationStatus('business')}
+          />
+        </TabsContent>
 
-            <div>
-              <Label htmlFor="experienceDetails">Experience Details</Label>
-              <Textarea
-                id="experienceDetails"
-                value={formData.experienceDetails}
-                onChange={(e) => setFormData(prev => ({ ...prev, experienceDetails: e.target.value }))}
-                placeholder="Describe your experience with animals, breeding, or rescue work..."
-                rows={4}
-              />
-            </div>
+        <TabsContent value="phone">
+          <PhoneVerification 
+            currentStatus={getVerificationStatus('phone')}
+          />
+        </TabsContent>
+      </Tabs>
 
-            <Button 
-              type="submit" 
-              disabled={submitting || !formData.verificationType}
-              className="w-full"
-            >
-              {submitting ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Submitting...
-                </>
-              ) : (
-                'Submit Verification Request'
-              )}
-            </Button>
-          </form>
+      {/* Status Overview */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Verification History</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {verificationRequests.length === 0 ? (
+              <p className="text-gray-500 text-center py-4">
+                No verification requests found. Start your first verification above.
+              </p>
+            ) : (
+              verificationRequests.map((request) => (
+                <VerificationStatus
+                  key={request.id}
+                  status={request.status as any}
+                  type={request.verification_type}
+                  submittedAt={request.submitted_at}
+                  reviewedAt={request.reviewed_at}
+                  rejectionReason={request.rejection_reason}
+                />
+              ))
+            )}
+          </div>
         </CardContent>
       </Card>
     </div>
