@@ -169,26 +169,23 @@ export const useMessageTemplates = () => {
 
   const useTemplate = useCallback(async (id: string) => {
     try {
-      // Use a custom SQL function or direct update instead of supabase.raw
-      const { error } = await supabase.rpc('increment_template_usage', {
-        template_id: id
-      });
+      // Get current usage count first
+      const currentTemplate = templates.find(t => t.id === id);
+      if (!currentTemplate) return;
 
-      if (error) {
-        // Fallback to direct update if RPC doesn't exist
-        const { error: updateError } = await supabase
-          .from('message_templates')
-          .update({ 
-            usage_count: templates.find(t => t.id === id)?.usage_count + 1 || 1
-          })
-          .eq('id', id);
-        
-        if (updateError) throw updateError;
-      }
+      const newUsageCount = currentTemplate.usage_count + 1;
+
+      // Update usage count in database
+      const { error } = await supabase
+        .from('message_templates')
+        .update({ usage_count: newUsageCount })
+        .eq('id', id);
+
+      if (error) throw error;
 
       // Update local state
       setTemplates(prev => prev.map(t => 
-        t.id === id ? { ...t, usage_count: t.usage_count + 1 } : t
+        t.id === id ? { ...t, usage_count: newUsageCount } : t
       ));
     } catch (err: any) {
       console.error('Error updating template usage:', err);
