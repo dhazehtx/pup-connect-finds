@@ -24,21 +24,17 @@ const Auth = () => {
   const location = useLocation();
 
   useEffect(() => {
-    // Check if we're in password reset mode
     const mode = searchParams.get('mode');
     if (mode === 'reset') {
       setResetMode(true);
     }
 
-    // Redirect if user is already logged in
     if (user) {
-      // Check if there's a redirect location from protected routes
       const from = location.state?.from?.pathname || '/explore';
       navigate(from, { replace: true });
     }
   }, [user, navigate, searchParams, location]);
 
-  // Check if user is coming from a protected route
   const isFromProtectedRoute = location.state?.from;
   const showWelcomeMessage = !isFromProtectedRoute;
 
@@ -76,7 +72,6 @@ const Auth = () => {
         await signIn(email, password);
       }
       
-      // Redirect to the original destination or explore page
       const from = location.state?.from?.pathname || '/explore';
       navigate(from, { replace: true });
     } catch (error) {
@@ -124,157 +119,107 @@ const Auth = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-      <div className="max-w-md w-full space-y-6">
+    <div className="min-h-screen bg-gradient-to-br from-royal-blue/10 to-mint-green/10 flex items-center justify-center p-4">
+      <div className="w-full max-w-md mx-auto">
         {/* Logo and Title */}
-        <div className="text-center">
-          <div className="w-16 h-16 mx-auto mb-6 bg-blue-600 rounded-full flex items-center justify-center">
-            <Heart size={32} className="text-white" />
+        <div className="text-center mb-8">
+          <div className="w-16 h-16 mx-auto mb-6 bg-royal-blue rounded-full flex items-center justify-center">
+            <Heart size={32} className="text-cloud-white" />
           </div>
           
-          {showWelcomeMessage && activeTab === 'signin' ? (
-            <>
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">
-                Welcome to MY PUP! 🐕
-              </h1>
-              <p className="text-lg text-gray-600 mb-8">
-                Find your perfect companion from trusted breeders and connect with fellow dog lovers
-              </p>
-            </>
-          ) : (
-            <>
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">
-                {activeTab === 'signup' ? 'Sign up for MY PUP' : 'Sign in'}
-              </h1>
-              {activeTab === 'signin' && (
-                <button
-                  onClick={() => setActiveTab('signup')}
-                  className="text-blue-600 hover:text-blue-800 underline text-sm"
-                >
-                  I don't have an account
-                </button>
-              )}
-            </>
+          <h1 className="text-3xl font-bold text-deep-navy mb-2">
+            {activeTab === 'signup' ? 'Sign up for MY PUP' : 'Sign in'}
+          </h1>
+          
+          {activeTab === 'signin' && (
+            <div className="flex justify-center">
+              <button
+                onClick={() => setActiveTab('signup')}
+                className="text-royal-blue hover:text-royal-blue/80 underline text-sm"
+              >
+                I don't have an account
+              </button>
+            </div>
           )}
         </div>
 
         {/* Main Auth Card */}
-        <Card className="border border-gray-200 shadow-sm bg-white">
-          <CardContent className="p-6">
-            {activeTab === 'signin' ? (
-              // Sign In Form
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div>
-                  <Input
-                    type="email"
-                    placeholder="Email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className={`h-12 rounded-md border-2 border-gray-300 bg-gray-100 px-4 text-gray-900 placeholder:text-gray-500 focus:border-blue-600 focus:bg-white ${errors.email ? 'border-red-500' : ''}`}
-                    disabled={loading}
-                  />
-                  {errors.email && (
-                    <p className="text-red-500 text-xs mt-1">{errors.email}</p>
-                  )}
-                </div>
-
-                <div className="relative">
-                  <Input
-                    type={showPassword ? 'text' : 'password'}
-                    placeholder="Password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className={`h-12 rounded-md border-2 border-gray-300 bg-gray-100 px-4 pr-12 text-gray-900 placeholder:text-gray-500 focus:border-blue-600 focus:bg-white ${errors.password ? 'border-red-500' : ''}`}
-                    disabled={loading}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
-                    disabled={loading}
-                  >
-                    {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                  </button>
-                  {errors.password && (
-                    <p className="text-red-500 text-xs mt-1">{errors.password}</p>
-                  )}
-                </div>
-
-                <Button
-                  type="submit"
-                  disabled={loading}
-                  className="w-full h-12 bg-green-500 hover:bg-green-600 text-white font-semibold rounded-md"
-                >
-                  {loading ? 'Signing In...' : 'Continue'}
-                </Button>
-              </form>
-            ) : (
-              // Sign Up Form
-              <form onSubmit={handleSubmit} className="space-y-4">
+        <Card className="bg-cloud-white border-soft-sky shadow-lg">
+          <CardContent className="p-8">
+            {/* Email/Password Form */}
+            <form onSubmit={handleSubmit} className="space-y-4">
+              {activeTab === 'signup' && (
                 <div>
                   <Input
                     type="text"
                     placeholder="Full Name"
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
-                    className={`h-12 rounded-md border-2 border-gray-300 bg-gray-100 px-4 text-gray-900 placeholder:text-gray-500 focus:border-blue-600 focus:bg-white ${errors.fullName ? 'border-red-500' : ''}`}
+                    className={`h-12 rounded-md border-2 border-gray-300 bg-gray-100 px-4 text-deep-navy placeholder:text-gray-500 focus:border-royal-blue focus:bg-white ${errors.fullName ? 'border-red-500' : ''}`}
                     disabled={loading}
                   />
                   {errors.fullName && (
                     <p className="text-red-500 text-xs mt-1">{errors.fullName}</p>
                   )}
                 </div>
+              )}
 
-                <div>
-                  <Input
-                    type="email"
-                    placeholder="Email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className={`h-12 rounded-md border-2 border-gray-300 bg-gray-100 px-4 text-gray-900 placeholder:text-gray-500 focus:border-blue-600 focus:bg-white ${errors.email ? 'border-red-500' : ''}`}
-                    disabled={loading}
-                  />
-                  {errors.email && (
-                    <p className="text-red-500 text-xs mt-1">{errors.email}</p>
-                  )}
-                </div>
-
-                <div className="relative">
-                  <Input
-                    type={showPassword ? 'text' : 'password'}
-                    placeholder="Password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className={`h-12 rounded-md border-2 border-gray-300 bg-gray-100 px-4 pr-12 text-gray-900 placeholder:text-gray-500 focus:border-blue-600 focus:bg-white ${errors.password ? 'border-red-500' : ''}`}
-                    disabled={loading}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
-                    disabled={loading}
-                  >
-                    {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                  </button>
-                  {errors.password && (
-                    <p className="text-red-500 text-xs mt-1">{errors.password}</p>
-                  )}
-                </div>
-
-                <Button
-                  type="submit"
+              <div>
+                <Input
+                  type="email"
+                  placeholder="Email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className={`h-12 rounded-md border-2 border-gray-300 bg-gray-100 px-4 text-deep-navy placeholder:text-gray-500 focus:border-royal-blue focus:bg-white ${errors.email ? 'border-red-500' : ''}`}
                   disabled={loading}
-                  className="w-full h-12 bg-green-500 hover:bg-green-600 text-white font-semibold rounded-md"
+                />
+                {errors.email && (
+                  <p className="text-red-500 text-xs mt-1">{errors.email}</p>
+                )}
+              </div>
+
+              <div className="relative">
+                <Input
+                  type={showPassword ? 'text' : 'password'}
+                  placeholder="Password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className={`h-12 rounded-md border-2 border-gray-300 bg-gray-100 px-4 pr-12 text-deep-navy placeholder:text-gray-500 focus:border-royal-blue focus:bg-white ${errors.password ? 'border-red-500' : ''}`}
+                  disabled={loading}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-deep-navy"
+                  disabled={loading}
                 >
-                  {loading ? 'Creating Account...' : 'Continue'}
-                </Button>
-              </form>
-            )}
+                  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                </button>
+                {errors.password && (
+                  <p className="text-red-500 text-xs mt-1">{errors.password}</p>
+                )}
+              </div>
+
+              <Button
+                type="submit"
+                disabled={loading}
+                className="w-full h-12 bg-mint-green hover:bg-mint-green/90 text-deep-navy font-semibold rounded-md"
+              >
+                {loading ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-deep-navy border-t-transparent mr-2" />
+                    {activeTab === 'signup' ? 'Creating Account...' : 'Signing In...'}
+                  </>
+                ) : (
+                  'Continue'
+                )}
+              </Button>
+            </form>
 
             {/* "Can't sign in?" link for sign in page */}
             {activeTab === 'signin' && (
               <div className="text-center mt-4">
-                <button className="text-gray-600 hover:text-gray-800 underline text-sm">
+                <button className="text-deep-navy/60 hover:text-deep-navy underline text-sm">
                   Can't sign in?
                 </button>
               </div>
@@ -290,7 +235,7 @@ const Auth = () => {
                   });
                 }}
                 variant="outline"
-                className="w-full h-12 bg-white hover:bg-gray-50 text-gray-700 font-medium rounded-md border-2 border-gray-300"
+                className="w-full h-12 bg-white hover:bg-gray-50 text-deep-navy font-medium rounded-md border-2 border-gray-300"
                 disabled={loading}
               >
                 <Mail size={18} className="mr-3" />
@@ -304,7 +249,7 @@ const Auth = () => {
                     description: "Facebook sign-in will be available soon.",
                   });
                 }}
-                className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-md"
+                className="w-full h-12 bg-royal-blue hover:bg-royal-blue/90 text-cloud-white font-medium rounded-md"
                 disabled={loading}
               >
                 <User size={18} className="mr-3" />
@@ -317,7 +262,7 @@ const Auth = () => {
               <div className="text-center mt-6">
                 <button
                   onClick={() => setActiveTab('signin')}
-                  className="text-gray-600 hover:text-gray-800 underline text-sm"
+                  className="text-deep-navy/60 hover:text-deep-navy underline text-sm"
                 >
                   Already have an account? Sign in here.
                 </button>
@@ -326,26 +271,30 @@ const Auth = () => {
           </CardContent>
         </Card>
 
-        {/* Guest Access */}
-        <div className="relative">
-          <div className="absolute inset-0 flex items-center">
-            <span className="w-full border-t border-gray-200" />
+        {/* Guest Access - Prominently displayed */}
+        <div className="mt-6">
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <span className="w-full border-t border-deep-navy/20" />
+            </div>
+            <div className="relative flex justify-center text-sm uppercase">
+              <span className="bg-gradient-to-br from-royal-blue/10 to-mint-green/10 px-4 text-deep-navy/70 font-medium">
+                Just browsing?
+              </span>
+            </div>
           </div>
-          <div className="relative flex justify-center text-xs uppercase">
-            <span className="bg-gray-50 px-3 text-gray-500 font-medium">Just browsing?</span>
-          </div>
+          
+          <Button 
+            onClick={handleGuestAccess}
+            variant="outline"
+            className="w-full mt-4 h-12 bg-cloud-white hover:bg-royal-blue/10 text-royal-blue border-2 border-royal-blue font-semibold rounded-md"
+            disabled={loading}
+          >
+            Continue as Guest
+          </Button>
         </div>
         
-        <Button 
-          onClick={handleGuestAccess}
-          variant="ghost" 
-          className="w-full text-gray-600 hover:text-gray-800 hover:bg-transparent underline"
-          disabled={loading}
-        >
-          Continue as Guest
-        </Button>
-        
-        <p className="text-xs text-center text-gray-500">
+        <p className="text-xs text-center text-deep-navy/60 mt-6">
           By continuing, you agree to our Terms of Service and Privacy Policy
         </p>
       </div>
