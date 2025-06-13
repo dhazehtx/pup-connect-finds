@@ -93,11 +93,11 @@ const Auth = () => {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
         <Card className="max-w-md w-full">
           <CardHeader>
-            <CardTitle className="text-center">Password Reset</CardTitle>
+            <CardTitle className="text-center text-gray-900">Password Reset</CardTitle>
           </CardHeader>
           <CardContent>
             <Alert>
-              <AlertDescription>
+              <AlertDescription className="text-gray-700">
                 Your password has been reset successfully. You can now sign in with your new password.
               </AlertDescription>
             </Alert>
@@ -124,10 +124,10 @@ const Auth = () => {
         {/* Logo and Title */}
         <div className="text-center mb-8">
           <div className="w-16 h-16 mx-auto mb-6 bg-royal-blue rounded-full flex items-center justify-center">
-            <Heart size={32} className="text-cloud-white" />
+            <Heart size={32} className="text-white" />
           </div>
           
-          <h1 className="text-3xl font-bold text-deep-navy mb-2">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">
             {activeTab === 'signup' ? 'Sign up for MY PUP' : 'Sign in'}
           </h1>
           
@@ -144,7 +144,7 @@ const Auth = () => {
         </div>
 
         {/* Main Auth Card */}
-        <Card className="bg-cloud-white border-soft-sky shadow-lg">
+        <Card className="bg-white border-gray-200 shadow-lg">
           <CardContent className="p-8">
             {/* Email/Password Form */}
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -155,7 +155,7 @@ const Auth = () => {
                     placeholder="Full Name"
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
-                    className={`h-12 rounded-md border-2 border-gray-300 bg-gray-100 px-4 text-deep-navy placeholder:text-gray-500 focus:border-royal-blue focus:bg-white ${errors.fullName ? 'border-red-500' : ''}`}
+                    className={`h-12 rounded-md border-2 border-gray-300 bg-gray-50 px-4 text-gray-900 placeholder:text-gray-500 focus:border-royal-blue focus:bg-white ${errors.fullName ? 'border-red-500' : ''}`}
                     disabled={loading}
                   />
                   {errors.fullName && (
@@ -170,7 +170,7 @@ const Auth = () => {
                   placeholder="Email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className={`h-12 rounded-md border-2 border-gray-300 bg-gray-100 px-4 text-deep-navy placeholder:text-gray-500 focus:border-royal-blue focus:bg-white ${errors.email ? 'border-red-500' : ''}`}
+                  className={`h-12 rounded-md border-2 border-gray-300 bg-gray-50 px-4 text-gray-900 placeholder:text-gray-500 focus:border-royal-blue focus:bg-white ${errors.email ? 'border-red-500' : ''}`}
                   disabled={loading}
                 />
                 {errors.email && (
@@ -184,13 +184,13 @@ const Auth = () => {
                   placeholder="Password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className={`h-12 rounded-md border-2 border-gray-300 bg-gray-100 px-4 pr-12 text-deep-navy placeholder:text-gray-500 focus:border-royal-blue focus:bg-white ${errors.password ? 'border-red-500' : ''}`}
+                  className={`h-12 rounded-md border-2 border-gray-300 bg-gray-50 px-4 pr-12 text-gray-900 placeholder:text-gray-500 focus:border-royal-blue focus:bg-white ${errors.password ? 'border-red-500' : ''}`}
                   disabled={loading}
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-deep-navy"
+                  className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
                   disabled={loading}
                 >
                   {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
@@ -203,11 +203,11 @@ const Auth = () => {
               <Button
                 type="submit"
                 disabled={loading}
-                className="w-full h-12 bg-mint-green hover:bg-mint-green/90 text-deep-navy font-semibold rounded-md"
+                className="w-full h-12 bg-mint-green hover:bg-mint-green/90 text-gray-900 font-semibold rounded-md"
               >
                 {loading ? (
                   <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-deep-navy border-t-transparent mr-2" />
+                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-gray-900 border-t-transparent mr-2" />
                     {activeTab === 'signup' ? 'Creating Account...' : 'Signing In...'}
                   </>
                 ) : (
@@ -219,7 +219,7 @@ const Auth = () => {
             {/* "Can't sign in?" link for sign in page */}
             {activeTab === 'signin' && (
               <div className="text-center mt-4">
-                <button className="text-deep-navy/60 hover:text-deep-navy underline text-sm">
+                <button className="text-gray-600 hover:text-gray-900 underline text-sm">
                   Can't sign in?
                 </button>
               </div>
@@ -235,7 +235,7 @@ const Auth = () => {
                   });
                 }}
                 variant="outline"
-                className="w-full h-12 bg-white hover:bg-gray-50 text-deep-navy font-medium rounded-md border-2 border-gray-300"
+                className="w-full h-12 bg-white hover:bg-gray-50 text-gray-900 font-medium rounded-md border-2 border-gray-300"
                 disabled={loading}
               >
                 <Mail size={18} className="mr-3" />
@@ -249,7 +249,7 @@ const Auth = () => {
                     description: "Facebook sign-in will be available soon.",
                   });
                 }}
-                className="w-full h-12 bg-royal-blue hover:bg-royal-blue/90 text-cloud-white font-medium rounded-md"
+                className="w-full h-12 bg-royal-blue hover:bg-royal-blue/90 text-white font-medium rounded-md"
                 disabled={loading}
               >
                 <User size={18} className="mr-3" />
@@ -262,7 +262,7 @@ const Auth = () => {
               <div className="text-center mt-6">
                 <button
                   onClick={() => setActiveTab('signin')}
-                  className="text-deep-navy/60 hover:text-deep-navy underline text-sm"
+                  className="text-gray-600 hover:text-gray-900 underline text-sm"
                 >
                   Already have an account? Sign in here.
                 </button>
@@ -275,10 +275,10 @@ const Auth = () => {
         <div className="mt-6">
           <div className="relative">
             <div className="absolute inset-0 flex items-center">
-              <span className="w-full border-t border-deep-navy/20" />
+              <span className="w-full border-t border-gray-300" />
             </div>
             <div className="relative flex justify-center text-sm uppercase">
-              <span className="bg-gradient-to-br from-royal-blue/10 to-mint-green/10 px-4 text-deep-navy/70 font-medium">
+              <span className="bg-gradient-to-br from-royal-blue/10 to-mint-green/10 px-4 text-gray-700 font-medium">
                 Just browsing?
               </span>
             </div>
@@ -287,14 +287,14 @@ const Auth = () => {
           <Button 
             onClick={handleGuestAccess}
             variant="outline"
-            className="w-full mt-4 h-12 bg-cloud-white hover:bg-royal-blue/10 text-royal-blue border-2 border-royal-blue font-semibold rounded-md"
+            className="w-full mt-4 h-12 bg-white hover:bg-royal-blue/10 text-royal-blue border-2 border-royal-blue font-semibold rounded-md"
             disabled={loading}
           >
             Continue as Guest
           </Button>
         </div>
         
-        <p className="text-xs text-center text-deep-navy/60 mt-6">
+        <p className="text-xs text-center text-gray-600 mt-6">
           By continuing, you agree to our Terms of Service and Privacy Policy
         </p>
       </div>
