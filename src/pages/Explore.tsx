@@ -90,6 +90,26 @@ const Explore = () => {
     updateFilters({ [filterType]: value });
   };
 
+  // Create a handler that matches QuickFiltersBar's expected signature
+  const handleQuickFilterClick = (filter: string) => {
+    switch (filter) {
+      case 'Puppies':
+        updateFilters({ ageGroup: 'puppy' });
+        break;
+      case 'Verified':
+        updateFilters({ verifiedOnly: true });
+        break;
+      case 'Nearby':
+        updateFilters({ maxDistance: '10' });
+        break;
+      case 'Available':
+        updateFilters({ availableOnly: true });
+        break;
+      default:
+        break;
+    }
+  };
+
   const handleAdvancedFilterChange = (newFilters: any) => {
     updateFilters(newFilters);
   };
@@ -157,7 +177,7 @@ const Explore = () => {
           <QuickFiltersBar 
             quickFilters={['Puppies', 'Verified', 'Nearby', 'Available']}
             filters={filters}
-            onQuickFilterClick={handleQuickFilterChange}
+            onQuickFilterClick={handleQuickFilterClick}
           />
 
           <div className="mt-6 grid grid-cols-1 lg:grid-cols-4 gap-6">
