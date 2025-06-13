@@ -1,5 +1,4 @@
-
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Layout from '@/components/Layout';
 import ExploreHeader from '@/components/explore/ExploreHeader';
@@ -17,6 +16,8 @@ const Explore = () => {
   const { user } = useAuth();
   const { startConversation } = useMessaging();
   const { listings = [], loading } = useDogListings();
+  
+  console.log('Explore - listings:', listings, 'loading:', loading);
   
   // Initialize filters state
   const [filters, setFilters] = useState({
@@ -38,31 +39,58 @@ const Explore = () => {
   const navigate = useNavigate();
 
   // Transform DogListing[] to Listing[] format expected by useListingFilters
-  // Add safety checks to prevent undefined access
-  const transformedListings = Array.isArray(listings) ? listings.map((listing, index) => ({
-    id: index + 1,
-    title: listing?.dog_name || 'Unknown Dog',
-    price: `$${listing?.price || 0}`,
-    location: listing?.location || 'Unknown',
-    distance: '5.0',
-    breed: listing?.breed || 'Mixed Breed',
-    color: 'Mixed',
-    gender: 'Unknown',
-    age: `${listing?.age || 0} weeks`,
-    rating: 4.5,
-    reviews: 10,
-    image: listing?.image_url || '/placeholder-dog.jpg',
-    breeder: listing?.profiles?.full_name || 'Unknown Breeder',
-    verified: listing?.profiles?.verified || false,
-    verifiedBreeder: listing?.profiles?.verified || false,
-    idVerified: listing?.profiles?.verified || false,
-    vetVerified: false,
-    available: 1,
-    sourceType: 'breeder',
-    isKillShelter: false
-  })) : [];
+  // Add comprehensive safety checks to prevent undefined access
+  const transformedListings = useMemo(() => {
+    console.log('Transforming listings:', listings);
+    
+    if (!Array.isArray(listings)) {
+      console.log('Listings is not an array:', listings);
+      return [];
+    }
+    
+    return listings.map((listing, index) => {
+      if (!listing) {
+        console.warn('Empty listing at index:', index);
+        return null;
+      }
+      
+      return {
+        id: index + 1,
+        title: listing?.dog_name || 'Unknown Dog',
+        price: `$${listing?.price || 0}`,
+        location: listing?.location || 'Unknown',
+        distance: '5.0',
+        breed: listing?.breed || 'Mixed Breed',
+        color: 'Mixed',
+        gender: 'Unknown',
+        age: `${listing?.age || 0} weeks`,
+        rating: 4.5,
+        reviews: 10,
+        image: listing?.image_url || '/placeholder-dog.jpg',
+        breeder: listing?.profiles?.full_name || 'Unknown Breeder',
+        verified: listing?.profiles?.verified || false,
+        verifiedBreeder: listing?.profiles?.verified || false,
+        idVerified: listing?.profiles?.verified || false,
+        vetVerified: false,
+        available: 1,
+        sourceType: 'breeder',
+        isKillShelter: false
+      };
+    }).filter(Boolean); // Remove any null entries
+  }, [listings]);
 
-  const { sortedListings } = useListingFilters(transformedListings, filters, sortBy);
+  console.log('Transformed listings:', transformedListings);
+
+  // Use the useListingFilters hook with error handling
+  let sortedListings = [];
+  try {
+    const result = useListingFilters(transformedListings, filters, sortBy);
+    sortedListings = result?.sortedListings || [];
+    console.log('Sorted listings:', sortedListings);
+  } catch (error) {
+    console.error('Error in useListingFilters:', error);
+    sortedListings = transformedListings; // Fallback to transformed listings
+  }
 
   const updateFilters = (newFilters: any) => {
     setFilters(prev => ({ ...prev, ...newFilters }));
@@ -91,7 +119,6 @@ const Explore = () => {
     updateFilters({ [filterType]: value });
   };
 
-  // Create a handler that matches QuickFiltersBar's expected signature
   const handleQuickFilterClick = (filter: string) => {
     switch (filter) {
       case 'Puppies':
@@ -144,7 +171,6 @@ const Explore = () => {
   };
 
   const handleViewDetails = (listing: any) => {
-    // Navigate to listing details page
     console.log('View details for listing:', listing);
   };
 
