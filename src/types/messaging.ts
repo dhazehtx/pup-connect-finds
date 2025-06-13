@@ -93,8 +93,10 @@ export interface NotificationData {
   created_at: string;
   action_url?: string;
   metadata?: any;
-  priority: 'low' | 'medium' | 'high' | 'urgent';
+  priority?: 'low' | 'medium' | 'high' | 'urgent';
   expires_at?: string;
+  sender_id?: string;
+  related_id?: string;
 }
 
 export interface NotificationSettings {

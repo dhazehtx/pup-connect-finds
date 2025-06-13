@@ -20,9 +20,6 @@ export class NotificationService {
           type: type as NotificationData['type'],
           title: template.title,
           message: template.message,
-          priority,
-          action_url: template.action_url,
-          metadata: data,
           is_read: false
         })
         .select()
@@ -49,9 +46,6 @@ export class NotificationService {
         type: type as NotificationData['type'],
         title: template.title,
         message: template.message,
-        priority,
-        action_url: template.action_url,
-        metadata: data,
         is_read: false
       };
     });
@@ -78,7 +72,7 @@ export class NotificationService {
       .eq('id', senderId)
       .single();
 
-    await this.createNotification(recipientId, 'new_message', {
+    await this.createNotification(recipientId, 'message', {
       senderName: sender?.full_name || 'Someone',
       conversationId
     });
@@ -93,7 +87,7 @@ export class NotificationService {
   ) {
     await this.createNotification(
       recipientId, 
-      type === 'received' ? 'payment_received' : 'payment_sent',
+      'payment',
       {
         amount,
         senderName,
@@ -104,15 +98,15 @@ export class NotificationService {
   }
 
   static async sendSecurityAlert(userId: string, message: string) {
-    await this.createNotification(userId, 'security_alert', { message }, 'urgent');
+    await this.createNotification(userId, 'security', { message }, 'urgent');
   }
 
   static async scheduleDigestNotifications() {
     // This would be called by a cron job to send digest notifications
     const { data: users } = await supabase
-      .from('notification_settings')
-      .select('user_id, notification_frequency')
-      .in('notification_frequency', ['hourly', 'daily']);
+      .from('user_preferences')
+      .select('user_id, matching_criteria')
+      .not('matching_criteria', 'is', null);
 
     // Process digest notifications based on frequency
     // Implementation would depend on your scheduling system

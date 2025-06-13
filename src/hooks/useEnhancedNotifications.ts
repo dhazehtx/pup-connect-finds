@@ -37,7 +37,8 @@ export const useEnhancedNotifications = () => {
 
       const transformedData = (data || []).map(item => ({
         ...item,
-        priority: item.priority || 'medium'
+        priority: 'medium' as const,
+        type: item.type as NotificationData['type']
       }));
 
       setNotifications(transformedData);
@@ -59,15 +60,18 @@ export const useEnhancedNotifications = () => {
 
     try {
       const { data, error } = await supabase
-        .from('notification_settings')
+        .from('user_preferences')
         .select('*')
         .eq('user_id', user.id)
         .single();
 
       if (error && error.code !== 'PGRST116') throw error;
 
-      if (data) {
-        setSettings(data);
+      if (data && data.matching_criteria) {
+        const criteria = data.matching_criteria as any;
+        if (criteria.notification_settings) {
+          setSettings(prev => ({ ...prev, ...criteria.notification_settings }));
+        }
       }
     } catch (error) {
       console.error('Error fetching notification settings:', error);
@@ -81,10 +85,12 @@ export const useEnhancedNotifications = () => {
       const updatedSettings = { ...settings, ...newSettings };
       
       const { error } = await supabase
-        .from('notification_settings')
+        .from('user_preferences')
         .upsert({
           user_id: user.id,
-          ...updatedSettings,
+          matching_criteria: {
+            notification_settings: updatedSettings
+          } as any,
           updated_at: new Date().toISOString()
         });
 
@@ -179,10 +185,9 @@ export const useEnhancedNotifications = () => {
           type,
           title,
           message,
-          priority,
-          action_url: actionUrl,
-          metadata,
-          is_read: false
+          is_read: false,
+          sender_id: user?.id,
+          related_id: metadata?.listingId || metadata?.conversationId
         })
         .select()
         .single();
@@ -257,7 +262,8 @@ export const useEnhancedNotifications = () => {
           (payload) => {
             const newNotification = {
               ...payload.new,
-              priority: payload.new.priority || 'medium'
+              priority: 'medium' as const,
+              type: payload.new.type as NotificationData['type']
             } as NotificationData;
             
             setNotifications(prev => [newNotification, ...prev]);
