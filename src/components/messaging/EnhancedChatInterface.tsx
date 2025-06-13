@@ -205,7 +205,7 @@ const EnhancedChatInterface = ({ conversationId, otherUser, onBack }: EnhancedCh
                     {message.message_type === 'image' && (
                       <div>
                         <img 
-                          src={message.file_url} 
+                          src={message.file_url || message.image_url} 
                           alt="Shared image"
                           className="rounded max-w-full h-auto"
                         />

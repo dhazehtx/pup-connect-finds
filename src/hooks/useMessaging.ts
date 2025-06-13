@@ -15,6 +15,7 @@ interface Message {
   edited_at?: string;
   reply_to?: string;
   image_url?: string;
+  file_url?: string;
 }
 
 interface Conversation {
@@ -139,7 +140,8 @@ export const useMessaging = () => {
         ...msg,
         message_type: ['text', 'image', 'voice', 'video', 'file'].includes(msg.message_type) 
           ? msg.message_type as 'text' | 'image' | 'voice' | 'video' | 'file'
-          : 'text' as const
+          : 'text' as const,
+        file_url: msg.image_url // Map image_url to file_url for compatibility
       }));
       
       setMessages(validMessages);
