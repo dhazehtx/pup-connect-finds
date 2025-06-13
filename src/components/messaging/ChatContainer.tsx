@@ -30,7 +30,7 @@ interface ChatContainerProps {
     parentMessage: any | null;
   };
   closeThread: () => void;
-  onSendVoiceMessage: (audioUrl: string, duration: number) => void;
+  onSendVoiceMessage: (audioUrl: string, duration: number) => Promise<void>;
   onBack?: () => void;
 }
 
@@ -68,6 +68,15 @@ const ChatContainer = ({
     await sendMessage(conversationId, content, type, options?.imageUrl || options?.fileUrl);
   };
 
+  const handleSendVoiceMessage = async (audioUrl: string, duration: number): Promise<void> => {
+    await onSendVoiceMessage(audioUrl, duration);
+  };
+
+  const handleFileSelect = async (file: File): Promise<void> => {
+    console.log('File selected:', file.name);
+    // Implementation for file handling
+  };
+
   return (
     <div className="flex flex-col h-full">
       <MessagesList
@@ -90,7 +99,8 @@ const ChatContainer = ({
       <EnhancedMessageInput
         conversationId={conversationId}
         onSendMessage={handleSendMessage}
-        onSendVoiceMessage={onSendVoiceMessage}
+        onSendVoiceMessage={handleSendVoiceMessage}
+        onFileSelect={handleFileSelect}
         placeholder="Type a message..."
       />
 

@@ -3,9 +3,11 @@ import React from 'react';
 import { Badge } from '@/components/ui/badge';
 import { CheckCircle, Clock, AlertCircle } from 'lucide-react';
 
+type ConnectionStatus = 'connected' | 'connecting' | 'disconnected';
+
 const MessagingStatusIndicator = () => {
   // This would typically get status from a hook or context
-  const status = 'connected'; // 'connected' | 'connecting' | 'disconnected'
+  const status: ConnectionStatus = 'connected';
 
   const getStatusConfig = () => {
     switch (status) {

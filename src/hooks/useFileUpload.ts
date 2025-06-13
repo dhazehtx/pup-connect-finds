@@ -5,11 +5,13 @@ import { useToast } from '@/hooks/use-toast';
 
 export const useFileUpload = () => {
   const [uploading, setUploading] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
   const { toast } = useToast();
 
   const uploadFile = async (file: File): Promise<string | null> => {
     try {
       setUploading(true);
+      setIsUploading(true);
       
       const fileExt = file.name.split('.').pop();
       const fileName = `${Math.random()}.${fileExt}`;
@@ -38,6 +40,7 @@ export const useFileUpload = () => {
       return null;
     } finally {
       setUploading(false);
+      setIsUploading(false);
     }
   };
 
@@ -54,9 +57,46 @@ export const useFileUpload = () => {
     return uploadFile(file);
   };
 
+  const uploadVoiceMessage = async (audioBlob: Blob, duration: number): Promise<string | null> => {
+    try {
+      setUploading(true);
+      setIsUploading(true);
+      
+      const fileName = `voice_${Date.now()}.webm`;
+      const filePath = `voice/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('message-files')
+        .upload(filePath, audioBlob);
+
+      if (uploadError) {
+        throw uploadError;
+      }
+
+      const { data } = supabase.storage
+        .from('message-files')
+        .getPublicUrl(filePath);
+
+      return data.publicUrl;
+    } catch (error) {
+      console.error('Error uploading voice message:', error);
+      toast({
+        title: "Upload failed",
+        description: "Failed to upload voice message. Please try again.",
+        variant: "destructive",
+      });
+      return null;
+    } finally {
+      setUploading(false);
+      setIsUploading(false);
+    }
+  };
+
   return {
     uploadFile,
     uploadImage,
-    uploading
+    uploadVoiceMessage,
+    uploading,
+    isUploading
   };
 };

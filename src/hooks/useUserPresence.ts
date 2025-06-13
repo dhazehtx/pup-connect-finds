@@ -39,6 +39,10 @@ export const useUserPresence = () => {
     return onlineUsers.includes(userId);
   };
 
+  const getUserPresence = (userId: string): UserPresence | null => {
+    return userPresence[userId] || null;
+  };
+
   const setUserOnline = async (userId: string) => {
     const channel = supabase.channel('user-presence');
     await channel.track({
@@ -57,6 +61,7 @@ export const useUserPresence = () => {
     onlineUsers,
     userPresence,
     isUserOnline,
+    getUserPresence,
     setUserOnline,
     setUserOffline
   };
