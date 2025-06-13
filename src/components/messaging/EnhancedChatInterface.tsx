@@ -1,152 +1,277 @@
 
-import React, { useEffect } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
-import { useToast } from '@/hooks/use-toast';
-import { useRealtimeMessages } from '@/hooks/useRealtimeMessages';
-import { useEnhancedFileUpload } from '@/hooks/useEnhancedFileUpload';
-import { useMessageReactions } from '@/hooks/useMessageReactions';
-import { useMessageThreads } from '@/hooks/useMessageThreads';
+import React, { useState, useRef, useEffect } from 'react';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, User } from 'lucide-react';
-import UnifiedMessageBubble from './UnifiedMessageBubble';
-import UnifiedMessageInput from './UnifiedMessageInput';
+import { Input } from '@/components/ui/input';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
+import { 
+  Send, 
+  Paperclip, 
+  Mic, 
+  Video, 
+  Phone, 
+  MoreVertical,
+  Smile,
+  Image as ImageIcon
+} from 'lucide-react';
+import { useMessaging } from '@/hooks/useMessaging';
+import { useAuth } from '@/contexts/AuthContext';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 interface EnhancedChatInterfaceProps {
-  conversationId: string;
-  otherUserId: string;
-  listingId?: string;
-  onBack?: () => void;
+  conversationId?: string;
+  otherUser?: {
+    id: string;
+    name: string;
+    avatar?: string;
+    status?: 'online' | 'offline' | 'away';
+  };
 }
 
-const EnhancedChatInterface = ({ conversationId, otherUserId, listingId, onBack }: EnhancedChatInterfaceProps) => {
+const EnhancedChatInterface = ({ conversationId, otherUser }: EnhancedChatInterfaceProps) => {
   const { user } = useAuth();
-  const { toast } = useToast();
-  const { messages, fetchMessages, sendMessage, markAsRead } = useRealtimeMessages();
-  const { uploading } = useEnhancedFileUpload();
-  const { reactions, addReaction, toggleReaction } = useMessageReactions();
-  const { getThreadCount } = useMessageThreads();
+  const { messages, loadMessages, sendMessage, loading } = useMessaging();
+  const [messageText, setMessageText] = useState('');
+  const [isRecording, setIsRecording] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  console.log('💬 EnhancedChatInterface - Component rendered with props:', {
-    conversationId,
-    otherUserId,
-    listingId,
-    userId: user?.id,
-    messageCount: messages.length
-  });
-
-  // Load messages when conversation changes
   useEffect(() => {
-    if (conversationId && user) {
-      console.log('📥 EnhancedChatInterface - Loading messages for conversation:', conversationId);
-      fetchMessages(conversationId).then(() => {
-        console.log('✅ EnhancedChatInterface - Messages loaded successfully, count:', messages.length);
-        markAsRead(conversationId);
-      }).catch(error => {
-        console.error('❌ EnhancedChatInterface - Failed to load messages:', error);
-        toast({
-          title: "Error loading messages",
-          description: "Please refresh and try again",
-          variant: "destructive",
-        });
-      });
+    if (conversationId) {
+      loadMessages(conversationId);
     }
-  }, [conversationId, user, fetchMessages, markAsRead, toast]);
+  }, [conversationId, loadMessages]);
 
-  // Handle sending message
-  const handleSendMessage = async (content: string, type = 'text', options: any = {}) => {
-    console.log('📤 EnhancedChatInterface - Send message triggered');
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
+
+  const handleSendMessage = async () => {
+    if (!messageText.trim() || !conversationId) return;
+
     try {
-      await sendMessage(conversationId, content, type, options.imageUrl);
+      await sendMessage(conversationId, messageText);
+      setMessageText('');
     } catch (error) {
-      console.error('❌ Failed to send message:', error);
-      toast({
-        title: "Failed to send message",
-        description: "Please try again",
-        variant: "destructive",
-      });
+      console.error('Failed to send message:', error);
     }
   };
 
-  // Handle file selection
-  const handleFileSelect = (file: File) => {
-    console.log('📁 EnhancedChatInterface - File select triggered');
-    toast({
-      title: "File Upload",
-      description: "File upload functionality coming soon!",
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSendMessage();
+    }
+  };
+
+  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Handle file upload logic here
+    console.log('File selected:', file);
+  };
+
+  const startVoiceRecording = () => {
+    setIsRecording(true);
+    // Implement voice recording logic
+    console.log('Starting voice recording...');
+  };
+
+  const stopVoiceRecording = () => {
+    setIsRecording(false);
+    // Stop recording and send voice message
+    console.log('Stopping voice recording...');
+  };
+
+  const startVideoCall = () => {
+    // Implement video calling logic
+    console.log('Starting video call...');
+  };
+
+  const startVoiceCall = () => {
+    // Implement voice calling logic
+    console.log('Starting voice call...');
+  };
+
+  const formatMessageTime = (timestamp: string) => {
+    return new Date(timestamp).toLocaleTimeString([], { 
+      hour: '2-digit', 
+      minute: '2-digit' 
     });
   };
 
-  // Handle voice message
-  const handleSendVoiceMessage = (audioUrl: string, duration: number) => {
-    console.log('🎤 EnhancedChatInterface - Voice message triggered:', { audioUrl, duration });
-    handleSendMessage(`Voice message (${duration}s)`, 'voice', { imageUrl: audioUrl });
-  };
-
-  const handleReactionClick = (messageId: string) => {
-    console.log('😊 EnhancedChatInterface - Reaction click:', messageId);
-    // Toggle reaction picker or add default reaction
-  };
-
-  if (!user) {
-    console.log('❌ EnhancedChatInterface - No user found, showing sign-in prompt');
+  if (!conversationId) {
     return (
-      <div className="flex items-center justify-center h-full">
-        <p className="text-gray-500">Please sign in to access messages</p>
-      </div>
+      <Card className="h-full flex items-center justify-center">
+        <CardContent className="text-center">
+          <p className="text-gray-500">Select a conversation to start chatting</p>
+        </CardContent>
+      </Card>
     );
   }
 
-  console.log('🎯 EnhancedChatInterface - Rendering with:', {
-    messageCount: messages.length,
-    reactionCount: Object.keys(reactions).length,
-    isUploading: uploading
-  });
-
   return (
-    <div className="flex flex-col h-full bg-white">
-      {/* Header */}
-      <div className="flex items-center gap-3 p-4 border-b bg-white">
-        {onBack && (
-          <Button variant="ghost" size="sm" onClick={onBack}>
-            <ArrowLeft size={16} />
-          </Button>
-        )}
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
-            <User size={16} className="text-gray-600" />
-          </div>
+    <Card className="h-full flex flex-col">
+      {/* Chat Header */}
+      <CardHeader className="flex-row items-center justify-between space-y-0 pb-3 border-b">
+        <div className="flex items-center space-x-3">
+          <Avatar>
+            <AvatarImage src={otherUser?.avatar} />
+            <AvatarFallback>
+              {otherUser?.name?.charAt(0).toUpperCase() || 'U'}
+            </AvatarFallback>
+          </Avatar>
           <div>
-            <h3 className="font-semibold">Chat</h3>
-            <p className="text-xs text-gray-500">Active now</p>
+            <h3 className="font-semibold">{otherUser?.name || 'Unknown User'}</h3>
+            <div className="flex items-center space-x-2">
+              <Badge 
+                variant={otherUser?.status === 'online' ? 'default' : 'secondary'}
+                className="text-xs"
+              >
+                {otherUser?.status || 'offline'}
+              </Badge>
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Messages */}
-      <ScrollArea className="flex-1 p-4">
-        <div className="space-y-2">
-          {messages.map((message) => (
-            <UnifiedMessageBubble
-              key={message.id}
-              message={message}
-              isOwn={message.sender_id === user?.id}
-              onReactionClick={handleReactionClick}
-              reactions={reactions[message.id] || []}
-            />
-          ))}
+        <div className="flex items-center space-x-2">
+          <Button variant="ghost" size="sm" onClick={startVoiceCall}>
+            <Phone className="w-4 h-4" />
+          </Button>
+          <Button variant="ghost" size="sm" onClick={startVideoCall}>
+            <Video className="w-4 h-4" />
+          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="sm">
+                <MoreVertical className="w-4 h-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              <DropdownMenuItem>View Profile</DropdownMenuItem>
+              <DropdownMenuItem>Block User</DropdownMenuItem>
+              <DropdownMenuItem>Report</DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
-      </ScrollArea>
+      </CardHeader>
 
-      {/* Enhanced Input with Templates */}
-      <UnifiedMessageInput
-        conversationId={conversationId}
-        onSendMessage={handleSendMessage}
-        onSendVoiceMessage={handleSendVoiceMessage}
-        onFileSelect={handleFileSelect}
-        disabled={uploading}
-      />
-    </div>
+      {/* Messages Area */}
+      <CardContent className="flex-1 p-0">
+        <ScrollArea className="h-full p-4">
+          {loading ? (
+            <div className="flex justify-center items-center h-full">
+              <div className="animate-spin rounded-full h-6 w-6 border-2 border-blue-600 border-t-transparent"></div>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {messages.map((message) => (
+                <div
+                  key={message.id}
+                  className={`flex ${
+                    message.sender_id === user?.id ? 'justify-end' : 'justify-start'
+                  }`}
+                >
+                  <div
+                    className={`max-w-[70%] rounded-lg p-3 ${
+                      message.sender_id === user?.id
+                        ? 'bg-blue-600 text-white'
+                        : 'bg-gray-100 text-gray-900'
+                    }`}
+                  >
+                    {message.message_type === 'text' && (
+                      <p className="whitespace-pre-wrap">{message.content}</p>
+                    )}
+                    {message.message_type === 'image' && (
+                      <div>
+                        <img 
+                          src={message.file_url} 
+                          alt="Shared image"
+                          className="rounded max-w-full h-auto"
+                        />
+                        {message.content && (
+                          <p className="mt-2 whitespace-pre-wrap">{message.content}</p>
+                        )}
+                      </div>
+                    )}
+                    <p className={`text-xs mt-1 ${
+                      message.sender_id === user?.id ? 'text-blue-100' : 'text-gray-500'
+                    }`}>
+                      {formatMessageTime(message.created_at)}
+                    </p>
+                  </div>
+                </div>
+              ))}
+              <div ref={messagesEndRef} />
+            </div>
+          )}
+        </ScrollArea>
+      </CardContent>
+
+      {/* Message Input */}
+      <div className="border-t p-4">
+        <div className="flex items-center space-x-2">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => fileInputRef.current?.click()}
+          >
+            <Paperclip className="w-4 h-4" />
+          </Button>
+          
+          <Button variant="ghost" size="sm">
+            <ImageIcon className="w-4 h-4" />
+          </Button>
+
+          <div className="flex-1 relative">
+            <Input
+              value={messageText}
+              onChange={(e) => setMessageText(e.target.value)}
+              onKeyPress={handleKeyPress}
+              placeholder="Type a message..."
+              className="pr-10"
+            />
+            <Button
+              variant="ghost"
+              size="sm"
+              className="absolute right-2 top-1/2 transform -translate-y-1/2"
+            >
+              <Smile className="w-4 h-4" />
+            </Button>
+          </div>
+
+          <Button
+            variant="ghost"
+            size="sm"
+            onMouseDown={startVoiceRecording}
+            onMouseUp={stopVoiceRecording}
+            className={isRecording ? 'bg-red-100 text-red-600' : ''}
+          >
+            <Mic className="w-4 h-4" />
+          </Button>
+
+          <Button onClick={handleSendMessage} disabled={!messageText.trim()}>
+            <Send className="w-4 h-4" />
+          </Button>
+        </div>
+
+        <input
+          ref={fileInputRef}
+          type="file"
+          hidden
+          onChange={handleFileUpload}
+          accept="image/*,video/*,.pdf,.doc,.docx"
+        />
+      </div>
+    </Card>
   );
 };
 

@@ -1,85 +1,119 @@
 
 import React from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { formatDistanceToNow } from 'date-fns';
-import { ExtendedConversation } from '@/types/messaging';
-import { User } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Search, MessageCircle } from 'lucide-react';
+import { useMessaging } from '@/hooks/useMessaging';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface ConversationsListProps {
-  conversations: ExtendedConversation[];
-  selectedConversationId?: string | null;
-  onSelectConversation: (conversation: ExtendedConversation) => void;
+  onSelectConversation: (conversationId: string, otherUser: any) => void;
+  selectedConversationId?: string;
 }
 
-const ConversationsList = ({ 
-  conversations, 
-  selectedConversationId, 
-  onSelectConversation 
-}: ConversationsListProps) => {
-  if (conversations.length === 0) {
-    return (
-      <div className="flex flex-col items-center justify-center h-64 text-center">
-        <User className="w-12 h-12 text-muted-foreground mb-4" />
-        <h3 className="text-lg font-semibold mb-2">No conversations yet</h3>
-        <p className="text-muted-foreground">
-          Start browsing listings to connect with breeders
-        </p>
-      </div>
-    );
-  }
+const ConversationsList = ({ onSelectConversation, selectedConversationId }: ConversationsListProps) => {
+  const { conversations } = useMessaging();
+  const { user } = useAuth();
+
+  const getOtherUser = (conversation: any) => {
+    const isUserBuyer = conversation.buyer_id === user?.id;
+    return isUserBuyer ? conversation.seller : conversation.buyer;
+  };
+
+  const formatLastMessageTime = (timestamp: string) => {
+    const date = new Date(timestamp);
+    const now = new Date();
+    const diffInHours = (now.getTime() - date.getTime()) / (1000 * 60 * 60);
+
+    if (diffInHours < 24) {
+      return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    } else if (diffInHours < 168) { // 7 days
+      return date.toLocaleDateString([], { weekday: 'short' });
+    } else {
+      return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
+    }
+  };
 
   return (
-    <div className="divide-y divide-border">
-      {conversations.map((conversation) => (
-        <button
-          key={conversation.id}
-          onClick={() => onSelectConversation(conversation)}
-          className={`w-full p-4 text-left hover:bg-muted/50 transition-colors ${
-            selectedConversationId === conversation.id ? 'bg-muted' : ''
-          }`}
-        >
-          <div className="flex items-start gap-3">
-            <Avatar className="w-12 h-12">
-              <AvatarImage src={conversation.other_user?.avatar_url} />
-              <AvatarFallback>
-                {conversation.other_user?.full_name?.charAt(0) || 'U'}
-              </AvatarFallback>
-            </Avatar>
-            
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center justify-between mb-1">
-                <h4 className="font-semibold truncate">
-                  {conversation.other_user?.full_name || conversation.other_user?.username || 'Unknown User'}
-                </h4>
-                {conversation.last_message && (
-                  <span className="text-xs text-muted-foreground">
-                    {formatDistanceToNow(new Date(conversation.last_message.created_at), { addSuffix: true })}
-                  </span>
-                )}
-              </div>
-              
-              {conversation.listing && (
-                <p className="text-sm text-muted-foreground mb-1">
-                  About: {conversation.listing.dog_name} {conversation.listing.breed && `(${conversation.listing.breed})`}
-                </p>
-              )}
-              
-              <div className="flex items-center justify-between">
-                <p className="text-sm text-muted-foreground truncate">
-                  {conversation.last_message?.content || 'No messages yet'}
-                </p>
-                {conversation.unread_count > 0 && (
-                  <Badge variant="default" className="ml-2">
-                    {conversation.unread_count}
-                  </Badge>
-                )}
-              </div>
+    <Card className="h-full">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <MessageCircle className="w-5 h-5" />
+          Messages
+        </CardTitle>
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+          <Input
+            placeholder="Search conversations..."
+            className="pl-10"
+          />
+        </div>
+      </CardHeader>
+
+      <CardContent className="p-0">
+        <div className="space-y-1">
+          {conversations.length === 0 ? (
+            <div className="text-center py-8 text-gray-500">
+              <MessageCircle className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+              <p>No conversations yet</p>
+              <p className="text-sm">Start browsing listings to connect with sellers</p>
             </div>
-          </div>
-        </button>
-      ))}
-    </div>
+          ) : (
+            conversations.map((conversation) => {
+              const otherUser = getOtherUser(conversation);
+              const isSelected = conversation.id === selectedConversationId;
+
+              return (
+                <div
+                  key={conversation.id}
+                  onClick={() => onSelectConversation(conversation.id, otherUser)}
+                  className={`flex items-center p-4 cursor-pointer transition-colors hover:bg-gray-50 border-l-4 ${
+                    isSelected 
+                      ? 'bg-blue-50 border-l-blue-500' 
+                      : 'border-l-transparent hover:border-l-gray-200'
+                  }`}
+                >
+                  <Avatar className="w-12 h-12">
+                    <AvatarImage src={otherUser?.avatar_url} />
+                    <AvatarFallback>
+                      {otherUser?.full_name?.charAt(0).toUpperCase() || 'U'}
+                    </AvatarFallback>
+                  </Avatar>
+
+                  <div className="ml-3 flex-1 min-w-0">
+                    <div className="flex items-center justify-between">
+                      <h4 className="font-medium text-sm truncate">
+                        {otherUser?.full_name || 'Unknown User'}
+                      </h4>
+                      <span className="text-xs text-gray-500 ml-2">
+                        {formatLastMessageTime(conversation.last_message_at)}
+                      </span>
+                    </div>
+
+                    {conversation.listing && (
+                      <p className="text-xs text-gray-600 truncate mt-1">
+                        About: {conversation.listing.title}
+                      </p>
+                    )}
+
+                    <div className="flex items-center justify-between mt-1">
+                      <p className="text-sm text-gray-500 truncate">
+                        Tap to continue conversation...
+                      </p>
+                      <Badge variant="secondary" className="text-xs">
+                        Active
+                      </Badge>
+                    </div>
+                  </div>
+                </div>
+              );
+            })
+          )}
+        </div>
+      </CardContent>
+    </Card>
   );
 };
 

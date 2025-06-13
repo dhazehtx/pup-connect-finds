@@ -1,63 +1,42 @@
 
 import React, { useState } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { MessageCircle, User, ArrowLeft } from 'lucide-react';
-import UnifiedMessagingInterface from '@/components/messaging/UnifiedMessagingInterface';
+import Layout from '@/components/Layout';
+import ConversationsList from '@/components/messaging/ConversationsList';
 import EnhancedChatInterface from '@/components/messaging/EnhancedChatInterface';
 
 const Messages = () => {
-  const { user, isGuest } = useAuth();
-  const [selectedConversation, setSelectedConversation] = useState<{
-    id: string;
-    otherUserId: string;
-    listingId?: string;
-  } | null>(null);
+  const [selectedConversationId, setSelectedConversationId] = useState<string | undefined>();
+  const [selectedUser, setSelectedUser] = useState<any>(null);
 
-  if (!user && !isGuest) {
-    return (
-      <div className="container mx-auto p-4 max-w-4xl">
-        <Card>
-          <CardContent className="py-12 text-center">
-            <MessageCircle className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
-            <h2 className="text-2xl font-semibold mb-2">Connect with Breeders</h2>
-            <p className="text-muted-foreground mb-6">
-              Sign in to start conversations with dog breeders and find your perfect companion.
-            </p>
-            <Button size="lg">
-              <User className="w-4 h-4 mr-2" />
-              Sign In to Start Messaging
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
+  const handleSelectConversation = (conversationId: string, otherUser: any) => {
+    setSelectedConversationId(conversationId);
+    setSelectedUser(otherUser);
+  };
 
-  // Show individual conversation interface
-  if (selectedConversation) {
-    return (
-      <div className="h-screen bg-background">
-        <div className="h-full">
-          <EnhancedChatInterface
-            conversationId={selectedConversation.id}
-            otherUserId={selectedConversation.otherUserId}
-            listingId={selectedConversation.listingId}
-            onBack={() => setSelectedConversation(null)}
-          />
+  return (
+    <Layout>
+      <div className="min-h-screen bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[calc(100vh-200px)]">
+            {/* Conversations List */}
+            <div className="lg:col-span-1">
+              <ConversationsList
+                onSelectConversation={handleSelectConversation}
+                selectedConversationId={selectedConversationId}
+              />
+            </div>
+
+            {/* Chat Interface */}
+            <div className="lg:col-span-2">
+              <EnhancedChatInterface
+                conversationId={selectedConversationId}
+                otherUser={selectedUser}
+              />
+            </div>
+          </div>
         </div>
       </div>
-    );
-  }
-
-  // Show conversations list interface
-  return (
-    <div className="min-h-screen bg-background">
-      <div className="container mx-auto max-w-6xl">
-        <UnifiedMessagingInterface />
-      </div>
-    </div>
+    </Layout>
   );
 };
 
