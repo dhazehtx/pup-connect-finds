@@ -4,7 +4,7 @@ import { Upload, FileText, X, CheckCircle, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { useFileUpload } from '@/hooks/useFileUpload';
+import { useUnifiedFileUpload } from '@/hooks/useUnifiedFileUpload';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 
@@ -24,16 +24,13 @@ const DocumentUpload = ({
   currentDocument 
 }: DocumentUploadProps) => {
   const [dragActive, setDragActive] = useState(false);
-  const { uploadFile, isUploading, uploadProgress } = useFileUpload({
+  const { uploadFile, uploading, progress } = useUnifiedFileUpload({
     bucket: 'images',
     folder: 'documents',
     maxSize: 10 * 1024 * 1024, // 10MB
     allowedTypes: ['image/jpeg', 'image/png', 'image/webp', 'application/pdf']
   });
   const { toast } = useToast();
-
-  // Extract the first progress value from the uploadProgress object
-  const progressValue = Object.values(uploadProgress)[0] || 0;
 
   const handleFile = async (file: File) => {
     const url = await uploadFile(file);
@@ -107,7 +104,7 @@ const DocumentUpload = ({
             className={cn(
               "border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-gray-400 transition-colors cursor-pointer",
               dragActive && "border-blue-400 bg-blue-50",
-              isUploading && "opacity-50 pointer-events-none"
+              uploading && "opacity-50 pointer-events-none"
             )}
             onDragEnter={handleDrag}
             onDragLeave={handleDrag}
@@ -115,12 +112,12 @@ const DocumentUpload = ({
             onDrop={handleDrop}
           >
             <div className="flex flex-col items-center space-y-2">
-              {isUploading ? (
+              {uploading ? (
                 <>
                   <Upload className="h-6 w-6 text-blue-500 animate-pulse" />
-                  <p className="text-xs text-gray-600">Uploading... {progressValue}%</p>
+                  <p className="text-xs text-gray-600">Uploading... {Math.round(progress)}%</p>
                   <div className="w-full max-w-xs">
-                    <Progress value={progressValue} className="w-full h-2" />
+                    <Progress value={progress} className="w-full h-2" />
                   </div>
                 </>
               ) : (

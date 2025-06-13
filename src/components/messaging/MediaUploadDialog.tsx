@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { useFileUpload } from '@/hooks/useFileUpload';
+import { useUnifiedFileUpload } from '@/hooks/useUnifiedFileUpload';
 import { Camera, Video, Upload, X } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
@@ -20,10 +20,10 @@ const MediaUploadDialog = ({ children, onMediaUpload }: MediaUploadDialogProps) 
   const [caption, setCaption] = useState('');
   const [preview, setPreview] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const { uploadFile, isUploading } = useFileUpload({
+  const { uploadFile, uploading } = useUnifiedFileUpload({
     bucket: 'images',
     folder: 'messages',
-    maxSize: 100, // 100MB
+    maxSize: 100 * 1024 * 1024, // 100MB
     allowedTypes: ['image/jpeg', 'image/png', 'image/webp', 'video/mp4', 'video/webm', 'video/quicktime']
   });
   const { toast } = useToast();
@@ -157,10 +157,10 @@ const MediaUploadDialog = ({ children, onMediaUpload }: MediaUploadDialogProps) 
               
               <Button
                 onClick={handleUpload}
-                disabled={isUploading}
+                disabled={uploading}
                 className="w-full"
               >
-                {isUploading ? 'Uploading...' : 'Send Media'}
+                {uploading ? 'Uploading...' : 'Send Media'}
               </Button>
             </div>
           )}

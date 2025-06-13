@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useRealtimeConversations } from '@/hooks/useRealtimeConversations';
 import { useRealtimeMessages } from '@/hooks/useRealtimeMessages';
@@ -80,9 +81,9 @@ const OptimizedMessagingInterface = () => {
     setThreadState({ isOpen: false, parentMessageId: null, parentMessage: null });
   };
 
-  const handleSendVoiceMessage = (audioUrl: string, duration: number) => {
+  const handleSendVoiceMessage = async (audioUrl: string, duration: number): Promise<void> => {
     if (selectedConversationId) {
-      sendMessage(selectedConversationId, `Voice message (${duration}s)`, 'voice', audioUrl);
+      await sendMessage(selectedConversationId, `Voice message (${duration}s)`, 'voice', audioUrl);
     }
   };
 
