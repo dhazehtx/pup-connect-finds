@@ -25,6 +25,18 @@ interface ProfileContentProps {
   verificationBadges: any[];
 }
 
+// Local review interface for profile display
+interface ProfileReview {
+  id: number;
+  author: string;
+  avatar?: string;
+  rating: number;
+  date: string;
+  text: string;
+  helpful: number;
+  verified: boolean;
+}
+
 const ProfileContent = ({ 
   displayProfile, 
   isOwnProfile, 
@@ -73,45 +85,8 @@ const ProfileContent = ({
     ? verificationBadges.map(badge => badge.badge_name)
     : displayProfile.verification_badges?.map(badge => badge.type) || [];
 
-  const highlights = [
-    {
-      id: 'new',
-      title: 'New',
-      cover: '',
-      isNew: true
-    },
-    {
-      id: 1,
-      title: 'Puppies',
-      cover: 'https://images.unsplash.com/photo-1605568427561-40dd23c2acea?w=100&h=100&fit=crop'
-    },
-    {
-      id: 2,
-      title: 'Training',
-      cover: 'https://images.unsplash.com/photo-1551717758536-85ae29035b6d?w=100&h=100&fit=crop'
-    },
-    {
-      id: 3,
-      title: 'Health',
-      cover: 'https://images.unsplash.com/photo-1518717758536-85ae29035b6d?w=100&h=100&fit=crop'
-    },
-    {
-      id: 4,
-      title: 'Reviews',
-      cover: 'https://images.unsplash.com/photo-1583337130417-3346a1be7dee?w=100&h=100&fit=crop'
-    }
-  ];
-
-  const posts = [
-    "https://images.unsplash.com/photo-1605568427561-40dd23c2acea?w=300&h=300&fit=crop",
-    "https://images.unsplash.com/photo-1518717758536-85ae29035b6d?w=300&h=300&fit=crop",
-    "https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=300&h=300&fit=crop",
-    "https://images.unsplash.com/photo-1552053831-71594a27632d?w=300&h=300&fit=crop",
-    "https://images.unsplash.com/photo-1583337130417-3346a1be7dee?w=300&h=300&fit=crop",
-    "https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=300&h=300&fit=crop"
-  ];
-
-  const reviews = [
+  // Sample reviews with avatar property for profile display
+  const profileReviews: ProfileReview[] = [
     {
       id: 1,
       author: "Sarah M.",
@@ -370,38 +345,7 @@ const ProfileContent = ({
                   "https://images.unsplash.com/photo-1583337130417-3346a1be7dee?w=300&h=300&fit=crop",
                   "https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=300&h=300&fit=crop"
                 ]}
-                reviews={[
-                  {
-                    id: 1,
-                    author: "Sarah M.",
-                    avatar: "https://images.unsplash.com/photo-1494790108755-2616b612b47c?w=150&h=150&fit=crop&crop=face",
-                    rating: 5,
-                    date: "2 weeks ago",
-                    text: "Amazing experience! Our Golden Retriever puppy is healthy, well-socialized, and came with all health records. The breeding program is exceptional and Sarah was so helpful throughout the entire process. Highly recommend Golden Paws Kennel!",
-                    helpful: 12,
-                    verified: true
-                  },
-                  {
-                    id: 2,
-                    author: "Mike D.",
-                    avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face",
-                    rating: 5,
-                    date: "1 month ago",
-                    text: "Professional breeder with excellent facilities. The puppy training they provide is exceptional. Our lab is now 6 months old and perfectly trained!",
-                    helpful: 8,
-                    verified: true
-                  },
-                  {
-                    id: 3,
-                    author: "Emma W.",
-                    avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face",
-                    rating: 4,
-                    date: "2 months ago",
-                    text: "Great experience overall. The facilities are clean and the dogs are well cared for. Would definitely recommend!",
-                    helpful: 5,
-                    verified: true
-                  }
-                ]}
+                reviews={profileReviews}
                 analyticsComponent={
                   isOwnProfile && user ? <ProfileAnalyticsEnhanced profile={displayProfile} /> : undefined
                 }
