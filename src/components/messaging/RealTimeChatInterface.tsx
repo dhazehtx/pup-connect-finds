@@ -66,7 +66,7 @@ const RealTimeChatInterface = ({ conversationId, otherUser, listingInfo }: RealT
     try {
       const messageContent = caption || (type === 'image' ? 'Shared an image' : 'Shared a video');
       const { sendMessage } = useRealtimeMessaging();
-      await sendMessage(conversationId, messageContent, type, url);
+      await sendMessage(conversationId, messageContent, type === 'video' ? 'file' : type, url);
     } catch (error) {
       console.error('Error sending media message:', error);
     }
@@ -165,10 +165,10 @@ const RealTimeChatInterface = ({ conversationId, otherUser, listingInfo }: RealT
 
               <div className={`max-w-xs lg:max-w-md ${isOwn ? 'text-right' : 'text-left'}`}>
                 {/* Media Messages */}
-                {(message.message_type === 'image' || message.message_type === 'video') && message.image_url && (
+                {(message.message_type === 'image' || message.message_type === 'file') && message.image_url && (
                   <MediaMessage
                     imageUrl={message.message_type === 'image' ? message.image_url : undefined}
-                    videoUrl={message.message_type === 'video' ? message.image_url : undefined}
+                    videoUrl={message.message_type === 'file' ? message.image_url : undefined}
                     caption={(() => {
                       const content = getMessageContent(message);
                       return content !== 'Shared an image' && content !== 'Shared a video' ? content : undefined;
