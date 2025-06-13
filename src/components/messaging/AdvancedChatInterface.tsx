@@ -130,7 +130,7 @@ const AdvancedChatInterface = ({ conversationId, otherUser, listingInfo }: Advan
 
               <div className={`max-w-xs lg:max-w-md ${isOwn ? 'text-right' : 'text-left'}`}>
                 {/* Media Messages */}
-                {(message.message_type === 'image' || message.message_type === 'video') && message.image_url && (
+                {(message.message_type === 'image' || message.message_type === 'file') && message.image_url && (
                   <div className="mb-2">
                     <img
                       src={message.image_url}
