@@ -1,3 +1,4 @@
+
 import { Toaster } from '@/components/ui/toaster';
 import { Toaster as Sonner } from '@/components/ui/sonner';
 import { TooltipProvider } from '@/components/ui/tooltip';
@@ -17,13 +18,6 @@ import Profile from '@/pages/Profile';
 import Settings from '@/pages/Settings';
 import Help from '@/pages/Help';
 import Admin from '@/pages/Admin';
-import AdminUsers from '@/pages/AdminUsers';
-import AdminAnalytics from '@/pages/AdminAnalytics';
-import AdminSafety from '@/pages/AdminSafety';
-import AdminSettings from '@/pages/AdminSettings';
-import AdminMessaging from '@/pages/AdminMessaging';
-import AdminModeration from '@/pages/AdminModeration';
-import AdminRevenue from '@/pages/AdminRevenue';
 import SampleData from '@/pages/SampleData';
 import DatabaseInitializer from '@/components/database/DatabaseInitializer';
 import AppCompletion from '@/pages/AppCompletion';
@@ -58,13 +52,6 @@ const App = () => (
                     <Route path="/settings" element={<Settings />} />
                     <Route path="/help" element={<Help />} />
                     <Route path="/admin" element={<Admin />} />
-                    <Route path="/admin/users" element={<AdminUsers />} />
-                    <Route path="/admin/analytics" element={<AdminAnalytics />} />
-                    <Route path="/admin/safety" element={<AdminSafety />} />
-                    <Route path="/admin/settings" element={<AdminSettings />} />
-                    <Route path="/admin/messaging" element={<AdminMessaging />} />
-                    <Route path="/admin/moderation" element={<AdminModeration />} />
-                    <Route path="/admin/revenue" element={<AdminRevenue />} />
                     <Route path="/sample-data" element={<SampleData />} />
                     <Route path="/database-init" element={<DatabaseInitializer />} />
                     <Route path="/app-completion" element={<AppCompletion />} />

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -21,12 +20,44 @@ import {
   X
 } from 'lucide-react';
 
+interface BusinessAddress {
+  street: string;
+  city: string;
+  state: string;
+  zip: string;
+  country: string;
+}
+
+interface InsuranceInfo {
+  provider: string;
+  policy_number: string;
+  coverage_amount: string;
+  expiry_date: string;
+}
+
+interface BusinessReference {
+  name: string;
+  contact: string;
+  relationship: string;
+}
+
+interface FormData {
+  business_name: string;
+  business_type: string;
+  license_number: string;
+  business_address: BusinessAddress;
+  years_in_business: string;
+  certifications: string[];
+  insurance_info: InsuranceInfo;
+  business_references: BusinessReference[];
+}
+
 const ProfessionalAccountUpgrade = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<FormData>({
     business_name: '',
     business_type: '',
     license_number: '',
@@ -48,7 +79,7 @@ const ProfessionalAccountUpgrade = () => {
     business_references: []
   });
   const [newCertification, setNewCertification] = useState('');
-  const [newReference, setNewReference] = useState({ name: '', contact: '', relationship: '' });
+  const [newReference, setNewReference] = useState<BusinessReference>({ name: '', contact: '', relationship: '' });
 
   const businessTypes = [
     { value: 'groomer', label: 'Professional Groomer' },
@@ -88,7 +119,7 @@ const ProfessionalAccountUpgrade = () => {
       setFormData(prev => ({
         ...prev,
         [parent]: {
-          ...prev[parent as keyof typeof prev],
+          ...(prev[parent as keyof FormData] as object),
           [child]: value
         }
       }));
