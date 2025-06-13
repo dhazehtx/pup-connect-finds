@@ -3,7 +3,7 @@ import React from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { formatDistanceToNow } from 'date-fns';
-import { ExtendedConversation } from '@/hooks/useEnhancedMessaging';
+import { ExtendedConversation } from '@/types/messaging';
 import { User } from 'lucide-react';
 
 interface ConversationsListProps {
@@ -50,7 +50,7 @@ const ConversationsList = ({
             <div className="flex-1 min-w-0">
               <div className="flex items-center justify-between mb-1">
                 <h4 className="font-semibold truncate">
-                  {conversation.other_user?.full_name || 'Unknown User'}
+                  {conversation.other_user?.full_name || conversation.other_user?.username || 'Unknown User'}
                 </h4>
                 {conversation.last_message && (
                   <span className="text-xs text-muted-foreground">
@@ -61,7 +61,7 @@ const ConversationsList = ({
               
               {conversation.listing && (
                 <p className="text-sm text-muted-foreground mb-1">
-                  About: {conversation.listing.dog_name}
+                  About: {conversation.listing.dog_name} {conversation.listing.breed && `(${conversation.listing.breed})`}
                 </p>
               )}
               

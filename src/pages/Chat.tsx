@@ -5,14 +5,14 @@ import { Button } from '@/components/ui/button';
 import EnhancedChatInterface from '@/components/messaging/EnhancedChatInterface';
 import ConversationsList from '@/components/messaging/ConversationsList';
 import { MobileResponsive } from '@/components/ui/mobile-responsive';
-import { useMessagingRefactored } from '@/hooks/messaging/useMessagingRefactored';
+import { useEnhancedMessaging } from '@/hooks/useEnhancedMessaging';
 import LoadingState from '@/components/ui/loading-state';
 import ErrorState from '@/components/ui/error-state';
 
 const Chat = () => {
   const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
-  const { conversations, loading } = useMessagingRefactored();
+  const { conversations, loading } = useEnhancedMessaging();
 
   const handleSelectConversation = (conversation: any) => {
     setSelectedConversationId(conversation.id);
@@ -26,7 +26,7 @@ const Chat = () => {
 
   if (selectedConversationId && selectedUserId) {
     return (
-      <div className="h-screen bg-white">
+      <div className="h-screen bg-background">
         <EnhancedChatInterface
           conversationId={selectedConversationId}
           otherUserId={selectedUserId}
@@ -55,7 +55,7 @@ const Chat = () => {
             variant="minimal"
           />
         ) : (
-          <div className="bg-white rounded-lg border">
+          <div className="bg-background rounded-lg border">
             <ConversationsList
               conversations={conversations}
               onSelectConversation={handleSelectConversation}
