@@ -202,7 +202,11 @@ const AISearchInterface = () => {
           {showFilters && (
             <SearchFiltersPanel
               filters={searchFilters}
-              onFiltersChange={(newFilters) => setSearchFilters({ ...searchFilters, ...newFilters })}
+              onFiltersChange={(newFilters) => setSearchFilters(prev => ({ 
+                ...prev, 
+                ...newFilters,
+                sortBy: (newFilters.sortBy || prev.sortBy) as 'relevance' | 'price' | 'age' | 'distance' | 'newest'
+              }))}
               onClose={() => setShowFilters(false)}
             />
           )}

@@ -146,9 +146,9 @@ export const useSmartRecommendations = () => {
           .filter(i => i.interaction_type === 'search')
           .map(i => (i.metadata as any)?.query)
           .filter(Boolean),
-        preferred_breeds: matchingCriteria.preferred_breeds || [],
-        price_range: matchingCriteria.price_range || [0, 5000],
-        location_preferences: matchingCriteria.locations || []
+        preferred_breeds: Array.isArray(matchingCriteria.preferred_breeds) ? matchingCriteria.preferred_breeds : [],
+        price_range: Array.isArray(matchingCriteria.price_range) ? matchingCriteria.price_range : [0, 5000],
+        location_preferences: Array.isArray(matchingCriteria.locations) ? matchingCriteria.locations : []
       };
 
       setUserBehavior(behavior);

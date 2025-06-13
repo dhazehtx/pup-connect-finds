@@ -29,10 +29,12 @@ const ConversationView = ({ conversation, onBack }: ConversationViewProps) => {
   };
 
   const listingInfo = conversation.listing ? {
+    id: conversation.id, // Use conversation ID as fallback
     name: conversation.listing.dog_name,
     breed: conversation.listing.breed,
     price: 0, // This would come from the listing data
-    image: conversation.listing.image_url || undefined
+    image_url: conversation.listing.image_url || undefined,
+    dog_name: conversation.listing.dog_name
   } : undefined;
 
   return (

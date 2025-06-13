@@ -214,7 +214,7 @@ export const useAISearch = () => {
           if (typeof item.filters === 'string') {
             parsedFilters = JSON.parse(item.filters);
           } else if (typeof item.filters === 'object' && item.filters !== null) {
-            parsedFilters = item.filters as AISearchFilters;
+            parsedFilters = item.filters as unknown as AISearchFilters;
           } else {
             // Fallback to default filters
             parsedFilters = {
