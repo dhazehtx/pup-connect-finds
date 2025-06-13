@@ -29,7 +29,6 @@ const MessagingHub = ({ onSelectConversation, onStartNewConversation }: Messagin
 
   const filteredConversations = conversations.filter(conv =>
     conv.other_user?.full_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    conv.other_user?.username?.toLowerCase().includes(searchQuery.toLowerCase()) ||
     conv.listing?.dog_name?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
@@ -121,9 +120,7 @@ const MessagingHub = ({ onSelectConversation, onStartNewConversation }: Messagin
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between mb-1">
                           <h4 className="font-medium truncate">
-                            {conversation.other_user?.full_name || 
-                             conversation.other_user?.username || 
-                             'Unknown User'}
+                            {conversation.other_user?.full_name || 'Unknown User'}
                           </h4>
                           {conversation.last_message_at && (
                             <span className="text-xs text-muted-foreground">

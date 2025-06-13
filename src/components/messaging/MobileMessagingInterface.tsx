@@ -8,24 +8,25 @@ import { useMobileOptimized } from '@/hooks/useMobileOptimized';
 import { useOfflineMessages } from '@/hooks/useOfflineMessages';
 import EnhancedChatInterface from './EnhancedChatInterface';
 import ConversationsList from './ConversationsList';
-import { useEnhancedMessaging } from '@/hooks/useEnhancedMessaging';
-import { ExtendedConversation } from '@/types/messaging';
+import { useMessaging } from '@/hooks/useMessaging';
 
 const MobileMessagingInterface = () => {
   const { isMobile } = useMobileOptimized();
   const { isOnline, messageQueue } = useOfflineMessages();
   const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
+  const [selectedUser, setSelectedUser] = useState<any>(null);
   const [showSearch, setShowSearch] = useState(false);
   
   const {
     conversations,
     loading,
-  } = useEnhancedMessaging();
+  } = useMessaging();
 
   const selectedConversation = conversations.find(c => c.id === selectedConversationId);
 
-  const handleSelectConversation = (conversation: ExtendedConversation) => {
-    setSelectedConversationId(conversation.id);
+  const handleSelectConversation = (conversationId: string, otherUser: any) => {
+    setSelectedConversationId(conversationId);
+    setSelectedUser(otherUser);
   };
 
   if (!isMobile) {
@@ -88,8 +89,7 @@ const MobileMessagingInterface = () => {
             <div className="flex-1">
               <EnhancedChatInterface
                 conversationId={selectedConversationId}
-                otherUserId={selectedConversation?.other_user?.full_name || 'Unknown'}
-                listingId={selectedConversation?.listing_id}
+                otherUser={selectedUser}
               />
             </div>
           </div>

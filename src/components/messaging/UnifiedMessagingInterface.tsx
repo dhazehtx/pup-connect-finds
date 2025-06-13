@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { useEnhancedMessaging } from '@/hooks/useEnhancedMessaging';
+import { useMessaging } from '@/hooks/useMessaging';
 import ConversationsList from './ConversationsList';
 import EnhancedChatInterface from './EnhancedChatInterface';
 import { Card, CardContent } from '@/components/ui/card';
@@ -10,13 +10,13 @@ import { Button } from '@/components/ui/button';
 const UnifiedMessagingInterface = () => {
   const { user, isGuest } = useAuth();
   const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
-  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
+  const [selectedUser, setSelectedUser] = useState<any>(null);
   
   const {
     conversations,
     loading,
     fetchConversations
-  } = useEnhancedMessaging();
+  } = useMessaging();
 
   useEffect(() => {
     if (user) {
@@ -24,14 +24,14 @@ const UnifiedMessagingInterface = () => {
     }
   }, [user, fetchConversations]);
 
-  const handleSelectConversation = (conversation: any) => {
-    setSelectedConversationId(conversation.id);
-    setSelectedUserId(conversation.other_user?.id || 'demo-user');
+  const handleSelectConversation = (conversationId: string, otherUser: any) => {
+    setSelectedConversationId(conversationId);
+    setSelectedUser(otherUser);
   };
 
   const handleBackToList = () => {
     setSelectedConversationId(null);
-    setSelectedUserId(null);
+    setSelectedUser(null);
   };
 
   if (!user && !isGuest) {
@@ -49,12 +49,12 @@ const UnifiedMessagingInterface = () => {
   }
 
   // Mobile: Show chat interface if conversation selected
-  if (selectedConversationId && selectedUserId) {
+  if (selectedConversationId && selectedUser) {
     return (
       <div className="h-screen bg-white">
         <EnhancedChatInterface
           conversationId={selectedConversationId}
-          otherUserId={selectedUserId}
+          otherUser={selectedUser}
           onBack={handleBackToList}
         />
       </div>
