@@ -270,6 +270,39 @@ export type Database = {
           },
         ]
       }
+      donations: {
+        Row: {
+          amount: number
+          created_at: string
+          donor_email: string
+          id: string
+          recipient_id: string
+          status: string
+          stripe_session_id: string
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          donor_email: string
+          id?: string
+          recipient_id: string
+          status?: string
+          stripe_session_id: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          donor_email?: string
+          id?: string
+          recipient_id?: string
+          status?: string
+          stripe_session_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       escrow_transactions: {
         Row: {
           amount: number
@@ -1120,6 +1153,56 @@ export type Database = {
           years_experience?: number | null
         }
         Relationships: []
+      }
+      promotions: {
+        Row: {
+          amount: number
+          created_at: string
+          duration_days: number
+          ends_at: string | null
+          id: string
+          listing_id: string
+          starts_at: string | null
+          status: string
+          stripe_session_id: string
+          tier_name: string
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          duration_days: number
+          ends_at?: string | null
+          id?: string
+          listing_id: string
+          starts_at?: string | null
+          status?: string
+          stripe_session_id: string
+          tier_name: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          duration_days?: number
+          ends_at?: string | null
+          id?: string
+          listing_id?: string
+          starts_at?: string | null
+          status?: string
+          stripe_session_id?: string
+          tier_name?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_promotions_listing"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "dog_listings"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       rate_limits: {
         Row: {
