@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Layout from '@/components/Layout';
@@ -15,7 +16,7 @@ import { useMessaging } from '@/hooks/useMessaging';
 const Explore = () => {
   const { user } = useAuth();
   const { startConversation } = useMessaging();
-  const { listings, loading } = useDogListings();
+  const { listings = [], loading } = useDogListings();
   
   // Initialize filters state
   const [filters, setFilters] = useState({
@@ -37,28 +38,29 @@ const Explore = () => {
   const navigate = useNavigate();
 
   // Transform DogListing[] to Listing[] format expected by useListingFilters
-  const transformedListings = listings.map((listing, index) => ({
+  // Add safety checks to prevent undefined access
+  const transformedListings = Array.isArray(listings) ? listings.map((listing, index) => ({
     id: index + 1,
-    title: listing.dog_name,
-    price: `$${listing.price}`,
-    location: listing.location || 'Unknown',
+    title: listing?.dog_name || 'Unknown Dog',
+    price: `$${listing?.price || 0}`,
+    location: listing?.location || 'Unknown',
     distance: '5.0',
-    breed: listing.breed,
+    breed: listing?.breed || 'Mixed Breed',
     color: 'Mixed',
     gender: 'Unknown',
-    age: `${listing.age} weeks`,
+    age: `${listing?.age || 0} weeks`,
     rating: 4.5,
     reviews: 10,
-    image: listing.image_url || '/placeholder-dog.jpg',
-    breeder: listing.profiles?.full_name || 'Unknown Breeder',
-    verified: listing.profiles?.verified || false,
-    verifiedBreeder: listing.profiles?.verified || false,
-    idVerified: listing.profiles?.verified || false,
+    image: listing?.image_url || '/placeholder-dog.jpg',
+    breeder: listing?.profiles?.full_name || 'Unknown Breeder',
+    verified: listing?.profiles?.verified || false,
+    verifiedBreeder: listing?.profiles?.verified || false,
+    idVerified: listing?.profiles?.verified || false,
     vetVerified: false,
     available: 1,
     sourceType: 'breeder',
     isKillShelter: false
-  }));
+  })) : [];
 
   const { sortedListings } = useListingFilters(transformedListings, filters, sortBy);
 
