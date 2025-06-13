@@ -24,7 +24,7 @@ export interface RefundRequest {
     dog_listings?: {
       dog_name: string;
       breed: string;
-    };
+    } | null;
   };
 }
 
@@ -39,6 +39,7 @@ export interface FraudEvent {
   auto_action_taken?: string;
   status: 'pending' | 'confirmed' | 'false_positive' | 'resolved';
   created_at: string;
+  reviewed_at?: string;
 }
 
 export const useRefundManagement = () => {
@@ -145,9 +146,10 @@ export const useRefundManagement = () => {
 
       if (error) throw error;
 
+      const responseData = data as { message?: string; success?: boolean };
       toast({
         title: "Automatic Refund Processed",
-        description: data.message,
+        description: responseData.message || "Refund processed successfully",
       });
 
       return data;
@@ -202,7 +204,7 @@ export const useRefundManagement = () => {
     }
   };
 
-  const fetchRefundRequests = async (status?: string) => {
+  const fetchRefundRequests = async (status?: string): Promise<RefundRequest[]> => {
     try {
       let query = supabase
         .from('refund_requests')
@@ -228,7 +230,33 @@ export const useRefundManagement = () => {
       const { data, error } = await query;
       if (error) throw error;
 
-      return data as RefundRequest[];
+      // Transform the data to match our interface
+      const transformedData: RefundRequest[] = (data || []).map(item => ({
+        id: item.id,
+        escrow_transaction_id: item.escrow_transaction_id,
+        requester_id: item.requester_id,
+        refund_reason: item.refund_reason,
+        refund_type: item.refund_type,
+        admin_notes: item.admin_notes,
+        processed_by: item.processed_by,
+        status: item.status,
+        refund_amount: item.refund_amount,
+        stripe_refund_id: item.stripe_refund_id,
+        created_at: item.created_at,
+        processed_at: item.processed_at,
+        escrow_transactions: item.escrow_transactions ? {
+          stripe_payment_intent_id: item.escrow_transactions.stripe_payment_intent_id,
+          amount: item.escrow_transactions.amount,
+          buyer_id: item.escrow_transactions.buyer_id,
+          seller_id: item.escrow_transactions.seller_id,
+          dog_listings: item.escrow_transactions.dog_listings ? {
+            dog_name: item.escrow_transactions.dog_listings.dog_name,
+            breed: item.escrow_transactions.dog_listings.breed
+          } : null
+        } : undefined
+      }));
+
+      return transformedData;
     } catch (error: any) {
       toast({
         title: "Failed to Fetch Refund Requests",
@@ -239,7 +267,7 @@ export const useRefundManagement = () => {
     }
   };
 
-  const fetchFraudEvents = async (status?: string) => {
+  const fetchFraudEvents = async (status?: string): Promise<FraudEvent[]> => {
     try {
       let query = supabase
         .from('fraud_detection_events')
@@ -253,7 +281,7 @@ export const useRefundManagement = () => {
       const { data, error } = await query;
       if (error) throw error;
 
-      return data as FraudEvent[];
+      return (data || []) as FraudEvent[];
     } catch (error: any) {
       toast({
         title: "Failed to Fetch Fraud Events",
