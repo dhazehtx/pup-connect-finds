@@ -153,9 +153,9 @@ const StreamlinedChatInterface = ({ conversationId, otherUserId, onBack }: Strea
                 )}
 
                 <div className={`max-w-xs lg:max-w-md ${isOwn ? 'text-right' : 'text-left'}`}>
-                  {message.message_type === 'voice' && message.file_url ? (
+                  {message.message_type === 'voice' && message.image_url ? (
                     <EnhancedVoicePlayer
-                      audioUrl={message.file_url}
+                      audioUrl={message.image_url}
                       duration={60}
                       timestamp={message.created_at}
                       isOwn={isOwn}

@@ -20,7 +20,6 @@ interface RecommendationFilters {
   priceRange?: [number, number];
   location?: string;
   age?: string;
-  size?: string;
 }
 
 export const useSmartRecommendations = () => {
@@ -42,21 +41,7 @@ export const useSmartRecommendations = () => {
     setError(null);
 
     try {
-      // Get user preferences and interaction history
-      const { data: preferences } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', user.id)
-        .single();
-
-      const { data: interactions } = await supabase
-        .from('user_interactions')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false })
-        .limit(50);
-
-      // Build recommendation query
+      // Build simplified recommendation query
       let query = supabase
         .from('dog_listings')
         .select(`
@@ -67,7 +52,6 @@ export const useSmartRecommendations = () => {
           image_url,
           location,
           age,
-          size,
           created_at
         `)
         .eq('status', 'active');
@@ -90,49 +74,21 @@ export const useSmartRecommendations = () => {
         query = query.eq('age', filters.age);
       }
 
-      if (filters.size) {
-        query = query.eq('size', filters.size);
-      }
-
       const { data: listings, error: listingsError } = await query.limit(limit * 2);
 
       if (listingsError) throw listingsError;
 
-      // Calculate recommendation scores
+      // Generate simple recommendations with scoring
       const scoredRecommendations = (listings || []).map(listing => {
-        let score = 0;
-        let reasons: string[] = [];
-
-        // Basic scoring
-        score += Math.random() * 50; // Base score
-        reasons.push('Great match for you');
-
-        // Interaction-based scoring
-        if (interactions && interactions.length > 0) {
-          const viewedBreeds = interactions
-            .filter(i => i.interaction_type === 'listing_view')
-            .map(i => {
-              try {
-                const metadata = typeof i.metadata === 'string' ? JSON.parse(i.metadata) : i.metadata;
-                return metadata?.breed;
-              } catch {
-                return null;
-              }
-            })
-            .filter(Boolean);
-
-          if (viewedBreeds.includes(listing.breed)) {
-            score += 10;
-            reasons.push('Similar to dogs you\'ve viewed');
-          }
-        }
+        let score = Math.random() * 50 + 50; // Base score between 50-100
+        let reasons: string[] = ['Great match for you'];
 
         // Recency bonus
         const daysOld = Math.floor(
           (Date.now() - new Date(listing.created_at).getTime()) / (1000 * 60 * 60 * 24)
         );
         if (daysOld <= 7) {
-          score += 5;
+          score += 10;
           reasons.push('Recently listed');
         }
 
@@ -140,12 +96,12 @@ export const useSmartRecommendations = () => {
           id: listing.id,
           listing_id: listing.id,
           score,
-          reason: reasons.join(', ') || 'Great match for you',
+          reason: reasons.join(', '),
           dog_name: listing.dog_name,
           breed: listing.breed,
           price: listing.price,
           image_url: listing.image_url,
-          location: listing.location
+          location: listing.location || 'Location not specified'
         };
       });
 
@@ -155,21 +111,6 @@ export const useSmartRecommendations = () => {
         .slice(0, limit);
 
       setRecommendations(topRecommendations);
-
-      // Track recommendation generation for analytics
-      await supabase
-        .from('analytics_events')
-        .insert({
-          user_id: user.id,
-          event_type: 'recommendation_generated',
-          event_data: JSON.stringify({
-            filters,
-            count: topRecommendations.length,
-            avg_score: topRecommendations.reduce((sum, r) => sum + r.score, 0) / topRecommendations.length
-          }) as any,
-          session_id: sessionStorage.getItem('session_id') || 'anonymous',
-          page_url: window.location.pathname
-        });
 
     } catch (err) {
       console.error('Error generating recommendations:', err);
@@ -188,7 +129,7 @@ export const useSmartRecommendations = () => {
         .insert({
           user_id: user.id,
           event_type: 'recommendation_clicked',
-          event_data: JSON.stringify({ recommendation_id: recommendationId }) as any,
+          event_data: { recommendation_id: recommendationId },
           session_id: sessionStorage.getItem('session_id') || 'anonymous',
           page_url: window.location.pathname
         });
@@ -204,27 +145,16 @@ export const useSmartRecommendations = () => {
     if (!user) return;
 
     try {
-      // Store feedback in user interactions instead
       await supabase
         .from('user_interactions')
         .insert({
           user_id: user.id,
           interaction_type: 'recommendation_feedback',
-          metadata: JSON.stringify({ 
+          metadata: { 
             recommendation_id: recommendationId, 
             feedback 
-          }) as any,
+          },
           created_at: new Date().toISOString()
-        });
-
-      await supabase
-        .from('analytics_events')
-        .insert({
-          user_id: user.id,
-          event_type: 'recommendation_feedback',
-          event_data: JSON.stringify({ recommendation_id: recommendationId, feedback }) as any,
-          session_id: sessionStorage.getItem('session_id') || 'anonymous',
-          page_url: window.location.pathname
         });
     } catch (error) {
       console.error('Error saving recommendation feedback:', error);
