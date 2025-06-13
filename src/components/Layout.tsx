@@ -7,6 +7,8 @@ import MobileTabBar from './mobile/MobileTabBar';
 import MobileNavigation from './mobile/MobileNavigation';
 import StickyBottomNavigation from './StickyBottomNavigation';
 import PWAInstallPrompt from './pwa/PWAInstallPrompt';
+import OfflineIndicator from './pwa/OfflineIndicator';
+import ServiceWorkerManager from './pwa/ServiceWorkerManager';
 import { useMobileOptimized } from '@/hooks/useMobileOptimized';
 import { cn } from '@/lib/utils';
 
@@ -21,15 +23,17 @@ const Layout = ({ children }: LayoutProps) => {
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <Header />
       
+      {/* PWA Components */}
+      <OfflineIndicator />
+      <PWAInstallPrompt />
+      <ServiceWorkerManager />
+      
       <main className={cn(
         "flex-1",
         isMobile ? "pb-20" : "pb-32"
       )}>
         {children}
       </main>
-
-      {/* PWA Install Prompt */}
-      <PWAInstallPrompt />
 
       {/* Add sticky bottom navigation for all screens */}
       <StickyBottomNavigation />

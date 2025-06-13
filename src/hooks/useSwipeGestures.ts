@@ -1,76 +1,82 @@
 
-import { useState, useRef, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 
-interface SwipeGestureOptions {
+interface SwipeGesturesOptions {
   threshold?: number;
-  preventDefaultTouchmoveEvent?: boolean;
   onSwipeLeft?: () => void;
   onSwipeRight?: () => void;
   onSwipeUp?: () => void;
   onSwipeDown?: () => void;
 }
 
-export const useSwipeGestures = (options: SwipeGestureOptions = {}) => {
-  const {
-    threshold = 50,
-    preventDefaultTouchmoveEvent = false,
-    onSwipeLeft,
-    onSwipeRight,
-    onSwipeUp,
-    onSwipeDown
-  } = options;
-
+export const useSwipeGestures = ({
+  threshold = 50,
+  onSwipeLeft,
+  onSwipeRight,
+  onSwipeUp,
+  onSwipeDown
+}: SwipeGesturesOptions) => {
+  const [startX, setStartX] = useState<number | null>(null);
+  const [startY, setStartY] = useState<number | null>(null);
   const [isSwiping, setIsSwiping] = useState(false);
-  const touchStart = useRef<{ x: number; y: number } | null>(null);
-  const touchEnd = useRef<{ x: number; y: number } | null>(null);
 
   const onTouchStart = useCallback((e: React.TouchEvent) => {
-    touchEnd.current = null;
-    touchStart.current = {
-      x: e.targetTouches[0].clientX,
-      y: e.targetTouches[0].clientY
-    };
-    setIsSwiping(true);
+    const touch = e.touches[0];
+    setStartX(touch.clientX);
+    setStartY(touch.clientY);
+    setIsSwiping(false);
   }, []);
 
   const onTouchMove = useCallback((e: React.TouchEvent) => {
-    if (preventDefaultTouchmoveEvent) {
-      e.preventDefault();
+    if (startX === null || startY === null) return;
+
+    const touch = e.touches[0];
+    const deltaX = touch.clientX - startX;
+    const deltaY = touch.clientY - startY;
+
+    // Check if we're swiping (moved more than a small threshold)
+    if (Math.abs(deltaX) > 10 || Math.abs(deltaY) > 10) {
+      setIsSwiping(true);
     }
-    touchEnd.current = {
-      x: e.targetTouches[0].clientX,
-      y: e.targetTouches[0].clientY
-    };
-  }, [preventDefaultTouchmoveEvent]);
+  }, [startX, startY]);
 
   const onTouchEnd = useCallback(() => {
-    if (!touchStart.current || !touchEnd.current) {
-      setIsSwiping(false);
-      return;
+    if (startX === null || startY === null) return;
+
+    const currentTouch = document.elementFromPoint(startX, startY);
+    if (!currentTouch) return;
+
+    // Calculate final deltas
+    const rect = (currentTouch as HTMLElement).getBoundingClientRect();
+    const endX = rect.left + rect.width / 2;
+    const endY = rect.top + rect.height / 2;
+    
+    const deltaX = endX - startX;
+    const deltaY = endY - startY;
+
+    // Only trigger swipe if we moved enough
+    if (Math.abs(deltaX) > threshold || Math.abs(deltaY) > threshold) {
+      if (Math.abs(deltaX) > Math.abs(deltaY)) {
+        // Horizontal swipe
+        if (deltaX > 0) {
+          onSwipeRight?.();
+        } else {
+          onSwipeLeft?.();
+        }
+      } else {
+        // Vertical swipe
+        if (deltaY > 0) {
+          onSwipeDown?.();
+        } else {
+          onSwipeUp?.();
+        }
+      }
     }
 
-    const distanceX = touchStart.current.x - touchEnd.current.x;
-    const distanceY = touchStart.current.y - touchEnd.current.y;
-    const isLeftSwipe = distanceX > threshold;
-    const isRightSwipe = distanceX < -threshold;
-    const isUpSwipe = distanceY > threshold;
-    const isDownSwipe = distanceY < -threshold;
-
-    if (isLeftSwipe && onSwipeLeft) {
-      onSwipeLeft();
-    }
-    if (isRightSwipe && onSwipeRight) {
-      onSwipeRight();
-    }
-    if (isUpSwipe && onSwipeUp) {
-      onSwipeUp();
-    }
-    if (isDownSwipe && onSwipeDown) {
-      onSwipeDown();
-    }
-
+    setStartX(null);
+    setStartY(null);
     setIsSwiping(false);
-  }, [threshold, onSwipeLeft, onSwipeRight, onSwipeUp, onSwipeDown]);
+  }, [startX, startY, threshold, onSwipeLeft, onSwipeRight, onSwipeUp, onSwipeDown]);
 
   return {
     onTouchStart,

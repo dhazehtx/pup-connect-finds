@@ -1,4 +1,3 @@
-
 import { useState, useCallback, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -24,7 +23,17 @@ export const useSecuritySettings = () => {
 
       if (error) throw error;
 
-      const privacySettings = data.privacy_settings || {};
+      // Safely parse privacy_settings
+      let privacySettings: any = {};
+      if (data.privacy_settings) {
+        try {
+          privacySettings = typeof data.privacy_settings === 'string' 
+            ? JSON.parse(data.privacy_settings)
+            : data.privacy_settings;
+        } catch {
+          privacySettings = {};
+        }
+      }
       
       setSettings({
         two_factor_enabled: data.two_factor_enabled || false,

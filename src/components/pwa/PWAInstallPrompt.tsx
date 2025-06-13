@@ -1,38 +1,44 @@
 
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { Download, X } from 'lucide-react';
-import { useMobileOptimized } from '@/hooks/useMobileOptimized';
-
-interface BeforeInstallPromptEvent extends Event {
-  prompt(): Promise<void>;
-  userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
-}
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Download, X, Smartphone } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 const PWAInstallPrompt = () => {
-  const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
-  const [showInstallPrompt, setShowInstallPrompt] = useState(false);
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  const [showPrompt, setShowPrompt] = useState(false);
   const [isInstalled, setIsInstalled] = useState(false);
-  const { isMobile } = useMobileOptimized();
+  const { toast } = useToast();
 
   useEffect(() => {
+    // Check if app is already installed
+    if (window.matchMedia('(display-mode: standalone)').matches) {
+      setIsInstalled(true);
+      return;
+    }
+
     const handleBeforeInstallPrompt = (e: Event) => {
       e.preventDefault();
-      setDeferredPrompt(e as BeforeInstallPromptEvent);
-      setShowInstallPrompt(true);
+      setDeferredPrompt(e);
+      
+      // Show prompt after a delay
+      setTimeout(() => {
+        const hasShownPrompt = localStorage.getItem('pwa-prompt-shown');
+        if (!hasShownPrompt) {
+          setShowPrompt(true);
+        }
+      }, 10000); // Show after 10 seconds
     };
 
     const handleAppInstalled = () => {
       setIsInstalled(true);
-      setShowInstallPrompt(false);
-      setDeferredPrompt(null);
+      setShowPrompt(false);
+      toast({
+        title: "App Installed!",
+        description: "My Pup has been added to your home screen",
+      });
     };
-
-    // Check if app is already installed
-    if (window.matchMedia('(display-mode: standalone)').matches) {
-      setIsInstalled(true);
-    }
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
     window.addEventListener('appinstalled', handleAppInstalled);
@@ -41,72 +47,73 @@ const PWAInstallPrompt = () => {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
       window.removeEventListener('appinstalled', handleAppInstalled);
     };
-  }, []);
+  }, [toast]);
 
-  const handleInstallClick = async () => {
+  const handleInstall = async () => {
     if (!deferredPrompt) return;
 
-    deferredPrompt.prompt();
-    const { outcome } = await deferredPrompt.userChoice;
-    
-    if (outcome === 'accepted') {
-      setShowInstallPrompt(false);
+    try {
+      const result = await deferredPrompt.prompt();
+      
+      if (result.outcome === 'accepted') {
+        toast({
+          title: "Installing...",
+          description: "My Pup is being added to your home screen",
+        });
+      }
+      
+      setDeferredPrompt(null);
+      setShowPrompt(false);
+      localStorage.setItem('pwa-prompt-shown', 'true');
+    } catch (error) {
+      console.error('Install prompt failed:', error);
     }
-    
-    setDeferredPrompt(null);
   };
 
   const handleDismiss = () => {
-    setShowInstallPrompt(false);
-    // Remember dismissal for this session
-    sessionStorage.setItem('pwa-install-dismissed', 'true');
+    setShowPrompt(false);
+    localStorage.setItem('pwa-prompt-shown', 'true');
   };
 
-  // Don't show if already installed, dismissed, or not on mobile
-  if (isInstalled || !showInstallPrompt || !isMobile) {
-    return null;
-  }
-
-  // Check if dismissed in this session
-  if (sessionStorage.getItem('pwa-install-dismissed')) {
+  if (isInstalled || !showPrompt || !deferredPrompt) {
     return null;
   }
 
   return (
-    <Card className="fixed bottom-20 left-4 right-4 z-50 shadow-lg border-2 border-primary/20">
-      <CardContent className="p-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3 flex-1">
-            <div className="p-2 bg-primary/10 rounded-lg">
-              <Download className="w-5 h-5 text-primary" />
-            </div>
-            <div className="flex-1">
-              <h4 className="font-semibold text-sm">Install My Pup App</h4>
-              <p className="text-xs text-muted-foreground">
-                Add to home screen for better experience
-              </p>
-            </div>
-          </div>
-          
-          <div className="flex items-center gap-2">
+    <div className="fixed bottom-4 left-4 right-4 z-50 md:left-auto md:right-4 md:w-80">
+      <Card className="shadow-lg border-primary/20">
+        <CardHeader className="pb-3">
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-lg flex items-center gap-2">
+              <Smartphone className="w-5 h-5 text-primary" />
+              Install My Pup
+            </CardTitle>
             <Button
-              size="sm"
-              onClick={handleInstallClick}
-              className="text-xs"
-            >
-              Install
-            </Button>
-            <Button
-              size="sm"
               variant="ghost"
+              size="sm"
               onClick={handleDismiss}
+              className="h-6 w-6 p-0"
             >
               <X className="w-4 h-4" />
             </Button>
           </div>
-        </div>
-      </CardContent>
-    </Card>
+        </CardHeader>
+        <CardContent className="pt-0">
+          <p className="text-sm text-muted-foreground mb-4">
+            Get the full experience! Install My Pup on your device for faster access and offline features.
+          </p>
+          <div className="flex gap-2">
+            <Button onClick={handleInstall} className="flex-1">
+              <Download className="w-4 h-4 mr-2" />
+              Install App
+            </Button>
+            <Button variant="outline" onClick={handleDismiss}>
+              Not Now
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
   );
 };
 
