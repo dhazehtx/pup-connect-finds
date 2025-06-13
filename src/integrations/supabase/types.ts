@@ -273,6 +273,7 @@ export type Database = {
       escrow_transactions: {
         Row: {
           amount: number
+          auto_refund_eligible: boolean | null
           buyer_confirmed_at: string | null
           buyer_id: string
           commission_amount: number
@@ -280,12 +281,18 @@ export type Database = {
           created_at: string
           dispute_created_at: string | null
           dispute_reason: string | null
+          dispute_resolution: string | null
+          dispute_resolution_notes: string | null
           dispute_resolved_at: string | null
+          fraud_flags: Json | null
           funds_released_at: string | null
           id: string
           listing_id: string
           meeting_location: string | null
           meeting_scheduled_at: string | null
+          refund_amount: number | null
+          refund_processed_at: string | null
+          refund_stripe_id: string | null
           seller_amount: number
           seller_confirmed_at: string | null
           seller_id: string
@@ -295,6 +302,7 @@ export type Database = {
         }
         Insert: {
           amount: number
+          auto_refund_eligible?: boolean | null
           buyer_confirmed_at?: string | null
           buyer_id: string
           commission_amount: number
@@ -302,12 +310,18 @@ export type Database = {
           created_at?: string
           dispute_created_at?: string | null
           dispute_reason?: string | null
+          dispute_resolution?: string | null
+          dispute_resolution_notes?: string | null
           dispute_resolved_at?: string | null
+          fraud_flags?: Json | null
           funds_released_at?: string | null
           id?: string
           listing_id: string
           meeting_location?: string | null
           meeting_scheduled_at?: string | null
+          refund_amount?: number | null
+          refund_processed_at?: string | null
+          refund_stripe_id?: string | null
           seller_amount: number
           seller_confirmed_at?: string | null
           seller_id: string
@@ -317,6 +331,7 @@ export type Database = {
         }
         Update: {
           amount?: number
+          auto_refund_eligible?: boolean | null
           buyer_confirmed_at?: string | null
           buyer_id?: string
           commission_amount?: number
@@ -324,12 +339,18 @@ export type Database = {
           created_at?: string
           dispute_created_at?: string | null
           dispute_reason?: string | null
+          dispute_resolution?: string | null
+          dispute_resolution_notes?: string | null
           dispute_resolved_at?: string | null
+          fraud_flags?: Json | null
           funds_released_at?: string | null
           id?: string
           listing_id?: string
           meeting_location?: string | null
           meeting_scheduled_at?: string | null
+          refund_amount?: number | null
+          refund_processed_at?: string | null
+          refund_stripe_id?: string | null
           seller_amount?: number
           seller_confirmed_at?: string | null
           seller_id?: string
@@ -364,6 +385,62 @@ export type Database = {
             columns: ["listing_id"]
             isOneToOne: false
             referencedRelation: "dog_listings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      fraud_detection_events: {
+        Row: {
+          auto_action_taken: string | null
+          created_at: string
+          details: Json
+          detection_method: string
+          escrow_transaction_id: string | null
+          event_type: string
+          id: string
+          listing_id: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          risk_score: number
+          status: string
+          user_id: string | null
+        }
+        Insert: {
+          auto_action_taken?: string | null
+          created_at?: string
+          details?: Json
+          detection_method: string
+          escrow_transaction_id?: string | null
+          event_type: string
+          id?: string
+          listing_id?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          risk_score?: number
+          status?: string
+          user_id?: string | null
+        }
+        Update: {
+          auto_action_taken?: string | null
+          created_at?: string
+          details?: Json
+          detection_method?: string
+          escrow_transaction_id?: string | null
+          event_type?: string
+          id?: string
+          listing_id?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          risk_score?: number
+          status?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fraud_detection_events_escrow_transaction_id_fkey"
+            columns: ["escrow_transaction_id"]
+            isOneToOne: false
+            referencedRelation: "escrow_transactions"
             referencedColumns: ["id"]
           },
         ]
@@ -968,6 +1045,62 @@ export type Database = {
           window_start?: string
         }
         Relationships: []
+      }
+      refund_requests: {
+        Row: {
+          admin_notes: string | null
+          created_at: string
+          escrow_transaction_id: string | null
+          id: string
+          processed_at: string | null
+          processed_by: string | null
+          refund_amount: number
+          refund_reason: string
+          refund_type: string
+          requester_id: string
+          status: string
+          stripe_refund_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          admin_notes?: string | null
+          created_at?: string
+          escrow_transaction_id?: string | null
+          id?: string
+          processed_at?: string | null
+          processed_by?: string | null
+          refund_amount: number
+          refund_reason: string
+          refund_type: string
+          requester_id: string
+          status?: string
+          stripe_refund_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          admin_notes?: string | null
+          created_at?: string
+          escrow_transaction_id?: string | null
+          id?: string
+          processed_at?: string | null
+          processed_by?: string | null
+          refund_amount?: number
+          refund_reason?: string
+          refund_type?: string
+          requester_id?: string
+          status?: string
+          stripe_refund_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "refund_requests_escrow_transaction_id_fkey"
+            columns: ["escrow_transaction_id"]
+            isOneToOne: false
+            referencedRelation: "escrow_transactions"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       revenue_analytics: {
         Row: {
@@ -1767,8 +1900,25 @@ export type Database = {
         Args: { user_id_param: string }
         Returns: Json
       }
+      flag_potential_fraud: {
+        Args: {
+          transaction_id: string
+          event_type: string
+          risk_score: number
+          details?: Json
+        }
+        Returns: string
+      }
       initiate_account_deletion: {
         Args: Record<PropertyKey, never>
+        Returns: Json
+      }
+      process_automatic_refund: {
+        Args: {
+          escrow_transaction_id_param: string
+          refund_reason: string
+          refund_type?: string
+        }
         Returns: Json
       }
       recover_account: {

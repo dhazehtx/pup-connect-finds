@@ -4,9 +4,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { CheckCircle, XCircle, Users, DollarSign } from 'lucide-react';
+import { CheckCircle, XCircle, Users } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -37,33 +36,27 @@ const DisputeResolutionDialog: React.FC<DisputeResolutionDialogProps> = ({
 }) => {
   const [resolution, setResolution] = useState('');
   const [resolutionNotes, setResolutionNotes] = useState('');
-  const [refundAmount, setRefundAmount] = useState(dispute.amount.toString());
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
 
+  // Updated resolution options - removed partial refund to prevent scams
   const resolutionOptions = [
     {
       value: 'refund_buyer',
       label: 'Full Refund to Buyer',
-      description: 'Return the full amount to the buyer',
+      description: 'Return the complete amount to the buyer (fraud/misrepresentation)',
       icon: <XCircle className="w-4 h-4 text-red-500" />
-    },
-    {
-      value: 'partial_refund',
-      label: 'Partial Refund',
-      description: 'Return a portion of the amount to the buyer',
-      icon: <DollarSign className="w-4 h-4 text-orange-500" />
     },
     {
       value: 'release_seller',
       label: 'Release to Seller',
-      description: 'Release the full amount to the seller',
+      description: 'Release the full amount to the seller (transaction valid)',
       icon: <CheckCircle className="w-4 h-4 text-green-500" />
     },
     {
       value: 'mediation',
       label: 'Require Mediation',
-      description: 'Escalate to a human mediator',
+      description: 'Escalate to a human mediator for complex cases',
       icon: <Users className="w-4 h-4 text-blue-500" />
     }
   ];
@@ -85,8 +78,7 @@ const DisputeResolutionDialog: React.FC<DisputeResolutionDialogProps> = ({
         body: {
           escrowTransactionId: dispute.id,
           resolution,
-          resolutionNotes,
-          refundAmount: resolution === 'partial_refund' ? parseFloat(refundAmount) : null
+          resolutionNotes
         }
       });
 
@@ -94,7 +86,7 @@ const DisputeResolutionDialog: React.FC<DisputeResolutionDialogProps> = ({
 
       toast({
         title: "Dispute Resolved",
-        description: "The dispute has been resolved successfully",
+        description: `Dispute resolved with ${resolution.replace('_', ' ')} - full transparency, no partial refunds.`,
       });
 
       if (onResolved) {
@@ -104,7 +96,6 @@ const DisputeResolutionDialog: React.FC<DisputeResolutionDialogProps> = ({
       onOpenChange(false);
       setResolution('');
       setResolutionNotes('');
-      setRefundAmount(dispute.amount.toString());
 
     } catch (error: any) {
       toast({
@@ -123,7 +114,7 @@ const DisputeResolutionDialog: React.FC<DisputeResolutionDialogProps> = ({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <CheckCircle className="text-green-600" size={20} />
-            Resolve Dispute
+            Resolve Dispute - Full Refunds Only
           </DialogTitle>
         </DialogHeader>
 
@@ -133,6 +124,13 @@ const DisputeResolutionDialog: React.FC<DisputeResolutionDialogProps> = ({
               {dispute.dog_listings?.dog_name} - {dispute.dog_listings?.breed}
             </h4>
             <p className="text-sm text-blue-600">Amount: ${dispute.amount}</p>
+          </div>
+
+          <div className="bg-yellow-50 p-3 rounded-lg border border-yellow-200">
+            <p className="text-sm text-yellow-800">
+              <strong>Policy:</strong> To prevent scams and ensure fairness, we only process full refunds. 
+              No partial refunds are allowed for dog transactions.
+            </p>
           </div>
 
           <div>
@@ -153,28 +151,6 @@ const DisputeResolutionDialog: React.FC<DisputeResolutionDialogProps> = ({
             </RadioGroup>
           </div>
 
-          {resolution === 'partial_refund' && (
-            <div>
-              <Label htmlFor="refundAmount">Refund Amount</Label>
-              <div className="mt-1 relative">
-                <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">$</span>
-                <input
-                  id="refundAmount"
-                  type="number"
-                  value={refundAmount}
-                  onChange={(e) => setRefundAmount(e.target.value)}
-                  min="0"
-                  max={dispute.amount}
-                  step="0.01"
-                  className="pl-6 w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-              <p className="text-xs text-gray-500 mt-1">
-                Maximum refund: ${dispute.amount}
-              </p>
-            </div>
-          )}
-
           <div>
             <Label htmlFor="resolutionNotes">Resolution Notes</Label>
             <Textarea
@@ -190,6 +166,7 @@ const DisputeResolutionDialog: React.FC<DisputeResolutionDialogProps> = ({
           <div className="bg-amber-50 p-3 rounded-lg">
             <p className="text-sm text-amber-800">
               <strong>Note:</strong> This action cannot be undone. Both parties will be notified of the resolution.
+              All refunds are processed as full amounts to maintain transparency.
             </p>
           </div>
 
