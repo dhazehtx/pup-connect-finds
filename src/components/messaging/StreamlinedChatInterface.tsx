@@ -156,7 +156,7 @@ const StreamlinedChatInterface = ({ conversationId, otherUserId, onBack }: Strea
                   {message.message_type === 'voice' && message.voice_url ? (
                     <EnhancedVoicePlayer
                       audioUrl={message.voice_url}
-                      duration={60} // You'd extract this from the message
+                      duration={60}
                       timestamp={message.created_at}
                       isOwn={isOwn}
                     />

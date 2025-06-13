@@ -1,220 +1,287 @@
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { useToast } from '@/hooks/use-toast';
 
-interface RecommendationData {
+interface SmartRecommendation {
   id: string;
   listing_id: string;
-  confidence_score: number;
-  recommendation_type: 'behavioral' | 'collaborative' | 'content_based' | 'trending' | 'location_based';
-  reasoning: string[];
-  listing: any;
-  created_at: string;
+  score: number;
+  reason: string;
+  dog_name: string;
+  breed: string;
+  price: number;
+  image_url?: string;
+  location: string;
 }
 
-interface UserBehavior {
-  viewed_listings: string[];
-  favorited_listings: string[];
-  search_queries: string[];
-  preferred_breeds: string[];
-  price_range: [number, number];
-  location_preferences: string[];
+interface RecommendationFilters {
+  breed?: string;
+  priceRange?: [number, number];
+  location?: string;
+  age?: string;
+  size?: string;
 }
 
 export const useSmartRecommendations = () => {
-  const [recommendations, setRecommendations] = useState<RecommendationData[]>([]);
-  const [trendingListings, setTrendingListings] = useState<any[]>([]);
-  const [userBehavior, setUserBehavior] = useState<UserBehavior | null>(null);
+  const [recommendations, setRecommendations] = useState<SmartRecommendation[]>([]);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const { user } = useAuth();
-  const { toast } = useToast();
 
-  const generateRecommendations = useCallback(async (maxRecommendations = 10) => {
-    if (!user) return;
+  const generateRecommendations = useCallback(async (
+    filters: RecommendationFilters = {},
+    limit: number = 10
+  ) => {
+    if (!user) {
+      setError('User not authenticated');
+      return;
+    }
 
     setLoading(true);
+    setError(null);
+
     try {
-      const { data, error } = await supabase.functions.invoke('ai-recommendations', {
-        body: {
-          user_preferences: userBehavior,
-          max_recommendations: maxRecommendations
+      // Get user preferences and interaction history
+      const { data: preferences } = await supabase
+        .from('user_preferences')
+        .select('*')
+        .eq('user_id', user.id)
+        .single();
+
+      const { data: interactions } = await supabase
+        .from('user_interactions')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(50);
+
+      // Get user's location for proximity-based recommendations
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('location_preferences')
+        .eq('id', user.id)
+        .single();
+
+      // Build recommendation query
+      let query = supabase
+        .from('dog_listings')
+        .select(`
+          id,
+          dog_name,
+          breed,
+          price,
+          images,
+          location,
+          age,
+          size,
+          created_at
+        `)
+        .eq('status', 'active');
+
+      // Apply filters
+      if (filters.breed) {
+        query = query.ilike('breed', `%${filters.breed}%`);
+      }
+
+      if (filters.priceRange) {
+        query = query.gte('price', filters.priceRange[0])
+                    .lte('price', filters.priceRange[1]);
+      }
+
+      if (filters.location) {
+        query = query.ilike('location', `%${filters.location}%`);
+      }
+
+      if (filters.age) {
+        query = query.eq('age', filters.age);
+      }
+
+      if (filters.size) {
+        query = query.eq('size', filters.size);
+      }
+
+      const { data: listings, error: listingsError } = await query.limit(limit * 2);
+
+      if (listingsError) throw listingsError;
+
+      // Calculate recommendation scores
+      const scoredRecommendations = (listings || []).map(listing => {
+        let score = 0;
+        let reasons: string[] = [];
+
+        // Preference-based scoring
+        if (preferences) {
+          const prefs = typeof preferences.preferences === 'string' 
+            ? JSON.parse(preferences.preferences) 
+            : preferences.preferences || {};
+
+          if (prefs.preferred_breeds?.includes(listing.breed)) {
+            score += 30;
+            reasons.push('Matches your preferred breed');
+          }
+
+          if (prefs.price_range && 
+              listing.price >= prefs.price_range[0] && 
+              listing.price <= prefs.price_range[1]) {
+            score += 20;
+            reasons.push('Within your price range');
+          }
+
+          if (prefs.preferred_size === listing.size) {
+            score += 15;
+            reasons.push('Matches your preferred size');
+          }
         }
+
+        // Interaction-based scoring
+        if (interactions && interactions.length > 0) {
+          const viewedBreeds = interactions
+            .filter(i => i.interaction_type === 'listing_view')
+            .map(i => i.metadata?.breed)
+            .filter(Boolean);
+
+          if (viewedBreeds.includes(listing.breed)) {
+            score += 10;
+            reasons.push('Similar to dogs you\'ve viewed');
+          }
+
+          const favoriteBreeds = interactions
+            .filter(i => i.interaction_type === 'favorite_added')
+            .map(i => i.metadata?.breed)
+            .filter(Boolean);
+
+          if (favoriteBreeds.includes(listing.breed)) {
+            score += 25;
+            reasons.push('Similar to your favorites');
+          }
+        }
+
+        // Location proximity scoring
+        if (profile?.location_preferences) {
+          const locPrefs = typeof profile.location_preferences === 'string'
+            ? JSON.parse(profile.location_preferences)
+            : profile.location_preferences || {};
+
+          if (locPrefs.preferred_locations?.some((loc: string) => 
+              listing.location.toLowerCase().includes(loc.toLowerCase()))) {
+            score += 15;
+            reasons.push('Near your preferred location');
+          }
+        }
+
+        // Recency bonus
+        const daysOld = Math.floor(
+          (Date.now() - new Date(listing.created_at).getTime()) / (1000 * 60 * 60 * 24)
+        );
+        if (daysOld <= 7) {
+          score += 5;
+          reasons.push('Recently listed');
+        }
+
+        return {
+          id: listing.id,
+          listing_id: listing.id,
+          score,
+          reason: reasons.join(', ') || 'Great match for you',
+          dog_name: listing.dog_name,
+          breed: listing.breed,
+          price: listing.price,
+          image_url: Array.isArray(listing.images) ? listing.images[0] : listing.images,
+          location: listing.location
+        };
       });
 
-      if (error) throw error;
+      // Sort by score and take top recommendations
+      const topRecommendations = scoredRecommendations
+        .sort((a, b) => b.score - a.score)
+        .slice(0, limit);
 
-      setRecommendations(data.recommendations || []);
-    } catch (error) {
-      console.error('Error generating recommendations:', error);
-      toast({
-        title: "Recommendations Error",
-        description: "Failed to load personalized recommendations",
-        variant: "destructive",
-      });
+      setRecommendations(topRecommendations);
+
+      // Track recommendation generation for analytics
+      await supabase
+        .from('analytics_events')
+        .insert({
+          user_id: user.id,
+          event_type: 'recommendation_generated',
+          event_data: {
+            filters,
+            count: topRecommendations.length,
+            avg_score: topRecommendations.reduce((sum, r) => sum + r.score, 0) / topRecommendations.length
+          },
+          session_id: sessionStorage.getItem('session_id') || 'anonymous',
+          page_url: window.location.pathname
+        });
+
+    } catch (err) {
+      console.error('Error generating recommendations:', err);
+      setError(err instanceof Error ? err.message : 'Failed to generate recommendations');
     } finally {
       setLoading(false);
     }
-  }, [user, userBehavior, toast]);
+  }, [user]);
 
-  const trackUserInteraction = useCallback(async (interactionType: string, targetId: string, metadata?: any) => {
+  const trackRecommendationClick = useCallback(async (recommendationId: string) => {
     if (!user) return;
 
     try {
       await supabase
-        .from('user_interactions')
+        .from('analytics_events')
         .insert({
           user_id: user.id,
-          interaction_type: interactionType,
-          target_type: 'listing',
-          target_id: targetId,
-          metadata: metadata || {},
-          session_id: sessionStorage.getItem('session_id') || 'anonymous'
+          event_type: 'recommendation_clicked',
+          event_data: { recommendation_id: recommendationId },
+          session_id: sessionStorage.getItem('session_id') || 'anonymous',
+          page_url: window.location.pathname
         });
-
-      await updateUserBehavior(interactionType, targetId);
     } catch (error) {
-      console.error('Error tracking interaction:', error);
+      console.error('Error tracking recommendation click:', error);
     }
   }, [user]);
 
-  const updateUserBehavior = async (interactionType: string, targetId: string) => {
-    setUserBehavior(prev => {
-      if (!prev) return prev;
-
-      const updatedBehavior = { ...prev };
-
-      switch (interactionType) {
-        case 'view':
-          updatedBehavior.viewed_listings = [...new Set([...prev.viewed_listings, targetId])];
-          break;
-        case 'favorite':
-          updatedBehavior.favorited_listings = [...new Set([...prev.favorited_listings, targetId])];
-          break;
-        default:
-          break;
-      }
-
-      return updatedBehavior;
-    });
-  };
-
-  const loadUserBehavior = useCallback(async () => {
+  const saveRecommendationFeedback = useCallback(async (
+    recommendationId: string, 
+    feedback: 'helpful' | 'not_helpful' | 'interested'
+  ) => {
     if (!user) return;
 
     try {
-      const [interactionsResponse, preferencesResponse] = await Promise.all([
-        supabase
-          .from('user_interactions')
-          .select('*')
-          .eq('user_id', user.id)
-          .order('created_at', { ascending: false })
-          .limit(100),
-        supabase
-          .from('user_preferences')
-          .select('*')
-          .eq('user_id', user.id)
-          .single()
-      ]);
+      await supabase
+        .from('recommendation_feedback')
+        .insert({
+          user_id: user.id,
+          recommendation_id: recommendationId,
+          feedback,
+          created_at: new Date().toISOString()
+        });
 
-      const interactions = interactionsResponse.data || [];
-      const preferences = preferencesResponse.data;
-
-      // Parse matching_criteria safely
-      let matchingCriteria: any = {};
-      if (preferences?.matching_criteria) {
-        try {
-          matchingCriteria = typeof preferences.matching_criteria === 'string' 
-            ? JSON.parse(preferences.matching_criteria)
-            : preferences.matching_criteria;
-        } catch {
-          matchingCriteria = {};
-        }
-      }
-
-      const behavior: UserBehavior = {
-        viewed_listings: interactions
-          .filter(i => i.interaction_type === 'view')
-          .map(i => i.target_id)
-          .filter(Boolean),
-        favorited_listings: interactions
-          .filter(i => i.interaction_type === 'favorite')
-          .map(i => i.target_id)
-          .filter(Boolean),
-        search_queries: interactions
-          .filter(i => i.interaction_type === 'search')
-          .map(i => (i.metadata as any)?.query)
-          .filter(Boolean),
-        preferred_breeds: Array.isArray(matchingCriteria?.preferred_breeds) ? matchingCriteria.preferred_breeds : [],
-        price_range: Array.isArray(matchingCriteria?.price_range) ? matchingCriteria.price_range : [0, 5000],
-        location_preferences: Array.isArray(matchingCriteria?.locations) ? matchingCriteria.locations : []
-      };
-
-      setUserBehavior(behavior);
+      await supabase
+        .from('analytics_events')
+        .insert({
+          user_id: user.id,
+          event_type: 'recommendation_feedback',
+          event_data: { recommendation_id: recommendationId, feedback },
+          session_id: sessionStorage.getItem('session_id') || 'anonymous',
+          page_url: window.location.pathname
+        });
     } catch (error) {
-      console.error('Error loading user behavior:', error);
+      console.error('Error saving recommendation feedback:', error);
     }
   }, [user]);
 
-  const loadTrendingListings = useCallback(async () => {
-    try {
-      const { data, error } = await supabase
-        .from('user_interactions')
-        .select(`
-          target_id,
-          dog_listings (*)
-        `)
-        .eq('target_type', 'listing')
-        .gte('created_at', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString())
-        .not('dog_listings', 'is', null);
-
-      if (error) throw error;
-
-      const interactionCounts: Record<string, number> = {};
-      data.forEach(interaction => {
-        if (interaction.target_id) {
-          interactionCounts[interaction.target_id] = 
-            (interactionCounts[interaction.target_id] || 0) + 1;
-        }
-      });
-
-      const trending = Object.entries(interactionCounts)
-        .sort(([, a], [, b]) => b - a)
-        .slice(0, 10)
-        .map(([listingId, count]) => {
-          const listing = data.find(d => d.target_id === listingId)?.dog_listings;
-          return listing ? { ...listing, interaction_count: count } : null;
-        })
-        .filter(item => item !== null);
-
-      setTrendingListings(trending);
-    } catch (error) {
-      console.error('Error loading trending listings:', error);
-    }
-  }, []);
-
   useEffect(() => {
     if (user) {
-      loadUserBehavior();
-      loadTrendingListings();
-    }
-  }, [user, loadUserBehavior, loadTrendingListings]);
-
-  useEffect(() => {
-    if (userBehavior && user) {
       generateRecommendations();
     }
-  }, [userBehavior, user, generateRecommendations]);
+  }, [user, generateRecommendations]);
 
   return {
     recommendations,
-    trendingListings,
-    userBehavior,
     loading,
+    error,
     generateRecommendations,
-    trackUserInteraction,
-    loadUserBehavior,
-    loadTrendingListings
+    trackRecommendationClick,
+    saveRecommendationFeedback
   };
 };
