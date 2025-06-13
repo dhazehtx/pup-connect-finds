@@ -51,48 +51,56 @@ const Explore = () => {
       return [];
     }
     
-    return listings.map((listing, index) => {
-      if (!listing) {
-        console.warn('Empty listing at index:', index);
-        return null;
-      }
+    try {
+      const validListings = listings.filter(listing => listing && typeof listing === 'object');
+      console.log('Valid listings after filter:', validListings.length);
       
-      return {
-        id: index + 1,
-        title: listing?.dog_name || 'Unknown Dog',
-        price: `$${listing?.price || 0}`,
-        location: listing?.location || 'Unknown',
-        distance: '5.0',
-        breed: listing?.breed || 'Mixed Breed',
-        color: 'Mixed',
-        gender: 'Unknown',
-        age: `${listing?.age || 0} weeks`,
-        rating: 4.5,
-        reviews: 10,
-        image: listing?.image_url || '/placeholder-dog.jpg',
-        breeder: listing?.profiles?.full_name || 'Unknown Breeder',
-        verified: listing?.profiles?.verified || false,
-        verifiedBreeder: listing?.profiles?.verified || false,
-        idVerified: listing?.profiles?.verified || false,
-        vetVerified: false,
-        available: 1,
-        sourceType: 'breeder',
-        isKillShelter: false
-      };
-    }).filter(Boolean); // Remove any null entries
+      return validListings.map((listing, index) => {
+        const transformedListing = {
+          id: index + 1,
+          title: listing?.dog_name || 'Unknown Dog',
+          price: `$${listing?.price || 0}`,
+          location: listing?.location || 'Unknown',
+          distance: '5.0',
+          breed: listing?.breed || 'Mixed Breed',
+          color: 'Mixed',
+          gender: 'Unknown',
+          age: `${listing?.age || 0} weeks`,
+          rating: 4.5,
+          reviews: 10,
+          image: listing?.image_url || '/placeholder-dog.jpg',
+          breeder: listing?.profiles?.full_name || 'Unknown Breeder',
+          verified: listing?.profiles?.verified || false,
+          verifiedBreeder: listing?.profiles?.verified || false,
+          idVerified: listing?.profiles?.verified || false,
+          vetVerified: false,
+          available: 1,
+          sourceType: 'breeder',
+          isKillShelter: false
+        };
+        
+        console.log('Transformed listing:', transformedListing);
+        return transformedListing;
+      });
+    } catch (error) {
+      console.error('Error transforming listings:', error);
+      return [];
+    }
   }, [listings]);
 
   console.log('Transformed listings:', transformedListings);
 
-  // Use the useListingFilters hook with error handling
+  // Use the useListingFilters hook with comprehensive error handling
   let sortedListings = [];
   try {
-    const result = useListingFilters(transformedListings, filters, sortBy);
-    sortedListings = result?.sortedListings || [];
-    console.log('Sorted listings:', sortedListings);
+    if (transformedListings && Array.isArray(transformedListings)) {
+      const result = useListingFilters(transformedListings, filters, sortBy);
+      sortedListings = result?.sortedListings || [];
+      console.log('Sorted listings:', sortedListings);
+    }
   } catch (error) {
     console.error('Error in useListingFilters:', error);
-    sortedListings = transformedListings; // Fallback to transformed listings
+    sortedListings = transformedListings || []; // Fallback to transformed listings
   }
 
   const updateFilters = (newFilters: any) => {
@@ -240,6 +248,29 @@ const Explore = () => {
     }
   };
 
+  // Add error boundary for ExploreListingsGrid
+  const renderListingsGrid = () => {
+    try {
+      if (!Array.isArray(sortedListings)) {
+        console.warn('sortedListings is not an array:', sortedListings);
+        return <div className="text-center py-8 text-gray-500">No listings available</div>;
+      }
+
+      return (
+        <ExploreListingsGrid 
+          listings={sortedListings}
+          favorites={favorites}
+          onToggleFavorite={handleToggleFavorite}
+          onContactSeller={handleContactSeller}
+          onViewDetails={handleViewDetails}
+        />
+      );
+    } catch (error) {
+      console.error('Error rendering ExploreListingsGrid:', error);
+      return <div className="text-center py-8 text-red-500">Error loading listings</div>;
+    }
+  };
+
   return (
     <Layout>
       <div className="min-h-screen bg-gray-50">
@@ -270,13 +301,7 @@ const Explore = () => {
             </div>
 
             <div className="lg:col-span-3">
-              <ExploreListingsGrid 
-                listings={sortedListings}
-                favorites={favorites}
-                onToggleFavorite={handleToggleFavorite}
-                onContactSeller={handleContactSeller}
-                onViewDetails={handleViewDetails}
-              />
+              {renderListingsGrid()}
             </div>
           </div>
         </div>
