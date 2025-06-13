@@ -9,6 +9,7 @@ import { RealtimeProvider } from "@/contexts/RealtimeContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import Layout from "./components/Layout";
 import Index from "./pages/Index";
+import Auth from "./pages/Auth";
 import Profile from "./pages/Profile";
 import SimpleProfile from "./pages/SimpleProfile";
 import Explore from "./pages/Explore";
@@ -32,6 +33,7 @@ const App = () => (
           <RealtimeProvider>
             <BrowserRouter>
               <Routes>
+                <Route path="/auth" element={<Auth />} />
                 <Route path="/" element={<Layout />}>
                   <Route index element={<Index />} />
                   <Route path="profile" element={<Profile />} />
