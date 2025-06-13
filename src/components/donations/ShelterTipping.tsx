@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -16,6 +15,7 @@ import {
   Candy
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import DonationPaymentProcessor from './DonationPaymentProcessor';
 
 interface TipOption {
   amount: number;
@@ -89,6 +89,14 @@ const ShelterTipping = () => {
     }
   ];
 
+  const handleTipSuccess = () => {
+    toast({
+      title: "Thank you! 💝",
+      description: "Your donation has been processed successfully!",
+    });
+    setCustomAmount('');
+  };
+
   const handleTip = (shelter: ShelterProfile, amount: number) => {
     toast({
       title: "Tip Sent! 💝",
@@ -140,21 +148,13 @@ const ShelterTipping = () => {
             {tipOptions.map((option) => {
               const Icon = option.icon;
               return (
-                <Button
+                <DonationPaymentProcessor
                   key={option.amount}
-                  variant="outline"
-                  className="h-20 flex-col gap-2 hover:bg-green-50 hover:border-green-300"
-                  onClick={() => {
-                    toast({
-                      title: "Choose a recipient",
-                      description: "Select someone from the list below to send your tip to!",
-                    });
-                  }}
-                >
-                  <Icon className="w-6 h-6 text-green-600" />
-                  <span className="font-semibold">${option.amount}</span>
-                  <span className="text-xs text-center">{option.message}</span>
-                </Button>
+                  recipientId="quick-tip"
+                  recipientName="Rescue Heroes Fund"
+                  amount={option.amount}
+                  onSuccess={handleTipSuccess}
+                />
               );
             })}
           </div>
@@ -219,15 +219,13 @@ const ShelterTipping = () => {
                 <div className="space-y-2">
                   <div className="flex gap-2">
                     {tipOptions.slice(0, 3).map((option) => (
-                      <Button
+                      <DonationPaymentProcessor
                         key={option.amount}
-                        variant="outline"
-                        size="sm"
-                        className="flex-1 text-xs"
-                        onClick={() => handleTip(shelter, option.amount)}
-                      >
-                        ${option.amount}
-                      </Button>
+                        recipientId={shelter.id}
+                        recipientName={shelter.name}
+                        amount={option.amount}
+                        onSuccess={handleTipSuccess}
+                      />
                     ))}
                   </div>
                   
@@ -239,18 +237,15 @@ const ShelterTipping = () => {
                       onChange={(e) => setCustomAmount(e.target.value)}
                       className="flex-1"
                     />
-                    <Button 
-                      className="bg-green-500 text-white hover:bg-green-600"
-                      onClick={() => {
-                        const amount = parseInt(customAmount) || 0;
-                        if (amount > 0) {
-                          handleTip(shelter, amount);
-                          setCustomAmount('');
-                        }
+                    <DonationPaymentProcessor
+                      recipientId={shelter.id}
+                      recipientName={shelter.name}
+                      amount={parseInt(customAmount) || 0}
+                      onSuccess={() => {
+                        handleTipSuccess();
+                        setCustomAmount('');
                       }}
-                    >
-                      Tip
-                    </Button>
+                    />
                   </div>
                 </div>
               </CardContent>
