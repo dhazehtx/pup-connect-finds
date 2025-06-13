@@ -73,32 +73,38 @@ const Services = () => {
 
   const fetchServices = async () => {
     try {
-      const { data, error } = await supabase
+      // First get services
+      const { data: servicesData, error: servicesError } = await supabase
         .from('services')
-        .select(`
-          *,
-          profiles!services_user_id_fkey (
-            full_name,
-            avatar_url,
-            rating,
-            total_reviews
-          )
-        `)
+        .select('*')
         .eq('status', 'active')
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (servicesError) throw servicesError;
 
-      const servicesWithProvider = data?.map(service => ({
-        ...service,
-        provider_name: service.profiles?.full_name || 'Service Provider',
-        provider_avatar: service.profiles?.avatar_url,
-        rating: service.profiles?.rating || 4.5,
-        review_count: service.profiles?.total_reviews || 0,
-        images: service.images || ['/placeholder.svg'],
-        certifications: service.certifications || [],
-        availability: service.availability || {}
-      })) || [];
+      // Then get profiles for all user_ids
+      const userIds = [...new Set(servicesData?.map(service => service.user_id) || [])];
+      const { data: profilesData, error: profilesError } = await supabase
+        .from('profiles')
+        .select('id, full_name, avatar_url, rating, total_reviews')
+        .in('id', userIds);
+
+      if (profilesError) throw profilesError;
+
+      // Combine the data
+      const servicesWithProvider = servicesData?.map(service => {
+        const profile = profilesData?.find(p => p.id === service.user_id);
+        return {
+          ...service,
+          provider_name: profile?.full_name || 'Service Provider',
+          provider_avatar: profile?.avatar_url,
+          rating: profile?.rating || 4.5,
+          review_count: profile?.total_reviews || 0,
+          images: Array.isArray(service.images) ? service.images : ['/placeholder.svg'],
+          certifications: Array.isArray(service.certifications) ? service.certifications : [],
+          availability: service.availability || {}
+        };
+      }) || [];
 
       setServices(servicesWithProvider);
     } catch (error: any) {
@@ -125,8 +131,8 @@ const Services = () => {
       const query = searchQuery.toLowerCase();
       filtered = filtered.filter(service => 
         service.title.toLowerCase().includes(query) ||
-        service.description.toLowerCase().includes(query) ||
-        service.location.toLowerCase().includes(query) ||
+        service.description?.toLowerCase().includes(query) ||
+        service.location?.toLowerCase().includes(query) ||
         service.provider_name.toLowerCase().includes(query)
       );
     }
