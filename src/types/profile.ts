@@ -1,3 +1,4 @@
+
 // Comprehensive TypeScript interfaces for profile data structures
 
 export interface ContactInfo {
@@ -71,6 +72,7 @@ export interface UserProfile {
   trust_score?: number;
   breeding_program_name?: string;
   breeding_since?: string;
+  professional_status?: 'standard' | 'professional' | 'verified_professional';
   
   // Contact & Social
   phone?: string;
