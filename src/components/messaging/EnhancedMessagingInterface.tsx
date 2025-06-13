@@ -13,6 +13,7 @@ import { useMessageReactions } from '@/hooks/useMessageReactions';
 import { useMessageThreads } from '@/hooks/useMessageThreads';
 import { useFileUpload } from '@/hooks/useFileUpload';
 import { ExtendedConversation } from '@/types/messaging';
+import { Message } from '@/types/chat';
 
 const EnhancedMessagingInterface = () => {
   const { user } = useAuth();
@@ -146,6 +147,33 @@ const EnhancedMessagingInterface = () => {
     ? selectedConversation?.buyer_id 
     : selectedConversation?.seller_id || '';
 
+  // Filter and type-safe convert messages to match Message interface
+  const typedMessages: Message[] = messages.filter((msg): msg is any => {
+    const validTypes = ['image', 'text', 'file', 'voice'];
+    return (
+      typeof msg.id === 'string' &&
+      typeof msg.conversation_id === 'string' &&
+      typeof msg.sender_id === 'string' &&
+      typeof msg.content === 'string' &&
+      typeof msg.created_at === 'string' &&
+      validTypes.includes(msg.message_type)
+    );
+  }).map((msg): Message => ({
+    id: msg.id,
+    conversation_id: msg.conversation_id,
+    sender_id: msg.sender_id,
+    message_type: msg.message_type as 'image' | 'text' | 'file' | 'voice',
+    content: msg.content,
+    image_url: msg.image_url,
+    voice_url: msg.voice_url,
+    file_name: msg.file_name,
+    file_size: msg.file_size,
+    file_type: msg.file_type,
+    created_at: msg.created_at,
+    read_at: msg.read_at,
+    is_encrypted: msg.is_encrypted
+  }));
+
   return (
     <div className="h-screen flex flex-col bg-background">
       <ChatHeader
@@ -153,10 +181,11 @@ const EnhancedMessagingInterface = () => {
         otherUser={otherUser}
         isUserOnline={isUserOnline(otherUserId)}
         selectedConversation={selectedConversation}
+        otherUserTyping={false}
       />
 
       <MessagesList
-        messages={messages}
+        messages={typedMessages}
         user={user}
         reactions={reactions}
         getThreadCount={getThreadCount}
