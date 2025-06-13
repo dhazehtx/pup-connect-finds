@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -36,35 +35,35 @@ const FinalTestingSuite = () => {
 
   const testSuite = [
     // Functionality Tests
-    { id: 'auth-flow', name: 'User Authentication Flow', category: 'functionality' },
-    { id: 'listing-crud', name: 'Listing CRUD Operations', category: 'functionality' },
-    { id: 'search-filters', name: 'Search & Filtering', category: 'functionality' },
-    { id: 'messaging-system', name: 'Real-time Messaging', category: 'functionality' },
-    { id: 'payment-flow', name: 'Payment Processing', category: 'functionality' },
-    { id: 'file-upload', name: 'File Upload System', category: 'functionality' },
-    { id: 'notifications', name: 'Notification System', category: 'functionality' },
-    { id: 'location-services', name: 'Location Services', category: 'functionality' },
+    { id: 'auth-flow', name: 'User Authentication Flow', category: 'functionality' as const },
+    { id: 'listing-crud', name: 'Listing CRUD Operations', category: 'functionality' as const },
+    { id: 'search-filters', name: 'Search & Filtering', category: 'functionality' as const },
+    { id: 'messaging-system', name: 'Real-time Messaging', category: 'functionality' as const },
+    { id: 'payment-flow', name: 'Payment Processing', category: 'functionality' as const },
+    { id: 'file-upload', name: 'File Upload System', category: 'functionality' as const },
+    { id: 'notifications', name: 'Notification System', category: 'functionality' as const },
+    { id: 'location-services', name: 'Location Services', category: 'functionality' as const },
 
     // Performance Tests
-    { id: 'page-load', name: 'Page Load Speed', category: 'performance' },
-    { id: 'image-optimization', name: 'Image Optimization', category: 'performance' },
-    { id: 'api-response', name: 'API Response Times', category: 'performance' },
-    { id: 'bundle-size', name: 'Bundle Size Analysis', category: 'performance' },
-    { id: 'memory-usage', name: 'Memory Usage', category: 'performance' },
+    { id: 'page-load', name: 'Page Load Speed', category: 'performance' as const },
+    { id: 'image-optimization', name: 'Image Optimization', category: 'performance' as const },
+    { id: 'api-response', name: 'API Response Times', category: 'performance' as const },
+    { id: 'bundle-size', name: 'Bundle Size Analysis', category: 'performance' as const },
+    { id: 'memory-usage', name: 'Memory Usage', category: 'performance' as const },
 
     // Security Tests
-    { id: 'auth-security', name: 'Authentication Security', category: 'security' },
-    { id: 'data-protection', name: 'Data Protection', category: 'security' },
-    { id: 'xss-protection', name: 'XSS Protection', category: 'security' },
-    { id: 'csrf-protection', name: 'CSRF Protection', category: 'security' },
-    { id: 'input-validation', name: 'Input Validation', category: 'security' },
+    { id: 'auth-security', name: 'Authentication Security', category: 'security' as const },
+    { id: 'data-protection', name: 'Data Protection', category: 'security' as const },
+    { id: 'xss-protection', name: 'XSS Protection', category: 'security' as const },
+    { id: 'csrf-protection', name: 'CSRF Protection', category: 'security' as const },
+    { id: 'input-validation', name: 'Input Validation', category: 'security' as const },
 
     // Mobile Tests
-    { id: 'responsive-design', name: 'Responsive Design', category: 'mobile' },
-    { id: 'touch-interactions', name: 'Touch Interactions', category: 'mobile' },
-    { id: 'pwa-features', name: 'PWA Features', category: 'mobile' },
-    { id: 'offline-functionality', name: 'Offline Functionality', category: 'mobile' },
-    { id: 'performance-mobile', name: 'Mobile Performance', category: 'mobile' }
+    { id: 'responsive-design', name: 'Responsive Design', category: 'mobile' as const },
+    { id: 'touch-interactions', name: 'Touch Interactions', category: 'mobile' as const },
+    { id: 'pwa-features', name: 'PWA Features', category: 'mobile' as const },
+    { id: 'offline-functionality', name: 'Offline Functionality', category: 'mobile' as const },
+    { id: 'performance-mobile', name: 'Mobile Performance', category: 'mobile' as const }
   ];
 
   useEffect(() => {
@@ -72,7 +71,7 @@ const FinalTestingSuite = () => {
   }, []);
 
   const initializeTests = () => {
-    const initialTests = testSuite.map(test => ({
+    const initialTests: TestResult[] = testSuite.map(test => ({
       ...test,
       status: 'pending' as const
     }));
@@ -112,7 +111,7 @@ const FinalTestingSuite = () => {
       // Update test status to running
       setTests(current => current.map(test => 
         test.id === testToRun.id 
-          ? { ...test, status: 'running' }
+          ? { ...test, status: 'running' as const }
           : test
       ));
 
