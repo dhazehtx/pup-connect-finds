@@ -3,27 +3,17 @@ export interface Message {
   id: string;
   conversation_id: string;
   sender_id: string;
-  message_type: 'image' | 'text' | 'file' | 'voice';
   content: string;
+  created_at: string;
+  message_type: 'text' | 'image' | 'file' | 'voice';
+  file_url?: string;
   image_url?: string;
   voice_url?: string;
   file_name?: string;
   file_size?: number;
   file_type?: string;
-  created_at: string;
   read_at?: string;
   is_encrypted?: boolean;
-}
-
-export interface ChatUser {
-  id: string;
-  name: string;
-  avatar?: string;
-}
-
-export interface ListingInfo {
-  name: string;
-  breed: string;
-  price: number;
-  image?: string;
+  encrypted_content?: string;
+  encryption_key_id?: string;
 }

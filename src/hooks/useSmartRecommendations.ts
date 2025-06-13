@@ -73,7 +73,6 @@ export const useSmartRecommendations = () => {
           session_id: sessionStorage.getItem('session_id') || 'anonymous'
         });
 
-      // Update user behavior data
       await updateUserBehavior(interactionType, targetId);
     } catch (error) {
       console.error('Error tracking interaction:', error);
@@ -81,8 +80,6 @@ export const useSmartRecommendations = () => {
   }, [user]);
 
   const updateUserBehavior = async (interactionType: string, targetId: string) => {
-    // This would typically be handled by a background job
-    // For now, we'll update locally and periodically sync
     setUserBehavior(prev => {
       if (!prev) return prev;
 
@@ -107,7 +104,6 @@ export const useSmartRecommendations = () => {
     if (!user) return;
 
     try {
-      // Load user interactions and preferences
       const [interactionsResponse, preferencesResponse] = await Promise.all([
         supabase
           .from('user_interactions')
@@ -123,9 +119,20 @@ export const useSmartRecommendations = () => {
       ]);
 
       const interactions = interactionsResponse.data || [];
-      const preferences = preferencesResponse.data?.matching_criteria || {};
+      const preferences = preferencesResponse.data;
 
-      // Process interactions into behavior data
+      // Parse matching_criteria safely
+      let matchingCriteria: any = {};
+      if (preferences?.matching_criteria) {
+        try {
+          matchingCriteria = typeof preferences.matching_criteria === 'string' 
+            ? JSON.parse(preferences.matching_criteria)
+            : preferences.matching_criteria;
+        } catch {
+          matchingCriteria = {};
+        }
+      }
+
       const behavior: UserBehavior = {
         viewed_listings: interactions
           .filter(i => i.interaction_type === 'view')
@@ -137,11 +144,11 @@ export const useSmartRecommendations = () => {
           .filter(Boolean),
         search_queries: interactions
           .filter(i => i.interaction_type === 'search')
-          .map(i => i.metadata?.query)
+          .map(i => (i.metadata as any)?.query)
           .filter(Boolean),
-        preferred_breeds: preferences.preferred_breeds || [],
-        price_range: preferences.price_range || [0, 5000],
-        location_preferences: preferences.locations || []
+        preferred_breeds: matchingCriteria.preferred_breeds || [],
+        price_range: matchingCriteria.price_range || [0, 5000],
+        location_preferences: matchingCriteria.locations || []
       };
 
       setUserBehavior(behavior);
@@ -152,7 +159,6 @@ export const useSmartRecommendations = () => {
 
   const loadTrendingListings = useCallback(async () => {
     try {
-      // Calculate trending based on recent interactions
       const { data, error } = await supabase
         .from('user_interactions')
         .select(`
@@ -165,7 +171,6 @@ export const useSmartRecommendations = () => {
 
       if (error) throw error;
 
-      // Count interactions per listing
       const interactionCounts: Record<string, number> = {};
       data.forEach(interaction => {
         if (interaction.target_id) {
@@ -174,7 +179,6 @@ export const useSmartRecommendations = () => {
         }
       });
 
-      // Get top trending listings
       const trending = Object.entries(interactionCounts)
         .sort(([, a], [, b]) => b - a)
         .slice(0, 10)

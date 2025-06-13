@@ -54,7 +54,6 @@ export const useAISearch = () => {
   const performAISearch = useCallback(async (filters: AISearchFilters, page = 1, limit = 20) => {
     setLoading(true);
     try {
-      // Call our AI search edge function
       const { data, error } = await supabase.functions.invoke('ai-search-recommendations', {
         body: {
           query: filters.query,
@@ -79,7 +78,6 @@ export const useAISearch = () => {
       setSearchResults(results);
       setTotalResults(data.totalCount || 0);
       
-      // Track search for analytics
       if (user) {
         await trackSearchAnalytics(filters, results.length);
       }
@@ -105,7 +103,6 @@ export const useAISearch = () => {
     }
 
     try {
-      // Get suggestions from multiple sources
       const [breedSuggestions, locationSuggestions] = await Promise.all([
         getBreedSuggestions(query),
         getLocationSuggestions(query)
@@ -114,7 +111,6 @@ export const useAISearch = () => {
       const allSuggestions = [
         ...breedSuggestions,
         ...locationSuggestions,
-        // Add AI-generated query suggestions
         `Find ${query} puppies near me`,
         `${query} puppies under $2000`,
         `Family-friendly ${query}`,
@@ -164,7 +160,7 @@ export const useAISearch = () => {
         .insert({
           user_id: user.id,
           name,
-          filters,
+          filters: filters as any,
           notify_new_matches: notifyOnNewMatches
         })
         .select()
@@ -264,7 +260,7 @@ export const useAISearch = () => {
             filters: filters,
             result_count: resultCount,
             timestamp: new Date().toISOString()
-          },
+          } as any,
           page_url: window.location.pathname,
           session_id: sessionStorage.getItem('session_id') || 'anonymous'
         });

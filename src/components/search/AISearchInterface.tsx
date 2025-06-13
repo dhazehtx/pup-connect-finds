@@ -1,44 +1,25 @@
 
 import React, { useState, useEffect } from 'react';
-import { Search, Sparkles, Filter, Save, TrendingUp, MapPin } from 'lucide-react';
+import { Search, Filter, BookmarkPlus, TrendingUp, MapPin, Sparkles } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { useAISearch } from '@/hooks/useAISearch';
 import { useSmartRecommendations } from '@/hooks/useSmartRecommendations';
-import { useDebounce } from '@/hooks/useDebounce';
 import SearchFiltersPanel from './SearchFiltersPanel';
 import SearchResultsDisplay from './SearchResultsDisplay';
 import SavedSearchesPanel from './SavedSearchesPanel';
 import SaveSearchDialog from './SaveSearchDialog';
+import { useToast } from '@/hooks/use-toast';
 
 const AISearchInterface = () => {
-  const [query, setQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
   const [showFilters, setShowFilters] = useState(false);
   const [showSaveDialog, setShowSaveDialog] = useState(false);
   const [activeTab, setActiveTab] = useState<'search' | 'recommendations' | 'trending'>('search');
-  
-  const {
-    searchResults,
-    savedSearches,
-    searchSuggestions,
-    loading,
-    totalResults,
-    performAISearch,
-    getSearchSuggestions,
-    saveSearch,
-    loadSavedSearches
-  } = useAISearch();
-  
-  const {
-    recommendations,
-    trendingListings,
-    trackUserInteraction
-  } = useSmartRecommendations();
-
-  const [filters, setFilters] = useState({
-    query: '',
+  const [searchFilters, setSearchFilters] = useState({
     breeds: [],
     priceRange: [0, 5000] as [number, number],
     ageRange: [0, 156] as [number, number],
@@ -46,238 +27,257 @@ const AISearchInterface = () => {
     radius: 50,
     verifiedOnly: false,
     availableOnly: true,
-    sortBy: 'relevance' as const
+    sortBy: 'relevance'
   });
 
-  const debouncedQuery = useDebounce(query, 300);
+  const { toast } = useToast();
+  
+  const {
+    searchResults,
+    savedSearches,
+    searchSuggestions,
+    loading: searchLoading,
+    performAISearch,
+    getSearchSuggestions,
+    saveSearch,
+    loadSavedSearches,
+    deleteSavedSearch
+  } = useAISearch();
 
-  useEffect(() => {
-    if (debouncedQuery) {
-      getSearchSuggestions(debouncedQuery);
-    }
-  }, [debouncedQuery, getSearchSuggestions]);
+  const {
+    recommendations,
+    trendingListings,
+    loading: recommendationsLoading,
+    trackUserInteraction
+  } = useSmartRecommendations();
 
   useEffect(() => {
     loadSavedSearches();
   }, [loadSavedSearches]);
 
+  useEffect(() => {
+    getSearchSuggestions(searchQuery);
+  }, [searchQuery, getSearchSuggestions]);
+
   const handleSearch = async () => {
-    const searchFilters = { ...filters, query };
-    await performAISearch(searchFilters);
-    
-    // Track search interaction
-    trackUserInteraction('search', '', { query, filters: searchFilters });
-  };
+    if (!searchQuery.trim()) return;
 
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      handleSearch();
-    }
-  };
+    const filters = {
+      query: searchQuery,
+      ...searchFilters
+    };
 
-  const handleFilterChange = (newFilters: any) => {
-    setFilters(prev => ({ ...prev, ...newFilters }));
+    await performAISearch(filters);
+    setActiveTab('search');
   };
 
   const handleSaveSearch = async (name: string, notifyOnNewMatches: boolean) => {
-    const searchFilters = { ...filters, query };
-    await saveSearch(name, searchFilters, notifyOnNewMatches);
-    setShowSaveDialog(false);
+    const filters = {
+      query: searchQuery,
+      ...searchFilters
+    };
+
+    const result = await saveSearch(name, filters, notifyOnNewMatches);
+    if (result) {
+      setShowSaveDialog(false);
+      toast({
+        title: "Search Saved",
+        description: "Your search has been saved successfully",
+      });
+    }
   };
 
-  const handleResultInteraction = (type: string, listingId: string) => {
+  const handleLoadSavedSearch = (search: any) => {
+    setSearchQuery(search.filters.query || '');
+    setSearchFilters({
+      breeds: search.filters.breeds || [],
+      priceRange: search.filters.priceRange || [0, 5000],
+      ageRange: search.filters.ageRange || [0, 156],
+      location: search.filters.location || '',
+      radius: search.filters.radius || 50,
+      verifiedOnly: search.filters.verifiedOnly || false,
+      availableOnly: search.filters.availableOnly || true,
+      sortBy: search.filters.sortBy || 'relevance'
+    });
+    handleSearch();
+  };
+
+  const handleInteraction = (type: string, listingId: string) => {
     trackUserInteraction(type, listingId);
+    
+    if (type === 'view') {
+      // Navigate to listing details
+      console.log('View listing:', listingId);
+    } else if (type === 'favorite') {
+      toast({
+        title: "Added to Favorites",
+        description: "This listing has been saved to your favorites",
+      });
+    }
+  };
+
+  const getCurrentFiltersCount = () => {
+    let count = 0;
+    if (searchFilters.breeds.length > 0) count++;
+    if (searchFilters.location) count++;
+    if (searchFilters.verifiedOnly) count++;
+    if (searchFilters.priceRange[0] > 0 || searchFilters.priceRange[1] < 5000) count++;
+    return count;
   };
 
   return (
-    <div className="min-h-screen bg-background p-6">
-      <div className="max-w-7xl mx-auto space-y-6">
-        {/* Header */}
-        <div className="text-center space-y-2">
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-            AI-Powered Dog Discovery
-          </h1>
-          <p className="text-muted-foreground text-lg">
-            Find your perfect companion with intelligent search and personalized recommendations
-          </p>
-        </div>
-
-        {/* Search Interface */}
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Sparkles className="h-5 w-5 text-blue-600" />
-                <CardTitle>Smart Search</CardTitle>
+    <div className="container mx-auto px-4 py-6 max-w-7xl">
+      <div className="flex flex-col lg:flex-row gap-6">
+        {/* Left Sidebar */}
+        <div className="w-full lg:w-80 space-y-6">
+          {/* Search Header */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Sparkles className="h-5 w-5 text-primary" />
+                AI-Powered Search
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {/* Search Input */}
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                <Input
+                  placeholder="Describe your perfect dog companion..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                  className="pl-10"
+                />
               </div>
+
+              {/* Search Suggestions */}
+              {searchSuggestions.length > 0 && (
+                <div className="space-y-2">
+                  <p className="text-sm text-muted-foreground">Suggestions:</p>
+                  <div className="flex flex-wrap gap-2">
+                    {searchSuggestions.map((suggestion, index) => (
+                      <Badge
+                        key={index}
+                        variant="outline"
+                        className="cursor-pointer hover:bg-primary hover:text-primary-foreground"
+                        onClick={() => setSearchQuery(suggestion)}
+                      >
+                        {suggestion}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Action Buttons */}
               <div className="flex gap-2">
+                <Button onClick={handleSearch} disabled={!searchQuery.trim()} className="flex-1">
+                  <Search className="h-4 w-4 mr-2" />
+                  Search
+                </Button>
                 <Button
                   variant="outline"
                   onClick={() => setShowFilters(!showFilters)}
-                  className="flex items-center gap-2"
+                  className="relative"
                 >
                   <Filter className="h-4 w-4" />
-                  Advanced Filters
+                  {getCurrentFiltersCount() > 0 && (
+                    <Badge className="absolute -top-2 -right-2 h-5 w-5 p-0 text-xs">
+                      {getCurrentFiltersCount()}
+                    </Badge>
+                  )}
                 </Button>
                 <Button
                   variant="outline"
                   onClick={() => setShowSaveDialog(true)}
-                  disabled={!query && Object.keys(filters).length === 0}
-                  className="flex items-center gap-2"
+                  disabled={!searchQuery.trim()}
                 >
-                  <Save className="h-4 w-4" />
-                  Save Search
+                  <BookmarkPlus className="h-4 w-4" />
                 </Button>
               </div>
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {/* Search Input */}
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-              <Input
-                placeholder="Try: 'Golden Retriever puppies under $2000 near San Francisco' or 'Family-friendly dogs good with kids'"
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                onKeyPress={handleKeyPress}
-                className="pl-10 pr-20 h-12 text-lg"
-              />
-              <Button
-                onClick={handleSearch}
-                disabled={loading || !query}
-                className="absolute right-2 top-1/2 transform -translate-y-1/2"
-                size="sm"
-              >
-                {loading ? 'Searching...' : 'Search'}
-              </Button>
-            </div>
+            </CardContent>
+          </Card>
 
-            {/* Search Suggestions */}
-            {searchSuggestions.length > 0 && query && (
-              <div className="flex flex-wrap gap-2">
-                <span className="text-sm text-muted-foreground">Suggestions:</span>
-                {searchSuggestions.slice(0, 5).map((suggestion, index) => (
-                  <Badge
-                    key={index}
-                    variant="secondary"
-                    className="cursor-pointer hover:bg-secondary/80"
-                    onClick={() => setQuery(suggestion)}
-                  >
-                    {suggestion}
-                  </Badge>
-                ))}
-              </div>
-            )}
+          {/* Advanced Filters */}
+          {showFilters && (
+            <SearchFiltersPanel
+              filters={searchFilters}
+              onFiltersChange={(newFilters) => setSearchFilters({ ...searchFilters, ...newFilters })}
+              onClose={() => setShowFilters(false)}
+            />
+          )}
 
-            {/* Active Filters Display */}
-            {(filters.breeds?.length > 0 || filters.location || filters.verifiedOnly) && (
-              <div className="flex flex-wrap gap-2">
-                <span className="text-sm text-muted-foreground">Active filters:</span>
-                {filters.breeds?.map(breed => (
-                  <Badge key={breed} variant="outline">{breed}</Badge>
-                ))}
-                {filters.location && (
-                  <Badge variant="outline" className="flex items-center gap-1">
-                    <MapPin className="h-3 w-3" />
-                    {filters.location}
-                  </Badge>
-                )}
-                {filters.verifiedOnly && (
-                  <Badge variant="outline">Verified Only</Badge>
-                )}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Advanced Filters Panel */}
-        {showFilters && (
-          <SearchFiltersPanel
-            filters={filters}
-            onFiltersChange={handleFilterChange}
-            onClose={() => setShowFilters(false)}
+          {/* Saved Searches */}
+          <SavedSearchesPanel
+            savedSearches={savedSearches}
+            onLoadSearch={handleLoadSavedSearch}
+            onDeleteSearch={deleteSavedSearch}
           />
-        )}
-
-        {/* Tab Navigation */}
-        <div className="flex gap-1 p-1 bg-muted rounded-lg w-fit">
-          <Button
-            variant={activeTab === 'search' ? 'default' : 'ghost'}
-            onClick={() => setActiveTab('search')}
-            className="flex items-center gap-2"
-          >
-            <Search className="h-4 w-4" />
-            Search Results
-            {totalResults > 0 && (
-              <Badge variant="secondary" className="ml-1">
-                {totalResults}
-              </Badge>
-            )}
-          </Button>
-          <Button
-            variant={activeTab === 'recommendations' ? 'default' : 'ghost'}
-            onClick={() => setActiveTab('recommendations')}
-            className="flex items-center gap-2"
-          >
-            <Sparkles className="h-4 w-4" />
-            For You
-            {recommendations.length > 0 && (
-              <Badge variant="secondary" className="ml-1">
-                {recommendations.length}
-              </Badge>
-            )}
-          </Button>
-          <Button
-            variant={activeTab === 'trending' ? 'default' : 'ghost'}
-            onClick={() => setActiveTab('trending')}
-            className="flex items-center gap-2"
-          >
-            <TrendingUp className="h-4 w-4" />
-            Trending
-            {trendingListings.length > 0 && (
-              <Badge variant="secondary" className="ml-1">
-                {trendingListings.length}
-              </Badge>
-            )}
-          </Button>
         </div>
 
-        {/* Content Area */}
-        <div className="grid lg:grid-cols-4 gap-6">
-          {/* Main Content */}
-          <div className="lg:col-span-3">
-            <SearchResultsDisplay
-              activeTab={activeTab}
-              searchResults={searchResults}
-              recommendations={recommendations}
-              trendingListings={trendingListings}
-              loading={loading}
-              onInteraction={handleResultInteraction}
-            />
-          </div>
+        {/* Main Content */}
+        <div className="flex-1">
+          <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as any)}>
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger value="search" className="flex items-center gap-2">
+                <Search className="h-4 w-4" />
+                Search Results
+              </TabsTrigger>
+              <TabsTrigger value="recommendations" className="flex items-center gap-2">
+                <Sparkles className="h-4 w-4" />
+                For You
+              </TabsTrigger>
+              <TabsTrigger value="trending" className="flex items-center gap-2">
+                <TrendingUp className="h-4 w-4" />
+                Trending
+              </TabsTrigger>
+            </TabsList>
 
-          {/* Sidebar */}
-          <div className="space-y-6">
-            <SavedSearchesPanel
-              savedSearches={savedSearches}
-              onLoadSearch={(search) => {
-                setFilters(search.filters);
-                setQuery(search.filters.query);
-                performAISearch(search.filters);
-              }}
-            />
-          </div>
+            <TabsContent value="search" className="mt-6">
+              <SearchResultsDisplay
+                activeTab="search"
+                searchResults={searchResults}
+                recommendations={[]}
+                trendingListings={[]}
+                loading={searchLoading}
+                onInteraction={handleInteraction}
+              />
+            </TabsContent>
+
+            <TabsContent value="recommendations" className="mt-6">
+              <SearchResultsDisplay
+                activeTab="recommendations"
+                searchResults={[]}
+                recommendations={recommendations}
+                trendingListings={[]}
+                loading={recommendationsLoading}
+                onInteraction={handleInteraction}
+              />
+            </TabsContent>
+
+            <TabsContent value="trending" className="mt-6">
+              <SearchResultsDisplay
+                activeTab="trending"
+                searchResults={[]}
+                recommendations={[]}
+                trendingListings={trendingListings}
+                loading={recommendationsLoading}
+                onInteraction={handleInteraction}
+              />
+            </TabsContent>
+          </Tabs>
         </div>
-
-        {/* Save Search Dialog */}
-        <SaveSearchDialog
-          open={showSaveDialog}
-          onOpenChange={setShowSaveDialog}
-          onSave={handleSaveSearch}
-          currentQuery={query}
-          currentFilters={filters}
-        />
       </div>
+
+      {/* Save Search Dialog */}
+      <SaveSearchDialog
+        open={showSaveDialog}
+        onOpenChange={setShowSaveDialog}
+        onSave={handleSaveSearch}
+        currentQuery={searchQuery}
+        currentFilters={searchFilters}
+      />
     </div>
   );
 };
