@@ -1,84 +1,42 @@
 
-import React, { useState } from 'react';
-import { Send, Paperclip, Smile } from 'lucide-react';
+import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
+import { Input } from '@/components/ui/input';
+import { Send, Camera } from 'lucide-react';
 
 interface MessageInputProps {
-  onSendMessage: (content: string, messageType?: string) => void;
-  placeholder?: string;
-  disabled?: boolean;
+  newMessage: string;
+  setNewMessage: (message: string) => void;
+  onSendMessage: () => void;
+  onKeyPress: (e: React.KeyboardEvent) => void;
 }
 
 const MessageInput = ({ 
+  newMessage, 
+  setNewMessage, 
   onSendMessage, 
-  placeholder = "Type a message...", 
-  disabled = false 
+  onKeyPress 
 }: MessageInputProps) => {
-  const [message, setMessage] = useState('');
-  const [sending, setSending] = useState(false);
-
-  const handleSend = async () => {
-    if (!message.trim() || sending) return;
-
-    setSending(true);
-    try {
-      await onSendMessage(message.trim());
-      setMessage('');
-    } catch (error) {
-      console.error('Failed to send message:', error);
-    } finally {
-      setSending(false);
-    }
-  };
-
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      handleSend();
-    }
-  };
-
   return (
-    <div className="border-t bg-white p-4">
-      <div className="flex items-end space-x-2">
-        <Button
-          variant="ghost"
-          size="icon"
-          className="mb-2"
-          disabled={disabled}
-        >
-          <Paperclip className="w-4 h-4" />
+    <div className="border-t p-4 bg-white">
+      <div className="flex gap-2">
+        <Button variant="outline" size="icon">
+          <Camera size={16} />
         </Button>
         
-        <div className="flex-1">
-          <Textarea
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
-            onKeyPress={handleKeyPress}
-            placeholder={placeholder}
-            disabled={disabled || sending}
-            className="min-h-[40px] max-h-32 resize-none"
-            rows={1}
-          />
-        </div>
-        
-        <Button
-          variant="ghost"
+        <Input
+          value={newMessage}
+          onChange={(e) => setNewMessage(e.target.value)}
+          onKeyPress={onKeyPress}
+          placeholder="Type your message..."
+          className="flex-1"
+        />
+        <Button 
+          onClick={onSendMessage}
+          disabled={!newMessage.trim()}
           size="icon"
-          className="mb-2"
-          disabled={disabled}
         >
-          <Smile className="w-4 h-4" />
-        </Button>
-        
-        <Button
-          onClick={handleSend}
-          disabled={!message.trim() || disabled || sending}
-          size="icon"
-          className="mb-2"
-        >
-          <Send className="w-4 h-4" />
+          <Send size={16} />
         </Button>
       </div>
     </div>

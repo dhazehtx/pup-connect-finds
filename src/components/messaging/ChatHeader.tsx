@@ -1,58 +1,48 @@
 
 import React from 'react';
-import { Button } from '@/components/ui/button';
+import { CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import { ArrowLeft, Settings } from 'lucide-react';
-import { CardHeader } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { User } from 'lucide-react';
+import { ChatUser, ListingInfo } from '@/types/chat';
 
 interface ChatHeaderProps {
-  onBack: () => void;
-  otherUser: any;
-  isUserOnline: boolean;
-  selectedConversation: any;
+  otherUser: ChatUser;
+  listingInfo?: ListingInfo;
+  otherUserTyping: boolean;
 }
 
-const ChatHeader = ({ 
-  onBack, 
-  otherUser, 
-  isUserOnline, 
-  selectedConversation 
-}: ChatHeaderProps) => {
+const ChatHeader = ({ otherUser, listingInfo, otherUserTyping }: ChatHeaderProps) => {
   return (
-    <CardHeader className="flex flex-row items-center gap-3 border-b p-4">
-      <Button
-        variant="ghost"
-        size="sm"
-        onClick={onBack}
-        className="p-2"
-      >
-        <ArrowLeft className="w-4 h-4" />
-      </Button>
-
-      <Avatar className="w-10 h-10">
-        <AvatarImage src={otherUser?.avatar_url || ''} />
-        <AvatarFallback>
-          {otherUser?.full_name?.charAt(0) || 'U'}
-        </AvatarFallback>
-      </Avatar>
-
-      <div className="flex-1">
-        <h3 className="font-semibold">
-          {otherUser?.full_name || otherUser?.username || 'Anonymous'}
-        </h3>
+    <CardHeader className="border-b bg-white sticky top-0 z-10">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <Avatar className="w-10 h-10">
+            <AvatarImage src={otherUser.avatar} />
+            <AvatarFallback>
+              <User className="w-5 h-5" />
+            </AvatarFallback>
+          </Avatar>
+          <div>
+            <CardTitle className="text-lg flex items-center gap-2">
+              {otherUser.name}
+            </CardTitle>
+            {listingInfo && (
+              <p className="text-sm text-gray-500">
+                About: {listingInfo.name} - ${listingInfo.price}
+              </p>
+            )}
+            {otherUserTyping && (
+              <p className="text-xs text-blue-500">typing...</p>
+            )}
+          </div>
+        </div>
         <div className="flex items-center gap-2">
-          <div className={`w-2 h-2 rounded-full ${
-            isUserOnline ? 'bg-green-500' : 'bg-gray-400'
-          }`} />
-          <span className="text-xs text-muted-foreground">
-            {isUserOnline ? 'Online' : 'Offline'}
-          </span>
+          {listingInfo && (
+            <Badge variant="outline">{listingInfo.breed}</Badge>
+          )}
         </div>
       </div>
-
-      <Button variant="ghost" size="sm" className="p-2">
-        <Settings className="w-4 h-4" />
-      </Button>
     </CardHeader>
   );
 };
