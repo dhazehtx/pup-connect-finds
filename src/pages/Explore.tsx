@@ -177,9 +177,9 @@ const Explore = () => {
     console.log('View details for listing:', listing);
   };
 
-  // Convert filters to SearchFilters format
+  // Convert filters to SearchFilters format with safety checks
   const searchFilters = {
-    query: filters.searchTerm,
+    query: filters.searchTerm || '',
     breed: filters.breed !== 'all' ? filters.breed : undefined,
     minPrice: filters.minPrice ? parseInt(filters.minPrice) : undefined,
     maxPrice: filters.maxPrice ? parseInt(filters.maxPrice) : undefined,
@@ -191,6 +191,8 @@ const Explore = () => {
   };
 
   const handleSearchFilterChange = (key: string, value: any) => {
+    console.log('SearchFilterChange:', key, value);
+    
     const filterMapping: { [key: string]: string } = {
       query: 'searchTerm',
       breed: 'breed',
@@ -220,6 +222,24 @@ const Explore = () => {
     );
   }
 
+  // Add error boundary for SearchFiltersCard
+  const renderSearchFilters = () => {
+    try {
+      return (
+        <SearchFiltersCard
+          showFilters={showSearchFilters}
+          filters={searchFilters}
+          onFilterChange={handleSearchFilterChange}
+          onClearFilters={resetFilters}
+          onToggleFilters={() => setShowSearchFilters(!showSearchFilters)}
+        />
+      );
+    } catch (error) {
+      console.error('Error rendering SearchFiltersCard:', error);
+      return null;
+    }
+  };
+
   return (
     <Layout>
       <div className="min-h-screen bg-gray-50">
@@ -237,14 +257,8 @@ const Explore = () => {
             onQuickFilterClick={handleQuickFilterClick}
           />
 
-          {/* Advanced Search Filters */}
-          <SearchFiltersCard
-            showFilters={showSearchFilters}
-            filters={searchFilters}
-            onFilterChange={handleSearchFilterChange}
-            onClearFilters={resetFilters}
-            onToggleFilters={() => setShowSearchFilters(!showSearchFilters)}
-          />
+          {/* Advanced Search Filters with error boundary */}
+          {renderSearchFilters()}
 
           <div className="mt-6 grid grid-cols-1 lg:grid-cols-4 gap-6">
             <div className="lg:col-span-1">
