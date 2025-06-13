@@ -1,45 +1,38 @@
 
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Download, X, Smartphone } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
+import { Download, X } from 'lucide-react';
+import { useMobileOptimized } from '@/hooks/useMobileOptimized';
 
 interface BeforeInstallPromptEvent extends Event {
-  readonly platforms: string[];
-  readonly userChoice: Promise<{
-    outcome: 'accepted' | 'dismissed';
-    platform: string;
-  }>;
   prompt(): Promise<void>;
+  userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
 }
 
 const PWAInstallPrompt = () => {
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
-  const [showPrompt, setShowPrompt] = useState(false);
+  const [showInstallPrompt, setShowInstallPrompt] = useState(false);
   const [isInstalled, setIsInstalled] = useState(false);
+  const { isMobile } = useMobileOptimized();
 
   useEffect(() => {
-    // Check if app is already installed
-    if (window.matchMedia('(display-mode: standalone)').matches) {
-      setIsInstalled(true);
-      return;
-    }
-
     const handleBeforeInstallPrompt = (e: Event) => {
       e.preventDefault();
       setDeferredPrompt(e as BeforeInstallPromptEvent);
-      
-      // Show install prompt after a delay
-      setTimeout(() => {
-        setShowPrompt(true);
-      }, 5000);
+      setShowInstallPrompt(true);
     };
 
     const handleAppInstalled = () => {
       setIsInstalled(true);
-      setShowPrompt(false);
+      setShowInstallPrompt(false);
       setDeferredPrompt(null);
     };
+
+    // Check if app is already installed
+    if (window.matchMedia('(display-mode: standalone)').matches) {
+      setIsInstalled(true);
+    }
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
     window.addEventListener('appinstalled', handleAppInstalled);
@@ -57,62 +50,63 @@ const PWAInstallPrompt = () => {
     const { outcome } = await deferredPrompt.userChoice;
     
     if (outcome === 'accepted') {
-      setShowPrompt(false);
+      setShowInstallPrompt(false);
     }
     
     setDeferredPrompt(null);
   };
 
   const handleDismiss = () => {
-    setShowPrompt(false);
-    // Don't show again for this session
-    sessionStorage.setItem('pwa-prompt-dismissed', 'true');
+    setShowInstallPrompt(false);
+    // Remember dismissal for this session
+    sessionStorage.setItem('pwa-install-dismissed', 'true');
   };
 
-  // Don't show if already installed or dismissed
-  if (isInstalled || !showPrompt || sessionStorage.getItem('pwa-prompt-dismissed')) {
+  // Don't show if already installed, dismissed, or not on mobile
+  if (isInstalled || !showInstallPrompt || !isMobile) {
+    return null;
+  }
+
+  // Check if dismissed in this session
+  if (sessionStorage.getItem('pwa-install-dismissed')) {
     return null;
   }
 
   return (
-    <div className="fixed bottom-4 left-4 right-4 z-50 md:left-auto md:right-4 md:w-80">
-      <Card className="shadow-lg border-2">
-        <CardContent className="p-4">
-          <div className="flex items-start gap-3">
-            <div className="p-2 bg-blue-100 rounded-lg">
-              <Smartphone className="w-5 h-5 text-blue-600" />
+    <Card className="fixed bottom-20 left-4 right-4 z-50 shadow-lg border-2 border-primary/20">
+      <CardContent className="p-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3 flex-1">
+            <div className="p-2 bg-primary/10 rounded-lg">
+              <Download className="w-5 h-5 text-primary" />
             </div>
-            
             <div className="flex-1">
-              <h3 className="font-semibold text-sm mb-1">
-                Install MY PUP App
-              </h3>
-              <p className="text-xs text-gray-600 mb-3">
-                Get the full experience with offline access and push notifications
+              <h4 className="font-semibold text-sm">Install My Pup App</h4>
+              <p className="text-xs text-muted-foreground">
+                Add to home screen for better experience
               </p>
-              
-              <div className="flex gap-2">
-                <Button 
-                  size="sm" 
-                  onClick={handleInstallClick}
-                  className="flex-1"
-                >
-                  <Download className="w-3 h-3 mr-1" />
-                  Install
-                </Button>
-                <Button 
-                  size="sm" 
-                  variant="ghost" 
-                  onClick={handleDismiss}
-                >
-                  <X className="w-3 h-3" />
-                </Button>
-              </div>
             </div>
           </div>
-        </CardContent>
-      </Card>
-    </div>
+          
+          <div className="flex items-center gap-2">
+            <Button
+              size="sm"
+              onClick={handleInstallClick}
+              className="text-xs"
+            >
+              Install
+            </Button>
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={handleDismiss}
+            >
+              <X className="w-4 h-4" />
+            </Button>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
   );
 };
 

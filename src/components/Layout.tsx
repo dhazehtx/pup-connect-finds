@@ -4,7 +4,9 @@ import Header from './Header';
 import Footer from './Footer';
 import BottomNavigation from './BottomNavigation';
 import MobileTabBar from './mobile/MobileTabBar';
+import MobileNavigation from './mobile/MobileNavigation';
 import StickyBottomNavigation from './StickyBottomNavigation';
+import PWAInstallPrompt from './pwa/PWAInstallPrompt';
 import { useMobileOptimized } from '@/hooks/useMobileOptimized';
 import { cn } from '@/lib/utils';
 
@@ -26,14 +28,17 @@ const Layout = ({ children }: LayoutProps) => {
         {children}
       </main>
 
+      {/* PWA Install Prompt */}
+      <PWAInstallPrompt />
+
       {/* Add sticky bottom navigation for all screens */}
       <StickyBottomNavigation />
 
       {/* Footer for all screens */}
       <Footer />
 
-      {/* Mobile tab bar for mobile */}
-      {isMobile && <MobileTabBar />}
+      {/* Mobile navigation - choose between MobileTabBar and MobileNavigation */}
+      {isMobile && <MobileNavigation />}
     </div>
   );
 };

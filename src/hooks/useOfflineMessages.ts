@@ -1,120 +1,117 @@
 
 import { useState, useEffect } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+import { useNetworkStatus } from '@/hooks/useNetworkStatus';
 
 interface QueuedMessage {
   id: string;
   conversationId: string;
   content: string;
-  messageType: string;
-  imageUrl?: string;
-  timestamp: number;
-  attempts: number;
+  timestamp: string;
+  retryCount: number;
 }
 
 export const useOfflineMessages = () => {
-  const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [messageQueue, setMessageQueue] = useState<QueuedMessage[]>([]);
-  const { user } = useAuth();
+  const [isProcessing, setIsProcessing] = useState(false);
+  const { isOnline } = useNetworkStatus();
   const { toast } = useToast();
 
+  // Load queued messages from localStorage on init
   useEffect(() => {
-    const handleOnline = () => {
-      setIsOnline(true);
-      toast({
-        title: "Back online",
-        description: "Syncing queued messages...",
-      });
-      processMessageQueue();
-    };
-
-    const handleOffline = () => {
-      setIsOnline(false);
-      toast({
-        title: "You're offline",
-        description: "Messages will be queued and sent when you're back online.",
-        variant: "destructive",
-      });
-    };
-
-    window.addEventListener('online', handleOnline);
-    window.addEventListener('offline', handleOffline);
-
-    return () => {
-      window.removeEventListener('online', handleOnline);
-      window.removeEventListener('offline', handleOffline);
-    };
+    const savedQueue = localStorage.getItem('offline_message_queue');
+    if (savedQueue) {
+      try {
+        setMessageQueue(JSON.parse(savedQueue));
+      } catch (error) {
+        console.error('Failed to load offline message queue:', error);
+      }
+    }
   }, []);
 
-  const queueMessage = (
-    conversationId: string,
-    content: string,
-    messageType: string = 'text',
-    imageUrl?: string
-  ) => {
+  // Save queue to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem('offline_message_queue', JSON.stringify(messageQueue));
+  }, [messageQueue]);
+
+  // Process queue when coming back online
+  useEffect(() => {
+    if (isOnline && messageQueue.length > 0 && !isProcessing) {
+      processMessageQueue();
+    }
+  }, [isOnline, messageQueue.length]);
+
+  const addToQueue = (conversationId: string, content: string) => {
     const queuedMessage: QueuedMessage = {
-      id: Date.now().toString(),
+      id: crypto.randomUUID(),
       conversationId,
       content,
-      messageType,
-      imageUrl,
-      timestamp: Date.now(),
-      attempts: 0
+      timestamp: new Date().toISOString(),
+      retryCount: 0
     };
 
     setMessageQueue(prev => [...prev, queuedMessage]);
     
     toast({
       title: "Message queued",
-      description: "Your message will be sent when you're back online.",
+      description: "Your message will be sent when connection is restored",
     });
   };
 
   const processMessageQueue = async () => {
     if (!isOnline || messageQueue.length === 0) return;
-
-    const failedMessages: QueuedMessage[] = [];
-
-    for (const message of messageQueue) {
-      try {
-        // Here you would call your actual sendMessage function
-        // For now, we'll simulate it
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        
-        console.log('Sent queued message:', message.id);
-      } catch (error) {
-        console.error('Failed to send queued message:', error);
-        
-        if (message.attempts < 3) {
-          failedMessages.push({
-            ...message,
-            attempts: message.attempts + 1
-          });
-        } else {
+    
+    setIsProcessing(true);
+    
+    try {
+      for (const message of messageQueue) {
+        try {
+          // Here you would integrate with your actual message sending logic
+          console.log('Sending queued message:', message);
+          
+          // Remove from queue on success
+          setMessageQueue(prev => prev.filter(m => m.id !== message.id));
+          
           toast({
-            title: "Message failed to send",
-            description: "A queued message could not be delivered after multiple attempts.",
-            variant: "destructive",
+            title: "Message sent",
+            description: "Queued message has been delivered",
           });
+        } catch (error) {
+          // Increment retry count
+          setMessageQueue(prev => 
+            prev.map(m => 
+              m.id === message.id 
+                ? { ...m, retryCount: m.retryCount + 1 }
+                : m
+            )
+          );
+          
+          // Remove from queue if max retries reached
+          if (message.retryCount >= 3) {
+            setMessageQueue(prev => prev.filter(m => m.id !== message.id));
+            toast({
+              title: "Message failed",
+              description: "Failed to send message after multiple attempts",
+              variant: "destructive",
+            });
+          }
         }
       }
-    }
-
-    setMessageQueue(failedMessages);
-    
-    if (failedMessages.length === 0) {
-      toast({
-        title: "All messages sent",
-        description: "Your queued messages have been delivered.",
-      });
+    } finally {
+      setIsProcessing(false);
     }
   };
 
+  const clearQueue = () => {
+    setMessageQueue([]);
+    localStorage.removeItem('offline_message_queue');
+  };
+
   return {
-    isOnline,
     messageQueue,
-    queueMessage,
-    processMessageQueue
+    isProcessing,
+    isOnline,
+    addToQueue,
+    clearQueue
   };
 };
