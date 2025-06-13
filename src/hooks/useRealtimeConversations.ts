@@ -38,7 +38,7 @@ export const useRealtimeConversations = () => {
           
           const { data: profileData } = await supabase
             .from('profiles')
-            .select('full_name, username, avatar_url')
+            .select('id, full_name, username, avatar_url')
             .eq('id', otherUserId)
             .single();
 
@@ -51,15 +51,27 @@ export const useRealtimeConversations = () => {
             .is('read_at', null);
 
           return {
-            ...conv,
-            listing: conv.dog_listings,
-            other_user: profileData || {
-              full_name: null,
-              username: null,
-              avatar_url: null
-            },
+            id: conv.id,
+            listing_id: conv.listing_id,
+            buyer_id: conv.buyer_id,
+            seller_id: conv.seller_id,
+            created_at: conv.created_at,
+            updated_at: conv.updated_at,
+            last_message_at: conv.last_message_at,
+            listing: conv.dog_listings ? {
+              id: conv.listing_id || '',
+              dog_name: conv.dog_listings.dog_name,
+              breed: conv.dog_listings.breed,
+              image_url: conv.dog_listings.image_url
+            } : undefined,
+            other_user: profileData ? {
+              id: profileData.id,
+              full_name: profileData.full_name || '',
+              username: profileData.username,
+              avatar_url: profileData.avatar_url
+            } : undefined,
             unread_count: unreadCount || 0
-          };
+          } as ExtendedConversation;
         })
       );
 

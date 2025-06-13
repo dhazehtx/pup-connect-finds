@@ -1,184 +1,107 @@
 
-import React, { useState, useEffect } from 'react';
-import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+import React from 'react';
+import { Check, CheckCheck, Clock } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
-import { Shield, Volume2, Play, Pause, Download, MoreVertical } from 'lucide-react';
-import { useMessageEncryption } from '@/hooks/useMessageEncryption';
-import MessageReactions from './MessageReactions';
-import MessageStatusIndicator from './MessageStatusIndicator';
-import { Message } from '@/types/messaging';
 
-interface EnhancedMessageBubbleProps {
-  message: Message;
-  isOwn: boolean;
-  senderName?: string;
-  senderAvatar?: string;
-  onAddReaction: (messageId: string, emoji: string) => void;
-  onPlayVoice?: (voiceUrl: string) => void;
+interface Message {
+  id: string;
+  content: string;
+  sender_id: string;
+  created_at: string;
+  read_at?: string;
+  message_type?: string;
+  image_url?: string;
 }
 
-const EnhancedMessageBubble = ({
+interface MessageReaction {
+  id: string;
+  message_id: string;
+  user_id: string;
+  emoji: string;
+  created_at: string;
+}
+
+interface UnifiedMessageBubbleProps {
+  message: Message;
+  isOwn: boolean;
+  showTimestamp?: boolean;
+  onReactionClick?: (messageId: string) => void;
+  reactions?: MessageReaction[];
+}
+
+const UnifiedMessageBubble = ({
   message,
   isOwn,
-  senderName,
-  senderAvatar,
-  onAddReaction,
-  onPlayVoice
-}: EnhancedMessageBubbleProps) => {
-  const [decryptedContent, setDecryptedContent] = useState<string | null>(null);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [showActions, setShowActions] = useState(false);
-  const { decryptMessage } = useMessageEncryption();
-
-  // Decrypt message if encrypted
-  useEffect(() => {
-    if (message.is_encrypted && message.encrypted_content && message.encryption_key_id) {
-      decryptMessage(message.encrypted_content, message.encryption_key_id).then(content => {
-        setDecryptedContent(content);
-      });
-    }
-  }, [message, decryptMessage]);
-
-  const displayContent = message.is_encrypted ? decryptedContent : message.content;
-
-  const handleVoicePlayback = () => {
-    if (message.voice_url && onPlayVoice) {
-      onPlayVoice(message.voice_url);
-      setIsPlaying(!isPlaying);
-    }
-  };
-
-  const getMessageStatus = () => {
+  showTimestamp = false,
+  onReactionClick,
+  reactions = []
+}: UnifiedMessageBubbleProps) => {
+  const getStatusIcon = () => {
     if (!isOwn) return null;
-    if (message.read_at) return 'read';
-    return 'delivered';
+    
+    if (message.read_at) {
+      return <CheckCheck size={12} className="text-blue-500" />;
+    }
+    return <Check size={12} className="text-gray-400" />;
   };
 
-  const messageTime = formatDistanceToNow(new Date(message.created_at), { addSuffix: true });
+  const formatTime = (timestamp: string) => {
+    return formatDistanceToNow(new Date(timestamp), { addSuffix: true });
+  };
+
+  // Group reactions by emoji and count them
+  const groupedReactions = reactions.reduce((acc, reaction) => {
+    if (!acc[reaction.emoji]) {
+      acc[reaction.emoji] = [];
+    }
+    acc[reaction.emoji].push(reaction.user_id);
+    return acc;
+  }, {} as { [emoji: string]: string[] });
 
   return (
-    <div
-      className={`flex gap-3 group ${isOwn ? 'flex-row-reverse' : 'flex-row'}`}
-      onMouseEnter={() => setShowActions(true)}
-      onMouseLeave={() => setShowActions(false)}
-    >
-      {/* Avatar */}
-      {!isOwn && (
-        <Avatar className="w-8 h-8 flex-shrink-0">
-          <AvatarImage src={senderAvatar} />
-          <AvatarFallback className="text-xs">
-            {senderName?.charAt(0) || 'U'}
-          </AvatarFallback>
-        </Avatar>
-      )}
-
-      {/* Message Content */}
-      <div className={`max-w-xs lg:max-w-md ${isOwn ? 'text-right' : 'text-left'}`}>
-        {/* Sender Name (for group chats) */}
-        {!isOwn && senderName && (
-          <p className="text-xs text-muted-foreground mb-1">{senderName}</p>
-        )}
-
-        {/* Message Bubble */}
+    <div className={`flex ${isOwn ? 'justify-end' : 'justify-start'} mb-2`}>
+      <div className="max-w-xs lg:max-w-md">
         <div
-          className={`rounded-lg px-3 py-2 ${
+          className={`px-4 py-2 rounded-lg ${
             isOwn
-              ? 'bg-primary text-primary-foreground'
-              : 'bg-muted text-muted-foreground'
+              ? 'bg-blue-600 text-white'
+              : 'bg-gray-100 text-gray-900'
           }`}
         >
-          {/* Encryption Indicator */}
-          {message.is_encrypted && (
-            <div className="flex items-center gap-1 mb-2">
-              <Shield size={12} className="opacity-70" />
-              <span className="text-xs opacity-70">Encrypted</span>
-            </div>
-          )}
-
-          {/* Image Message */}
           {message.message_type === 'image' && message.image_url && (
-            <div className="mb-2">
-              <img
-                src={message.image_url}
-                alt="Shared image"
-                className="rounded max-w-full h-auto cursor-pointer hover:opacity-90 transition-opacity"
-                onClick={() => window.open(message.image_url, '_blank')}
-              />
-            </div>
-          )}
-
-          {/* Voice Message */}
-          {message.message_type === 'voice' && message.voice_url && (
-            <div className="flex items-center gap-2 mb-2">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleVoicePlayback}
-                className="h-8 w-8 p-0"
-              >
-                {isPlaying ? <Pause size={14} /> : <Play size={14} />}
-              </Button>
-              <div className="flex-1">
-                <div className="h-1 bg-muted-foreground/20 rounded">
-                  <div className="h-1 bg-current rounded" style={{ width: '60%' }}></div>
-                </div>
-              </div>
-              <Volume2 size={12} className="opacity-70" />
-            </div>
-          )}
-
-          {/* Text Content */}
-          {displayContent && (
-            <p className="text-sm break-words">{displayContent}</p>
-          )}
-
-          {/* Loading indicator for encrypted messages */}
-          {message.is_encrypted && !decryptedContent && (
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 border border-current border-t-transparent rounded-full animate-spin"></div>
-              <span className="text-xs opacity-70">Decrypting...</span>
-            </div>
-          )}
-        </div>
-
-        {/* Message Info & Actions */}
-        <div className={`flex items-center gap-2 mt-1 ${isOwn ? 'justify-end' : 'justify-start'}`}>
-          <span className="text-xs text-muted-foreground">{messageTime}</span>
-          
-          {/* Status Indicator for own messages */}
-          {isOwn && (
-            <MessageStatusIndicator 
-              status={getMessageStatus() || 'sent'} 
-              size={12}
+            <img
+              src={message.image_url}
+              alt="Shared image"
+              className="max-w-full h-auto rounded mb-2"
             />
           )}
-
-          {/* Quick Actions (visible on hover) */}
-          {showActions && (
-            <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-6 w-6 p-0"
-              >
-                <MoreVertical size={12} />
-              </Button>
-            </div>
-          )}
+          
+          <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+          
+          <div className="flex items-center justify-between mt-1">
+            <span className="text-xs opacity-70">
+              {showTimestamp ? formatTime(message.created_at) : new Date(message.created_at).toLocaleTimeString()}
+            </span>
+            {getStatusIcon()}
+          </div>
         </div>
 
-        {/* Reactions */}
-        <MessageReactions
-          messageId={message.id}
-          reactions={message.reactions}
-          onAddReaction={onAddReaction}
-          currentUserId="current-user-id" // Replace with actual current user ID
-        />
+        {Object.keys(groupedReactions).length > 0 && (
+          <div className="flex flex-wrap gap-1 mt-1">
+            {Object.entries(groupedReactions).map(([emoji, userIds]) => (
+              <span
+                key={emoji}
+                className="text-xs bg-gray-200 rounded-full px-2 py-1 cursor-pointer hover:bg-gray-300"
+                onClick={() => onReactionClick?.(message.id)}
+              >
+                {emoji} {userIds.length}
+              </span>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
 };
 
-export default EnhancedMessageBubble;
+export default UnifiedMessageBubble;

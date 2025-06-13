@@ -12,6 +12,7 @@ import MessagingStatusIndicator from './MessagingStatusIndicator';
 import { useMessageReactions } from '@/hooks/useMessageReactions';
 import { useMessageThreads } from '@/hooks/useMessageThreads';
 import { useFileUpload } from '@/hooks/useFileUpload';
+import { ExtendedConversation } from '@/types/messaging';
 
 const EnhancedMessagingInterface = () => {
   const { user } = useAuth();
@@ -83,6 +84,29 @@ const EnhancedMessagingInterface = () => {
     console.log('Reply to message:', message.id);
   };
 
+  // Convert ExtendedConversation to Conversation format for ConversationList
+  const conversationsForList = conversations.map((conv: ExtendedConversation) => ({
+    id: conv.id,
+    listing_id: conv.listing_id || null,
+    buyer_id: conv.buyer_id,
+    seller_id: conv.seller_id,
+    created_at: conv.created_at,
+    updated_at: conv.updated_at,
+    last_message_at: conv.last_message_at || null,
+    listing: conv.listing ? {
+      dog_name: conv.listing.dog_name,
+      breed: conv.listing.breed || '',
+      image_url: conv.listing.image_url || null
+    } : undefined,
+    other_user: conv.other_user ? {
+      id: conv.other_user.id,
+      full_name: conv.other_user.full_name || null,
+      username: conv.other_user.username || null,
+      avatar_url: conv.other_user.avatar_url || null
+    } : undefined,
+    unread_count: conv.unread_count
+  }));
+
   const selectedConversation = conversations.find(c => c.id === selectedConversationId);
   const otherUser = selectedConversation?.other_user;
 
@@ -102,7 +126,7 @@ const EnhancedMessagingInterface = () => {
 
         <div className="flex-1 overflow-hidden">
           <ConversationList
-            conversations={conversations}
+            conversations={conversationsForList}
             selectedConversationId={selectedConversationId || ''}
             onSelectConversation={handleSelectConversation}
             loading={loading}
