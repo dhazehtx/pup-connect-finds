@@ -6,6 +6,10 @@ export interface Message {
   message_type: 'image' | 'text' | 'file' | 'voice';
   content: string;
   image_url?: string;
+  voice_url?: string;
+  file_name?: string;
+  file_size?: number;
+  file_type?: string;
   created_at: string;
   read_at?: string;
   is_encrypted?: boolean;

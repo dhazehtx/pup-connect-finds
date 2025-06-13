@@ -2,20 +2,7 @@
 import React, { useEffect, useRef } from 'react';
 import MessageBubble from './MessageBubble';
 import { ScrollArea } from '@/components/ui/scroll-area';
-
-interface Message {
-  id: string;
-  conversation_id: string;
-  content: string;
-  message_type: string;
-  image_url?: string;
-  voice_url?: string;
-  created_at: string;
-  sender_id: string;
-  file_name?: string;
-  file_size?: number;
-  file_type?: string;
-}
+import { Message } from '@/types/chat';
 
 interface MessagesListProps {
   messages: Message[];

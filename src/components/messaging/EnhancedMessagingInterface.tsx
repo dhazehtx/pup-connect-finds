@@ -108,7 +108,13 @@ const EnhancedMessagingInterface = () => {
   }));
 
   const selectedConversation = conversations.find(c => c.id === selectedConversationId);
-  const otherUser = selectedConversation?.other_user;
+  
+  // Convert other_user to ChatUser format
+  const otherUser = selectedConversation?.other_user ? {
+    id: selectedConversation.other_user.id,
+    name: selectedConversation.other_user.full_name || selectedConversation.other_user.username || 'Unknown User',
+    avatar: selectedConversation.other_user.avatar_url || undefined
+  } : undefined;
 
   if (showConversationList || !selectedConversationId) {
     return (
