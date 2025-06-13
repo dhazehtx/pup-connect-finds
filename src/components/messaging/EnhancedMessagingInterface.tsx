@@ -12,7 +12,6 @@ import MessagingStatusIndicator from './MessagingStatusIndicator';
 import { useMessageReactions } from '@/hooks/useMessageReactions';
 import { useMessageThreads } from '@/hooks/useMessageThreads';
 import { useFileUpload } from '@/hooks/useFileUpload';
-import { ExtendedConversation } from '@/types/messaging';
 import { Message } from '@/types/chat';
 
 const EnhancedMessagingInterface = () => {
@@ -85,8 +84,8 @@ const EnhancedMessagingInterface = () => {
     console.log('Reply to message:', message.id);
   };
 
-  // Convert ExtendedConversation to Conversation format for ConversationList
-  const conversationsForList = conversations.map((conv: ExtendedConversation) => ({
+  // Convert basic conversations to the format expected by ConversationList
+  const conversationsForList = conversations.map((conv) => ({
     id: conv.id,
     listing_id: conv.listing_id || null,
     buyer_id: conv.buyer_id,
@@ -94,27 +93,20 @@ const EnhancedMessagingInterface = () => {
     created_at: conv.created_at,
     updated_at: conv.updated_at,
     last_message_at: conv.last_message_at || null,
-    listing: conv.listing ? {
-      dog_name: conv.listing.dog_name,
-      breed: conv.listing.breed || '',
-      image_url: conv.listing.image_url || null
-    } : undefined,
-    other_user: conv.other_user ? {
-      id: conv.other_user.id,
-      full_name: conv.other_user.full_name || null,
-      username: conv.other_user.username || null,
-      avatar_url: conv.other_user.avatar_url || null
-    } : undefined,
-    unread_count: conv.unread_count
+    listing: undefined,
+    other_user: undefined,
+    unread_count: 0
   }));
 
   const selectedConversation = conversations.find(c => c.id === selectedConversationId);
   
-  // Convert other_user to ChatUser format
-  const otherUser = selectedConversation?.other_user ? {
-    id: selectedConversation.other_user.id,
-    name: selectedConversation.other_user.full_name || selectedConversation.other_user.username || 'Unknown User',
-    avatar: selectedConversation.other_user.avatar_url || undefined
+  // Create a simple other user object for the chat header
+  const otherUser = selectedConversation ? {
+    id: selectedConversation.seller_id === user?.id 
+      ? selectedConversation.buyer_id 
+      : selectedConversation.seller_id,
+    name: 'User',
+    avatar: undefined
   } : undefined;
 
   if (showConversationList || !selectedConversationId) {
