@@ -1,133 +1,87 @@
 
-import React, { useState, useEffect } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import React, { useState } from 'react';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Send, X } from 'lucide-react';
-import { useMessageThreads } from '@/hooks/useMessageThreads';
-import { useAuth } from '@/contexts/AuthContext';
+import { X, Send } from 'lucide-react';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface MessageThreadProps {
-  parentMessageId: string;
-  isOpen: boolean;
-  onClose: () => void;
   parentMessage: any;
+  onClose: () => void;
+  conversationId: string;
 }
 
-const MessageThread = ({
-  parentMessageId,
-  isOpen,
-  onClose,
-  parentMessage
-}: MessageThreadProps) => {
-  const [newReply, setNewReply] = useState('');
-  const [sending, setSending] = useState(false);
-  const { user } = useAuth();
-  const { threads, fetchThreadMessages, sendThreadReply } = useMessageThreads();
+const MessageThread = ({ parentMessage, onClose, conversationId }: MessageThreadProps) => {
+  const [replyText, setReplyText] = useState('');
+  const [replies, setReplies] = useState<any[]>([]);
 
-  const threadMessages = threads[parentMessageId] || [];
+  const handleSendReply = () => {
+    if (!replyText.trim()) return;
 
-  useEffect(() => {
-    if (isOpen && parentMessageId) {
-      fetchThreadMessages(parentMessageId);
-    }
-  }, [isOpen, parentMessageId, fetchThreadMessages]);
+    const newReply = {
+      id: Date.now().toString(),
+      content: replyText,
+      sender_id: 'current_user',
+      created_at: new Date().toISOString()
+    };
 
-  const handleSendReply = async () => {
-    if (!newReply.trim() || sending) return;
-
-    try {
-      setSending(true);
-      await sendThreadReply(parentMessageId, newReply);
-      setNewReply('');
-    } catch (error) {
-      console.error('Failed to send reply:', error);
-    } finally {
-      setSending(false);
-    }
-  };
-
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      handleSendReply();
-    }
+    setReplies([...replies, newReply]);
+    setReplyText('');
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-md h-[80vh] flex flex-col">
-        <DialogHeader>
-          <DialogTitle className="flex items-center justify-between">
-            <span>Thread</span>
-            <Button variant="ghost" size="icon" onClick={onClose}>
-              <X size={16} />
-            </Button>
-          </DialogTitle>
-        </DialogHeader>
+    <Card className="h-full flex flex-col">
+      <CardHeader className="border-b">
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-sm">Thread</CardTitle>
+          <Button variant="ghost" size="sm" onClick={onClose}>
+            <X className="w-4 h-4" />
+          </Button>
+        </div>
+      </CardHeader>
 
-        {/* Parent Message */}
-        <div className="border-b pb-3">
-          <div className="bg-muted rounded-lg p-3">
-            <p className="text-sm">{parentMessage?.content}</p>
-            <p className="text-xs text-muted-foreground mt-1">
-              Original message
-            </p>
-          </div>
+      <CardContent className="flex-1 flex flex-col p-4 space-y-4">
+        {/* Parent message */}
+        <div className="p-3 bg-muted rounded-lg">
+          <p className="text-sm font-medium mb-1">Original message:</p>
+          <p className="text-sm">{parentMessage.content}</p>
         </div>
 
-        {/* Thread Messages */}
-        <div className="flex-1 overflow-y-auto space-y-3 py-3">
-          {threadMessages.map((message) => {
-            const isOwn = message.sender_id === user?.id;
-            
-            return (
-              <div
-                key={message.id}
-                className={`flex ${isOwn ? 'justify-end' : 'justify-start'}`}
-              >
-                <div className={`max-w-[80%] ${isOwn ? 'order-2' : 'order-1'}`}>
-                  <div
-                    className={`p-2 rounded-lg text-sm ${
-                      isOwn
-                        ? 'bg-primary text-primary-foreground'
-                        : 'bg-muted'
-                    }`}
-                  >
-                    <p>{message.content}</p>
-                  </div>
-                  <p className={`text-xs text-muted-foreground mt-1 ${
-                    isOwn ? 'text-right' : 'text-left'
-                  }`}>
-                    {message.sender_name || 'Unknown'}
-                  </p>
-                </div>
+        {/* Thread replies */}
+        <ScrollArea className="flex-1">
+          <div className="space-y-3">
+            {replies.map((reply) => (
+              <div key={reply.id} className="p-2 border rounded-lg">
+                <p className="text-sm">{reply.content}</p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {new Date(reply.created_at).toLocaleTimeString()}
+                </p>
               </div>
-            );
-          })}
-        </div>
-
-        {/* Reply Input */}
-        <div className="border-t pt-3">
-          <div className="flex gap-2">
-            <Input
-              value={newReply}
-              onChange={(e) => setNewReply(e.target.value)}
-              placeholder="Reply to thread..."
-              onKeyPress={handleKeyPress}
-              disabled={sending}
-            />
-            <Button
-              onClick={handleSendReply}
-              disabled={!newReply.trim() || sending}
-              size="icon"
-            >
-              <Send size={16} />
-            </Button>
+            ))}
           </div>
+        </ScrollArea>
+
+        {/* Reply input */}
+        <div className="flex gap-2">
+          <Input
+            value={replyText}
+            onChange={(e) => setReplyText(e.target.value)}
+            placeholder="Reply to thread..."
+            className="flex-1"
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                handleSendReply();
+              }
+            }}
+          />
+          <Button size="sm" onClick={handleSendReply} disabled={!replyText.trim()}>
+            <Send className="w-4 h-4" />
+          </Button>
         </div>
-      </DialogContent>
-    </Dialog>
+      </CardContent>
+    </Card>
   );
 };
 

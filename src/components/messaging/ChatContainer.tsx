@@ -1,21 +1,22 @@
 
-import React, { useEffect } from 'react';
+import React from 'react';
+import { Card } from '@/components/ui/card';
+import ChatHeader from './ChatHeader';
 import MessagesList from './MessagesList';
 import EnhancedMessageInput from './EnhancedMessageInput';
+import EmojiPicker from './EmojiPicker';
 import MessageThread from './MessageThread';
-import MessageReactionsPicker from './MessageReactionsPicker';
-import { useMessageReactions } from '@/hooks/useMessageReactions';
-import { useTypingIndicators } from '@/hooks/useTypingIndicators';
+import { Message } from '@/types/chat';
 
 interface ChatContainerProps {
   messages: any[];
   user: any;
-  reactions: Record<string, any[]>;
+  reactions: any;
   getThreadCount: (messageId: string) => number;
   onReactionButtonClick: (event: React.MouseEvent, messageId: string) => void;
   onReplyToMessage: (message: any) => void;
   onReactionToggle: (messageId: string, emoji: string) => void;
-  sendMessage: (conversationId: string, content: string, type?: string, fileUrl?: string) => Promise<any>;
+  sendMessage: (conversationId: string, content: string, messageType?: string, imageUrl?: string) => Promise<any>;
   conversationId: string;
   reactionPickerState: {
     isOpen: boolean;
@@ -31,7 +32,7 @@ interface ChatContainerProps {
   };
   closeThread: () => void;
   onSendVoiceMessage: (audioUrl: string, duration: number) => Promise<void>;
-  onBack?: () => void;
+  onBack: () => void;
 }
 
 const ChatContainer = ({
@@ -52,75 +53,103 @@ const ChatContainer = ({
   onSendVoiceMessage,
   onBack
 }: ChatContainerProps) => {
-  const { fetchReactions } = useMessageReactions();
-  const { getTypingUsers } = useTypingIndicators();
-
-  useEffect(() => {
-    if (messages.length > 0) {
-      const messageIds = messages.map(m => m.id);
-      messageIds.forEach(id => fetchReactions(id));
-    }
-  }, [messages, fetchReactions]);
-
-  const typingUsers = getTypingUsers(conversationId);
-
-  const handleSendMessage = async (content: string, type = 'text', options?: any) => {
-    await sendMessage(conversationId, content, type, options?.imageUrl || options?.fileUrl);
+  const handleSendMessage = async (content: string, messageType = 'text', options: any = {}) => {
+    await sendMessage(conversationId, content, messageType, options.imageUrl);
   };
 
-  const handleSendVoiceMessage = async (audioUrl: string, duration: number): Promise<void> => {
-    await onSendVoiceMessage(audioUrl, duration);
+  const handleFileSelect = async (file: File) => {
+    // Mock file handling for now
+    const fileName = file.name;
+    const fileType = file.type.startsWith('image/') ? 'image' : 'file';
+    await handleSendMessage(`Shared ${fileType}: ${fileName}`, fileType);
   };
 
-  const handleFileSelect = async (file: File): Promise<void> => {
-    console.log('File selected:', file.name);
-    // Implementation for file handling
-  };
+  // Convert messages to the Message type expected by MessagesList
+  const typedMessages: Message[] = messages.filter((msg): msg is any => {
+    const validTypes = ['image', 'text', 'file', 'voice'];
+    return (
+      typeof msg.id === 'string' &&
+      typeof msg.conversation_id === 'string' &&
+      typeof msg.sender_id === 'string' &&
+      typeof msg.content === 'string' &&
+      typeof msg.created_at === 'string' &&
+      validTypes.includes(msg.message_type)
+    );
+  }).map((msg): Message => ({
+    id: msg.id,
+    conversation_id: msg.conversation_id,
+    sender_id: msg.sender_id,
+    message_type: msg.message_type as 'image' | 'text' | 'file' | 'voice',
+    content: msg.content,
+    image_url: msg.image_url,
+    voice_url: msg.voice_url,
+    file_name: msg.file_name,
+    file_size: msg.file_size,
+    file_type: msg.file_type,
+    created_at: msg.created_at,
+    read_at: msg.read_at,
+    is_encrypted: msg.is_encrypted
+  }));
 
   return (
-    <div className="flex flex-col h-full">
-      <MessagesList
-        messages={messages}
-        user={user}
-        reactions={reactions}
-        getThreadCount={getThreadCount}
-        onReactionButtonClick={onReactionButtonClick}
-        onReplyToMessage={onReplyToMessage}
-        onReactionToggle={onReactionToggle}
-        conversationId={conversationId}
+    <div className="h-full flex flex-col">
+      <ChatHeader
+        onBack={onBack}
+        otherUser={{ id: 'other', name: 'User', avatar: undefined }}
+        otherUserTyping={false}
+        isUserOnline={true}
       />
 
-      {typingUsers.length > 0 && (
-        <div className="px-4 py-2 text-sm text-muted-foreground">
-          {typingUsers.map(u => u.username).join(', ')} {typingUsers.length === 1 ? 'is' : 'are'} typing...
+      <div className="flex-1 flex">
+        <div className="flex-1 flex flex-col">
+          <MessagesList
+            messages={typedMessages}
+            user={user}
+            reactions={reactions}
+            getThreadCount={getThreadCount}
+            onReactionButtonClick={onReactionButtonClick}
+            onReplyToMessage={onReplyToMessage}
+            onReactionToggle={onReactionToggle}
+            conversationId={conversationId}
+          />
+
+          <EnhancedMessageInput
+            conversationId={conversationId}
+            onSendMessage={handleSendMessage}
+            onSendVoiceMessage={onSendVoiceMessage}
+            onFileSelect={handleFileSelect}
+            placeholder="Type your message..."
+          />
         </div>
-      )}
 
-      <EnhancedMessageInput
-        conversationId={conversationId}
-        onSendMessage={handleSendMessage}
-        onSendVoiceMessage={handleSendVoiceMessage}
-        onFileSelect={handleFileSelect}
-        placeholder="Type a message..."
-      />
+        {threadState.isOpen && threadState.parentMessage && (
+          <div className="w-96 border-l bg-background">
+            <MessageThread
+              parentMessage={threadState.parentMessage}
+              onClose={closeThread}
+              conversationId={conversationId}
+            />
+          </div>
+        )}
+      </div>
 
-      {reactionPickerState.isOpen && reactionPickerState.messageId && (
-        <MessageReactionsPicker
-          messageId={reactionPickerState.messageId}
-          onReactionAdd={onReactionAdd}
-          isOpen={reactionPickerState.isOpen}
-          onClose={closeReactionPicker}
-          position={reactionPickerState.position || undefined}
-        />
-      )}
-
-      {threadState.isOpen && threadState.parentMessageId && (
-        <MessageThread
-          parentMessageId={threadState.parentMessageId}
-          isOpen={threadState.isOpen}
-          onClose={closeThread}
-          parentMessage={threadState.parentMessage}
-        />
+      {reactionPickerState.isOpen && reactionPickerState.position && (
+        <div 
+          className="fixed z-50"
+          style={{
+            left: reactionPickerState.position.x,
+            top: reactionPickerState.position.y - 60
+          }}
+        >
+          <EmojiPicker
+            onEmojiSelect={(emoji) => {
+              if (reactionPickerState.messageId) {
+                onReactionAdd(reactionPickerState.messageId, emoji);
+              }
+            }}
+            onClose={closeReactionPicker}
+          />
+        </div>
       )}
     </div>
   );

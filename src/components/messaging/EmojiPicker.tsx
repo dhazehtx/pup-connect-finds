@@ -9,44 +9,23 @@ interface EmojiPickerProps {
 }
 
 const EmojiPicker = ({ onEmojiSelect, onClose }: EmojiPickerProps) => {
-  const emojis = [
-    '😀', '😃', '😄', '😁', '😅', '😂', '🤣', '😊', '😇', '🙂',
-    '😉', '😌', '😍', '🥰', '😘', '😗', '😙', '😚', '😋', '😛',
-    '😝', '😜', '🤪', '🤨', '🧐', '🤓', '😎', '🤩', '🥳', '😏',
-    '😒', '😞', '😔', '😟', '😕', '🙁', '☹️', '😣', '😖', '😫',
-    '😩', '🥺', '😢', '😭', '😤', '😠', '😡', '🤬', '🤯', '😳',
-    '🥵', '🥶', '😱', '😨', '😰', '😥', '😓', '🤗', '🤔', '🤭',
-    '🤫', '🤥', '😶', '😐', '😑', '😬', '🙄', '😯', '😦', '😧',
-    '😮', '😲', '🥱', '😴', '🤤', '😪', '😵', '🤐', '🥴', '🤢',
-    '👍', '👎', '👌', '✌️', '🤞', '🤟', '🤘', '🤙', '👈', '👉',
-    '❤️', '🧡', '💛', '💚', '💙', '💜', '🖤', '🤍', '🤎', '💔'
-  ];
+  const emojis = ['👍', '❤️', '😂', '😮', '😢', '😡', '👏', '🔥'];
 
   return (
-    <Card className="w-64 max-h-48 overflow-y-auto">
+    <Card className="w-64 shadow-lg">
       <CardContent className="p-2">
-        <div className="grid grid-cols-8 gap-1">
-          {emojis.map((emoji, index) => (
+        <div className="grid grid-cols-4 gap-1">
+          {emojis.map((emoji) => (
             <Button
-              key={index}
+              key={emoji}
               variant="ghost"
               size="sm"
-              className="p-1 h-8 w-8"
+              className="h-10 w-10 text-lg"
               onClick={() => onEmojiSelect(emoji)}
             >
               {emoji}
             </Button>
           ))}
-        </div>
-        <div className="mt-2 pt-2 border-t">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={onClose}
-            className="w-full"
-          >
-            Close
-          </Button>
         </div>
       </CardContent>
     </Card>

@@ -1,9 +1,11 @@
 
 import React from 'react';
-import { MessageCircle, User } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { User, MessageCircle } from 'lucide-react';
+import { formatDistanceToNow } from 'date-fns';
 
 interface Conversation {
   id: string;
@@ -13,17 +15,9 @@ interface Conversation {
   created_at: string;
   updated_at: string;
   last_message_at: string | null;
-  listing?: {
-    dog_name: string;
-    breed: string;
-    image_url: string | null;
-  };
-  other_user?: {
-    full_name: string | null;
-    username: string | null;
-    avatar_url: string | null;
-  };
-  unread_count?: number;
+  listing?: any;
+  other_user?: any;
+  unread_count: number;
 }
 
 interface ConversationListProps {
@@ -31,95 +25,89 @@ interface ConversationListProps {
   selectedConversationId: string;
   onSelectConversation: (conversationId: string) => void;
   loading: boolean;
-  isUserOnline?: (userId: string) => boolean;
 }
 
 const ConversationList = ({ 
   conversations, 
   selectedConversationId, 
   onSelectConversation, 
-  loading,
-  isUserOnline 
+  loading 
 }: ConversationListProps) => {
   if (loading) {
     return (
-      <div className="text-center py-12">
-        <div className="animate-spin rounded-full h-8 w-8 border-4 border-blue-600 border-t-transparent mx-auto mb-4"></div>
-        <p className="text-gray-600">Loading conversations...</p>
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
       </div>
     );
   }
 
   if (conversations.length === 0) {
     return (
-      <div className="text-center py-12">
-        <MessageCircle className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-        <p className="text-gray-600">No conversations yet</p>
-        <p className="text-sm text-gray-500 mt-1">
-          Start browsing listings to connect with breeders
-        </p>
+      <div className="flex flex-col items-center justify-center h-64 text-center p-6">
+        <MessageCircle className="w-12 h-12 text-muted-foreground mb-4" />
+        <h3 className="text-lg font-semibold mb-2">No conversations yet</h3>
+        <p className="text-muted-foreground">Start a conversation by messaging a breeder about their listing.</p>
       </div>
     );
   }
 
   return (
-    <div className="space-y-2">
-      {conversations.map((conversation) => (
-        <Card 
-          key={conversation.id}
-          className={`cursor-pointer transition-colors hover:bg-gray-50 ${
-            selectedConversationId === conversation.id ? 'bg-blue-50 border-blue-200' : ''
-          }`}
-          onClick={() => onSelectConversation(conversation.id)}
-        >
-          <CardContent className="p-4">
-            <div className="flex items-center space-x-3">
-              <div className="relative">
-                <Avatar className="w-12 h-12">
-                  <AvatarImage src={conversation.other_user?.avatar_url || ''} />
+    <ScrollArea className="h-full">
+      <div className="space-y-2 p-4">
+        {conversations.map((conversation) => (
+          <Card
+            key={conversation.id}
+            className={`cursor-pointer transition-colors hover:bg-muted/50 ${
+              selectedConversationId === conversation.id ? 'bg-muted' : ''
+            }`}
+            onClick={() => onSelectConversation(conversation.id)}
+          >
+            <CardContent className="p-4">
+              <div className="flex items-start gap-3">
+                <Avatar className="w-10 h-10">
+                  <AvatarImage src={conversation.other_user?.avatar_url} />
                   <AvatarFallback>
-                    <User className="w-6 h-6" />
+                    <User className="w-5 h-5" />
                   </AvatarFallback>
                 </Avatar>
-                {conversation.unread_count && conversation.unread_count > 0 && (
-                  <Badge 
-                    variant="destructive" 
-                    className="absolute -top-2 -right-2 h-6 w-6 rounded-full p-0 flex items-center justify-center text-xs"
-                  >
-                    {conversation.unread_count}
-                  </Badge>
-                )}
-              </div>
-              
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center justify-between">
-                  <h3 className="font-semibold text-gray-900 truncate">
-                    {conversation.other_user?.full_name || conversation.other_user?.username || 'Anonymous'}
-                  </h3>
-                  {conversation.last_message_at && (
-                    <span className="text-xs text-gray-500">
-                      {new Date(conversation.last_message_at).toLocaleDateString()}
-                    </span>
+                
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between mb-1">
+                    <h4 className="font-medium truncate">
+                      {conversation.other_user?.full_name || 
+                       conversation.other_user?.username || 
+                       'Unknown User'}
+                    </h4>
+                    {conversation.last_message_at && (
+                      <span className="text-xs text-muted-foreground">
+                        {formatDistanceToNow(new Date(conversation.last_message_at), { addSuffix: true })}
+                      </span>
+                    )}
+                  </div>
+                  
+                  {conversation.listing && (
+                    <p className="text-sm text-muted-foreground truncate">
+                      About: {conversation.listing.dog_name} - {conversation.listing.breed}
+                    </p>
                   )}
-                </div>
-                
-                {conversation.listing && (
-                  <p className="text-sm text-gray-600 truncate">
-                    About: {conversation.listing.dog_name} ({conversation.listing.breed})
-                  </p>
-                )}
-                
-                <div className="flex items-center justify-between mt-1">
-                  <span className="text-xs text-gray-500">
-                    {conversation.last_message_at ? 'Recent activity' : 'New conversation'}
-                  </span>
+                  
+                  <div className="flex items-center justify-between mt-2">
+                    <span className="text-xs text-muted-foreground">
+                      Conversation started {formatDistanceToNow(new Date(conversation.created_at), { addSuffix: true })}
+                    </span>
+                    {conversation.unread_count > 0 && (
+                      <Badge variant="default" className="text-xs">
+                        {conversation.unread_count}
+                      </Badge>
+                    )}
+                  </div>
                 </div>
               </div>
-            </div>
-          </CardContent>
-        </Card>
-      ))}
-    </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    </ScrollArea>
   );
 };
 
