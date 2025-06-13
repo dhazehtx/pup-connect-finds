@@ -37,10 +37,7 @@ const MessagingTabContent = ({
       </TabsContent>
 
       <TabsContent value="templates" className="space-y-6">
-        <MessageTemplates 
-          onSelectTemplate={onTemplateSelect} 
-          onClose={() => console.log('Templates closed')}
-        />
+        <MessageTemplates onSelectTemplate={onTemplateSelect} />
       </TabsContent>
 
       <TabsContent value="search" className="space-y-6">

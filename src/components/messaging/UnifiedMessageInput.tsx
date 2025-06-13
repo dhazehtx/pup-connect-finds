@@ -2,7 +2,7 @@
 import React, { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { Send, Paperclip, Mic, Template, Zap } from 'lucide-react';
+import { Send, Paperclip, Mic, FileText, Zap } from 'lucide-react';
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 import MessageTemplates from './MessageTemplates';
 import QuickReplies from './QuickReplies';
@@ -88,7 +88,7 @@ const UnifiedMessageInput: React.FC<UnifiedMessageInputProps> = ({
         <Dialog open={showTemplates} onOpenChange={setShowTemplates}>
           <DialogTrigger asChild>
             <Button variant="outline" size="sm" className="mb-1">
-              <Template size={16} />
+              <FileText size={16} />
             </Button>
           </DialogTrigger>
           <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">

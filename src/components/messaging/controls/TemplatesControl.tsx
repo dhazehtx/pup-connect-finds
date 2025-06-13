@@ -25,10 +25,7 @@ const TemplatesControl = ({ onTemplateSelect }: TemplatesControlProps) => {
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-96 max-h-96 overflow-y-auto">
-        <MessageTemplates
-          onSelectTemplate={handleTemplateSelect}
-          onClose={() => setShowTemplates(false)}
-        />
+        <MessageTemplates onSelectTemplate={handleTemplateSelect} />
       </PopoverContent>
     </Popover>
   );
