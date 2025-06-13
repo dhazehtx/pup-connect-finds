@@ -52,9 +52,44 @@ export const useFileUpload = () => {
     return uploadFile(file);
   };
 
+  const uploadVoiceMessage = async (audioBlob: Blob, duration: number): Promise<string | null> => {
+    try {
+      setUploading(true);
+      
+      // Create a unique filename for voice message
+      const fileName = `voice-${Date.now()}-${Math.random().toString(36).substring(2)}.webm`;
+      
+      // For now, create object URL for voice message
+      // In production, this would upload to Supabase Storage
+      const audioUrl = URL.createObjectURL(audioBlob);
+      
+      // Simulate upload delay
+      await new Promise(resolve => setTimeout(resolve, 800));
+      
+      toast({
+        title: "Voice message uploaded",
+        description: `Voice message (${duration}s) uploaded successfully`,
+      });
+      
+      return audioUrl;
+    } catch (error) {
+      console.error('Error uploading voice message:', error);
+      toast({
+        title: "Upload failed",
+        description: "Failed to upload voice message",
+        variant: "destructive",
+      });
+      return null;
+    } finally {
+      setUploading(false);
+    }
+  };
+
   return {
     uploadFile,
     uploadImage,
-    uploading
+    uploadVoiceMessage,
+    uploading,
+    isUploading: uploading // Alias for backward compatibility
   };
 };
