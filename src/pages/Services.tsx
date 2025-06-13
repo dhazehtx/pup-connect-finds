@@ -91,18 +91,28 @@ const Services = () => {
 
       if (profilesError) throw profilesError;
 
-      // Combine the data
-      const servicesWithProvider = servicesData?.map(service => {
+      // Combine the data with proper typing
+      const servicesWithProvider: Service[] = servicesData?.map(service => {
         const profile = profilesData?.find(p => p.id === service.user_id);
         return {
-          ...service,
+          id: service.id,
+          title: service.title,
+          description: service.description || '',
+          price: service.price,
+          price_type: service.price_type as 'hourly' | 'fixed' | 'per_session',
+          service_type: service.service_type as 'grooming' | 'sitting' | 'walking' | 'training' | 'boarding',
+          location: service.location || '',
+          user_id: service.user_id,
           provider_name: profile?.full_name || 'Service Provider',
           provider_avatar: profile?.avatar_url,
           rating: profile?.rating || 4.5,
           review_count: profile?.total_reviews || 0,
-          images: Array.isArray(service.images) ? service.images : ['/placeholder.svg'],
-          certifications: Array.isArray(service.certifications) ? service.certifications : [],
-          availability: service.availability || {}
+          experience_years: service.experience_years || 0,
+          certifications: Array.isArray(service.certifications) ? service.certifications as string[] : [],
+          images: Array.isArray(service.images) ? service.images as string[] : ['/placeholder.svg'],
+          availability: (service.availability as Record<string, any>) || {},
+          featured_until: service.featured_until,
+          created_at: service.created_at
         };
       }) || [];
 
