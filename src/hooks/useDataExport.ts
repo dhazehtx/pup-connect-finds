@@ -75,7 +75,7 @@ export const useDataExport = () => {
       if (error) throw error;
 
       // Type assertion to properly access the response properties
-      const response = data as AccountDeletionResponse;
+      const response = data as unknown as AccountDeletionResponse;
 
       toast({
         title: "Account Deletion Initiated",
@@ -106,7 +106,7 @@ export const useDataExport = () => {
       if (error) throw error;
 
       // Type assertion to properly access the response properties
-      const response = data as AccountRecoveryResponse;
+      const response = data as unknown as AccountRecoveryResponse;
 
       toast({
         title: "Account Recovered",
