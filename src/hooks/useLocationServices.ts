@@ -16,14 +16,17 @@ interface LocationPreferences {
   maxDistance: number;
   preferredAreas: string[];
   autoDetectLocation: boolean;
+  allowLocationSharing: boolean;
 }
 
 export const useLocationServices = () => {
   const [currentLocation, setCurrentLocation] = useState<Location | null>(null);
+  const [savedLocations, setSavedLocations] = useState<Location[]>([]);
   const [locationPreferences, setLocationPreferences] = useState<LocationPreferences>({
     maxDistance: 50,
     preferredAreas: [],
-    autoDetectLocation: true
+    autoDetectLocation: true,
+    allowLocationSharing: true
   });
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
@@ -100,6 +103,32 @@ export const useLocationServices = () => {
     return mockResults;
   }, []);
 
+  const saveLocation = useCallback((location: Location, customName?: string) => {
+    const locationToSave = customName 
+      ? { ...location, address: customName }
+      : location;
+    
+    setSavedLocations(prev => [...prev, locationToSave]);
+    
+    toast({
+      title: "Location saved",
+      description: `${locationToSave.address} has been saved to your locations`,
+    });
+  }, [toast]);
+
+  const removeLocation = useCallback((index: number) => {
+    setSavedLocations(prev => prev.filter((_, i) => i !== index));
+    
+    toast({
+      title: "Location removed",
+      description: "Location has been removed from your saved locations",
+    });
+  }, [toast]);
+
+  const updatePreferences = useCallback((preferences: Partial<LocationPreferences>) => {
+    setLocationPreferences(prev => ({ ...prev, ...preferences }));
+  }, []);
+
   const getDistanceToLocation = useCallback((targetLocation: Location): number | null => {
     if (!currentLocation) return null;
     
@@ -127,10 +156,6 @@ export const useLocationServices = () => {
     }
   }, []);
 
-  const updateLocationPreferences = useCallback((preferences: Partial<LocationPreferences>) => {
-    setLocationPreferences(prev => ({ ...prev, ...preferences }));
-  }, []);
-
   const setManualLocation = useCallback((location: Location) => {
     setCurrentLocation(location);
     toast({
@@ -141,13 +166,16 @@ export const useLocationServices = () => {
 
   return {
     currentLocation,
+    savedLocations,
     locationPreferences,
     loading,
     detectCurrentLocation,
     searchLocation,
+    saveLocation,
+    removeLocation,
+    updatePreferences,
     getDistanceToLocation,
     formatDistance,
-    updateLocationPreferences,
     setManualLocation
   };
 };
