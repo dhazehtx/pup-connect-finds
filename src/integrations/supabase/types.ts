@@ -9,6 +9,36 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      account_recovery: {
+        Row: {
+          created_at: string | null
+          expires_at: string | null
+          id: string
+          recovered: boolean | null
+          recovery_token: string
+          user_data: Json
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          recovered?: boolean | null
+          recovery_token: string
+          user_data: Json
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          recovered?: boolean | null
+          recovery_token?: string
+          user_data?: Json
+          user_id?: string
+        }
+        Relationships: []
+      }
       analytics_events: {
         Row: {
           event_data: Json
@@ -1729,7 +1759,22 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      delete_user_account: {
+        Args: { user_id_param: string }
+        Returns: Json
+      }
+      export_user_data: {
+        Args: { user_id_param: string }
+        Returns: Json
+      }
+      initiate_account_deletion: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
+      recover_account: {
+        Args: { recovery_token_param: string }
+        Returns: Json
+      }
     }
     Enums: {
       user_type: "buyer" | "breeder" | "shelter" | "admin"
