@@ -1,13 +1,13 @@
 
 import React from 'react';
+import { CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, Users, Settings } from 'lucide-react';
+import { ArrowLeft, MessageCircle } from 'lucide-react';
+import { ChatUser } from '@/types/chat';
 
 interface ConversationHeaderProps {
   onBack: () => void;
-  otherUser: any;
+  otherUser: ChatUser | null;
   isUserOnline: boolean;
   activeConversations: number;
 }
@@ -19,22 +19,22 @@ const ConversationHeader = ({
   activeConversations 
 }: ConversationHeaderProps) => {
   return (
-    <div className="border-b p-4">
+    <CardHeader className="border-b bg-white sticky top-0 z-10">
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-xl font-bold">Messages</h1>
-          <p className="text-sm text-muted-foreground">
-            {activeConversations} users online
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          <Badge variant="secondary">
-            <Users className="w-3 h-3 mr-1" />
-            {activeConversations} chats
-          </Badge>
+        <div className="flex items-center gap-3">
+          <Button variant="ghost" size="sm" onClick={onBack}>
+            <ArrowLeft className="w-4 h-4" />
+          </Button>
+          <MessageCircle className="w-6 h-6 text-blue-600" />
+          <div>
+            <CardTitle className="text-lg">Messages</CardTitle>
+            <p className="text-sm text-gray-500">
+              {activeConversations} active conversations
+            </p>
+          </div>
         </div>
       </div>
-    </div>
+    </CardHeader>
   );
 };
 

@@ -1,161 +1,70 @@
 
-import { useState, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/contexts/AuthContext';
 
-interface ThreadMessage {
+interface MessageThread {
   id: string;
   parent_message_id: string;
   reply_message_id: string;
-  content: string;
-  sender_id: string;
-  sender_name: string;
   created_at: string;
 }
 
 export const useMessageThreads = () => {
-  const [threads, setThreads] = useState<Record<string, ThreadMessage[]>>({});
-  const { user } = useAuth();
+  const [threads, setThreads] = useState<Record<string, MessageThread[]>>({});
 
-  const getThreadCount = useCallback((messageId: string) => {
-    return threads[messageId]?.length || 0;
-  }, [threads]);
+  const fetchThreads = async (messageIds: string[]) => {
+    if (messageIds.length === 0) return;
 
-  const sendThreadReply = useCallback(async (parentMessageId: string, replyContent: string) => {
-    if (!user) return;
+    const { data, error } = await supabase
+      .from('message_threads')
+      .select('*')
+      .in('parent_message_id', messageIds);
 
-    try {
-      const { data: replyMessage, error: replyError } = await supabase
-        .from('messages')
-        .insert({
-          conversation_id: parentMessageId,
-          sender_id: user.id,
-          content: replyContent,
-          message_type: 'text'
-        })
-        .select()
-        .single();
-
-      if (replyError) throw replyError;
-
-      const { data: threadData, error: threadError } = await supabase
-        .from('message_threads')
-        .insert({
-          parent_message_id: parentMessageId,
-          reply_message_id: replyMessage.id
-        })
-        .select()
-        .single();
-
-      if (threadError) throw threadError;
-
-      const threadMessage: ThreadMessage = {
-        id: replyMessage.id,
-        parent_message_id: parentMessageId,
-        reply_message_id: replyMessage.id,
-        content: replyContent,
-        sender_id: user.id,
-        sender_name: user.email || 'Anonymous',
-        created_at: replyMessage.created_at
-      };
-
-      setThreads(prev => ({
-        ...prev,
-        [parentMessageId]: [...(prev[parentMessageId] || []), threadMessage]
-      }));
-
-      return replyMessage;
-    } catch (error) {
-      console.error('Error sending thread reply:', error);
-      throw error;
-    }
-  }, [user]);
-
-  const fetchThreads = useCallback(async (messageId: string) => {
-    try {
-      const { data, error } = await supabase
-        .from('message_threads')
-        .select(`
-          *,
-          messages:reply_message_id (
-            id,
-            content,
-            sender_id,
-            created_at,
-            profiles:sender_id (
-              username,
-              full_name
-            )
-          )
-        `)
-        .eq('parent_message_id', messageId);
-
-      if (error) throw error;
-
-      const threadMessages: ThreadMessage[] = (data || []).map((thread: any) => ({
-        id: thread.messages.id,
-        parent_message_id: messageId,
-        reply_message_id: thread.reply_message_id,
-        content: thread.messages.content,
-        sender_id: thread.messages.sender_id,
-        sender_name: thread.messages.profiles?.full_name || thread.messages.profiles?.username || 'Unknown',
-        created_at: thread.messages.created_at
-      }));
-
-      setThreads(prev => ({
-        ...prev,
-        [messageId]: threadMessages
-      }));
-    } catch (error) {
+    if (error) {
       console.error('Error fetching threads:', error);
+      return;
     }
-  }, []);
 
-  const fetchThreadMessages = useCallback(async (parentMessageId: string) => {
-    try {
-      const { data: threadData, error: threadError } = await supabase
-        .from('message_threads')
-        .select(`
-          *,
-          messages:reply_message_id (
-            id,
-            content,
-            sender_id,
-            created_at,
-            profiles:sender_id (
-              username,
-              full_name
-            )
-          )
-        `)
-        .eq('parent_message_id', parentMessageId);
+    const threadsByMessage = data.reduce((acc, thread) => {
+      if (!acc[thread.parent_message_id]) {
+        acc[thread.parent_message_id] = [];
+      }
+      acc[thread.parent_message_id].push(thread);
+      return acc;
+    }, {} as Record<string, MessageThread[]>);
 
-      if (threadError) throw threadError;
+    setThreads(prev => ({ ...prev, ...threadsByMessage }));
+  };
 
-      const threadMessages: ThreadMessage[] = (threadData || []).map((thread: any) => ({
-        id: thread.messages.id,
+  const getThreadCount = (messageId: string): number => {
+    return threads[messageId]?.length || 0;
+  };
+
+  const sendThreadReply = async (parentMessageId: string, replyMessageId: string) => {
+    const { data, error } = await supabase
+      .from('message_threads')
+      .insert({
         parent_message_id: parentMessageId,
-        reply_message_id: thread.reply_message_id,
-        content: thread.messages.content,
-        sender_id: thread.messages.sender_id,
-        sender_name: thread.messages.profiles?.full_name || thread.messages.profiles?.username || 'Unknown',
-        created_at: thread.messages.created_at
-      }));
+        reply_message_id: replyMessageId
+      })
+      .select()
+      .single();
 
-      setThreads(prev => ({
-        ...prev,
-        [parentMessageId]: threadMessages
-      }));
-    } catch (error) {
-      console.error('Error fetching thread messages:', error);
+    if (error) {
+      console.error('Error creating thread reply:', error);
+      return;
     }
-  }, []);
+
+    setThreads(prev => ({
+      ...prev,
+      [parentMessageId]: [...(prev[parentMessageId] || []), data]
+    }));
+  };
 
   return {
     threads,
-    getThreadCount,
-    sendThreadReply,
     fetchThreads,
-    fetchThreadMessages
+    getThreadCount,
+    sendThreadReply
   };
 };
