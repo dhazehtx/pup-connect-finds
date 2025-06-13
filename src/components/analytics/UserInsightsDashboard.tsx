@@ -16,24 +16,46 @@ import {
   BarChart3,
   Lightbulb
 } from 'lucide-react';
-import { useAnalytics } from '@/hooks/useAnalytics';
 import { useSmartRecommendations } from '@/hooks/useSmartRecommendations';
 
 const UserInsightsDashboard = () => {
-  const { userMetrics, trackEvent, generateInsights, loading } = useAnalytics();
-  const { userBehavior } = useSmartRecommendations();
+  const { userBehavior, loading } = useSmartRecommendations();
   const [insights, setInsights] = useState<any>(null);
   const [insightsLoading, setInsightsLoading] = useState(false);
 
-  useEffect(() => {
-    trackEvent('page_view', { page: 'user_insights' });
-  }, [trackEvent]);
+  // Mock user metrics for demo
+  const userMetrics = {
+    total_sessions: 24,
+    total_listings_viewed: 156,
+    total_searches: 43,
+    total_favorites: 12,
+    total_messages_sent: 8,
+    avg_session_duration: 480,
+    conversion_rate: 0.15,
+    last_active: new Date().toISOString(),
+    total_page_views: 234
+  };
 
   const handleGenerateInsights = async () => {
     setInsightsLoading(true);
-    const data = await generateInsights();
-    setInsights(data);
-    setInsightsLoading(false);
+    // Mock insights generation
+    setTimeout(() => {
+      setInsights({
+        recommendations: [
+          {
+            title: 'Search Optimization',
+            description: 'Try searching for breeds in your preferred price range',
+            category: 'Search'
+          },
+          {
+            title: 'Location Preferences',
+            description: 'Expand your search radius to find more matches',
+            category: 'Location'
+          }
+        ]
+      });
+      setInsightsLoading(false);
+    }, 1000);
   };
 
   if (loading) {
@@ -261,7 +283,9 @@ const UserInsightsDashboard = () => {
               ) : (
                 <div className="text-center py-8">
                   <Lightbulb className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold mb-2">AI Insights Coming Soon</h3>
+                  <h3 className="text-lg font-semibold mb-2">
+                    🎉 AI Insights Coming Soon
+                  </h3>
                   <p className="text-muted-foreground mb-4">
                     Generate personalized insights based on your activity
                   </p>

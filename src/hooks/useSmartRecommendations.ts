@@ -22,10 +22,19 @@ interface RecommendationFilters {
   age?: string;
 }
 
+interface UserBehavior {
+  preferred_breeds: string[];
+  price_range: [number, number];
+  location_preferences: string[];
+  interaction_patterns: any[];
+}
+
 export const useSmartRecommendations = () => {
   const [recommendations, setRecommendations] = useState<SmartRecommendation[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [userBehavior, setUserBehavior] = useState<UserBehavior | null>(null);
+  const [trendingListings, setTrendingListings] = useState<SmartRecommendation[]>([]);
   const { user } = useAuth();
 
   const generateRecommendations = useCallback(async (
@@ -112,6 +121,9 @@ export const useSmartRecommendations = () => {
 
       setRecommendations(topRecommendations);
 
+      // Set trending listings (mock data for now)
+      setTrendingListings(topRecommendations.slice(0, 5));
+
     } catch (err) {
       console.error('Error generating recommendations:', err);
       setError(err instanceof Error ? err.message : 'Failed to generate recommendations');
@@ -135,6 +147,24 @@ export const useSmartRecommendations = () => {
         });
     } catch (error) {
       console.error('Error tracking recommendation click:', error);
+    }
+  }, [user]);
+
+  const trackUserInteraction = useCallback(async (type: string, listingId: string) => {
+    if (!user) return;
+
+    try {
+      await supabase
+        .from('analytics_events')
+        .insert({
+          user_id: user.id,
+          event_type: type,
+          event_data: { listing_id: listingId },
+          session_id: sessionStorage.getItem('session_id') || 'anonymous',
+          page_url: window.location.pathname
+        });
+    } catch (error) {
+      console.error('Error tracking user interaction:', error);
     }
   }, [user]);
 
@@ -164,6 +194,13 @@ export const useSmartRecommendations = () => {
   useEffect(() => {
     if (user) {
       generateRecommendations();
+      // Initialize user behavior with mock data
+      setUserBehavior({
+        preferred_breeds: ['Golden Retriever', 'Labrador'],
+        price_range: [500, 2000],
+        location_preferences: ['San Francisco', 'Bay Area'],
+        interaction_patterns: []
+      });
     }
   }, [user, generateRecommendations]);
 
@@ -171,8 +208,11 @@ export const useSmartRecommendations = () => {
     recommendations,
     loading,
     error,
+    userBehavior,
+    trendingListings,
     generateRecommendations,
     trackRecommendationClick,
+    trackUserInteraction,
     saveRecommendationFeedback
   };
 };
