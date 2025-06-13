@@ -5,7 +5,6 @@ import EnhancedMessageInput from './EnhancedMessageInput';
 import MessageThread from './MessageThread';
 import MessageReactionsPicker from './MessageReactionsPicker';
 import { useMessageReactions } from '@/hooks/useMessageReactions';
-import { useMessageThreads } from '@/hooks/useMessageThreads';
 import { useTypingIndicators } from '@/hooks/useTypingIndicators';
 
 interface ChatContainerProps {
@@ -16,16 +15,6 @@ interface ChatContainerProps {
   onReactionButtonClick: (event: React.MouseEvent, messageId: string) => void;
   onReplyToMessage: (message: any) => void;
   onReactionToggle: (messageId: string, emoji: string) => void;
-  newMessage: string;
-  setNewMessage: (message: string) => void;
-  selectedFile: File | null;
-  setSelectedFile: (file: File | null) => void;
-  uploading: boolean;
-  sendingMessage: boolean;
-  onSendMessage: () => void;
-  onSendVoiceMessage: (audioUrl: string, duration: number) => void;
-  onFileSelect: (event: React.ChangeEvent<HTMLInputElement>) => void;
-  onKeyPress: (event: React.KeyboardEvent) => void;
   sendMessage: (conversationId: string, content: string, type?: string, fileUrl?: string) => Promise<any>;
   conversationId: string;
   reactionPickerState: {
@@ -41,6 +30,7 @@ interface ChatContainerProps {
     parentMessage: any | null;
   };
   closeThread: () => void;
+  onSendVoiceMessage: (audioUrl: string, duration: number) => void;
   onBack?: () => void;
 }
 
