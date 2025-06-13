@@ -2,14 +2,27 @@
 import React from 'react';
 import { Shield, Star, Award, CheckCircle } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import ProfileBadgeSystem from './ProfileBadgeSystem';
 
 interface ProfileBadgesProps {
   verificationBadges: string[];
   specializations: string[];
   certifications?: string[];
+  userId: string;
+  userType: 'buyer' | 'breeder' | 'shelter' | 'admin';
+  professionalStatus?: 'standard' | 'professional' | 'verified_professional';
+  subscriptionTier?: 'basic' | 'pro' | 'enterprise';
 }
 
-const ProfileBadges = ({ verificationBadges, specializations, certifications = [] }: ProfileBadgesProps) => {
+const ProfileBadges = ({ 
+  verificationBadges, 
+  specializations, 
+  certifications = [],
+  userId,
+  userType,
+  professionalStatus,
+  subscriptionTier
+}: ProfileBadgesProps) => {
   const getBadgeIcon = (badgeType: string) => {
     if (badgeType.toLowerCase().includes('verified') || badgeType.toLowerCase().includes('id')) {
       return Shield;
@@ -37,8 +50,16 @@ const ProfileBadges = ({ verificationBadges, specializations, certifications = [
   };
 
   return (
-    <>
-      {/* Verification Badges */}
+    <div className="space-y-4">
+      {/* New Profile Badge System */}
+      <ProfileBadgeSystem
+        userId={userId}
+        userType={userType}
+        professionalStatus={professionalStatus}
+        subscriptionTier={subscriptionTier}
+      />
+
+      {/* Legacy Verification Badges */}
       {verificationBadges.length > 0 && (
         <div className="flex flex-wrap gap-1 mb-3">
           {verificationBadges.map((badge, index) => {
@@ -85,7 +106,7 @@ const ProfileBadges = ({ verificationBadges, specializations, certifications = [
           </div>
         </div>
       )}
-    </>
+    </div>
   );
 };
 

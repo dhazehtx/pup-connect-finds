@@ -57,7 +57,7 @@ const ProfessionalAccountUpgrade = () => {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
-  const [formData, setFormData] = useState<FormData>({
+  const [formData, setFormData] = useState({
     business_name: '',
     business_type: '',
     license_number: '',
@@ -79,7 +79,7 @@ const ProfessionalAccountUpgrade = () => {
     business_references: []
   });
   const [newCertification, setNewCertification] = useState('');
-  const [newReference, setNewReference] = useState<BusinessReference>({ name: '', contact: '', relationship: '' });
+  const [newReference, setNewReference] = useState({ name: '', contact: '', relationship: '' });
 
   const businessTypes = [
     { value: 'groomer', label: 'Professional Groomer' },
@@ -165,7 +165,7 @@ const ProfessionalAccountUpgrade = () => {
     }));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!user) {
       toast({
@@ -201,7 +201,7 @@ const ProfessionalAccountUpgrade = () => {
       });
 
       setCurrentStep(4);
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error submitting application:', error);
       toast({
         title: "Error",

@@ -1,39 +1,23 @@
 
 import React from 'react';
-import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
 import { Moon, Sun } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { useTheme } from '@/contexts/ThemeContext';
 
-const DarkModeToggle = () => {
-  const { isDarkMode, toggleDarkMode } = useTheme();
+export function DarkModeToggle() {
+  const { theme, setTheme } = useTheme();
+
+  const toggleTheme = () => {
+    setTheme(theme === 'light' ? 'dark' : 'light');
+  };
 
   return (
-    <div className="flex items-center justify-between p-4 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
-      <div className="flex items-center gap-4">
-        <div className="w-10 h-10 bg-gray-100 dark:bg-gray-700 rounded-lg flex items-center justify-center">
-          {isDarkMode ? (
-            <Moon size={20} className="text-blue-600" />
-          ) : (
-            <Sun size={20} className="text-yellow-600" />
-          )}
-        </div>
-        <div>
-          <Label htmlFor="dark-mode" className="font-medium text-gray-900 dark:text-white">
-            Dark Mode
-          </Label>
-          <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">
-            Switch between light and dark themes
-          </p>
-        </div>
-      </div>
-      <Switch 
-        id="dark-mode"
-        checked={isDarkMode}
-        onCheckedChange={toggleDarkMode}
-      />
-    </div>
+    <Button variant="ghost" size="icon" onClick={toggleTheme}>
+      <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+      <Moon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+      <span className="sr-only">Toggle theme</span>
+    </Button>
   );
-};
+}
 
 export default DarkModeToggle;
