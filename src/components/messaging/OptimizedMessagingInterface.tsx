@@ -1,21 +1,31 @@
 
 import React, { useState, useEffect } from 'react';
-import { useRealtimeConversations } from '@/hooks/useRealtimeConversations';
-import { useRealtimeMessages } from '@/hooks/useRealtimeMessages';
 import { useAuth } from '@/contexts/AuthContext';
+import { useRealtimeMessaging } from '@/hooks/useRealtimeMessaging';
+import { useRealtime } from '@/contexts/RealtimeContext';
 import ConversationList from './ConversationList';
 import ChatContainer from './ChatContainer';
+import MessagingStatusIndicator from './MessagingStatusIndicator';
 import { useMessageReactions } from '@/hooks/useMessageReactions';
 import { useMessageThreads } from '@/hooks/useMessageThreads';
 import { ExtendedConversation } from '@/types/messaging';
 
 const OptimizedMessagingInterface = () => {
   const { user } = useAuth();
+  const { onlineUsers, isConnected } = useRealtime();
   const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
   const [showConversationList, setShowConversationList] = useState(true);
 
-  const { conversations, loading } = useRealtimeConversations();
-  const { messages, fetchMessages, sendMessage, markAsRead } = useRealtimeMessages();
+  const { 
+    conversations, 
+    messages, 
+    loading,
+    fetchMessages, 
+    sendMessage, 
+    markAsRead,
+    subscribeToConversation
+  } = useRealtimeMessaging();
+
   const { reactions, addReaction, toggleReaction } = useMessageReactions();
   const { getThreadCount } = useMessageThreads();
 
@@ -39,12 +49,17 @@ const OptimizedMessagingInterface = () => {
     parentMessage: null
   });
 
+  // Subscribe to real-time updates when conversation is selected
   useEffect(() => {
-    if (selectedConversationId) {
+    if (selectedConversationId && isConnected) {
       fetchMessages(selectedConversationId);
       markAsRead(selectedConversationId);
+      
+      // Set up real-time subscription
+      const unsubscribe = subscribeToConversation(selectedConversationId);
+      return unsubscribe;
     }
-  }, [selectedConversationId]);
+  }, [selectedConversationId, isConnected, fetchMessages, markAsRead, subscribeToConversation]);
 
   const handleSelectConversation = (conversationId: string) => {
     setSelectedConversationId(conversationId);
@@ -92,8 +107,8 @@ const OptimizedMessagingInterface = () => {
     setSelectedConversationId(null);
   };
 
-  // Convert ExtendedConversation to Conversation format for ConversationList
-  const conversationsForList = conversations.map((conv: ExtendedConversation) => ({
+  // Convert conversations to the format expected by ConversationList
+  const conversationsForList = conversations.map((conv) => ({
     id: conv.id,
     listing_id: conv.listing_id || null,
     buyer_id: conv.buyer_id,
@@ -101,23 +116,23 @@ const OptimizedMessagingInterface = () => {
     created_at: conv.created_at,
     updated_at: conv.updated_at,
     last_message_at: conv.last_message_at || null,
-    listing: conv.listing ? {
-      dog_name: conv.listing.dog_name,
-      breed: conv.listing.breed || '',
-      image_url: conv.listing.image_url || null
-    } : undefined,
-    other_user: conv.other_user ? {
-      id: conv.other_user.id,
-      full_name: conv.other_user.full_name || null,
-      username: conv.other_user.username || null,
-      avatar_url: conv.other_user.avatar_url || null
-    } : undefined,
-    unread_count: conv.unread_count
+    listing: undefined,
+    other_user: undefined,
+    unread_count: 0
   }));
 
   if (showConversationList || !selectedConversationId) {
     return (
       <div className="h-screen bg-background">
+        <div className="p-4 border-b">
+          <MessagingStatusIndicator />
+          {!isConnected && (
+            <p className="text-sm text-muted-foreground mt-2">
+              Attempting to connect to real-time messaging...
+            </p>
+          )}
+        </div>
+        
         <ConversationList
           conversations={conversationsForList}
           selectedConversationId={selectedConversationId || ''}

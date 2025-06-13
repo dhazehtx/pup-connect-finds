@@ -1,9 +1,9 @@
 
 import React from 'react';
-import UnifiedMessagingInterface from '@/components/messaging/UnifiedMessagingInterface';
+import RealtimeMessagingWrapper from '@/components/messaging/RealtimeMessagingWrapper';
 
 const EnhancedMessages = () => {
-  return <UnifiedMessagingInterface />;
+  return <RealtimeMessagingWrapper />;
 };
 
 export default EnhancedMessages;

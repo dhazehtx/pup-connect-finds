@@ -2,19 +2,17 @@
 import React from 'react';
 import { Badge } from '@/components/ui/badge';
 import { CheckCircle, Clock, AlertCircle } from 'lucide-react';
-
-type ConnectionStatus = 'connected' | 'connecting' | 'disconnected';
+import { useRealtime } from '@/contexts/RealtimeContext';
 
 const MessagingStatusIndicator = () => {
-  // This would typically get status from a hook or context
-  const status: ConnectionStatus = 'connected';
+  const { connectionStatus, onlineUsers } = useRealtime();
 
   const getStatusConfig = () => {
-    switch (status) {
+    switch (connectionStatus) {
       case 'connected':
         return {
           icon: CheckCircle,
-          text: 'Connected',
+          text: `Connected • ${onlineUsers.length} online`,
           variant: 'default' as const,
           className: 'bg-green-100 text-green-800 border-green-200'
         };
