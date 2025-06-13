@@ -46,7 +46,6 @@ const EnhancedSearchInterface = ({
   });
   
   const [showAdvanced, setShowAdvanced] = useState(false);
-  const [searchName, setSearchName] = useState('');
   const [showSaveDialog, setShowSaveDialog] = useState(false);
 
   const handleFilterChange = (key: keyof SearchFilters, value: any) => {
@@ -82,12 +81,11 @@ const EnhancedSearchInterface = ({
     onSearch(defaultFilters);
   };
 
-  const handleSaveSearch = () => {
-    if (searchName.trim() && onSaveSearch) {
-      onSaveSearch(filters, searchName);
-      setSearchName('');
-      setShowSaveDialog(false);
+  const handleSaveSearch = (name: string, notifyOnNewMatches: boolean) => {
+    if (onSaveSearch) {
+      onSaveSearch(filters, name);
     }
+    setShowSaveDialog(false);
   };
 
   const handleLoadSearch = (search: any) => {
@@ -155,14 +153,13 @@ const EnhancedSearchInterface = ({
         onLoadSearch={handleLoadSearch}
       />
 
-      {showSaveDialog && (
-        <SaveSearchDialog
-          searchName={searchName}
-          onSearchNameChange={setSearchName}
-          onSave={handleSaveSearch}
-          onCancel={() => setShowSaveDialog(false)}
-        />
-      )}
+      <SaveSearchDialog
+        open={showSaveDialog}
+        onOpenChange={setShowSaveDialog}
+        onSave={handleSaveSearch}
+        currentQuery={filters.query}
+        currentFilters={filters}
+      />
     </div>
   );
 };

@@ -1,38 +1,24 @@
 
 import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { BarChart3, TrendingUp, Users, Activity } from 'lucide-react';
-import ListingAnalyticsDashboard from '@/components/analytics/ListingAnalyticsDashboard';
-import ProfileAnalytics from '@/components/profile/ProfileAnalytics';
+import UserInsightsDashboard from '@/components/analytics/UserInsightsDashboard';
+import ListingPerformanceDashboard from '@/components/analytics/ListingPerformanceDashboard';
 
 const AnalyticsDashboard = () => {
   return (
-    <div className="max-w-7xl mx-auto px-4 py-6">
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Analytics Dashboard</h1>
-        <p className="text-gray-600">
-          Comprehensive insights into your listings, performance, and user engagement
-        </p>
-      </div>
-
-      <Tabs defaultValue="listings" className="w-full">
+    <div className="container mx-auto px-4 py-6 max-w-7xl">
+      <Tabs defaultValue="insights" className="space-y-6">
         <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="listings" className="flex items-center gap-2">
-            <TrendingUp className="w-4 h-4" />
-            Listing Analytics
-          </TabsTrigger>
-          <TabsTrigger value="profile" className="flex items-center gap-2">
-            <Users className="w-4 h-4" />
-            Profile Analytics
-          </TabsTrigger>
+          <TabsTrigger value="insights">Personal Insights</TabsTrigger>
+          <TabsTrigger value="performance">Listing Performance</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="listings" className="mt-6">
-          <ListingAnalyticsDashboard />
+        <TabsContent value="insights">
+          <UserInsightsDashboard />
         </TabsContent>
 
-        <TabsContent value="profile" className="mt-6">
-          <ProfileAnalytics />
+        <TabsContent value="performance">
+          <ListingPerformanceDashboard />
         </TabsContent>
       </Tabs>
     </div>

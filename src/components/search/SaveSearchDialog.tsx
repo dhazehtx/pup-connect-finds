@@ -23,6 +23,7 @@ const SaveSearchDialog = ({ open, onOpenChange, onSave, currentQuery }: SaveSear
       onSave(searchName, notifyOnNewMatches);
       setSearchName('');
       setNotifyOnNewMatches(true);
+      onOpenChange(false);
     }
   };
 

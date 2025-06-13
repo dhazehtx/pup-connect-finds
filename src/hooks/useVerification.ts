@@ -149,9 +149,29 @@ export const useVerification = () => {
       if (documentsResponse.error) throw documentsResponse.error;
       if (checksResponse.error) throw checksResponse.error;
 
-      setVerificationRequests(requestsResponse.data || []);
-      setDocuments(documentsResponse.data || []);
-      setBackgroundChecks(checksResponse.data || []);
+      // Type assertion for verification requests
+      const typedRequests = (requestsResponse.data || []).map(item => ({
+        ...item,
+        verification_type: item.verification_type as VerificationRequest['verification_type'],
+        status: item.status as VerificationRequest['status']
+      }));
+
+      // Type assertion for documents
+      const typedDocuments = (documentsResponse.data || []).map(item => ({
+        ...item,
+        document_type: item.document_type as VerificationDocument['document_type'],
+        status: item.status as VerificationDocument['status']
+      }));
+
+      // Type assertion for background checks
+      const typedChecks = (checksResponse.data || []).map(item => ({
+        ...item,
+        status: item.status as BackgroundCheck['status']
+      }));
+
+      setVerificationRequests(typedRequests);
+      setDocuments(typedDocuments);
+      setBackgroundChecks(typedChecks);
     } catch (error) {
       console.error('Error loading verification data:', error);
     } finally {

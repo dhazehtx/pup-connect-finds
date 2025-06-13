@@ -1,185 +1,146 @@
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
-
-interface AnalyticsEvent {
-  event_type: string;
-  user_id?: string;
-  session_id: string;
-  page_url: string;
-  user_agent?: string;
-  event_data: Record<string, any>;
-}
-
-interface AnalyticsFilters {
-  startDate?: string;
-  endDate?: string;
-  eventType?: string;
-  userId?: string;
-}
+import { useAuth } from '@/contexts/AuthContext';
+import { AnalyticsEvent, UserActivityMetrics, ListingPerformanceMetrics, PlatformMetrics } from '@/types/analytics';
 
 export const useAnalytics = () => {
+  const [userMetrics, setUserMetrics] = useState<UserActivityMetrics | null>(null);
+  const [platformMetrics, setPlatformMetrics] = useState<PlatformMetrics | null>(null);
+  const [listingMetrics, setListingMetrics] = useState<ListingPerformanceMetrics[]>([]);
   const [loading, setLoading] = useState(false);
-  const { toast } = useToast();
+  const { user } = useAuth();
 
-  const trackEvent = useCallback(async (event: Omit<AnalyticsEvent, 'session_id' | 'page_url' | 'user_agent'>) => {
+  const trackEvent = useCallback(async (
+    eventType: AnalyticsEvent['event_type'],
+    eventData: any = {},
+    targetId?: string
+  ) => {
     try {
-      const sessionId = sessionStorage.getItem('session_id') || crypto.randomUUID();
-      if (!sessionStorage.getItem('session_id')) {
-        sessionStorage.setItem('session_id', sessionId);
-      }
+      const sessionId = sessionStorage.getItem('session_id') || `session_${Date.now()}`;
+      sessionStorage.setItem('session_id', sessionId);
 
-      const analyticsEvent: AnalyticsEvent = {
-        ...event,
-        session_id: sessionId,
-        page_url: window.location.href,
-        user_agent: navigator.userAgent
-      };
-
-      const { error } = await supabase
+      await supabase
         .from('analytics_events')
-        .insert(analyticsEvent);
+        .insert({
+          user_id: user?.id,
+          event_type: eventType,
+          event_data: {
+            ...eventData,
+            target_id: targetId,
+            timestamp: new Date().toISOString()
+          },
+          session_id: sessionId,
+          page_url: window.location.pathname,
+          user_agent: navigator.userAgent
+        });
 
-      if (error) throw error;
+      // Also track in user_interactions for recommendation engine
+      if (user && targetId) {
+        await supabase
+          .from('user_interactions')
+          .insert({
+            user_id: user.id,
+            interaction_type: eventType,
+            target_type: getTargetType(eventType),
+            target_id: targetId,
+            metadata: eventData,
+            session_id: sessionId
+          });
+      }
     } catch (error) {
       console.error('Error tracking event:', error);
     }
-  }, []);
+  }, [user]);
 
-  const getAnalytics = useCallback(async (filters: AnalyticsFilters = {}) => {
+  const getTargetType = (eventType: string) => {
+    switch (eventType) {
+      case 'listing_view':
+      case 'favorite_added':
+      case 'contact_seller':
+        return 'listing';
+      case 'message_sent':
+        return 'conversation';
+      default:
+        return 'page';
+    }
+  };
+
+  const loadUserMetrics = useCallback(async () => {
+    if (!user) return;
+
     setLoading(true);
     try {
-      let query = supabase
-        .from('analytics_events')
-        .select('*')
-        .order('timestamp', { ascending: false });
-
-      if (filters.startDate) {
-        query = query.gte('timestamp', filters.startDate);
-      }
-
-      if (filters.endDate) {
-        query = query.lte('timestamp', filters.endDate);
-      }
-
-      if (filters.eventType) {
-        query = query.eq('event_type', filters.eventType);
-      }
-
-      if (filters.userId) {
-        query = query.eq('user_id', filters.userId);
-      }
-
-      const { data, error } = await query;
+      const { data, error } = await supabase.functions.invoke('get-user-analytics', {
+        body: { user_id: user.id }
+      });
 
       if (error) throw error;
-
-      return data;
+      setUserMetrics(data);
     } catch (error) {
-      console.error('Error fetching analytics:', error);
-      toast({
-        title: "Error",
-        description: "Failed to fetch analytics data",
-        variant: "destructive"
-      });
-      return [];
+      console.error('Error loading user metrics:', error);
     } finally {
       setLoading(false);
     }
-  }, [toast]);
+  }, [user]);
 
-  const getEventStats = useCallback(async (eventType: string, timeRange: string = '7d') => {
+  const loadPlatformMetrics = useCallback(async () => {
     try {
-      const startDate = new Date();
-      const days = parseInt(timeRange.replace('d', ''));
-      startDate.setDate(startDate.getDate() - days);
-
-      const { data, error } = await supabase
-        .from('analytics_events')
-        .select('timestamp, event_data')
-        .eq('event_type', eventType)
-        .gte('timestamp', startDate.toISOString());
-
+      const { data, error } = await supabase.functions.invoke('get-platform-analytics');
       if (error) throw error;
-
-      // Group by day
-      const stats = data.reduce((acc: Record<string, number>, event) => {
-        const date = new Date(event.timestamp).toDateString();
-        acc[date] = (acc[date] || 0) + 1;
-        return acc;
-      }, {});
-
-      return Object.entries(stats).map(([date, count]) => ({
-        date,
-        count
-      }));
+      setPlatformMetrics(data);
     } catch (error) {
-      console.error('Error fetching event stats:', error);
-      return [];
+      console.error('Error loading platform metrics:', error);
     }
   }, []);
 
-  const getUserJourney = useCallback(async (sessionId: string) => {
+  const loadListingMetrics = useCallback(async (listingIds?: string[]) => {
+    setLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('analytics_events')
-        .select('*')
-        .eq('session_id', sessionId)
-        .order('timestamp', { ascending: true });
+      const { data, error } = await supabase.functions.invoke('get-listing-analytics', {
+        body: { listing_ids: listingIds }
+      });
 
       if (error) throw error;
+      setListingMetrics(data || []);
+    } catch (error) {
+      console.error('Error loading listing metrics:', error);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
+  const generateInsights = useCallback(async () => {
+    if (!user) return null;
+
+    try {
+      const { data, error } = await supabase.functions.invoke('generate-user-insights', {
+        body: { user_id: user.id }
+      });
+
+      if (error) throw error;
       return data;
     } catch (error) {
-      console.error('Error fetching user journey:', error);
-      return [];
+      console.error('Error generating insights:', error);
+      return null;
     }
-  }, []);
+  }, [user]);
 
-  const trackPageView = useCallback((additionalData: Record<string, any> = {}) => {
-    trackEvent({
-      event_type: 'page_view',
-      event_data: {
-        title: document.title,
-        referrer: document.referrer,
-        ...additionalData
-      }
-    });
-  }, [trackEvent]);
-
-  const trackUserAction = useCallback((action: string, target?: string, additionalData: Record<string, any> = {}) => {
-    trackEvent({
-      event_type: 'user_action',
-      event_data: {
-        action,
-        target,
-        timestamp: new Date().toISOString(),
-        ...additionalData
-      }
-    });
-  }, [trackEvent]);
-
-  const trackConversion = useCallback((type: string, value?: number, additionalData: Record<string, any> = {}) => {
-    trackEvent({
-      event_type: 'conversion',
-      event_data: {
-        conversion_type: type,
-        value,
-        timestamp: new Date().toISOString(),
-        ...additionalData
-      }
-    });
-  }, [trackEvent]);
+  useEffect(() => {
+    if (user) {
+      loadUserMetrics();
+    }
+  }, [user, loadUserMetrics]);
 
   return {
+    userMetrics,
+    platformMetrics,
+    listingMetrics,
     loading,
     trackEvent,
-    trackPageView,
-    trackUserAction,
-    trackConversion,
-    getAnalytics,
-    getEventStats,
-    getUserJourney
+    loadUserMetrics,
+    loadPlatformMetrics,
+    loadListingMetrics,
+    generateInsights
   };
 };

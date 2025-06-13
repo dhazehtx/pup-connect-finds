@@ -186,7 +186,7 @@ export const useSmartRecommendations = () => {
           const listing = data.find(d => d.target_id === listingId)?.dog_listings;
           return listing ? { ...listing, interaction_count: count } : null;
         })
-        .filter(Boolean);
+        .filter(item => item !== null);
 
       setTrendingListings(trending);
     } catch (error) {
