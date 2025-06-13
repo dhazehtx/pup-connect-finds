@@ -2,47 +2,38 @@
 import React, { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { Send, Paperclip, Mic, Image } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import { Send, Paperclip, Mic, Template, Zap } from 'lucide-react';
+import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
+import MessageTemplates from './MessageTemplates';
+import QuickReplies from './QuickReplies';
 
 interface UnifiedMessageInputProps {
   conversationId: string;
-  onSendMessage: (content: string, type?: string, options?: any) => Promise<void>;
+  onSendMessage: (content: string, type?: string, options?: any) => void;
   onSendVoiceMessage?: (audioUrl: string, duration: number) => void;
   onFileSelect?: (file: File) => void;
-  placeholder?: string;
   disabled?: boolean;
+  placeholder?: string;
 }
 
-const UnifiedMessageInput = ({
+const UnifiedMessageInput: React.FC<UnifiedMessageInputProps> = ({
   conversationId,
   onSendMessage,
   onSendVoiceMessage,
   onFileSelect,
-  placeholder = "Type your message...",
-  disabled = false
-}: UnifiedMessageInputProps) => {
+  disabled = false,
+  placeholder = "Type your message..."
+}) => {
   const [message, setMessage] = useState('');
+  const [showTemplates, setShowTemplates] = useState(false);
+  const [showQuickReplies, setShowQuickReplies] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
-  const [sendingMessage, setSendingMessage] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const { toast } = useToast();
 
-  const handleSend = async () => {
-    if (!message.trim() || sendingMessage) return;
-
-    try {
-      setSendingMessage(true);
-      await onSendMessage(message.trim());
+  const handleSend = () => {
+    if (message.trim() && !disabled) {
+      onSendMessage(message.trim());
       setMessage('');
-    } catch (error) {
-      toast({
-        title: "Failed to send message",
-        description: "Please try again",
-        variant: "destructive"
-      });
-    } finally {
-      setSendingMessage(false);
     }
   };
 
@@ -53,31 +44,59 @@ const UnifiedMessageInput = ({
     }
   };
 
-  const handleFileClick = () => {
+  const handleTemplateSelect = (content: string) => {
+    setMessage(content);
+    setShowTemplates(false);
+  };
+
+  const handleQuickReply = (reply: string) => {
+    onSendMessage(reply);
+    setShowQuickReplies(false);
+  };
+
+  const handleFileUpload = () => {
     fileInputRef.current?.click();
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
     if (file && onFileSelect) {
       onFileSelect(file);
     }
   };
 
   const toggleRecording = () => {
-    if (onSendVoiceMessage) {
-      setIsRecording(!isRecording);
-      // Voice recording logic would go here
-      toast({
-        title: "Voice messages",
-        description: "Voice recording coming soon!",
-      });
+    if (isRecording) {
+      // Stop recording logic would go here
+      setIsRecording(false);
+    } else {
+      // Start recording logic would go here
+      setIsRecording(true);
     }
   };
 
   return (
-    <div className="border-t p-4 bg-white">
-      <div className="flex items-end gap-2">
+    <div className="border-t bg-white p-4 space-y-3">
+      {/* Quick Replies Toggle */}
+      {showQuickReplies && (
+        <QuickReplies onQuickReply={handleQuickReply} />
+      )}
+
+      {/* Main Input Area */}
+      <div className="flex gap-2 items-end">
+        {/* Templates Button */}
+        <Dialog open={showTemplates} onOpenChange={setShowTemplates}>
+          <DialogTrigger asChild>
+            <Button variant="outline" size="sm" className="mb-1">
+              <Template size={16} />
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+            <MessageTemplates onSelectTemplate={handleTemplateSelect} />
+          </DialogContent>
+        </Dialog>
+
+        {/* File Upload */}
         <input
           type="file"
           ref={fileInputRef}
@@ -85,53 +104,58 @@ const UnifiedMessageInput = ({
           className="hidden"
           accept="image/*,document/*"
         />
-        
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={handleFileClick}
-          disabled={disabled}
-          className="shrink-0"
+        <Button 
+          variant="outline" 
+          size="sm" 
+          onClick={handleFileUpload}
+          className="mb-1"
         >
           <Paperclip size={16} />
         </Button>
 
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={handleFileClick}
-          disabled={disabled}
-          className="shrink-0"
-        >
-          <Image size={16} />
-        </Button>
+        {/* Text Input */}
+        <div className="flex-1">
+          <Textarea
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+            onKeyDown={handleKeyPress}
+            placeholder={placeholder}
+            disabled={disabled}
+            rows={1}
+            className="resize-none min-h-10 max-h-32"
+          />
+        </div>
 
-        <Textarea
-          value={message}
-          onChange={(e) => setMessage(e.target.value)}
-          onKeyDown={handleKeyPress}
-          placeholder={placeholder}
-          disabled={disabled || sendingMessage}
-          className="flex-1 min-h-[44px] max-h-32 resize-none"
-          rows={1}
-        />
-
+        {/* Voice Recording */}
         <Button
-          variant="outline"
+          variant={isRecording ? "destructive" : "outline"}
           size="sm"
           onClick={toggleRecording}
-          disabled={disabled}
-          className={`shrink-0 ${isRecording ? 'bg-red-100 text-red-600' : ''}`}
+          className="mb-1"
         >
           <Mic size={16} />
         </Button>
 
-        <Button
-          onClick={handleSend}
-          disabled={!message.trim() || sendingMessage || disabled}
-          className="shrink-0"
+        {/* Send Button */}
+        <Button 
+          onClick={handleSend} 
+          disabled={!message.trim() || disabled}
+          className="mb-1"
         >
           <Send size={16} />
+        </Button>
+      </div>
+
+      {/* Action Buttons */}
+      <div className="flex gap-2">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => setShowQuickReplies(!showQuickReplies)}
+          className="text-xs"
+        >
+          <Zap size={12} className="mr-1" />
+          Quick Replies
         </Button>
       </div>
     </div>

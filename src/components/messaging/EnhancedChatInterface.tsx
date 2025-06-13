@@ -6,8 +6,6 @@ import { useRealtimeMessages } from '@/hooks/useRealtimeMessages';
 import { useEnhancedFileUpload } from '@/hooks/useEnhancedFileUpload';
 import { useMessageReactions } from '@/hooks/useMessageReactions';
 import { useMessageThreads } from '@/hooks/useMessageThreads';
-import { useChatState } from '@/hooks/useChatState';
-import { useChatHandlers } from '@/hooks/useChatHandlers';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, User } from 'lucide-react';
 import UnifiedMessageBubble from './UnifiedMessageBubble';
@@ -140,7 +138,7 @@ const EnhancedChatInterface = ({ conversationId, otherUserId, listingId, onBack 
         </div>
       </ScrollArea>
 
-      {/* Input */}
+      {/* Enhanced Input with Templates */}
       <UnifiedMessageInput
         conversationId={conversationId}
         onSendMessage={handleSendMessage}

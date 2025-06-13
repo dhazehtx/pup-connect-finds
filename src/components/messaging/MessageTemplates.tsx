@@ -1,305 +1,333 @@
 
-import React, { useState } from 'react';
-import { Button } from '@/components/ui/button';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Edit2, Trash2, Search } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Plus, Edit, Trash2, MessageSquare } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface MessageTemplate {
   id: string;
   title: string;
   content: string;
   category: string;
-  tags: string[];
-  usage_count: number;
+  created_at: string;
 }
 
 interface MessageTemplatesProps {
   onSelectTemplate: (content: string) => void;
-  onClose: () => void;
 }
 
-const MessageTemplates = ({ onSelectTemplate, onClose }: MessageTemplatesProps) => {
-  const [templates, setTemplates] = useState<MessageTemplate[]>([
-    {
-      id: '1',
-      title: 'Introduction',
-      content: 'Hi! I\'m interested in your dog listing. Could you please provide more information about the breed and availability?',
-      category: 'inquiry',
-      tags: ['introduction', 'inquiry'],
-      usage_count: 15
-    },
-    {
-      id: '2',
-      title: 'Scheduling Visit',
-      content: 'I would love to schedule a visit to meet the puppy. What times work best for you this week?',
-      category: 'meeting',
-      tags: ['visit', 'schedule'],
-      usage_count: 8
-    },
-    {
-      id: '3',
-      title: 'Health Questions',
-      content: 'Could you please share the health certificates and vaccination records for the puppy?',
-      category: 'health',
-      tags: ['health', 'certificates'],
-      usage_count: 12
-    },
-    {
-      id: '4',
-      title: 'Thank You',
-      content: 'Thank you for your time and detailed responses. I appreciate your professionalism.',
-      category: 'courtesy',
-      tags: ['thanks', 'courtesy'],
-      usage_count: 22
-    }
-  ]);
-  
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState<string>('all');
-  const [isCreating, setIsCreating] = useState(false);
-  const [editingTemplate, setEditingTemplate] = useState<MessageTemplate | null>(null);
+const MessageTemplates: React.FC<MessageTemplatesProps> = ({ onSelectTemplate }) => {
+  const { user } = useAuth();
   const { toast } = useToast();
-
-  const categories = ['all', 'inquiry', 'meeting', 'health', 'courtesy', 'negotiation'];
-
-  const filteredTemplates = templates.filter(template => {
-    const matchesSearch = template.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         template.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         template.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()));
-    
-    const matchesCategory = selectedCategory === 'all' || template.category === selectedCategory;
-    
-    return matchesSearch && matchesCategory;
+  const [templates, setTemplates] = useState<MessageTemplate[]>([]);
+  const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [editingTemplate, setEditingTemplate] = useState<MessageTemplate | null>(null);
+  const [newTemplate, setNewTemplate] = useState({
+    title: '',
+    content: '',
+    category: 'general'
   });
 
-  const handleSelectTemplate = (template: MessageTemplate) => {
-    // Update usage count
-    setTemplates(prev => prev.map(t => 
-      t.id === template.id ? { ...t, usage_count: t.usage_count + 1 } : t
-    ));
-    
-    onSelectTemplate(template.content);
-    onClose();
-    
-    toast({
-      title: "Template Applied",
-      description: `"${template.title}" has been added to your message.`,
-    });
+  const categories = [
+    'general',
+    'availability',
+    'pricing',
+    'health_records',
+    'meeting_arrangement',
+    'thank_you'
+  ];
+
+  const defaultTemplates = [
+    {
+      title: "Puppy Available",
+      content: "Hi! Yes, [puppy name] is still available. Would you like to schedule a visit to meet them?",
+      category: "availability"
+    },
+    {
+      title: "Health Records",
+      content: "All our puppies come with complete health records, including vaccinations and health certificates from our licensed veterinarian.",
+      category: "health_records"
+    },
+    {
+      title: "Price Inquiry",
+      content: "Thank you for your interest! The price for [puppy name] is $[amount]. This includes health records, first vaccinations, and a health guarantee.",
+      category: "pricing"
+    },
+    {
+      title: "Meeting Arrangement",
+      content: "I'd be happy to arrange a meeting! I'm available [days/times]. Please let me know what works best for you.",
+      category: "meeting_arrangement"
+    },
+    {
+      title: "Thank You",
+      content: "Thank you for choosing us for your new family member! We're excited for you to meet your new puppy.",
+      category: "thank_you"
+    }
+  ];
+
+  useEffect(() => {
+    loadTemplates();
+  }, [user]);
+
+  const loadTemplates = async () => {
+    if (!user) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('message_templates')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      if (data && data.length === 0) {
+        // Create default templates for new users
+        await createDefaultTemplates();
+      } else {
+        setTemplates(data || []);
+      }
+    } catch (error: any) {
+      console.error('Error loading templates:', error);
+    }
   };
 
-  const handleDeleteTemplate = (templateId: string) => {
-    setTemplates(prev => prev.filter(t => t.id !== templateId));
-    toast({
-      title: "Template Deleted",
-      description: "The message template has been removed.",
-    });
+  const createDefaultTemplates = async () => {
+    if (!user) return;
+
+    try {
+      const templatesWithUserId = defaultTemplates.map(template => ({
+        ...template,
+        user_id: user.id
+      }));
+
+      const { data, error } = await supabase
+        .from('message_templates')
+        .insert(templatesWithUserId)
+        .select();
+
+      if (error) throw error;
+      setTemplates(data || []);
+    } catch (error: any) {
+      console.error('Error creating default templates:', error);
+    }
   };
 
-  const CreateTemplateForm = () => {
-    const [title, setTitle] = useState('');
-    const [content, setContent] = useState('');
-    const [category, setCategory] = useState('inquiry');
-    const [tags, setTags] = useState('');
+  const saveTemplate = async () => {
+    if (!user || !newTemplate.title.trim() || !newTemplate.content.trim()) {
+      toast({
+        title: "Missing Information",
+        description: "Please provide both title and content",
+        variant: "destructive"
+      });
+      return;
+    }
 
-    const handleSave = () => {
-      if (!title.trim() || !content.trim()) {
-        toast({
-          title: "Validation Error",
-          description: "Please fill in both title and content.",
-          variant: "destructive",
-        });
-        return;
+    try {
+      if (editingTemplate) {
+        const { data, error } = await supabase
+          .from('message_templates')
+          .update({
+            title: newTemplate.title,
+            content: newTemplate.content,
+            category: newTemplate.category
+          })
+          .eq('id', editingTemplate.id)
+          .select()
+          .single();
+
+        if (error) throw error;
+
+        setTemplates(prev => prev.map(t => 
+          t.id === editingTemplate.id ? data : t
+        ));
+      } else {
+        const { data, error } = await supabase
+          .from('message_templates')
+          .insert({
+            user_id: user.id,
+            title: newTemplate.title,
+            content: newTemplate.content,
+            category: newTemplate.category
+          })
+          .select()
+          .single();
+
+        if (error) throw error;
+        setTemplates(prev => [data, ...prev]);
       }
 
-      const newTemplate: MessageTemplate = {
-        id: Date.now().toString(),
-        title: title.trim(),
-        content: content.trim(),
-        category,
-        tags: tags.split(',').map(tag => tag.trim()).filter(Boolean),
-        usage_count: 0
-      };
-
-      setTemplates(prev => [...prev, newTemplate]);
-      setIsCreating(false);
-      setTitle('');
-      setContent('');
-      setTags('');
-      
       toast({
-        title: "Template Created",
-        description: "Your new message template has been saved.",
+        title: "Template Saved",
+        description: `Template "${newTemplate.title}" has been saved successfully`,
       });
-    };
 
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">Create New Template</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <Input
-            placeholder="Template title"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-          />
-          
-          <Textarea
-            placeholder="Template content"
-            value={content}
-            onChange={(e) => setContent(e.target.value)}
-            rows={4}
-          />
-          
-          <div className="flex gap-2">
-            <select
-              value={category}
-              onChange={(e) => setCategory(e.target.value)}
-              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-            >
-              {categories.slice(1).map(cat => (
-                <option key={cat} value={cat}>
-                  {cat.charAt(0).toUpperCase() + cat.slice(1)}
-                </option>
-              ))}
-            </select>
-          </div>
-          
-          <Input
-            placeholder="Tags (comma separated)"
-            value={tags}
-            onChange={(e) => setTags(e.target.value)}
-          />
-          
-          <div className="flex justify-end gap-2">
-            <Button
-              variant="outline"
-              onClick={() => setIsCreating(false)}
-            >
-              Cancel
-            </Button>
-            <Button onClick={handleSave}>
-              Save Template
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-    );
+      resetForm();
+    } catch (error: any) {
+      toast({
+        title: "Failed to Save Template",
+        description: error.message,
+        variant: "destructive"
+      });
+    }
+  };
+
+  const deleteTemplate = async (templateId: string) => {
+    try {
+      const { error } = await supabase
+        .from('message_templates')
+        .delete()
+        .eq('id', templateId);
+
+      if (error) throw error;
+
+      setTemplates(prev => prev.filter(t => t.id !== templateId));
+
+      toast({
+        title: "Template Deleted",
+        description: "Template has been removed successfully",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Failed to Delete Template",
+        description: error.message,
+        variant: "destructive"
+      });
+    }
+  };
+
+  const resetForm = () => {
+    setNewTemplate({ title: '', content: '', category: 'general' });
+    setEditingTemplate(null);
+    setShowCreateDialog(false);
+  };
+
+  const startEdit = (template: MessageTemplate) => {
+    setNewTemplate({
+      title: template.title,
+      content: template.content,
+      category: template.category
+    });
+    setEditingTemplate(template);
+    setShowCreateDialog(true);
+  };
+
+  const getCategoryColor = (category: string) => {
+    const colors = {
+      general: 'bg-gray-100 text-gray-800',
+      availability: 'bg-green-100 text-green-800',
+      pricing: 'bg-blue-100 text-blue-800',
+      health_records: 'bg-purple-100 text-purple-800',
+      meeting_arrangement: 'bg-orange-100 text-orange-800',
+      thank_you: 'bg-pink-100 text-pink-800'
+    };
+    return colors[category as keyof typeof colors] || colors.general;
   };
 
   return (
-    <div className="space-y-4">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold">Message Templates</h3>
-        <Button
-          onClick={() => setIsCreating(true)}
-          size="sm"
-          className="gap-2"
-        >
-          <Plus className="w-4 h-4" />
-          New Template
-        </Button>
-      </div>
-
-      {/* Create Form */}
-      {isCreating && <CreateTemplateForm />}
-
-      {/* Search and Filters */}
-      <div className="flex gap-2">
-        <div className="relative flex-1">
-          <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
-          <Input
-            placeholder="Search templates..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-8"
-          />
-        </div>
-        
-        <select
-          value={selectedCategory}
-          onChange={(e) => setSelectedCategory(e.target.value)}
-          className="flex h-10 rounded-md border border-input bg-background px-3 py-2 text-sm"
-        >
-          {categories.map(category => (
-            <option key={category} value={category}>
-              {category === 'all' ? 'All Categories' : category.charAt(0).toUpperCase() + category.slice(1)}
-            </option>
-          ))}
-        </select>
-      </div>
-
-      {/* Templates List */}
-      <div className="grid gap-3 max-h-96 overflow-y-auto">
-        {filteredTemplates.map(template => (
-          <Card key={template.id} className="cursor-pointer hover:shadow-md transition-shadow">
-            <CardContent className="p-4">
-              <div className="flex items-start justify-between">
-                <div className="flex-1" onClick={() => handleSelectTemplate(template)}>
-                  <div className="flex items-center gap-2 mb-2">
-                    <h4 className="font-medium">{template.title}</h4>
-                    <Badge variant="secondary" className="text-xs">
-                      {template.category}
-                    </Badge>
-                    <span className="text-xs text-muted-foreground">
-                      Used {template.usage_count} times
-                    </span>
-                  </div>
-                  
-                  <p className="text-sm text-muted-foreground line-clamp-2">
-                    {template.content}
-                  </p>
-                  
-                  <div className="flex gap-1 mt-2">
-                    {template.tags.map(tag => (
-                      <Badge key={tag} variant="outline" className="text-xs">
-                        {tag}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-                
-                <div className="flex items-center gap-1 ml-2">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setEditingTemplate(template);
-                    }}
-                    className="h-8 w-8 p-0"
-                  >
-                    <Edit2 className="w-3 h-3" />
+    <Card>
+      <CardHeader>
+        <div className="flex justify-between items-center">
+          <CardTitle className="flex items-center gap-2">
+            <MessageSquare size={20} />
+            Message Templates
+          </CardTitle>
+          <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
+            <DialogTrigger asChild>
+              <Button size="sm">
+                <Plus size={16} className="mr-1" />
+                Add Template
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>
+                  {editingTemplate ? 'Edit Template' : 'Create New Template'}
+                </DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                <Input
+                  placeholder="Template title..."
+                  value={newTemplate.title}
+                  onChange={(e) => setNewTemplate(prev => ({ ...prev, title: e.target.value }))}
+                />
+                <select
+                  value={newTemplate.category}
+                  onChange={(e) => setNewTemplate(prev => ({ ...prev, category: e.target.value }))}
+                  className="w-full p-2 border rounded-md"
+                >
+                  {categories.map(cat => (
+                    <option key={cat} value={cat}>
+                      {cat.replace('_', ' ').toUpperCase()}
+                    </option>
+                  ))}
+                </select>
+                <Textarea
+                  placeholder="Template content..."
+                  value={newTemplate.content}
+                  onChange={(e) => setNewTemplate(prev => ({ ...prev, content: e.target.value }))}
+                  rows={4}
+                />
+                <div className="flex gap-2">
+                  <Button onClick={saveTemplate} className="flex-1">
+                    {editingTemplate ? 'Update Template' : 'Save Template'}
                   </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleDeleteTemplate(template.id);
-                    }}
-                    className="h-8 w-8 p-0 text-destructive hover:text-destructive"
-                  >
-                    <Trash2 className="w-3 h-3" />
+                  <Button variant="outline" onClick={resetForm}>
+                    Cancel
                   </Button>
                 </div>
               </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-
-      {filteredTemplates.length === 0 && (
-        <div className="text-center py-8 text-muted-foreground">
-          <p>No templates found matching your search.</p>
+            </DialogContent>
+          </Dialog>
         </div>
-      )}
-    </div>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-3 max-h-60 overflow-y-auto">
+          {templates.map((template) => (
+            <div key={template.id} className="p-3 border rounded-lg hover:bg-gray-50">
+              <div className="flex justify-between items-start mb-2">
+                <div className="flex items-center gap-2">
+                  <h4 className="font-medium text-sm">{template.title}</h4>
+                  <Badge className={getCategoryColor(template.category)}>
+                    {template.category.replace('_', ' ')}
+                  </Badge>
+                </div>
+                <div className="flex gap-1">
+                  <Button size="sm" variant="ghost" onClick={() => startEdit(template)}>
+                    <Edit size={12} />
+                  </Button>
+                  <Button 
+                    size="sm" 
+                    variant="ghost" 
+                    onClick={() => deleteTemplate(template.id)}
+                  >
+                    <Trash2 size={12} />
+                  </Button>
+                </div>
+              </div>
+              <p className="text-xs text-gray-600 mb-2 line-clamp-2">
+                {template.content}
+              </p>
+              <Button 
+                size="sm" 
+                variant="outline" 
+                onClick={() => onSelectTemplate(template.content)}
+                className="w-full"
+              >
+                Use Template
+              </Button>
+            </div>
+          ))}
+        </div>
+      </CardContent>
+    </Card>
   );
 };
 
