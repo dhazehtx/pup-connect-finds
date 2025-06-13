@@ -9,11 +9,12 @@ import { Input } from '@/components/ui/input';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { ArrowLeft, Send, Paperclip, Mic, User, Phone, Video, Settings } from 'lucide-react';
+import { ArrowLeft, Send, Paperclip, Mic, User, Phone, Video, Shield } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import EnhancedVoicePlayer from './EnhancedVoicePlayer';
 import AdvancedVideoCall from './AdvancedVideoCall';
 import AdvancedVoiceRecorder from './AdvancedVoiceRecorder';
+import EncryptionControl from './controls/EncryptionControl';
 
 interface StreamlinedChatInterfaceProps {
   conversationId: string;
@@ -30,6 +31,7 @@ const StreamlinedChatInterface = ({ conversationId, otherUserId, onBack }: Strea
   const [showVoiceRecorder, setShowVoiceRecorder] = useState(false);
   const [showVideoCall, setShowVideoCall] = useState(false);
   const [isVideoCallActive, setIsVideoCallActive] = useState(false);
+  const [isEncrypted, setIsEncrypted] = useState(false);
 
   useEffect(() => {
     if (conversationId && user) {
@@ -91,10 +93,18 @@ const StreamlinedChatInterface = ({ conversationId, otherUserId, onBack }: Strea
             
             <div className="flex-1">
               <h3 className="font-semibold">Enhanced Chat</h3>
-              <p className="text-sm text-muted-foreground">Active now</p>
+              <p className="text-sm text-muted-foreground">
+                {isEncrypted ? '🔒 End-to-end encrypted' : 'Active now'}
+              </p>
             </div>
 
             <div className="flex gap-2">
+              <EncryptionControl
+                conversationId={conversationId}
+                isEncrypted={isEncrypted}
+                onToggleEncryption={setIsEncrypted}
+              />
+              
               <Button variant="ghost" size="sm">
                 <Phone className="w-4 h-4" />
               </Button>
@@ -152,12 +162,16 @@ const StreamlinedChatInterface = ({ conversationId, otherUserId, onBack }: Strea
                     />
                   ) : (
                     <div
-                      className={`rounded-lg px-3 py-2 ${
+                      className={`rounded-lg px-3 py-2 relative ${
                         isOwn
                           ? 'bg-primary text-primary-foreground'
                           : 'bg-muted'
                       }`}
                     >
+                      {message.is_encrypted && (
+                        <Shield className="w-3 h-3 absolute top-1 right-1 text-green-500" />
+                      )}
+                      
                       {message.message_type === 'image' && message.image_url ? (
                         <img
                           src={message.image_url}
@@ -215,7 +229,7 @@ const StreamlinedChatInterface = ({ conversationId, otherUserId, onBack }: Strea
               value={newMessage}
               onChange={(e) => setNewMessage(e.target.value)}
               onKeyDown={handleKeyPress}
-              placeholder="Type a message..."
+              placeholder={isEncrypted ? "Type an encrypted message..." : "Type a message..."}
               className="flex-1"
               disabled={uploading}
             />

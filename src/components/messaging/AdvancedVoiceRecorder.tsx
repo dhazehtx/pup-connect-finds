@@ -13,7 +13,7 @@ import {
   Trash2, 
   Send, 
   Settings,
-  Waveform
+  Activity
 } from 'lucide-react';
 import { useAdvancedVoiceRecording } from '@/hooks/useAdvancedVoiceRecording';
 import { useFileUpload } from '@/hooks/useFileUpload';
@@ -271,7 +271,7 @@ const AdvancedVoiceRecorder = ({ onSendVoiceMessage, onCancel }: AdvancedVoiceRe
           
           {audioBlob && (
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Waveform className="w-4 h-4" />
+              <Activity className="w-4 h-4" />
               {audioSettings.sampleRate / 1000}kHz • {audioSettings.bitRate / 1000}kbps
             </div>
           )}
