@@ -1,205 +1,119 @@
+
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { Heart, Menu, X, User, Search, TrendingUp, PawPrint, BarChart3 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
-import { useTheme } from '@/contexts/ThemeContext';
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { ModeToggle } from "@/components/ModeToggle"
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "@/components/ui/sheet"
-import { Button } from "@/components/ui/button"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import {
-  NavigationMenu,
-  NavigationMenuContent,
-  NavigationMenuItem,
-  NavigationMenuLink,
-  NavigationMenuList,
-  NavigationMenuTrigger,
-  navigationMenuTriggerStyle,
-} from "@/components/ui/navigation-menu"
-import {
-  DropdownMenuCheckboxItem,
-} from "@/components/ui/dropdown-menu"
-import {
-  Menu,
-  Moon,
-  Sun,
-  Home,
-  Compass,
-  Search as SearchIcon,
-  Mail,
-  HelpCircle,
-  User,
-  Settings,
-  LogOut,
-  LogIn,
-  Plus,
-  LayoutDashboard
-} from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 const Header = () => {
-  const { user, signOut, profile } = useAuth();
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { user, signOut } = useAuth();
   const navigate = useNavigate();
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { toast } = useToast();
 
-  const navigationItems = [
-    { name: 'Explore', href: '/explore' },
-    { name: 'Search', href: '/search' },
-    { name: 'Services', href: '/services' }, // New
-    { name: 'PawBox', href: '/pawbox' }, // New
-    { name: 'Messages', href: '/messages' },
-    { name: 'Help', href: '/help' }
-  ];
-
-  const toggleMobileMenu = () => {
-    setIsMobileMenuOpen(!isMobileMenuOpen);
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+      navigate('/');
+      toast({
+        title: "Signed out successfully",
+        description: "You have been signed out of your account",
+      });
+    } catch (error) {
+      toast({
+        title: "Error signing out",
+        description: "There was a problem signing you out",
+        variant: "destructive",
+      });
+    }
   };
 
+  const navLinks = [
+    { href: '/explore', label: 'Explore', icon: Search },
+    { href: '/services', label: 'Services', icon: PawPrint },
+    { href: '/b2b-dashboard', label: 'B2B Analytics', icon: BarChart3 },
+    { href: '/education', label: 'Education', icon: TrendingUp },
+  ];
+
   return (
-    <header className="bg-white dark:bg-gray-900 shadow-md sticky top-0 z-50">
-      <div className="container mx-auto px-4 py-3 flex items-center justify-between">
-        {/* Logo and Brand */}
-        <Link to="/" className="flex items-center text-xl font-semibold text-gray-800 dark:text-white">
-          <img src="/logo.svg" alt="MYPUP Logo" className="h-8 w-auto mr-2" />
-          MYPUP
-        </Link>
+    <header className="bg-white shadow-sm border-b sticky top-0 z-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex justify-between items-center h-16">
+          {/* Logo */}
+          <Link to="/" className="flex items-center space-x-2">
+            <Heart className="h-8 w-8 text-blue-600" />
+            <span className="text-xl font-bold text-gray-900">MY PUP</span>
+          </Link>
 
-        {/* Desktop Navigation */}
-        <nav className="hidden md:flex items-center space-x-6">
-          {navigationItems.map((item) => (
-            <Link key={item.name} to={item.href} className="text-gray-700 dark:text-gray-300 hover:text-blue-500 dark:hover:text-blue-400 transition-colors">
-              {item.name}
-            </Link>
-          ))}
-        </nav>
+          {/* Desktop Navigation */}
+          <nav className="hidden md:flex items-center space-x-8">
+            {navLinks.map((link) => {
+              const Icon = link.icon;
+              return (
+                <Link
+                  key={link.href}
+                  to={link.href}
+                  className="flex items-center space-x-1 text-gray-600 hover:text-blue-600 transition-colors"
+                >
+                  <Icon className="h-4 w-4" />
+                  <span>{link.label}</span>
+                </Link>
+              );
+            })}
+          </nav>
 
-        {/* Auth and Actions */}
-        <div className="flex items-center space-x-4">
-          <ModeToggle />
-
-          {user ? (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="h-8 w-8 p-0">
-                  <Avatar className="h-8 w-8">
-                    <AvatarImage src={profile?.avatar_url || `https://avatar.vercel.sh/${user.email?.split('@')[0]}.png`} alt={profile?.fullName || user.email || "User Avatar"} />
-                    <AvatarFallback>{user.email?.charAt(0).toUpperCase()}</AvatarFallback>
-                  </Avatar>
+          {/* User Actions */}
+          <div className="flex items-center space-x-4">
+            {user ? (
+              <div className="flex items-center space-x-4">
+                <Link to="/profile">
+                  <Button variant="ghost" size="sm" className="flex items-center space-x-2">
+                    <User className="h-4 w-4" />
+                    <span className="hidden sm:inline">Profile</span>
+                  </Button>
+                </Link>
+                <Button variant="outline" size="sm" onClick={handleSignOut}>
+                  Sign Out
                 </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-56" align="end" forceMount>
-                <DropdownMenuLabel className="font-normal">
-                  <div className="flex flex-col space-y-1">
-                    <p className="text-sm font-medium leading-none">{profile?.fullName || user.email}</p>
-                    <p className="text-xs leading-none text-muted-foreground">
-                      {user.email}
-                    </p>
-                  </div>
-                </DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => navigate('/dashboard')} >
-                  <LayoutDashboard className="mr-2 h-4 w-4" />
-                  <span>Dashboard</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => navigate('/profile')} >
-                  <User className="mr-2 h-4 w-4" />
-                  <span>Profile</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => navigate('/settings')}>
-                  <Settings className="mr-2 h-4 w-4" />
-                  <span>Settings</span>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={signOut}>
-                  <LogOut className="mr-2 h-4 w-4" />
-                  <span>Log out</span>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          ) : (
-            <>
-              <Button variant="ghost" size="sm" onClick={() => navigate('/sign-in')}>
-                <LogIn className="mr-2 h-4 w-4" />
-                Sign In
-              </Button>
-              <Button size="sm" onClick={() => navigate('/sign-up')}>
-                <Plus className="mr-2 h-4 w-4" />
-                Sign Up
-              </Button>
-            </>
-          )}
+              </div>
+            ) : (
+              <Link to="/auth">
+                <Button size="sm">Sign In</Button>
+              </Link>
+            )}
+
+            {/* Mobile menu button */}
+            <button
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              className="md:hidden p-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+            >
+              {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+            </button>
+          </div>
         </div>
 
-        {/* Mobile Menu Button */}
-        <div className="md:hidden">
-          <Sheet>
-            <SheetTrigger asChild>
-              <Button variant="ghost" size="icon" aria-label="Toggle Menu">
-                <Menu className="h-5 w-5" />
-              </Button>
-            </SheetTrigger>
-            <SheetContent side="left" className="w-full sm:w-64">
-              <SheetHeader className="text-left">
-                <SheetTitle>Menu</SheetTitle>
-                <SheetDescription>
-                  Navigate the app and manage your profile.
-                </SheetDescription>
-              </SheetHeader>
-              <nav className="grid gap-4 text-sm mt-8">
-                {navigationItems.map((item) => (
-                  <Link key={item.name} to={item.href} className="flex items-center gap-2 py-2 px-3 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
-                    <Compass className="h-4 w-4" />
-                    {item.name}
+        {/* Mobile Navigation */}
+        {isMenuOpen && (
+          <div className="md:hidden py-4 border-t">
+            <nav className="flex flex-col space-y-2">
+              {navLinks.map((link) => {
+                const Icon = link.icon;
+                return (
+                  <Link
+                    key={link.href}
+                    to={link.href}
+                    className="flex items-center space-x-2 px-3 py-2 text-gray-600 hover:text-blue-600 hover:bg-gray-50 rounded-md transition-colors"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    <Icon className="h-4 w-4" />
+                    <span>{link.label}</span>
                   </Link>
-                ))}
-                {user ? (
-                  <>
-                    <Link to="/dashboard" className="flex items-center gap-2 py-2 px-3 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
-                      <LayoutDashboard className="h-4 w-4" />
-                      Dashboard
-                    </Link>
-                    <Link to="/profile" className="flex items-center gap-2 py-2 px-3 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
-                      <User className="h-4 w-4" />
-                      Profile
-                    </Link>
-                    <Link to="/settings" className="flex items-center gap-2 py-2 px-3 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
-                      <Settings className="h-4 w-4" />
-                      Settings
-                    </Link>
-                    <Button variant="ghost" size="sm" className="justify-start" onClick={signOut}>
-                      <LogOut className="mr-2 h-4 w-4" />
-                      Log out
-                    </Button>
-                  </>
-                ) : (
-                  <>
-                    <Button variant="ghost" size="sm" className="justify-start" onClick={() => navigate('/sign-in')}>
-                      <LogIn className="mr-2 h-4 w-4" />
-                      Sign In
-                    </Button>
-                    <Button size="sm" className="justify-start" onClick={() => navigate('/sign-up')}>
-                      <Plus className="mr-2 h-4 w-4" />
-                      Sign Up
-                    </Button>
-                  </>
-                )}
-              </nav>
-            </SheetContent>
-          </Sheet>
-        </div>
+                );
+              })}
+            </nav>
+          </div>
+        )}
       </div>
     </header>
   );

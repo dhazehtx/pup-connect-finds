@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -18,6 +19,8 @@ import HelpCenter from './HelpCenter';
 import Contact from './Contact';
 import CustomerReviews from './CustomerReviews';
 import TrustSafety from './TrustSafety';
+import Services from './Services';
+import B2BDashboard from './B2BDashboard';
 import ProtectedRoute from '@/components/ProtectedRoute';
 
 const Index = () => {
@@ -39,6 +42,17 @@ const Index = () => {
       <Route path="/" element={<Home />} />
       <Route path="/auth" element={<Auth />} />
       <Route path="/explore" element={<Explore />} />
+      <Route path="/services" element={<Services />} />
+      
+      {/* B2B Dashboard - protected route for business users */}
+      <Route 
+        path="/b2b-dashboard" 
+        element={
+          <ProtectedRoute allowGuest={false}>
+            <B2BDashboard />
+          </ProtectedRoute>
+        } 
+      />
       
       {/* Protected routes that redirect guests to auth */}
       <Route 
