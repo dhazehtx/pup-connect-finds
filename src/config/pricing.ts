@@ -51,6 +51,15 @@ export const PRICING_CONFIG = {
     suggested: [5, 10, 25, 50, 100],
     customMin: 1,
     customMax: 1000
+  },
+  donationGoals: {
+    monthly: 10000,
+    yearly: 120000
+  },
+  listingFees: {
+    basic: 9.99,
+    featured: 19.99,
+    premium: 39.99
   }
 };
 
