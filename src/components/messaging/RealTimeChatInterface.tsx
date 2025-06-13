@@ -12,6 +12,7 @@ import { formatDistanceToNow } from 'date-fns';
 
 interface Message {
   id: string;
+  conversation_id: string;
   sender_id: string;
   message_type: 'image' | 'text' | 'file' | 'voice';
   content: string;
@@ -106,7 +107,13 @@ const RealTimeChatInterface = ({ conversationId, otherUser, listingInfo }: RealT
   // Type-safe message filtering
   const typedMessages = messages.filter((msg): msg is Message => {
     const validTypes: Array<Message['message_type']> = ['image', 'text', 'file', 'voice'];
-    return validTypes.includes(msg.message_type as Message['message_type']);
+    return (
+      typeof msg.id === 'string' &&
+      typeof msg.sender_id === 'string' &&
+      typeof msg.content === 'string' &&
+      typeof msg.created_at === 'string' &&
+      validTypes.includes(msg.message_type as Message['message_type'])
+    );
   });
 
   return (
