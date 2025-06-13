@@ -126,6 +126,15 @@ export const useAnalytics = () => {
     }
   }, [user]);
 
+  const getAnalytics = useCallback(async () => {
+    // Mock analytics data
+    return {
+      pageViews: Math.floor(Math.random() * 1000) + 500,
+      uniqueVisitors: Math.floor(Math.random() * 500) + 200,
+      conversionRate: Math.random() * 5 + 2
+    };
+  }, []);
+
   useEffect(() => {
     if (user) {
       loadUserMetrics();
@@ -141,6 +150,7 @@ export const useAnalytics = () => {
     loadUserMetrics,
     loadPlatformMetrics,
     loadListingMetrics,
-    generateInsights
+    generateInsights,
+    getAnalytics
   };
 };

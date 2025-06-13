@@ -34,6 +34,7 @@ export interface ListingPerformanceMetrics {
   bounce_rate: number;
   search_appearances: number;
   click_through_rate: number;
+  avg_position_clicked: number;
 }
 
 export interface PlatformMetrics {
