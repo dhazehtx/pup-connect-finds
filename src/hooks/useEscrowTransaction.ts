@@ -159,7 +159,14 @@ export const useEscrowTransaction = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setTransactions(data || []);
+      
+      // Type assertion to ensure compatibility
+      const typedData = (data || []).map(item => ({
+        ...item,
+        status: item.status as EscrowTransaction['status']
+      }));
+      
+      setTransactions(typedData);
     } catch (error) {
       console.error('Error loading transactions:', error);
     } finally {

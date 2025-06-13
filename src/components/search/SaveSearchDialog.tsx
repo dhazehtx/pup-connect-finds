@@ -1,19 +1,10 @@
 
-import React, { useState } from 'react';
-import { Save, Bell } from 'lucide-react';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
+import React from 'react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
-import { Badge } from '@/components/ui/badge';
 
 interface SaveSearchDialogProps {
   open: boolean;
@@ -23,131 +14,69 @@ interface SaveSearchDialogProps {
   currentFilters: any;
 }
 
-const SaveSearchDialog = ({
-  open,
-  onOpenChange,
-  onSave,
-  currentQuery,
-  currentFilters
-}: SaveSearchDialogProps) => {
-  const [searchName, setSearchName] = useState('');
-  const [notifyOnNewMatches, setNotifyOnNewMatches] = useState(true);
+const SaveSearchDialog = ({ open, onOpenChange, onSave, currentQuery }: SaveSearchDialogProps) => {
+  const [searchName, setSearchName] = React.useState('');
+  const [notifyOnNewMatches, setNotifyOnNewMatches] = React.useState(true);
 
   const handleSave = () => {
     if (searchName.trim()) {
-      onSave(searchName.trim(), notifyOnNewMatches);
+      onSave(searchName, notifyOnNewMatches);
       setSearchName('');
       setNotifyOnNewMatches(true);
     }
-  };
-
-  const generateSuggestedName = () => {
-    let name = '';
-    
-    if (currentQuery) {
-      name = currentQuery.slice(0, 30);
-    } else if (currentFilters.breeds?.length > 0) {
-      name = currentFilters.breeds.slice(0, 2).join(' & ');
-    } else {
-      name = 'My Search';
-    }
-    
-    if (currentFilters.location) {
-      name += ` in ${currentFilters.location}`;
-    }
-    
-    return name;
-  };
-
-  const getActiveFiltersCount = () => {
-    let count = 0;
-    if (currentQuery) count++;
-    if (currentFilters.breeds?.length > 0) count++;
-    if (currentFilters.location) count++;
-    if (currentFilters.verifiedOnly) count++;
-    if (currentFilters.priceRange?.[0] > 0 || currentFilters.priceRange?.[1] < 5000) count++;
-    return count;
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Save className="h-5 w-5" />
-            Save Search
-          </DialogTitle>
-          <DialogDescription>
-            Save your search criteria and get notified when new matches are found.
-          </DialogDescription>
+          <DialogTitle>Save Search</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4">
-          {/* Search Preview */}
-          <div className="p-3 bg-muted rounded-lg space-y-2">
-            <div className="text-sm font-medium">Search Preview:</div>
-            {currentQuery && (
-              <div className="text-sm">Query: "{currentQuery}"</div>
-            )}
-            <div className="flex flex-wrap gap-1">
-              <Badge variant="secondary">
-                {getActiveFiltersCount()} filters active
-              </Badge>
-              {currentFilters.breeds?.slice(0, 2).map(breed => (
-                <Badge key={breed} variant="outline">{breed}</Badge>
-              ))}
-              {currentFilters.location && (
-                <Badge variant="outline">{currentFilters.location}</Badge>
-              )}
-            </div>
-          </div>
-
-          {/* Search Name */}
           <div className="space-y-2">
             <Label htmlFor="searchName">Search Name</Label>
             <Input
               id="searchName"
-              placeholder="Enter a name for this search"
+              placeholder="e.g., Golden Retrievers under $2000"
               value={searchName}
               onChange={(e) => setSearchName(e.target.value)}
             />
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setSearchName(generateSuggestedName())}
-              className="text-xs"
-            >
-              Use suggested: "{generateSuggestedName()}"
-            </Button>
           </div>
 
-          {/* Notification Settings */}
-          <div className="flex items-center justify-between p-3 border rounded-lg">
-            <div className="space-y-1">
-              <div className="flex items-center gap-2 font-medium">
-                <Bell className="h-4 w-4" />
-                Smart Notifications
-              </div>
-              <div className="text-sm text-muted-foreground">
-                Get notified when new dogs match your criteria
-              </div>
-            </div>
+          <div className="flex items-center space-x-2">
             <Switch
+              id="notifications"
               checked={notifyOnNewMatches}
               onCheckedChange={setNotifyOnNewMatches}
             />
+            <Label htmlFor="notifications">
+              Notify me when new matches are found
+            </Label>
+          </div>
+
+          <div className="bg-muted p-3 rounded text-sm">
+            <p className="font-medium">Current search:</p>
+            <p className="text-muted-foreground">{currentQuery || 'No search query'}</p>
+          </div>
+
+          <div className="flex gap-3 pt-4">
+            <Button
+              variant="outline"
+              onClick={() => onOpenChange(false)}
+              className="flex-1"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleSave}
+              disabled={!searchName.trim()}
+              className="flex-1"
+            >
+              Save Search
+            </Button>
           </div>
         </div>
-
-        <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancel
-          </Button>
-          <Button onClick={handleSave} disabled={!searchName.trim()}>
-            <Save className="h-4 w-4 mr-2" />
-            Save Search
-          </Button>
-        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

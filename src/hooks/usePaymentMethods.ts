@@ -23,7 +23,14 @@ export const usePaymentMethods = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setPaymentMethods(data || []);
+      
+      // Type assertion to ensure compatibility
+      const typedData = (data || []).map(item => ({
+        ...item,
+        type: item.type as PaymentMethod['type']
+      }));
+      
+      setPaymentMethods(typedData);
     } catch (error) {
       console.error('Error loading payment methods:', error);
       toast({

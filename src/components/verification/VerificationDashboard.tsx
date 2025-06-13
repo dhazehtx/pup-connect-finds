@@ -5,242 +5,188 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Shield, CheckCircle, Clock, AlertTriangle, Upload, Camera } from 'lucide-react';
-
-interface VerificationStatus {
-  id: string;
-  type: string;
-  status: 'pending' | 'approved' | 'rejected';
-  submittedAt: string;
-  reviewedAt?: string;
-  rejectionReason?: string;
-}
+import { Shield, CheckCircle, Clock, XCircle, FileText, Award, AlertTriangle } from 'lucide-react';
+import { useVerification } from '@/hooks/useVerification';
+import { formatDistanceToNow } from 'date-fns';
+import IdentityVerificationForm from './IdentityVerificationForm';
+import BusinessVerificationForm from './BusinessVerificationForm';
+import BackgroundCheckStatus from './BackgroundCheckStatus';
 
 const VerificationDashboard = () => {
-  const [verificationRequests, setVerificationRequests] = useState<VerificationStatus[]>([
-    {
-      id: '1',
-      type: 'identity',
-      status: 'approved',
-      submittedAt: '2024-01-15',
-      reviewedAt: '2024-01-16'
-    },
-    {
-      id: '2',
-      type: 'breeder_license',
-      status: 'pending',
-      submittedAt: '2024-01-20'
-    }
-  ]);
+  const [activeForm, setActiveForm] = useState<string | null>(null);
+  const { 
+    verificationRequests, 
+    documents, 
+    backgroundChecks, 
+    loading, 
+    getVerificationStatus 
+  } = useVerification();
 
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'approved': return <CheckCircle className="text-green-600" size={16} />;
-      case 'rejected': return <AlertTriangle className="text-red-600" size={16} />;
-      default: return <Clock className="text-yellow-600" size={16} />;
-    }
-  };
+  const status = getVerificationStatus();
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'approved': return 'bg-green-100 text-green-800';
-      case 'rejected': return 'bg-red-100 text-red-800';
-      default: return 'bg-yellow-100 text-yellow-800';
+  const getStatusIcon = (requestStatus: string) => {
+    switch (requestStatus) {
+      case 'approved':
+        return <CheckCircle className="w-4 h-4 text-green-600" />;
+      case 'pending':
+      case 'in_review':
+        return <Clock className="w-4 h-4 text-yellow-600" />;
+      case 'rejected':
+        return <XCircle className="w-4 h-4 text-red-600" />;
+      default:
+        return <AlertTriangle className="w-4 h-4 text-gray-400" />;
     }
   };
 
-  const verificationTypes = [
-    {
-      id: 'identity',
-      name: 'Identity Verification',
-      description: 'Government-issued ID verification',
-      required: ['photo_id', 'selfie'],
-      completed: true
-    },
-    {
-      id: 'breeder_license',
-      name: 'Breeder License',
-      description: 'Professional breeder certification',
-      required: ['license_document', 'facility_photos'],
-      completed: false
-    },
-    {
-      id: 'health_certificate',
-      name: 'Health Certification',
-      description: 'Veterinary health standards compliance',
-      required: ['vet_certificate', 'health_records'],
-      completed: false
-    },
-    {
-      id: 'business_registration',
-      name: 'Business Registration',
-      description: 'Legal business entity verification',
-      required: ['business_license', 'tax_id'],
-      completed: false
-    }
-  ];
-
-  const getOverallProgress = () => {
-    const completed = verificationTypes.filter(t => t.completed).length;
-    return (completed / verificationTypes.length) * 100;
-  };
-
-  const handleDocumentUpload = (files: FileList | null) => {
-    if (files) {
-      console.log('Documents uploaded:', Array.from(files));
+  const getStatusColor = (requestStatus: string) => {
+    switch (requestStatus) {
+      case 'approved':
+        return 'bg-green-100 text-green-800';
+      case 'pending':
+      case 'in_review':
+        return 'bg-yellow-100 text-yellow-800';
+      case 'rejected':
+        return 'bg-red-100 text-red-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
     }
   };
 
   return (
-    <div className="space-y-6">
-      {/* Overall Progress */}
-      <Card>
+    <div className="container mx-auto px-4 py-6 max-w-6xl">
+      <div className="mb-6">
+        <h1 className="text-3xl font-bold">Verification & Trust Center</h1>
+        <p className="text-muted-foreground">Build trust with buyers and sellers through verification</p>
+      </div>
+
+      {/* Trust Score Overview */}
+      <Card className="mb-6">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Shield className="text-blue-600" size={24} />
-            Verification Progress
+            <Shield className="w-5 h-5" />
+            Trust Score
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
-            <div className="flex justify-between items-center">
-              <span>Overall Completion</span>
-              <span className="font-semibold">{Math.round(getOverallProgress())}%</span>
+          <div className="flex items-center gap-4 mb-4">
+            <div className="flex-1">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-medium">Overall Trust Score</span>
+                <span className="text-2xl font-bold">{status.overallTrustScore}%</span>
+              </div>
+              <Progress value={status.overallTrustScore} className="w-full" />
             </div>
-            <Progress value={getOverallProgress()} className="h-3" />
-            <p className="text-sm text-gray-600">
-              Complete all verifications to unlock premium features and build trust with buyers.
-            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="flex items-center gap-3 p-3 rounded-lg bg-muted">
+              <FileText className="w-5 h-5" />
+              <div>
+                <p className="font-medium">Identity Verification</p>
+                <Badge className={status.identityVerified ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}>
+                  {status.identityVerified ? 'Verified' : 'Not Verified'}
+                </Badge>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3 p-3 rounded-lg bg-muted">
+              <Award className="w-5 h-5" />
+              <div>
+                <p className="font-medium">Business Verification</p>
+                <Badge className={status.businessVerified ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}>
+                  {status.businessVerified ? 'Verified' : 'Not Verified'}
+                </Badge>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3 p-3 rounded-lg bg-muted">
+              <Shield className="w-5 h-5" />
+              <div>
+                <p className="font-medium">Background Check</p>
+                <Badge className={status.backgroundCheckPassed ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}>
+                  {status.backgroundCheckPassed ? 'Passed' : 'Not Completed'}
+                </Badge>
+              </div>
+            </div>
           </div>
         </CardContent>
       </Card>
 
-      <Tabs defaultValue="status" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="status">Verification Status</TabsTrigger>
-          <TabsTrigger value="submit">Submit Documents</TabsTrigger>
-          <TabsTrigger value="history">History</TabsTrigger>
+      <Tabs defaultValue="overview" className="space-y-6">
+        <TabsList className="grid w-full grid-cols-4">
+          <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="identity">Identity</TabsTrigger>
+          <TabsTrigger value="business">Business</TabsTrigger>
+          <TabsTrigger value="background">Background</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="status" className="space-y-4">
-          {verificationTypes.map((type) => {
-            const request = verificationRequests.find(r => r.type === type.id);
-            return (
-              <Card key={type.id}>
-                <CardContent className="p-6">
-                  <div className="flex justify-between items-start">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-2">
-                        <h3 className="font-semibold">{type.name}</h3>
-                        {request && (
-                          <Badge className={getStatusColor(request.status)}>
-                            {getStatusIcon(request.status)}
-                            <span className="ml-1">{request.status.toUpperCase()}</span>
-                          </Badge>
-                        )}
-                      </div>
-                      <p className="text-sm text-gray-600 mb-3">{type.description}</p>
-                      <div className="space-y-1">
-                        <p className="text-xs font-medium">Required Documents:</p>
-                        <div className="flex flex-wrap gap-1">
-                          {type.required.map(doc => (
-                            <Badge key={doc} variant="outline" className="text-xs">
-                              {doc.replace('_', ' ')}
-                            </Badge>
-                          ))}
+        <TabsContent value="overview">
+          <div className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Verification Requests</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {loading ? (
+                  <div className="space-y-4">
+                    {[1, 2, 3].map(i => (
+                      <div key={i} className="animate-pulse flex items-center space-x-4">
+                        <div className="w-10 h-10 bg-gray-200 rounded"></div>
+                        <div className="space-y-2 flex-1">
+                          <div className="h-4 bg-gray-200 rounded w-1/4"></div>
+                          <div className="h-3 bg-gray-200 rounded w-1/6"></div>
                         </div>
                       </div>
-                    </div>
-                    <div className="ml-4">
-                      {!request ? (
-                        <Button size="sm">
-                          <Upload className="mr-2" size={16} />
-                          Start Verification
-                        </Button>
-                      ) : request.status === 'rejected' ? (
-                        <Button size="sm" variant="outline">
-                          <Upload className="mr-2" size={16} />
-                          Resubmit
-                        </Button>
-                      ) : (
-                        <Button size="sm" disabled>
-                          {request.status === 'pending' ? 'Under Review' : 'Verified'}
-                        </Button>
-                      )}
-                    </div>
+                    ))}
                   </div>
-                </CardContent>
-              </Card>
-            );
-          })}
-        </TabsContent>
-
-        <TabsContent value="submit" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Submit Verification Documents</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
-                  <input
-                    type="file"
-                    multiple
-                    accept="image/jpeg,image/png,application/pdf"
-                    onChange={(e) => handleDocumentUpload(e.target.files)}
-                    className="hidden"
-                    id="document-upload"
-                  />
-                  <Upload className="mx-auto mb-2 text-gray-400" size={24} />
-                  <p className="text-sm text-gray-600 mb-2">
-                    Upload your verification documents
-                  </p>
-                  <Button
-                    variant="outline"
-                    onClick={() => document.getElementById('document-upload')?.click()}
-                  >
-                    Select Files
-                  </Button>
-                  <p className="text-xs text-gray-500 mt-2">
-                    Accepted formats: JPG, PNG, PDF. Max 5 files.
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="history" className="space-y-4">
-          {verificationRequests.map((request) => (
-            <Card key={request.id}>
-              <CardContent className="p-4">
-                <div className="flex justify-between items-center">
-                  <div>
-                    <div className="flex items-center gap-2">
-                      {getStatusIcon(request.status)}
-                      <span className="font-medium">
-                        {verificationTypes.find(t => t.id === request.type)?.name}
-                      </span>
-                      <Badge className={getStatusColor(request.status)}>
-                        {request.status}
-                      </Badge>
-                    </div>
-                    <p className="text-sm text-gray-600 mt-1">
-                      Submitted: {new Date(request.submittedAt).toLocaleDateString()}
-                      {request.reviewedAt && (
-                        <> • Reviewed: {new Date(request.reviewedAt).toLocaleDateString()}</>
-                      )}
+                ) : verificationRequests.length === 0 ? (
+                  <div className="text-center py-8">
+                    <Shield className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+                    <h3 className="text-lg font-semibold mb-2">No Verification Requests</h3>
+                    <p className="text-muted-foreground mb-6">
+                      Start building trust by verifying your identity
                     </p>
-                    {request.rejectionReason && (
-                      <p className="text-sm text-red-600 mt-1">
-                        Reason: {request.rejectionReason}
-                      </p>
-                    )}
+                    <Button onClick={() => setActiveForm('identity')}>
+                      Start Identity Verification
+                    </Button>
                   </div>
-                </div>
+                ) : (
+                  <div className="space-y-4">
+                    {verificationRequests.map((request) => (
+                      <div key={request.id} className="flex items-center justify-between p-4 border rounded-lg">
+                        <div className="flex items-center gap-3">
+                          {getStatusIcon(request.status)}
+                          <div>
+                            <p className="font-medium capitalize">
+                              {request.verification_type.replace('_', ' ')} Verification
+                            </p>
+                            <p className="text-sm text-muted-foreground">
+                              Submitted {formatDistanceToNow(new Date(request.submitted_at), { addSuffix: true })}
+                            </p>
+                          </div>
+                        </div>
+                        <Badge className={getStatusColor(request.status)}>
+                          {request.status.replace('_', ' ')}
+                        </Badge>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </CardContent>
             </Card>
-          ))}
+          </div>
+        </TabsContent>
+
+        <TabsContent value="identity">
+          <IdentityVerificationForm onClose={() => setActiveForm(null)} />
+        </TabsContent>
+
+        <TabsContent value="business">
+          <BusinessVerificationForm onClose={() => setActiveForm(null)} />
+        </TabsContent>
+
+        <TabsContent value="background">
+          <BackgroundCheckStatus />
         </TabsContent>
       </Tabs>
     </div>
