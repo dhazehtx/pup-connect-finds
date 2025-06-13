@@ -3,6 +3,20 @@ import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
+// Type definitions for the RPC function responses
+interface AccountDeletionResponse {
+  success: boolean;
+  recovery_token: string;
+  expires_at: string;
+  message: string;
+}
+
+interface AccountRecoveryResponse {
+  success: boolean;
+  message: string;
+  user_data: any;
+}
+
 export const useDataExport = () => {
   const [isExporting, setIsExporting] = useState(false);
   const [isDeletingAccount, setIsDeletingAccount] = useState(false);
@@ -60,13 +74,16 @@ export const useDataExport = () => {
 
       if (error) throw error;
 
+      // Type assertion to properly access the response properties
+      const response = data as AccountDeletionResponse;
+
       toast({
         title: "Account Deletion Initiated",
-        description: `Your account will be deleted in 30 days. Recovery token: ${data.recovery_token}`,
+        description: `Your account will be deleted in 30 days. Recovery token: ${response.recovery_token}`,
         duration: 10000,
       });
 
-      return data;
+      return response;
     } catch (error: any) {
       console.error('Account deletion error:', error);
       toast({
@@ -88,12 +105,15 @@ export const useDataExport = () => {
 
       if (error) throw error;
 
+      // Type assertion to properly access the response properties
+      const response = data as AccountRecoveryResponse;
+
       toast({
         title: "Account Recovered",
         description: "Your account has been successfully recovered.",
       });
 
-      return data;
+      return response;
     } catch (error: any) {
       console.error('Account recovery error:', error);
       toast({
