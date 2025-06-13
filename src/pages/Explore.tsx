@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Layout from '@/components/Layout';
@@ -6,6 +7,7 @@ import QuickFiltersBar from '@/components/explore/QuickFiltersBar';
 import ExploreListingsGrid from '@/components/explore/ExploreListingsGrid';
 import PopularBreeds from '@/components/explore/PopularBreeds';
 import AdvancedFiltersPanel from '@/components/explore/AdvancedFiltersPanel';
+import SearchFiltersCard from '@/components/search/SearchFiltersCard';
 import ExploreLoading from '@/components/ExploreLoading';
 import { useAuth } from '@/contexts/AuthContext';
 import { useDogListings } from '@/hooks/useDogListings';
@@ -36,6 +38,7 @@ const Explore = () => {
   const [sortBy, setSortBy] = useState('newest');
   const [favorites, setFavorites] = useState<Set<number>>(new Set());
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
+  const [showSearchFilters, setShowSearchFilters] = useState(false);
   const navigate = useNavigate();
 
   // Transform DogListing[] to Listing[] format expected by useListingFilters
@@ -174,6 +177,33 @@ const Explore = () => {
     console.log('View details for listing:', listing);
   };
 
+  // Convert filters to SearchFilters format
+  const searchFilters = {
+    query: filters.searchTerm,
+    breed: filters.breed !== 'all' ? filters.breed : undefined,
+    minPrice: filters.minPrice ? parseInt(filters.minPrice) : undefined,
+    maxPrice: filters.maxPrice ? parseInt(filters.maxPrice) : undefined,
+    minAge: undefined,
+    maxAge: undefined,
+    location: undefined,
+    userType: filters.sourceType !== 'all' ? filters.sourceType as 'breeder' | 'shelter' : undefined,
+    verified: filters.verifiedOnly || undefined,
+  };
+
+  const handleSearchFilterChange = (key: string, value: any) => {
+    const filterMapping: { [key: string]: string } = {
+      query: 'searchTerm',
+      breed: 'breed',
+      minPrice: 'minPrice',
+      maxPrice: 'maxPrice',
+      userType: 'sourceType',
+      verified: 'verifiedOnly',
+    };
+    
+    const filterKey = filterMapping[key] || key;
+    updateFilters({ [filterKey]: value });
+  };
+
   const popularBreeds = ['Golden Retriever', 'Labrador', 'German Shepherd', 'Bulldog', 'Poodle'];
   const dogColors = ['Black', 'Brown', 'White', 'Golden', 'Mixed'];
   const coatLengthOptions = ['Short', 'Medium', 'Long'];
@@ -196,8 +226,8 @@ const Explore = () => {
         <ExploreHeader 
           searchTerm={filters.searchTerm}
           onSearchChange={(value) => updateFilters({ searchTerm: value })}
-          showAdvancedFilters={showAdvancedFilters}
-          onToggleFilters={() => setShowAdvancedFilters(!showAdvancedFilters)}
+          showAdvancedFilters={showSearchFilters}
+          onToggleFilters={() => setShowSearchFilters(!showSearchFilters)}
         />
         
         <div className="container mx-auto px-4 py-6">
@@ -205,6 +235,15 @@ const Explore = () => {
             quickFilters={['Puppies', 'Verified', 'Nearby', 'Available']}
             filters={filters}
             onQuickFilterClick={handleQuickFilterClick}
+          />
+
+          {/* Advanced Search Filters */}
+          <SearchFiltersCard
+            showFilters={showSearchFilters}
+            filters={searchFilters}
+            onFilterChange={handleSearchFilterChange}
+            onClearFilters={resetFilters}
+            onToggleFilters={() => setShowSearchFilters(!showSearchFilters)}
           />
 
           <div className="mt-6 grid grid-cols-1 lg:grid-cols-4 gap-6">
