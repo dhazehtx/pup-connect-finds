@@ -82,3 +82,30 @@ export interface Conversation {
   };
   unread_count?: number;
 }
+
+export interface NotificationData {
+  id: string;
+  user_id: string;
+  type: 'message' | 'payment' | 'security' | 'system' | 'marketing';
+  title: string;
+  message: string;
+  is_read: boolean;
+  created_at: string;
+  action_url?: string;
+  metadata?: any;
+  priority: 'low' | 'medium' | 'high' | 'urgent';
+  expires_at?: string;
+}
+
+export interface NotificationSettings {
+  push_enabled: boolean;
+  email_enabled: boolean;
+  sms_enabled: boolean;
+  message_notifications: boolean;
+  payment_notifications: boolean;
+  security_notifications: boolean;
+  marketing_notifications: boolean;
+  notification_frequency: 'immediate' | 'hourly' | 'daily';
+  quiet_hours_start?: string;
+  quiet_hours_end?: string;
+}
