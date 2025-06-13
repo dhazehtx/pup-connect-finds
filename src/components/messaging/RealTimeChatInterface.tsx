@@ -9,9 +9,17 @@ import { Send, Check, CheckCheck, Clock, User, Camera, Shield, ShieldOff } from 
 import { useRealtimeMessaging } from '@/hooks/useRealtimeMessaging';
 import { useAuth } from '@/contexts/AuthContext';
 import { formatDistanceToNow } from 'date-fns';
-import { Message } from '@/types/messaging';
-import MediaMessage from './MediaMessage';
-import MediaUploadDialog from './MediaUploadDialog';
+
+interface Message {
+  id: string;
+  sender_id: string;
+  message_type: 'image' | 'text' | 'file' | 'voice';
+  content: string;
+  image_url?: string;
+  created_at: string;
+  read_at?: string;
+  is_encrypted?: boolean;
+}
 
 interface RealTimeChatInterfaceProps {
   conversationId: string;
@@ -95,6 +103,12 @@ const RealTimeChatInterface = ({ conversationId, otherUser, listingInfo }: RealT
     return message.content || '';
   };
 
+  // Type-safe message filtering
+  const typedMessages = messages.filter((msg): msg is Message => {
+    const validTypes: Array<Message['message_type']> = ['image', 'text', 'file', 'voice'];
+    return validTypes.includes(msg.message_type as Message['message_type']);
+  });
+
   return (
     <div className="flex flex-col h-full max-h-[600px]">
       {/* Chat Header */}
@@ -147,7 +161,7 @@ const RealTimeChatInterface = ({ conversationId, otherUser, listingInfo }: RealT
 
       {/* Messages Area */}
       <CardContent className="flex-1 overflow-y-auto p-4 space-y-4">
-        {messages.map((message) => {
+        {typedMessages.map((message) => {
           const isOwn = message.sender_id === user?.id;
           const messageTime = formatDistanceToNow(new Date(message.created_at), { addSuffix: true });
 
@@ -166,15 +180,19 @@ const RealTimeChatInterface = ({ conversationId, otherUser, listingInfo }: RealT
               <div className={`max-w-xs lg:max-w-md ${isOwn ? 'text-right' : 'text-left'}`}>
                 {/* Media Messages */}
                 {(message.message_type === 'image' || message.message_type === 'file') && message.image_url && (
-                  <MediaMessage
-                    imageUrl={message.message_type === 'image' ? message.image_url : undefined}
-                    videoUrl={message.message_type === 'file' ? message.image_url : undefined}
-                    caption={(() => {
+                  <div className="mb-2">
+                    <img
+                      src={message.image_url}
+                      alt="Shared content"
+                      className="max-w-full h-auto rounded"
+                    />
+                    {(() => {
                       const content = getMessageContent(message);
-                      return content !== 'Shared an image' && content !== 'Shared a video' ? content : undefined;
+                      return content !== 'Shared an image' && content !== 'Shared a video' ? (
+                        <p className="text-xs text-gray-600 mt-1">{content}</p>
+                      ) : null;
                     })()}
-                    isOwn={isOwn}
-                  />
+                  </div>
                 )}
                 
                 {/* Text Messages */}
@@ -223,11 +241,9 @@ const RealTimeChatInterface = ({ conversationId, otherUser, listingInfo }: RealT
       {/* Message Input */}
       <div className="border-t p-4 bg-white">
         <div className="flex gap-2">
-          <MediaUploadDialog onMediaUpload={handleMediaUpload}>
-            <Button variant="outline" size="icon">
-              <Camera size={16} />
-            </Button>
-          </MediaUploadDialog>
+          <Button variant="outline" size="icon">
+            <Camera size={16} />
+          </Button>
           
           <Input
             value={newMessage}

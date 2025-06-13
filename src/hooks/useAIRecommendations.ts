@@ -163,67 +163,6 @@ export const useAIRecommendations = () => {
     }
   }, [user, userBehavior]);
 
-  // Update ML model based on feedback
-  const updateMLModel = useCallback(async (feedback: {
-    recommendation_id: string;
-    rating: number;
-    feedback_type: 'helpful' | 'not_helpful' | 'irrelevant';
-  }) => {
-    if (!user || !mlModel) return;
-
-    try {
-      // Mock ML model update based on user feedback
-      const updatedModel = { ...mlModel };
-      
-      // Adjust model weights based on feedback
-      if (feedback.rating > 3) {
-        updatedModel.user_compatibility += 0.01;
-        updatedModel.behavioral_analysis += 0.005;
-      } else {
-        updatedModel.user_compatibility -= 0.01;
-        updatedModel.behavioral_analysis -= 0.005;
-      }
-
-      setMLModel(updatedModel);
-      
-      console.log('ML model updated based on feedback:', feedback);
-    } catch (error) {
-      console.error('Failed to update ML model:', error);
-    }
-  }, [user, mlModel]);
-
-  // Calculate similarity between users for collaborative filtering
-  const calculateUserSimilarity = useCallback(async (otherUserId: string) => {
-    if (!user || !userBehavior) return 0;
-
-    try {
-      // Mock collaborative filtering similarity calculation
-      // In production, this would use actual ML algorithms
-      const similarity = Math.random() * 0.8 + 0.1; // Mock similarity score
-      return similarity;
-    } catch (error) {
-      console.error('Failed to calculate user similarity:', error);
-      return 0;
-    }
-  }, [user, userBehavior]);
-
-  // Get trending recommendations based on platform-wide data
-  const getTrendingRecommendations = useCallback(async () => {
-    try {
-      // Mock trending analysis
-      const trending = [
-        { breed: 'Golden Retriever', score: 0.95, reason: 'High demand this week' },
-        { breed: 'French Bulldog', score: 0.88, reason: 'Popular in urban areas' },
-        { breed: 'Labrador', score: 0.91, reason: 'Consistent high interest' }
-      ];
-      
-      return trending;
-    } catch (error) {
-      console.error('Failed to get trending recommendations:', error);
-      return [];
-    }
-  }, []);
-
   useEffect(() => {
     initializeRecommendationEngine();
   }, [initializeRecommendationEngine]);
@@ -235,9 +174,6 @@ export const useAIRecommendations = () => {
     engine,
     generateRecommendations,
     trackUserInteraction,
-    updateMLModel,
-    calculateUserSimilarity,
-    getTrendingRecommendations,
     initializeRecommendationEngine
   };
 };

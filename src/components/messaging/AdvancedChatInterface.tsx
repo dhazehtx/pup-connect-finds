@@ -9,7 +9,17 @@ import { Send, Check, CheckCheck, Clock, User, Camera, Shield, ShieldOff } from 
 import { useRealtimeMessaging } from '@/hooks/useRealtimeMessaging';
 import { useAuth } from '@/contexts/AuthContext';
 import { formatDistanceToNow } from 'date-fns';
-import { Message } from '@/types/messaging';
+
+interface Message {
+  id: string;
+  sender_id: string;
+  message_type: 'image' | 'text' | 'file' | 'voice';
+  content: string;
+  image_url?: string;
+  created_at: string;
+  read_at?: string;
+  is_encrypted?: boolean;
+}
 
 interface AdvancedChatInterfaceProps {
   conversationId: string;
@@ -76,6 +86,12 @@ const AdvancedChatInterface = ({ conversationId, otherUser, listingInfo }: Advan
     return <Clock size={14} className="text-gray-300" />;
   };
 
+  // Type-safe message filtering
+  const typedMessages = messages.filter((msg): msg is Message => {
+    const validTypes: Array<Message['message_type']> = ['image', 'text', 'file', 'voice'];
+    return validTypes.includes(msg.message_type as Message['message_type']);
+  });
+
   return (
     <div className="flex flex-col h-full max-h-[600px]">
       {/* Chat Header */}
@@ -112,7 +128,7 @@ const AdvancedChatInterface = ({ conversationId, otherUser, listingInfo }: Advan
 
       {/* Messages Area */}
       <CardContent className="flex-1 overflow-y-auto p-4 space-y-4">
-        {messages.map((message) => {
+        {typedMessages.map((message) => {
           const isOwn = message.sender_id === user?.id;
           const messageTime = formatDistanceToNow(new Date(message.created_at), { addSuffix: true });
 
