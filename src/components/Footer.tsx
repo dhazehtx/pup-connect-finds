@@ -24,18 +24,18 @@ const Footer = () => {
               </div>
               <span className="text-xl font-bold text-white">MY PUP</span>
             </div>
-            <p className="text-white/80 mb-4 max-w-md">
+            <p className="text-slate-300 mb-4 max-w-md">
               Connecting loving families with their perfect puppy companions. 
               Find trusted breeders, verified sellers, and your next best friend.
             </p>
             <div className="flex gap-4">
-              <a href="#" className="text-white/60 hover:text-white transition-colors">
+              <a href="#" className="text-slate-400 hover:text-white transition-colors">
                 <Facebook size={20} />
               </a>
-              <a href="#" className="text-white/60 hover:text-white transition-colors">
+              <a href="#" className="text-slate-400 hover:text-white transition-colors">
                 <Twitter size={20} />
               </a>
-              <a href="#" className="text-white/60 hover:text-white transition-colors">
+              <a href="#" className="text-slate-400 hover:text-white transition-colors">
                 <Instagram size={20} />
               </a>
             </div>
@@ -46,28 +46,33 @@ const Footer = () => {
             <h3 className="font-semibold mb-4 text-white">Quick Links</h3>
             <ul className="space-y-2">
               <li>
-                <Link to="/explore" onClick={handleLinkClick} className="text-white/80 hover:text-white transition-colors">
+                <Link to="/explore" onClick={handleLinkClick} className="text-slate-300 hover:text-white transition-colors">
                   Browse Puppies
                 </Link>
               </li>
               <li>
-                <Link to="/education" onClick={handleLinkClick} className="text-white/80 hover:text-white transition-colors">
+                <Link to="/education" onClick={handleLinkClick} className="text-slate-300 hover:text-white transition-colors">
                   Education
                 </Link>
               </li>
               <li>
-                <Link to="/services" onClick={handleLinkClick} className="text-white/80 hover:text-white transition-colors">
+                <Link to="/services" onClick={handleLinkClick} className="text-slate-300 hover:text-white transition-colors">
                   Services
                 </Link>
               </li>
               <li>
-                <Link to="/customer-reviews" onClick={handleLinkClick} className="text-white/80 hover:text-white transition-colors">
+                <Link to="/customer-reviews" onClick={handleLinkClick} className="text-slate-300 hover:text-white transition-colors">
                   Customer Reviews
                 </Link>
               </li>
               <li>
-                <Link to="/monetization" onClick={handleLinkClick} className="text-white/80 hover:text-white transition-colors">
+                <Link to="/monetization" onClick={handleLinkClick} className="text-slate-300 hover:text-white transition-colors">
                   Premium
+                </Link>
+              </li>
+              <li>
+                <Link to="/legal" onClick={handleLinkClick} className="text-slate-300 hover:text-white transition-colors">
+                  Legal Guide
                 </Link>
               </li>
             </ul>
@@ -78,24 +83,29 @@ const Footer = () => {
             <h3 className="font-semibold mb-4 text-white">Support</h3>
             <ul className="space-y-2">
               <li>
-                <Link to="/help-center" onClick={handleLinkClick} className="text-white/80 hover:text-white transition-colors">
+                <Link to="/help-center" onClick={handleLinkClick} className="text-slate-300 hover:text-white transition-colors">
                   Help Center
                 </Link>
               </li>
               <li>
-                <Link to="/trust-safety" onClick={handleLinkClick} className="text-white/80 hover:text-white transition-colors">
+                <Link to="/trust-safety" onClick={handleLinkClick} className="text-slate-300 hover:text-white transition-colors">
                   Trust & Safety
                 </Link>
               </li>
               <li>
-                <Link to="/contact" onClick={handleLinkClick} className="text-white/80 hover:text-white transition-colors flex items-center gap-2">
+                <Link to="/contact" onClick={handleLinkClick} className="text-slate-300 hover:text-white transition-colors flex items-center gap-2">
                   <Mail size={16} />
                   Contact Us
                 </Link>
               </li>
               <li>
-                <Link to="/b2b-dashboard" onClick={handleLinkClick} className="text-white/80 hover:text-white transition-colors">
+                <Link to="/b2b-dashboard" onClick={handleLinkClick} className="text-slate-300 hover:text-white transition-colors">
                   B2B Analytics
+                </Link>
+              </li>
+              <li>
+                <Link to="/terms" onClick={handleLinkClick} className="text-slate-300 hover:text-white transition-colors">
+                  Terms of Service
                 </Link>
               </li>
             </ul>
@@ -103,18 +113,18 @@ const Footer = () => {
         </div>
 
         {/* Bottom Section */}
-        <div className="border-t border-white/20 mt-8 pt-8 flex flex-col md:flex-row justify-between items-center">
-          <div className="text-white/60 text-sm mb-4 md:mb-0">
+        <div className="border-t border-slate-700 mt-8 pt-8 flex flex-col md:flex-row justify-between items-center">
+          <div className="text-slate-400 text-sm mb-4 md:mb-0">
             © 2024 MY PUP. All rights reserved.
           </div>
-          <div className="flex items-center gap-6 text-sm text-white/60">
+          <div className="flex items-center gap-6 text-sm text-slate-400">
             <Link to="/privacy-policy" onClick={handleLinkClick} className="hover:text-white transition-colors">
               Privacy Policy
             </Link>
             <Link to="/terms" onClick={handleLinkClick} className="hover:text-white transition-colors">
               Terms of Use
             </Link>
-            <span className="flex items-center gap-2 text-white/60">
+            <span className="flex items-center gap-2 text-slate-400">
               <MapPin size={16} />
               Made with ❤️ in the USA
             </span>
