@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
@@ -9,10 +8,13 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useDogListings } from '@/hooks/useDogListings';
 import LoadingState from '@/components/ui/loading-state';
 import ProfileHighlights from '@/components/profile/ProfileHighlights';
+import PostForm from '@/components/posts/PostForm';
+import PostFeed from '@/components/posts/PostFeed';
 
 const Profile = () => {
   const { user, isGuest } = useAuth();
   const { userListings, loading, deleteListing } = useDogListings();
+  const [refreshPosts, setRefreshPosts] = useState(0);
 
   // Sample highlights data - in production this would come from Supabase
   const [highlights, setHighlights] = useState([
@@ -46,6 +48,10 @@ const Profile = () => {
     if (window.confirm('Are you sure you want to delete this listing?')) {
       await deleteListing(listingId);
     }
+  };
+
+  const handlePostCreated = () => {
+    setRefreshPosts(prev => prev + 1);
   };
 
   const displayName = isGuest 
@@ -152,6 +158,13 @@ const Profile = () => {
           </div>
         </div>
 
+        {/* Post Form - Only for authenticated users */}
+        {isOwnProfile && (
+          <div className="px-4">
+            <PostForm onPostCreated={handlePostCreated} />
+          </div>
+        )}
+
         {/* Tab Navigation */}
         <div className="border-t border-gray-200">
           <div className="flex">
@@ -167,44 +180,12 @@ const Profile = () => {
           </div>
         </div>
 
-        {/* Posts Grid */}
-        <div className="px-0">
-          {userListings.length === 0 ? (
-            <div className="flex items-center justify-center h-64">
-              <div className="text-center">
-                <div className="w-16 h-16 border-2 border-gray-300 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Plus className="w-8 h-8 text-gray-300" />
-                </div>
-                <h3 className="text-lg font-medium text-gray-900 mb-2">No Posts Yet</h3>
-                <p className="text-gray-500 text-sm mb-4">Start sharing your puppy listings!</p>
-                <Link to="/create-listing">
-                  <Button className="bg-blue-500 hover:bg-blue-600 text-white">
-                    Create First Post
-                  </Button>
-                </Link>
-              </div>
-            </div>
-          ) : (
-            <div className="grid grid-cols-3 gap-1">
-              {/* Sample posts to demonstrate layout */}
-              {Array.from({ length: 6 }, (_, i) => (
-                <div key={i} className="aspect-square bg-black relative group">
-                  <div className="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                    <div className="flex items-center gap-4 text-white">
-                      <div className="flex items-center gap-1">
-                        <Heart className="w-5 h-5 fill-white" />
-                        <span className="font-semibold">0</span>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <MessageCircle className="w-5 h-5 fill-white" />
-                        <span className="font-semibold">0</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
+        {/* Posts Feed */}
+        <div className="px-4">
+          <PostFeed 
+            userId={user?.id} 
+            refreshTrigger={refreshPosts}
+          />
         </div>
       </div>
 
