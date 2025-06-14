@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -37,9 +36,9 @@ const MessagingInterface = ({ selectedConversationId, onConversationSelect }: Me
   }, [messages]);
 
   const handleSendMessage = async () => {
-    if (!newMessage.trim()) return;
+    if (!newMessage.trim() || !selectedConversationId) return;
 
-    const success = await sendMessage(newMessage);
+    const success = await sendMessage(selectedConversationId, newMessage.trim());
     if (success) {
       setNewMessage('');
     }
