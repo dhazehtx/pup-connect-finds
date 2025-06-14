@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -20,6 +21,11 @@ import MonetizationPage from "./pages/MonetizationPage";
 import B2BDashboard from "./pages/B2BDashboard";
 import DonationsPage from "./pages/DonationsPage";
 import Services from "./pages/Services";
+import TrustSafety from "./pages/TrustSafety";
+import CustomerReviews from "./pages/CustomerReviews";
+import Contact from "./pages/Contact";
+import HelpCenter from "./pages/HelpCenter";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
 
 const queryClient = new QueryClient();
 
@@ -47,6 +53,11 @@ const App = () => (
                   <Route path="b2b-dashboard" element={<B2BDashboard />} />
                   <Route path="donations" element={<DonationsPage />} />
                   <Route path="services" element={<Services />} />
+                  <Route path="trust-safety" element={<TrustSafety />} />
+                  <Route path="customer-reviews" element={<CustomerReviews />} />
+                  <Route path="contact" element={<Contact />} />
+                  <Route path="help-center" element={<HelpCenter />} />
+                  <Route path="privacy-policy" element={<PrivacyPolicy />} />
                 </Route>
               </Routes>
             </BrowserRouter>
