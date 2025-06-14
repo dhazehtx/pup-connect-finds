@@ -68,7 +68,7 @@ export interface Conversation {
   seller_id: string;
   created_at: string;
   updated_at: string;
-  last_message_at: string | null;
+  last_message_at?: string | null; // Made optional to match actual usage
   listing?: {
     dog_name: string;
     breed?: string; // Made optional to match actual usage
@@ -77,8 +77,8 @@ export interface Conversation {
   other_user?: {
     id: string;
     full_name: string | null;
-    username: string | null;
-    avatar_url: string | null;
+    username?: string | null; // Made optional to match actual usage
+    avatar_url?: string | null; // Made optional to match actual usage
   };
   unread_count?: number;
 }
