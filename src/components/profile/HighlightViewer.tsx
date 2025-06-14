@@ -1,8 +1,8 @@
 
 import React from 'react';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
-import { X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { ChevronLeft, ChevronRight, X } from 'lucide-react';
 
 interface Highlight {
   id: string | number;
@@ -34,66 +34,59 @@ const HighlightViewer = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-sm p-0 bg-black">
-        <div className="relative h-[80vh] flex items-center justify-center">
-          {/* Close button */}
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={onClose}
-            className="absolute top-4 right-4 z-10 text-white hover:bg-white/20"
-          >
-            <X size={20} />
-          </Button>
-
-          {/* Navigation buttons */}
-          {highlights.length > 1 && (
-            <>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={onPrevious}
-                className="absolute left-4 z-10 text-white hover:bg-white/20"
-              >
-                <ChevronLeft size={20} />
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={onNext}
-                className="absolute right-4 z-10 text-white hover:bg-white/20"
-              >
-                <ChevronRight size={20} />
-              </Button>
-            </>
-          )}
+      <DialogContent className="max-w-lg p-0">
+        <div className="relative bg-black rounded-lg overflow-hidden">
+          {/* Header */}
+          <div className="absolute top-0 left-0 right-0 z-10 flex items-center justify-between p-4">
+            <h3 className="text-white font-medium">{currentHighlight.title}</h3>
+            <Button variant="ghost" size="sm" onClick={onClose} className="text-white">
+              <X className="w-5 h-5" />
+            </Button>
+          </div>
 
           {/* Content */}
-          <div className="w-full h-full flex flex-col">
+          <div className="aspect-square flex items-center justify-center">
             {currentHighlight.type === 'video' ? (
-              <video 
-                src={currentHighlight.cover} 
-                className="flex-1 w-full object-cover"
+              <video
+                src={currentHighlight.cover}
+                className="w-full h-full object-cover"
                 controls
                 autoPlay
               />
             ) : (
-              <img 
-                src={currentHighlight.cover} 
+              <img
+                src={currentHighlight.cover}
                 alt={currentHighlight.title}
-                className="flex-1 w-full object-cover"
+                className="w-full h-full object-cover"
               />
             )}
-            
-            {/* Title */}
-            <div className="p-4 text-white">
-              <h3 className="font-medium">{currentHighlight.title}</h3>
-            </div>
           </div>
 
-          {/* Dots indicator */}
+          {/* Navigation */}
           {highlights.length > 1 && (
-            <div className="absolute bottom-20 left-1/2 transform -translate-x-1/2 flex gap-1">
+            <>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={onPrevious}
+                className="absolute left-2 top-1/2 transform -translate-y-1/2 text-white"
+              >
+                <ChevronLeft className="w-6 h-6" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={onNext}
+                className="absolute right-2 top-1/2 transform -translate-y-1/2 text-white"
+              >
+                <ChevronRight className="w-6 h-6" />
+              </Button>
+            </>
+          )}
+
+          {/* Progress indicators */}
+          {highlights.length > 1 && (
+            <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-1">
               {highlights.map((_, index) => (
                 <div
                   key={index}

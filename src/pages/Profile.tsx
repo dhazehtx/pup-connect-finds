@@ -8,10 +8,21 @@ import { Plus, Settings, Star, MapPin, Calendar, Edit, Grid, MoreHorizontal, Hea
 import { useAuth } from '@/contexts/AuthContext';
 import { useDogListings } from '@/hooks/useDogListings';
 import LoadingState from '@/components/ui/loading-state';
+import ProfileHighlights from '@/components/profile/ProfileHighlights';
 
 const Profile = () => {
   const { user, isGuest } = useAuth();
   const { userListings, loading, deleteListing } = useDogListings();
+
+  // Sample highlights data - in production this would come from Supabase
+  const [highlights, setHighlights] = useState([
+    { id: 1, title: 'Puppies', cover: '/placeholder.svg', type: 'image' as const },
+    { id: 2, title: 'Training', cover: '/placeholder.svg', type: 'image' as const },
+    { id: 3, title: 'Health', cover: '/placeholder.svg', type: 'image' as const },
+    { id: 4, title: 'Reviews', cover: '/placeholder.svg', type: 'image' as const },
+    // Add the "New" highlight for authenticated users
+    ...(user && !isGuest ? [{ id: 'new', title: 'New', cover: '', isNew: true }] : [])
+  ]);
 
   if (!user && !isGuest) {
     return (
@@ -42,6 +53,8 @@ const Profile = () => {
     : user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'User';
 
   const displayEmail = isGuest ? 'guest@mypup.com' : user?.email;
+
+  const isOwnProfile = user && !isGuest; // Only show add button for authenticated users
 
   return (
     <div className="min-h-screen bg-white">
@@ -129,22 +142,7 @@ const Profile = () => {
           </div>
 
           {/* Story Highlights */}
-          <div className="mb-6">
-            <div className="flex space-x-4 overflow-x-auto pb-2">
-              {['New', 'Puppies', 'Training', 'Health', 'Reviews'].map((highlight, index) => (
-                <div key={highlight} className="flex flex-col items-center space-y-1 flex-shrink-0">
-                  <div className="w-16 h-16 rounded-full border-2 border-gray-300 flex items-center justify-center bg-gray-100">
-                    {index === 0 ? (
-                      <Plus className="w-6 h-6 text-gray-400" />
-                    ) : (
-                      <div className="w-12 h-12 bg-black rounded-full"></div>
-                    )}
-                  </div>
-                  <span className="text-xs text-gray-600">{highlight}</span>
-                </div>
-              ))}
-            </div>
-          </div>
+          <ProfileHighlights highlights={highlights} isOwnProfile={isOwnProfile} />
 
           {/* Directions Link */}
           <div className="text-center mb-6">
