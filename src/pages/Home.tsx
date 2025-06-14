@@ -1,18 +1,25 @@
+
 import React, { useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import HomeFeed from '@/components/home/HomeFeed';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Heart, Search, Shield, Users, Star, ArrowRight } from 'lucide-react';
+import { Heart, Search, Shield, Users, Star, ArrowRight, UserPlus, LogIn, Eye } from 'lucide-react';
 
 const Home = () => {
-  const { user, loading } = useAuth();
+  const { user, loading, continueAsGuest } = useAuth();
+  const navigate = useNavigate();
 
   useEffect(() => {
     document.title = 'My Pup - Find Your Perfect Puppy Companion';
   }, []);
+
+  const handleGuestAccess = () => {
+    continueAsGuest();
+    navigate('/explore');
+  };
 
   // Show loading while checking auth state
   if (loading) {
@@ -87,16 +94,36 @@ const Home = () => {
             waiting for their forever homes.
           </p>
           
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link to="/explore">
+          {/* Authentication Buttons */}
+          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
+            <Link to="/auth">
               <Button size="lg" className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 text-lg font-semibold transition-all duration-200 hover:scale-105">
-                <Search className="w-5 h-5 mr-2" />
-                Explore Puppies
+                <UserPlus className="w-5 h-5 mr-2" />
+                Sign Up
               </Button>
             </Link>
-            <Link to="/create-listing">
+            <Link to="/auth">
               <Button size="lg" variant="outline" className="border-blue-600 text-blue-600 hover:bg-blue-50 px-8 py-4 text-lg font-semibold transition-all duration-200 hover:scale-105">
-                List Your Puppy
+                <LogIn className="w-5 h-5 mr-2" />
+                Sign In
+              </Button>
+            </Link>
+            <Button 
+              size="lg" 
+              variant="secondary" 
+              onClick={handleGuestAccess}
+              className="bg-gray-100 text-gray-700 hover:bg-gray-200 px-8 py-4 text-lg font-semibold transition-all duration-200 hover:scale-105"
+            >
+              <Eye className="w-5 h-5 mr-2" />
+              Browse as Guest
+            </Button>
+          </div>
+
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Link to="/explore">
+              <Button size="lg" variant="outline" className="border-blue-600 text-blue-600 hover:bg-blue-50 px-8 py-4 text-lg font-semibold transition-all duration-200 hover:scale-105">
+                <Search className="w-5 h-5 mr-2" />
+                Explore Puppies
               </Button>
             </Link>
           </div>
