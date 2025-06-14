@@ -4,27 +4,19 @@ import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Upload, X, ArrowLeft } from 'lucide-react';
+import { Label } from '@/components/ui/label';
 import { useAuth } from '@/contexts/AuthContext';
-import { useDogListings } from '@/hooks/useDogListings';
+import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-
-const popularBreeds = [
-  'Labrador Retriever', 'Golden Retriever', 'German Shepherd', 'French Bulldog', 
-  'Bulldog', 'Poodle', 'Beagle', 'Rottweiler', 'German Shorthaired Pointer', 
-  'Yorkshire Terrier', 'Siberian Husky', 'Dachshund', 'Boston Terrier', 
-  'Boxer', 'Australian Shepherd', 'Shih Tzu', 'Cocker Spaniel', 'Border Collie'
-];
+import { ArrowLeft, Upload, Loader2 } from 'lucide-react';
 
 const CreateListing = () => {
   const { user } = useAuth();
-  const { createListing, loading } = useDogListings();
-  const { toast } = useToast();
   const navigate = useNavigate();
-
+  const { toast } = useToast();
+  const [loading, setLoading] = useState(false);
+  const [imageFile, setImageFile] = useState<File | null>(null);
   const [formData, setFormData] = useState({
     dog_name: '',
     breed: '',
@@ -32,53 +24,75 @@ const CreateListing = () => {
     price: '',
     location: '',
     description: '',
-    image_url: ''
   });
 
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  React.useEffect(() => {
+    document.title = 'Create Listing - My Pup';
+  }, []);
 
-  // Redirect if not authenticated
-  if (!user) {
-    navigate('/auth');
-    return null;
-  }
+  const popularBreeds = [
+    'Golden Retriever', 'Labrador Retriever', 'German Shepherd', 
+    'French Bulldog', 'Bulldog', 'Poodle', 'Beagle', 'Rottweiler',
+    'Yorkshire Terrier', 'Dachshund', 'Siberian Husky', 'Boston Terrier'
+  ];
 
-  const handleInputChange = (field: string, value: string) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
-      [field]: value
+      [name]: value
     }));
   };
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      // For demo purposes, we'll use a placeholder URL
-      // In production, you'd upload to Supabase Storage
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const result = e.target?.result as string;
-        setImagePreview(result);
-        setFormData(prev => ({
-          ...prev,
-          image_url: result // In production, this would be the uploaded URL
-        }));
-      };
-      reader.readAsDataURL(file);
+      if (file.size > 5 * 1024 * 1024) { // 5MB limit
+        toast({
+          title: "File too large",
+          description: "Please select an image under 5MB",
+          variant: "destructive",
+        });
+        return;
+      }
+      setImageFile(file);
     }
   };
 
-  const removeImage = () => {
-    setImagePreview(null);
-    setFormData(prev => ({
-      ...prev,
-      image_url: ''
-    }));
+  const uploadImage = async (file: File): Promise<string | null> => {
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Date.now()}.${fileExt}`;
+      
+      const { data, error } = await supabase.storage
+        .from('dog-images')
+        .upload(fileName, file);
+
+      if (error) throw error;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('dog-images')
+        .getPublicUrl(data.path);
+
+      return publicUrl;
+    } catch (error) {
+      console.error('Image upload error:', error);
+      return null;
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    if (!user) {
+      toast({
+        title: "Authentication required",
+        description: "Please sign in to create a listing",
+        variant: "destructive",
+      });
+      return;
+    }
+
     // Validation
     if (!formData.dog_name || !formData.breed || !formData.age || !formData.price) {
       toast({
@@ -89,41 +103,74 @@ const CreateListing = () => {
       return;
     }
 
-    const age = parseInt(formData.age);
-    const price = parseFloat(formData.price);
+    setLoading(true);
+    try {
+      let imageUrl = null;
+      
+      if (imageFile) {
+        imageUrl = await uploadImage(imageFile);
+        if (!imageUrl) {
+          toast({
+            title: "Image upload failed",
+            description: "Please try uploading the image again",
+            variant: "destructive",
+          });
+          setLoading(false);
+          return;
+        }
+      }
 
-    if (age <= 0 || price <= 0) {
+      const { data, error } = await supabase
+        .from('dog_listings')
+        .insert({
+          user_id: user.id,
+          dog_name: formData.dog_name,
+          breed: formData.breed,
+          age: parseInt(formData.age),
+          price: parseFloat(formData.price),
+          location: formData.location || null,
+          description: formData.description || null,
+          image_url: imageUrl,
+          status: 'active'
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
       toast({
-        title: "Invalid values",
-        description: "Age and price must be positive numbers",
+        title: "Listing created successfully!",
+        description: "Your puppy listing is now live",
+      });
+
+      navigate(`/listing/${data.id}`);
+    } catch (error: any) {
+      console.error('Error creating listing:', error);
+      toast({
+        title: "Failed to create listing",
+        description: error.message || "Please try again later",
         variant: "destructive",
       });
-      return;
-    }
-
-    try {
-      const result = await createListing({
-        dog_name: formData.dog_name,
-        breed: formData.breed,
-        age,
-        price,
-        location: formData.location || undefined,
-        description: formData.description || undefined,
-        image_url: formData.image_url || undefined,
-        status: 'active'
-      });
-
-      if (result) {
-        toast({
-          title: "Listing created successfully!",
-          description: "Your puppy listing is now live and visible to potential buyers.",
-        });
-        navigate('/profile');
-      }
-    } catch (error) {
-      console.error('Error creating listing:', error);
+    } finally {
+      setLoading(false);
     }
   };
+
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <Card className="border-blue-200 shadow-sm max-w-md w-full mx-4">
+          <CardContent className="p-8 text-center">
+            <h1 className="text-2xl font-bold text-gray-900 mb-4">Sign In Required</h1>
+            <p className="text-gray-600 mb-6">Please sign in to create a listing</p>
+            <Button onClick={() => navigate('/auth')} className="bg-blue-600 hover:bg-blue-700">
+              Sign In
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-white">
@@ -138,136 +185,144 @@ const CreateListing = () => {
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back to Profile
           </Button>
-          <h1 className="text-3xl font-bold text-gray-900">Create New Listing</h1>
-          <p className="text-gray-600 mt-2">Share your puppy with potential families</p>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Create New Listing</h1>
+          <p className="text-gray-600">Share your puppy with loving families</p>
         </div>
 
+        {/* Form */}
         <Card className="border-blue-200 shadow-sm">
           <CardHeader>
-            <CardTitle>Puppy Information</CardTitle>
+            <CardTitle>Puppy Details</CardTitle>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Image Upload */}
+              {/* Puppy Name */}
               <div className="space-y-2">
-                <Label>Puppy Photo</Label>
-                {imagePreview ? (
-                  <div className="relative">
-                    <img 
-                      src={imagePreview} 
-                      alt="Preview" 
-                      className="w-full h-64 object-cover rounded-lg"
-                    />
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="icon"
-                      onClick={removeImage}
-                      className="absolute top-2 right-2 bg-white/90"
-                    >
-                      <X className="w-4 h-4" />
-                    </Button>
-                  </div>
-                ) : (
-                  <div className="border-2 border-dashed border-blue-200 rounded-lg p-8 text-center">
-                    <Upload className="w-12 h-12 text-blue-400 mx-auto mb-4" />
-                    <p className="text-gray-600 mb-2">Upload a photo of your puppy</p>
-                    <Input
-                      type="file"
-                      accept="image/*"
-                      onChange={handleImageUpload}
-                      className="max-w-xs mx-auto"
-                    />
-                  </div>
-                )}
+                <Label htmlFor="dog_name">Puppy Name *</Label>
+                <Input
+                  id="dog_name"
+                  name="dog_name"
+                  value={formData.dog_name}
+                  onChange={handleInputChange}
+                  placeholder="Enter puppy's name"
+                  required
+                />
               </div>
 
-              {/* Basic Info */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="dog_name">Puppy Name *</Label>
-                  <Input
-                    id="dog_name"
-                    value={formData.dog_name}
-                    onChange={(e) => handleInputChange('dog_name', e.target.value)}
-                    placeholder="Enter puppy's name"
-                    required
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="breed">Breed *</Label>
-                  <Select value={formData.breed} onValueChange={(value) => handleInputChange('breed', value)}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select breed" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {popularBreeds.map((breed) => (
-                        <SelectItem key={breed} value={breed}>
-                          {breed}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+              {/* Breed */}
+              <div className="space-y-2">
+                <Label htmlFor="breed">Breed *</Label>
+                <select
+                  id="breed"
+                  name="breed"
+                  value={formData.breed}
+                  onChange={handleInputChange}
+                  className="w-full px-3 py-2 border border-input rounded-md bg-background text-sm"
+                  required
+                >
+                  <option value="">Select a breed</option>
+                  {popularBreeds.map(breed => (
+                    <option key={breed} value={breed}>{breed}</option>
+                  ))}
+                  <option value="Mixed Breed">Mixed Breed</option>
+                  <option value="Other">Other</option>
+                </select>
               </div>
 
+              {/* Age and Price */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="age">Age (months) *</Label>
                   <Input
                     id="age"
+                    name="age"
                     type="number"
-                    value={formData.age}
-                    onChange={(e) => handleInputChange('age', e.target.value)}
-                    placeholder="Age in months"
                     min="1"
+                    max="24"
+                    value={formData.age}
+                    onChange={handleInputChange}
+                    placeholder="8"
                     required
                   />
                 </div>
-
                 <div className="space-y-2">
                   <Label htmlFor="price">Price ($) *</Label>
                   <Input
                     id="price"
+                    name="price"
                     type="number"
+                    min="0"
                     step="0.01"
                     value={formData.price}
-                    onChange={(e) => handleInputChange('price', e.target.value)}
-                    placeholder="Price in USD"
-                    min="0"
+                    onChange={handleInputChange}
+                    placeholder="1500"
                     required
                   />
                 </div>
               </div>
 
+              {/* Location */}
               <div className="space-y-2">
                 <Label htmlFor="location">Location</Label>
                 <Input
                   id="location"
+                  name="location"
                   value={formData.location}
-                  onChange={(e) => handleInputChange('location', e.target.value)}
+                  onChange={handleInputChange}
                   placeholder="City, State"
                 />
               </div>
 
+              {/* Description */}
               <div className="space-y-2">
                 <Label htmlFor="description">Description</Label>
                 <Textarea
                   id="description"
+                  name="description"
                   value={formData.description}
-                  onChange={(e) => handleInputChange('description', e.target.value)}
-                  placeholder="Describe your puppy's temperament, health, training, etc..."
+                  onChange={handleInputChange}
+                  placeholder="Tell potential families about your puppy's personality, health, and any special care instructions..."
                   rows={4}
                 />
               </div>
 
+              {/* Image Upload */}
+              <div className="space-y-2">
+                <Label htmlFor="image">Puppy Photo</Label>
+                <div className="border-2 border-dashed border-blue-200 rounded-lg p-6 text-center">
+                  <input
+                    id="image"
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageChange}
+                    className="hidden"
+                  />
+                  <label htmlFor="image" className="cursor-pointer">
+                    <Upload className="w-8 h-8 text-blue-600 mx-auto mb-2" />
+                    <p className="text-gray-600">
+                      {imageFile ? imageFile.name : 'Click to upload a photo'}
+                    </p>
+                    <p className="text-sm text-gray-500 mt-1">
+                      Maximum file size: 5MB
+                    </p>
+                  </label>
+                </div>
+              </div>
+
+              {/* Submit Button */}
               <Button 
                 type="submit" 
-                disabled={loading} 
+                disabled={loading}
                 className="w-full bg-blue-600 hover:bg-blue-700"
               >
-                {loading ? 'Creating Listing...' : 'Create Listing'}
+                {loading ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Creating Listing...
+                  </>
+                ) : (
+                  'Create Listing'
+                )}
               </Button>
             </form>
           </CardContent>

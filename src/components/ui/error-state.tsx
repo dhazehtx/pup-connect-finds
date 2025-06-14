@@ -1,73 +1,76 @@
 
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
-import { AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { AlertTriangle, RefreshCw } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface ErrorStateProps {
   title?: string;
   message?: string;
-  variant?: 'card' | 'inline' | 'minimal' | 'detailed';
   onRetry?: () => void;
   retryText?: string;
+  variant?: 'minimal' | 'detailed' | 'fullscreen';
+  className?: string;
   error?: Error;
 }
 
-const ErrorState = ({ 
-  title = 'Something went wrong', 
+const ErrorState = ({
+  title = 'Something went wrong',
   message = 'Please try again later',
-  variant = 'inline',
   onRetry,
-  retryText = 'Try Again',
+  retryText = 'Try again',
+  variant = 'minimal',
+  className,
   error
 }: ErrorStateProps) => {
   const ErrorContent = () => (
-    <div className="flex flex-col items-center justify-center gap-3 py-8 text-center">
-      <AlertCircle className="h-8 w-8 text-red-500" />
-      <div>
-        <h3 className="font-semibold text-gray-900">{title}</h3>
-        <p className="text-gray-600 mt-1">{message}</p>
-        {variant === 'detailed' && error && (
-          <details className="mt-2 text-xs text-gray-500">
-            <summary className="cursor-pointer">Technical details</summary>
-            <pre className="mt-2 text-left bg-gray-100 p-2 rounded overflow-auto">
-              {error.message}
-            </pre>
-          </details>
-        )}
+    <div className="text-center py-8">
+      <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+        <AlertTriangle className="w-8 h-8 text-red-600" />
       </div>
+      <h3 className="text-lg font-semibold text-gray-900 mb-2">{title}</h3>
+      <p className="text-gray-600 mb-6 max-w-sm mx-auto">{message}</p>
+      {variant === 'detailed' && error && (
+        <details className="text-left bg-gray-50 p-4 rounded-lg mb-4">
+          <summary className="font-medium text-gray-700 cursor-pointer">Error details</summary>
+          <pre className="text-xs text-gray-600 mt-2 overflow-auto">{error.message}</pre>
+        </details>
+      )}
       {onRetry && (
-        <Button onClick={onRetry} variant="outline" size="sm">
+        <Button onClick={onRetry} className="bg-blue-600 hover:bg-blue-700">
+          <RefreshCw className="w-4 h-4 mr-2" />
           {retryText}
         </Button>
       )}
     </div>
   );
 
-  if (variant === 'card') {
+  if (variant === 'fullscreen') {
     return (
-      <Card>
-        <CardContent>
+      <div className={cn("min-h-screen flex items-center justify-center bg-gray-50", className)}>
+        <div className="max-w-md w-full px-4">
           <ErrorContent />
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     );
   }
 
   if (variant === 'minimal') {
     return (
-      <div className="text-center py-4">
-        <p className="text-gray-600">{message}</p>
-        {onRetry && (
-          <Button onClick={onRetry} variant="ghost" size="sm" className="mt-2">
-            {retryText}
-          </Button>
-        )}
+      <div className={className}>
+        <ErrorContent />
       </div>
     );
   }
 
-  return <ErrorContent />;
+  return (
+    <Card className={cn("border-red-200 shadow-sm", className)}>
+      <CardContent>
+        <ErrorContent />
+      </CardContent>
+    </Card>
+  );
 };
 
 export default ErrorState;
