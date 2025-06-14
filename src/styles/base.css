@@ -1,0 +1,112 @@
+
+@tailwind base;
+
+@layer base {
+  :root {
+    /* Clean & Professional color scheme with excellent contrast */
+    --background: 255 255 255; /* Pure white background */
+    --foreground: 15 23 42; /* Dark slate for text */
+
+    --card: 255 255 255; /* Pure white cards */
+    --card-foreground: 15 23 42; /* Dark slate text on cards */
+
+    --popover: 255 255 255; /* Pure white */
+    --popover-foreground: 15 23 42; /* Dark slate */
+
+    --primary: 37 99 235; /* Royal Blue #2563eb */
+    --primary-foreground: 255 255 255; /* White text on blue */
+
+    --secondary: 241 245 249; /* Light slate background */
+    --secondary-foreground: 15 23 42; /* Dark slate text */
+
+    --muted: 248 250 252; /* Very light slate */
+    --muted-foreground: 100 116 139; /* Medium slate */
+
+    --accent: 37 99 235; /* Royal Blue for accents */
+    --accent-foreground: 255 255 255; /* White text on blue */
+
+    --destructive: 239 68 68; /* Red for destructive actions */
+    --destructive-foreground: 255 255 255; /* White text */
+
+    --border: 226 232 240; /* Light slate borders */
+    --input: 226 232 240; /* Light slate inputs */
+    --ring: 37 99 235; /* Royal Blue focus rings */
+
+    --radius: 0.5rem;
+
+    --sidebar-background: 255 255 255;
+    --sidebar-foreground: 15 23 42;
+    --sidebar-primary: 37 99 235;
+    --sidebar-primary-foreground: 255 255 255;
+    --sidebar-accent: 241 245 249;
+    --sidebar-accent-foreground: 15 23 42;
+    --sidebar-border: 226 232 240;
+    --sidebar-ring: 37 99 235;
+  }
+
+  .dark {
+    --background: 15 23 42; /* Dark slate background */
+    --foreground: 248 250 252; /* Light slate text */
+
+    --card: 30 41 59; /* Darker slate cards */
+    --card-foreground: 248 250 252; /* Light text on dark cards */
+
+    --popover: 30 41 59;
+    --popover-foreground: 248 250 252;
+
+    --primary: 59 130 246; /* Lighter blue for dark mode */
+    --primary-foreground: 15 23 42; /* Dark text on light blue */
+
+    --secondary: 51 65 85; /* Medium slate */
+    --secondary-foreground: 248 250 252;
+
+    --muted: 51 65 85;
+    --muted-foreground: 148 163 184; /* Light slate */
+
+    --accent: 59 130 246; /* Lighter blue for dark mode */
+    --accent-foreground: 15 23 42;
+
+    --destructive: 220 38 38;
+    --destructive-foreground: 248 250 252;
+
+    --border: 51 65 85;
+    --input: 51 65 85;
+    --ring: 59 130 246;
+    
+    --sidebar-background: 15 23 42;
+    --sidebar-foreground: 248 250 252;
+    --sidebar-primary: 59 130 246;
+    --sidebar-primary-foreground: 15 23 42;
+    --sidebar-accent: 51 65 85;
+    --sidebar-accent-foreground: 248 250 252;
+    --sidebar-border: 51 65 85;
+    --sidebar-ring: 59 130 246;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+
+  /* Ensure proper text contrast everywhere */
+  h1, h2, h3, h4, h5, h6, p, span, div, label, button, a {
+    color: hsl(var(--foreground)) !important;
+  }
+
+  /* Dark mode text */
+  .dark h1, .dark h2, .dark h3, .dark h4, .dark h5, .dark h6, 
+  .dark p, .dark span, .dark div, .dark label, .dark button, .dark a {
+    color: hsl(var(--foreground)) !important;
+  }
+
+  /* Navigation specific text */
+  nav, nav *, .nav-text, .header-text {
+    color: hsl(var(--foreground)) !important;
+  }
+}

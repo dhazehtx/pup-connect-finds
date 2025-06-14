@@ -1,0 +1,15 @@
+
+/* Accessibility */
+@layer base {
+  @media (prefers-contrast: high) {
+    button {
+      @apply border-2 border-current;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * {
+      @apply !transition-none !animate-none;
+    }
+  }
+}

@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ExploreFilters from '@/components/explore/ExploreFilters';
@@ -7,7 +6,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useMessaging } from '@/hooks/useMessaging';
 
 interface DogListing {
-  id?: number;
+  id: number;
   dog_name?: string;
   breed?: string;
   age?: number;
