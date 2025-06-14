@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { Toaster } from '@/components/ui/toaster';
 import Layout from '@/components/Layout';
+import ProtectedRoute from '@/components/ProtectedRoute';
 import Home from '@/pages/Home';
 import Explore from '@/pages/Explore';
 import ListingDetail from '@/pages/ListingDetail';
@@ -33,9 +34,21 @@ function App() {
             <Route path="/" element={<Home />} />
             <Route path="/explore" element={<Explore />} />
             <Route path="/listing/:id" element={<ListingDetail />} />
-            <Route path="/create-listing" element={<CreateListing />} />
-            <Route path="/profile" element={<Profile />} />
-            <Route path="/messages" element={<Messages />} />
+            <Route path="/create-listing" element={
+              <ProtectedRoute>
+                <CreateListing />
+              </ProtectedRoute>
+            } />
+            <Route path="/profile" element={
+              <ProtectedRoute>
+                <Profile />
+              </ProtectedRoute>
+            } />
+            <Route path="/messages" element={
+              <ProtectedRoute>
+                <Messages />
+              </ProtectedRoute>
+            } />
             <Route path="/auth" element={<Auth />} />
             <Route path="/verify-email" element={<VerifyEmail />} />
             <Route path="/education" element={<Education />} />
@@ -46,8 +59,16 @@ function App() {
             <Route path="/help-center" element={<HelpCenter />} />
             <Route path="/trust-safety" element={<TrustSafety />} />
             <Route path="/contact" element={<Contact />} />
-            <Route path="/b2b-dashboard" element={<B2BDashboard />} />
-            <Route path="/admin" element={<AdminDashboard />} />
+            <Route path="/b2b-dashboard" element={
+              <ProtectedRoute>
+                <B2BDashboard />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin" element={
+              <ProtectedRoute>
+                <AdminDashboard />
+              </ProtectedRoute>
+            } />
             <Route path="/terms" element={<Terms />} />
             <Route path="/privacy-policy" element={<PrivacyPolicy />} />
           </Routes>

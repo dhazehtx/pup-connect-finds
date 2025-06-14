@@ -1,41 +1,25 @@
 
 import React from 'react';
-import { Navigate, useLocation } from 'react-router-dom';
+import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import LoadingSkeleton from '@/components/LoadingSkeleton';
+import LoadingState from '@/components/ui/loading-state';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
-  allowGuest?: boolean;
-  guestMessage?: string;
 }
 
-const ProtectedRoute = ({ children, allowGuest = false, guestMessage }: ProtectedRouteProps) => {
-  const { user, loading, isGuest } = useAuth();
-  const location = useLocation();
+const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
+  const { user, loading } = useAuth();
 
   if (loading) {
-    return <LoadingSkeleton viewMode="grid" count={3} />;
+    return <LoadingState message="Checking authentication..." />;
   }
 
-  // If user is authenticated, show content
-  if (user) {
-    return <>{children}</>;
+  if (!user) {
+    return <Navigate to="/auth" replace />;
   }
 
-  // If route allows guests and user is a guest, show content
-  if (allowGuest && isGuest) {
-    return <>{children}</>;
-  }
-
-  // For routes that don't allow guests or when user is not authenticated,
-  // redirect to auth page
-  if (!user || (isGuest && !allowGuest)) {
-    return <Navigate to="/auth" state={{ from: location }} replace />;
-  }
-
-  // Default fallback to auth page
-  return <Navigate to="/auth" state={{ from: location }} replace />;
+  return <>{children}</>;
 };
 
 export default ProtectedRoute;

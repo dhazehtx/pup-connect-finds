@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Heart, Menu, X, User, Crown } from 'lucide-react';
+import { Heart, Menu, X, User, Crown, Home, MessageSquare } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
@@ -29,8 +29,40 @@ const Header = () => {
     }
   };
 
+  const handleProtectedRoute = (route: string) => {
+    if (!user) {
+      navigate('/auth');
+      return;
+    }
+    navigate(route);
+  };
+
   const navLinks = [
     { href: '/monetization', label: 'Premium', icon: Crown },
+  ];
+
+  // Navigation items for all users (authenticated and guest)
+  const mainNavItems = [
+    { 
+      href: '/', 
+      label: 'Home', 
+      icon: Home,
+      onClick: () => navigate('/')
+    },
+    { 
+      href: '/messages', 
+      label: 'Messages', 
+      icon: MessageSquare,
+      onClick: () => handleProtectedRoute('/messages'),
+      protected: true
+    },
+    { 
+      href: '/profile', 
+      label: 'Profile', 
+      icon: User,
+      onClick: () => handleProtectedRoute('/profile'),
+      protected: true
+    }
   ];
 
   return (
@@ -45,7 +77,23 @@ const Header = () => {
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-8">
-            {navLinks.map((link) => {
+            {/* Main Navigation Items */}
+            {mainNavItems.map((item) => {
+              const Icon = item.icon;
+              return (
+                <button
+                  key={item.href}
+                  onClick={item.onClick}
+                  className="flex items-center space-x-1 text-gray-600 hover:text-blue-600 transition-colors"
+                >
+                  <Icon className="h-4 w-4" />
+                  <span>{item.label}</span>
+                </button>
+              );
+            })}
+            
+            {/* Additional nav links for authenticated users */}
+            {user && navLinks.map((link) => {
               const Icon = link.icon;
               return (
                 <Link
@@ -64,12 +112,6 @@ const Header = () => {
           <div className="flex items-center space-x-4">
             {user ? (
               <div className="flex items-center space-x-4">
-                <Link to="/profile">
-                  <Button variant="ghost" size="sm" className="flex items-center space-x-2">
-                    <User className="h-4 w-4" />
-                    <span className="hidden sm:inline">Profile</span>
-                  </Button>
-                </Link>
                 <Button variant="outline" size="sm" onClick={handleSignOut}>
                   Sign Out
                 </Button>
@@ -94,7 +136,26 @@ const Header = () => {
         {isMenuOpen && (
           <div className="md:hidden py-4 border-t">
             <nav className="flex flex-col space-y-2">
-              {navLinks.map((link) => {
+              {/* Main Navigation Items */}
+              {mainNavItems.map((item) => {
+                const Icon = item.icon;
+                return (
+                  <button
+                    key={item.href}
+                    onClick={() => {
+                      item.onClick();
+                      setIsMenuOpen(false);
+                    }}
+                    className="flex items-center space-x-2 px-3 py-2 text-gray-600 hover:text-blue-600 hover:bg-gray-50 rounded-md transition-colors text-left"
+                  >
+                    <Icon className="h-4 w-4" />
+                    <span>{item.label}</span>
+                  </button>
+                );
+              })}
+              
+              {/* Additional nav links for authenticated users */}
+              {user && navLinks.map((link) => {
                 const Icon = link.icon;
                 return (
                   <Link
