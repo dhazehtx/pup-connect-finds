@@ -63,7 +63,7 @@ export interface QueuedMessage {
 
 export interface Conversation {
   id: string;
-  listing_id: string | null;
+  listing_id?: string; // Made optional to match actual usage patterns
   buyer_id: string;
   seller_id: string;
   created_at: string;
