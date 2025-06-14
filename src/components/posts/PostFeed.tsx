@@ -42,7 +42,7 @@ const PostFeed = ({ userId, listingId, refreshTrigger }: PostFeedProps) => {
         .from('posts')
         .select(`
           *,
-          profiles:user_id (
+          profiles!posts_user_id_fkey (
             full_name,
             username,
             avatar_url
