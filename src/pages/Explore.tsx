@@ -10,7 +10,7 @@ import { useToast } from '@/hooks/use-toast';
 import ListingCard from '@/components/explore/ListingCard';
 import ListingsSkeleton from '@/components/explore/ListingsSkeleton';
 import ErrorState from '@/components/ui/error-state';
-import AdvancedFilters from '@/components/search/AdvancedFilters';
+import AdvancedFiltersPanel from '@/components/explore/AdvancedFiltersPanel';
 
 interface Listing {
   id: string;
@@ -37,12 +37,53 @@ const Explore = () => {
   const [ageRange, setAgeRange] = useState<[number, number]>([0, 24]);
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
   const [verifiedOnly, setVerifiedOnly] = useState(false);
+  const [sortBy, setSortBy] = useState('newest');
+  
+  // Advanced filter states
+  const [filters, setFilters] = useState({
+    searchTerm: '',
+    breed: 'All Breeds',
+    minPrice: '',
+    maxPrice: '',
+    ageGroup: 'All Ages',
+    gender: 'All Genders',
+    sourceType: 'All Sources',
+    maxDistance: 'Any distance',
+    verifiedOnly: false,
+    availableOnly: false,
+    priceRange: [0, 10000] as [number, number],
+    sortBy: 'newest',
+    source: 'All Sources',
+    color: 'All Colors',
+    coatLength: 'All Coat Types',
+    minAge: '',
+    maxAge: '',
+    location: '',
+    size: 'Any Size',
+    trainingLevel: 'Any',
+    energyLevel: 'Any',
+    paperwork: 'Any',
+    availableNow: false,
+    healthChecked: false,
+    vaccinated: false,
+    spayedNeutered: false,
+    goodWithKids: false,
+    goodWithPets: false
+  });
+
   const { toast } = useToast();
 
   const popularBreeds = [
     'Golden Retriever', 'Labrador Retriever', 'German Shepherd', 
     'French Bulldog', 'Bulldog', 'Poodle', 'Beagle', 'Rottweiler'
   ];
+
+  const dogColors = ['Black', 'Brown', 'White', 'Golden', 'Gray', 'Cream', 'Red', 'Blue', 'Merle'];
+  const coatLengthOptions = ['Short', 'Medium', 'Long', 'Curly', 'Wire'];
+  const distanceOptions = ['5', '10', '25', '50', 'Any distance'];
+  const sizeOptions = ['Small', 'Medium', 'Large', 'Extra Large'];
+  const energyLevels = ['Low', 'Medium', 'High', 'Very High'];
+  const trainingLevels = ['Beginner', 'Intermediate', 'Advanced', 'Expert'];
 
   useEffect(() => {
     document.title = 'Explore Puppies - My Pup';
@@ -94,7 +135,7 @@ const Explore = () => {
       listing.breed.toLowerCase().includes(searchTerm.toLowerCase()) ||
       listing.location?.toLowerCase().includes(searchTerm.toLowerCase());
     
-    const matchesBreed = !selectedBreed || listing.breed === selectedBreed;
+    const matchesBreed = !selectedBreed || selectedBreed === 'All Breeds' || listing.breed === selectedBreed;
     const matchesPrice = listing.price >= priceRange[0] && listing.price <= priceRange[1];
     const matchesAge = listing.age >= ageRange[0] && listing.age <= ageRange[1];
     const matchesVerified = !verifiedOnly || listing.profiles?.verified;
@@ -102,22 +143,18 @@ const Explore = () => {
     return matchesSearch && matchesBreed && matchesPrice && matchesAge && matchesVerified;
   });
 
-  const handleAdvancedFilterChange = (key: string, value: any) => {
-    switch (key) {
-      case 'priceRange':
-        setPriceRange(value);
-        break;
-      case 'ageRange':
-        setAgeRange(value);
-        break;
-      case 'breeds':
-        setSelectedBreed(value.length > 0 ? value[0] : '');
-        break;
-      case 'verified':
-        setVerifiedOnly(value);
-        break;
-      default:
-        break;
+  const handleFilterUpdate = (key: string, value: any) => {
+    setFilters(prev => ({ ...prev, [key]: value }));
+    
+    // Sync with existing filter states
+    if (key === 'breed') {
+      setSelectedBreed(value === 'All Breeds' ? '' : value);
+    } else if (key === 'verifiedOnly') {
+      setVerifiedOnly(value);
+    } else if (key === 'priceRange') {
+      setPriceRange(value);
+    } else if (key === 'searchTerm') {
+      setSearchTerm(value);
     }
   };
 
@@ -127,6 +164,36 @@ const Explore = () => {
     setPriceRange([0, 10000]);
     setAgeRange([0, 24]);
     setVerifiedOnly(false);
+    setFilters({
+      searchTerm: '',
+      breed: 'All Breeds',
+      minPrice: '',
+      maxPrice: '',
+      ageGroup: 'All Ages',
+      gender: 'All Genders',
+      sourceType: 'All Sources',
+      maxDistance: 'Any distance',
+      verifiedOnly: false,
+      availableOnly: false,
+      priceRange: [0, 10000] as [number, number],
+      sortBy: 'newest',
+      source: 'All Sources',
+      color: 'All Colors',
+      coatLength: 'All Coat Types',
+      minAge: '',
+      maxAge: '',
+      location: '',
+      size: 'Any Size',
+      trainingLevel: 'Any',
+      energyLevel: 'Any',
+      paperwork: 'Any',
+      availableNow: false,
+      healthChecked: false,
+      vaccinated: false,
+      spayedNeutered: false,
+      goodWithKids: false,
+      goodWithPets: false
+    });
   };
 
   if (error) {
@@ -218,28 +285,28 @@ const Explore = () => {
                 Clear Filters
               </Button>
             </div>
-
-            {/* Advanced Filters Panel */}
-            {showAdvancedFilters && (
-              <div className="mt-6 pt-6 border-t">
-                <AdvancedFilters
-                  priceRange={priceRange}
-                  ageRange={ageRange}
-                  breeds={selectedBreed ? [selectedBreed] : []}
-                  verified={verifiedOnly}
-                  availableBreeds={popularBreeds}
-                  onPriceRangeChange={(range) => handleAdvancedFilterChange('priceRange', range)}
-                  onAgeRangeChange={(range) => handleAdvancedFilterChange('ageRange', range)}
-                  onBreedToggle={(breed) => {
-                    const newBreeds = selectedBreed === breed ? [] : [breed];
-                    handleAdvancedFilterChange('breeds', newBreeds);
-                  }}
-                  onVerifiedToggle={() => handleAdvancedFilterChange('verified', !verifiedOnly)}
-                />
-              </div>
-            )}
           </CardContent>
         </Card>
+
+        {/* Advanced Filters Panel */}
+        {showAdvancedFilters && (
+          <Card className="border-blue-200 shadow-sm mb-6">
+            <CardContent className="p-0">
+              <AdvancedFiltersPanel
+                filters={filters}
+                popularBreeds={popularBreeds}
+                dogColors={dogColors}
+                coatLengthOptions={coatLengthOptions}
+                distanceOptions={distanceOptions}
+                sizeOptions={sizeOptions}
+                energyLevels={energyLevels}
+                trainingLevels={trainingLevels}
+                onFilterUpdate={handleFilterUpdate}
+                onClearAllFilters={clearAllFilters}
+              />
+            </CardContent>
+          </Card>
+        )}
 
         {/* Popular Breeds */}
         <div className="mb-8">
@@ -269,7 +336,11 @@ const Explore = () => {
               {loading ? 'Loading...' : `${filteredListings.length} Puppies Found`}
             </h2>
             {!loading && filteredListings.length > 0 && (
-              <select className="px-3 py-2 border border-input rounded-md bg-background text-sm">
+              <select 
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value)}
+                className="px-3 py-2 border border-input rounded-md bg-background text-sm"
+              >
                 <option value="newest">Newest First</option>
                 <option value="price-low">Price: Low to High</option>
                 <option value="price-high">Price: High to Low</option>
