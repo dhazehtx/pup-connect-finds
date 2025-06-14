@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { useRealtimeMessages } from '@/hooks/useRealtimeMessages';
+import { useRealTimeMessages } from '@/hooks/useRealTimeMessages';
 import { useFileUpload } from '@/hooks/useFileUpload';
 import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -24,7 +24,7 @@ interface StreamlinedChatInterfaceProps {
 
 const StreamlinedChatInterface = ({ conversationId, otherUserId, onBack }: StreamlinedChatInterfaceProps) => {
   const { user } = useAuth();
-  const { messages, fetchMessages, sendMessage } = useRealtimeMessages();
+  const { messages, fetchMessages, sendMessage } = useRealTimeMessages();
   const { uploadImage, uploading } = useFileUpload();
   const [newMessage, setNewMessage] = useState('');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
