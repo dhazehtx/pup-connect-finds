@@ -1,7 +1,5 @@
 
 import React from 'react';
-import Layout from '@/components/Layout';
-import ExploreHeader from '@/components/explore/ExploreHeader';
 import ExploreContainer from '@/components/explore/ExploreContainer';
 import ExploreLoading from '@/components/ExploreLoading';
 import { useDogListings } from '@/hooks/useDogListings';
@@ -13,27 +11,14 @@ const Explore = () => {
   console.log('Explore - listings:', listings, 'loading:', loading);
 
   if (loading) {
-    return (
-      <Layout>
-        <ExploreLoading />
-      </Layout>
-    );
+    return <ExploreLoading />;
   }
 
   return (
     <ErrorBoundary>
-      <Layout>
-        <div className="min-h-screen bg-white">
-          <ExploreHeader 
-            searchTerm=""
-            onSearchChange={() => {}}
-            showAdvancedFilters={false}
-            onToggleFilters={() => {}}
-          />
-          
-          <ExploreContainer listings={listings} />
-        </div>
-      </Layout>
+      <div className="min-h-screen bg-white">
+        <ExploreContainer listings={listings} />
+      </div>
     </ErrorBoundary>
   );
 };

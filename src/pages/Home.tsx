@@ -36,7 +36,7 @@ const Home = () => {
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link 
               to="/explore" 
-              className="bg-blue-600 text-white px-8 py-4 rounded-lg font-semibold hover:bg-blue-700 transition-colors text-lg"
+              className="bg-blue-600 text-white px-8 py-4 rounded-lg font-semibold hover:bg-blue-700 transition-colors text-lg shadow-lg hover:shadow-xl transform hover:scale-105 duration-200"
             >
               <Search className="inline-block w-5 h-5 mr-2" />
               Browse Puppies
@@ -44,7 +44,7 @@ const Home = () => {
             {!user && (
               <Link 
                 to="/auth" 
-                className="bg-white text-blue-600 border-2 border-blue-600 px-8 py-4 rounded-lg font-semibold hover:bg-blue-50 transition-colors text-lg"
+                className="bg-white text-blue-600 border-2 border-blue-600 px-8 py-4 rounded-lg font-semibold hover:bg-blue-50 transition-colors text-lg shadow-lg hover:shadow-xl transform hover:scale-105 duration-200"
               >
                 Sign Up Free
               </Link>
@@ -62,19 +62,19 @@ const Home = () => {
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="text-center p-6">
+            <div className="text-center p-6 bg-blue-50 rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 transform hover:scale-105">
               <Shield className="h-12 w-12 text-blue-600 mx-auto mb-4" />
               <h3 className="text-xl font-semibold text-gray-900 mb-2">Verified Breeders</h3>
               <p className="text-gray-600">All breeders are thoroughly vetted and verified for your peace of mind.</p>
             </div>
             
-            <div className="text-center p-6">
+            <div className="text-center p-6 bg-blue-50 rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 transform hover:scale-105">
               <Star className="h-12 w-12 text-blue-600 mx-auto mb-4" />
               <h3 className="text-xl font-semibold text-gray-900 mb-2">Quality Guaranteed</h3>
               <p className="text-gray-600">Health certificates and genetic testing ensure healthy, happy puppies.</p>
             </div>
             
-            <div className="text-center p-6">
+            <div className="text-center p-6 bg-blue-50 rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 transform hover:scale-105">
               <Users className="h-12 w-12 text-blue-600 mx-auto mb-4" />
               <h3 className="text-xl font-semibold text-gray-900 mb-2">Trusted Community</h3>
               <p className="text-gray-600">Join thousands of satisfied families who found their perfect companion.</p>
@@ -96,7 +96,7 @@ const Home = () => {
               <Link 
                 key={breed}
                 to={`/explore?breed=${breed.toLowerCase().replace(' ', '-')}`}
-                className="bg-white p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow text-center group"
+                className="bg-white p-6 rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 text-center group transform hover:scale-105"
               >
                 <PawPrint className="h-8 w-8 text-blue-600 mx-auto mb-2 group-hover:scale-110 transition-transform" />
                 <h3 className="font-semibold text-gray-900">{breed}</h3>
@@ -113,7 +113,7 @@ const Home = () => {
           <p className="text-xl text-blue-100 mb-8">Join thousands of happy families today</p>
           <Link 
             to="/explore" 
-            className="bg-white text-blue-600 px-8 py-4 rounded-lg font-semibold hover:bg-gray-100 transition-colors text-lg inline-flex items-center"
+            className="bg-white text-blue-600 px-8 py-4 rounded-lg font-semibold hover:bg-gray-100 transition-colors text-lg inline-flex items-center shadow-lg hover:shadow-xl transform hover:scale-105 duration-200"
           >
             <Search className="w-5 h-5 mr-2" />
             Start Browsing Now
