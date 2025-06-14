@@ -1,4 +1,3 @@
-
 import React, { useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Link, useNavigate } from 'react-router-dom';
@@ -24,7 +23,7 @@ const Home = () => {
 
   const handleGuestAccess = () => {
     continueAsGuest();
-    navigate('/home');
+    navigate('/explore');
   };
 
   // Show loading while checking auth state
