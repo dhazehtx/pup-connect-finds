@@ -30,13 +30,13 @@ const Footer = () => {
             </p>
             <div className="flex gap-4">
               <a href="#" className="text-white hover:text-blue-400 transition-colors">
-                <Facebook size={20} />
+                <Facebook size={20} className="text-white" />
               </a>
               <a href="#" className="text-white hover:text-blue-400 transition-colors">
-                <Twitter size={20} />
+                <Twitter size={20} className="text-white" />
               </a>
               <a href="#" className="text-white hover:text-blue-400 transition-colors">
-                <Instagram size={20} />
+                <Instagram size={20} className="text-white" />
               </a>
             </div>
           </div>
@@ -95,7 +95,7 @@ const Footer = () => {
               <li>
                 <Link to="/contact" onClick={handleLinkClick} className="text-white hover:text-blue-400 transition-colors flex items-center gap-2">
                   <Mail size={16} className="text-white" />
-                  Contact Us
+                  <span className="text-white">Contact Us</span>
                 </Link>
               </li>
               <li>
@@ -115,18 +115,18 @@ const Footer = () => {
         {/* Bottom Section */}
         <div className="border-t border-slate-700 mt-8 pt-8 flex flex-col md:flex-row justify-between items-center">
           <div className="text-white text-sm mb-4 md:mb-0">
-            © 2024 MY PUP. All rights reserved.
+            <span className="text-white">© 2024 MY PUP. All rights reserved.</span>
           </div>
           <div className="flex items-center gap-6 text-sm">
             <Link to="/privacy-policy" onClick={handleLinkClick} className="text-white hover:text-blue-400 transition-colors">
-              Privacy Policy
+              <span className="text-white">Privacy Policy</span>
             </Link>
             <Link to="/terms" onClick={handleLinkClick} className="text-white hover:text-blue-400 transition-colors">
-              Terms of Use
+              <span className="text-white">Terms of Use</span>
             </Link>
             <span className="flex items-center gap-2 text-white">
               <MapPin size={16} className="text-white" />
-              Made with ❤️ in the USA
+              <span className="text-white">Made with ❤️ in the USA</span>
             </span>
           </div>
         </div>

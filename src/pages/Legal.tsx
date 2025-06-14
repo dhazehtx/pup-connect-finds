@@ -12,6 +12,56 @@ const Legal = () => {
 
   const stateData = [
     {
+      name: "Alabama",
+      category: "lenient" as const,
+      licensing: "Basic registration only",
+      healthCertificates: "Not required",
+      restrictions: [
+        "Minimal facility requirements",
+        "Basic animal cruelty laws"
+      ],
+      penalties: "Minor fines",
+      legislativeAct: "Limited state regulation"
+    },
+    {
+      name: "Alaska",
+      category: "moderate" as const,
+      licensing: "Commercial breeder permits required",
+      healthCertificates: "Basic health documentation",
+      restrictions: [
+        "Minimum care standards",
+        "Inspection requirements",
+        "Record keeping"
+      ],
+      penalties: "Civil penalties and license revocation",
+      legislativeAct: "Alaska Statutes Title 3"
+    },
+    {
+      name: "Arizona",
+      category: "moderate" as const,
+      licensing: "Commercial licensing required",
+      healthCertificates: "Health certificates recommended",
+      restrictions: [
+        "Facility inspection requirements",
+        "Consumer protection laws",
+        "Basic care standards"
+      ],
+      penalties: "Fines and license suspension",
+      legislativeAct: "Arizona Revised Statutes Title 3"
+    },
+    {
+      name: "Arkansas",
+      category: "lenient" as const,
+      licensing: "Minimal licensing requirements",
+      healthCertificates: "Not mandatory",
+      restrictions: [
+        "Basic facility standards",
+        "Animal welfare minimums"
+      ],
+      penalties: "Minor penalties",
+      legislativeAct: "Arkansas Code Title 2"
+    },
+    {
       name: "California",
       category: "strict" as const,
       licensing: "Required for commercial breeders with 4+ breeding females",
@@ -24,6 +74,350 @@ const Legal = () => {
       ],
       penalties: "Fines up to $10,000 and business closure",
       legislativeAct: "AB 485 - Pet Store Sale Ban"
+    },
+    {
+      name: "Colorado",
+      category: "strict" as const,
+      licensing: "Enhanced licensing for commercial operations",
+      healthCertificates: "Comprehensive health requirements",
+      restrictions: [
+        "Strict facility standards",
+        "Consumer protection laws",
+        "Breeding limitations",
+        "Regular inspections"
+      ],
+      penalties: "Significant fines and criminal charges",
+      legislativeAct: "Colorado Pet Animal Care Facilities Act"
+    },
+    {
+      name: "Connecticut",
+      category: "strict" as const,
+      licensing: "Commercial breeder licensing mandatory",
+      healthCertificates: "Required health certifications",
+      restrictions: [
+        "Facility inspection requirements",
+        "Consumer disclosure laws",
+        "Breeding restrictions",
+        "Animal welfare standards"
+      ],
+      penalties: "Heavy fines and license revocation",
+      legislativeAct: "Connecticut General Statutes Chapter 435"
+    },
+    {
+      name: "Delaware",
+      category: "moderate" as const,
+      licensing: "Commercial operation permits",
+      healthCertificates: "Health documentation required",
+      restrictions: [
+        "Facility standards",
+        "Inspection requirements",
+        "Record keeping mandates"
+      ],
+      penalties: "Fines and license suspension",
+      legislativeAct: "Delaware Code Title 3"
+    },
+    {
+      name: "Florida",
+      category: "moderate" as const,
+      licensing: "Registration required for commercial operations",
+      healthCertificates: "Health certificates recommended",
+      restrictions: [
+        "Puppy lemon law protection",
+        "Basic facility standards",
+        "Disclosure requirements"
+      ],
+      penalties: "Fines and license suspension",
+      legislativeAct: "Chapter 687 - Puppy Lemon Law"
+    },
+    {
+      name: "Georgia",
+      category: "moderate" as const,
+      licensing: "Commercial breeder permits",
+      healthCertificates: "Basic health requirements",
+      restrictions: [
+        "Facility inspection standards",
+        "Consumer protection measures",
+        "Animal care minimums"
+      ],
+      penalties: "Civil penalties and license actions",
+      legislativeAct: "Georgia Code Title 4"
+    },
+    {
+      name: "Hawaii",
+      category: "strict" as const,
+      licensing: "Strict licensing and quarantine requirements",
+      healthCertificates: "Extensive health and quarantine protocols",
+      restrictions: [
+        "Quarantine requirements",
+        "Import restrictions",
+        "Health certification mandates",
+        "Facility inspections"
+      ],
+      penalties: "Severe penalties and quarantine violations",
+      legislativeAct: "Hawaii Revised Statutes Chapter 142"
+    },
+    {
+      name: "Idaho",
+      category: "lenient" as const,
+      licensing: "Basic licensing only",
+      healthCertificates: "Not required",
+      restrictions: [
+        "Minimal facility requirements",
+        "Basic animal welfare laws"
+      ],
+      penalties: "Minor fines",
+      legislativeAct: "Idaho Code Title 25"
+    },
+    {
+      name: "Illinois",
+      category: "strict" as const,
+      licensing: "Commercial breeder licensing required",
+      healthCertificates: "Health certificates mandatory",
+      restrictions: [
+        "Strict facility standards",
+        "Regular inspections",
+        "Consumer protection laws",
+        "Breeding limitations"
+      ],
+      penalties: "Significant fines and criminal charges",
+      legislativeAct: "Animal Welfare Act - Illinois"
+    },
+    {
+      name: "Indiana",
+      category: "moderate" as const,
+      licensing: "Commercial operation permits",
+      healthCertificates: "Basic health documentation",
+      restrictions: [
+        "Facility standards",
+        "Inspection requirements",
+        "Record keeping"
+      ],
+      penalties: "Fines and license actions",
+      legislativeAct: "Indiana Code Title 15"
+    },
+    {
+      name: "Iowa",
+      category: "moderate" as const,
+      licensing: "Commercial breeder licensing",
+      healthCertificates: "Health documentation required",
+      restrictions: [
+        "Facility inspection standards",
+        "Animal care requirements",
+        "Consumer protections"
+      ],
+      penalties: "Civil penalties and license suspension",
+      legislativeAct: "Iowa Code Chapter 162"
+    },
+    {
+      name: "Kansas",
+      category: "moderate" as const,
+      licensing: "Commercial operation permits",
+      healthCertificates: "Basic health requirements",
+      restrictions: [
+        "Facility standards",
+        "Inspection protocols",
+        "Record maintenance"
+      ],
+      penalties: "Fines and license revocation",
+      legislativeAct: "Kansas Statutes Chapter 47"
+    },
+    {
+      name: "Kentucky",
+      category: "moderate" as const,
+      licensing: "Commercial breeder permits",
+      healthCertificates: "Health documentation recommended",
+      restrictions: [
+        "Basic facility standards",
+        "Animal welfare minimums",
+        "Consumer disclosure"
+      ],
+      penalties: "Civil penalties",
+      legislativeAct: "Kentucky Revised Statutes Chapter 258"
+    },
+    {
+      name: "Louisiana",
+      category: "lenient" as const,
+      licensing: "Minimal licensing requirements",
+      healthCertificates: "Not mandatory",
+      restrictions: [
+        "Basic animal welfare laws",
+        "Minimal facility standards"
+      ],
+      penalties: "Minor fines",
+      legislativeAct: "Louisiana Revised Statutes Title 3"
+    },
+    {
+      name: "Maine",
+      category: "strict" as const,
+      licensing: "Commercial breeder licensing mandatory",
+      healthCertificates: "Comprehensive health requirements",
+      restrictions: [
+        "Strict facility standards",
+        "Regular inspections",
+        "Consumer protection laws",
+        "Animal welfare mandates"
+      ],
+      penalties: "Heavy fines and criminal charges",
+      legislativeAct: "Maine Revised Statutes Title 7"
+    },
+    {
+      name: "Maryland",
+      category: "strict" as const,
+      licensing: "Enhanced licensing for commercial operations",
+      healthCertificates: "Health certificates required",
+      restrictions: [
+        "Facility inspection requirements",
+        "Consumer protection laws",
+        "Breeding restrictions",
+        "Animal welfare standards"
+      ],
+      penalties: "Significant fines and license revocation",
+      legislativeAct: "Maryland Code Agriculture Article"
+    },
+    {
+      name: "Massachusetts",
+      category: "strict" as const,
+      licensing: "Commercial breeder licensing required",
+      healthCertificates: "Health certificates mandatory",
+      restrictions: [
+        "Strict facility standards",
+        "Regular inspections",
+        "Consumer protection laws",
+        "Pet store restrictions"
+      ],
+      penalties: "Heavy fines and criminal charges",
+      legislativeAct: "Massachusetts General Laws Chapter 140"
+    },
+    {
+      name: "Michigan",
+      category: "moderate" as const,
+      licensing: "Commercial operation permits",
+      healthCertificates: "Health documentation required",
+      restrictions: [
+        "Facility standards",
+        "Inspection requirements",
+        "Consumer protections"
+      ],
+      penalties: "Fines and license suspension",
+      legislativeAct: "Michigan Compiled Laws Chapter 287"
+    },
+    {
+      name: "Minnesota",
+      category: "strict" as const,
+      licensing: "Commercial breeder licensing mandatory",
+      healthCertificates: "Comprehensive health requirements",
+      restrictions: [
+        "Strict facility standards",
+        "Regular inspections",
+        "Consumer protection laws",
+        "Breeding limitations"
+      ],
+      penalties: "Significant fines and criminal charges",
+      legislativeAct: "Minnesota Statutes Chapter 347"
+    },
+    {
+      name: "Mississippi",
+      category: "lenient" as const,
+      licensing: "Basic registration only",
+      healthCertificates: "Not required",
+      restrictions: [
+        "Minimal facility requirements",
+        "Basic animal cruelty laws"
+      ],
+      penalties: "Minor fines",
+      legislativeAct: "Mississippi Code Title 69"
+    },
+    {
+      name: "Missouri",
+      category: "moderate" as const,
+      licensing: "Commercial breeder permits",
+      healthCertificates: "Basic health documentation",
+      restrictions: [
+        "Facility standards",
+        "Inspection requirements",
+        "Record keeping"
+      ],
+      penalties: "Civil penalties and license actions",
+      legislativeAct: "Missouri Revised Statutes Chapter 273"
+    },
+    {
+      name: "Montana",
+      category: "lenient" as const,
+      licensing: "Minimal licensing requirements",
+      healthCertificates: "Not mandatory",
+      restrictions: [
+        "Basic animal welfare laws",
+        "Limited facility standards"
+      ],
+      penalties: "Minor penalties",
+      legislativeAct: "Montana Code Annotated Title 81"
+    },
+    {
+      name: "Nebraska",
+      category: "moderate" as const,
+      licensing: "Commercial operation permits",
+      healthCertificates: "Health documentation recommended",
+      restrictions: [
+        "Facility standards",
+        "Basic inspection requirements",
+        "Consumer protections"
+      ],
+      penalties: "Fines and license suspension",
+      legislativeAct: "Nebraska Revised Statutes Chapter 54"
+    },
+    {
+      name: "Nevada",
+      category: "moderate" as const,
+      licensing: "Commercial breeder permits",
+      healthCertificates: "Basic health requirements",
+      restrictions: [
+        "Facility inspection standards",
+        "Animal care minimums",
+        "Record keeping"
+      ],
+      penalties: "Civil penalties",
+      legislativeAct: "Nevada Revised Statutes Chapter 574"
+    },
+    {
+      name: "New Hampshire",
+      category: "strict" as const,
+      licensing: "Commercial breeder licensing required",
+      healthCertificates: "Health certificates mandatory",
+      restrictions: [
+        "Facility inspection requirements",
+        "Consumer protection laws",
+        "Animal welfare standards",
+        "Breeding restrictions"
+      ],
+      penalties: "Heavy fines and license revocation",
+      legislativeAct: "New Hampshire Revised Statutes Title 437"
+    },
+    {
+      name: "New Jersey",
+      category: "strict" as const,
+      licensing: "Enhanced licensing for commercial operations",
+      healthCertificates: "Comprehensive health requirements",
+      restrictions: [
+        "Strict facility standards",
+        "Regular inspections",
+        "Consumer protection laws",
+        "Pet store regulations"
+      ],
+      penalties: "Significant fines and criminal charges",
+      legislativeAct: "New Jersey Statutes Title 4"
+    },
+    {
+      name: "New Mexico",
+      category: "moderate" as const,
+      licensing: "Commercial operation permits",
+      healthCertificates: "Health documentation required",
+      restrictions: [
+        "Facility standards",
+        "Inspection requirements",
+        "Animal welfare minimums"
+      ],
+      penalties: "Fines and license actions",
+      legislativeAct: "New Mexico Statutes Chapter 77"
     },
     {
       name: "New York",
@@ -40,30 +434,69 @@ const Legal = () => {
       legislativeAct: "Agriculture and Markets Law Article 7"
     },
     {
-      name: "Florida",
+      name: "North Carolina",
       category: "moderate" as const,
-      licensing: "Registration required for commercial operations",
-      healthCertificates: "Health certificates recommended",
-      restrictions: [
-        "Puppy lemon law protection",
-        "Basic facility standards",
-        "Disclosure requirements"
-      ],
-      penalties: "Fines and license suspension",
-      legislativeAct: "Chapter 687 - Puppy Lemon Law"
-    },
-    {
-      name: "Texas",
-      category: "moderate" as const,
-      licensing: "Commercial breeder permits required",
+      licensing: "Commercial breeder permits",
       healthCertificates: "Basic health documentation",
       restrictions: [
-        "Minimum care standards",
+        "Facility standards",
         "Inspection requirements",
+        "Consumer protections"
+      ],
+      penalties: "Civil penalties and license suspension",
+      legislativeAct: "North Carolina General Statutes Chapter 19A"
+    },
+    {
+      name: "North Dakota",
+      category: "lenient" as const,
+      licensing: "Basic registration only",
+      healthCertificates: "Not required",
+      restrictions: [
+        "Minimal facility requirements",
+        "Basic animal welfare laws"
+      ],
+      penalties: "Minor fines",
+      legislativeAct: "North Dakota Century Code Title 36"
+    },
+    {
+      name: "Ohio",
+      category: "moderate" as const,
+      licensing: "Commercial operation permits",
+      healthCertificates: "Health documentation required",
+      restrictions: [
+        "Facility inspection standards",
+        "Animal care requirements",
+        "Consumer protections"
+      ],
+      penalties: "Fines and license actions",
+      legislativeAct: "Ohio Revised Code Chapter 956"
+    },
+    {
+      name: "Oklahoma",
+      category: "moderate" as const,
+      licensing: "Commercial breeder permits",
+      healthCertificates: "Basic health requirements",
+      restrictions: [
+        "Facility standards",
+        "Inspection protocols",
         "Record keeping"
       ],
-      penalties: "Civil penalties and license revocation",
-      legislativeAct: "Health and Safety Code Chapter 802"
+      penalties: "Civil penalties",
+      legislativeAct: "Oklahoma Statutes Title 4"
+    },
+    {
+      name: "Oregon",
+      category: "strict" as const,
+      licensing: "Commercial breeder licensing mandatory",
+      healthCertificates: "Comprehensive health requirements",
+      restrictions: [
+        "Strict facility standards",
+        "Regular inspections",
+        "Consumer protection laws",
+        "Animal welfare mandates"
+      ],
+      penalties: "Significant fines and criminal charges",
+      legislativeAct: "Oregon Revised Statutes Chapter 686"
     },
     {
       name: "Pennsylvania",
@@ -80,7 +513,153 @@ const Legal = () => {
       legislativeAct: "Dog Law - Enhanced Standards"
     },
     {
-      name: "Alabama",
+      name: "Rhode Island",
+      category: "strict" as const,
+      licensing: "Commercial breeder licensing required",
+      healthCertificates: "Health certificates mandatory",
+      restrictions: [
+        "Facility inspection requirements",
+        "Consumer protection laws",
+        "Animal welfare standards",
+        "Breeding restrictions"
+      ],
+      penalties: "Heavy fines and license revocation",
+      legislativeAct: "Rhode Island General Laws Title 4"
+    },
+    {
+      name: "South Carolina",
+      category: "moderate" as const,
+      licensing: "Commercial operation permits",
+      healthCertificates: "Health documentation recommended",
+      restrictions: [
+        "Basic facility standards",
+        "Inspection requirements",
+        "Consumer protections"
+      ],
+      penalties: "Civil penalties and license suspension",
+      legislativeAct: "South Carolina Code Title 47"
+    },
+    {
+      name: "South Dakota",
+      category: "lenient" as const,
+      licensing: "Minimal licensing requirements",
+      healthCertificates: "Not mandatory",
+      restrictions: [
+        "Basic animal welfare laws",
+        "Limited facility standards"
+      ],
+      penalties: "Minor penalties",
+      legislativeAct: "South Dakota Codified Laws Title 40"
+    },
+    {
+      name: "Tennessee",
+      category: "moderate" as const,
+      licensing: "Commercial breeder permits",
+      healthCertificates: "Basic health documentation",
+      restrictions: [
+        "Facility standards",
+        "Inspection requirements",
+        "Record keeping"
+      ],
+      penalties: "Fines and license actions",
+      legislativeAct: "Tennessee Code Title 44"
+    },
+    {
+      name: "Texas",
+      category: "moderate" as const,
+      licensing: "Commercial breeder permits required",
+      healthCertificates: "Basic health documentation",
+      restrictions: [
+        "Minimum care standards",
+        "Inspection requirements",
+        "Record keeping"
+      ],
+      penalties: "Civil penalties and license revocation",
+      legislativeAct: "Health and Safety Code Chapter 802"
+    },
+    {
+      name: "Utah",
+      category: "moderate" as const,
+      licensing: "Commercial operation permits",
+      healthCertificates: "Health documentation required",
+      restrictions: [
+        "Facility standards",
+        "Inspection protocols",
+        "Animal care minimums"
+      ],
+      penalties: "Fines and license suspension",
+      legislativeAct: "Utah Code Title 4"
+    },
+    {
+      name: "Vermont",
+      category: "strict" as const,
+      licensing: "Commercial breeder licensing mandatory",
+      healthCertificates: "Comprehensive health requirements",
+      restrictions: [
+        "Strict facility standards",
+        "Regular inspections",
+        "Consumer protection laws",
+        "Animal welfare mandates"
+      ],
+      penalties: "Significant fines and criminal charges",
+      legislativeAct: "Vermont Statutes Title 20"
+    },
+    {
+      name: "Virginia",
+      category: "moderate" as const,
+      licensing: "Commercial breeder permits",
+      healthCertificates: "Health documentation required",
+      restrictions: [
+        "Facility inspection standards",
+        "Animal care requirements",
+        "Consumer protections"
+      ],
+      penalties: "Civil penalties and license actions",
+      legislativeAct: "Virginia Code Title 3.2"
+    },
+    {
+      name: "Washington",
+      category: "strict" as const,
+      licensing: "Enhanced licensing for commercial operations",
+      healthCertificates: "Health certificates required",
+      restrictions: [
+        "Strict facility standards",
+        "Regular inspections",
+        "Consumer protection laws",
+        "Pet store regulations"
+      ],
+      penalties: "Heavy fines and criminal charges",
+      legislativeAct: "Washington Revised Code Chapter 16.70"
+    },
+    {
+      name: "West Virginia",
+      category: "moderate" as const,
+      licensing: "Commercial operation permits",
+      healthCertificates: "Basic health requirements",
+      restrictions: [
+        "Facility standards",
+        "Inspection requirements",
+        "Record keeping"
+      ],
+      penalties: "Fines and license suspension",
+      legislativeAct: "West Virginia Code Chapter 19"
+    },
+    {
+      name: "Wisconsin",
+      category: "strict" as const,
+      licensing: "Commercial breeder licensing required",
+      healthCertificates: "Health certificates mandatory",
+      restrictions: [
+        "Facility inspection requirements",
+        "Consumer protection laws",
+        "Animal welfare standards",
+        "Breeding restrictions"
+      ],
+      penalties: "Significant fines and license revocation",
+      legislativeAct: "Wisconsin Statutes Chapter 174"
+    },
+    {
+      name: "Wyoming",
       category: "lenient" as const,
       licensing: "Basic registration only",
       healthCertificates: "Not required",
@@ -89,30 +668,7 @@ const Legal = () => {
         "Basic animal cruelty laws"
       ],
       penalties: "Minor fines",
-      legislativeAct: "Limited state regulation"
-    }
-  ];
-
-  const federalLaws = [
-    {
-      title: "Animal Welfare Act (AWA)",
-      description: "Federal law regulating the treatment of animals in research, exhibition, transport, and by dealers",
-      requirements: [
-        "USDA licensing for commercial breeders",
-        "Regular inspections and compliance checks",
-        "Minimum standards for animal care and treatment",
-        "Record keeping and reporting requirements"
-      ]
-    },
-    {
-      title: "Interstate Commerce Regulations",
-      description: "Federal regulations governing the transport and sale of animals across state lines",
-      requirements: [
-        "Health certificates for interstate transport",
-        "Quarantine and testing requirements",
-        "Transportation safety standards",
-        "Import/export documentation"
-      ]
+      legislativeAct: "Wyoming Statutes Title 11"
     }
   ];
 
@@ -129,7 +685,7 @@ const Legal = () => {
   const getCategoryColor = (category: string) => {
     switch (category) {
       case 'strict': return 'bg-red-100 text-red-800 border-red-200';
-      case 'moderate': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+      case 'moderate': return 'bg-blue-100 text-blue-800 border-blue-200';
       case 'lenient': return 'bg-green-100 text-green-800 border-green-200';
       default: return 'bg-blue-100 text-blue-800 border-blue-200';
     }
@@ -167,7 +723,7 @@ const Legal = () => {
           </Card>
           <Card className="border-blue-200">
             <CardContent className="p-6 text-center">
-              <div className="text-3xl font-bold text-yellow-600 mb-2">{moderateCount}</div>
+              <div className="text-3xl font-bold text-blue-600 mb-2">{moderateCount}</div>
               <div className="text-sm text-gray-600">States with Moderate Regulations</div>
             </CardContent>
           </Card>
@@ -254,7 +810,7 @@ const Legal = () => {
               variant={selectedCategory === 'moderate' ? 'default' : 'outline'}
               onClick={() => setSelectedCategory('moderate')}
               size="sm"
-              className={selectedCategory === 'moderate' ? 'bg-yellow-600 hover:bg-yellow-700 text-white' : 'border-yellow-200 text-yellow-700 hover:bg-yellow-50'}
+              className={selectedCategory === 'moderate' ? 'bg-blue-600 hover:bg-blue-700 text-white' : 'border-blue-200 text-blue-700 hover:bg-blue-50'}
             >
               Moderate Regulations
             </Button>
