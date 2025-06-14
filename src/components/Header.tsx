@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Heart, Menu, X, Crown } from 'lucide-react';
+import { Heart, Menu, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
@@ -30,13 +30,6 @@ const Header = () => {
     }
   };
 
-  const navLinks = [
-    { href: '/home', label: 'Home' },
-    { href: '/messages', label: 'Messages' },
-    { href: '/profile', label: 'Profile' },
-    { href: '/monetization', label: 'Premium', icon: Crown },
-  ];
-
   return (
     <header className="bg-white shadow-sm border-b sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -46,25 +39,6 @@ const Header = () => {
             <Heart className="h-8 w-8 text-blue-600" />
             <span className="text-xl font-bold text-gray-900">MY PUP</span>
           </Link>
-
-          {/* Desktop Navigation - Only show for authenticated users */}
-          {(user || isGuest) && (
-            <nav className="hidden md:flex items-center space-x-8">
-              {navLinks.map((link) => {
-                const Icon = link.icon;
-                return (
-                  <Link
-                    key={link.href}
-                    to={link.href}
-                    className="flex items-center space-x-1 text-gray-600 hover:text-blue-600 transition-colors"
-                  >
-                    {Icon && <Icon className="h-4 w-4" />}
-                    <span>{link.label}</span>
-                  </Link>
-                );
-              })}
-            </nav>
-          )}
 
           {/* User Actions */}
           <div className="flex items-center space-x-4">
@@ -92,24 +66,13 @@ const Header = () => {
           </div>
         </div>
 
-        {/* Mobile Navigation - Only show for authenticated users */}
+        {/* Mobile Menu - Only show for authenticated users */}
         {isMenuOpen && (user || isGuest) && (
           <div className="md:hidden py-4 border-t">
             <nav className="flex flex-col space-y-2">
-              {navLinks.map((link) => {
-                const Icon = link.icon;
-                return (
-                  <Link
-                    key={link.href}
-                    to={link.href}
-                    className="flex items-center space-x-2 px-3 py-2 text-gray-600 hover:text-blue-600 hover:bg-gray-50 rounded-md transition-colors"
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    {Icon && <Icon className="h-4 w-4" />}
-                    <span>{link.label}</span>
-                  </Link>
-                );
-              })}
+              <Button variant="outline" size="sm" onClick={handleSignOut}>
+                {isGuest ? 'Exit Guest Mode' : 'Sign Out'}
+              </Button>
             </nav>
           </div>
         )}

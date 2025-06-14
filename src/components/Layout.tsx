@@ -20,12 +20,12 @@ const Layout = ({ children }: LayoutProps) => {
   return (
     <div className="min-h-screen bg-white flex flex-col">
       <Header />
-      <main className="flex-1 pb-16 md:pb-0">
+      <main className="flex-1 pb-20 md:pb-4">
         {children || <Outlet />}
       </main>
-      {/* Show bottom navigation for both authenticated users AND guests */}
-      {(user || isGuest) && <BottomNavigation />}
-      {!hideFooter && <Footer />}
+      {/* Always show bottom navigation for authenticated users and guests */}
+      <BottomNavigation />
+      {!hideFooter && !user && !isGuest && <Footer />}
     </div>
   );
 };
