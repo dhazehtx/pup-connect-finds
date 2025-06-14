@@ -21,7 +21,7 @@ export const useRealtimeConversations = () => {
         .from('conversations')
         .select(`
           *,
-          dog_listings:listing_id (
+          listing:dog_listings!conversations_listing_id_dog_listings_id_fkey (
             dog_name,
             breed,
             image_url
@@ -50,6 +50,8 @@ export const useRealtimeConversations = () => {
             .neq('sender_id', user.id)
             .is('read_at', null);
 
+          const listingData = Array.isArray(conv.listing) ? conv.listing[0] : conv.listing;
+
           return {
             id: conv.id,
             listing_id: conv.listing_id,
@@ -58,11 +60,11 @@ export const useRealtimeConversations = () => {
             created_at: conv.created_at,
             updated_at: conv.updated_at,
             last_message_at: conv.last_message_at,
-            listing: conv.dog_listings ? {
+            listing: listingData ? {
               id: conv.listing_id || '',
-              dog_name: conv.dog_listings.dog_name,
-              breed: conv.dog_listings.breed,
-              image_url: conv.dog_listings.image_url
+              dog_name: listingData.dog_name,
+              breed: listingData.breed,
+              image_url: listingData.image_url
             } : undefined,
             other_user: profileData ? {
               id: profileData.id,

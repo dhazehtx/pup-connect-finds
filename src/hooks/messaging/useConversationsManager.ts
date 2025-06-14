@@ -40,7 +40,7 @@ export const useConversationsManager = () => {
         .from('conversations')
         .select(`
           *,
-          dog_listings:listing_id (
+          listing:dog_listings!conversations_listing_id_dog_listings_id_fkey (
             dog_name,
             breed,
             image_url
@@ -63,7 +63,7 @@ export const useConversationsManager = () => {
 
           return {
             ...conv,
-            listing: conv.dog_listings,
+            listing: Array.isArray(conv.listing) ? conv.listing[0] : conv.listing,
             other_user: profileData || {
               full_name: null,
               username: null,

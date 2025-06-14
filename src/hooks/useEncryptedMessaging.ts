@@ -1,12 +1,12 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { useRealtimeMessages } from '@/hooks/useRealtimeMessages';
+import { useRealTimeMessages } from '@/hooks/useRealTimeMessages';
 import { Message } from '@/types/messaging';
 
 export const useEncryptedMessaging = () => {
   const { user } = useAuth();
-  const { sendMessage } = useRealtimeMessages();
+  const { sendMessage } = useRealTimeMessages();
   const [encryptionKeys, setEncryptionKeys] = useState<Map<string, CryptoKey>>(new Map());
   const [isEncryptionReady, setIsEncryptionReady] = useState(false);
 

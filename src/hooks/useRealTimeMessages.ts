@@ -13,6 +13,9 @@ interface Message {
   image_url?: string;
   read_at?: string;
   created_at: string;
+  is_encrypted?: boolean;
+  encrypted_content?: string;
+  encryption_key_id?: string;
   sender_profile?: {
     full_name: string | null;
     username: string | null;
@@ -63,17 +66,17 @@ export const useRealTimeMessages = (conversationId?: string) => {
         .from('conversations')
         .select(`
           *,
-          buyer_profile:profiles!conversations_buyer_id_fkey (
+          buyer_profile:profiles!conversations_buyer_id_profiles_id_fkey (
             full_name,
             username,
             avatar_url
           ),
-          seller_profile:profiles!conversations_seller_id_fkey (
+          seller_profile:profiles!conversations_seller_id_profiles_id_fkey (
             full_name,
             username,
             avatar_url
           ),
-          listing:dog_listings (
+          listing:dog_listings!conversations_listing_id_dog_listings_id_fkey (
             dog_name,
             breed,
             price,
@@ -84,7 +87,15 @@ export const useRealTimeMessages = (conversationId?: string) => {
         .order('last_message_at', { ascending: false });
 
       if (error) throw error;
-      setConversations(data || []);
+      
+      const processedData = (data || []).map(conv => ({
+        ...conv,
+        buyer_profile: Array.isArray(conv.buyer_profile) ? conv.buyer_profile[0] : conv.buyer_profile,
+        seller_profile: Array.isArray(conv.seller_profile) ? conv.seller_profile[0] : conv.seller_profile,
+        listing: Array.isArray(conv.listing) ? conv.listing[0] : conv.listing
+      }));
+      
+      setConversations(processedData);
     } catch (error) {
       console.error('Error fetching conversations:', error);
       toast({
@@ -102,7 +113,7 @@ export const useRealTimeMessages = (conversationId?: string) => {
         .from('messages')
         .select(`
           *,
-          sender_profile:profiles!messages_sender_id_fkey (
+          sender_profile:profiles!messages_sender_id_profiles_id_fkey (
             full_name,
             username,
             avatar_url
@@ -112,7 +123,13 @@ export const useRealTimeMessages = (conversationId?: string) => {
         .order('created_at', { ascending: true });
 
       if (error) throw error;
-      setMessages(data || []);
+      
+      const processedMessages = (data || []).map(msg => ({
+        ...msg,
+        sender_profile: Array.isArray(msg.sender_profile) ? msg.sender_profile[0] : msg.sender_profile
+      }));
+      
+      setMessages(processedMessages);
     } catch (error) {
       console.error('Error fetching messages:', error);
       toast({
@@ -124,8 +141,8 @@ export const useRealTimeMessages = (conversationId?: string) => {
   };
 
   // Send a new message
-  const sendMessage = async (content: string, messageType: string = 'text', imageUrl?: string) => {
-    if (!user || !conversationId) return false;
+  const sendMessage = async (conversationId: string, content: string, messageType: string = 'text', imageUrl?: string) => {
+    if (!user) return false;
 
     setSending(true);
     try {
