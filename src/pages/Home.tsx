@@ -1,4 +1,3 @@
-
 import React, { useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import HomeFeed from '@/components/home/HomeFeed';
@@ -103,7 +102,7 @@ const Home = () => {
               </Button>
             </Link>
             <Link to="/auth">
-              <Button size="lg" variant="outline" className="border-blue-600 text-blue-600 hover:bg-blue-50 px-8 py-4 text-lg font-semibold transition-all duration-200 hover:scale-105">
+              <Button size="lg" className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 text-lg font-semibold transition-all duration-200 hover:scale-105">
                 <LogIn className="w-5 h-5 mr-2" />
                 Sign In
               </Button>
@@ -112,7 +111,7 @@ const Home = () => {
               size="lg" 
               variant="secondary" 
               onClick={handleGuestAccess}
-              className="bg-gray-100 text-gray-700 hover:bg-gray-200 px-8 py-4 text-lg font-semibold transition-all duration-200 hover:scale-105"
+              className="bg-gray-100 text-black hover:bg-gray-200 px-8 py-4 text-lg font-semibold transition-all duration-200 hover:scale-105"
             >
               <Eye className="w-5 h-5 mr-2" />
               Browse as Guest
@@ -121,7 +120,7 @@ const Home = () => {
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link to="/explore">
-              <Button size="lg" variant="outline" className="border-blue-600 text-blue-600 hover:bg-blue-50 px-8 py-4 text-lg font-semibold transition-all duration-200 hover:scale-105">
+              <Button size="lg" className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 text-lg font-semibold transition-all duration-200 hover:scale-105">
                 <Search className="w-5 h-5 mr-2" />
                 Explore Puppies
               </Button>
@@ -251,12 +250,12 @@ const Home = () => {
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link to="/explore">
-              <Button size="lg" variant="secondary" className="bg-white text-blue-600 hover:bg-blue-50 px-8 py-4 text-lg font-semibold">
+              <Button size="lg" variant="secondary" className="bg-white text-black hover:bg-blue-50 px-8 py-4 text-lg font-semibold">
                 Start Browsing
               </Button>
             </Link>
             <Link to="/auth">
-              <Button size="lg" variant="outline" className="border-white text-white hover:bg-white hover:text-blue-600 px-8 py-4 text-lg font-semibold">
+              <Button size="lg" variant="outline" className="border-white text-white hover:bg-white hover:text-black px-8 py-4 text-lg font-semibold">
                 Create Account
               </Button>
             </Link>
