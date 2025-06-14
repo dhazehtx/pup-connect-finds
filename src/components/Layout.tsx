@@ -11,7 +11,7 @@ interface LayoutProps {
 }
 
 const Layout = ({ children }: LayoutProps) => {
-  const { user } = useAuth();
+  const { user, isGuest } = useAuth();
 
   return (
     <div className="min-h-screen bg-white flex flex-col">
@@ -19,7 +19,8 @@ const Layout = ({ children }: LayoutProps) => {
       <main className="flex-1 pb-16 md:pb-0">
         {children || <Outlet />}
       </main>
-      {user && <BottomNavigation />}
+      {/* Show bottom navigation for both authenticated users AND guests */}
+      {(user || isGuest) && <BottomNavigation />}
       <Footer />
     </div>
   );

@@ -94,7 +94,7 @@ const Footer = () => {
               </li>
               <li>
                 <Link to="/contact" onClick={handleLinkClick} className="text-white hover:text-blue-400 transition-colors flex items-center gap-2">
-                  <Mail size={16} />
+                  <Mail size={16} className="text-white" />
                   Contact Us
                 </Link>
               </li>
@@ -125,7 +125,7 @@ const Footer = () => {
               Terms of Use
             </Link>
             <span className="flex items-center gap-2 text-white">
-              <MapPin size={16} />
+              <MapPin size={16} className="text-white" />
               Made with ❤️ in the USA
             </span>
           </div>
