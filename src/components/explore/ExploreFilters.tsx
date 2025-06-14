@@ -102,7 +102,7 @@ const ExploreFilters = ({
   return (
     <>
       {/* Quick Filters */}
-      <Card className="mb-6 border shadow-sm bg-card">
+      <Card className="mb-6 border-blue-200 shadow-sm bg-white">
         <CardContent className="p-4">
           <QuickFiltersBar 
             quickFilters={['Puppies', 'Verified', 'Nearby', 'Available']}
@@ -115,7 +115,7 @@ const ExploreFilters = ({
       {/* Active filters indicator */}
       {hasActiveFilters && (
         <div className="mb-4">
-          <Badge variant="secondary" className="bg-secondary text-secondary-foreground">
+          <Badge variant="secondary" className="bg-blue-100 text-blue-800 border-blue-200">
             Filters applied
           </Badge>
         </div>
@@ -126,8 +126,8 @@ const ExploreFilters = ({
 
       {/* Popular Breeds Sidebar */}
       <div className="mt-6">
-        <ErrorBoundary fallback={<div className="text-sm text-muted-foreground">Error loading breeds</div>}>
-          <Card className="border shadow-sm bg-card">
+        <ErrorBoundary fallback={<div className="text-sm text-blue-600">Error loading breeds</div>}>
+          <Card className="border-blue-200 shadow-sm bg-white">
             <CardContent className="p-4">
               <PopularBreeds 
                 popularBreeds={popularBreeds}
@@ -140,7 +140,7 @@ const ExploreFilters = ({
       </div>
 
       {/* Advanced Filters Panel */}
-      <ErrorBoundary fallback={<div className="text-sm text-muted-foreground">Error loading filters panel</div>}>
+      <ErrorBoundary fallback={<div className="text-sm text-blue-600">Error loading filters panel</div>}>
         <AdvancedFiltersPanel
           filters={filters}
           popularBreeds={popularBreeds}
