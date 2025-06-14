@@ -1,77 +1,60 @@
 
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { AuthProvider } from "@/contexts/AuthContext";
-import { RealtimeProvider } from "@/contexts/RealtimeContext";
-import { ThemeProvider } from "@/contexts/ThemeContext";
-import Layout from "./components/Layout";
-import Index from "./pages/Index";
-import Auth from "./pages/Auth";
-import Profile from "./pages/Profile";
-import SimpleProfile from "./pages/SimpleProfile";
-import Explore from "./pages/Explore";
-import Messages from "./pages/Messages";
-import Notifications from "./pages/Notifications";
-import Settings from "./pages/Settings";
-import Help from "./pages/Help";
-import MonetizationPage from "./pages/MonetizationPage";
-import B2BDashboard from "./pages/B2BDashboard";
-import DonationsPage from "./pages/DonationsPage";
-import Services from "./pages/Services";
-import TrustSafety from "./pages/TrustSafety";
-import CustomerReviews from "./pages/CustomerReviews";
-import Contact from "./pages/Contact";
-import HelpCenter from "./pages/HelpCenter";
-import PrivacyPolicy from "./pages/PrivacyPolicy";
-import Legal from "./pages/Legal";
-import TermsOfService from "./pages/TermsOfService";
-import Education from "./pages/Education";
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { AuthProvider } from '@/contexts/AuthContext';
+import { Toaster } from '@/components/ui/toaster';
+import Layout from '@/components/Layout';
+import Home from '@/pages/Home';
+import Explore from '@/pages/Explore';
+import ListingDetail from '@/pages/ListingDetail';
+import CreateListing from '@/pages/CreateListing';
+import Profile from '@/pages/Profile';
+import Messages from '@/pages/Messages';
+import Listing from '@/pages/Listing';
+import Auth from '@/pages/Auth';
+import VerifyEmail from '@/pages/VerifyEmail';
+import Education from '@/pages/Education';
+import Services from '@/pages/Services';
+import CustomerReviews from '@/pages/CustomerReviews';
+import Monetization from '@/pages/Monetization';
+import Legal from '@/pages/Legal';
+import HelpCenter from '@/pages/HelpCenter';
+import TrustSafety from '@/pages/TrustSafety';
+import Contact from '@/pages/Contact';
+import B2BDashboard from '@/pages/B2BDashboard';
+import Terms from '@/pages/Terms';
+import PrivacyPolicy from '@/pages/PrivacyPolicy';
 
-const queryClient = new QueryClient();
-
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme">
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <AuthProvider>
-          <RealtimeProvider>
-            <BrowserRouter>
-              <Routes>
-                <Route path="/auth" element={<Auth />} />
-                <Route path="/" element={<Layout />}>
-                  <Route index element={<Index />} />
-                  <Route path="profile" element={<Profile />} />
-                  <Route path="simple-profile" element={<SimpleProfile />} />
-                  <Route path="explore" element={<Explore />} />
-                  <Route path="messages" element={<Messages />} />
-                  <Route path="notifications" element={<Notifications />} />
-                  <Route path="settings" element={<Settings />} />
-                  <Route path="help" element={<Help />} />
-                  <Route path="monetization" element={<MonetizationPage />} />
-                  <Route path="b2b-dashboard" element={<B2BDashboard />} />
-                  <Route path="donations" element={<DonationsPage />} />
-                  <Route path="services" element={<Services />} />
-                  <Route path="trust-safety" element={<TrustSafety />} />
-                  <Route path="customer-reviews" element={<CustomerReviews />} />
-                  <Route path="contact" element={<Contact />} />
-                  <Route path="help-center" element={<HelpCenter />} />
-                  <Route path="privacy-policy" element={<PrivacyPolicy />} />
-                  <Route path="legal" element={<Legal />} />
-                  <Route path="terms" element={<TermsOfService />} />
-                  <Route path="education" element={<Education />} />
-                </Route>
-              </Routes>
-            </BrowserRouter>
-          </RealtimeProvider>
-        </AuthProvider>
-      </TooltipProvider>
-    </ThemeProvider>
-  </QueryClientProvider>
-);
+function App() {
+  return (
+    <AuthProvider>
+      <Router>
+        <Layout>
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/explore" element={<Explore />} />
+            <Route path="/listing/:id" element={<ListingDetail />} />
+            <Route path="/create-listing" element={<CreateListing />} />
+            <Route path="/profile" element={<Profile />} />
+            <Route path="/messages" element={<Messages />} />
+            <Route path="/auth" element={<Auth />} />
+            <Route path="/verify-email" element={<VerifyEmail />} />
+            <Route path="/education" element={<Education />} />
+            <Route path="/services" element={<Services />} />
+            <Route path="/customer-reviews" element={<CustomerReviews />} />
+            <Route path="/monetization" element={<Monetization />} />
+            <Route path="/legal" element={<Legal />} />
+            <Route path="/help-center" element={<HelpCenter />} />
+            <Route path="/trust-safety" element={<TrustSafety />} />
+            <Route path="/contact" element={<Contact />} />
+            <Route path="/b2b-dashboard" element={<B2BDashboard />} />
+            <Route path="/terms" element={<Terms />} />
+            <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+          </Routes>
+        </Layout>
+      </Router>
+      <Toaster />
+    </AuthProvider>
+  );
+}
 
 export default App;

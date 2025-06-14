@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Outlet } from 'react-router-dom';
+import { Outlet, useLocation } from 'react-router-dom';
 import Header from './Header';
 import BottomNavigation from './BottomNavigation';
 import Footer from './Footer';
@@ -12,6 +12,10 @@ interface LayoutProps {
 
 const Layout = ({ children }: LayoutProps) => {
   const { user, isGuest } = useAuth();
+  const location = useLocation();
+  
+  // Don't show footer on auth pages for cleaner UX
+  const hideFooter = location.pathname === '/auth' || location.pathname === '/verify-email';
 
   return (
     <div className="min-h-screen bg-white flex flex-col">
@@ -21,7 +25,7 @@ const Layout = ({ children }: LayoutProps) => {
       </main>
       {/* Show bottom navigation for both authenticated users AND guests */}
       {(user || isGuest) && <BottomNavigation />}
-      <Footer />
+      {!hideFooter && <Footer />}
     </div>
   );
 };

@@ -111,6 +111,10 @@
   }
 
   /* Footer specific styling - WHITE TEXT ON DARK BLUE BACKGROUND */
+  footer {
+    background-color: #1e3a8a !important; /* Dark blue background */
+  }
+  
   footer, footer * {
     color: #ffffff !important;
   }
@@ -126,49 +130,7 @@
     color: #bfdbfe !important; /* Light blue on hover */
   }
 
-  /* COMPLETELY REMOVE ALL BROWN/TAN/AMBER/ORANGE/YELLOW COLORS */
-  .bg-amber-50, .bg-yellow-50, .bg-orange-50, .bg-amber-100, .bg-yellow-100, .bg-orange-100,
-  .bg-amber-200, .bg-yellow-200, .bg-orange-200, .bg-amber-300, .bg-yellow-300, .bg-orange-300,
-  .bg-amber-400, .bg-yellow-400, .bg-orange-400, .bg-amber-500, .bg-yellow-500, .bg-orange-500,
-  .bg-amber-600, .bg-yellow-600, .bg-orange-600, .bg-amber-700, .bg-yellow-700, .bg-orange-700,
-  .bg-amber-800, .bg-yellow-800, .bg-orange-800, .bg-amber-900, .bg-yellow-900, .bg-orange-900,
-  .bg-stone-50, .bg-stone-100, .bg-stone-200, .bg-stone-300, .bg-stone-400, .bg-stone-500,
-  .bg-neutral-50, .bg-neutral-100, .bg-neutral-200, .bg-neutral-300, .bg-neutral-400, .bg-neutral-500,
-  .bg-warmGray-50, .bg-warmGray-100, .bg-warmGray-200, .bg-warmGray-300, .bg-warmGray-400, .bg-warmGray-500 {
-    background-color: #dbeafe !important; /* Light blue instead */
-  }
-
-  .text-amber-50, .text-yellow-50, .text-orange-50, .text-amber-100, .text-yellow-100, .text-orange-100,
-  .text-amber-200, .text-yellow-200, .text-orange-200, .text-amber-300, .text-yellow-300, .text-orange-300,
-  .text-amber-400, .text-yellow-400, .text-orange-400, .text-amber-500, .text-yellow-500, .text-orange-500,
-  .text-amber-600, .text-yellow-600, .text-orange-600, .text-amber-700, .text-yellow-700, .text-orange-700,
-  .text-amber-800, .text-yellow-800, .text-orange-800, .text-amber-900, .text-yellow-900, .text-orange-900,
-  .text-stone-600, .text-stone-700, .text-stone-800, .text-neutral-600, .text-neutral-700, .text-neutral-800,
-  .text-warmGray-600, .text-warmGray-700, .text-warmGray-800 {
-    color: #2563eb !important; /* Royal blue */
-  }
-
-  /* Override any brown/tan hex colors with blue equivalents */
-  [style*="background-color: #c29a6c"], [style*="background: #c29a6c"],
-  [style*="background-color: #b48346"], [style*="background: #b48346"],
-  [style*="background-color: #a8753c"], [style*="background: #a8753c"],
-  [style*="background-color: #c49e7a"], [style*="background: #c49e7a"],
-  [style*="background-color: rgb(194, 154, 108)"], [style*="background: rgb(194, 154, 108)"],
-  [style*="background-color: rgb(180, 131, 70)"], [style*="background: rgb(180, 131, 70)"],
-  [style*="background-color: rgb(168, 117, 60)"], [style*="background: rgb(168, 117, 60)"],
-  [style*="background-color: rgb(196, 158, 122)"], [style*="background: rgb(196, 158, 122)"] {
-    background-color: #dbeafe !important;
-    background: #dbeafe !important;
-  }
-
-  /* Brown/tan border colors */
-  .border-amber-200, .border-yellow-200, .border-orange-200, .border-amber-300, .border-yellow-300, .border-orange-300,
-  .border-amber-400, .border-yellow-400, .border-orange-400, .border-amber-500, .border-yellow-500, .border-orange-500,
-  .border-stone-200, .border-stone-300, .border-neutral-200, .border-neutral-300 {
-    border-color: #93c5fd !important; /* Soft blue border */
-  }
-
-  /* Force royal blue theme across all elements */
+  /* FORCE ROYAL BLUE THEME - Remove all warm colors */
   .bg-blue-50 { background-color: #dbeafe !important; }
   .bg-blue-100 { background-color: #dbeafe !important; }
   .bg-blue-600 { background-color: #2563eb !important; }
@@ -218,12 +180,5 @@
     border-color: #2563eb !important;
     ring-color: #2563eb !important;
     box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1) !important;
-  }
-
-  /* Override any remaining warm colors */
-  [class*="yellow"], [class*="amber"], [class*="orange"], [class*="brown"], [class*="tan"] {
-    background-color: #dbeafe !important;
-    color: #2563eb !important;
-    border-color: #93c5fd !important;
   }
 }
