@@ -24,9 +24,16 @@ const MobileMessagingInterface = () => {
 
   const selectedConversation = conversations.find(c => c.id === selectedConversationId);
 
-  const handleSelectConversation = (conversationId: string, otherUser: any) => {
+  const handleSelectConversation = (conversationId: string) => {
     setSelectedConversationId(conversationId);
-    setSelectedUser(otherUser);
+    const conversation = conversations.find(c => c.id === conversationId);
+    if (conversation?.other_user) {
+      setSelectedUser(conversation.other_user);
+    }
+  };
+
+  const getOtherUser = (conversation: any) => {
+    return conversation.other_user;
   };
 
   if (!isMobile) {
@@ -112,7 +119,8 @@ const MobileMessagingInterface = () => {
               <ConversationsList
                 conversations={conversations}
                 selectedConversationId={null}
-                onSelectConversation={handleSelectConversation}
+                onConversationSelect={handleSelectConversation}
+                getOtherUser={getOtherUser}
               />
             </div>
           </div>

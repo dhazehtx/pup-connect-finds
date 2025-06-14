@@ -24,14 +24,21 @@ const UnifiedMessagingInterface = () => {
     }
   }, [user, fetchConversations]);
 
-  const handleSelectConversation = (conversationId: string, otherUser: any) => {
+  const handleSelectConversation = (conversationId: string) => {
     setSelectedConversationId(conversationId);
-    setSelectedUser(otherUser);
+    const conversation = conversations.find(c => c.id === conversationId);
+    if (conversation?.other_user) {
+      setSelectedUser(conversation.other_user);
+    }
   };
 
   const handleBackToList = () => {
     setSelectedConversationId(null);
     setSelectedUser(null);
+  };
+
+  const getOtherUser = (conversation: any) => {
+    return conversation.other_user;
   };
 
   if (!user && !isGuest) {
@@ -79,8 +86,9 @@ const UnifiedMessagingInterface = () => {
         <div className="bg-white rounded-lg border">
           <ConversationsList
             conversations={conversations}
-            onSelectConversation={handleSelectConversation}
+            onConversationSelect={handleSelectConversation}
             selectedConversationId={selectedConversationId}
+            getOtherUser={getOtherUser}
           />
         </div>
       )}

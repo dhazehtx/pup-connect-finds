@@ -14,14 +14,21 @@ const Chat = () => {
   const [selectedUser, setSelectedUser] = useState<any>(null);
   const { conversations, loading } = useMessaging();
 
-  const handleSelectConversation = (conversationId: string, otherUser: any) => {
+  const handleSelectConversation = (conversationId: string) => {
     setSelectedConversationId(conversationId);
-    setSelectedUser(otherUser);
+    const conversation = conversations.find(c => c.id === conversationId);
+    if (conversation?.other_user) {
+      setSelectedUser(conversation.other_user);
+    }
   };
 
   const handleBackToList = () => {
     setSelectedConversationId(null);
     setSelectedUser(null);
+  };
+
+  const getOtherUser = (conversation: any) => {
+    return conversation.other_user;
   };
 
   if (selectedConversationId && selectedUser) {
@@ -58,8 +65,9 @@ const Chat = () => {
           <div className="bg-background rounded-lg border">
             <ConversationsList
               conversations={conversations}
-              onSelectConversation={handleSelectConversation}
+              onConversationSelect={handleSelectConversation}
               selectedConversationId={selectedConversationId}
+              getOtherUser={getOtherUser}
             />
           </div>
         )}
