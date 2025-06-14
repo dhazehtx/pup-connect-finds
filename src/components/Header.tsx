@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Heart, Menu, X, User, PawPrint, Crown } from 'lucide-react';
+import { Heart, Menu, X, User, Crown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
@@ -30,7 +30,6 @@ const Header = () => {
   };
 
   const navLinks = [
-    { href: '/services', label: 'Services', icon: PawPrint },
     { href: '/monetization', label: 'Premium', icon: Crown },
   ];
 
