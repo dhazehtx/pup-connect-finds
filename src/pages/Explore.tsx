@@ -4,12 +4,13 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Search, Filter, MapPin, Heart } from 'lucide-react';
+import { Search, Filter, MapPin, Heart, Sliders } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import ListingCard from '@/components/explore/ListingCard';
 import ListingsSkeleton from '@/components/explore/ListingsSkeleton';
 import ErrorState from '@/components/ui/error-state';
+import AdvancedFilters from '@/components/search/AdvancedFilters';
 
 interface Listing {
   id: string;
@@ -33,6 +34,9 @@ const Explore = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedBreed, setSelectedBreed] = useState('');
   const [priceRange, setPriceRange] = useState<[number, number]>([0, 10000]);
+  const [ageRange, setAgeRange] = useState<[number, number]>([0, 24]);
+  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
+  const [verifiedOnly, setVerifiedOnly] = useState(false);
   const { toast } = useToast();
 
   const popularBreeds = [
@@ -92,9 +96,38 @@ const Explore = () => {
     
     const matchesBreed = !selectedBreed || listing.breed === selectedBreed;
     const matchesPrice = listing.price >= priceRange[0] && listing.price <= priceRange[1];
+    const matchesAge = listing.age >= ageRange[0] && listing.age <= ageRange[1];
+    const matchesVerified = !verifiedOnly || listing.profiles?.verified;
     
-    return matchesSearch && matchesBreed && matchesPrice;
+    return matchesSearch && matchesBreed && matchesPrice && matchesAge && matchesVerified;
   });
+
+  const handleAdvancedFilterChange = (key: string, value: any) => {
+    switch (key) {
+      case 'priceRange':
+        setPriceRange(value);
+        break;
+      case 'ageRange':
+        setAgeRange(value);
+        break;
+      case 'breeds':
+        setSelectedBreed(value.length > 0 ? value[0] : '');
+        break;
+      case 'verified':
+        setVerifiedOnly(value);
+        break;
+      default:
+        break;
+    }
+  };
+
+  const clearAllFilters = () => {
+    setSearchTerm('');
+    setSelectedBreed('');
+    setPriceRange([0, 10000]);
+    setAgeRange([0, 24]);
+    setVerifiedOnly(false);
+  };
 
   if (error) {
     return (
@@ -120,13 +153,24 @@ const Explore = () => {
           <p className="text-gray-600">Find your perfect furry companion</p>
         </div>
 
-        {/* Search and Filters */}
-        <Card className="border-blue-200 shadow-sm mb-8">
+        {/* Search and Basic Filters */}
+        <Card className="border-blue-200 shadow-sm mb-6">
           <CardHeader>
-            <CardTitle>Search & Filter</CardTitle>
+            <div className="flex items-center justify-between">
+              <CardTitle>Search & Filter</CardTitle>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
+                className="flex items-center gap-2"
+              >
+                <Sliders className="w-4 h-4" />
+                Advanced Filters
+              </Button>
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
               {/* Search */}
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
@@ -150,39 +194,50 @@ const Explore = () => {
                 ))}
               </select>
 
-              {/* Price Range */}
+              {/* Verified Toggle */}
               <div className="flex items-center gap-2">
-                <Input
-                  type="number"
-                  placeholder="Min price"
-                  value={priceRange[0]}
-                  onChange={(e) => setPriceRange([Number(e.target.value), priceRange[1]])}
-                  className="text-sm"
+                <input
+                  type="checkbox"
+                  id="verified-only"
+                  checked={verifiedOnly}
+                  onChange={(e) => setVerifiedOnly(e.target.checked)}
+                  className="rounded"
                 />
-                <span className="text-gray-500">-</span>
-                <Input
-                  type="number"
-                  placeholder="Max price"
-                  value={priceRange[1]}
-                  onChange={(e) => setPriceRange([priceRange[0], Number(e.target.value)])}
-                  className="text-sm"
-                />
+                <label htmlFor="verified-only" className="text-sm">
+                  Verified only
+                </label>
               </div>
 
               {/* Clear Filters */}
               <Button 
                 variant="outline" 
-                onClick={() => {
-                  setSearchTerm('');
-                  setSelectedBreed('');
-                  setPriceRange([0, 10000]);
-                }}
+                onClick={clearAllFilters}
                 className="w-full"
               >
                 <Filter className="w-4 h-4 mr-2" />
                 Clear Filters
               </Button>
             </div>
+
+            {/* Advanced Filters Panel */}
+            {showAdvancedFilters && (
+              <div className="mt-6 pt-6 border-t">
+                <AdvancedFilters
+                  priceRange={priceRange}
+                  ageRange={ageRange}
+                  breeds={selectedBreed ? [selectedBreed] : []}
+                  verified={verifiedOnly}
+                  availableBreeds={popularBreeds}
+                  onPriceRangeChange={(range) => handleAdvancedFilterChange('priceRange', range)}
+                  onAgeRangeChange={(range) => handleAdvancedFilterChange('ageRange', range)}
+                  onBreedToggle={(breed) => {
+                    const newBreeds = selectedBreed === breed ? [] : [breed];
+                    handleAdvancedFilterChange('breeds', newBreeds);
+                  }}
+                  onVerifiedToggle={() => handleAdvancedFilterChange('verified', !verifiedOnly)}
+                />
+              </div>
+            )}
           </CardContent>
         </Card>
 
@@ -238,11 +293,7 @@ const Explore = () => {
                 Try adjusting your search filters to find more puppies.
               </p>
               <Button 
-                onClick={() => {
-                  setSearchTerm('');
-                  setSelectedBreed('');
-                  setPriceRange([0, 10000]);
-                }}
+                onClick={clearAllFilters}
                 className="bg-blue-600 hover:bg-blue-700"
               >
                 Clear All Filters
