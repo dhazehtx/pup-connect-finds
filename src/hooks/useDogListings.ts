@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -15,6 +14,11 @@ interface Listing {
   status: string;
   created_at: string;
   user_id: string;
+  profiles?: {
+    full_name: string;
+    verified: boolean;
+    rating?: number;
+  };
 }
 
 interface CreateListingData {
@@ -60,7 +64,14 @@ export const useDogListings = () => {
       setLoading(true);
       const { data, error } = await supabase
         .from('dog_listings')
-        .select('*')
+        .select(`
+          *,
+          profiles!dog_listings_user_id_fkey (
+            full_name,
+            verified,
+            rating
+          )
+        `)
         .eq('status', 'active')
         .order('created_at', { ascending: false });
 
