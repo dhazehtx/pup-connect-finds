@@ -3,7 +3,7 @@ import React from 'react';
 import ExploreListingsGrid from '@/components/explore/ExploreListingsGrid';
 import ErrorBoundary from '@/components/ErrorBoundary';
 
-interface Listing {
+interface TransformedListing {
   id: number;
   title: string;
   breed: string;
@@ -27,7 +27,7 @@ interface Listing {
 }
 
 interface ExploreResultsProps {
-  listings: Listing[];
+  listings: TransformedListing[];
   favorites: Set<number>;
   sortBy: string;
   hasActiveFilters: boolean;

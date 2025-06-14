@@ -5,8 +5,9 @@ import ExploreResults from '@/components/explore/ExploreResults';
 import { useAuth } from '@/contexts/AuthContext';
 import { useMessaging } from '@/hooks/useMessaging';
 
-interface DogListing {
-  id: number;
+// Database listing type from the hook
+interface DatabaseListing {
+  id: string;
   dog_name?: string;
   breed?: string;
   age?: number;
@@ -19,8 +20,32 @@ interface DogListing {
   };
 }
 
+// Transformed listing type for the UI
+interface TransformedListing {
+  id: number;
+  title: string;
+  breed: string;
+  age: string;
+  location: string;
+  distance: string;
+  price: string;
+  image: string;
+  verified: boolean;
+  sourceType?: string;
+  rating: number;
+  reviews: number;
+  breeder: string;
+  color?: string;
+  gender?: string;
+  verifiedBreeder?: boolean;
+  idVerified?: boolean;
+  vetVerified?: boolean;
+  available?: number;
+  isKillShelter?: boolean;
+}
+
 interface ExploreContainerProps {
-  listings: DogListing[];
+  listings: DatabaseListing[];
 }
 
 const ExploreContainer = ({ listings }: ExploreContainerProps) => {
@@ -46,8 +71,8 @@ const ExploreContainer = ({ listings }: ExploreContainerProps) => {
   const [favorites, setFavorites] = useState<Set<number>>(new Set());
   const [showSearchFilters, setShowSearchFilters] = useState(false);
 
-  // Transform DogListing[] to Listing[] format with comprehensive safety
-  const transformedListings = useMemo(() => {
+  // Transform DatabaseListing[] to TransformedListing[] format with comprehensive safety
+  const transformedListings = useMemo((): TransformedListing[] => {
     console.log('Transforming listings:', listings);
     
     if (!Array.isArray(listings)) {
@@ -64,8 +89,8 @@ const ExploreContainer = ({ listings }: ExploreContainerProps) => {
         return [];
       }
       
-      return validListings.map((listing, index) => {
-        const transformedListing = {
+      return validListings.map((listing, index): TransformedListing => {
+        const transformedListing: TransformedListing = {
           id: index + 1,
           title: listing?.dog_name || 'Unknown Dog',
           price: `$${listing?.price || 0}`,

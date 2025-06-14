@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Heart, MapPin, MessageCircle } from 'lucide-react';
 
-interface Listing {
+interface TransformedListing {
   id: number;
   title: string;
   breed: string;
@@ -29,11 +29,11 @@ interface Listing {
 }
 
 interface ExploreListingsGridProps {
-  listings: Listing[];
+  listings: TransformedListing[];
   favorites: Set<number>;
   onToggleFavorite: (listingId: number) => void;
-  onContactSeller: (listing: Listing) => void;
-  onViewDetails: (listing: Listing) => void;
+  onContactSeller: (listing: TransformedListing) => void;
+  onViewDetails: (listing: TransformedListing) => void;
 }
 
 const ExploreListingsGrid = ({ 
