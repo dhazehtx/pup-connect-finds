@@ -4,8 +4,7 @@ import { Link } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Plus, Settings, Star, MapPin, Calendar, Edit, Trash2, Grid, MoreHorizontal, Heart, MessageCircle } from 'lucide-react';
+import { Plus, Settings, Star, MapPin, Calendar, Edit, Grid, MoreHorizontal, Heart, MessageCircle, User } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useDogListings } from '@/hooks/useDogListings';
 import LoadingState from '@/components/ui/loading-state';
@@ -46,110 +45,152 @@ const Profile = () => {
 
   return (
     <div className="min-h-screen bg-white">
-      <div className="max-w-4xl mx-auto px-4 py-8">
-        {/* Instagram-style Profile Header */}
-        <div className="mb-8">
-          <div className="flex items-start gap-8 mb-6">
+      {/* Mobile Header */}
+      <div className="sticky top-0 z-50 bg-white border-b border-gray-200">
+        <div className="max-w-md mx-auto px-4 py-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <h1 className="text-xl font-semibold text-gray-900">
+                {displayName.toLowerCase().replace(/\s+/g, '')}
+              </h1>
+            </div>
+            <div className="flex items-center space-x-2">
+              <Button variant="ghost" size="sm">
+                <Settings className="w-5 h-5" />
+              </Button>
+              <Button variant="ghost" size="sm">
+                <MoreHorizontal className="w-5 h-5" />
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="max-w-md mx-auto">
+        {/* Profile Header Section */}
+        <div className="px-4 py-6">
+          <div className="flex items-start space-x-4 mb-6">
             {/* Profile Picture */}
-            <div className="w-32 h-32 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full flex items-center justify-center text-white text-4xl font-bold">
-              {displayName.charAt(0).toUpperCase()}
+            <div className="relative">
+              <div className="w-20 h-20 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full flex items-center justify-center text-white text-2xl font-bold">
+                {displayName.charAt(0).toUpperCase()}
+              </div>
             </div>
             
-            {/* Profile Info */}
+            {/* Stats */}
             <div className="flex-1">
-              <div className="flex items-center gap-4 mb-4">
-                <h1 className="text-2xl font-normal text-gray-900">{displayName}</h1>
-                <Button variant="outline" size="sm">
-                  <Edit className="w-4 h-4 mr-2" />
-                  Edit profile
-                </Button>
-                <Button variant="outline" size="sm">
-                  <Settings className="w-4 h-4" />
-                </Button>
-              </div>
-              
-              {/* Stats */}
-              <div className="flex gap-8 mb-4">
-                <div className="text-center">
-                  <span className="font-semibold text-gray-900">{userListings.length}</span>
-                  <span className="text-gray-500 ml-1">posts</span>
+              <div className="flex justify-around text-center">
+                <div>
+                  <div className="font-semibold text-gray-900 text-lg">{userListings.length}</div>
+                  <div className="text-gray-600 text-sm">posts</div>
                 </div>
-                <div className="text-center">
-                  <span className="font-semibold text-gray-900">0</span>
-                  <span className="text-gray-500 ml-1">followers</span>
+                <div>
+                  <div className="font-semibold text-gray-900 text-lg">0</div>
+                  <div className="text-gray-600 text-sm">followers</div>
                 </div>
-                <div className="text-center">
-                  <span className="font-semibold text-gray-900">0</span>
-                  <span className="text-gray-500 ml-1">following</span>
-                </div>
-              </div>
-              
-              {/* Bio */}
-              <div>
-                <p className="font-semibold text-gray-900 mb-1">{displayName}</p>
-                <p className="text-gray-600 text-sm">{displayEmail}</p>
-                <div className="flex items-center gap-2 mt-2">
-                  <Badge className="bg-green-100 text-green-800 border-green-200">
-                    {isGuest ? 'Guest' : 'Verified'}
-                  </Badge>
+                <div>
+                  <div className="font-semibold text-gray-900 text-lg">0</div>
+                  <div className="text-gray-600 text-sm">following</div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
-
-        {/* Story Highlights Placeholder */}
-        <div className="mb-8">
-          <div className="flex gap-4 overflow-x-auto pb-2">
-            <div className="flex flex-col items-center gap-2 min-w-[60px]">
-              <div className="w-16 h-16 border-2 border-dashed border-gray-300 rounded-full flex items-center justify-center">
-                <Plus className="w-6 h-6 text-gray-400" />
-              </div>
-              <span className="text-xs text-gray-500">New</span>
+          
+          {/* Profile Info */}
+          <div className="mb-6">
+            <h2 className="font-semibold text-gray-900 mb-1">{displayName}</h2>
+            <p className="text-gray-600 text-sm mb-2">{displayEmail}</p>
+            <p className="text-gray-900 text-sm mb-3">
+              Selective free resources for designers @mypup.<br />
+              Melbourne, Victoria, Australia
+            </p>
+            <div className="flex items-center space-x-2">
+              <Badge className="bg-blue-100 text-blue-800 border-blue-200">
+                {isGuest ? 'Guest' : 'Verified'}
+              </Badge>
             </div>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex space-x-2 mb-6">
+            <Button 
+              className="flex-1 bg-blue-500 hover:bg-blue-600 text-white font-medium"
+              size="sm"
+            >
+              Follow
+            </Button>
+            <Button 
+              variant="outline" 
+              size="sm"
+              className="px-4"
+            >
+              ▼
+            </Button>
+          </div>
+
+          {/* Story Highlights */}
+          <div className="mb-6">
+            <div className="flex space-x-4 overflow-x-auto pb-2">
+              {['New', 'Puppies', 'Training', 'Health', 'Reviews'].map((highlight, index) => (
+                <div key={highlight} className="flex flex-col items-center space-y-1 flex-shrink-0">
+                  <div className="w-16 h-16 rounded-full border-2 border-gray-300 flex items-center justify-center bg-gray-100">
+                    {index === 0 ? (
+                      <Plus className="w-6 h-6 text-gray-400" />
+                    ) : (
+                      <div className="w-12 h-12 bg-black rounded-full"></div>
+                    )}
+                  </div>
+                  <span className="text-xs text-gray-600">{highlight}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Directions Link */}
+          <div className="text-center mb-6">
+            <Link to="/explore" className="text-blue-500 font-medium">
+              Directions
+            </Link>
           </div>
         </div>
 
-        {/* Content Tabs */}
-        <div className="border-t">
-          <div className="flex justify-center">
-            <div className="flex">
-              <button className="flex items-center gap-1 px-4 py-3 border-t-2 border-gray-900 text-gray-900">
-                <Grid className="w-3 h-3" />
-                <span className="text-xs font-medium uppercase tracking-wider">Posts</span>
-              </button>
-            </div>
+        {/* Tab Navigation */}
+        <div className="border-t border-gray-200">
+          <div className="flex">
+            <button className="flex-1 flex items-center justify-center py-3 border-t-2 border-gray-900">
+              <Grid className="w-6 h-6 text-gray-900" />
+            </button>
+            <button className="flex-1 flex items-center justify-center py-3">
+              <div className="w-6 h-6 border-2 border-gray-400 rounded"></div>
+            </button>
+            <button className="flex-1 flex items-center justify-center py-3">
+              <User className="w-6 h-6 text-gray-400" />
+            </button>
           </div>
         </div>
 
         {/* Posts Grid */}
-        <div className="mt-6">
+        <div className="px-0">
           {userListings.length === 0 ? (
-            <div className="text-center py-12">
-              <div className="w-24 h-24 border-2 border-gray-900 rounded-full flex items-center justify-center mx-auto mb-4">
-                <div className="w-12 h-12 bg-gray-900 rounded-full flex items-center justify-center">
-                  <Plus className="w-6 h-6 text-white" />
+            <div className="flex items-center justify-center h-64">
+              <div className="text-center">
+                <div className="w-16 h-16 border-2 border-gray-300 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Plus className="w-8 h-8 text-gray-300" />
                 </div>
+                <h3 className="text-lg font-medium text-gray-900 mb-2">No Posts Yet</h3>
+                <p className="text-gray-500 text-sm mb-4">Start sharing your puppy listings!</p>
+                <Link to="/create-listing">
+                  <Button className="bg-blue-500 hover:bg-blue-600 text-white">
+                    Create First Post
+                  </Button>
+                </Link>
               </div>
-              <h3 className="text-2xl font-light text-gray-900 mb-2">Share Photos</h3>
-              <p className="text-gray-500 mb-4">When you share photos, they will appear on your profile.</p>
-              <Link to="/create-listing">
-                <Button className="bg-blue-600 hover:bg-blue-700">
-                  Share your first photo
-                </Button>
-              </Link>
             </div>
           ) : (
             <div className="grid grid-cols-3 gap-1">
-              {userListings.map((listing) => (
-                <div key={listing.id} className="aspect-square relative group">
-                  <img
-                    src={listing.image_url || '/placeholder.svg'}
-                    alt={listing.dog_name}
-                    className="w-full h-full object-cover"
-                  />
-                  
-                  {/* Hover overlay */}
+              {/* Sample posts to demonstrate layout */}
+              {Array.from({ length: 6 }, (_, i) => (
+                <div key={i} className="aspect-square bg-black relative group">
                   <div className="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                     <div className="flex items-center gap-4 text-white">
                       <div className="flex items-center gap-1">
@@ -162,17 +203,58 @@ const Profile = () => {
                       </div>
                     </div>
                   </div>
-                  
-                  {/* Menu button */}
-                  <button className="absolute top-2 right-2 w-6 h-6 bg-black bg-opacity-50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                    <MoreHorizontal className="w-4 h-4 text-white" />
-                  </button>
                 </div>
               ))}
             </div>
           )}
         </div>
       </div>
+
+      {/* Bottom Navigation */}
+      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-40">
+        <div className="max-w-md mx-auto">
+          <div className="flex justify-around py-2">
+            <Link to="/home" className="flex flex-col items-center py-2">
+              <div className="w-6 h-6 mb-1">
+                <svg viewBox="0 0 24 24" fill="currentColor" className="w-full h-full text-gray-700">
+                  <path d="M22 23h-6.001a1 1 0 0 1-1-1v-5.455a2.997 2.997 0 1 0-5.993 0V22a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V11.543a1.002 1.002 0 0 1 .31-.724l10-9.543a1.001 1.001 0 0 1 1.38 0l10 9.543a1.002 1.002 0 0 1 .31.724V22a1 1 0 0 1-1 1Z"/>
+                </svg>
+              </div>
+            </Link>
+            <Link to="/explore" className="flex flex-col items-center py-2">
+              <div className="w-6 h-6 mb-1">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-full h-full text-gray-700">
+                  <circle cx="11" cy="11" r="8"/>
+                  <path d="m21 21-4.35-4.35"/>
+                </svg>
+              </div>
+            </Link>
+            <Link to="/create-listing" className="flex flex-col items-center py-2">
+              <div className="w-6 h-6 mb-1">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-full h-full text-gray-700">
+                  <rect width="18" height="18" x="3" y="3" rx="2"/>
+                  <path d="M9 12h6m-3-3v6"/>
+                </svg>
+              </div>
+            </Link>
+            <Link to="/messages" className="flex flex-col items-center py-2">
+              <div className="w-6 h-6 mb-1">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-full h-full text-gray-700">
+                  <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                </svg>
+              </div>
+            </Link>
+            <Link to="/profile" className="flex flex-col items-center py-2">
+              <div className="w-6 h-6 mb-1">
+                <div className="w-6 h-6 bg-gray-700 rounded-full"></div>
+              </div>
+            </Link>
+          </div>
+        </div>
+      </div>
+
+      {/* Bottom padding to account for fixed navigation */}
+      <div className="h-16"></div>
     </div>
   );
 };
