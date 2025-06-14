@@ -18,27 +18,27 @@ const ExploreHeader = ({
   onToggleFilters 
 }: ExploreHeaderProps) => {
   return (
-    <div className="bg-card border-b border-border px-4 py-4 sticky top-0 z-10">
+    <div className="bg-white border-b border-gray-200 px-4 py-4 sticky top-16 z-10 shadow-sm">
       <div className="flex items-center space-x-2 mb-4">
-        <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-          <Heart className="w-5 h-5 text-primary-foreground" />
+        <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+          <Heart className="w-5 h-5 text-white" />
         </div>
-        <span className="text-xl font-bold text-foreground">MY PUP</span>
+        <span className="text-xl font-bold text-gray-900">MY PUP</span>
       </div>
       
       {/* Main search bar */}
       <div className="relative">
-        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
         <Input
           placeholder="Search by breed, breeder name, or keywords..."
           value={searchTerm}
           onChange={(e) => onSearchChange(e.target.value)}
-          className="pl-10 pr-20 bg-background text-foreground border-border"
+          className="pl-10 pr-20 bg-white text-gray-900 border-gray-300 focus:border-blue-600 focus:ring-blue-600"
         />
         <Button 
           variant="outline" 
           size="sm" 
-          className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-background text-foreground border-border hover:bg-muted"
+          className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-white text-gray-700 border-gray-300 hover:bg-gray-50 hover:border-blue-600"
           onClick={onToggleFilters}
         >
           <Filter className="w-4 h-4 mr-1" />

@@ -23,7 +23,7 @@ const Explore = () => {
   return (
     <ErrorBoundary>
       <Layout>
-        <div className="min-h-screen bg-background">
+        <div className="min-h-screen bg-white">
           <ExploreHeader 
             searchTerm=""
             onSearchChange={() => {}}
