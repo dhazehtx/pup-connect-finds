@@ -13,7 +13,7 @@ const Layout = ({ children }: LayoutProps) => {
   const { user } = useAuth();
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background text-foreground">
       <Header />
       <main className="pb-16 md:pb-0">
         {children || <Outlet />}

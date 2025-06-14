@@ -324,7 +324,7 @@ const Explore = () => {
   return (
     <ErrorBoundary>
       <Layout>
-        <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+        <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-100">
           <ExploreHeader 
             searchTerm={filters.searchTerm}
             onSearchChange={(value) => updateFilters({ searchTerm: value })}
@@ -347,7 +347,7 @@ const Explore = () => {
             {/* Results count and active filters */}
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center space-x-4">
-                <h2 className="text-xl font-semibold text-gray-900">
+                <h2 className="text-xl font-semibold text-foreground">
                   {sortedListings.length} puppies available
                 </h2>
                 {hasActiveFilters && (
@@ -357,11 +357,11 @@ const Explore = () => {
                 )}
               </div>
               <div className="flex items-center space-x-2">
-                <span className="text-sm text-gray-500">Sort by:</span>
+                <span className="text-sm text-muted-foreground">Sort by:</span>
                 <select 
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value)}
-                  className="text-sm border-gray-300 rounded-md"
+                  className="text-sm border border-border rounded-md bg-background text-foreground px-2 py-1"
                 >
                   <option value="newest">Newest first</option>
                   <option value="price-low">Price: Low to High</option>
@@ -376,7 +376,7 @@ const Explore = () => {
 
             <div className="mt-6 grid grid-cols-1 lg:grid-cols-4 gap-6">
               <div className="lg:col-span-1">
-                <ErrorBoundary fallback={<div className="text-sm text-gray-500">Error loading breeds</div>}>
+                <ErrorBoundary fallback={<div className="text-sm text-muted-foreground">Error loading breeds</div>}>
                   <Card className="border-0 shadow-sm bg-white/80 backdrop-blur-sm">
                     <CardContent className="p-4">
                       <PopularBreeds 
@@ -395,7 +395,7 @@ const Explore = () => {
             </div>
           </div>
 
-          <ErrorBoundary fallback={<div className="text-sm text-gray-500">Error loading filters panel</div>}>
+          <ErrorBoundary fallback={<div className="text-sm text-muted-foreground">Error loading filters panel</div>}>
             <AdvancedFiltersPanel
               filters={filters}
               popularBreeds={popularBreeds}
