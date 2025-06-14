@@ -11,8 +11,8 @@ import SearchFiltersCard from '@/components/search/SearchFiltersCard';
 import ExploreLoading from '@/components/ExploreLoading';
 import { useAuth } from '@/contexts/AuthContext';
 import { useDogListings } from '@/hooks/useDogListings';
-import { useListingFilters } from '@/hooks/useListingFilters';
 import { useMessaging } from '@/hooks/useMessaging';
+import ErrorBoundary from '@/components/ErrorBoundary';
 
 const Explore = () => {
   const { user } = useAuth();
@@ -41,8 +41,7 @@ const Explore = () => {
   const [showSearchFilters, setShowSearchFilters] = useState(false);
   const navigate = useNavigate();
 
-  // Transform DogListing[] to Listing[] format expected by useListingFilters
-  // Add comprehensive safety checks to prevent undefined access
+  // Transform DogListing[] to Listing[] format with comprehensive safety
   const transformedListings = useMemo(() => {
     console.log('Transforming listings:', listings);
     
@@ -54,6 +53,11 @@ const Explore = () => {
     try {
       const validListings = listings.filter(listing => listing && typeof listing === 'object');
       console.log('Valid listings after filter:', validListings.length);
+      
+      if (validListings.length === 0) {
+        console.log('No valid listings found');
+        return [];
+      }
       
       return validListings.map((listing, index) => {
         const transformedListing = {
@@ -90,18 +94,43 @@ const Explore = () => {
 
   console.log('Transformed listings:', transformedListings);
 
-  // Use the useListingFilters hook with comprehensive error handling
-  let sortedListings = [];
-  try {
-    if (transformedListings && Array.isArray(transformedListings)) {
-      const result = useListingFilters(transformedListings, filters, sortBy);
-      sortedListings = result?.sortedListings || [];
-      console.log('Sorted listings:', sortedListings);
+  // Simple filtering without external hook to avoid crashes
+  const sortedListings = useMemo(() => {
+    try {
+      if (!Array.isArray(transformedListings) || transformedListings.length === 0) {
+        console.log('No transformed listings to sort');
+        return [];
+      }
+
+      let filtered = [...transformedListings];
+
+      // Apply filters
+      if (filters.searchTerm) {
+        const searchLower = filters.searchTerm.toLowerCase();
+        filtered = filtered.filter(listing => 
+          listing.title.toLowerCase().includes(searchLower) ||
+          listing.breed.toLowerCase().includes(searchLower) ||
+          listing.location.toLowerCase().includes(searchLower)
+        );
+      }
+
+      if (filters.breed !== 'all') {
+        filtered = filtered.filter(listing => 
+          listing.breed.toLowerCase().includes(filters.breed.toLowerCase())
+        );
+      }
+
+      if (filters.verifiedOnly) {
+        filtered = filtered.filter(listing => listing.verified);
+      }
+
+      console.log('Filtered listings:', filtered);
+      return filtered;
+    } catch (error) {
+      console.error('Error filtering listings:', error);
+      return [];
     }
-  } catch (error) {
-    console.error('Error in useListingFilters:', error);
-    sortedListings = transformedListings || []; // Fallback to transformed listings
-  }
+  }, [transformedListings, filters]);
 
   const updateFilters = (newFilters: any) => {
     setFilters(prev => ({ ...prev, ...newFilters }));
@@ -256,14 +285,33 @@ const Explore = () => {
         return <div className="text-center py-8 text-gray-500">No listings available</div>;
       }
 
+      if (sortedListings.length === 0) {
+        return (
+          <div className="text-center py-12">
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">No listings found</h3>
+            <p className="text-gray-500 mb-4">Try adjusting your filters or check back later for new listings.</p>
+            {hasActiveFilters && (
+              <button 
+                onClick={resetFilters}
+                className="text-blue-600 hover:text-blue-800 font-medium"
+              >
+                Clear all filters
+              </button>
+            )}
+          </div>
+        );
+      }
+
       return (
-        <ExploreListingsGrid 
-          listings={sortedListings}
-          favorites={favorites}
-          onToggleFavorite={handleToggleFavorite}
-          onContactSeller={handleContactSeller}
-          onViewDetails={handleViewDetails}
-        />
+        <ErrorBoundary fallback={<div className="text-center py-8 text-red-500">Error loading listings</div>}>
+          <ExploreListingsGrid 
+            listings={sortedListings}
+            favorites={favorites}
+            onToggleFavorite={handleToggleFavorite}
+            onContactSeller={handleContactSeller}
+            onViewDetails={handleViewDetails}
+          />
+        </ErrorBoundary>
       );
     } catch (error) {
       console.error('Error rendering ExploreListingsGrid:', error);
@@ -272,54 +320,60 @@ const Explore = () => {
   };
 
   return (
-    <Layout>
-      <div className="min-h-screen bg-gray-50">
-        <ExploreHeader 
-          searchTerm={filters.searchTerm}
-          onSearchChange={(value) => updateFilters({ searchTerm: value })}
-          showAdvancedFilters={showSearchFilters}
-          onToggleFilters={() => setShowSearchFilters(!showSearchFilters)}
-        />
-        
-        <div className="container mx-auto px-4 py-6">
-          <QuickFiltersBar 
-            quickFilters={['Puppies', 'Verified', 'Nearby', 'Available']}
-            filters={filters}
-            onQuickFilterClick={handleQuickFilterClick}
+    <ErrorBoundary>
+      <Layout>
+        <div className="min-h-screen bg-gray-50">
+          <ExploreHeader 
+            searchTerm={filters.searchTerm}
+            onSearchChange={(value) => updateFilters({ searchTerm: value })}
+            showAdvancedFilters={showSearchFilters}
+            onToggleFilters={() => setShowSearchFilters(!showSearchFilters)}
           />
+          
+          <div className="container mx-auto px-4 py-6">
+            <QuickFiltersBar 
+              quickFilters={['Puppies', 'Verified', 'Nearby', 'Available']}
+              filters={filters}
+              onQuickFilterClick={handleQuickFilterClick}
+            />
 
-          {/* Advanced Search Filters with error boundary */}
-          {renderSearchFilters()}
+            {/* Advanced Search Filters with error boundary */}
+            {renderSearchFilters()}
 
-          <div className="mt-6 grid grid-cols-1 lg:grid-cols-4 gap-6">
-            <div className="lg:col-span-1">
-              <PopularBreeds 
-                popularBreeds={popularBreeds}
-                selectedBreed={filters.breed}
-                onBreedSelect={(breed) => handleQuickFilterChange('breed', breed)} 
-              />
-            </div>
+            <div className="mt-6 grid grid-cols-1 lg:grid-cols-4 gap-6">
+              <div className="lg:col-span-1">
+                <ErrorBoundary fallback={<div className="text-sm text-gray-500">Error loading breeds</div>}>
+                  <PopularBreeds 
+                    popularBreeds={popularBreeds}
+                    selectedBreed={filters.breed}
+                    onBreedSelect={(breed) => handleQuickFilterChange('breed', breed)} 
+                  />
+                </ErrorBoundary>
+              </div>
 
-            <div className="lg:col-span-3">
-              {renderListingsGrid()}
+              <div className="lg:col-span-3">
+                {renderListingsGrid()}
+              </div>
             </div>
           </div>
-        </div>
 
-        <AdvancedFiltersPanel
-          filters={filters}
-          popularBreeds={popularBreeds}
-          dogColors={dogColors}
-          coatLengthOptions={coatLengthOptions}
-          distanceOptions={distanceOptions}
-          sizeOptions={sizeOptions}
-          energyLevels={energyLevels}
-          trainingLevels={trainingLevels}
-          onFilterUpdate={updateFilters}
-          onClearAllFilters={resetFilters}
-        />
-      </div>
-    </Layout>
+          <ErrorBoundary fallback={<div className="text-sm text-gray-500">Error loading filters panel</div>}>
+            <AdvancedFiltersPanel
+              filters={filters}
+              popularBreeds={popularBreeds}
+              dogColors={dogColors}
+              coatLengthOptions={coatLengthOptions}
+              distanceOptions={distanceOptions}
+              sizeOptions={sizeOptions}
+              energyLevels={energyLevels}
+              trainingLevels={trainingLevels}
+              onFilterUpdate={updateFilters}
+              onClearAllFilters={resetFilters}
+            />
+          </ErrorBoundary>
+        </div>
+      </Layout>
+    </ErrorBoundary>
   );
 };
 
