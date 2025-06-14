@@ -117,11 +117,11 @@ const Footer = () => {
           <div className="text-white text-sm mb-4 md:mb-0">
             © 2024 MY PUP. All rights reserved.
           </div>
-          <div className="flex items-center gap-6 text-sm text-white">
-            <Link to="/privacy-policy" onClick={handleLinkClick} className="hover:text-blue-400 transition-colors">
+          <div className="flex items-center gap-6 text-sm">
+            <Link to="/privacy-policy" onClick={handleLinkClick} className="text-white hover:text-blue-400 transition-colors">
               Privacy Policy
             </Link>
-            <Link to="/terms" onClick={handleLinkClick} className="hover:text-blue-400 transition-colors">
+            <Link to="/terms" onClick={handleLinkClick} className="text-white hover:text-blue-400 transition-colors">
               Terms of Use
             </Link>
             <span className="flex items-center gap-2 text-white">

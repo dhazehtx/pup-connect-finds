@@ -14,9 +14,9 @@ const Layout = ({ children }: LayoutProps) => {
   const { user } = useAuth();
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white flex flex-col">
       <Header />
-      <main className="pb-16 md:pb-0 text-gray-900 bg-white min-h-screen">
+      <main className="flex-1 pb-16 md:pb-0">
         {children || <Outlet />}
       </main>
       {user && <BottomNavigation />}

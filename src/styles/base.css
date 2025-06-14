@@ -3,7 +3,7 @@
 
 @layer base {
   :root {
-    /* Clean & Professional color scheme with excellent contrast */
+    /* Royal Blue theme with excellent contrast */
     --background: 255 255 255; /* Pure white background */
     --foreground: 15 23 42; /* Dark slate for text */
 
@@ -110,34 +110,58 @@
     color: #0f172a !important;
   }
 
-  /* FORCE override brown/tan colors everywhere */
+  /* REMOVE ALL BROWN/TAN/AMBER COLORS - Replace with Royal Blue */
   .bg-amber-50, .bg-yellow-50, .bg-orange-50,
   .bg-amber-100, .bg-yellow-100, .bg-orange-100,
   .bg-amber-200, .bg-yellow-200, .bg-orange-200,
   .bg-amber-300, .bg-yellow-300, .bg-orange-300,
   .bg-amber-400, .bg-yellow-400, .bg-orange-400,
   .bg-amber-500, .bg-yellow-500, .bg-orange-500 {
-    background-color: white !important;
+    background-color: #dbeafe !important; /* Light blue instead */
   }
 
   .text-amber-600, .text-amber-700, .text-amber-800,
   .text-yellow-600, .text-yellow-700, .text-yellow-800,
   .text-orange-600, .text-orange-700, .text-orange-800,
   .text-amber-500, .text-yellow-500, .text-orange-500 {
-    color: #2563eb !important;
+    color: #2563eb !important; /* Royal blue */
   }
 
-  /* Override any brown backgrounds */
-  div[style*="background-color: #"], div[class*="bg-amber"], div[class*="bg-yellow"], div[class*="bg-orange"] {
-    background-color: white !important;
-  }
-
-  /* Force specific overrides for common brown color patterns */
+  /* Override any brown backgrounds with blue */
+  div[style*="background-color: #"], 
+  div[class*="bg-amber"], 
+  div[class*="bg-yellow"], 
+  div[class*="bg-orange"],
   [style*="background-color: rgb(194, 154, 108)"],
   [style*="background-color: #c29a6c"],
   [style*="background: rgb(194, 154, 108)"],
   [style*="background: #c29a6c"] {
-    background-color: white !important;
-    background: white !important;
+    background-color: #dbeafe !important; /* Light blue */
+    background: #dbeafe !important;
+  }
+
+  /* Force royal blue theme across all elements */
+  .bg-blue-50 {
+    background-color: #eff6ff !important;
+  }
+  
+  .bg-blue-100 {
+    background-color: #dbeafe !important;
+  }
+  
+  .bg-blue-600 {
+    background-color: #2563eb !important;
+  }
+  
+  .text-blue-600 {
+    color: #2563eb !important;
+  }
+  
+  .border-blue-200 {
+    border-color: #bfdbfe !important;
+  }
+  
+  .border-blue-600 {
+    border-color: #2563eb !important;
   }
 }
