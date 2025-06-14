@@ -145,7 +145,7 @@ const Auth = () => {
                 onClick={() => setActiveTab('signin')}
                 className={`flex-1 py-3 px-4 text-center rounded-l-lg font-medium transition-colors ${
                   activeTab === 'signin'
-                    ? 'bg-blue-600 text-black'
+                    ? 'bg-blue-600 text-white'
                     : 'bg-gray-100 text-black hover:bg-gray-200'
                 }`}
               >
@@ -155,7 +155,7 @@ const Auth = () => {
                 onClick={() => setActiveTab('signup')}
                 className={`flex-1 py-3 px-4 text-center rounded-r-lg font-medium transition-colors ${
                   activeTab === 'signup'
-                    ? 'bg-blue-600 text-black'
+                    ? 'bg-blue-600 text-white'
                     : 'bg-gray-100 text-black hover:bg-gray-200'
                 }`}
               >
@@ -220,11 +220,11 @@ const Auth = () => {
               <Button
                 type="submit"
                 disabled={loading}
-                className="w-full h-12 bg-green-500 hover:bg-green-600 text-black font-semibold rounded-lg shadow-lg"
+                className="w-full h-12 bg-green-500 hover:bg-green-600 text-white font-semibold rounded-lg shadow-lg"
               >
                 {loading ? (
                   <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-black border-t-transparent mr-2" />
+                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2" />
                     {activeTab === 'signup' ? 'Creating Account...' : 'Signing In...'}
                   </>
                 ) : (
@@ -251,7 +251,7 @@ const Auth = () => {
                     description: "Google sign-in will be available soon.",
                   });
                 }}
-                className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-black font-medium rounded-lg"
+                className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg"
                 disabled={loading}
               >
                 <Mail size={18} className="mr-3" />
@@ -265,7 +265,7 @@ const Auth = () => {
                     description: "Facebook sign-in will be available soon.",
                   });
                 }}
-                className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-black font-medium rounded-lg"
+                className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg"
                 disabled={loading}
               >
                 <User size={18} className="mr-3" />
@@ -290,7 +290,7 @@ const Auth = () => {
           
           <Button 
             onClick={handleGuestAccess}
-            className="w-full mt-4 h-12 bg-blue-600 hover:bg-blue-700 text-black font-semibold rounded-lg"
+            className="w-full mt-4 h-12 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg"
             disabled={loading}
           >
             Continue as Guest
