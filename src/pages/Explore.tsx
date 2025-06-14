@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Layout from '@/components/Layout';
 import ExploreHeader from '@/components/explore/ExploreHeader';
@@ -284,18 +284,18 @@ const Explore = () => {
     try {
       if (!Array.isArray(sortedListings)) {
         console.warn('sortedListings is not an array:', sortedListings);
-        return <div className="text-center py-8 text-gray-500">No listings available</div>;
+        return <div className="text-center py-8 text-muted-foreground">No listings available</div>;
       }
 
       if (sortedListings.length === 0) {
         return (
           <div className="text-center py-12">
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">No listings found</h3>
-            <p className="text-gray-500 mb-4">Try adjusting your filters or check back later for new listings.</p>
+            <h3 className="text-lg font-semibold text-foreground mb-2">No listings found</h3>
+            <p className="text-muted-foreground mb-4">Try adjusting your filters or check back later for new listings.</p>
             {hasActiveFilters && (
               <button 
                 onClick={resetFilters}
-                className="text-blue-600 hover:text-blue-800 font-medium"
+                className="text-primary hover:text-primary/80 font-medium"
               >
                 Clear all filters
               </button>
@@ -305,7 +305,7 @@ const Explore = () => {
       }
 
       return (
-        <ErrorBoundary fallback={<div className="text-center py-8 text-red-500">Error loading listings</div>}>
+        <ErrorBoundary fallback={<div className="text-center py-8 text-destructive">Error loading listings</div>}>
           <ExploreListingsGrid 
             listings={sortedListings}
             favorites={favorites}
@@ -317,14 +317,14 @@ const Explore = () => {
       );
     } catch (error) {
       console.error('Error rendering ExploreListingsGrid:', error);
-      return <div className="text-center py-8 text-red-500">Error loading listings</div>;
+      return <div className="text-center py-8 text-destructive">Error loading listings</div>;
     }
   };
 
   return (
     <ErrorBoundary>
       <Layout>
-        <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-100">
+        <div className="min-h-screen bg-background">
           <ExploreHeader 
             searchTerm={filters.searchTerm}
             onSearchChange={(value) => updateFilters({ searchTerm: value })}
@@ -333,8 +333,8 @@ const Explore = () => {
           />
           
           <div className="container mx-auto px-4 py-6">
-            {/* Quick Filters with improved styling */}
-            <Card className="mb-6 border-0 shadow-sm bg-white/80 backdrop-blur-sm">
+            {/* Quick Filters */}
+            <Card className="mb-6 border shadow-sm bg-card">
               <CardContent className="p-4">
                 <QuickFiltersBar 
                   quickFilters={['Puppies', 'Verified', 'Nearby', 'Available']}
@@ -351,7 +351,7 @@ const Explore = () => {
                   {sortedListings.length} puppies available
                 </h2>
                 {hasActiveFilters && (
-                  <Badge variant="secondary" className="bg-blue-100 text-blue-700">
+                  <Badge variant="secondary" className="bg-secondary text-secondary-foreground">
                     Filters applied
                   </Badge>
                 )}
@@ -377,7 +377,7 @@ const Explore = () => {
             <div className="mt-6 grid grid-cols-1 lg:grid-cols-4 gap-6">
               <div className="lg:col-span-1">
                 <ErrorBoundary fallback={<div className="text-sm text-muted-foreground">Error loading breeds</div>}>
-                  <Card className="border-0 shadow-sm bg-white/80 backdrop-blur-sm">
+                  <Card className="border shadow-sm bg-card">
                     <CardContent className="p-4">
                       <PopularBreeds 
                         popularBreeds={popularBreeds}

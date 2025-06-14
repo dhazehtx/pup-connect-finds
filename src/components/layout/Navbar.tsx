@@ -41,13 +41,13 @@ const Navbar = () => {
 
   return (
     <>
-      <nav className="bg-white shadow-sm border-b">
+      <nav className="bg-card shadow-sm border-b border-border">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16">
             <div className="flex items-center">
               <Link to="/" className="flex items-center space-x-2">
                 <Heart className="h-8 w-8 text-primary" />
-                <span className="text-xl font-bold text-gray-900">PuppyLove</span>
+                <span className="text-xl font-bold text-foreground">PuppyLove</span>
               </Link>
               
               <NavbarDesktopMenu user={user} onCreatePost={handleCreatePost} />
@@ -68,7 +68,7 @@ const Navbar = () => {
                 <button
                   onClick={toggleMobileMenu}
                   type="button"
-                  className="bg-white inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+                  className="bg-background inline-flex items-center justify-center p-2 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
                   aria-expanded="false"
                 >
                   <span className="sr-only">Open main menu</span>
@@ -86,13 +86,13 @@ const Navbar = () => {
                 <div className="hidden md:ml-6 md:flex md:space-x-4">
                   <Link
                     to="/login"
-                    className="text-gray-500 hover:text-gray-700 px-3 py-2 rounded-md text-sm font-medium"
+                    className="text-muted-foreground hover:text-foreground px-3 py-2 rounded-md text-sm font-medium"
                   >
                     Login
                   </Link>
                   <Link
                     to="/register"
-                    className="text-white bg-primary hover:bg-primary-dark px-4 py-2 rounded-md text-sm font-medium"
+                    className="text-primary-foreground bg-primary hover:bg-primary/90 px-4 py-2 rounded-md text-sm font-medium"
                   >
                     Register
                   </Link>

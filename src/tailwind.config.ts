@@ -20,7 +20,7 @@ export default {
 		},
 		extend: {
 			colors: {
-				// Royal Blue theme colors
+				// Royal Blue theme colors - clean and professional
 				'royal-blue': '#2563eb',
 				'soft-blue': '#dbeafe',
 				'mint-green': '#a8e6cf',
