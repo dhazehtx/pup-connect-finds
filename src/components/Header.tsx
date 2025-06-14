@@ -8,13 +8,14 @@ import { useToast } from '@/hooks/use-toast';
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const { user, signOut } = useAuth();
+  const { user, signOut, isGuest } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
 
   const handleSignOut = async () => {
     try {
       await signOut();
+      localStorage.removeItem('guestMode');
       navigate('/');
       toast({
         title: "Signed out successfully",
@@ -30,6 +31,9 @@ const Header = () => {
   };
 
   const navLinks = [
+    { href: '/home', label: 'Home' },
+    { href: '/messages', label: 'Messages' },
+    { href: '/profile', label: 'Profile' },
     { href: '/monetization', label: 'Premium', icon: Crown },
   ];
 
@@ -38,13 +42,13 @@ const Header = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
-          <Link to="/" className="flex items-center space-x-2">
+          <Link to={user || isGuest ? "/home" : "/"} className="flex items-center space-x-2">
             <Heart className="h-8 w-8 text-blue-600" />
             <span className="text-xl font-bold text-gray-900">MY PUP</span>
           </Link>
 
           {/* Desktop Navigation - Only show for authenticated users */}
-          {user && (
+          {(user || isGuest) && (
             <nav className="hidden md:flex items-center space-x-8">
               {navLinks.map((link) => {
                 const Icon = link.icon;
@@ -54,7 +58,7 @@ const Header = () => {
                     to={link.href}
                     className="flex items-center space-x-1 text-gray-600 hover:text-blue-600 transition-colors"
                   >
-                    <Icon className="h-4 w-4" />
+                    {Icon && <Icon className="h-4 w-4" />}
                     <span>{link.label}</span>
                   </Link>
                 );
@@ -64,10 +68,10 @@ const Header = () => {
 
           {/* User Actions */}
           <div className="flex items-center space-x-4">
-            {user ? (
+            {user || isGuest ? (
               <div className="flex items-center space-x-4">
                 <Button variant="outline" size="sm" onClick={handleSignOut}>
-                  Sign Out
+                  {isGuest ? 'Exit Guest Mode' : 'Sign Out'}
                 </Button>
               </div>
             ) : (
@@ -77,7 +81,7 @@ const Header = () => {
             )}
 
             {/* Mobile menu button - Only show for authenticated users */}
-            {user && (
+            {(user || isGuest) && (
               <button
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
                 className="md:hidden p-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100"
@@ -89,7 +93,7 @@ const Header = () => {
         </div>
 
         {/* Mobile Navigation - Only show for authenticated users */}
-        {isMenuOpen && user && (
+        {isMenuOpen && (user || isGuest) && (
           <div className="md:hidden py-4 border-t">
             <nav className="flex flex-col space-y-2">
               {navLinks.map((link) => {
@@ -101,7 +105,7 @@ const Header = () => {
                     className="flex items-center space-x-2 px-3 py-2 text-gray-600 hover:text-blue-600 hover:bg-gray-50 rounded-md transition-colors"
                     onClick={() => setIsMenuOpen(false)}
                   >
-                    <Icon className="h-4 w-4" />
+                    {Icon && <Icon className="h-4 w-4" />}
                     <span>{link.label}</span>
                   </Link>
                 );

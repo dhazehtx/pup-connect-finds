@@ -1,6 +1,6 @@
+
 import React, { useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import HomeFeed from '@/components/home/HomeFeed';
 import { Link, useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -8,16 +8,23 @@ import { Badge } from '@/components/ui/badge';
 import { Heart, Search, Shield, Users, Star, ArrowRight, UserPlus, LogIn, Eye } from 'lucide-react';
 
 const Home = () => {
-  const { user, loading, continueAsGuest } = useAuth();
+  const { user, loading, continueAsGuest, isGuest } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
     document.title = 'My Pup - Find Your Perfect Puppy Companion';
   }, []);
 
+  useEffect(() => {
+    // Redirect authenticated users or guests to home feed
+    if (user || isGuest) {
+      navigate('/home');
+    }
+  }, [user, isGuest, navigate]);
+
   const handleGuestAccess = () => {
     continueAsGuest();
-    navigate('/explore');
+    navigate('/home');
   };
 
   // Show loading while checking auth state
@@ -32,12 +39,7 @@ const Home = () => {
     );
   }
 
-  // Show feed for authenticated users
-  if (user) {
-    return <HomeFeed />;
-  }
-
-  // Show landing page for unauthenticated users
+  // Show landing page for unauthenticated users only
   const features = [
     {
       icon: Shield,

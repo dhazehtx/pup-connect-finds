@@ -5,6 +5,7 @@ import { Toaster } from '@/components/ui/toaster';
 import Layout from '@/components/Layout';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import Home from '@/pages/Home';
+import HomeFeed from '@/pages/HomeFeed';
 import Explore from '@/pages/Explore';
 import ListingDetail from '@/pages/ListingDetail';
 import CreateListing from '@/pages/CreateListing';
@@ -32,6 +33,11 @@ function App() {
         <Layout>
           <Routes>
             <Route path="/" element={<Home />} />
+            <Route path="/home" element={
+              <ProtectedRoute>
+                <HomeFeed />
+              </ProtectedRoute>
+            } />
             <Route path="/explore" element={<Explore />} />
             <Route path="/listing/:id" element={<ListingDetail />} />
             <Route path="/create-listing" element={
