@@ -13,6 +13,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useDogListings } from '@/hooks/useDogListings';
 import { useMessaging } from '@/hooks/useMessaging';
 import ErrorBoundary from '@/components/ErrorBoundary';
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 
 const Explore = () => {
   const { user } = useAuth();
@@ -322,7 +324,7 @@ const Explore = () => {
   return (
     <ErrorBoundary>
       <Layout>
-        <div className="min-h-screen bg-gray-50">
+        <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
           <ExploreHeader 
             searchTerm={filters.searchTerm}
             onSearchChange={(value) => updateFilters({ searchTerm: value })}
@@ -331,11 +333,43 @@ const Explore = () => {
           />
           
           <div className="container mx-auto px-4 py-6">
-            <QuickFiltersBar 
-              quickFilters={['Puppies', 'Verified', 'Nearby', 'Available']}
-              filters={filters}
-              onQuickFilterClick={handleQuickFilterClick}
-            />
+            {/* Quick Filters with improved styling */}
+            <Card className="mb-6 border-0 shadow-sm bg-white/80 backdrop-blur-sm">
+              <CardContent className="p-4">
+                <QuickFiltersBar 
+                  quickFilters={['Puppies', 'Verified', 'Nearby', 'Available']}
+                  filters={filters}
+                  onQuickFilterClick={handleQuickFilterClick}
+                />
+              </CardContent>
+            </Card>
+
+            {/* Results count and active filters */}
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center space-x-4">
+                <h2 className="text-xl font-semibold text-gray-900">
+                  {sortedListings.length} puppies available
+                </h2>
+                {hasActiveFilters && (
+                  <Badge variant="secondary" className="bg-blue-100 text-blue-700">
+                    Filters applied
+                  </Badge>
+                )}
+              </div>
+              <div className="flex items-center space-x-2">
+                <span className="text-sm text-gray-500">Sort by:</span>
+                <select 
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value)}
+                  className="text-sm border-gray-300 rounded-md"
+                >
+                  <option value="newest">Newest first</option>
+                  <option value="price-low">Price: Low to High</option>
+                  <option value="price-high">Price: High to Low</option>
+                  <option value="distance">Distance</option>
+                </select>
+              </div>
+            </div>
 
             {/* Advanced Search Filters with error boundary */}
             {renderSearchFilters()}
@@ -343,11 +377,15 @@ const Explore = () => {
             <div className="mt-6 grid grid-cols-1 lg:grid-cols-4 gap-6">
               <div className="lg:col-span-1">
                 <ErrorBoundary fallback={<div className="text-sm text-gray-500">Error loading breeds</div>}>
-                  <PopularBreeds 
-                    popularBreeds={popularBreeds}
-                    selectedBreed={filters.breed}
-                    onBreedSelect={(breed) => handleQuickFilterChange('breed', breed)} 
-                  />
+                  <Card className="border-0 shadow-sm bg-white/80 backdrop-blur-sm">
+                    <CardContent className="p-4">
+                      <PopularBreeds 
+                        popularBreeds={popularBreeds}
+                        selectedBreed={filters.breed}
+                        onBreedSelect={(breed) => handleQuickFilterChange('breed', breed)} 
+                      />
+                    </CardContent>
+                  </Card>
                 </ErrorBoundary>
               </div>
 
