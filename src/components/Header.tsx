@@ -49,9 +49,14 @@ const Header = () => {
                 </Button>
               </div>
             ) : (
-              <Link to="/auth">
-                <Button size="sm" className="bg-blue-600 hover:bg-blue-700 text-black">Sign In</Button>
-              </Link>
+              <div className="flex items-center space-x-3">
+                <Link to="/auth">
+                  <Button size="sm" className="bg-blue-600 hover:bg-blue-700 text-white">Sign In</Button>
+                </Link>
+                <Link to="/auth">
+                  <Button size="sm" className="bg-blue-600 hover:bg-blue-700 text-white">Sign Up</Button>
+                </Link>
+              </div>
             )}
 
             {/* Mobile menu button - Only show for authenticated users */}
