@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Heart, Menu, X, User, Search, TrendingUp, PawPrint, BarChart3, Crown } from 'lucide-react';
+import { Heart, Menu, X, User, PawPrint, Crown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
@@ -30,11 +30,8 @@ const Header = () => {
   };
 
   const navLinks = [
-    { href: '/explore', label: 'Explore', icon: Search },
     { href: '/services', label: 'Services', icon: PawPrint },
     { href: '/monetization', label: 'Premium', icon: Crown },
-    { href: '/b2b-dashboard', label: 'B2B Analytics', icon: BarChart3 },
-    { href: '/education', label: 'Education', icon: TrendingUp },
   ];
 
   return (

@@ -100,14 +100,23 @@
     color: #0f172a !important;
   }
 
-  /* Ensure proper text contrast everywhere */
+  /* Ensure proper text contrast everywhere - WCAG 2.1 AA compliance */
   h1, h2, h3, h4, h5, h6, p, span, div, label, button, a {
     color: #0f172a !important;
   }
 
-  /* Navigation specific text */
+  /* Navigation specific text - improved contrast */
   nav, nav *, .nav-text, .header-text {
     color: #0f172a !important;
+  }
+
+  /* Navigation links with proper hover states */
+  nav a {
+    color: #64748b !important; /* Slate-500 for better contrast */
+  }
+
+  nav a:hover {
+    color: #2563eb !important; /* Royal blue on hover */
   }
 
   /* Footer specific styling - WHITE TEXT ON DARK BLUE BACKGROUND */
@@ -128,6 +137,64 @@
   /* Footer links with proper hover states */
   footer a:hover {
     color: #bfdbfe !important; /* Light blue on hover */
+  }
+
+  /* Improved card text contrast */
+  .card, [class*="card"] {
+    background-color: white !important;
+    color: #0f172a !important;
+  }
+
+  .card p, .card span, .card div, .card h1, .card h2, .card h3, .card h4, .card h5, .card h6 {
+    color: #0f172a !important;
+  }
+
+  /* Badge and tag text improvements */
+  .badge, [class*="badge"] {
+    background-color: #dbeafe !important;
+    color: #2563eb !important;
+    border-color: #93c5fd !important;
+  }
+
+  /* Form elements with better contrast */
+  input, textarea, select {
+    border-color: #93c5fd !important;
+    background-color: white !important;
+    color: #0f172a !important;
+  }
+
+  input::placeholder, textarea::placeholder {
+    color: #64748b !important; /* Slate-500 for placeholders */
+  }
+
+  input:focus, textarea:focus, select:focus {
+    border-color: #2563eb !important;
+    ring-color: #2563eb !important;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1) !important;
+  }
+
+  /* Button text improvements */
+  button {
+    color: #0f172a !important;
+  }
+
+  button.bg-blue-600, button[class*="bg-blue"] {
+    color: #ffffff !important;
+  }
+
+  /* Muted text with better contrast */
+  .text-muted-foreground, .text-gray-500, .text-gray-400 {
+    color: #64748b !important; /* Slate-500 for better readability */
+  }
+
+  /* Error and destructive text */
+  .text-destructive, .text-red-500, .text-red-600 {
+    color: #dc2626 !important; /* Red-600 for errors */
+  }
+
+  /* Success text */
+  .text-green-500, .text-green-600 {
+    color: #16a34a !important; /* Green-600 for success */
   }
 
   /* FORCE ROYAL BLUE THEME - Remove all warm colors */
@@ -161,24 +228,5 @@
   .card:hover, [class*="card"]:hover {
     box-shadow: 0 10px 25px rgba(37, 99, 235, 0.1) !important;
     transform: translateY(-2px) !important;
-  }
-
-  /* Filter components and badges */
-  .badge, [class*="badge"] {
-    background-color: #dbeafe !important;
-    color: #2563eb !important;
-    border-color: #93c5fd !important;
-  }
-
-  /* Input and form elements */
-  input, textarea, select {
-    border-color: #93c5fd !important;
-    background-color: white !important;
-  }
-
-  input:focus, textarea:focus, select:focus {
-    border-color: #2563eb !important;
-    ring-color: #2563eb !important;
-    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1) !important;
   }
 }
