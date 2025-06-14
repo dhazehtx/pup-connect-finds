@@ -110,34 +110,60 @@
     color: #0f172a !important;
   }
 
-  /* REMOVE ALL BROWN/TAN/AMBER COLORS - Replace with Royal Blue */
+  /* COMPLETELY REMOVE ALL BROWN/TAN/AMBER/ORANGE COLORS */
   .bg-amber-50, .bg-yellow-50, .bg-orange-50,
   .bg-amber-100, .bg-yellow-100, .bg-orange-100,
   .bg-amber-200, .bg-yellow-200, .bg-orange-200,
   .bg-amber-300, .bg-yellow-300, .bg-orange-300,
   .bg-amber-400, .bg-yellow-400, .bg-orange-400,
-  .bg-amber-500, .bg-yellow-500, .bg-orange-500 {
+  .bg-amber-500, .bg-yellow-500, .bg-orange-500,
+  .bg-amber-600, .bg-yellow-600, .bg-orange-600,
+  .bg-amber-700, .bg-yellow-700, .bg-orange-700,
+  .bg-amber-800, .bg-yellow-800, .bg-orange-800,
+  .bg-amber-900, .bg-yellow-900, .bg-orange-900 {
     background-color: #dbeafe !important; /* Light blue instead */
   }
 
-  .text-amber-600, .text-amber-700, .text-amber-800,
-  .text-yellow-600, .text-yellow-700, .text-yellow-800,
-  .text-orange-600, .text-orange-700, .text-orange-800,
-  .text-amber-500, .text-yellow-500, .text-orange-500 {
+  .text-amber-50, .text-yellow-50, .text-orange-50,
+  .text-amber-100, .text-yellow-100, .text-orange-100,
+  .text-amber-200, .text-yellow-200, .text-orange-200,
+  .text-amber-300, .text-yellow-300, .text-orange-300,
+  .text-amber-400, .text-yellow-400, .text-orange-400,
+  .text-amber-500, .text-yellow-500, .text-orange-500,
+  .text-amber-600, .text-yellow-600, .text-orange-600,
+  .text-amber-700, .text-yellow-700, .text-orange-700,
+  .text-amber-800, .text-yellow-800, .text-orange-800,
+  .text-amber-900, .text-yellow-900, .text-orange-900 {
     color: #2563eb !important; /* Royal blue */
   }
 
-  /* Override any brown backgrounds with blue */
-  div[style*="background-color: #"], 
-  div[class*="bg-amber"], 
-  div[class*="bg-yellow"], 
-  div[class*="bg-orange"],
+  /* Override any brown/tan hex colors with blue equivalents */
+  [style*="background-color: #"],
+  [style*="background: #"],
+  [style*="color: #"] {
+    background-color: #dbeafe !important;
+    color: #2563eb !important;
+  }
+
+  /* Specific brown color overrides */
   [style*="background-color: rgb(194, 154, 108)"],
   [style*="background-color: #c29a6c"],
   [style*="background: rgb(194, 154, 108)"],
-  [style*="background: #c29a6c"] {
-    background-color: #dbeafe !important; /* Light blue */
+  [style*="background: #c29a6c"],
+  [style*="background-color: rgb(180, 131, 70)"],
+  [style*="background-color: #b48346"],
+  [style*="background: rgb(180, 131, 70)"],
+  [style*="background: #b48346"] {
+    background-color: #dbeafe !important;
     background: #dbeafe !important;
+  }
+
+  /* Brown/tan border colors */
+  .border-amber-200, .border-yellow-200, .border-orange-200,
+  .border-amber-300, .border-yellow-300, .border-orange-300,
+  .border-amber-400, .border-yellow-400, .border-orange-400,
+  .border-amber-500, .border-yellow-500, .border-orange-500 {
+    border-color: #bfdbfe !important; /* Light blue border */
   }
 
   /* Force royal blue theme across all elements */
@@ -163,5 +189,18 @@
   
   .border-blue-600 {
     border-color: #2563eb !important;
+  }
+
+  /* Additional overrides for brown/tan that might appear */
+  .bg-stone-50, .bg-stone-100, .bg-stone-200, .bg-stone-300,
+  .bg-neutral-50, .bg-neutral-100, .bg-neutral-200, .bg-neutral-300,
+  .bg-warmGray-50, .bg-warmGray-100, .bg-warmGray-200, .bg-warmGray-300 {
+    background-color: #f8fafc !important; /* Very light slate */
+  }
+
+  .text-stone-600, .text-stone-700, .text-stone-800,
+  .text-neutral-600, .text-neutral-700, .text-neutral-800,
+  .text-warmGray-600, .text-warmGray-700, .text-warmGray-800 {
+    color: #475569 !important; /* Slate text */
   }
 }
