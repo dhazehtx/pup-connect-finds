@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -92,11 +93,11 @@ const Auth = () => {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
         <Card className="max-w-md w-full">
           <CardHeader>
-            <CardTitle className="text-center text-gray-900">Password Reset</CardTitle>
+            <CardTitle className="text-center text-black">Password Reset</CardTitle>
           </CardHeader>
           <CardContent>
             <Alert>
-              <AlertDescription className="text-gray-700">
+              <AlertDescription className="text-black">
                 Your password has been reset successfully. You can now sign in with your new password.
               </AlertDescription>
             </Alert>
@@ -118,25 +119,25 @@ const Auth = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-royal-blue/20 via-royal-blue/30 to-mint-green/20 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-blue-100 flex items-center justify-center p-4">
       <div className="w-full max-w-md mx-auto">
         {/* Logo and Title */}
         <div className="text-center mb-8">
           <div className="w-20 h-20 mx-auto mb-6 bg-white rounded-full flex items-center justify-center shadow-lg">
-            <Heart size={40} className="text-royal-blue" />
+            <Heart size={40} className="text-blue-600" />
           </div>
           
-          <h1 className="text-4xl font-bold text-white mb-2">
+          <h1 className="text-4xl font-bold text-black mb-2">
             MY PUP
           </h1>
           
-          <p className="text-white/90 text-lg">
+          <p className="text-black text-lg">
             {activeTab === 'signup' ? 'Create your account' : 'Welcome back'}
           </p>
         </div>
 
         {/* Main Auth Card */}
-        <Card className="bg-white/95 backdrop-blur-sm border-0 shadow-2xl">
+        <Card className="bg-white shadow-2xl">
           <CardContent className="p-8">
             {/* Tab Toggle */}
             <div className="flex mb-6">
@@ -144,8 +145,8 @@ const Auth = () => {
                 onClick={() => setActiveTab('signin')}
                 className={`flex-1 py-3 px-4 text-center rounded-l-lg font-medium transition-colors ${
                   activeTab === 'signin'
-                    ? 'bg-royal-blue text-white'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    ? 'bg-blue-600 text-black'
+                    : 'bg-gray-100 text-black hover:bg-gray-200'
                 }`}
               >
                 Sign In
@@ -154,8 +155,8 @@ const Auth = () => {
                 onClick={() => setActiveTab('signup')}
                 className={`flex-1 py-3 px-4 text-center rounded-r-lg font-medium transition-colors ${
                   activeTab === 'signup'
-                    ? 'bg-royal-blue text-white'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    ? 'bg-blue-600 text-black'
+                    : 'bg-gray-100 text-black hover:bg-gray-200'
                 }`}
               >
                 Sign Up
@@ -171,7 +172,7 @@ const Auth = () => {
                     placeholder="Full Name"
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
-                    className={`h-12 rounded-lg border-2 border-gray-200 bg-white px-4 text-gray-900 placeholder:text-gray-500 focus:border-royal-blue focus:ring-2 focus:ring-royal-blue/20 ${errors.fullName ? 'border-red-500' : ''}`}
+                    className={`h-12 rounded-lg border-2 border-gray-200 bg-white px-4 text-black placeholder:text-gray-500 focus:border-blue-600 focus:ring-2 focus:ring-blue-600/20 ${errors.fullName ? 'border-red-500' : ''}`}
                     disabled={loading}
                   />
                   {errors.fullName && (
@@ -186,7 +187,7 @@ const Auth = () => {
                   placeholder="Email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className={`h-12 rounded-lg border-2 border-gray-200 bg-white px-4 text-gray-900 placeholder:text-gray-500 focus:border-royal-blue focus:ring-2 focus:ring-royal-blue/20 ${errors.email ? 'border-red-500' : ''}`}
+                  className={`h-12 rounded-lg border-2 border-gray-200 bg-white px-4 text-black placeholder:text-gray-500 focus:border-blue-600 focus:ring-2 focus:ring-blue-600/20 ${errors.email ? 'border-red-500' : ''}`}
                   disabled={loading}
                 />
                 {errors.email && (
@@ -200,7 +201,7 @@ const Auth = () => {
                   placeholder="Password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className={`h-12 rounded-lg border-2 border-gray-200 bg-white px-4 pr-12 text-gray-900 placeholder:text-gray-500 focus:border-royal-blue focus:ring-2 focus:ring-royal-blue/20 ${errors.password ? 'border-red-500' : ''}`}
+                  className={`h-12 rounded-lg border-2 border-gray-200 bg-white px-4 pr-12 text-black placeholder:text-gray-500 focus:border-blue-600 focus:ring-2 focus:ring-blue-600/20 ${errors.password ? 'border-red-500' : ''}`}
                   disabled={loading}
                 />
                 <button
@@ -219,11 +220,11 @@ const Auth = () => {
               <Button
                 type="submit"
                 disabled={loading}
-                className="w-full h-12 bg-mint-green hover:bg-mint-green/90 text-gray-900 font-semibold rounded-lg shadow-lg"
+                className="w-full h-12 bg-green-500 hover:bg-green-600 text-black font-semibold rounded-lg shadow-lg"
               >
                 {loading ? (
                   <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-gray-900 border-t-transparent mr-2" />
+                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-black border-t-transparent mr-2" />
                     {activeTab === 'signup' ? 'Creating Account...' : 'Signing In...'}
                   </>
                 ) : (
@@ -235,7 +236,7 @@ const Auth = () => {
             {/* "Can't sign in?" link for sign in page */}
             {activeTab === 'signin' && (
               <div className="text-center mt-4">
-                <button className="text-gray-600 hover:text-gray-900 underline text-sm">
+                <button className="text-black hover:text-gray-700 underline text-sm">
                   Can't sign in?
                 </button>
               </div>
@@ -250,8 +251,7 @@ const Auth = () => {
                     description: "Google sign-in will be available soon.",
                   });
                 }}
-                variant="outline"
-                className="w-full h-12 bg-white hover:bg-gray-50 text-gray-900 font-medium rounded-lg border-2 border-gray-200"
+                className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-black font-medium rounded-lg"
                 disabled={loading}
               >
                 <Mail size={18} className="mr-3" />
@@ -265,7 +265,7 @@ const Auth = () => {
                     description: "Facebook sign-in will be available soon.",
                   });
                 }}
-                className="w-full h-12 bg-royal-blue hover:bg-royal-blue/90 text-white font-medium rounded-lg"
+                className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-black font-medium rounded-lg"
                 disabled={loading}
               >
                 <User size={18} className="mr-3" />
@@ -275,14 +275,14 @@ const Auth = () => {
           </CardContent>
         </Card>
 
-        {/* Guest Access - Without white background */}
+        {/* Guest Access */}
         <div className="mt-6">
           <div className="relative">
             <div className="absolute inset-0 flex items-center">
-              <span className="w-full border-t border-white/30" />
+              <span className="w-full border-t border-black/30" />
             </div>
             <div className="relative flex justify-center text-sm uppercase">
-              <span className="bg-gradient-to-br from-royal-blue/20 via-royal-blue/30 to-mint-green/20 px-4 text-white/90 font-medium">
+              <span className="bg-gradient-to-br from-blue-50 to-blue-100 px-4 text-black font-medium">
                 Just browsing?
               </span>
             </div>
@@ -290,15 +290,14 @@ const Auth = () => {
           
           <Button 
             onClick={handleGuestAccess}
-            variant="outline"
-            className="w-full mt-4 h-12 bg-transparent hover:bg-white/20 text-white border-2 border-white/40 hover:border-white/60 font-semibold rounded-lg backdrop-blur-sm"
+            className="w-full mt-4 h-12 bg-blue-600 hover:bg-blue-700 text-black font-semibold rounded-lg"
             disabled={loading}
           >
             Continue as Guest
           </Button>
         </div>
         
-        <p className="text-xs text-center text-white/80 mt-6">
+        <p className="text-xs text-center text-black mt-6">
           By continuing, you agree to our Terms of Service and Privacy Policy
         </p>
       </div>
