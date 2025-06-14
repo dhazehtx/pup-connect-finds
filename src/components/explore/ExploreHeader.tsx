@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Search, Filter, Heart } from 'lucide-react';
+import { Search, Filter } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 
@@ -18,14 +18,7 @@ const ExploreHeader = ({
   onToggleFilters 
 }: ExploreHeaderProps) => {
   return (
-    <div className="bg-white border-b border-gray-200 px-4 py-4 sticky top-16 z-10 shadow-sm">
-      <div className="flex items-center space-x-2 mb-4">
-        <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-          <Heart className="w-5 h-5 text-white" />
-        </div>
-        <span className="text-xl font-bold text-gray-900">MY PUP</span>
-      </div>
-      
+    <div className="bg-white border-b border-gray-200 px-4 py-4">
       {/* Main search bar */}
       <div className="relative">
         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
