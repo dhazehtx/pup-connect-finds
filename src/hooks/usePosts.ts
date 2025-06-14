@@ -31,7 +31,7 @@ export const usePosts = (userId?: string, listingId?: string) => {
         .from('posts')
         .select(`
           *,
-          profiles:user_id (
+          profiles!posts_user_id_profiles_id_fkey (
             full_name,
             username,
             avatar_url
