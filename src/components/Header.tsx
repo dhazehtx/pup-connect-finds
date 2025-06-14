@@ -50,7 +50,7 @@ const Header = () => {
               </div>
             ) : (
               <Link to="/auth">
-                <Button size="sm">Sign In</Button>
+                <Button size="sm" className="bg-blue-600 hover:bg-blue-700 text-black">Sign In</Button>
               </Link>
             )}
 
