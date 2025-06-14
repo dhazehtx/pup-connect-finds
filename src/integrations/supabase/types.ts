@@ -1061,6 +1061,13 @@ export type Database = {
             referencedRelation: "dog_listings"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "posts_user_id_profiles_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
         ]
       }
       professional_account_requests: {
