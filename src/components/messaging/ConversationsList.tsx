@@ -1,132 +1,100 @@
 
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
-import { Search, MessageCircle } from 'lucide-react';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { formatDistanceToNow } from 'date-fns';
+import { MessageCircle, User } from 'lucide-react';
 
 interface Conversation {
   id: string;
   buyer_id: string;
   seller_id: string;
-  listing_id?: string;
-  last_message_at: string;
-  created_at: string;
-  updated_at: string;
-  other_user?: {
-    id: string;
-    full_name: string;
-    avatar_url?: string;
-  };
+  last_message_at?: string;
+  buyer_profile?: any;
+  seller_profile?: any;
   listing?: {
-    id: string;
-    title: string;
     dog_name: string;
-    breed?: string;
-    image_url?: string;
+    breed: string;
   };
-  unread_count?: number;
 }
 
 interface ConversationsListProps {
   conversations: Conversation[];
-  onSelectConversation: (conversationId: string, otherUser: any) => void;
   selectedConversationId?: string;
+  onConversationSelect?: (conversationId: string) => void;
+  getOtherUser: (conversation: Conversation) => any;
 }
 
-const ConversationsList = ({ conversations, onSelectConversation, selectedConversationId }: ConversationsListProps) => {
-  const formatLastMessageTime = (timestamp: string) => {
-    const date = new Date(timestamp);
-    const now = new Date();
-    const diffInHours = (now.getTime() - date.getTime()) / (1000 * 60 * 60);
-
-    if (diffInHours < 24) {
-      return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    } else if (diffInHours < 168) { // 7 days
-      return date.toLocaleDateString([], { weekday: 'short' });
-    } else {
-      return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
-    }
-  };
-
+const ConversationsList = ({ 
+  conversations, 
+  selectedConversationId, 
+  onConversationSelect, 
+  getOtherUser 
+}: ConversationsListProps) => {
   return (
-    <Card className="h-full">
+    <Card className="lg:col-span-1">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <MessageCircle className="w-5 h-5" />
-          Messages
+          Conversations
         </CardTitle>
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-          <Input
-            placeholder="Search conversations..."
-            className="pl-10"
-          />
-        </div>
       </CardHeader>
-
       <CardContent className="p-0">
-        <div className="space-y-1">
+        <ScrollArea className="h-[500px]">
           {conversations.length === 0 ? (
-            <div className="text-center py-8 text-gray-500">
-              <MessageCircle className="w-12 h-12 mx-auto mb-3 text-gray-300" />
-              <p>No conversations yet</p>
-              <p className="text-sm">Start browsing listings to connect with sellers</p>
+            <div className="p-4 text-center text-gray-500">
+              No conversations yet
             </div>
           ) : (
-            conversations.map((conversation) => {
-              const isSelected = conversation.id === selectedConversationId;
-
-              return (
-                <div
-                  key={conversation.id}
-                  onClick={() => onSelectConversation(conversation.id, conversation.other_user)}
-                  className={`flex items-center p-4 cursor-pointer transition-colors hover:bg-gray-50 border-l-4 ${
-                    isSelected 
-                      ? 'bg-blue-50 border-l-blue-500' 
-                      : 'border-l-transparent hover:border-l-gray-200'
-                  }`}
-                >
-                  <Avatar className="w-12 h-12">
-                    <AvatarImage src={conversation.other_user?.avatar_url} />
-                    <AvatarFallback>
-                      {conversation.other_user?.full_name?.charAt(0).toUpperCase() || 'U'}
-                    </AvatarFallback>
-                  </Avatar>
-
-                  <div className="ml-3 flex-1 min-w-0">
-                    <div className="flex items-center justify-between">
-                      <h4 className="font-medium text-sm truncate">
-                        {conversation.other_user?.full_name || 'Unknown User'}
-                      </h4>
-                      <span className="text-xs text-gray-500 ml-2">
-                        {formatLastMessageTime(conversation.last_message_at)}
-                      </span>
-                    </div>
-
-                    {conversation.listing && (
-                      <p className="text-xs text-gray-600 truncate mt-1">
-                        About: {conversation.listing.title}
-                      </p>
-                    )}
-
-                    <div className="flex items-center justify-between mt-1">
-                      <p className="text-sm text-gray-500 truncate">
-                        Tap to continue conversation...
-                      </p>
-                      {conversation.unread_count && conversation.unread_count > 0 && (
-                        <Badge variant="secondary" className="text-xs">
-                          {conversation.unread_count}
-                        </Badge>
-                      )}
+            <div className="space-y-1">
+              {conversations.map((conversation) => {
+                const otherUser = getOtherUser(conversation);
+                const isSelected = conversation.id === selectedConversationId;
+                
+                return (
+                  <div
+                    key={conversation.id}
+                    className={`p-4 cursor-pointer border-b hover:bg-gray-50 ${
+                      isSelected ? 'bg-blue-50 border-l-4 border-l-blue-500' : ''
+                    }`}
+                    onClick={() => onConversationSelect?.(conversation.id)}
+                  >
+                    <div className="flex items-start gap-3">
+                      <div className="w-10 h-10 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full flex items-center justify-center text-white font-bold">
+                        {otherUser?.avatar_url ? (
+                          <img 
+                            src={otherUser.avatar_url} 
+                            alt="Avatar" 
+                            className="w-full h-full rounded-full object-cover"
+                          />
+                        ) : (
+                          <User className="w-5 h-5" />
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between">
+                          <p className="font-medium text-sm truncate">
+                            {otherUser?.full_name || otherUser?.username || 'Unknown User'}
+                          </p>
+                          {conversation.last_message_at && (
+                            <span className="text-xs text-gray-500">
+                              {formatDistanceToNow(new Date(conversation.last_message_at), { addSuffix: true })}
+                            </span>
+                          )}
+                        </div>
+                        {conversation.listing && (
+                          <p className="text-xs text-gray-600 truncate">
+                            {conversation.listing.dog_name} - {conversation.listing.breed}
+                          </p>
+                        )}
+                      </div>
                     </div>
                   </div>
-                </div>
-              );
-            })
+                );
+              })}
+            </div>
           )}
-        </div>
+        </ScrollArea>
       </CardContent>
     </Card>
   );
