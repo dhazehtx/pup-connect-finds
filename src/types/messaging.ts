@@ -71,8 +71,8 @@ export interface Conversation {
   last_message_at: string | null;
   listing?: {
     dog_name: string;
-    breed: string;
-    image_url: string | null;
+    breed?: string; // Made optional to match actual usage
+    image_url?: string | null;
   };
   other_user?: {
     id: string;

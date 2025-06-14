@@ -1,6 +1,9 @@
+
 import React, { useState, useEffect } from 'react';
 import { useRealTimeMessages } from '@/hooks/useRealTimeMessages';
 import { useAuth } from '@/contexts/AuthContext';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { MessageCircle } from 'lucide-react';
 import ConversationsList from './ConversationsList';
 import MessagesArea from './MessagesArea';
 

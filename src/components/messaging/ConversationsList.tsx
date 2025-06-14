@@ -4,19 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { formatDistanceToNow } from 'date-fns';
 import { MessageCircle, User } from 'lucide-react';
-
-interface Conversation {
-  id: string;
-  buyer_id: string;
-  seller_id: string;
-  last_message_at?: string;
-  buyer_profile?: any;
-  seller_profile?: any;
-  listing?: {
-    dog_name: string;
-    breed: string;
-  };
-}
+import { Conversation } from '@/types/messaging';
 
 interface ConversationsListProps {
   conversations: Conversation[];
@@ -84,7 +72,7 @@ const ConversationsList = ({
                         </div>
                         {conversation.listing && (
                           <p className="text-xs text-gray-600 truncate">
-                            {conversation.listing.dog_name} - {conversation.listing.breed}
+                            {conversation.listing.dog_name}{conversation.listing.breed ? ` - ${conversation.listing.breed}` : ''}
                           </p>
                         )}
                       </div>
