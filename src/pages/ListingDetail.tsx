@@ -1,13 +1,15 @@
+
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Heart, MessageCircle, MapPin, Calendar, Star, ArrowLeft, Phone, Mail } from 'lucide-react';
+import { Heart, MessageCircle, MapPin, Calendar, Star, ArrowLeft, Phone } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import PaymentButton from '@/components/payments/PaymentButton';
+import ReviewForm from '@/components/reviews/ReviewForm';
 
 interface Listing {
   id: string;
@@ -20,6 +22,7 @@ interface Listing {
   image_url?: string;
   status: string;
   created_at: string;
+  user_id: string;
   profiles?: {
     full_name: string;
     username: string;
@@ -36,10 +39,12 @@ const ListingDetail = () => {
   const [listing, setListing] = useState<Listing | null>(null);
   const [loading, setLoading] = useState(true);
   const [isFavorited, setIsFavorited] = useState(false);
+  const [reviews, setReviews] = useState<any[]>([]);
 
   useEffect(() => {
     if (id) {
       fetchListing();
+      fetchReviews();
       checkIfFavorited();
     }
   }, [id, user]);
@@ -74,6 +79,26 @@ const ListingDetail = () => {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchReviews = async () => {
+    try {
+      const { data } = await supabase
+        .from('reviews')
+        .select(`
+          *,
+          profiles!reviews_reviewer_id_fkey (
+            full_name,
+            username
+          )
+        `)
+        .eq('listing_id', id)
+        .order('created_at', { ascending: false });
+
+      setReviews(data || []);
+    } catch (error) {
+      console.error('Error fetching reviews:', error);
     }
   };
 
@@ -172,6 +197,8 @@ const ListingDetail = () => {
       </div>
     );
   }
+
+  const isOwner = user?.id === listing.user_id;
 
   return (
     <div className="min-h-screen bg-white">
@@ -290,41 +317,108 @@ const ListingDetail = () => {
             </Card>
 
             {/* Action Buttons */}
-            <div className="space-y-3">
-              {user ? (
-                <>
-                  <div className="grid grid-cols-2 gap-3">
-                    <Button variant="outline" className="w-full">
-                      <MessageCircle className="h-4 w-4 mr-2" />
-                      Message
-                    </Button>
-                    <Button variant="outline" className="w-full">
-                      <Phone className="h-4 w-4 mr-2" />
-                      Call
-                    </Button>
+            {!isOwner && (
+              <div className="space-y-3">
+                {user ? (
+                  <>
+                    <div className="grid grid-cols-2 gap-3">
+                      <Button variant="outline" className="w-full">
+                        <MessageCircle className="h-4 w-4 mr-2" />
+                        Message
+                      </Button>
+                      <Button variant="outline" className="w-full">
+                        <Phone className="h-4 w-4 mr-2" />
+                        Call
+                      </Button>
+                    </div>
+                    
+                    <PaymentButton
+                      amount={listing.price}
+                      description={`${listing.dog_name} - ${listing.breed}`}
+                      listingId={listing.id}
+                      onSuccess={handlePaymentSuccess}
+                      className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                    />
+                  </>
+                ) : (
+                  <div className="space-y-3">
+                    <Link to="/auth">
+                      <Button className="w-full bg-blue-600 hover:bg-blue-700">
+                        Sign In to Contact Seller
+                      </Button>
+                    </Link>
+                    <p className="text-sm text-gray-500 text-center">
+                      Create an account to message sellers and purchase puppies
+                    </p>
                   </div>
-                  
-                  <PaymentButton
-                    amount={listing.price}
-                    description={`${listing.dog_name} - ${listing.breed}`}
-                    onSuccess={handlePaymentSuccess}
-                    className="w-full bg-blue-600 hover:bg-blue-700 text-white"
-                  />
-                </>
-              ) : (
-                <div className="space-y-3">
-                  <Link to="/auth">
-                    <Button className="w-full bg-blue-600 hover:bg-blue-700">
-                      Sign In to Contact Seller
-                    </Button>
-                  </Link>
-                  <p className="text-sm text-gray-500 text-center">
-                    Create an account to message sellers and purchase puppies
-                  </p>
-                </div>
-              )}
-            </div>
+                )}
+              </div>
+            )}
           </div>
+        </div>
+
+        {/* Reviews Section */}
+        <div className="mt-12 space-y-6">
+          <h2 className="text-2xl font-bold text-gray-900">Reviews</h2>
+          
+          {/* Review Form - Only show for authenticated users who don't own the listing */}
+          {user && !isOwner && (
+            <ReviewForm 
+              listingId={listing.id} 
+              sellerId={listing.user_id}
+              onReviewSubmitted={fetchReviews}
+            />
+          )}
+
+          {/* Reviews Display */}
+          {reviews.length > 0 ? (
+            <div className="space-y-4">
+              {reviews.map((review) => (
+                <Card key={review.id} className="border-blue-200 shadow-sm">
+                  <CardContent className="p-4">
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                          <span className="text-blue-600 text-sm font-medium">
+                            {review.profiles?.full_name?.charAt(0) || review.profiles?.username?.charAt(0) || 'U'}
+                          </span>
+                        </div>
+                        <div>
+                          <p className="font-medium text-gray-900">
+                            {review.profiles?.full_name || review.profiles?.username || 'Anonymous'}
+                          </p>
+                          <div className="flex items-center gap-1">
+                            {[1, 2, 3, 4, 5].map((star) => (
+                              <Star
+                                key={star}
+                                className={`w-4 h-4 ${
+                                  star <= review.rating
+                                    ? 'fill-yellow-400 text-yellow-400'
+                                    : 'text-gray-300'
+                                }`}
+                              />
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                      <span className="text-sm text-gray-500">
+                        {new Date(review.created_at).toLocaleDateString()}
+                      </span>
+                    </div>
+                    {review.comment && (
+                      <p className="text-gray-600">{review.comment}</p>
+                    )}
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          ) : (
+            <Card className="border-blue-200 shadow-sm">
+              <CardContent className="p-8 text-center">
+                <p className="text-gray-600">No reviews yet. Be the first to leave a review!</p>
+              </CardContent>
+            </Card>
+          )}
         </div>
       </div>
     </div>

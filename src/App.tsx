@@ -9,7 +9,6 @@ import ListingDetail from '@/pages/ListingDetail';
 import CreateListing from '@/pages/CreateListing';
 import Profile from '@/pages/Profile';
 import Messages from '@/pages/Messages';
-import Listing from '@/pages/Listing';
 import Auth from '@/pages/Auth';
 import VerifyEmail from '@/pages/VerifyEmail';
 import Education from '@/pages/Education';
@@ -21,6 +20,7 @@ import HelpCenter from '@/pages/HelpCenter';
 import TrustSafety from '@/pages/TrustSafety';
 import Contact from '@/pages/Contact';
 import B2BDashboard from '@/pages/B2BDashboard';
+import AdminDashboard from '@/pages/AdminDashboard';
 import Terms from '@/pages/Terms';
 import PrivacyPolicy from '@/pages/PrivacyPolicy';
 
@@ -47,6 +47,7 @@ function App() {
             <Route path="/trust-safety" element={<TrustSafety />} />
             <Route path="/contact" element={<Contact />} />
             <Route path="/b2b-dashboard" element={<B2BDashboard />} />
+            <Route path="/admin" element={<AdminDashboard />} />
             <Route path="/terms" element={<Terms />} />
             <Route path="/privacy-policy" element={<PrivacyPolicy />} />
           </Routes>
