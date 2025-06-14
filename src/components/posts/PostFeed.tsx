@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -42,7 +41,7 @@ const PostFeed = ({ userId, listingId, refreshTrigger }: PostFeedProps) => {
         .from('posts')
         .select(`
           *,
-          profiles!posts_user_id_fkey (
+          profiles:user_id (
             full_name,
             username,
             avatar_url
