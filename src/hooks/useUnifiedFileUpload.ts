@@ -51,15 +51,15 @@ export const useUnifiedFileUpload = (options: FileUploadOptions) => {
 
       const { data, error } = await supabase.storage
         .from(options.bucket)
-        .upload(filePath, file, {
-          onUploadProgress: (progress) => {
-            const percentage = (progress.loaded / progress.total) * 100;
-            setProgress(percentage);
-            options.onProgress?.(percentage);
-          }
-        });
+        .upload(filePath, file);
 
       if (error) throw error;
+
+      // Simulate progress updates for compatibility
+      setProgress(50);
+      await new Promise(resolve => setTimeout(resolve, 100));
+      setProgress(100);
+      options.onProgress?.(100);
 
       const { data: { publicUrl } } = supabase.storage
         .from(options.bucket)
@@ -89,10 +89,19 @@ export const useUnifiedFileUpload = (options: FileUploadOptions) => {
       .map(result => result.value);
   };
 
+  // Backward compatibility methods
+  const uploadImage = uploadFile;
+  const uploadAudio = uploadFile;
+  const uploadProgress = progress;
+
   return {
     uploadFile,
     uploadMultipleFiles,
     uploading,
-    progress
+    progress,
+    // Backward compatibility exports
+    uploadImage,
+    uploadAudio,
+    uploadProgress
   };
 };

@@ -31,17 +31,22 @@ export const generateImageThumbnail = (file: File): Promise<string> => {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = (e) => {
-      const img = new Image();
+      const img = document.createElement('img');
       img.onload = () => {
         const canvas = document.createElement('canvas');
         const ctx = canvas.getContext('2d');
+        
+        if (!ctx) {
+          reject(new Error('Canvas context not available'));
+          return;
+        }
         
         const maxSize = 150;
         const ratio = Math.min(maxSize / img.width, maxSize / img.height);
         canvas.width = img.width * ratio;
         canvas.height = img.height * ratio;
         
-        ctx?.drawImage(img, 0, 0, canvas.width, canvas.height);
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
         resolve(canvas.toDataURL('image/jpeg', 0.8));
       };
       img.onerror = reject;
