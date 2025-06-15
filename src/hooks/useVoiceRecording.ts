@@ -1,80 +1,113 @@
 
 import { useState, useRef, useCallback } from 'react';
+import { useToast } from '@/hooks/use-toast';
 
-export const useVoiceRecording = () => {
+interface VoiceRecordingOptions {
+  onRecordingComplete?: (audioBlob: Blob, duration: number) => void;
+  maxDuration?: number; // in seconds
+}
+
+export const useVoiceRecording = (options: VoiceRecordingOptions = {}) => {
   const [isRecording, setIsRecording] = useState(false);
-  const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
   const [duration, setDuration] = useState(0);
+  const [audioUrl, setAudioUrl] = useState<string | null>(null);
+  
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
-
-  const formatDuration = useCallback((seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = Math.floor(seconds % 60);
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
-  }, []);
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const startTimeRef = useRef<number>(0);
+  
+  const { toast } = useToast();
 
   const startRecording = useCallback(async () => {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const mediaRecorder = new MediaRecorder(stream);
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: true,
+          sampleRate: 44100
+        }
+      });
+
+      const mediaRecorder = new MediaRecorder(stream, {
+        mimeType: 'audio/webm;codecs=opus'
+      });
+      
       mediaRecorderRef.current = mediaRecorder;
       chunksRef.current = [];
+      startTimeRef.current = Date.now();
 
       mediaRecorder.ondataavailable = (event) => {
-        chunksRef.current.push(event.data);
+        if (event.data.size > 0) {
+          chunksRef.current.push(event.data);
+        }
       };
 
       mediaRecorder.onstop = () => {
-        const blob = new Blob(chunksRef.current, { type: 'audio/webm' });
-        setAudioBlob(blob);
+        const audioBlob = new Blob(chunksRef.current, { type: 'audio/webm' });
+        const url = URL.createObjectURL(audioBlob);
+        const recordingDuration = Math.round((Date.now() - startTimeRef.current) / 1000);
+        
+        setAudioUrl(url);
+        setDuration(recordingDuration);
+        options.onRecordingComplete?.(audioBlob, recordingDuration);
+        
+        // Stop all tracks
         stream.getTracks().forEach(track => track.stop());
       };
 
-      mediaRecorder.start();
+      mediaRecorder.start(1000); // Collect data every second
       setIsRecording(true);
       setDuration(0);
 
-      timerRef.current = setInterval(() => {
-        setDuration(prev => prev + 1);
+      // Update duration every second
+      intervalRef.current = setInterval(() => {
+        const elapsed = Math.round((Date.now() - startTimeRef.current) / 1000);
+        setDuration(elapsed);
+        
+        // Stop if max duration reached
+        if (options.maxDuration && elapsed >= options.maxDuration) {
+          stopRecording();
+        }
       }, 1000);
+
     } catch (error) {
       console.error('Failed to start recording:', error);
+      toast({
+        title: "Recording failed",
+        description: "Could not access microphone. Please check permissions.",
+        variant: "destructive"
+      });
     }
-  }, []);
+  }, [options, toast]);
 
   const stopRecording = useCallback(() => {
     if (mediaRecorderRef.current && isRecording) {
       mediaRecorderRef.current.stop();
       setIsRecording(false);
-      if (timerRef.current) {
-        clearInterval(timerRef.current);
-        timerRef.current = null;
+      
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
       }
     }
   }, [isRecording]);
 
-  const cancelRecording = useCallback(() => {
-    if (mediaRecorderRef.current && isRecording) {
-      mediaRecorderRef.current.stop();
-      setIsRecording(false);
-      setAudioBlob(null);
-      setDuration(0);
-      if (timerRef.current) {
-        clearInterval(timerRef.current);
-        timerRef.current = null;
-      }
+  const clearRecording = useCallback(() => {
+    if (audioUrl) {
+      URL.revokeObjectURL(audioUrl);
+      setAudioUrl(null);
     }
-  }, [isRecording]);
+    setDuration(0);
+    chunksRef.current = [];
+  }, [audioUrl]);
 
   return {
     isRecording,
-    audioBlob,
     duration,
-    formatDuration,
+    audioUrl,
     startRecording,
     stopRecording,
-    cancelRecording
+    clearRecording
   };
 };

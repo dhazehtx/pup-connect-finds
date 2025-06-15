@@ -1,182 +1,98 @@
 
 import { useState } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { compressFile } from '@/utils/fileCompression';
 
-export interface UnifiedFileUploadOptions {
+interface FileUploadOptions {
   bucket: string;
   folder?: string;
-  maxSize?: number; // in bytes
+  maxSize?: number;
   allowedTypes?: string[];
-  compress?: boolean;
+  onProgress?: (progress: number) => void;
 }
 
-// Export for backward compatibility
-export type FileUploadOptions = UnifiedFileUploadOptions;
-
-export const useUnifiedFileUpload = (options: UnifiedFileUploadOptions) => {
+export const useUnifiedFileUpload = (options: FileUploadOptions) => {
   const [uploading, setUploading] = useState(false);
   const [progress, setProgress] = useState(0);
-  const [uploadProgress, setUploadProgress] = useState<Record<string, number>>({});
   const { toast } = useToast();
 
-  const {
-    bucket,
-    folder = 'uploads',
-    maxSize = 10 * 1024 * 1024, // 10MB default
-    allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'],
-    compress = true
-  } = options;
-
-  const validateFile = (file: File): { valid: boolean; error?: string } => {
-    // Check file type
-    if (!allowedTypes.includes(file.type)) {
-      return {
-        valid: false,
-        error: `Invalid file type. Allowed types: ${allowedTypes.join(', ')}`
-      };
+  const validateFile = (file: File): boolean => {
+    if (options.maxSize && file.size > options.maxSize) {
+      toast({
+        title: "File too large",
+        description: `File size must be less than ${Math.round(options.maxSize / 1024 / 1024)}MB`,
+        variant: "destructive"
+      });
+      return false;
     }
 
-    // Check file size
-    if (file.size > maxSize) {
-      const sizeMB = Math.round(maxSize / (1024 * 1024));
-      return {
-        valid: false,
-        error: `File must be smaller than ${sizeMB}MB`
-      };
+    if (options.allowedTypes && !options.allowedTypes.some(type => file.type.startsWith(type.replace('*', '')))) {
+      toast({
+        title: "Invalid file type",
+        description: "This file type is not supported",
+        variant: "destructive"
+      });
+      return false;
     }
 
-    return { valid: true };
+    return true;
   };
 
   const uploadFile = async (file: File): Promise<string | null> => {
-    const validation = validateFile(file);
-    if (!validation.valid) {
-      toast({
-        title: "Upload Error",
-        description: validation.error,
-        variant: "destructive",
-      });
-      return null;
-    }
+    if (!validateFile(file)) return null;
+
+    setUploading(true);
+    setProgress(0);
 
     try {
-      setUploading(true);
-      setProgress(0);
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${crypto.randomUUID()}.${fileExt}`;
+      const filePath = options.folder ? `${options.folder}/${fileName}` : fileName;
 
-      // Compress file if needed and it's an image
-      let processedFile = file;
-      if (compress && file.type.startsWith('image/')) {
-        processedFile = await compressFile(file, {
-          maxSize: maxSize / (1024 * 1024), // Convert to MB
-          quality: 0.8
-        });
-      }
-
-      // For now, create object URL for immediate use
-      // In production, this would upload to Supabase Storage
-      const fileUrl = URL.createObjectURL(processedFile);
-      
-      // Simulate upload progress
-      const progressInterval = setInterval(() => {
-        setProgress(prev => {
-          if (prev >= 90) {
-            clearInterval(progressInterval);
-            setProgress(100);
-            
-            setTimeout(() => {
-              setUploading(false);
-              toast({
-                title: "Upload successful! 📁",
-                description: "Your file has been uploaded successfully",
-              });
-            }, 300);
-            
-            return 100;
+      const { data, error } = await supabase.storage
+        .from(options.bucket)
+        .upload(filePath, file, {
+          onUploadProgress: (progress) => {
+            const percentage = (progress.loaded / progress.total) * 100;
+            setProgress(percentage);
+            options.onProgress?.(percentage);
           }
-          return prev + 20;
         });
-      }, 200);
 
-      return fileUrl;
+      if (error) throw error;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from(options.bucket)
+        .getPublicUrl(data.path);
+
+      return publicUrl;
     } catch (error) {
-      console.error('Upload error:', error);
-      setUploading(false);
+      console.error('Upload failed:', error);
       toast({
-        title: "Upload Failed",
-        description: "Failed to upload your file. Please try again.",
-        variant: "destructive",
+        title: "Upload failed",
+        description: "Failed to upload file. Please try again.",
+        variant: "destructive"
       });
       return null;
-    }
-  };
-
-  const uploadImage = async (file: File): Promise<string | null> => {
-    return uploadFile(file);
-  };
-
-  const uploadVoiceMessage = async (audioBlob: Blob, duration: number): Promise<string | null> => {
-    try {
-      setUploading(true);
-      setProgress(0);
-
-      // Create object URL for voice message
-      const audioUrl = URL.createObjectURL(audioBlob);
-      
-      // Simulate upload progress
-      const progressInterval = setInterval(() => {
-        setProgress(prev => {
-          if (prev >= 90) {
-            clearInterval(progressInterval);
-            setProgress(100);
-            
-            setTimeout(() => {
-              setUploading(false);
-              toast({
-                title: "Voice message sent! 🎤",
-                description: "Your voice message has been uploaded successfully",
-              });
-            }, 300);
-            
-            return 100;
-          }
-          return prev + 30;
-        });
-      }, 150);
-
-      return audioUrl;
-    } catch (error) {
-      console.error('Voice upload error:', error);
+    } finally {
       setUploading(false);
-      toast({
-        title: "Upload Failed",
-        description: "Failed to upload your voice message. Please try again.",
-        variant: "destructive",
-      });
-      return null;
+      setProgress(0);
     }
   };
 
   const uploadMultipleFiles = async (files: File[]): Promise<string[]> => {
-    const uploadPromises = files.map(file => uploadFile(file));
-    const results = await Promise.all(uploadPromises);
-    return results.filter(url => url !== null) as string[];
-  };
-
-  const uploadAudio = async (audioBlob: Blob): Promise<string | null> => {
-    return uploadVoiceMessage(audioBlob, 0);
+    const results = await Promise.allSettled(files.map(uploadFile));
+    return results
+      .filter((result): result is PromiseFulfilledResult<string> => 
+        result.status === 'fulfilled' && result.value !== null
+      )
+      .map(result => result.value);
   };
 
   return {
-    uploadImage,
     uploadFile,
-    uploadVoiceMessage,
     uploadMultipleFiles,
-    uploadAudio,
     uploading,
-    isUploading: uploading, // Alias for backward compatibility
-    progress,
-    uploadProgress,
-    validateFile
+    progress
   };
 };
