@@ -5,7 +5,7 @@ export interface Message {
   sender_id: string;
   content: string;
   created_at: string;
-  message_type: 'text' | 'image' | 'file' | 'voice';
+  message_type: 'text' | 'image' | 'file' | 'voice' | 'video';
   file_url?: string;
   image_url?: string;
   voice_url?: string;

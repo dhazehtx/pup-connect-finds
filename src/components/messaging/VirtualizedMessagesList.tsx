@@ -1,4 +1,3 @@
-
 import React, { useRef, useEffect, useMemo } from 'react';
 import { FixedSizeList as List } from 'react-window';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
@@ -101,14 +100,13 @@ const VirtualizedMessagesList = ({
     currentUserAvatar
   }), [messages, currentUserId, otherUserAvatar, currentUserAvatar]);
 
-  const getItemSize = () => 80; // Base height, can be made dynamic based on content
-
   return (
     <List
       ref={listRef}
       height={height}
+      width="100%"
       itemCount={messages.length}
-      itemSize={getItemSize}
+      itemSize={80}
       itemData={itemData}
       overscanCount={5}
     >

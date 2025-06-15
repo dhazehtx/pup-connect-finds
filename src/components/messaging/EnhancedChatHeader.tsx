@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -7,6 +6,7 @@ import { ArrowLeft, MoreVertical, Phone, Video, Search } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import VideoCallDialog from './VideoCallDialog';
 import ConnectionStatus from './ConnectionStatus';
+import { useConnectionStatus } from '@/hooks/useConnectionStatus';
 
 interface EnhancedChatHeaderProps {
   otherUser: {
@@ -33,6 +33,7 @@ const EnhancedChatHeader = ({
   onArchive,
   onBlock
 }: EnhancedChatHeaderProps) => {
+  const { isOnline: connectionStatus } = useConnectionStatus();
   const displayName = otherUser.full_name || otherUser.username || 'Unknown User';
   const initials = displayName.charAt(0).toUpperCase();
 
@@ -68,7 +69,7 @@ const EnhancedChatHeader = ({
       </div>
 
       <div className="flex items-center gap-2">
-        <ConnectionStatus />
+        <ConnectionStatus isConnected={connectionStatus} />
         
         <Button variant="ghost" size="sm">
           <Phone size={16} />

@@ -1,4 +1,3 @@
-
 import React, { useMemo, useCallback, useEffect, useState } from 'react';
 import { FixedSizeList as List } from 'react-window';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
@@ -163,31 +162,16 @@ const OptimizedVirtualizedMessageList = ({
     }
   }, [hasMore, onLoadMore]);
 
-  // Calculate dynamic item size based on content
-  const getItemSize = useCallback((index: number) => {
-    const message = messages[index];
-    let baseHeight = 80;
-    
-    if (message.message_type === 'image') {
-      baseHeight += 120; // Additional height for images
-    }
-    
-    if (message.content && message.content.length > 100) {
-      baseHeight += Math.ceil(message.content.length / 50) * 20;
-    }
-    
-    return baseHeight;
-  }, [messages]);
-
   return (
     <div className="relative">
       <List
         height={height}
+        width="100%"
         itemCount={messages.length}
         itemSize={80}
         itemData={itemData}
         onScroll={handleScroll}
-        overscanCount={5} // Render 5 extra items for smoother scrolling
+        overscanCount={5}
       >
         {MessageItem}
       </List>

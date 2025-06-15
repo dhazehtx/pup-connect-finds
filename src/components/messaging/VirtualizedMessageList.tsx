@@ -88,6 +88,7 @@ const VirtualizedMessageList = ({ messages, currentUserId, height }: Virtualized
   return (
     <List
       height={height}
+      width="100%"
       itemCount={messages.length}
       itemSize={80}
       itemData={itemData}
