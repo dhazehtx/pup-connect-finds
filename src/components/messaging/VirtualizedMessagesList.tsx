@@ -1,146 +1,107 @@
 
-import React, { useEffect, useRef } from 'react';
-import { VariableSizeList as List } from 'react-window';
-import MessageItem from './MessageItem';
+import React, { useRef, useEffect, useMemo } from 'react';
+import { FixedSizeList as List } from 'react-window';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import { formatDistanceToNow } from 'date-fns';
+import { User, Check, CheckCheck } from 'lucide-react';
+import { Message } from '@/types/chat';
 
 interface VirtualizedMessagesListProps {
-  messages: any[];
-  user: any;
-  reactions: Record<string, any[]>;
-  getThreadCount: (messageId: string) => number;
-  onReactionButtonClick: (event: React.MouseEvent, messageId: string) => void;
-  onReplyToMessage: (message: any) => void;
-  onReactionToggle: (messageId: string, emoji: string) => void;
-  onEditMessage?: (messageId: string, newContent: string) => void;
-  onDeleteMessage?: (messageId: string) => void;
+  messages: Message[];
+  currentUserId?: string;
   height: number;
+  otherUserAvatar?: string;
+  currentUserAvatar?: string;
 }
 
-const VirtualizedMessagesList = ({
-  messages,
-  user,
-  reactions,
-  getThreadCount,
-  onReactionButtonClick,
-  onReplyToMessage,
-  onReactionToggle,
-  onEditMessage,
-  onDeleteMessage,
-  height
+const MessageItem = React.memo(({ index, style, data }: any) => {
+  const { messages, currentUserId, otherUserAvatar, currentUserAvatar } = data;
+  const message = messages[index];
+  const isOwn = message.sender_id === currentUserId;
+  const messageTime = formatDistanceToNow(new Date(message.created_at), { addSuffix: true });
+
+  const getMessageStatusIcon = () => {
+    if (!isOwn) return null;
+    
+    if (message.read_at) {
+      return <CheckCheck size={14} className="text-blue-500" />;
+    }
+    return <Check size={14} className="text-gray-400" />;
+  };
+
+  return (
+    <div style={style} className="px-4 py-2">
+      <div className={`flex gap-3 ${isOwn ? 'flex-row-reverse' : 'flex-row'}`}>
+        <Avatar className="w-8 h-8 flex-shrink-0">
+          <AvatarImage src={isOwn ? currentUserAvatar : otherUserAvatar} />
+          <AvatarFallback>
+            <User className="w-4 h-4" />
+          </AvatarFallback>
+        </Avatar>
+
+        <div className={`max-w-xs lg:max-w-md ${isOwn ? 'text-right' : 'text-left'}`}>
+          {/* Image Messages */}
+          {(message.message_type === 'image' || message.message_type === 'file') && message.image_url && (
+            <div className="mb-2">
+              <img
+                src={message.image_url}
+                alt="Shared content"
+                className="max-w-full h-auto rounded cursor-pointer hover:opacity-90 transition-opacity"
+                loading="lazy"
+                onClick={() => window.open(message.image_url, '_blank')}
+              />
+            </div>
+          )}
+          
+          {/* Text Messages */}
+          {message.content && (
+            <div
+              className={`rounded-lg px-3 py-2 ${
+                isOwn
+                  ? 'bg-blue-500 text-white'
+                  : 'bg-gray-100 text-gray-900'
+              }`}
+            >
+              <p className="text-sm break-words">{message.content}</p>
+            </div>
+          )}
+          
+          <div className={`flex items-center gap-1 mt-1 ${isOwn ? 'justify-end' : 'justify-start'}`}>
+            <span className="text-xs text-gray-500">{messageTime}</span>
+            {getMessageStatusIcon()}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+});
+
+MessageItem.displayName = 'MessageItem';
+
+const VirtualizedMessagesList = ({ 
+  messages, 
+  currentUserId, 
+  height, 
+  otherUserAvatar, 
+  currentUserAvatar 
 }: VirtualizedMessagesListProps) => {
   const listRef = useRef<List>(null);
-  const itemHeights = useRef<Map<number, number>>(new Map());
 
-  console.log('📜 VirtualizedMessagesList - Rendering:', {
-    messageCount: messages.length,
-    height,
-    cachedHeights: itemHeights.current.size
-  });
-
-  // Scroll to bottom when new messages arrive
+  // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
     if (listRef.current && messages.length > 0) {
       listRef.current.scrollToItem(messages.length - 1, 'end');
     }
   }, [messages.length]);
 
-  // Estimate item height based on message content
-  const getItemSize = (index: number) => {
-    if (itemHeights.current.has(index)) {
-      return itemHeights.current.get(index)!;
-    }
+  const itemData = useMemo(() => ({
+    messages,
+    currentUserId,
+    otherUserAvatar,
+    currentUserAvatar
+  }), [messages, currentUserId, otherUserAvatar, currentUserAvatar]);
 
-    const message = messages[index];
-    if (!message) return 80;
-
-    // Base height
-    let estimatedHeight = 60;
-
-    // Add height for content
-    if (message.content) {
-      const contentLines = Math.ceil(message.content.length / 50);
-      estimatedHeight += contentLines * 20;
-    }
-
-    // Add height for images
-    if (message.message_type === 'image') {
-      estimatedHeight += 200;
-    }
-
-    // Add height for voice messages
-    if (message.message_type === 'voice') {
-      estimatedHeight += 50;
-    }
-
-    // Add height for reactions
-    const messageReactions = reactions[message.id] || [];
-    if (messageReactions.length > 0) {
-      estimatedHeight += 30;
-    }
-
-    // Add height for thread indicator
-    const threadCount = getThreadCount(message.id);
-    if (threadCount > 0) {
-      estimatedHeight += 25;
-    }
-
-    // Cache the height
-    itemHeights.current.set(index, estimatedHeight);
-    return estimatedHeight;
-  };
-
-  // Update cached height when item is measured
-  const setItemHeight = (index: number, height: number) => {
-    if (itemHeights.current.get(index) !== height) {
-      itemHeights.current.set(index, height);
-      // Trigger list re-render to update scroll
-      if (listRef.current) {
-        listRef.current.resetAfterIndex(index);
-      }
-    }
-  };
-
-  const MessageItemWrapper = ({ index, style }: { index: number; style: any }) => {
-    const message = messages[index];
-    const isOwn = message.sender_id === user?.id;
-    const messageReactions = reactions[message.id] || [];
-    const threadCount = getThreadCount(message.id);
-    const itemRef = useRef<HTMLDivElement>(null);
-
-    // Measure item height after render
-    useEffect(() => {
-      if (itemRef.current) {
-        const height = itemRef.current.getBoundingClientRect().height;
-        setItemHeight(index, height);
-      }
-    });
-
-    return (
-      <div style={style}>
-        <div ref={itemRef} className="px-4 py-2">
-          <MessageItem
-            message={message}
-            isOwn={isOwn}
-            user={user}
-            reactions={messageReactions}
-            threadCount={threadCount}
-            onReactionButtonClick={onReactionButtonClick}
-            onReplyButtonClick={() => onReplyToMessage(message)}
-            onReactionToggle={onReactionToggle}
-            conversationId={message.conversation_id}
-          />
-        </div>
-      </div>
-    );
-  };
-
-  if (messages.length === 0) {
-    return (
-      <div className="flex-1 flex items-center justify-center text-muted-foreground">
-        <p>No messages to display</p>
-      </div>
-    );
-  }
+  const getItemSize = () => 80; // Base height, can be made dynamic based on content
 
   return (
     <List
@@ -148,9 +109,10 @@ const VirtualizedMessagesList = ({
       height={height}
       itemCount={messages.length}
       itemSize={getItemSize}
-      className="scrollbar-thin scrollbar-thumb-border scrollbar-track-transparent"
+      itemData={itemData}
+      overscanCount={5}
     >
-      {MessageItemWrapper}
+      {MessageItem}
     </List>
   );
 };
