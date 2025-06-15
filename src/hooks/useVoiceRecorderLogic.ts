@@ -97,7 +97,13 @@ export const useVoiceRecorderLogic = (
 
   const sendVoiceMessage = async () => {
     if (audioBlob) {
-      const uploadedUrl = await uploadAudio(audioBlob);
+      // Convert Blob to File
+      const audioFile = new File([audioBlob], `voice-message-${Date.now()}.webm`, {
+        type: 'audio/webm',
+        lastModified: Date.now()
+      });
+      
+      const uploadedUrl = await uploadAudio(audioFile);
       if (uploadedUrl) {
         onSendVoiceMessage(uploadedUrl, recordingDuration);
         handleCancel();
