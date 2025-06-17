@@ -22,24 +22,6 @@ const HeaderSupportMenu = () => {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-56 bg-white border shadow-lg">
-        <DropdownMenuLabel>Main Features</DropdownMenuLabel>
-        <DropdownMenuItem asChild>
-          <Link to="/education">Education</Link>
-        </DropdownMenuItem>
-        <DropdownMenuItem asChild>
-          <Link to="/services">Services</Link>
-        </DropdownMenuItem>
-        <DropdownMenuItem asChild>
-          <Link to="/customer-reviews">Customer Reviews</Link>
-        </DropdownMenuItem>
-        <DropdownMenuItem asChild>
-          <Link to="/premium-dashboard">Premium</Link>
-        </DropdownMenuItem>
-        <DropdownMenuItem asChild>
-          <Link to="/legal">Legal Guide</Link>
-        </DropdownMenuItem>
-        
-        <DropdownMenuSeparator />
         <DropdownMenuLabel>Support</DropdownMenuLabel>
         <DropdownMenuItem asChild>
           <Link to="/help">Help Center</Link>
@@ -52,13 +34,13 @@ const HeaderSupportMenu = () => {
         </DropdownMenuItem>
         
         <DropdownMenuSeparator />
-        <DropdownMenuLabel>Business</DropdownMenuLabel>
-        <DropdownMenuItem asChild>
-          <Link to="/b2b-dashboard">B2B Analytics</Link>
-        </DropdownMenuItem>
-        
-        <DropdownMenuSeparator />
         <DropdownMenuLabel>Legal</DropdownMenuLabel>
+        <DropdownMenuItem asChild>
+          <Link to="/education">Education</Link>
+        </DropdownMenuItem>
+        <DropdownMenuItem asChild>
+          <Link to="/legal">Legal Guide</Link>
+        </DropdownMenuItem>
         <DropdownMenuItem asChild>
           <Link to="/terms">Terms of Service</Link>
         </DropdownMenuItem>

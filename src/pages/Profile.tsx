@@ -12,6 +12,7 @@ import ProfileHighlights from '@/components/profile/ProfileHighlights';
 import PostForm from '@/components/posts/PostForm';
 import PostFeed from '@/components/posts/PostFeed';
 import FooterLinksMenu from '@/components/navigation/FooterLinksMenu';
+import PremiumUpgradePrompt from '@/components/profile/PremiumUpgradePrompt';
 
 const Profile = () => {
   const { user, isGuest } = useAuth();
@@ -149,13 +150,16 @@ const Profile = () => {
             </Button>
           </div>
 
+          {/* Premium Upgrade Prompt - Only for authenticated users */}
+          {isOwnProfile && <PremiumUpgradePrompt />}
+
           {/* Story Highlights */}
           <ProfileHighlights highlights={highlights} isOwnProfile={isOwnProfile} />
 
-          {/* Directions Link */}
+          {/* Explore Services Link */}
           <div className="text-center mb-6">
             <Link to="/explore" className="text-blue-500 font-medium">
-              Directions
+              Explore Pet Services
             </Link>
           </div>
         </div>
