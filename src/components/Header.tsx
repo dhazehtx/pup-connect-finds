@@ -5,6 +5,7 @@ import { Heart, Menu, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+import HeaderSupportMenu from '@/components/header/HeaderSupportMenu';
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -42,6 +43,9 @@ const Header = () => {
 
           {/* User Actions */}
           <div className="flex items-center space-x-4">
+            {/* Help Menu - Always visible */}
+            <HeaderSupportMenu />
+
             {user || isGuest ? (
               <div className="flex items-center space-x-4">
                 <Button variant="outline" size="sm" onClick={handleSignOut}>

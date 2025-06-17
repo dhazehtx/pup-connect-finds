@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
@@ -10,6 +11,7 @@ import LoadingState from '@/components/ui/loading-state';
 import ProfileHighlights from '@/components/profile/ProfileHighlights';
 import PostForm from '@/components/posts/PostForm';
 import PostFeed from '@/components/posts/PostFeed';
+import FooterLinksMenu from '@/components/navigation/FooterLinksMenu';
 
 const Profile = () => {
   const { user, isGuest } = useAuth();
@@ -186,6 +188,11 @@ const Profile = () => {
             userId={user?.id} 
             refreshTrigger={refreshPosts}
           />
+        </div>
+
+        {/* Help & Support Section */}
+        <div className="px-4 py-6">
+          <FooterLinksMenu variant="card" />
         </div>
       </div>
 
