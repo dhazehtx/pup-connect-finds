@@ -22,24 +22,6 @@ const HeaderSupportMenu = () => {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-56 bg-white border shadow-lg z-50">
-        <DropdownMenuLabel>Support</DropdownMenuLabel>
-        <DropdownMenuItem asChild>
-          <Link to="/help-center" className="w-full cursor-pointer">
-            Help Center
-          </Link>
-        </DropdownMenuItem>
-        <DropdownMenuItem asChild>
-          <Link to="/trust-safety" className="w-full cursor-pointer">
-            Trust & Safety
-          </Link>
-        </DropdownMenuItem>
-        <DropdownMenuItem asChild>
-          <Link to="/contact" className="w-full cursor-pointer">
-            Contact Us
-          </Link>
-        </DropdownMenuItem>
-        
-        <DropdownMenuSeparator />
         <DropdownMenuLabel>Legal</DropdownMenuLabel>
         <DropdownMenuItem asChild>
           <Link to="/education" className="w-full cursor-pointer">
@@ -64,6 +46,24 @@ const HeaderSupportMenu = () => {
         <DropdownMenuItem asChild>
           <Link to="/terms" className="w-full cursor-pointer">
             Terms of Use
+          </Link>
+        </DropdownMenuItem>
+        
+        <DropdownMenuSeparator />
+        <DropdownMenuLabel>Support</DropdownMenuLabel>
+        <DropdownMenuItem asChild>
+          <Link to="/help-center" className="w-full cursor-pointer">
+            Help Center
+          </Link>
+        </DropdownMenuItem>
+        <DropdownMenuItem asChild>
+          <Link to="/trust-safety" className="w-full cursor-pointer">
+            Trust & Safety
+          </Link>
+        </DropdownMenuItem>
+        <DropdownMenuItem asChild>
+          <Link to="/contact" className="w-full cursor-pointer">
+            Contact Us
           </Link>
         </DropdownMenuItem>
       </DropdownMenuContent>
