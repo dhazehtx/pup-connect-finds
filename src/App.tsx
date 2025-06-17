@@ -21,7 +21,6 @@ import Legal from '@/pages/Legal';
 import HelpCenter from '@/pages/HelpCenter';
 import TrustSafety from '@/pages/TrustSafety';
 import Contact from '@/pages/Contact';
-import B2BDashboard from '@/pages/B2BDashboard';
 import AdminDashboard from '@/pages/AdminDashboard';
 import Terms from '@/pages/Terms';
 import PrivacyPolicy from '@/pages/PrivacyPolicy';
@@ -65,11 +64,6 @@ function App() {
             <Route path="/help-center" element={<HelpCenter />} />
             <Route path="/trust-safety" element={<TrustSafety />} />
             <Route path="/contact" element={<Contact />} />
-            <Route path="/b2b-dashboard" element={
-              <ProtectedRoute>
-                <B2BDashboard />
-              </ProtectedRoute>
-            } />
             <Route path="/admin" element={
               <ProtectedRoute>
                 <AdminDashboard />
