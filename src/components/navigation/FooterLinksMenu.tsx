@@ -1,104 +1,105 @@
 
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { 
   HelpCircle, 
   Shield, 
-  Mail, 
   FileText, 
-  Users, 
-  Heart,
-  ExternalLink
+  Mail,
+  MessageSquare,
+  TrendingUp,
+  Users
 } from 'lucide-react';
 
 interface FooterLinksMenuProps {
-  variant?: 'card' | 'list';
-  className?: string;
+  variant?: 'default' | 'card';
 }
 
-const FooterLinksMenu = ({ variant = 'card', className = '' }: FooterLinksMenuProps) => {
-  const quickLinks = [
-    { name: 'Help Center', href: '/help', icon: HelpCircle },
-    { name: 'Trust & Safety', href: '/trust-safety', icon: Shield },
-    { name: 'Contact Us', href: '/contact', icon: Mail },
-    { name: 'Community Guidelines', href: '/guidelines', icon: Users },
+const FooterLinksMenu = ({ variant = 'default' }: FooterLinksMenuProps) => {
+  const linkGroups = [
+    {
+      title: 'Legal',
+      links: [
+        { name: 'Education', path: '/education', icon: <FileText className="w-4 h-4" /> },
+        { name: 'Legal Guide', path: '/legal', icon: <Shield className="w-4 h-4" /> },
+        { name: 'Terms of Service', path: '/terms', icon: <FileText className="w-4 h-4" /> },
+        { name: 'Privacy Policy', path: '/privacy-policy', icon: <Shield className="w-4 h-4" /> },
+        { name: 'Terms of Use', path: '/terms', icon: <FileText className="w-4 h-4" /> },
+      ]
+    },
+    {
+      title: 'Support',
+      links: [
+        { name: 'Help Center', path: '/help-center', icon: <HelpCircle className="w-4 h-4" /> },
+        { name: 'Trust & Safety', path: '/trust-safety', icon: <Shield className="w-4 h-4" /> },
+        { name: 'Contact Us', path: '/contact', icon: <Mail className="w-4 h-4" /> },
+      ]
+    },
+    {
+      title: 'Analytics',
+      links: [
+        { name: 'Messaging Analytics', path: '/messaging-analytics', icon: <MessageSquare className="w-4 h-4" /> },
+        { name: 'Enhanced Analytics', path: '/analytics', icon: <TrendingUp className="w-4 h-4" /> },
+        { name: 'Professional Network', path: '/network', icon: <Users className="w-4 h-4" /> },
+      ]
+    }
   ];
 
-  const supportLinks = [
-    { name: 'Terms of Service', href: '/terms', icon: FileText },
-    { name: 'Privacy Policy', href: '/privacy', icon: FileText },
-    { name: 'Cookie Policy', href: '/cookies', icon: FileText },
-    { name: 'About Us', href: '/about', icon: Heart },
-  ];
-
-  if (variant === 'list') {
+  if (variant === 'card') {
     return (
-      <div className={`space-y-1 ${className}`}>
-        {[...quickLinks, ...supportLinks].map((link) => (
-          <Link
-            key={link.name}
-            to={link.href}
-            className="flex items-center space-x-3 px-3 py-2 rounded-md text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors"
-          >
-            <link.icon className="w-4 h-4" />
-            <span>{link.name}</span>
-            <ExternalLink className="w-3 h-3 ml-auto opacity-50" />
-          </Link>
-        ))}
-      </div>
+      <Card className="bg-gray-50 border-gray-200">
+        <CardContent className="p-4">
+          <h3 className="font-semibold text-gray-900 mb-4">Help & Support</h3>
+          <div className="grid grid-cols-1 gap-2">
+            {linkGroups.map((group) => (
+              <div key={group.title} className="space-y-2">
+                <h4 className="text-sm font-medium text-gray-700">{group.title}</h4>
+                {group.links.map((link) => (
+                  <Link
+                    key={link.path}
+                    to={link.path}
+                    className="flex items-center gap-2 text-sm text-gray-600 hover:text-blue-600 transition-colors"
+                  >
+                    {link.icon}
+                    {link.name}
+                  </Link>
+                ))}
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
     );
   }
 
   return (
-    <div className={`grid gap-4 ${className}`}>
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-lg flex items-center space-x-2">
-            <HelpCircle className="w-5 h-5" />
-            <span>Quick Links</span>
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-2">
-          {quickLinks.map((link) => (
-            <Link
-              key={link.name}
-              to={link.href}
-              className="flex items-center justify-between p-3 rounded-lg border hover:bg-gray-50 transition-colors"
-            >
-              <div className="flex items-center space-x-3">
-                <link.icon className="w-4 h-4 text-gray-600" />
-                <span className="text-sm font-medium">{link.name}</span>
-              </div>
-              <ExternalLink className="w-4 h-4 text-gray-400" />
-            </Link>
+    <div className="bg-white border-t border-gray-200 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          {linkGroups.map((group) => (
+            <div key={group.title}>
+              <h3 className="text-sm font-semibold text-gray-900 tracking-wider uppercase mb-4">
+                {group.title}
+              </h3>
+              <ul className="space-y-3">
+                {group.links.map((link) => (
+                  <li key={link.path}>
+                    <Link
+                      to={link.path}
+                      className="flex items-center gap-2 text-base text-gray-600 hover:text-blue-600 transition-colors"
+                    >
+                      {link.icon}
+                      {link.name}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
           ))}
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-lg flex items-center space-x-2">
-            <FileText className="w-5 h-5" />
-            <span>Legal & Support</span>
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-2">
-          {supportLinks.map((link) => (
-            <Link
-              key={link.name}
-              to={link.href}
-              className="flex items-center justify-between p-3 rounded-lg border hover:bg-gray-50 transition-colors"
-            >
-              <div className="flex items-center space-x-3">
-                <link.icon className="w-4 h-4 text-gray-600" />
-                <span className="text-sm font-medium">{link.name}</span>
-              </div>
-              <ExternalLink className="w-4 h-4 text-gray-400" />
-            </Link>
-          ))}
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   );
 };
