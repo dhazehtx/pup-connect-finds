@@ -21,34 +21,50 @@ const HeaderSupportMenu = () => {
           <span className="hidden md:inline">Help</span>
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-56 bg-white border shadow-lg">
+      <DropdownMenuContent align="end" className="w-56 bg-white border shadow-lg z-50">
         <DropdownMenuLabel>Support</DropdownMenuLabel>
         <DropdownMenuItem asChild>
-          <Link to="/help">Help Center</Link>
+          <Link to="/help-center" className="w-full cursor-pointer">
+            Help Center
+          </Link>
         </DropdownMenuItem>
         <DropdownMenuItem asChild>
-          <Link to="/trust-safety">Trust & Safety</Link>
+          <Link to="/trust-safety" className="w-full cursor-pointer">
+            Trust & Safety
+          </Link>
         </DropdownMenuItem>
         <DropdownMenuItem asChild>
-          <Link to="/contact">Contact Us</Link>
+          <Link to="/contact" className="w-full cursor-pointer">
+            Contact Us
+          </Link>
         </DropdownMenuItem>
         
         <DropdownMenuSeparator />
         <DropdownMenuLabel>Legal</DropdownMenuLabel>
         <DropdownMenuItem asChild>
-          <Link to="/education">Education</Link>
+          <Link to="/education" className="w-full cursor-pointer">
+            Education
+          </Link>
         </DropdownMenuItem>
         <DropdownMenuItem asChild>
-          <Link to="/legal">Legal Guide</Link>
+          <Link to="/legal" className="w-full cursor-pointer">
+            Legal Guide
+          </Link>
         </DropdownMenuItem>
         <DropdownMenuItem asChild>
-          <Link to="/terms">Terms of Service</Link>
+          <Link to="/terms" className="w-full cursor-pointer">
+            Terms of Service
+          </Link>
         </DropdownMenuItem>
         <DropdownMenuItem asChild>
-          <Link to="/privacy">Privacy Policy</Link>
+          <Link to="/privacy-policy" className="w-full cursor-pointer">
+            Privacy Policy
+          </Link>
         </DropdownMenuItem>
         <DropdownMenuItem asChild>
-          <Link to="/terms">Terms of Use</Link>
+          <Link to="/terms" className="w-full cursor-pointer">
+            Terms of Use
+          </Link>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
