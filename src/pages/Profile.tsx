@@ -11,7 +11,6 @@ import LoadingState from '@/components/ui/loading-state';
 import ProfileHighlights from '@/components/profile/ProfileHighlights';
 import PostForm from '@/components/posts/PostForm';
 import PostFeed from '@/components/posts/PostFeed';
-import FooterLinksMenu from '@/components/navigation/FooterLinksMenu';
 import PremiumUpgradePrompt from '@/components/profile/PremiumUpgradePrompt';
 
 const Profile = () => {
@@ -192,11 +191,6 @@ const Profile = () => {
             userId={user?.id} 
             refreshTrigger={refreshPosts}
           />
-        </div>
-
-        {/* Help & Support Section */}
-        <div className="px-4 py-6">
-          <FooterLinksMenu variant="card" />
         </div>
       </div>
 
