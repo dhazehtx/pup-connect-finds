@@ -41,11 +41,8 @@ const Header = () => {
             <span className="text-xl font-bold text-gray-900">MY PUP</span>
           </Link>
 
-          {/* User Actions */}
+          {/* User Actions and Help Menu */}
           <div className="flex items-center space-x-4">
-            {/* Help Menu - Always visible */}
-            <HeaderSupportMenu />
-
             {user || isGuest ? (
               <div className="flex items-center space-x-4">
                 <Button variant="outline" size="sm" onClick={handleSignOut}>
@@ -62,6 +59,9 @@ const Header = () => {
                 </Link>
               </div>
             )}
+
+            {/* Help Menu - Now positioned at far right */}
+            <HeaderSupportMenu />
 
             {/* Mobile menu button - Only show for authenticated users */}
             {(user || isGuest) && (
