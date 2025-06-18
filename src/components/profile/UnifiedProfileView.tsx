@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Settings, MoreHorizontal, ArrowLeft, MapPin, Share, Eye, Edit } from 'lucide-react';
