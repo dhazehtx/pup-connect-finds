@@ -1,12 +1,18 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Settings, MoreHorizontal, ArrowLeft, MapPin, Share, Eye, Edit, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/contexts/AuthContext';
 import PhotoGrid from '@/components/profile/PhotoGrid';
 import PostDetailModal from '@/components/profile/PostDetailModal';
 import StatsModal from '@/components/profile/StatsModal';
+import ProfileStats from '@/components/profile/ProfileStats';
+import PublicViewBanner from '@/components/profile/PublicViewBanner';
+import ProfileHeader from '@/components/profile/ProfileHeader';
+import ProfileInfo from '@/components/profile/ProfileInfo';
+import ProfileActionButtons from '@/components/profile/ProfileActionButtons';
+import PuppyHighlights from '@/components/profile/PuppyHighlights';
+import TabsNavigation from '@/components/profile/TabsNavigation';
+import BottomNavigation from '@/components/profile/BottomNavigation';
 
 interface Photo {
   id: string;
@@ -185,239 +191,63 @@ const UnifiedProfileView = ({ userId, isCurrentUser }: UnifiedProfileViewProps) 
     { id: 'listings', label: 'Listings' }
   ];
 
+  const showHeader = !isCurrentUser || isPublicView;
+  const showPuppyHighlights = activeTab === 'photos' && isCurrentUser && !isPublicView;
+  const showBottomNavigation = !isPublicView;
+
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Public View Banner */}
-      {isPublicView && (
-        <div className="sticky top-0 z-50 bg-blue-600 text-white">
-          <div className="max-w-md mx-auto px-4 py-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-2">
-                <Eye className="w-4 h-4" />
-                <span className="text-sm font-medium">Public View</span>
-              </div>
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                onClick={handleExitPublicView}
-                className="text-white hover:bg-blue-700 h-8 w-8 p-0"
-              >
-                <X className="w-4 h-4" />
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
+      <PublicViewBanner 
+        isVisible={isPublicView} 
+        onExit={handleExitPublicView} 
+      />
 
-      {/* Header - Only show for non-current users or in public view */}
-      {(!isCurrentUser || isPublicView) && (
-        <div className="sticky top-0 z-50 bg-white border-b border-gray-200">
-          <div className="max-w-md mx-auto px-4 py-3">
-            <div className="flex items-center justify-between">
-              <Button variant="ghost" size="sm" onClick={() => isPublicView ? handleExitPublicView() : navigate(-1)}>
-                <ArrowLeft className="w-5 h-5" />
-              </Button>
-              <h1 className="text-xl font-semibold text-gray-900 flex-1 text-center">
-                {displayName}
-              </h1>
-            </div>
-          </div>
-        </div>
-      )}
+      <ProfileHeader 
+        displayName={displayName}
+        showHeader={showHeader}
+        onBack={() => isPublicView ? handleExitPublicView() : navigate(-1)}
+      />
 
       {/* Main Content Container */}
       <div className="w-full max-w-md mx-auto bg-white min-h-screen">
         {/* Profile Section */}
         <div className="px-6 py-6">
-          {/* Profile Picture and Basic Info */}
-          <div className="flex flex-col items-center mb-6">
-            <div className="relative mb-4">
-              <div className="w-20 h-20 rounded-full overflow-hidden border-4 border-gray-100">
-                <img 
-                  src="https://images.unsplash.com/photo-1605568427561-40dd23c2acea?w=200&h=200&fit=crop&crop=face" 
-                  alt={displayName}
-                  className="w-full h-full object-cover"
-                />
-              </div>
-              {!isGuest && (!isCurrentUser || isPublicView) && (
-                <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center">
-                  <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                  </svg>
-                </div>
-              )}
-            </div>
-            
-            <h2 className="text-xl font-bold text-gray-900 mb-1">{displayName}</h2>
-            
-            {/* Stats */}
-            <div className="flex items-center space-x-6 mb-4">
-              <button 
-                onClick={() => handleStatsClick('posts')}
-                className="text-center"
-              >
-                <div className="text-lg font-bold text-gray-900">{profileStats.posts}</div>
-                <div className="text-gray-600 text-sm">Posts</div>
-              </button>
-              <button 
-                onClick={() => handleStatsClick('followers')}
-                className="text-center"
-              >
-                <div className="text-lg font-bold text-gray-900">{profileStats.followers.toLocaleString()}</div>
-                <div className="text-gray-600 text-sm">Followers</div>
-              </button>
-              <button 
-                onClick={() => handleStatsClick('following')}
-                className="text-center"
-              >
-                <div className="text-lg font-bold text-gray-900">{profileStats.following}</div>
-                <div className="text-gray-600 text-sm">Following</div>
-              </button>
-            </div>
-          </div>
+          <ProfileInfo 
+            displayName={displayName}
+            isGuest={isGuest}
+            isCurrentUser={isCurrentUser}
+            isPublicView={isPublicView}
+            userBadges={userBadges}
+          />
 
-          {/* Bio */}
-          <div className="text-center mb-4">
-            <p className="text-gray-700 text-sm leading-relaxed mb-3">
-              {isCurrentUser && !isPublicView
-                ? "Connecting happy, healthy puppies with loving families 🐾" 
-                : "Passionate breeder specializing in Golden Retrievers and Labradors. 🐾 Raising healthy, happy puppies with love."
-              }
-            </p>
-            
-            {/* Location */}
-            <div className="flex items-center justify-center space-x-1 text-gray-600 mb-4">
-              <MapPin className="w-4 h-4" />
-              <span className="text-sm">Location Tag, USA</span>
-            </div>
-          </div>
-
-          {/* Badges */}
-          <div className="flex flex-wrap justify-center gap-2 mb-6">
-            {userBadges.map((badge, index) => (
-              <Badge key={index} className={`text-xs ${badge.color} border-0`}>
-                <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                </svg>
-                {badge.name}
-              </Badge>
-            ))}
-          </div>
+          {/* Stats */}
+          <ProfileStats
+            stats={profileStats}
+            onFollowersClick={() => handleStatsClick('followers')}
+            onFollowingClick={() => handleStatsClick('following')}
+          />
 
           {/* Action Buttons */}
-          {isCurrentUser && !isPublicView ? (
-            <div className="space-y-3">
-              <div className="flex items-center space-x-3">
-                <Button 
-                  onClick={handleEditProfile}
-                  className="flex-1 bg-blue-500 hover:bg-blue-600 text-white h-12 rounded-xl font-medium"
-                >
-                  Edit Profile
-                </Button>
-                <Button 
-                  variant="outline" 
-                  size="icon"
-                  onClick={handleSettings}
-                  className="h-12 w-12 rounded-xl border-gray-300"
-                >
-                  <Settings className="w-5 h-5" />
-                </Button>
-              </div>
-              <div className="flex space-x-3">
-                <Button 
-                  variant="outline" 
-                  onClick={handleShare}
-                  className="flex-1 h-10 rounded-xl border-gray-300"
-                >
-                  <Share className="w-4 h-4 mr-2" />
-                  Share Profile
-                </Button>
-                <Button 
-                  variant="outline" 
-                  onClick={handleViewPublicProfile}
-                  className="flex-1 h-10 rounded-xl border-gray-300"
-                >
-                  <Eye className="w-4 h-4 mr-2" />
-                  View Public
-                </Button>
-              </div>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              <div className="flex space-x-3">
-                <Button 
-                  onClick={handleMessage}
-                  className="flex-1 bg-blue-500 hover:bg-blue-600 text-white h-12 rounded-xl font-medium"
-                >
-                  Message
-                </Button>
-                <Button 
-                  variant={isFollowing ? "outline" : "default"}
-                  onClick={handleFollow}
-                  className="flex-1 h-12 rounded-xl font-medium"
-                >
-                  {isFollowing ? 'Following' : 'Follow'}
-                </Button>
-              </div>
-            </div>
-          )}
+          <ProfileActionButtons
+            isCurrentUser={isCurrentUser}
+            isPublicView={isPublicView}
+            isFollowing={isFollowing}
+            onEditProfile={handleEditProfile}
+            onSettings={handleSettings}
+            onShare={handleShare}
+            onViewPublicProfile={handleViewPublicProfile}
+            onMessage={handleMessage}
+            onFollow={handleFollow}
+          />
         </div>
 
-        {/* Tabs */}
-        <div className="border-t border-gray-200">
-          <div className="flex">
-            {tabs.map((tab) => (
-              <button
-                key={tab.id}
-                className={`flex-1 py-4 text-sm font-medium border-b-2 transition-colors ${
-                  activeTab === tab.id
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500'
-                }`}
-                onClick={() => setActiveTab(tab.id)}
-              >
-                {tab.label}
-              </button>
-            ))}
-          </div>
-        </div>
+        <TabsNavigation 
+          tabs={tabs}
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
+        />
 
-        {/* Puppy Highlights - Only show in normal view for current user */}
-        {activeTab === 'photos' && isCurrentUser && !isPublicView && (
-          <div className="p-4">
-            <div className="mb-4">
-              <h3 className="text-lg font-semibold text-gray-900 mb-3">Puppy Highlights</h3>
-              <div className="flex space-x-4 overflow-x-auto pb-2">
-                <div className="flex flex-col items-center space-y-2 min-w-0">
-                  <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center border-2 border-dashed border-gray-300">
-                    <span className="text-2xl">+</span>
-                  </div>
-                  <span className="text-xs text-gray-600 text-center">New</span>
-                </div>
-                <div className="flex flex-col items-center space-y-2 min-w-0">
-                  <div className="w-16 h-16 rounded-full overflow-hidden">
-                    <img 
-                      src="https://images.unsplash.com/photo-1605568427561-40dd23c2acea?w=100&h=100&fit=crop" 
-                      alt="Poodle"
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                  <span className="text-xs text-gray-600 text-center">Poodle</span>
-                </div>
-                <div className="flex flex-col items-center space-y-2 min-w-0">
-                  <div className="w-16 h-16 rounded-full overflow-hidden">
-                    <img 
-                      src="https://images.unsplash.com/photo-1518717758536-85ae29035b6d?w=100&h=100&fit=crop" 
-                      alt="Golden Retriever"
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                  <span className="text-xs text-gray-600 text-center">Golden Retriever</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
+        <PuppyHighlights showHighlights={showPuppyHighlights} />
 
         {/* Tab Content */}
         <div className="relative">
@@ -486,69 +316,10 @@ const UnifiedProfileView = ({ userId, isCurrentUser }: UnifiedProfileViewProps) 
         onPuppyClick={() => {}}
       />
 
-      {/* Bottom Navigation - Only show in normal view */}
-      {!isPublicView && (
-        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-40">
-          <div className="max-w-md mx-auto">
-            <div className="flex justify-around py-2">
-              <button 
-                onClick={() => navigate('/home')} 
-                className="flex flex-col items-center py-2"
-              >
-                <div className="w-6 h-6 mb-1">
-                  <svg viewBox="0 0 24 24" fill="currentColor" className="w-full h-full text-gray-700">
-                    <path d="M22 23h-6.001a1 1 0 0 1-1-1v-5.455a2.997 2.997 0 1 0-5.993 0V22a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V11.543a1.002 1.002 0 0 1 .31-.724l10-9.543a1.001 1.001 0 0 1 1.38 0l10 9.543a1.002 1.002 0 0 1 .31.724V22a1 1 0 0 1-1 1Z"/>
-                  </svg>
-                </div>
-                <span className="text-xs text-gray-700">Home</span>
-              </button>
-              <button 
-                onClick={() => navigate('/explore')} 
-                className="flex flex-col items-center py-2"
-              >
-                <div className="w-6 h-6 mb-1">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-full h-full text-gray-700">
-                    <circle cx="11" cy="11" r="8"/>
-                    <path d="m21 21-4.35-4.35"/>
-                  </svg>
-                </div>
-                <span className="text-xs text-gray-700">Explore</span>
-              </button>
-              <button 
-                onClick={() => navigate('/create-listing')} 
-                className="flex flex-col items-center py-2 relative"
-              >
-                <div className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center absolute -top-2">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-6 h-6 text-white">
-                    <path d="M12 5v14m-7-7h14"/>
-                  </svg>
-                </div>
-                <div className="h-8"></div>
-              </button>
-              <button 
-                onClick={() => navigate('/messages')} 
-                className="flex flex-col items-center py-2"
-              >
-                <div className="w-6 h-6 mb-1">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-full h-full text-gray-700">
-                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-                  </svg>
-                </div>
-                <span className="text-xs text-gray-700">Messages</span>
-              </button>
-              <button 
-                onClick={() => navigate('/profile')} 
-                className="flex flex-col items-center py-2"
-              >
-                <div className="w-6 h-6 mb-1">
-                  <div className={`w-6 h-6 ${isCurrentUser ? 'bg-blue-600' : 'bg-gray-700'} rounded-full`}></div>
-                </div>
-                <span className={`text-xs ${isCurrentUser ? 'text-blue-600' : 'text-gray-700'}`}>Profile</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <BottomNavigation 
+        isCurrentUser={isCurrentUser}
+        show={showBottomNavigation}
+      />
 
       {/* Bottom padding to account for fixed navigation */}
       <div className="h-20"></div>
