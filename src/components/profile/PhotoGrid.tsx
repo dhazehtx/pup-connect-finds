@@ -61,11 +61,6 @@ const PhotoGrid = ({ photos, onPhotoClick, onPhotoLongPress, isOwnProfile }: Pho
               alt={photo.caption || 'Post photo'}
               className="w-full h-full object-cover"
             />
-            {photo.breed && (
-              <div className="absolute bottom-1 left-1 bg-black bg-opacity-60 text-white text-xs px-2 py-1 rounded">
-                {photo.breed}
-              </div>
-            )}
           </Card>
         ))}
       </div>
