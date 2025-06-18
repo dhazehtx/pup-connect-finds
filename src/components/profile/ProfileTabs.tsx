@@ -9,14 +9,36 @@ interface Photo {
   caption?: string;
 }
 
+interface ProfileReview {
+  id: number;
+  author: string;
+  avatar?: string;
+  rating: number;
+  date: string;
+  text: string;
+  helpful: number;
+  verified: boolean;
+}
+
 interface ProfileTabsProps {
   activeTab: string;
   setActiveTab: (tab: string) => void;
   posts: string[];
+  reviews?: ProfileReview[];
+  analyticsComponent?: React.ReactElement;
   isOwnProfile: boolean;
+  userType?: 'buyer' | 'breeder' | 'shelter' | 'admin';
 }
 
-const ProfileTabs = ({ activeTab, setActiveTab, posts, isOwnProfile }: ProfileTabsProps) => {
+const ProfileTabs = ({ 
+  activeTab, 
+  setActiveTab, 
+  posts, 
+  reviews = [], 
+  analyticsComponent,
+  isOwnProfile,
+  userType 
+}: ProfileTabsProps) => {
   const tabs = [
     { id: 'photos', label: 'Photos', icon: Grid },
     { id: 'reviews', label: 'Reviews', icon: BookOpen },
@@ -65,8 +87,15 @@ const ProfileTabs = ({ activeTab, setActiveTab, posts, isOwnProfile }: ProfileTa
             <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <BookOpen className="w-8 h-8 text-gray-400" />
             </div>
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No Reviews Yet</h3>
-            <p className="text-gray-500">Reviews from customers will appear here.</p>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">
+              {reviews.length === 0 ? 'No Reviews Yet' : `${reviews.length} Reviews`}
+            </h3>
+            <p className="text-gray-500">
+              {reviews.length === 0 
+                ? 'Reviews from customers will appear here.' 
+                : 'Customer reviews and feedback.'
+              }
+            </p>
           </div>
         )}
         
