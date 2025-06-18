@@ -35,7 +35,7 @@ const UserSearchBar = ({
   const [loading, setLoading] = useState(false);
   const [showResults, setShowResults] = useState(false);
   const [verifiedOnly, setVerifiedOnly] = useState(false);
-  const [userTypeFilter, setUserTypeFilter] = useState<string>('all');
+  const [userTypeFilter, setUserTypeFilter] = useState<'all' | 'buyer' | 'breeder' | 'shelter' | 'admin'>('all');
   
   const debouncedSearchQuery = useDebounce(searchQuery, 500);
   const navigate = useNavigate();
@@ -144,7 +144,7 @@ const UserSearchBar = ({
           </label>
           <select
             value={userTypeFilter}
-            onChange={(e) => setUserTypeFilter(e.target.value)}
+            onChange={(e) => setUserTypeFilter(e.target.value as 'all' | 'buyer' | 'breeder' | 'shelter' | 'admin')}
             className="text-sm px-2 py-1 border rounded"
           >
             <option value="all">All users</option>
