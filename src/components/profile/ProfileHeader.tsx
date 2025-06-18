@@ -14,6 +14,7 @@ interface ProfileHeaderProps {
     followers: number;
     following: number;
   };
+  onStatsClick?: (type: 'posts' | 'followers' | 'following') => void;
 }
 
 const ProfileHeader = ({ 
@@ -22,85 +23,80 @@ const ProfileHeader = ({
   bio, 
   isVerified, 
   avatarUrl,
-  stats 
+  stats,
+  onStatsClick 
 }: ProfileHeaderProps) => {
   return (
     <div className="px-6 py-6 bg-white">
-      {/* Profile Avatar and Basic Info */}
-      <div className="flex items-start space-x-6 mb-6">
-        {/* Large Avatar */}
-        <div className="relative flex-shrink-0">
-          <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-gray-100 shadow-lg">
-            {avatarUrl ? (
-              <img 
-                src={avatarUrl} 
-                alt={displayName}
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              <div className="w-full h-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white text-4xl font-bold">
-                {displayName.charAt(0).toUpperCase()}
-              </div>
-            )}
-          </div>
+      {/* Profile Avatar - Centered */}
+      <div className="flex flex-col items-center mb-6">
+        <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-gray-100 shadow-lg mb-4">
+          {avatarUrl ? (
+            <img 
+              src={avatarUrl} 
+              alt={displayName}
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <div className="w-full h-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white text-2xl font-bold">
+              {displayName.charAt(0).toUpperCase()}
+            </div>
+          )}
         </div>
         
-        {/* Name, Stats and Info */}
-        <div className="flex-1 min-w-0">
-          <div className="mb-4">
-            <div className="flex items-center space-x-3 mb-2">
-              <h1 className="text-2xl font-bold text-gray-900">{displayName}</h1>
-              {isVerified && (
-                <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center">
-                  <CheckCircle className="w-4 h-4 text-white" />
-                </div>
-              )}
-            </div>
-            
-            {/* Stats Row */}
-            <div className="flex space-x-8 mb-4">
-              <div className="text-center">
-                <div className="text-xl font-bold text-gray-900">{stats.posts}</div>
-                <div className="text-gray-600 text-sm">Posts</div>
-              </div>
-              <div className="text-center">
-                <div className="text-xl font-bold text-gray-900">{stats.followers.toLocaleString()}</div>
-                <div className="text-gray-600 text-sm">Followers</div>
-              </div>
-              <div className="text-center">
-                <div className="text-xl font-bold text-gray-900">{stats.following}</div>
-                <div className="text-gray-600 text-sm">Following</div>
-              </div>
-            </div>
-          </div>
+        {/* Name and Verification */}
+        <div className="flex items-center space-x-2 mb-2">
+          <h1 className="text-xl font-bold text-gray-900">{displayName}</h1>
+          {isVerified && (
+            <CheckCircle className="w-5 h-5 text-blue-500" />
+          )}
         </div>
-      </div>
-
-      {/* Bio and Location */}
-      <div className="space-y-3">
-        {bio && (
-          <p className="text-gray-800 text-base leading-relaxed">{bio}</p>
-        )}
         
+        {/* Location */}
         {location && (
-          <div className="flex items-center space-x-2 text-gray-600">
+          <div className="flex items-center space-x-1 text-gray-600 mb-3">
             <MapPin className="w-4 h-4" />
             <span className="text-sm">{location}</span>
           </div>
         )}
         
-        {/* Verification Badges */}
-        <div className="flex flex-wrap gap-2">
-          {isVerified && (
-            <Badge variant="secondary" className="bg-blue-50 text-blue-700 border-blue-200">
-              <CheckCircle className="w-3 h-3 mr-1" />
-              Verified Breeder
-            </Badge>
-          )}
-          <Badge variant="secondary" className="bg-green-50 text-green-700 border-green-200">
-            Adoption Activity
+        {/* Bio */}
+        {bio && (
+          <p className="text-gray-700 text-center text-sm leading-relaxed mb-4 max-w-xs">{bio}</p>
+        )}
+        
+        {/* Verification Badge */}
+        {isVerified && (
+          <Badge variant="verified" className="mb-4">
+            <CheckCircle className="w-3 h-3 mr-1" />
+            Verified Breeder
           </Badge>
-        </div>
+        )}
+      </div>
+
+      {/* Stats Bar - Centered */}
+      <div className="flex justify-center space-x-8 py-4 border-t border-gray-100">
+        <button 
+          onClick={() => onStatsClick?.('posts')}
+          className="text-center hover:opacity-75 transition-opacity"
+        >
+          <div className="text-xl font-bold text-gray-900">{stats.posts}</div>
+          <div className="text-gray-600 text-sm">Puppies Listed</div>
+        </button>
+        <button 
+          onClick={() => onStatsClick?.('followers')}
+          className="text-center hover:opacity-75 transition-opacity"
+        >
+          <div className="text-xl font-bold text-gray-900">{stats.followers.toLocaleString()}</div>
+          <div className="text-gray-600 text-sm">Followers</div>
+        </button>
+        <button 
+          onClick={() => onStatsClick?.('following')}
+          className="text-center hover:opacity-75 transition-opacity"
+        >
+          <div className="text-xl font-bold text-gray-900">{stats.following}</div>
+          <div className="text-gray-600 text-sm">Following</div>
+        </button>
       </div>
     </div>
   );

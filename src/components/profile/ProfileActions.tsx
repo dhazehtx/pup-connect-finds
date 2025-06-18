@@ -1,29 +1,40 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { MessageCircle, UserPlus, Share } from 'lucide-react';
+import { MessageCircle, UserPlus, Share, Eye, Edit } from 'lucide-react';
 
 interface ProfileActionsProps {
   isOwnProfile: boolean;
   onMessage?: () => void;
   onFollow?: () => void;
   onShare?: () => void;
+  onEditProfile?: () => void;
+  onVisitListings?: () => void;
+  isFollowing?: boolean;
 }
 
 const ProfileActions = ({ 
   isOwnProfile, 
   onMessage, 
   onFollow, 
-  onShare 
+  onShare,
+  onEditProfile,
+  onVisitListings,
+  isFollowing = false
 }: ProfileActionsProps) => {
   if (isOwnProfile) {
     return (
       <div className="px-6 mb-6">
         <div className="flex space-x-3">
-          <Button variant="outline" className="flex-1 h-10">
+          <Button 
+            variant="outline" 
+            className="flex-1 h-10 rounded-lg"
+            onClick={onEditProfile}
+          >
+            <Edit className="w-4 h-4 mr-2" />
             Edit Profile
           </Button>
-          <Button variant="outline" className="h-10 px-4" onClick={onShare}>
+          <Button variant="outline" className="h-10 px-4 rounded-lg" onClick={onShare}>
             <Share className="w-4 h-4" />
           </Button>
         </div>
@@ -42,14 +53,23 @@ const ProfileActions = ({
           Message
         </Button>
         <Button 
-          variant="outline" 
+          variant={isFollowing ? "outline" : "default"}
           onClick={onFollow}
           className="flex-1 h-10 rounded-lg font-medium"
         >
-          Follow
+          <UserPlus className="w-4 h-4 mr-2" />
+          {isFollowing ? 'Following' : 'Follow'}
         </Button>
-        <Button variant="outline" className="h-10 px-4 rounded-lg" onClick={onShare}>
-          <Share className="w-4 h-4" />
+      </div>
+      
+      <div className="mt-3">
+        <Button 
+          variant="outline" 
+          className="w-full h-10 rounded-lg font-medium"
+          onClick={onVisitListings}
+        >
+          <Eye className="w-4 h-4 mr-2" />
+          Visit Listings
         </Button>
       </div>
     </div>

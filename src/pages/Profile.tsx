@@ -1,6 +1,5 @@
-
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Settings, MoreHorizontal } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
@@ -8,46 +7,105 @@ import { useDogListings } from '@/hooks/useDogListings';
 import LoadingState from '@/components/ui/loading-state';
 import ProfileHeader from '@/components/profile/ProfileHeader';
 import ProfileActions from '@/components/profile/ProfileActions';
-import ProfileHighlights from '@/components/profile/ProfileHighlights';
-import ProfileTabs from '@/components/profile/ProfileTabs';
-import PhotoDetailModal from '@/components/profile/PhotoDetailModal';
+import PhotoGrid from '@/components/profile/PhotoGrid';
+import PostDetailModal from '@/components/profile/PostDetailModal';
+import StatsModal from '@/components/profile/StatsModal';
 
 interface Photo {
   id: string;
   url: string;
   caption?: string;
+  breed?: string;
+  age?: string;
+  tags?: string[];
+  datePosted?: string;
 }
 
 const Profile = () => {
   const { user, isGuest } = useAuth();
   const { loading } = useDogListings();
+  const navigate = useNavigate();
+  
   const [selectedPhoto, setSelectedPhoto] = useState<Photo | null>(null);
   const [isPhotoModalOpen, setIsPhotoModalOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState('photos');
+  const [statsModal, setStatsModal] = useState<{
+    isOpen: boolean;
+    type: 'followers' | 'following' | 'puppies';
+  }>({ isOpen: false, type: 'followers' });
+  const [isFollowing, setIsFollowing] = useState(false);
 
-  // Sample photo data
-  const [posts] = useState<string[]>([
-    'https://images.unsplash.com/photo-1605568427561-40dd23c2acea?w=300&h=300&fit=crop',
-    'https://images.unsplash.com/photo-1518717758536-85ae29035b6d?w=300&h=300&fit=crop',
-    'https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=300&h=300&fit=crop',
-    'https://images.unsplash.com/photo-1552053831-71594a27632d?w=300&h=300&fit=crop',
-    'https://images.unsplash.com/photo-1583337130417-3346a1be7dee?w=300&h=300&fit=crop',
-    'https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=300&h=300&fit=crop',
-    'https://images.unsplash.com/photo-1574144611937-0df059b5ef3e?w=300&h=300&fit=crop',
-    'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?w=300&h=300&fit=crop',
-    'https://images.unsplash.com/photo-1561037404-61cd46aa615b?w=300&h=300&fit=crop',
-    'https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?w=300&h=300&fit=crop',
-    'https://images.unsplash.com/photo-1554692918-0b2d3e93516e?w=300&h=300&fit=crop',
-    'https://images.unsplash.com/photo-1507146426996-ef05306b995a?w=300&h=300&fit=crop'
+  // Sample photo data with enhanced properties
+  const [posts] = useState<Photo[]>([
+    {
+      id: '1',
+      url: 'https://images.unsplash.com/photo-1605568427561-40dd23c2acea?w=300&h=300&fit=crop',
+      caption: 'Beautiful Golden Retriever puppy looking for a loving home!',
+      breed: 'Golden Retriever',
+      age: '8 weeks',
+      tags: ['puppy', 'golden', 'playful'],
+      datePosted: '2 days ago'
+    },
+    {
+      id: '2',
+      url: 'https://images.unsplash.com/photo-1518717758536-85ae29035b6d?w=300&h=300&fit=crop',
+      caption: 'Adorable Beagle puppy ready for adoption',
+      breed: 'Beagle',
+      age: '10 weeks',
+      tags: ['beagle', 'cute', 'friendly'],
+      datePosted: '1 week ago'
+    },
+    // ... keep existing photo URLs and add more sample data
+    {
+      id: '3',
+      url: 'https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=300&h=300&fit=crop',
+      breed: 'Labrador',
+      age: '12 weeks'
+    },
+    {
+      id: '4',
+      url: 'https://images.unsplash.com/photo-1552053831-71594a27632d?w=300&h=300&fit=crop',
+      breed: 'German Shepherd',
+      age: '6 weeks'
+    },
+    {
+      id: '5',
+      url: 'https://images.unsplash.com/photo-1583337130417-3346a1be7dee?w=300&h=300&fit=crop',
+      breed: 'Husky',
+      age: '9 weeks'
+    },
+    {
+      id: '6',
+      url: 'https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=300&h=300&fit=crop',
+      breed: 'Poodle',
+      age: '7 weeks'
+    }
   ]);
 
-  // Sample highlights data
-  const [highlights] = useState([
-    { id: 'new', title: 'New', isNew: true },
-    { id: 1, title: 'Poodle', cover: 'https://images.unsplash.com/photo-1616190909555-bfae6efa2b3b?w=100&h=100&fit=crop' },
-    { id: 2, title: 'Golden Retriever', cover: 'https://images.unsplash.com/photo-1552053831-71594a27632d?w=100&h=100&fit=crop' },
-    { id: 3, title: 'Beagle', cover: 'https://images.unsplash.com/photo-1605568427561-40dd23c2acea?w=100&h=100&fit=crop' },
-  ]);
+  // Sample data for modals
+  const sampleFollowers = [
+    { id: '1', name: 'Sarah Johnson', username: 'sarah_j', verified: true },
+    { id: '2', name: 'Mike Davis', username: 'mike_d' },
+    { id: '3', name: 'Emma Wilson', username: 'emma_w', verified: true }
+  ];
+
+  const samplePuppies = [
+    {
+      id: '1',
+      name: 'Max',
+      breed: 'Golden Retriever',
+      age: '8 weeks',
+      price: 1200,
+      image: 'https://images.unsplash.com/photo-1605568427561-40dd23c2acea?w=200&h=200&fit=crop'
+    },
+    {
+      id: '2',
+      name: 'Bella',
+      breed: 'Beagle',
+      age: '10 weeks',
+      price: 800,
+      image: 'https://images.unsplash.com/photo-1518717758536-85ae29035b6d?w=200&h=200&fit=crop'
+    }
+  ];
 
   if (loading) {
     return <LoadingState message="Loading your profile..." />;
@@ -61,25 +119,66 @@ const Profile = () => {
 
   const profileStats = {
     posts: posts.length,
-    followers: 10000,
+    followers: 1247,
     following: 543
   };
 
   const handleMessage = () => {
-    console.log('Message clicked');
+    navigate('/messages');
   };
 
   const handleFollow = () => {
-    console.log('Follow clicked');
+    setIsFollowing(!isFollowing);
   };
 
   const handleShare = () => {
-    console.log('Share clicked');
+    if (navigator.share) {
+      navigator.share({
+        title: `${displayName}'s Profile`,
+        url: window.location.href
+      });
+    }
+  };
+
+  const handleEditProfile = () => {
+    // Open edit profile modal or navigate to edit page
+    console.log('Edit profile clicked');
+  };
+
+  const handleVisitListings = () => {
+    // Scroll to listings or navigate to listings page
+    navigate('/explore');
+  };
+
+  const handleStatsClick = (type: 'posts' | 'followers' | 'following') => {
+    if (type === 'posts') {
+      // Scroll to photo grid
+      return;
+    }
+    setStatsModal({ isOpen: true, type: type as 'followers' | 'following' });
+  };
+
+  const handlePhotoClick = (photo: Photo) => {
+    setSelectedPhoto(photo);
+    setIsPhotoModalOpen(true);
+  };
+
+  const handlePhotoLongPress = (photo: Photo) => {
+    // Show edit/delete options for own posts
+    console.log('Long press on photo:', photo.id);
+  };
+
+  const handleFollowToggle = (userId: string) => {
+    console.log('Toggle follow for user:', userId);
+  };
+
+  const handlePuppyClick = (puppyId: string) => {
+    navigate(`/listings/${puppyId}`);
   };
 
   return (
     <div className="min-h-screen bg-white">
-      {/* Mobile Header */}
+      {/* Sticky Header */}
       <div className="sticky top-0 z-50 bg-white border-b border-gray-200">
         <div className="max-w-md mx-auto px-4 py-3">
           <div className="flex items-center justify-between">
@@ -102,11 +201,12 @@ const Profile = () => {
         {/* Profile Header */}
         <ProfileHeader
           displayName={displayName}
-          location="Location Tag, USA"
-          bio="Connecting happy, healthy puppies with loving families 🐾"
+          location="San Francisco, CA"
+          bio="Passionate breeder specializing in Golden Retrievers and Labradors. 🐾 Raising healthy, happy puppies with love."
           isVerified={!isGuest}
           stats={profileStats}
           avatarUrl="https://images.unsplash.com/photo-1605568427561-40dd23c2acea?w=300&h=300&fit=crop&crop=face"
+          onStatsClick={handleStatsClick}
         />
 
         {/* Profile Actions */}
@@ -115,31 +215,41 @@ const Profile = () => {
           onMessage={handleMessage}
           onFollow={handleFollow}
           onShare={handleShare}
+          onEditProfile={handleEditProfile}
+          onVisitListings={handleVisitListings}
+          isFollowing={isFollowing}
         />
 
-        {/* Story Highlights */}
-        <ProfileHighlights 
-          highlights={highlights} 
-          isOwnProfile={isOwnProfile} 
-        />
-
-        {/* Profile Tabs */}
-        <ProfileTabs
-          activeTab={activeTab}
-          setActiveTab={setActiveTab}
-          posts={posts}
+        {/* Photo Grid */}
+        <PhotoGrid
+          photos={posts}
+          onPhotoClick={handlePhotoClick}
+          onPhotoLongPress={handlePhotoLongPress}
           isOwnProfile={isOwnProfile}
         />
       </div>
 
-      {/* Photo Detail Modal */}
-      <PhotoDetailModal
+      {/* Post Detail Modal */}
+      <PostDetailModal
         photo={selectedPhoto}
         isOpen={isPhotoModalOpen}
         onClose={() => {
           setIsPhotoModalOpen(false);
           setSelectedPhoto(null);
         }}
+        isOwnPost={isOwnProfile}
+        onEdit={() => console.log('Edit post')}
+        onDelete={() => console.log('Delete post')}
+      />
+
+      {/* Stats Modal */}
+      <StatsModal
+        isOpen={statsModal.isOpen}
+        onClose={() => setStatsModal({ ...statsModal, isOpen: false })}
+        type={statsModal.type}
+        data={statsModal.type === 'puppies' ? samplePuppies : sampleFollowers}
+        onFollowToggle={handleFollowToggle}
+        onPuppyClick={handlePuppyClick}
       />
 
       {/* Bottom Navigation */}
