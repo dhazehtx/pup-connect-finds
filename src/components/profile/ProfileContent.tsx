@@ -121,14 +121,6 @@ const ProfileContent = ({
 
   console.log('ProfileContent: About to render components');
 
-  // Create a profile object for ProfileActions that matches the expected interface
-  const profileForActions = displayProfile.full_name ? {
-    id: displayProfile.id,
-    full_name: displayProfile.full_name,
-    email: displayProfile.email,
-    phone: displayProfile.phone
-  } : undefined;
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
       {/* Mobile Header - Enhanced with gradient */}
@@ -270,7 +262,6 @@ const ProfileContent = ({
             <Card className="bg-white border-0 shadow-lg">
               <CardContent className="p-4">
                 <ProfileActions 
-                  profile={profileForActions}
                   isOwnProfile={isOwnProfile}
                 />
               </CardContent>
