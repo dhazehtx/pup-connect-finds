@@ -151,6 +151,10 @@ const UnifiedProfileView = ({ userId, isCurrentUser }: UnifiedProfileViewProps) 
     console.log('Edit profile clicked');
   };
 
+  const handleSettings = () => {
+    navigate('/settings');
+  };
+
   const handleViewPublicProfile = () => {
     console.log('View public profile clicked');
   };
@@ -179,26 +183,21 @@ const UnifiedProfileView = ({ userId, isCurrentUser }: UnifiedProfileViewProps) 
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="sticky top-0 z-50 bg-white border-b border-gray-200">
-        <div className="max-w-md mx-auto px-4 py-3">
-          <div className="flex items-center justify-between">
-            {!isCurrentUser && (
+      {/* Header - Only show for non-current users */}
+      {!isCurrentUser && (
+        <div className="sticky top-0 z-50 bg-white border-b border-gray-200">
+          <div className="max-w-md mx-auto px-4 py-3">
+            <div className="flex items-center justify-between">
               <Button variant="ghost" size="sm" onClick={() => navigate(-1)}>
                 <ArrowLeft className="w-5 h-5" />
               </Button>
-            )}
-            <h1 className="text-xl font-semibold text-gray-900 flex-1 text-center">
-              {isCurrentUser ? '@' + (displayName.toLowerCase().replace(/\s+/g, '')) : displayName}
-            </h1>
-            {isCurrentUser && (
-              <Button variant="ghost" size="sm" onClick={handleEditProfile}>
-                <Settings className="w-5 h-5" />
-              </Button>
-            )}
+              <h1 className="text-xl font-semibold text-gray-900 flex-1 text-center">
+                {displayName}
+              </h1>
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
       <div className="max-w-md mx-auto bg-white">
         {/* Profile Section */}
@@ -281,12 +280,22 @@ const UnifiedProfileView = ({ userId, isCurrentUser }: UnifiedProfileViewProps) 
           {/* Action Buttons */}
           {isCurrentUser ? (
             <div className="space-y-3">
-              <Button 
-                onClick={handleEditProfile}
-                className="w-full bg-blue-500 hover:bg-blue-600 text-white h-12 rounded-xl font-medium"
-              >
-                Edit Profile
-              </Button>
+              <div className="flex items-center space-x-3">
+                <Button 
+                  onClick={handleEditProfile}
+                  className="flex-1 bg-blue-500 hover:bg-blue-600 text-white h-12 rounded-xl font-medium"
+                >
+                  Edit Profile
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="icon"
+                  onClick={handleSettings}
+                  className="h-12 w-12 rounded-xl border-gray-300"
+                >
+                  <Settings className="w-5 h-5" />
+                </Button>
+              </div>
               <div className="flex space-x-3">
                 <Button 
                   variant="outline" 
