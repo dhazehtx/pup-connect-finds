@@ -199,7 +199,7 @@ const UnifiedProfileView = ({ userId, isCurrentUser }: UnifiedProfileViewProps) 
         </div>
       )}
 
-      <div className="max-w-md mx-auto bg-white">
+      <div className="max-w-md mx-auto bg-white min-h-screen">
         {/* Profile Section */}
         <div className="px-6 py-6">
           {/* Profile Picture and Basic Info */}
