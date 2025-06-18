@@ -13,8 +13,6 @@ import ProfileActionButtons from '@/components/profile/ProfileActionButtons';
 import PuppyHighlights from '@/components/profile/PuppyHighlights';
 import TabsNavigation from '@/components/profile/TabsNavigation';
 import BottomNavigation from '@/components/profile/BottomNavigation';
-import { Badge } from '@/components/ui/badge';
-import { MapPin } from 'lucide-react';
 
 interface Photo {
   id: string;
@@ -228,34 +226,6 @@ const UnifiedProfileView = ({ userId, isCurrentUser }: UnifiedProfileViewProps) 
             onFollowersClick={() => handleStatsClick('followers')}
             onFollowingClick={() => handleStatsClick('following')}
           />
-
-          {/* Bio Section - Positioned after stats */}
-          <div className="text-center mb-6">
-            <p className="text-gray-700 text-sm leading-relaxed mb-4">
-              {isCurrentUser && !isPublicView
-                ? "Connecting happy, healthy puppies with loving families 🐾" 
-                : "Passionate breeder specializing in Golden Retrievers and Labradors. 🐾 Raising healthy, happy puppies with love."
-              }
-            </p>
-            
-            {/* Location */}
-            <div className="flex items-center justify-center space-x-1 text-gray-600 mb-6">
-              <MapPin className="w-4 h-4" />
-              <span className="text-sm">Location Tag, USA</span>
-            </div>
-
-            {/* Badges */}
-            <div className="flex flex-wrap justify-center gap-2 mb-6">
-              {userBadges.map((badge, index) => (
-                <Badge key={index} className={`text-xs ${badge.color} border-0`}>
-                  <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                  </svg>
-                  {badge.name}
-                </Badge>
-              ))}
-            </div>
-          </div>
 
           {/* Action Buttons */}
           <ProfileActionButtons
