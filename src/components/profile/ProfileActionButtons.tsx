@@ -32,7 +32,7 @@ const ProfileActionButtons = ({
         <div className="flex items-center space-x-3">
           <Button 
             onClick={onEditProfile}
-            className="flex-1 bg-blue-500 hover:bg-blue-600 text-white h-12 rounded-xl font-medium"
+            className="flex-1 bg-blue-500 hover:bg-blue-600 text-white h-12 rounded-xl font-medium border border-blue-500 shadow-sm"
           >
             Edit Profile
           </Button>
@@ -40,7 +40,7 @@ const ProfileActionButtons = ({
             variant="outline" 
             size="icon"
             onClick={onSettings}
-            className="h-12 w-12 rounded-xl border-gray-300"
+            className="h-12 w-12 rounded-xl border-gray-300 bg-white shadow-sm"
           >
             <Settings className="w-5 h-5" />
           </Button>
@@ -49,7 +49,7 @@ const ProfileActionButtons = ({
           <Button 
             variant="outline" 
             onClick={onShare}
-            className="flex-1 h-10 rounded-xl border-gray-300"
+            className="flex-1 h-10 rounded-xl border-gray-300 bg-white shadow-sm"
           >
             <Share className="w-4 h-4 mr-2" />
             Share Profile
@@ -57,7 +57,7 @@ const ProfileActionButtons = ({
           <Button 
             variant="outline" 
             onClick={onViewPublicProfile}
-            className="flex-1 h-10 rounded-xl border-gray-300"
+            className="flex-1 h-10 rounded-xl border-gray-300 bg-white shadow-sm"
           >
             <Eye className="w-4 h-4 mr-2" />
             View Public
@@ -72,14 +72,14 @@ const ProfileActionButtons = ({
       <div className="flex space-x-3">
         <Button 
           onClick={onMessage}
-          className="flex-1 bg-blue-500 hover:bg-blue-600 text-white h-12 rounded-xl font-medium"
+          className="flex-1 bg-blue-500 hover:bg-blue-600 text-white h-12 rounded-xl font-medium border border-blue-500 shadow-sm"
         >
           Message
         </Button>
         <Button 
           variant="outline" 
           onClick={onShare}
-          className="h-12 px-6 rounded-xl border-gray-300 font-medium"
+          className="h-12 px-6 rounded-xl border-gray-300 bg-white font-medium shadow-sm"
         >
           <Share className="w-4 h-4 mr-2" />
           Share
@@ -87,7 +87,11 @@ const ProfileActionButtons = ({
         <Button 
           variant={isFollowing ? "outline" : "default"}
           onClick={onFollow}
-          className="flex-1 h-12 rounded-xl font-medium"
+          className={`flex-1 h-12 rounded-xl font-medium shadow-sm ${
+            isFollowing 
+              ? 'border-gray-300 bg-white' 
+              : 'bg-blue-500 hover:bg-blue-600 text-white border-blue-500'
+          }`}
         >
           {isFollowing ? 'Following' : 'Follow'}
         </Button>
