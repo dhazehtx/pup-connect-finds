@@ -1,103 +1,65 @@
 
-import React, { useState } from 'react';
-import { Phone, Heart, UserPlus, UserCheck } from 'lucide-react';
+import React from 'react';
+import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { useAuth } from '@/contexts/AuthContext';
-import { useToast } from '@/hooks/use-toast';
-import ContactDialog from './ContactDialog';
+import { MessageCircle, UserPlus, Eye, Share } from 'lucide-react';
 
 interface ProfileActionsProps {
-  profile?: {
-    id: string;
-    full_name: string;
-    email?: string;
-    phone?: string;
-  };
-  isOwnProfile?: boolean;
+  isOwnProfile: boolean;
+  onMessage?: () => void;
+  onFollow?: () => void;
+  onShare?: () => void;
 }
 
-const ProfileActions = ({ profile, isOwnProfile }: ProfileActionsProps) => {
-  const [isFollowing, setIsFollowing] = useState(false);
-  const [showContactDialog, setShowContactDialog] = useState(false);
-  const { user } = useAuth();
-  const { toast } = useToast();
-
-  const handleFollow = () => {
-    if (!user) {
-      toast({
-        title: "Login required",
-        description: "Please log in to follow users",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setIsFollowing(!isFollowing);
-    toast({
-      title: isFollowing ? "Unfollowed" : "Following",
-      description: isFollowing 
-        ? `You have unfollowed ${profile?.full_name}` 
-        : `You are now following ${profile?.full_name}`,
-    });
-  };
-
-  const handleContact = () => {
-    if (!user) {
-      toast({
-        title: "Login required",
-        description: "Please log in to contact users",
-        variant: "destructive",
-      });
-      return;
-    }
-    setShowContactDialog(true);
-  };
-
-  // Don't show actions for own profile
+const ProfileActions = ({ 
+  isOwnProfile, 
+  onMessage, 
+  onFollow, 
+  onShare 
+}: ProfileActionsProps) => {
   if (isOwnProfile) {
-    return null;
+    return (
+      <div className="px-4 mb-6">
+        <div className="flex space-x-2">
+          <Link to="/edit-profile" className="flex-1">
+            <Button variant="outline" className="w-full">
+              Edit Profile
+            </Button>
+          </Link>
+          <Button variant="outline" onClick={onShare}>
+            <Share className="w-4 h-4" />
+          </Button>
+        </div>
+      </div>
+    );
   }
 
   return (
-    <>
-      <div className="flex gap-2 mb-4">
+    <div className="px-4 mb-6">
+      <div className="flex space-x-2">
         <Button 
-          onClick={handleContact}
-          className="flex-1 bg-blue-500 text-white hover:bg-blue-600"
+          onClick={onMessage}
+          className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
         >
-          <Phone size={16} className="mr-2" />
-          Contact
+          <MessageCircle className="w-4 h-4 mr-2" />
+          Message
         </Button>
         <Button 
-          onClick={handleFollow}
-          className={`flex-1 ${
-            isFollowing 
-              ? 'bg-gray-200 text-gray-700 hover:bg-gray-300' 
-              : 'bg-blue-500 text-white hover:bg-blue-600'
-          }`}
+          variant="outline" 
+          onClick={onFollow}
+          className="flex-1"
         >
-          {isFollowing ? (
-            <>
-              <UserCheck size={16} className="mr-2" />
-              Following
-            </>
-          ) : (
-            <>
-              <UserPlus size={16} className="mr-2" />
-              Follow
-            </>
-          )}
+          <UserPlus className="w-4 h-4 mr-2" />
+          Follow
         </Button>
+        <Link to="/explore">
+          <Button variant="outline">
+            <Eye className="w-4 h-4 mr-2" />
+            Visit Listings
+          </Button>
+        </Link>
       </div>
-
-      {profile && (
-        <ContactDialog
-          isOpen={showContactDialog}
-          onClose={() => setShowContactDialog(false)}
-          profile={profile}
-        />
-      )}
-    </>
+    </div>
   );
 };
 

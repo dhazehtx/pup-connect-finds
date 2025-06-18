@@ -1,46 +1,63 @@
 
 import React from 'react';
-import { MapPin, Calendar, CheckCircle, Star } from 'lucide-react';
+import { MapPin, CheckCircle } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import { UserProfile } from '@/types/profile';
 
 interface ProfileHeaderProps {
-  profile: UserProfile;
+  displayName: string;
+  location?: string;
+  bio?: string;
+  isVerified?: boolean;
+  avatarUrl?: string;
+  stats: {
+    posts: number;
+    followers: number;
+    following: number;
+  };
 }
 
-const ProfileHeader = ({ profile }: ProfileHeaderProps) => {
-  if (!profile) {
-    return <div>Loading profile...</div>;
-  }
-
+const ProfileHeader = ({ 
+  displayName, 
+  location, 
+  bio, 
+  isVerified, 
+  avatarUrl,
+  stats 
+}: ProfileHeaderProps) => {
   return (
-    <>
-      {/* Profile Header */}
-      <div className="flex items-center gap-4 mb-4">
+    <div className="px-4 py-6 bg-white">
+      {/* Profile Avatar and Stats Row */}
+      <div className="flex items-start space-x-6 mb-4">
+        {/* Avatar */}
         <div className="relative">
-          <img
-            src={profile.avatar_url || 'https://images.unsplash.com/photo-1560743173-567a3b5658b1?w=150&h=150&fit=crop&crop=face'}
-            alt={profile.full_name || profile.username || 'Profile'}
-            className="w-20 h-20 rounded-full object-cover"
-          />
-          {profile.verified && (
-            <div className="absolute -bottom-1 -right-1 bg-blue-500 rounded-full p-1">
-              <CheckCircle size={16} className="text-white" />
-            </div>
-          )}
+          <div className="w-24 h-24 rounded-full overflow-hidden border-2 border-gray-200">
+            {avatarUrl ? (
+              <img 
+                src={avatarUrl} 
+                alt={displayName}
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <div className="w-full h-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white text-2xl font-bold">
+                {displayName.charAt(0).toUpperCase()}
+              </div>
+            )}
+          </div>
         </div>
+        
+        {/* Stats */}
         <div className="flex-1">
-          <div className="flex gap-6 text-center">
+          <div className="flex justify-around text-center">
             <div>
-              <div className="font-semibold text-black">{profile.stats?.posts || 0}</div>
+              <div className="font-bold text-xl text-gray-900">{stats.posts}</div>
               <div className="text-gray-600 text-sm">Posts</div>
             </div>
             <div>
-              <div className="font-semibold text-black">{(profile.stats?.followers || 0).toLocaleString()}</div>
+              <div className="font-bold text-xl text-gray-900">{stats.followers.toLocaleString()}</div>
               <div className="text-gray-600 text-sm">Followers</div>
             </div>
             <div>
-              <div className="font-semibold text-black">{profile.stats?.following || 0}</div>
+              <div className="font-bold text-xl text-gray-900">{stats.following}</div>
               <div className="text-gray-600 text-sm">Following</div>
             </div>
           </div>
@@ -48,43 +65,29 @@ const ProfileHeader = ({ profile }: ProfileHeaderProps) => {
       </div>
 
       {/* Profile Info */}
-      <div className="mb-4">
-        <div className="flex items-center gap-2 mb-2">
-          <h2 className="font-semibold text-sm text-black">{profile.full_name || profile.username}</h2>
-          {profile.user_type === 'breeder' && (
-            <Badge className="bg-green-500 text-white text-xs">
-              <CheckCircle size={10} className="mr-1" />
-              Verified Breeder
+      <div className="space-y-2">
+        <div className="flex items-center space-x-2">
+          <h2 className="font-semibold text-gray-900">{displayName}</h2>
+          {isVerified && (
+            <Badge variant="verified" className="flex items-center space-x-1">
+              <CheckCircle className="w-3 h-3" />
+              <span>Verified Breeder</span>
             </Badge>
           )}
         </div>
         
-        {/* Rating */}
-        <div className="flex items-center gap-2 mb-2">
-          <div className="flex items-center gap-1">
-            <Star size={14} className="text-blue-500 fill-current" />
-            <span className="text-sm font-medium text-black">{profile.rating || 0}</span>
+        {location && (
+          <div className="flex items-center space-x-1 text-gray-600">
+            <MapPin className="w-4 h-4" />
+            <span className="text-sm">{location}</span>
           </div>
-          <span className="text-sm text-gray-600">({profile.total_reviews || 0} reviews)</span>
-        </div>
-
-        {profile.bio && (
-          <p className="text-sm text-gray-600 mb-2">{profile.bio}</p>
         )}
         
-        {profile.location && (
-          <div className="flex items-center gap-1 text-sm text-gray-600 mb-2">
-            <MapPin size={12} />
-            {profile.location}
-          </div>
+        {bio && (
+          <p className="text-gray-700 text-sm leading-relaxed">{bio}</p>
         )}
-
-        <div className="flex items-center gap-1 text-sm text-gray-600 mb-3">
-          <Calendar size={12} />
-          {profile.years_experience || 0} years experience
-        </div>
       </div>
-    </>
+    </div>
   );
 };
 
