@@ -199,7 +199,8 @@ const UnifiedProfileView = ({ userId, isCurrentUser }: UnifiedProfileViewProps) 
         </div>
       )}
 
-      <div className="max-w-md mx-auto bg-white min-h-screen">
+      {/* Main Content Container */}
+      <div className="w-full max-w-md mx-auto bg-white min-h-screen">
         {/* Profile Section */}
         <div className="px-6 py-6">
           {/* Profile Picture and Basic Info */}
@@ -393,7 +394,7 @@ const UnifiedProfileView = ({ userId, isCurrentUser }: UnifiedProfileViewProps) 
         )}
 
         {/* Tab Content */}
-        <div className="min-h-96">
+        <div className="relative">
           {activeTab === 'photos' && (
             <PhotoGrid
               photos={posts}
