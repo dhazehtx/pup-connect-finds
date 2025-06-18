@@ -77,6 +77,14 @@ const ProfileActionButtons = ({
           Message
         </Button>
         <Button 
+          variant="outline" 
+          onClick={onShare}
+          className="h-12 px-6 rounded-xl border-gray-300 font-medium"
+        >
+          <Share className="w-4 h-4 mr-2" />
+          Share
+        </Button>
+        <Button 
           variant={isFollowing ? "outline" : "default"}
           onClick={onFollow}
           className="flex-1 h-12 rounded-xl font-medium"
