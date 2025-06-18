@@ -1,19 +1,14 @@
-
-import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState } from 'react';
+import { Settings, MoreHorizontal } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Settings, MoreHorizontal, Grid, User } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useDogListings } from '@/hooks/useDogListings';
 import LoadingState from '@/components/ui/loading-state';
 import ProfileHeader from '@/components/profile/ProfileHeader';
 import ProfileActions from '@/components/profile/ProfileActions';
-import PhotoGrid from '@/components/profile/PhotoGrid';
-import PhotoDetailModal from '@/components/profile/PhotoDetailModal';
 import ProfileHighlights from '@/components/profile/ProfileHighlights';
-import PostForm from '@/components/posts/PostForm';
-import PostFeed from '@/components/posts/PostFeed';
-import PremiumUpgradePrompt from '@/components/profile/PremiumUpgradePrompt';
+import ProfileTabs from '@/components/profile/ProfileTabs';
+import PhotoDetailModal from '@/components/profile/PhotoDetailModal';
 
 interface Photo {
   id: string;
@@ -23,89 +18,61 @@ interface Photo {
 
 const Profile = () => {
   const { user, isGuest } = useAuth();
-  const { userListings, loading, deleteListing } = useDogListings();
-  const [refreshPosts, setRefreshPosts] = useState(0);
+  const { loading } = useDogListings();
   const [selectedPhoto, setSelectedPhoto] = useState<Photo | null>(null);
   const [isPhotoModalOpen, setIsPhotoModalOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState('grid');
+  const [activeTab, setActiveTab] = useState('photos');
 
-  // Sample photo data - replace with actual data from your backend
-  const [photos] = useState<Photo[]>([
-    { id: '1', url: 'https://images.unsplash.com/photo-1605568427561-40dd23c2acea?w=300&h=300&fit=crop', caption: 'Beautiful Golden Retriever puppy' },
-    { id: '2', url: 'https://images.unsplash.com/photo-1518717758536-85ae29035b6d?w=300&h=300&fit=crop', caption: 'Training session with Max' },
-    { id: '3', url: 'https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=300&h=300&fit=crop', caption: 'Puppy playtime' },
-    { id: '4', url: 'https://images.unsplash.com/photo-1552053831-71594a27632d?w=300&h=300&fit=crop', caption: 'Health check with vet' },
-    { id: '5', url: 'https://images.unsplash.com/photo-1583337130417-3346a1be7dee?w=300&h=300&fit=crop', caption: 'Happy family adoption' },
-    { id: '6', url: 'https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=300&h=300&fit=crop', caption: 'New litter announcement' },
+  // Sample photo data
+  const [posts] = useState<string[]>([
+    'https://images.unsplash.com/photo-1605568427561-40dd23c2acea?w=300&h=300&fit=crop',
+    'https://images.unsplash.com/photo-1518717758536-85ae29035b6d?w=300&h=300&fit=crop',
+    'https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=300&h=300&fit=crop',
+    'https://images.unsplash.com/photo-1552053831-71594a27632d?w=300&h=300&fit=crop',
+    'https://images.unsplash.com/photo-1583337130417-3346a1be7dee?w=300&h=300&fit=crop',
+    'https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=300&h=300&fit=crop',
+    'https://images.unsplash.com/photo-1574144611937-0df059b5ef3e?w=300&h=300&fit=crop',
+    'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?w=300&h=300&fit=crop',
+    'https://images.unsplash.com/photo-1561037404-61cd46aa615b?w=300&h=300&fit=crop',
+    'https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?w=300&h=300&fit=crop',
+    'https://images.unsplash.com/photo-1554692918-0b2d3e93516e?w=300&h=300&fit=crop',
+    'https://images.unsplash.com/photo-1507146426996-ef05306b995a?w=300&h=300&fit=crop'
   ]);
 
   // Sample highlights data
   const [highlights] = useState([
-    { id: 1, title: 'Puppies', cover: 'https://images.unsplash.com/photo-1605568427561-40dd23c2acea?w=100&h=100&fit=crop', type: 'image' as const },
-    { id: 2, title: 'Training', cover: 'https://images.unsplash.com/photo-1551717758536-85ae29035b6d?w=100&h=100&fit=crop', type: 'image' as const },
-    { id: 3, title: 'Health', cover: 'https://images.unsplash.com/photo-1518717758536-85ae29035b6d?w=100&h=100&fit=crop', type: 'image' as const },
-    { id: 4, title: 'Reviews', cover: 'https://images.unsplash.com/photo-1583337130417-3346a1be7dee?w=100&h=100&fit=crop', type: 'image' as const },
-    ...(user && !isGuest ? [{ id: 'new', title: 'New', cover: '', isNew: true }] : [])
+    { id: 'new', title: 'New', isNew: true },
+    { id: 1, title: 'Poodle', cover: 'https://images.unsplash.com/photo-1616190909555-bfae6efa2b3b?w=100&h=100&fit=crop' },
+    { id: 2, title: 'Golden Retriever', cover: 'https://images.unsplash.com/photo-1552053831-71594a27632d?w=100&h=100&fit=crop' },
+    { id: 3, title: 'Beagle', cover: 'https://images.unsplash.com/photo-1605568427561-40dd23c2acea?w=100&h=100&fit=crop' },
   ]);
-
-  if (!user && !isGuest) {
-    return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900 mb-4">Access Denied</h1>
-          <p className="text-gray-600 mb-6">Please sign in to view your profile.</p>
-          <Link to="/auth">
-            <Button>Sign In</Button>
-          </Link>
-        </div>
-      </div>
-    );
-  }
 
   if (loading) {
     return <LoadingState message="Loading your profile..." />;
   }
 
-  const handleDeleteListing = async (listingId: string) => {
-    if (window.confirm('Are you sure you want to delete this listing?')) {
-      await deleteListing(listingId);
-    }
-  };
-
-  const handlePostCreated = () => {
-    setRefreshPosts(prev => prev + 1);
-  };
-
-  const handlePhotoClick = (photo: Photo) => {
-    setSelectedPhoto(photo);
-    setIsPhotoModalOpen(true);
-  };
-
-  const handleMessage = () => {
-    // Implement messaging functionality
-    console.log('Message clicked');
-  };
-
-  const handleFollow = () => {
-    // Implement follow functionality
-    console.log('Follow clicked');
-  };
-
-  const handleShare = () => {
-    // Implement share functionality
-    console.log('Share clicked');
-  };
-
   const displayName = isGuest 
     ? 'Guest User' 
-    : user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'User';
+    : user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'My Pup';
 
   const isOwnProfile = user && !isGuest;
 
   const profileStats = {
-    posts: photos.length,
+    posts: posts.length,
     followers: 10000,
     following: 543
+  };
+
+  const handleMessage = () => {
+    console.log('Message clicked');
+  };
+
+  const handleFollow = () => {
+    console.log('Follow clicked');
+  };
+
+  const handleShare = () => {
+    console.log('Share clicked');
   };
 
   return (
@@ -114,11 +81,9 @@ const Profile = () => {
       <div className="sticky top-0 z-50 bg-white border-b border-gray-200">
         <div className="max-w-md mx-auto px-4 py-3">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2">
-              <h1 className="text-xl font-semibold text-gray-900">
-                {displayName.toLowerCase().replace(/\s+/g, '')}
-              </h1>
-            </div>
+            <h1 className="text-xl font-semibold text-gray-900">
+              {displayName.toLowerCase().replace(/\s+/g, '')}
+            </h1>
             <div className="flex items-center space-x-2">
               <Button variant="ghost" size="sm">
                 <Settings className="w-5 h-5" />
@@ -139,6 +104,7 @@ const Profile = () => {
           bio="Connecting happy, healthy puppies with loving families 🐾"
           isVerified={!isGuest}
           stats={profileStats}
+          avatarUrl="https://images.unsplash.com/photo-1605568427561-40dd23c2acea?w=300&h=300&fit=crop&crop=face"
         />
 
         {/* Profile Actions */}
@@ -149,77 +115,19 @@ const Profile = () => {
           onShare={handleShare}
         />
 
-        {/* Premium Upgrade Prompt - Only for authenticated users */}
-        {isOwnProfile && <PremiumUpgradePrompt />}
-
         {/* Story Highlights */}
-        <div className="px-4 mb-6">
-          <ProfileHighlights highlights={highlights} isOwnProfile={isOwnProfile} />
-        </div>
+        <ProfileHighlights 
+          highlights={highlights} 
+          isOwnProfile={isOwnProfile} 
+        />
 
-        {/* Post Form - Only for authenticated users */}
-        {isOwnProfile && (
-          <div className="px-4 mb-6">
-            <PostForm onPostCreated={handlePostCreated} />
-          </div>
-        )}
-
-        {/* Tab Navigation */}
-        <div className="border-t border-gray-200 mb-6">
-          <div className="flex">
-            <button 
-              className={`flex-1 flex items-center justify-center py-3 ${
-                activeTab === 'grid' ? 'border-t-2 border-gray-900' : ''
-              }`}
-              onClick={() => setActiveTab('grid')}
-            >
-              <Grid className={`w-6 h-6 ${activeTab === 'grid' ? 'text-gray-900' : 'text-gray-400'}`} />
-            </button>
-            <button 
-              className={`flex-1 flex items-center justify-center py-3 ${
-                activeTab === 'feed' ? 'border-t-2 border-gray-900' : ''
-              }`}
-              onClick={() => setActiveTab('feed')}
-            >
-              <div className={`w-6 h-6 border-2 rounded ${activeTab === 'feed' ? 'border-gray-900' : 'border-gray-400'}`}></div>
-            </button>
-            <button 
-              className={`flex-1 flex items-center justify-center py-3 ${
-                activeTab === 'tagged' ? 'border-t-2 border-gray-900' : ''
-              }`}
-              onClick={() => setActiveTab('tagged')}
-            >
-              <User className={`w-6 h-6 ${activeTab === 'tagged' ? 'text-gray-900' : 'text-gray-400'}`} />
-            </button>
-          </div>
-        </div>
-
-        {/* Content based on active tab */}
-        {activeTab === 'grid' && (
-          <PhotoGrid 
-            photos={photos} 
-            onPhotoClick={handlePhotoClick}
-          />
-        )}
-
-        {activeTab === 'feed' && (
-          <div className="px-4">
-            <PostFeed 
-              userId={user?.id} 
-              refreshTrigger={refreshPosts}
-            />
-          </div>
-        )}
-
-        {activeTab === 'tagged' && (
-          <div className="px-4 py-12 text-center">
-            <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <User className="w-8 h-8 text-gray-400" />
-            </div>
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No Tagged Posts</h3>
-            <p className="text-gray-500">Posts you're tagged in will appear here.</p>
-          </div>
-        )}
+        {/* Profile Tabs */}
+        <ProfileTabs
+          activeTab={activeTab}
+          setActiveTab={setActiveTab}
+          posts={posts}
+          isOwnProfile={isOwnProfile}
+        />
       </div>
 
       {/* Photo Detail Modal */}

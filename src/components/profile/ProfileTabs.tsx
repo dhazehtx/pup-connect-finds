@@ -1,104 +1,82 @@
 
 import React from 'react';
-import { Grid, MessageSquare, BarChart3 } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-import ReviewsSection from './ReviewsSection';
+import { Grid, BookOpen, User } from 'lucide-react';
+import PhotoGrid from './PhotoGrid';
 
-interface Review {
-  id: number;
-  author: string;
-  rating: number;
-  date: string;
-  text: string;
-  helpful: number;
-  verified: boolean;
+interface Photo {
+  id: string;
+  url: string;
+  caption?: string;
 }
 
 interface ProfileTabsProps {
   activeTab: string;
   setActiveTab: (tab: string) => void;
   posts: string[];
-  reviews: Review[];
-  analyticsComponent?: React.ReactNode;
-  isOwnProfile?: boolean;
-  userType?: string;
+  isOwnProfile: boolean;
 }
 
-const ProfileTabs = ({ 
-  activeTab, 
-  setActiveTab, 
-  posts, 
-  reviews, 
-  analyticsComponent,
-  isOwnProfile,
-  userType 
-}: ProfileTabsProps) => {
-  const navigate = useNavigate();
+const ProfileTabs = ({ activeTab, setActiveTab, posts, isOwnProfile }: ProfileTabsProps) => {
+  const tabs = [
+    { id: 'photos', label: 'Photos', icon: Grid },
+    { id: 'reviews', label: 'Reviews', icon: BookOpen },
+    { id: 'listings', label: 'Listings', icon: User }
+  ];
 
-  const handlePostClick = (postIndex: number) => {
-    navigate(`/post/${postIndex + 1}`);
-  };
+  const photoData: Photo[] = posts.map((url, index) => ({
+    id: `photo-${index}`,
+    url,
+    caption: `Photo ${index + 1}`
+  }));
 
   return (
-    <div className="w-full">
-      <div className="flex gap-8 mb-4 justify-center">
-        <button
-          onClick={() => setActiveTab('posts')}
-          className={`flex flex-col items-center gap-1 ${
-            activeTab === 'posts' ? 'text-blue-600' : 'text-gray-700'
-          }`}
-        >
-          <Grid size={20} />
-          <span className="text-sm font-medium">Posts</span>
-        </button>
-        <button
-          onClick={() => setActiveTab('reviews')}
-          className={`flex flex-col items-center gap-1 ${
-            activeTab === 'reviews' ? 'text-blue-600' : 'text-gray-700'
-          }`}
-        >
-          <MessageSquare size={20} />
-          <span className="text-sm font-medium">Reviews</span>
-        </button>
-        {isOwnProfile && analyticsComponent && (
-          <button
-            onClick={() => setActiveTab('analytics')}
-            className={`flex flex-col items-center gap-1 ${
-              activeTab === 'analytics' ? 'text-blue-600' : 'text-gray-700'
-            }`}
-          >
-            <BarChart3 size={20} />
-            <span className="text-sm font-medium">Analytics</span>
-          </button>
-        )}
+    <div>
+      {/* Tab Navigation */}
+      <div className="border-t border-gray-200">
+        <div className="flex">
+          {tabs.map((tab) => {
+            const Icon = tab.icon;
+            return (
+              <button
+                key={tab.id}
+                className={`flex-1 flex items-center justify-center py-4 text-sm font-medium border-b-2 transition-colors ${
+                  activeTab === tab.id
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700'
+                }`}
+                onClick={() => setActiveTab(tab.id)}
+              >
+                <Icon className="w-5 h-5 mr-1" />
+                {tab.label}
+              </button>
+            );
+          })}
+        </div>
       </div>
 
-      <div className="mt-4">
-        {activeTab === 'posts' && (
-          <div className="grid grid-cols-3 gap-1">
-            {posts.map((post, index) => (
-              <div 
-                key={index} 
-                className="aspect-square cursor-pointer hover:opacity-75 transition-opacity"
-                onClick={() => handlePostClick(index)}
-              >
-                <img
-                  src={post}
-                  alt={`Post ${index + 1}`}
-                  className="w-full h-full object-cover rounded-sm"
-                />
-              </div>
-            ))}
+      {/* Tab Content */}
+      <div className="min-h-96">
+        {activeTab === 'photos' && (
+          <PhotoGrid photos={photoData} />
+        )}
+        
+        {activeTab === 'reviews' && (
+          <div className="p-8 text-center">
+            <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <BookOpen className="w-8 h-8 text-gray-400" />
+            </div>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">No Reviews Yet</h3>
+            <p className="text-gray-500">Reviews from customers will appear here.</p>
           </div>
         )}
-
-        {activeTab === 'reviews' && (
-          <ReviewsSection reviews={reviews} userType={userType} />
-        )}
-
-        {activeTab === 'analytics' && isOwnProfile && analyticsComponent && (
-          <div>
-            {analyticsComponent}
+        
+        {activeTab === 'listings' && (
+          <div className="p-8 text-center">
+            <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <User className="w-8 h-8 text-gray-400" />
+            </div>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">No Listings Yet</h3>
+            <p className="text-gray-500">Active listings will appear here.</p>
           </div>
         )}
       </div>
