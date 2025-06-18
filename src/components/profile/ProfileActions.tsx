@@ -25,7 +25,7 @@ const ProfileActions = ({
   if (isOwnProfile) {
     return (
       <div className="px-6 mb-6">
-        <div className="flex space-x-3">
+        <div className="flex space-x-3 mb-3">
           <Button 
             variant="outline" 
             className="flex-1 h-10 rounded-lg"
@@ -44,7 +44,7 @@ const ProfileActions = ({
 
   return (
     <div className="px-6 mb-6">
-      <div className="flex space-x-3">
+      <div className="flex space-x-3 mb-3">
         <Button 
           onClick={onMessage}
           className="flex-1 bg-blue-600 hover:bg-blue-700 text-white h-10 rounded-lg font-medium"
@@ -62,7 +62,7 @@ const ProfileActions = ({
         </Button>
       </div>
       
-      <div className="mt-3">
+      <div>
         <Button 
           variant="outline" 
           className="w-full h-10 rounded-lg font-medium"
