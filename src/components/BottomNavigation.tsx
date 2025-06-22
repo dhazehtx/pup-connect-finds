@@ -33,9 +33,9 @@ const BottomNavigation = () => {
     {
       icon: Home,
       label: 'Home',
-      path: '/explore',
+      path: '/home',
       protected: false,
-      onClick: () => handleNavigation('/explore')
+      onClick: () => handleNavigation('/home')
     },
     {
       icon: Search,
@@ -68,6 +68,9 @@ const BottomNavigation = () => {
   ];
 
   const isActive = (path: string) => {
+    if (path === '/home') {
+      return location.pathname === '/home';
+    }
     if (path === '/explore') {
       return location.pathname === '/explore' || location.pathname === '/';
     }

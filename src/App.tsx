@@ -9,6 +9,7 @@ import { RealtimeProvider } from "@/contexts/RealtimeContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import Layout from "@/components/Layout";
 import Index from "@/pages/Index";
+import HomeFeed from "@/pages/HomeFeed";
 import ExploreWithFreemium from "@/components/explore/ExploreWithFreemium";
 import Marketplace from "@/pages/Marketplace";
 import ProfileWithFreemium from "@/components/profile/ProfileWithFreemium";
@@ -39,6 +40,7 @@ const App = () => (
               <Layout>
                 <Routes>
                   <Route path="/" element={<Index />} />
+                  <Route path="/home" element={<HomeFeed />} />
                   <Route path="/explore" element={<ExploreWithFreemium />} />
                   <Route path="/marketplace" element={<Marketplace />} />
                   <Route path="/profile" element={<ProfileWithFreemium />} />

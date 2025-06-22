@@ -21,7 +21,7 @@ const MobileTabBar = () => {
   if (!isMobile) return null;
 
   const tabs: TabItem[] = [
-    { id: 'home', label: 'Home', icon: <Home size={24} />, path: '/explore' },
+    { id: 'home', label: 'Home', icon: <Home size={24} />, path: '/home' },
     { id: 'explore', label: 'Explore', icon: <Search size={24} />, path: '/explore' },
     { id: 'marketplace', label: 'Marketplace', icon: <ShoppingBag size={24} />, path: '/marketplace' },
     { id: 'messages', label: 'Messages', icon: <MessageCircle size={24} />, path: '/messages' },
@@ -40,6 +40,7 @@ const MobileTabBar = () => {
       <div className="flex items-center justify-around py-2">
         {tabs.map((tab) => {
           const isActive = location.pathname === tab.path || 
+            (tab.path === '/home' && location.pathname === '/') ||
             (tab.path === '/explore' && (location.pathname === '/' || location.pathname === '/explore'));
           
           return (

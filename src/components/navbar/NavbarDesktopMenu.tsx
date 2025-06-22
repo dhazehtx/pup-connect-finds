@@ -13,6 +13,12 @@ const NavbarDesktopMenu = ({ user, onCreatePost }: NavbarDesktopMenuProps) => {
   return (
     <div className="hidden md:ml-6 md:flex md:space-x-8">
       <Link
+        to="/home"
+        className="text-gray-500 hover:text-gray-700 px-3 py-2 rounded-md text-sm font-medium"
+      >
+        Home
+      </Link>
+      <Link
         to="/explore"
         className="text-gray-500 hover:text-gray-700 px-3 py-2 rounded-md text-sm font-medium"
       >

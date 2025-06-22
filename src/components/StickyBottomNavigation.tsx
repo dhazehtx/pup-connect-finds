@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Home, Search, ShoppingBag, User, Heart } from 'lucide-react';
+import { Home, Search, ShoppingBag, MessageCircle, User } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 
 const StickyBottomNavigation = () => {
@@ -10,6 +10,9 @@ const StickyBottomNavigation = () => {
   const { user } = useAuth();
 
   const isActive = (path: string) => {
+    if (path === '/home') {
+      return location.pathname === '/home';
+    }
     if (path === '/explore') {
       return location.pathname === path || location.pathname === '/';
     }
@@ -17,10 +20,10 @@ const StickyBottomNavigation = () => {
   };
 
   const navItems = [
-    { icon: Home, label: 'Home', path: '/explore' },
+    { icon: Home, label: 'Home', path: '/home' },
     { icon: Search, label: 'Explore', path: '/explore' },
     { icon: ShoppingBag, label: 'Marketplace', path: '/marketplace' },
-    { icon: Heart, label: 'Favorites', path: '/favorites' },
+    { icon: MessageCircle, label: 'Messages', path: '/messages' },
     { icon: User, label: 'Profile', path: user ? '/profile' : '/auth' }
   ];
 

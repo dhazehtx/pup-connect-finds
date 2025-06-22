@@ -33,7 +33,7 @@ const MobileNavigation = () => {
       id: 'home',
       label: 'Home',
       icon: <Home className="w-5 h-5" />,
-      path: '/explore'
+      path: '/home'
     },
     {
       id: 'explore',
@@ -63,6 +63,9 @@ const MobileNavigation = () => {
   ];
 
   const isActive = (path: string) => {
+    if (path === '/home') {
+      return location.pathname === '/home';
+    }
     if (path === '/explore') {
       return location.pathname === path || location.pathname === '/';
     }
