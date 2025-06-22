@@ -143,7 +143,7 @@ const AdBanner = ({ targetPage, className = "", format = "banner" }: AdBannerPro
           )}
           <div className="absolute inset-0 bg-gradient-to-r from-black/50 to-transparent"></div>
           <div className="absolute bottom-4 left-4 text-white">
-            <Badge className="bg-orange-500 text-white border-0 mb-2">
+            <Badge className="bg-blue-600 text-white border-0 mb-2">
               Sponsored
             </Badge>
             <h3 className="font-semibold text-lg">{ad.title}</h3>
@@ -164,7 +164,7 @@ const AdBanner = ({ targetPage, className = "", format = "banner" }: AdBannerPro
             alt={ad.title}
             className="w-full h-48 object-cover rounded-t-lg"
           />
-          <Badge className="absolute top-3 left-3 bg-orange-500 text-white border-0">
+          <Badge className="absolute top-3 left-3 bg-blue-600 text-white border-0">
             Sponsored
           </Badge>
         </div>
@@ -182,7 +182,7 @@ const AdBanner = ({ targetPage, className = "", format = "banner" }: AdBannerPro
 
   // Sponsored listing format
   return (
-    <div className={`bg-gradient-to-r from-orange-50 to-yellow-50 border border-orange-200 rounded-lg p-4 cursor-pointer ${className}`} onClick={handleClick}>
+    <div className={`bg-gradient-to-r from-blue-50 to-blue-100 border border-blue-200 rounded-lg p-4 cursor-pointer ${className}`} onClick={handleClick}>
       <div className="flex items-start space-x-4">
         <img
           src={ad.image_url}
@@ -191,10 +191,10 @@ const AdBanner = ({ targetPage, className = "", format = "banner" }: AdBannerPro
         />
         <div className="flex-1">
           <div className="flex items-center justify-between">
-            <Badge className="bg-orange-500 text-white border-0 text-xs mb-1">
+            <Badge className="bg-blue-600 text-white border-0 text-xs mb-1">
               Sponsored
             </Badge>
-            <ExternalLink className="w-4 h-4 text-orange-600" />
+            <ExternalLink className="w-4 h-4 text-blue-600" />
           </div>
           <h4 className="font-medium text-gray-900">{ad.title}</h4>
           <p className="text-sm text-gray-600 mt-1">{ad.description}</p>

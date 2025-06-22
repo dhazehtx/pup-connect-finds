@@ -149,7 +149,7 @@
     color: #0f172a !important;
   }
 
-  /* Badge and tag text improvements */
+  /* Badge and tag text improvements - ROYAL BLUE ONLY */
   .badge, [class*="badge"] {
     background-color: #dbeafe !important;
     color: #2563eb !important;
@@ -197,13 +197,25 @@
     color: #16a34a !important; /* Green-600 for success */
   }
 
-  /* FORCE ROYAL BLUE THEME - Remove all warm colors */
+  /* FORCE ROYAL BLUE THEME - Remove ALL warm colors */
   .bg-blue-50 { background-color: #dbeafe !important; }
   .bg-blue-100 { background-color: #dbeafe !important; }
   .bg-blue-600 { background-color: #2563eb !important; }
   .text-blue-600 { color: #2563eb !important; }
   .border-blue-200 { border-color: #93c5fd !important; }
   .border-blue-600 { border-color: #2563eb !important; }
+
+  /* REMOVE ALL BROWN/AMBER/ORANGE COLORS */
+  .bg-orange-50, .bg-amber-50, .bg-yellow-50 { background-color: #dbeafe !important; }
+  .bg-orange-100, .bg-amber-100, .bg-yellow-100 { background-color: #dbeafe !important; }
+  .bg-orange-500, .bg-amber-500, .bg-yellow-500 { background-color: #2563eb !important; }
+  .text-orange-600, .text-amber-600, .text-yellow-600 { color: #2563eb !important; }
+  .text-orange-700, .text-amber-700, .text-yellow-700 { color: #2563eb !important; }
+  .border-orange-200, .border-amber-200, .border-yellow-200 { border-color: #93c5fd !important; }
+
+  /* Sponsored badges and promotional elements - BLUE ONLY */
+  .bg-orange-500, [class*="bg-orange"] { background-color: #2563eb !important; color: #ffffff !important; }
+  .text-orange-600, [class*="text-orange"] { color: #2563eb !important; }
 
   /* Button styling for consistency */
   button, .btn, [role="button"] {
