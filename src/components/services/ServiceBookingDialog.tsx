@@ -3,205 +3,229 @@ import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Calendar } from '@/components/ui/calendar';
-import { useToast } from '@/hooks/use-toast';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Badge } from '@/components/ui/badge';
+import { Calendar, Clock, DollarSign, MapPin } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { CalendarIcon, Clock, DollarSign } from 'lucide-react';
 
-interface Service {
+interface ServiceProvider {
   id: string;
-  title: string;
-  price: number;
-  price_type: string;
-  provider_name: string;
+  business_name: string;
+  service_types: string[];
+  description: string;
+  location: string;
+  pricing: any;
+  rating: number;
   user_id: string;
 }
 
 interface ServiceBookingDialogProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  service: Service | null;
-  onBookingSuccess: () => void;
+  isOpen: boolean;
+  onClose: () => void;
+  provider: ServiceProvider;
+  onBookingComplete: () => void;
 }
 
-const ServiceBookingDialog = ({ open, onOpenChange, service, onBookingSuccess }: ServiceBookingDialogProps) => {
-  const [selectedDate, setSelectedDate] = useState<Date>();
-  const [selectedTime, setSelectedTime] = useState('');
-  const [duration, setDuration] = useState('1');
-  const [notes, setNotes] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const { toast } = useToast();
+const ServiceBookingDialog = ({ isOpen, onClose, provider, onBookingComplete }: ServiceBookingDialogProps) => {
   const { user } = useAuth();
-
-  const timeSlots = [
-    '09:00', '10:00', '11:00', '12:00', '13:00', 
-    '14:00', '15:00', '16:00', '17:00', '18:00'
-  ];
+  const { toast } = useToast();
+  const [loading, setLoading] = useState(false);
+  const [formData, setFormData] = useState({
+    service_type: '',
+    booking_date: '',
+    booking_time: '',
+    duration_hours: 1,
+    customer_notes: ''
+  });
 
   const calculateTotal = () => {
-    if (!service) return 0;
-    
-    if (service.price_type === 'hourly') {
-      return service.price * parseFloat(duration);
-    }
-    return service.price;
+    const serviceRate = provider.pricing?.[formData.service_type] || provider.pricing?.hourly || 50;
+    const subtotal = serviceRate * formData.duration_hours;
+    const commission = subtotal * 0.15;
+    return {
+      subtotal: subtotal.toFixed(2),
+      commission: commission.toFixed(2),
+      total: subtotal.toFixed(2)
+    };
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!user || !service || !selectedDate || !selectedTime) {
+    if (!user) {
       toast({
-        title: "Missing Information",
-        description: "Please fill in all required fields",
+        title: "Authentication required",
+        description: "Please sign in to book a service",
         variant: "destructive"
       });
       return;
     }
 
-    setIsSubmitting(true);
-
+    setLoading(true);
     try {
-      const totalAmount = calculateTotal();
-      const commissionAmount = totalAmount * 0.12; // 12% commission
+      const costs = calculateTotal();
       
       const { error } = await supabase.from('service_bookings').insert({
-        service_id: service.id,
         customer_id: user.id,
-        provider_id: service.user_id,
-        booking_date: selectedDate.toISOString().split('T')[0],
-        booking_time: selectedTime,
-        duration_hours: service.price_type === 'hourly' ? parseFloat(duration) : null,
-        total_amount: totalAmount,
-        commission_amount: commissionAmount,
-        customer_notes: notes,
+        provider_id: provider.user_id,
+        service_id: provider.id,
+        service_type: formData.service_type,
+        booking_date: formData.booking_date,
+        booking_time: formData.booking_time,
+        duration_hours: formData.duration_hours,
+        total_amount: parseFloat(costs.total),
+        commission_amount: parseFloat(costs.commission),
+        customer_notes: formData.customer_notes,
         status: 'pending'
       });
 
       if (error) throw error;
 
       toast({
-        title: "Booking Requested",
-        description: "Your booking request has been sent to the service provider",
+        title: "Booking request sent!",
+        description: "The service provider will confirm your booking soon."
       });
 
-      onBookingSuccess();
-      onOpenChange(false);
-      
-      // Reset form
-      setSelectedDate(undefined);
-      setSelectedTime('');
-      setDuration('1');
-      setNotes('');
-
-    } catch (error: any) {
+      onBookingComplete();
+      onClose();
+    } catch (error) {
+      console.error('Booking error:', error);
       toast({
-        title: "Booking Failed",
-        description: error.message || "Unable to create booking",
+        title: "Booking failed",
+        description: "Please try again later",
         variant: "destructive"
       });
     } finally {
-      setIsSubmitting(false);
+      setLoading(false);
     }
   };
 
-  if (!service) return null;
+  const costs = calculateTotal();
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="max-w-md mx-auto">
         <DialogHeader>
-          <DialogTitle>Book {service.title}</DialogTitle>
+          <DialogTitle>Book Service with {provider.business_name}</DialogTitle>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <Label>Service Provider</Label>
-            <p className="text-sm text-gray-600">{service.provider_name}</p>
-          </div>
-
-          <div>
-            <Label>Select Date</Label>
-            <Calendar
-              mode="single"
-              selected={selectedDate}
-              onSelect={setSelectedDate}
-              disabled={(date) => date < new Date()}
-              className="rounded-md border"
-            />
-          </div>
-
-          <div>
-            <Label>Select Time</Label>
-            <div className="grid grid-cols-3 gap-2 mt-1">
-              {timeSlots.map((time) => (
-                <Button
-                  key={time}
-                  type="button"
-                  variant={selectedTime === time ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setSelectedTime(time)}
-                  className="text-xs"
-                >
-                  {time}
-                </Button>
+          <div className="bg-gray-50 p-4 rounded-lg">
+            <div className="flex items-center justify-between mb-2">
+              <h4 className="font-medium">{provider.business_name}</h4>
+              <div className="flex items-center">
+                <MapPin className="w-4 h-4 text-gray-500 mr-1" />
+                <span className="text-sm text-gray-600">{provider.location}</span>
+              </div>
+            </div>
+            <div className="flex flex-wrap gap-1">
+              {provider.service_types.map((service) => (
+                <Badge key={service} variant="secondary" className="text-xs">
+                  {service}
+                </Badge>
               ))}
             </div>
           </div>
 
-          {service.price_type === 'hourly' && (
+          <div>
+            <label className="block text-sm font-medium mb-2">Service Type</label>
+            <Select 
+              value={formData.service_type} 
+              onValueChange={(value) => setFormData({...formData, service_type: value})}
+              required
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select service" />
+              </SelectTrigger>
+              <SelectContent>
+                {provider.service_types.map((service) => (
+                  <SelectItem key={service} value={service}>
+                    {service.charAt(0).toUpperCase() + service.slice(1)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="duration">Duration (hours)</Label>
+              <label className="block text-sm font-medium mb-2">Date</label>
               <Input
-                id="duration"
-                type="number"
-                min="0.5"
-                step="0.5"
-                value={duration}
-                onChange={(e) => setDuration(e.target.value)}
+                type="date"
+                value={formData.booking_date}
+                onChange={(e) => setFormData({...formData, booking_date: e.target.value})}
+                min={new Date().toISOString().split('T')[0]}
                 required
               />
             </div>
-          )}
+            <div>
+              <label className="block text-sm font-medium mb-2">Time</label>
+              <Input
+                type="time"
+                value={formData.booking_time}
+                onChange={(e) => setFormData({...formData, booking_time: e.target.value})}
+                required
+              />
+            </div>
+          </div>
 
           <div>
-            <Label htmlFor="notes">Additional Notes</Label>
+            <label className="block text-sm font-medium mb-2">Duration (hours)</label>
+            <Select 
+              value={formData.duration_hours.toString()} 
+              onValueChange={(value) => setFormData({...formData, duration_hours: parseFloat(value)})}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {[0.5, 1, 1.5, 2, 3, 4, 6, 8].map((hours) => (
+                  <SelectItem key={hours} value={hours.toString()}>
+                    {hours} {hours === 1 ? 'hour' : 'hours'}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-2">Special Requests</label>
             <Textarea
-              id="notes"
-              placeholder="Any special requests or information..."
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
+              value={formData.customer_notes}
+              onChange={(e) => setFormData({...formData, customer_notes: e.target.value})}
+              placeholder="Any special instructions or requirements..."
+              rows={3}
             />
           </div>
 
-          <div className="bg-gray-50 p-3 rounded-lg">
-            <div className="flex items-center justify-between">
-              <span className="font-medium">Total Cost:</span>
-              <span className="text-xl font-bold">${calculateTotal()}</span>
+          <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+            <h4 className="font-medium mb-2 flex items-center">
+              <DollarSign className="w-4 h-4 mr-1" />
+              Booking Summary
+            </h4>
+            <div className="space-y-1 text-sm">
+              <div className="flex justify-between">
+                <span>Service Fee:</span>
+                <span>${costs.subtotal}</span>
+              </div>
+              <div className="flex justify-between font-medium border-t pt-1">
+                <span>Total:</span>
+                <span>${costs.total}</span>
+              </div>
+              <p className="text-xs text-gray-600 mt-2">
+                Payment will be processed after service confirmation
+              </p>
             </div>
-            <p className="text-xs text-gray-600 mt-1">
-              Includes 12% platform fee
-            </p>
           </div>
 
-          <div className="flex gap-2">
-            <Button 
-              type="button" 
-              variant="outline" 
-              onClick={() => onOpenChange(false)}
-              className="flex-1"
-            >
+          <div className="flex space-x-3">
+            <Button type="button" variant="outline" onClick={onClose} className="flex-1">
               Cancel
             </Button>
-            <Button 
-              type="submit" 
-              disabled={isSubmitting}
-              className="flex-1"
-            >
-              {isSubmitting ? 'Booking...' : 'Request Booking'}
+            <Button type="submit" disabled={loading} className="flex-1 bg-blue-600 hover:bg-blue-700">
+              {loading ? 'Booking...' : 'Book Service'}
             </Button>
           </div>
         </form>

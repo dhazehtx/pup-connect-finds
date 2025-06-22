@@ -1,139 +1,118 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { 
-  MapPin, 
-  Star, 
-  Clock, 
-  DollarSign, 
-  Search,
-  Filter,
-  Heart,
-  Calendar
-} from 'lucide-react';
+import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { MapPin, Star, Clock, DollarSign, Search, Filter } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import ServiceBookingDialog from './ServiceBookingDialog';
+import CreateServiceDialog from './CreateServiceDialog';
 
-interface Service {
+interface ServiceProvider {
   id: string;
-  title: string;
+  business_name: string;
+  service_types: string[];
   description: string;
-  service_type: string;
-  price: number;
-  price_type: string;
   location: string;
-  experience_years: number;
+  pricing: any;
   rating: number;
-  total_reviews: number;
-  images: string[];
-  provider: {
-    name: string;
-    avatar_url?: string;
-    professional_status: string;
-  };
+  total_bookings: number;
+  verified: boolean;
+  user_id: string;
 }
 
 const ServicesMarketplace = () => {
+  const [providers, setProviders] = useState<ServiceProvider[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedProvider, setSelectedProvider] = useState<ServiceProvider | null>(null);
+  const [showBooking, setShowBooking] = useState(false);
+  const [showCreateService, setShowCreateService] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
-  const [serviceType, setServiceType] = useState('all');
-  const [priceRange, setPriceRange] = useState('all');
-  const [location, setLocation] = useState('');
+  const [serviceFilter, setServiceFilter] = useState('all');
+  const [locationFilter, setLocationFilter] = useState('');
 
-  // Mock data - will be replaced with real API calls
-  const services: Service[] = [
-    {
-      id: '1',
-      title: 'Professional Dog Grooming',
-      description: 'Full service grooming including bath, cut, nail trim, and ear cleaning.',
-      service_type: 'grooming',
-      price: 75,
-      price_type: 'per_service',
-      location: 'San Francisco, CA',
-      experience_years: 8,
-      rating: 4.9,
-      total_reviews: 156,
-      images: ['https://images.unsplash.com/photo-1576201836106-db1758fd1c97?w=300'],
-      provider: {
-        name: 'Sarah Johnson',
-        avatar_url: 'https://images.unsplash.com/photo-1494790108755-2616b39d0e2f?w=100',
-        professional_status: 'verified_professional'
-      }
-    },
-    {
-      id: '2',
-      title: 'Dog Walking & Exercise',
-      description: 'Daily walks and exercise sessions for your furry friend.',
-      service_type: 'walking',
-      price: 25,
-      price_type: 'hourly',
-      location: 'Los Angeles, CA',
-      experience_years: 3,
-      rating: 4.7,
-      total_reviews: 89,
-      images: ['https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=300'],
-      provider: {
-        name: 'Mike Rodriguez',
-        avatar_url: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100',
-        professional_status: 'professional'
-      }
+  useEffect(() => {
+    loadProviders();
+  }, []);
+
+  const loadProviders = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('service_providers')
+        .select('*')
+        .order('rating', { ascending: false });
+
+      if (error) throw error;
+      setProviders(data || []);
+    } catch (error) {
+      console.error('Error loading providers:', error);
+    } finally {
+      setLoading(false);
     }
-  ];
-
-  const serviceTypeOptions = [
-    { value: 'all', label: 'All Services' },
-    { value: 'grooming', label: 'Grooming' },
-    { value: 'walking', label: 'Dog Walking' },
-    { value: 'sitting', label: 'Pet Sitting' },
-    { value: 'training', label: 'Training' },
-    { value: 'veterinary', label: 'Veterinary' },
-    { value: 'boarding', label: 'Boarding' }
-  ];
-
-  const priceRangeOptions = [
-    { value: 'all', label: 'Any Price' },
-    { value: '0-25', label: '$0 - $25' },
-    { value: '25-50', label: '$25 - $50' },
-    { value: '50-100', label: '$50 - $100' },
-    { value: '100+', label: '$100+' }
-  ];
-
-  const getServiceTypeIcon = (type: string) => {
-    const icons = {
-      grooming: '✂️',
-      walking: '🚶',
-      sitting: '🏠',
-      training: '🎓',
-      veterinary: '🏥',
-      boarding: '🏨'
-    };
-    return icons[type as keyof typeof icons] || '🐕';
   };
 
-  const getProfessionalBadge = (status: string) => {
-    if (status === 'verified_professional') {
-      return <Badge className="bg-green-100 text-green-800">✓ Verified Pro</Badge>;
-    }
-    if (status === 'professional') {
-      return <Badge className="bg-blue-100 text-blue-800">Professional</Badge>;
-    }
-    return null;
+  const filteredProviders = providers.filter(provider => {
+    const matchesSearch = provider.business_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         provider.description?.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesService = serviceFilter === 'all' || provider.service_types.includes(serviceFilter);
+    const matchesLocation = !locationFilter || provider.location.toLowerCase().includes(locationFilter.toLowerCase());
+    
+    return matchesSearch && matchesService && matchesLocation;
+  });
+
+  const handleBookService = (provider: ServiceProvider) => {
+    setSelectedProvider(provider);
+    setShowBooking(true);
   };
+
+  const serviceTypes = [
+    { value: 'grooming', label: '🧼 Grooming' },
+    { value: 'walking', label: '🚶 Walking' },
+    { value: 'training', label: '🎓 Training' },
+    { value: 'veterinary', label: '🏥 Veterinary' },
+    { value: 'boarding', label: '🏠 Boarding' },
+    { value: 'sitting', label: '👥 Pet Sitting' }
+  ];
+
+  if (loading) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="animate-pulse space-y-4">
+          {[...Array(6)].map((_, i) => (
+            <Card key={i}>
+              <CardContent className="p-6">
+                <div className="h-4 bg-gray-200 rounded w-1/4 mb-2"></div>
+                <div className="h-3 bg-gray-200 rounded w-3/4 mb-4"></div>
+                <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="container mx-auto px-4 py-6 max-w-7xl">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">Pet Services Marketplace</h1>
-        <p className="text-gray-600">Find trusted pet care professionals in your area</p>
+    <div className="container mx-auto px-4 py-8 max-w-6xl">
+      {/* Header */}
+      <div className="flex justify-between items-center mb-8">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Pet Services</h1>
+          <p className="text-gray-600 mt-2">Find trusted professionals for your furry friends</p>
+        </div>
+        <Button onClick={() => setShowCreateService(true)} className="bg-blue-600 hover:bg-blue-700">
+          List Your Service
+        </Button>
       </div>
 
-      {/* Search and Filters */}
-      <Card className="mb-6">
+      {/* Filters */}
+      <Card className="mb-8">
         <CardContent className="p-6">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="relative">
-              <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
               <Input
                 placeholder="Search services..."
                 value={searchTerm}
@@ -141,39 +120,25 @@ const ServicesMarketplace = () => {
                 className="pl-10"
               />
             </div>
-            
-            <Select value={serviceType} onValueChange={setServiceType}>
+            <Select value={serviceFilter} onValueChange={setServiceFilter}>
               <SelectTrigger>
-                <SelectValue placeholder="Service Type" />
+                <SelectValue placeholder="Service type" />
               </SelectTrigger>
               <SelectContent>
-                {serviceTypeOptions.map(option => (
-                  <SelectItem key={option.value} value={option.value}>
-                    {option.label}
+                <SelectItem value="all">All Services</SelectItem>
+                {serviceTypes.map(type => (
+                  <SelectItem key={type.value} value={type.value}>
+                    {type.label}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
-
-            <Select value={priceRange} onValueChange={setPriceRange}>
-              <SelectTrigger>
-                <SelectValue placeholder="Price Range" />
-              </SelectTrigger>
-              <SelectContent>
-                {priceRangeOptions.map(option => (
-                  <SelectItem key={option.value} value={option.value}>
-                    {option.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
             <div className="relative">
-              <MapPin className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+              <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
               <Input
                 placeholder="Location..."
-                value={location}
-                onChange={(e) => setLocation(e.target.value)}
+                value={locationFilter}
+                onChange={(e) => setLocationFilter(e.target.value)}
                 className="pl-10"
               />
             </div>
@@ -181,93 +146,92 @@ const ServicesMarketplace = () => {
         </CardContent>
       </Card>
 
-      {/* Services Grid */}
+      {/* Service Providers */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {services.map((service) => (
-          <Card key={service.id} className="hover:shadow-lg transition-shadow">
-            <div className="relative">
-              <img
-                src={service.images[0]}
-                alt={service.title}
-                className="w-full h-48 object-cover rounded-t-lg"
-              />
-              <Button
-                size="icon"
-                variant="ghost"
-                className="absolute top-2 right-2 bg-white/80 hover:bg-white"
+        {filteredProviders.map((provider) => (
+          <Card key={provider.id} className="hover:shadow-lg transition-shadow">
+            <CardHeader>
+              <div className="flex justify-between items-start">
+                <div>
+                  <CardTitle className="text-lg">{provider.business_name}</CardTitle>
+                  {provider.verified && (
+                    <Badge className="bg-green-100 text-green-800 border-green-200 mt-1">
+                      ✓ Verified
+                    </Badge>
+                  )}
+                </div>
+                <div className="flex items-center">
+                  <Star className="w-4 h-4 text-yellow-400 fill-current" />
+                  <span className="ml-1 text-sm font-medium">{provider.rating.toFixed(1)}</span>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <p className="text-gray-600 text-sm line-clamp-2">{provider.description}</p>
+              
+              <div className="flex items-center text-sm text-gray-500">
+                <MapPin className="w-4 h-4 mr-1" />
+                {provider.location}
+              </div>
+
+              <div className="flex flex-wrap gap-1">
+                {provider.service_types.map((service) => {
+                  const serviceType = serviceTypes.find(t => t.value === service);
+                  return (
+                    <Badge key={service} variant="secondary" className="text-xs">
+                      {serviceType?.label || service}
+                    </Badge>
+                  );
+                })}
+              </div>
+
+              <div className="flex items-center justify-between">
+                <div className="flex items-center text-sm text-gray-600">
+                  <Clock className="w-4 h-4 mr-1" />
+                  {provider.total_bookings} bookings
+                </div>
+                <div className="flex items-center text-sm font-medium">
+                  <DollarSign className="w-4 h-4" />
+                  {provider.pricing?.hourly ? `$${provider.pricing.hourly}/hr` : 'Custom pricing'}
+                </div>
+              </div>
+
+              <Button 
+                onClick={() => handleBookService(provider)}
+                className="w-full bg-blue-600 hover:bg-blue-700"
               >
-                <Heart className="h-4 w-4" />
+                Book Service
               </Button>
-              <div className="absolute top-2 left-2">
-                <span className="text-2xl bg-white/80 rounded-full px-2 py-1">
-                  {getServiceTypeIcon(service.service_type)}
-                </span>
-              </div>
-            </div>
-
-            <CardContent className="p-4">
-              <div className="flex items-start justify-between mb-2">
-                <h3 className="font-semibold text-lg">{service.title}</h3>
-                {getProfessionalBadge(service.provider.professional_status)}
-              </div>
-
-              <p className="text-gray-600 text-sm mb-3 line-clamp-2">
-                {service.description}
-              </p>
-
-              <div className="flex items-center gap-2 mb-2">
-                <img
-                  src={service.provider.avatar_url}
-                  alt={service.provider.name}
-                  className="w-6 h-6 rounded-full"
-                />
-                <span className="text-sm font-medium">{service.provider.name}</span>
-                <div className="flex items-center gap-1">
-                  <Clock className="h-3 w-3 text-gray-400" />
-                  <span className="text-xs text-gray-500">{service.experience_years}y exp</span>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-1 mb-3">
-                <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                <span className="text-sm font-medium">{service.rating}</span>
-                <span className="text-xs text-gray-500">({service.total_reviews} reviews)</span>
-              </div>
-
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-1">
-                  <MapPin className="h-3 w-3 text-gray-400" />
-                  <span className="text-xs text-gray-500">{service.location}</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <DollarSign className="h-4 w-4 text-green-600" />
-                  <span className="font-semibold text-green-600">
-                    ${service.price}
-                    {service.price_type === 'hourly' && '/hr'}
-                  </span>
-                </div>
-              </div>
-
-              <div className="flex gap-2">
-                <Button className="flex-1" size="sm">
-                  <Calendar className="h-4 w-4 mr-1" />
-                  Book Now
-                </Button>
-                <Button variant="outline" size="sm">
-                  View Details
-                </Button>
-              </div>
             </CardContent>
           </Card>
         ))}
       </div>
 
-      {/* Load More */}
-      <div className="text-center mt-8">
-        <Button variant="outline" size="lg">
-          Load More Services
-        </Button>
-      </div>
+      {filteredProviders.length === 0 && !loading && (
+        <div className="text-center py-12">
+          <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Search className="w-8 h-8 text-gray-400" />
+          </div>
+          <h3 className="text-lg font-medium text-gray-900 mb-2">No services found</h3>
+          <p className="text-gray-500">Try adjusting your search criteria or check back later.</p>
+        </div>
+      )}
+
+      {/* Dialogs */}
+      {selectedProvider && (
+        <ServiceBookingDialog
+          isOpen={showBooking}
+          onClose={() => setShowBooking(false)}
+          provider={selectedProvider}
+          onBookingComplete={loadProviders}
+        />
+      )}
+
+      <CreateServiceDialog
+        isOpen={showCreateService}
+        onClose={() => setShowCreateService(false)}
+        onServiceCreated={loadProviders}
+      />
     </div>
   );
 };

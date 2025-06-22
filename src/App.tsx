@@ -1,82 +1,67 @@
 
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { AuthProvider } from '@/contexts/AuthContext';
-import { Toaster } from '@/components/ui/toaster';
-import Layout from '@/components/Layout';
-import ProtectedRoute from '@/components/ProtectedRoute';
-import Home from '@/pages/Home';
-import HomeFeed from '@/pages/HomeFeed';
-import Explore from '@/pages/Explore';
-import ListingDetail from '@/pages/ListingDetail';
-import CreateListing from '@/pages/CreateListing';
-import Profile from '@/pages/Profile';
-import Messages from '@/pages/Messages';
-import Auth from '@/pages/Auth';
-import VerifyEmail from '@/pages/VerifyEmail';
-import Education from '@/pages/Education';
-import Services from '@/pages/Services';
-import CustomerReviews from '@/pages/CustomerReviews';
-import Monetization from '@/pages/Monetization';
-import Legal from '@/pages/Legal';
-import HelpCenter from '@/pages/HelpCenter';
-import TrustSafety from '@/pages/TrustSafety';
-import Contact from '@/pages/Contact';
-import AdminDashboard from '@/pages/AdminDashboard';
-import Terms from '@/pages/Terms';
-import PrivacyPolicy from '@/pages/PrivacyPolicy';
+import { Toaster } from "@/components/ui/toaster";
+import { Toaster as Sonner } from "@/components/ui/sonner";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { AuthProvider } from "@/contexts/AuthContext";
+import { RealtimeProvider } from "@/contexts/RealtimeContext";
+import { ThemeProvider } from "@/contexts/ThemeContext";
+import Layout from "@/components/Layout";
+import Index from "@/pages/Index";
+import ExploreWithFreemium from "@/components/explore/ExploreWithFreemium";
+import Marketplace from "@/pages/Marketplace";
+import ProfileWithFreemium from "@/components/profile/ProfileWithFreemium";
+import AuthForm from "@/components/auth/AuthForm";
+import Favorites from "@/pages/Favorites";
+import Messages from "@/pages/Messages";
+import Settings from "@/pages/Settings";
+import Admin from "@/pages/Admin";
+import CreateListing from "@/pages/CreateListing";
+import Monetization from "@/pages/Monetization";
+import Help from "@/pages/Help";
+import Education from "@/pages/Education";
+import Legal from "@/pages/Legal";
+import Success from "@/pages/Success";
+import StickyBottomNavigation from "@/components/StickyBottomNavigation";
 
-function App() {
-  return (
-    <AuthProvider>
-      <Router>
-        <Layout>
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/home" element={
-              <ProtectedRoute>
-                <HomeFeed />
-              </ProtectedRoute>
-            } />
-            <Route path="/explore" element={<Explore />} />
-            <Route path="/listing/:id" element={<ListingDetail />} />
-            <Route path="/create-listing" element={
-              <ProtectedRoute>
-                <CreateListing />
-              </ProtectedRoute>
-            } />
-            <Route path="/profile" element={
-              <ProtectedRoute>
-                <Profile />
-              </ProtectedRoute>
-            } />
-            <Route path="/messages" element={
-              <ProtectedRoute>
-                <Messages />
-              </ProtectedRoute>
-            } />
-            <Route path="/auth" element={<Auth />} />
-            <Route path="/verify-email" element={<VerifyEmail />} />
-            <Route path="/education" element={<Education />} />
-            <Route path="/services" element={<Services />} />
-            <Route path="/customer-reviews" element={<CustomerReviews />} />
-            <Route path="/monetization" element={<Monetization />} />
-            <Route path="/legal" element={<Legal />} />
-            <Route path="/help-center" element={<HelpCenter />} />
-            <Route path="/trust-safety" element={<TrustSafety />} />
-            <Route path="/contact" element={<Contact />} />
-            <Route path="/admin" element={
-              <ProtectedRoute>
-                <AdminDashboard />
-              </ProtectedRoute>
-            } />
-            <Route path="/terms" element={<Terms />} />
-            <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-          </Routes>
-        </Layout>
-      </Router>
-      <Toaster />
-    </AuthProvider>
-  );
-}
+const queryClient = new QueryClient();
+
+const App = () => (
+  <QueryClientProvider client={queryClient}>
+    <ThemeProvider>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <AuthProvider>
+          <RealtimeProvider>
+            <BrowserRouter>
+              <Layout>
+                <Routes>
+                  <Route path="/" element={<Index />} />
+                  <Route path="/explore" element={<ExploreWithFreemium />} />
+                  <Route path="/marketplace" element={<Marketplace />} />
+                  <Route path="/profile" element={<ProfileWithFreemium />} />
+                  <Route path="/favorites" element={<Favorites />} />
+                  <Route path="/messages" element={<Messages />} />
+                  <Route path="/settings" element={<Settings />} />
+                  <Route path="/admin" element={<Admin />} />
+                  <Route path="/auth" element={<AuthForm />} />
+                  <Route path="/create-listing" element={<CreateListing />} />
+                  <Route path="/monetization" element={<Monetization />} />
+                  <Route path="/help" element={<Help />} />
+                  <Route path="/education" element={<Education />} />
+                  <Route path="/legal" element={<Legal />} />
+                  <Route path="/success" element={<Success />} />
+                </Routes>
+                <StickyBottomNavigation />
+              </Layout>
+            </BrowserRouter>
+          </RealtimeProvider>
+        </AuthProvider>
+      </TooltipProvider>
+    </ThemeProvider>
+  </QueryClientProvider>
+);
 
 export default App;

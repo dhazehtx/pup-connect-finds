@@ -39,6 +39,104 @@ export type Database = {
         }
         Relationships: []
       }
+      ad_impressions: {
+        Row: {
+          ad_id: string | null
+          clicked: boolean | null
+          created_at: string | null
+          id: string
+          ip_address: unknown | null
+          page_url: string | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          ad_id?: string | null
+          clicked?: boolean | null
+          created_at?: string | null
+          id?: string
+          ip_address?: unknown | null
+          page_url?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          ad_id?: string | null
+          clicked?: boolean | null
+          created_at?: string | null
+          id?: string
+          ip_address?: unknown | null
+          page_url?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ad_impressions_ad_id_fkey"
+            columns: ["ad_id"]
+            isOneToOne: false
+            referencedRelation: "advertisements"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      advertisements: {
+        Row: {
+          advertiser_name: string
+          click_url: string | null
+          created_at: string | null
+          daily_budget: number | null
+          description: string | null
+          ends_at: string
+          id: string
+          image_url: string | null
+          starts_at: string
+          status: string | null
+          target_page: string
+          title: string
+          total_clicks: number | null
+          total_impressions: number | null
+          updated_at: string | null
+          video_url: string | null
+        }
+        Insert: {
+          advertiser_name: string
+          click_url?: string | null
+          created_at?: string | null
+          daily_budget?: number | null
+          description?: string | null
+          ends_at: string
+          id?: string
+          image_url?: string | null
+          starts_at: string
+          status?: string | null
+          target_page: string
+          title: string
+          total_clicks?: number | null
+          total_impressions?: number | null
+          updated_at?: string | null
+          video_url?: string | null
+        }
+        Update: {
+          advertiser_name?: string
+          click_url?: string | null
+          created_at?: string | null
+          daily_budget?: number | null
+          description?: string | null
+          ends_at?: string
+          id?: string
+          image_url?: string | null
+          starts_at?: string
+          status?: string | null
+          target_page?: string
+          title?: string
+          total_clicks?: number | null
+          total_impressions?: number | null
+          updated_at?: string | null
+          video_url?: string | null
+        }
+        Relationships: []
+      }
       analytics_events: {
         Row: {
           event_data: Json
@@ -115,6 +213,47 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      box_deliveries: {
+        Row: {
+          contents: Json | null
+          created_at: string | null
+          delivery_date: string
+          id: string
+          status: string | null
+          subscription_id: string | null
+          tracking_number: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          contents?: Json | null
+          created_at?: string | null
+          delivery_date: string
+          id?: string
+          status?: string | null
+          subscription_id?: string | null
+          tracking_number?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          contents?: Json | null
+          created_at?: string | null
+          delivery_date?: string
+          id?: string
+          status?: string | null
+          subscription_id?: string | null
+          tracking_number?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "box_deliveries_subscription_id_fkey"
+            columns: ["subscription_id"]
+            isOneToOne: false
+            referencedRelation: "subscription_boxes"
             referencedColumns: ["id"]
           },
         ]
@@ -1105,6 +1244,33 @@ export type Database = {
           },
         ]
       }
+      premium_usage: {
+        Row: {
+          created_at: string | null
+          feature_name: string
+          id: string
+          last_used_at: string | null
+          usage_count: number | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          feature_name: string
+          id?: string
+          last_used_at?: string | null
+          usage_count?: number | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          feature_name?: string
+          id?: string
+          last_used_at?: string | null
+          usage_count?: number | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       professional_account_requests: {
         Row: {
           admin_notes: string | null
@@ -1771,6 +1937,60 @@ export type Database = {
           },
         ]
       }
+      service_providers: {
+        Row: {
+          availability: Json | null
+          business_name: string
+          commission_rate: number | null
+          created_at: string | null
+          description: string | null
+          id: string
+          location: string
+          pricing: Json | null
+          rating: number | null
+          service_types: Database["public"]["Enums"]["service_type"][]
+          stripe_connect_account_id: string | null
+          total_bookings: number | null
+          updated_at: string | null
+          user_id: string
+          verified: boolean | null
+        }
+        Insert: {
+          availability?: Json | null
+          business_name: string
+          commission_rate?: number | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          location: string
+          pricing?: Json | null
+          rating?: number | null
+          service_types: Database["public"]["Enums"]["service_type"][]
+          stripe_connect_account_id?: string | null
+          total_bookings?: number | null
+          updated_at?: string | null
+          user_id: string
+          verified?: boolean | null
+        }
+        Update: {
+          availability?: Json | null
+          business_name?: string
+          commission_rate?: number | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          location?: string
+          pricing?: Json | null
+          rating?: number | null
+          service_types?: Database["public"]["Enums"]["service_type"][]
+          stripe_connect_account_id?: string | null
+          total_bookings?: number | null
+          updated_at?: string | null
+          user_id?: string
+          verified?: boolean | null
+        }
+        Relationships: []
+      }
       service_reviews: {
         Row: {
           booking_id: string | null
@@ -2022,6 +2242,7 @@ export type Database = {
         Row: {
           created_at: string
           email: string
+          features_enabled: Json | null
           id: string
           pending_tier_change: string | null
           previous_tier: string | null
@@ -2029,6 +2250,7 @@ export type Database = {
           subscribed: boolean
           subscription_end: string | null
           subscription_tier: string | null
+          tier: Database["public"]["Enums"]["subscription_tier"] | null
           tier_change_at: string | null
           trial_end: string | null
           updated_at: string
@@ -2037,6 +2259,7 @@ export type Database = {
         Insert: {
           created_at?: string
           email: string
+          features_enabled?: Json | null
           id?: string
           pending_tier_change?: string | null
           previous_tier?: string | null
@@ -2044,6 +2267,7 @@ export type Database = {
           subscribed?: boolean
           subscription_end?: string | null
           subscription_tier?: string | null
+          tier?: Database["public"]["Enums"]["subscription_tier"] | null
           tier_change_at?: string | null
           trial_end?: string | null
           updated_at?: string
@@ -2052,6 +2276,7 @@ export type Database = {
         Update: {
           created_at?: string
           email?: string
+          features_enabled?: Json | null
           id?: string
           pending_tier_change?: string | null
           previous_tier?: string | null
@@ -2059,6 +2284,7 @@ export type Database = {
           subscribed?: boolean
           subscription_end?: string | null
           subscription_tier?: string | null
+          tier?: Database["public"]["Enums"]["subscription_tier"] | null
           tier_change_at?: string | null
           trial_end?: string | null
           updated_at?: string
@@ -2102,6 +2328,54 @@ export type Database = {
           tier_breakdown?: Json
           total_revenue?: number
           upgrades?: number
+        }
+        Relationships: []
+      }
+      subscription_boxes: {
+        Row: {
+          box_size: string
+          created_at: string | null
+          delivery_frequency: string | null
+          dietary_preferences: Json | null
+          dog_age_range: string
+          id: string
+          monthly_price: number
+          next_delivery_date: string | null
+          shipping_address: Json
+          status: string | null
+          stripe_subscription_id: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          box_size: string
+          created_at?: string | null
+          delivery_frequency?: string | null
+          dietary_preferences?: Json | null
+          dog_age_range: string
+          id?: string
+          monthly_price: number
+          next_delivery_date?: string | null
+          shipping_address: Json
+          status?: string | null
+          stripe_subscription_id?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          box_size?: string
+          created_at?: string | null
+          delivery_frequency?: string | null
+          dietary_preferences?: Json | null
+          dog_age_range?: string
+          id?: string
+          monthly_price?: number
+          next_delivery_date?: string | null
+          shipping_address?: Json
+          status?: string | null
+          stripe_subscription_id?: string | null
+          updated_at?: string | null
+          user_id?: string
         }
         Relationships: []
       }
@@ -2394,6 +2668,14 @@ export type Database = {
       }
     }
     Enums: {
+      service_type:
+        | "grooming"
+        | "walking"
+        | "training"
+        | "veterinary"
+        | "boarding"
+        | "sitting"
+      subscription_tier: "free" | "premium" | "provider" | "admin"
       user_type: "buyer" | "breeder" | "shelter" | "admin"
     }
     CompositeTypes: {
@@ -2510,6 +2792,15 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      service_type: [
+        "grooming",
+        "walking",
+        "training",
+        "veterinary",
+        "boarding",
+        "sitting",
+      ],
+      subscription_tier: ["free", "premium", "provider", "admin"],
       user_type: ["buyer", "breeder", "shelter", "admin"],
     },
   },
