@@ -38,7 +38,6 @@ const ServiceBookingDialog = ({ isOpen, onOpenChange, service, onBookingSuccess 
   const [formData, setFormData] = useState({
     time: '',
     duration: '1',
-    service_type: service.service_types[0] || '',
     notes: ''
   });
 
@@ -62,7 +61,7 @@ const ServiceBookingDialog = ({ isOpen, onOpenChange, service, onBookingSuccess 
         .insert({
           customer_id: user.id,
           provider_id: service.user_id,
-          service_type: formData.service_type as any,
+          service_id: service.id,
           booking_date: selectedDate.toISOString().split('T')[0],
           booking_time: formData.time,
           duration_hours: parseFloat(formData.duration),
@@ -120,23 +119,6 @@ const ServiceBookingDialog = ({ isOpen, onOpenChange, service, onBookingSuccess 
               onChange={(e) => setFormData({...formData, time: e.target.value})}
               required
             />
-          </div>
-
-          <div>
-            <Label htmlFor="service_type">Service Type</Label>
-            <select
-              id="service_type"
-              value={formData.service_type}
-              onChange={(e) => setFormData({...formData, service_type: e.target.value})}
-              className="w-full p-2 border rounded-md"
-              required
-            >
-              {service.service_types.map((type) => (
-                <option key={type} value={type}>
-                  {type.charAt(0).toUpperCase() + type.slice(1)}
-                </option>
-              ))}
-            </select>
           </div>
 
           <div>

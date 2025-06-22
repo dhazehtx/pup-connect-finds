@@ -41,6 +41,12 @@ interface Service {
   availability: Record<string, any>;
   featured_until?: string;
   created_at: string;
+  // Add compatibility fields for ServiceBookingDialog
+  business_name: string;
+  service_types: string[];
+  pricing: { hourly?: number; session?: number };
+  total_bookings: number;
+  verified: boolean;
 }
 
 const Services = () => {
@@ -112,7 +118,16 @@ const Services = () => {
           images: Array.isArray(service.images) ? service.images as string[] : ['/placeholder.svg'],
           availability: (service.availability as Record<string, any>) || {},
           featured_until: service.featured_until,
-          created_at: service.created_at
+          created_at: service.created_at,
+          // Add compatibility fields
+          business_name: service.title,
+          service_types: [service.service_type],
+          pricing: { 
+            hourly: service.price_type === 'hourly' ? service.price : undefined,
+            session: service.price_type === 'per_session' ? service.price : undefined
+          },
+          total_bookings: 0,
+          verified: false
         };
       }) || [];
 
@@ -199,7 +214,7 @@ const Services = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
+      {/* Hero */}
       <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white py-12">
         <div className="max-w-7xl mx-auto px-6">
           <h1 className="text-4xl font-bold mb-4">Pet Services Marketplace</h1>
@@ -309,14 +324,14 @@ const Services = () => {
 
       {/* Dialogs */}
       <ServiceBookingDialog
-        open={showBookingDialog}
+        isOpen={showBookingDialog}
         onOpenChange={setShowBookingDialog}
         service={selectedService}
         onBookingSuccess={handleBookingSuccess}
       />
 
       <CreateServiceDialog
-        open={showCreateDialog}
+        isOpen={showCreateDialog}
         onOpenChange={setShowCreateDialog}
         onServiceCreated={handleServiceCreated}
       />

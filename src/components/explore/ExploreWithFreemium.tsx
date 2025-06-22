@@ -5,11 +5,41 @@ import PremiumUpgradePrompt from '@/components/monetization/PremiumUpgradePrompt
 import PremiumBanner from '@/components/monetization/PremiumBanner';
 import AdBanner from '@/components/advertising/AdBanner';
 import ExploreContainer from '@/components/explore/ExploreContainer';
+import { supabase } from '@/integrations/supabase/client';
 
 const ExploreWithFreemium = () => {
   const { limits, trackUsage, isPremium } = useFreemiumLimits();
   const [showUpgradePrompt, setShowUpgradePrompt] = useState(false);
   const [upgradeReason, setUpgradeReason] = useState<'contact' | 'filters' | 'favorites' | 'matchmaker'>('filters');
+  const [listings, setListings] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchListings();
+  }, []);
+
+  const fetchListings = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('dog_listings')
+        .select(`
+          *,
+          profiles:user_id (
+            full_name,
+            verified
+          )
+        `)
+        .eq('status', 'active')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setListings(data || []);
+    } catch (error) {
+      console.error('Error fetching listings:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleFilterUsage = () => {
     if (limits.filtersUsed >= limits.maxFilters && !isPremium) {
@@ -30,6 +60,14 @@ const ExploreWithFreemium = () => {
     return true;
   };
 
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Hero Ad */}
@@ -47,7 +85,7 @@ const ExploreWithFreemium = () => {
         </div>
       )}
 
-      <ExploreContainer />
+      <ExploreContainer listings={listings} />
 
       {/* Sponsored Listing Ad */}
       <div className="container mx-auto px-4 mb-6">

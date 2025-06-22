@@ -221,15 +221,15 @@ const ServicesMarketplace = () => {
       {selectedProvider && (
         <ServiceBookingDialog
           isOpen={showBooking}
-          onClose={() => setShowBooking(false)}
-          provider={selectedProvider}
-          onBookingComplete={loadProviders}
+          onOpenChange={setShowBooking}
+          service={selectedProvider}
+          onBookingSuccess={loadProviders}
         />
       )}
 
       <CreateServiceDialog
         isOpen={showCreateService}
-        onClose={() => setShowCreateService(false)}
+        onOpenChange={setShowCreateService}
         onServiceCreated={loadProviders}
       />
     </div>

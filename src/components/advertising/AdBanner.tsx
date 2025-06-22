@@ -63,8 +63,11 @@ const AdBanner = ({ targetPage, className = "", format = "banner" }: AdBannerPro
         user_agent: navigator.userAgent
       });
 
-      // Update total impressions using RPC function
-      await supabase.rpc('increment_ad_impressions', { ad_id: ad.id });
+      // Update total impressions directly
+      await supabase
+        .from('advertisements')
+        .update({ total_impressions: supabase.raw('total_impressions + 1') })
+        .eq('id', ad.id);
     } catch (error) {
       console.error('Error tracking impression:', error);
     }
@@ -83,8 +86,11 @@ const AdBanner = ({ targetPage, className = "", format = "banner" }: AdBannerPro
         user_agent: navigator.userAgent
       });
 
-      // Update total clicks using RPC function
-      await supabase.rpc('increment_ad_clicks', { ad_id: ad.id });
+      // Update total clicks directly
+      await supabase
+        .from('advertisements')
+        .update({ total_clicks: supabase.raw('total_clicks + 1') })
+        .eq('id', ad.id);
 
       window.open(ad.click_url, '_blank');
     } catch (error) {
