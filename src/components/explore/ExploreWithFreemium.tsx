@@ -47,11 +47,7 @@ const ExploreWithFreemium = () => {
         </div>
       )}
 
-      <ExploreContainer 
-        onFilterUsage={handleFilterUsage}
-        onFavoriteClick={handleFavoriteClick}
-        showPremiumFeatures={isPremium}
-      />
+      <ExploreContainer />
 
       {/* Sponsored Listing Ad */}
       <div className="container mx-auto px-4 mb-6">

@@ -4,18 +4,21 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
-import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface CreateServiceDialogProps {
   isOpen: boolean;
-  onClose: () => void;
+  onOpenChange: (open: boolean) => void;
   onServiceCreated: () => void;
 }
 
-const CreateServiceDialog = ({ isOpen, onClose, onServiceCreated }: CreateServiceDialogProps) => {
+type ServiceType = 'grooming' | 'walking' | 'training' | 'veterinary' | 'boarding' | 'sitting';
+
+const CreateServiceDialog = ({ isOpen, onOpenChange, onServiceCreated }: CreateServiceDialogProps) => {
   const { user } = useAuth();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
@@ -23,78 +26,53 @@ const CreateServiceDialog = ({ isOpen, onClose, onServiceCreated }: CreateServic
     business_name: '',
     description: '',
     location: '',
-    service_types: [] as string[],
+    service_types: [] as ServiceType[],
     hourly_rate: '',
     session_rate: ''
   });
 
-  const serviceTypes = [
-    { id: 'grooming', label: 'Pet Grooming' },
-    { id: 'walking', label: 'Dog Walking' },
-    { id: 'training', label: 'Pet Training' },
-    { id: 'veterinary', label: 'Veterinary Services' },
-    { id: 'boarding', label: 'Pet Boarding' },
-    { id: 'sitting', label: 'Pet Sitting' }
+  const serviceOptions: { value: ServiceType; label: string }[] = [
+    { value: 'grooming', label: 'Pet Grooming' },
+    { value: 'walking', label: 'Dog Walking' },
+    { value: 'training', label: 'Training' },
+    { value: 'veterinary', label: 'Veterinary Care' },
+    { value: 'boarding', label: 'Pet Boarding' },
+    { value: 'sitting', label: 'Pet Sitting' }
   ];
-
-  const handleServiceTypeChange = (serviceId: string, checked: boolean) => {
-    if (checked) {
-      setFormData(prev => ({
-        ...prev,
-        service_types: [...prev.service_types, serviceId]
-      }));
-    } else {
-      setFormData(prev => ({
-        ...prev,
-        service_types: prev.service_types.filter(id => id !== serviceId)
-      }));
-    }
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user) {
-      toast({
-        title: "Authentication required",
-        description: "Please sign in to create a service listing",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    if (formData.service_types.length === 0) {
-      toast({
-        title: "Service type required",
-        description: "Please select at least one service type",
-        variant: "destructive"
-      });
-      return;
-    }
+    if (!user) return;
 
     setLoading(true);
     try {
-      const pricing = {};
-      if (formData.hourly_rate) pricing.hourly = parseFloat(formData.hourly_rate);
-      if (formData.session_rate) pricing.session = parseFloat(formData.session_rate);
+      const pricing = {
+        hourly: parseFloat(formData.hourly_rate) || 0,
+        session: parseFloat(formData.session_rate) || 0
+      };
 
-      const { error } = await supabase.from('service_providers').insert({
-        user_id: user.id,
-        business_name: formData.business_name,
-        description: formData.description,
-        location: formData.location,
-        service_types: formData.service_types,
-        pricing
-      });
+      const { error } = await supabase
+        .from('service_providers')
+        .insert({
+          user_id: user.id,
+          business_name: formData.business_name,
+          description: formData.description,
+          location: formData.location,
+          service_types: formData.service_types,
+          pricing: pricing
+        });
 
       if (error) throw error;
 
       toast({
         title: "Service created!",
-        description: "Your service listing is now live"
+        description: "Your service listing has been created successfully.",
       });
 
       onServiceCreated();
-      onClose();
+      onOpenChange(false);
+      
+      // Reset form
       setFormData({
         business_name: '',
         description: '',
@@ -104,58 +82,80 @@ const CreateServiceDialog = ({ isOpen, onClose, onServiceCreated }: CreateServic
         session_rate: ''
       });
     } catch (error) {
-      console.error('Service creation error:', error);
+      console.error('Error creating service:', error);
       toast({
-        title: "Creation failed",
-        description: "Please try again later",
-        variant: "destructive"
+        title: "Error",
+        description: "Failed to create service listing",
+        variant: "destructive",
       });
     } finally {
       setLoading(false);
     }
   };
 
+  const handleServiceTypeChange = (serviceType: ServiceType, checked: boolean) => {
+    setFormData(prev => ({
+      ...prev,
+      service_types: checked 
+        ? [...prev.service_types, serviceType]
+        : prev.service_types.filter(type => type !== serviceType)
+    }));
+  };
+
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-md mx-auto max-h-[90vh] overflow-y-auto">
+    <Dialog open={isOpen} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle>Create Service Listing</DialogTitle>
         </DialogHeader>
-
+        
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium mb-2">Business Name</label>
+            <Label htmlFor="business_name">Business Name</Label>
             <Input
+              id="business_name"
               value={formData.business_name}
               onChange={(e) => setFormData({...formData, business_name: e.target.value})}
-              placeholder="Your business or service name"
               required
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-2">Location</label>
+            <Label htmlFor="description">Description</Label>
+            <Textarea
+              id="description"
+              value={formData.description}
+              onChange={(e) => setFormData({...formData, description: e.target.value})}
+              rows={3}
+            />
+          </div>
+
+          <div>
+            <Label htmlFor="location">Location</Label>
             <Input
+              id="location"
               value={formData.location}
               onChange={(e) => setFormData({...formData, location: e.target.value})}
-              placeholder="City, State or ZIP code"
+              placeholder="City, State"
               required
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-2">Service Types</label>
-            <div className="space-y-2 max-h-32 overflow-y-auto">
-              {serviceTypes.map((service) => (
-                <div key={service.id} className="flex items-center space-x-2">
+            <Label>Service Types</Label>
+            <div className="grid grid-cols-2 gap-3 mt-2">
+              {serviceOptions.map((option) => (
+                <div key={option.value} className="flex items-center space-x-2">
                   <Checkbox
-                    id={service.id}
-                    checked={formData.service_types.includes(service.id)}
-                    onCheckedChange={(checked) => handleServiceTypeChange(service.id, checked as boolean)}
+                    id={option.value}
+                    checked={formData.service_types.includes(option.value)}
+                    onCheckedChange={(checked) => 
+                      handleServiceTypeChange(option.value, checked as boolean)
+                    }
                   />
-                  <label htmlFor={service.id} className="text-sm">
-                    {service.label}
-                  </label>
+                  <Label htmlFor={option.value} className="text-sm">
+                    {option.label}
+                  </Label>
                 </div>
               ))}
             </div>
@@ -163,52 +163,42 @@ const CreateServiceDialog = ({ isOpen, onClose, onServiceCreated }: CreateServic
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium mb-2">Hourly Rate ($)</label>
+              <Label htmlFor="hourly_rate">Hourly Rate ($)</Label>
               <Input
+                id="hourly_rate"
                 type="number"
                 value={formData.hourly_rate}
                 onChange={(e) => setFormData({...formData, hourly_rate: e.target.value})}
                 placeholder="50"
-                min="0"
-                step="0.01"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-2">Session Rate ($)</label>
+              <Label htmlFor="session_rate">Session Rate ($)</Label>
               <Input
+                id="session_rate"
                 type="number"
                 value={formData.session_rate}
                 onChange={(e) => setFormData({...formData, session_rate: e.target.value})}
                 placeholder="75"
-                min="0"
-                step="0.01"
               />
             </div>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium mb-2">Description</label>
-            <Textarea
-              value={formData.description}
-              onChange={(e) => setFormData({...formData, description: e.target.value})}
-              placeholder="Describe your services, experience, and what makes you special..."
-              rows={4}
-              required
-            />
-          </div>
-
-          <div className="bg-blue-50 p-3 rounded-lg border border-blue-200">
-            <p className="text-sm text-blue-800">
-              <strong>Commission:</strong> My Pup charges a 15% service fee on completed bookings.
-            </p>
-          </div>
-
           <div className="flex space-x-3">
-            <Button type="button" variant="outline" onClick={onClose} className="flex-1">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => onOpenChange(false)}
+              className="flex-1"
+            >
               Cancel
             </Button>
-            <Button type="submit" disabled={loading} className="flex-1 bg-blue-600 hover:bg-blue-700">
-              {loading ? 'Creating...' : 'Create Service'}
+            <Button
+              type="submit"
+              disabled={loading || formData.service_types.length === 0}
+              className="flex-1"
+            >
+              {loading ? "Creating..." : "Create Service"}
             </Button>
           </div>
         </form>

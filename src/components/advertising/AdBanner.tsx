@@ -59,15 +59,12 @@ const AdBanner = ({ targetPage, className = "", format = "banner" }: AdBannerPro
         ad_id: ad.id,
         page_url: window.location.pathname,
         clicked: false,
-        ip_address: null, // Will be handled by edge function if needed
+        ip_address: null,
         user_agent: navigator.userAgent
       });
 
-      // Update total impressions
-      await supabase
-        .from('advertisements')
-        .update({ total_impressions: supabase.sql`total_impressions + 1` })
-        .eq('id', ad.id);
+      // Update total impressions using RPC function
+      await supabase.rpc('increment_ad_impressions', { ad_id: ad.id });
     } catch (error) {
       console.error('Error tracking impression:', error);
     }
@@ -86,11 +83,8 @@ const AdBanner = ({ targetPage, className = "", format = "banner" }: AdBannerPro
         user_agent: navigator.userAgent
       });
 
-      // Update total clicks
-      await supabase
-        .from('advertisements')
-        .update({ total_clicks: supabase.sql`total_clicks + 1` })
-        .eq('id', ad.id);
+      // Update total clicks using RPC function
+      await supabase.rpc('increment_ad_clicks', { ad_id: ad.id });
 
       window.open(ad.click_url, '_blank');
     } catch (error) {
