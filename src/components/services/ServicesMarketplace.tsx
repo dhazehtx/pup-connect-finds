@@ -25,13 +25,13 @@ interface ServiceProvider {
 
 const ServicesMarketplace = () => {
   const [providers, setProviders] = useState<ServiceProvider[]>([]);
-  const [loading, setLoading] = useState(true);
   const [selectedProvider, setSelectedProvider] = useState<ServiceProvider | null>(null);
   const [showBooking, setShowBooking] = useState(false);
   const [showCreateService, setShowCreateService] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [serviceFilter, setServiceFilter] = useState('all');
   const [locationFilter, setLocationFilter] = useState('');
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     loadProviders();

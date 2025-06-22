@@ -26,7 +26,7 @@ interface Service {
 interface ServiceBookingDialogProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
-  service: Service;
+  service: Service | null;
   onBookingSuccess: () => void;
 }
 
@@ -40,6 +40,8 @@ const ServiceBookingDialog = ({ isOpen, onOpenChange, service, onBookingSuccess 
     duration: '1',
     notes: ''
   });
+
+  if (!service) return null;
 
   const calculateTotal = () => {
     const duration = parseFloat(formData.duration);

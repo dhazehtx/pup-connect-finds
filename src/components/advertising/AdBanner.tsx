@@ -63,11 +63,19 @@ const AdBanner = ({ targetPage, className = "", format = "banner" }: AdBannerPro
         user_agent: navigator.userAgent
       });
 
-      // Update total impressions directly
-      await supabase
+      // Update total impressions
+      const { data: currentAd } = await supabase
         .from('advertisements')
-        .update({ total_impressions: supabase.raw('total_impressions + 1') })
-        .eq('id', ad.id);
+        .select('total_impressions')
+        .eq('id', ad.id)
+        .single();
+
+      if (currentAd) {
+        await supabase
+          .from('advertisements')
+          .update({ total_impressions: (currentAd.total_impressions || 0) + 1 })
+          .eq('id', ad.id);
+      }
     } catch (error) {
       console.error('Error tracking impression:', error);
     }
@@ -86,11 +94,19 @@ const AdBanner = ({ targetPage, className = "", format = "banner" }: AdBannerPro
         user_agent: navigator.userAgent
       });
 
-      // Update total clicks directly
-      await supabase
+      // Update total clicks
+      const { data: currentAd } = await supabase
         .from('advertisements')
-        .update({ total_clicks: supabase.raw('total_clicks + 1') })
-        .eq('id', ad.id);
+        .select('total_clicks')
+        .eq('id', ad.id)
+        .single();
+
+      if (currentAd) {
+        await supabase
+          .from('advertisements')
+          .update({ total_clicks: (currentAd.total_clicks || 0) + 1 })
+          .eq('id', ad.id);
+      }
 
       window.open(ad.click_url, '_blank');
     } catch (error) {
