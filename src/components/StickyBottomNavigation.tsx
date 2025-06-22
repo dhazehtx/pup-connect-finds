@@ -9,10 +9,15 @@ const StickyBottomNavigation = () => {
   const location = useLocation();
   const { user } = useAuth();
 
-  const isActive = (path: string) => location.pathname === path;
+  const isActive = (path: string) => {
+    if (path === '/explore') {
+      return location.pathname === path || location.pathname === '/';
+    }
+    return location.pathname === path;
+  };
 
   const navItems = [
-    { icon: Home, label: 'Home', path: '/' },
+    { icon: Home, label: 'Home', path: '/explore' },
     { icon: Search, label: 'Explore', path: '/explore' },
     { icon: ShoppingBag, label: 'Marketplace', path: '/marketplace' },
     { icon: Heart, label: 'Favorites', path: '/favorites' },

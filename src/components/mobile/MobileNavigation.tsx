@@ -6,10 +6,9 @@ import { Badge } from '@/components/ui/badge';
 import { 
   Home, 
   Search, 
-  Heart, 
+  ShoppingBag, 
   MessageCircle, 
-  User,
-  Plus
+  User
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useMobileOptimized } from '@/hooks/useMobileOptimized';
@@ -34,7 +33,7 @@ const MobileNavigation = () => {
       id: 'home',
       label: 'Home',
       icon: <Home className="w-5 h-5" />,
-      path: '/'
+      path: '/explore'
     },
     {
       id: 'explore',
@@ -43,11 +42,10 @@ const MobileNavigation = () => {
       path: '/explore'
     },
     {
-      id: 'favorites',
-      label: 'Favorites',
-      icon: <Heart className="w-5 h-5" />,
-      path: '/favorites',
-      badge: 3
+      id: 'marketplace',
+      label: 'Marketplace',
+      icon: <ShoppingBag className="w-5 h-5" />,
+      path: '/marketplace'
     },
     {
       id: 'messages',
@@ -65,57 +63,45 @@ const MobileNavigation = () => {
   ];
 
   const isActive = (path: string) => {
-    if (path === '/') {
-      return location.pathname === path;
+    if (path === '/explore') {
+      return location.pathname === path || location.pathname === '/';
     }
     return location.pathname.startsWith(path);
   };
 
   return (
-    <>
-      {/* Fixed bottom navigation */}
-      <div 
-        className="fixed bottom-0 left-0 right-0 bg-background border-t border-border z-50"
-        style={{ paddingBottom: safeAreaInsets.bottom }}
-      >
-        <div className="flex items-center justify-around py-2 px-1">
-          {navItems.map((item) => (
-            <Button
-              key={item.id}
-              variant="ghost"
-              size="sm"
-              onClick={() => navigate(item.path)}
-              className={cn(
-                "flex flex-col items-center gap-1 p-2 h-auto min-w-[60px] relative",
-                isActive(item.path) && "text-primary"
+    <div 
+      className="fixed bottom-0 left-0 right-0 bg-background border-t border-border z-50"
+      style={{ paddingBottom: safeAreaInsets.bottom }}
+    >
+      <div className="flex items-center justify-around py-2 px-1">
+        {navItems.map((item) => (
+          <Button
+            key={item.id}
+            variant="ghost"
+            size="sm"
+            onClick={() => navigate(item.path)}
+            className={cn(
+              "flex flex-col items-center gap-1 p-2 h-auto min-w-[60px] relative",
+              isActive(item.path) && "text-primary"
+            )}
+          >
+            <div className="relative">
+              {item.icon}
+              {item.badge && item.badge > 0 && (
+                <Badge 
+                  variant="destructive" 
+                  className="absolute -top-2 -right-2 text-xs w-5 h-5 flex items-center justify-center p-0"
+                >
+                  {item.badge > 99 ? '99+' : item.badge}
+                </Badge>
               )}
-            >
-              <div className="relative">
-                {item.icon}
-                {item.badge && item.badge > 0 && (
-                  <Badge 
-                    variant="destructive" 
-                    className="absolute -top-2 -right-2 text-xs w-5 h-5 flex items-center justify-center p-0"
-                  >
-                    {item.badge > 99 ? '99+' : item.badge}
-                  </Badge>
-                )}
-              </div>
-              <span className="text-xs font-medium">{item.label}</span>
-            </Button>
-          ))}
-        </div>
+            </div>
+            <span className="text-xs font-medium">{item.label}</span>
+          </Button>
+        ))}
       </div>
-
-      {/* Floating action button for create listing */}
-      <Button
-        onClick={() => navigate('/create-listing')}
-        className="fixed bottom-20 right-4 w-14 h-14 rounded-full shadow-lg z-40"
-        style={{ marginBottom: safeAreaInsets.bottom }}
-      >
-        <Plus className="w-6 h-6" />
-      </Button>
-    </>
+    </div>
   );
 };
 

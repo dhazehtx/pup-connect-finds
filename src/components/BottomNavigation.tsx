@@ -1,11 +1,10 @@
 
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Home, Search, Plus, MessageCircle, User } from 'lucide-react';
+import { Home, Search, ShoppingBag, MessageCircle, User } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import GuestPrompt from '@/components/GuestPrompt';
-import PostCreator from '@/components/home/PostCreator';
 
 const BottomNavigation = () => {
   const navigate = useNavigate();
@@ -14,7 +13,6 @@ const BottomNavigation = () => {
   const { toast } = useToast();
   const [showGuestPrompt, setShowGuestPrompt] = useState(false);
   const [promptAction, setPromptAction] = useState('');
-  const [showPostCreator, setShowPostCreator] = useState(false);
 
   const handleProtectedNavigation = (path: string, action: string) => {
     if (!user && !isGuest) {
@@ -31,34 +29,13 @@ const BottomNavigation = () => {
     navigate(path);
   };
 
-  const handleCreateAction = () => {
-    console.log('Create button clicked - opening post creator');
-    if (!user && !isGuest) {
-      setPromptAction('create content');
-      setShowGuestPrompt(true);
-      return;
-    }
-    
-    setShowPostCreator(true);
-  };
-
-  const handlePostCreated = (newPost: any) => {
-    toast({
-      title: "Post shared! 🎉",
-      description: "Your post is now live!",
-    });
-    setShowPostCreator(false);
-    // Navigate to home to see the new post
-    navigate('/');
-  };
-
   const navItems = [
     {
       icon: Home,
       label: 'Home',
-      path: '/',
+      path: '/explore',
       protected: false,
-      onClick: () => handleNavigation('/')
+      onClick: () => handleNavigation('/explore')
     },
     {
       icon: Search,
@@ -68,13 +45,11 @@ const BottomNavigation = () => {
       onClick: () => handleNavigation('/explore')
     },
     {
-      icon: Plus,
-      label: 'Create',
-      path: '/create',
-      protected: true,
-      action: 'create content',
-      onClick: handleCreateAction,
-      isCreateButton: true
+      icon: ShoppingBag,
+      label: 'Marketplace',
+      path: '/marketplace',
+      protected: false,
+      onClick: () => handleNavigation('/marketplace')
     },
     {
       icon: MessageCircle,
@@ -93,11 +68,8 @@ const BottomNavigation = () => {
   ];
 
   const isActive = (path: string) => {
-    if (path === '/') {
-      return location.pathname === '/';
-    }
-    if (path === '/create') {
-      return false; // Create button should not show as active
+    if (path === '/explore') {
+      return location.pathname === '/explore' || location.pathname === '/';
     }
     return location.pathname.startsWith(path);
   };
@@ -111,9 +83,8 @@ const BottomNavigation = () => {
           {navItems.map((item, index) => {
             const Icon = item.icon;
             const active = isActive(item.path);
-            const isCreateBtn = item.isCreateButton;
             
-            console.log(`Rendering nav item ${index}: ${item.label}, isCreateButton: ${isCreateBtn}`);
+            console.log(`Rendering nav item ${index}: ${item.label}`);
             
             return (
               <button
@@ -127,25 +98,15 @@ const BottomNavigation = () => {
                 className={`flex flex-col items-center justify-center p-2 transition-colors relative ${
                   active 
                     ? 'text-blue-600 bg-blue-50' 
-                    : isCreateBtn
-                    ? 'text-white'
                     : 'text-gray-600 hover:text-blue-600 hover:bg-gray-50'
                 }`}
                 type="button"
                 aria-label={item.label}
               >
-                {isCreateBtn ? (
-                  <div className="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center shadow-lg hover:bg-blue-700 transition-colors">
-                    <Icon size={24} className="text-white" />
-                  </div>
-                ) : (
-                  <>
-                    <Icon size={20} className="flex-shrink-0" />
-                    <span className="text-xs mt-1 font-medium">{item.label}</span>
-                  </>
-                )}
+                <Icon size={20} className="flex-shrink-0" />
+                <span className="text-xs mt-1 font-medium">{item.label}</span>
                 {item.protected && !user && !isGuest && (
-                  <div className="absolute top-1 right-1 w-2 h-2 bg-orange-500 rounded-full"></div>
+                  <div className="absolute top-1 right-1 w-2 h-2 bg-blue-500 rounded-full"></div>
                 )}
               </button>
             );
@@ -158,13 +119,6 @@ const BottomNavigation = () => {
           action={promptAction}
           description={`To ${promptAction}, you need to create a MY PUP account.`}
           onCancel={() => setShowGuestPrompt(false)}
-        />
-      )}
-
-      {showPostCreator && (
-        <PostCreator
-          onClose={() => setShowPostCreator(false)}
-          onPostCreated={handlePostCreated}
         />
       )}
     </>

@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Home, Search, Plus, MessageCircle, User } from 'lucide-react';
+import { Home, Search, ShoppingBag, MessageCircle, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useMobileOptimized } from '@/hooks/useMobileOptimized';
 
@@ -21,9 +21,9 @@ const MobileTabBar = () => {
   if (!isMobile) return null;
 
   const tabs: TabItem[] = [
-    { id: 'home', label: 'Home', icon: <Home size={24} />, path: '/' },
+    { id: 'home', label: 'Home', icon: <Home size={24} />, path: '/explore' },
     { id: 'explore', label: 'Explore', icon: <Search size={24} />, path: '/explore' },
-    { id: 'post', label: 'Post', icon: <Plus size={24} />, path: '/post' },
+    { id: 'marketplace', label: 'Marketplace', icon: <ShoppingBag size={24} />, path: '/marketplace' },
     { id: 'messages', label: 'Messages', icon: <MessageCircle size={24} />, path: '/messages' },
     { id: 'profile', label: 'Profile', icon: <User size={24} />, path: '/profile' }
   ];
@@ -40,7 +40,7 @@ const MobileTabBar = () => {
       <div className="flex items-center justify-around py-2">
         {tabs.map((tab) => {
           const isActive = location.pathname === tab.path || 
-            (tab.path !== '/' && location.pathname.startsWith(tab.path));
+            (tab.path === '/explore' && (location.pathname === '/' || location.pathname === '/explore'));
           
           return (
             <button

@@ -2,7 +2,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Plus } from 'lucide-react';
+import { ShoppingBag } from 'lucide-react';
 
 interface NavbarDesktopMenuProps {
   user: any;
@@ -13,27 +13,20 @@ const NavbarDesktopMenu = ({ user, onCreatePost }: NavbarDesktopMenuProps) => {
   return (
     <div className="hidden md:ml-6 md:flex md:space-x-8">
       <Link
-        to="/browse"
-        className="text-gray-500 hover:text-gray-700 px-3 py-2 rounded-md text-sm font-medium"
-      >
-        Browse Puppies
-      </Link>
-      <Link
         to="/explore"
         className="text-gray-500 hover:text-gray-700 px-3 py-2 rounded-md text-sm font-medium"
       >
-        Explore
+        Explore Puppies
       </Link>
       
-      {/* Post Button in Navigation */}
-      <Button
-        onClick={onCreatePost}
-        className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-full flex items-center space-x-1 shadow-lg"
-        size="sm"
+      {/* Marketplace Button in Navigation */}
+      <Link
+        to="/marketplace"
+        className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-full flex items-center space-x-1 shadow-lg text-sm font-medium"
       >
-        <Plus className="h-4 w-4" />
-        <span className="font-medium text-xs">Post</span>
-      </Button>
+        <ShoppingBag className="h-4 w-4" />
+        <span className="font-medium text-xs">Marketplace</span>
+      </Link>
       
       {user && (
         <Link

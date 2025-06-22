@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Heart, Menu, X } from 'lucide-react';
+import { Heart, Menu, X, HelpCircle, FileText, Shield, Mail } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
@@ -31,12 +31,22 @@ const Header = () => {
     }
   };
 
+  const supportLinks = [
+    { name: 'Education', path: '/education', icon: <FileText className="w-4 h-4" /> },
+    { name: 'Legal Guide', path: '/legal', icon: <Shield className="w-4 h-4" /> },
+    { name: 'Terms of Service', path: '/terms', icon: <FileText className="w-4 h-4" /> },
+    { name: 'Privacy Policy', path: '/privacy-policy', icon: <Shield className="w-4 h-4" /> },
+    { name: 'Help Center', path: '/help-center', icon: <HelpCircle className="w-4 h-4" /> },
+    { name: 'Trust & Safety', path: '/trust-safety', icon: <Shield className="w-4 h-4" /> },
+    { name: 'Contact Us', path: '/contact', icon: <Mail className="w-4 h-4" /> },
+  ];
+
   return (
     <header className="bg-white shadow-sm border-b sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
-          <Link to={user || isGuest ? "/home" : "/"} className="flex items-center space-x-2">
+          <Link to={user || isGuest ? "/explore" : "/"} className="flex items-center space-x-2">
             <Heart className="h-8 w-8 text-blue-600" />
             <span className="text-xl font-bold text-gray-900">MY PUP</span>
           </Link>
@@ -60,28 +70,49 @@ const Header = () => {
               </div>
             )}
 
-            {/* Help Menu - Now positioned at far right */}
-            <HeaderSupportMenu />
+            {/* Help Menu - Desktop */}
+            <div className="hidden md:block">
+              <HeaderSupportMenu />
+            </div>
 
-            {/* Mobile menu button - Only show for authenticated users */}
-            {(user || isGuest) && (
-              <button
-                onClick={() => setIsMenuOpen(!isMenuOpen)}
-                className="md:hidden p-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100"
-              >
-                {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-              </button>
-            )}
+            {/* Mobile menu button - Show for all users */}
+            <button
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              className="md:hidden p-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+            >
+              {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+            </button>
           </div>
         </div>
 
-        {/* Mobile Menu - Only show for authenticated users */}
-        {isMenuOpen && (user || isGuest) && (
+        {/* Mobile Menu */}
+        {isMenuOpen && (
           <div className="md:hidden py-4 border-t">
             <nav className="flex flex-col space-y-2">
-              <Button variant="outline" size="sm" onClick={handleSignOut}>
-                {isGuest ? 'Exit Guest Mode' : 'Sign Out'}
-              </Button>
+              {/* Help & Support Section */}
+              <div className="mb-4">
+                <h3 className="text-sm font-semibold text-gray-900 px-3 mb-2">Help & Support</h3>
+                {supportLinks.map((link) => (
+                  <Link
+                    key={link.path}
+                    to={link.path}
+                    onClick={() => setIsMenuOpen(false)}
+                    className="flex items-center gap-2 px-3 py-2 text-gray-600 hover:text-blue-600 hover:bg-gray-50 rounded-md"
+                  >
+                    {link.icon}
+                    {link.name}
+                  </Link>
+                ))}
+              </div>
+
+              {/* Account Actions */}
+              {(user || isGuest) && (
+                <div className="border-t pt-2">
+                  <Button variant="outline" size="sm" onClick={handleSignOut} className="w-full">
+                    {isGuest ? 'Exit Guest Mode' : 'Sign Out'}
+                  </Button>
+                </div>
+              )}
             </nav>
           </div>
         )}
