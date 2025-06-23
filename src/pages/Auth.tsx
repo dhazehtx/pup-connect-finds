@@ -187,9 +187,7 @@ const Auth = () => {
                     onChange={(e) => setFullName(e.target.value)}
                     className={`h-12 rounded-lg border-2 bg-white px-4 text-black placeholder:text-gray-500 focus:ring-2 focus:ring-opacity-20 ${errors.fullName ? 'border-red-500' : ''}`}
                     style={{
-                      borderColor: errors.fullName ? '#EF4444' : '#CBD5E1',
-                      focusBorderColor: '#2363FF',
-                      focusRingColor: '#2363FF'
+                      borderColor: errors.fullName ? '#EF4444' : '#CBD5E1'
                     }}
                     disabled={loading}
                   />
@@ -207,9 +205,7 @@ const Auth = () => {
                   onChange={(e) => setEmail(e.target.value)}
                   className={`h-12 rounded-lg border-2 bg-white px-4 text-black placeholder:text-gray-500 focus:ring-2 focus:ring-opacity-20 ${errors.email ? 'border-red-500' : ''}`}
                   style={{
-                    borderColor: errors.email ? '#EF4444' : '#CBD5E1',
-                    focusBorderColor: '#2363FF',
-                    focusRingColor: '#2363FF'
+                    borderColor: errors.email ? '#EF4444' : '#CBD5E1'
                   }}
                   disabled={loading}
                 />
@@ -226,9 +222,7 @@ const Auth = () => {
                   onChange={(e) => setPassword(e.target.value)}
                   className={`h-12 rounded-lg border-2 bg-white px-4 pr-12 text-black placeholder:text-gray-500 focus:ring-2 focus:ring-opacity-20 ${errors.password ? 'border-red-500' : ''}`}
                   style={{
-                    borderColor: errors.password ? '#EF4444' : '#CBD5E1',
-                    focusBorderColor: '#2363FF',
-                    focusRingColor: '#2363FF'
+                    borderColor: errors.password ? '#EF4444' : '#CBD5E1'
                   }}
                   disabled={loading}
                 />
