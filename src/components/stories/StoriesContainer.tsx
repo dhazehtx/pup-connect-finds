@@ -52,21 +52,24 @@ const StoriesContainer = () => {
   return (
     <div className="w-full">
       <div className="flex items-center space-x-4 p-4 overflow-x-auto">
-        {/* Add Story Button */}
+        {/* Add Story Button - Circular with royal blue styling */}
         {user && (
-          <Button
-            onClick={handleCreateStory}
-            className="flex-shrink-0 w-16 h-16 rounded-full bg-blue-600 hover:bg-blue-700 text-white p-0"
-          >
-            <Plus className="w-6 h-6" />
-          </Button>
+          <div className="flex-shrink-0 text-center">
+            <button
+              onClick={handleCreateStory}
+              className="w-16 h-16 rounded-full bg-blue-600 hover:bg-blue-700 text-white flex items-center justify-center border-2 border-blue-200 shadow-lg transition-all duration-200 hover:scale-105"
+            >
+              <Plus className="w-6 h-6" />
+            </button>
+            <p className="text-xs text-blue-600 mt-1 font-medium">Add Story</p>
+          </div>
         )}
 
         {/* Stories */}
         {stories.map((story) => (
           <div key={story.id} className="flex-shrink-0 text-center">
             <div className="relative">
-              <div className="w-16 h-16 rounded-full bg-gradient-to-tr from-yellow-400 to-pink-600 p-0.5">
+              <div className="w-16 h-16 rounded-full bg-gradient-to-tr from-blue-400 to-blue-600 p-0.5">
                 <div className="w-full h-full rounded-full bg-white p-0.5">
                   <img
                     src={story.avatar_url || 'https://images.unsplash.com/photo-1494790108755-2616c66a92a8?w=50&h=50&fit=crop&crop=face'}

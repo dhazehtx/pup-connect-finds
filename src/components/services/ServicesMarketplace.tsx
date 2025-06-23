@@ -81,11 +81,11 @@ const ServicesMarketplace = () => {
       <div className="container mx-auto px-4 py-8">
         <div className="animate-pulse space-y-4">
           {[...Array(6)].map((_, i) => (
-            <Card key={i}>
+            <Card key={i} className="border-blue-200">
               <CardContent className="p-6">
-                <div className="h-4 bg-gray-200 rounded w-1/4 mb-2"></div>
-                <div className="h-3 bg-gray-200 rounded w-3/4 mb-4"></div>
-                <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+                <div className="h-4 bg-blue-100 rounded w-1/4 mb-2"></div>
+                <div className="h-3 bg-blue-100 rounded w-3/4 mb-4"></div>
+                <div className="h-3 bg-blue-100 rounded w-1/2"></div>
               </CardContent>
             </Card>
           ))}
@@ -102,44 +102,44 @@ const ServicesMarketplace = () => {
           <h1 className="text-3xl font-bold text-gray-900">Pet Services</h1>
           <p className="text-gray-600 mt-2">Find trusted professionals for your furry friends</p>
         </div>
-        <Button onClick={() => setShowCreateService(true)} className="bg-blue-600 hover:bg-blue-700">
+        <Button onClick={() => setShowCreateService(true)} className="bg-blue-600 hover:bg-blue-700 text-white">
           List Your Service
         </Button>
       </div>
 
       {/* Filters */}
-      <Card className="mb-8">
+      <Card className="mb-8 border-blue-200">
         <CardContent className="p-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-blue-400 w-4 h-4" />
               <Input
                 placeholder="Search services..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
+                className="pl-10 border-blue-200 focus:border-blue-600 focus:ring-blue-600"
               />
             </div>
             <Select value={serviceFilter} onValueChange={setServiceFilter}>
-              <SelectTrigger>
+              <SelectTrigger className="border-blue-200 focus:border-blue-600 focus:ring-blue-600">
                 <SelectValue placeholder="Service type" />
               </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Services</SelectItem>
+              <SelectContent className="bg-white border-blue-200">
+                <SelectItem value="all" className="text-blue-600 focus:bg-blue-50">All Services</SelectItem>
                 {serviceTypes.map(type => (
-                  <SelectItem key={type.value} value={type.value}>
+                  <SelectItem key={type.value} value={type.value} className="focus:bg-blue-50">
                     {type.label}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
             <div className="relative">
-              <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+              <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-blue-400 w-4 h-4" />
               <Input
                 placeholder="Location..."
                 value={locationFilter}
                 onChange={(e) => setLocationFilter(e.target.value)}
-                className="pl-10"
+                className="pl-10 border-blue-200 focus:border-blue-600 focus:ring-blue-600"
               />
             </div>
           </div>
@@ -149,13 +149,13 @@ const ServicesMarketplace = () => {
       {/* Service Providers */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredProviders.map((provider) => (
-          <Card key={provider.id} className="hover:shadow-lg transition-shadow">
+          <Card key={provider.id} className="hover:shadow-lg transition-shadow border-blue-200 hover:border-blue-300">
             <CardHeader>
               <div className="flex justify-between items-start">
                 <div>
-                  <CardTitle className="text-lg">{provider.business_name}</CardTitle>
+                  <CardTitle className="text-lg text-gray-900">{provider.business_name}</CardTitle>
                   {provider.verified && (
-                    <Badge className="bg-green-100 text-green-800 border-green-200 mt-1">
+                    <Badge className="bg-blue-100 text-blue-800 border-blue-200 mt-1">
                       ✓ Verified
                     </Badge>
                   )}
@@ -178,7 +178,7 @@ const ServicesMarketplace = () => {
                 {provider.service_types.map((service) => {
                   const serviceType = serviceTypes.find(t => t.value === service);
                   return (
-                    <Badge key={service} variant="secondary" className="text-xs">
+                    <Badge key={service} variant="secondary" className="text-xs bg-blue-50 text-blue-600 border-blue-200">
                       {serviceType?.label || service}
                     </Badge>
                   );
@@ -198,7 +198,7 @@ const ServicesMarketplace = () => {
 
               <Button 
                 onClick={() => handleBookService(provider)}
-                className="w-full bg-blue-600 hover:bg-blue-700"
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white"
               >
                 Book Service
               </Button>
@@ -209,8 +209,8 @@ const ServicesMarketplace = () => {
 
       {filteredProviders.length === 0 && !loading && (
         <div className="text-center py-12">
-          <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <Search className="w-8 h-8 text-gray-400" />
+          <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Search className="w-8 h-8 text-blue-400" />
           </div>
           <h3 className="text-lg font-medium text-gray-900 mb-2">No services found</h3>
           <p className="text-gray-500">Try adjusting your search criteria or check back later.</p>

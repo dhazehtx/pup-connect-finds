@@ -55,7 +55,7 @@ const Header = () => {
           <div className="flex items-center space-x-4">
             {user || isGuest ? (
               <div className="flex items-center space-x-4">
-                <Button variant="outline" size="sm" onClick={handleSignOut}>
+                <Button variant="outline" size="sm" onClick={handleSignOut} className="border-blue-600 text-blue-600 hover:bg-blue-50">
                   {isGuest ? 'Exit Guest Mode' : 'Sign Out'}
                 </Button>
               </div>
@@ -75,31 +75,31 @@ const Header = () => {
               <HeaderSupportMenu />
             </div>
 
-            {/* Mobile menu button - Show for all users */}
+            {/* Mobile menu button - Royal blue color */}
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="md:hidden p-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+              className="md:hidden p-2 rounded-md text-blue-600 hover:text-blue-700 hover:bg-blue-50 transition-colors"
             >
               {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
             </button>
           </div>
         </div>
 
-        {/* Mobile Menu */}
+        {/* Mobile Menu - Updated styling */}
         {isMenuOpen && (
-          <div className="md:hidden py-4 border-t">
+          <div className="md:hidden py-4 border-t bg-white shadow-lg rounded-b-lg">
             <nav className="flex flex-col space-y-2">
               {/* Help & Support Section */}
               <div className="mb-4">
-                <h3 className="text-sm font-semibold text-gray-900 px-3 mb-2">Help & Support</h3>
+                <h3 className="text-sm font-semibold text-blue-600 px-3 mb-2">Help & Support</h3>
                 {supportLinks.map((link) => (
                   <Link
                     key={link.path}
                     to={link.path}
                     onClick={() => setIsMenuOpen(false)}
-                    className="flex items-center gap-2 px-3 py-2 text-gray-600 hover:text-blue-600 hover:bg-gray-50 rounded-md"
+                    className="flex items-center gap-2 px-3 py-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-md mx-2 transition-colors"
                   >
-                    {link.icon}
+                    <span className="text-blue-600">{link.icon}</span>
                     {link.name}
                   </Link>
                 ))}
@@ -107,8 +107,13 @@ const Header = () => {
 
               {/* Account Actions */}
               {(user || isGuest) && (
-                <div className="border-t pt-2">
-                  <Button variant="outline" size="sm" onClick={handleSignOut} className="w-full">
+                <div className="border-t pt-2 px-2">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={handleSignOut} 
+                    className="w-full border-blue-600 text-blue-600 hover:bg-blue-50"
+                  >
                     {isGuest ? 'Exit Guest Mode' : 'Sign Out'}
                   </Button>
                 </div>

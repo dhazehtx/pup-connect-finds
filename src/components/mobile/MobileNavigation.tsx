@@ -74,7 +74,7 @@ const MobileNavigation = () => {
 
   return (
     <div 
-      className="fixed bottom-0 left-0 right-0 bg-background border-t border-border z-50"
+      className="fixed bottom-0 left-0 right-0 bg-white border-t border-blue-200 z-50 shadow-lg"
       style={{ paddingBottom: safeAreaInsets.bottom }}
     >
       <div className="flex items-center justify-around py-2 px-1">
@@ -85,8 +85,10 @@ const MobileNavigation = () => {
             size="sm"
             onClick={() => navigate(item.path)}
             className={cn(
-              "flex flex-col items-center gap-1 p-2 h-auto min-w-[60px] relative",
-              isActive(item.path) && "text-primary"
+              "flex flex-col items-center gap-1 p-2 h-auto min-w-[60px] relative transition-colors",
+              isActive(item.path) 
+                ? "text-blue-600 bg-blue-50" 
+                : "text-gray-500 hover:text-blue-600 hover:bg-blue-50"
             )}
           >
             <div className="relative">
@@ -94,7 +96,7 @@ const MobileNavigation = () => {
               {item.badge && item.badge > 0 && (
                 <Badge 
                   variant="destructive" 
-                  className="absolute -top-2 -right-2 text-xs w-5 h-5 flex items-center justify-center p-0"
+                  className="absolute -top-2 -right-2 text-xs w-5 h-5 flex items-center justify-center p-0 bg-blue-600 hover:bg-blue-700"
                 >
                   {item.badge > 99 ? '99+' : item.badge}
                 </Badge>

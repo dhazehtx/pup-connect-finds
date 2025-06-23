@@ -19,12 +19,18 @@ const Marketplace = () => {
 
       <div className="container mx-auto px-4 pb-8">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2 max-w-md mx-auto">
-            <TabsTrigger value="services" className="flex items-center space-x-2">
+          <TabsList className="grid w-full grid-cols-2 max-w-md mx-auto bg-blue-50 border border-blue-200">
+            <TabsTrigger 
+              value="services" 
+              className="flex items-center space-x-2 data-[state=active]:bg-blue-600 data-[state=active]:text-white text-blue-600"
+            >
               <Briefcase className="w-4 h-4" />
               <span>Pet Services</span>
             </TabsTrigger>
-            <TabsTrigger value="pupbox" className="flex items-center space-x-2">
+            <TabsTrigger 
+              value="pupbox" 
+              className="flex items-center space-x-2 data-[state=active]:bg-blue-600 data-[state=active]:text-white text-blue-600"
+            >
               <Gift className="w-4 h-4" />
               <span>Pup Box</span>
             </TabsTrigger>
