@@ -42,6 +42,14 @@ const NavbarDesktopMenu = ({ user, onCreatePost }: NavbarDesktopMenuProps) => {
           Messages
         </Link>
       )}
+      {user && (
+        <Link
+          to="/rehome"
+          className="text-gray-500 hover:text-gray-700 px-3 py-2 rounded-md text-sm font-medium"
+        >
+          Rehome
+        </Link>
+      )}
       <Link
         to="/education"
         className="text-gray-500 hover:text-gray-700 px-3 py-2 rounded-md text-sm font-medium"

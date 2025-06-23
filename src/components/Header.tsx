@@ -46,7 +46,7 @@ const Header = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
-          <Link to={user || isGuest ? "/explore" : "/"} className="flex items-center space-x-2">
+          <Link to={user || isGuest ? "/home" : "/"} className="flex items-center space-x-2">
             <Heart className="h-8 w-8 text-blue-600" />
             <span className="text-xl font-bold text-gray-900">MY PUP</span>
           </Link>

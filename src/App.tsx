@@ -19,6 +19,7 @@ import Messages from "@/pages/Messages";
 import Settings from "@/pages/Settings";
 import Admin from "@/pages/Admin";
 import CreateListing from "@/pages/CreateListing";
+import RehomingForm from "@/components/rehoming/RehomingForm";
 import Monetization from "@/pages/Monetization";
 import Help from "@/pages/Help";
 import Education from "@/pages/Education";
@@ -50,6 +51,7 @@ const App = () => (
                   <Route path="/admin" element={<Admin />} />
                   <Route path="/auth" element={<AuthForm />} />
                   <Route path="/create-listing" element={<CreateListing />} />
+                  <Route path="/rehome" element={<RehomingForm />} />
                   <Route path="/monetization" element={<Monetization />} />
                   <Route path="/help" element={<Help />} />
                   <Route path="/education" element={<Education />} />
