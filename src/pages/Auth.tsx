@@ -220,9 +220,7 @@ const Auth = () => {
 
               <div className="relative">
                 <Input
-                  type={show
-
-ault.
+                  type={showPassword ? 'text' : 'password'}
                   placeholder="Password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
