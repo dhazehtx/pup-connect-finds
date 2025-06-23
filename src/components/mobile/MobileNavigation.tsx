@@ -79,8 +79,9 @@ const MobileNavigation = () => {
   };
 
   const handleNavigation = (item: NavItem) => {
+    // If the item requires auth and user is not authenticated, redirect to greeting page
     if (item.requiresAuth && !user && !isGuest) {
-      navigate(`/auth?redirect=${encodeURIComponent(item.path)}`);
+      navigate('/');
       return;
     }
     navigate(item.path);
