@@ -264,7 +264,7 @@ const RehomingForm = () => {
                   <Checkbox 
                     id="terms" 
                     checked={agreedToTerms}
-                    onCheckedChange={setAgreedToTerms}
+                    onCheckedChange={(checked) => setAgreedToTerms(checked === true)}
                   />
                   <Label htmlFor="terms" className="text-sm">
                     I agree to the rehoming policy and terms above
