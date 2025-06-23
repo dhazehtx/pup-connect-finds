@@ -107,7 +107,14 @@ const Auth = () => {
                   setResetMode(false);
                   setActiveTab('signin');
                 }}
-                className="text-blue-600 hover:text-blue-800 underline"
+                className="underline transition-colors duration-200"
+                style={{ color: '#2363FF' }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.color = '#1E52D0';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.color = '#2363FF';
+                }}
               >
                 Continue to Sign In
               </button>
@@ -124,7 +131,7 @@ const Auth = () => {
         {/* Logo and Title */}
         <div className="text-center mb-8">
           <div className="w-20 h-20 mx-auto mb-6 bg-white rounded-full flex items-center justify-center shadow-lg">
-            <Heart size={40} className="text-blue-600" />
+            <Heart size={40} style={{ color: '#2363FF' }} />
           </div>
           
           <h1 className="text-4xl font-bold text-black mb-2">
@@ -140,24 +147,30 @@ const Auth = () => {
         <Card className="bg-white shadow-2xl">
           <CardContent className="p-8">
             {/* Tab Toggle */}
-            <div className="flex mb-6">
+            <div className="flex mb-6 rounded-lg overflow-hidden">
               <button
                 onClick={() => setActiveTab('signin')}
-                className={`flex-1 py-3 px-4 text-center rounded-l-lg font-medium transition-colors ${
+                className={`flex-1 py-3 px-4 text-center font-medium transition-all duration-200 ${
                   activeTab === 'signin'
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-blue-100 text-black hover:bg-blue-200'
+                    ? 'text-white'
+                    : 'text-black hover:opacity-80'
                 }`}
+                style={{
+                  backgroundColor: activeTab === 'signin' ? '#2363FF' : '#E5EEFF'
+                }}
               >
                 Sign In
               </button>
               <button
                 onClick={() => setActiveTab('signup')}
-                className={`flex-1 py-3 px-4 text-center rounded-r-lg font-medium transition-colors ${
+                className={`flex-1 py-3 px-4 text-center font-medium transition-all duration-200 ${
                   activeTab === 'signup'
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-blue-100 text-black hover:bg-blue-200'
+                    ? 'text-white'
+                    : 'text-black hover:opacity-80'
                 }`}
+                style={{
+                  backgroundColor: activeTab === 'signup' ? '#2363FF' : '#E5EEFF'
+                }}
               >
                 Sign Up
               </button>
@@ -172,7 +185,12 @@ const Auth = () => {
                     placeholder="Full Name"
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
-                    className={`h-12 rounded-lg border-2 border-blue-200 bg-white px-4 text-black placeholder:text-blue-600 focus:border-blue-600 focus:ring-2 focus:ring-blue-600/20 ${errors.fullName ? 'border-red-500' : ''}`}
+                    className={`h-12 rounded-lg border-2 bg-white px-4 text-black placeholder:text-gray-500 focus:ring-2 focus:ring-opacity-20 ${errors.fullName ? 'border-red-500' : ''}`}
+                    style={{
+                      borderColor: errors.fullName ? '#EF4444' : '#CBD5E1',
+                      focusBorderColor: '#2363FF',
+                      focusRingColor: '#2363FF'
+                    }}
                     disabled={loading}
                   />
                   {errors.fullName && (
@@ -187,7 +205,12 @@ const Auth = () => {
                   placeholder="Email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className={`h-12 rounded-lg border-2 border-blue-200 bg-white px-4 text-black placeholder:text-blue-600 focus:border-blue-600 focus:ring-2 focus:ring-blue-600/20 ${errors.email ? 'border-red-500' : ''}`}
+                  className={`h-12 rounded-lg border-2 bg-white px-4 text-black placeholder:text-gray-500 focus:ring-2 focus:ring-opacity-20 ${errors.email ? 'border-red-500' : ''}`}
+                  style={{
+                    borderColor: errors.email ? '#EF4444' : '#CBD5E1',
+                    focusBorderColor: '#2363FF',
+                    focusRingColor: '#2363FF'
+                  }}
                   disabled={loading}
                 />
                 {errors.email && (
@@ -197,17 +220,31 @@ const Auth = () => {
 
               <div className="relative">
                 <Input
-                  type={showPassword ? 'text' : 'password'}
+                  type={show
+
+ault.
                   placeholder="Password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className={`h-12 rounded-lg border-2 border-blue-200 bg-white px-4 pr-12 text-black placeholder:text-blue-600 focus:border-blue-600 focus:ring-2 focus:ring-blue-600/20 ${errors.password ? 'border-red-500' : ''}`}
+                  className={`h-12 rounded-lg border-2 bg-white px-4 pr-12 text-black placeholder:text-gray-500 focus:ring-2 focus:ring-opacity-20 ${errors.password ? 'border-red-500' : ''}`}
+                  style={{
+                    borderColor: errors.password ? '#EF4444' : '#CBD5E1',
+                    focusBorderColor: '#2363FF',
+                    focusRingColor: '#2363FF'
+                  }}
                   disabled={loading}
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-4 top-1/2 transform -translate-y-1/2 text-blue-600 hover:text-blue-800"
+                  className="absolute right-4 top-1/2 transform -translate-y-1/2 transition-colors duration-200"
+                  style={{ color: '#2363FF' }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.color = '#1E52D0';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.color = '#2363FF';
+                  }}
                   disabled={loading}
                 >
                   {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
@@ -220,7 +257,14 @@ const Auth = () => {
               <Button
                 type="submit"
                 disabled={loading}
-                className="w-full h-12 bg-green-500 hover:bg-green-600 text-white font-semibold rounded-lg shadow-lg"
+                className="w-full h-12 text-white font-semibold rounded-lg shadow-lg transition-all duration-200"
+                style={{ backgroundColor: '#2363FF', border: 'none' }}
+                onMouseEnter={(e) => {
+                  if (!loading) e.currentTarget.style.backgroundColor = '#1E52D0';
+                }}
+                onMouseLeave={(e) => {
+                  if (!loading) e.currentTarget.style.backgroundColor = '#2363FF';
+                }}
               >
                 {loading ? (
                   <>
@@ -236,7 +280,16 @@ const Auth = () => {
             {/* "Can't sign in?" link for sign in page */}
             {activeTab === 'signin' && (
               <div className="text-center mt-4">
-                <button className="text-blue-600 hover:text-blue-800 underline text-sm">
+                <button 
+                  className="underline text-sm transition-colors duration-200"
+                  style={{ color: '#2363FF' }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.color = '#1E52D0';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.color = '#2363FF';
+                  }}
+                >
                   Can't sign in?
                 </button>
               </div>
@@ -251,7 +304,14 @@ const Auth = () => {
                     description: "Google sign-in will be available soon.",
                   });
                 }}
-                className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg"
+                className="w-full h-12 text-white font-medium rounded-lg transition-all duration-200"
+                style={{ backgroundColor: '#2363FF', border: 'none' }}
+                onMouseEnter={(e) => {
+                  if (!loading) e.currentTarget.style.backgroundColor = '#1E52D0';
+                }}
+                onMouseLeave={(e) => {
+                  if (!loading) e.currentTarget.style.backgroundColor = '#2363FF';
+                }}
                 disabled={loading}
               >
                 <Mail size={18} className="mr-3" />
@@ -265,7 +325,14 @@ const Auth = () => {
                     description: "Facebook sign-in will be available soon.",
                   });
                 }}
-                className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg"
+                className="w-full h-12 text-white font-medium rounded-lg transition-all duration-200"
+                style={{ backgroundColor: '#2363FF', border: 'none' }}
+                onMouseEnter={(e) => {
+                  if (!loading) e.currentTarget.style.backgroundColor = '#1E52D0';
+                }}
+                onMouseLeave={(e) => {
+                  if (!loading) e.currentTarget.style.backgroundColor = '#2363FF';
+                }}
                 disabled={loading}
               >
                 <User size={18} className="mr-3" />
@@ -290,7 +357,14 @@ const Auth = () => {
           
           <Button 
             onClick={handleGuestAccess}
-            className="w-full mt-4 h-12 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg"
+            className="w-full mt-4 h-12 text-white font-semibold rounded-lg transition-all duration-200"
+            style={{ backgroundColor: '#2363FF', border: 'none' }}
+            onMouseEnter={(e) => {
+              if (!loading) e.currentTarget.style.backgroundColor = '#1E52D0';
+            }}
+            onMouseLeave={(e) => {
+              if (!loading) e.currentTarget.style.backgroundColor = '#2363FF';
+            }}
             disabled={loading}
           >
             Continue as Guest

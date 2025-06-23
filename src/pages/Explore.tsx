@@ -225,12 +225,26 @@ const Explore = () => {
 
         {/* Tab Navigation */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-6">
-          <TabsList className="grid w-full grid-cols-2 max-w-md">
-            <TabsTrigger value="puppies" className="flex items-center gap-2">
+          <TabsList className="grid w-full grid-cols-2 max-w-md rounded-lg overflow-hidden">
+            <TabsTrigger 
+              value="puppies" 
+              className="flex items-center gap-2 font-medium transition-all duration-200"
+              style={{
+                backgroundColor: activeTab === 'puppies' ? '#2363FF' : '#E5EEFF',
+                color: activeTab === 'puppies' ? 'white' : '#2363FF'
+              }}
+            >
               <Heart className="w-4 h-4" />
               Puppies
             </TabsTrigger>
-            <TabsTrigger value="community" className="flex items-center gap-2">
+            <TabsTrigger 
+              value="community" 
+              className="flex items-center gap-2 font-medium transition-all duration-200"
+              style={{
+                backgroundColor: activeTab === 'community' ? '#2363FF' : '#E5EEFF',
+                color: activeTab === 'community' ? 'white' : '#2363FF'
+              }}
+            >
               <Users className="w-4 h-4" />
               Community
             </TabsTrigger>
@@ -238,7 +252,7 @@ const Explore = () => {
 
           <TabsContent value="puppies" className="space-y-6">
             {/* Search and Basic Filters */}
-            <Card className="border-blue-200 shadow-sm">
+            <Card className="border shadow-sm" style={{ borderColor: '#CBD5E1' }}>
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <CardTitle>Search & Filter Puppies</CardTitle>
@@ -246,7 +260,18 @@ const Explore = () => {
                     variant="outline"
                     size="sm"
                     onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
-                    className="flex items-center gap-2"
+                    className="flex items-center gap-2 rounded-lg border-2 font-medium transition-all duration-200"
+                    style={{
+                      borderColor: '#2363FF',
+                      color: '#2363FF',
+                      backgroundColor: 'white'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = '#E5EEFF';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = 'white';
+                    }}
                   >
                     <Sliders className="w-4 h-4" />
                     Advanced Filters
@@ -262,7 +287,8 @@ const Explore = () => {
                       placeholder="Search puppies..."
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
-                      className="pl-10"
+                      className="pl-10 rounded-lg border-2"
+                      style={{ borderColor: '#CBD5E1' }}
                     />
                   </div>
 
@@ -270,7 +296,8 @@ const Explore = () => {
                   <select
                     value={selectedBreed}
                     onChange={(e) => setSelectedBreed(e.target.value)}
-                    className="px-3 py-2 border border-input rounded-md bg-background text-sm"
+                    className="px-3 py-2 border-2 rounded-lg bg-background text-sm"
+                    style={{ borderColor: '#CBD5E1' }}
                   >
                     <option value="">All Breeds</option>
                     {popularBreeds.map(breed => (
@@ -296,7 +323,18 @@ const Explore = () => {
                   <Button 
                     variant="outline" 
                     onClick={clearAllFilters}
-                    className="w-full"
+                    className="w-full rounded-lg border-2 font-medium transition-all duration-200"
+                    style={{
+                      borderColor: '#2363FF',
+                      color: '#2363FF',
+                      backgroundColor: 'white'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = '#E5EEFF';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = 'white';
+                    }}
                   >
                     <Filter className="w-4 h-4 mr-2" />
                     Clear Filters
@@ -307,7 +345,7 @@ const Explore = () => {
 
             {/* Advanced Filters Panel */}
             {showAdvancedFilters && (
-              <Card className="border-blue-200 shadow-sm">
+              <Card className="border shadow-sm" style={{ borderColor: '#CBD5E1' }}>
                 <CardContent className="p-0">
                   <AdvancedFiltersPanel
                     filters={filters}
@@ -333,11 +371,15 @@ const Explore = () => {
                   <Badge
                     key={breed}
                     variant={selectedBreed === breed ? "default" : "outline"}
-                    className={`cursor-pointer transition-colors ${
+                    className={`cursor-pointer transition-all duration-200 rounded-lg font-medium ${
                       selectedBreed === breed 
-                        ? 'bg-blue-600 text-white hover:bg-blue-700' 
-                        : 'border-blue-200 text-blue-700 hover:bg-blue-50'
+                        ? 'text-white' 
+                        : 'text-black hover:opacity-80'
                     }`}
+                    style={{
+                      backgroundColor: selectedBreed === breed ? '#2363FF' : '#E5EEFF',
+                      borderColor: '#2363FF'
+                    }}
                     onClick={() => setSelectedBreed(selectedBreed === breed ? '' : breed)}
                   >
                     {breed}
@@ -356,7 +398,8 @@ const Explore = () => {
                   <select 
                     value={sortBy}
                     onChange={(e) => setSortBy(e.target.value)}
-                    className="px-3 py-2 border border-input rounded-md bg-background text-sm"
+                    className="px-3 py-2 border-2 rounded-lg bg-background text-sm"
+                    style={{ borderColor: '#CBD5E1' }}
                   >
                     <option value="newest">Newest First</option>
                     <option value="price-low">Price: Low to High</option>
@@ -371,10 +414,10 @@ const Explore = () => {
             {loading ? (
               <ListingsSkeleton />
             ) : filteredListings.length === 0 ? (
-              <Card className="border-blue-200 shadow-sm">
+              <Card className="border shadow-sm" style={{ borderColor: '#CBD5E1' }}>
                 <CardContent className="p-8 text-center">
-                  <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <Heart className="w-8 h-8 text-blue-600" />
+                  <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4" style={{ backgroundColor: '#E5EEFF' }}>
+                    <Heart className="w-8 h-8" style={{ color: '#2363FF' }} />
                   </div>
                   <h3 className="text-lg font-semibold text-gray-900 mb-2">No puppies found</h3>
                   <p className="text-gray-600 mb-4">
@@ -382,7 +425,14 @@ const Explore = () => {
                   </p>
                   <Button 
                     onClick={clearAllFilters}
-                    className="bg-blue-600 hover:bg-blue-700"
+                    className="rounded-lg font-medium transition-all duration-200"
+                    style={{ backgroundColor: '#2363FF', color: 'white', border: 'none' }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = '#1E52D0';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = '#2363FF';
+                    }}
                   >
                     Clear All Filters
                   </Button>
@@ -399,10 +449,10 @@ const Explore = () => {
 
           <TabsContent value="community" className="space-y-6">
             {/* User Search */}
-            <Card className="border-blue-200 shadow-sm">
+            <Card className="border shadow-sm" style={{ borderColor: '#CBD5E1' }}>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Users className="w-5 h-5" />
+                  <Users className="w-5 h-5" style={{ color: '#2363FF' }} />
                   Find Other Pet Lovers
                 </CardTitle>
               </CardHeader>
@@ -412,10 +462,10 @@ const Explore = () => {
             </Card>
 
             {/* Community Features Placeholder */}
-            <Card className="border-blue-200 shadow-sm">
+            <Card className="border shadow-sm" style={{ borderColor: '#CBD5E1' }}>
               <CardContent className="p-8 text-center">
-                <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Users className="w-8 h-8 text-blue-600" />
+                <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4" style={{ backgroundColor: '#E5EEFF' }}>
+                  <Users className="w-8 h-8" style={{ color: '#2363FF' }} />
                 </div>
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">Community Features</h3>
                 <p className="text-gray-600">

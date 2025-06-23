@@ -13,35 +13,35 @@
     --popover: 255 255 255; /* Pure white */
     --popover-foreground: 15 23 42; /* Dark slate */
 
-    --primary: 37 99 235; /* Royal Blue #2563eb */
+    --primary: 35 99 255; /* Royal Blue #2363FF */
     --primary-foreground: 255 255 255; /* White text on blue */
 
-    --secondary: 219 234 254; /* Light blue background #dbeafe */
-    --secondary-foreground: 37 99 235; /* Royal blue text */
+    --secondary: 229 238 255; /* Light blue accent #E5EEFF */
+    --secondary-foreground: 35 99 255; /* Royal blue text */
 
-    --muted: 219 234 254; /* Light blue #dbeafe */
-    --muted-foreground: 37 99 235; /* Royal blue text */
+    --muted: 229 238 255; /* Light blue #E5EEFF */
+    --muted-foreground: 35 99 255; /* Royal blue text */
 
-    --accent: 37 99 235; /* Royal Blue for accents */
+    --accent: 35 99 255; /* Royal Blue for accents */
     --accent-foreground: 255 255 255; /* White text on blue */
 
     --destructive: 239 68 68; /* Red for destructive actions */
     --destructive-foreground: 255 255 255; /* White text */
 
-    --border: 147 197 253; /* Soft blue borders #93c5fd */
-    --input: 147 197 253; /* Soft blue inputs #93c5fd */
-    --ring: 37 99 235; /* Royal Blue focus rings */
+    --border: 203 213 225; /* Light gray borders */
+    --input: 203 213 225; /* Light gray inputs */
+    --ring: 35 99 255; /* Royal Blue focus rings */
 
     --radius: 0.75rem;
 
     --sidebar-background: 255 255 255;
     --sidebar-foreground: 15 23 42;
-    --sidebar-primary: 37 99 235;
+    --sidebar-primary: 35 99 255;
     --sidebar-primary-foreground: 255 255 255;
-    --sidebar-accent: 219 234 254;
-    --sidebar-accent-foreground: 37 99 235;
-    --sidebar-border: 147 197 253;
-    --sidebar-ring: 37 99 235;
+    --sidebar-accent: 229 238 255;
+    --sidebar-accent-foreground: 35 99 255;
+    --sidebar-border: 203 213 225;
+    --sidebar-ring: 35 99 255;
   }
 
   .dark {
@@ -90,7 +90,7 @@
   }
 
   body {
-    @apply bg-white text-gray-900;
+    @apply bg-white text-gray-900 font-sans;
     font-feature-settings: "rlig" 1, "calt" 1;
   }
 
@@ -98,6 +98,7 @@
   html, body, #root {
     background-color: white !important;
     color: #0f172a !important;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif !important;
   }
 
   /* Ensure proper text contrast everywhere - WCAG 2.1 AA compliance */
@@ -116,7 +117,7 @@
   }
 
   nav a:hover {
-    color: #2563eb !important; /* Royal blue on hover */
+    color: #2363ff !important; /* Royal blue on hover */
   }
 
   /* Footer specific styling - WHITE TEXT ON DARK BLUE BACKGROUND */
@@ -151,16 +152,17 @@
 
   /* Badge and tag text improvements - ROYAL BLUE ONLY */
   .badge, [class*="badge"] {
-    background-color: #dbeafe !important;
-    color: #2563eb !important;
-    border-color: #93c5fd !important;
+    background-color: #e5eeff !important;
+    color: #2363ff !important;
+    border-color: #2363ff !important;
   }
 
   /* Form elements with better contrast */
   input, textarea, select {
-    border-color: #93c5fd !important;
+    border-color: #cbd5e1 !important;
     background-color: white !important;
     color: #0f172a !important;
+    border-radius: 8px !important;
   }
 
   input::placeholder, textarea::placeholder {
@@ -168,18 +170,39 @@
   }
 
   input:focus, textarea:focus, select:focus {
-    border-color: #2563eb !important;
-    ring-color: #2563eb !important;
-    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1) !important;
+    border-color: #2363ff !important;
+    ring-color: #2363ff !important;
+    box-shadow: 0 0 0 3px rgba(35, 99, 255, 0.1) !important;
   }
 
-  /* Button text improvements */
+  /* Button styling with Royal Blue theme */
   button {
     color: #0f172a !important;
+    border-radius: 8px !important;
+    font-weight: 500 !important;
+    transition: all 0.2s ease-in-out !important;
   }
 
-  button.bg-blue-600, button[class*="bg-blue"] {
+  /* Primary buttons - Royal Blue */
+  button.bg-blue-600, button[class*="bg-blue"], .button-primary {
+    background-color: #2363ff !important;
     color: #ffffff !important;
+    border-color: #2363ff !important;
+  }
+
+  button.bg-blue-600:hover, button[class*="bg-blue"]:hover, .button-primary:hover {
+    background-color: #1e52d0 !important;
+  }
+
+  /* Secondary buttons */
+  .button-secondary, button[variant="outline"] {
+    background-color: #e5eeff !important;
+    color: #2363ff !important;
+    border-color: #2363ff !important;
+  }
+
+  .button-secondary:hover, button[variant="outline"]:hover {
+    background-color: #d1e0ff !important;
   }
 
   /* Muted text with better contrast */
@@ -198,47 +221,81 @@
   }
 
   /* FORCE ROYAL BLUE THEME - Remove ALL warm colors */
-  .bg-blue-50 { background-color: #dbeafe !important; }
-  .bg-blue-100 { background-color: #dbeafe !important; }
-  .bg-blue-600 { background-color: #2563eb !important; }
-  .text-blue-600 { color: #2563eb !important; }
-  .border-blue-200 { border-color: #93c5fd !important; }
-  .border-blue-600 { border-color: #2563eb !important; }
+  .bg-blue-50 { background-color: #e5eeff !important; }
+  .bg-blue-100 { background-color: #e5eeff !important; }
+  .bg-blue-600 { background-color: #2363ff !important; }
+  .text-blue-600 { color: #2363ff !important; }
+  .border-blue-200 { border-color: #cbd5e1 !important; }
+  .border-blue-600 { border-color: #2363ff !important; }
 
-  /* REMOVE ALL BROWN/AMBER/ORANGE COLORS */
-  .bg-orange-50, .bg-amber-50, .bg-yellow-50 { background-color: #dbeafe !important; }
-  .bg-orange-100, .bg-amber-100, .bg-yellow-100 { background-color: #dbeafe !important; }
-  .bg-orange-500, .bg-amber-500, .bg-yellow-500 { background-color: #2563eb !important; }
-  .text-orange-600, .text-amber-600, .text-yellow-600 { color: #2563eb !important; }
-  .text-orange-700, .text-amber-700, .text-yellow-700 { color: #2563eb !important; }
-  .border-orange-200, .border-amber-200, .border-yellow-200 { border-color: #93c5fd !important; }
-
-  /* Sponsored badges and promotional elements - BLUE ONLY */
-  .bg-orange-500, [class*="bg-orange"] { background-color: #2563eb !important; color: #ffffff !important; }
-  .text-orange-600, [class*="text-orange"] { color: #2563eb !important; }
-
-  /* Button styling for consistency */
-  button, .btn, [role="button"] {
-    border-radius: 0.75rem !important;
-    transition: all 0.2s ease-in-out !important;
+  /* REMOVE ALL BROWN/AMBER/ORANGE/TAN COLORS */
+  .bg-orange-50, .bg-amber-50, .bg-yellow-50, .bg-tan-50, .bg-brown-50 { 
+    background-color: #e5eeff !important; 
+  }
+  .bg-orange-100, .bg-amber-100, .bg-yellow-100, .bg-tan-100, .bg-brown-100 { 
+    background-color: #e5eeff !important; 
+  }
+  .bg-orange-500, .bg-amber-500, .bg-yellow-500, .bg-tan-500, .bg-brown-500 { 
+    background-color: #2363ff !important; 
+  }
+  .text-orange-600, .text-amber-600, .text-yellow-600, .text-tan-600, .text-brown-600 { 
+    color: #2363ff !important; 
+  }
+  .text-orange-700, .text-amber-700, .text-yellow-700, .text-tan-700, .text-brown-700 { 
+    color: #2363ff !important; 
+  }
+  .border-orange-200, .border-amber-200, .border-yellow-200, .border-tan-200, .border-brown-200 { 
+    border-color: #cbd5e1 !important; 
   }
 
-  button:hover, .btn:hover, [role="button"]:hover {
-    transform: translateY(-1px) !important;
-    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.15) !important;
+  /* Tab styling - Royal Blue theme */
+  [role="tablist"] button[data-state="active"] {
+    background-color: #2363ff !important;
+    color: #ffffff !important;
+  }
+
+  [role="tablist"] button[data-state="inactive"] {
+    background-color: #e5eeff !important;
+    color: #2363ff !important;
+  }
+
+  /* Filter buttons and chips */
+  .filter-chip, .filter-button {
+    background-color: #e5eeff !important;
+    color: #2363ff !important;
+    border-color: #2363ff !important;
+    border-radius: 8px !important;
+  }
+
+  .filter-chip:hover, .filter-button:hover {
+    background-color: #d1e0ff !important;
+  }
+
+  .filter-chip.active, .filter-button.active {
+    background-color: #2363ff !important;
+    color: #ffffff !important;
   }
 
   /* Card styling for modern look */
   .card, [class*="card"] {
-    border-radius: 0.75rem !important;
+    border-radius: 12px !important;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
     transition: all 0.3s ease !important;
     background-color: white !important;
-    border-color: #93c5fd !important;
+    border-color: #cbd5e1 !important;
   }
 
   .card:hover, [class*="card"]:hover {
-    box-shadow: 0 10px 25px rgba(37, 99, 235, 0.1) !important;
+    box-shadow: 0 10px 25px rgba(35, 99, 255, 0.1) !important;
     transform: translateY(-2px) !important;
+  }
+
+  /* Ensure all interactive elements use Royal Blue */
+  a, button, [role="button"], .clickable {
+    color: #2363ff !important;
+  }
+
+  a:hover, button:hover, [role="button"]:hover, .clickable:hover {
+    color: #1e52d0 !important;
   }
 }
