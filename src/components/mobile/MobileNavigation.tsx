@@ -70,10 +70,12 @@ const MobileNavigation = () => {
 
   const isActive = (path: string) => {
     if (path === '/home') {
-      return location.pathname === '/home';
+      // Home button is active when on /home OR when on root path (/) after being redirected
+      return location.pathname === '/home' || location.pathname === '/';
     }
     if (path === '/explore') {
-      return location.pathname === path || location.pathname === '/';
+      // Explore button is only active when specifically on /explore
+      return location.pathname === '/explore';
     }
     return location.pathname.startsWith(path);
   };
