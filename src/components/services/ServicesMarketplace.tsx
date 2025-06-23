@@ -1,13 +1,10 @@
 
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { MapPin, Star, Clock, DollarSign, Search, Filter } from 'lucide-react';
+import { Search } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import ServiceBookingDialog from './ServiceBookingDialog';
 import CreateServiceDialog from './CreateServiceDialog';
 
 interface ServiceProvider {
@@ -25,12 +22,9 @@ interface ServiceProvider {
 
 const ServicesMarketplace = () => {
   const [providers, setProviders] = useState<ServiceProvider[]>([]);
-  const [selectedProvider, setSelectedProvider] = useState<ServiceProvider | null>(null);
-  const [showBooking, setShowBooking] = useState(false);
   const [showCreateService, setShowCreateService] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
-  const [serviceFilter, setServiceFilter] = useState('all');
-  const [locationFilter, setLocationFilter] = useState('');
+  const [activeFilter, setActiveFilter] = useState('All Services');
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -53,180 +47,115 @@ const ServicesMarketplace = () => {
     }
   };
 
+  const serviceFilters = [
+    'All Services',
+    'Grooming', 
+    'Dog Sitting',
+    'Training',
+    'Dog Walking',
+    'Boarding'
+  ];
+
   const filteredProviders = providers.filter(provider => {
     const matchesSearch = provider.business_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          provider.description?.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesService = serviceFilter === 'all' || provider.service_types.includes(serviceFilter);
-    const matchesLocation = !locationFilter || provider.location.toLowerCase().includes(locationFilter.toLowerCase());
+    const matchesFilter = activeFilter === 'All Services' || provider.service_types.includes(activeFilter.toLowerCase().replace(' ', ''));
     
-    return matchesSearch && matchesService && matchesLocation;
+    return matchesSearch && matchesFilter;
   });
 
-  const handleBookService = (provider: ServiceProvider) => {
-    setSelectedProvider(provider);
-    setShowBooking(true);
-  };
+  return (
+    <div className="min-h-screen bg-gray-50">
+      {/* Header with Gradient */}
+      <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white py-16">
+        <div className="container mx-auto px-4 text-center">
+          <h1 className="text-4xl font-bold text-black mb-4">Pet Services Marketplace</h1>
+          <p className="text-lg text-gray-700 max-w-2xl mx-auto">
+            Find trusted professionals for grooming, training, sitting, and more
+          </p>
+        </div>
+      </div>
 
-  const serviceTypes = [
-    { value: 'grooming', label: '🧼 Grooming' },
-    { value: 'walking', label: '🚶 Walking' },
-    { value: 'training', label: '🎓 Training' },
-    { value: 'veterinary', label: '🏥 Veterinary' },
-    { value: 'boarding', label: '🏠 Boarding' },
-    { value: 'sitting', label: '👥 Pet Sitting' }
-  ];
+      <div className="container mx-auto px-4 py-8 max-w-6xl">
+        {/* Search Bar */}
+        <div className="mb-8">
+          <div className="relative max-w-4xl mx-auto">
+            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+            <Input
+              placeholder="Search services, providers, or locations..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-12 py-4 text-lg border-gray-300 rounded-lg shadow-sm"
+            />
+          </div>
+        </div>
 
-  if (loading) {
-    return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="animate-pulse space-y-4">
-          {[...Array(6)].map((_, i) => (
-            <Card key={i} className="border-blue-200">
-              <CardContent className="p-6">
-                <div className="h-4 bg-blue-100 rounded w-1/4 mb-2"></div>
-                <div className="h-3 bg-blue-100 rounded w-3/4 mb-4"></div>
-                <div className="h-3 bg-blue-100 rounded w-1/2"></div>
-              </CardContent>
-            </Card>
+        {/* Service Filter Tags */}
+        <div className="flex flex-wrap justify-center gap-3 mb-12">
+          {serviceFilters.map((filter) => (
+            <Button
+              key={filter}
+              variant={activeFilter === filter ? "default" : "outline"}
+              onClick={() => setActiveFilter(filter)}
+              className={`rounded-full px-6 py-2 transition-colors ${
+                activeFilter === filter
+                  ? 'bg-blue-600 text-white hover:bg-blue-700'
+                  : 'border-blue-600 text-blue-600 hover:bg-blue-50'
+              }`}
+            >
+              {filter}
+            </Button>
           ))}
         </div>
-      </div>
-    );
-  }
 
-  return (
-    <div className="container mx-auto px-4 py-8 max-w-6xl">
-      {/* Header */}
-      <div className="flex justify-between items-center mb-8">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Pet Services</h1>
-          <p className="text-gray-600 mt-2">Find trusted professionals for your furry friends</p>
-        </div>
-        <Button onClick={() => setShowCreateService(true)} className="bg-blue-600 hover:bg-blue-700 text-white">
-          List Your Service
-        </Button>
-      </div>
-
-      {/* Filters */}
-      <Card className="mb-8 border-blue-200">
-        <CardContent className="p-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-blue-400 w-4 h-4" />
-              <Input
-                placeholder="Search services..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 border-blue-200 focus:border-blue-600 focus:ring-blue-600"
-              />
+        {/* Empty State */}
+        {!loading && filteredProviders.length === 0 && (
+          <div className="text-center py-16">
+            <div className="w-20 h-20 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-6">
+              <Search className="w-10 h-10 text-gray-400" />
             </div>
-            <Select value={serviceFilter} onValueChange={setServiceFilter}>
-              <SelectTrigger className="border-blue-200 focus:border-blue-600 focus:ring-blue-600">
-                <SelectValue placeholder="Service type" />
-              </SelectTrigger>
-              <SelectContent className="bg-white border-blue-200">
-                <SelectItem value="all" className="text-blue-600 focus:bg-blue-50">All Services</SelectItem>
-                {serviceTypes.map(type => (
-                  <SelectItem key={type.value} value={type.value} className="focus:bg-blue-50">
-                    {type.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <div className="relative">
-              <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-blue-400 w-4 h-4" />
-              <Input
-                placeholder="Location..."
-                value={locationFilter}
-                onChange={(e) => setLocationFilter(e.target.value)}
-                className="pl-10 border-blue-200 focus:border-blue-600 focus:ring-blue-600"
-              />
-            </div>
+            <h3 className="text-xl font-semibold text-gray-900 mb-2">No services found</h3>
+            <p className="text-gray-600 mb-8">Be the first to list a service!</p>
           </div>
-        </CardContent>
-      </Card>
+        )}
 
-      {/* Service Providers */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredProviders.map((provider) => (
-          <Card key={provider.id} className="hover:shadow-lg transition-shadow border-blue-200 hover:border-blue-300">
-            <CardHeader>
-              <div className="flex justify-between items-start">
-                <div>
-                  <CardTitle className="text-lg text-gray-900">{provider.business_name}</CardTitle>
-                  {provider.verified && (
-                    <Badge className="bg-blue-100 text-blue-800 border-blue-200 mt-1">
-                      ✓ Verified
-                    </Badge>
-                  )}
-                </div>
-                <div className="flex items-center">
-                  <Star className="w-4 h-4 text-yellow-400 fill-current" />
-                  <span className="ml-1 text-sm font-medium">{provider.rating.toFixed(1)}</span>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <p className="text-gray-600 text-sm line-clamp-2">{provider.description}</p>
-              
-              <div className="flex items-center text-sm text-gray-500">
-                <MapPin className="w-4 h-4 mr-1" />
-                {provider.location}
-              </div>
+        {/* Loading State */}
+        {loading && (
+          <div className="animate-pulse space-y-4">
+            {[...Array(6)].map((_, i) => (
+              <Card key={i} className="border-blue-200">
+                <CardContent className="p-6">
+                  <div className="h-4 bg-blue-100 rounded w-1/4 mb-2"></div>
+                  <div className="h-3 bg-blue-100 rounded w-3/4 mb-4"></div>
+                  <div className="h-3 bg-blue-100 rounded w-1/2"></div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
 
-              <div className="flex flex-wrap gap-1">
-                {provider.service_types.map((service) => {
-                  const serviceType = serviceTypes.find(t => t.value === service);
-                  return (
-                    <Badge key={service} variant="secondary" className="text-xs bg-blue-50 text-blue-600 border-blue-200">
-                      {serviceType?.label || service}
-                    </Badge>
-                  );
-                })}
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div className="flex items-center text-sm text-gray-600">
-                  <Clock className="w-4 h-4 mr-1" />
-                  {provider.total_bookings} bookings
-                </div>
-                <div className="flex items-center text-sm font-medium">
-                  <DollarSign className="w-4 h-4" />
-                  {provider.pricing?.hourly ? `$${provider.pricing.hourly}/hr` : 'Custom pricing'}
-                </div>
-              </div>
-
+        {/* Become a Service Provider Banner */}
+        <div className="mt-16">
+          <Card className="bg-gradient-to-r from-purple-500 to-pink-500 border-0 overflow-hidden">
+            <CardContent className="py-12 px-8 text-center text-white relative">
+              <h2 className="text-3xl font-bold mb-4">Become a Service Provider</h2>
               <Button 
-                onClick={() => handleBookService(provider)}
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                onClick={() => setShowCreateService(true)}
+                className="bg-white text-purple-600 hover:bg-gray-100 font-semibold px-8 py-3"
               >
-                Book Service
+                Get Started
               </Button>
+              
+              {/* Mobile Device Mockup */}
+              <div className="absolute right-8 bottom-4 hidden lg:block">
+                <div className="w-16 h-20 bg-white/20 rounded-lg border border-white/30"></div>
+              </div>
             </CardContent>
           </Card>
-        ))}
+        </div>
       </div>
 
-      {filteredProviders.length === 0 && !loading && (
-        <div className="text-center py-12">
-          <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <Search className="w-8 h-8 text-blue-400" />
-          </div>
-          <h3 className="text-lg font-medium text-gray-900 mb-2">No services found</h3>
-          <p className="text-gray-500">Try adjusting your search criteria or check back later.</p>
-        </div>
-      )}
-
-      {/* Dialogs */}
-      {selectedProvider && (
-        <ServiceBookingDialog
-          isOpen={showBooking}
-          onOpenChange={setShowBooking}
-          service={selectedProvider}
-          onBookingSuccess={loadProviders}
-        />
-      )}
-
+      {/* Create Service Dialog */}
       <CreateServiceDialog
         isOpen={showCreateService}
         onOpenChange={setShowCreateService}
