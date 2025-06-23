@@ -2,205 +2,173 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Heart, Search, MapPin, Star, Crown } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { Heart, ArrowRight } from 'lucide-react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { useSubscription } from '@/hooks/useSubscription';
-import AdBanner from '@/components/advertising/AdBanner';
+import { useEffect } from 'react';
 
 const Index = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
-  const { subscribed, subscription_tier } = useSubscription();
-  
-  const isPremium = subscribed && (subscription_tier === 'Pro' || subscription_tier === 'Enterprise');
+  const { user, isGuest } = useAuth();
+  const [searchParams] = useSearchParams();
+  const redirectFrom = searchParams.get('redirect');
 
-  // Sample featured listings
-  const featuredListings = [
-    {
-      id: '1',
-      image: 'https://images.unsplash.com/photo-1605568427561-40dd23c2acea?w=300&h=300&fit=crop',
-      name: 'Golden Retriever',
-      location: 'San Francisco, CA',
-      price: '$1,200',
-      age: '8 weeks',
-      sponsored: true
-    },
-    {
-      id: '2',
-      image: 'https://images.unsplash.com/photo-1518717758536-85ae29035b6d?w=300&h=300&fit=crop',
-      name: 'Beagle',
-      location: 'Austin, TX',
-      price: '$800',
-      age: '10 weeks',
-      sponsored: false
-    },
-    {
-      id: '3',
-      image: 'https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=300&h=300&fit=crop',
-      name: 'Labrador',
-      location: 'Denver, CO',
-      price: '$950',
-      age: '12 weeks',
-      sponsored: true
+  // If user is already authenticated, redirect to home
+  useEffect(() => {
+    if (user || isGuest) {
+      navigate('/home');
     }
-  ];
+  }, [user, isGuest, navigate]);
+
+  const handleSignIn = () => {
+    const redirectPath = redirectFrom || '/home';
+    navigate(`/auth?redirect=${encodeURIComponent(redirectPath)}`);
+  };
+
+  const handleCreateAccount = () => {
+    const redirectPath = redirectFrom || '/home';
+    navigate(`/auth?redirect=${encodeURIComponent(redirectPath)}`);
+  };
+
+  const handleExploreAsGuest = () => {
+    navigate('/explore');
+  };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Hero Section */}
-      <div className="bg-gradient-to-br from-blue-600 via-purple-600 to-pink-500">
-        <div className="container mx-auto px-4 py-16">
-          <div className="text-center text-white">
-            <h1 className="text-4xl md:text-6xl font-bold mb-6">
-              Find Your Perfect Pup
-            </h1>
-            <p className="text-xl md:text-2xl mb-8 opacity-90">
-              Connect with trusted breeders and loving families
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center max-w-md mx-auto">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50 flex flex-col">
+      {/* Main Content Container */}
+      <div className="flex-1 flex flex-col items-center justify-center px-4 py-8">
+        
+        {/* Top Section - Logo & Tagline */}
+        <div className="text-center mb-12 animate-fade-in">
+          <div className="flex items-center justify-center mb-6">
+            <div className="bg-white rounded-full p-4 shadow-lg border border-blue-100">
+              <Heart className="h-12 w-12 text-blue-600" />
+            </div>
+          </div>
+          
+          <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
+            MY PUP
+          </h1>
+          
+          <p className="text-lg md:text-xl text-gray-600 max-w-md mx-auto leading-relaxed">
+            Connecting Loving Families With Their Perfect Pup Companion
+          </p>
+        </div>
+
+        {/* Middle Section - Hero Card */}
+        <Card className="w-full max-w-md mx-auto shadow-xl border-0 bg-white/80 backdrop-blur-sm animate-scale-in">
+          <CardContent className="p-8">
+            
+            {/* Redirect Message */}
+            {redirectFrom && (
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6 text-center">
+                <p className="text-blue-700 font-medium">
+                  Please sign in to continue
+                </p>
+              </div>
+            )}
+
+            {/* Hero Illustration Area */}
+            <div className="text-center mb-8">
+              <div className="relative">
+                <div className="w-32 h-32 mx-auto mb-4 bg-gradient-to-br from-blue-100 to-blue-200 rounded-full flex items-center justify-center shadow-inner">
+                  <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center">
+                    <Heart className="w-10 h-10 text-white" />
+                  </div>
+                </div>
+                
+                {/* Floating hearts animation */}
+                <div className="absolute top-0 left-1/2 transform -translate-x-1/2 animate-pulse">
+                  <Heart className="w-4 h-4 text-blue-300 absolute -top-2 -left-6" />
+                  <Heart className="w-3 h-3 text-blue-400 absolute -top-1 right-4" />
+                </div>
+              </div>
+              
+              <h2 className="text-xl font-semibold text-gray-900 mb-2">
+                Welcome to My Pup
+              </h2>
+              <p className="text-gray-600 text-sm">
+                Find your perfect furry companion today
+              </p>
+            </div>
+
+            {/* Primary CTA Buttons */}
+            <div className="space-y-4">
               <Button 
-                onClick={() => navigate('/explore')}
-                className="bg-white text-blue-600 hover:bg-gray-100 font-semibold px-8 py-3"
+                onClick={handleSignIn}
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 h-12 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105"
                 size="lg"
               >
-                <Search className="w-5 h-5 mr-2" />
-                Find Puppies
+                <span>Sign In</span>
+                <ArrowRight className="w-5 h-5 ml-2" />
               </Button>
-              {!isPremium && (
-                <Button 
-                  onClick={() => navigate('/monetization')}
-                  className="bg-yellow-400 text-gray-900 hover:bg-yellow-300 font-semibold px-8 py-3"
-                  size="lg"
-                >
-                  <Crown className="w-5 h-5 mr-2" />
-                  Go Premium
-                </Button>
-              )}
+              
+              <Button 
+                onClick={handleCreateAccount}
+                variant="outline"
+                className="w-full border-2 border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white font-semibold py-3 h-12 rounded-xl shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105"
+                size="lg"
+              >
+                <span>Create Account</span>
+                <ArrowRight className="w-5 h-5 ml-2" />
+              </Button>
             </div>
-            {!user && (
-              <p className="mt-4 text-white/80">
-                <Button variant="link" className="text-white underline" onClick={() => navigate('/auth')}>
-                  Sign up
-                </Button> 
-                to save favorites and contact breeders
-              </p>
-            )}
+
+            {/* Guest Access Option */}
+            <div className="mt-6 text-center">
+              <Button 
+                variant="link" 
+                onClick={handleExploreAsGuest}
+                className="text-gray-500 hover:text-blue-600 text-sm underline-offset-4"
+              >
+                Continue as Guest
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Quick Preview - Public Pages */}
+        <div className="mt-8 text-center">
+          <p className="text-gray-500 text-sm mb-4">Or explore without signing in:</p>
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <Button 
+              variant="ghost" 
+              onClick={() => navigate('/explore')}
+              className="text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg"
+            >
+              Browse Puppies
+            </Button>
+            <Button 
+              variant="ghost" 
+              onClick={() => navigate('/marketplace')}
+              className="text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg"
+            >
+              Pet Services
+            </Button>
           </div>
         </div>
       </div>
 
-      <div className="container mx-auto px-4 py-12">
-        {/* Premium Member Welcome */}
-        {isPremium && (
-          <div className="bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-200 rounded-lg p-6 mb-8">
-            <div className="flex items-center justify-center mb-4">
-              <Crown className="w-6 h-6 text-yellow-600 mr-2" />
-              <h2 className="text-xl font-bold text-gray-900">Welcome Back, Premium Member!</h2>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
-              <div className="p-4">
-                <Star className="w-8 h-8 text-yellow-600 mx-auto mb-2" />
-                <h3 className="font-medium">Early Access</h3>
-                <p className="text-sm text-gray-600">See new puppies first</p>
-              </div>
-              <div className="p-4">
-                <Heart className="w-8 h-8 text-yellow-600 mx-auto mb-2" />
-                <p className="font-medium">Smart Matching</p>
-                <p className="text-sm text-gray-600">Personalized recommendations</p>
-              </div>
-              <div className="p-4">
-                <Crown className="w-8 h-8 text-yellow-600 mx-auto mb-2" />
-                <h3 className="font-medium">Verified Badge</h3>
-                <p className="text-sm text-gray-600">Premium member status</p>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Ad Banner */}
-        <AdBanner targetPage="home" format="banner" className="mb-8" />
-
-        {/* Featured Puppies */}
-        <section className="mb-12">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-3xl font-bold text-gray-900">Featured Puppies</h2>
-            <Button variant="outline" onClick={() => navigate('/explore')}>
-              View All
-            </Button>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {featuredListings.map((listing, index) => (
-              <Card key={listing.id} className="hover:shadow-lg transition-shadow">
-                <div className="relative">
-                  <img 
-                    src={listing.image} 
-                    alt={listing.name}
-                    className="w-full h-48 object-cover rounded-t-lg"
-                  />
-                  {listing.sponsored && (
-                    <Badge className="absolute top-3 left-3 bg-orange-500 text-white border-0">
-                      Sponsored
-                    </Badge>
-                  )}
-                  {/* Insert sponsored ad after every 2 listings */}
-                  {index === 1 && (
-                    <div className="absolute inset-0 bg-gradient-to-t from-orange-500/20 to-transparent rounded-t-lg"></div>
-                  )}
-                </div>
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between mb-2">
-                    <h3 className="font-semibold text-lg">{listing.name}</h3>
-                    <div className="text-lg font-bold text-blue-600">{listing.price}</div>
-                  </div>
-                  <div className="flex items-center text-gray-600 text-sm mb-2">
-                    <MapPin className="w-4 h-4 mr-1" />
-                    {listing.location}
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-500">{listing.age} old</span>
-                    <Button size="sm" onClick={() => navigate('/explore')}>
-                      View Details
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </section>
-
-        {/* Services Preview */}
-        <section className="mb-12">
-          <div className="bg-blue-50 rounded-lg p-8 text-center">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Pet Services Marketplace</h2>
-            <p className="text-gray-600 mb-6">Find trusted groomers, walkers, and trainers in your area</p>
-            <Button onClick={() => navigate('/marketplace')} className="bg-blue-600 hover:bg-blue-700">
-              Explore Services
-            </Button>
-          </div>
-        </section>
-
-        {/* Quick Stats */}
-        <section className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
-          <div className="p-6">
-            <div className="text-3xl font-bold text-blue-600 mb-2">50K+</div>
-            <div className="text-gray-600">Happy Families</div>
-          </div>
-          <div className="p-6">
-            <div className="text-3xl font-bold text-blue-600 mb-2">1K+</div>
-            <div className="text-gray-600">Verified Breeders</div>
-          </div>
-          <div className="p-6">
-            <div className="text-3xl font-bold text-blue-600 mb-2">200+</div>
-            <div className="text-gray-600">Breeds Available</div>
-          </div>
-          <div className="p-6">
-            <div className="text-3xl font-bold text-blue-600 mb-2">5K+</div>
-            <div className="text-gray-600">Service Providers</div>
-          </div>
-        </section>
+      {/* Bottom Section - Legal */}
+      <div className="text-center py-6 px-4 border-t border-blue-100 bg-white/50">
+        <p className="text-xs text-gray-500 max-w-md mx-auto">
+          By continuing, you agree to our{' '}
+          <button 
+            onClick={() => navigate('/legal')}
+            className="text-blue-600 hover:text-blue-700 underline"
+          >
+            Terms of Use
+          </button>
+          {' '}and{' '}
+          <button 
+            onClick={() => navigate('/legal')}
+            className="text-blue-600 hover:text-blue-700 underline"
+          >
+            Privacy Policy
+          </button>
+          .
+        </p>
       </div>
     </div>
   );

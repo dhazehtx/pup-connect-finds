@@ -18,7 +18,7 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
 
   // If user is not authenticated and not in guest mode, redirect to greeting page
   if (!user && !isGuest) {
-    return <Navigate to="/" state={{ from: location.pathname }} replace />;
+    return <Navigate to={`/?redirect=${encodeURIComponent(location.pathname)}`} replace />;
   }
 
   return <>{children}</>;
