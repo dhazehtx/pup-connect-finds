@@ -8,7 +8,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { RealtimeProvider } from "@/contexts/RealtimeContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import Layout from "@/components/Layout";
-import Index from "@/pages/Index";
+import GreetingPage from "@/pages/GreetingPage";
 import HomeFeed from "@/pages/HomeFeed";
 import ExploreWithFreemium from "@/components/explore/ExploreWithFreemium";
 import Marketplace from "@/pages/Marketplace";
@@ -41,8 +41,10 @@ const App = () => (
             <BrowserRouter>
               <Layout>
                 <Routes>
+                  {/* Greeting Page - Default landing for unauthenticated users */}
+                  <Route path="/" element={<GreetingPage />} />
+                  
                   {/* Public routes - accessible without authentication */}
-                  <Route path="/" element={<Index />} />
                   <Route path="/explore" element={<ExploreWithFreemium />} />
                   <Route path="/marketplace" element={<Marketplace />} />
                   <Route path="/auth" element={<AuthForm />} />

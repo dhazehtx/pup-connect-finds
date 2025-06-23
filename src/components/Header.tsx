@@ -49,6 +49,15 @@ const Header = () => {
     return "/";
   };
 
+  const handleProtectedNavigation = (path: string) => {
+    if (!user && !isGuest) {
+      // Redirect to greeting page for protected routes
+      navigate('/');
+      return;
+    }
+    navigate(path);
+  };
+
   return (
     <header className="bg-white shadow-sm border-b sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
