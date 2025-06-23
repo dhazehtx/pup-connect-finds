@@ -27,7 +27,7 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50">
       {/* Header */}
       <header className="bg-white shadow-sm border-b sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -69,7 +69,7 @@ const Index = () => {
             Connect with verified breeders and discover adorable, healthy puppies waiting for their forever homes.
           </p>
 
-          {/* CTA Buttons */}
+          {/* CTA Buttons - All Royal Blue Themed */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center max-w-2xl mx-auto mb-16">
             <Button 
               onClick={() => navigate('/auth')}
@@ -89,14 +89,14 @@ const Index = () => {
             <Button 
               onClick={handleBrowseAsGuest}
               variant="outline"
-              className="border-gray-300 text-gray-700 hover:bg-gray-50 font-semibold px-8 py-4 text-lg"
+              className="border-blue-600 text-blue-600 hover:bg-blue-50 font-semibold px-8 py-4 text-lg"
               size="lg"
             >
               👁️ Browse as Guest
             </Button>
             <Button 
               onClick={handleExplore}
-              className="bg-green-600 hover:bg-green-700 text-white font-semibold px-8 py-4 text-lg"
+              className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-8 py-4 text-lg"
               size="lg"
             >
               🔍 Explore Puppies
@@ -106,17 +106,17 @@ const Index = () => {
           {/* Trust Features */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-3xl mx-auto">
             <div className="text-center p-6">
-              <CheckCircle className="w-12 h-12 text-green-600 mx-auto mb-4" />
+              <CheckCircle className="w-12 h-12 text-blue-600 mx-auto mb-4" />
               <h3 className="text-lg font-semibold text-gray-900 mb-2">✅ Verified Breeders</h3>
               <p className="text-gray-600">All breeders are thoroughly vetted and verified for quality and ethics</p>
             </div>
             <div className="text-center p-6">
-              <Heart className="w-12 h-12 text-red-500 mx-auto mb-4" />
+              <Heart className="w-12 h-12 text-blue-600 mx-auto mb-4" />
               <h3 className="text-lg font-semibold text-gray-900 mb-2">❤️ Health Guaranteed</h3>
               <p className="text-gray-600">Every puppy comes with comprehensive health guarantees and records</p>
             </div>
             <div className="text-center p-6">
-              <Star className="w-12 h-12 text-yellow-500 mx-auto mb-4" />
+              <Star className="w-12 h-12 text-blue-600 mx-auto mb-4" />
               <h3 className="text-lg font-semibold text-gray-900 mb-2">⭐ 5-Star Support</h3>
               <p className="text-gray-600">Expert guidance and support throughout your puppy journey</p>
             </div>

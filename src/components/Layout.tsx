@@ -16,10 +16,13 @@ const Layout = ({ children }: LayoutProps) => {
   
   // Don't show footer on auth pages for cleaner UX
   const hideFooter = location.pathname === '/auth' || location.pathname === '/verify-email';
+  
+  // Don't show header on the index page (/) since it has its own header
+  const hideHeader = location.pathname === '/';
 
   return (
     <div className="min-h-screen bg-white flex flex-col">
-      <Header />
+      {!hideHeader && <Header />}
       <main className="flex-1 pb-20 md:pb-4">
         {children || <Outlet />}
       </main>
