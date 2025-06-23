@@ -73,15 +73,14 @@ const MobileNavigation = () => {
       return location.pathname === '/home';
     }
     if (path === '/explore') {
-      return location.pathname === path;
+      return location.pathname === path || location.pathname === '/';
     }
     return location.pathname.startsWith(path);
   };
 
   const handleNavigation = (item: NavItem) => {
-    // For protected routes, redirect to greeting page if not authenticated
     if (item.requiresAuth && !user && !isGuest) {
-      navigate(`/?redirect=${encodeURIComponent(item.path)}`);
+      navigate(`/auth?redirect=${encodeURIComponent(item.path)}`);
       return;
     }
     navigate(item.path);

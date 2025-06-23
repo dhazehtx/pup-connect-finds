@@ -2,201 +2,206 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Heart, ArrowRight, Shield, Star, Users } from 'lucide-react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { Badge } from '@/components/ui/badge';
+import { Heart, Search, MapPin, Star, Crown } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { useEffect } from 'react';
+import { useSubscription } from '@/hooks/useSubscription';
+import AdBanner from '@/components/advertising/AdBanner';
 
 const Index = () => {
   const navigate = useNavigate();
-  const { user, isGuest } = useAuth();
-  const [searchParams] = useSearchParams();
-  const redirectFrom = searchParams.get('redirect');
+  const { user } = useAuth();
+  const { subscribed, subscription_tier } = useSubscription();
+  
+  const isPremium = subscribed && (subscription_tier === 'Pro' || subscription_tier === 'Enterprise');
 
-  // If user is already authenticated, redirect to home
-  useEffect(() => {
-    if (user || isGuest) {
-      navigate('/home');
+  // Sample featured listings
+  const featuredListings = [
+    {
+      id: '1',
+      image: 'https://images.unsplash.com/photo-1605568427561-40dd23c2acea?w=300&h=300&fit=crop',
+      name: 'Golden Retriever',
+      location: 'San Francisco, CA',
+      price: '$1,200',
+      age: '8 weeks',
+      sponsored: true
+    },
+    {
+      id: '2',
+      image: 'https://images.unsplash.com/photo-1518717758536-85ae29035b6d?w=300&h=300&fit=crop',
+      name: 'Beagle',
+      location: 'Austin, TX',
+      price: '$800',
+      age: '10 weeks',
+      sponsored: false
+    },
+    {
+      id: '3',
+      image: 'https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=300&h=300&fit=crop',
+      name: 'Labrador',
+      location: 'Denver, CO',
+      price: '$950',
+      age: '12 weeks',
+      sponsored: true
     }
-  }, [user, isGuest, navigate]);
-
-  const handleSignIn = () => {
-    const redirectPath = redirectFrom || '/home';
-    navigate(`/auth?redirect=${encodeURIComponent(redirectPath)}`);
-  };
-
-  const handleSignUp = () => {
-    const redirectPath = redirectFrom || '/home';
-    navigate(`/auth?redirect=${encodeURIComponent(redirectPath)}`);
-  };
-
-  const handleBrowseAsGuest = () => {
-    navigate('/explore');
-  };
-
-  const handleExplorePuppies = () => {
-    navigate('/explore');
-  };
+  ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50">
-      {/* Header */}
-      <header className="bg-white/80 backdrop-blur-sm border-b border-blue-100 sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            {/* Logo */}
-            <div className="flex items-center space-x-2">
-              <Heart className="h-8 w-8 text-blue-600" />
-              <span className="text-xl font-bold text-gray-900">MY PUP</span>
-            </div>
-
-            {/* Header Buttons */}
-            <div className="flex items-center space-x-3">
-              <Button 
-                variant="outline" 
-                onClick={handleSignIn}
-                className="border-blue-600 text-blue-600 hover:bg-blue-50"
-              >
-                Sign In
-              </Button>
-              <Button 
-                onClick={handleSignUp}
-                className="bg-blue-600 hover:bg-blue-700 text-white"
-              >
-                Sign Up
-              </Button>
-            </div>
-          </div>
-        </div>
-      </header>
-
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col items-center justify-center px-4 py-12">
-        
-        {/* Redirect Message */}
-        {redirectFrom && (
-          <div className="mb-8 bg-blue-50 border border-blue-200 rounded-lg p-4 text-center max-w-md">
-            <p className="text-blue-700 font-medium">
-              Please sign in to continue to {redirectFrom.replace('/', '')}
+    <div className="min-h-screen bg-gray-50">
+      {/* Hero Section */}
+      <div className="bg-gradient-to-br from-blue-600 via-purple-600 to-pink-500">
+        <div className="container mx-auto px-4 py-16">
+          <div className="text-center text-white">
+            <h1 className="text-4xl md:text-6xl font-bold mb-6">
+              Find Your Perfect Pup
+            </h1>
+            <p className="text-xl md:text-2xl mb-8 opacity-90">
+              Connect with trusted breeders and loving families
             </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center max-w-md mx-auto">
+              <Button 
+                onClick={() => navigate('/explore')}
+                className="bg-white text-blue-600 hover:bg-gray-100 font-semibold px-8 py-3"
+                size="lg"
+              >
+                <Search className="w-5 h-5 mr-2" />
+                Find Puppies
+              </Button>
+              {!isPremium && (
+                <Button 
+                  onClick={() => navigate('/monetization')}
+                  className="bg-yellow-400 text-gray-900 hover:bg-yellow-300 font-semibold px-8 py-3"
+                  size="lg"
+                >
+                  <Crown className="w-5 h-5 mr-2" />
+                  Go Premium
+                </Button>
+              )}
+            </div>
+            {!user && (
+              <p className="mt-4 text-white/80">
+                <Button variant="link" className="text-white underline" onClick={() => navigate('/auth')}>
+                  Sign up
+                </Button> 
+                to save favorites and contact breeders
+              </p>
+            )}
           </div>
-        )}
-
-        {/* Hero Section */}
-        <div className="text-center mb-12 max-w-4xl">
-          <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6">
-            Find Your Perfect
-            <br />
-            <span className="text-blue-600">Puppy Companion</span>
-          </h1>
-          
-          <p className="text-lg md:text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed">
-            Connect with verified breeders and discover adorable, healthy puppies waiting for their forever homes.
-          </p>
-        </div>
-
-        {/* Primary CTAs */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-16 w-full max-w-4xl">
-          <Button 
-            onClick={handleSignUp}
-            size="lg"
-            className="bg-blue-600 hover:bg-blue-700 text-white h-14 rounded-xl font-semibold text-lg shadow-lg hover:shadow-xl transition-all duration-200"
-          >
-            <Users className="w-5 h-5 mr-2" />
-            Sign Up
-          </Button>
-          
-          <Button 
-            onClick={handleSignIn}
-            variant="outline"
-            size="lg"
-            className="border-2 border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white h-14 rounded-xl font-semibold text-lg shadow-md hover:shadow-lg transition-all duration-200"
-          >
-            <ArrowRight className="w-5 h-5 mr-2" />
-            Sign In
-          </Button>
-          
-          <Button 
-            onClick={handleBrowseAsGuest}
-            variant="outline"
-            size="lg"
-            className="border-2 border-gray-300 text-gray-600 hover:bg-gray-50 h-14 rounded-xl font-semibold text-lg shadow-md hover:shadow-lg transition-all duration-200"
-          >
-            👁️ Browse as Guest
-          </Button>
-          
-          <Button 
-            onClick={handleExplorePuppies}
-            variant="outline"
-            size="lg"
-            className="border-2 border-gray-300 text-gray-600 hover:bg-gray-50 h-14 rounded-xl font-semibold text-lg shadow-md hover:shadow-lg transition-all duration-200"
-          >
-            🔍 Explore Puppies
-          </Button>
-        </div>
-
-        {/* Trust Features */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl w-full">
-          <Card className="bg-white/70 backdrop-blur-sm border-blue-100 shadow-md hover:shadow-lg transition-shadow">
-            <CardContent className="p-6 text-center">
-              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Shield className="w-8 h-8 text-green-600" />
-              </div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">✅ Verified Breeders</h3>
-              <p className="text-gray-600 text-sm">
-                All breeders are thoroughly vetted and verified for quality and ethics
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-white/70 backdrop-blur-sm border-blue-100 shadow-md hover:shadow-lg transition-shadow">
-            <CardContent className="p-6 text-center">
-              <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Heart className="w-8 h-8 text-red-600" />
-              </div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">❤️ Health Guaranteed</h3>
-              <p className="text-gray-600 text-sm">
-                Every puppy comes with health records and genetic testing documentation
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-white/70 backdrop-blur-sm border-blue-100 shadow-md hover:shadow-lg transition-shadow">
-            <CardContent className="p-6 text-center">
-              <div className="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Star className="w-8 h-8 text-yellow-600" />
-              </div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">⭐ 5-Star Support</h3>
-              <p className="text-gray-600 text-sm">
-                Dedicated customer support to help you every step of the way
-              </p>
-            </CardContent>
-          </Card>
         </div>
       </div>
 
-      {/* Footer */}
-      <footer className="bg-white/50 border-t border-blue-100 py-6 px-4">
-        <div className="max-w-4xl mx-auto text-center">
-          <p className="text-xs text-gray-500">
-            By continuing, you agree to our{' '}
-            <button 
-              onClick={() => navigate('/legal')}
-              className="text-blue-600 hover:text-blue-700 underline"
-            >
-              Terms of Use
-            </button>
-            {' '}and{' '}
-            <button 
-              onClick={() => navigate('/legal')}
-              className="text-blue-600 hover:text-blue-700 underline"
-            >
-              Privacy Policy
-            </button>
-            .
-          </p>
-        </div>
-      </footer>
+      <div className="container mx-auto px-4 py-12">
+        {/* Premium Member Welcome */}
+        {isPremium && (
+          <div className="bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-200 rounded-lg p-6 mb-8">
+            <div className="flex items-center justify-center mb-4">
+              <Crown className="w-6 h-6 text-yellow-600 mr-2" />
+              <h2 className="text-xl font-bold text-gray-900">Welcome Back, Premium Member!</h2>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
+              <div className="p-4">
+                <Star className="w-8 h-8 text-yellow-600 mx-auto mb-2" />
+                <h3 className="font-medium">Early Access</h3>
+                <p className="text-sm text-gray-600">See new puppies first</p>
+              </div>
+              <div className="p-4">
+                <Heart className="w-8 h-8 text-yellow-600 mx-auto mb-2" />
+                <p className="font-medium">Smart Matching</p>
+                <p className="text-sm text-gray-600">Personalized recommendations</p>
+              </div>
+              <div className="p-4">
+                <Crown className="w-8 h-8 text-yellow-600 mx-auto mb-2" />
+                <h3 className="font-medium">Verified Badge</h3>
+                <p className="text-sm text-gray-600">Premium member status</p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Ad Banner */}
+        <AdBanner targetPage="home" format="banner" className="mb-8" />
+
+        {/* Featured Puppies */}
+        <section className="mb-12">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-3xl font-bold text-gray-900">Featured Puppies</h2>
+            <Button variant="outline" onClick={() => navigate('/explore')}>
+              View All
+            </Button>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {featuredListings.map((listing, index) => (
+              <Card key={listing.id} className="hover:shadow-lg transition-shadow">
+                <div className="relative">
+                  <img 
+                    src={listing.image} 
+                    alt={listing.name}
+                    className="w-full h-48 object-cover rounded-t-lg"
+                  />
+                  {listing.sponsored && (
+                    <Badge className="absolute top-3 left-3 bg-orange-500 text-white border-0">
+                      Sponsored
+                    </Badge>
+                  )}
+                  {/* Insert sponsored ad after every 2 listings */}
+                  {index === 1 && (
+                    <div className="absolute inset-0 bg-gradient-to-t from-orange-500/20 to-transparent rounded-t-lg"></div>
+                  )}
+                </div>
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <h3 className="font-semibold text-lg">{listing.name}</h3>
+                    <div className="text-lg font-bold text-blue-600">{listing.price}</div>
+                  </div>
+                  <div className="flex items-center text-gray-600 text-sm mb-2">
+                    <MapPin className="w-4 h-4 mr-1" />
+                    {listing.location}
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-500">{listing.age} old</span>
+                    <Button size="sm" onClick={() => navigate('/explore')}>
+                      View Details
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </section>
+
+        {/* Services Preview */}
+        <section className="mb-12">
+          <div className="bg-blue-50 rounded-lg p-8 text-center">
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">Pet Services Marketplace</h2>
+            <p className="text-gray-600 mb-6">Find trusted groomers, walkers, and trainers in your area</p>
+            <Button onClick={() => navigate('/marketplace')} className="bg-blue-600 hover:bg-blue-700">
+              Explore Services
+            </Button>
+          </div>
+        </section>
+
+        {/* Quick Stats */}
+        <section className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
+          <div className="p-6">
+            <div className="text-3xl font-bold text-blue-600 mb-2">50K+</div>
+            <div className="text-gray-600">Happy Families</div>
+          </div>
+          <div className="p-6">
+            <div className="text-3xl font-bold text-blue-600 mb-2">1K+</div>
+            <div className="text-gray-600">Verified Breeders</div>
+          </div>
+          <div className="p-6">
+            <div className="text-3xl font-bold text-blue-600 mb-2">200+</div>
+            <div className="text-gray-600">Breeds Available</div>
+          </div>
+          <div className="p-6">
+            <div className="text-3xl font-bold text-blue-600 mb-2">5K+</div>
+            <div className="text-gray-600">Service Providers</div>
+          </div>
+        </section>
+      </div>
     </div>
   );
 };
