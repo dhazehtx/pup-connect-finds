@@ -41,12 +41,20 @@ const Header = () => {
     { name: 'Contact Us', path: '/contact', icon: <Mail className="w-4 h-4" /> },
   ];
 
+  // Determine the correct home link based on authentication status
+  const getHomeLink = () => {
+    if (user || isGuest) {
+      return "/home";
+    }
+    return "/";
+  };
+
   return (
     <header className="bg-white shadow-sm border-b sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
-          <Link to={user || isGuest ? "/home" : "/"} className="flex items-center space-x-2">
+          <Link to={getHomeLink()} className="flex items-center space-x-2">
             <Heart className="h-8 w-8 text-blue-600" />
             <span className="text-xl font-bold text-gray-900">MY PUP</span>
           </Link>

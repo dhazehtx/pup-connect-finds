@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useMobileOptimized } from '@/hooks/useMobileOptimized';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface NavItem {
   id: string;
@@ -19,12 +20,14 @@ interface NavItem {
   icon: React.ReactNode;
   path: string;
   badge?: number;
+  requiresAuth?: boolean;
 }
 
 const MobileNavigation = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { isMobile, safeAreaInsets } = useMobileOptimized();
+  const { user, isGuest } = useAuth();
 
   if (!isMobile) return null;
 
@@ -33,7 +36,8 @@ const MobileNavigation = () => {
       id: 'home',
       label: 'Home',
       icon: <Home className="w-5 h-5" />,
-      path: '/home'
+      path: '/home',
+      requiresAuth: true
     },
     {
       id: 'explore',
@@ -52,13 +56,15 @@ const MobileNavigation = () => {
       label: 'Messages',
       icon: <MessageCircle className="w-5 h-5" />,
       path: '/messages',
-      badge: 2
+      badge: 2,
+      requiresAuth: true
     },
     {
       id: 'profile',
       label: 'Profile',
       icon: <User className="w-5 h-5" />,
-      path: '/profile'
+      path: '/profile',
+      requiresAuth: true
     }
   ];
 
@@ -72,6 +78,14 @@ const MobileNavigation = () => {
     return location.pathname.startsWith(path);
   };
 
+  const handleNavigation = (item: NavItem) => {
+    if (item.requiresAuth && !user && !isGuest) {
+      navigate(`/auth?redirect=${encodeURIComponent(item.path)}`);
+      return;
+    }
+    navigate(item.path);
+  };
+
   return (
     <div 
       className="fixed bottom-0 left-0 right-0 bg-white border-t border-blue-200 z-50 shadow-lg"
@@ -83,7 +97,7 @@ const MobileNavigation = () => {
             key={item.id}
             variant="ghost"
             size="sm"
-            onClick={() => navigate(item.path)}
+            onClick={() => handleNavigation(item)}
             className={cn(
               "flex flex-col items-center gap-1 p-2 h-auto min-w-[60px] relative transition-colors",
               isActive(item.path) 
@@ -93,7 +107,7 @@ const MobileNavigation = () => {
           >
             <div className="relative">
               {item.icon}
-              {item.badge && item.badge > 0 && (
+              {item.badge && item.badge > 0 && (user || isGuest) && (
                 <Badge 
                   variant="destructive" 
                   className="absolute -top-2 -right-2 text-xs w-5 h-5 flex items-center justify-center p-0 bg-blue-600 hover:bg-blue-700"
