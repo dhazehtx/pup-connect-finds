@@ -223,20 +223,14 @@ const Explore = () => {
           <p className="text-gray-600">Find your perfect furry companion or connect with other pet lovers</p>
         </div>
 
-        {/* Tab Navigation - Updated to Royal Blue */}
+        {/* Tab Navigation */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-6">
-          <TabsList className="grid w-full grid-cols-2 max-w-md bg-blue-50 border border-blue-200">
-            <TabsTrigger 
-              value="puppies" 
-              className="flex items-center gap-2 data-[state=active]:bg-blue-600 data-[state=active]:text-white text-blue-600"
-            >
+          <TabsList className="grid w-full grid-cols-2 max-w-md">
+            <TabsTrigger value="puppies" className="flex items-center gap-2">
               <Heart className="w-4 h-4" />
               Puppies
             </TabsTrigger>
-            <TabsTrigger 
-              value="community" 
-              className="flex items-center gap-2 data-[state=active]:bg-blue-600 data-[state=active]:text-white text-blue-600"
-            >
+            <TabsTrigger value="community" className="flex items-center gap-2">
               <Users className="w-4 h-4" />
               Community
             </TabsTrigger>
@@ -252,7 +246,7 @@ const Explore = () => {
                     variant="outline"
                     size="sm"
                     onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
-                    className="flex items-center gap-2 border-blue-600 text-blue-600 hover:bg-blue-50"
+                    className="flex items-center gap-2"
                   >
                     <Sliders className="w-4 h-4" />
                     Advanced Filters
@@ -298,11 +292,11 @@ const Explore = () => {
                     </label>
                   </div>
 
-                  {/* Clear Filters - Updated to Royal Blue */}
+                  {/* Clear Filters */}
                   <Button 
                     variant="outline" 
                     onClick={clearAllFilters}
-                    className="w-full border-blue-600 text-blue-600 hover:bg-blue-50"
+                    className="w-full"
                   >
                     <Filter className="w-4 h-4 mr-2" />
                     Clear Filters

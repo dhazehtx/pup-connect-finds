@@ -90,7 +90,7 @@ const ServicesMarketplace = () => {
           </div>
         </div>
 
-        {/* Service Filter Tags - Updated to Royal Blue */}
+        {/* Service Filter Tags */}
         <div className="flex flex-wrap justify-center gap-3 mb-12">
           {serviceFilters.map((filter) => (
             <Button
