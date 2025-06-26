@@ -3,19 +3,22 @@ import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
-import { Heart, MessageCircle, Share, Plus } from 'lucide-react';
+import { Heart, MessageCircle, Share, Plus, Camera, Video, Edit3 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import StoriesContainer from '@/components/stories/StoriesContainer';
-import CreatePostForm from '@/components/posts/CreatePostForm';
+import CreatePostDropdown from '@/components/posts/CreatePostDropdown';
 
 const HomeFeed = () => {
   const { user } = useAuth();
-  const [showCreatePost, setShowCreatePost] = useState(false);
+  const navigate = useNavigate();
+  const [showCreateDropdown, setShowCreateDropdown] = useState(false);
 
   // Sample posts data
   const posts = [
     {
       id: '1',
       user: {
+        id: 'sarah_goldenlove',
         name: 'Sarah Johnson',
         avatar: 'https://images.unsplash.com/photo-1494790108755-2616c66a92a8?w=50&h=50&fit=crop&crop=face',
         username: 'sarah_goldenlove'
@@ -23,12 +26,17 @@ const HomeFeed = () => {
       content: 'Just brought home our new Golden Retriever puppy! Any tips for first-time owners? 🐕💕',
       image: 'https://images.unsplash.com/photo-1605568427561-40dd23c2acea?w=500&h=400&fit=crop',
       likes: 24,
-      comments: 8,
+      comments: [
+        { id: 1, user: 'Mike C.', text: 'So adorable! Congrats!' },
+        { id: 2, user: 'Emma W.', text: 'Start with basic training early 🐾' },
+        { id: 3, user: 'Alex M.', text: 'Beautiful pup! Golden retrievers are the best.' }
+      ],
       timeAgo: '2 hours ago'
     },
     {
       id: '2',
       user: {
+        id: 'mike_beaglelover',
         name: 'Mike Chen',
         avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=50&h=50&fit=crop&crop=face',
         username: 'mike_beaglelover'
@@ -36,12 +44,16 @@ const HomeFeed = () => {
       content: 'Beautiful day at the dog park! Max made so many new friends today. The socialization is really helping with his confidence. 🌟',
       image: 'https://images.unsplash.com/photo-1518717758536-85ae29035b6d?w=500&h=400&fit=crop',
       likes: 18,
-      comments: 5,
+      comments: [
+        { id: 1, user: 'Sarah J.', text: 'Max looks so happy!' },
+        { id: 2, user: 'Pet Paradise', text: 'Socialization is key! Great job.' }
+      ],
       timeAgo: '4 hours ago'
     },
     {
       id: '3',
       user: {
+        id: 'petparadise_rescue',
         name: 'Pet Paradise Rescue',
         avatar: 'https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=50&h=50&fit=crop',
         username: 'petparadise_rescue'
@@ -49,57 +61,59 @@ const HomeFeed = () => {
       content: 'Meet Luna! This sweet 2-year-old Labrador mix is looking for her forever home. She\'s great with kids and other dogs. 🏡❤️',
       image: 'https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=500&h=400&fit=crop',
       likes: 42,
-      comments: 12,
+      comments: [
+        { id: 1, user: 'Lisa K.', text: 'Is she still available?' },
+        { id: 2, user: 'Tom R.', text: 'What a sweetheart!' },
+        { id: 3, user: 'Anna M.', text: 'Sharing this post!' }
+      ],
       timeAgo: '6 hours ago'
     }
   ];
 
+  const handleProfileClick = (userId: string) => {
+    navigate(`/profile/${userId}`);
+  };
+
+  const handleViewAllComments = (postId: string) => {
+    navigate(`/post/${postId}`);
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* Header with Upload Button */}
+      <div className="bg-white shadow-sm border-b sticky top-0 z-50">
+        <div className="max-w-2xl mx-auto px-4 py-3 flex items-center justify-between">
+          <h1 className="text-xl font-bold text-gray-900">MY PUP</h1>
+          {user && (
+            <div className="relative">
+              <Button
+                onClick={() => setShowCreateDropdown(!showCreateDropdown)}
+                className="w-10 h-10 rounded-full p-0 shadow-lg transition-all duration-200"
+                style={{ backgroundColor: '#2363FF' }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = '#1E52D0';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = '#2363FF';
+                }}
+              >
+                <Plus className="w-5 h-5 text-white" />
+              </Button>
+              
+              <CreatePostDropdown 
+                isOpen={showCreateDropdown}
+                onClose={() => setShowCreateDropdown(false)}
+              />
+            </div>
+          )}
+        </div>
+      </div>
+
       <div className="max-w-2xl mx-auto pt-4">
         {/* Stories Section */}
         <div className="bg-white rounded-lg shadow-sm mb-4">
           <StoriesContainer />
         </div>
-
-        {/* Create Post Section */}
-        {user && (
-          <Card className="border-blue-200 shadow-sm mb-6">
-            <CardContent className="p-4">
-              <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center">
-                  <span className="text-white font-semibold">
-                    {user.email?.charAt(0).toUpperCase() || 'U'}
-                  </span>
-                </div>
-                <Button
-                  variant="outline"
-                  className="flex-1 justify-start text-gray-500"
-                  onClick={() => setShowCreatePost(true)}
-                >
-                  Share something about your pup...
-                </Button>
-                <Button
-                  size="sm"
-                  className="bg-blue-600 hover:bg-blue-700"
-                  onClick={() => setShowCreatePost(true)}
-                >
-                  <Plus className="w-4 h-4" />
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Create Post Modal */}
-        {showCreatePost && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <CreatePostForm
-              onClose={() => setShowCreatePost(false)}
-              onSubmit={() => setShowCreatePost(false)}
-            />
-          </div>
-        )}
 
         {/* Posts Feed */}
         <div className="space-y-6">
@@ -111,10 +125,16 @@ const HomeFeed = () => {
                   <img
                     src={post.user.avatar}
                     alt={post.user.name}
-                    className="w-10 h-10 rounded-full object-cover"
+                    className="w-10 h-10 rounded-full object-cover cursor-pointer hover:opacity-80 transition-opacity"
+                    onClick={() => handleProfileClick(post.user.id)}
                   />
                   <div className="flex-1">
-                    <h3 className="font-semibold text-gray-900">{post.user.name}</h3>
+                    <h3 
+                      className="font-semibold text-gray-900 cursor-pointer hover:underline"
+                      onClick={() => handleProfileClick(post.user.id)}
+                    >
+                      {post.user.name}
+                    </h3>
                     <p className="text-sm text-gray-500">@{post.user.username} • {post.timeAgo}</p>
                   </div>
                 </div>
@@ -134,20 +154,46 @@ const HomeFeed = () => {
                 )}
 
                 {/* Post Actions */}
-                <div className="p-4 flex items-center justify-between">
-                  <div className="flex items-center space-x-6">
-                    <button className="flex items-center space-x-2 text-gray-600 hover:text-red-500">
-                      <Heart className="w-5 h-5" />
-                      <span className="text-sm">{post.likes}</span>
-                    </button>
-                    <button className="flex items-center space-x-2 text-gray-600 hover:text-blue-600">
-                      <MessageCircle className="w-5 h-5" />
-                      <span className="text-sm">{post.comments}</span>
-                    </button>
-                    <button className="flex items-center space-x-2 text-gray-600 hover:text-blue-600">
-                      <Share className="w-5 h-5" />
-                    </button>
+                <div className="p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center space-x-6">
+                      <button className="flex items-center space-x-2 text-gray-900 hover:text-red-500 transition-colors">
+                        <Heart className="w-5 h-5" />
+                        <span className="text-sm font-medium">{post.likes}</span>
+                      </button>
+                      <button 
+                        className="flex items-center space-x-2 text-gray-900 hover:text-blue-600 transition-colors"
+                        onClick={() => handleViewAllComments(post.id)}
+                      >
+                        <MessageCircle className="w-5 h-5" />
+                        <span className="text-sm font-medium">{post.comments.length}</span>
+                      </button>
+                      <button className="flex items-center space-x-2 text-gray-900 hover:text-blue-600 transition-colors">
+                        <Share className="w-5 h-5" />
+                      </button>
+                    </div>
                   </div>
+
+                  {/* Comments Preview */}
+                  {post.comments.length > 0 && (
+                    <div className="space-y-2">
+                      {post.comments.slice(0, 3).map((comment) => (
+                        <div key={comment.id} className="text-sm">
+                          <span className="font-medium text-gray-900">{comment.user}</span>
+                          <span className="text-gray-700 ml-2">{comment.text}</span>
+                        </div>
+                      ))}
+                      {post.comments.length > 3 && (
+                        <button 
+                          onClick={() => handleViewAllComments(post.id)}
+                          className="text-sm font-medium hover:underline transition-colors"
+                          style={{ color: '#2363FF' }}
+                        >
+                          View all {post.comments.length} comments
+                        </button>
+                      )}
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>
