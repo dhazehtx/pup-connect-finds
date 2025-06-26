@@ -328,8 +328,9 @@ const ProfileContent = ({
 
       {/* Profile Edit Dialog */}
       <ProfileEditDialog
+        profile={profile}
         isOpen={isEditDialogOpen}
-        onOpenChange={setIsEditDialogOpen}
+        onClose={() => setIsEditDialogOpen(false)}
       />
     </div>
   );
