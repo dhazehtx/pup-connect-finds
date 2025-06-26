@@ -94,7 +94,7 @@ const ProfileContent = ({
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
-      {/* Enhanced Profile Header with Clear Action Buttons */}
+      {/* Enhanced Profile Header with Visible Action Buttons */}
       <div className="bg-white shadow-sm border-b">
         <div className="max-w-4xl mx-auto px-4 py-6">
           {/* Profile Info Section */}
@@ -122,7 +122,7 @@ const ProfileContent = ({
                   )}
                 </div>
 
-                {/* Enhanced Action Buttons */}
+                {/* Enhanced Action Buttons with High Visibility */}
                 <div className="flex items-center space-x-3">
                   {isOwnProfile ? (
                     <>
@@ -130,17 +130,7 @@ const ProfileContent = ({
                         onClick={handleShareProfile}
                         variant="outline"
                         size="sm"
-                        className="border-2 transition-all duration-200 hover:shadow-md"
-                        style={{ 
-                          borderColor: '#2363FF',
-                          color: '#2363FF'
-                        }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.backgroundColor = '#E5EEFF';
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.backgroundColor = 'white';
-                        }}
+                        className="border-2 border-blue-600 text-blue-600 bg-white hover:bg-blue-50 hover:border-blue-700 hover:text-blue-700 font-semibold transition-all duration-200 shadow-sm"
                       >
                         <Share className="w-4 h-4 mr-2" />
                         Share Profile
@@ -149,17 +139,7 @@ const ProfileContent = ({
                         onClick={handleViewPublic}
                         variant="outline"
                         size="sm"
-                        className="border-2 transition-all duration-200 hover:shadow-md"
-                        style={{ 
-                          borderColor: '#2363FF',
-                          color: '#2363FF'
-                        }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.backgroundColor = '#E5EEFF';
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.backgroundColor = 'white';
-                        }}
+                        className="border-2 border-blue-600 text-blue-600 bg-white hover:bg-blue-50 hover:border-blue-700 hover:text-blue-700 font-semibold transition-all duration-200 shadow-sm"
                       >
                         View Public
                       </Button>
@@ -167,17 +147,7 @@ const ProfileContent = ({
                         onClick={() => navigate('/settings')}
                         variant="outline"
                         size="sm"
-                        className="border-2 transition-all duration-200 hover:shadow-md"
-                        style={{ 
-                          borderColor: '#2363FF',
-                          color: '#2363FF'
-                        }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.backgroundColor = '#E5EEFF';
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.backgroundColor = 'white';
-                        }}
+                        className="border-2 border-blue-600 text-blue-600 bg-white hover:bg-blue-50 hover:border-blue-700 hover:text-blue-700 font-semibold transition-all duration-200 shadow-sm"
                       >
                         <Settings className="w-4 h-4" />
                       </Button>
@@ -185,24 +155,13 @@ const ProfileContent = ({
                   ) : (
                     <>
                       <Button
-                        className="transition-all duration-200"
-                        style={{ backgroundColor: '#2363FF' }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.backgroundColor = '#1E52D0';
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.backgroundColor = '#2363FF';
-                        }}
+                        className="bg-blue-600 hover:bg-blue-700 text-white font-semibold transition-all duration-200 shadow-sm"
                       >
                         Follow
                       </Button>
                       <Button
                         variant="outline"
-                        className="border-2"
-                        style={{ 
-                          borderColor: '#2363FF',
-                          color: '#2363FF'
-                        }}
+                        className="border-2 border-blue-600 text-blue-600 bg-white hover:bg-blue-50 hover:border-blue-700 hover:text-blue-700 font-semibold transition-all duration-200 shadow-sm"
                       >
                         Message
                       </Button>
@@ -238,11 +197,7 @@ const ProfileContent = ({
                   {allVerificationBadges.map((badge, index) => (
                     <span
                       key={index}
-                      className="px-3 py-1 rounded-full text-xs font-medium"
-                      style={{ 
-                        backgroundColor: '#E5EEFF',
-                        color: '#2363FF'
-                      }}
+                      className="px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-700"
                     >
                       ✓ {badge}
                     </span>

@@ -2,8 +2,9 @@
 import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { useAuth } from '@/contexts/AuthContext';
-import { Heart, MessageCircle, Share, Plus, Camera, Video, Edit3 } from 'lucide-react';
+import { Heart, MessageCircle, Share, Plus, Search } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import StoriesContainer from '@/components/stories/StoriesContainer';
 import CreatePostDropdown from '@/components/posts/CreatePostDropdown';
@@ -12,6 +13,7 @@ const HomeFeed = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [showCreateDropdown, setShowCreateDropdown] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
 
   // Sample posts data
   const posts = [
@@ -26,10 +28,12 @@ const HomeFeed = () => {
       content: 'Just brought home our new Golden Retriever puppy! Any tips for first-time owners? 🐕💕',
       image: 'https://images.unsplash.com/photo-1605568427561-40dd23c2acea?w=500&h=400&fit=crop',
       likes: 24,
+      isLiked: false,
       comments: [
         { id: 1, user: 'Mike C.', text: 'So adorable! Congrats!' },
         { id: 2, user: 'Emma W.', text: 'Start with basic training early 🐾' },
-        { id: 3, user: 'Alex M.', text: 'Beautiful pup! Golden retrievers are the best.' }
+        { id: 3, user: 'Alex M.', text: 'Beautiful pup! Golden retrievers are the best.' },
+        { id: 4, user: 'Lisa K.', text: 'Make sure to socialize early!' }
       ],
       timeAgo: '2 hours ago'
     },
@@ -44,6 +48,7 @@ const HomeFeed = () => {
       content: 'Beautiful day at the dog park! Max made so many new friends today. The socialization is really helping with his confidence. 🌟',
       image: 'https://images.unsplash.com/photo-1518717758536-85ae29035b6d?w=500&h=400&fit=crop',
       likes: 18,
+      isLiked: true,
       comments: [
         { id: 1, user: 'Sarah J.', text: 'Max looks so happy!' },
         { id: 2, user: 'Pet Paradise', text: 'Socialization is key! Great job.' }
@@ -61,6 +66,7 @@ const HomeFeed = () => {
       content: 'Meet Luna! This sweet 2-year-old Labrador mix is looking for her forever home. She\'s great with kids and other dogs. 🏡❤️',
       image: 'https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=500&h=400&fit=crop',
       likes: 42,
+      isLiked: false,
       comments: [
         { id: 1, user: 'Lisa K.', text: 'Is she still available?' },
         { id: 2, user: 'Tom R.', text: 'What a sweetheart!' },
@@ -78,34 +84,46 @@ const HomeFeed = () => {
     navigate(`/post/${postId}`);
   };
 
+  const handleLike = (postId: string) => {
+    console.log('Liked post:', postId);
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header with Upload Button */}
+      {/* Enhanced Header with Search and Post Button */}
       <div className="bg-white shadow-sm border-b sticky top-0 z-50">
-        <div className="max-w-2xl mx-auto px-4 py-3 flex items-center justify-between">
-          <h1 className="text-xl font-bold text-gray-900">MY PUP</h1>
-          {user && (
-            <div className="relative">
-              <Button
-                onClick={() => setShowCreateDropdown(!showCreateDropdown)}
-                className="w-10 h-10 rounded-full p-0 shadow-lg transition-all duration-200"
-                style={{ backgroundColor: '#2363FF' }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = '#1E52D0';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = '#2363FF';
-                }}
-              >
-                <Plus className="w-5 h-5 text-white" />
-              </Button>
-              
-              <CreatePostDropdown 
-                isOpen={showCreateDropdown}
-                onClose={() => setShowCreateDropdown(false)}
+        <div className="max-w-2xl mx-auto px-4 py-3">
+          <div className="flex items-center space-x-3">
+            <h1 className="text-xl font-bold text-gray-900 flex-shrink-0">MY PUP</h1>
+            
+            {/* Search Bar */}
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+              <Input
+                placeholder="Search posts, users..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10 bg-gray-50 border-gray-200 focus:border-blue-500 focus:ring-blue-500"
               />
             </div>
-          )}
+
+            {/* Post Button */}
+            {user && (
+              <div className="relative flex-shrink-0">
+                <Button
+                  onClick={() => setShowCreateDropdown(!showCreateDropdown)}
+                  className="w-10 h-10 rounded-full p-0 shadow-lg transition-all duration-200 bg-blue-600 hover:bg-blue-700"
+                >
+                  <Plus className="w-5 h-5 text-white" />
+                </Button>
+                
+                <CreatePostDropdown 
+                  isOpen={showCreateDropdown}
+                  onClose={() => setShowCreateDropdown(false)}
+                />
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
@@ -118,7 +136,7 @@ const HomeFeed = () => {
         {/* Posts Feed */}
         <div className="space-y-6">
           {posts.map((post) => (
-            <Card key={post.id} className="border-blue-200 shadow-sm">
+            <Card key={post.id} className="shadow-sm border-gray-200">
               <CardContent className="p-0">
                 {/* Post Header */}
                 <div className="p-4 flex items-center space-x-3">
@@ -157,19 +175,24 @@ const HomeFeed = () => {
                 <div className="p-4">
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center space-x-6">
-                      <button className="flex items-center space-x-2 text-gray-900 hover:text-red-500 transition-colors">
-                        <Heart className="w-5 h-5" />
+                      <button 
+                        className={`flex items-center space-x-2 transition-colors ${
+                          post.isLiked ? 'text-red-500' : 'text-black hover:text-red-500'
+                        }`}
+                        onClick={() => handleLike(post.id)}
+                      >
+                        <Heart className={`w-6 h-6 ${post.isLiked ? 'fill-current' : ''}`} />
                         <span className="text-sm font-medium">{post.likes}</span>
                       </button>
                       <button 
-                        className="flex items-center space-x-2 text-gray-900 hover:text-blue-600 transition-colors"
+                        className="flex items-center space-x-2 text-black hover:text-blue-600 transition-colors"
                         onClick={() => handleViewAllComments(post.id)}
                       >
-                        <MessageCircle className="w-5 h-5" />
+                        <MessageCircle className="w-6 h-6" />
                         <span className="text-sm font-medium">{post.comments.length}</span>
                       </button>
-                      <button className="flex items-center space-x-2 text-gray-900 hover:text-blue-600 transition-colors">
-                        <Share className="w-5 h-5" />
+                      <button className="flex items-center space-x-2 text-black hover:text-blue-600 transition-colors">
+                        <Share className="w-6 h-6" />
                       </button>
                     </div>
                   </div>
@@ -186,8 +209,7 @@ const HomeFeed = () => {
                       {post.comments.length > 3 && (
                         <button 
                           onClick={() => handleViewAllComments(post.id)}
-                          className="text-sm font-medium hover:underline transition-colors"
-                          style={{ color: '#2363FF' }}
+                          className="text-sm font-medium text-blue-600 hover:underline transition-colors"
                         >
                           View all {post.comments.length} comments
                         </button>
