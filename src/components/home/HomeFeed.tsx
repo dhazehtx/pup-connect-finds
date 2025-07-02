@@ -171,13 +171,13 @@ const HomeFeed = () => {
                   />
                 )}
 
-                {/* Post Actions */}
+                {/* Post Actions - Updated with high contrast colors */}
                 <div className="p-4">
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center space-x-6">
                       <button 
                         className={`flex items-center space-x-2 transition-colors ${
-                          post.isLiked ? 'text-red-500' : 'text-black hover:text-red-500'
+                          post.isLiked ? 'text-red-600' : 'text-gray-800 hover:text-red-600'
                         }`}
                         onClick={() => handleLike(post.id)}
                       >
@@ -185,19 +185,19 @@ const HomeFeed = () => {
                         <span className="text-sm font-medium">{post.likes}</span>
                       </button>
                       <button 
-                        className="flex items-center space-x-2 text-black hover:text-blue-600 transition-colors"
+                        className="flex items-center space-x-2 text-gray-800 hover:text-blue-600 transition-colors"
                         onClick={() => handleViewAllComments(post.id)}
                       >
                         <MessageCircle className="w-6 h-6" />
                         <span className="text-sm font-medium">{post.comments.length}</span>
                       </button>
-                      <button className="flex items-center space-x-2 text-black hover:text-blue-600 transition-colors">
+                      <button className="flex items-center space-x-2 text-gray-800 hover:text-blue-600 transition-colors">
                         <Share className="w-6 h-6" />
                       </button>
                     </div>
                   </div>
 
-                  {/* Comments Preview */}
+                  {/* Comments Preview - Show top 3 comments */}
                   {post.comments.length > 0 && (
                     <div className="space-y-2">
                       {post.comments.slice(0, 3).map((comment) => (
