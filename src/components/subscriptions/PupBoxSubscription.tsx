@@ -103,14 +103,12 @@ const PupBoxSubscription = () => {
         <p className="text-gray-600">Monthly surprise boxes filled with toys, treats, and goodies for your furry friend</p>
       </div>
 
-      {/* One-time purchase intro */}
       <div className="text-center mb-8">
         <p className="text-sm text-gray-600 bg-purple-50 inline-block px-4 py-2 rounded-full">
           💡 Prefer a one-time box? Try it out before subscribing!
         </p>
       </div>
 
-      {/* Plan Selection */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         {plans.map((plan) => {
           const currentPurchaseType = purchaseTypes[plan.id];
@@ -143,24 +141,31 @@ const PupBoxSubscription = () => {
               <CardContent className="space-y-4">
                 <p className="text-gray-600 text-center">{plan.description}</p>
                 
-                {/* Polished Purchase Type Toggle */}
-                <div className="p-3 bg-gray-50 rounded-lg">
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center space-x-2">
-                      <ShoppingCart className="w-4 h-4 text-gray-700" />
-                      <span className="text-sm font-semibold text-gray-800">Buy</span>
+                <div className="p-4 bg-gray-50 rounded-xl shadow-sm">
+                  <div className="flex items-center justify-center space-x-4 mb-3">
+                    <span className={`text-sm font-semibold transition-colors ${
+                      currentPurchaseType === 'one-time' ? 'text-gray-900' : 'text-gray-500'
+                    }`}>
+                      Buy
+                    </span>
+                    
+                    <div className="relative">
+                      <Switch 
+                        checked={currentPurchaseType === 'subscription'}
+                        onCheckedChange={() => handlePurchaseTypeToggle(plan.id)}
+                        className="data-[state=checked]:bg-green-500 data-[state=unchecked]:bg-gray-300 shadow-md"
+                      />
                     </div>
-                    <Switch 
-                      checked={currentPurchaseType === 'subscription'}
-                      onCheckedChange={() => handlePurchaseTypeToggle(plan.id)}
-                    />
-                    <div className="flex items-center space-x-2">
-                      <span className="text-sm font-semibold text-gray-800">Sub</span>
-                      <RotateCcw className="w-4 h-4 text-gray-700" />
-                    </div>
+                    
+                    <span className={`text-sm font-semibold transition-colors ${
+                      currentPurchaseType === 'subscription' ? 'text-gray-900' : 'text-gray-500'
+                    }`}>
+                      Sub
+                    </span>
                   </div>
+                  
                   <div className="text-center">
-                    <span className="text-xs text-gray-700 font-medium">
+                    <span className="text-xs text-gray-700 font-semibold">
                       {currentPurchaseType === 'subscription' 
                         ? `$${plan.subscriptionPrice}/month • Cancel anytime`
                         : `$${plan.oneTimePrice} • No commitment`
@@ -249,7 +254,6 @@ const PupBoxSubscription = () => {
         </Card>
       )}
 
-      {/* Features */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="text-center">
           <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-3">
@@ -274,7 +278,6 @@ const PupBoxSubscription = () => {
         </div>
       </div>
 
-      {/* Stripe Checkout Modal */}
       <StripeCheckout
         isOpen={showCheckout}
         onClose={() => setShowCheckout(false)}
