@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -7,8 +6,40 @@ import { Switch } from '@/components/ui/switch';
 import { Check, Crown, Star, Zap } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import StripeCheckout from '@/components/checkout/StripeCheckout';
+import { isFeatureHidden, EARLY_ACCESS_CONFIG } from '@/config/earlyAccess';
+import EarlyAccessBanner from '@/components/common/EarlyAccessBanner';
 
 const EnhancedPricingPlans = () => {
+  // If subscription tiers are hidden during early access, show early access message
+  if (isFeatureHidden('subscriptionTiers')) {
+    return (
+      <div className="p-6 max-w-6xl mx-auto">
+        <EarlyAccessBanner />
+        
+        <div className="text-center">
+          <h2 className="text-3xl font-bold mb-4">Premium Plans</h2>
+          <p className="text-gray-600 mb-8">
+            {EARLY_ACCESS_CONFIG.messages.comingSoon}
+          </p>
+          
+          <Card className="max-w-md mx-auto">
+            <CardContent className="p-8 text-center">
+              <Crown className="w-12 h-12 text-purple-500 mx-auto mb-4" />
+              <h3 className="text-xl font-semibold mb-2">All Features Unlocked</h3>
+              <p className="text-gray-600 mb-4">
+                Enjoy unlimited access to all premium features during our early access period.
+              </p>
+              <Badge className="bg-green-100 text-green-800">
+                {EARLY_ACCESS_CONFIG.messages.freeDuringEarlyAccess}
+              </Badge>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
+
+  // Keep existing pricing logic for when early access is disabled
   const [isYearly, setIsYearly] = useState(false);
   const [showCheckout, setShowCheckout] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<any>(null);
@@ -83,7 +114,6 @@ const EnhancedPricingPlans = () => {
 
   const handleSubscribe = (plan: any) => {
     if (plan.monthlyPrice === 0) {
-      // Handle free plan
       return;
     }
 
@@ -205,7 +235,6 @@ const EnhancedPricingPlans = () => {
         </Card>
       </div>
 
-      {/* Stripe Checkout Modal */}
       <StripeCheckout
         isOpen={showCheckout}
         onClose={() => setShowCheckout(false)}

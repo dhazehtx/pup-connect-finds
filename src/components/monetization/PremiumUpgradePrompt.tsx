@@ -1,10 +1,10 @@
-
 import React from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Crown, Star, Zap, Shield, Heart } from 'lucide-react';
 import { useSubscription } from '@/hooks/useSubscription';
+import { isFeatureHidden, EARLY_ACCESS_CONFIG } from '@/config/earlyAccess';
 
 interface PremiumUpgradePromptProps {
   isOpen: boolean;
@@ -15,6 +15,49 @@ interface PremiumUpgradePromptProps {
 const PremiumUpgradePrompt = ({ isOpen, onClose, trigger }: PremiumUpgradePromptProps) => {
   const { createCheckout } = useSubscription();
 
+  // Don't show upgrade prompts during early access
+  if (isFeatureHidden('subscriptionTiers')) {
+    return (
+      <Dialog open={isOpen} onOpenChange={onClose}>
+        <DialogContent className="max-w-md mx-auto">
+          <DialogHeader>
+            <div className="flex items-center justify-center mb-4">
+              <div className="p-3 bg-gradient-to-r from-blue-400 to-purple-500 rounded-full">
+                <Crown className="w-8 h-8 text-white" />
+              </div>
+            </div>
+            <DialogTitle className="text-center text-xl">
+              Feature Unlocked!
+            </DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            <div className="text-center">
+              <Badge className="bg-gradient-to-r from-blue-400 to-purple-500 text-white border-0 mb-2">
+                Early Access
+              </Badge>
+              <p className="text-gray-600 text-sm">
+                {EARLY_ACCESS_CONFIG.messages.freeAccess}
+              </p>
+            </div>
+
+            <div className="p-4 bg-blue-50 rounded-lg text-center">
+              <Heart className="w-8 h-8 text-blue-500 mx-auto mb-2" />
+              <p className="text-sm text-blue-800 font-medium">
+                Enjoy unlimited access to all features while we grow our community!
+              </p>
+            </div>
+
+            <Button onClick={onClose} className="w-full bg-blue-500 hover:bg-blue-600 text-white">
+              Continue Using Features
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
+  // Keep original upgrade prompt logic for when early access is disabled
   const triggerMessages = {
     contact: "Want unlimited breeder contacts?",
     filters: "Looking for more search options?",
