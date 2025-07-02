@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ExploreFilters from '@/components/explore/ExploreFilters';
@@ -64,12 +65,16 @@ const ExploreContainer = ({ listings }: ExploreContainerProps) => {
     sourceType: 'all',
     maxDistance: 'all',
     verifiedOnly: false,
-    availableOnly: false
+    availableOnly: false,
+    coatType: 'all',
+    energyLevel: 'all',
+    size: 'all',
+    priceRange: [0, 5000]
   });
   
   const [sortBy, setSortBy] = useState('newest');
   const [favorites, setFavorites] = useState<Set<number>>(new Set());
-  const [showSearchFilters, setShowSearchFilters] = useState(false);
+  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
 
   // Transform DatabaseListing[] to TransformedListing[] format with comprehensive safety
   const transformedListings = useMemo((): TransformedListing[] => {
@@ -175,32 +180,17 @@ const ExploreContainer = ({ listings }: ExploreContainerProps) => {
       sourceType: 'all',
       maxDistance: 'all',
       verifiedOnly: false,
-      availableOnly: false
+      availableOnly: false,
+      coatType: 'all',
+      energyLevel: 'all',
+      size: 'all',
+      priceRange: [0, 5000]
     });
   };
 
   const hasActiveFilters = Object.values(filters).some(value => 
-    value !== '' && value !== 'all' && value !== false
-  );
-
-  const handleQuickFilterClick = (filter: string) => {
-    switch (filter) {
-      case 'Puppies':
-        updateFilters({ ageGroup: 'puppy' });
-        break;
-      case 'Verified':
-        updateFilters({ verifiedOnly: true });
-        break;
-      case 'Nearby':
-        updateFilters({ maxDistance: '10' });
-        break;
-      case 'Available':
-        updateFilters({ availableOnly: true });
-        break;
-      default:
-        break;
-    }
-  };
+    value !== '' && value !== 'all' && value !== false && !Array.isArray(value)
+  ) || (filters.priceRange[0] > 0 || filters.priceRange[1] < 5000);
 
   const handleContactSeller = async (listing: any) => {
     if (!user) {
@@ -235,47 +225,36 @@ const ExploreContainer = ({ listings }: ExploreContainerProps) => {
   };
 
   const popularBreeds = ['Golden Retriever', 'Labrador', 'German Shepherd', 'Bulldog', 'Poodle'];
-  const dogColors = ['Black', 'Brown', 'White', 'Golden', 'Mixed'];
-  const coatLengthOptions = ['Short', 'Medium', 'Long'];
-  const distanceOptions = ['5', '10', '25', '50', '100'];
-  const sizeOptions = ['Small', 'Medium', 'Large', 'Extra Large'];
-  const energyLevels = ['Low', 'Medium', 'High'];
-  const trainingLevels = ['Beginner', 'Intermediate', 'Advanced'];
 
   return (
-    <div className="container mx-auto px-4 py-6 bg-white min-h-screen">
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-        <div className="lg:col-span-1">
-          <ExploreFilters
-            filters={filters}
-            showSearchFilters={showSearchFilters}
-            hasActiveFilters={hasActiveFilters}
-            popularBreeds={popularBreeds}
-            dogColors={dogColors}
-            coatLengthOptions={coatLengthOptions}
-            distanceOptions={distanceOptions}
-            sizeOptions={sizeOptions}
-            energyLevels={energyLevels}
-            trainingLevels={trainingLevels}
-            onFiltersUpdate={updateFilters}
-            onQuickFilterClick={handleQuickFilterClick}
-            onToggleSearchFilters={() => setShowSearchFilters(!showSearchFilters)}
-            onResetFilters={resetFilters}
-          />
-        </div>
+    <div className="bg-gray-50 min-h-screen">
+      <div className="container mx-auto px-4 py-6">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+          <div className="lg:col-span-1">
+            <ExploreFilters
+              filters={filters}
+              showAdvancedFilters={showAdvancedFilters}
+              hasActiveFilters={hasActiveFilters}
+              popularBreeds={popularBreeds}
+              onFiltersUpdate={updateFilters}
+              onToggleAdvancedFilters={() => setShowAdvancedFilters(!showAdvancedFilters)}
+              onResetFilters={resetFilters}
+            />
+          </div>
 
-        <div className="lg:col-span-3">
-          <ExploreResults
-            listings={sortedListings}
-            favorites={favorites}
-            sortBy={sortBy}
-            hasActiveFilters={hasActiveFilters}
-            onToggleFavorite={handleToggleFavorite}
-            onContactSeller={handleContactSeller}
-            onViewDetails={handleViewDetails}
-            onResetFilters={resetFilters}
-            onSortChange={setSortBy}
-          />
+          <div className="lg:col-span-3">
+            <ExploreResults
+              listings={sortedListings}
+              favorites={favorites}
+              sortBy={sortBy}
+              hasActiveFilters={hasActiveFilters}
+              onToggleFavorite={handleToggleFavorite}
+              onContactSeller={handleContactSeller}
+              onViewDetails={handleViewDetails}
+              onResetFilters={resetFilters}
+              onSortChange={setSortBy}
+            />
+          </div>
         </div>
       </div>
     </div>
