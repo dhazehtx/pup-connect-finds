@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Heart, MessageCircle, MapPin, Star, Verified } from 'lucide-react';
 import LazyImage from './performance/LazyImage';
+import VerifiedBadges from './badges/VerifiedBadges';
 import { cn } from '@/lib/utils';
 
 interface ListingCardProps {
@@ -94,10 +95,19 @@ const ListingCard = ({
         </div>
         
         <CardContent className="p-4 space-y-3">
-          {/* Title and breed */}
+          {/* Title and breed with verified badges */}
           <div>
-            <h3 className="font-semibold text-lg leading-tight">{listing.dog_name}</h3>
-            <p className="text-muted-foreground">{listing.breed}</p>
+            <div className="flex items-start justify-between">
+              <div className="flex-1">
+                <h3 className="font-semibold text-lg leading-tight">{listing.dog_name}</h3>
+                <p className="text-muted-foreground">{listing.breed}</p>
+              </div>
+              <VerifiedBadges 
+                isVerifiedBreeder={listing.profiles?.verified_breeder}
+                hasVerifiedDelivery={listing.profiles?.verified_delivery}
+                className="ml-2"
+              />
+            </div>
           </div>
           
           {/* Details */}
