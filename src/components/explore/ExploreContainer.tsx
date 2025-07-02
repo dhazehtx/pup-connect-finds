@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ExploreFilters from '@/components/explore/ExploreFilters';
@@ -69,7 +68,7 @@ const ExploreContainer = ({ listings }: ExploreContainerProps) => {
     coatType: 'all',
     energyLevel: 'all',
     size: 'all',
-    priceRange: [0, 10000],
+    priceRange: [0, 5000],
     color: 'all',
     trainingLevel: 'all',
     paperwork: 'all',
@@ -195,7 +194,7 @@ const ExploreContainer = ({ listings }: ExploreContainerProps) => {
       }
 
       // Price range filter
-      if (filters.priceRange && (filters.priceRange[0] > 0 || filters.priceRange[1] < 10000)) {
+      if (filters.priceRange && (filters.priceRange[0] > 0 || filters.priceRange[1] < 5000)) {
         filtered = filtered.filter(listing => {
           const price = parseInt(listing.price.replace(/[$,]/g, ''));
           return price >= filters.priceRange[0] && price <= filters.priceRange[1];
@@ -304,7 +303,7 @@ const ExploreContainer = ({ listings }: ExploreContainerProps) => {
       coatType: 'all',
       energyLevel: 'all',
       size: 'all',
-      priceRange: [0, 10000],
+      priceRange: [0, 5000],
       color: 'all',
       trainingLevel: 'all',
       paperwork: 'all',
@@ -318,11 +317,12 @@ const ExploreContainer = ({ listings }: ExploreContainerProps) => {
       goodWithPets: false,
       sortBy: 'newest'
     });
+    setShowAdvancedFilters(false);
   };
 
   const hasActiveFilters = Object.entries(filters).some(([key, value]) => {
     if (key === 'priceRange') {
-      return value[0] > 0 || value[1] < 10000;
+      return value[0] > 0 || value[1] < 5000;
     }
     if (typeof value === 'boolean') {
       return value;
@@ -371,109 +371,41 @@ const ExploreContainer = ({ listings }: ExploreContainerProps) => {
     <div className="bg-white min-h-screen">
       <div className="max-w-7xl mx-auto px-4 py-6">
         {/* Page Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Explore Puppies</h1>
-          <p className="text-gray-600">Find your perfect furry companion</p>
+        <div className="mb-6">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Find Your Perfect Puppy</h1>
+          <p className="text-gray-600">Discover trusted breeders and loving companions</p>
         </div>
 
-        {/* Search & Filter Section */}
+        {/* Filters Section */}
         <div className="mb-8">
-          <div className="bg-white border border-gray-200 rounded-lg p-6">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-semibold text-gray-900">Search & Filter</h2>
-              <button
-                onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
-                className="flex items-center gap-2 px-4 py-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
-                </svg>
-                Advanced Filters
-              </button>
-            </div>
-
-            {/* Basic Search and Filter Row */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
-              <div className="relative">
-                <svg className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
-                <input
-                  type="text"
-                  placeholder="Search puppies..."
-                  value={filters.searchTerm}
-                  onChange={(e) => updateFilters({ searchTerm: e.target.value })}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                />
-              </div>
-
-              <select
-                value={filters.breed}
-                onChange={(e) => updateFilters({ breed: e.target.value })}
-                className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              >
-                <option value="all">All Breeds</option>
-                {popularBreeds.map((breed) => (
-                  <option key={breed} value={breed.toLowerCase()}>{breed}</option>
-                ))}
-              </select>
-
-              <div className="flex items-center">
-                <input
-                  type="checkbox"
-                  id="verified-only"
-                  checked={filters.verifiedOnly}
-                  onChange={(e) => updateFilters({ verifiedOnly: e.target.checked })}
-                  className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                />
-                <label htmlFor="verified-only" className="ml-2 text-sm text-gray-700">
-                  Verified only
-                </label>
-              </div>
-
-              <button
-                onClick={resetFilters}
-                className="flex items-center justify-center gap-2 px-4 py-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
-                </svg>
-                Clear Filters
-              </button>
-            </div>
-          </div>
+          <ExploreFilters
+            filters={filters}
+            showAdvancedFilters={showAdvancedFilters}
+            hasActiveFilters={hasActiveFilters}
+            popularBreeds={popularBreeds}
+            onFiltersUpdate={updateFilters}
+            onToggleAdvancedFilters={() => setShowAdvancedFilters(!showAdvancedFilters)}
+            onResetFilters={resetFilters}
+          />
         </div>
 
-        {/* Advanced Filters Panel */}
-        {showAdvancedFilters && (
+        {/* Popular Breeds Section - Only show when not using advanced filters */}
+        {!showAdvancedFilters && (
           <div className="mb-8">
-            <ExploreFilters
-              filters={filters}
-              showAdvancedFilters={showAdvancedFilters}
-              hasActiveFilters={hasActiveFilters}
-              popularBreeds={popularBreeds}
-              onFiltersUpdate={updateFilters}
-              onToggleAdvancedFilters={() => setShowAdvancedFilters(!showAdvancedFilters)}
-              onResetFilters={resetFilters}
-            />
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Popular Breeds</h3>
+            <div className="flex flex-wrap gap-2">
+              {popularBreeds.map((breed) => (
+                <button
+                  key={breed}
+                  onClick={() => updateFilters({ breed: breed.toLowerCase() })}
+                  className="px-4 py-2 bg-blue-50 text-blue-600 rounded-full hover:bg-blue-100 transition-colors text-sm font-medium border border-blue-200"
+                >
+                  {breed}
+                </button>
+              ))}
+            </div>
           </div>
         )}
-
-        {/* Popular Breeds Section */}
-        <div className="mb-8">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Popular Breeds</h3>
-          <div className="flex flex-wrap gap-2">
-            {popularBreeds.map((breed) => (
-              <button
-                key={breed}
-                onClick={() => updateFilters({ breed: breed.toLowerCase() })}
-                className="px-4 py-2 bg-blue-50 text-blue-600 rounded-full hover:bg-blue-100 transition-colors text-sm"
-              >
-                {breed}
-              </button>
-            ))}
-          </div>
-        </div>
 
         {/* Results Section */}
         <ExploreResults
