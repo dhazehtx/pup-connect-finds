@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -48,7 +47,10 @@ const ListingFilters = ({ onFiltersChange, isOpen, onToggle }: ListingFiltersPro
     // Update active filters
     const active = Object.entries(newFilters)
       .filter(([k, v]) => {
-        if (k === 'priceRange') return v[0] > 0 || v[1] < 5000;
+        if (k === 'priceRange') {
+          const priceRange = v as [number, number];
+          return priceRange[0] > 0 || priceRange[1] < 5000;
+        }
         return v !== '' && v !== null;
       })
       .map(([k]) => k);

@@ -2498,6 +2498,33 @@ export type Database = {
         }
         Relationships: []
       }
+      user_profiles: {
+        Row: {
+          created_at: string | null
+          id: string
+          is_premium_user: boolean | null
+          pup_box_subscribed: boolean | null
+          stripe_customer_id: string | null
+          subscription_status: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id: string
+          is_premium_user?: boolean | null
+          pup_box_subscribed?: boolean | null
+          stripe_customer_id?: string | null
+          subscription_status?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          is_premium_user?: boolean | null
+          pup_box_subscribed?: boolean | null
+          stripe_customer_id?: string | null
+          subscription_status?: string | null
+        }
+        Relationships: []
+      }
       verification_documents: {
         Row: {
           document_type: string
