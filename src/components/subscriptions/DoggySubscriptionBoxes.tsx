@@ -75,10 +75,10 @@ const DoggySubscriptionBoxes = () => {
     }
   ];
 
-  const handlePurchaseTypeToggle = (planId: string, type: 'subscription' | 'one-time') => {
+  const handlePurchaseTypeToggle = (planId: string) => {
     setPurchaseTypes(prev => ({
       ...prev,
-      [planId]: type
+      [planId]: prev[planId] === 'subscription' ? 'one-time' : 'subscription'
     }));
   };
 
@@ -190,34 +190,21 @@ const DoggySubscriptionBoxes = () => {
 
                   {/* Purchase Type Toggle */}
                   <div className="mb-6 p-4 bg-gray-50 rounded-lg">
-                    <div className="space-y-3">
-                      <div className={`flex items-center justify-between p-2 rounded cursor-pointer transition-colors ${
-                        currentPurchaseType === 'subscription' ? 'bg-blue-100 border border-blue-200' : 'hover:bg-gray-100'
-                      }`} onClick={() => handlePurchaseTypeToggle(plan.id, 'subscription')}>
-                        <div className="flex items-center gap-2">
-                          <div className={`w-4 h-4 rounded-full border-2 ${
-                            currentPurchaseType === 'subscription' ? 'bg-blue-500 border-blue-500' : 'border-gray-300'
-                          }`}>
-                            {currentPurchaseType === 'subscription' && <div className="w-2 h-2 bg-white rounded-full mx-auto mt-0.5"></div>}
-                          </div>
-                          <span className="text-sm font-medium">Monthly Subscription</span>
-                        </div>
-                        <span className="text-sm text-blue-600 font-semibold">${plan.subscriptionPrice}/mo</span>
-                      </div>
-                      
-                      <div className={`flex items-center justify-between p-2 rounded cursor-pointer transition-colors ${
-                        currentPurchaseType === 'one-time' ? 'bg-purple-100 border border-purple-200' : 'hover:bg-gray-100'
-                      }`} onClick={() => handlePurchaseTypeToggle(plan.id, 'one-time')}>
-                        <div className="flex items-center gap-2">
-                          <div className={`w-4 h-4 rounded-full border-2 ${
-                            currentPurchaseType === 'one-time' ? 'bg-purple-500 border-purple-500' : 'border-gray-300'
-                          }`}>
-                            {currentPurchaseType === 'one-time' && <div className="w-2 h-2 bg-white rounded-full mx-auto mt-0.5"></div>}
-                          </div>
-                          <span className="text-sm font-medium">One-Time Purchase</span>
-                        </div>
-                        <span className="text-sm text-purple-600 font-semibold">${plan.oneTimePrice}</span>
-                      </div>
+                    <div className="flex items-center justify-between mb-3">
+                      <span className="text-sm font-medium">One-Time Purchase</span>
+                      <Switch 
+                        checked={currentPurchaseType === 'subscription'}
+                        onCheckedChange={() => handlePurchaseTypeToggle(plan.id)}
+                      />
+                      <span className="text-sm font-medium">Subscription</span>
+                    </div>
+                    <div className="text-center">
+                      <span className="text-xs text-gray-500">
+                        {currentPurchaseType === 'subscription' 
+                          ? `$${plan.subscriptionPrice}/month • Cancel anytime`
+                          : `$${plan.oneTimePrice} • No commitment`
+                        }
+                      </span>
                     </div>
                   </div>
                   

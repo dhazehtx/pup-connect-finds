@@ -3,33 +3,17 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import { Gift, Truck, Calendar, Star } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
+import StripeCheckout from '@/components/checkout/StripeCheckout';
 
 const PupBoxSubscription = () => {
   const { user } = useAuth();
   const { toast } = useToast();
-  const [loading, setLoading] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState('');
-  const [formData, setFormData] = useState({
-    box_size: '',
-    dog_age_range: '',
-    dietary_preferences: [] as string[],
-    delivery_frequency: 'monthly',
-    shipping_address: {
-      name: '',
-      street: '',
-      city: '',
-      state: '',
-      zip: '',
-      country: 'US'
-    }
-  });
+  const [showCheckout, setShowCheckout] = useState(false);
+  const [checkoutPlan, setCheckoutPlan] = useState<any>(null);
 
   const plans = [
     {
@@ -61,30 +45,7 @@ const PupBoxSubscription = () => {
     }
   ];
 
-  const dietaryOptions = [
-    'Grain-free',
-    'Organic',
-    'Limited ingredients',
-    'Chicken-free',
-    'Beef-free',
-    'No rawhide'
-  ];
-
-  const handleDietaryChange = (option: string, checked: boolean) => {
-    if (checked) {
-      setFormData(prev => ({
-        ...prev,
-        dietary_preferences: [...prev.dietary_preferences, option]
-      }));
-    } else {
-      setFormData(prev => ({
-        ...prev,
-        dietary_preferences: prev.dietary_preferences.filter(pref => pref !== option)
-      }));
-    }
-  };
-
-  const handleSubscribe = async () => {
+  const handleProceedToCheckout = () => {
     if (!user) {
       toast({
         title: "Authentication required",
@@ -97,35 +58,19 @@ const PupBoxSubscription = () => {
     const plan = plans.find(p => p.id === selectedPlan);
     if (!plan) return;
 
-    setLoading(true);
-    try {
-      const { error } = await supabase.from('subscription_boxes').insert({
-        user_id: user.id,
-        box_size: plan.size,
-        dog_age_range: formData.dog_age_range,
-        dietary_preferences: formData.dietary_preferences,
-        delivery_frequency: formData.delivery_frequency,
-        monthly_price: plan.price,
-        shipping_address: formData.shipping_address,
-        status: 'active'
-      });
-
-      if (error) throw error;
-
-      toast({
-        title: "Subscription created!",
-        description: "Your first Pup Box will arrive soon!"
-      });
-    } catch (error) {
-      console.error('Subscription error:', error);
-      toast({
-        title: "Subscription failed",
-        description: "Please try again later",
-        variant: "destructive"
-      });
-    } finally {
-      setLoading(false);
-    }
+    setCheckoutPlan({
+      name: plan.name,
+      price: plan.price,
+      features: [
+        `${plan.items}`,
+        'Hand-picked toys and treats by pet experts',
+        'Always free shipping, right to your door',
+        'Skip, pause, or cancel anytime'
+      ],
+      popular: plan.badge === 'Most Popular',
+      purchaseType: 'subscription'
+    });
+    setShowCheckout(true);
   };
 
   return (
@@ -186,133 +131,37 @@ const PupBoxSubscription = () => {
       {selectedPlan && (
         <Card className="mb-8">
           <CardHeader>
-            <CardTitle>Customize Your Box</CardTitle>
+            <CardTitle>Confirm Your Pup Box</CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label className="block text-sm font-medium mb-2">Dog's Age Range</label>
-                <Select 
-                  value={formData.dog_age_range} 
-                  onValueChange={(value) => setFormData({...formData, dog_age_range: value})}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select age range" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="puppy">Puppy (0-1 year)</SelectItem>
-                    <SelectItem value="adult">Adult (1-7 years)</SelectItem>
-                    <SelectItem value="senior">Senior (7+ years)</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium mb-2">Delivery Frequency</label>
-                <Select 
-                  value={formData.delivery_frequency} 
-                  onValueChange={(value) => setFormData({...formData, delivery_frequency: value})}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="monthly">Monthly</SelectItem>
-                    <SelectItem value="bi-monthly">Every 2 months</SelectItem>
-                    <SelectItem value="quarterly">Quarterly</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium mb-3">Dietary Preferences (Optional)</label>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                {dietaryOptions.map((option) => (
-                  <label key={option} className="flex items-center space-x-2 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={formData.dietary_preferences.includes(option)}
-                      onChange={(e) => handleDietaryChange(option, e.target.checked)}
-                      className="rounded border-gray-300"
-                    />
-                    <span className="text-sm">{option}</span>
-                  </label>
-                ))}
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium mb-3">Shipping Address</label>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <Input
-                  placeholder="Full Name"
-                  value={formData.shipping_address.name}
-                  onChange={(e) => setFormData({
-                    ...formData,
-                    shipping_address: {...formData.shipping_address, name: e.target.value}
-                  })}
-                />
-                <Input
-                  placeholder="Street Address"
-                  value={formData.shipping_address.street}
-                  onChange={(e) => setFormData({
-                    ...formData,
-                    shipping_address: {...formData.shipping_address, street: e.target.value}
-                  })}
-                  className="md:col-span-2"
-                />
-                <Input
-                  placeholder="City"
-                  value={formData.shipping_address.city}
-                  onChange={(e) => setFormData({
-                    ...formData,
-                    shipping_address: {...formData.shipping_address, city: e.target.value}
-                  })}
-                />
-                <Input
-                  placeholder="State"
-                  value={formData.shipping_address.state}
-                  onChange={(e) => setFormData({
-                    ...formData,
-                    shipping_address: {...formData.shipping_address, state: e.target.value}
-                  })}
-                />
-                <Input
-                  placeholder="ZIP Code"
-                  value={formData.shipping_address.zip}
-                  onChange={(e) => setFormData({
-                    ...formData,
-                    shipping_address: {...formData.shipping_address, zip: e.target.value}
-                  })}
-                />
-              </div>
-            </div>
-
-            <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
-              <div className="flex items-center justify-between mb-2">
-                <h4 className="font-medium">Subscription Summary</h4>
-                <div className="flex items-center">
-                  <Star className="w-4 h-4 text-yellow-400 fill-current mr-1" />
-                  <span className="text-sm">30-day money-back guarantee</span>
+            <div className="text-center">
+              <p className="text-gray-600 mb-6">You're almost there! Click below to complete your purchase.</p>
+              
+              <div className="bg-purple-50 p-4 rounded-lg border border-purple-200 mb-6">
+                <div className="flex items-center justify-between mb-2">
+                  <h4 className="font-medium">Subscription Summary</h4>
+                  <div className="flex items-center">
+                    <Star className="w-4 h-4 text-yellow-400 fill-current mr-1" />
+                    <span className="text-sm">30-day money-back guarantee</span>
+                  </div>
+                </div>
+                <div className="text-sm text-gray-600">
+                  {plans.find(p => p.id === selectedPlan)?.name} - ${plans.find(p => p.id === selectedPlan)?.price}/month
+                </div>
+                <div className="text-xs text-gray-500 mt-1">
+                  First delivery in 3-5 business days • Cancel anytime
                 </div>
               </div>
-              <div className="text-sm text-gray-600">
-                {plans.find(p => p.id === selectedPlan)?.name} - ${plans.find(p => p.id === selectedPlan)?.price}/month
-              </div>
-              <div className="text-xs text-gray-500 mt-1">
-                First delivery in 3-5 business days • Cancel anytime
-              </div>
-            </div>
 
-            <Button 
-              onClick={handleSubscribe}
-              disabled={loading || !formData.dog_age_range || !formData.shipping_address.name}
-              className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white"
-              size="lg"
-            >
-              {loading ? 'Processing...' : 'Start Subscription'}
-            </Button>
+              <Button 
+                onClick={handleProceedToCheckout}
+                disabled={!selectedPlan}
+                className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white"
+                size="lg"
+              >
+                Proceed to Checkout
+              </Button>
+            </div>
           </CardContent>
         </Card>
       )}
@@ -341,6 +190,14 @@ const PupBoxSubscription = () => {
           <p className="text-sm text-gray-600">Skip, pause, or cancel anytime</p>
         </div>
       </div>
+
+      {/* Stripe Checkout Modal */}
+      <StripeCheckout
+        isOpen={showCheckout}
+        onClose={() => setShowCheckout(false)}
+        productType="pupbox"
+        planDetails={checkoutPlan}
+      />
     </div>
   );
 };
