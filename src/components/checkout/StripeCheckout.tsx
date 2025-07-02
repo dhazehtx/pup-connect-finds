@@ -18,6 +18,7 @@ interface StripeCheckoutProps {
     price: number;
     features: string[];
     popular?: boolean;
+    purchaseType?: 'subscription' | 'one-time';
   };
 }
 
@@ -38,7 +39,8 @@ const StripeCheckout = ({ isOpen, onClose, productType, planDetails }: StripeChe
         'Verified premium badge',
         'Priority customer support'
       ],
-      popular: true
+      popular: true,
+      purchaseType: 'subscription' as const
     },
     pupbox: {
       name: 'Monthly Pup Box',
@@ -51,11 +53,13 @@ const StripeCheckout = ({ isOpen, onClose, productType, planDetails }: StripeChe
         'Free shipping nationwide',
         'Cancel anytime'
       ],
-      popular: false
+      popular: false,
+      purchaseType: 'subscription' as const
     }
   };
 
   const plan = planDetails || defaultPlans[productType];
+  const isOneTime = plan.purchaseType === 'one-time';
 
   const handleCheckout = async () => {
     if (!user || !session) {
@@ -73,10 +77,13 @@ const StripeCheckout = ({ isOpen, onClose, productType, planDetails }: StripeChe
       const checkoutData = {
         tier: productType === 'premium' ? 'Pro' : 'PupBox',
         productType,
-        trialDays: productType === 'premium' ? 14 : 0
+        trialDays: productType === 'premium' && !isOneTime ? 14 : 0,
+        purchaseType: plan.purchaseType || 'subscription',
+        price: plan.price
       };
 
-      const { data, error } = await supabase.functions.invoke('create-checkout', {
+      const functionName = isOneTime ? 'create-payment' : 'create-checkout';
+      const { data, error } = await supabase.functions.invoke(functionName, {
         body: checkoutData,
         headers: {
           Authorization: `Bearer ${session.access_token}`,
@@ -89,7 +96,7 @@ const StripeCheckout = ({ isOpen, onClose, productType, planDetails }: StripeChe
         window.open(data.url, '_blank');
         
         toast({
-          title: "Redirecting to checkout",
+          title: `Redirecting to ${isOneTime ? 'payment' : 'checkout'}`,
           description: "Opening Stripe checkout in a new tab...",
         });
         
@@ -118,7 +125,7 @@ const StripeCheckout = ({ isOpen, onClose, productType, planDetails }: StripeChe
               ) : (
                 <Star className="w-5 h-5 text-blue-600" />
               )}
-              Subscribe to {plan.name}
+              {isOneTime ? 'Purchase' : 'Subscribe to'} {plan.name}
             </DialogTitle>
             <Button variant="ghost" size="sm" onClick={onClose}>
               <X className="w-4 h-4" />
@@ -134,10 +141,13 @@ const StripeCheckout = ({ isOpen, onClose, productType, planDetails }: StripeChe
             <CardTitle className="text-2xl">{plan.name}</CardTitle>
             <div className="text-3xl font-bold text-blue-600">
               ${plan.price}
-              <span className="text-base font-normal text-gray-600">/month</span>
+              {!isOneTime && <span className="text-base font-normal text-gray-600">/month</span>}
             </div>
-            {productType === 'premium' && (
+            {productType === 'premium' && !isOneTime && (
               <p className="text-sm text-green-600 font-medium">14-day free trial</p>
+            )}
+            {isOneTime && (
+              <p className="text-sm text-purple-600 font-medium">One-time purchase</p>
             )}
           </CardHeader>
 
@@ -161,13 +171,15 @@ const StripeCheckout = ({ isOpen, onClose, productType, planDetails }: StripeChe
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                   Processing...
                 </>
+              ) : isOneTime ? (
+                `Buy Now for $${plan.price}`
               ) : (
                 `Subscribe for $${plan.price}/month`
               )}
             </Button>
 
             <p className="text-xs text-gray-500 text-center mt-3">
-              Cancel anytime • Secure payment by Stripe
+              {isOneTime ? 'One-time payment' : 'Cancel anytime'} • Secure payment by Stripe
             </p>
           </CardContent>
         </Card>
