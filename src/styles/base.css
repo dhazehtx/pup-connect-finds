@@ -228,19 +228,15 @@
   .border-blue-200 { border-color: #cbd5e1 !important; }
   .border-blue-600 { border-color: #2363ff !important; }
 
-  /* REMOVE ALL BROWN/AMBER/ORANGE/TAN COLORS */
-  .bg-orange-50, .bg-amber-50, .bg-yellow-50, .bg-tan-50, .bg-brown-50 { 
-    background-color: #e5eeff !important; 
-  }
+  /* REMOVE ALL BROWN/AMBER/ORANGE/TAN COLORS - REPLACE WITH ROYAL BLUE */
+  .bg-orange-50, .bg-amber-50, .bg-yellow-50, .bg-tan-50, .bg-brown-50,
   .bg-orange-100, .bg-amber-100, .bg-yellow-100, .bg-tan-100, .bg-brown-100 { 
     background-color: #e5eeff !important; 
   }
   .bg-orange-500, .bg-amber-500, .bg-yellow-500, .bg-tan-500, .bg-brown-500 { 
     background-color: #2363ff !important; 
   }
-  .text-orange-600, .text-amber-600, .text-yellow-600, .text-tan-600, .text-brown-600 { 
-    color: #2363ff !important; 
-  }
+  .text-orange-600, .text-amber-600, .text-yellow-600, .text-tan-600, .text-brown-600,
   .text-orange-700, .text-amber-700, .text-yellow-700, .text-tan-700, .text-brown-700 { 
     color: #2363ff !important; 
   }
@@ -248,23 +244,31 @@
     border-color: #cbd5e1 !important; 
   }
 
-  /* Tab styling - Royal Blue theme */
-  [role="tablist"] button[data-state="active"] {
-    background-color: #2363ff !important;
-    color: #ffffff !important;
+  /* Popular breed buttons styling */
+  .bg-blue-50 {
+    background-color: #e5eeff !important;
   }
 
-  [role="tablist"] button[data-state="inactive"] {
-    background-color: #e5eeff !important;
+  .text-blue-600 {
     color: #2363ff !important;
   }
 
-  /* Filter buttons and chips */
+  .hover\:bg-blue-100:hover {
+    background-color: #d1e0ff !important;
+  }
+
+  /* Ensure all interactive elements use Royal Blue */
+  a, button, [role="button"], .clickable {
+    transition: all 0.2s ease-in-out !important;
+  }
+
+  /* Filter chips and buttons */
   .filter-chip, .filter-button {
     background-color: #e5eeff !important;
     color: #2363ff !important;
     border-color: #2363ff !important;
     border-radius: 8px !important;
+    transition: all 0.2s ease-in-out !important;
   }
 
   .filter-chip:hover, .filter-button:hover {
@@ -290,12 +294,23 @@
     transform: translateY(-2px) !important;
   }
 
-  /* Ensure all interactive elements use Royal Blue */
-  a, button, [role="button"], .clickable {
-    color: #2363ff !important;
+  /* Explore page specific styling */
+  .explore-container {
+    background-color: white !important;
   }
 
-  a:hover, button:hover, [role="button"]:hover, .clickable:hover {
-    color: #1e52d0 !important;
+  .popular-breed-button {
+    background-color: #e5eeff !important;
+    color: #2363ff !important;
+    border: 1px solid transparent !important;
+    border-radius: 9999px !important;
+    padding: 8px 16px !important;
+    font-size: 14px !important;
+    transition: all 0.2s ease-in-out !important;
+  }
+
+  .popular-breed-button:hover {
+    background-color: #d1e0ff !important;
+    border-color: #2363ff !important;
   }
 }

@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ExploreFilters from '@/components/explore/ExploreFilters';
@@ -174,54 +175,23 @@ const ExploreContainer = ({ listings }: ExploreContainerProps) => {
       }
 
       if (filters.ageGroup !== 'all') {
-        const ageWeeks = parseInt(listing.age);
-        if (filters.ageGroup === 'puppy') {
-          filtered = filtered.filter(listing => {
-            const age = parseInt(listing.age);
+        filtered = filtered.filter(listing => {
+          const age = parseInt(listing.age);
+          if (filters.ageGroup === 'puppy') {
             return age <= 52;
-          });
-        } else if (filters.ageGroup === 'young') {
-          filtered = filtered.filter(listing => {
-            const age = parseInt(listing.age);
+          } else if (filters.ageGroup === 'young') {
             return age > 52 && age <= 156;
-          });
-        } else if (filters.ageGroup === 'adult') {
-          filtered = filtered.filter(listing => {
-            const age = parseInt(listing.age);
+          } else if (filters.ageGroup === 'adult') {
             return age > 156;
-          });
-        }
+          }
+          return true;
+        });
       }
 
       if (filters.color !== 'all') {
         filtered = filtered.filter(listing => 
           listing.color && listing.color.toLowerCase().includes(filters.color.toLowerCase())
         );
-      }
-
-      if (filters.size !== 'all') {
-        // Size filtering logic would depend on breed/weight data
-        // For now, keep all listings
-      }
-
-      if (filters.coatType !== 'all') {
-        // Coat type filtering would depend on breed data
-        // For now, keep all listings
-      }
-
-      if (filters.energyLevel !== 'all') {
-        // Energy level filtering would depend on breed/profile data
-        // For now, keep all listings
-      }
-
-      if (filters.trainingLevel !== 'all') {
-        // Training level filtering would depend on listing data
-        // For now, keep all listings
-      }
-
-      if (filters.paperwork !== 'all') {
-        // Paperwork filtering would depend on listing verification data
-        // For now, keep all listings
       }
 
       // Price range filter
@@ -273,9 +243,6 @@ const ExploreContainer = ({ listings }: ExploreContainerProps) => {
       if (filters.availableOnly) {
         filtered = filtered.filter(listing => listing.available && listing.available > 0);
       }
-
-      // Additional boolean filters would be applied here based on listing data
-      // For now, they don't filter since we don't have that data structure
 
       // Apply sorting
       switch (filters.sortBy) {
@@ -398,13 +365,88 @@ const ExploreContainer = ({ listings }: ExploreContainerProps) => {
     console.log('View details for listing:', listing);
   };
 
-  const popularBreeds = ['Golden Retriever', 'Labrador', 'German Shepherd', 'Bulldog', 'Poodle'];
+  const popularBreeds = ['Golden Retriever', 'Labrador Retriever', 'German Shepherd', 'French Bulldog', 'Bulldog', 'Poodle', 'Beagle', 'Rottweiler'];
 
   return (
-    <div className="bg-gray-50 min-h-screen">
-      <div className="container mx-auto px-4 py-6">
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-          <div className="lg:col-span-1">
+    <div className="bg-white min-h-screen">
+      <div className="max-w-7xl mx-auto px-4 py-6">
+        {/* Page Header */}
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Explore Puppies</h1>
+          <p className="text-gray-600">Find your perfect furry companion</p>
+        </div>
+
+        {/* Search & Filter Section */}
+        <div className="mb-8">
+          <div className="bg-white border border-gray-200 rounded-lg p-6">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl font-semibold text-gray-900">Search & Filter</h2>
+              <button
+                onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
+                className="flex items-center gap-2 px-4 py-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+                </svg>
+                Advanced Filters
+              </button>
+            </div>
+
+            {/* Basic Search and Filter Row */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+              <div className="relative">
+                <svg className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+                <input
+                  type="text"
+                  placeholder="Search puppies..."
+                  value={filters.searchTerm}
+                  onChange={(e) => updateFilters({ searchTerm: e.target.value })}
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
+
+              <select
+                value={filters.breed}
+                onChange={(e) => updateFilters({ breed: e.target.value })}
+                className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              >
+                <option value="all">All Breeds</option>
+                {popularBreeds.map((breed) => (
+                  <option key={breed} value={breed.toLowerCase()}>{breed}</option>
+                ))}
+              </select>
+
+              <div className="flex items-center">
+                <input
+                  type="checkbox"
+                  id="verified-only"
+                  checked={filters.verifiedOnly}
+                  onChange={(e) => updateFilters({ verifiedOnly: e.target.checked })}
+                  className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                />
+                <label htmlFor="verified-only" className="ml-2 text-sm text-gray-700">
+                  Verified only
+                </label>
+              </div>
+
+              <button
+                onClick={resetFilters}
+                className="flex items-center justify-center gap-2 px-4 py-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+                </svg>
+                Clear Filters
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Advanced Filters Panel */}
+        {showAdvancedFilters && (
+          <div className="mb-8">
             <ExploreFilters
               filters={filters}
               showAdvancedFilters={showAdvancedFilters}
@@ -415,21 +457,36 @@ const ExploreContainer = ({ listings }: ExploreContainerProps) => {
               onResetFilters={resetFilters}
             />
           </div>
+        )}
 
-          <div className="lg:col-span-3">
-            <ExploreResults
-              listings={filteredAndSortedListings}
-              favorites={favorites}
-              sortBy={filters.sortBy}
-              hasActiveFilters={hasActiveFilters}
-              onToggleFavorite={handleToggleFavorite}
-              onContactSeller={handleContactSeller}
-              onViewDetails={handleViewDetails}
-              onResetFilters={resetFilters}
-              onSortChange={(sortBy) => updateFilters({ sortBy })}
-            />
+        {/* Popular Breeds Section */}
+        <div className="mb-8">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Popular Breeds</h3>
+          <div className="flex flex-wrap gap-2">
+            {popularBreeds.map((breed) => (
+              <button
+                key={breed}
+                onClick={() => updateFilters({ breed: breed.toLowerCase() })}
+                className="px-4 py-2 bg-blue-50 text-blue-600 rounded-full hover:bg-blue-100 transition-colors text-sm"
+              >
+                {breed}
+              </button>
+            ))}
           </div>
         </div>
+
+        {/* Results Section */}
+        <ExploreResults
+          listings={filteredAndSortedListings}
+          favorites={favorites}
+          sortBy={filters.sortBy}
+          hasActiveFilters={hasActiveFilters}
+          onToggleFavorite={handleToggleFavorite}
+          onContactSeller={handleContactSeller}
+          onViewDetails={handleViewDetails}
+          onResetFilters={resetFilters}
+          onSortChange={(sortBy) => updateFilters({ sortBy })}
+        />
       </div>
     </div>
   );
