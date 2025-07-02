@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
-import { Gift, Truck, Calendar, Star } from 'lucide-react';
+import { Gift, Truck, Calendar, Star, ShoppingCart, RotateCcw } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import StripeCheckout from '@/components/checkout/StripeCheckout';
@@ -144,15 +144,21 @@ const PupBoxSubscription = () => {
               <CardContent className="space-y-4">
                 <p className="text-gray-600 text-center">{plan.description}</p>
                 
-                {/* Purchase Type Toggle */}
-                <div className="p-4 bg-gray-50 rounded-lg">
-                  <div className="flex items-center justify-between mb-3">
-                    <span className="text-sm font-medium">One-Time Purchase</span>
+                {/* Refined Purchase Type Toggle */}
+                <div className="p-3 bg-gray-50 rounded-lg">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center space-x-2">
+                      <ShoppingCart className="w-4 h-4 text-gray-600" />
+                      <span className="text-sm font-medium">One-Time</span>
+                    </div>
                     <Switch 
                       checked={currentPurchaseType === 'subscription'}
                       onCheckedChange={() => handlePurchaseTypeToggle(plan.id)}
                     />
-                    <span className="text-sm font-medium">Subscription</span>
+                    <div className="flex items-center space-x-2">
+                      <span className="text-sm font-medium">Sub</span>
+                      <RotateCcw className="w-4 h-4 text-gray-600" />
+                    </div>
                   </div>
                   <div className="text-center">
                     <span className="text-xs text-gray-500">
