@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -144,24 +143,24 @@ const PupBoxSubscription = () => {
               <CardContent className="space-y-4">
                 <p className="text-gray-600 text-center">{plan.description}</p>
                 
-                {/* Refined Purchase Type Toggle */}
+                {/* Polished Purchase Type Toggle */}
                 <div className="p-3 bg-gray-50 rounded-lg">
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center space-x-2">
-                      <ShoppingCart className="w-4 h-4 text-gray-600" />
-                      <span className="text-sm font-medium">One-Time</span>
+                      <ShoppingCart className="w-4 h-4 text-gray-700" />
+                      <span className="text-sm font-semibold text-gray-800">Buy</span>
                     </div>
                     <Switch 
                       checked={currentPurchaseType === 'subscription'}
                       onCheckedChange={() => handlePurchaseTypeToggle(plan.id)}
                     />
                     <div className="flex items-center space-x-2">
-                      <span className="text-sm font-medium">Sub</span>
-                      <RotateCcw className="w-4 h-4 text-gray-600" />
+                      <span className="text-sm font-semibold text-gray-800">Sub</span>
+                      <RotateCcw className="w-4 h-4 text-gray-700" />
                     </div>
                   </div>
                   <div className="text-center">
-                    <span className="text-xs text-gray-500">
+                    <span className="text-xs text-gray-700 font-medium">
                       {currentPurchaseType === 'subscription' 
                         ? `$${plan.subscriptionPrice}/month • Cancel anytime`
                         : `$${plan.oneTimePrice} • No commitment`
