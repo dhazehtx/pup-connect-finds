@@ -19,6 +19,7 @@ import Messages from "@/pages/Messages";
 import Settings from "@/pages/Settings";
 import Admin from "@/pages/Admin";
 import CreateListing from "@/pages/CreateListing";
+import ListingDetail from "@/pages/ListingDetail";
 import RehomingForm from "@/components/rehoming/RehomingForm";
 import Monetization from "@/pages/Monetization";
 import Help from "@/pages/Help";
@@ -45,6 +46,7 @@ const App = () => (
                   <Route path="/" element={<Index />} />
                   <Route path="/explore" element={<ExploreWithFreemium />} />
                   <Route path="/marketplace" element={<Marketplace />} />
+                  <Route path="/listing/:id" element={<ListingDetail />} />
                   <Route path="/auth" element={<AuthForm />} />
                   <Route path="/education" element={<Education />} />
                   <Route path="/legal" element={<Legal />} />

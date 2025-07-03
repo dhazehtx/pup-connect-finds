@@ -1,11 +1,14 @@
 
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Heart, MessageCircle, MapPin, Star, Verified } from 'lucide-react';
 import LazyImage from './performance/LazyImage';
 import VerifiedBadges from './badges/VerifiedBadges';
+import { useAuth } from '@/contexts/AuthContext';
+import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 
 interface ListingCardProps {
@@ -25,6 +28,9 @@ const ListingCard = ({
   isFavorited = false,
   showEnhancedActions = false
 }: ListingCardProps) => {
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const { toast } = useToast();
   const [imageLoaded, setImageLoaded] = useState(false);
 
   const handleFavorite = (e: React.MouseEvent) => {
@@ -34,11 +40,32 @@ const ListingCard = ({
 
   const handleContact = (e: React.MouseEvent) => {
     e.stopPropagation();
-    onContact?.(listing.id);
+    
+    if (!user) {
+      toast({
+        title: "Sign in required",
+        description: "Please sign in to contact sellers",
+      });
+      navigate('/auth');
+      return;
+    }
+
+    if (user.id === listing.user_id) {
+      toast({
+        title: "Cannot message yourself",
+        description: "You cannot start a conversation with yourself",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Navigate to messages with the listing context
+    navigate(`/messages?contact=${listing.user_id}&listing=${listing.id}`);
   };
 
-  const handleViewDetails = () => {
-    onViewDetails?.(listing.id);
+  const handleViewDetails = (e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    navigate(`/listing/${listing.id}`);
   };
 
   return (
