@@ -1,9 +1,9 @@
 
 import React from 'react';
-import Header from './Header';
 import Footer from './Footer';
 import BottomNavigation from './BottomNavigation';
 import FloatingTrustButton from './safety/FloatingTrustButton';
+import StickyHeader from './layout/StickyHeader';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -13,7 +13,7 @@ interface LayoutProps {
 const Layout = ({ children, showBottomNav = true }: LayoutProps) => {
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      <Header />
+      <StickyHeader />
       <main className="flex-1 pb-16 md:pb-0">
         {children}
       </main>
