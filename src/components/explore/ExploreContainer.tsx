@@ -39,7 +39,6 @@ const ExploreContainer = ({
   const [favorites, setFavorites] = useState<string[]>([]);
 
   const breedOptions = [
-    'All Breeds',
     'Labrador Retriever',
     'Golden Retriever',
     'German Shepherd',
@@ -125,13 +124,14 @@ const ExploreContainer = ({
             </div>
 
             {/* Breed Dropdown */}
-            <Select value={filters.breed} onValueChange={(value) => handleFilterChange('breed', value)}>
+            <Select value={filters.breed || 'all'} onValueChange={(value) => handleFilterChange('breed', value === 'all' ? '' : value)}>
               <SelectTrigger>
                 <SelectValue placeholder="Select breed" />
               </SelectTrigger>
               <SelectContent>
+                <SelectItem value="all">All Breeds</SelectItem>
                 {breedOptions.map(breed => (
-                  <SelectItem key={breed} value={breed === 'All Breeds' ? '' : breed}>
+                  <SelectItem key={breed} value={breed}>
                     {breed}
                   </SelectItem>
                 ))}
