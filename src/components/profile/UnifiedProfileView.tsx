@@ -117,8 +117,8 @@ const UnifiedProfileView = ({ userId, isCurrentUser }: UnifiedProfileViewProps) 
           rating: apiProfileData.rating || 0,
           totalReviews: apiProfileData.totalReviews || 0,
           yearsExperience: apiProfileData.yearsExperience || 0,
-          createdAt: apiProfileData.createdAt || new Date().toISOString(),
-          updatedAt: apiProfileData.updatedAt || new Date().toISOString()
+          createdAt: typeof apiProfileData.createdAt === 'string' ? apiProfileData.createdAt : apiProfileData.createdAt?.toISOString() || new Date().toISOString(),
+          updatedAt: typeof apiProfileData.updatedAt === 'string' ? apiProfileData.updatedAt : apiProfileData.updatedAt?.toISOString() || new Date().toISOString()
         };
         setProfile(profileData);
       }
