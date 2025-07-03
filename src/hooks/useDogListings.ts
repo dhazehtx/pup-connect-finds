@@ -1,24 +1,22 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 
-interface Listing {
+interface DogListing {
   id: string;
   dog_name: string;
   breed: string;
   age: number;
   price: number;
+  description?: string;
   location?: string;
   image_url?: string;
   status: string;
-  created_at: string;
   user_id: string;
-  profiles?: {
-    full_name: string;
-    verified: boolean;
-    rating?: number;
-  };
+  created_at: string;
+  updated_at: string;
 }
 
 interface CreateListingData {
@@ -32,33 +30,13 @@ interface CreateListingData {
   status: string;
 }
 
-interface UpdateListingData {
-  dog_name?: string;
-  breed?: string;
-  age?: number;
-  price?: number;
-  description?: string;
-  location?: string;
-  image_url?: string;
-  status?: string;
-}
-
 export const useDogListings = () => {
+  const [listings, setListings] = useState<DogListing[]>([]);
+  const [loading, setLoading] = useState(false);
   const { user } = useAuth();
   const { toast } = useToast();
-  const [userListings, setUserListings] = useState<Listing[]>([]);
-  const [listings, setListings] = useState<Listing[]>([]);
-  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    fetchListings();
-    if (user) {
-      fetchUserListings();
-    } else {
-      setLoading(false);
-    }
-  }, [user]);
-
+  // Fetch all active listings
   const fetchListings = async () => {
     try {
       setLoading(true);
@@ -68,8 +46,10 @@ export const useDogListings = () => {
           *,
           profiles!dog_listings_user_id_fkey (
             full_name,
+            username,
+            location,
             verified,
-            rating
+            avatar_url
           )
         `)
         .eq('status', 'active')
@@ -77,43 +57,31 @@ export const useDogListings = () => {
 
       if (error) throw error;
       setListings(data || []);
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error fetching listings:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load listings",
-        variant: "destructive",
-      });
     } finally {
       setLoading(false);
     }
   };
 
-  const fetchUserListings = async () => {
-    if (!user) return;
-
+  // Get user's own listings
+  const getUserListings = async (userId: string): Promise<DogListing[]> => {
     try {
-      setLoading(true);
       const { data, error } = await supabase
         .from('dog_listings')
         .select('*')
-        .eq('user_id', user.id)
+        .eq('user_id', userId)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setUserListings(data || []);
-    } catch (error: any) {
+      return data || [];
+    } catch (error) {
       console.error('Error fetching user listings:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load your listings",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
+      throw error;
     }
   };
 
+  // Create new listing
   const createListing = async (listingData: CreateListingData) => {
     if (!user) {
       toast({
@@ -121,28 +89,25 @@ export const useDogListings = () => {
         description: "Please sign in to create a listing",
         variant: "destructive",
       });
-      throw new Error("User not authenticated");
+      throw new Error('User not authenticated');
     }
 
     try {
+      setLoading(true);
       const { data, error } = await supabase
         .from('dog_listings')
-        .insert({
+        .insert([{
           ...listingData,
-          user_id: user.id,
-        })
+          user_id: user.id
+        }])
         .select()
         .single();
 
       if (error) throw error;
 
-      // Update local state
-      setUserListings(prev => [data, ...prev]);
-      setListings(prev => [data, ...prev]);
-
       toast({
-        title: "Success",
-        description: "Listing created successfully",
+        title: "Success!",
+        description: "Your dog listing has been created successfully",
       });
 
       return data;
@@ -150,40 +115,41 @@ export const useDogListings = () => {
       console.error('Error creating listing:', error);
       toast({
         title: "Error",
-        description: "Failed to create listing",
+        description: error.message || "Failed to create listing",
         variant: "destructive",
       });
       throw error;
+    } finally {
+      setLoading(false);
     }
   };
 
-  const updateListing = async (listingId: string, updates: UpdateListingData) => {
+  // Update listing
+  const updateListing = async (listingId: string, updates: Partial<CreateListingData>) => {
+    if (!user) {
+      toast({
+        title: "Authentication required",
+        description: "Please sign in to update listings",
+        variant: "destructive",
+      });
+      throw new Error('User not authenticated');
+    }
+
     try {
+      setLoading(true);
       const { data, error } = await supabase
         .from('dog_listings')
         .update(updates)
         .eq('id', listingId)
-        .eq('user_id', user?.id)
+        .eq('user_id', user.id)
         .select()
         .single();
 
       if (error) throw error;
 
-      // Update local state
-      setUserListings(prev => 
-        prev.map(listing => 
-          listing.id === listingId ? { ...listing, ...data } : listing
-        )
-      );
-      setListings(prev => 
-        prev.map(listing => 
-          listing.id === listingId ? { ...listing, ...data } : listing
-        )
-      );
-
       toast({
-        title: "Success",
-        description: "Listing updated successfully",
+        title: "Success!",
+        description: "Your listing has been updated",
       });
 
       return data;
@@ -191,56 +157,118 @@ export const useDogListings = () => {
       console.error('Error updating listing:', error);
       toast({
         title: "Error",
-        description: "Failed to update listing",
+        description: error.message || "Failed to update listing",
         variant: "destructive",
       });
       throw error;
+    } finally {
+      setLoading(false);
     }
   };
 
+  // Delete listing
   const deleteListing = async (listingId: string) => {
+    if (!user) {
+      toast({
+        title: "Authentication required",
+        description: "Please sign in to delete listings",
+        variant: "destructive",
+      });
+      throw new Error('User not authenticated');
+    }
+
     try {
+      setLoading(true);
       const { error } = await supabase
         .from('dog_listings')
         .delete()
         .eq('id', listingId)
-        .eq('user_id', user?.id); // Security check
+        .eq('user_id', user.id);
 
       if (error) throw error;
 
-      setUserListings(prev => prev.filter(listing => listing.id !== listingId));
-      setListings(prev => prev.filter(listing => listing.id !== listingId));
-      
       toast({
-        title: "Listing deleted",
-        description: "Your listing has been removed successfully",
+        title: "Success!",
+        description: "Your listing has been deleted",
       });
     } catch (error: any) {
       console.error('Error deleting listing:', error);
       toast({
         title: "Error",
-        description: "Failed to delete listing",
+        description: error.message || "Failed to delete listing",
         variant: "destructive",
       });
+      throw error;
+    } finally {
+      setLoading(false);
     }
   };
 
-  const refreshListings = async () => {
-    await fetchListings();
-    if (user) {
-      await fetchUserListings();
+  // Search listings
+  const searchListings = async (query: string, filters: any = {}) => {
+    try {
+      setLoading(true);
+      let queryBuilder = supabase
+        .from('dog_listings')
+        .select(`
+          *,
+          profiles!dog_listings_user_id_fkey (
+            full_name,
+            username,
+            location,
+            verified,
+            avatar_url
+          )
+        `)
+        .eq('status', 'active');
+
+      if (query) {
+        queryBuilder = queryBuilder.or(`dog_name.ilike.%${query}%,breed.ilike.%${query}%,description.ilike.%${query}%`);
+      }
+
+      if (filters.breed) {
+        queryBuilder = queryBuilder.eq('breed', filters.breed);
+      }
+
+      if (filters.minPrice !== undefined) {
+        queryBuilder = queryBuilder.gte('price', filters.minPrice);
+      }
+
+      if (filters.maxPrice !== undefined) {
+        queryBuilder = queryBuilder.lte('price', filters.maxPrice);
+      }
+
+      if (filters.location) {
+        queryBuilder = queryBuilder.ilike('location', `%${filters.location}%`);
+      }
+
+      queryBuilder = queryBuilder.order('created_at', { ascending: false });
+
+      const { data, error } = await queryBuilder;
+
+      if (error) throw error;
+      setListings(data || []);
+      return data || [];
+    } catch (error) {
+      console.error('Error searching listings:', error);
+      throw error;
+    } finally {
+      setLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchListings();
+  }, []);
 
   return {
-    userListings,
     listings,
     loading,
-    fetchUserListings,
     fetchListings,
+    getUserListings,
     createListing,
     updateListing,
     deleteListing,
-    refreshListings,
+    searchListings
   };
 };

@@ -10,6 +10,7 @@ import { useDogListings } from '@/hooks/useDogListings';
 import ImageUpload from './ImageUpload';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+import { Loader2 } from 'lucide-react';
 
 interface CreateListingFormProps {
   onSuccess?: () => void;
@@ -17,8 +18,15 @@ interface CreateListingFormProps {
   className?: string;
 }
 
+const popularBreeds = [
+  'Labrador Retriever', 'Golden Retriever', 'German Shepherd', 'French Bulldog',
+  'Bulldog', 'Poodle', 'Beagle', 'Rottweiler', 'Yorkshire Terrier', 'Dachshund',
+  'Siberian Husky', 'Boston Terrier', 'Boxer', 'Border Collie', 'Chihuahua',
+  'Shih Tzu', 'Australian Shepherd', 'Pomeranian', 'Cocker Spaniel', 'Mixed Breed'
+];
+
 const CreateListingForm = ({ onSuccess, onCancel, className }: CreateListingFormProps) => {
-  const { createListing } = useDogListings();
+  const { createListing, loading } = useDogListings();
   const { user } = useAuth();
   const { toast } = useToast();
   
@@ -31,7 +39,32 @@ const CreateListingForm = ({ onSuccess, onCancel, className }: CreateListingForm
     location: '',
     image_url: '',
   });
-  const [loading, setLoading] = useState(false);
+
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const validateForm = () => {
+    const newErrors: Record<string, string> = {};
+
+    if (!formData.dog_name.trim()) {
+      newErrors.dog_name = 'Dog name is required';
+    }
+
+    if (!formData.breed) {
+      newErrors.breed = 'Breed is required';
+    }
+
+    if (!formData.age || parseInt(formData.age) < 1 || parseInt(formData.age) > 240) {
+      newErrors.age = 'Please enter a valid age (1-240 months)';
+    }
+
+    if (!formData.price || parseFloat(formData.price) < 0) {
+      newErrors.price = 'Please enter a valid price';
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -45,24 +78,25 @@ const CreateListingForm = ({ onSuccess, onCancel, className }: CreateListingForm
       return;
     }
 
-    if (!formData.dog_name || !formData.breed || !formData.age || !formData.price) {
+    if (!validateForm()) {
       toast({
-        title: "Missing required fields",
-        description: "Please fill in all required fields",
+        title: "Validation Error",
+        description: "Please fix the errors in the form",
         variant: "destructive",
       });
       return;
     }
 
     try {
-      setLoading(true);
+      setIsSubmitting(true);
+      
       await createListing({
-        dog_name: formData.dog_name,
+        dog_name: formData.dog_name.trim(),
         breed: formData.breed,
         age: parseInt(formData.age),
         price: parseFloat(formData.price),
-        description: formData.description || undefined,
-        location: formData.location || undefined,
+        description: formData.description.trim() || undefined,
+        location: formData.location.trim() || undefined,
         image_url: formData.image_url || undefined,
         status: 'active',
       });
@@ -77,20 +111,30 @@ const CreateListingForm = ({ onSuccess, onCancel, className }: CreateListingForm
         location: '',
         image_url: '',
       });
+      setErrors({});
       
       onSuccess?.();
     } catch (error) {
       console.error('Error creating listing:', error);
     } finally {
-      setLoading(false);
+      setIsSubmitting(false);
     }
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
-      [e.target.name]: e.target.value
+      [name]: value
     }));
+    
+    // Clear error when user starts typing
+    if (errors[name]) {
+      setErrors(prev => ({
+        ...prev,
+        [name]: ''
+      }));
+    }
   };
 
   const handleImageChange = (url: string) => {
@@ -100,12 +144,14 @@ const CreateListingForm = ({ onSuccess, onCancel, className }: CreateListingForm
     }));
   };
 
+  const isFormValid = formData.dog_name && formData.breed && formData.age && formData.price;
+
   return (
     <Card className={`w-full max-w-2xl mx-auto ${className}`}>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           Create New Dog Listing
-          <Badge variant="secondary">Required fields marked with *</Badge>
+          <Badge variant="secondary">Fill out all required fields *</Badge>
         </CardTitle>
       </CardHeader>
       <CardContent>
@@ -130,20 +176,28 @@ const CreateListingForm = ({ onSuccess, onCancel, className }: CreateListingForm
                 value={formData.dog_name}
                 onChange={handleChange}
                 placeholder="Enter dog's name"
+                className={errors.dog_name ? 'border-red-500' : ''}
                 required
               />
+              {errors.dog_name && <p className="text-sm text-red-600">{errors.dog_name}</p>}
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="breed">Breed *</Label>
-              <Input
+              <select
                 id="breed"
                 name="breed"
                 value={formData.breed}
                 onChange={handleChange}
-                placeholder="e.g., Golden Retriever"
+                className={`w-full px-3 py-2 border rounded-md bg-background text-sm ${errors.breed ? 'border-red-500' : 'border-input'}`}
                 required
-              />
+              >
+                <option value="">Select a breed</option>
+                {popularBreeds.map(breed => (
+                  <option key={breed} value={breed}>{breed}</option>
+                ))}
+              </select>
+              {errors.breed && <p className="text-sm text-red-600">{errors.breed}</p>}
             </div>
           </div>
 
@@ -158,8 +212,11 @@ const CreateListingForm = ({ onSuccess, onCancel, className }: CreateListingForm
                 onChange={handleChange}
                 placeholder="Age in months"
                 min="1"
+                max="240"
+                className={errors.age ? 'border-red-500' : ''}
                 required
               />
+              {errors.age && <p className="text-sm text-red-600">{errors.age}</p>}
             </div>
 
             <div className="space-y-2">
@@ -173,8 +230,10 @@ const CreateListingForm = ({ onSuccess, onCancel, className }: CreateListingForm
                 onChange={handleChange}
                 placeholder="Price in USD"
                 min="0"
+                className={errors.price ? 'border-red-500' : ''}
                 required
               />
+              {errors.price && <p className="text-sm text-red-600">{errors.price}</p>}
             </div>
           </div>
 
@@ -202,8 +261,19 @@ const CreateListingForm = ({ onSuccess, onCancel, className }: CreateListingForm
           </div>
 
           <div className="flex gap-3 pt-4">
-            <Button type="submit" disabled={loading} className="flex-1">
-              {loading ? 'Creating Listing...' : 'Create Listing'}
+            <Button 
+              type="submit" 
+              disabled={isSubmitting || !isFormValid}
+              className="flex-1"
+            >
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Creating Listing...
+                </>
+              ) : (
+                'Create Listing'
+              )}
             </Button>
             {onCancel && (
               <Button type="button" variant="outline" onClick={onCancel} className="px-8">
