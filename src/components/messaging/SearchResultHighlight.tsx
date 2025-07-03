@@ -20,7 +20,7 @@ const SearchResultHighlight = ({ text, searchQuery, className = '' }: SearchResu
       {parts.map((part, index) => {
         if (regex.test(part)) {
           return (
-            <mark key={index} className="bg-yellow-200 text-yellow-900 px-0.5 rounded">
+            <mark key={index} className="bg-yellow-300 text-black px-0.5 rounded font-medium">
               {part}
             </mark>
           );
