@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -102,24 +101,24 @@ const UnifiedProfileView = ({ userId, isCurrentUser }: UnifiedProfileViewProps) 
         // Load profile from API for other users
         const apiProfileData = await userService.getProfile(targetUserId);
         
-        // Transform API data to ProfileData format if needed
+        // Transform API data to ProfileData format - use the correct property names
         const profileData: ProfileData = {
           id: apiProfileData.id,
           email: apiProfileData.email || '',
-          fullName: apiProfileData.full_name || null,
-          username: apiProfileData.username || apiProfileData.full_name || apiProfileData.email?.split('@')[0] || 'User',
-          userType: apiProfileData.user_type || 'buyer',
+          fullName: apiProfileData.fullName || null,
+          username: apiProfileData.username || apiProfileData.fullName || apiProfileData.email?.split('@')[0] || 'User',
+          userType: apiProfileData.userType || 'buyer',
           bio: apiProfileData.bio || null,
           location: apiProfileData.location || null,
           phone: apiProfileData.phone || null,
-          websiteUrl: apiProfileData.website_url || null,
-          avatarUrl: apiProfileData.avatar_url || null,
+          websiteUrl: apiProfileData.websiteUrl || null,
+          avatarUrl: apiProfileData.avatarUrl || null,
           verified: apiProfileData.verified || false,
           rating: apiProfileData.rating || 0,
-          totalReviews: apiProfileData.total_reviews || 0,
-          yearsExperience: apiProfileData.years_experience || 0,
-          createdAt: apiProfileData.created_at || new Date().toISOString(),
-          updatedAt: apiProfileData.updated_at || new Date().toISOString()
+          totalReviews: apiProfileData.totalReviews || 0,
+          yearsExperience: apiProfileData.yearsExperience || 0,
+          createdAt: apiProfileData.createdAt || new Date().toISOString(),
+          updatedAt: apiProfileData.updatedAt || new Date().toISOString()
         };
         setProfile(profileData);
       }
