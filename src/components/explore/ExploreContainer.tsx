@@ -48,13 +48,14 @@ const ExploreContainer = ({
     'Dachshund'
   ];
 
+  // Fix: Make popularBreeds a string array as expected by PopularBreeds component
   const popularBreeds = [
-    { name: 'Golden Retriever', count: 45 },
-    { name: 'Labrador Retriever', count: 38 },
-    { name: 'German Shepherd', count: 32 },
-    { name: 'French Bulldog', count: 28 },
-    { name: 'Poodle', count: 25 },
-    { name: 'Beagle', count: 22 }
+    'Golden Retriever',
+    'Labrador Retriever', 
+    'German Shepherd',
+    'French Bulldog',
+    'Poodle',
+    'Beagle'
   ];
 
   const handleFilterChange = (key: string, value: any) => {

@@ -72,6 +72,7 @@ const UnifiedProfileView = ({ userId, isCurrentUser }: UnifiedProfileViewProps) 
       
       // If we're showing the current user's profile, use the user data from auth
       if (isCurrentUser && user) {
+        // Fix: Create proper ProfileData object instead of directly assigning User
         const profileData: ProfileData = {
           id: user.id,
           email: user.email || '',
