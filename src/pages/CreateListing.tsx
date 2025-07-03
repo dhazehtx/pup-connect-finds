@@ -7,16 +7,18 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/contexts/AuthContext';
-import { supabase } from '@/integrations/supabase/client';
+import { useDogListings } from '@/hooks/useDogListings';
 import { useToast } from '@/hooks/use-toast';
-import { ArrowLeft, Upload, Loader2 } from 'lucide-react';
+import { ArrowLeft, Loader2 } from 'lucide-react';
+import MultiMediaUpload from '@/components/listings/MultiMediaUpload';
 
 const CreateListing = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [loading, setLoading] = useState(false);
-  const [imageFile, setImageFile] = useState<File | null>(null);
+  const { createListing, loading } = useDogListings();
+  const [imageUrls, setImageUrls] = useState<string[]>([]);
+  const [videoUrl, setVideoUrl] = useState<string>('');
   const [formData, setFormData] = useState({
     dog_name: '',
     breed: '',
@@ -44,43 +46,6 @@ const CreateListing = () => {
     }));
   };
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      if (file.size > 5 * 1024 * 1024) { // 5MB limit
-        toast({
-          title: "File too large",
-          description: "Please select an image under 5MB",
-          variant: "destructive",
-        });
-        return;
-      }
-      setImageFile(file);
-    }
-  };
-
-  const uploadImage = async (file: File): Promise<string | null> => {
-    try {
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${Date.now()}.${fileExt}`;
-      
-      const { data, error } = await supabase.storage
-        .from('dog-images')
-        .upload(fileName, file);
-
-      if (error) throw error;
-
-      const { data: { publicUrl } } = supabase.storage
-        .from('dog-images')
-        .getPublicUrl(data.path);
-
-      return publicUrl;
-    } catch (error) {
-      console.error('Image upload error:', error);
-      return null;
-    }
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -103,47 +68,28 @@ const CreateListing = () => {
       return;
     }
 
-    setLoading(true);
     try {
-      let imageUrl = null;
+      const listingData = {
+        dog_name: formData.dog_name,
+        breed: formData.breed,
+        age: parseInt(formData.age),
+        price: parseFloat(formData.price),
+        location: formData.location || undefined,
+        description: formData.description || undefined,
+        image_url: imageUrls.length > 0 ? imageUrls[0] : undefined, // Use first image as primary
+        video_url: videoUrl || undefined,
+        status: 'active' as const,
+      };
+
+      const newListing = await createListing(listingData);
       
-      if (imageFile) {
-        imageUrl = await uploadImage(imageFile);
-        if (!imageUrl) {
-          toast({
-            title: "Image upload failed",
-            description: "Please try uploading the image again",
-            variant: "destructive",
-          });
-          setLoading(false);
-          return;
-        }
+      if (newListing) {
+        toast({
+          title: "Listing created successfully!",
+          description: "Your puppy listing is now live",
+        });
+        navigate(`/listing/${newListing.id}`);
       }
-
-      const { data, error } = await supabase
-        .from('dog_listings')
-        .insert({
-          user_id: user.id,
-          dog_name: formData.dog_name,
-          breed: formData.breed,
-          age: parseInt(formData.age),
-          price: parseFloat(formData.price),
-          location: formData.location || null,
-          description: formData.description || null,
-          image_url: imageUrl,
-          status: 'active'
-        })
-        .select()
-        .single();
-
-      if (error) throw error;
-
-      toast({
-        title: "Listing created successfully!",
-        description: "Your puppy listing is now live",
-      });
-
-      navigate(`/listing/${data.id}`);
     } catch (error: any) {
       console.error('Error creating listing:', error);
       toast({
@@ -151,8 +97,6 @@ const CreateListing = () => {
         description: error.message || "Please try again later",
         variant: "destructive",
       });
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -196,6 +140,16 @@ const CreateListing = () => {
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-6">
+              {/* Media Upload */}
+              <div className="space-y-2">
+                <Label>Photos & Video</Label>
+                <MultiMediaUpload
+                  onImagesChange={setImageUrls}
+                  onVideoChange={setVideoUrl}
+                  className="w-full"
+                />
+              </div>
+
               {/* Puppy Name */}
               <div className="space-y-2">
                 <Label htmlFor="dog_name">Puppy Name *</Label>
@@ -284,29 +238,6 @@ const CreateListing = () => {
                   placeholder="Tell potential families about your puppy's personality, health, and any special care instructions..."
                   rows={4}
                 />
-              </div>
-
-              {/* Image Upload */}
-              <div className="space-y-2">
-                <Label htmlFor="image">Puppy Photo</Label>
-                <div className="border-2 border-dashed border-blue-200 rounded-lg p-6 text-center">
-                  <input
-                    id="image"
-                    type="file"
-                    accept="image/*"
-                    onChange={handleImageChange}
-                    className="hidden"
-                  />
-                  <label htmlFor="image" className="cursor-pointer">
-                    <Upload className="w-8 h-8 text-blue-600 mx-auto mb-2" />
-                    <p className="text-gray-600">
-                      {imageFile ? imageFile.name : 'Click to upload a photo'}
-                    </p>
-                    <p className="text-sm text-gray-500 mt-1">
-                      Maximum file size: 5MB
-                    </p>
-                  </label>
-                </div>
               </div>
 
               {/* Submit Button */}

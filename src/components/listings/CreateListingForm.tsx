@@ -7,10 +7,10 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useDogListings } from '@/hooks/useDogListings';
-import ImageUpload from './ImageUpload';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
+import MultiMediaUpload from './MultiMediaUpload';
 
 interface CreateListingFormProps {
   onSuccess?: () => void;
@@ -29,6 +29,8 @@ const CreateListingForm = ({ onSuccess, onCancel, className }: CreateListingForm
   const { createListing, loading } = useDogListings();
   const { user } = useAuth();
   const { toast } = useToast();
+  const [imageUrls, setImageUrls] = useState<string[]>([]);
+  const [videoUrl, setVideoUrl] = useState<string>('');
   
   const [formData, setFormData] = useState({
     dog_name: '',
@@ -37,7 +39,6 @@ const CreateListingForm = ({ onSuccess, onCancel, className }: CreateListingForm
     price: '',
     description: '',
     location: '',
-    image_url: '',
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -97,7 +98,8 @@ const CreateListingForm = ({ onSuccess, onCancel, className }: CreateListingForm
         price: parseFloat(formData.price),
         description: formData.description.trim() || undefined,
         location: formData.location.trim() || undefined,
-        image_url: formData.image_url || undefined,
+        image_url: imageUrls.length > 0 ? imageUrls[0] : undefined,
+        video_url: videoUrl || undefined,
         status: 'active',
       });
       
@@ -109,8 +111,9 @@ const CreateListingForm = ({ onSuccess, onCancel, className }: CreateListingForm
         price: '',
         description: '',
         location: '',
-        image_url: '',
       });
+      setImageUrls([]);
+      setVideoUrl('');
       setErrors({});
       
       onSuccess?.();
@@ -137,13 +140,6 @@ const CreateListingForm = ({ onSuccess, onCancel, className }: CreateListingForm
     }
   };
 
-  const handleImageChange = (url: string) => {
-    setFormData(prev => ({
-      ...prev,
-      image_url: url
-    }));
-  };
-
   const isFormValid = formData.dog_name && formData.breed && formData.age && formData.price;
 
   return (
@@ -156,12 +152,12 @@ const CreateListingForm = ({ onSuccess, onCancel, className }: CreateListingForm
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Image Upload */}
+          {/* Media Upload */}
           <div className="space-y-2">
-            <Label>Dog Photo</Label>
-            <ImageUpload
-              value={formData.image_url}
-              onChange={handleImageChange}
+            <Label>Photos & Video</Label>
+            <MultiMediaUpload
+              onImagesChange={setImageUrls}
+              onVideoChange={setVideoUrl}
               className="w-full"
             />
           </div>

@@ -10,6 +10,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useDogListings } from '@/hooks/useDogListings';
 import { useToast } from '@/hooks/use-toast';
 import { Plus, Loader2 } from 'lucide-react';
+import MultiMediaUpload from './MultiMediaUpload';
 
 const popularBreeds = [
   'Labrador Retriever', 'Golden Retriever', 'German Shepherd', 'French Bulldog',
@@ -23,6 +24,8 @@ const CreateListingModal = () => {
   const { createListing, loading } = useDogListings();
   const { toast } = useToast();
   const [open, setOpen] = useState(false);
+  const [imageUrls, setImageUrls] = useState<string[]>([]);
+  const [videoUrl, setVideoUrl] = useState<string>('');
   
   const [formData, setFormData] = useState({
     dog_name: '',
@@ -31,7 +34,6 @@ const CreateListingModal = () => {
     price: '',
     description: '',
     location: '',
-    image_url: '',
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -63,7 +65,8 @@ const CreateListingModal = () => {
         price: parseFloat(formData.price),
         description: formData.description || undefined,
         location: formData.location || undefined,
-        image_url: formData.image_url || undefined,
+        image_url: imageUrls.length > 0 ? imageUrls[0] : undefined,
+        video_url: videoUrl || undefined,
         status: 'active',
       });
 
@@ -75,8 +78,9 @@ const CreateListingModal = () => {
         price: '',
         description: '',
         location: '',
-        image_url: '',
       });
+      setImageUrls([]);
+      setVideoUrl('');
       setOpen(false);
     } catch (error) {
       console.error('Error creating listing:', error);
@@ -116,6 +120,16 @@ const CreateListingModal = () => {
         </DialogHeader>
         
         <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Media Upload */}
+          <div className="space-y-2">
+            <Label>Photos & Video</Label>
+            <MultiMediaUpload
+              onImagesChange={setImageUrls}
+              onVideoChange={setVideoUrl}
+              className="w-full"
+            />
+          </div>
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="dog_name">Dog Name *</Label>
@@ -183,17 +197,6 @@ const CreateListingModal = () => {
               value={formData.location}
               onChange={handleChange}
               placeholder="City, State"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="image_url">Image URL</Label>
-            <Input
-              id="image_url"
-              name="image_url"
-              value={formData.image_url}
-              onChange={handleChange}
-              placeholder="https://example.com/image.jpg"
             />
           </div>
 

@@ -391,6 +391,7 @@ export type Database = {
           status: string | null
           updated_at: string | null
           user_id: string | null
+          video_url: string | null
         }
         Insert: {
           age: number
@@ -405,6 +406,7 @@ export type Database = {
           status?: string | null
           updated_at?: string | null
           user_id?: string | null
+          video_url?: string | null
         }
         Update: {
           age?: number
@@ -419,6 +421,7 @@ export type Database = {
           status?: string | null
           updated_at?: string | null
           user_id?: string | null
+          video_url?: string | null
         }
         Relationships: [
           {
