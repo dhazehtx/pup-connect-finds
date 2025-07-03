@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -11,6 +12,8 @@ import { Search, Filter, ChevronDown, ChevronUp } from 'lucide-react';
 import ListingsGrid from '@/components/ListingsGrid';
 import PopularBreeds from './PopularBreeds';
 import LoadingSkeleton from '@/components/LoadingSkeleton';
+import CreateListingModal from '@/components/listings/CreateListingModal';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface ExploreContainerProps {
   listings: any[];
@@ -31,6 +34,7 @@ const ExploreContainer = ({
   onSearchChange,
   onSearch
 }: ExploreContainerProps) => {
+  const { user } = useAuth();
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
   const [favorites, setFavorites] = useState<string[]>([]);
 
@@ -95,6 +99,15 @@ const ExploreContainer = ({
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-6 space-y-6">
+      {/* Header with Create Listing Button */}
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Explore Dogs</h1>
+          <p className="text-gray-600">Find your perfect companion</p>
+        </div>
+        {user && <CreateListingModal />}
+      </div>
+
       {/* Search & Filter Section */}
       <Card>
         <CardContent className="p-6">

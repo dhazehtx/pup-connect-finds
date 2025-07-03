@@ -110,6 +110,9 @@ export const useDogListings = () => {
         description: "Your dog listing has been created successfully",
       });
 
+      // Refresh listings to show the new one
+      await fetchListings();
+
       return data;
     } catch (error: any) {
       console.error('Error creating listing:', error);
