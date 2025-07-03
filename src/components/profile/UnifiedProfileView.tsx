@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -31,7 +32,7 @@ interface ProfileData {
   id: string;
   email: string;
   fullName: string | null;
-  username: string | null;
+  username: string;
   userType: 'buyer' | 'breeder' | 'shelter' | 'admin';
   bio: string | null;
   location: string | null;
@@ -99,7 +100,27 @@ const UnifiedProfileView = ({ userId, isCurrentUser }: UnifiedProfileViewProps) 
         setProfile(profileData);
       } else {
         // Load profile from API for other users
-        const profileData = await userService.getProfile(targetUserId);
+        const apiProfileData = await userService.getProfile(targetUserId);
+        
+        // Transform API data to ProfileData format if needed
+        const profileData: ProfileData = {
+          id: apiProfileData.id,
+          email: apiProfileData.email || '',
+          fullName: apiProfileData.full_name || null,
+          username: apiProfileData.username || apiProfileData.full_name || apiProfileData.email?.split('@')[0] || 'User',
+          userType: apiProfileData.user_type || 'buyer',
+          bio: apiProfileData.bio || null,
+          location: apiProfileData.location || null,
+          phone: apiProfileData.phone || null,
+          websiteUrl: apiProfileData.website_url || null,
+          avatarUrl: apiProfileData.avatar_url || null,
+          verified: apiProfileData.verified || false,
+          rating: apiProfileData.rating || 0,
+          totalReviews: apiProfileData.total_reviews || 0,
+          yearsExperience: apiProfileData.years_experience || 0,
+          createdAt: apiProfileData.created_at || new Date().toISOString(),
+          updatedAt: apiProfileData.updated_at || new Date().toISOString()
+        };
         setProfile(profileData);
       }
     } catch (error) {
