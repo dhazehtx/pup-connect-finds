@@ -13,6 +13,7 @@ interface DogListing {
   description?: string;
   location?: string;
   image_url?: string;
+  video_url?: string;
   status: string;
   user_id: string;
   created_at: string;
@@ -27,6 +28,7 @@ interface CreateListingData {
   description?: string;
   location?: string;
   image_url?: string;
+  video_url?: string;
   status: string;
 }
 
