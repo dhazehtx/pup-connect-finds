@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -68,8 +69,33 @@ const UnifiedProfileView = ({ userId, isCurrentUser }: UnifiedProfileViewProps) 
 
     try {
       setLoading(true);
-      const profileData = await userService.getProfile(targetUserId);
-      setProfile(profileData);
+      
+      // If we're showing the current user's profile, use the user data from auth
+      if (isCurrentUser && user) {
+        const profileData: ProfileData = {
+          id: user.id,
+          email: user.email || '',
+          fullName: user.user_metadata?.full_name || user.user_metadata?.name || null,
+          username: user.user_metadata?.username || null,
+          userType: 'buyer', // Default type
+          bio: null,
+          location: null,
+          phone: null,
+          websiteUrl: null,
+          avatarUrl: user.user_metadata?.avatar_url || null,
+          verified: false,
+          rating: 0,
+          totalReviews: 0,
+          yearsExperience: 0,
+          createdAt: user.created_at || new Date().toISOString(),
+          updatedAt: user.updated_at || new Date().toISOString()
+        };
+        setProfile(profileData);
+      } else {
+        // Load profile from API for other users
+        const profileData = await userService.getProfile(targetUserId);
+        setProfile(profileData);
+      }
     } catch (error) {
       console.error('Error loading profile:', error);
     } finally {
