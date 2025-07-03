@@ -32,6 +32,7 @@ const ExploreContainer = ({
   onSearch
 }: ExploreContainerProps) => {
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
+  const [favorites, setFavorites] = useState<string[]>([]);
 
   const breedOptions = [
     'All Breeds',
@@ -47,6 +48,15 @@ const ExploreContainer = ({
     'Dachshund'
   ];
 
+  const popularBreeds = [
+    { name: 'Golden Retriever', count: 45 },
+    { name: 'Labrador Retriever', count: 38 },
+    { name: 'German Shepherd', count: 32 },
+    { name: 'French Bulldog', count: 28 },
+    { name: 'Poodle', count: 25 },
+    { name: 'Beagle', count: 22 }
+  ];
+
   const handleFilterChange = (key: string, value: any) => {
     const newFilters = { ...filters, [key]: value };
     onFilterChange(newFilters);
@@ -60,6 +70,26 @@ const ExploreContainer = ({
   const handlePriceRangeChange = (values: number[]) => {
     handleFilterChange('priceMin', values[0].toString());
     handleFilterChange('priceMax', values[1].toString());
+  };
+
+  const handleFavorite = (id: string) => {
+    setFavorites(prev => 
+      prev.includes(id) 
+        ? prev.filter(fav => fav !== id)
+        : [...prev, id]
+    );
+  };
+
+  const handleContact = (id: string) => {
+    console.log('Contact listing:', id);
+  };
+
+  const handleViewDetails = (id: string) => {
+    console.log('View details:', id);
+  };
+
+  const handleBreedSelect = (breed: string) => {
+    handleFilterChange('breed', breed);
   };
 
   return (
@@ -401,13 +431,24 @@ const ExploreContainer = ({
       </Card>
 
       {/* Popular Breeds */}
-      <PopularBreeds />
+      <PopularBreeds 
+        popularBreeds={popularBreeds}
+        selectedBreed={filters.breed}
+        onBreedSelect={handleBreedSelect}
+      />
 
       {/* Results */}
       {loading ? (
-        <LoadingSkeleton />
+        <LoadingSkeleton viewMode="grid" />
       ) : (
-        <ListingsGrid listings={listings} />
+        <ListingsGrid 
+          listings={listings}
+          viewMode="grid"
+          favorites={favorites}
+          onFavorite={handleFavorite}
+          onContact={handleContact}
+          onViewDetails={handleViewDetails}
+        />
       )}
     </div>
   );

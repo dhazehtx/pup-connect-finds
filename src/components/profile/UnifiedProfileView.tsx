@@ -76,7 +76,7 @@ const UnifiedProfileView = ({ userId, isCurrentUser }: UnifiedProfileViewProps) 
           id: user.id,
           email: user.email || '',
           fullName: user.user_metadata?.full_name || user.user_metadata?.name || null,
-          username: user.user_metadata?.username || null,
+          username: user.user_metadata?.username || user.user_metadata?.full_name || user.user_metadata?.name || 'Anonymous',
           userType: 'buyer', // Default type
           bio: null,
           location: null,

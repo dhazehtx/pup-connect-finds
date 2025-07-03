@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -66,12 +67,6 @@ const RecommendationEngine = () => {
       if (listing.age <= 6) {
         score += 20;
         reasons.push('Young puppy');
-      }
-
-      // Verified seller bonus - check if listing has verified seller info
-      if (listing.verified || (listing.seller && listing.seller.verified)) {
-        score += 15;
-        reasons.push('Verified seller');
       }
 
       // Random factor for diversity
