@@ -71,12 +71,18 @@ const UnifiedProfileView = ({ userId, isCurrentUser }: UnifiedProfileViewProps) 
       
       // If we're showing the current user's profile, use the user data from auth
       if (isCurrentUser && user) {
-        // Create proper ProfileData object with required username field
+        // Create proper ProfileData object with guaranteed username
+        const username = user.user_metadata?.username || 
+                        user.user_metadata?.full_name || 
+                        user.user_metadata?.name || 
+                        user.email?.split('@')[0] || 
+                        'User';
+        
         const profileData: ProfileData = {
           id: user.id,
           email: user.email || '',
           fullName: user.user_metadata?.full_name || user.user_metadata?.name || null,
-          username: user.user_metadata?.username || user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split('@')[0] || 'User',
+          username: username,
           userType: 'buyer', // Default type
           bio: null,
           location: null,
