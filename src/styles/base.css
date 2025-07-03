@@ -3,7 +3,7 @@
 
 @layer base {
   :root {
-    /* Royal Blue theme with excellent contrast */
+    /* Clean blue and white theme */
     --background: 255 255 255; /* Pure white background */
     --foreground: 15 23 42; /* Dark slate for text */
 
@@ -13,74 +13,48 @@
     --popover: 255 255 255; /* Pure white */
     --popover-foreground: 15 23 42; /* Dark slate */
 
-    --primary: 35 99 255; /* Royal Blue #2363FF */
+    --primary: 37 99 235; /* Blue-600 */
     --primary-foreground: 255 255 255; /* White text on blue */
 
-    --secondary: 229 238 255; /* Light blue accent #E5EEFF */
-    --secondary-foreground: 35 99 255; /* Royal blue text */
+    --secondary: 241 245 249; /* Slate-100 */
+    --secondary-foreground: 15 23 42; /* Dark slate text */
 
-    --muted: 229 238 255; /* Light blue #E5EEFF */
-    --muted-foreground: 35 99 255; /* Royal blue text */
+    --muted: 241 245 249; /* Slate-100 */
+    --muted-foreground: 100 116 139; /* Slate-500 text */
 
-    --accent: 35 99 255; /* Royal Blue for accents */
-    --accent-foreground: 255 255 255; /* White text on blue */
+    --accent: 241 245 249; /* Slate-100 for accents */
+    --accent-foreground: 15 23 42; /* Dark slate text */
 
     --destructive: 239 68 68; /* Red for destructive actions */
     --destructive-foreground: 255 255 255; /* White text */
 
-    --border: 203 213 225; /* Light gray borders */
-    --input: 203 213 225; /* Light gray inputs */
-    --ring: 35 99 255; /* Royal Blue focus rings */
+    --border: 226 232 240; /* Slate-200 borders */
+    --input: 226 232 240; /* Slate-200 inputs */
+    --ring: 37 99 235; /* Blue-600 focus rings */
 
-    --radius: 0.75rem;
-
-    --sidebar-background: 255 255 255;
-    --sidebar-foreground: 15 23 42;
-    --sidebar-primary: 35 99 255;
-    --sidebar-primary-foreground: 255 255 255;
-    --sidebar-accent: 229 238 255;
-    --sidebar-accent-foreground: 35 99 255;
-    --sidebar-border: 203 213 225;
-    --sidebar-ring: 35 99 255;
+    --radius: 0.5rem;
   }
 
   .dark {
-    --background: 15 23 42; /* Dark slate background */
-    --foreground: 248 250 252; /* Light slate text */
-
-    --card: 30 41 59; /* Darker slate cards */
-    --card-foreground: 248 250 252; /* Light text on dark cards */
-
-    --popover: 30 41 59;
+    --background: 2 6 23;
+    --foreground: 248 250 252;
+    --card: 2 6 23;
+    --card-foreground: 248 250 252;
+    --popover: 2 6 23;
     --popover-foreground: 248 250 252;
-
-    --primary: 59 130 246; /* Lighter blue for dark mode */
-    --primary-foreground: 15 23 42; /* Dark text on light blue */
-
-    --secondary: 51 65 85; /* Medium slate */
+    --primary: 248 250 252;
+    --primary-foreground: 2 6 23;
+    --secondary: 30 41 59;
     --secondary-foreground: 248 250 252;
-
-    --muted: 51 65 85;
-    --muted-foreground: 148 163 184; /* Light slate */
-
-    --accent: 59 130 246; /* Lighter blue for dark mode */
-    --accent-foreground: 15 23 42;
-
-    --destructive: 220 38 38;
+    --muted: 30 41 59;
+    --muted-foreground: 148 163 184;
+    --accent: 30 41 59;
+    --accent-foreground: 248 250 252;
+    --destructive: 239 68 68;
     --destructive-foreground: 248 250 252;
-
-    --border: 51 65 85;
-    --input: 51 65 85;
-    --ring: 59 130 246;
-    
-    --sidebar-background: 15 23 42;
-    --sidebar-foreground: 248 250 252;
-    --sidebar-primary: 59 130 246;
-    --sidebar-primary-foreground: 15 23 42;
-    --sidebar-accent: 51 65 85;
-    --sidebar-accent-foreground: 248 250 252;
-    --sidebar-border: 51 65 85;
-    --sidebar-ring: 59 130 246;
+    --border: 30 41 59;
+    --input: 30 41 59;
+    --ring: 147 197 253;
   }
 }
 
@@ -90,122 +64,7 @@
   }
 
   body {
-    @apply bg-white text-gray-900 font-sans;
+    @apply bg-background text-foreground;
     font-feature-settings: "rlig" 1, "calt" 1;
-  }
-
-  /* Force white background and proper text colors */
-  html, body, #root {
-    background-color: white !important;
-    color: #0f172a !important;
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif !important;
-  }
-
-  /* REMOVE ALL BROWN/TAN/ORANGE COLORS - REPLACE WITH ROYAL BLUE */
-  .bg-orange-50, .bg-amber-50, .bg-yellow-50, .bg-tan-50, .bg-brown-50,
-  .bg-orange-100, .bg-amber-100, .bg-yellow-100, .bg-tan-100, .bg-brown-100,
-  .bg-orange-200, .bg-amber-200, .bg-yellow-200, .bg-tan-200, .bg-brown-200 { 
-    background-color: #e5eeff !important; 
-  }
-  
-  .bg-orange-300, .bg-amber-300, .bg-yellow-300, .bg-tan-300, .bg-brown-300,
-  .bg-orange-400, .bg-amber-400, .bg-yellow-400, .bg-tan-400, .bg-brown-400,
-  .bg-orange-500, .bg-amber-500, .bg-yellow-500, .bg-tan-500, .bg-brown-500,
-  .bg-orange-600, .bg-amber-600, .bg-yellow-600, .bg-tan-600, .bg-brown-600 { 
-    background-color: #2363ff !important; 
-  }
-  
-  .text-orange-600, .text-amber-600, .text-yellow-600, .text-tan-600, .text-brown-600,
-  .text-orange-700, .text-amber-700, .text-yellow-700, .text-tan-700, .text-brown-700,
-  .text-orange-800, .text-amber-800, .text-yellow-800, .text-tan-800, .text-brown-800,
-  .text-orange-900, .text-amber-900, .text-yellow-900, .text-tan-900, .text-brown-900 { 
-    color: #2363ff !important; 
-  }
-  
-  .border-orange-200, .border-amber-200, .border-yellow-200, .border-tan-200, .border-brown-200,
-  .border-orange-300, .border-amber-300, .border-yellow-300, .border-tan-300, .border-brown-300 { 
-    border-color: #cbd5e1 !important; 
-  }
-
-  /* Force Royal Blue theme for select dropdowns */
-  select, [role="combobox"] {
-    background-color: white !important;
-    color: #0f172a !important;
-    border-color: #cbd5e1 !important;
-  }
-
-  /* Fix any remaining brown select elements */
-  .bg-brown-100, [data-state="open"] .bg-brown-100,
-  .bg-tan-100, [data-state="open"] .bg-tan-100 {
-    background-color: #e5eeff !important;
-  }
-
-  /* Button styling with Royal Blue theme */
-  button {
-    color: #0f172a !important;
-    border-radius: 8px !important;
-    font-weight: 500 !important;
-    transition: all 0.2s ease-in-out !important;
-  }
-
-  /* Primary buttons - Royal Blue */
-  button.bg-blue-600, button[class*="bg-blue"], .button-primary {
-    background-color: #2363ff !important;
-    color: #ffffff !important;
-    border-color: #2363ff !important;
-  }
-
-  button.bg-blue-600:hover, button[class*="bg-blue"]:hover, .button-primary:hover {
-    background-color: #1e52d0 !important;
-  }
-
-  /* Popular breed buttons styling */
-  .bg-blue-50 {
-    background-color: #e5eeff !important;
-  }
-
-  .text-blue-600 {
-    color: #2363ff !important;
-  }
-
-  .hover\:bg-blue-100:hover {
-    background-color: #d1e0ff !important;
-  }
-
-  .border-blue-200 {
-    border-color: #c7d7fe !important;
-  }
-
-  /* Form elements with better contrast */
-  input, textarea, select {
-    border-color: #cbd5e1 !important;
-    background-color: white !important;
-    color: #0f172a !important;
-    border-radius: 8px !important;
-  }
-
-  input:focus, textarea:focus, select:focus {
-    border-color: #2363ff !important;
-    ring-color: #2363ff !important;
-    box-shadow: 0 0 0 3px rgba(35, 99, 255, 0.1) !important;
-  }
-
-  /* Slider styling */
-  [data-orientation="horizontal"] {
-    background-color: #e5eeff !important;
-  }
-
-  [data-orientation="horizontal"] [data-state="active"] {
-    background-color: #2363ff !important;
-  }
-
-  /* Checkbox styling */
-  input[type="checkbox"]:checked {
-    background-color: #2363ff !important;
-    border-color: #2363ff !important;
-  }
-
-  input[type="checkbox"]:focus {
-    ring-color: #2363ff !important;
   }
 }
