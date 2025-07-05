@@ -386,12 +386,14 @@ export type Database = {
           dog_name: string
           id: string
           image_url: string | null
+          images: string[] | null
           location: string | null
           price: number
           status: string | null
           updated_at: string | null
           user_id: string | null
           video_url: string | null
+          videos: string[] | null
         }
         Insert: {
           age: number
@@ -401,12 +403,14 @@ export type Database = {
           dog_name: string
           id?: string
           image_url?: string | null
+          images?: string[] | null
           location?: string | null
           price: number
           status?: string | null
           updated_at?: string | null
           user_id?: string | null
           video_url?: string | null
+          videos?: string[] | null
         }
         Update: {
           age?: number
@@ -416,12 +420,14 @@ export type Database = {
           dog_name?: string
           id?: string
           image_url?: string | null
+          images?: string[] | null
           location?: string | null
           price?: number
           status?: string | null
           updated_at?: string | null
           user_id?: string | null
           video_url?: string | null
+          videos?: string[] | null
         }
         Relationships: [
           {

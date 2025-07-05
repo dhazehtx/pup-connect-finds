@@ -13,11 +13,22 @@ interface DogListing {
   description?: string;
   location?: string;
   image_url?: string;
+  images?: string[];
+  videos?: string[];
   video_url?: string;
   status: string;
   user_id: string;
   created_at: string;
   updated_at: string;
+  profiles?: {
+    full_name: string;
+    username: string;
+    location: string;
+    verified: boolean;
+    avatar_url: string;
+    rating?: number;
+    total_reviews?: number;
+  };
 }
 
 interface CreateListingData {
@@ -28,6 +39,8 @@ interface CreateListingData {
   description?: string;
   location?: string;
   image_url?: string;
+  images?: string[];
+  videos?: string[];
   video_url?: string;
   status: string;
 }
@@ -51,7 +64,9 @@ export const useDogListings = () => {
             username,
             location,
             verified,
-            avatar_url
+            avatar_url,
+            rating,
+            total_reviews
           )
         `)
         .eq('status', 'active')
@@ -209,7 +224,7 @@ export const useDogListings = () => {
     }
   };
 
-  // Search listings
+  // Search listings with enhanced filters
   const searchListings = async (query: string, filters: any = {}) => {
     try {
       setLoading(true);
@@ -222,16 +237,18 @@ export const useDogListings = () => {
             username,
             location,
             verified,
-            avatar_url
+            avatar_url,
+            rating,
+            total_reviews
           )
         `)
-        .eq('status', 'active');
+        .in('status', ['active', 'available']); // Support both old and new status values
 
       if (query) {
         queryBuilder = queryBuilder.or(`dog_name.ilike.%${query}%,breed.ilike.%${query}%,description.ilike.%${query}%`);
       }
 
-      if (filters.breed) {
+      if (filters.breed && filters.breed !== 'All Breeds') {
         queryBuilder = queryBuilder.eq('breed', filters.breed);
       }
 

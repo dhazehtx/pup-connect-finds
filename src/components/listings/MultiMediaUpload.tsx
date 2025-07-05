@@ -1,264 +1,228 @@
 
-import React, { useState, useCallback } from 'react';
-import { Upload, X, Image, Video, Loader2 } from 'lucide-react';
+import React, { useState } from 'react';
+import { Upload, X, Image, Video } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { useUnifiedFileUpload } from '@/hooks/useUnifiedFileUpload';
-
-interface UploadedFile {
-  id: string;
-  file: File;
-  type: 'image' | 'video';
-  previewUrl: string;
-  uploadedUrl?: string;
-  uploading?: boolean;
-}
+import { supabase } from '@/integrations/supabase/client';
 
 interface MultiMediaUploadProps {
-  onImagesChange: (urls: string[]) => void;
-  onVideoChange: (url: string) => void;
+  onImagesChange: (imageUrls: string[]) => void;
+  onVideoChange: (videoUrl: string) => void;
   className?: string;
 }
 
 const MultiMediaUpload = ({ onImagesChange, onVideoChange, className }: MultiMediaUploadProps) => {
+  const [uploading, setUploading] = useState(false);
+  const [imageUrls, setImageUrls] = useState<string[]>([]);
+  const [videoUrl, setVideoUrl] = useState<string>('');
   const { toast } = useToast();
-  const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
-  const [dragActive, setDragActive] = useState(false);
 
-  const { uploadFile: uploadToStorage, uploading } = useUnifiedFileUpload({
-    bucket: 'dog-images',
-    folder: 'listings',
-    maxSize: 50 * 1024 * 1024, // 50MB
-    allowedTypes: ['image/jpeg', 'image/png', 'image/webp', 'video/mp4', 'video/mov']
-  });
+  const uploadFile = async (file: File, bucket: string): Promise<string | null> => {
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Date.now()}.${fileExt}`;
+      const filePath = `${fileName}`;
 
-  const validateFile = useCallback((file: File): { valid: boolean; type?: 'image' | 'video'; error?: string } => {
-    const imageTypes = ['image/jpeg', 'image/png', 'image/webp'];
-    const videoTypes = ['video/mp4', 'video/quicktime'];
-    
-    if (imageTypes.includes(file.type)) {
-      const imageCount = uploadedFiles.filter(f => f.type === 'image').length;
-      if (imageCount >= 5) {
-        return { valid: false, error: 'Maximum 5 images allowed' };
+      const { error: uploadError } = await supabase.storage
+        .from(bucket)
+        .upload(filePath, file);
+
+      if (uploadError) {
+        throw uploadError;
       }
-      return { valid: true, type: 'image' };
+
+      const { data } = supabase.storage
+        .from(bucket)
+        .getPublicUrl(filePath);
+
+      return data.publicUrl;
+    } catch (error) {
+      console.error('Error uploading file:', error);
+      return null;
     }
-    
-    if (videoTypes.includes(file.type)) {
-      const hasVideo = uploadedFiles.some(f => f.type === 'video');
-      if (hasVideo) {
-        return { valid: false, error: 'Only 1 video allowed' };
-      }
-      if (file.size > 30 * 1024 * 1024) {
-        return { valid: false, error: 'Video must be under 30MB' };
-      }
-      return { valid: true, type: 'video' };
-    }
-    
-    return { valid: false, error: 'Unsupported file type' };
-  }, [uploadedFiles]);
+  };
 
-  const handleFileSelect = useCallback(async (files: FileList) => {
-    const newFiles: UploadedFile[] = [];
-    
-    for (let i = 0; i < files.length; i++) {
-      const file = files[i];
-      const validation = validateFile(file);
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
+
+    if (imageUrls.length + files.length > 5) {
+      toast({
+        title: "Too many images",
+        description: "You can upload up to 5 images per listing.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setUploading(true);
+    try {
+      const uploadPromises = files.map(file => uploadFile(file, 'dog-images'));
+      const results = await Promise.all(uploadPromises);
       
-      if (!validation.valid) {
+      const successfulUploads = results.filter(url => url !== null) as string[];
+      const newImageUrls = [...imageUrls, ...successfulUploads];
+      
+      setImageUrls(newImageUrls);
+      onImagesChange(newImageUrls);
+
+      toast({
+        title: "Images uploaded successfully",
+        description: `${successfulUploads.length} image(s) uploaded`,
+      });
+    } catch (error) {
+      toast({
+        title: "Upload failed",
+        description: "Failed to upload images. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleVideoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 50 * 1024 * 1024) { // 50MB limit
+      toast({
+        title: "File too large",
+        description: "Video must be smaller than 50MB",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setUploading(true);
+    try {
+      const uploadedUrl = await uploadFile(file, 'dog-images');
+      if (uploadedUrl) {
+        setVideoUrl(uploadedUrl);
+        onVideoChange(uploadedUrl);
         toast({
-          title: "Invalid file",
-          description: validation.error,
-          variant: "destructive",
+          title: "Video uploaded successfully",
         });
-        continue;
       }
-      
-      const uploadedFile: UploadedFile = {
-        id: `${Date.now()}-${i}`,
-        file,
-        type: validation.type!,
-        previewUrl: URL.createObjectURL(file),
-        uploading: true
-      };
-      
-      newFiles.push(uploadedFile);
+    } catch (error) {
+      toast({
+        title: "Upload failed",
+        description: "Failed to upload video. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setUploading(false);
     }
-    
-    if (newFiles.length === 0) return;
-    
-    // Add files to state immediately for preview
-    setUploadedFiles(prev => [...prev, ...newFiles]);
-    
-    // Upload files
-    for (const uploadedFile of newFiles) {
-      try {
-        const uploadedUrl = await uploadToStorage(uploadedFile.file);
-        if (uploadedUrl) {
-          setUploadedFiles(prev => prev.map(f => 
-            f.id === uploadedFile.id 
-              ? { ...f, uploadedUrl, uploading: false }
-              : f
-          ));
-        }
-      } catch (error) {
-        console.error('Upload failed:', error);
-        toast({
-          title: "Upload failed",
-          description: `Failed to upload ${uploadedFile.file.name}`,
-          variant: "destructive",
-        });
-        // Remove failed upload
-        setUploadedFiles(prev => prev.filter(f => f.id !== uploadedFile.id));
-      }
-    }
-  }, [validateFile, uploadToStorage, toast]);
+  };
 
-  const removeFile = useCallback((id: string) => {
-    setUploadedFiles(prev => {
-      const fileToRemove = prev.find(f => f.id === id);
-      if (fileToRemove) {
-        URL.revokeObjectURL(fileToRemove.previewUrl);
-      }
-      return prev.filter(f => f.id !== id);
-    });
-  }, []);
+  const removeImage = (index: number) => {
+    const newImageUrls = imageUrls.filter((_, i) => i !== index);
+    setImageUrls(newImageUrls);
+    onImagesChange(newImageUrls);
+  };
 
-  // Update parent components when files change
-  React.useEffect(() => {
-    const images = uploadedFiles
-      .filter(f => f.type === 'image' && f.uploadedUrl)
-      .map(f => f.uploadedUrl!);
-    
-    const video = uploadedFiles
-      .find(f => f.type === 'video' && f.uploadedUrl)
-      ?.uploadedUrl || '';
-    
-    onImagesChange(images);
-    onVideoChange(video);
-  }, [uploadedFiles, onImagesChange, onVideoChange]);
-
-  const handleDrag = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (e.type === 'dragenter' || e.type === 'dragover') {
-      setDragActive(true);
-    } else if (e.type === 'dragleave') {
-      setDragActive(false);
-    }
-  }, []);
-
-  const handleDrop = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setDragActive(false);
-    
-    if (e.dataTransfer.files) {
-      handleFileSelect(e.dataTransfer.files);
-    }
-  }, [handleFileSelect]);
-
-  const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      handleFileSelect(e.target.files);
-    }
-  }, [handleFileSelect]);
+  const removeVideo = () => {
+    setVideoUrl('');
+    onVideoChange('');
+  };
 
   return (
-    <div className={className}>
-      <div className="space-y-4">
-        {/* Upload Area */}
-        <div
-          className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
-            dragActive ? 'border-blue-400 bg-blue-50' : 'border-gray-300 hover:border-gray-400'
-          }`}
-          onDragEnter={handleDrag}
-          onDragLeave={handleDrag}
-          onDragOver={handleDrag}
-          onDrop={handleDrop}
-        >
+    <div className={`space-y-4 ${className}`}>
+      {/* Image Upload */}
+      <div className="space-y-2">
+        <div className="flex items-center gap-2">
+          <Image className="w-4 h-4" />
+          <label className="text-sm font-medium">Photos (up to 5)</label>
+        </div>
+        <div className="border-2 border-dashed border-gray-300 rounded-lg p-4">
           <input
             type="file"
             multiple
-            accept="image/jpeg,image/png,image/webp,video/mp4,video/quicktime"
-            onChange={handleInputChange}
+            accept="image/*"
+            onChange={handleImageUpload}
             className="hidden"
-            id="media-upload"
+            id="image-upload"
+            disabled={uploading}
           />
-          <label htmlFor="media-upload" className="cursor-pointer">
-            <div className="flex flex-col items-center space-y-2">
-              <Upload className="h-8 w-8 text-gray-400" />
-              <div className="text-gray-600">
-                <p className="font-medium">Click to upload or drag and drop</p>
-                <p className="text-sm">Images: JPG, PNG, WebP (max 5)</p>
-                <p className="text-sm">Video: MP4, MOV (max 1, under 30MB)</p>
-              </div>
-            </div>
+          <label
+            htmlFor="image-upload"
+            className={`flex flex-col items-center justify-center cursor-pointer ${uploading ? 'opacity-50' : ''}`}
+          >
+            <Upload className="w-8 h-8 text-gray-400 mb-2" />
+            <span className="text-gray-600">
+              {uploading ? 'Uploading...' : 'Click to upload photos'}
+            </span>
           </label>
         </div>
 
-        {/* Preview Grid */}
-        {uploadedFiles.length > 0 && (
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-            {uploadedFiles.map((file) => (
-              <div key={file.id} className="relative group">
-                <div className="aspect-square rounded-lg overflow-hidden bg-gray-100">
-                  {file.type === 'image' ? (
-                    <img
-                      src={file.previewUrl}
-                      alt={file.file.name}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center">
-                      <Video className="w-8 h-8 text-gray-500" />
-                      <span className="ml-2 text-sm text-gray-600 truncate">
-                        {file.file.name}
-                      </span>
-                    </div>
-                  )}
-                  
-                  {/* Loading overlay */}
-                  {file.uploading && (
-                    <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-                      <Loader2 className="w-6 h-6 text-white animate-spin" />
-                    </div>
-                  )}
-                </div>
-                
-                {/* Remove button */}
+        {imageUrls.length > 0 && (
+          <div className="grid grid-cols-3 gap-2">
+            {imageUrls.map((url, index) => (
+              <div key={index} className="relative">
+                <img
+                  src={url}
+                  alt={`Preview ${index + 1}`}
+                  className="w-full h-24 object-cover rounded-lg"
+                />
                 <Button
                   type="button"
                   variant="destructive"
                   size="sm"
-                  className="absolute -top-2 -right-2 w-6 h-6 p-0 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                  onClick={() => removeFile(file.id)}
+                  onClick={() => removeImage(index)}
+                  className="absolute -top-2 -right-2 h-6 w-6 p-0"
                 >
                   <X className="w-3 h-3" />
                 </Button>
-                
-                {/* File type indicator */}
-                <div className="absolute bottom-2 left-2">
-                  {file.type === 'image' ? (
-                    <Image className="w-4 h-4 text-white drop-shadow" />
-                  ) : (
-                    <Video className="w-4 h-4 text-white drop-shadow" />
-                  )}
-                </div>
               </div>
             ))}
           </div>
         )}
-        
-        {/* Upload stats */}
-        <div className="text-sm text-gray-500 flex justify-between">
-          <span>
-            Images: {uploadedFiles.filter(f => f.type === 'image').length}/5
-          </span>
-          <span>
-            Video: {uploadedFiles.filter(f => f.type === 'video').length}/1
-          </span>
+      </div>
+
+      {/* Video Upload */}
+      <div className="space-y-2">
+        <div className="flex items-center gap-2">
+          <Video className="w-4 h-4" />
+          <label className="text-sm font-medium">Video (optional)</label>
         </div>
+        {!videoUrl ? (
+          <div className="border-2 border-dashed border-gray-300 rounded-lg p-4">
+            <input
+              type="file"
+              accept="video/*"
+              onChange={handleVideoUpload}
+              className="hidden"
+              id="video-upload"
+              disabled={uploading}
+            />
+            <label
+              htmlFor="video-upload"
+              className={`flex flex-col items-center justify-center cursor-pointer ${uploading ? 'opacity-50' : ''}`}
+            >
+              <Upload className="w-8 h-8 text-gray-400 mb-2" />
+              <span className="text-gray-600">
+                {uploading ? 'Uploading...' : 'Click to upload video'}
+              </span>
+            </label>
+          </div>
+        ) : (
+          <div className="relative">
+            <video
+              src={videoUrl}
+              controls
+              className="w-full h-40 object-cover rounded-lg"
+            />
+            <Button
+              type="button"
+              variant="destructive"
+              size="sm"
+              onClick={removeVideo}
+              className="absolute -top-2 -right-2 h-6 w-6 p-0"
+            >
+              <X className="w-3 h-3" />
+            </Button>
+          </div>
+        )}
       </div>
     </div>
   );
