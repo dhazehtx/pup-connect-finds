@@ -98,7 +98,7 @@ export const useDogListings = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setListings(data || []);
+      setListings((data || []) as DogListing[]);
     } catch (error) {
       console.error('Error fetching listings:', error);
     } finally {
@@ -116,7 +116,7 @@ export const useDogListings = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      return data || [];
+      return (data || []) as DogListing[];
     } catch (error) {
       console.error('Error fetching user listings:', error);
       throw error;
@@ -333,8 +333,9 @@ export const useDogListings = () => {
       const { data, error } = await queryBuilder;
 
       if (error) throw error;
-      setListings(data || []);
-      return data || [];
+      const typedData = (data || []) as DogListing[];
+      setListings(typedData);
+      return typedData;
     } catch (error) {
       console.error('Error searching listings:', error);
       throw error;
