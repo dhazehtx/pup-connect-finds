@@ -1,7 +1,9 @@
+
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useDogListings } from '@/hooks/useDogListings';
 import { useAuth } from '@/contexts/AuthContext';
+import { useSubscription } from '@/hooks/useSubscription';
 import ExploreHeader from './ExploreHeader';
 import AdvancedFiltersPanel from './AdvancedFiltersPanel';
 import ListingCard from './ListingCard';
@@ -12,6 +14,7 @@ import { Crown, Star } from 'lucide-react';
 
 const ExploreWithFreemium = () => {
   const { user, isGuest } = useAuth();
+  const { subscribed } = useSubscription();
   const { listings, loading, searchListings } = useDogListings();
   const [searchParams] = useSearchParams();
   const [searchTerm, setSearchTerm] = useState(searchParams.get('search') || '');
@@ -23,6 +26,15 @@ const ExploreWithFreemium = () => {
     location: '',
     ageRange: [0, 12] as [number, number],
   });
+
+  // Sample data for filters
+  const popularBreeds = ['All Breeds', 'Golden Retriever', 'Labrador', 'German Shepherd', 'Bulldog', 'Poodle'];
+  const dogColors = ['Black', 'Brown', 'White', 'Golden', 'Gray', 'Mixed'];
+  const coatLengthOptions = ['Short', 'Medium', 'Long', 'Curly'];
+  const distanceOptions = ['5', '10', '25', '50', '100'];
+  const sizeOptions = ['Small', 'Medium', 'Large', 'Extra Large'];
+  const energyLevels = ['Low', 'Medium', 'High', 'Very High'];
+  const trainingLevels = ['Untrained', 'Basic', 'Intermediate', 'Advanced'];
 
   useEffect(() => {
     const initialSearch = searchParams.get('search');
@@ -56,8 +68,26 @@ const ExploreWithFreemium = () => {
     }
   };
 
+  const handleFilterUpdate = (key: string, value: any) => {
+    const newFilters = { ...filters, [key]: value };
+    setFilters(newFilters);
+    handleSearch(searchTerm);
+  };
+
+  const handleClearAllFilters = () => {
+    const clearedFilters = {
+      breed: '',
+      minPrice: undefined,
+      maxPrice: undefined,
+      location: '',
+      ageRange: [0, 12] as [number, number],
+    };
+    setFilters(clearedFilters);
+    handleSearch(searchTerm);
+  };
+
   // Freemium logic - limit results for non-premium users
-  const isFreemiumUser = !user || (user && !user.subscription_tier) || isGuest;
+  const isFreemiumUser = !user || !subscribed || isGuest;
   const maxResults = isFreemiumUser ? 10 : listings.length;
   const displayedListings = listings.slice(0, maxResults);
   const hasMoreResults = listings.length > maxResults;
@@ -78,8 +108,15 @@ const ExploreWithFreemium = () => {
       {showAdvancedFilters && (
         <AdvancedFiltersPanel
           filters={filters}
-          onFiltersChange={handleFilterChange}
-          onClose={() => setShowAdvancedFilters(false)}
+          popularBreeds={popularBreeds}
+          dogColors={dogColors}
+          coatLengthOptions={coatLengthOptions}
+          distanceOptions={distanceOptions}
+          sizeOptions={sizeOptions}
+          energyLevels={energyLevels}
+          trainingLevels={trainingLevels}
+          onFilterUpdate={handleFilterUpdate}
+          onClearAllFilters={handleClearAllFilters}
         />
       )}
 
