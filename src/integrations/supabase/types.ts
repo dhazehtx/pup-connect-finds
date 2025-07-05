@@ -381,51 +381,84 @@ export type Database = {
         Row: {
           age: number
           breed: string
+          color: string | null
           created_at: string | null
+          delivery_available: boolean | null
           description: string | null
           dog_name: string
+          gender: string | null
+          good_with_dogs: boolean | null
+          good_with_kids: boolean | null
           id: string
           image_url: string | null
           images: string[] | null
+          listing_status: string | null
           location: string | null
+          neutered_spayed: boolean | null
           price: number
+          rehoming: boolean | null
+          size: string | null
+          special_needs: boolean | null
           status: string | null
           updated_at: string | null
           user_id: string | null
+          vaccinated: boolean | null
           video_url: string | null
           videos: string[] | null
         }
         Insert: {
           age: number
           breed: string
+          color?: string | null
           created_at?: string | null
+          delivery_available?: boolean | null
           description?: string | null
           dog_name: string
+          gender?: string | null
+          good_with_dogs?: boolean | null
+          good_with_kids?: boolean | null
           id?: string
           image_url?: string | null
           images?: string[] | null
+          listing_status?: string | null
           location?: string | null
+          neutered_spayed?: boolean | null
           price: number
+          rehoming?: boolean | null
+          size?: string | null
+          special_needs?: boolean | null
           status?: string | null
           updated_at?: string | null
           user_id?: string | null
+          vaccinated?: boolean | null
           video_url?: string | null
           videos?: string[] | null
         }
         Update: {
           age?: number
           breed?: string
+          color?: string | null
           created_at?: string | null
+          delivery_available?: boolean | null
           description?: string | null
           dog_name?: string
+          gender?: string | null
+          good_with_dogs?: boolean | null
+          good_with_kids?: boolean | null
           id?: string
           image_url?: string | null
           images?: string[] | null
+          listing_status?: string | null
           location?: string | null
+          neutered_spayed?: boolean | null
           price?: number
+          rehoming?: boolean | null
+          size?: string | null
+          special_needs?: boolean | null
           status?: string | null
           updated_at?: string | null
           user_id?: string | null
+          vaccinated?: boolean | null
           video_url?: string | null
           videos?: string[] | null
         }

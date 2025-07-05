@@ -17,9 +17,21 @@ interface DogListing {
   videos?: string[];
   video_url?: string;
   status: string;
+  listing_status?: string;
   user_id: string;
   created_at: string;
   updated_at: string;
+  // New enhanced fields
+  gender?: 'Male' | 'Female' | 'Unknown';
+  size?: 'Small' | 'Medium' | 'Large';
+  color?: string;
+  vaccinated?: boolean;
+  neutered_spayed?: boolean;
+  good_with_kids?: boolean;
+  good_with_dogs?: boolean;
+  special_needs?: boolean;
+  rehoming?: boolean;
+  delivery_available?: boolean;
   profiles?: {
     full_name: string;
     username: string;
@@ -43,6 +55,18 @@ interface CreateListingData {
   videos?: string[];
   video_url?: string;
   status: string;
+  listing_status?: string;
+  // New enhanced fields
+  gender?: 'Male' | 'Female' | 'Unknown';
+  size?: 'Small' | 'Medium' | 'Large';
+  color?: string;
+  vaccinated?: boolean;
+  neutered_spayed?: boolean;
+  good_with_kids?: boolean;
+  good_with_dogs?: boolean;
+  special_needs?: boolean;
+  rehoming?: boolean;
+  delivery_available?: boolean;
 }
 
 export const useDogListings = () => {
@@ -69,7 +93,8 @@ export const useDogListings = () => {
             total_reviews
           )
         `)
-        .eq('status', 'active')
+        .in('status', ['active', 'available'])
+        .in('listing_status', ['active', 'available'])
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -115,7 +140,8 @@ export const useDogListings = () => {
         .from('dog_listings')
         .insert([{
           ...listingData,
-          user_id: user.id
+          user_id: user.id,
+          listing_status: listingData.listing_status || 'active'
         }])
         .select()
         .single();
@@ -242,7 +268,8 @@ export const useDogListings = () => {
             total_reviews
           )
         `)
-        .in('status', ['active', 'available']); // Support both old and new status values
+        .in('status', ['active', 'available'])
+        .in('listing_status', ['active', 'available']);
 
       if (query) {
         queryBuilder = queryBuilder.or(`dog_name.ilike.%${query}%,breed.ilike.%${query}%,description.ilike.%${query}%`);
@@ -250,6 +277,18 @@ export const useDogListings = () => {
 
       if (filters.breed && filters.breed !== 'All Breeds') {
         queryBuilder = queryBuilder.eq('breed', filters.breed);
+      }
+
+      if (filters.gender) {
+        queryBuilder = queryBuilder.eq('gender', filters.gender);
+      }
+
+      if (filters.size) {
+        queryBuilder = queryBuilder.eq('size', filters.size);
+      }
+
+      if (filters.color) {
+        queryBuilder = queryBuilder.ilike('color', `%${filters.color}%`);
       }
 
       if (filters.minPrice !== undefined) {
@@ -262,6 +301,31 @@ export const useDogListings = () => {
 
       if (filters.location) {
         queryBuilder = queryBuilder.ilike('location', `%${filters.location}%`);
+      }
+
+      // Boolean filters
+      if (filters.vaccinated === true) {
+        queryBuilder = queryBuilder.eq('vaccinated', true);
+      }
+
+      if (filters.neutered_spayed === true) {
+        queryBuilder = queryBuilder.eq('neutered_spayed', true);
+      }
+
+      if (filters.good_with_kids === true) {
+        queryBuilder = queryBuilder.eq('good_with_kids', true);
+      }
+
+      if (filters.good_with_dogs === true) {
+        queryBuilder = queryBuilder.eq('good_with_dogs', true);
+      }
+
+      if (filters.delivery_available === true) {
+        queryBuilder = queryBuilder.eq('delivery_available', true);
+      }
+
+      if (filters.rehoming === true) {
+        queryBuilder = queryBuilder.eq('rehoming', true);
       }
 
       queryBuilder = queryBuilder.order('created_at', { ascending: false });
