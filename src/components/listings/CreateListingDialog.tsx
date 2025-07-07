@@ -9,7 +9,7 @@ import { useCreateListing } from '@/hooks/useCreateListing';
 import { useImageUpload } from '@/hooks/useImageUpload';
 import { Plus } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { listingSchema, ListingFormData } from './listingSchema';
+import { listingFormSchema, ListingFormData } from './listingSchema';
 import ListingFormFields from './ListingFormFields';
 import ListingImageUpload from './ListingImageUpload';
 

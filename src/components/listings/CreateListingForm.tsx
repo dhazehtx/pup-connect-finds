@@ -55,10 +55,29 @@ const CreateListingForm = ({ onSuccess, className = "" }: CreateListingFormProps
     }
 
     try {
-      await createListing({
-        ...data,
+      // Ensure all required fields are present and match the expected format
+      const listingData = {
+        dog_name: data.dog_name,
+        breed: data.breed,
+        age: data.age,
+        price: data.price,
+        description: data.description || '',
+        location: data.location || '',
+        gender: data.gender,
+        size: data.size,
+        color: data.color || '',
+        vaccinated: data.vaccinated,
+        neutered_spayed: data.neutered_spayed,
+        good_with_kids: data.good_with_kids,
+        good_with_dogs: data.good_with_dogs,
+        special_needs: data.special_needs,
+        rehoming: data.rehoming,
+        delivery_available: data.delivery_available,
         status: 'active', // Ensure status is set for backward compatibility
-      });
+        listing_status: data.listing_status,
+      };
+      
+      await createListing(listingData);
       
       form.reset();
       
