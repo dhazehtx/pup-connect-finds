@@ -1,18 +1,13 @@
 
 import React, { useState, useEffect } from 'react';
-import { useSearchParams, useNavigate } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 import { useDogListings } from '@/hooks/useDogListings';
-import { useAuth } from '@/contexts/AuthContext';
 import ExploreHeader from './ExploreHeader';
 import EnhancedFiltersPanel from './EnhancedFiltersPanel';
 import ListingCard from './ListingCard';
 import ListingsSkeleton from './ListingsSkeleton';
-import { Button } from '@/components/ui/button';
-import { Plus } from 'lucide-react';
 
 const ExploreWithFilters = () => {
-  const { user, isGuest } = useAuth();
-  const navigate = useNavigate();
   const { listings, loading, searchListings } = useDogListings();
   const [searchParams] = useSearchParams();
   const [searchTerm, setSearchTerm] = useState(searchParams.get('search') || '');
@@ -95,14 +90,6 @@ const ExploreWithFilters = () => {
     handleSearch(searchTerm);
   };
 
-  const handleCreateListing = () => {
-    if (!user && !isGuest) {
-      navigate('/auth');
-      return;
-    }
-    navigate('/post');
-  };
-
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Search Header - only show if no sticky header search is available */}
@@ -127,7 +114,7 @@ const ExploreWithFilters = () => {
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 py-6">
-        {/* Results Header with Create Listing Button */}
+        {/* Results Header */}
         <div className="flex items-center justify-between mb-6">
           <div>
             <h1 className="text-2xl font-bold text-gray-900">
@@ -137,14 +124,6 @@ const ExploreWithFilters = () => {
               {loading ? 'Searching...' : `${listings.length} puppies found`}
             </p>
           </div>
-          
-          <Button
-            onClick={handleCreateListing}
-            className="bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-2"
-          >
-            <Plus className="w-4 h-4" />
-            Create Listing
-          </Button>
         </div>
 
         {/* Listings Grid - Only shows dog_listings, NOT social posts */}

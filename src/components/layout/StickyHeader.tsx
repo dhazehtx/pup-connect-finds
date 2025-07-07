@@ -1,17 +1,17 @@
 
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { Heart, Search, Plus } from 'lucide-react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { Heart, Search, Plus, ShoppingBag } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
-import CreateListingModal from '@/components/listings/CreateListingModal';
 import PostCreator from '@/components/home/PostCreator';
 
 const StickyHeader = () => {
   const { user, signOut, isGuest } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const { toast } = useToast();
   const [searchQuery, setSearchQuery] = useState('');
   const [showPostCreator, setShowPostCreator] = useState(false);
@@ -41,6 +41,14 @@ const StickyHeader = () => {
     }
   };
 
+  const handleCreateListing = () => {
+    if (!user && !isGuest) {
+      navigate('/auth');
+      return;
+    }
+    navigate('/post');
+  };
+
   const handleCreatePost = () => {
     if (!user && !isGuest) {
       navigate('/auth');
@@ -64,6 +72,10 @@ const StickyHeader = () => {
     }
     return "/";
   };
+
+  // Determine which button to show based on current route
+  const isExplorePage = location.pathname === '/explore';
+  const isHomeOrProfilePage = location.pathname === '/home' || location.pathname.startsWith('/profile');
 
   return (
     <>
@@ -90,13 +102,28 @@ const StickyHeader = () => {
                 </div>
               </form>
               
-              <Button
-                onClick={handleCreatePost}
-                size="sm"
-                className="bg-blue-600 hover:bg-blue-700 text-white rounded-full w-10 h-10 p-0 flex-shrink-0"
-              >
-                <Plus className="w-5 h-5" />
-              </Button>
+              {/* Conditional Create Button */}
+              {isExplorePage && (
+                <Button
+                  onClick={handleCreateListing}
+                  size="sm"
+                  className="bg-blue-600 hover:bg-blue-700 text-white rounded-full px-4 py-2 flex items-center gap-2 flex-shrink-0"
+                >
+                  <ShoppingBag className="w-4 h-4" />
+                  <span className="hidden sm:inline">Create Listing</span>
+                </Button>
+              )}
+              
+              {isHomeOrProfilePage && (
+                <Button
+                  onClick={handleCreatePost}
+                  size="sm"
+                  className="bg-blue-600 hover:bg-blue-700 text-white rounded-full px-4 py-2 flex items-center gap-2 flex-shrink-0"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span className="hidden sm:inline">Create Post</span>
+                </Button>
+              )}
             </div>
 
             {/* Mobile search and create */}
@@ -113,13 +140,26 @@ const StickyHeader = () => {
                 </div>
               </form>
               
-              <Button
-                onClick={handleCreatePost}
-                size="sm"
-                className="bg-blue-600 hover:bg-blue-700 text-white rounded-full w-8 h-8 p-0 flex-shrink-0"
-              >
-                <Plus className="w-4 h-4" />
-              </Button>
+              {/* Mobile Conditional Create Button */}
+              {isExplorePage && (
+                <Button
+                  onClick={handleCreateListing}
+                  size="sm"
+                  className="bg-blue-600 hover:bg-blue-700 text-white rounded-full w-8 h-8 p-0 flex-shrink-0"
+                >
+                  <ShoppingBag className="w-4 h-4" />
+                </Button>
+              )}
+              
+              {isHomeOrProfilePage && (
+                <Button
+                  onClick={handleCreatePost}
+                  size="sm"
+                  className="bg-blue-600 hover:bg-blue-700 text-white rounded-full w-8 h-8 p-0 flex-shrink-0"
+                >
+                  <Plus className="w-4 h-4" />
+                </Button>
+              )}
             </div>
 
             {/* Right: Sign Out */}
