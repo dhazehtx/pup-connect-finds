@@ -25,7 +25,7 @@ const CreateListingDialog = ({ onSuccess }: CreateListingDialogProps) => {
   const { toast } = useToast();
 
   const form = useForm<ListingFormData>({
-    resolver: zodResolver(listingSchema),
+    resolver: zodResolver(listingFormSchema),
     defaultValues: {
       dog_name: '',
       breed: '',
