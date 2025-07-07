@@ -12,6 +12,17 @@ interface ListingFormFieldsProps {
 }
 
 const ListingFormFields = ({ form }: ListingFormFieldsProps) => {
+  const handleNumberInput = (value: string, onChange: (value: number) => void) => {
+    // Remove leading zeros and convert to number
+    const cleanedValue = value.replace(/^0+/, '') || '0';
+    const numericValue = parseInt(cleanedValue, 10);
+    
+    // Only update if it's a valid number
+    if (!isNaN(numericValue)) {
+      onChange(numericValue);
+    }
+  };
+
   return (
     <>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -66,8 +77,14 @@ const ListingFormFields = ({ form }: ListingFormFieldsProps) => {
                 <Input 
                   type="number" 
                   placeholder="e.g., 8" 
-                  {...field}
-                  onChange={(e) => field.onChange(Number(e.target.value))}
+                  value={field.value === 0 ? '' : field.value.toString()}
+                  onChange={(e) => handleNumberInput(e.target.value, field.onChange)}
+                  onKeyPress={(e) => {
+                    // Prevent non-numeric characters
+                    if (!/[0-9]/.test(e.key) && e.key !== 'Backspace' && e.key !== 'Delete' && e.key !== 'Tab') {
+                      e.preventDefault();
+                    }
+                  }}
                 />
               </FormControl>
               <FormMessage />
@@ -85,8 +102,14 @@ const ListingFormFields = ({ form }: ListingFormFieldsProps) => {
                 <Input 
                   type="number" 
                   placeholder="e.g., 1200" 
-                  {...field}
-                  onChange={(e) => field.onChange(Number(e.target.value))}
+                  value={field.value === 0 ? '' : field.value.toString()}
+                  onChange={(e) => handleNumberInput(e.target.value, field.onChange)}
+                  onKeyPress={(e) => {
+                    // Prevent non-numeric characters
+                    if (!/[0-9]/.test(e.key) && e.key !== 'Backspace' && e.key !== 'Delete' && e.key !== 'Tab') {
+                      e.preventDefault();
+                    }
+                  }}
                 />
               </FormControl>
               <FormMessage />
