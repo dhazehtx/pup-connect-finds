@@ -102,7 +102,7 @@ const StickyHeader = () => {
                 </div>
               </form>
               
-              {/* Conditional Create Button */}
+              {/* Conditional Create Button - Only show one at a time */}
               {isExplorePage && (
                 <Button
                   onClick={handleCreateListing}
@@ -121,7 +121,7 @@ const StickyHeader = () => {
                   className="bg-blue-600 hover:bg-blue-700 text-white rounded-full px-4 py-2 flex items-center gap-2 flex-shrink-0"
                 >
                   <Plus className="w-4 h-4" />
-                  <span className="hidden sm:inline">Create Post</span>
+                  <span className="hidden sm:inline">+ Post</span>
                 </Button>
               )}
             </div>
@@ -140,7 +140,7 @@ const StickyHeader = () => {
                 </div>
               </form>
               
-              {/* Mobile Conditional Create Button */}
+              {/* Mobile Conditional Create Button - Only show one at a time */}
               {isExplorePage && (
                 <Button
                   onClick={handleCreateListing}
@@ -187,7 +187,7 @@ const StickyHeader = () => {
         </div>
       </header>
 
-      {/* Post Creator Modal */}
+      {/* Post Creator Modal - Only for social posts */}
       {showPostCreator && (
         <PostCreator
           onClose={() => setShowPostCreator(false)}

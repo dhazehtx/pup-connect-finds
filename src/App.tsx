@@ -10,9 +10,10 @@ import { ThemeProvider } from "@/contexts/ThemeContext";
 import Layout from "@/components/Layout";
 import Index from "@/pages/Index";
 import HomeFeed from "@/pages/HomeFeed";
-import ExploreWithFreemium from "@/components/explore/ExploreWithFreemium";
+import Explore from "@/pages/Explore";
 import Marketplace from "@/pages/Marketplace";
-import ProfileWithFreemium from "@/components/profile/ProfileWithFreemium";
+import Profile from "@/pages/Profile";
+import Post from "@/pages/Post";
 import AuthForm from "@/components/auth/AuthForm";
 import Favorites from "@/pages/Favorites";
 import Messages from "@/pages/Messages";
@@ -44,7 +45,7 @@ const App = () => (
                 <Routes>
                   {/* Public routes - accessible without authentication */}
                   <Route path="/" element={<Index />} />
-                  <Route path="/explore" element={<ExploreWithFreemium />} />
+                  <Route path="/explore" element={<Explore />} />
                   <Route path="/marketplace" element={<Marketplace />} />
                   <Route path="/listing/:id" element={<ListingDetail />} />
                   <Route path="/auth" element={<AuthForm />} />
@@ -60,7 +61,17 @@ const App = () => (
                   } />
                   <Route path="/profile" element={
                     <ProtectedRoute>
-                      <ProfileWithFreemium />
+                      <Profile />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/profile/:userId" element={
+                    <ProtectedRoute>
+                      <Profile />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/post" element={
+                    <ProtectedRoute>
+                      <Post />
                     </ProtectedRoute>
                   } />
                   <Route path="/messages" element={
