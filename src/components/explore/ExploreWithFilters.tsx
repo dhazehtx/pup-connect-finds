@@ -127,7 +127,7 @@ const ExploreWithFilters = () => {
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 py-6">
-        {/* Results Header with Post Listing Button */}
+        {/* Results Header with Create Listing Button */}
         <div className="flex items-center justify-between mb-6">
           <div>
             <h1 className="text-2xl font-bold text-gray-900">
@@ -143,11 +143,11 @@ const ExploreWithFilters = () => {
             className="bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-2"
           >
             <Plus className="w-4 h-4" />
-            Post Listing
+            Create Listing
           </Button>
         </div>
 
-        {/* Listings Grid */}
+        {/* Listings Grid - Only shows dog_listings, NOT social posts */}
         {loading ? (
           <ListingsSkeleton />
         ) : (
