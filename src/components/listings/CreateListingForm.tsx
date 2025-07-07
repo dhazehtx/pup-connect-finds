@@ -41,6 +41,8 @@ const CreateListingForm = ({ onSuccess, className = "" }: CreateListingFormProps
       rehoming: false,
       delivery_available: false,
       listing_status: 'active',
+      images: [],
+      video_url: '',
     },
   });
 
@@ -75,6 +77,10 @@ const CreateListingForm = ({ onSuccess, className = "" }: CreateListingFormProps
         delivery_available: data.delivery_available,
         status: 'active', // Ensure status is set for backward compatibility
         listing_status: data.listing_status,
+        images: data.images || [],
+        video_url: data.video_url || '',
+        // Set the first image as the main image_url for backward compatibility
+        image_url: data.images && data.images.length > 0 ? data.images[0] : '',
       };
       
       await createListing(listingData);
@@ -111,7 +117,7 @@ const CreateListingForm = ({ onSuccess, className = "" }: CreateListingFormProps
             
             <Button
               type="submit"
-              className="w-full"
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-lg px-6 py-3 font-medium"
               disabled={loading}
             >
               {loading ? 'Creating Listing...' : 'Create Listing'}

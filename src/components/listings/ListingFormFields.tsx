@@ -6,6 +6,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { ListingFormData, popularBreeds } from './listingSchema';
+import MultiMediaUpload from './MultiMediaUpload';
 
 interface ListingFormFieldsProps {
   form: UseFormReturn<ListingFormData>;
@@ -23,8 +24,25 @@ const ListingFormFields = ({ form }: ListingFormFieldsProps) => {
     }
   };
 
+  const handleImagesChange = (imageUrls: string[]) => {
+    form.setValue('images', imageUrls);
+  };
+
+  const handleVideoChange = (videoUrl: string) => {
+    form.setValue('video_url', videoUrl);
+  };
+
   return (
     <>
+      {/* Media Upload Section */}
+      <div className="space-y-4 border-b pb-6">
+        <h3 className="text-lg font-semibold">Media</h3>
+        <MultiMediaUpload 
+          onImagesChange={handleImagesChange}
+          onVideoChange={handleVideoChange}
+        />
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <FormField
           control={form.control}
