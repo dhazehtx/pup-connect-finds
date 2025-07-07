@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { UseFormReturn } from 'react-hook-form';
 import { Input } from '@/components/ui/input';
@@ -334,33 +333,28 @@ const ListingFormFields = ({ form }: ListingFormFieldsProps) => {
               </FormItem>
             )}
           />
-        </div>
-      </div>
 
-      {/* Services Section */}
-      <div className="space-y-4 border-t pt-4">
-        <h3 className="text-lg font-semibold">Services</h3>
-        
-        <FormField
-          control={form.control}
-          name="delivery_available"
-          render={({ field }) => (
-            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-              <div className="space-y-0.5">
-                <FormLabel className="text-base">Delivery Available</FormLabel>
-                <div className="text-sm text-gray-500">
-                  Can deliver the puppy to buyer
+          <FormField
+            control={form.control}
+            name="delivery_available"
+            render={({ field }) => (
+              <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                <div className="space-y-0.5">
+                  <FormLabel className="text-base">Delivery Available</FormLabel>
+                  <div className="text-sm text-gray-500">
+                    This puppy can be delivered to its new home
+                  </div>
                 </div>
-              </div>
-              <FormControl>
-                <Switch
-                  checked={field.value}
-                  onCheckedChange={field.onChange}
-                />
-              </FormControl>
-            </FormItem>
-          )}
-        />
+                <FormControl>
+                  <Switch
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                  />
+                </FormControl>
+              </FormItem>
+            )}
+          />
+        </div>
       </div>
     </>
   );
