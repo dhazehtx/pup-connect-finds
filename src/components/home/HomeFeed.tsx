@@ -17,7 +17,7 @@ const HomeFeed = () => {
   if (loading) {
     return (
       <div className="max-w-2xl mx-auto p-4 space-y-6">
-        <LoadingSkeleton />
+        <LoadingSkeleton viewMode="list" />
       </div>
     );
   }
@@ -35,9 +35,40 @@ const HomeFeed = () => {
       {/* Posts Feed */}
       <div className="space-y-6">
         {posts.length > 0 ? (
-          posts.map((post) => (
-            <PostCard key={post.id} post={post} />
-          ))
+          posts.map((post) => {
+            // Convert database post to UI post format
+            const uiPost = {
+              id: parseInt(post.id.slice(-8), 16), // Convert UUID to number for UI compatibility
+              user: {
+                id: post.user_id,
+                username: post.profiles?.username || 'Unknown',
+                name: post.profiles?.full_name || 'Unknown User',
+                location: 'Location', // Default location
+                avatar: post.profiles?.avatar_url || '/placeholder.svg'
+              },
+              image: post.image_url || '/placeholder.svg',
+              likes: 0, // Default likes count
+              isLiked: false, // Default liked state
+              caption: post.caption || '',
+              timeAgo: new Date(post.created_at).toLocaleDateString(),
+              likedBy: [], // Default empty array
+              comments: [] // Default empty array
+            };
+            
+            return (
+              <PostCard 
+                key={post.id} 
+                post={uiPost}
+                onLike={() => {}}
+                onProfileClick={() => {}}
+                onShare={() => {}}
+                onBookmark={() => {}}
+                onComment={() => {}}
+                onShowLikes={() => {}}
+                onCommentsUpdate={() => {}}
+              />
+            );
+          })
         ) : (
           <div className="text-center py-12">
             <p className="text-gray-500 text-lg">No posts yet.</p>
