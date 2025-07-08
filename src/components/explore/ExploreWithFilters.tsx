@@ -60,7 +60,7 @@ const ExploreWithFilters = () => {
     setShowAdvancedFilters(!showAdvancedFilters);
   };
 
-  // Real-time search as user types (Facebook Marketplace style)
+  // Real-time search with debouncing
   const handleSearchChange = (value: string) => {
     setSearchTerm(value);
     // Debounce search to avoid too many API calls
@@ -124,12 +124,15 @@ const ExploreWithFilters = () => {
 
       {/* Main Content - Clean Layout */}
       <div className="max-w-7xl mx-auto px-4 py-6">
-        {/* Results Header */}
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold text-gray-900">
-            {searchTerm ? `Search Results for "${searchTerm}"` : 'Explore Puppies'}
+        {/* Clean Context Header - Facebook Marketplace Style */}
+        <div className="mt-4 mb-6">
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">
+            Explore Puppies
           </h1>
-          <p className="text-gray-600 mt-1">
+          <p className="text-gray-600">
+            Use the search bar above or apply filters to find your perfect match.
+          </p>
+          <p className="text-gray-500 text-sm mt-1">
             {loading ? 'Searching...' : `${listings.length} puppies found`}
           </p>
         </div>
