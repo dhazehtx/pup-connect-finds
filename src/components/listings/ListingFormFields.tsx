@@ -7,7 +7,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { ListingFormData, popularBreeds } from './listingSchema';
-import MultiMediaUpload from './MultiMediaUpload';
+import UnifiedMediaUpload from './UnifiedMediaUpload';
 
 interface ListingFormFieldsProps {
   form: UseFormReturn<ListingFormData>;
@@ -43,7 +43,7 @@ const ListingFormFields = ({ form }: ListingFormFieldsProps) => {
       {/* Media Upload Section */}
       <div className="space-y-4 border-b pb-6">
         <h3 className="text-lg font-semibold">Media</h3>
-        <MultiMediaUpload
+        <UnifiedMediaUpload
           onImagesChange={handleImagesChange}
           onVideoChange={handleVideoChange}
         />
