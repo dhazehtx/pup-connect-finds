@@ -67,8 +67,8 @@ const CollapsibleFiltersPanel = ({
     const breedValue = value === "all" ? "" : value;
     onFilterUpdate('breed', breedValue);
     
-    // Reset color when breed changes
-    if (filters.color && breedValue) {
+    // Reset color when breed changes (except for Mixed Breed which shows all colors)
+    if (filters.color && breedValue && breedValue !== 'Mixed Breed') {
       onFilterUpdate('color', '');
     }
   };
@@ -95,7 +95,7 @@ const CollapsibleFiltersPanel = ({
       ];
     }
     
-    // Breed selected - show breed-specific colors or fallback
+    // Mixed Breed or breed selected - show breed-specific colors or fallback
     return breedColors.length > 0 ? breedColors : [
       'Black',
       'White', 
@@ -202,6 +202,9 @@ const CollapsibleFiltersPanel = ({
               {filters.breed && colorsLoading && (
                 <span className="text-xs text-gray-500 ml-1">(loading...)</span>
               )}
+              {filters.breed === 'Mixed Breed' && (
+                <span className="text-xs text-green-600 ml-1">(all colors available)</span>
+              )}
             </Label>
             <Select 
               value={filters.color || "all"} 
@@ -211,7 +214,9 @@ const CollapsibleFiltersPanel = ({
               <SelectTrigger>
                 <SelectValue placeholder={
                   filters.breed && !colorsLoading 
-                    ? `Select color for ${filters.breed}` 
+                    ? filters.breed === 'Mixed Breed' 
+                      ? "All colors available"
+                      : `Select color for ${filters.breed}` 
                     : "All colors"
                 } />
               </SelectTrigger>

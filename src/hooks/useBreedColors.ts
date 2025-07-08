@@ -14,8 +14,38 @@ export const useBreedColors = (selectedBreed?: string) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Master color list for Mixed Breed and fallback
+  const masterColorList = [
+    'Black',
+    'White',
+    'Brown',
+    'Tan',
+    'Brindle',
+    'Merle',
+    'Cream',
+    'Gray',
+    'Fawn',
+    'Red',
+    'Blue',
+    'Silver',
+    'Chocolate',
+    'Liver',
+    'Sable',
+    'Parti-color',
+    'Tri-color',
+    'Dapple',
+    'Mixed'
+  ];
+
   useEffect(() => {
-    if (!selectedBreed || selectedBreed === 'Other' || selectedBreed === 'Mixed Breed') {
+    // Handle Mixed Breed - show all colors
+    if (selectedBreed === 'Mixed Breed') {
+      setColors(masterColorList);
+      return;
+    }
+
+    // Handle no breed selected or empty breed
+    if (!selectedBreed || selectedBreed === '' || selectedBreed === 'Other') {
       setColors([]);
       return;
     }
@@ -35,11 +65,18 @@ export const useBreedColors = (selectedBreed?: string) => {
           throw error;
         }
 
-        setColors(data?.map(item => item.color) || []);
+        // If no breed-specific colors found, use master list as fallback
+        if (!data || data.length === 0) {
+          console.log(`No specific colors found for ${selectedBreed}, using master list`);
+          setColors(masterColorList);
+        } else {
+          setColors(data.map(item => item.color));
+        }
       } catch (err) {
         console.error('Error fetching breed colors:', err);
         setError('Failed to load colors');
-        setColors([]);
+        // Fallback to master color list on error
+        setColors(masterColorList);
       } finally {
         setLoading(false);
       }
