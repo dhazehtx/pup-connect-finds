@@ -92,15 +92,13 @@ const ExploreWithFilters = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Search Header - only show if no sticky header search is available */}
-      <div className="md:hidden">
-        <ExploreHeader
-          searchTerm={searchTerm}
-          onSearchChange={handleSearchChange}
-          showAdvancedFilters={showAdvancedFilters}
-          onToggleFilters={handleToggleFilters}
-        />
-      </div>
+      {/* Search Header - show on all screen sizes */}
+      <ExploreHeader
+        searchTerm={searchTerm}
+        onSearchChange={handleSearchChange}
+        showAdvancedFilters={showAdvancedFilters}
+        onToggleFilters={handleToggleFilters}
+      />
 
       {/* Advanced Filters Panel */}
       {showAdvancedFilters && (
