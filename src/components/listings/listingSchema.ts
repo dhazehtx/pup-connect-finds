@@ -19,8 +19,6 @@ export const listingFormSchema = z.object({
   rehoming: z.boolean().default(false),
   delivery_available: z.boolean().default(false),
   listing_status: z.string().default('active'),
-  images: z.array(z.string()).optional(),
-  video_url: z.string().optional(),
 });
 
 export type ListingFormData = z.infer<typeof listingFormSchema>;
