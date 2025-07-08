@@ -71,12 +71,12 @@ const FilterModal = ({
           {/* Breed Selection */}
           <div>
             <Label className="text-sm font-medium mb-2 block">Breed</Label>
-            <Select value={filters.breed} onValueChange={(value) => onFilterUpdate('breed', value)}>
+            <Select value={filters.breed || "all"} onValueChange={(value) => onFilterUpdate('breed', value === "all" ? "" : value)}>
               <SelectTrigger>
                 <SelectValue placeholder="Select a breed" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Any breed</SelectItem>
+                <SelectItem value="all">Any breed</SelectItem>
                 {popularBreeds.map(breed => (
                   <SelectItem key={breed} value={breed}>{breed}</SelectItem>
                 ))}
@@ -87,12 +87,12 @@ const FilterModal = ({
           {/* Gender Selection */}
           <div>
             <Label className="text-sm font-medium mb-2 block">Gender</Label>
-            <Select value={filters.gender} onValueChange={(value) => onFilterUpdate('gender', value)}>
+            <Select value={filters.gender || "all"} onValueChange={(value) => onFilterUpdate('gender', value === "all" ? "" : value)}>
               <SelectTrigger>
                 <SelectValue placeholder="Any gender" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Any</SelectItem>
+                <SelectItem value="all">Any</SelectItem>
                 <SelectItem value="Male">Male</SelectItem>
                 <SelectItem value="Female">Female</SelectItem>
               </SelectContent>
@@ -102,12 +102,12 @@ const FilterModal = ({
           {/* Size Selection */}
           <div>
             <Label className="text-sm font-medium mb-2 block">Size</Label>
-            <Select value={filters.size} onValueChange={(value) => onFilterUpdate('size', value)}>
+            <Select value={filters.size || "all"} onValueChange={(value) => onFilterUpdate('size', value === "all" ? "" : value)}>
               <SelectTrigger>
                 <SelectValue placeholder="Any size" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Any size</SelectItem>
+                <SelectItem value="all">Any size</SelectItem>
                 <SelectItem value="Small">Small</SelectItem>
                 <SelectItem value="Medium">Medium</SelectItem>
                 <SelectItem value="Large">Large</SelectItem>
