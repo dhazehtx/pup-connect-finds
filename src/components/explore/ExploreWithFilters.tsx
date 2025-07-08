@@ -37,6 +37,9 @@ const ExploreWithFilters = () => {
     if (initialSearch) {
       setSearchTerm(initialSearch);
       handleSearch(initialSearch);
+    } else {
+      // Load all listings on initial page load
+      handleSearch('');
     }
   }, [searchParams]);
 
@@ -57,16 +60,21 @@ const ExploreWithFilters = () => {
     setShowAdvancedFilters(!showAdvancedFilters);
   };
 
+  // Real-time search as user types (Facebook Marketplace style)
   const handleSearchChange = (value: string) => {
     setSearchTerm(value);
-    if (value.trim()) {
+    // Debounce search to avoid too many API calls
+    const timeoutId = setTimeout(() => {
       handleSearch(value);
-    }
+    }, 300);
+    
+    return () => clearTimeout(timeoutId);
   };
 
   const handleFilterUpdate = (key: string, value: any) => {
     const newFilters = { ...filters, [key]: value };
     setFilters(newFilters);
+    // Re-search with updated filters
     handleSearch(searchTerm);
   };
 
@@ -92,8 +100,8 @@ const ExploreWithFilters = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Single Sticky Header with Search, Post Button, and Filters */}
-      <div className="sticky top-0 z-50 bg-white shadow-sm border-b border-gray-200">
+      {/* Single Sticky Header - Facebook Marketplace Style */}
+      <div className="sticky top-0 z-50 bg-white shadow-md border-b border-gray-200">
         <ExploreHeader
           searchTerm={searchTerm}
           onSearchChange={handleSearchChange}
@@ -102,7 +110,7 @@ const ExploreWithFilters = () => {
         />
       </div>
 
-      {/* Advanced Filters Panel */}
+      {/* Advanced Filters Panel - Toggleable */}
       {showAdvancedFilters && (
         <div className="bg-white border-b border-gray-200 shadow-sm">
           <EnhancedFiltersPanel
@@ -114,9 +122,9 @@ const ExploreWithFilters = () => {
         </div>
       )}
 
-      {/* Main Content - No Search Bar Here */}
+      {/* Main Content - Clean Layout */}
       <div className="max-w-7xl mx-auto px-4 py-6">
-        {/* Results Header - Clean without search elements */}
+        {/* Results Header */}
         <div className="mb-6">
           <h1 className="text-2xl font-bold text-gray-900">
             {searchTerm ? `Search Results for "${searchTerm}"` : 'Explore Puppies'}
