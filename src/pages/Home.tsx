@@ -15,13 +15,6 @@ const Home = () => {
     document.title = 'My Pup - Find Your Perfect Puppy Companion';
   }, []);
 
-  useEffect(() => {
-    // Redirect authenticated users or guests to home feed
-    if (user || isGuest) {
-      navigate('/home');
-    }
-  }, [user, isGuest, navigate]);
-
   const handleGuestAccess = () => {
     continueAsGuest();
     navigate('/explore');

@@ -4,13 +4,13 @@ import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { AuthProvider } from './contexts/AuthContext';
+import { RealtimeProvider } from './contexts/RealtimeContext';
 import Layout from './components/Layout';
 import Home from './pages/Home';
 import Explore from './pages/Explore';
 import Post from './pages/Post';
 import Profile from './pages/Profile';
 import Auth from './pages/Auth';
-import { RealtimeProvider } from './contexts/RealtimeContext';
 import CreateListing from './pages/CreateListing';
 
 const queryClient = new QueryClient({
@@ -23,10 +23,10 @@ const queryClient = new QueryClient({
 
 function App() {
   return (
-    <Router>
-      <QueryClientProvider client={queryClient}>
-        <RealtimeProvider>
-          <AuthProvider>
+    <QueryClientProvider client={queryClient}>
+      <Router>
+        <AuthProvider>
+          <RealtimeProvider>
             <ThemeProvider>
               <Layout>
                 <Routes>
@@ -40,10 +40,10 @@ function App() {
                 </Routes>
               </Layout>
             </ThemeProvider>
-          </AuthProvider>
-        </RealtimeProvider>
-      </QueryClientProvider>
-    </Router>
+          </RealtimeProvider>
+        </AuthProvider>
+      </Router>
+    </QueryClientProvider>
   );
 }
 
