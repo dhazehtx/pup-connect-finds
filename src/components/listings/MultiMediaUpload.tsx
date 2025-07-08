@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Upload, X, Image, Video } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -128,101 +127,104 @@ const MultiMediaUpload = ({ onImagesChange, onVideoChange, className }: MultiMed
 
   return (
     <div className={`space-y-4 ${className}`}>
-      {/* Image Upload */}
-      <div className="space-y-2">
-        <div className="flex items-center gap-2">
-          <Image className="w-4 h-4" />
-          <label className="text-sm font-medium">Photos (up to 5)</label>
-        </div>
-        <div className="border-2 border-dashed border-gray-300 rounded-lg p-4">
-          <input
-            type="file"
-            multiple
-            accept="image/*"
-            onChange={handleImageUpload}
-            className="hidden"
-            id="image-upload"
-            disabled={uploading}
-          />
-          <label
-            htmlFor="image-upload"
-            className={`flex flex-col items-center justify-center cursor-pointer ${uploading ? 'opacity-50' : ''}`}
-          >
-            <Upload className="w-8 h-8 text-gray-400 mb-2" />
-            <span className="text-gray-600">
-              {uploading ? 'Uploading...' : 'Click to upload photos'}
-            </span>
-          </label>
-        </div>
-
-        {imageUrls.length > 0 && (
-          <div className="grid grid-cols-3 gap-2">
-            {imageUrls.map((url, index) => (
-              <div key={index} className="relative">
-                <img
-                  src={url}
-                  alt={`Preview ${index + 1}`}
-                  className="w-full h-24 object-cover rounded-lg"
-                />
-                <Button
-                  type="button"
-                  variant="destructive"
-                  size="sm"
-                  onClick={() => removeImage(index)}
-                  className="absolute -top-2 -right-2 h-6 w-6 p-0"
-                >
-                  <X className="w-3 h-3" />
-                </Button>
-              </div>
-            ))}
+      {/* Responsive layout: side-by-side on md+ screens, stacked on mobile */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Image Upload */}
+        <div className="space-y-2">
+          <div className="flex items-center gap-2">
+            <Image className="w-4 h-4" />
+            <label className="text-sm font-medium">Photos (up to 5)</label>
           </div>
-        )}
-      </div>
-
-      {/* Video Upload */}
-      <div className="space-y-2">
-        <div className="flex items-center gap-2">
-          <Video className="w-4 h-4" />
-          <label className="text-sm font-medium">Video (optional)</label>
-        </div>
-        {!videoUrl ? (
-          <div className="border-2 border-dashed border-gray-300 rounded-lg p-4">
+          <div className="border-2 border-dashed border-gray-300 rounded-lg p-3 hover:border-gray-400 hover:bg-gray-50 transition-colors">
             <input
               type="file"
-              accept="video/*"
-              onChange={handleVideoUpload}
+              multiple
+              accept="image/*"
+              onChange={handleImageUpload}
               className="hidden"
-              id="video-upload"
+              id="image-upload"
               disabled={uploading}
             />
             <label
-              htmlFor="video-upload"
-              className={`flex flex-col items-center justify-center cursor-pointer ${uploading ? 'opacity-50' : ''}`}
+              htmlFor="image-upload"
+              className={`flex flex-col items-center justify-center cursor-pointer h-20 ${uploading ? 'opacity-50' : ''}`}
             >
-              <Upload className="w-8 h-8 text-gray-400 mb-2" />
-              <span className="text-gray-600">
-                {uploading ? 'Uploading...' : 'Click to upload video'}
+              <Upload className="w-6 h-6 text-gray-400 mb-1" />
+              <span className="text-sm text-gray-600">
+                {uploading ? 'Uploading...' : 'Click to upload photos'}
               </span>
             </label>
           </div>
-        ) : (
-          <div className="relative">
-            <video
-              src={videoUrl}
-              controls
-              className="w-full h-40 object-cover rounded-lg"
-            />
-            <Button
-              type="button"
-              variant="destructive"
-              size="sm"
-              onClick={removeVideo}
-              className="absolute -top-2 -right-2 h-6 w-6 p-0"
-            >
-              <X className="w-3 h-3" />
-            </Button>
+
+          {imageUrls.length > 0 && (
+            <div className="grid grid-cols-3 gap-2">
+              {imageUrls.map((url, index) => (
+                <div key={index} className="relative">
+                  <img
+                    src={url}
+                    alt={`Preview ${index + 1}`}
+                    className="w-full h-20 object-cover rounded-lg"
+                  />
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    size="sm"
+                    onClick={() => removeImage(index)}
+                    className="absolute -top-2 -right-2 h-6 w-6 p-0"
+                  >
+                    <X className="w-3 h-3" />
+                  </Button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Video Upload */}
+        <div className="space-y-2">
+          <div className="flex items-center gap-2">
+            <Video className="w-4 h-4" />
+            <label className="text-sm font-medium">Video (optional)</label>
           </div>
-        )}
+          {!videoUrl ? (
+            <div className="border-2 border-dashed border-gray-300 rounded-lg p-3 hover:border-gray-400 hover:bg-gray-50 transition-colors">
+              <input
+                type="file"
+                accept="video/*"
+                onChange={handleVideoUpload}
+                className="hidden"
+                id="video-upload"
+                disabled={uploading}
+              />
+              <label
+                htmlFor="video-upload"
+                className={`flex flex-col items-center justify-center cursor-pointer h-20 ${uploading ? 'opacity-50' : ''}`}
+              >
+                <Upload className="w-6 h-6 text-gray-400 mb-1" />
+                <span className="text-sm text-gray-600">
+                  {uploading ? 'Uploading...' : 'Click to upload video'}
+                </span>
+              </label>
+            </div>
+          ) : (
+            <div className="relative">
+              <video
+                src={videoUrl}
+                controls
+                className="w-full h-32 object-cover rounded-lg"
+              />
+              <Button
+                type="button"
+                variant="destructive"
+                size="sm"
+                onClick={removeVideo}
+                className="absolute -top-2 -right-2 h-6 w-6 p-0"
+              >
+                <X className="w-3 h-3" />
+              </Button>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
