@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { UseFormReturn } from 'react-hook-form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Switch } from '@/components/ui/switch';
 import { ListingFormData, popularBreeds } from './listingSchema';
 import UnifiedMediaUpload from './UnifiedMediaUpload';
+import { useBreedColors } from '@/hooks/useBreedColors';
 
 interface ListingFormFieldsProps {
   form: UseFormReturn<ListingFormData>;
@@ -16,6 +17,10 @@ interface ListingFormFieldsProps {
 const ListingFormFields = ({ form }: ListingFormFieldsProps) => {
   const [imageUrls, setImageUrls] = useState<string[]>([]);
   const [videoUrl, setVideoUrl] = useState<string>('');
+  
+  // Watch the breed field to update color options
+  const selectedBreed = form.watch('breed');
+  const { colors: breedColors, loading: colorsLoading } = useBreedColors(selectedBreed);
 
   const handleNumberInput = (value: string, onChange: (value: number) => void) => {
     // Remove leading zeros and convert to number
@@ -37,6 +42,16 @@ const ListingFormFields = ({ form }: ListingFormFieldsProps) => {
     setVideoUrl(url);
     form.setValue('video_url', url);
   };
+
+  // Reset color when breed changes
+  useEffect(() => {
+    if (selectedBreed && breedColors.length > 0) {
+      const currentColor = form.getValues('color');
+      if (currentColor && !breedColors.includes(currentColor)) {
+        form.setValue('color', '');
+      }
+    }
+  }, [selectedBreed, breedColors, form]);
 
   return (
     <>
@@ -196,7 +211,30 @@ const ListingFormFields = ({ form }: ListingFormFieldsProps) => {
             <FormItem>
               <FormLabel>Color</FormLabel>
               <FormControl>
-                <Input placeholder="e.g., Brown, Black, White" {...field} />
+                {selectedBreed && breedColors.length > 0 ? (
+                  <Select 
+                    onValueChange={field.onChange} 
+                    defaultValue={field.value}
+                    disabled={colorsLoading}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder={colorsLoading ? "Loading colors..." : "Select color"} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {breedColors.map((color) => (
+                        <SelectItem key={color} value={color}>
+                          {color}
+                        </SelectItem>
+                      ))}
+                      <SelectItem value="Other">Other</SelectItem>
+                    </SelectContent>
+                  </Select>
+                ) : (
+                  <Input 
+                    placeholder="e.g., Brown, Black, White" 
+                    {...field} 
+                  />
+                )}
               </FormControl>
               <FormMessage />
             </FormItem>

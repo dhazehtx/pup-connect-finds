@@ -263,6 +263,27 @@ export type Database = {
           },
         ]
       }
+      breed_colors: {
+        Row: {
+          breed: string
+          color: string
+          created_at: string
+          id: string
+        }
+        Insert: {
+          breed: string
+          color: string
+          created_at?: string
+          id?: string
+        }
+        Update: {
+          breed?: string
+          color?: string
+          created_at?: string
+          id?: string
+        }
+        Relationships: []
+      }
       content_moderation: {
         Row: {
           ai_confidence: number | null
