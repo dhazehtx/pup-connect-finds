@@ -58,6 +58,18 @@ const CollapsibleFiltersPanel = ({
     onFilterUpdate('maxPrice', values[1].toString());
   };
 
+  const colorOptions = [
+    'Black',
+    'White', 
+    'Brown',
+    'Tan',
+    'Brindle',
+    'Merle',
+    'Cream',
+    'Gray',
+    'Mixed'
+  ];
+
   if (!isOpen) return null;
 
   return (
@@ -142,6 +154,22 @@ const CollapsibleFiltersPanel = ({
             </Select>
           </div>
 
+          {/* Second Row - Color, Price Range, Location */}
+          <div className="space-y-2">
+            <Label className="text-sm font-medium">Color</Label>
+            <Select value={filters.color || "all"} onValueChange={(value) => onFilterUpdate('color', value === "all" ? "" : value)}>
+              <SelectTrigger>
+                <SelectValue placeholder="All colors" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All colors</SelectItem>
+                {colorOptions.map(color => (
+                  <SelectItem key={color} value={color}>{color}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
           {/* Price Range */}
           <div className="space-y-2">
             <Label className="text-sm font-medium">
@@ -170,16 +198,6 @@ const CollapsibleFiltersPanel = ({
               placeholder="ZIP code or city"
               value={filters.location}
               onChange={(e) => onFilterUpdate('location', e.target.value)}
-            />
-          </div>
-
-          {/* Color */}
-          <div className="space-y-2">
-            <Label className="text-sm font-medium">Color</Label>
-            <Input
-              placeholder="Any color"
-              value={filters.color}
-              onChange={(e) => onFilterUpdate('color', e.target.value)}
             />
           </div>
         </div>
