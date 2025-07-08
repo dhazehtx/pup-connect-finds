@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useDogListings } from '@/hooks/useDogListings';
 import ExploreHeader from './ExploreHeader';
-import EnhancedFiltersPanel from './EnhancedFiltersPanel';
+import FilterModal from './FilterModal';
 import ListingCard from './ListingCard';
 import ListingsSkeleton from './ListingsSkeleton';
 
@@ -11,7 +11,7 @@ const ExploreWithFilters = () => {
   const { listings, loading, searchListings } = useDogListings();
   const [searchParams] = useSearchParams();
   const [searchTerm, setSearchTerm] = useState(searchParams.get('search') || '');
-  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
+  const [showFiltersModal, setShowFiltersModal] = useState(false);
 
   const [filters, setFilters] = useState({
     breed: '',
@@ -30,7 +30,7 @@ const ExploreWithFilters = () => {
   });
 
   // Sample data for filters
-  const popularBreeds = ['Golden Retriever', 'Labrador', 'German Shepherd', 'Bulldog', 'Poodle'];
+  const popularBreeds = ['Golden Retriever', 'Labrador', 'German Shepherd', 'Bulldog', 'Poodle', 'French Bulldog', 'Beagle', 'Rottweiler', 'Yorkshire Terrier', 'Dachshund'];
 
   useEffect(() => {
     const initialSearch = searchParams.get('search');
@@ -57,7 +57,7 @@ const ExploreWithFilters = () => {
   };
 
   const handleToggleFilters = () => {
-    setShowAdvancedFilters(!showAdvancedFilters);
+    setShowFiltersModal(!showFiltersModal);
   };
 
   // Real-time search with debouncing
@@ -74,6 +74,9 @@ const ExploreWithFilters = () => {
   const handleFilterUpdate = (key: string, value: any) => {
     const newFilters = { ...filters, [key]: value };
     setFilters(newFilters);
+  };
+
+  const handleApplyFilters = () => {
     // Re-search with updated filters
     handleSearch(searchTerm);
   };
@@ -105,22 +108,21 @@ const ExploreWithFilters = () => {
         <ExploreHeader
           searchTerm={searchTerm}
           onSearchChange={handleSearchChange}
-          showAdvancedFilters={showAdvancedFilters}
+          showAdvancedFilters={showFiltersModal}
           onToggleFilters={handleToggleFilters}
         />
       </div>
 
-      {/* Advanced Filters Panel - Toggleable */}
-      {showAdvancedFilters && (
-        <div className="bg-white border-b border-gray-200 shadow-sm">
-          <EnhancedFiltersPanel
-            filters={filters}
-            onFilterUpdate={handleFilterUpdate}
-            onClearAllFilters={handleClearAllFilters}
-            popularBreeds={popularBreeds}
-          />
-        </div>
-      )}
+      {/* Filter Modal */}
+      <FilterModal
+        isOpen={showFiltersModal}
+        onClose={() => setShowFiltersModal(false)}
+        filters={filters}
+        onFilterUpdate={handleFilterUpdate}
+        onClearAllFilters={handleClearAllFilters}
+        onApplyFilters={handleApplyFilters}
+        popularBreeds={popularBreeds}
+      />
 
       {/* Main Content - Clean Layout */}
       <div className="max-w-7xl mx-auto px-4 py-6">
