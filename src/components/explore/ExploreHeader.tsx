@@ -30,39 +30,46 @@ const ExploreHeader = ({
   };
 
   return (
-    <div className="bg-white border-b border-gray-200 px-4 py-4">
-      {/* Main search bar */}
-      <div className="relative flex items-center gap-3">
-        <div className="relative flex-1">
+    <div className="bg-white px-4 py-4">
+      {/* Enhanced search bar with better proportions */}
+      <div className="relative flex items-center gap-3 max-w-7xl mx-auto">
+        {/* Search input - takes up ~60% of available space */}
+        <div className="relative flex-1 max-w-2xl">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
           <Input
             placeholder="Search by breed, breeder name, or keywords..."
             value={searchTerm}
             onChange={(e) => onSearchChange(e.target.value)}
-            className="pl-10 pr-4 bg-white text-gray-900 border-gray-300 focus:border-blue-600 focus:ring-blue-600"
+            className="pl-10 pr-4 bg-white text-gray-900 border-gray-300 focus:border-blue-600 focus:ring-blue-600 h-10"
           />
         </div>
         
-        {/* Post Button - only show for logged-in users */}
-        {showPostButton && (
+        {/* Right side buttons */}
+        <div className="flex items-center gap-2">
+          {/* Post Button - only show for logged-in users */}
+          {showPostButton && (
+            <Button 
+              onClick={handleCreatePost}
+              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 h-10 rounded-full font-medium flex items-center gap-2 whitespace-nowrap"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Post</span>
+            </Button>
+          )}
+          
+          {/* Filters Button */}
           <Button 
-            onClick={handleCreatePost}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-full font-medium flex items-center gap-2 whitespace-nowrap"
+            variant="outline" 
+            size="sm" 
+            className={`bg-white text-gray-700 border-gray-300 hover:bg-gray-50 h-10 px-4 whitespace-nowrap transition-colors ${
+              showAdvancedFilters ? 'border-blue-600 text-blue-600 bg-blue-50' : 'hover:border-blue-600'
+            }`}
+            onClick={onToggleFilters}
           >
-            <Plus className="w-4 h-4" />
-            <span>Post</span>
+            <Filter className="w-4 h-4 mr-2" />
+            Filters
           </Button>
-        )}
-        
-        <Button 
-          variant="outline" 
-          size="sm" 
-          className="bg-white text-gray-700 border-gray-300 hover:bg-gray-50 hover:border-blue-600 whitespace-nowrap"
-          onClick={onToggleFilters}
-        >
-          <Filter className="w-4 h-4 mr-1" />
-          Filters
-        </Button>
+        </div>
       </div>
     </div>
   );

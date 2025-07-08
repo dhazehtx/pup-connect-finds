@@ -92,36 +92,38 @@ const ExploreWithFilters = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Search Header - show on all screen sizes */}
-      <ExploreHeader
-        searchTerm={searchTerm}
-        onSearchChange={handleSearchChange}
-        showAdvancedFilters={showAdvancedFilters}
-        onToggleFilters={handleToggleFilters}
-      />
+      {/* Enhanced Sticky Header with shadow */}
+      <div className="sticky top-0 z-50 bg-white shadow-sm border-b border-gray-200">
+        <ExploreHeader
+          searchTerm={searchTerm}
+          onSearchChange={handleSearchChange}
+          showAdvancedFilters={showAdvancedFilters}
+          onToggleFilters={handleToggleFilters}
+        />
+      </div>
 
       {/* Advanced Filters Panel */}
       {showAdvancedFilters && (
-        <EnhancedFiltersPanel
-          filters={filters}
-          onFilterUpdate={handleFilterUpdate}
-          onClearAllFilters={handleClearAllFilters}
-          popularBreeds={popularBreeds}
-        />
+        <div className="bg-white border-b border-gray-200 shadow-sm">
+          <EnhancedFiltersPanel
+            filters={filters}
+            onFilterUpdate={handleFilterUpdate}
+            onClearAllFilters={handleClearAllFilters}
+            popularBreeds={popularBreeds}
+          />
+        </div>
       )}
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 py-6">
-        {/* Results Header */}
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">
-              {searchTerm ? `Search Results for "${searchTerm}"` : 'Explore Puppies'}
-            </h1>
-            <p className="text-gray-600 mt-1">
-              {loading ? 'Searching...' : `${listings.length} puppies found`}
-            </p>
-          </div>
+        {/* Results Header - Simplified without redundant search */}
+        <div className="mb-6">
+          <h1 className="text-2xl font-bold text-gray-900">
+            {searchTerm ? `Search Results for "${searchTerm}"` : 'Explore Puppies'}
+          </h1>
+          <p className="text-gray-600 mt-1">
+            {loading ? 'Searching...' : `${listings.length} puppies found`}
+          </p>
         </div>
 
         {/* Listings Grid - Only shows dog_listings, NOT social posts */}
