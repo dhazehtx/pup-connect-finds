@@ -1,7 +1,8 @@
-
 import React, { useState, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
+import { Plus } from 'lucide-react';
 import { useDogListings } from '@/hooks/useDogListings';
+import { Button } from '@/components/ui/button';
 import ExploreHeader from './ExploreHeader';
 import EnhancedFiltersPanel from './EnhancedFiltersPanel';
 import ListingCard from './ListingCard';
@@ -12,6 +13,7 @@ const ExploreWithFilters = () => {
   const [searchParams] = useSearchParams();
   const [searchTerm, setSearchTerm] = useState(searchParams.get('search') || '');
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
+  const navigate = useNavigate();
 
   const [filters, setFilters] = useState({
     breed: '',
@@ -91,7 +93,7 @@ const ExploreWithFilters = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 relative">
       {/* Search Header - only show if no sticky header search is available */}
       <div className="md:hidden">
         <ExploreHeader
@@ -146,6 +148,15 @@ const ExploreWithFilters = () => {
           </>
         )}
       </div>
+
+      {/* Floating Action Button - Post Listing */}
+      <Button
+        onClick={() => navigate('/post')}
+        className="fixed bottom-6 right-6 h-14 w-14 rounded-full bg-blue-600 hover:bg-blue-700 shadow-lg hover:shadow-xl transition-all duration-200 z-50"
+        size="icon"
+      >
+        <Plus className="h-6 w-6 text-white" />
+      </Button>
     </div>
   );
 };
