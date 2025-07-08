@@ -92,7 +92,7 @@ const ExploreWithFilters = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Enhanced Sticky Header with shadow */}
+      {/* Single Sticky Header with Search, Post Button, and Filters */}
       <div className="sticky top-0 z-50 bg-white shadow-sm border-b border-gray-200">
         <ExploreHeader
           searchTerm={searchTerm}
@@ -114,9 +114,9 @@ const ExploreWithFilters = () => {
         </div>
       )}
 
-      {/* Main Content */}
+      {/* Main Content - No Search Bar Here */}
       <div className="max-w-7xl mx-auto px-4 py-6">
-        {/* Results Header - Simplified without redundant search */}
+        {/* Results Header - Clean without search elements */}
         <div className="mb-6">
           <h1 className="text-2xl font-bold text-gray-900">
             {searchTerm ? `Search Results for "${searchTerm}"` : 'Explore Puppies'}
@@ -126,7 +126,7 @@ const ExploreWithFilters = () => {
           </p>
         </div>
 
-        {/* Listings Grid - Only shows dog_listings, NOT social posts */}
+        {/* Listings Grid */}
         {loading ? (
           <ListingsSkeleton />
         ) : (
