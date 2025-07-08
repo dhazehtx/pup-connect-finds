@@ -70,7 +70,8 @@ export const useBreedColors = (selectedBreed?: string) => {
           console.log(`No specific colors found for ${selectedBreed}, using master list`);
           setColors(masterColorList);
         } else {
-          setColors(data.map(item => item.color));
+          const uniqueColors = [...new Set(data.map(item => item.color))];
+          setColors(uniqueColors);
         }
       } catch (err) {
         console.error('Error fetching breed colors:', err);

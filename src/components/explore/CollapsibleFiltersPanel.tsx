@@ -67,8 +67,8 @@ const CollapsibleFiltersPanel = ({
     const breedValue = value === "all" ? "" : value;
     onFilterUpdate('breed', breedValue);
     
-    // Reset color when breed changes (except for Mixed Breed which shows all colors)
-    if (filters.color && breedValue && breedValue !== 'Mixed Breed') {
+    // Reset color when breed changes to ensure valid combinations
+    if (filters.color) {
       onFilterUpdate('color', '');
     }
   };
@@ -78,38 +78,40 @@ const CollapsibleFiltersPanel = ({
     onFilterUpdate('color', value === "all" ? "" : value);
   };
 
-  // Determine which colors to show
-  const getAvailableColors = () => {
+  // Determine color dropdown state and options
+  const getColorDropdownProps = () => {
     if (!filters.breed || filters.breed === '') {
-      // No breed selected - show default colors
-      return [
-        'Black',
-        'White', 
-        'Brown',
-        'Tan',
-        'Brindle',
-        'Merle',
-        'Cream',
-        'Gray',
-        'Mixed'
-      ];
+      return {
+        placeholder: "Select a breed first",
+        disabled: true,
+        colors: []
+      };
     }
     
-    // Mixed Breed or breed selected - show breed-specific colors or fallback
-    return breedColors.length > 0 ? breedColors : [
-      'Black',
-      'White', 
-      'Brown',
-      'Tan',
-      'Brindle',
-      'Merle',
-      'Cream',
-      'Gray',
-      'Mixed'
-    ];
+    if (filters.breed === 'Mixed Breed') {
+      return {
+        placeholder: "All colors available",
+        disabled: false,
+        colors: breedColors
+      };
+    }
+    
+    if (colorsLoading) {
+      return {
+        placeholder: "Loading colors...",
+        disabled: true,
+        colors: []
+      };
+    }
+    
+    return {
+      placeholder: `Colors for ${filters.breed}`,
+      disabled: false,
+      colors: breedColors
+    };
   };
 
-  const availableColors = getAvailableColors();
+  const colorDropdownProps = getColorDropdownProps();
 
   if (!isOpen) return null;
 
@@ -158,7 +160,7 @@ const CollapsibleFiltersPanel = ({
                 <SelectValue placeholder="Any breed" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Any breed</SelectItem>
+                <SelectItem value="all">All breeds</SelectItem>
                 {popularBreeds.map(breed => (
                   <SelectItem key={breed} value={breed}>{breed}</SelectItem>
                 ))}
@@ -199,30 +201,24 @@ const CollapsibleFiltersPanel = ({
           <div className="space-y-2">
             <Label className="text-sm font-medium">
               Color
-              {filters.breed && colorsLoading && (
-                <span className="text-xs text-gray-500 ml-1">(loading...)</span>
-              )}
               {filters.breed === 'Mixed Breed' && (
                 <span className="text-xs text-green-600 ml-1">(all colors available)</span>
+              )}
+              {filters.breed && filters.breed !== 'Mixed Breed' && !colorsLoading && breedColors.length > 0 && (
+                <span className="text-xs text-blue-600 ml-1">({breedColors.length} colors)</span>
               )}
             </Label>
             <Select 
               value={filters.color || "all"} 
               onValueChange={handleColorChange}
-              disabled={colorsLoading}
+              disabled={colorDropdownProps.disabled}
             >
-              <SelectTrigger>
-                <SelectValue placeholder={
-                  filters.breed && !colorsLoading 
-                    ? filters.breed === 'Mixed Breed' 
-                      ? "All colors available"
-                      : `Select color for ${filters.breed}` 
-                    : "All colors"
-                } />
+              <SelectTrigger className={colorDropdownProps.disabled ? "opacity-50" : ""}>
+                <SelectValue placeholder={colorDropdownProps.placeholder} />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All colors</SelectItem>
-                {availableColors.map(color => (
+                {colorDropdownProps.colors.map(color => (
                   <SelectItem key={color} value={color}>{color}</SelectItem>
                 ))}
               </SelectContent>
