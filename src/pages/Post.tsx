@@ -63,11 +63,7 @@ const Post = () => {
             </p>
           </CardHeader>
           <CardContent>
-            <SocialPostCreator 
-              onSuccess={() => {
-                navigate('/profile');
-              }}
-            />
+            <SocialPostCreator />
           </CardContent>
         </Card>
 
