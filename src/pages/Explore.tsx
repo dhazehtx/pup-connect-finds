@@ -21,7 +21,7 @@ const Explore = () => {
       {showPostButton && (
         <Button
           onClick={() => navigate('/post')}
-          className="fixed bottom-6 right-6 h-14 w-14 rounded-full bg-blue-600 hover:bg-blue-700 shadow-lg hover:shadow-xl transition-all duration-200 z-50 border-0"
+          className="fixed top-6 right-6 h-14 w-14 rounded-full bg-blue-600 hover:bg-blue-700 shadow-lg hover:shadow-xl transition-all duration-200 z-50 border-0"
           size="icon"
           title="Create Post"
         >
