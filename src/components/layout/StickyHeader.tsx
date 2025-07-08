@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Heart, Search, Plus, ShoppingBag } from 'lucide-react';
@@ -41,14 +40,6 @@ const StickyHeader = () => {
     }
   };
 
-  const handleCreateListing = () => {
-    if (!user && !isGuest) {
-      navigate('/auth');
-      return;
-    }
-    navigate('/post');
-  };
-
   const handleCreatePost = () => {
     if (!user && !isGuest) {
       navigate('/auth');
@@ -73,8 +64,7 @@ const StickyHeader = () => {
     return "/";
   };
 
-  // Determine which button to show based on current route
-  const isExplorePage = location.pathname === '/explore';
+  // Only show social post button on home and profile pages
   const isHomeOrProfilePage = location.pathname === '/home' || location.pathname.startsWith('/profile');
 
   return (
@@ -88,7 +78,7 @@ const StickyHeader = () => {
               <span className="text-xl font-bold text-gray-900">MY PUP</span>
             </Link>
 
-            {/* Center: Search bar + Create button */}
+            {/* Center: Search bar + Create Post button (only on home/profile pages) */}
             <div className="flex-1 max-w-2xl mx-8 hidden md:flex items-center space-x-4">
               <form onSubmit={handleSearch} className="flex-1">
                 <div className="relative">
@@ -102,18 +92,7 @@ const StickyHeader = () => {
                 </div>
               </form>
               
-              {/* Conditional Create Button - Only show one at a time */}
-              {isExplorePage && (
-                <Button
-                  onClick={handleCreateListing}
-                  size="sm"
-                  className="bg-blue-600 hover:bg-blue-700 text-white rounded-full px-4 py-2 flex items-center gap-2 flex-shrink-0"
-                >
-                  <ShoppingBag className="w-4 h-4" />
-                  <span className="hidden sm:inline">Create Listing</span>
-                </Button>
-              )}
-              
+              {/* Social Post Button - Only on home/profile pages */}
               {isHomeOrProfilePage && (
                 <Button
                   onClick={handleCreatePost}
@@ -140,17 +119,7 @@ const StickyHeader = () => {
                 </div>
               </form>
               
-              {/* Mobile Conditional Create Button - Only show one at a time */}
-              {isExplorePage && (
-                <Button
-                  onClick={handleCreateListing}
-                  size="sm"
-                  className="bg-blue-600 hover:bg-blue-700 text-white rounded-full w-8 h-8 p-0 flex-shrink-0"
-                >
-                  <ShoppingBag className="w-4 h-4" />
-                </Button>
-              )}
-              
+              {/* Mobile Social Post Button - Only on home/profile pages */}
               {isHomeOrProfilePage && (
                 <Button
                   onClick={handleCreatePost}

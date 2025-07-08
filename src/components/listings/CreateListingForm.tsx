@@ -41,8 +41,23 @@ const CreateListingForm = ({ onSuccess, className = "" }: CreateListingFormProps
       rehoming: false,
       delivery_available: false,
       listing_status: 'active',
+      images: [],
+      video_url: '',
     },
   });
+
+  // Check if form has required fields filled
+  const isFormValid = () => {
+    const values = form.getValues();
+    return (
+      values.dog_name &&
+      values.breed &&
+      values.age > 0 &&
+      values.price > 0 &&
+      values.images && 
+      values.images.length > 0
+    );
+  };
 
   const onSubmit = async (data: ListingFormData) => {
     if (!user) {
@@ -75,6 +90,8 @@ const CreateListingForm = ({ onSuccess, className = "" }: CreateListingFormProps
         delivery_available: data.delivery_available,
         status: 'active', // Ensure status is set for backward compatibility
         listing_status: data.listing_status,
+        images: data.images || [],
+        video_url: data.video_url || '',
       };
       
       await createListing(listingData);
@@ -111,10 +128,10 @@ const CreateListingForm = ({ onSuccess, className = "" }: CreateListingFormProps
             
             <Button
               type="submit"
-              className="w-full"
-              disabled={loading}
+              className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg shadow-lg transition-colors duration-200"
+              disabled={loading || !isFormValid()}
             >
-              {loading ? 'Creating Listing...' : 'Create Listing'}
+              {loading ? 'Creating Listing...' : 'Post Listing'}
             </Button>
           </form>
         </Form>

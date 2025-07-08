@@ -1,4 +1,5 @@
-import React from 'react';
+
+import React, { useState } from 'react';
 import { UseFormReturn } from 'react-hook-form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -6,12 +7,16 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { ListingFormData, popularBreeds } from './listingSchema';
+import MultiMediaUpload from './MultiMediaUpload';
 
 interface ListingFormFieldsProps {
   form: UseFormReturn<ListingFormData>;
 }
 
 const ListingFormFields = ({ form }: ListingFormFieldsProps) => {
+  const [imageUrls, setImageUrls] = useState<string[]>([]);
+  const [videoUrl, setVideoUrl] = useState<string>('');
+
   const handleNumberInput = (value: string, onChange: (value: number) => void) => {
     // Remove leading zeros and convert to number
     const cleanedValue = value.replace(/^0+/, '') || '0';
@@ -23,8 +28,27 @@ const ListingFormFields = ({ form }: ListingFormFieldsProps) => {
     }
   };
 
+  const handleImagesChange = (urls: string[]) => {
+    setImageUrls(urls);
+    form.setValue('images', urls);
+  };
+
+  const handleVideoChange = (url: string) => {
+    setVideoUrl(url);
+    form.setValue('video_url', url);
+  };
+
   return (
     <>
+      {/* Media Upload Section */}
+      <div className="space-y-4 border-b pb-6">
+        <h3 className="text-lg font-semibold">Media</h3>
+        <MultiMediaUpload
+          onImagesChange={handleImagesChange}
+          onVideoChange={handleVideoChange}
+        />
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <FormField
           control={form.control}
