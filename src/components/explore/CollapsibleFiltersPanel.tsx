@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Slider } from '@/components/ui/slider';
 import { Checkbox } from '@/components/ui/checkbox';
+import { useBreedColors } from '@/hooks/useBreedColors';
 
 interface FilterState {
   breed: string;
@@ -52,23 +53,63 @@ const CollapsibleFiltersPanel = ({
     parseInt(filters.maxPrice) || 5000
   ]);
 
+  // Get breed-specific colors
+  const { colors: breedColors, loading: colorsLoading } = useBreedColors(filters.breed);
+
   const handlePriceRangeChange = (values: number[]) => {
     setPriceRange(values);
     onFilterUpdate('minPrice', values[0].toString());
     onFilterUpdate('maxPrice', values[1].toString());
   };
 
-  const colorOptions = [
-    'Black',
-    'White', 
-    'Brown',
-    'Tan',
-    'Brindle',
-    'Merle',
-    'Cream',
-    'Gray',
-    'Mixed'
-  ];
+  // Handle breed change and reset color if needed
+  const handleBreedChange = (value: string) => {
+    const breedValue = value === "all" ? "" : value;
+    onFilterUpdate('breed', breedValue);
+    
+    // Reset color when breed changes
+    if (filters.color && breedValue) {
+      onFilterUpdate('color', '');
+    }
+  };
+
+  // Handle color change
+  const handleColorChange = (value: string) => {
+    onFilterUpdate('color', value === "all" ? "" : value);
+  };
+
+  // Determine which colors to show
+  const getAvailableColors = () => {
+    if (!filters.breed || filters.breed === '') {
+      // No breed selected - show default colors
+      return [
+        'Black',
+        'White', 
+        'Brown',
+        'Tan',
+        'Brindle',
+        'Merle',
+        'Cream',
+        'Gray',
+        'Mixed'
+      ];
+    }
+    
+    // Breed selected - show breed-specific colors or fallback
+    return breedColors.length > 0 ? breedColors : [
+      'Black',
+      'White', 
+      'Brown',
+      'Tan',
+      'Brindle',
+      'Merle',
+      'Cream',
+      'Gray',
+      'Mixed'
+    ];
+  };
+
+  const availableColors = getAvailableColors();
 
   if (!isOpen) return null;
 
@@ -112,7 +153,7 @@ const CollapsibleFiltersPanel = ({
           {/* Basic Filters Row */}
           <div className="space-y-2">
             <Label className="text-sm font-medium">Breed</Label>
-            <Select value={filters.breed || "all"} onValueChange={(value) => onFilterUpdate('breed', value === "all" ? "" : value)}>
+            <Select value={filters.breed || "all"} onValueChange={handleBreedChange}>
               <SelectTrigger>
                 <SelectValue placeholder="Any breed" />
               </SelectTrigger>
@@ -156,14 +197,27 @@ const CollapsibleFiltersPanel = ({
 
           {/* Second Row - Color, Price Range, Location */}
           <div className="space-y-2">
-            <Label className="text-sm font-medium">Color</Label>
-            <Select value={filters.color || "all"} onValueChange={(value) => onFilterUpdate('color', value === "all" ? "" : value)}>
+            <Label className="text-sm font-medium">
+              Color
+              {filters.breed && colorsLoading && (
+                <span className="text-xs text-gray-500 ml-1">(loading...)</span>
+              )}
+            </Label>
+            <Select 
+              value={filters.color || "all"} 
+              onValueChange={handleColorChange}
+              disabled={colorsLoading}
+            >
               <SelectTrigger>
-                <SelectValue placeholder="All colors" />
+                <SelectValue placeholder={
+                  filters.breed && !colorsLoading 
+                    ? `Select color for ${filters.breed}` 
+                    : "All colors"
+                } />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All colors</SelectItem>
-                {colorOptions.map(color => (
+                {availableColors.map(color => (
                   <SelectItem key={color} value={color}>{color}</SelectItem>
                 ))}
               </SelectContent>
