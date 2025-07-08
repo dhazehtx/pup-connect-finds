@@ -1,12 +1,11 @@
 
 import React, { useState } from 'react';
-import { ArrowLeft, Upload } from 'lucide-react';
+import { ArrowLeft, Camera, Video } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import CreateListingForm from '@/components/listings/CreateListingForm';
-import MyListingsManager from '@/components/listings/MyListingsManager';
+import SocialPostCreator from '@/components/posts/SocialPostCreator';
 import { useAuth } from '@/contexts/AuthContext';
 
 const Post = () => {
@@ -21,14 +20,14 @@ const Post = () => {
           <button onClick={() => navigate(-1)}>
             <ArrowLeft size={24} />
           </button>
-          <h1 className="text-lg font-semibold">Create Listing</h1>
+          <h1 className="text-lg font-semibold">Create Post</h1>
           <div></div>
         </div>
         
         <div className="p-4">
           <Card>
             <CardContent className="py-8 text-center">
-              <p className="text-gray-600">Please sign in to create listings.</p>
+              <p className="text-gray-600">Please sign in to create posts.</p>
               <Button 
                 onClick={() => navigate('/auth')} 
                 className="mt-4"
@@ -43,40 +42,53 @@ const Post = () => {
   }
 
   return (
-    <div className="max-w-6xl mx-auto bg-white min-h-screen">
+    <div className="max-w-2xl mx-auto bg-white min-h-screen">
       <div className="p-4 flex items-center justify-between bg-white border-b sticky top-0 z-10">
         <button onClick={() => navigate(-1)}>
           <ArrowLeft size={24} />
         </button>
-        <h1 className="text-lg font-semibold">Listing Management</h1>
+        <h1 className="text-lg font-semibold">Create Post</h1>
         <div></div>
       </div>
 
       <div className="p-4">
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-2 mb-6">
-            <TabsTrigger value="create" className="flex items-center gap-2">
-              <Upload className="w-4 h-4" />
-              Create Listing
-            </TabsTrigger>
-            <TabsTrigger value="manage">
-              My Listings
-            </TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="create" className="mt-0">
-            <CreateListingForm
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Camera className="w-5 h-5" />
+              Share Your Story
+            </CardTitle>
+            <p className="text-sm text-gray-600">
+              Create posts that will appear on your profile and in your followers' feeds
+            </p>
+          </CardHeader>
+          <CardContent>
+            <SocialPostCreator 
               onSuccess={() => {
-                setActiveTab('manage');
+                navigate('/profile');
               }}
-              className="border-0 shadow-none"
             />
-          </TabsContent>
+          </CardContent>
+        </Card>
+
+        {/* Quick Actions */}
+        <div className="mt-6 grid grid-cols-2 gap-4">
+          <Card className="cursor-pointer hover:shadow-md transition-shadow">
+            <CardContent className="p-4 text-center">
+              <Camera className="w-8 h-8 mx-auto mb-2 text-blue-600" />
+              <h3 className="font-medium">Photo Post</h3>
+              <p className="text-sm text-gray-600">Share a photo with caption</p>
+            </CardContent>
+          </Card>
           
-          <TabsContent value="manage" className="mt-0">
-            <MyListingsManager />
-          </TabsContent>
-        </Tabs>
+          <Card className="cursor-pointer hover:shadow-md transition-shadow">
+            <CardContent className="p-4 text-center">
+              <Video className="w-8 h-8 mx-auto mb-2 text-purple-600" />
+              <h3 className="font-medium">Video Post</h3>
+              <p className="text-sm text-gray-600">Share a video moment</p>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </div>
   );
