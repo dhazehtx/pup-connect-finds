@@ -12,6 +12,7 @@ import Post from './pages/Post';
 import Profile from './pages/Profile';
 import Auth from './pages/Auth';
 import CreateListing from './pages/CreateListing';
+import Marketplace from './pages/Marketplace';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -32,6 +33,7 @@ function App() {
                 <Routes>
                   <Route path="/" element={<Home />} />
                   <Route path="/explore" element={<Explore />} />
+                  <Route path="/marketplace" element={<Marketplace />} />
                   <Route path="/post" element={<Post />} />
                   <Route path="/profile/:userId" element={<Profile />} />
                   <Route path="/profile" element={<Profile />} />
