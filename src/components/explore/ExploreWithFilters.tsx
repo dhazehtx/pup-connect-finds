@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useDogListings } from '@/hooks/useDogListings';
 import ExploreHeader from './ExploreHeader';
-import FilterModal from './FilterModal';
+import CollapsibleFiltersPanel from './CollapsibleFiltersPanel';
 import ListingCard from './ListingCard';
 import ListingsSkeleton from './ListingsSkeleton';
 
@@ -11,7 +11,8 @@ const ExploreWithFilters = () => {
   const { listings, loading, searchListings } = useDogListings();
   const [searchParams] = useSearchParams();
   const [searchTerm, setSearchTerm] = useState(searchParams.get('search') || '');
-  const [showFiltersModal, setShowFiltersModal] = useState(false);
+  const [showFiltersPanel, setShowFiltersPanel] = useState(false);
+  const [sortBy, setSortBy] = useState('newest');
 
   const [filters, setFilters] = useState({
     breed: '',
@@ -31,6 +32,30 @@ const ExploreWithFilters = () => {
 
   // Sample data for filters
   const popularBreeds = ['Golden Retriever', 'Labrador', 'German Shepherd', 'Bulldog', 'Poodle', 'French Bulldog', 'Beagle', 'Rottweiler', 'Yorkshire Terrier', 'Dachshund'];
+
+  // Sort listings based on sortBy value
+  const sortedListings = React.useMemo(() => {
+    if (!listings || listings.length === 0) return [];
+    
+    const sorted = [...listings];
+    
+    switch (sortBy) {
+      case 'price-low':
+        return sorted.sort((a, b) => (a.price || 0) - (b.price || 0));
+      case 'price-high':
+        return sorted.sort((a, b) => (b.price || 0) - (a.price || 0));
+      case 'age-young':
+        return sorted.sort((a, b) => (a.age || 0) - (b.age || 0));
+      case 'distance':
+        // For now, sort by location alphabetically since we don't have actual distance data
+        return sorted.sort((a, b) => (a.location || '').localeCompare(b.location || ''));
+      case 'rating':
+        // Placeholder for rating sort - would need rating data from backend
+        return sorted;
+      default: // newest
+        return sorted.sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime());
+    }
+  }, [listings, sortBy]);
 
   useEffect(() => {
     const initialSearch = searchParams.get('search');
@@ -57,7 +82,7 @@ const ExploreWithFilters = () => {
   };
 
   const handleToggleFilters = () => {
-    setShowFiltersModal(!showFiltersModal);
+    setShowFiltersPanel(!showFiltersPanel);
   };
 
   // Real-time search with debouncing
@@ -101,6 +126,10 @@ const ExploreWithFilters = () => {
     handleSearch(searchTerm);
   };
 
+  const handleSortChange = (value: string) => {
+    setSortBy(value);
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Single Sticky Header - Facebook Marketplace Style */}
@@ -108,20 +137,22 @@ const ExploreWithFilters = () => {
         <ExploreHeader
           searchTerm={searchTerm}
           onSearchChange={handleSearchChange}
-          showAdvancedFilters={showFiltersModal}
+          showAdvancedFilters={showFiltersPanel}
           onToggleFilters={handleToggleFilters}
         />
       </div>
 
-      {/* Filter Modal */}
-      <FilterModal
-        isOpen={showFiltersModal}
-        onClose={() => setShowFiltersModal(false)}
+      {/* Collapsible Filters Panel */}
+      <CollapsibleFiltersPanel
+        isOpen={showFiltersPanel}
+        onClose={() => setShowFiltersPanel(false)}
         filters={filters}
         onFilterUpdate={handleFilterUpdate}
         onClearAllFilters={handleClearAllFilters}
         onApplyFilters={handleApplyFilters}
         popularBreeds={popularBreeds}
+        sortBy={sortBy}
+        onSortChange={handleSortChange}
       />
 
       {/* Main Content - Clean Layout */}
@@ -131,11 +162,13 @@ const ExploreWithFilters = () => {
           <h1 className="text-2xl font-bold text-gray-900 mb-2">
             Explore Puppies
           </h1>
-          <p className="text-gray-600">
-            Use the search bar above or apply filters to find your perfect match.
-          </p>
+          <div className="flex items-center gap-4 text-gray-600">
+            <span>📍 Showing puppies near your location</span>
+            <span>•</span>
+            <span>{loading ? 'Searching...' : `${sortedListings.length} puppies found`}</span>
+          </div>
           <p className="text-gray-500 text-sm mt-1">
-            {loading ? 'Searching...' : `${listings.length} puppies found`}
+            Use the search bar above or apply filters to find your perfect match.
           </p>
         </div>
 
@@ -145,15 +178,16 @@ const ExploreWithFilters = () => {
         ) : (
           <>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {listings.map((listing) => (
+              {sortedListings.map((listing) => (
                 <ListingCard key={listing.id} listing={listing} />
               ))}
             </div>
 
-            {listings.length === 0 && !loading && (
+            {sortedListings.length === 0 && !loading && (
               <div className="text-center py-12">
-                <p className="text-gray-500 text-lg">No puppies found matching your criteria.</p>
-                <p className="text-gray-400 mt-2">Try adjusting your search terms or filters.</p>
+                <div className="text-6xl mb-4">🐶</div>
+                <p className="text-gray-500 text-lg mb-2">No puppies found?</p>
+                <p className="text-gray-400">Try adjusting your filters or check nearby areas.</p>
               </div>
             )}
           </>
