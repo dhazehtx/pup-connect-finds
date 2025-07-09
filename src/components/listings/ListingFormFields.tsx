@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { UseFormReturn } from 'react-hook-form';
 import { Input } from '@/components/ui/input';
@@ -211,30 +210,35 @@ const ListingFormFields = ({ form }: ListingFormFieldsProps) => {
             <FormItem>
               <FormLabel>Color</FormLabel>
               <FormControl>
-                {selectedBreed && breedColors.length > 0 ? (
-                  <Select 
-                    onValueChange={field.onChange} 
-                    defaultValue={field.value}
-                    disabled={colorsLoading}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder={colorsLoading ? "Loading colors..." : "Select color"} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {breedColors.map((color) => (
-                        <SelectItem key={color} value={color}>
-                          {color}
-                        </SelectItem>
-                      ))}
+                <Select 
+                  onValueChange={field.onChange} 
+                  value={field.value}
+                  disabled={colorsLoading || (!selectedBreed)}
+                >
+                  <SelectTrigger>
+                    <SelectValue 
+                      placeholder={
+                        !selectedBreed 
+                          ? "Select a breed first" 
+                          : colorsLoading 
+                            ? "Loading colors..." 
+                            : breedColors.length > 0 
+                              ? "Select color" 
+                              : "No colors available"
+                      } 
+                    />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {breedColors.map((color) => (
+                      <SelectItem key={color} value={color}>
+                        {color}
+                      </SelectItem>
+                    ))}
+                    {breedColors.length > 0 && (
                       <SelectItem value="Other">Other</SelectItem>
-                    </SelectContent>
-                  </Select>
-                ) : (
-                  <Input 
-                    placeholder="e.g., Brown, Black, White" 
-                    {...field} 
-                  />
-                )}
+                    )}
+                  </SelectContent>
+                </Select>
               </FormControl>
               <FormMessage />
             </FormItem>
