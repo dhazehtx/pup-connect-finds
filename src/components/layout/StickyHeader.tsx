@@ -1,20 +1,24 @@
 
 import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { Heart, Search, Plus, Filter } from 'lucide-react';
+import { Heart, Search, Plus, Bell } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+import { useEnhancedNotifications } from '@/hooks/useEnhancedNotifications';
 import ModernPostCreator from '@/components/home/ModernPostCreator';
+import NotificationCenter from '@/components/notifications/NotificationCenter';
 
 const StickyHeader = () => {
   const { user, isGuest } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const { toast } = useToast();
+  const { unreadCount } = useEnhancedNotifications();
   const [searchQuery, setSearchQuery] = useState('');
   const [showPostCreator, setShowPostCreator] = useState(false);
+  const [showNotifications, setShowNotifications] = useState(false);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -80,7 +84,7 @@ const StickyHeader = () => {
               <span className="text-xl font-bold text-gray-900">MY PUP</span>
             </Link>
 
-            {/* Center: Search bar + Create Post button */}
+            {/* Center: Search bar + Create Post button + Notification Bell */}
             <div className="flex-1 max-w-2xl mx-8 hidden md:flex items-center space-x-4">
               <form onSubmit={handleSearch} className="flex-1">
                 <div className="relative">
@@ -94,21 +98,40 @@ const StickyHeader = () => {
                 </div>
               </form>
               
-              {/* Dynamic Post Button */}
-              {(isHomeOrProfilePage || isMarketplacePage) && (
-                <Button
-                  onClick={handleCreatePost}
-                  size="sm"
-                  className={`${
-                    isMarketplacePage 
-                      ? 'bg-green-600 hover:bg-green-700' 
-                      : 'bg-blue-600 hover:bg-blue-700'
-                  } text-white rounded-full px-4 py-2 flex items-center gap-2 flex-shrink-0`}
-                >
-                  <Plus className="w-4 h-4" />
-                  <span className="hidden sm:inline">{getPostButtonText()}</span>
-                </Button>
-              )}
+              <div className="flex items-center space-x-3">
+                {/* Dynamic Post Button */}
+                {(isHomeOrProfilePage || isMarketplacePage) && (
+                  <Button
+                    onClick={handleCreatePost}
+                    size="sm"
+                    className={`${
+                      isMarketplacePage 
+                        ? 'bg-green-600 hover:bg-green-700' 
+                        : 'bg-blue-600 hover:bg-blue-700'
+                    } text-white rounded-full px-4 py-2 flex items-center gap-2 flex-shrink-0`}
+                  >
+                    <Plus className="w-4 h-4" />
+                    <span className="hidden sm:inline">{getPostButtonText()}</span>
+                  </Button>
+                )}
+
+                {/* Notification Bell - Only for authenticated users */}
+                {(user || isGuest) && (
+                  <div className="relative">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setShowNotifications(!showNotifications)}
+                      className="relative p-2 text-[#2C3EDC] hover:text-[#2C3EDC] hover:bg-[#2C3EDC]/5 hover:shadow-sm transition-all duration-200 rounded-full"
+                    >
+                      <Bell className="h-6 w-6" />
+                      {unreadCount > 0 && (
+                        <div className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-[#FF3B30] rounded-full border border-white"></div>
+                      )}
+                    </Button>
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* Mobile search and create */}
@@ -125,20 +148,39 @@ const StickyHeader = () => {
                 </div>
               </form>
               
-              {/* Mobile Dynamic Post Button */}
-              {(isHomeOrProfilePage || isMarketplacePage) && (
-                <Button
-                  onClick={handleCreatePost}
-                  size="sm"
-                  className={`${
-                    isMarketplacePage 
-                      ? 'bg-green-600 hover:bg-green-700' 
-                      : 'bg-blue-600 hover:bg-blue-700'
-                  } text-white rounded-full w-8 h-8 p-0 flex-shrink-0`}
-                >
-                  <Plus className="w-4 h-4" />
-                </Button>
-              )}
+              <div className="flex items-center space-x-2">
+                {/* Mobile Dynamic Post Button */}
+                {(isHomeOrProfilePage || isMarketplacePage) && (
+                  <Button
+                    onClick={handleCreatePost}
+                    size="sm"
+                    className={`${
+                      isMarketplacePage 
+                        ? 'bg-green-600 hover:bg-green-700' 
+                        : 'bg-blue-600 hover:bg-blue-700'
+                    } text-white rounded-full w-8 h-8 p-0 flex-shrink-0`}
+                  >
+                    <Plus className="w-4 h-4" />
+                  </Button>
+                )}
+
+                {/* Mobile Notification Bell - Only for authenticated users */}
+                {(user || isGuest) && (
+                  <div className="relative">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setShowNotifications(!showNotifications)}
+                      className="relative p-1.5 text-[#2C3EDC] hover:text-[#2C3EDC] hover:bg-[#2C3EDC]/5 rounded-full w-8 h-8"
+                    >
+                      <Bell className="h-5 w-5" />
+                      {unreadCount > 0 && (
+                        <div className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-[#FF3B30] rounded-full border border-white"></div>
+                      )}
+                    </Button>
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* Right: Sign In button only for non-authenticated users */}
@@ -162,6 +204,14 @@ const StickyHeader = () => {
         <ModernPostCreator
           onClose={() => setShowPostCreator(false)}
           onPostCreated={handlePostCreated}
+        />
+      )}
+
+      {/* Notification Center */}
+      {showNotifications && (
+        <NotificationCenter
+          isOpen={showNotifications}
+          onClose={() => setShowNotifications(false)}
         />
       )}
     </>
