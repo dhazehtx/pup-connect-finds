@@ -1,8 +1,8 @@
-
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useDogListings } from '@/hooks/useDogListings';
-import ExploreHeader from './ExploreHeader';
+import { Filter } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import CollapsibleFiltersPanel from './CollapsibleFiltersPanel';
 import ListingCard from './ListingCard';
 import ListingsSkeleton from './ListingsSkeleton';
@@ -10,7 +10,6 @@ import ListingsSkeleton from './ListingsSkeleton';
 const ExploreWithFilters = () => {
   const { listings, loading, searchListings } = useDogListings();
   const [searchParams] = useSearchParams();
-  const [searchTerm, setSearchTerm] = useState(searchParams.get('search') || '');
   const [showFiltersPanel, setShowFiltersPanel] = useState(false);
   const [sortBy, setSortBy] = useState('newest');
 
@@ -108,10 +107,8 @@ const ExploreWithFilters = () => {
       case 'age-young':
         return sorted.sort((a, b) => (a.age || 0) - (b.age || 0));
       case 'distance':
-        // For now, sort by location alphabetically since we don't have actual distance data
         return sorted.sort((a, b) => (a.location || '').localeCompare(b.location || ''));
       case 'rating':
-        // Placeholder for rating sort - would need rating data from backend
         return sorted;
       default: // newest
         return sorted.sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime());
@@ -121,10 +118,8 @@ const ExploreWithFilters = () => {
   useEffect(() => {
     const initialSearch = searchParams.get('search');
     if (initialSearch) {
-      setSearchTerm(initialSearch);
       handleSearch(initialSearch);
     } else {
-      // Load all listings on initial page load
       handleSearch('');
     }
   }, [searchParams]);
@@ -142,29 +137,14 @@ const ExploreWithFilters = () => {
     }
   };
 
-  const handleToggleFilters = () => {
-    setShowFiltersPanel(!showFiltersPanel);
-  };
-
-  // Real-time search with debouncing
-  const handleSearchChange = (value: string) => {
-    setSearchTerm(value);
-    // Debounce search to avoid too many API calls
-    const timeoutId = setTimeout(() => {
-      handleSearch(value);
-    }, 300);
-    
-    return () => clearTimeout(timeoutId);
-  };
-
   const handleFilterUpdate = (key: string, value: any) => {
     const newFilters = { ...filters, [key]: value };
     setFilters(newFilters);
   };
 
   const handleApplyFilters = () => {
-    // Re-search with updated filters
-    handleSearch(searchTerm);
+    const currentSearch = searchParams.get('search') || '';
+    handleSearch(currentSearch);
   };
 
   const handleClearAllFilters = () => {
@@ -184,7 +164,8 @@ const ExploreWithFilters = () => {
       rehoming: false,
     };
     setFilters(clearedFilters);
-    handleSearch(searchTerm);
+    const currentSearch = searchParams.get('search') || '';
+    setTimeout(() => handleSearch(currentSearch), 0);
   };
 
   const handleSortChange = (value: string) => {
@@ -193,14 +174,35 @@ const ExploreWithFilters = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Single Sticky Header - Facebook Marketplace Style */}
-      <div className="sticky top-0 z-50 bg-white shadow-md border-b border-gray-200">
-        <ExploreHeader
-          searchTerm={searchTerm}
-          onSearchChange={handleSearchChange}
-          showAdvancedFilters={showFiltersPanel}
-          onToggleFilters={handleToggleFilters}
-        />
+      {/* Filters Toggle Bar - Simplified since search is now in unified header */}
+      <div className="bg-white border-b border-gray-200 px-4 py-3">
+        <div className="max-w-7xl mx-auto flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <h1 className="text-lg font-semibold text-gray-900">
+              Explore Puppies
+            </h1>
+            <span className="text-sm text-gray-500">
+              {loading ? 'Searching...' : `${sortedListings.length} puppies found`}
+            </span>
+          </div>
+          
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className={`text-gray-700 border-gray-300 hover:bg-gray-50 transition-all duration-200 rounded-full ${
+              showFiltersPanel 
+                ? 'border-blue-500 text-blue-600 bg-blue-50 shadow-sm' 
+                : 'hover:border-gray-400 shadow-sm'
+            }`}
+            onClick={() => setShowFiltersPanel(!showFiltersPanel)}
+          >
+            <Filter className="w-4 h-4 mr-2" />
+            Filters
+            {showFiltersPanel && (
+              <span className="ml-1 w-2 h-2 bg-blue-600 rounded-full"></span>
+            )}
+          </Button>
+        </div>
       </div>
 
       {/* Collapsible Filters Panel */}
@@ -216,23 +218,8 @@ const ExploreWithFilters = () => {
         onSortChange={handleSortChange}
       />
 
-      {/* Main Content - Clean Layout */}
+      {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 py-6">
-        {/* Clean Context Header - Facebook Marketplace Style */}
-        <div className="mt-4 mb-6">
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">
-            Explore Puppies
-          </h1>
-          <div className="flex items-center gap-4 text-gray-600">
-            <span>📍 Showing puppies near your location</span>
-            <span>•</span>
-            <span>{loading ? 'Searching...' : `${sortedListings.length} puppies found`}</span>
-          </div>
-          <p className="text-gray-500 text-sm mt-1">
-            Use the search bar above or apply filters to find your perfect match.
-          </p>
-        </div>
-
         {/* Listings Grid */}
         {loading ? (
           <ListingsSkeleton />
