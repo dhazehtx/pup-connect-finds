@@ -1,38 +1,20 @@
 
 import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { Heart, Search, Plus, ShoppingBag } from 'lucide-react';
+import { Heart, Search, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
-import PostCreator from '@/components/home/PostCreator';
+import ModernPostCreator from '@/components/home/ModernPostCreator';
 
 const StickyHeader = () => {
-  const { user, signOut, isGuest } = useAuth();
+  const { user, isGuest } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const { toast } = useToast();
   const [searchQuery, setSearchQuery] = useState('');
   const [showPostCreator, setShowPostCreator] = useState(false);
-
-  const handleSignOut = async () => {
-    try {
-      await signOut();
-      localStorage.removeItem('guestMode');
-      navigate('/');
-      toast({
-        title: "Signed out successfully",
-        description: "You have been signed out of your account",
-      });
-    } catch (error) {
-      toast({
-        title: "Error signing out",
-        description: "There was a problem signing you out",
-        variant: "destructive",
-      });
-    }
-  };
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -59,7 +41,7 @@ const StickyHeader = () => {
     }
   };
 
-  const handlePostCreated = () => {
+  const handlePostCreated = (newPost: any) => {
     toast({
       title: "Post shared! 🎉",
       description: "Your post is now live!",
@@ -159,18 +141,9 @@ const StickyHeader = () => {
               )}
             </div>
 
-            {/* Right: Sign Out */}
+            {/* Right: Sign In button only for non-authenticated users */}
             <div className="flex items-center flex-shrink-0">
-              {user || isGuest ? (
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={handleSignOut} 
-                  className="border-blue-600 text-blue-600 hover:bg-blue-50"
-                >
-                  {isGuest ? 'Exit Guest Mode' : 'Sign Out'}
-                </Button>
-              ) : (
+              {!user && !isGuest && (
                 <div className="flex items-center space-x-3">
                   <Link to="/auth">
                     <Button size="sm" className="bg-blue-600 hover:bg-blue-700 text-white">
@@ -184,9 +157,9 @@ const StickyHeader = () => {
         </div>
       </header>
 
-      {/* Post Creator Modal - Only for social posts */}
+      {/* Modern Post Creator Modal - Only for social posts */}
       {showPostCreator && (
-        <PostCreator
+        <ModernPostCreator
           onClose={() => setShowPostCreator(false)}
           onPostCreated={handlePostCreated}
         />

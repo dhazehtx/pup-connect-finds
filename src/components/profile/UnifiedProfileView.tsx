@@ -5,8 +5,9 @@ import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { MapPin, Globe, Calendar, Edit, Settings, Plus } from 'lucide-react';
+import { MapPin, Globe, Calendar, Plus } from 'lucide-react';
 import ProfileSettings from './ProfileSettings';
+import ProfileSettingsModal from './ProfileSettingsModal';
 import SocialPostCreator from '@/components/posts/SocialPostCreator';
 import ProfilePostsGrid from './ProfilePostsGrid';
 import LoadingState from '@/components/ui/loading-state';
@@ -115,12 +116,19 @@ const UnifiedProfileView = ({ userId, isCurrentUser }: UnifiedProfileViewProps) 
 
             {/* Profile Info */}
             <div className="flex-1">
-              <div className="flex items-center gap-4 mb-2">
-                <h1 className="text-2xl font-bold">{profile.full_name}</h1>
-                {profile.verified && (
-                  <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">
-                    Verified
-                  </span>
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-4">
+                  <h1 className="text-2xl font-bold">{profile.full_name}</h1>
+                  {profile.verified && (
+                    <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">
+                      Verified
+                    </span>
+                  )}
+                </div>
+                
+                {/* Settings Icon for current user */}
+                {isCurrentUser && (
+                  <ProfileSettingsModal onEditProfile={() => setShowSettings(true)} />
                 )}
               </div>
               
@@ -156,19 +164,13 @@ const UnifiedProfileView = ({ userId, isCurrentUser }: UnifiedProfileViewProps) 
               {/* Action Buttons */}
               <div className="flex gap-2">
                 {isCurrentUser ? (
-                  <>
-                    <Button variant="outline" onClick={() => setShowSettings(true)}>
-                      <Settings className="w-4 h-4 mr-2" />
-                      Settings
-                    </Button>
-                    <Button 
-                      variant="outline" 
-                      onClick={() => setShowPostCreator(!showPostCreator)}
-                    >
-                      <Plus className="w-4 h-4 mr-2" />
-                      Add Post
-                    </Button>
-                  </>
+                  <Button 
+                    variant="outline" 
+                    onClick={() => setShowPostCreator(!showPostCreator)}
+                  >
+                    <Plus className="w-4 h-4 mr-2" />
+                    Add Post
+                  </Button>
                 ) : (
                   <Button>Follow</Button>
                 )}
