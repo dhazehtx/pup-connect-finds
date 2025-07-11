@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Heart, Search, Plus, ShoppingBag } from 'lucide-react';
@@ -45,7 +46,17 @@ const StickyHeader = () => {
       navigate('/auth');
       return;
     }
-    setShowPostCreator(true);
+
+    // Check current route to determine post type
+    const isMarketplacePage = location.pathname === '/marketplace' || location.pathname === '/explore';
+    
+    if (isMarketplacePage) {
+      // Redirect to listing creation for marketplace/explore pages
+      navigate('/create-listing');
+    } else {
+      // Show social post creator for home/profile pages
+      setShowPostCreator(true);
+    }
   };
 
   const handlePostCreated = () => {
@@ -66,6 +77,15 @@ const StickyHeader = () => {
 
   // Only show social post button on home and profile pages
   const isHomeOrProfilePage = location.pathname === '/home' || location.pathname.startsWith('/profile');
+  const isMarketplacePage = location.pathname === '/marketplace' || location.pathname === '/explore';
+
+  // Determine button text and behavior
+  const getPostButtonText = () => {
+    if (isMarketplacePage) {
+      return "List Puppy";
+    }
+    return "Post";
+  };
 
   return (
     <>
@@ -78,7 +98,7 @@ const StickyHeader = () => {
               <span className="text-xl font-bold text-gray-900">MY PUP</span>
             </Link>
 
-            {/* Center: Search bar + Create Post button (only on home/profile pages) */}
+            {/* Center: Search bar + Create Post button */}
             <div className="flex-1 max-w-2xl mx-8 hidden md:flex items-center space-x-4">
               <form onSubmit={handleSearch} className="flex-1">
                 <div className="relative">
@@ -92,15 +112,19 @@ const StickyHeader = () => {
                 </div>
               </form>
               
-              {/* Social Post Button - Only on home/profile pages */}
-              {isHomeOrProfilePage && (
+              {/* Dynamic Post Button */}
+              {(isHomeOrProfilePage || isMarketplacePage) && (
                 <Button
                   onClick={handleCreatePost}
                   size="sm"
-                  className="bg-blue-600 hover:bg-blue-700 text-white rounded-full px-4 py-2 flex items-center gap-2 flex-shrink-0"
+                  className={`${
+                    isMarketplacePage 
+                      ? 'bg-green-600 hover:bg-green-700' 
+                      : 'bg-blue-600 hover:bg-blue-700'
+                  } text-white rounded-full px-4 py-2 flex items-center gap-2 flex-shrink-0`}
                 >
                   <Plus className="w-4 h-4" />
-                  <span className="hidden sm:inline">+ Post</span>
+                  <span className="hidden sm:inline">{getPostButtonText()}</span>
                 </Button>
               )}
             </div>
@@ -119,12 +143,16 @@ const StickyHeader = () => {
                 </div>
               </form>
               
-              {/* Mobile Social Post Button - Only on home/profile pages */}
-              {isHomeOrProfilePage && (
+              {/* Mobile Dynamic Post Button */}
+              {(isHomeOrProfilePage || isMarketplacePage) && (
                 <Button
                   onClick={handleCreatePost}
                   size="sm"
-                  className="bg-blue-600 hover:bg-blue-700 text-white rounded-full w-8 h-8 p-0 flex-shrink-0"
+                  className={`${
+                    isMarketplacePage 
+                      ? 'bg-green-600 hover:bg-green-700' 
+                      : 'bg-blue-600 hover:bg-blue-700'
+                  } text-white rounded-full w-8 h-8 p-0 flex-shrink-0`}
                 >
                   <Plus className="w-4 h-4" />
                 </Button>

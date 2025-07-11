@@ -23,10 +23,10 @@ const ExploreHeader = ({
   const { user, isGuest } = useAuth();
 
   // Show button for logged-in users or guests
-  const showPostButton = user || isGuest;
+  const showCreateButton = user || isGuest;
 
-  const handleCreatePost = () => {
-    navigate('/post');
+  const handleCreateListing = () => {
+    navigate('/create-listing');
   };
 
   const handleSearchInput = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -58,14 +58,14 @@ const ExploreHeader = ({
         
         {/* Right side buttons - Facebook Marketplace style */}
         <div className="flex items-center gap-2">
-          {/* Post Button - Primary action */}
-          {showPostButton && (
+          {/* List Puppy Button - Primary action for marketplace */}
+          {showCreateButton && (
             <Button 
-              onClick={handleCreatePost}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 h-11 rounded-full font-medium flex items-center gap-2 whitespace-nowrap shadow-sm"
+              onClick={handleCreateListing}
+              className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 h-11 rounded-full font-medium flex items-center gap-2 whitespace-nowrap shadow-sm"
             >
               <Plus className="w-4 h-4" />
-              <span>Post</span>
+              <span>List Puppy</span>
             </Button>
           )}
           

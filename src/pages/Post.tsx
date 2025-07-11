@@ -4,14 +4,12 @@ import { ArrowLeft, Camera, Video } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import SocialPostCreator from '@/components/posts/SocialPostCreator';
 import { useAuth } from '@/contexts/AuthContext';
 
 const Post = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const [activeTab, setActiveTab] = useState('create');
 
   if (!user) {
     return (
@@ -20,14 +18,14 @@ const Post = () => {
           <button onClick={() => navigate(-1)}>
             <ArrowLeft size={24} />
           </button>
-          <h1 className="text-lg font-semibold">Create Post</h1>
+          <h1 className="text-lg font-semibold">Create Social Post</h1>
           <div></div>
         </div>
         
         <div className="p-4">
           <Card>
             <CardContent className="py-8 text-center">
-              <p className="text-gray-600">Please sign in to create posts.</p>
+              <p className="text-gray-600">Please sign in to create social posts.</p>
               <Button 
                 onClick={() => navigate('/auth')} 
                 className="mt-4"
@@ -47,7 +45,7 @@ const Post = () => {
         <button onClick={() => navigate(-1)}>
           <ArrowLeft size={24} />
         </button>
-        <h1 className="text-lg font-semibold">Create Post</h1>
+        <h1 className="text-lg font-semibold">Create Social Post</h1>
         <div></div>
       </div>
 
