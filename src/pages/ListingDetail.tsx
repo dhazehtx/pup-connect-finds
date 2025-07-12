@@ -84,7 +84,6 @@ const ListingDetail = () => {
       
       setIsFavorited(!!data);
     } catch (error) {
-      // Not favorited or error - either way, not favorited
       setIsFavorited(false);
     }
   };
@@ -138,11 +137,9 @@ const ListingDetail = () => {
           url,
         });
       } catch (error) {
-        // User cancelled or error occurred
         console.log('Share cancelled');
       }
     } else {
-      // Fallback to clipboard
       try {
         await navigator.clipboard.writeText(url);
         toast({
@@ -178,7 +175,6 @@ const ListingDetail = () => {
       return;
     }
 
-    // Navigate to messages with the listing context
     navigate(`/messages?contact=${listing?.user_id}&listing=${listing?.id}`);
   };
 
@@ -195,9 +191,9 @@ const ListingDetail = () => {
       <div className="min-h-screen flex items-center justify-center">
         <ErrorState 
           title="Listing not found"
-          description={error || "This listing may have been removed or is no longer available"}
-          actionText="Back to Explore"
-          onAction={() => navigate('/explore')}
+          message={error || "This listing may have been removed or is no longer available"}
+          retryText="Back to Explore"
+          onRetry={() => navigate('/explore')}
         />
       </div>
     );
