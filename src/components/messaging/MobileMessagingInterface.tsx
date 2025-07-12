@@ -32,6 +32,11 @@ const MobileMessagingInterface = () => {
     }
   };
 
+  const handleBack = () => {
+    setSelectedConversationId(null);
+    setSelectedUser(null);
+  };
+
   const getOtherUser = (conversation: any) => {
     return conversation.other_user;
   };
@@ -71,7 +76,7 @@ const MobileMessagingInterface = () => {
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => setSelectedConversationId(null)}
+                onClick={handleBack}
               >
                 <ArrowLeft size={16} />
               </Button>
@@ -97,6 +102,7 @@ const MobileMessagingInterface = () => {
               <EnhancedChatInterface
                 conversationId={selectedConversationId}
                 otherUser={selectedUser}
+                onBack={handleBack}
               />
             </div>
           </div>
