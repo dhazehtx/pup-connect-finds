@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Share, Heart, MapPin, Calendar, Ruler, Award } from 'lucide-react';
@@ -245,7 +246,8 @@ const ListingDetail = () => {
               className="w-full h-full object-cover"
               onError={(e) => {
                 console.error('Image failed to load:', images[currentImageIndex]);
-                e.target.style.display = 'none';
+                const target = e.target as HTMLImageElement;
+                target.style.display = 'none';
               }}
             />
           ) : (
