@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Share, Heart, MapPin, Calendar, Ruler, Award } from 'lucide-react';
@@ -7,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent } from '@/components/ui/card';
 import ContactSellerButton from '@/components/messaging/ContactSellerButton';
-import { useSocialShare } from '@/hooks/useSocialShare';
+import { useShare } from '@/hooks/useShare';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 
@@ -16,14 +15,14 @@ const ListingDetail = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { toast } = useToast();
-  const { shareToTwitter, shareToFacebook, copyToClipboard, nativeShare, canNativeShare } = useSocialShare();
+  const { shareNative } = useShare();
   
   const [isFavorited, setIsFavorited] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
   // Mock listing data - in real app this would come from API
   const listing = {
-    id: '1',
+    id: id || '1',
     dog_name: 'Buddy',
     breed: 'Golden Retriever',
     age: 8,
@@ -62,16 +61,7 @@ const ListingDetail = () => {
       url: window.location.href
     };
 
-    if (canNativeShare) {
-      try {
-        await nativeShare(shareData);
-      } catch (error) {
-        // Fallback to clipboard if native share fails
-        await copyToClipboard(shareData);
-      }
-    } else {
-      await copyToClipboard(shareData);
-    }
+    await shareNative(shareData);
   };
 
   const handleFavorite = () => {

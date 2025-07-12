@@ -14,6 +14,7 @@ import Auth from './pages/Auth';
 import CreateListing from './pages/CreateListing';
 import Marketplace from './pages/Marketplace';
 import ListingDetail from './pages/ListingDetail';
+import Messages from './pages/Messages';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -41,6 +42,7 @@ function App() {
                   <Route path="/auth" element={<Auth />} />
                   <Route path="/create-listing" element={<CreateListing />} />
                   <Route path="/listing/:id" element={<ListingDetail />} />
+                  <Route path="/messages" element={<Messages />} />
                 </Routes>
               </Layout>
             </ThemeProvider>
