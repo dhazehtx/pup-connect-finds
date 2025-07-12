@@ -16,12 +16,14 @@ interface Conversation {
     dog_name: string;
     breed: string;
     image_url: string | null;
+    price?: number;
   };
   other_user?: {
     full_name: string | null;
     username: string | null;
     avatar_url: string | null;
   };
+  unread_count?: number;
 }
 
 export const useConversationsManager = () => {
@@ -31,7 +33,10 @@ export const useConversationsManager = () => {
   const { toast } = useToast();
 
   const fetchConversations = async () => {
-    if (!user) return;
+    if (!user) {
+      setLoading(false);
+      return;
+    }
 
     try {
       setLoading(true);
@@ -43,7 +48,8 @@ export const useConversationsManager = () => {
           listing:dog_listings!conversations_listing_id_dog_listings_id_fkey (
             dog_name,
             breed,
-            image_url
+            image_url,
+            price
           )
         `)
         .or(`buyer_id.eq.${user.id},seller_id.eq.${user.id}`)
@@ -61,6 +67,14 @@ export const useConversationsManager = () => {
             .eq('id', otherUserId)
             .single();
 
+          // Count unread messages
+          const { count: unreadCount } = await supabase
+            .from('messages')
+            .select('*', { count: 'exact', head: true })
+            .eq('conversation_id', conv.id)
+            .neq('sender_id', user.id)
+            .is('read_at', null);
+
           return {
             ...conv,
             listing: Array.isArray(conv.listing) ? conv.listing[0] : conv.listing,
@@ -68,7 +82,8 @@ export const useConversationsManager = () => {
               full_name: null,
               username: null,
               avatar_url: null
-            }
+            },
+            unread_count: unreadCount || 0
           };
         })
       );
@@ -87,7 +102,7 @@ export const useConversationsManager = () => {
   };
 
   const createConversation = async (listingId: string, sellerId: string) => {
-    if (!user) return;
+    if (!user) return null;
 
     try {
       // Check if conversation already exists
@@ -116,6 +131,26 @@ export const useConversationsManager = () => {
 
       if (error) throw error;
 
+      // Send initial message about the listing
+      const { data: listingData } = await supabase
+        .from('dog_listings')
+        .select('dog_name, breed')
+        .eq('id', listingId)
+        .single();
+
+      if (listingData) {
+        const initialMessage = `Hi! I'm interested in ${listingData.dog_name} (${listingData.breed}). Could you tell me more about this puppy?`;
+        
+        await supabase
+          .from('messages')
+          .insert([{
+            conversation_id: data.id,
+            sender_id: user.id,
+            content: initialMessage,
+            message_type: 'text'
+          }]);
+      }
+
       await fetchConversations();
       return data.id;
     } catch (error) {
@@ -133,6 +168,42 @@ export const useConversationsManager = () => {
     if (user) {
       fetchConversations();
     }
+  }, [user]);
+
+  // Subscribe to real-time updates
+  useEffect(() => {
+    if (!user) return;
+
+    const channel = supabase
+      .channel('conversations-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'conversations',
+          filter: `buyer_id=eq.${user.id},seller_id=eq.${user.id}`
+        },
+        () => {
+          fetchConversations();
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'messages'
+        },
+        () => {
+          fetchConversations();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [user]);
 
   return {
