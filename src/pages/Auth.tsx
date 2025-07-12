@@ -16,6 +16,7 @@ const Auth = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<{[key: string]: string}>({});
   const { user, continueAsGuest, signIn, signUp, loading } = useAuth();
   const { toast } = useToast();
@@ -63,19 +64,26 @@ const Auth = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!validateForm()) return;
+    if (!validateForm() || isSubmitting) return;
+    
+    setIsSubmitting(true);
+    console.log('Attempting to', activeTab === 'signup' ? 'sign up' : 'sign in', 'with email:', email);
     
     try {
       if (activeTab === 'signup') {
         await signUp(email, password, { full_name: fullName });
+        console.log('Sign up successful');
       } else {
         await signIn(email, password);
+        console.log('Sign in successful');
+        const from = location.state?.from?.pathname || '/explore';
+        navigate(from, { replace: true });
       }
-      
-      const from = location.state?.from?.pathname || '/explore';
-      navigate(from, { replace: true });
     } catch (error) {
       console.error('Auth error:', error);
+      // Error handling is done in the useAuth hook via toasts
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -149,6 +157,7 @@ const Auth = () => {
             {/* Tab Toggle */}
             <div className="flex mb-6 rounded-lg overflow-hidden">
               <button
+                type="button"
                 onClick={() => setActiveTab('signin')}
                 className={`flex-1 py-3 px-4 text-center font-medium transition-all duration-200 ${
                   activeTab === 'signin'
@@ -162,6 +171,7 @@ const Auth = () => {
                 Sign In
               </button>
               <button
+                type="button"
                 onClick={() => setActiveTab('signup')}
                 className={`flex-1 py-3 px-4 text-center font-medium transition-all duration-200 ${
                   activeTab === 'signup'
@@ -189,7 +199,7 @@ const Auth = () => {
                     style={{
                       borderColor: errors.fullName ? '#EF4444' : '#CBD5E1'
                     }}
-                    disabled={loading}
+                    disabled={loading || isSubmitting}
                   />
                   {errors.fullName && (
                     <p className="text-red-500 text-xs mt-1">{errors.fullName}</p>
@@ -207,7 +217,7 @@ const Auth = () => {
                   style={{
                     borderColor: errors.email ? '#EF4444' : '#CBD5E1'
                   }}
-                  disabled={loading}
+                  disabled={loading || isSubmitting}
                 />
                 {errors.email && (
                   <p className="text-red-500 text-xs mt-1">{errors.email}</p>
@@ -224,7 +234,7 @@ const Auth = () => {
                   style={{
                     borderColor: errors.password ? '#EF4444' : '#CBD5E1'
                   }}
-                  disabled={loading}
+                  disabled={loading || isSubmitting}
                 />
                 <button
                   type="button"
@@ -237,7 +247,7 @@ const Auth = () => {
                   onMouseLeave={(e) => {
                     e.currentTarget.style.color = '#2363FF';
                   }}
-                  disabled={loading}
+                  disabled={loading || isSubmitting}
                 >
                   {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
@@ -248,17 +258,17 @@ const Auth = () => {
 
               <Button
                 type="submit"
-                disabled={loading}
+                disabled={loading || isSubmitting}
                 className="w-full h-12 text-white font-semibold rounded-lg shadow-lg transition-all duration-200"
                 style={{ backgroundColor: '#2363FF', border: 'none' }}
                 onMouseEnter={(e) => {
-                  if (!loading) e.currentTarget.style.backgroundColor = '#1E52D0';
+                  if (!loading && !isSubmitting) e.currentTarget.style.backgroundColor = '#1E52D0';
                 }}
                 onMouseLeave={(e) => {
-                  if (!loading) e.currentTarget.style.backgroundColor = '#2363FF';
+                  if (!loading && !isSubmitting) e.currentTarget.style.backgroundColor = '#2363FF';
                 }}
               >
-                {loading ? (
+                {loading || isSubmitting ? (
                   <>
                     <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2" />
                     {activeTab === 'signup' ? 'Creating Account...' : 'Signing In...'}
@@ -273,6 +283,7 @@ const Auth = () => {
             {activeTab === 'signin' && (
               <div className="text-center mt-4">
                 <button 
+                  type="button"
                   className="underline text-sm transition-colors duration-200"
                   style={{ color: '#2363FF' }}
                   onMouseEnter={(e) => {
@@ -290,6 +301,7 @@ const Auth = () => {
             {/* Social Login Buttons */}
             <div className="space-y-3 mt-6">
               <Button
+                type="button"
                 onClick={() => {
                   toast({
                     title: "Coming Soon!",
@@ -299,18 +311,19 @@ const Auth = () => {
                 className="w-full h-12 text-white font-medium rounded-lg transition-all duration-200"
                 style={{ backgroundColor: '#2363FF', border: 'none' }}
                 onMouseEnter={(e) => {
-                  if (!loading) e.currentTarget.style.backgroundColor = '#1E52D0';
+                  if (!loading && !isSubmitting) e.currentTarget.style.backgroundColor = '#1E52D0';
                 }}
                 onMouseLeave={(e) => {
-                  if (!loading) e.currentTarget.style.backgroundColor = '#2363FF';
+                  if (!loading && !isSubmitting) e.currentTarget.style.backgroundColor = '#2363FF';
                 }}
-                disabled={loading}
+                disabled={loading || isSubmitting}
               >
                 <Mail size={18} className="mr-3" />
                 Sign in with Google
               </Button>
               
               <Button
+                type="button"
                 onClick={() => {
                   toast({
                     title: "Coming Soon!",
@@ -320,12 +333,12 @@ const Auth = () => {
                 className="w-full h-12 text-white font-medium rounded-lg transition-all duration-200"
                 style={{ backgroundColor: '#2363FF', border: 'none' }}
                 onMouseEnter={(e) => {
-                  if (!loading) e.currentTarget.style.backgroundColor = '#1E52D0';
+                  if (!loading && !isSubmitting) e.currentTarget.style.backgroundColor = '#1E52D0';
                 }}
                 onMouseLeave={(e) => {
-                  if (!loading) e.currentTarget.style.backgroundColor = '#2363FF';
+                  if (!loading && !isSubmitting) e.currentTarget.style.backgroundColor = '#2363FF';
                 }}
-                disabled={loading}
+                disabled={loading || isSubmitting}
               >
                 <User size={18} className="mr-3" />
                 Sign in with Facebook
@@ -348,16 +361,17 @@ const Auth = () => {
           </div>
           
           <Button 
+            type="button"
             onClick={handleGuestAccess}
             className="w-full mt-4 h-12 text-white font-semibold rounded-lg transition-all duration-200"
             style={{ backgroundColor: '#2363FF', border: 'none' }}
             onMouseEnter={(e) => {
-              if (!loading) e.currentTarget.style.backgroundColor = '#1E52D0';
+              if (!loading && !isSubmitting) e.currentTarget.style.backgroundColor = '#1E52D0';
             }}
             onMouseLeave={(e) => {
-              if (!loading) e.currentTarget.style.backgroundColor = '#2363FF';
+              if (!loading && !isSubmitting) e.currentTarget.style.backgroundColor = '#2363FF';
             }}
-            disabled={loading}
+            disabled={loading || isSubmitting}
           >
             Continue as Guest
           </Button>
