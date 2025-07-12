@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -43,16 +44,30 @@ const ExploreListingsGrid = ({
   onContactSeller, 
   onViewDetails 
 }: ExploreListingsGridProps) => {
+  const navigate = useNavigate();
+
+  const handleViewDetails = (listing: TransformedListing) => {
+    // Navigate to the correct listing detail page using the listing's unique ID
+    navigate(`/listing/${listing.id}`);
+  };
+
   return (
     <div className="px-4 py-6">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {listings.map((listing) => (
-          <Card key={listing.id} className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer">
+          <Card 
+            key={listing.id} 
+            className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer"
+            onClick={() => handleViewDetails(listing)}
+          >
             <div className="relative">
               <img
                 src={listing.image}
                 alt={listing.title}
                 className="w-full h-48 object-cover"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).src = '/placeholder.svg';
+                }}
               />
               
               {/* Price badge */}
@@ -135,8 +150,11 @@ const ExploreListingsGrid = ({
                 </Button>
                 <Button
                   size="sm"
-                  className="flex-1"
-                  onClick={() => onViewDetails(listing)}
+                  className="flex-1 bg-[#2C3EDC] hover:bg-[#2C3EDC]/90"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleViewDetails(listing);
+                  }}
                 >
                   View Details
                 </Button>
