@@ -2,7 +2,9 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { MessageCircle } from 'lucide-react';
-import { useContactSeller } from '@/hooks/useContactSeller';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
+import { useToast } from '@/hooks/use-toast';
 
 interface ContactSellerButtonProps {
   listingId: string;
@@ -17,10 +19,31 @@ const ContactSellerButton = ({
   className = '',
   children 
 }: ContactSellerButtonProps) => {
-  const { contactSeller } = useContactSeller();
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const { toast } = useToast();
 
   const handleContactSeller = () => {
-    contactSeller(sellerId, listingId);
+    if (!user) {
+      toast({
+        title: "Sign in required",
+        description: "Please sign in to contact sellers",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (sellerId === user.id) {
+      toast({
+        title: "Cannot contact yourself",
+        description: "You cannot start a conversation with yourself",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Navigate to messages with contact parameters
+    navigate(`/messages?contact=${sellerId}&listing=${listingId}&from=listing`);
   };
 
   return (

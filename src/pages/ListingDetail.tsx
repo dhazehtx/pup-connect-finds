@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Share, Heart, MapPin, Calendar, Ruler, Award } from 'lucide-react';
@@ -24,15 +23,24 @@ const ListingDetail = () => {
   const [isFavorited, setIsFavorited] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
-  // Fetch listing data from Supabase
+  // Fetch listing data from Supabase with proper ID handling
   useEffect(() => {
     const fetchListing = async () => {
-      if (!id) return;
+      if (!id) {
+        toast({
+          title: "Error",
+          description: "No listing ID provided",
+          variant: "destructive",
+        });
+        navigate('/marketplace');
+        return;
+      }
       
       try {
         setLoading(true);
+        console.log('Fetching listing with ID:', id);
         
-        // Fetch listing with seller profile
+        // Fetch listing with seller profile - ensure we're getting the right listing by ID
         const { data: listingData, error: listingError } = await supabase
           .from('dog_listings')
           .select(`
@@ -54,11 +62,20 @@ const ListingDetail = () => {
 
         if (listingError) {
           console.error('Error fetching listing:', listingError);
-          toast({
-            title: "Error",
-            description: "Failed to load listing details",
-            variant: "destructive",
-          });
+          if (listingError.code === 'PGRST116') {
+            toast({
+              title: "Not Found",
+              description: "This listing could not be found or is no longer active",
+              variant: "destructive",
+            });
+          } else {
+            toast({
+              title: "Error",
+              description: "Failed to load listing details",
+              variant: "destructive",
+            });
+          }
+          navigate('/marketplace');
           return;
         }
 
@@ -72,6 +89,7 @@ const ListingDetail = () => {
           return;
         }
 
+        console.log('Fetched listing data:', listingData);
         setListing(listingData);
 
         // Check if user has favorited this listing
@@ -87,6 +105,12 @@ const ListingDetail = () => {
         }
       } catch (error) {
         console.error('Error:', error);
+        toast({
+          title: "Error",
+          description: "An unexpected error occurred",
+          variant: "destructive",
+        });
+        navigate('/marketplace');
       } finally {
         setLoading(false);
       }
@@ -191,6 +215,7 @@ const ListingDetail = () => {
     );
   }
 
+  // Properly handle images - prefer the images array, fallback to single image_url
   const images = listing.images && listing.images.length > 0 ? listing.images : 
                  listing.image_url ? [listing.image_url] : [];
   
@@ -218,6 +243,10 @@ const ListingDetail = () => {
               src={images[currentImageIndex]}
               alt={`${listing.dog_name} - Image ${currentImageIndex + 1}`}
               className="w-full h-full object-cover"
+              onError={(e) => {
+                console.error('Image failed to load:', images[currentImageIndex]);
+                e.target.style.display = 'none';
+              }}
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center text-gray-400">

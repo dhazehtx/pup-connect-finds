@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -37,10 +38,12 @@ const RealTimeChatInterface: React.FC<RealTimeChatInterfaceProps> = ({
   const [loading, setLoading] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
+  const previousMessageCount = useRef(0);
 
   // Suggested messages for first interaction
   const suggestedMessages = [
-    "Hi! Is this puppy still available?",
+    `Hi! Is ${listingInfo?.dog_name || 'this puppy'} still available?`,
+    `I'm interested in ${listingInfo?.dog_name || 'this puppy'}, is he/she still looking for a home?`,
     "Can you tell me more about this puppy?",
     "When would the puppy be available?",
     "What's included with the puppy?",
@@ -63,9 +66,13 @@ const RealTimeChatInterface: React.FC<RealTimeChatInterfaceProps> = ({
     }
   }, [conversationId, fetchMessages]);
 
+  // Only scroll when new messages are added, not on every render
   useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
+    if (messages.length > previousMessageCount.current) {
+      scrollToBottom();
+      previousMessageCount.current = messages.length;
+    }
+  }, [messages.length]);
 
   // Real-time subscription
   useEffect(() => {
