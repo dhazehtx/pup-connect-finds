@@ -9,6 +9,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+import { useSocialShare } from '@/hooks/useSocialShare';
 import { supabase } from '@/integrations/supabase/client';
 import LoadingState from '@/components/ui/loading-state';
 import ErrorState from '@/components/ui/error-state';
@@ -18,6 +19,7 @@ const ListingDetail = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { toast } = useToast();
+  const { shareToTwitter, shareToFacebook, shareToLinkedIn, copyToClipboard, nativeShare, canNativeShare } = useSocialShare();
   
   const [listing, setListing] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -129,34 +131,24 @@ const ListingDetail = () => {
   const handleShare = async () => {
     const url = window.location.href;
     const title = `Check out ${listing?.dog_name} - ${listing?.breed}`;
+    const description = `${listing?.dog_name} is a ${listing?.age} month old ${listing?.breed} looking for a loving home!`;
     
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title,
-          url,
-        });
-      } catch (error) {
-        console.log('Share cancelled');
-      }
+    const shareData = {
+      title,
+      description,
+      url
+    };
+
+    if (canNativeShare) {
+      // Mobile - use native share
+      await nativeShare(shareData);
     } else {
-      try {
-        await navigator.clipboard.writeText(url);
-        toast({
-          title: "Link copied",
-          description: "Listing link copied to clipboard",
-        });
-      } catch (error) {
-        toast({
-          title: "Error",
-          description: "Failed to copy link",
-          variant: "destructive",
-        });
-      }
+      // Desktop - copy to clipboard
+      await copyToClipboard(shareData);
     }
   };
 
-  const handleContact = () => {
+  const handleContact = async () => {
     if (!user) {
       toast({
         title: "Sign in required",
@@ -175,7 +167,15 @@ const ListingDetail = () => {
       return;
     }
 
-    navigate(`/messages?contact=${listing?.user_id}&listing=${listing?.id}`);
+    // Navigate to messages with prefilled content
+    const messageText = `Hi, I'm interested in your listing for ${listing?.dog_name}!`;
+    navigate(`/messages?contact=${listing?.user_id}&listing=${listing?.id}&message=${encodeURIComponent(messageText)}`);
+  };
+
+  const handleSellerClick = () => {
+    if (listing?.profiles?.id) {
+      navigate(`/profile/${listing.profiles.id}`);
+    }
   };
 
   if (loading) {
@@ -322,7 +322,7 @@ const ListingDetail = () => {
                     variant="outline"
                     size="sm"
                     onClick={handleShare}
-                    className="flex-1 text-gray-600"
+                    className="flex-1 text-gray-600 hover:text-gray-900 hover:border-gray-300"
                   >
                     <Share className="h-4 w-4 mr-2" />
                     Share
@@ -377,9 +377,12 @@ const ListingDetail = () => {
                   </Avatar>
                   <div className="flex-1">
                     <div className="flex items-center gap-2">
-                      <span className="font-medium text-gray-900">
+                      <button
+                        onClick={handleSellerClick}
+                        className="font-medium text-gray-900 hover:text-[#2C3EDC] hover:underline cursor-pointer transition-colors"
+                      >
                         {listing.profiles?.full_name || 'Anonymous Seller'}
-                      </span>
+                      </button>
                       {listing.profiles?.verified && (
                         <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-100 text-xs">
                           <Shield className="h-3 w-3 mr-1" />
