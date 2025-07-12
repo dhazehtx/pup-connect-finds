@@ -1,38 +1,69 @@
 
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Heart, Share, MessageCircle, Phone, MapPin, Calendar, Star, Shield, ChevronDown, ChevronUp } from 'lucide-react';
+import { Heart, Share2, MessageCircle, MapPin, Calendar, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { useSocialShare } from '@/hooks/useSocialShare';
 import { supabase } from '@/integrations/supabase/client';
-import LoadingState from '@/components/ui/loading-state';
-import ErrorState from '@/components/ui/error-state';
+import AnimatedHeart from '@/components/ui/animated-heart';
+import ContactSellerButton from '@/components/messaging/ContactSellerButton';
+
+interface Listing {
+  id: string;
+  dog_name: string;
+  breed: string;
+  age: number;
+  price: number;
+  description?: string;
+  image_url?: string;
+  images?: string[];
+  location?: string;
+  gender?: string;
+  size?: string;
+  color?: string;
+  vaccinated?: boolean;
+  neutered_spayed?: boolean;
+  good_with_kids?: boolean;
+  good_with_dogs?: boolean;
+  special_needs?: boolean;
+  delivery_available?: boolean;
+  created_at: string;
+  user_id?: string;
+  profiles?: {
+    id: string;
+    full_name: string;
+    username?: string;
+    avatar_url?: string;
+    rating?: number;
+    total_reviews?: number;
+    verified?: boolean;
+  };
+}
 
 const ListingDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
   const { toast } = useToast();
-  const { shareToTwitter, shareToFacebook, shareToLinkedIn, copyToClipboard, nativeShare, canNativeShare } = useSocialShare();
+  const { copyToClipboard, nativeShare, canNativeShare } = useSocialShare();
   
-  const [listing, setListing] = useState<any>(null);
+  const [listing, setListing] = useState<Listing | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [isFavorited, setIsFavorited] = useState(false);
-  const [aboutExpanded, setAboutExpanded] = useState(false);
-  const [reviewsExpanded, setReviewsExpanded] = useState(false);
+  const [isFavorite, setIsFavorite] = useState(false);
+  const [favoriteLoading, setFavoriteLoading] = useState(false);
 
   useEffect(() => {
     if (id) {
       fetchListing();
       if (user) {
-        checkIfFavorited();
+        checkFavoriteStatus();
       }
     }
   }, [id, user]);
@@ -47,33 +78,27 @@ const ListingDetail = () => {
           profiles:user_id (
             id,
             full_name,
+            username,
             avatar_url,
             rating,
             total_reviews,
-            verified,
-            location
+            verified
           )
         `)
         .eq('id', id)
-        .eq('status', 'active')
         .single();
 
-      if (error) {
-        console.error('Error fetching listing:', error);
-        setError('Listing not found or no longer available');
-        return;
-      }
-
+      if (error) throw error;
       setListing(data);
-    } catch (err) {
-      console.error('Error:', err);
+    } catch (error) {
+      console.error('Error fetching listing:', error);
       setError('Failed to load listing');
     } finally {
       setLoading(false);
     }
   };
 
-  const checkIfFavorited = async () => {
+  const checkFavoriteStatus = async () => {
     if (!user || !id) return;
     
     try {
@@ -84,373 +109,322 @@ const ListingDetail = () => {
         .eq('listing_id', id)
         .single();
       
-      setIsFavorited(!!data);
+      setIsFavorite(!!data);
     } catch (error) {
-      setIsFavorited(false);
+      // Not a favorite or error - assume false
+      setIsFavorite(false);
     }
   };
 
-  const handleFavorite = async () => {
+  const toggleFavorite = async () => {
     if (!user) {
       toast({
         title: "Sign in required",
-        description: "Please sign in to save favorites",
+        description: "Please sign in to save listings",
       });
       navigate('/auth');
       return;
     }
 
+    setFavoriteLoading(true);
     try {
-      if (isFavorited) {
+      if (isFavorite) {
         await supabase
           .from('favorites')
           .delete()
           .eq('user_id', user.id)
           .eq('listing_id', id);
-        
-        setIsFavorited(false);
-        toast({ title: "Removed from favorites" });
+        setIsFavorite(false);
+        toast({
+          title: "Removed from favorites",
+          description: "Listing removed from your saved items",
+        });
       } else {
         await supabase
           .from('favorites')
-          .insert({ user_id: user.id, listing_id: id });
-        
-        setIsFavorited(true);
-        toast({ title: "Added to favorites" });
+          .insert([{ user_id: user.id, listing_id: id }]);
+        setIsFavorite(true);
+        toast({
+          title: "Added to favorites",
+          description: "Listing saved to your favorites",
+        });
       }
     } catch (error) {
-      console.error('Error updating favorite:', error);
+      console.error('Error toggling favorite:', error);
       toast({
         title: "Error",
-        description: "Failed to update favorites",
+        description: "Failed to update favorite status",
         variant: "destructive",
       });
+    } finally {
+      setFavoriteLoading(false);
     }
   };
 
   const handleShare = async () => {
-    const url = window.location.href;
-    const title = `Check out ${listing?.dog_name} - ${listing?.breed}`;
-    const description = `${listing?.dog_name} is a ${listing?.age} month old ${listing?.breed} looking for a loving home!`;
-    
+    if (!listing) return;
+
     const shareData = {
-      title,
-      description,
-      url
+      title: `${listing.dog_name} - ${listing.breed}`,
+      description: `Check out this adorable ${listing.breed} puppy for $${listing.price.toLocaleString()}!`,
+      url: window.location.href
     };
 
     if (canNativeShare) {
-      // Mobile - use native share
       await nativeShare(shareData);
     } else {
-      // Desktop - copy to clipboard
       await copyToClipboard(shareData);
     }
   };
 
-  const handleContact = async () => {
-    if (!user) {
-      toast({
-        title: "Sign in required",
-        description: "Please sign in to contact sellers",
-      });
-      navigate('/auth');
-      return;
-    }
-
-    if (user.id === listing?.user_id) {
-      toast({
-        title: "Cannot contact yourself",
-        description: "You cannot contact yourself about your own listing",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    // Navigate to messages with prefilled content
-    const messageText = `Hi, I'm interested in your listing for ${listing?.dog_name}!`;
-    navigate(`/messages?contact=${listing?.user_id}&listing=${listing?.id}&message=${encodeURIComponent(messageText)}`);
-  };
-
-  const handleSellerClick = () => {
-    if (listing?.profiles?.id) {
-      navigate(`/profile/${listing.profiles.id}`);
+  const formatAge = (age: number) => {
+    if (age < 12) {
+      return `${age} week${age !== 1 ? 's' : ''}`;
+    } else {
+      const months = Math.floor(age / 4);
+      return `${months} month${months !== 1 ? 's' : ''}`;
     }
   };
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <LoadingState message="Loading listing..." />
+      <div className="min-h-screen bg-background">
+        <div className="container mx-auto px-4 py-8">
+          <div className="animate-pulse space-y-6">
+            <div className="aspect-video bg-muted rounded-lg"></div>
+            <div className="space-y-4">
+              <div className="h-8 bg-muted rounded w-3/4"></div>
+              <div className="h-6 bg-muted rounded w-1/2"></div>
+              <div className="h-20 bg-muted rounded"></div>
+            </div>
+          </div>
+        </div>
       </div>
     );
   }
 
   if (error || !listing) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <ErrorState 
-          title="Listing not found"
-          message={error || "This listing may have been removed or is no longer available"}
-          retryText="Back to Explore"
-          onRetry={() => navigate('/explore')}
-        />
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold text-foreground mb-2">Listing not found</h2>
+          <p className="text-muted-foreground mb-4">The listing you're looking for doesn't exist or has been removed.</p>
+          <Button onClick={() => navigate('/')} variant="outline">
+            Back to listings
+          </Button>
+        </div>
       </div>
     );
   }
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric'
-    });
-  };
+  const currentImage = listing.image_url || (listing.images && listing.images[0]);
+  const isOwner = user?.id === listing.user_id;
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white border-b sticky top-0 z-10">
-        <div className="container mx-auto px-4 py-3">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => navigate(-1)}
-            className="text-gray-600 hover:text-gray-900"
-          >
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back
-          </Button>
-        </div>
-      </div>
-
-      {/* Main Content */}
-      <div className="container mx-auto px-4 py-6 max-w-6xl">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Left Column - Image */}
-          <div className="space-y-4">
-            <div className="aspect-square rounded-lg overflow-hidden bg-gray-100">
-              <img 
-                src={listing.image_url || '/placeholder.svg'}
+    <div className="min-h-screen bg-background">
+      <div className="container mx-auto px-4 py-8 max-w-4xl">
+        {/* Image Gallery */}
+        <div className="mb-8">
+          <div className="aspect-video rounded-lg overflow-hidden bg-muted">
+            {currentImage ? (
+              <img
+                src={currentImage}
                 alt={listing.dog_name}
                 className="w-full h-full object-cover"
-                onError={(e) => {
-                  (e.target as HTMLImageElement).src = '/placeholder.svg';
-                }}
               />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center text-muted-foreground">
+                No image available
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Main Info */}
+        <div className="space-y-6">
+          {/* Title and Price */}
+          <div className="flex items-start justify-between">
+            <div className="flex-1">
+              <h1 className="text-3xl font-bold text-foreground mb-2">
+                {listing.dog_name}
+              </h1>
+              <div className="flex items-center gap-4 text-muted-foreground mb-4">
+                <span className="text-lg">{listing.breed}</span>
+                <span>•</span>
+                <span>{formatAge(listing.age)} old</span>
+                {listing.location && (
+                  <>
+                    <span>•</span>
+                    <div className="flex items-center gap-1">
+                      <MapPin className="w-4 h-4" />
+                      <span>{listing.location}</span>
+                    </div>
+                  </>
+                )}
+              </div>
+              <div className="text-3xl font-bold text-primary mb-6">
+                ${listing.price.toLocaleString()}
+              </div>
             </div>
           </div>
 
-          {/* Right Column - Info */}
-          <div className="space-y-6">
-            {/* Essential Info Block */}
-            <Card>
-              <CardContent className="p-6 space-y-4">
-                {/* Name, Breed, Age, Price, Location */}
-                <div className="space-y-3">
-                  <div className="flex items-start justify-between">
-                    <h1 className="text-2xl font-bold text-gray-900">{listing.dog_name}</h1>
-                    <div className="text-2xl font-bold text-[#2C3EDC]">
-                      ${listing.price?.toLocaleString()}
-                    </div>
-                  </div>
-                  
-                  <div className="flex flex-wrap gap-2">
-                    <Badge variant="outline" className="border-[#2C3EDC] text-[#2C3EDC]">
-                      {listing.breed}
-                    </Badge>
-                    <Badge variant="outline" className="text-gray-600">
-                      {listing.age} {listing.age === 1 ? 'month' : 'months'} old
-                    </Badge>
-                    {listing.gender && (
-                      <Badge variant="outline" className="text-gray-600">
-                        {listing.gender}
-                      </Badge>
-                    )}
-                  </div>
+          {/* Action Buttons */}
+          <div className="flex items-center gap-3">
+            <AnimatedHeart
+              isLiked={isFavorite}
+              onToggle={toggleFavorite}
+              disabled={favoriteLoading}
+              className="p-3 border rounded-lg hover:bg-accent"
+            />
+            
+            <ContactSellerButton
+              listingId={listing.id}
+              sellerId={listing.user_id || ''}
+              className="flex-1 bg-royal-blue hover:bg-royal-blue/90 text-white"
+            >
+              <MessageCircle className="w-4 h-4 mr-2" />
+              Contact Seller
+            </ContactSellerButton>
+            
+            <Button
+              onClick={handleShare}
+              variant="outline"
+              size="lg"
+              className="px-6"
+              title="Share this listing"
+            >
+              <Share2 className="w-4 h-4 mr-2" />
+              Share
+            </Button>
+          </div>
 
-                  <div className="flex items-center gap-4 text-sm text-gray-600">
-                    {listing.location && (
-                      <div className="flex items-center gap-1">
-                        <MapPin className="h-4 w-4" />
-                        <span>{listing.location}</span>
-                      </div>
-                    )}
-                    <div className="flex items-center gap-1">
-                      <Calendar className="h-4 w-4" />
-                      <span>Listed {formatDate(listing.created_at)}</span>
-                    </div>
-                  </div>
+          <Separator />
 
-                  {/* Health Badges */}
-                  <div className="flex flex-wrap gap-2">
-                    {listing.vaccinated && (
-                      <Badge className="bg-green-100 text-green-800 hover:bg-green-100">
-                        ✓ Vaccinated
-                      </Badge>
-                    )}
-                    {listing.neutered_spayed && (
-                      <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-100">
-                        ✓ Neutered/Spayed
-                      </Badge>
-                    )}
-                    {listing.good_with_kids && (
-                      <Badge className="bg-purple-100 text-purple-800 hover:bg-purple-100">
-                        ✓ Good with Kids
-                      </Badge>
-                    )}
-                    {listing.good_with_dogs && (
-                      <Badge className="bg-orange-100 text-orange-800 hover:bg-orange-100">
-                        ✓ Good with Dogs
-                      </Badge>
-                    )}
-                  </div>
-                </div>
-
-                {/* Action Buttons */}
-                <div className="flex gap-2 pt-4 border-t">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleFavorite}
-                    className={`flex-1 ${isFavorited ? 'text-red-500 border-red-200' : 'text-gray-600'}`}
+          {/* Seller Info */}
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center gap-4">
+                <Avatar className="w-16 h-16">
+                  <AvatarImage src={listing.profiles?.avatar_url} />
+                  <AvatarFallback>
+                    <User className="w-8 h-8" />
+                  </AvatarFallback>
+                </Avatar>
+                <div className="flex-1">
+                  <button
+                    onClick={() => navigate(`/profile/${listing.profiles?.id}`)}
+                    className="text-lg font-semibold hover:text-primary transition-colors text-left"
                   >
-                    <Heart className={`h-4 w-4 mr-2 ${isFavorited ? 'fill-current' : ''}`} />
-                    {isFavorited ? 'Favorited' : 'Favorite'}
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleShare}
-                    className="flex-1 text-gray-600 hover:text-gray-900 hover:border-gray-300"
-                  >
-                    <Share className="h-4 w-4 mr-2" />
-                    Share
-                  </Button>
-                  <Button
-                    size="sm"
-                    onClick={handleContact}
-                    className="flex-1 bg-[#2C3EDC] hover:bg-[#2C3EDC]/90"
-                  >
-                    <MessageCircle className="h-4 w-4 mr-2" />
-                    Contact
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* About Section */}
-            {listing.description && (
-              <Card>
-                <Collapsible open={aboutExpanded} onOpenChange={setAboutExpanded}>
-                  <CollapsibleTrigger asChild>
-                    <CardContent className="p-4 cursor-pointer hover:bg-gray-50">
-                      <div className="flex items-center justify-between">
-                        <h3 className="font-semibold text-gray-900 flex items-center gap-2">
-                          🐶 About {listing.dog_name}
-                        </h3>
-                        {aboutExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-                      </div>
-                    </CardContent>
-                  </CollapsibleTrigger>
-                  <CollapsibleContent>
-                    <CardContent className="px-4 pb-4 pt-0">
-                      <p className="text-gray-600 text-sm leading-relaxed">{listing.description}</p>
-                    </CardContent>
-                  </CollapsibleContent>
-                </Collapsible>
-              </Card>
-            )}
-
-            {/* Seller Card */}
-            <Card>
-              <CardContent className="p-4">
-                <h3 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                  👤 Seller Information
-                </h3>
-                <div className="flex items-center gap-3">
-                  <Avatar className="h-12 w-12">
-                    <AvatarImage src={listing.profiles?.avatar_url} />
-                    <AvatarFallback>
-                      {listing.profiles?.full_name?.charAt(0) || 'U'}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={handleSellerClick}
-                        className="font-medium text-gray-900 hover:text-[#2C3EDC] hover:underline cursor-pointer transition-colors"
-                      >
-                        {listing.profiles?.full_name || 'Anonymous Seller'}
-                      </button>
-                      {listing.profiles?.verified && (
-                        <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-100 text-xs">
-                          <Shield className="h-3 w-3 mr-1" />
-                          Verified
-                        </Badge>
-                      )}
-                    </div>
+                    {listing.profiles?.full_name || 'Unknown Seller'}
+                  </button>
+                  {listing.profiles?.username && (
+                    <p className="text-muted-foreground">@{listing.profiles.username}</p>
+                  )}
+                  <div className="flex items-center gap-2 mt-1">
+                    {listing.profiles?.verified && (
+                      <Badge variant="secondary" className="text-xs">
+                        Verified
+                      </Badge>
+                    )}
                     {listing.profiles?.rating && (
-                      <div className="flex items-center gap-1 text-sm">
-                        <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                        <span className="font-medium">{listing.profiles.rating.toFixed(1)}</span>
-                        <span className="text-gray-500">
-                          ({listing.profiles.total_reviews || 0} reviews)
-                        </span>
-                      </div>
-                    )}
-                    {listing.profiles?.location && (
-                      <div className="flex items-center gap-1 text-sm text-gray-500">
-                        <MapPin className="h-3 w-3" />
-                        <span>{listing.profiles.location}</span>
-                      </div>
+                      <span className="text-sm text-muted-foreground">
+                        ⭐ {listing.profiles.rating.toFixed(1)} ({listing.profiles.total_reviews || 0} reviews)
+                      </span>
                     )}
                   </div>
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+            </CardContent>
+          </Card>
 
-            {/* Reviews Section */}
-            <Card>
-              <Collapsible open={reviewsExpanded} onOpenChange={setReviewsExpanded}>
-                <CollapsibleTrigger asChild>
-                  <CardContent className="p-4 cursor-pointer hover:bg-gray-50">
-                    <div className="flex items-center justify-between">
-                      <h3 className="font-semibold text-gray-900 flex items-center gap-2">
-                        ⭐️ Reviews ({listing.profiles?.total_reviews || 0})
-                      </h3>
-                      {reviewsExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-                    </div>
-                  </CardContent>
-                </CollapsibleTrigger>
-                <CollapsibleContent>
-                  <CardContent className="px-4 pb-4 pt-0">
-                    <div className="text-center py-8 text-gray-500">
-                      <Star className="h-8 w-8 mx-auto mb-2 text-gray-300" />
-                      <p>No reviews yet for this seller</p>
-                    </div>
-                  </CardContent>
-                </CollapsibleContent>
-              </Collapsible>
-            </Card>
+          <Separator />
+
+          {/* About Section */}
+          <div>
+            <h2 className="text-2xl font-semibold mb-4">About {listing.dog_name}</h2>
+            
+            {/* Basic Info Grid */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+              {listing.gender && (
+                <div className="text-center p-3 bg-muted rounded-lg">
+                  <p className="text-sm text-muted-foreground">Gender</p>
+                  <p className="font-medium capitalize">{listing.gender}</p>
+                </div>
+              )}
+              {listing.size && (
+                <div className="text-center p-3 bg-muted rounded-lg">
+                  <p className="text-sm text-muted-foreground">Size</p>
+                  <p className="font-medium capitalize">{listing.size}</p>
+                </div>
+              )}
+              {listing.color && (
+                <div className="text-center p-3 bg-muted rounded-lg">
+                  <p className="text-sm text-muted-foreground">Color</p>
+                  <p className="font-medium capitalize">{listing.color}</p>
+                </div>
+              )}
+              <div className="text-center p-3 bg-muted rounded-lg">
+                <p className="text-sm text-muted-foreground">Age</p>
+                <p className="font-medium">{formatAge(listing.age)}</p>
+              </div>
+            </div>
+
+            {/* Health & Behavior */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold">Health & Behavior</h3>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                <div className="flex items-center gap-2">
+                  <div className={`w-3 h-3 rounded-full ${listing.vaccinated ? 'bg-green-500' : 'bg-gray-300'}`} />
+                  <span className="text-sm">Vaccinated</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className={`w-3 h-3 rounded-full ${listing.neutered_spayed ? 'bg-green-500' : 'bg-gray-300'}`} />
+                  <span className="text-sm">Spayed/Neutered</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className={`w-3 h-3 rounded-full ${listing.good_with_kids ? 'bg-green-500' : 'bg-gray-300'}`} />
+                  <span className="text-sm">Good with kids</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className={`w-3 h-3 rounded-full ${listing.good_with_dogs ? 'bg-green-500' : 'bg-gray-300'}`} />
+                  <span className="text-sm">Good with dogs</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className={`w-3 h-3 rounded-full ${listing.delivery_available ? 'bg-green-500' : 'bg-gray-300'}`} />
+                  <span className="text-sm">Delivery available</span>
+                </div>
+                {listing.special_needs && (
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 rounded-full bg-orange-500" />
+                    <span className="text-sm">Special needs</span>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Description */}
+            {listing.description && (
+              <div className="mt-6">
+                <h3 className="text-lg font-semibold mb-3">Description</h3>
+                <p className="text-muted-foreground leading-relaxed">
+                  {listing.description}
+                </p>
+              </div>
+            )}
+          </div>
+
+          <Separator />
+
+          {/* Reviews Section */}
+          <div>
+            <h2 className="text-2xl font-semibold mb-4">Reviews</h2>
+            <div className="text-center py-12 text-muted-foreground">
+              <p>No reviews yet for this seller</p>
+              <p className="text-sm mt-1">Be the first to leave a review after your purchase</p>
+            </div>
           </div>
         </div>
       </div>
-
-      {/* Mobile Sticky Contact Bar */}
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t p-4 z-10">
-        <Button
-          onClick={handleContact}
-          className="w-full bg-[#2C3EDC] hover:bg-[#2C3EDC]/90"
-          size="lg"
-        >
-          <Phone className="h-4 w-4 mr-2" />
-          Contact Seller
-        </Button>
-      </div>
-
-      {/* Mobile spacing for sticky bar */}
-      <div className="lg:hidden h-20"></div>
     </div>
   );
 };
