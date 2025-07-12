@@ -1,456 +1,301 @@
 
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Heart, Share, MessageCircle, Phone, MapPin, Calendar, Star, Shield, ChevronDown, ChevronUp } from 'lucide-react';
+import { ArrowLeft, Share, Heart, MapPin, Calendar, Ruler, Award } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { Card, CardContent } from '@/components/ui/card';
+import ContactSellerButton from '@/components/messaging/ContactSellerButton';
+import { useSocialShare } from '@/hooks/useSocialShare';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
-import { useSocialShare } from '@/hooks/useSocialShare';
-import { supabase } from '@/integrations/supabase/client';
-import LoadingState from '@/components/ui/loading-state';
-import ErrorState from '@/components/ui/error-state';
 
 const ListingDetail = () => {
-  const { id } = useParams<{ id: string }>();
+  const { id } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
   const { toast } = useToast();
-  const { shareToTwitter, shareToFacebook, shareToLinkedIn, copyToClipboard, nativeShare, canNativeShare } = useSocialShare();
+  const { shareToTwitter, shareToFacebook, copyToClipboard, nativeShare, canNativeShare } = useSocialShare();
   
-  const [listing, setListing] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [isFavorited, setIsFavorited] = useState(false);
-  const [aboutExpanded, setAboutExpanded] = useState(false);
-  const [reviewsExpanded, setReviewsExpanded] = useState(false);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
-  useEffect(() => {
-    if (id) {
-      fetchListing();
-      if (user) {
-        checkIfFavorited();
-      }
-    }
-  }, [id, user]);
-
-  const fetchListing = async () => {
-    try {
-      setLoading(true);
-      const { data, error } = await supabase
-        .from('dog_listings')
-        .select(`
-          *,
-          profiles:user_id (
-            id,
-            full_name,
-            avatar_url,
-            rating,
-            total_reviews,
-            verified,
-            location
-          )
-        `)
-        .eq('id', id)
-        .eq('status', 'active')
-        .single();
-
-      if (error) {
-        console.error('Error fetching listing:', error);
-        setError('Listing not found or no longer available');
-        return;
-      }
-
-      setListing(data);
-    } catch (err) {
-      console.error('Error:', err);
-      setError('Failed to load listing');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const checkIfFavorited = async () => {
-    if (!user || !id) return;
-    
-    try {
-      const { data } = await supabase
-        .from('favorites')
-        .select('id')
-        .eq('user_id', user.id)
-        .eq('listing_id', id)
-        .single();
-      
-      setIsFavorited(!!data);
-    } catch (error) {
-      setIsFavorited(false);
-    }
-  };
-
-  const handleFavorite = async () => {
-    if (!user) {
-      toast({
-        title: "Sign in required",
-        description: "Please sign in to save favorites",
-      });
-      navigate('/auth');
-      return;
-    }
-
-    try {
-      if (isFavorited) {
-        await supabase
-          .from('favorites')
-          .delete()
-          .eq('user_id', user.id)
-          .eq('listing_id', id);
-        
-        setIsFavorited(false);
-        toast({ title: "Removed from favorites" });
-      } else {
-        await supabase
-          .from('favorites')
-          .insert({ user_id: user.id, listing_id: id });
-        
-        setIsFavorited(true);
-        toast({ title: "Added to favorites" });
-      }
-    } catch (error) {
-      console.error('Error updating favorite:', error);
-      toast({
-        title: "Error",
-        description: "Failed to update favorites",
-        variant: "destructive",
-      });
-    }
+  // Mock listing data - in real app this would come from API
+  const listing = {
+    id: '1',
+    dog_name: 'Buddy',
+    breed: 'Golden Retriever',
+    age: 8,
+    price: 1200,
+    location: 'San Francisco, CA',
+    description: 'Buddy is a friendly and energetic Golden Retriever puppy looking for his forever home. He loves to play fetch, go for walks, and cuddle with his family. Buddy is up to date on all his vaccinations and has been health checked by our veterinarian.',
+    size: 'Large',
+    gender: 'Male',
+    images: [
+      'https://images.unsplash.com/photo-1552053831-71594a27632d?w=500&h=400&fit=crop',
+      'https://images.unsplash.com/photo-1583337130417-3346a1be7dee?w=500&h=400&fit=crop',
+      'https://images.unsplash.com/photo-1517849845537-4d257902454a?w=500&h=400&fit=crop'
+    ],
+    seller: {
+      id: 'seller123',
+      name: 'Sarah Johnson',
+      avatar: 'https://images.unsplash.com/photo-1494790108755-2616b612b47c?w=150&h=150&fit=crop&crop=face',
+      rating: 4.8,
+      reviews: 23,
+      location: 'San Francisco, CA',
+      joinDate: 'March 2023',
+      totalListings: 12
+    },
+    features: [
+      'Vaccinated',
+      'Health Checked',
+      'Microchipped',
+      'House Trained'
+    ]
   };
 
   const handleShare = async () => {
-    const url = window.location.href;
-    const title = `Check out ${listing?.dog_name} - ${listing?.breed}`;
-    const description = `${listing?.dog_name} is a ${listing?.age} month old ${listing?.breed} looking for a loving home!`;
-    
     const shareData = {
-      title,
-      description,
-      url
+      title: `${listing.dog_name} - ${listing.breed}`,
+      description: `Check out this adorable ${listing.breed} puppy looking for a forever home!`,
+      url: window.location.href
     };
 
     if (canNativeShare) {
-      // Mobile - use native share
-      await nativeShare(shareData);
+      try {
+        await nativeShare(shareData);
+      } catch (error) {
+        // Fallback to clipboard if native share fails
+        await copyToClipboard(shareData);
+      }
     } else {
-      // Desktop - copy to clipboard
       await copyToClipboard(shareData);
     }
   };
 
-  const handleContact = async () => {
+  const handleFavorite = () => {
     if (!user) {
       toast({
         title: "Sign in required",
-        description: "Please sign in to contact sellers",
-      });
-      navigate('/auth');
-      return;
-    }
-
-    if (user.id === listing?.user_id) {
-      toast({
-        title: "Cannot contact yourself",
-        description: "You cannot contact yourself about your own listing",
+        description: "Please sign in to save listings",
         variant: "destructive",
       });
       return;
     }
-
-    // Navigate to messages with prefilled content
-    const messageText = `Hi, I'm interested in your listing for ${listing?.dog_name}!`;
-    navigate(`/messages?contact=${listing?.user_id}&listing=${listing?.id}&message=${encodeURIComponent(messageText)}`);
-  };
-
-  const handleSellerClick = () => {
-    if (listing?.profiles?.id) {
-      navigate(`/profile/${listing.profiles.id}`);
-    }
-  };
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <LoadingState message="Loading listing..." />
-      </div>
-    );
-  }
-
-  if (error || !listing) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <ErrorState 
-          title="Listing not found"
-          message={error || "This listing may have been removed or is no longer available"}
-          retryText="Back to Explore"
-          onRetry={() => navigate('/explore')}
-        />
-      </div>
-    );
-  }
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric'
+    
+    setIsFavorited(!isFavorited);
+    toast({
+      title: isFavorited ? "Removed from favorites" : "Added to favorites",
+      description: isFavorited ? "Listing removed from your favorites" : "Listing saved to your favorites",
     });
   };
 
+  const nextImage = () => {
+    setCurrentImageIndex((prev) => (prev + 1) % listing.images.length);
+  };
+
+  const prevImage = () => {
+    setCurrentImageIndex((prev) => (prev - 1 + listing.images.length) % listing.images.length);
+  };
+
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="max-w-4xl mx-auto p-4 space-y-6">
       {/* Header */}
-      <div className="bg-white border-b sticky top-0 z-10">
-        <div className="container mx-auto px-4 py-3">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => navigate(-1)}
-            className="text-gray-600 hover:text-gray-900"
-          >
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back
-          </Button>
-        </div>
+      <div className="flex items-center gap-4">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => navigate(-1)}
+        >
+          <ArrowLeft size={20} />
+        </Button>
+        <h1 className="text-xl font-semibold">Listing Details</h1>
       </div>
 
-      {/* Main Content */}
-      <div className="container mx-auto px-4 py-6 max-w-6xl">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Left Column - Image */}
-          <div className="space-y-4">
-            <div className="aspect-square rounded-lg overflow-hidden bg-gray-100">
-              <img 
-                src={listing.image_url || '/placeholder.svg'}
-                alt={listing.dog_name}
-                className="w-full h-full object-cover"
-                onError={(e) => {
-                  (e.target as HTMLImageElement).src = '/placeholder.svg';
-                }}
-              />
+      {/* Image Gallery */}
+      <div className="relative">
+        <div className="aspect-video rounded-lg overflow-hidden bg-gray-100">
+          <img
+            src={listing.images[currentImageIndex]}
+            alt={`${listing.dog_name} - Image ${currentImageIndex + 1}`}
+            className="w-full h-full object-cover"
+          />
+        </div>
+        
+        {listing.images.length > 1 && (
+          <>
+            <Button
+              variant="outline"
+              size="icon"
+              className="absolute left-2 top-1/2 transform -translate-y-1/2 bg-white/80 hover:bg-white"
+              onClick={prevImage}
+            >
+              <ArrowLeft size={16} />
+            </Button>
+            <Button
+              variant="outline"
+              size="icon"
+              className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-white/80 hover:bg-white"
+              onClick={nextImage}
+            >
+              <ArrowLeft size={16} className="rotate-180" />
+            </Button>
+            <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 bg-black/50 text-white px-2 py-1 rounded text-sm">
+              {currentImageIndex + 1} / {listing.images.length}
+            </div>
+          </>
+        )}
+      </div>
+
+      {/* Listing Info */}
+      <div className="space-y-4">
+        <div>
+          <h2 className="text-2xl font-bold">{listing.dog_name}</h2>
+          <p className="text-lg text-gray-600">{listing.breed}</p>
+          <div className="flex items-center gap-4 mt-2 text-sm text-gray-500">
+            <div className="flex items-center gap-1">
+              <Calendar size={16} />
+              {listing.age} weeks old
+            </div>
+            <div className="flex items-center gap-1">
+              <MapPin size={16} />
+              {listing.location}
+            </div>
+            <div className="flex items-center gap-1">
+              <Ruler size={16} />
+              {listing.size}
             </div>
           </div>
+        </div>
 
-          {/* Right Column - Info */}
-          <div className="space-y-6">
-            {/* Essential Info Block */}
-            <Card>
-              <CardContent className="p-6 space-y-4">
-                {/* Name, Breed, Age, Price, Location */}
-                <div className="space-y-3">
-                  <div className="flex items-start justify-between">
-                    <h1 className="text-2xl font-bold text-gray-900">{listing.dog_name}</h1>
-                    <div className="text-2xl font-bold text-[#2C3EDC]">
-                      ${listing.price?.toLocaleString()}
-                    </div>
-                  </div>
-                  
-                  <div className="flex flex-wrap gap-2">
-                    <Badge variant="outline" className="border-[#2C3EDC] text-[#2C3EDC]">
-                      {listing.breed}
-                    </Badge>
-                    <Badge variant="outline" className="text-gray-600">
-                      {listing.age} {listing.age === 1 ? 'month' : 'months'} old
-                    </Badge>
-                    {listing.gender && (
-                      <Badge variant="outline" className="text-gray-600">
-                        {listing.gender}
-                      </Badge>
-                    )}
-                  </div>
+        <div className="text-3xl font-bold text-royal-blue">
+          ${listing.price.toLocaleString()}
+        </div>
 
-                  <div className="flex items-center gap-4 text-sm text-gray-600">
-                    {listing.location && (
-                      <div className="flex items-center gap-1">
-                        <MapPin className="h-4 w-4" />
-                        <span>{listing.location}</span>
-                      </div>
-                    )}
-                    <div className="flex items-center gap-1">
-                      <Calendar className="h-4 w-4" />
-                      <span>Listed {formatDate(listing.created_at)}</span>
-                    </div>
-                  </div>
+        {/* Action Buttons */}
+        <div className="flex items-center gap-3">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={handleFavorite}
+            className={`${isFavorited ? 'text-red-500' : 'text-gray-400'}`}
+          >
+            <Heart size={20} fill={isFavorited ? 'currentColor' : 'none'} />
+          </Button>
+          
+          <ContactSellerButton
+            listingId={listing.id}
+            sellerId={listing.seller.id}
+            className="flex-1 bg-royal-blue hover:bg-royal-blue/90"
+          >
+            Contact Seller
+          </ContactSellerButton>
+          
+          <Button
+            variant="outline"
+            onClick={handleShare}
+            className="flex items-center gap-2"
+            title="Share this listing"
+          >
+            <Share size={16} />
+            Share
+          </Button>
+        </div>
 
-                  {/* Health Badges */}
-                  <div className="flex flex-wrap gap-2">
-                    {listing.vaccinated && (
-                      <Badge className="bg-green-100 text-green-800 hover:bg-green-100">
-                        ✓ Vaccinated
-                      </Badge>
-                    )}
-                    {listing.neutered_spayed && (
-                      <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-100">
-                        ✓ Neutered/Spayed
-                      </Badge>
-                    )}
-                    {listing.good_with_kids && (
-                      <Badge className="bg-purple-100 text-purple-800 hover:bg-purple-100">
-                        ✓ Good with Kids
-                      </Badge>
-                    )}
-                    {listing.good_with_dogs && (
-                      <Badge className="bg-orange-100 text-orange-800 hover:bg-orange-100">
-                        ✓ Good with Dogs
-                      </Badge>
-                    )}
-                  </div>
-                </div>
-
-                {/* Action Buttons */}
-                <div className="flex gap-2 pt-4 border-t">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleFavorite}
-                    className={`flex-1 ${isFavorited ? 'text-red-500 border-red-200' : 'text-gray-600'}`}
-                  >
-                    <Heart className={`h-4 w-4 mr-2 ${isFavorited ? 'fill-current' : ''}`} />
-                    {isFavorited ? 'Favorited' : 'Favorite'}
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleShare}
-                    className="flex-1 text-gray-600 hover:text-gray-900 hover:border-gray-300"
-                  >
-                    <Share className="h-4 w-4 mr-2" />
-                    Share
-                  </Button>
-                  <Button
-                    size="sm"
-                    onClick={handleContact}
-                    className="flex-1 bg-[#2C3EDC] hover:bg-[#2C3EDC]/90"
-                  >
-                    <MessageCircle className="h-4 w-4 mr-2" />
-                    Contact
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* About Section */}
-            {listing.description && (
-              <Card>
-                <Collapsible open={aboutExpanded} onOpenChange={setAboutExpanded}>
-                  <CollapsibleTrigger asChild>
-                    <CardContent className="p-4 cursor-pointer hover:bg-gray-50">
-                      <div className="flex items-center justify-between">
-                        <h3 className="font-semibold text-gray-900 flex items-center gap-2">
-                          🐶 About {listing.dog_name}
-                        </h3>
-                        {aboutExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-                      </div>
-                    </CardContent>
-                  </CollapsibleTrigger>
-                  <CollapsibleContent>
-                    <CardContent className="px-4 pb-4 pt-0">
-                      <p className="text-gray-600 text-sm leading-relaxed">{listing.description}</p>
-                    </CardContent>
-                  </CollapsibleContent>
-                </Collapsible>
-              </Card>
-            )}
-
-            {/* Seller Card */}
-            <Card>
-              <CardContent className="p-4">
-                <h3 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                  👤 Seller Information
-                </h3>
-                <div className="flex items-center gap-3">
-                  <Avatar className="h-12 w-12">
-                    <AvatarImage src={listing.profiles?.avatar_url} />
-                    <AvatarFallback>
-                      {listing.profiles?.full_name?.charAt(0) || 'U'}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={handleSellerClick}
-                        className="font-medium text-gray-900 hover:text-[#2C3EDC] hover:underline cursor-pointer transition-colors"
-                      >
-                        {listing.profiles?.full_name || 'Anonymous Seller'}
-                      </button>
-                      {listing.profiles?.verified && (
-                        <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-100 text-xs">
-                          <Shield className="h-3 w-3 mr-1" />
-                          Verified
-                        </Badge>
-                      )}
-                    </div>
-                    {listing.profiles?.rating && (
-                      <div className="flex items-center gap-1 text-sm">
-                        <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                        <span className="font-medium">{listing.profiles.rating.toFixed(1)}</span>
-                        <span className="text-gray-500">
-                          ({listing.profiles.total_reviews || 0} reviews)
-                        </span>
-                      </div>
-                    )}
-                    {listing.profiles?.location && (
-                      <div className="flex items-center gap-1 text-sm text-gray-500">
-                        <MapPin className="h-3 w-3" />
-                        <span>{listing.profiles.location}</span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Reviews Section */}
-            <Card>
-              <Collapsible open={reviewsExpanded} onOpenChange={setReviewsExpanded}>
-                <CollapsibleTrigger asChild>
-                  <CardContent className="p-4 cursor-pointer hover:bg-gray-50">
-                    <div className="flex items-center justify-between">
-                      <h3 className="font-semibold text-gray-900 flex items-center gap-2">
-                        ⭐️ Reviews ({listing.profiles?.total_reviews || 0})
-                      </h3>
-                      {reviewsExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-                    </div>
-                  </CardContent>
-                </CollapsibleTrigger>
-                <CollapsibleContent>
-                  <CardContent className="px-4 pb-4 pt-0">
-                    <div className="text-center py-8 text-gray-500">
-                      <Star className="h-8 w-8 mx-auto mb-2 text-gray-300" />
-                      <p>No reviews yet for this seller</p>
-                    </div>
-                  </CardContent>
-                </CollapsibleContent>
-              </Collapsible>
-            </Card>
-          </div>
+        {/* Features */}
+        <div className="flex flex-wrap gap-2">
+          {listing.features.map((feature) => (
+            <Badge key={feature} variant="secondary" className="flex items-center gap-1">
+              <Award size={12} />
+              {feature}
+            </Badge>
+          ))}
         </div>
       </div>
 
-      {/* Mobile Sticky Contact Bar */}
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t p-4 z-10">
-        <Button
-          onClick={handleContact}
-          className="w-full bg-[#2C3EDC] hover:bg-[#2C3EDC]/90"
-          size="lg"
-        >
-          <Phone className="h-4 w-4 mr-2" />
-          Contact Seller
-        </Button>
-      </div>
+      {/* Seller Card */}
+      <Card>
+        <CardContent className="p-6">
+          <div className="flex items-start gap-4">
+            <Avatar className="h-16 w-16">
+              <AvatarImage src={listing.seller.avatar} />
+              <AvatarFallback>{listing.seller.name.charAt(0)}</AvatarFallback>
+            </Avatar>
+            <div className="flex-1">
+              <h3 className="font-semibold text-lg">{listing.seller.name}</h3>
+              <div className="flex items-center gap-4 text-sm text-gray-600 mt-1">
+                <span>★ {listing.seller.rating} ({listing.seller.reviews} reviews)</span>
+                <span>📍 {listing.seller.location}</span>
+                <span>📅 Joined {listing.seller.joinDate}</span>
+              </div>
+              <p className="text-sm text-gray-500 mt-2">
+                {listing.seller.totalListings} active listings
+              </p>
+            </div>
+            <Button
+              variant="outline"
+              onClick={() => navigate(`/profile/${listing.seller.id}`)}
+            >
+              View Profile
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
 
-      {/* Mobile spacing for sticky bar */}
-      <div className="lg:hidden h-20"></div>
+      {/* About Section */}
+      <Card>
+        <CardContent className="p-6">
+          <h3 className="font-semibold text-lg mb-3">About {listing.dog_name}</h3>
+          <p className="text-gray-700 leading-relaxed">{listing.description}</p>
+        </CardContent>
+      </Card>
+
+      {/* Reviews Section */}
+      <Card>
+        <CardContent className="p-6">
+          <h3 className="font-semibold text-lg mb-3">Reviews</h3>
+          <div className="space-y-4">
+            <div className="border-b pb-4">
+              <div className="flex items-center gap-3 mb-2">
+                <Avatar className="h-8 w-8">
+                  <AvatarImage src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face" />
+                  <AvatarFallback>M</AvatarFallback>
+                </Avatar>
+                <div>
+                  <p className="font-medium">Mike Davis</p>
+                  <div className="flex items-center text-sm text-gray-500">
+                    <span>★★★★★</span>
+                    <span className="ml-2">2 weeks ago</span>
+                  </div>
+                </div>
+              </div>
+              <p className="text-gray-700">
+                "Sarah was amazing to work with! The puppy was exactly as described and the entire process was smooth and professional."
+              </p>
+            </div>
+            
+            <div className="border-b pb-4">
+              <div className="flex items-center gap-3 mb-2">
+                <Avatar className="h-8 w-8">
+                  <AvatarImage src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face" />
+                  <AvatarFallback>E</AvatarFallback>
+                </Avatar>
+                <div>
+                  <p className="font-medium">Emma Wilson</p>
+                  <div className="flex items-center text-sm text-gray-500">
+                    <span>★★★★★</span>
+                    <span className="ml-2">1 month ago</span>
+                  </div>
+                </div>
+              </div>
+              <p className="text-gray-700">
+                "Highly recommend! The puppy is healthy, well-socialized, and came with all the necessary documentation."
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };
