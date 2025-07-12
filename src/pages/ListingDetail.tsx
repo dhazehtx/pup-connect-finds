@@ -15,7 +15,7 @@ const ListingDetail = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { toast } = useToast();
-  const { shareNative } = useShare();
+  const { shareContent } = useShare();
   
   const [isFavorited, setIsFavorited] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
@@ -55,13 +55,11 @@ const ListingDetail = () => {
   };
 
   const handleShare = async () => {
-    const shareData = {
-      title: `${listing.dog_name} - ${listing.breed}`,
-      description: `Check out this adorable ${listing.breed} puppy looking for a forever home!`,
-      url: window.location.href
-    };
+    const title = `${listing.dog_name} - ${listing.breed}`;
+    const text = `Check out this adorable ${listing.breed} puppy looking for a forever home!`;
+    const url = window.location.href;
 
-    await shareNative(shareData);
+    await shareContent(title, text, url);
   };
 
   const handleFavorite = () => {
