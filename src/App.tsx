@@ -13,6 +13,7 @@ import Profile from './pages/Profile';
 import Auth from './pages/Auth';
 import CreateListing from './pages/CreateListing';
 import Marketplace from './pages/Marketplace';
+import ListingDetail from './pages/ListingDetail';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -39,6 +40,7 @@ function App() {
                   <Route path="/profile" element={<Profile />} />
                   <Route path="/auth" element={<Auth />} />
                   <Route path="/create-listing" element={<CreateListing />} />
+                  <Route path="/listing/:id" element={<ListingDetail />} />
                 </Routes>
               </Layout>
             </ThemeProvider>
