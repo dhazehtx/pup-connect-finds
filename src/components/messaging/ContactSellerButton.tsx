@@ -54,7 +54,7 @@ const ContactSellerButton = ({
         .single();
 
       if (existingConversation) {
-        // Navigate to existing conversation
+        // Navigate directly to existing conversation thread
         navigate(`/messages/${existingConversation.id}`);
         return;
       }
@@ -92,7 +92,7 @@ const ContactSellerButton = ({
           });
       }
 
-      // Navigate to new conversation
+      // Navigate directly to new conversation thread
       navigate(`/messages/${newConversation.id}`);
 
     } catch (error) {
