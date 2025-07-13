@@ -5,6 +5,7 @@ import { MessageCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 interface ContactSellerButtonProps {
   listingId: string;
@@ -23,7 +24,7 @@ const ContactSellerButton = ({
   const { user } = useAuth();
   const { toast } = useToast();
 
-  const handleContactSeller = () => {
+  const handleContactSeller = async () => {
     if (!user) {
       toast({
         title: "Sign in required",
@@ -42,8 +43,66 @@ const ContactSellerButton = ({
       return;
     }
 
-    // Navigate to messages with contact parameters
-    navigate(`/messages?contact=${sellerId}&listing=${listingId}&from=listing`);
+    try {
+      // Check if conversation already exists
+      const { data: existingConversation } = await supabase
+        .from('conversations')
+        .select('id')
+        .eq('listing_id', listingId)
+        .eq('buyer_id', user.id)
+        .eq('seller_id', sellerId)
+        .single();
+
+      if (existingConversation) {
+        // Navigate to existing conversation
+        navigate(`/messages/${existingConversation.id}`);
+        return;
+      }
+
+      // Create new conversation
+      const { data: newConversation, error } = await supabase
+        .from('conversations')
+        .insert({
+          listing_id: listingId,
+          buyer_id: user.id,
+          seller_id: sellerId
+        })
+        .select('id')
+        .single();
+
+      if (error) throw error;
+
+      // Send initial message
+      const { data: listingData } = await supabase
+        .from('dog_listings')
+        .select('dog_name, breed')
+        .eq('id', listingId)
+        .single();
+
+      if (listingData) {
+        const initialMessage = `Hi! I'm interested in ${listingData.dog_name} (${listingData.breed}). Could you tell me more about this puppy?`;
+        
+        await supabase
+          .from('messages')
+          .insert({
+            conversation_id: newConversation.id,
+            sender_id: user.id,
+            content: initialMessage,
+            message_type: 'text'
+          });
+      }
+
+      // Navigate to new conversation
+      navigate(`/messages/${newConversation.id}`);
+
+    } catch (error) {
+      console.error('Error creating conversation:', error);
+      toast({
+        title: "Error",
+        description: "Failed to start conversation. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   return (

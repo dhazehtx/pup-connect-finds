@@ -15,6 +15,7 @@ import CreateListing from './pages/CreateListing';
 import Marketplace from './pages/Marketplace';
 import ListingDetail from './pages/ListingDetail';
 import Messages from './pages/Messages';
+import MessageThread from './components/messaging/MessageThread';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -43,6 +44,7 @@ function App() {
                   <Route path="/create-listing" element={<CreateListing />} />
                   <Route path="/listing/:id" element={<ListingDetail />} />
                   <Route path="/messages" element={<Messages />} />
+                  <Route path="/messages/:conversationId" element={<MessageThread />} />
                 </Routes>
               </Layout>
             </ThemeProvider>
