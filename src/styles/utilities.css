@@ -1,61 +1,66 @@
 
 @tailwind utilities;
 
-/* Color consistency - Royal Blue theme */
+/* Mobile-first responsive utilities */
 @layer utilities {
-  button, .btn {
-    @apply font-medium transition-colors duration-200;
-    color: hsl(var(--foreground)) !important;
+  /* Ensure consistent theming across all devices */
+  .unified-theme {
+    @apply bg-white text-slate-900 border-slate-200;
+    background-color: white !important;
+    color: rgb(15 23 42) !important;
   }
 
-  button:focus-visible,
-  input:focus-visible,
-  textarea:focus-visible,
-  select:focus-visible {
-    @apply outline-none ring-2 ring-primary ring-offset-2 ring-offset-background;
+  .unified-button {
+    @apply bg-blue-600 text-white border-blue-600;
+    @apply hover:bg-blue-700 active:bg-blue-800;
+    @apply shadow-lg shadow-blue-600/20;
+    background-color: rgb(37 99 235) !important;
+    color: white !important;
   }
 
+  .unified-card {
+    @apply bg-white text-slate-900 border-slate-200;
+    @apply shadow-sm rounded-lg;
+    background-color: white !important;
+    color: rgb(15 23 42) !important;
+  }
+
+  /* Mobile touch targets */
   .touch-target {
     @apply min-h-[44px] min-w-[44px];
   }
 
-  /* Theme consistency */
-  .theme-consistent {
-    @apply bg-background text-foreground border-border;
-    color: hsl(var(--foreground)) !important;
+  /* Focus states for accessibility */
+  button:focus-visible,
+  input:focus-visible,
+  textarea:focus-visible,
+  select:focus-visible {
+    @apply outline-none ring-2 ring-blue-600 ring-offset-2 ring-offset-white;
   }
 
-  .unified-theme {
-    @apply bg-background text-foreground border-border;
-    color: hsl(var(--foreground)) !important;
-  }
-
-  .unified-button {
-    @apply bg-primary text-primary-foreground border-primary;
-    @apply hover:bg-primary/90 active:bg-primary/80;
-    @apply shadow-lg shadow-primary/20;
-    color: hsl(var(--primary-foreground)) !important;
-  }
-
-  .unified-card {
-    @apply bg-card text-card-foreground border-border;
-    @apply shadow-sm rounded-lg;
-    color: hsl(var(--card-foreground)) !important;
-  }
-
-  /* Ensure navigation visibility */
-  .nav-visible {
-    color: hsl(var(--foreground)) !important;
-  }
-
-  /* Remove any brown/yellow overrides */
+  /* Remove any yellow/amber color overrides */
   .text-amber-600, .text-amber-700, .text-amber-800,
   .text-yellow-600, .text-yellow-700, .text-yellow-800,
   .text-orange-600, .text-orange-700, .text-orange-800 {
-    color: hsl(var(--primary)) !important;
+    color: rgb(37 99 235) !important;
   }
 
-  .bg-amber-50, .bg-yellow-50, .bg-orange-50 {
-    background-color: hsl(var(--secondary)) !important;
+  .bg-amber-50, .bg-yellow-50, .bg-orange-50,
+  .bg-amber-100, .bg-yellow-100, .bg-orange-100 {
+    background-color: white !important;
   }
+
+  /* Mobile Safari specific overrides */
+  @supports (-webkit-touch-callout: none) {
+    body, #root, .unified-theme {
+      background-color: white !important;
+    }
+  }
+}
+
+/* Remove any potential debugging styles */
+.debug-bg,
+.debug-yellow,
+.test-bg {
+  background-color: white !important;
 }

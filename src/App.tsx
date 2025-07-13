@@ -27,31 +27,33 @@ const queryClient = new QueryClient({
 
 function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <Router>
-        <AuthProvider>
-          <RealtimeProvider>
-            <ThemeProvider>
-              <Layout>
-                <Routes>
-                  <Route path="/" element={<Home />} />
-                  <Route path="/explore" element={<Explore />} />
-                  <Route path="/marketplace" element={<Marketplace />} />
-                  <Route path="/post" element={<Post />} />
-                  <Route path="/profile/:userId" element={<Profile />} />
-                  <Route path="/profile" element={<Profile />} />
-                  <Route path="/auth" element={<Auth />} />
-                  <Route path="/create-listing" element={<CreateListing />} />
-                  <Route path="/listing/:id" element={<ListingDetail />} />
-                  <Route path="/messages" element={<Messages />} />
-                  <Route path="/messages/:conversationId" element={<MessageThread />} />
-                </Routes>
-              </Layout>
-            </ThemeProvider>
-          </RealtimeProvider>
-        </AuthProvider>
-      </Router>
-    </QueryClientProvider>
+    <div className="min-h-screen bg-white unified-theme">
+      <QueryClientProvider client={queryClient}>
+        <Router>
+          <AuthProvider>
+            <RealtimeProvider>
+              <ThemeProvider defaultTheme="light">
+                <Layout>
+                  <Routes>
+                    <Route path="/" element={<Home />} />
+                    <Route path="/explore" element={<Explore />} />
+                    <Route path="/marketplace" element={<Marketplace />} />
+                    <Route path="/post" element={<Post />} />
+                    <Route path="/profile/:userId" element={<Profile />} />
+                    <Route path="/profile" element={<Profile />} />
+                    <Route path="/auth" element={<Auth />} />
+                    <Route path="/create-listing" element={<CreateListing />} />
+                    <Route path="/listing/:id" element={<ListingDetail />} />
+                    <Route path="/messages" element={<Messages />} />
+                    <Route path="/messages/:conversationId" element={<MessageThread />} />
+                  </Routes>
+                </Layout>
+              </ThemeProvider>
+            </ReRealtimeProvider>
+          </AuthProvider>
+        </Router>
+      </QueryClientProvider>
+    </div>
   );
 }
 
