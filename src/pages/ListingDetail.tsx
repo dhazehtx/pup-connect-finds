@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Share, Heart, MapPin, Calendar, Ruler, Award } from 'lucide-react';
@@ -136,12 +137,16 @@ const ListingDetail = () => {
       const title = `${listing.dog_name} - ${listing.breed}`;
       const text = `Check out this adorable ${listing.breed} puppy looking for a forever home! Only $${listing.price}`;
 
+      console.log('Share data:', { title, text, url });
+
       // Try native share first
       if (navigator.share && navigator.canShare({ title, text, url })) {
+        console.log('Using native share API');
         await navigator.share({ title, text, url });
         console.log('Successfully shared via native share');
       } else {
         // Fallback to clipboard
+        console.log('Using clipboard fallback');
         await navigator.clipboard.writeText(url);
         toast({
           title: "Link copied!",
@@ -380,7 +385,7 @@ const ListingDetail = () => {
           ${listing.price?.toLocaleString()}
         </div>
 
-        {/* Action Buttons - Updated to use direct handlers */}
+        {/* Action Buttons - Fixed handlers */}
         <div className="flex items-center gap-3">
           <Button
             variant="ghost"
@@ -392,7 +397,10 @@ const ListingDetail = () => {
           </Button>
           
           <Button
-            onClick={handleContactSeller}
+            onClick={() => {
+              console.log('Contact Seller button clicked - direct handler');
+              handleContactSeller();
+            }}
             className="flex-1 bg-royal-blue hover:bg-royal-blue/90"
             disabled={!listing || !listing.user_id}
           >
@@ -401,7 +409,10 @@ const ListingDetail = () => {
           
           <Button
             variant="outline"
-            onClick={handleShare}
+            onClick={() => {
+              console.log('Share button clicked - direct handler');
+              handleShare();
+            }}
             className="flex items-center gap-2"
             title="Share this listing"
             disabled={!listing}
