@@ -120,6 +120,8 @@ const ListingDetail = () => {
   }, [id, user, toast, navigate]);
 
   const handleShare = async () => {
+    console.log('Share button clicked!');
+    
     if (!listing) {
       console.log('No listing data available for sharing');
       toast({
@@ -130,16 +132,33 @@ const ListingDetail = () => {
       return;
     }
     
-    console.log('Share button clicked for listing:', listing.id);
+    console.log('Attempting to share listing:', listing.id);
     
-    const title = `${listing.dog_name} - ${listing.breed}`;
-    const text = `Check out this adorable ${listing.breed} puppy looking for a forever home!`;
-    const url = window.location.href;
+    try {
+      const url = window.location.href;
+      const title = `${listing.dog_name} - ${listing.breed}`;
+      const text = `Check out this adorable ${listing.breed} puppy looking for a forever home! Only $${listing.price}`;
 
-    const shareSuccess = await shareContent(title, text, url);
-    
-    if (!shareSuccess) {
-      console.error('Share failed');
+      // Try native share first
+      if (navigator.share && navigator.canShare({ title, text, url })) {
+        await navigator.share({ title, text, url });
+        console.log('Successfully shared via native share');
+      } else {
+        // Fallback to clipboard
+        await navigator.clipboard.writeText(url);
+        toast({
+          title: "Link copied!",
+          description: "The listing link has been copied to your clipboard.",
+        });
+        console.log('Successfully copied to clipboard');
+      }
+    } catch (error) {
+      console.error('Share failed:', error);
+      toast({
+        title: "Share failed",
+        description: "Unable to share the listing. Please try again.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -193,14 +212,22 @@ const ListingDetail = () => {
   };
 
   const handleContactSeller = () => {
+    console.log('Contact Seller button clicked!');
+    
     if (!listing) {
       console.log('No listing data for contact seller');
+      toast({
+        title: "Error",
+        description: "Listing data not available",
+        variant: "destructive",
+      });
       return;
     }
     
-    console.log('Contact seller clicked for listing:', listing.id, 'seller:', listing.user_id);
+    console.log('Attempting to contact seller for listing:', listing.id, 'seller:', listing.user_id);
     
     if (!user) {
+      console.log('User not authenticated');
       toast({
         title: "Sign in required",
         description: "Please sign in to contact sellers",
@@ -210,6 +237,7 @@ const ListingDetail = () => {
     }
 
     if (listing.user_id === user.id) {
+      console.log('User trying to contact themselves');
       toast({
         title: "Cannot contact yourself",
         description: "You cannot start a conversation with yourself",
@@ -218,6 +246,7 @@ const ListingDetail = () => {
       return;
     }
 
+    console.log('Navigating to messages...');
     // Navigate to messages with contact parameters
     navigate(`/messages?contact=${listing.user_id}&listing=${listing.id}&from=listing`);
   };
