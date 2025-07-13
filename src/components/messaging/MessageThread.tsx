@@ -20,7 +20,7 @@ interface Message {
   sender_profile?: {
     full_name: string | null;
     avatar_url: string | null;
-  };
+  } | null;
 }
 
 interface ConversationData {
@@ -38,11 +38,20 @@ interface ConversationData {
   };
 }
 
-const MessageThread = () => {
-  const { conversationId } = useParams<{ conversationId: string }>();
+interface MessageThreadProps {
+  parentMessage?: any;
+  onClose?: () => void;
+  conversationId?: string;
+}
+
+const MessageThread = ({ parentMessage, onClose, conversationId: propConversationId }: MessageThreadProps) => {
+  const { conversationId: paramConversationId } = useParams<{ conversationId: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
   const { toast } = useToast();
+  
+  // Use prop conversationId if provided, otherwise use URL param
+  const activeConversationId = propConversationId || paramConversationId;
   
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState('');
@@ -62,7 +71,7 @@ const MessageThread = () => {
 
   // Load conversation and messages
   useEffect(() => {
-    if (!conversationId || !user) return;
+    if (!activeConversationId || !user) return;
 
     const loadConversation = async () => {
       try {
@@ -78,7 +87,7 @@ const MessageThread = () => {
               image_url
             )
           `)
-          .eq('id', conversationId)
+          .eq('id', activeConversationId)
           .single();
 
         if (convError) throw convError;
@@ -98,7 +107,7 @@ const MessageThread = () => {
           listing: Array.isArray(convData.listing) ? convData.listing[0] : convData.listing
         });
 
-        // Load messages
+        // Load messages with proper error handling for sender_profile
         const { data: messagesData, error: messagesError } = await supabase
           .from('messages')
           .select(`
@@ -108,12 +117,18 @@ const MessageThread = () => {
               avatar_url
             )
           `)
-          .eq('conversation_id', conversationId)
+          .eq('conversation_id', activeConversationId)
           .order('created_at', { ascending: true });
 
         if (messagesError) throw messagesError;
 
-        setMessages(messagesData || []);
+        // Process messages to handle sender_profile properly
+        const processedMessages = (messagesData || []).map(msg => ({
+          ...msg,
+          sender_profile: Array.isArray(msg.sender_profile) ? msg.sender_profile[0] : msg.sender_profile
+        })) as Message[];
+
+        setMessages(processedMessages);
       } catch (error) {
         console.error('Error loading conversation:', error);
         toast({
@@ -130,14 +145,14 @@ const MessageThread = () => {
 
     // Set up real-time subscription
     const channel = supabase
-      .channel(`messages-${conversationId}`)
+      .channel(`messages-${activeConversationId}`)
       .on(
         'postgres_changes',
         {
           event: 'INSERT',
           schema: 'public',
           table: 'messages',
-          filter: `conversation_id=eq.${conversationId}`
+          filter: `conversation_id=eq.${activeConversationId}`
         },
         async (payload) => {
           const newMessage = payload.new as Message;
@@ -160,17 +175,17 @@ const MessageThread = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [conversationId, user, toast]);
+  }, [activeConversationId, user, toast]);
 
   const sendMessage = async () => {
-    if (!newMessage.trim() || !user || !conversationId) return;
+    if (!newMessage.trim() || !user || !activeConversationId) return;
 
     setSending(true);
     try {
       const { error } = await supabase
         .from('messages')
         .insert({
-          conversation_id: conversationId,
+          conversation_id: activeConversationId,
           sender_id: user.id,
           content: newMessage.trim(),
           message_type: 'text'
@@ -198,6 +213,14 @@ const MessageThread = () => {
     }
   };
 
+  const handleBack = () => {
+    if (onClose) {
+      onClose();
+    } else {
+      navigate('/messages');
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-screen">
@@ -214,7 +237,7 @@ const MessageThread = () => {
       <div className="flex items-center justify-center h-screen">
         <div className="text-center">
           <p>Conversation not found</p>
-          <Button onClick={() => navigate('/messages')} className="mt-2">
+          <Button onClick={handleBack} className="mt-2">
             Back to Messages
           </Button>
         </div>
@@ -231,7 +254,7 @@ const MessageThread = () => {
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => navigate('/messages')}
+              onClick={handleBack}
             >
               <ArrowLeft className="h-5 w-5" />
             </Button>
