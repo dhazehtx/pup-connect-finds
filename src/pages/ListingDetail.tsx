@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Share, Heart, MapPin, Calendar, Ruler, Award } from 'lucide-react';
@@ -118,10 +117,11 @@ const ListingDetail = () => {
   }, [id, user, toast, navigate]);
 
   const handleShare = async () => {
-    console.log('Share button clicked!');
+    console.log('=== SHARE BUTTON CLICKED ===');
+    console.log('Share button handler started');
     
     if (!listing) {
-      console.log('No listing data available for sharing');
+      console.log('ERROR: No listing data available for sharing');
       toast({
         title: "Error",
         description: "Unable to share - listing data not loaded",
@@ -130,32 +130,39 @@ const ListingDetail = () => {
       return;
     }
     
-    console.log('Attempting to share listing:', listing.id);
+    console.log('Listing data available:', { id: listing.id, name: listing.dog_name });
     
     try {
       const url = window.location.href;
       const title = `${listing.dog_name} - ${listing.breed}`;
       const text = `Check out this adorable ${listing.breed} puppy looking for a forever home! Only $${listing.price}`;
 
-      console.log('Share data:', { title, text, url });
+      console.log('Share data prepared:', { title, text, url });
 
       // Try native share first
-      if (navigator.share && navigator.canShare({ title, text, url })) {
-        console.log('Using native share API');
-        await navigator.share({ title, text, url });
-        console.log('Successfully shared via native share');
+      if (navigator.share) {
+        console.log('Native share API available, attempting to use it');
+        try {
+          await navigator.share({ title, text, url });
+          console.log('Successfully shared via native share');
+          return;
+        } catch (shareError) {
+          console.log('Native share failed or was cancelled:', shareError);
+        }
       } else {
-        // Fallback to clipboard
-        console.log('Using clipboard fallback');
-        await navigator.clipboard.writeText(url);
-        toast({
-          title: "Link copied!",
-          description: "The listing link has been copied to your clipboard.",
-        });
-        console.log('Successfully copied to clipboard');
+        console.log('Native share API not available');
       }
+
+      // Fallback to clipboard
+      console.log('Using clipboard fallback');
+      await navigator.clipboard.writeText(url);
+      toast({
+        title: "Link copied!",
+        description: "The listing link has been copied to your clipboard.",
+      });
+      console.log('Successfully copied to clipboard');
     } catch (error) {
-      console.error('Share failed:', error);
+      console.error('Share completely failed:', error);
       toast({
         title: "Share failed",
         description: "Unable to share the listing. Please try again.",
@@ -214,10 +221,11 @@ const ListingDetail = () => {
   };
 
   const handleContactSeller = () => {
-    console.log('Contact Seller button clicked!');
+    console.log('=== CONTACT SELLER BUTTON CLICKED ===');
+    console.log('Contact Seller handler started');
     
     if (!listing) {
-      console.log('No listing data for contact seller');
+      console.log('ERROR: No listing data for contact seller');
       toast({
         title: "Error",
         description: "Listing data not available",
@@ -226,10 +234,10 @@ const ListingDetail = () => {
       return;
     }
     
-    console.log('Attempting to contact seller for listing:', listing.id, 'seller:', listing.user_id);
+    console.log('Listing data available:', { id: listing.id, sellerId: listing.user_id });
     
     if (!user) {
-      console.log('User not authenticated');
+      console.log('ERROR: User not authenticated');
       toast({
         title: "Sign in required",
         description: "Please sign in to contact sellers",
@@ -238,8 +246,10 @@ const ListingDetail = () => {
       return;
     }
 
+    console.log('User authenticated:', { userId: user.id });
+
     if (listing.user_id === user.id) {
-      console.log('User trying to contact themselves');
+      console.log('ERROR: User trying to contact themselves');
       toast({
         title: "Cannot contact yourself",
         description: "You cannot start a conversation with yourself",
@@ -248,9 +258,10 @@ const ListingDetail = () => {
       return;
     }
 
-    console.log('Navigating to messages...');
-    // Navigate to messages with contact parameters
-    navigate(`/messages?contact=${listing.user_id}&listing=${listing.id}&from=listing`);
+    console.log('All checks passed, navigating to messages...');
+    const targetUrl = `/messages?contact=${listing.user_id}&listing=${listing.id}&from=listing`;
+    console.log('Navigating to:', targetUrl);
+    navigate(targetUrl);
   };
 
   const nextImage = () => {
@@ -295,6 +306,10 @@ const ListingDetail = () => {
                  listing.image_url ? [listing.image_url] : [];
   
   const seller = listing.profiles || {};
+
+  console.log('=== RENDER DEBUG ===');
+  console.log('Current listing:', listing ? { id: listing.id, name: listing.dog_name } : 'null');
+  console.log('Current user:', user ? { id: user.id } : 'null');
 
   return (
     <div className="max-w-4xl mx-auto p-4 space-y-6">
@@ -385,20 +400,29 @@ const ListingDetail = () => {
           ${listing.price?.toLocaleString()}
         </div>
 
-        {/* Action Buttons - Fixed handlers */}
+        {/* Action Buttons - Enhanced debugging */}
         <div className="flex items-center gap-3">
           <Button
             variant="ghost"
             size="icon"
-            onClick={handleFavorite}
+            onClick={(e) => {
+              console.log('=== FAVORITE BUTTON CLICKED ===');
+              console.log('Event object:', e);
+              handleFavorite();
+            }}
             className={`${isFavorited ? 'text-red-500' : 'text-gray-400'}`}
           >
             <Heart size={20} fill={isFavorited ? 'currentColor' : 'none'} />
           </Button>
           
           <Button
-            onClick={() => {
-              console.log('Contact Seller button clicked - direct handler');
+            onClick={(e) => {
+              console.log('=== CONTACT SELLER BUTTON DOM EVENT ===');
+              console.log('Button clicked, event:', e);
+              console.log('Event target:', e.target);
+              console.log('Event current target:', e.currentTarget);
+              e.preventDefault();
+              e.stopPropagation();
               handleContactSeller();
             }}
             className="flex-1 bg-royal-blue hover:bg-royal-blue/90"
@@ -409,8 +433,13 @@ const ListingDetail = () => {
           
           <Button
             variant="outline"
-            onClick={() => {
-              console.log('Share button clicked - direct handler');
+            onClick={(e) => {
+              console.log('=== SHARE BUTTON DOM EVENT ===');
+              console.log('Button clicked, event:', e);
+              console.log('Event target:', e.target);
+              console.log('Event current target:', e.currentTarget);
+              e.preventDefault();
+              e.stopPropagation();
               handleShare();
             }}
             className="flex items-center gap-2"
