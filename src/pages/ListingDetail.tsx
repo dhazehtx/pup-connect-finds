@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Share, Heart, MapPin, Calendar, Ruler, Award } from 'lucide-react';
@@ -121,13 +120,27 @@ const ListingDetail = () => {
   }, [id, user, toast, navigate]);
 
   const handleShare = async () => {
-    if (!listing) return;
+    if (!listing) {
+      console.log('No listing data available for sharing');
+      toast({
+        title: "Error",
+        description: "Unable to share - listing data not loaded",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    console.log('Share button clicked for listing:', listing.id);
     
     const title = `${listing.dog_name} - ${listing.breed}`;
     const text = `Check out this adorable ${listing.breed} puppy looking for a forever home!`;
     const url = window.location.href;
 
-    await shareContent(title, text, url);
+    const shareSuccess = await shareContent(title, text, url);
+    
+    if (!shareSuccess) {
+      console.error('Share failed');
+    }
   };
 
   const handleFavorite = async () => {
@@ -177,6 +190,36 @@ const ListingDetail = () => {
         variant: "destructive",
       });
     }
+  };
+
+  const handleContactSeller = () => {
+    if (!listing) {
+      console.log('No listing data for contact seller');
+      return;
+    }
+    
+    console.log('Contact seller clicked for listing:', listing.id, 'seller:', listing.user_id);
+    
+    if (!user) {
+      toast({
+        title: "Sign in required",
+        description: "Please sign in to contact sellers",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (listing.user_id === user.id) {
+      toast({
+        title: "Cannot contact yourself",
+        description: "You cannot start a conversation with yourself",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Navigate to messages with contact parameters
+    navigate(`/messages?contact=${listing.user_id}&listing=${listing.id}&from=listing`);
   };
 
   const nextImage = () => {
@@ -322,19 +365,20 @@ const ListingDetail = () => {
             <Heart size={20} fill={isFavorited ? 'currentColor' : 'none'} />
           </Button>
           
-          <ContactSellerButton
-            listingId={listing.id}
-            sellerId={listing.user_id}
+          <Button
+            onClick={handleContactSeller}
             className="flex-1 bg-royal-blue hover:bg-royal-blue/90"
+            disabled={!listing || !listing.user_id}
           >
             Contact Seller
-          </ContactSellerButton>
+          </Button>
           
           <Button
             variant="outline"
             onClick={handleShare}
             className="flex items-center gap-2"
             title="Share this listing"
+            disabled={!listing}
           >
             <Share size={16} />
             Share
