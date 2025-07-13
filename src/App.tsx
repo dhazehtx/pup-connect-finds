@@ -27,7 +27,7 @@ const queryClient = new QueryClient({
 
 function App() {
   return (
-    <div className="min-h-screen bg-white unified-theme">
+    <div className="min-h-screen bg-white text-slate-900 unified-theme">
       <QueryClientProvider client={queryClient}>
         <Router>
           <AuthProvider>
@@ -49,7 +49,7 @@ function App() {
                   </Routes>
                 </Layout>
               </ThemeProvider>
-            </ReRealtimeProvider>
+            </RealtimeProvider>
           </AuthProvider>
         </Router>
       </QueryClientProvider>
