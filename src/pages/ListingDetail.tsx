@@ -5,8 +5,6 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent } from '@/components/ui/card';
-import ContactSellerButton from '@/components/messaging/ContactSellerButton';
-import { useShare } from '@/hooks/useShare';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
@@ -16,7 +14,6 @@ const ListingDetail = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { toast } = useToast();
-  const { shareContent } = useShare();
   
   const [listing, setListing] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -383,7 +380,7 @@ const ListingDetail = () => {
           ${listing.price?.toLocaleString()}
         </div>
 
-        {/* Action Buttons */}
+        {/* Action Buttons - Updated to use direct handlers */}
         <div className="flex items-center gap-3">
           <Button
             variant="ghost"
