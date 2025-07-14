@@ -5,9 +5,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Heart, Mail, User, Eye, EyeOff } from 'lucide-react';
+import { Heart, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+import SocialLoginButtons from '@/components/auth/SocialLoginButtons';
 
 const Auth = () => {
   const [activeTab, setActiveTab] = useState('signin');
@@ -186,6 +187,20 @@ const Auth = () => {
               </button>
             </div>
 
+            {/* Social Login Buttons */}
+            <div className="mb-6">
+              <SocialLoginButtons disabled={loading || isSubmitting} />
+            </div>
+
+            <div className="relative mb-6">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t border-gray-300" />
+              </div>
+              <div className="relative flex justify-center text-sm">
+                <span className="bg-white px-4 text-gray-500 font-medium">OR</span>
+              </div>
+            </div>
+
             {/* Email/Password Form */}
             <form onSubmit={handleSubmit} className="space-y-4">
               {activeTab === 'signup' && (
@@ -297,53 +312,6 @@ const Auth = () => {
                 </button>
               </div>
             )}
-
-            {/* Social Login Buttons */}
-            <div className="space-y-3 mt-6">
-              <Button
-                type="button"
-                onClick={() => {
-                  toast({
-                    title: "Coming Soon!",
-                    description: "Google sign-in will be available soon.",
-                  });
-                }}
-                className="w-full h-12 text-white font-medium rounded-lg transition-all duration-200"
-                style={{ backgroundColor: '#2363FF', border: 'none' }}
-                onMouseEnter={(e) => {
-                  if (!loading && !isSubmitting) e.currentTarget.style.backgroundColor = '#1E52D0';
-                }}
-                onMouseLeave={(e) => {
-                  if (!loading && !isSubmitting) e.currentTarget.style.backgroundColor = '#2363FF';
-                }}
-                disabled={loading || isSubmitting}
-              >
-                <Mail size={18} className="mr-3" />
-                Sign in with Google
-              </Button>
-              
-              <Button
-                type="button"
-                onClick={() => {
-                  toast({
-                    title: "Coming Soon!",
-                    description: "Facebook sign-in will be available soon.",
-                  });
-                }}
-                className="w-full h-12 text-white font-medium rounded-lg transition-all duration-200"
-                style={{ backgroundColor: '#2363FF', border: 'none' }}
-                onMouseEnter={(e) => {
-                  if (!loading && !isSubmitting) e.currentTarget.style.backgroundColor = '#1E52D0';
-                }}
-                onMouseLeave={(e) => {
-                  if (!loading && !isSubmitting) e.currentTarget.style.backgroundColor = '#2363FF';
-                }}
-                disabled={loading || isSubmitting}
-              >
-                <User size={18} className="mr-3" />
-                Sign in with Facebook
-              </Button>
-            </div>
           </CardContent>
         </Card>
 

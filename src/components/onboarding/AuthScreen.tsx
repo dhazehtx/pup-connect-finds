@@ -6,9 +6,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
-import { Heart, Mail, User, Eye, EyeOff, Shield, Lock } from 'lucide-react';
+import { Heart, Eye, EyeOff, Shield, Lock } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
+import SocialLoginButtons from '@/components/auth/SocialLoginButtons';
 
 interface AuthScreenProps {
   onSignIn: () => void;
@@ -94,36 +95,7 @@ const AuthScreen = ({ onSignIn, onGuestBrowse, onSkip }: AuthScreenProps) => {
         </CardHeader>
         
         <CardContent className="space-y-4">
-          <div className="space-y-3">
-            <RippleButton
-              onClick={() => {
-                toast({
-                  title: "Coming Soon!",
-                  description: "Google sign-in will be available soon.",
-                });
-              }}
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white"
-              disabled={loading}
-            >
-              <Mail size={18} className="mr-2" />
-              Continue with Google
-            </RippleButton>
-            
-            <RippleButton
-              onClick={() => {
-                toast({
-                  title: "Coming Soon!",
-                  description: "Facebook sign-in will be available soon.",
-                });
-              }}
-              variant="outline"
-              className="w-full border-gray-300 text-deep-navy hover:bg-gray-50"
-              disabled={loading}
-            >
-              <User size={18} className="mr-2" />
-              Continue with Facebook
-            </RippleButton>
-          </div>
+          <SocialLoginButtons disabled={loading} />
 
           <div className="relative">
             <Separator className="my-4" />
