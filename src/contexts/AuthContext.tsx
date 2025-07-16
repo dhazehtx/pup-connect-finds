@@ -1,6 +1,6 @@
 
 import React, { createContext, useContext, ReactNode } from 'react';
-import { useAuthState } from '@/hooks/useAuthState';
+import { useAuthEnhanced } from '@/hooks/useAuthEnhanced';
 import { User, Session } from '@supabase/supabase-js';
 
 interface AuthContextType {
@@ -33,7 +33,7 @@ interface AuthProviderProps {
 }
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
-  const authState = useAuthState();
+  const authState = useAuthEnhanced();
 
   const continueAsGuest = () => {
     localStorage.setItem('guestMode', 'true');

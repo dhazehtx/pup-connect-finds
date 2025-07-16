@@ -531,6 +531,33 @@ export type Database = {
         }
         Relationships: []
       }
+      email_2fa_codes: {
+        Row: {
+          code: string
+          created_at: string
+          expires_at: string
+          id: string
+          user_id: string
+          verified: boolean
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          expires_at: string
+          id?: string
+          user_id: string
+          verified?: boolean
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          expires_at?: string
+          id?: string
+          user_id?: string
+          verified?: boolean
+        }
+        Relationships: []
+      }
       escrow_transactions: {
         Row: {
           amount: number
@@ -773,6 +800,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      login_sessions: {
+        Row: {
+          device_info: Json | null
+          id: string
+          ip_address: unknown | null
+          is_new_device: boolean
+          location: string | null
+          login_time: string
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          device_info?: Json | null
+          id?: string
+          ip_address?: unknown | null
+          is_new_device?: boolean
+          location?: string | null
+          login_time?: string
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          device_info?: Json | null
+          id?: string
+          ip_address?: unknown | null
+          is_new_device?: boolean
+          location?: string | null
+          login_time?: string
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: []
       }
       matching_preferences: {
         Row: {
@@ -1054,6 +1114,33 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      password_reset_tokens: {
+        Row: {
+          created_at: string
+          expires_at: string
+          id: string
+          token: string
+          used: boolean
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          expires_at: string
+          id?: string
+          token: string
+          used?: boolean
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string
+          id?: string
+          token?: string
+          used?: boolean
+          user_id?: string
+        }
+        Relationships: []
       }
       pawbox_subscriptions: {
         Row: {
@@ -2447,6 +2534,36 @@ export type Database = {
         }
         Relationships: []
       }
+      two_factor_auth: {
+        Row: {
+          backup_codes: string[] | null
+          created_at: string
+          enabled: boolean
+          id: string
+          secret: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          backup_codes?: string[] | null
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          secret: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          backup_codes?: string[] | null
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          secret?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_encryption_keys: {
         Row: {
           created_at: string
@@ -2720,6 +2837,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      cleanup_expired_auth_data: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
       delete_user_account: {
         Args: { user_id_param: string }
         Returns: Json
@@ -2735,6 +2856,10 @@ export type Database = {
           risk_score: number
           details?: Json
         }
+        Returns: string
+      }
+      generate_2fa_code: {
+        Args: { user_id_param: string }
         Returns: string
       }
       initiate_account_deletion: {
@@ -2760,6 +2885,10 @@ export type Database = {
           metric_value: number
         }
         Returns: undefined
+      }
+      verify_2fa_code: {
+        Args: { user_id_param: string; code_param: string }
+        Returns: boolean
       }
     }
     Enums: {

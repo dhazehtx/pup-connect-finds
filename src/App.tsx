@@ -1,3 +1,4 @@
+
 import { Suspense, lazy } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -25,6 +26,7 @@ const Support = lazy(() => import("@/pages/Support"));
 const Terms = lazy(() => import("@/pages/Terms"));
 const Privacy = lazy(() => import("@/pages/Privacy"));
 const ConversationThread = lazy(() => import("@/pages/ConversationThread"));
+const VerifyEmail = lazy(() => import("@/pages/VerifyEmail"));
 
 const queryClient = new QueryClient();
 
@@ -43,6 +45,7 @@ function App() {
                         <Route path="/" element={<Index />} />
                         <Route path="/auth" element={<Auth />} />
                         <Route path="/auth/callback" element={<AuthCallback />} />
+                        <Route path="/verify-email" element={<VerifyEmail />} />
                         <Route path="/home" element={<Home />} />
                         <Route path="/explore" element={<Explore />} />
                         <Route path="/messages" element={<Messages />} />

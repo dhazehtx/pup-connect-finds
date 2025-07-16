@@ -9,10 +9,14 @@ import { Heart, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import SocialLoginButtons from '@/components/auth/SocialLoginButtons';
+import EnhancedSignUpForm from '@/components/auth/EnhancedSignUpForm';
+import EnhancedSignInForm from '@/components/auth/EnhancedSignInForm';
+import ForgotPassword from '@/components/auth/ForgotPassword';
 
 const Auth = () => {
   const [activeTab, setActiveTab] = useState('signin');
   const [resetMode, setResetMode] = useState(false);
+  const [forgotPasswordMode, setForgotPasswordMode] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -88,6 +92,19 @@ const Auth = () => {
     }
   };
 
+  const handleEnhancedSignIn = async (data: any) => {
+    await signIn(data.email, data.password);
+    const from = location.state?.from?.pathname || '/explore';
+    navigate(from, { replace: true });
+  };
+
+  const handleEnhancedSignUp = async (data: any) => {
+    await signUp(data.email, data.password, { 
+      full_name: data.fullName,
+      username: data.username 
+    });
+  };
+
   const handleGuestAccess = () => {
     continueAsGuest();
     navigate('/explore');
@@ -130,6 +147,14 @@ const Auth = () => {
             </div>
           </CardContent>
         </Card>
+      </div>
+    );
+  }
+
+  if (forgotPasswordMode) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-blue-100 flex items-center justify-center p-4">
+        <ForgotPassword onBack={() => setForgotPasswordMode(false)} />
       </div>
     );
   }
@@ -201,116 +226,37 @@ const Auth = () => {
               </div>
             </div>
 
-            {/* Email/Password Form */}
-            <form onSubmit={handleSubmit} className="space-y-4">
-              {activeTab === 'signup' && (
-                <div>
-                  <Input
-                    type="text"
-                    placeholder="Full Name"
-                    value={fullName}
-                    onChange={(e) => setFullName(e.target.value)}
-                    className={`h-12 rounded-lg border-2 bg-white px-4 text-black placeholder:text-gray-500 focus:ring-2 focus:ring-opacity-20 ${errors.fullName ? 'border-red-500' : ''}`}
-                    style={{
-                      borderColor: errors.fullName ? '#EF4444' : '#CBD5E1'
+            {/* Enhanced Forms */}
+            {activeTab === 'signin' ? (
+              <div className="space-y-4">
+                <EnhancedSignInForm 
+                  onSubmit={handleEnhancedSignIn} 
+                  loading={loading || isSubmitting} 
+                />
+                
+                {/* "Forgot password?" link */}
+                <div className="text-center">
+                  <button 
+                    type="button"
+                    onClick={() => setForgotPasswordMode(true)}
+                    className="underline text-sm transition-colors duration-200"
+                    style={{ color: '#2363FF' }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.color = '#1E52D0';
                     }}
-                    disabled={loading || isSubmitting}
-                  />
-                  {errors.fullName && (
-                    <p className="text-red-500 text-xs mt-1">{errors.fullName}</p>
-                  )}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.color = '#2363FF';
+                    }}
+                  >
+                    Forgot your password?
+                  </button>
                 </div>
-              )}
-
-              <div>
-                <Input
-                  type="email"
-                  placeholder="Email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className={`h-12 rounded-lg border-2 bg-white px-4 text-black placeholder:text-gray-500 focus:ring-2 focus:ring-opacity-20 ${errors.email ? 'border-red-500' : ''}`}
-                  style={{
-                    borderColor: errors.email ? '#EF4444' : '#CBD5E1'
-                  }}
-                  disabled={loading || isSubmitting}
-                />
-                {errors.email && (
-                  <p className="text-red-500 text-xs mt-1">{errors.email}</p>
-                )}
               </div>
-
-              <div className="relative">
-                <Input
-                  type={showPassword ? 'text' : 'password'}
-                  placeholder="Password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className={`h-12 rounded-lg border-2 bg-white px-4 pr-12 text-black placeholder:text-gray-500 focus:ring-2 focus:ring-opacity-20 ${errors.password ? 'border-red-500' : ''}`}
-                  style={{
-                    borderColor: errors.password ? '#EF4444' : '#CBD5E1'
-                  }}
-                  disabled={loading || isSubmitting}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-4 top-1/2 transform -translate-y-1/2 transition-colors duration-200"
-                  style={{ color: '#2363FF' }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.color = '#1E52D0';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.color = '#2363FF';
-                  }}
-                  disabled={loading || isSubmitting}
-                >
-                  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                </button>
-                {errors.password && (
-                  <p className="text-red-500 text-xs mt-1">{errors.password}</p>
-                )}
-              </div>
-
-              <Button
-                type="submit"
-                disabled={loading || isSubmitting}
-                className="w-full h-12 text-white font-semibold rounded-lg shadow-lg transition-all duration-200"
-                style={{ backgroundColor: '#2363FF', border: 'none' }}
-                onMouseEnter={(e) => {
-                  if (!loading && !isSubmitting) e.currentTarget.style.backgroundColor = '#1E52D0';
-                }}
-                onMouseLeave={(e) => {
-                  if (!loading && !isSubmitting) e.currentTarget.style.backgroundColor = '#2363FF';
-                }}
-              >
-                {loading || isSubmitting ? (
-                  <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2" />
-                    {activeTab === 'signup' ? 'Creating Account...' : 'Signing In...'}
-                  </>
-                ) : (
-                  activeTab === 'signup' ? 'Create Account' : 'Sign In'
-                )}
-              </Button>
-            </form>
-
-            {/* "Can't sign in?" link for sign in page */}
-            {activeTab === 'signin' && (
-              <div className="text-center mt-4">
-                <button 
-                  type="button"
-                  className="underline text-sm transition-colors duration-200"
-                  style={{ color: '#2363FF' }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.color = '#1E52D0';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.color = '#2363FF';
-                  }}
-                >
-                  Can't sign in?
-                </button>
-              </div>
+            ) : (
+              <EnhancedSignUpForm 
+                onSubmit={handleEnhancedSignUp} 
+                loading={loading || isSubmitting} 
+              />
             )}
           </CardContent>
         </Card>
