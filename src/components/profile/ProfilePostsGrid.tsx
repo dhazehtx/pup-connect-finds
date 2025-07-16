@@ -2,8 +2,8 @@
 import React from 'react';
 import { usePosts } from '@/hooks/usePosts';
 import { Heart, MessageCircle, Play } from 'lucide-react';
-import SkeletonLoader from '@/components/ui/skeleton-loader';
 import { formatDistanceToNow } from 'date-fns';
+import LoadingSpinner from '@/components/ui/loading-spinner';
 
 interface ProfilePostsGridProps {
   userId: string;
@@ -14,10 +14,8 @@ const ProfilePostsGrid = ({ userId }: ProfilePostsGridProps) => {
 
   if (loading) {
     return (
-      <div className="grid grid-cols-3 gap-1">
-        {Array.from({ length: 9 }).map((_, i) => (
-          <SkeletonLoader key={i} variant="image" />
-        ))}
+      <div className="flex items-center justify-center py-12">
+        <LoadingSpinner size="lg" text="Loading posts..." />
       </div>
     );
   }

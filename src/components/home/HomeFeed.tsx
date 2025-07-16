@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import ModernPostCreator from './ModernPostCreator';
 import { formatDistanceToNow } from 'date-fns';
+import LoadingSpinner from '@/components/ui/loading-spinner';
 
 const HomeFeed = () => {
   const { user, isGuest } = useAuth();
@@ -69,24 +70,8 @@ const HomeFeed = () => {
     return (
       <div className="min-h-screen bg-gray-50">
         <div className="max-w-2xl mx-auto py-6 px-4">
-          <div className="space-y-6">
-            {[1, 2, 3].map((i) => (
-              <Card key={i} className="shadow-sm">
-                <CardContent className="p-4">
-                  <div className="animate-pulse">
-                    <div className="flex items-center space-x-3 mb-3">
-                      <div className="w-10 h-10 bg-gray-300 rounded-full"></div>
-                      <div className="flex-1">
-                        <div className="h-4 bg-gray-300 rounded w-1/4"></div>
-                        <div className="h-3 bg-gray-300 rounded w-1/6 mt-1"></div>
-                      </div>
-                    </div>
-                    <div className="h-4 bg-gray-300 rounded w-3/4 mb-2"></div>
-                    <div className="h-64 bg-gray-300 rounded"></div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+          <div className="flex items-center justify-center py-12">
+            <LoadingSpinner size="lg" text="Loading feed..." />
           </div>
         </div>
       </div>
