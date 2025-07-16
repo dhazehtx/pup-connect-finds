@@ -44,7 +44,10 @@ const ProfilePostsGrid = ({ userId }: ProfilePostsGridProps) => {
   return (
     <div className="grid grid-cols-3 gap-1">
       {posts.map((post) => (
-        <div key={post.id} className="relative aspect-square group cursor-pointer">
+        <div 
+          key={post.id} 
+          className="relative aspect-square group cursor-pointer transition-all duration-300 md:hover:scale-105 md:hover:shadow-lg md:hover:z-10"
+        >
           {post.image_url ? (
             <img
               src={post.image_url}
