@@ -36,7 +36,7 @@ const ProfilePostsGrid = ({ userId }: ProfilePostsGridProps) => {
   if (posts.length === 0) {
     return (
       <div className="text-center py-12">
-        <p className="text-gray-500">No posts yet</p>
+        <p className="text-gray-500">No posts yet – start by sharing a moment!</p>
       </div>
     );
   }

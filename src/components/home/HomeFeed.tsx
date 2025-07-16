@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { usePosts } from '@/hooks/usePosts';
@@ -131,9 +132,9 @@ const HomeFeed = () => {
                   <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
                     <Camera className="w-8 h-8 text-blue-600" />
                   </div>
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">No Posts Yet</h3>
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">Be the first to post!</h3>
                   <p className="text-gray-500 mb-4">
-                    Be the first to share a moment with the community!
+                    Start by sharing a moment with the community!
                   </p>
                   <Button onClick={() => setShowPostCreator(true)}>
                     Create First Post
