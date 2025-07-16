@@ -1,95 +1,49 @@
+
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { usePosts } from '@/hooks/usePosts';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Heart, MessageCircle, Share, Bookmark, Plus, Camera } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import ModernPostCreator from './ModernPostCreator';
-
-const mockPosts = [
-  {
-    id: 1,
-    user: {
-      id: 'user1',
-      username: 'john_doe',
-      name: 'John Doe',
-      location: 'New York',
-      avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&h=150&fit=crop&crop=face'
-    },
-    image: 'https://images.unsplash.com/photo-1518020382113-a7e8fc38eac9?w=600',
-    likes: 120,
-    isLiked: true,
-    caption: 'Enjoying a sunny day with my best friend!',
-    timeAgo: '2 hours ago',
-    likedBy: [
-      { id: 'user2', username: 'jane_smith' },
-      { id: 'user3', username: 'alex_jones' }
-    ],
-    comments: [
-      { id: 'comment1', user: 'jane_smith', text: 'Such a cute dog!' },
-      { id: 'comment2', user: 'alex_jones', text: 'Where was this taken?' }
-    ]
-  },
-  {
-    id: 2,
-    user: {
-      id: 'user4',
-      username: 'emily_parker',
-      name: 'Emily Parker',
-      location: 'Los Angeles',
-      avatar: 'https://images.unsplash.com/photo-1580489944761-15a19d674c79?w=150&h=150&fit=crop&crop=face'
-    },
-    image: 'https://images.unsplash.com/photo-1548247416-ec661342273c?w=600',
-    likes: 85,
-    isLiked: false,
-    caption: 'Morning cuddles are the best!',
-    timeAgo: '1 day ago',
-    likedBy: [
-      { id: 'user5', username: 'sam_wilson' },
-      { id: 'user6', username: 'linda_brown' }
-    ],
-    comments: [
-      { id: 'comment3', user: 'sam_wilson', text: 'Aww, so adorable!' },
-      { id: 'comment4', user: 'linda_brown', text: 'I want one!' }
-    ]
-  },
-];
+import { formatDistanceToNow } from 'date-fns';
 
 const HomeFeed = () => {
   const { user, isGuest } = useAuth();
   const { toast } = useToast();
-  const [posts, setPosts] = useState(mockPosts);
+  const { posts, loading, fetchPosts } = usePosts(); // Get all posts, not filtered by user
   const [showPostCreator, setShowPostCreator] = useState(false);
 
   useEffect(() => {
     document.title = 'My Pup - Home';
   }, []);
 
-  const handleLike = (postId: number) => {
-    setPosts(prevPosts =>
-      prevPosts.map(post =>
-        post.id === postId ? { ...post, isLiked: !post.isLiked, likes: post.isLiked ? post.likes - 1 : post.likes + 1 } : post
-      )
-    );
+  const handleLike = (postId: string) => {
+    // Mock like functionality - you can implement actual like logic later
+    toast({
+      title: "Post Liked",
+      description: "You liked this post",
+    });
   };
 
-  const handleShare = (postId: number) => {
+  const handleShare = (postId: string) => {
     toast({
       title: "Post Shared",
       description: `You have shared post ${postId} with your followers`,
     });
   };
 
-  const handleBookmark = (postId: number) => {
+  const handleBookmark = (postId: string) => {
     toast({
       title: "Post Bookmarked",
       description: `You have bookmarked post ${postId} to view later`,
     });
   };
 
-  const handlePostCreated = (newPost: any) => {
-    setPosts(prevPosts => [newPost, ...prevPosts]);
+  const handlePostCreated = () => {
+    fetchPosts(); // Refresh the feed
     toast({
       title: "Post shared! 🎉",
       description: "Your post is now live!",
@@ -107,6 +61,34 @@ const HomeFeed = () => {
             <Button className="w-full">Sign In</Button>
           </CardContent>
         </Card>
+      </div>
+    );
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <div className="max-w-2xl mx-auto py-6 px-4">
+          <div className="space-y-6">
+            {[1, 2, 3].map((i) => (
+              <Card key={i} className="shadow-sm">
+                <CardContent className="p-4">
+                  <div className="animate-pulse">
+                    <div className="flex items-center space-x-3 mb-3">
+                      <div className="w-10 h-10 bg-gray-300 rounded-full"></div>
+                      <div className="flex-1">
+                        <div className="h-4 bg-gray-300 rounded w-1/4"></div>
+                        <div className="h-3 bg-gray-300 rounded w-1/6 mt-1"></div>
+                      </div>
+                    </div>
+                    <div className="h-4 bg-gray-300 rounded w-3/4 mb-2"></div>
+                    <div className="h-64 bg-gray-300 rounded"></div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
       </div>
     );
   }
@@ -143,67 +125,102 @@ const HomeFeed = () => {
 
           {/* Posts Feed */}
           <div className="space-y-6">
-            {posts.map((post) => (
-              <Card key={post.id} className="shadow-sm">
-                <CardContent className="p-4">
-                  {/* User Info */}
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center space-x-3">
-                      <div className="w-8 h-8 rounded-full overflow-hidden">
-                        <img
-                          src={post.user.avatar}
-                          alt={post.user.name}
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
-                      <div>
-                        <div className="font-semibold text-sm">{post.user.name}</div>
-                        <div className="text-xs text-gray-500">{post.timeAgo}</div>
-                      </div>
-                    </div>
-                    <Badge className="rounded-full">{post.user.location}</Badge>
+            {posts.length === 0 ? (
+              <Card className="shadow-sm">
+                <CardContent className="p-8 text-center">
+                  <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Camera className="w-8 h-8 text-blue-600" />
                   </div>
-
-                  {/* Post Image */}
-                  <img
-                    src={post.image}
-                    alt="Post"
-                    className="w-full rounded-md mb-3"
-                  />
-
-                  {/* Post Actions */}
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center space-x-4">
-                      <Button
-                        onClick={() => handleLike(post.id)}
-                        variant="ghost"
-                        size="icon"
-                      >
-                        <Heart
-                          className={`w-5 h-5 ${post.isLiked ? 'text-red-500' : 'text-gray-500'
-                            }`}
-                        />
-                        <span>{post.likes}</span>
-                      </Button>
-                      <Button variant="ghost" size="icon">
-                        <MessageCircle className="w-5 h-5 text-gray-500" />
-                      </Button>
-                      <Button onClick={() => handleShare(post.id)} variant="ghost" size="icon">
-                        <Share className="w-5 h-5 text-gray-500" />
-                      </Button>
-                    </div>
-                    <Button onClick={() => handleBookmark(post.id)} variant="ghost" size="icon">
-                      <Bookmark className="w-5 h-5 text-gray-500" />
-                    </Button>
-                  </div>
-
-                  {/* Post Caption */}
-                  <div className="text-sm">
-                    <span className="font-semibold">{post.user.username}</span> {post.caption}
-                  </div>
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">No Posts Yet</h3>
+                  <p className="text-gray-500 mb-4">
+                    Be the first to share a moment with the community!
+                  </p>
+                  <Button onClick={() => setShowPostCreator(true)}>
+                    Create First Post
+                  </Button>
                 </CardContent>
               </Card>
-            ))}
+            ) : (
+              posts.map((post) => (
+                <Card key={post.id} className="shadow-sm">
+                  <CardContent className="p-4">
+                    {/* User Info */}
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center space-x-3">
+                        <div className="w-8 h-8 rounded-full overflow-hidden">
+                          {post.profiles?.avatar_url ? (
+                            <img
+                              src={post.profiles.avatar_url}
+                              alt={post.profiles.full_name || 'User'}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <div className="w-full h-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white font-bold text-sm">
+                              {(post.profiles?.full_name || post.profiles?.username || 'U')?.charAt(0).toUpperCase()}
+                            </div>
+                          )}
+                        </div>
+                        <div>
+                          <div className="font-semibold text-sm">
+                            {post.profiles?.full_name || post.profiles?.username || 'User'}
+                          </div>
+                          <div className="text-xs text-gray-500">
+                            {formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}
+                          </div>
+                        </div>
+                      </div>
+                      <Badge className="rounded-full">Dog Lover</Badge>
+                    </div>
+
+                    {/* Post Caption */}
+                    {post.caption && (
+                      <p className="text-gray-900 mb-3 whitespace-pre-wrap">{post.caption}</p>
+                    )}
+
+                    {/* Post Image */}
+                    {post.image_url && (
+                      <img
+                        src={post.image_url}
+                        alt="Post content"
+                        className="w-full rounded-md mb-3 max-h-96 object-cover"
+                      />
+                    )}
+
+                    {/* Post Video */}
+                    {post.video_url && (
+                      <video
+                        src={post.video_url}
+                        className="w-full rounded-md mb-3 max-h-96"
+                        controls
+                      />
+                    )}
+
+                    {/* Post Actions */}
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center space-x-4">
+                        <Button
+                          onClick={() => handleLike(post.id)}
+                          variant="ghost"
+                          size="icon"
+                        >
+                          <Heart className="w-5 h-5 text-gray-500" />
+                          <span className="ml-1 text-sm">0</span>
+                        </Button>
+                        <Button variant="ghost" size="icon">
+                          <MessageCircle className="w-5 h-5 text-gray-500" />
+                        </Button>
+                        <Button onClick={() => handleShare(post.id)} variant="ghost" size="icon">
+                          <Share className="w-5 h-5 text-gray-500" />
+                        </Button>
+                      </div>
+                      <Button onClick={() => handleBookmark(post.id)} variant="ghost" size="icon">
+                        <Bookmark className="w-5 h-5 text-gray-500" />
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))
+            )}
           </div>
         </div>
       </div>

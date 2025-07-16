@@ -40,6 +40,7 @@ const UnifiedProfileView = ({ userId, isCurrentUser }: UnifiedProfileViewProps) 
   const [showSettings, setShowSettings] = useState(false);
   const [showPostCreator, setShowPostCreator] = useState(false);
   const [activeTab, setActiveTab] = useState('posts');
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   const profileId = userId || user?.id;
 
@@ -68,7 +69,7 @@ const UnifiedProfileView = ({ userId, isCurrentUser }: UnifiedProfileViewProps) 
 
   const handlePostCreated = () => {
     setShowPostCreator(false);
-    // The ProfilePostsGrid will automatically refresh via usePosts hook
+    setRefreshTrigger(prev => prev + 1); // Force refresh of ProfilePostsGrid
   };
 
   if (loading) {
@@ -198,7 +199,7 @@ const UnifiedProfileView = ({ userId, isCurrentUser }: UnifiedProfileViewProps) 
         </TabsList>
         
         <TabsContent value="posts" className="mt-6">
-          <ProfilePostsGrid userId={profileId!} />
+          <ProfilePostsGrid userId={profileId!} key={refreshTrigger} />
         </TabsContent>
         
         <TabsContent value="about" className="mt-6">

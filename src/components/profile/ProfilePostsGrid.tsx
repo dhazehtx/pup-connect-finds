@@ -3,13 +3,14 @@ import React from 'react';
 import { usePosts } from '@/hooks/usePosts';
 import { Heart, MessageCircle, Play } from 'lucide-react';
 import SkeletonLoader from '@/components/ui/skeleton-loader';
+import { formatDistanceToNow } from 'date-fns';
 
 interface ProfilePostsGridProps {
   userId: string;
 }
 
 const ProfilePostsGrid = ({ userId }: ProfilePostsGridProps) => {
-  const { posts, loading } = usePosts(userId);
+  const { posts, loading } = usePosts(userId); // Filter posts by user ID
 
   if (loading) {
     return (
@@ -68,6 +69,11 @@ const ProfilePostsGrid = ({ userId }: ProfilePostsGridProps) => {
                 <span className="text-sm font-semibold">0</span>
               </div>
             </div>
+          </div>
+          
+          {/* Time indicator */}
+          <div className="absolute bottom-1 right-1 bg-black bg-opacity-70 text-white text-xs px-1 py-0.5 rounded">
+            {formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}
           </div>
         </div>
       ))}
