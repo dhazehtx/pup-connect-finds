@@ -4,19 +4,32 @@ import { usePosts } from '@/hooks/usePosts';
 import { Heart, MessageCircle, Play } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import LoadingSpinner from '@/components/ui/loading-spinner';
+import ErrorState from '@/components/ui/error-state';
 
 interface ProfilePostsGridProps {
   userId: string;
 }
 
 const ProfilePostsGrid = ({ userId }: ProfilePostsGridProps) => {
-  const { posts, loading } = usePosts(userId); // Filter posts by user ID
+  const { posts, loading, error, fetchPosts } = usePosts(userId); // Filter posts by user ID
 
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
         <LoadingSpinner size="lg" text="Loading posts..." />
       </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <ErrorState
+        title="Unable to load posts"
+        message="Please try again."
+        onRetry={fetchPosts}
+        retryText="Retry loading"
+        variant="minimal"
+      />
     );
   }
 

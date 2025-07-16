@@ -10,11 +10,12 @@ import { useToast } from '@/hooks/use-toast';
 import ModernPostCreator from './ModernPostCreator';
 import { formatDistanceToNow } from 'date-fns';
 import LoadingSpinner from '@/components/ui/loading-spinner';
+import ErrorState from '@/components/ui/error-state';
 
 const HomeFeed = () => {
   const { user, isGuest } = useAuth();
   const { toast } = useToast();
-  const { posts, loading, fetchPosts } = usePosts(); // Get all posts, not filtered by user
+  const { posts, loading, fetchPosts, error } = usePosts(); // Get all posts, not filtered by user
   const [showPostCreator, setShowPostCreator] = useState(false);
 
   useEffect(() => {
@@ -73,6 +74,21 @@ const HomeFeed = () => {
           <div className="flex items-center justify-center py-12">
             <LoadingSpinner size="lg" text="Loading feed..." />
           </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <div className="max-w-2xl mx-auto py-6 px-4">
+          <ErrorState
+            title="Unable to load posts"
+            message="Please try again."
+            onRetry={fetchPosts}
+            retryText="Reload feed"
+          />
         </div>
       </div>
     );

@@ -22,11 +22,13 @@ interface Post {
 export const usePosts = (userId?: string, listingId?: string) => {
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
   const { toast } = useToast();
 
   const fetchPosts = async () => {
     try {
       setLoading(true);
+      setError(null);
       let query = supabase
         .from('posts')
         .select(`
@@ -47,12 +49,14 @@ export const usePosts = (userId?: string, listingId?: string) => {
         query = query.eq('listing_id', listingId);
       }
 
-      const { data, error } = await query;
+      const { data, error: fetchError } = await query;
 
-      if (error) throw error;
+      if (fetchError) throw fetchError;
       setPosts(data || []);
     } catch (error) {
       console.error('Error fetching posts:', error);
+      const errorObj = error as Error;
+      setError(errorObj);
       toast({
         title: "Error",
         description: "Failed to load posts",
@@ -94,6 +98,7 @@ export const usePosts = (userId?: string, listingId?: string) => {
   return {
     posts,
     loading,
+    error,
     fetchPosts,
     deletePost
   };
