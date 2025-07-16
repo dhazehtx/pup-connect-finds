@@ -2,7 +2,7 @@
 import React from 'react';
 import { usePosts } from '@/hooks/usePosts';
 import { Heart, MessageCircle, Play } from 'lucide-react';
-import { formatDistanceToNow } from 'date-fns';
+import { formatPostTime } from '@/utils/timeFormatting';
 import LoadingSpinner from '@/components/ui/loading-spinner';
 import ErrorState from '@/components/ui/error-state';
 
@@ -84,7 +84,7 @@ const ProfilePostsGrid = ({ userId }: ProfilePostsGridProps) => {
           
           {/* Time indicator */}
           <div className="absolute bottom-1 right-1 bg-black bg-opacity-70 text-white text-xs px-1 py-0.5 rounded">
-            {formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}
+            {formatPostTime(post.created_at)}
           </div>
         </div>
       ))}

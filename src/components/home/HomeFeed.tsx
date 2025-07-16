@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { usePosts } from '@/hooks/usePosts';
@@ -8,7 +7,7 @@ import { Heart, MessageCircle, Share, Bookmark, Plus, Camera } from 'lucide-reac
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import ModernPostCreator from './ModernPostCreator';
-import { formatDistanceToNow } from 'date-fns';
+import { formatPostTime } from '@/utils/timeFormatting';
 import LoadingSpinner from '@/components/ui/loading-spinner';
 import ErrorState from '@/components/ui/error-state';
 
@@ -166,7 +165,7 @@ const HomeFeed = () => {
                             {post.profiles?.full_name || post.profiles?.username || 'User'}
                           </div>
                           <div className="text-xs text-gray-500">
-                            {formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}
+                            {formatPostTime(post.created_at)}
                           </div>
                         </div>
                       </div>
