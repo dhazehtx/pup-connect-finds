@@ -51,13 +51,53 @@ const UnifiedProfileView = ({ userId, isCurrentUser }: UnifiedProfileViewProps) 
           user_type,
           rating,
           total_reviews,
-          years_experience
+          years_experience,
+          email
         `)
         .eq('id', profileUserId)
         .single();
 
       if (error) throw error;
-      setProfile(data);
+      
+      // Create a properly typed profile object with default values
+      const typedProfile: UserProfile = {
+        id: data.id,
+        username: data.username || '',
+        full_name: data.full_name || '',
+        email: data.email || '',
+        bio: data.bio || '',
+        location: data.location || '',
+        avatar_url: data.avatar_url || '',
+        user_type: data.user_type || 'buyer',
+        verified: data.verified || false,
+        rating: data.rating || 0,
+        total_reviews: data.total_reviews || 0,
+        years_experience: data.years_experience || 0,
+        verification_badges: [],
+        specializations: [],
+        certifications: [],
+        social_links: {},
+        privacy_settings: {
+          show_bio: true,
+          show_email: false,
+          show_phone: false,
+          show_location: true,
+          show_social_links: true
+        },
+        stats: {
+          followers: 0,
+          following: 0,
+          posts: 0,
+          totalListings: 0,
+          activeListings: 0,
+          totalViews: 0,
+          totalInquiries: 0
+        },
+        created_at: data.created_at || new Date().toISOString(),
+        updated_at: data.updated_at || new Date().toISOString()
+      };
+      
+      setProfile(typedProfile);
     } catch (error: any) {
       console.error('Error fetching profile:', error);
       setError('Failed to load profile');

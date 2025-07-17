@@ -14,17 +14,21 @@ const Header = () => {
 
   const handleSignOut = async () => {
     try {
+      console.log('Header: Initiating sign out...');
       await signOut();
-      localStorage.removeItem('guestMode');
+      
+      // Navigate to landing page after successful sign out
       navigate('/');
+      
       toast({
         title: "Signed out successfully",
         description: "You have been signed out of your account",
       });
     } catch (error) {
+      console.error('Header: Sign out error:', error);
       toast({
         title: "Error signing out",
-        description: "There was a problem signing you out",
+        description: "There was a problem signing you out. Please try again.",
         variant: "destructive",
       });
     }
@@ -52,7 +56,12 @@ const Header = () => {
           <div className="flex items-center space-x-4">
             {user || isGuest ? (
               <div className="flex items-center space-x-4">
-                <Button variant="outline" size="sm" onClick={handleSignOut} className="border-blue-600 text-blue-600 hover:bg-blue-50">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={handleSignOut} 
+                  className="border-blue-600 text-blue-600 hover:bg-blue-50"
+                >
                   {isGuest ? 'Exit Guest Mode' : 'Sign Out'}
                 </Button>
               </div>
