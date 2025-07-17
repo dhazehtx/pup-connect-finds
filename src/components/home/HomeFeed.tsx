@@ -1,221 +1,221 @@
-
 import React, { useState, useEffect } from 'react';
-import { Heart, MessageCircle, Share2 } from 'lucide-react';
-import { Card, CardContent } from '@/components/ui/card';
-import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import { Button } from '@/components/ui/button';
-import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Heart, MessageCircle, Share, Bookmark, Plus, Camera } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
-import { formatPostTime } from '@/utils/timeFormatting';
-import LoadingState from '@/components/ui/loading-state';
+import ModernPostCreator from './ModernPostCreator';
 
-interface Post {
-  id: string;
-  caption: string | null;
-  image_url: string | null;
-  created_at: string;
-  user_id: string;
-  profiles: {
-    username: string | null;
-    full_name: string | null;
-    avatar_url: string | null;
-  } | null;
-}
+const mockPosts = [
+  {
+    id: 1,
+    user: {
+      id: 'user1',
+      username: 'john_doe',
+      name: 'John Doe',
+      location: 'New York',
+      avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&h=150&fit=crop&crop=face'
+    },
+    image: 'https://images.unsplash.com/photo-1518020382113-a7e8fc38eac9?w=600',
+    likes: 120,
+    isLiked: true,
+    caption: 'Enjoying a sunny day with my best friend!',
+    timeAgo: '2 hours ago',
+    likedBy: [
+      { id: 'user2', username: 'jane_smith' },
+      { id: 'user3', username: 'alex_jones' }
+    ],
+    comments: [
+      { id: 'comment1', user: 'jane_smith', text: 'Such a cute dog!' },
+      { id: 'comment2', user: 'alex_jones', text: 'Where was this taken?' }
+    ]
+  },
+  {
+    id: 2,
+    user: {
+      id: 'user4',
+      username: 'emily_parker',
+      name: 'Emily Parker',
+      location: 'Los Angeles',
+      avatar: 'https://images.unsplash.com/photo-1580489944761-15a19d674c79?w=150&h=150&fit=crop&crop=face'
+    },
+    image: 'https://images.unsplash.com/photo-1548247416-ec661342273c?w=600',
+    likes: 85,
+    isLiked: false,
+    caption: 'Morning cuddles are the best!',
+    timeAgo: '1 day ago',
+    likedBy: [
+      { id: 'user5', username: 'sam_wilson' },
+      { id: 'user6', username: 'linda_brown' }
+    ],
+    comments: [
+      { id: 'comment3', user: 'sam_wilson', text: 'Aww, so adorable!' },
+      { id: 'comment4', user: 'linda_brown', text: 'I want one!' }
+    ]
+  },
+];
 
 const HomeFeed = () => {
-  const [posts, setPosts] = useState<Post[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [likedPosts, setLikedPosts] = useState<Set<string>>(new Set());
-  const { user } = useAuth();
+  const { user, isGuest } = useAuth();
   const { toast } = useToast();
+  const [posts, setPosts] = useState(mockPosts);
+  const [showPostCreator, setShowPostCreator] = useState(false);
 
   useEffect(() => {
-    fetchPosts();
-  }, [user]);
+    document.title = 'My Pup - Home';
+  }, []);
 
-  const fetchPosts = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('posts')
-        .select(`
-          id,
-          caption,
-          image_url,
-          created_at,
-          user_id,
-          profiles (
-            username,
-            full_name,
-            avatar_url
-          )
-        `)
-        .order('created_at', { ascending: false })
-        .limit(20);
-
-      if (error) throw error;
-      setPosts(data || []);
-    } catch (error) {
-      console.error('Error fetching posts:', error);
-      toast({
-        title: "Error loading posts",
-        description: "Please try refreshing the page",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
+  const handleLike = (postId: number) => {
+    setPosts(prevPosts =>
+      prevPosts.map(post =>
+        post.id === postId ? { ...post, isLiked: !post.isLiked, likes: post.isLiked ? post.likes - 1 : post.likes + 1 } : post
+      )
+    );
   };
 
-  const handleLike = async (postId: string) => {
-    if (!user) {
-      toast({
-        title: "Sign in required",
-        description: "Please sign in to like posts",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    // For now, just toggle the like state locally since post_likes table doesn't exist
-    const isLiked = likedPosts.has(postId);
-    
-    if (isLiked) {
-      setLikedPosts(prev => {
-        const newSet = new Set(prev);
-        newSet.delete(postId);
-        return newSet;
-      });
-    } else {
-      setLikedPosts(prev => new Set(prev).add(postId));
-    }
+  const handleShare = (postId: number) => {
+    toast({
+      title: "Post Shared",
+      description: `You have shared post ${postId} with your followers`,
+    });
   };
 
-  const handleShare = async (post: Post) => {
-    const shareUrl = `${window.location.origin}/post/${post.id}`;
-    
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title: post.caption || 'Check out this post!',
-          url: shareUrl,
-        });
-      } catch (error) {
-        console.log('Share cancelled');
-      }
-    } else {
-      await navigator.clipboard.writeText(shareUrl);
-      toast({
-        title: "Link copied!",
-        description: "Post link has been copied to clipboard",
-      });
-    }
+  const handleBookmark = (postId: number) => {
+    toast({
+      title: "Post Bookmarked",
+      description: `You have bookmarked post ${postId} to view later`,
+    });
   };
 
-  if (loading) {
-    return <LoadingState message="Loading posts..." variant="card" />;
-  }
+  const handlePostCreated = (newPost: any) => {
+    setPosts(prevPosts => [newPost, ...prevPosts]);
+    toast({
+      title: "Post shared! 🎉",
+      description: "Your post is now live!",
+    });
+    setShowPostCreator(false);
+  };
 
-  if (posts.length === 0) {
+  if (!user && !isGuest) {
     return (
-      <div className="flex flex-col items-center justify-center py-12 px-4">
-        <div className="text-center">
-          <Heart className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-xl font-semibold text-gray-900 mb-2">Be the first to post!</h3>
-          <p className="text-gray-600 mb-6">
-            Share a moment with your puppy to get the community started.
-          </p>
-        </div>
+      <div className="flex items-center justify-center min-h-screen bg-gray-50">
+        <Card className="w-full max-w-md mx-4">
+          <CardContent className="p-8 text-center">
+            <h2 className="text-2xl font-bold mb-4">Welcome to MY PUP</h2>
+            <p className="text-gray-600 mb-6">Sign in to see your personalized puppy feed</p>
+            <Button className="w-full">Sign In</Button>
+          </CardContent>
+        </Card>
       </div>
     );
   }
 
   return (
-    <div className="max-w-md mx-auto space-y-4 pb-4">
-      {posts.map((post) => (
-        <Card key={post.id} className="border-0 shadow-sm">
-          <CardContent className="p-0">
-            {/* Post Header */}
-            <div className="flex items-center justify-between p-4 pb-3">
-              <div className="flex items-center space-x-3">
-                <Avatar className="w-8 h-8">
-                  <AvatarImage src={post.profiles?.avatar_url || ''} />
-                  <AvatarFallback className="text-xs">
-                    {(post.profiles?.full_name || post.profiles?.username || 'U')[0].toUpperCase()}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="flex flex-col">
-                  <span className="text-sm font-semibold text-gray-900">
-                    {post.profiles?.full_name || post.profiles?.username || 'Unknown User'}
-                  </span>
-                  <span className="text-xs text-gray-500">
-                    {formatPostTime(post.created_at)}
-                  </span>
+    <>
+      <div className="min-h-screen bg-gray-50">
+        <div className="max-w-2xl mx-auto py-6 px-4">
+          {/* Create Post Section */}
+          <Card className="mb-6 shadow-sm">
+            <CardContent className="p-4">
+              <div className="flex items-center space-x-4">
+                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center text-white font-semibold">
+                  {user?.email?.charAt(0).toUpperCase() || 'U'}
                 </div>
+                <Button
+                  onClick={() => setShowPostCreator(true)}
+                  variant="outline"
+                  className="flex-1 justify-start text-gray-500 hover:text-gray-700 hover:bg-gray-50 rounded-full border-gray-200"
+                >
+                  <Camera className="w-4 h-4 mr-2" />
+                  Share a moment with your community...
+                </Button>
+                <Button
+                  onClick={() => setShowPostCreator(true)}
+                  size="sm"
+                  className="bg-blue-600 hover:bg-blue-700 text-white rounded-full"
+                >
+                  <Plus className="w-4 h-4" />
+                </Button>
               </div>
-            </div>
+            </CardContent>
+          </Card>
 
-            {/* Post Image */}
-            {post.image_url && (
-              <div className="relative">
-                <img
-                  src={post.image_url}
-                  alt="Post content"
-                  className="w-full aspect-square object-cover"
-                />
-              </div>
-            )}
+          {/* Posts Feed */}
+          <div className="space-y-6">
+            {posts.map((post) => (
+              <Card key={post.id} className="shadow-sm">
+                <CardContent className="p-4">
+                  {/* User Info */}
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-8 h-8 rounded-full overflow-hidden">
+                        <img
+                          src={post.user.avatar}
+                          alt={post.user.name}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                      <div>
+                        <div className="font-semibold text-sm">{post.user.name}</div>
+                        <div className="text-xs text-gray-500">{post.timeAgo}</div>
+                      </div>
+                    </div>
+                    <Badge className="rounded-full">{post.user.location}</Badge>
+                  </div>
 
-            {/* Post Actions and Caption */}
-            <div className="p-4">
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center space-x-4">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleLike(post.id)}
-                    className="p-0 h-auto hover:bg-transparent"
-                  >
-                    <Heart
-                      className={`w-6 h-6 ${
-                        likedPosts.has(post.id)
-                          ? 'fill-red-500 text-red-500'
-                          : 'text-gray-700 hover:text-red-500'
-                      } transition-colors`}
-                    />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="p-0 h-auto hover:bg-transparent"
-                  >
-                    <MessageCircle className="w-6 h-6 text-gray-700 hover:text-blue-500 transition-colors" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleShare(post)}
-                    className="p-0 h-auto hover:bg-transparent"
-                  >
-                    <Share2 className="w-6 h-6 text-gray-700 hover:text-green-500 transition-colors" />
-                  </Button>
-                </div>
-              </div>
+                  {/* Post Image */}
+                  <img
+                    src={post.image}
+                    alt="Post"
+                    className="w-full rounded-md mb-3"
+                  />
 
-              {/* Caption */}
-              {post.caption && (
-                <div className="text-sm">
-                  <span className="font-semibold text-gray-900 mr-2">
-                    {post.profiles?.full_name || post.profiles?.username || 'Unknown User'}
-                  </span>
-                  <span className="text-gray-900">{post.caption}</span>
-                </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-      ))}
-    </div>
+                  {/* Post Actions */}
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center space-x-4">
+                      <Button
+                        onClick={() => handleLike(post.id)}
+                        variant="ghost"
+                        size="icon"
+                      >
+                        <Heart
+                          className={`w-5 h-5 ${post.isLiked ? 'text-red-500' : 'text-gray-500'
+                            }`}
+                        />
+                        <span>{post.likes}</span>
+                      </Button>
+                      <Button variant="ghost" size="icon">
+                        <MessageCircle className="w-5 h-5 text-gray-500" />
+                      </Button>
+                      <Button onClick={() => handleShare(post.id)} variant="ghost" size="icon">
+                        <Share className="w-5 h-5 text-gray-500" />
+                      </Button>
+                    </div>
+                    <Button onClick={() => handleBookmark(post.id)} variant="ghost" size="icon">
+                      <Bookmark className="w-5 h-5 text-gray-500" />
+                    </Button>
+                  </div>
+
+                  {/* Post Caption */}
+                  <div className="text-sm">
+                    <span className="font-semibold">{post.user.username}</span> {post.caption}
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Modern Post Creator Modal */}
+      {showPostCreator && (
+        <ModernPostCreator
+          onClose={() => setShowPostCreator(false)}
+          onPostCreated={handlePostCreated}
+        />
+      )}
+    </>
   );
 };
 

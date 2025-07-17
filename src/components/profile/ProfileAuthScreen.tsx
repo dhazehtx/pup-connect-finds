@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -5,10 +6,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
-import { Heart, Eye, EyeOff, Shield } from 'lucide-react';
+import { Heart, Mail, User, Eye, EyeOff, Shield, Lock, Apple } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
-import SocialLoginButtons from '@/components/auth/SocialLoginButtons';
 
 const ProfileAuthScreen = () => {
   const [isSignUp, setIsSignUp] = useState(false);
@@ -85,8 +85,49 @@ const ProfileAuthScreen = () => {
         </div>
 
         {/* Social Login Buttons */}
-        <div className="mb-6">
-          <SocialLoginButtons disabled={loading} />
+        <div className="space-y-4 mb-6">
+          <button
+            onClick={() => {
+              toast({
+                title: "Coming Soon!",
+                description: "Facebook sign-in will be available soon.",
+              });
+            }}
+            className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-full border-0 flex items-center justify-center gap-3 disabled:opacity-50"
+            disabled={loading}
+          >
+            <User size={18} className="text-white" />
+            <span className="text-white font-semibold">CONTINUE WITH FACEBOOK</span>
+          </button>
+          
+          <button
+            onClick={() => {
+              toast({
+                title: "Coming Soon!",
+                description: "Apple sign-in will be available soon.",
+              });
+            }}
+            className="w-full h-12 bg-black hover:bg-gray-800 text-white font-semibold rounded-full border-0 flex items-center justify-center gap-3 disabled:opacity-50"
+            disabled={loading}
+          >
+            <Apple size={18} className="text-white" />
+            <span className="text-white font-semibold">CONTINUE WITH APPLE</span>
+          </button>
+          
+          <Button
+            onClick={() => {
+              toast({
+                title: "Coming Soon!",
+                description: "Google sign-in will be available soon.",
+              });
+            }}
+            variant="outline"
+            className="w-full h-12 bg-white hover:bg-gray-50 text-black font-semibold rounded-full border-2 border-gray-300"
+            disabled={loading}
+          >
+            <Mail size={18} className="mr-3" />
+            CONTINUE WITH GOOGLE
+          </Button>
         </div>
 
         <div className="relative mb-6">

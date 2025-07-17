@@ -12,9 +12,9 @@ interface LayoutProps {
 
 const Layout = ({ children, showBottomNav = true }: LayoutProps) => {
   return (
-    <div className="min-h-screen bg-white text-slate-900 unified-theme">
+    <div className="min-h-screen bg-background flex flex-col">
       <StickyHeader />
-      <main className="flex-1 pb-16 md:pb-0 bg-white">
+      <main className="flex-1 pb-16 md:pb-0">
         {children}
       </main>
       <Footer />

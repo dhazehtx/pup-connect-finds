@@ -1,6 +1,6 @@
 
 import React, { createContext, useContext, ReactNode } from 'react';
-import { useAuthEnhanced } from '@/hooks/useAuthEnhanced';
+import { useAuthState } from '@/hooks/useAuthState';
 import { User, Session } from '@supabase/supabase-js';
 
 interface AuthContextType {
@@ -33,7 +33,7 @@ interface AuthProviderProps {
 }
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
-  const authState = useAuthEnhanced();
+  const authState = useAuthState();
 
   const continueAsGuest = () => {
     localStorage.setItem('guestMode', 'true');
@@ -57,22 +57,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     await authState.updateProfile(updates);
   };
 
-  // Enhanced sign out function
-  const signOut = async () => {
-    try {
-      console.log('Signing out user...');
-      await authState.signOut();
-      
-      // Clear guest mode if it was set
-      localStorage.removeItem('guestMode');
-      
-      console.log('Sign out completed successfully');
-    } catch (error) {
-      console.error('Error during sign out:', error);
-      throw error;
-    }
-  };
-
   // Guest detection logic
   const isGuest = !authState.user && localStorage.getItem('guestMode') === 'true';
 
@@ -84,7 +68,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     isGuest,
     signUp,
     signIn,
-    signOut,
+    signOut: authState.signOut,
     updateProfile,
     refreshProfile: authState.refreshProfile,
     continueAsGuest,

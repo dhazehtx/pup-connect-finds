@@ -1,8 +1,7 @@
 
 import React from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { useToast } from '@/hooks/use-toast';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -15,35 +14,10 @@ import {
 interface NavbarUserDropdownProps {
   user: any;
   profile: any;
-  signOut: () => Promise<void>;
+  signOut: () => void;
 }
 
 const NavbarUserDropdown = ({ user, profile, signOut }: NavbarUserDropdownProps) => {
-  const navigate = useNavigate();
-  const { toast } = useToast();
-
-  const handleSignOut = async () => {
-    try {
-      console.log('NavbarDropdown: Initiating sign out...');
-      await signOut();
-      
-      // Navigate to landing page after successful sign out
-      navigate('/');
-      
-      toast({
-        title: "Signed out successfully",
-        description: "You have been signed out of your account",
-      });
-    } catch (error) {
-      console.error('NavbarDropdown: Sign out error:', error);
-      toast({
-        title: "Error signing out",
-        description: "There was a problem signing you out. Please try again.",
-        variant: "destructive",
-      });
-    }
-  };
-
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -93,7 +67,7 @@ const NavbarUserDropdown = ({ user, profile, signOut }: NavbarUserDropdownProps)
           </Link>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={handleSignOut}>Logout</DropdownMenuItem>
+        <DropdownMenuItem onClick={signOut}>Logout</DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );

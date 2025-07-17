@@ -1,14 +1,32 @@
+
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
-import LoadingState from '@/components/ui/loading-state';
-import ErrorState from '@/components/ui/error-state';
-import ProfileHeaderWithPresence from './ProfileHeaderWithPresence';
-import ProfileActionButtons from './ProfileActionButtons';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { MapPin, Globe, Calendar, Plus } from 'lucide-react';
+import ProfileSettings from './ProfileSettings';
+import ProfileSettingsModal from './ProfileSettingsModal';
+import SocialPostCreator from '@/components/posts/SocialPostCreator';
 import ProfilePostsGrid from './ProfilePostsGrid';
-import { UserProfile } from '@/types/profile';
+import LoadingState from '@/components/ui/loading-state';
+
+interface Profile {
+  id: string;
+  full_name: string;
+  username: string;
+  bio: string;
+  location: string;
+  website_url: string;
+  avatar_url: string;
+  user_type: string;
+  verified: boolean;
+  rating: number;
+  total_reviews: number;
+  years_experience: number;
+  created_at: string;
+}
 
 interface UnifiedProfileViewProps {
   userId?: string;
@@ -16,188 +34,203 @@ interface UnifiedProfileViewProps {
 }
 
 const UnifiedProfileView = ({ userId, isCurrentUser }: UnifiedProfileViewProps) => {
-  const [profile, setProfile] = useState<UserProfile | null>(null);
-  const [posts, setPosts] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [isFollowing, setIsFollowing] = useState(false);
-  
   const { user } = useAuth();
-  const { toast } = useToast();
-  const navigate = useNavigate();
+  const [profile, setProfile] = useState<Profile | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [showSettings, setShowSettings] = useState(false);
+  const [showPostCreator, setShowPostCreator] = useState(false);
+  const [activeTab, setActiveTab] = useState('posts');
 
-  const profileUserId = userId || user?.id;
+  const profileId = userId || user?.id;
 
   useEffect(() => {
-    if (profileUserId) {
+    if (profileId) {
       fetchProfile();
-      fetchPosts();
     }
-  }, [profileUserId, user]);
+  }, [profileId]);
 
   const fetchProfile = async () => {
     try {
       const { data, error } = await supabase
         .from('profiles')
-        .select(`
-          id,
-          username,
-          full_name,
-          bio,
-          avatar_url,
-          location,
-          verified,
-          user_type,
-          rating,
-          total_reviews,
-          years_experience,
-          email,
-          created_at,
-          updated_at
-        `)
-        .eq('id', profileUserId)
+        .select('*')
+        .eq('id', profileId)
         .single();
 
       if (error) throw error;
-      
-      // Create a properly typed profile object with default values
-      const typedProfile: UserProfile = {
-        id: data.id,
-        username: data.username || '',
-        full_name: data.full_name || '',
-        email: data.email || '',
-        bio: data.bio || '',
-        location: data.location || '',
-        avatar_url: data.avatar_url || '',
-        user_type: data.user_type || 'buyer',
-        verified: data.verified || false,
-        rating: data.rating || 0,
-        total_reviews: data.total_reviews || 0,
-        years_experience: data.years_experience || 0,
-        verification_badges: [],
-        specializations: [],
-        certifications: [],
-        social_links: {},
-        privacy_settings: {
-          show_bio: true,
-          show_email: false,
-          show_phone: false,
-          show_location: true,
-          show_social_links: true
-        },
-        stats: {
-          followers: 0,
-          following: 0,
-          posts: 0,
-          totalListings: 0,
-          activeListings: 0,
-          totalViews: 0,
-          totalInquiries: 0
-        },
-        created_at: data.created_at || new Date().toISOString(),
-        updated_at: data.updated_at || new Date().toISOString()
-      };
-      
-      setProfile(typedProfile);
-    } catch (error: any) {
+      setProfile(data);
+    } catch (error) {
       console.error('Error fetching profile:', error);
-      setError('Failed to load profile');
-    }
-  };
-
-  const fetchPosts = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('posts')
-        .select('*')
-        .eq('user_id', profileUserId)
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      setPosts(data || []);
-    } catch (error: any) {
-      console.error('Error fetching posts:', error);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleMessage = () => {
-    if (!profileUserId) return;
-    navigate(`/messages?contact=${profileUserId}`);
-  };
-
-  const handleFollow = async () => {
-    // For now, just toggle the follow state locally since follows table doesn't exist
-    setIsFollowing(!isFollowing);
-    toast({ 
-      title: isFollowing ? "Unfollowed successfully" : "Following successfully" 
-    });
-  };
-
-  const handleEditProfile = () => {
-    navigate('/profile/edit');
-  };
-
-  const handleSettings = () => {
-    navigate('/settings');
-  };
-
-  const handleShare = async () => {
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title: `${profile?.full_name || profile?.username}'s Profile`,
-          url: window.location.href,
-        });
-      } catch (error) {
-        console.log('Share cancelled');
-      }
-    } else {
-      navigator.clipboard.writeText(window.location.href);
-      toast({ title: "Profile link copied to clipboard!" });
-    }
-  };
-
-  const handleViewPublicProfile = () => {
-    navigate(`/profile/${profileUserId}`);
+  const handlePostCreated = () => {
+    setShowPostCreator(false);
+    // The ProfilePostsGrid will automatically refresh via usePosts hook
   };
 
   if (loading) {
     return <LoadingState message="Loading profile..." />;
   }
 
-  if (error || !profile) {
+  if (!profile) {
     return (
-      <ErrorState
-        title="Profile not found"
-        message="The profile you're looking for doesn't exist or couldn't be loaded."
+      <div className="flex items-center justify-center min-h-screen">
+        <p className="text-gray-500">Profile not found</p>
+      </div>
+    );
+  }
+
+  if (showSettings && isCurrentUser) {
+    return (
+      <ProfileSettings 
+        profile={profile} 
+        onBack={() => setShowSettings(false)}
+        onUpdate={fetchProfile}
       />
     );
   }
 
   return (
-    <div className="max-w-md mx-auto bg-white min-h-screen">
+    <div className="max-w-4xl mx-auto p-4">
       {/* Profile Header */}
-      <div className="px-4 pt-6 pb-4">
-        <ProfileHeaderWithPresence profile={profile} />
-        
-        {/* Action Buttons */}
-        <ProfileActionButtons
-          isCurrentUser={isCurrentUser}
-          isPublicView={false}
-          isFollowing={isFollowing}
-          onEditProfile={handleEditProfile}
-          onSettings={handleSettings}
-          onShare={handleShare}
-          onViewPublicProfile={handleViewPublicProfile}
-          onMessage={handleMessage}
-          onFollow={handleFollow}
-        />
-      </div>
+      <Card className="mb-6">
+        <CardContent className="p-6">
+          <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
+            {/* Avatar */}
+            <div className="w-32 h-32 rounded-full bg-gray-200 flex-shrink-0 overflow-hidden">
+              {profile.avatar_url ? (
+                <img
+                  src={profile.avatar_url}
+                  alt={profile.full_name}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-gray-400 text-4xl font-bold">
+                  {profile.full_name?.charAt(0).toUpperCase() || 'U'}
+                </div>
+              )}
+            </div>
 
-      {/* Posts Grid */}
-      <ProfilePostsGrid userId={profileUserId || ''} />
+            {/* Profile Info */}
+            <div className="flex-1">
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-4">
+                  <h1 className="text-2xl font-bold">{profile.full_name}</h1>
+                  {profile.verified && (
+                    <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">
+                      Verified
+                    </span>
+                  )}
+                </div>
+                
+                {/* Settings Icon for current user */}
+                {isCurrentUser && (
+                  <ProfileSettingsModal onEditProfile={() => setShowSettings(true)} />
+                )}
+              </div>
+              
+              {profile.username && (
+                <p className="text-gray-600 mb-2">@{profile.username}</p>
+              )}
+
+              {profile.bio && (
+                <p className="text-gray-700 mb-4">{profile.bio}</p>
+              )}
+
+              <div className="flex flex-wrap gap-4 text-sm text-gray-600 mb-4">
+                {profile.location && (
+                  <div className="flex items-center gap-1">
+                    <MapPin className="w-4 h-4" />
+                    {profile.location}
+                  </div>
+                )}
+                {profile.website_url && (
+                  <div className="flex items-center gap-1">
+                    <Globe className="w-4 h-4" />
+                    <a href={profile.website_url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                      Website
+                    </a>
+                  </div>
+                )}
+                <div className="flex items-center gap-1">
+                  <Calendar className="w-4 h-4" />
+                  Joined {new Date(profile.created_at).toLocaleDateString()}
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex gap-2">
+                {isCurrentUser ? (
+                  <Button 
+                    variant="outline" 
+                    onClick={() => setShowPostCreator(!showPostCreator)}
+                  >
+                    <Plus className="w-4 h-4 mr-2" />
+                    Add Post
+                  </Button>
+                ) : (
+                  <Button>Follow</Button>
+                )}
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Post Creator (only for current user) */}
+      {isCurrentUser && showPostCreator && (
+        <div className="mb-6">
+          <SocialPostCreator 
+            onPostCreated={handlePostCreated}
+            className="bg-white shadow-sm"
+          />
+        </div>
+      )}
+
+      {/* Profile Content Tabs */}
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="posts">Posts</TabsTrigger>
+          <TabsTrigger value="about">About</TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="posts" className="mt-6">
+          <ProfilePostsGrid userId={profileId!} />
+        </TabsContent>
+        
+        <TabsContent value="about" className="mt-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>About</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <h3 className="font-semibold text-gray-900">User Type</h3>
+                <p className="text-gray-600 capitalize">{profile.user_type}</p>
+              </div>
+              
+              {profile.years_experience > 0 && (
+                <div>
+                  <h3 className="font-semibold text-gray-900">Experience</h3>
+                  <p className="text-gray-600">{profile.years_experience} years</p>
+                </div>
+              )}
+              
+              {profile.total_reviews > 0 && (
+                <div>
+                  <h3 className="font-semibold text-gray-900">Reviews</h3>
+                  <p className="text-gray-600">
+                    {profile.rating.toFixed(1)} ★ ({profile.total_reviews} reviews)
+                  </p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };

@@ -49,44 +49,42 @@ export interface ProfileAnalytics {
 }
 
 export interface UserProfile {
-  // Basic Info (required)
+  // Basic Info
   id: string;
   username?: string;
   full_name?: string;
-  
-  // Make email optional to fix type errors temporarily
-  email?: string;
+  email: string;
   bio?: string;
   location?: string;
   avatar_url?: string;
   
   // User Type & Verification
   user_type: 'buyer' | 'breeder' | 'shelter' | 'admin';
-  verified?: boolean;
-  verification_badges?: VerificationBadge[];
+  verified: boolean;
+  verification_badges: VerificationBadge[];
   
-  // Professional Info (all optional to fix type errors)
-  years_experience?: number;
-  rating?: number;
-  total_reviews?: number;
-  specializations?: string[];
-  certifications?: string[];
+  // Professional Info
+  years_experience: number;
+  rating: number;
+  total_reviews: number;
+  specializations: string[];
+  certifications: string[];
   trust_score?: number;
   breeding_program_name?: string;
   breeding_since?: string;
   professional_status?: 'standard' | 'professional' | 'verified_professional';
   
-  // Contact & Social (all optional)
+  // Contact & Social
   phone?: string;
   website_url?: string;
-  social_links?: SocialLinks;
-  privacy_settings?: PrivacySettings;
+  social_links: SocialLinks;
+  privacy_settings: PrivacySettings;
   
-  // Stats & Analytics (optional)
-  stats?: ProfileStats;
+  // Stats & Analytics
+  stats: ProfileStats;
   analytics?: ProfileAnalytics;
   
-  // Timestamps (required for Supabase compatibility)
+  // Timestamps
   created_at: string;
   updated_at: string;
 }

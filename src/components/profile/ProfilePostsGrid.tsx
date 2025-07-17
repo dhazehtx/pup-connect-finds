@@ -2,41 +2,29 @@
 import React from 'react';
 import { usePosts } from '@/hooks/usePosts';
 import { Heart, MessageCircle, Play } from 'lucide-react';
-import { formatPostTime } from '@/utils/timeFormatting';
-import LoadingSpinner from '@/components/ui/loading-spinner';
-import ErrorState from '@/components/ui/error-state';
+import SkeletonLoader from '@/components/ui/skeleton-loader';
 
 interface ProfilePostsGridProps {
   userId: string;
 }
 
 const ProfilePostsGrid = ({ userId }: ProfilePostsGridProps) => {
-  const { posts, loading, error, fetchPosts } = usePosts(userId); // Filter posts by user ID
+  const { posts, loading } = usePosts(userId);
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-12">
-        <LoadingSpinner size="lg" text="Loading posts..." />
+      <div className="grid grid-cols-3 gap-1">
+        {Array.from({ length: 9 }).map((_, i) => (
+          <SkeletonLoader key={i} variant="image" />
+        ))}
       </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <ErrorState
-        title="Unable to load posts"
-        message="Please try again."
-        onRetry={fetchPosts}
-        retryText="Retry loading"
-        variant="minimal"
-      />
     );
   }
 
   if (posts.length === 0) {
     return (
       <div className="text-center py-12">
-        <p className="text-gray-500">No posts yet – start by sharing a moment!</p>
+        <p className="text-gray-500">No posts yet</p>
       </div>
     );
   }
@@ -44,10 +32,7 @@ const ProfilePostsGrid = ({ userId }: ProfilePostsGridProps) => {
   return (
     <div className="grid grid-cols-3 gap-1">
       {posts.map((post) => (
-        <div 
-          key={post.id} 
-          className="relative aspect-square group cursor-pointer transition-all duration-300 md:hover:scale-105 md:hover:shadow-lg md:hover:z-10"
-        >
+        <div key={post.id} className="relative aspect-square group cursor-pointer">
           {post.image_url ? (
             <img
               src={post.image_url}
@@ -83,11 +68,6 @@ const ProfilePostsGrid = ({ userId }: ProfilePostsGridProps) => {
                 <span className="text-sm font-semibold">0</span>
               </div>
             </div>
-          </div>
-          
-          {/* Time indicator */}
-          <div className="absolute bottom-1 right-1 bg-black bg-opacity-70 text-white text-xs px-1 py-0.5 rounded">
-            {formatPostTime(post.created_at)}
           </div>
         </div>
       ))}
