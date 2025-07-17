@@ -32,9 +32,6 @@ const HomeFeed = () => {
 
   useEffect(() => {
     fetchPosts();
-    if (user) {
-      fetchLikedPosts();
-    }
   }, [user]);
 
   const fetchPosts = async () => {
@@ -70,22 +67,6 @@ const HomeFeed = () => {
     }
   };
 
-  const fetchLikedPosts = async () => {
-    if (!user) return;
-
-    try {
-      const { data, error } = await supabase
-        .from('post_likes')
-        .select('post_id')
-        .eq('user_id', user.id);
-
-      if (error) throw error;
-      setLikedPosts(new Set(data.map(like => like.post_id)));
-    } catch (error) {
-      console.error('Error fetching liked posts:', error);
-    }
-  };
-
   const handleLike = async (postId: string) => {
     if (!user) {
       toast({
@@ -96,40 +77,17 @@ const HomeFeed = () => {
       return;
     }
 
+    // For now, just toggle the like state locally since post_likes table doesn't exist
     const isLiked = likedPosts.has(postId);
-
-    try {
-      if (isLiked) {
-        const { error } = await supabase
-          .from('post_likes')
-          .delete()
-          .eq('post_id', postId)
-          .eq('user_id', user.id);
-
-        if (error) throw error;
-        setLikedPosts(prev => {
-          const newSet = new Set(prev);
-          newSet.delete(postId);
-          return newSet;
-        });
-      } else {
-        const { error } = await supabase
-          .from('post_likes')
-          .insert({
-            post_id: postId,
-            user_id: user.id
-          });
-
-        if (error) throw error;
-        setLikedPosts(prev => new Set(prev).add(postId));
-      }
-    } catch (error) {
-      console.error('Error toggling like:', error);
-      toast({
-        title: "Error",
-        description: "Failed to update like status",
-        variant: "destructive",
+    
+    if (isLiked) {
+      setLikedPosts(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(postId);
+        return newSet;
       });
+    } else {
+      setLikedPosts(prev => new Set(prev).add(postId));
     }
   };
 
