@@ -1,7 +1,6 @@
 
 import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Card, CardContent } from '@/components/ui/card';
 import { Gift, Users, Briefcase } from 'lucide-react';
 import ServicesMarketplace from '@/components/services/ServicesMarketplace';
 import PupBoxSubscription from '@/components/subscriptions/PupBoxSubscription';
