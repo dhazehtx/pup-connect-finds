@@ -1,3 +1,4 @@
+
 // Comprehensive TypeScript interfaces for profile data structures
 
 export interface ContactInfo {
@@ -85,9 +86,9 @@ export interface UserProfile {
   stats?: ProfileStats;
   analytics?: ProfileAnalytics;
   
-  // Timestamps (optional)
-  created_at?: string;
-  updated_at?: string;
+  // Timestamps (required for Supabase compatibility)
+  created_at: string;
+  updated_at: string;
 }
 
 export interface ProfileExportData {

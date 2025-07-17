@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -52,7 +51,9 @@ const UnifiedProfileView = ({ userId, isCurrentUser }: UnifiedProfileViewProps) 
           rating,
           total_reviews,
           years_experience,
-          email
+          email,
+          created_at,
+          updated_at
         `)
         .eq('id', profileUserId)
         .single();
