@@ -1,32 +1,15 @@
 
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { MapPin, Globe, Calendar, Plus } from 'lucide-react';
-import ProfileSettings from './ProfileSettings';
-import ProfileSettingsModal from './ProfileSettingsModal';
-import SocialPostCreator from '@/components/posts/SocialPostCreator';
-import ProfilePostsGrid from './ProfilePostsGrid';
+import { useToast } from '@/hooks/use-toast';
 import LoadingState from '@/components/ui/loading-state';
-
-interface Profile {
-  id: string;
-  full_name: string;
-  username: string;
-  bio: string;
-  location: string;
-  website_url: string;
-  avatar_url: string;
-  user_type: string;
-  verified: boolean;
-  rating: number;
-  total_reviews: number;
-  years_experience: number;
-  created_at: string;
-}
+import ErrorState from '@/components/ui/error-state';
+import ProfileHeaderWithPresence from './ProfileHeaderWithPresence';
+import ProfileActionButtons from './ProfileActionButtons';
+import ProfilePostsGrid from './ProfilePostsGrid';
+import { UserProfile } from '@/types/profile';
 
 interface UnifiedProfileViewProps {
   userId?: string;
@@ -34,204 +17,198 @@ interface UnifiedProfileViewProps {
 }
 
 const UnifiedProfileView = ({ userId, isCurrentUser }: UnifiedProfileViewProps) => {
-  const { user } = useAuth();
-  const [profile, setProfile] = useState<Profile | null>(null);
+  const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [posts, setPosts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [showSettings, setShowSettings] = useState(false);
-  const [showPostCreator, setShowPostCreator] = useState(false);
-  const [activeTab, setActiveTab] = useState('posts');
-  const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const [error, setError] = useState<string | null>(null);
+  const [isFollowing, setIsFollowing] = useState(false);
+  
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const navigate = useNavigate();
 
-  const profileId = userId || user?.id;
+  const profileUserId = userId || user?.id;
 
   useEffect(() => {
-    if (profileId) {
+    if (profileUserId) {
       fetchProfile();
+      fetchPosts();
+      if (!isCurrentUser && user) {
+        checkFollowStatus();
+      }
     }
-  }, [profileId]);
+  }, [profileUserId, user]);
 
   const fetchProfile = async () => {
     try {
       const { data, error } = await supabase
         .from('profiles')
-        .select('*')
-        .eq('id', profileId)
+        .select(`
+          id,
+          username,
+          full_name,
+          bio,
+          avatar_url,
+          location,
+          verified,
+          user_type,
+          rating,
+          total_reviews,
+          years_experience,
+          breeding_program_name,
+          trust_score,
+          stats
+        `)
+        .eq('id', profileUserId)
         .single();
 
       if (error) throw error;
       setProfile(data);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error fetching profile:', error);
+      setError('Failed to load profile');
+    }
+  };
+
+  const fetchPosts = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('posts')
+        .select('*')
+        .eq('user_id', profileUserId)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setPosts(data || []);
+    } catch (error: any) {
+      console.error('Error fetching posts:', error);
     } finally {
       setLoading(false);
     }
   };
 
-  const handlePostCreated = () => {
-    setShowPostCreator(false);
-    setRefreshTrigger(prev => prev + 1); // Force refresh of ProfilePostsGrid
+  const checkFollowStatus = async () => {
+    if (!user || !profileUserId) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('follows')
+        .select('id')
+        .eq('follower_id', user.id)
+        .eq('following_id', profileUserId)
+        .single();
+
+      if (error && error.code !== 'PGRST116') throw error;
+      setIsFollowing(!!data);
+    } catch (error: any) {
+      console.error('Error checking follow status:', error);
+    }
+  };
+
+  const handleMessage = () => {
+    if (!profileUserId) return;
+    navigate(`/messages?contact=${profileUserId}`);
+  };
+
+  const handleFollow = async () => {
+    if (!user || !profileUserId) return;
+
+    try {
+      if (isFollowing) {
+        const { error } = await supabase
+          .from('follows')
+          .delete()
+          .eq('follower_id', user.id)
+          .eq('following_id', profileUserId);
+
+        if (error) throw error;
+        setIsFollowing(false);
+        toast({ title: "Unfollowed successfully" });
+      } else {
+        const { error } = await supabase
+          .from('follows')
+          .insert({
+            follower_id: user.id,
+            following_id: profileUserId
+          });
+
+        if (error) throw error;
+        setIsFollowing(true);
+        toast({ title: "Following successfully" });
+      }
+    } catch (error: any) {
+      console.error('Error toggling follow:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update follow status",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleEditProfile = () => {
+    navigate('/profile/edit');
+  };
+
+  const handleSettings = () => {
+    navigate('/settings');
+  };
+
+  const handleShare = async () => {
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: `${profile?.full_name || profile?.username}'s Profile`,
+          url: window.location.href,
+        });
+      } catch (error) {
+        console.log('Share cancelled');
+      }
+    } else {
+      navigator.clipboard.writeText(window.location.href);
+      toast({ title: "Profile link copied to clipboard!" });
+    }
+  };
+
+  const handleViewPublicProfile = () => {
+    navigate(`/profile/${profileUserId}`);
   };
 
   if (loading) {
     return <LoadingState message="Loading profile..." />;
   }
 
-  if (!profile) {
+  if (error || !profile) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <p className="text-gray-500">Profile not found</p>
-      </div>
-    );
-  }
-
-  if (showSettings && isCurrentUser) {
-    return (
-      <ProfileSettings 
-        profile={profile} 
-        onBack={() => setShowSettings(false)}
-        onUpdate={fetchProfile}
+      <ErrorState
+        title="Profile not found"
+        message="The profile you're looking for doesn't exist or couldn't be loaded."
       />
     );
   }
 
   return (
-    <div className="max-w-4xl mx-auto p-4">
+    <div className="max-w-md mx-auto bg-white min-h-screen">
       {/* Profile Header */}
-      <Card className="mb-6">
-        <CardContent className="p-6">
-          <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
-            {/* Avatar */}
-            <div className="w-32 h-32 rounded-full bg-gray-200 flex-shrink-0 overflow-hidden">
-              {profile.avatar_url ? (
-                <img
-                  src={profile.avatar_url}
-                  alt={profile.full_name}
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center text-gray-400 text-4xl font-bold">
-                  {profile.full_name?.charAt(0).toUpperCase() || 'U'}
-                </div>
-              )}
-            </div>
-
-            {/* Profile Info */}
-            <div className="flex-1">
-              <div className="flex items-center justify-between mb-2">
-                <div className="flex items-center gap-4">
-                  <h1 className="text-2xl font-bold">{profile.full_name}</h1>
-                  {profile.verified && (
-                    <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">
-                      Verified
-                    </span>
-                  )}
-                </div>
-                
-                {/* Settings Icon for current user */}
-                {isCurrentUser && (
-                  <ProfileSettingsModal onEditProfile={() => setShowSettings(true)} />
-                )}
-              </div>
-              
-              {profile.username && (
-                <p className="text-gray-600 mb-2">@{profile.username}</p>
-              )}
-
-              {profile.bio && (
-                <p className="text-gray-700 mb-4">{profile.bio}</p>
-              )}
-
-              <div className="flex flex-wrap gap-4 text-sm text-gray-600 mb-4">
-                {profile.location && (
-                  <div className="flex items-center gap-1">
-                    <MapPin className="w-4 h-4" />
-                    {profile.location}
-                  </div>
-                )}
-                {profile.website_url && (
-                  <div className="flex items-center gap-1">
-                    <Globe className="w-4 h-4" />
-                    <a href={profile.website_url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
-                      Website
-                    </a>
-                  </div>
-                )}
-                <div className="flex items-center gap-1">
-                  <Calendar className="w-4 h-4" />
-                  Joined {new Date(profile.created_at).toLocaleDateString()}
-                </div>
-              </div>
-
-              {/* Action Buttons */}
-              <div className="flex gap-2">
-                {isCurrentUser ? (
-                  <Button 
-                    variant="outline" 
-                    onClick={() => setShowPostCreator(!showPostCreator)}
-                  >
-                    <Plus className="w-4 h-4 mr-2" />
-                    Add Post
-                  </Button>
-                ) : (
-                  <Button>Follow</Button>
-                )}
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Post Creator (only for current user) */}
-      {isCurrentUser && showPostCreator && (
-        <div className="mb-6">
-          <SocialPostCreator 
-            onPostCreated={handlePostCreated}
-            className="bg-white shadow-sm"
-          />
-        </div>
-      )}
-
-      {/* Profile Content Tabs */}
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="posts">Posts</TabsTrigger>
-          <TabsTrigger value="about">About</TabsTrigger>
-        </TabsList>
+      <div className="px-4 pt-6 pb-4">
+        <ProfileHeaderWithPresence profile={profile} />
         
-        <TabsContent value="posts" className="mt-6">
-          <ProfilePostsGrid userId={profileId!} key={refreshTrigger} />
-        </TabsContent>
-        
-        <TabsContent value="about" className="mt-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>About</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <h3 className="font-semibold text-gray-900">User Type</h3>
-                <p className="text-gray-600 capitalize">{profile.user_type}</p>
-              </div>
-              
-              {profile.years_experience > 0 && (
-                <div>
-                  <h3 className="font-semibold text-gray-900">Experience</h3>
-                  <p className="text-gray-600">{profile.years_experience} years</p>
-                </div>
-              )}
-              
-              {profile.total_reviews > 0 && (
-                <div>
-                  <h3 className="font-semibold text-gray-900">Reviews</h3>
-                  <p className="text-gray-600">
-                    {profile.rating.toFixed(1)} ★ ({profile.total_reviews} reviews)
-                  </p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+        {/* Action Buttons */}
+        <ProfileActionButtons
+          isCurrentUser={isCurrentUser}
+          isPublicView={false}
+          isFollowing={isFollowing}
+          onEditProfile={handleEditProfile}
+          onSettings={handleSettings}
+          onShare={handleShare}
+          onViewPublicProfile={handleViewPublicProfile}
+          onMessage={handleMessage}
+          onFollow={handleFollow}
+        />
+      </div>
+
+      {/* Posts Grid */}
+      <ProfilePostsGrid posts={posts} />
     </div>
   );
 };

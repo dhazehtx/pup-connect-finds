@@ -1,239 +1,263 @@
 
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
-import { usePosts } from '@/hooks/usePosts';
-import { Button } from '@/components/ui/button';
+import { Heart, MessageCircle, Share2 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
-import { Heart, MessageCircle, Share, Bookmark, Plus, Camera } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
-import ModernPostCreator from './ModernPostCreator';
 import { formatPostTime } from '@/utils/timeFormatting';
-import LoadingSpinner from '@/components/ui/loading-spinner';
-import ErrorState from '@/components/ui/error-state';
+import LoadingState from '@/components/ui/loading-state';
+
+interface Post {
+  id: string;
+  caption: string | null;
+  image_url: string | null;
+  created_at: string;
+  user_id: string;
+  profiles: {
+    username: string | null;
+    full_name: string | null;
+    avatar_url: string | null;
+  } | null;
+}
 
 const HomeFeed = () => {
-  const { user, isGuest } = useAuth();
+  const [posts, setPosts] = useState<Post[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [likedPosts, setLikedPosts] = useState<Set<string>>(new Set());
+  const { user } = useAuth();
   const { toast } = useToast();
-  const { posts, loading, fetchPosts, error } = usePosts(); // Get all posts, not filtered by user
-  const [showPostCreator, setShowPostCreator] = useState(false);
 
   useEffect(() => {
-    document.title = 'My Pup - Home';
-  }, []);
+    fetchPosts();
+    if (user) {
+      fetchLikedPosts();
+    }
+  }, [user]);
 
-  const handleLike = (postId: string) => {
-    // Mock like functionality - you can implement actual like logic later
-    toast({
-      title: "Post Liked",
-      description: "You liked this post",
-    });
+  const fetchPosts = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('posts')
+        .select(`
+          id,
+          caption,
+          image_url,
+          created_at,
+          user_id,
+          profiles (
+            username,
+            full_name,
+            avatar_url
+          )
+        `)
+        .order('created_at', { ascending: false })
+        .limit(20);
+
+      if (error) throw error;
+      setPosts(data || []);
+    } catch (error) {
+      console.error('Error fetching posts:', error);
+      toast({
+        title: "Error loading posts",
+        description: "Please try refreshing the page",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleShare = (postId: string) => {
-    toast({
-      title: "Post Shared",
-      description: `You have shared post ${postId} with your followers`,
-    });
+  const fetchLikedPosts = async () => {
+    if (!user) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('post_likes')
+        .select('post_id')
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+      setLikedPosts(new Set(data.map(like => like.post_id)));
+    } catch (error) {
+      console.error('Error fetching liked posts:', error);
+    }
   };
 
-  const handleBookmark = (postId: string) => {
-    toast({
-      title: "Post Bookmarked",
-      description: `You have bookmarked post ${postId} to view later`,
-    });
+  const handleLike = async (postId: string) => {
+    if (!user) {
+      toast({
+        title: "Sign in required",
+        description: "Please sign in to like posts",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const isLiked = likedPosts.has(postId);
+
+    try {
+      if (isLiked) {
+        const { error } = await supabase
+          .from('post_likes')
+          .delete()
+          .eq('post_id', postId)
+          .eq('user_id', user.id);
+
+        if (error) throw error;
+        setLikedPosts(prev => {
+          const newSet = new Set(prev);
+          newSet.delete(postId);
+          return newSet;
+        });
+      } else {
+        const { error } = await supabase
+          .from('post_likes')
+          .insert({
+            post_id: postId,
+            user_id: user.id
+          });
+
+        if (error) throw error;
+        setLikedPosts(prev => new Set(prev).add(postId));
+      }
+    } catch (error) {
+      console.error('Error toggling like:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update like status",
+        variant: "destructive",
+      });
+    }
   };
 
-  const handlePostCreated = () => {
-    fetchPosts(); // Refresh the feed
-    toast({
-      title: "Post shared! 🎉",
-      description: "Your post is now live!",
-    });
-    setShowPostCreator(false);
+  const handleShare = async (post: Post) => {
+    const shareUrl = `${window.location.origin}/post/${post.id}`;
+    
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: post.caption || 'Check out this post!',
+          url: shareUrl,
+        });
+      } catch (error) {
+        console.log('Share cancelled');
+      }
+    } else {
+      await navigator.clipboard.writeText(shareUrl);
+      toast({
+        title: "Link copied!",
+        description: "Post link has been copied to clipboard",
+      });
+    }
   };
-
-  if (!user && !isGuest) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-50">
-        <Card className="w-full max-w-md mx-4">
-          <CardContent className="p-8 text-center">
-            <h2 className="text-2xl font-bold mb-4">Welcome to MY PUP</h2>
-            <p className="text-gray-600 mb-6">Sign in to see your personalized puppy feed</p>
-            <Button className="w-full">Sign In</Button>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50">
-        <div className="max-w-2xl mx-auto py-6 px-4">
-          <div className="flex items-center justify-center py-12">
-            <LoadingSpinner size="lg" text="Loading feed..." />
-          </div>
-        </div>
-      </div>
-    );
+    return <LoadingState message="Loading posts..." variant="card" />;
   }
 
-  if (error) {
+  if (posts.length === 0) {
     return (
-      <div className="min-h-screen bg-gray-50">
-        <div className="max-w-2xl mx-auto py-6 px-4">
-          <ErrorState
-            title="Unable to load posts"
-            message="Please try again."
-            onRetry={fetchPosts}
-            retryText="Reload feed"
-          />
+      <div className="flex flex-col items-center justify-center py-12 px-4">
+        <div className="text-center">
+          <Heart className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+          <h3 className="text-xl font-semibold text-gray-900 mb-2">Be the first to post!</h3>
+          <p className="text-gray-600 mb-6">
+            Share a moment with your puppy to get the community started.
+          </p>
         </div>
       </div>
     );
   }
 
   return (
-    <>
-      <div className="min-h-screen bg-gray-50">
-        <div className="max-w-2xl mx-auto py-6 px-4">
-          {/* Create Post Section */}
-          <Card className="mb-6 shadow-sm">
-            <CardContent className="p-4">
-              <div className="flex items-center space-x-4">
-                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center text-white font-semibold">
-                  {user?.email?.charAt(0).toUpperCase() || 'U'}
+    <div className="max-w-md mx-auto space-y-4 pb-4">
+      {posts.map((post) => (
+        <Card key={post.id} className="border-0 shadow-sm">
+          <CardContent className="p-0">
+            {/* Post Header */}
+            <div className="flex items-center justify-between p-4 pb-3">
+              <div className="flex items-center space-x-3">
+                <Avatar className="w-8 h-8">
+                  <AvatarImage src={post.profiles?.avatar_url || ''} />
+                  <AvatarFallback className="text-xs">
+                    {(post.profiles?.full_name || post.profiles?.username || 'U')[0].toUpperCase()}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="flex flex-col">
+                  <span className="text-sm font-semibold text-gray-900">
+                    {post.profiles?.full_name || post.profiles?.username || 'Unknown User'}
+                  </span>
+                  <span className="text-xs text-gray-500">
+                    {formatPostTime(post.created_at)}
+                  </span>
                 </div>
-                <Button
-                  onClick={() => setShowPostCreator(true)}
-                  variant="outline"
-                  className="flex-1 justify-start text-gray-500 hover:text-gray-700 hover:bg-gray-50 rounded-full border-gray-200"
-                >
-                  <Camera className="w-4 h-4 mr-2" />
-                  Share a moment with your community...
-                </Button>
-                <Button
-                  onClick={() => setShowPostCreator(true)}
-                  size="sm"
-                  className="bg-blue-600 hover:bg-blue-700 text-white rounded-full"
-                >
-                  <Plus className="w-4 h-4" />
-                </Button>
               </div>
-            </CardContent>
-          </Card>
+            </div>
 
-          {/* Posts Feed */}
-          <div className="space-y-6">
-            {posts.length === 0 ? (
-              <Card className="shadow-sm">
-                <CardContent className="p-8 text-center">
-                  <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <Camera className="w-8 h-8 text-blue-600" />
-                  </div>
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">Be the first to post!</h3>
-                  <p className="text-gray-500 mb-4">
-                    Start by sharing a moment with the community!
-                  </p>
-                  <Button onClick={() => setShowPostCreator(true)}>
-                    Create First Post
-                  </Button>
-                </CardContent>
-              </Card>
-            ) : (
-              posts.map((post) => (
-                <Card key={post.id} className="shadow-sm">
-                  <CardContent className="p-4">
-                    {/* User Info */}
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center space-x-3">
-                        <div className="w-8 h-8 rounded-full overflow-hidden">
-                          {post.profiles?.avatar_url ? (
-                            <img
-                              src={post.profiles.avatar_url}
-                              alt={post.profiles.full_name || 'User'}
-                              className="w-full h-full object-cover"
-                            />
-                          ) : (
-                            <div className="w-full h-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white font-bold text-sm">
-                              {(post.profiles?.full_name || post.profiles?.username || 'U')?.charAt(0).toUpperCase()}
-                            </div>
-                          )}
-                        </div>
-                        <div>
-                          <div className="font-semibold text-sm">
-                            {post.profiles?.full_name || post.profiles?.username || 'User'}
-                          </div>
-                          <div className="text-xs text-gray-500">
-                            {formatPostTime(post.created_at)}
-                          </div>
-                        </div>
-                      </div>
-                      <Badge className="rounded-full">Dog Lover</Badge>
-                    </div>
-
-                    {/* Post Caption */}
-                    {post.caption && (
-                      <p className="text-gray-900 mb-3 whitespace-pre-wrap">{post.caption}</p>
-                    )}
-
-                    {/* Post Image */}
-                    {post.image_url && (
-                      <img
-                        src={post.image_url}
-                        alt="Post content"
-                        className="w-full rounded-md mb-3 max-h-96 object-cover"
-                      />
-                    )}
-
-                    {/* Post Video */}
-                    {post.video_url && (
-                      <video
-                        src={post.video_url}
-                        className="w-full rounded-md mb-3 max-h-96"
-                        controls
-                      />
-                    )}
-
-                    {/* Post Actions */}
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center space-x-4">
-                        <Button
-                          onClick={() => handleLike(post.id)}
-                          variant="ghost"
-                          size="icon"
-                        >
-                          <Heart className="w-5 h-5 text-gray-500" />
-                          <span className="ml-1 text-sm">0</span>
-                        </Button>
-                        <Button variant="ghost" size="icon">
-                          <MessageCircle className="w-5 h-5 text-gray-500" />
-                        </Button>
-                        <Button onClick={() => handleShare(post.id)} variant="ghost" size="icon">
-                          <Share className="w-5 h-5 text-gray-500" />
-                        </Button>
-                      </div>
-                      <Button onClick={() => handleBookmark(post.id)} variant="ghost" size="icon">
-                        <Bookmark className="w-5 h-5 text-gray-500" />
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))
+            {/* Post Image */}
+            {post.image_url && (
+              <div className="relative">
+                <img
+                  src={post.image_url}
+                  alt="Post content"
+                  className="w-full aspect-square object-cover"
+                />
+              </div>
             )}
-          </div>
-        </div>
-      </div>
 
-      {/* Modern Post Creator Modal */}
-      {showPostCreator && (
-        <ModernPostCreator
-          onClose={() => setShowPostCreator(false)}
-          onPostCreated={handlePostCreated}
-        />
-      )}
-    </>
+            {/* Post Actions and Caption */}
+            <div className="p-4">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center space-x-4">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleLike(post.id)}
+                    className="p-0 h-auto hover:bg-transparent"
+                  >
+                    <Heart
+                      className={`w-6 h-6 ${
+                        likedPosts.has(post.id)
+                          ? 'fill-red-500 text-red-500'
+                          : 'text-gray-700 hover:text-red-500'
+                      } transition-colors`}
+                    />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="p-0 h-auto hover:bg-transparent"
+                  >
+                    <MessageCircle className="w-6 h-6 text-gray-700 hover:text-blue-500 transition-colors" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleShare(post)}
+                    className="p-0 h-auto hover:bg-transparent"
+                  >
+                    <Share2 className="w-6 h-6 text-gray-700 hover:text-green-500 transition-colors" />
+                  </Button>
+                </div>
+              </div>
+
+              {/* Caption */}
+              {post.caption && (
+                <div className="text-sm">
+                  <span className="font-semibold text-gray-900 mr-2">
+                    {post.profiles?.full_name || post.profiles?.username || 'Unknown User'}
+                  </span>
+                  <span className="text-gray-900">{post.caption}</span>
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      ))}
+    </div>
   );
 };
 
