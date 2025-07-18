@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { usePosts } from '@/hooks/usePosts';
 import { Heart, MessageCircle, Play } from 'lucide-react';
 import SkeletonLoader from '@/components/ui/skeleton-loader';
-import CommentsModal from '@/components/post/CommentsModal';
+import FullPostModal from '@/components/post/FullPostModal';
 import { useNavigate } from 'react-router-dom';
 
 interface ProfilePostsGridProps {
@@ -12,11 +12,22 @@ interface ProfilePostsGridProps {
 
 const ProfilePostsGrid = ({ userId }: ProfilePostsGridProps) => {
   const { posts, loading } = usePosts(userId);
-  const [selectedPostId, setSelectedPostId] = useState<string | null>(null);
+  const [selectedPost, setSelectedPost] = useState<any>(null);
+  const [showFullPostModal, setShowFullPostModal] = useState(false);
   const navigate = useNavigate();
 
   const handleProfileClick = (userId: string) => {
     navigate(`/profile/${userId}`);
+  };
+
+  const handlePostClick = (post: any) => {
+    setSelectedPost(post);
+    setShowFullPostModal(true);
+  };
+
+  const handleCloseModal = () => {
+    setShowFullPostModal(false);
+    setSelectedPost(null);
   };
 
   if (loading) {
@@ -41,7 +52,11 @@ const ProfilePostsGrid = ({ userId }: ProfilePostsGridProps) => {
     <>
       <div className="grid grid-cols-3 gap-1">
         {posts.map((post) => (
-          <div key={post.id} className="relative aspect-square group cursor-pointer">
+          <div 
+            key={post.id} 
+            className="relative aspect-square group cursor-pointer"
+            onClick={() => handlePostClick(post)}
+          >
             {post.image_url ? (
               <img
                 src={post.image_url}
@@ -72,13 +87,7 @@ const ProfilePostsGrid = ({ userId }: ProfilePostsGridProps) => {
                   <Heart className="w-4 h-4 mr-1" />
                   <span className="text-sm font-semibold">0</span>
                 </div>
-                <div 
-                  className="flex items-center cursor-pointer"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setSelectedPostId(post.id);
-                  }}
-                >
+                <div className="flex items-center">
                   <MessageCircle className="w-4 h-4 mr-1" />
                   <span className="text-sm font-semibold">0</span>
                 </div>
@@ -88,14 +97,12 @@ const ProfilePostsGrid = ({ userId }: ProfilePostsGridProps) => {
         ))}
       </div>
 
-      {selectedPostId && (
-        <CommentsModal
-          isOpen={!!selectedPostId}
-          onClose={() => setSelectedPostId(null)}
-          postId={selectedPostId}
-          onProfileClick={handleProfileClick}
-        />
-      )}
+      <FullPostModal
+        post={selectedPost}
+        isOpen={showFullPostModal}
+        onClose={handleCloseModal}
+        onProfileClick={handleProfileClick}
+      />
     </>
   );
 };

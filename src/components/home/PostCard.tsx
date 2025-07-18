@@ -1,11 +1,9 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { MoreHorizontal } from 'lucide-react';
 import PostActions from './PostActions';
 import PostHeader from './PostHeader';
-import CommentsSection from '@/components/post/CommentsSection';
+import FullPostModal from '@/components/post/FullPostModal';
 
 interface User {
   id: string;
@@ -70,50 +68,75 @@ const PostCard = ({
   onShowLikes,
   onCommentsUpdate
 }: PostCardProps) => {
+  const [showFullPostModal, setShowFullPostModal] = useState(false);
+
+  // Convert the post format for the modal
+  const modalPost = {
+    id: post.id.toString(),
+    user_id: post.user.id,
+    caption: post.caption,
+    image_url: post.image,
+    video_url: null,
+    created_at: new Date().toISOString(), // You might want to add this to your Post interface
+    profiles: {
+      full_name: post.user.name,
+      username: post.user.username,
+      avatar_url: post.user.avatar,
+    }
+  };
+
+  const handleImageClick = () => {
+    setShowFullPostModal(true);
+  };
+
+  const handleCloseModal = () => {
+    setShowFullPostModal(false);
+  };
+
   return (
-    <Card className="rounded-none border-x-0 border-t-0 shadow-none">
-      <CardContent className="p-0">
-        {/* Post Header */}
-        <PostHeader 
-          user={post.user}
-          onProfileClick={onProfileClick}
-        />
-
-        {/* Post Image */}
-        <div className="aspect-square">
-          <img
-            src={post.image}
-            alt="Dog post"
-            className="w-full h-full object-cover"
-          />
-        </div>
-
-        {/* Post Actions and Content */}
-        <div className="p-3">
-          <PostActions
-            post={post}
-            onLike={onLike}
-            onComment={onComment}
-            onShare={onShare}
-            onBookmark={onBookmark}
-            onShowLikes={onShowLikes}
+    <>
+      <Card className="rounded-none border-x-0 border-t-0 shadow-none">
+        <CardContent className="p-0">
+          {/* Post Header */}
+          <PostHeader 
+            user={post.user}
             onProfileClick={onProfileClick}
           />
 
-          {/* Comments Section */}
-          {post.comments.length > 0 && (
-            <CommentsSection
-              comments={post.comments}
-              setComments={onCommentsUpdate}
+          {/* Post Image - Make it clickable */}
+          <div className="aspect-square cursor-pointer" onClick={handleImageClick}>
+            <img
+              src={post.image}
+              alt="Dog post"
+              className="w-full h-full object-cover hover:opacity-95 transition-opacity"
+            />
+          </div>
+
+          {/* Post Actions and Content */}
+          <div className="p-3">
+            <PostActions
+              post={post}
+              onLike={onLike}
+              onComment={onComment}
+              onShare={onShare}
+              onBookmark={onBookmark}
+              onShowLikes={onShowLikes}
               onProfileClick={onProfileClick}
             />
-          )}
 
-          {/* Time */}
-          <p className="text-xs text-gray-500 mt-2">{post.timeAgo}</p>
-        </div>
-      </CardContent>
-    </Card>
+            {/* Time */}
+            <p className="text-xs text-gray-500 mt-2">{post.timeAgo}</p>
+          </div>
+        </CardContent>
+      </Card>
+
+      <FullPostModal
+        post={modalPost}
+        isOpen={showFullPostModal}
+        onClose={handleCloseModal}
+        onProfileClick={onProfileClick}
+      />
+    </>
   );
 };
 
