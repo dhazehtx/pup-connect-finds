@@ -105,6 +105,13 @@ const FullPostModal = ({ post, isOpen, onClose, onProfileClick }: FullPostModalP
     }
   };
 
+  const handleProfileClick = (userId: string) => {
+    if (onProfileClick) {
+      onProfileClick(userId);
+      onClose(); // Close modal when navigating to profile
+    }
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl max-h-[90vh] p-0 overflow-hidden">
@@ -136,8 +143,8 @@ const FullPostModal = ({ post, isOpen, onClose, onProfileClick }: FullPostModalP
             <div className="flex items-center justify-between p-4 border-b">
               <div className="flex items-center gap-3">
                 <Avatar 
-                  className="h-8 w-8 cursor-pointer"
-                  onClick={() => onProfileClick?.(post.user_id)}
+                  className="h-8 w-8 cursor-pointer hover:opacity-80 transition-opacity"
+                  onClick={() => handleProfileClick(post.user_id)}
                 >
                   <AvatarImage src={post.profiles?.avatar_url || ''} />
                   <AvatarFallback>
@@ -148,7 +155,7 @@ const FullPostModal = ({ post, isOpen, onClose, onProfileClick }: FullPostModalP
                 <div>
                   <p 
                     className="font-semibold text-sm cursor-pointer hover:underline"
-                    onClick={() => onProfileClick?.(post.user_id)}
+                    onClick={() => handleProfileClick(post.user_id)}
                   >
                     {post.profiles?.username || post.profiles?.full_name || 'User'}
                   </p>
@@ -168,7 +175,10 @@ const FullPostModal = ({ post, isOpen, onClose, onProfileClick }: FullPostModalP
             {post.caption && (
               <div className="p-4 border-b">
                 <div className="flex gap-3">
-                  <Avatar className="h-6 w-6">
+                  <Avatar 
+                    className="h-6 w-6 cursor-pointer hover:opacity-80 transition-opacity"
+                    onClick={() => handleProfileClick(post.user_id)}
+                  >
                     <AvatarImage src={post.profiles?.avatar_url || ''} />
                     <AvatarFallback>
                       {post.profiles?.full_name?.charAt(0) || 
@@ -176,7 +186,10 @@ const FullPostModal = ({ post, isOpen, onClose, onProfileClick }: FullPostModalP
                     </AvatarFallback>
                   </Avatar>
                   <div className="flex-1">
-                    <span className="font-semibold text-sm mr-2">
+                    <span 
+                      className="font-semibold text-sm mr-2 cursor-pointer hover:underline"
+                      onClick={() => handleProfileClick(post.user_id)}
+                    >
                       {post.profiles?.username || post.profiles?.full_name || 'User'}
                     </span>
                     <span className="text-sm">{post.caption}</span>
@@ -198,8 +211,8 @@ const FullPostModal = ({ post, isOpen, onClose, onProfileClick }: FullPostModalP
                 comments.map((comment) => (
                   <div key={comment.id} className="flex gap-3">
                     <Avatar 
-                      className="h-6 w-6 cursor-pointer"
-                      onClick={() => onProfileClick?.(comment.user_id)}
+                      className="h-6 w-6 cursor-pointer hover:opacity-80 transition-opacity"
+                      onClick={() => handleProfileClick(comment.user_id)}
                     >
                       <AvatarImage src={comment.profiles?.avatar_url || ''} />
                       <AvatarFallback>
@@ -211,7 +224,7 @@ const FullPostModal = ({ post, isOpen, onClose, onProfileClick }: FullPostModalP
                       <div className="text-sm">
                         <span 
                           className="font-semibold mr-2 cursor-pointer hover:underline"
-                          onClick={() => onProfileClick?.(comment.user_id)}
+                          onClick={() => handleProfileClick(comment.user_id)}
                         >
                           {comment.profiles?.username || comment.profiles?.full_name || 'User'}
                         </span>

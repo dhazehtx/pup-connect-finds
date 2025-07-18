@@ -8,6 +8,7 @@ import { Send } from 'lucide-react';
 import { useComments } from '@/hooks/useComments';
 import { useAuth } from '@/contexts/AuthContext';
 import { formatDistanceToNow } from 'date-fns';
+import { useNavigate } from 'react-router-dom';
 
 interface CommentsModalProps {
   isOpen: boolean;
@@ -19,6 +20,7 @@ interface CommentsModalProps {
 const CommentsModal = ({ isOpen, onClose, postId, onProfileClick }: CommentsModalProps) => {
   const { comments, loading, addComment } = useComments(postId);
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [newComment, setNewComment] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
@@ -30,6 +32,11 @@ const CommentsModal = ({ isOpen, onClose, postId, onProfileClick }: CommentsModa
     await addComment(newComment.trim());
     setNewComment('');
     setSubmitting(false);
+  };
+
+  const handleProfileClick = (userId: string) => {
+    onProfileClick(userId);
+    onClose(); // Close modal when navigating to profile
   };
 
   return (
@@ -53,8 +60,8 @@ const CommentsModal = ({ isOpen, onClose, postId, onProfileClick }: CommentsModa
             comments.map((comment) => (
               <div key={comment.id} className="flex gap-3">
                 <Avatar 
-                  className="h-8 w-8 cursor-pointer" 
-                  onClick={() => onProfileClick(comment.user_id)}
+                  className="h-8 w-8 cursor-pointer hover:opacity-80 transition-opacity" 
+                  onClick={() => handleProfileClick(comment.user_id)}
                 >
                   <AvatarImage src={comment.profiles?.avatar_url || undefined} />
                   <AvatarFallback className="text-xs">
@@ -66,7 +73,7 @@ const CommentsModal = ({ isOpen, onClose, postId, onProfileClick }: CommentsModa
                   <div className="flex items-center gap-2 mb-1">
                     <span 
                       className="font-medium text-sm cursor-pointer hover:underline"
-                      onClick={() => onProfileClick(comment.user_id)}
+                      onClick={() => handleProfileClick(comment.user_id)}
                     >
                       {comment.profiles?.username || comment.profiles?.full_name || 'User'}
                     </span>

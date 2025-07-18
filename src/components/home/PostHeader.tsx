@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { MoreHorizontal } from 'lucide-react';
 
 interface PostHeaderProps {
@@ -21,11 +22,12 @@ const PostHeader = ({ user, onProfileClick }: PostHeaderProps) => {
         className="flex items-center space-x-3 cursor-pointer"
         onClick={() => onProfileClick(user.id)}
       >
-        <img
-          src={user.avatar}
-          alt={user.username}
-          className="w-8 h-8 rounded-full object-cover"
-        />
+        <Avatar className="h-8 w-8">
+          <AvatarImage src={user.avatar} />
+          <AvatarFallback className="text-xs">
+            {user.name.charAt(0)}
+          </AvatarFallback>
+        </Avatar>
         <div>
           <p className="font-semibold text-sm hover:underline">{user.username}</p>
           <p className="text-xs text-gray-500">{user.location}</p>
