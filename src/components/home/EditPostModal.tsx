@@ -41,22 +41,27 @@ const EditPostModal = ({ post, isOpen, onClose, onUpdate }: EditPostModalProps) 
   const { toast } = useToast();
 
   useEffect(() => {
-    if (post) {
+    if (post && isOpen) {
+      console.log('EditPostModal opened with post:', post);
       setCaption(post.caption || '');
     }
-  }, [post]);
+  }, [post, isOpen]);
 
   if (!post) return null;
 
   const handleSave = async () => {
     setIsSaving(true);
     try {
+      console.log('Updating post caption:', post.postUuid, caption);
       const { error } = await supabase
         .from('posts')
         .update({ caption })
         .eq('id', post.postUuid);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase update error:', error);
+        throw error;
+      }
 
       toast({
         title: "Post updated",
@@ -77,8 +82,13 @@ const EditPostModal = ({ post, isOpen, onClose, onUpdate }: EditPostModalProps) 
     }
   };
 
+  const handleClose = () => {
+    setCaption(post.caption || '');
+    onClose();
+  };
+
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="max-w-lg">
         <DialogHeader>
           <DialogTitle>Edit Post</DialogTitle>
@@ -111,7 +121,7 @@ const EditPostModal = ({ post, isOpen, onClose, onUpdate }: EditPostModalProps) 
 
           {/* Action Buttons */}
           <div className="flex justify-end space-x-2 pt-4">
-            <Button variant="outline" onClick={onClose} disabled={isSaving}>
+            <Button variant="outline" onClick={handleClose} disabled={isSaving}>
               Cancel
             </Button>
             <Button onClick={handleSave} disabled={isSaving}>

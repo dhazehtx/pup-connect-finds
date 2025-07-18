@@ -58,15 +58,33 @@ const PostContextMenu = ({ post, onEdit, onDelete }: PostContextMenuProps) => {
     return null;
   }
 
+  const handleEdit = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    console.log('Edit clicked for post:', post.postUuid);
+    onEdit(post);
+  };
+
+  const handleDeleteClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    console.log('Delete clicked for post:', post.postUuid);
+    setShowDeleteDialog(true);
+  };
+
   const handleDelete = async () => {
     setIsDeleting(true);
     try {
+      console.log('Deleting post:', post.postUuid);
       const { error } = await supabase
         .from('posts')
         .delete()
         .eq('id', post.postUuid);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase delete error:', error);
+        throw error;
+      }
 
       toast({
         title: "Post deleted",
@@ -91,18 +109,26 @@ const PostContextMenu = ({ post, onEdit, onDelete }: PostContextMenuProps) => {
     <>
       <ContextMenu>
         <ContextMenuTrigger asChild>
-          <Button variant="ghost" size="sm" className="p-1 h-auto">
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="p-1 h-auto hover:bg-gray-100"
+            onClick={(e) => e.stopPropagation()}
+          >
             <MoreHorizontal className="w-5 h-5" />
           </Button>
         </ContextMenuTrigger>
         <ContextMenuContent className="w-48">
-          <ContextMenuItem onClick={() => onEdit(post)} className="cursor-pointer">
+          <ContextMenuItem 
+            onClick={handleEdit} 
+            className="cursor-pointer flex items-center"
+          >
             <Edit3 className="w-4 h-4 mr-2" />
             Edit Post
           </ContextMenuItem>
           <ContextMenuItem 
-            onClick={() => setShowDeleteDialog(true)} 
-            className="cursor-pointer text-red-600 focus:text-red-600"
+            onClick={handleDeleteClick} 
+            className="cursor-pointer text-red-600 focus:text-red-600 flex items-center"
           >
             <Trash2 className="w-4 h-4 mr-2" />
             Delete Post

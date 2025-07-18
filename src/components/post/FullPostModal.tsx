@@ -114,10 +114,10 @@ const FullPostModal = ({ post, isOpen, onClose, onProfileClick }: FullPostModalP
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] p-0 overflow-hidden">
+      <DialogContent className="max-w-4xl max-h-[95vh] h-[95vh] p-0 overflow-hidden">
         <div className="flex flex-col md:flex-row h-full">
           {/* Media Section */}
-          <div className="flex-1 bg-black flex items-center justify-center">
+          <div className="flex-1 bg-black flex items-center justify-center min-h-0">
             {post.image_url ? (
               <img
                 src={post.image_url}
@@ -137,10 +137,10 @@ const FullPostModal = ({ post, isOpen, onClose, onProfileClick }: FullPostModalP
             )}
           </div>
 
-          {/* Content Section */}
-          <div className="w-full md:w-96 flex flex-col">
-            {/* Header */}
-            <div className="flex items-center justify-between p-4 border-b">
+          {/* Content Section - Fixed height with proper scrolling */}
+          <div className="w-full md:w-96 flex flex-col h-full md:h-auto">
+            {/* Header - Fixed */}
+            <div className="flex items-center justify-between p-4 border-b flex-shrink-0">
               <div className="flex items-center gap-3">
                 <Avatar 
                   className="h-8 w-8 cursor-pointer hover:opacity-80 transition-opacity"
@@ -171,9 +171,9 @@ const FullPostModal = ({ post, isOpen, onClose, onProfileClick }: FullPostModalP
               </div>
             </div>
 
-            {/* Caption */}
+            {/* Caption - Fixed if present */}
             {post.caption && (
-              <div className="p-4 border-b">
+              <div className="p-4 border-b flex-shrink-0">
                 <div className="flex gap-3">
                   <Avatar 
                     className="h-6 w-6 cursor-pointer hover:opacity-80 transition-opacity"
@@ -201,8 +201,8 @@ const FullPostModal = ({ post, isOpen, onClose, onProfileClick }: FullPostModalP
               </div>
             )}
 
-            {/* Comments */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-4 max-h-64">
+            {/* Comments - Scrollable area */}
+            <div className="flex-1 overflow-y-auto p-4 space-y-4 min-h-0">
               {commentsLoading ? (
                 <div className="text-center text-gray-500">Loading comments...</div>
               ) : comments.length === 0 ? (
@@ -239,8 +239,8 @@ const FullPostModal = ({ post, isOpen, onClose, onProfileClick }: FullPostModalP
               )}
             </div>
 
-            {/* Actions */}
-            <div className="p-4 border-t">
+            {/* Actions - Fixed at bottom */}
+            <div className="p-4 border-t flex-shrink-0">
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-4">
                   <AnimatedHeart

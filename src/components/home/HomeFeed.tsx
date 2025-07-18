@@ -124,26 +124,26 @@ const HomeFeed = () => {
   };
 
   const handleProfileClick = (userId: string) => {
-    alert(`Navigating to profile: ${userId}`);
+    console.log(`Navigating to profile: ${userId}`);
+    // Add navigation logic here if needed
   };
 
   const handleShare = (postId: number) => {
-    alert(`Sharing post: ${postId}`);
+    console.log(`Sharing post: ${postId}`);
   };
 
   const handleBookmark = (postId: number) => {
-    alert(`Bookmarking post: ${postId}`);
+    console.log(`Bookmarking post: ${postId}`);
   };
 
   const handleComment = (postId: number) => {
-    alert(`Commenting on post: ${postId}`);
+    console.log(`Commenting on post: ${postId}`);
   };
 
   const handleShowLikes = (postId: number) => {
-    alert(`Showing likes for post: ${postId}`);
+    console.log(`Showing likes for post: ${postId}`);
   };
 
-  // Fixed function signature to match PostCard expectations
   const handleCommentsUpdate = (postId: number) => (updateFn: (comments: Comment[]) => Comment[]) => {
     setMockPosts((prevPosts) =>
       prevPosts.map((post) =>
@@ -153,6 +153,7 @@ const HomeFeed = () => {
   };
 
   const handlePostUpdate = (postId: string, newCaption: string) => {
+    console.log('Updating post in feed:', postId, newCaption);
     setMockPosts(prevPosts => 
       prevPosts.map(post => 
         post.postUuid === postId 
@@ -163,6 +164,7 @@ const HomeFeed = () => {
   };
 
   const handlePostDelete = (postId: string) => {
+    console.log('Deleting post from feed:', postId);
     setMockPosts(prevPosts => 
       prevPosts.filter(post => post.postUuid !== postId)
     );
