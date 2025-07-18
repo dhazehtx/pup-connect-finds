@@ -27,9 +27,24 @@ export const useFollowSystem = (userId?: string) => {
   const checkFollowStatus = async (targetUserId: string) => {
     if (!user) return false;
 
-    // For now, use local storage to simulate follows
-    const follows = JSON.parse(localStorage.getItem(`user_follows_${user.id}`) || '[]');
-    return follows.includes(targetUserId);
+    try {
+      const { data, error } = await supabase
+        .from('follows')
+        .select('id')
+        .eq('follower_id', user.id)
+        .eq('following_id', targetUserId)
+        .single();
+
+      if (error && error.code !== 'PGRST116') {
+        console.error('Error checking follow status:', error);
+        return false;
+      }
+
+      return !!data;
+    } catch (error) {
+      console.error('Error checking follow status:', error);
+      return false;
+    }
   };
 
   const followUser = async (targetUserId: string) => {
@@ -43,11 +58,25 @@ export const useFollowSystem = (userId?: string) => {
     }
 
     try {
-      // For now, use local storage to simulate follows
-      const follows = JSON.parse(localStorage.getItem(`user_follows_${user.id}`) || '[]');
-      if (!follows.includes(targetUserId)) {
-        follows.push(targetUserId);
-        localStorage.setItem(`user_follows_${user.id}`, JSON.stringify(follows));
+      const { error } = await supabase
+        .from('follows')
+        .insert([
+          {
+            follower_id: user.id,
+            following_id: targetUserId
+          }
+        ]);
+
+      if (error) {
+        if (error.code === '23505') {
+          // Already following
+          toast({
+            title: "Info",
+            description: "You are already following this user",
+          });
+          return true;
+        }
+        throw error;
       }
 
       setIsFollowing(true);
@@ -72,10 +101,13 @@ export const useFollowSystem = (userId?: string) => {
     if (!user) return false;
 
     try {
-      // For now, use local storage to simulate follows
-      const follows = JSON.parse(localStorage.getItem(`user_follows_${user.id}`) || '[]');
-      const updatedFollows = follows.filter((id: string) => id !== targetUserId);
-      localStorage.setItem(`user_follows_${user.id}`, JSON.stringify(updatedFollows));
+      const { error } = await supabase
+        .from('follows')
+        .delete()
+        .eq('follower_id', user.id)
+        .eq('following_id', targetUserId);
+
+      if (error) throw error;
 
       setIsFollowing(false);
       toast({
@@ -98,10 +130,37 @@ export const useFollowSystem = (userId?: string) => {
   const getFollowers = async (targetUserId: string) => {
     try {
       setLoading(true);
-      // For now, return empty array since we're simulating
-      setFollowers([]);
+      const { data, error } = await supabase
+        .from('follows')
+        .select(`
+          id,
+          follower_id,
+          following_id,
+          created_at,
+          follower_profile:profiles!follows_follower_id_fkey (
+            full_name,
+            username,
+            avatar_url
+          )
+        `)
+        .eq('following_id', targetUserId)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      const followersWithProfile = (data || []).map(follow => ({
+        ...follow,
+        following_profile: follow.follower_profile
+      }));
+
+      setFollowers(followersWithProfile);
     } catch (error) {
       console.error('Error fetching followers:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load followers",
+        variant: "destructive",
+      });
     } finally {
       setLoading(false);
     }
@@ -110,10 +169,32 @@ export const useFollowSystem = (userId?: string) => {
   const getFollowing = async (targetUserId: string) => {
     try {
       setLoading(true);
-      // For now, return empty array since we're simulating
-      setFollowing([]);
+      const { data, error } = await supabase
+        .from('follows')
+        .select(`
+          id,
+          follower_id,
+          following_id,
+          created_at,
+          following_profile:profiles!follows_following_id_fkey (
+            full_name,
+            username,
+            avatar_url
+          )
+        `)
+        .eq('follower_id', targetUserId)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      setFollowing(data || []);
     } catch (error) {
       console.error('Error fetching following:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load following",
+        variant: "destructive",
+      });
     } finally {
       setLoading(false);
     }
