@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { MoreHorizontal, Trash2, Edit3 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -61,21 +60,21 @@ const PostContextMenu = ({ post, onEdit, onDelete }: PostContextMenuProps) => {
   const handleEdit = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    console.log('Edit clicked for post:', post.postUuid);
+    console.log('PostContextMenu: Edit clicked for post:', post.postUuid);
     onEdit(post);
   };
 
   const handleDeleteClick = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    console.log('Delete clicked for post:', post.postUuid);
+    console.log('PostContextMenu: Delete clicked for post:', post.postUuid);
     setShowDeleteDialog(true);
   };
 
   const handleDelete = async () => {
     setIsDeleting(true);
     try {
-      console.log('Deleting post:', post.postUuid);
+      console.log('PostContextMenu: Deleting post:', post.postUuid);
       const { error } = await supabase
         .from('posts')
         .delete()
@@ -113,7 +112,10 @@ const PostContextMenu = ({ post, onEdit, onDelete }: PostContextMenuProps) => {
             variant="ghost" 
             size="sm" 
             className="p-1 h-auto hover:bg-gray-100"
-            onClick={(e) => e.stopPropagation()}
+            onClick={(e) => {
+              e.stopPropagation();
+              console.log('PostContextMenu: 3-dot button clicked');
+            }}
           >
             <MoreHorizontal className="w-5 h-5" />
           </Button>

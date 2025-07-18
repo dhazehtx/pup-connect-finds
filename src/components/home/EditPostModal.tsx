@@ -42,7 +42,7 @@ const EditPostModal = ({ post, isOpen, onClose, onUpdate }: EditPostModalProps) 
 
   useEffect(() => {
     if (post && isOpen) {
-      console.log('EditPostModal opened with post:', post);
+      console.log('EditPostModal: Modal opened with post:', post);
       setCaption(post.caption || '');
     }
   }, [post, isOpen]);
@@ -52,17 +52,18 @@ const EditPostModal = ({ post, isOpen, onClose, onUpdate }: EditPostModalProps) 
   const handleSave = async () => {
     setIsSaving(true);
     try {
-      console.log('Updating post caption:', post.postUuid, caption);
+      console.log('EditPostModal: Saving post update:', post.postUuid, caption);
       const { error } = await supabase
         .from('posts')
         .update({ caption })
         .eq('id', post.postUuid);
 
       if (error) {
-        console.error('Supabase update error:', error);
+        console.error('EditPostModal: Supabase update error:', error);
         throw error;
       }
 
+      console.log('EditPostModal: Post updated successfully');
       toast({
         title: "Post updated",
         description: "Your post has been successfully updated.",
@@ -71,7 +72,7 @@ const EditPostModal = ({ post, isOpen, onClose, onUpdate }: EditPostModalProps) 
       onUpdate(post.postUuid, caption);
       onClose();
     } catch (error) {
-      console.error('Error updating post:', error);
+      console.error('EditPostModal: Error updating post:', error);
       toast({
         title: "Error",
         description: "Failed to update post. Please try again.",

@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import PostActions from './PostActions';
@@ -79,12 +80,12 @@ const PostCard = ({
 
   // Convert the post format for the modal
   const modalPost = {
-    id: post.postUuid, // Use the actual UUID
+    id: post.postUuid,
     user_id: post.user.id,
     caption: post.caption,
     image_url: post.image,
     video_url: null,
-    created_at: new Date().toISOString(), // You might want to add this to your Post interface
+    created_at: new Date().toISOString(),
     profiles: {
       full_name: post.user.name,
       username: post.user.username,
@@ -101,6 +102,7 @@ const PostCard = ({
   };
 
   const handleEdit = (postToEdit: Post) => {
+    console.log('PostCard: Edit button clicked for post:', postToEdit);
     setEditingPost(postToEdit);
     setShowEditModal(true);
   };
@@ -111,11 +113,13 @@ const PostCard = ({
   };
 
   const handlePostUpdate = (postId: string, newCaption: string) => {
+    console.log('PostCard: Updating post:', postId, newCaption);
     onPostUpdate(postId, newCaption);
     handleCloseEditModal();
   };
 
   const handlePostDelete = (postId: string) => {
+    console.log('PostCard: Deleting post:', postId);
     onPostDelete(postId);
   };
 

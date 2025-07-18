@@ -35,21 +35,21 @@ const PostHeader = ({ user, post, onProfileClick, onEdit, onDelete }: PostHeader
     <div className="flex items-center justify-between">
       <div className="flex items-center space-x-3">
         <Avatar 
-          className="w-8 h-8 cursor-pointer"
+          className="h-8 w-8 cursor-pointer hover:opacity-80 transition-opacity"
           onClick={() => onProfileClick(user.id)}
         >
-          <AvatarImage src={user.avatar} alt={user.name} />
+          <AvatarImage src={user.avatar} />
           <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
         </Avatar>
         
-        <div>
-          <p 
-            className="font-semibold text-sm cursor-pointer hover:underline"
+        <div className="flex flex-col">
+          <button
             onClick={() => onProfileClick(user.id)}
+            className="font-semibold text-sm hover:opacity-70 transition-opacity text-left"
           >
             {user.username}
-          </p>
-          <p className="text-xs text-gray-500">{user.location}</p>
+          </button>
+          <span className="text-xs text-gray-500">{user.location}</span>
         </div>
       </div>
 
