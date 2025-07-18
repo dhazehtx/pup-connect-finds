@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import PostCard from './PostCard';
@@ -142,7 +143,8 @@ const HomeFeed = () => {
     alert(`Showing likes for post: ${postId}`);
   };
 
-  const handleCommentsUpdate = (postId: number, updateFn: (comments: Comment[]) => Comment[]) => {
+  // Fixed function signature to match PostCard expectations
+  const handleCommentsUpdate = (postId: number) => (updateFn: (comments: Comment[]) => Comment[]) => {
     setMockPosts((prevPosts) =>
       prevPosts.map((post) =>
         post.id === postId ? { ...post, comments: updateFn(post.comments) } : post
@@ -208,7 +210,7 @@ const HomeFeed = () => {
             onBookmark={handleBookmark}
             onComment={handleComment}
             onShowLikes={handleShowLikes}
-            onCommentsUpdate={handleCommentsUpdate}
+            onCommentsUpdate={handleCommentsUpdate(post.id)}
             onPostUpdate={handlePostUpdate}
             onPostDelete={handlePostDelete}
           />
