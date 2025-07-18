@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -10,6 +11,7 @@ import ProfileSettingsModal from './ProfileSettingsModal';
 import ProfilePostsGrid from './ProfilePostsGrid';
 import LoadingState from '@/components/ui/loading-state';
 import { useFollowSystem } from '@/hooks/useFollowSystem';
+import { usePosts } from '@/hooks/usePosts';
 
 interface Profile {
   id: string;
@@ -41,6 +43,7 @@ const UnifiedProfileView = ({ userId, isCurrentUser }: UnifiedProfileViewProps) 
 
   const profileId = userId || user?.id;
   const { followers, following, isFollowing, followUser, unfollowUser } = useFollowSystem(profileId);
+  const { postCount } = usePosts(profileId);
 
   useEffect(() => {
     if (profileId) {
@@ -142,6 +145,10 @@ const UnifiedProfileView = ({ userId, isCurrentUser }: UnifiedProfileViewProps) 
 
               {/* Stats */}
               <div className="flex gap-6 text-center mb-4">
+                <div>
+                  <div className="font-bold">{postCount}</div>
+                  <div className="text-sm text-gray-600">Posts</div>
+                </div>
                 <div>
                   <div className="font-bold">{followers.length}</div>
                   <div className="text-sm text-gray-600">Followers</div>

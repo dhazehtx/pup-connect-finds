@@ -22,6 +22,7 @@ interface Post {
 export const usePosts = (userId?: string, listingId?: string) => {
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
+  const [postCount, setPostCount] = useState(0);
   const { toast } = useToast();
 
   const fetchPosts = async () => {
@@ -51,6 +52,7 @@ export const usePosts = (userId?: string, listingId?: string) => {
 
       if (error) throw error;
       setPosts(data || []);
+      setPostCount(data?.length || 0);
     } catch (error) {
       console.error('Error fetching posts:', error);
       toast({
@@ -60,6 +62,21 @@ export const usePosts = (userId?: string, listingId?: string) => {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchPostCount = async (targetUserId: string) => {
+    try {
+      const { count, error } = await supabase
+        .from('posts')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', targetUserId);
+
+      if (error) throw error;
+      return count || 0;
+    } catch (error) {
+      console.error('Error fetching post count:', error);
+      return 0;
     }
   };
 
@@ -73,6 +90,7 @@ export const usePosts = (userId?: string, listingId?: string) => {
       if (error) throw error;
 
       setPosts(posts.filter(post => post.id !== postId));
+      setPostCount(prev => Math.max(0, prev - 1));
       toast({
         title: "Post Deleted",
         description: "Your post has been removed",
@@ -94,7 +112,9 @@ export const usePosts = (userId?: string, listingId?: string) => {
   return {
     posts,
     loading,
+    postCount,
     fetchPosts,
+    fetchPostCount,
     deletePost
   };
 };

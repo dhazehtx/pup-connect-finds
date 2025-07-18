@@ -1,11 +1,12 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { MapPin, Calendar, CheckCircle, Star, Shield, Award } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import UserAvatarWithPresence from '@/components/ui/user-avatar-with-presence';
 import FollowersModal from '@/components/profile/FollowersModal';
 import { UserProfile } from '@/types/profile';
 import { useFollowSystem } from '@/hooks/useFollowSystem';
+import { usePosts } from '@/hooks/usePosts';
 import { useAuth } from '@/contexts/AuthContext';
 
 interface ProfileHeaderWithPresenceProps {
@@ -16,6 +17,7 @@ const ProfileHeaderWithPresence = ({ profile }: ProfileHeaderWithPresenceProps) 
   const [showFollowersModal, setShowFollowersModal] = useState(false);
   const [showFollowingModal, setShowFollowingModal] = useState(false);
   const { followers, following } = useFollowSystem(profile.id);
+  const { postCount } = usePosts(profile.id);
   const { user } = useAuth();
 
   if (!profile) {
@@ -66,7 +68,7 @@ const ProfileHeaderWithPresence = ({ profile }: ProfileHeaderWithPresenceProps) 
         <div className="flex-1">
           <div className="flex gap-6 text-center">
             <div>
-              <div className="font-semibold text-black">{profile.stats?.posts || 0}</div>
+              <div className="font-semibold text-black">{postCount}</div>
               <div className="text-gray-600 text-sm">Posts</div>
             </div>
             <div 

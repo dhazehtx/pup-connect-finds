@@ -17,6 +17,7 @@ import OnlineUsersList from '@/components/ui/online-users-list';
 import ProfilePhotoGrid from '@/components/profile/ProfilePhotoGrid';
 import { UserProfile } from '@/types/profile';
 import { useFollowSystem } from '@/hooks/useFollowSystem';
+import { usePosts } from '@/hooks/usePosts';
 
 interface ProfileContentProps {
   displayProfile: UserProfile;
@@ -42,6 +43,7 @@ const ProfileContent = ({
   const isGuestUser = !user;
   
   const { followers, following, isFollowing, followUser, unfollowUser } = useFollowSystem(displayProfile.id);
+  const { postCount } = usePosts(displayProfile.id);
 
   console.log('ProfileContent render:', {
     displayProfile: !!displayProfile,
@@ -199,7 +201,7 @@ const ProfileContent = ({
               {/* Stats */}
               <div className="flex items-center space-x-8 mb-4">
                 <div className="text-center">
-                  <div className="text-xl font-bold text-gray-900">{displayProfile.stats?.posts || 0}</div>
+                  <div className="text-xl font-bold text-gray-900">{postCount}</div>
                   <div className="text-sm text-gray-600">Posts</div>
                 </div>
                 <div className="text-center cursor-pointer hover:opacity-80">
