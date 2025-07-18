@@ -6,6 +6,7 @@ import AnimatedHeart from '@/components/ui/animated-heart';
 import { usePostLikes } from '@/hooks/usePostLikes';
 import CommentButton from '@/components/post/CommentButton';
 import CommentsModal from '@/components/post/CommentsModal';
+import { useToast } from '@/hooks/use-toast';
 
 interface Post {
   id: number;
@@ -46,6 +47,7 @@ const PostActions = ({
   // Use the actual UUID from the post
   const { likesCount, isLiked, loading, toggleLike } = usePostLikes(post.postUuid);
   const [showCommentsModal, setShowCommentsModal] = useState(false);
+  const { toast } = useToast();
 
   const handleLikeToggle = async () => {
     await toggleLike();
@@ -55,6 +57,44 @@ const PostActions = ({
   const handleCommentClick = () => {
     setShowCommentsModal(true);
     onComment(post.id);
+  };
+
+  const handleShare = async () => {
+    const shareUrl = `${window.location.origin}/post/${post.postUuid}`;
+    
+    // Try native share API first (mobile devices)
+    if (navigator.share && navigator.canShare) {
+      try {
+        await navigator.share({
+          title: `Post by ${post.user.name}`,
+          text: post.caption,
+          url: shareUrl,
+        });
+        return;
+      } catch (error) {
+        // If user cancels share, don't show error
+        if (error.name === 'AbortError') {
+          return;
+        }
+      }
+    }
+
+    // Fallback: Copy to clipboard
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      toast({
+        title: "Link copied!",
+        description: "Post link has been copied to your clipboard.",
+      });
+    } catch (error) {
+      toast({
+        title: "Share failed",
+        description: "Unable to copy link to clipboard.",
+        variant: "destructive",
+      });
+    }
+
+    onShare(post.id);
   };
 
   return (
@@ -75,7 +115,7 @@ const PostActions = ({
             variant="ghost" 
             size="sm" 
             className="p-0 h-auto"
-            onClick={() => onShare(post.id)}
+            onClick={handleShare}
           >
             <Share className="w-6 h-6" />
           </Button>
