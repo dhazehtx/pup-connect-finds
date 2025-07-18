@@ -1,9 +1,11 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { MessageCircle, Share, Bookmark } from 'lucide-react';
+import { Share, Bookmark } from 'lucide-react';
 import AnimatedHeart from '@/components/ui/animated-heart';
 import { usePostLikes } from '@/hooks/usePostLikes';
+import CommentButton from '@/components/post/CommentButton';
+import CommentsModal from '@/components/post/CommentsModal';
 
 interface Post {
   id: number;
@@ -41,11 +43,16 @@ const PostActions = ({
   onProfileClick
 }: PostActionsProps) => {
   const { likesCount, isLiked, loading, toggleLike } = usePostLikes(post.id.toString());
+  const [showCommentsModal, setShowCommentsModal] = useState(false);
 
   const handleLikeToggle = async () => {
     await toggleLike();
-    // Call the original onLike for any additional logic
     onLike(post.id);
+  };
+
+  const handleCommentClick = () => {
+    setShowCommentsModal(true);
+    onComment(post.id);
   };
 
   return (
@@ -58,14 +65,10 @@ const PostActions = ({
             size={24}
             disabled={loading}
           />
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            className="p-0 h-auto"
-            onClick={() => onComment(post.id)}
-          >
-            <MessageCircle className="w-6 h-6" />
-          </Button>
+          <CommentButton 
+            postId={post.id.toString()}
+            onCommentClick={handleCommentClick}
+          />
           <Button 
             variant="ghost" 
             size="sm" 
@@ -103,6 +106,13 @@ const PostActions = ({
         </span>{' '}
         {post.caption}
       </p>
+
+      <CommentsModal
+        isOpen={showCommentsModal}
+        onClose={() => setShowCommentsModal(false)}
+        postId={post.id.toString()}
+        onProfileClick={onProfileClick}
+      />
     </>
   );
 };
