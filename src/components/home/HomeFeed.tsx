@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -172,8 +173,8 @@ const HomeFeed = () => {
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <div className="max-w-2xl mx-auto py-6 px-4">
-          <div className="space-y-6">
+        <div className="max-w-xl md:max-w-2xl mx-auto py-4 md:py-6 px-4">
+          <div className="space-y-4 md:space-y-6">
             {[1, 2, 3].map((i) => (
               <Card key={i} className="shadow-sm">
                 <CardContent className="p-4">
@@ -200,10 +201,11 @@ const HomeFeed = () => {
   return (
     <>
       <div className="min-h-screen bg-gray-50">
-        <div className="max-w-2xl mx-auto py-6 px-4">
+        {/* Responsive container with proper max-width and padding */}
+        <div className="max-w-xl md:max-w-2xl lg:max-w-3xl mx-auto py-4 md:py-6 px-4 md:px-6 lg:px-8">
           {/* Create Post Section */}
-          <Card className="mb-6 shadow-sm">
-            <CardContent className="p-4">
+          <Card className="mb-4 md:mb-6 shadow-sm">
+            <CardContent className="p-4 md:p-6">
               <div className="flex items-center space-x-4">
                 <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center text-white font-semibold">
                   {user?.email?.charAt(0).toUpperCase() || 'U'}
@@ -244,7 +246,7 @@ const HomeFeed = () => {
               </Button>
             </div>
           ) : (
-            <div className="space-y-6">
+            <div className="space-y-4 md:space-y-6">
               {posts.map((post) => (
                 <PostCard
                   key={post.id}

@@ -96,13 +96,15 @@ const PostCard = ({
 
   return (
     <>
-      <Card className="rounded-none border-x-0 border-t-0 shadow-none">
+      <Card className="rounded-lg md:rounded-xl border shadow-sm md:shadow-md overflow-hidden">
         <CardContent className="p-0">
           {/* Post Header */}
-          <PostHeader 
-            user={post.user}
-            onProfileClick={onProfileClick}
-          />
+          <div className="p-3 md:p-4">
+            <PostHeader 
+              user={post.user}
+              onProfileClick={onProfileClick}
+            />
+          </div>
 
           {/* Post Image - Make it clickable */}
           <div className="aspect-square cursor-pointer" onClick={handleImageClick}>
@@ -113,8 +115,8 @@ const PostCard = ({
             />
           </div>
 
-          {/* Post Actions and Content */}
-          <div className="p-3">
+          {/* Post Actions and Content - Improved spacing for mobile */}
+          <div className="p-3 md:p-4 space-y-3">
             <PostActions
               post={post}
               onLike={onLike}
@@ -126,7 +128,7 @@ const PostCard = ({
             />
 
             {/* Time */}
-            <p className="text-xs text-gray-500 mt-2">{post.timeAgo}</p>
+            <p className="text-xs text-gray-500">{post.timeAgo}</p>
           </div>
         </CardContent>
       </Card>
