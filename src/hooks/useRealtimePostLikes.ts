@@ -1,10 +1,10 @@
 
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 
-export const usePostLikes = (postId: string) => {
+export const useRealtimePostLikes = (postId: string) => {
   const [likesCount, setLikesCount] = useState(0);
   const [isLiked, setIsLiked] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -71,6 +71,9 @@ export const usePostLikes = (postId: string) => {
           .eq('user_id', user.id);
 
         if (error) throw error;
+
+        setIsLiked(false);
+        setLikesCount(prev => prev - 1);
       } else {
         // Like the post
         const { error } = await supabase
@@ -85,10 +88,14 @@ export const usePostLikes = (postId: string) => {
         if (error) {
           if (error.code === '23505') {
             // Already liked, just update state
+            setIsLiked(true);
             return;
           }
           throw error;
         }
+
+        setIsLiked(true);
+        setLikesCount(prev => prev + 1);
       }
     } catch (error: any) {
       console.error('Error toggling like:', error);

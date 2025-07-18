@@ -12,6 +12,7 @@ import LikesModal from '@/components/post/LikesModal';
 import PostPrivacySettings from '@/components/post/PostPrivacySettings';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+import { usePostLikes } from '@/hooks/usePostLikes';
 
 const PostDetail = () => {
   const { postId } = useParams();
@@ -25,8 +26,7 @@ const PostDetail = () => {
     return null;
   }
   
-  const [isLiked, setIsLiked] = useState(false);
-  const [likesCount, setLikesCount] = useState(243);
+  const { likesCount, isLiked, loading: likesLoading, toggleLike, getLikedUsers } = usePostLikes(postId);
   const [newComment, setNewComment] = useState('');
   const [showShareDialog, setShowShareDialog] = useState(false);
   const [showLikesModal, setShowLikesModal] = useState(false);
@@ -53,34 +53,6 @@ const PostDetail = () => {
     caption: 'Meet our beautiful Golden Retriever puppies! 🐕 These adorable little ones are looking for their forever homes. They are healthy, vaccinated, and ready to bring joy to your family. #GoldenRetriever #Puppies #DogsOfInstagram',
     timestamp: '2 hours ago'
   };
-
-  // Mock users who liked the post
-  const postLikes = [
-    {
-      id: 'sarah123',
-      name: 'Sarah M.',
-      username: 'sarah_m',
-      avatar: 'https://images.unsplash.com/photo-1494790108755-2616b612b47c?w=150&h=150&fit=crop&crop=face',
-      verified: true,
-      isFollowing: false
-    },
-    {
-      id: 'mike456',
-      name: 'Mike D.',
-      username: 'mike_d',
-      avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face',
-      verified: false,
-      isFollowing: true
-    },
-    {
-      id: 'emma789',
-      name: 'Emma W.',
-      username: 'emma_w',
-      avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face',
-      verified: true,
-      isFollowing: false
-    }
-  ];
 
   const [comments, setComments] = useState([
     {
@@ -111,7 +83,7 @@ const PostDetail = () => {
     }
   ]);
 
-  const handleLike = () => {
+  const handleLike = async () => {
     if (!user) {
       toast({
         title: "Login required",
@@ -121,8 +93,7 @@ const PostDetail = () => {
       return;
     }
     
-    setIsLiked(!isLiked);
-    setLikesCount(prev => isLiked ? prev - 1 : prev + 1);
+    await toggleLike();
   };
 
   const handleFollow = () => {
@@ -200,7 +171,7 @@ const PostDetail = () => {
     });
   };
 
-  const handleLikesClick = () => {
+  const handleLikesClick = async () => {
     if (!postPrivacySettings.showLikes) {
       toast({
         title: "Likes hidden",
@@ -322,6 +293,7 @@ const PostDetail = () => {
                 isLiked={isLiked}
                 onToggle={handleLike}
                 size={24}
+                disabled={likesLoading}
               />
               {postPrivacySettings.allowComments && (
                 <Button
@@ -419,7 +391,7 @@ const PostDetail = () => {
       <LikesModal
         isOpen={showLikesModal}
         onClose={() => setShowLikesModal(false)}
-        likes={postLikes}
+        likes={[]} // This will be populated by getLikedUsers when the modal opens
         onProfileClick={handleProfileClick}
       />
 

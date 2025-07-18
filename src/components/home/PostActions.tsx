@@ -3,6 +3,7 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { MessageCircle, Share, Bookmark } from 'lucide-react';
 import AnimatedHeart from '@/components/ui/animated-heart';
+import { usePostLikes } from '@/hooks/usePostLikes';
 
 interface Post {
   id: number;
@@ -39,14 +40,23 @@ const PostActions = ({
   onShowLikes,
   onProfileClick
 }: PostActionsProps) => {
+  const { likesCount, isLiked, loading, toggleLike } = usePostLikes(post.id.toString());
+
+  const handleLikeToggle = async () => {
+    await toggleLike();
+    // Call the original onLike for any additional logic
+    onLike(post.id);
+  };
+
   return (
     <>
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center space-x-4">
           <AnimatedHeart
-            isLiked={post.isLiked}
-            onToggle={() => onLike(post.id)}
+            isLiked={isLiked}
+            onToggle={handleLikeToggle}
             size={24}
+            disabled={loading}
           />
           <Button 
             variant="ghost" 
@@ -80,7 +90,7 @@ const PostActions = ({
         className="font-semibold text-sm mb-1 cursor-pointer hover:text-gray-600"
         onClick={() => onShowLikes(post.id)}
       >
-        {post.likes.toLocaleString()} likes
+        {likesCount.toLocaleString()} likes
       </p>
 
       {/* Caption */}
