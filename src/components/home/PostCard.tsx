@@ -1,8 +1,8 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import PostActions from './PostActions';
 import PostHeader from './PostHeader';
+import EditPostModal from './EditPostModal';
 import FullPostModal from '@/components/post/FullPostModal';
 
 interface User {
@@ -57,6 +57,8 @@ interface PostCardProps {
   onComment: (postId: number) => void;
   onShowLikes: (postId: number) => void;
   onCommentsUpdate: (updateFn: (comments: Comment[]) => Comment[]) => void;
+  onPostUpdate: (postId: string, newCaption: string) => void;
+  onPostDelete: (postId: string) => void;
 }
 
 const PostCard = ({
@@ -67,9 +69,13 @@ const PostCard = ({
   onBookmark,
   onComment,
   onShowLikes,
-  onCommentsUpdate
+  onCommentsUpdate,
+  onPostUpdate,
+  onPostDelete
 }: PostCardProps) => {
   const [showFullPostModal, setShowFullPostModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editingPost, setEditingPost] = useState<Post | null>(null);
 
   // Convert the post format for the modal
   const modalPost = {
@@ -94,6 +100,25 @@ const PostCard = ({
     setShowFullPostModal(false);
   };
 
+  const handleEdit = (postToEdit: Post) => {
+    setEditingPost(postToEdit);
+    setShowEditModal(true);
+  };
+
+  const handleCloseEditModal = () => {
+    setShowEditModal(false);
+    setEditingPost(null);
+  };
+
+  const handlePostUpdate = (postId: string, newCaption: string) => {
+    onPostUpdate(postId, newCaption);
+    handleCloseEditModal();
+  };
+
+  const handlePostDelete = (postId: string) => {
+    onPostDelete(postId);
+  };
+
   return (
     <>
       <Card className="rounded-lg md:rounded-xl border shadow-sm md:shadow-md overflow-hidden">
@@ -102,7 +127,10 @@ const PostCard = ({
           <div className="p-3 md:p-4">
             <PostHeader 
               user={post.user}
+              post={post}
               onProfileClick={onProfileClick}
+              onEdit={handleEdit}
+              onDelete={handlePostDelete}
             />
           </div>
 
@@ -138,6 +166,13 @@ const PostCard = ({
         isOpen={showFullPostModal}
         onClose={handleCloseModal}
         onProfileClick={onProfileClick}
+      />
+
+      <EditPostModal
+        post={editingPost}
+        isOpen={showEditModal}
+        onClose={handleCloseEditModal}
+        onUpdate={handlePostUpdate}
       />
     </>
   );
