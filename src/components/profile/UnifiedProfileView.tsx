@@ -5,12 +5,13 @@ import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { MapPin, Globe, Calendar, Plus } from 'lucide-react';
+import { MapPin, Globe, Calendar, Plus, UserPlus, UserCheck } from 'lucide-react';
 import ProfileSettings from './ProfileSettings';
 import ProfileSettingsModal from './ProfileSettingsModal';
 import SocialPostCreator from '@/components/posts/SocialPostCreator';
 import ProfilePostsGrid from './ProfilePostsGrid';
 import LoadingState from '@/components/ui/loading-state';
+import { useFollowSystem } from '@/hooks/useFollowSystem';
 
 interface Profile {
   id: string;
@@ -42,6 +43,7 @@ const UnifiedProfileView = ({ userId, isCurrentUser }: UnifiedProfileViewProps) 
   const [activeTab, setActiveTab] = useState('posts');
 
   const profileId = userId || user?.id;
+  const { followers, following, isFollowing, followUser, unfollowUser } = useFollowSystem(profileId);
 
   useEffect(() => {
     if (profileId) {
@@ -69,6 +71,16 @@ const UnifiedProfileView = ({ userId, isCurrentUser }: UnifiedProfileViewProps) 
   const handlePostCreated = () => {
     setShowPostCreator(false);
     // The ProfilePostsGrid will automatically refresh via usePosts hook
+  };
+
+  const handleFollowToggle = async () => {
+    if (!profileId) return;
+    
+    if (isFollowing) {
+      await unfollowUser(profileId);
+    } else {
+      await followUser(profileId);
+    }
   };
 
   if (loading) {
@@ -136,6 +148,18 @@ const UnifiedProfileView = ({ userId, isCurrentUser }: UnifiedProfileViewProps) 
                 <p className="text-gray-600 mb-2">@{profile.username}</p>
               )}
 
+              {/* Stats */}
+              <div className="flex gap-6 text-center mb-4">
+                <div>
+                  <div className="font-bold">{followers.length}</div>
+                  <div className="text-sm text-gray-600">Followers</div>
+                </div>
+                <div>
+                  <div className="font-bold">{following.length}</div>
+                  <div className="text-sm text-gray-600">Following</div>
+                </div>
+              </div>
+
               {profile.bio && (
                 <p className="text-gray-700 mb-4">{profile.bio}</p>
               )}
@@ -172,7 +196,22 @@ const UnifiedProfileView = ({ userId, isCurrentUser }: UnifiedProfileViewProps) 
                     Add Post
                   </Button>
                 ) : (
-                  <Button>Follow</Button>
+                  <Button
+                    onClick={handleFollowToggle}
+                    variant={isFollowing ? "outline" : "default"}
+                  >
+                    {isFollowing ? (
+                      <>
+                        <UserCheck className="w-4 h-4 mr-2" />
+                        Following
+                      </>
+                    ) : (
+                      <>
+                        <UserPlus className="w-4 h-4 mr-2" />
+                        Follow
+                      </>
+                    )}
+                  </Button>
                 )}
               </div>
             </div>

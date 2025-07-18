@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import UserAvatarWithPresence from '@/components/ui/user-avatar-with-presence';
 import FollowersModal from '@/components/profile/FollowersModal';
 import { UserProfile } from '@/types/profile';
-import { useProfessionalNetwork } from '@/hooks/useProfessionalNetwork';
+import { useFollowSystem } from '@/hooks/useFollowSystem';
 import { useAuth } from '@/contexts/AuthContext';
 
 interface ProfileHeaderWithPresenceProps {
@@ -15,7 +15,7 @@ interface ProfileHeaderWithPresenceProps {
 const ProfileHeaderWithPresence = ({ profile }: ProfileHeaderWithPresenceProps) => {
   const [showFollowersModal, setShowFollowersModal] = useState(false);
   const [showFollowingModal, setShowFollowingModal] = useState(false);
-  const { followers, following } = useProfessionalNetwork();
+  const { followers, following } = useFollowSystem(profile.id);
   const { user } = useAuth();
 
   if (!profile) {
@@ -34,20 +34,20 @@ const ProfileHeaderWithPresence = ({ profile }: ProfileHeaderWithPresenceProps) 
   // Convert followers/following data to the format expected by the modal
   const followersData = followers.map(follower => ({
     id: follower.follower_id,
-    full_name: follower.profile?.full_name || 'User',
-    username: follower.profile?.username || 'user',
-    avatar_url: follower.profile?.avatar_url,
-    verified: follower.profile?.verified || false,
-    user_type: follower.profile?.user_type || 'buyer'
+    full_name: follower.following_profile?.full_name || 'User',
+    username: follower.following_profile?.username || 'user',
+    avatar_url: follower.following_profile?.avatar_url,
+    verified: false,
+    user_type: 'buyer'
   }));
 
   const followingData = following.map(follow => ({
     id: follow.following_id,
-    full_name: follow.profile?.full_name || 'User',
-    username: follow.profile?.username || 'user',
-    avatar_url: follow.profile?.avatar_url,
-    verified: follow.profile?.verified || false,
-    user_type: follow.profile?.user_type || 'buyer'
+    full_name: follow.following_profile?.full_name || 'User',
+    username: follow.following_profile?.username || 'user',
+    avatar_url: follow.following_profile?.avatar_url,
+    verified: false,
+    user_type: 'buyer'
   }));
 
   return (
@@ -73,14 +73,14 @@ const ProfileHeaderWithPresence = ({ profile }: ProfileHeaderWithPresenceProps) 
               className="cursor-pointer hover:opacity-75 transition-opacity"
               onClick={() => setShowFollowersModal(true)}
             >
-              <div className="font-semibold text-black">{(profile.stats?.followers || 0).toLocaleString()}</div>
+              <div className="font-semibold text-black">{followers.length.toLocaleString()}</div>
               <div className="text-gray-600 text-sm">Followers</div>
             </div>
             <div 
               className="cursor-pointer hover:opacity-75 transition-opacity"
               onClick={() => setShowFollowingModal(true)}
             >
-              <div className="font-semibold text-black">{profile.stats?.following || 0}</div>
+              <div className="font-semibold text-black">{following.length}</div>
               <div className="text-gray-600 text-sm">Following</div>
             </div>
           </div>

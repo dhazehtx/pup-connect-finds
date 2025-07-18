@@ -16,6 +16,7 @@ import ProfileAnalyticsEnhanced from '@/components/profile/ProfileAnalyticsEnhan
 import OnlineUsersList from '@/components/ui/online-users-list';
 import ProfilePhotoGrid from '@/components/profile/ProfilePhotoGrid';
 import { UserProfile } from '@/types/profile';
+import { useFollowSystem } from '@/hooks/useFollowSystem';
 
 interface ProfileContentProps {
   displayProfile: UserProfile;
@@ -39,6 +40,8 @@ const ProfileContent = ({
   const [showCompletionGuide, setShowCompletionGuide] = useState(true);
   const navigate = useNavigate();
   const isGuestUser = !user;
+  
+  const { followers, following, isFollowing, followUser, unfollowUser } = useFollowSystem(displayProfile.id);
 
   console.log('ProfileContent render:', {
     displayProfile: !!displayProfile,
@@ -83,6 +86,14 @@ const ProfileContent = ({
   const handleViewPublic = () => {
     // Toggle to public view
     console.log('View public profile');
+  };
+
+  const handleFollowToggle = async () => {
+    if (isFollowing) {
+      await unfollowUser(displayProfile.id);
+    } else {
+      await followUser(displayProfile.id);
+    }
   };
 
   // Add verification badges from enhanced system
@@ -155,9 +166,24 @@ const ProfileContent = ({
                   ) : (
                     <>
                       <Button
-                        className="bg-blue-600 hover:bg-blue-700 text-white font-semibold transition-all duration-200 shadow-sm"
+                        onClick={handleFollowToggle}
+                        className={`font-semibold transition-all duration-200 shadow-sm ${
+                          isFollowing 
+                            ? 'bg-gray-200 hover:bg-gray-300 text-gray-700'
+                            : 'bg-blue-600 hover:bg-blue-700 text-white'
+                        }`}
                       >
-                        Follow
+                        {isFollowing ? (
+                          <>
+                            <UserPlus className="w-4 h-4 mr-2" />
+                            Following
+                          </>
+                        ) : (
+                          <>
+                            <UserPlus className="w-4 h-4 mr-2" />
+                            Follow
+                          </>
+                        )}
                       </Button>
                       <Button
                         variant="outline"
@@ -173,15 +199,15 @@ const ProfileContent = ({
               {/* Stats */}
               <div className="flex items-center space-x-8 mb-4">
                 <div className="text-center">
-                  <div className="text-xl font-bold text-gray-900">156</div>
+                  <div className="text-xl font-bold text-gray-900">{displayProfile.stats?.posts || 0}</div>
                   <div className="text-sm text-gray-600">Posts</div>
                 </div>
                 <div className="text-center cursor-pointer hover:opacity-80">
-                  <div className="text-xl font-bold text-gray-900">2.5K</div>
+                  <div className="text-xl font-bold text-gray-900">{followers.length.toLocaleString()}</div>
                   <div className="text-sm text-gray-600">Followers</div>
                 </div>
                 <div className="text-center cursor-pointer hover:opacity-80">
-                  <div className="text-xl font-bold text-gray-900">1.2K</div>
+                  <div className="text-xl font-bold text-gray-900">{following.length}</div>
                   <div className="text-sm text-gray-600">Following</div>
                 </div>
               </div>

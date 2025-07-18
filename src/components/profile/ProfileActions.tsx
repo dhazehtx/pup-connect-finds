@@ -1,27 +1,36 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { MessageCircle, UserPlus, Share, Eye, Edit } from 'lucide-react';
+import { MessageCircle, UserPlus, UserCheck, Share, Eye, Edit } from 'lucide-react';
+import { useFollowSystem } from '@/hooks/useFollowSystem';
 
 interface ProfileActionsProps {
   isOwnProfile: boolean;
+  profileUserId: string;
   onMessage?: () => void;
-  onFollow?: () => void;
   onShare?: () => void;
   onEditProfile?: () => void;
   onVisitListings?: () => void;
-  isFollowing?: boolean;
 }
 
 const ProfileActions = ({ 
   isOwnProfile, 
+  profileUserId,
   onMessage, 
-  onFollow, 
   onShare,
   onEditProfile,
-  onVisitListings,
-  isFollowing = false
+  onVisitListings
 }: ProfileActionsProps) => {
+  const { isFollowing, followUser, unfollowUser } = useFollowSystem(profileUserId);
+
+  const handleFollowToggle = async () => {
+    if (isFollowing) {
+      await unfollowUser(profileUserId);
+    } else {
+      await followUser(profileUserId);
+    }
+  };
+
   if (isOwnProfile) {
     return (
       <div className="px-6 mb-6">
@@ -54,11 +63,20 @@ const ProfileActions = ({
         </Button>
         <Button 
           variant={isFollowing ? "outline" : "default"}
-          onClick={onFollow}
+          onClick={handleFollowToggle}
           className="flex-1 h-10 rounded-lg font-medium"
         >
-          <UserPlus className="w-4 h-4 mr-2" />
-          {isFollowing ? 'Following' : 'Follow'}
+          {isFollowing ? (
+            <>
+              <UserCheck className="w-4 h-4 mr-2" />
+              Following
+            </>
+          ) : (
+            <>
+              <UserPlus className="w-4 h-4 mr-2" />
+              Follow
+            </>
+          )}
         </Button>
       </div>
       
