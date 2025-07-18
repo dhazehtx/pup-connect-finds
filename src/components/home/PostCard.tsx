@@ -31,6 +31,7 @@ interface Comment {
 
 interface Post {
   id: number;
+  postUuid: string; // Add the UUID for database operations
   user: {
     id: string;
     username: string;
@@ -72,7 +73,7 @@ const PostCard = ({
 
   // Convert the post format for the modal
   const modalPost = {
-    id: post.id.toString(),
+    id: post.postUuid, // Use the actual UUID
     user_id: post.user.id,
     caption: post.caption,
     image_url: post.image,

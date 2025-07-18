@@ -9,6 +9,7 @@ import CommentsModal from '@/components/post/CommentsModal';
 
 interface Post {
   id: number;
+  postUuid: string; // Add the UUID for database operations
   user: {
     id: string;
     username: string;
@@ -42,7 +43,8 @@ const PostActions = ({
   onShowLikes,
   onProfileClick
 }: PostActionsProps) => {
-  const { likesCount, isLiked, loading, toggleLike } = usePostLikes(post.id.toString());
+  // Use the actual UUID from the post
+  const { likesCount, isLiked, loading, toggleLike } = usePostLikes(post.postUuid);
   const [showCommentsModal, setShowCommentsModal] = useState(false);
 
   const handleLikeToggle = async () => {
@@ -66,7 +68,7 @@ const PostActions = ({
             disabled={loading}
           />
           <CommentButton 
-            postId={post.id.toString()}
+            postId={post.postUuid}
             onCommentClick={handleCommentClick}
           />
           <Button 
@@ -110,7 +112,7 @@ const PostActions = ({
       <CommentsModal
         isOpen={showCommentsModal}
         onClose={() => setShowCommentsModal(false)}
-        postId={post.id.toString()}
+        postId={post.postUuid}
         onProfileClick={onProfileClick}
       />
     </>

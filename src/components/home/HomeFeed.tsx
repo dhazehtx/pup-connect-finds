@@ -1,10 +1,8 @@
-
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Heart, MessageCircle, Share, Bookmark, Plus, Camera } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
+import { Plus, Camera } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { formatDistanceToNow } from 'date-fns';
@@ -27,6 +25,7 @@ interface Post {
 
 interface PostCardData {
   id: number;
+  postUuid: string; // Add the original UUID for like functionality
   user: {
     id: string;
     username: string;
@@ -76,8 +75,9 @@ const HomeFeed = () => {
       }
 
       // Transform database posts to match PostCard interface
-      const transformedPosts: PostCardData[] = (data || []).map((post: Post) => ({
-        id: parseInt(post.id.replace(/-/g, '').substring(0, 8), 16), // Convert UUID to number for compatibility
+      const transformedPosts: PostCardData[] = (data || []).map((post: Post, index: number) => ({
+        id: index + 1, // Simple numeric ID for display purposes
+        postUuid: post.id, // Keep the original UUID for database operations
         user: {
           id: post.user_id,
           username: post.profiles?.username || 'Unknown User',
@@ -86,8 +86,8 @@ const HomeFeed = () => {
           avatar: post.profiles?.avatar_url || `https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&h=150&fit=crop&crop=face`
         },
         image: post.image_url || '',
-        likes: 0, // Will be updated with real likes later
-        isLiked: false, // Will be updated with user's like status later
+        likes: 0, // Will be updated with real likes from usePostLikes hook
+        isLiked: false, // Will be updated with user's like status from usePostLikes hook
         caption: post.caption || '',
         timeAgo: formatDistanceToNow(new Date(post.created_at), { addSuffix: true }),
         likedBy: [],
@@ -108,11 +108,9 @@ const HomeFeed = () => {
   };
 
   const handleLike = (postId: number) => {
-    setPosts(prevPosts =>
-      prevPosts.map(post =>
-        post.id === postId ? { ...post, isLiked: !post.isLiked, likes: post.isLiked ? post.likes - 1 : post.likes + 1 } : post
-      )
-    );
+    // This is handled by the usePostLikes hook in PostActions component
+    // No need to manually update state here as the hook handles real-time updates
+    console.log('Like toggled for post:', postId);
   };
 
   const handleShare = (postId: number) => {
