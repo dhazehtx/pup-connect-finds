@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -5,66 +6,106 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Heart, MessageCircle, Share, Bookmark, Plus, Camera } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
+import { formatDistanceToNow } from 'date-fns';
 import ModernPostCreator from './ModernPostCreator';
+import PostCard from './PostCard';
 
-const mockPosts = [
-  {
-    id: 1,
-    user: {
-      id: 'user1',
-      username: 'john_doe',
-      name: 'John Doe',
-      location: 'New York',
-      avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&h=150&fit=crop&crop=face'
-    },
-    image: 'https://images.unsplash.com/photo-1518020382113-a7e8fc38eac9?w=600',
-    likes: 120,
-    isLiked: true,
-    caption: 'Enjoying a sunny day with my best friend!',
-    timeAgo: '2 hours ago',
-    likedBy: [
-      { id: 'user2', username: 'jane_smith' },
-      { id: 'user3', username: 'alex_jones' }
-    ],
-    comments: [
-      { id: 'comment1', user: 'jane_smith', text: 'Such a cute dog!' },
-      { id: 'comment2', user: 'alex_jones', text: 'Where was this taken?' }
-    ]
-  },
-  {
-    id: 2,
-    user: {
-      id: 'user4',
-      username: 'emily_parker',
-      name: 'Emily Parker',
-      location: 'Los Angeles',
-      avatar: 'https://images.unsplash.com/photo-1580489944761-15a19d674c79?w=150&h=150&fit=crop&crop=face'
-    },
-    image: 'https://images.unsplash.com/photo-1548247416-ec661342273c?w=600',
-    likes: 85,
-    isLiked: false,
-    caption: 'Morning cuddles are the best!',
-    timeAgo: '1 day ago',
-    likedBy: [
-      { id: 'user5', username: 'sam_wilson' },
-      { id: 'user6', username: 'linda_brown' }
-    ],
-    comments: [
-      { id: 'comment3', user: 'sam_wilson', text: 'Aww, so adorable!' },
-      { id: 'comment4', user: 'linda_brown', text: 'I want one!' }
-    ]
-  },
-];
+interface Post {
+  id: string;
+  user_id: string;
+  caption: string | null;
+  image_url: string | null;
+  video_url: string | null;
+  created_at: string;
+  profiles?: {
+    full_name: string | null;
+    username: string | null;
+    avatar_url: string | null;
+  } | null;
+}
+
+interface PostCardData {
+  id: number;
+  user: {
+    id: string;
+    username: string;
+    name: string;
+    location: string;
+    avatar: string;
+  };
+  image: string;
+  likes: number;
+  isLiked: boolean;
+  caption: string;
+  timeAgo: string;
+  likedBy: any[];
+  comments: any[];
+}
 
 const HomeFeed = () => {
   const { user, isGuest } = useAuth();
   const { toast } = useToast();
-  const [posts, setPosts] = useState(mockPosts);
+  const [posts, setPosts] = useState<PostCardData[]>([]);
+  const [loading, setLoading] = useState(true);
   const [showPostCreator, setShowPostCreator] = useState(false);
 
   useEffect(() => {
     document.title = 'My Pup - Home';
+    fetchPosts();
   }, []);
+
+  const fetchPosts = async () => {
+    try {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from('posts')
+        .select(`
+          *,
+          profiles!posts_user_id_profiles_id_fkey (
+            full_name,
+            username,
+            avatar_url
+          )
+        `)
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Error fetching posts:', error);
+        return;
+      }
+
+      // Transform database posts to match PostCard interface
+      const transformedPosts: PostCardData[] = (data || []).map((post: Post) => ({
+        id: parseInt(post.id.replace(/-/g, '').substring(0, 8), 16), // Convert UUID to number for compatibility
+        user: {
+          id: post.user_id,
+          username: post.profiles?.username || 'Unknown User',
+          name: post.profiles?.full_name || post.profiles?.username || 'Unknown User',
+          location: 'Location', // Default for now
+          avatar: post.profiles?.avatar_url || `https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&h=150&fit=crop&crop=face`
+        },
+        image: post.image_url || '',
+        likes: 0, // Will be updated with real likes later
+        isLiked: false, // Will be updated with user's like status later
+        caption: post.caption || '',
+        timeAgo: formatDistanceToNow(new Date(post.created_at), { addSuffix: true }),
+        likedBy: [],
+        comments: []
+      })).filter(post => post.image); // Only show posts with images
+
+      setPosts(transformedPosts);
+    } catch (error) {
+      console.error('Error fetching posts:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load posts",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleLike = (postId: number) => {
     setPosts(prevPosts =>
@@ -77,24 +118,43 @@ const HomeFeed = () => {
   const handleShare = (postId: number) => {
     toast({
       title: "Post Shared",
-      description: `You have shared post ${postId} with your followers`,
+      description: `You have shared the post with your followers`,
     });
   };
 
   const handleBookmark = (postId: number) => {
     toast({
       title: "Post Bookmarked",
-      description: `You have bookmarked post ${postId} to view later`,
+      description: `You have bookmarked the post to view later`,
     });
   };
 
-  const handlePostCreated = (newPost: any) => {
-    setPosts(prevPosts => [newPost, ...prevPosts]);
+  const handleComment = (postId: number) => {
+    console.log('Comment on post:', postId);
+  };
+
+  const handleShowLikes = (postId: number) => {
+    console.log('Show likes for post:', postId);
+  };
+
+  const handleProfileClick = (userId: string) => {
+    // Navigate to profile - this would be handled by routing
+    console.log('Navigate to profile:', userId);
+  };
+
+  const handlePostCreated = async (newPost: any) => {
+    // Refresh posts after creating a new one
+    await fetchPosts();
     toast({
       title: "Post shared! 🎉",
       description: "Your post is now live!",
     });
     setShowPostCreator(false);
+  };
+
+  const handleCommentsUpdate = (updateFn: (comments: any[]) => any[]) => {
+    // Handle comments update if needed
+    console.log('Comments updated');
   };
 
   if (!user && !isGuest) {
@@ -107,6 +167,34 @@ const HomeFeed = () => {
             <Button className="w-full">Sign In</Button>
           </CardContent>
         </Card>
+      </div>
+    );
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <div className="max-w-2xl mx-auto py-6 px-4">
+          <div className="space-y-6">
+            {[1, 2, 3].map((i) => (
+              <Card key={i} className="shadow-sm">
+                <CardContent className="p-4">
+                  <div className="animate-pulse">
+                    <div className="flex items-center space-x-3 mb-3">
+                      <div className="w-8 h-8 bg-gray-300 rounded-full"></div>
+                      <div className="flex-1">
+                        <div className="h-4 bg-gray-300 rounded w-1/4"></div>
+                        <div className="h-3 bg-gray-300 rounded w-1/6 mt-1"></div>
+                      </div>
+                    </div>
+                    <div className="h-64 bg-gray-300 rounded mb-3"></div>
+                    <div className="h-4 bg-gray-300 rounded w-3/4"></div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
       </div>
     );
   }
@@ -142,69 +230,38 @@ const HomeFeed = () => {
           </Card>
 
           {/* Posts Feed */}
-          <div className="space-y-6">
-            {posts.map((post) => (
-              <Card key={post.id} className="shadow-sm">
-                <CardContent className="p-4">
-                  {/* User Info */}
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center space-x-3">
-                      <div className="w-8 h-8 rounded-full overflow-hidden">
-                        <img
-                          src={post.user.avatar}
-                          alt={post.user.name}
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
-                      <div>
-                        <div className="font-semibold text-sm">{post.user.name}</div>
-                        <div className="text-xs text-gray-500">{post.timeAgo}</div>
-                      </div>
-                    </div>
-                    <Badge className="rounded-full">{post.user.location}</Badge>
-                  </div>
-
-                  {/* Post Image */}
-                  <img
-                    src={post.image}
-                    alt="Post"
-                    className="w-full rounded-md mb-3"
-                  />
-
-                  {/* Post Actions */}
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center space-x-4">
-                      <Button
-                        onClick={() => handleLike(post.id)}
-                        variant="ghost"
-                        size="icon"
-                      >
-                        <Heart
-                          className={`w-5 h-5 ${post.isLiked ? 'text-red-500' : 'text-gray-500'
-                            }`}
-                        />
-                        <span>{post.likes}</span>
-                      </Button>
-                      <Button variant="ghost" size="icon">
-                        <MessageCircle className="w-5 h-5 text-gray-500" />
-                      </Button>
-                      <Button onClick={() => handleShare(post.id)} variant="ghost" size="icon">
-                        <Share className="w-5 h-5 text-gray-500" />
-                      </Button>
-                    </div>
-                    <Button onClick={() => handleBookmark(post.id)} variant="ghost" size="icon">
-                      <Bookmark className="w-5 h-5 text-gray-500" />
-                    </Button>
-                  </div>
-
-                  {/* Post Caption */}
-                  <div className="text-sm">
-                    <span className="font-semibold">{post.user.username}</span> {post.caption}
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+          {posts.length === 0 ? (
+            <div className="text-center py-12">
+              <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Camera className="w-8 h-8 text-gray-400" />
+              </div>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">No Posts Yet</h3>
+              <p className="text-gray-500 mb-6">Start sharing your puppy moments!</p>
+              <Button
+                onClick={() => setShowPostCreator(true)}
+                className="bg-blue-600 hover:bg-blue-700 text-white"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Create Your First Post
+              </Button>
+            </div>
+          ) : (
+            <div className="space-y-6">
+              {posts.map((post) => (
+                <PostCard
+                  key={post.id}
+                  post={post}
+                  onLike={handleLike}
+                  onProfileClick={handleProfileClick}
+                  onShare={handleShare}
+                  onBookmark={handleBookmark}
+                  onComment={handleComment}
+                  onShowLikes={handleShowLikes}
+                  onCommentsUpdate={handleCommentsUpdate}
+                />
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
