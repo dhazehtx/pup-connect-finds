@@ -1,14 +1,12 @@
-
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { MapPin, Globe, Calendar, Plus, UserPlus, UserCheck } from 'lucide-react';
+import { MapPin, Globe, Calendar, UserPlus, UserCheck } from 'lucide-react';
 import ProfileSettings from './ProfileSettings';
 import ProfileSettingsModal from './ProfileSettingsModal';
-import SocialPostCreator from '@/components/posts/SocialPostCreator';
 import ProfilePostsGrid from './ProfilePostsGrid';
 import LoadingState from '@/components/ui/loading-state';
 import { useFollowSystem } from '@/hooks/useFollowSystem';
@@ -39,7 +37,6 @@ const UnifiedProfileView = ({ userId, isCurrentUser }: UnifiedProfileViewProps) 
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
   const [showSettings, setShowSettings] = useState(false);
-  const [showPostCreator, setShowPostCreator] = useState(false);
   const [activeTab, setActiveTab] = useState('posts');
 
   const profileId = userId || user?.id;
@@ -66,11 +63,6 @@ const UnifiedProfileView = ({ userId, isCurrentUser }: UnifiedProfileViewProps) 
     } finally {
       setLoading(false);
     }
-  };
-
-  const handlePostCreated = () => {
-    setShowPostCreator(false);
-    // The ProfilePostsGrid will automatically refresh via usePosts hook
   };
 
   const handleFollowToggle = async () => {
@@ -187,15 +179,7 @@ const UnifiedProfileView = ({ userId, isCurrentUser }: UnifiedProfileViewProps) 
 
               {/* Action Buttons */}
               <div className="flex gap-2">
-                {isCurrentUser ? (
-                  <Button 
-                    variant="outline" 
-                    onClick={() => setShowPostCreator(!showPostCreator)}
-                  >
-                    <Plus className="w-4 h-4 mr-2" />
-                    Add Post
-                  </Button>
-                ) : (
+                {!isCurrentUser && (
                   <Button
                     onClick={handleFollowToggle}
                     variant={isFollowing ? "outline" : "default"}
@@ -218,16 +202,6 @@ const UnifiedProfileView = ({ userId, isCurrentUser }: UnifiedProfileViewProps) 
           </div>
         </CardContent>
       </Card>
-
-      {/* Post Creator (only for current user) */}
-      {isCurrentUser && showPostCreator && (
-        <div className="mb-6">
-          <SocialPostCreator 
-            onPostCreated={handlePostCreated}
-            className="bg-white shadow-sm"
-          />
-        </div>
-      )}
 
       {/* Profile Content Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>

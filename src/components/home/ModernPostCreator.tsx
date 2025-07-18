@@ -7,6 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { useImageUpload } from '@/hooks/useImageUpload';
+import { supabase } from '@/integrations/supabase/client';
 
 interface ModernPostCreatorProps {
   onClose: () => void;
@@ -77,14 +78,38 @@ const ModernPostCreator = ({ onClose, onPostCreated }: ModernPostCreatorProps) =
 
     setIsUploading(true);
     try {
+      // Upload file to storage
       const uploadedUrl = await uploadImage(selectedFile, `post-${Date.now()}`);
       
       if (!uploadedUrl) {
         throw new Error('Failed to upload file');
       }
 
+      // Save post to Supabase
+      const { data: postData, error: postError } = await supabase
+        .from('posts')
+        .insert({
+          user_id: user.id,
+          caption: caption || null,
+          image_url: postType === 'photo' ? uploadedUrl : null,
+          video_url: postType === 'video' ? uploadedUrl : null,
+          post_type: 'profile'
+        })
+        .select()
+        .single();
+
+      if (postError) {
+        throw postError;
+      }
+
+      toast({
+        title: "Post created! 🎉",
+        description: "Your post has been shared successfully",
+      });
+
+      // Create a formatted post object for the callback
       const newPost = {
-        id: Date.now(),
+        id: postData.id,
         user: {
           id: user.id,
           username: user.email?.split('@')[0] || 'User',
