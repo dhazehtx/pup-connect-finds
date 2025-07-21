@@ -4,11 +4,19 @@ import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
-import { X, Heart, MessageCircle, Send, Bookmark, MoreHorizontal } from 'lucide-react';
+import { X, Heart, MessageCircle, Send, Bookmark, MoreHorizontal, Edit, Trash2 } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { formatDistanceToNow } from 'date-fns';
 import CommentsModal from './CommentsModal';
+import EditPostModal from '../home/EditPostModal';
 import { useMobileOptimized } from '@/hooks/useMobileOptimized';
 
 interface FullPostModalProps {
@@ -35,8 +43,11 @@ const FullPostModal = ({
   const [isLiked, setIsLiked] = useState(false);
   const [likesCount, setLikesCount] = useState(0);
   const [showComments, setShowComments] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
 
   if (!post) return null;
+
+  const isOwner = user?.id === post.user_id;
 
   const handleLike = () => {
     if (!user) {
@@ -67,7 +78,6 @@ const FullPostModal = ({
   const handleAddComment = () => {
     if (!newComment.trim()) return;
     
-    // Mock comment addition
     toast({
       title: "Comment added!",
       description: "Your comment has been posted",
@@ -79,6 +89,42 @@ const FullPostModal = ({
     if (e.key === 'Enter') {
       handleAddComment();
     }
+  };
+
+  const handleEdit = () => {
+    setShowEditModal(true);
+  };
+
+  const handleDelete = () => {
+    if (window.confirm('Are you sure you want to delete this post?')) {
+      onPostDelete?.(post.id);
+      onClose();
+    }
+  };
+
+  const handlePostUpdate = (postId: string, newCaption: string) => {
+    onPostUpdate?.(postId, newCaption);
+    setShowEditModal(false);
+  };
+
+  // Convert post format for EditPostModal
+  const editPostData = {
+    id: post.id,
+    postUuid: post.id,
+    user: {
+      id: post.user_id,
+      username: post.profiles?.username || post.profiles?.full_name || 'User',
+      name: post.profiles?.full_name || post.profiles?.username || 'User',
+      location: 'Location',
+      avatar: post.profiles?.avatar_url || `https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&h=150&fit=crop&crop=face`
+    },
+    image: post.image_url || '',
+    likes: 0,
+    isLiked: false,
+    caption: post.caption || '',
+    timeAgo: formatDistanceToNow(new Date(post.created_at), { addSuffix: true }),
+    likedBy: [],
+    comments: []
   };
 
   return (
@@ -133,9 +179,27 @@ const FullPostModal = ({
                     </p>
                   </div>
                 </div>
-                <Button variant="ghost" size="icon">
-                  <MoreHorizontal size={20} />
-                </Button>
+                
+                {isOwner && (
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="icon">
+                        <MoreHorizontal size={20} />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem onClick={handleEdit}>
+                        <Edit className="mr-2 h-4 w-4" />
+                        Edit Post
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem onClick={handleDelete} className="text-red-600">
+                        <Trash2 className="mr-2 h-4 w-4" />
+                        Delete Post
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                )}
               </div>
 
               {/* Actions */}
@@ -237,6 +301,13 @@ const FullPostModal = ({
         onClose={() => setShowComments(false)}
         postId={post.id}
         onProfileClick={onProfileClick}
+      />
+
+      <EditPostModal
+        post={editPostData}
+        isOpen={showEditModal}
+        onClose={() => setShowEditModal(false)}
+        onUpdate={handlePostUpdate}
       />
     </>
   );
