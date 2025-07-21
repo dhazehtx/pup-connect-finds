@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -23,6 +22,7 @@ interface FullPostModalProps {
     user_id: string;
     caption: string | null;
     image_url: string | null;
+    imageUrl?: string | null;
     video_url: string | null;
     created_at: string;
     profiles: {
@@ -66,6 +66,9 @@ const FullPostModal = ({
   if (!post) {
     return null;
   }
+
+  // Get the correct image URL
+  const imageUrl = post.imageUrl || post.image_url;
 
   const handleCommentSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -195,11 +198,11 @@ const FullPostModal = ({
               <X className="h-6 w-6" />
             </Button>
             
-            {post.image_url && (
+            {imageUrl && (
               <img
-                src={post.image_url}
+                src={imageUrl}
                 alt="Post content"
-                className="max-w-full max-h-full object-contain"
+                className="max-w-full max-h-full object-contain w-full h-full"
               />
             )}
             
@@ -207,7 +210,7 @@ const FullPostModal = ({
               <video
                 src={post.video_url}
                 controls
-                className="max-w-full max-h-full object-contain"
+                className="max-w-full max-h-full object-contain w-full h-full"
               />
             )}
           </div>
