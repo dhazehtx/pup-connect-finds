@@ -121,13 +121,16 @@ const PostCard = ({
             />
           </div>
 
-          {/* Post Image - Make it clickable */}
-          <div className="aspect-square cursor-pointer" onClick={handleImageClick}>
-            <img
-              src={post.image}
-              alt="Dog post"
-              className="w-full h-full object-cover hover:opacity-95 transition-opacity"
-            />
+          {/* Post Image - Responsive mobile-friendly container */}
+          <div className="w-full cursor-pointer" onClick={handleImageClick}>
+            <div className="relative w-full">
+              <img
+                src={post.image}
+                alt="Dog post"
+                className="w-full h-auto max-h-[70vh] object-contain md:object-cover md:aspect-square hover:opacity-95 transition-opacity"
+                style={{ aspectRatio: 'auto' }}
+              />
+            </div>
           </div>
 
           {/* Post Actions and Content - Improved spacing for mobile */}
