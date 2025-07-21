@@ -29,6 +29,7 @@ const FullPostModal = ({
   onPostDelete 
 }: FullPostModalProps) => {
   const [commentText, setCommentText] = useState('');
+  const [isCaptionExpanded, setIsCaptionExpanded] = useState(false);
   const { user } = useAuth();
   
   // Always call hooks with fallback values - never conditionally
@@ -54,8 +55,19 @@ const FullPostModal = ({
   };
 
   const imageUrl = post.image_url || post.imageUrl;
-  const displayedComments = comments.slice(0, 3);
-  const remainingCommentsCount = Math.max(0, comments.length - 3);
+  
+  // For mobile: show only 1-2 recent comments, for desktop: show 3
+  const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+  const visibleCommentsCount = isMobile ? 2 : 3;
+  const displayedComments = comments.slice(-visibleCommentsCount); // Get most recent
+  const remainingCommentsCount = Math.max(0, comments.length - visibleCommentsCount);
+
+  // Caption truncation for mobile
+  const maxCaptionLength = 100;
+  const shouldTruncateCaption = post.caption && post.caption.length > maxCaptionLength && !isCaptionExpanded;
+  const displayCaption = shouldTruncateCaption 
+    ? post.caption.substring(0, maxCaptionLength) + '...' 
+    : post.caption;
 
   const CommentSkeleton = () => (
     <div className="flex gap-3 mb-4 animate-pulse">
@@ -103,7 +115,7 @@ const FullPostModal = ({
             )}
           </div>
 
-          {/* Content Section - Consistent structure for mobile and desktop */}
+          {/* Content Section */}
           <div className="w-full md:w-96 bg-background flex flex-col h-full md:h-auto">
             {/* Header */}
             <div className="flex-shrink-0 p-4 border-b border-border">
@@ -168,7 +180,7 @@ const FullPostModal = ({
               )}
             </div>
 
-            {/* Caption */}
+            {/* Caption - Collapsible on mobile */}
             {post.caption && (
               <div className="flex-shrink-0 px-4 py-3 border-b border-border">
                 <div className="flex gap-3">
@@ -183,7 +195,23 @@ const FullPostModal = ({
                       <span className="font-semibold mr-2">
                         {post.profiles?.username || 'Unknown User'}
                       </span>
-                      <span className="break-words">{post.caption}</span>
+                      <span className="break-words">{displayCaption}</span>
+                      {shouldTruncateCaption && (
+                        <button 
+                          onClick={() => setIsCaptionExpanded(true)}
+                          className="text-muted-foreground hover:text-foreground ml-1"
+                        >
+                          more
+                        </button>
+                      )}
+                      {isCaptionExpanded && post.caption.length > maxCaptionLength && (
+                        <button 
+                          onClick={() => setIsCaptionExpanded(false)}
+                          className="text-muted-foreground hover:text-foreground ml-1"
+                        >
+                          less
+                        </button>
+                      )}
                     </div>
                     <div className="text-xs text-muted-foreground mt-1">
                       {formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}
@@ -193,65 +221,68 @@ const FullPostModal = ({
               </div>
             )}
 
-            {/* Comments Section Header */}
-            <div className="flex-shrink-0 px-4 py-3 border-b border-border">
-              <h3 className="text-sm font-bold text-foreground">Comments</h3>
-            </div>
+            {/* Comments Section - Optimized for mobile visibility */}
+            <div className="flex-1 flex flex-col min-h-0">
+              {/* Comments Header */}
+              <div className="flex-shrink-0 px-4 py-3 border-b border-border">
+                <h3 className="text-sm font-bold text-foreground">Comments</h3>
+              </div>
 
-            {/* Scrollable Comments Content */}
-            <div className="flex-1 overflow-y-auto min-h-0 px-4 py-3">
-              {commentsLoading ? (
-                // Loading Skeletons
-                <div className="space-y-4">
-                  {Array.from({ length: 3 }).map((_, i) => (
-                    <CommentSkeleton key={i} />
-                  ))}
-                </div>
-              ) : comments.length > 0 ? (
-                // Actual Comments
-                <div className="space-y-4">
-                  {displayedComments.map((comment) => (
-                    <div key={comment.id} className="flex gap-3">
-                      <Avatar className="h-8 w-8 flex-shrink-0">
-                        <AvatarImage src={comment.profiles?.avatar_url} />
-                        <AvatarFallback>
-                          {comment.profiles?.username?.charAt(0)?.toUpperCase() || 'U'}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="flex-1 min-w-0">
-                        <div className="text-sm">
-                          <button 
-                            className="font-semibold mr-2 hover:underline"
-                            onClick={() => handleProfileClick(comment.user_id)}
-                          >
-                            {comment.profiles?.username || 'Unknown User'}
-                          </button>
-                          <span className="break-words">{comment.content}</span>
-                        </div>
-                        <div className="text-xs text-muted-foreground mt-1">
-                          {formatDistanceToNow(new Date(comment.created_at), { addSuffix: true })}
+              {/* Scrollable Comments Content */}
+              <div className="flex-1 overflow-y-auto px-4 py-3">
+                {commentsLoading ? (
+                  // Loading Skeletons
+                  <div className="space-y-4">
+                    {Array.from({ length: visibleCommentsCount }).map((_, i) => (
+                      <CommentSkeleton key={i} />
+                    ))}
+                  </div>
+                ) : comments.length > 0 ? (
+                  // Actual Comments
+                  <div className="space-y-4">
+                    {remainingCommentsCount > 0 && (
+                      <button className="text-sm text-muted-foreground hover:underline font-medium mb-4">
+                        View all {comments.length} comments
+                      </button>
+                    )}
+                    
+                    {displayedComments.map((comment) => (
+                      <div key={comment.id} className="flex gap-3">
+                        <Avatar className="h-8 w-8 flex-shrink-0">
+                          <AvatarImage src={comment.profiles?.avatar_url} />
+                          <AvatarFallback>
+                            {comment.profiles?.username?.charAt(0)?.toUpperCase() || 'U'}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1 min-w-0">
+                          <div className="text-sm">
+                            <button 
+                              className="font-semibold mr-2 hover:underline"
+                              onClick={() => handleProfileClick(comment.user_id)}
+                            >
+                              {comment.profiles?.username || 'Unknown User'}
+                            </button>
+                            <span className="break-words">{comment.content}</span>
+                          </div>
+                          <div className="text-xs text-muted-foreground mt-1">
+                            {formatDistanceToNow(new Date(comment.created_at), { addSuffix: true })}
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
-
-                  {remainingCommentsCount > 0 && (
-                    <button className="text-sm text-muted-foreground hover:underline font-medium">
-                      View all {comments.length} comments
-                    </button>
-                  )}
-                </div>
-              ) : (
-                // No Comments State
-                <div className="text-center py-8 text-muted-foreground">
-                  <MessageCircle className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                  <div className="text-sm font-medium">No comments yet</div>
-                  <div className="text-xs mt-1">Be the first to comment!</div>
-                </div>
-              )}
+                    ))}
+                  </div>
+                ) : (
+                  // No Comments State
+                  <div className="text-center py-8 text-muted-foreground">
+                    <MessageCircle className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                    <div className="text-sm font-medium">No comments yet</div>
+                    <div className="text-xs mt-1">Be the first to comment!</div>
+                  </div>
+                )}
+              </div>
             </div>
 
-            {/* Comment Input - Fixed at bottom on all devices */}
+            {/* Comment Input - Fixed at bottom */}
             <div className="flex-shrink-0 border-t border-border bg-background sticky bottom-0">
               {commentsLoading ? (
                 // Loading skeleton for comment input
