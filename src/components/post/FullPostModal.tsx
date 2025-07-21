@@ -189,9 +189,9 @@ const FullPostModal = ({
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl h-[90vh] p-0 overflow-hidden">
-        <div className="flex h-full">
-          {/* Left side - Image/Video */}
-          <div className="flex-1 bg-black flex items-center justify-center relative">
+        <div className="flex flex-col md:flex-row h-full">
+          {/* Image/Video Section - Full width on mobile, left side on desktop */}
+          <div className="w-full md:flex-1 bg-black flex items-center justify-center relative min-h-[40vh] md:min-h-full">
             <Button
               variant="ghost"
               size="icon"
@@ -206,7 +206,7 @@ const FullPostModal = ({
               <img
                 src={imageUrl}
                 alt="Post content"
-                className="max-w-full max-h-full object-contain w-full h-full"
+                className="w-full h-full object-contain max-w-full max-h-full"
                 onError={(e) => {
                   console.error('Image failed to load:', imageUrl);
                   e.currentTarget.style.display = 'none';
@@ -222,7 +222,7 @@ const FullPostModal = ({
               <video
                 src={post.video_url}
                 controls
-                className="max-w-full max-h-full object-contain w-full h-full"
+                className="w-full h-full object-contain max-w-full max-h-full"
               />
             )}
             
@@ -237,8 +237,8 @@ const FullPostModal = ({
             )}
           </div>
 
-          {/* Right side - Comments and interactions */}
-          <div className="w-96 flex flex-col bg-white">
+          {/* Comments and interactions section - Full width on mobile, right side on desktop */}
+          <div className="w-full md:w-96 flex flex-col bg-white">
             {/* Header */}
             <div className="p-4 border-b">
               <div className="flex items-center justify-between">
