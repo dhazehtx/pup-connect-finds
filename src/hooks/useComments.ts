@@ -22,6 +22,13 @@ export const useComments = (postId: string) => {
   const { toast } = useToast();
 
   const fetchComments = async () => {
+    // Skip if no postId
+    if (!postId) {
+      setComments([]);
+      setLoading(false);
+      return;
+    }
+
     try {
       const { data, error } = await supabase
         .from('comments')
@@ -51,6 +58,9 @@ export const useComments = (postId: string) => {
   };
 
   const addComment = async (content: string) => {
+    // Skip if no postId
+    if (!postId) return;
+
     try {
       const { data, error } = await supabase
         .from('comments')
@@ -88,6 +98,9 @@ export const useComments = (postId: string) => {
 
   useEffect(() => {
     fetchComments();
+
+    // Skip subscription setup if no postId
+    if (!postId) return;
 
     // Set up real-time subscription
     const channel = supabase

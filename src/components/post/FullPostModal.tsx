@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -58,12 +59,13 @@ const FullPostModal = ({
   const [newComment, setNewComment] = useState('');
   const [showFullCaption, setShowFullCaption] = useState(false);
   
-  // Use actual comments hook if post exists, otherwise use mock data
-  const { comments: realComments, addComment, loading } = post ? useComments(post.id) : { comments: [], addComment: () => {}, loading: false };
-  const { likesCount, isLiked, toggleLike } = post ? useRealtimePostLikes(post.id) : { likesCount: 0, isLiked: false, toggleLike: () => {} };
+  // Always call hooks - use empty string as fallback for postId to avoid conditional hook calls
+  const postId = post?.id || '';
+  const { comments: realComments, addComment, loading } = useComments(postId);
+  const { likesCount, isLiked, toggleLike } = useRealtimePostLikes(postId);
   
-  // Use real comments if available, otherwise fall back to initial comments
-  const comments = realComments.length > 0 ? realComments : initialComments;
+  // Use real comments if available and post exists, otherwise fall back to initial comments
+  const comments = post && realComments.length > 0 ? realComments : initialComments;
   
   useEffect(() => {
     if (!isOpen) {
@@ -72,11 +74,12 @@ const FullPostModal = ({
     }
   }, [isOpen]);
 
+  // Early return after all hooks have been called
   if (!post) return null;
 
   const handleSubmitComment = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newComment.trim()) return;
+    if (!newComment.trim() || !post) return;
     
     await addComment(newComment.trim());
     setNewComment('');
