@@ -36,9 +36,9 @@ const ProfileHeaderWithPresence = ({ profile }: ProfileHeaderWithPresenceProps) 
   // Convert followers/following data to the format expected by the modal
   const followersData = followers.map(follower => ({
     id: follower.follower_id,
-    full_name: follower.following_profile?.full_name || 'User',
-    username: follower.following_profile?.username || 'user',
-    avatar_url: follower.following_profile?.avatar_url,
+    full_name: follower.follower_profile?.full_name || 'User',
+    username: follower.follower_profile?.username || 'user',
+    avatar_url: follower.follower_profile?.avatar_url,
     verified: false,
     user_type: 'buyer'
   }));
