@@ -93,14 +93,14 @@ const FullPostModal = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl h-[90vh] p-0 overflow-hidden">
+      <DialogContent className="max-w-4xl max-h-[90vh] p-0 overflow-hidden">
         <VisuallyHidden>
           <DialogTitle>Post by {post.profiles?.username || 'Unknown User'}</DialogTitle>
         </VisuallyHidden>
         
-        <div className="flex flex-col md:flex-row h-full">
+        <div className="flex flex-col h-full max-h-[90vh] md:flex-row">
           {/* Image Section */}
-          <div className="bg-black flex items-center justify-center relative md:w-3/5 h-1/2 md:h-full">
+          <div className="bg-black flex items-center justify-center relative md:w-3/5">
             <Button
               variant="ghost"
               size="icon"
@@ -119,9 +119,9 @@ const FullPostModal = ({
           </div>
 
           {/* Content Section */}
-          <div className="flex flex-col md:w-2/5 h-1/2 md:h-full">
+          <div className="flex flex-col h-full md:w-2/5 min-h-0">
             {/* Header */}
-            <div className="flex items-center justify-between p-4 border-b bg-white">
+            <div className="flex items-center justify-between p-4 border-b flex-shrink-0">
               <div className="flex items-center space-x-3">
                 <Avatar 
                   className="h-8 w-8 cursor-pointer"
@@ -156,8 +156,8 @@ const FullPostModal = ({
               </div>
             </div>
 
-            {/* Scrollable Content */}
-            <div className="flex-1 overflow-y-auto bg-white">
+            {/* Scrollable Content Area */}
+            <div className="flex-1 overflow-y-auto min-h-0">
               <div className="p-4 space-y-4">
                 {/* Post Caption */}
                 {post.caption && (
@@ -168,7 +168,7 @@ const FullPostModal = ({
                         {post.profiles?.username?.[0]?.toUpperCase() || 'U'}
                       </AvatarFallback>
                     </Avatar>
-                    <div className="flex-1">
+                    <div className="flex-1 min-w-0">
                       <p className="text-sm">
                         <span className="font-semibold mr-2">
                           {post.profiles?.username || 'Unknown User'}
@@ -182,13 +182,13 @@ const FullPostModal = ({
                   </div>
                 )}
 
-                {/* Comments */}
+                {/* Comments Section */}
                 {displayComments.length > 0 && (
                   <div className="space-y-4">
                     {!showAllComments && displayComments.length > 2 && (
                       <button
                         onClick={() => setShowAllComments(true)}
-                        className="text-sm text-gray-500 hover:text-gray-700 px-3"
+                        className="text-sm text-gray-500 hover:text-gray-700"
                       >
                         View all {displayComments.length} comments
                       </button>
@@ -202,7 +202,7 @@ const FullPostModal = ({
                             {comment.profiles?.username?.[0]?.toUpperCase() || 'U'}
                           </AvatarFallback>
                         </Avatar>
-                        <div className="flex-1">
+                        <div className="flex-1 min-w-0">
                           <p className="text-sm">
                             <span className="font-semibold mr-2">
                               {comment.profiles?.username || 'Unknown User'}
@@ -221,7 +221,7 @@ const FullPostModal = ({
             </div>
 
             {/* Fixed Bottom Actions and Input */}
-            <div className="border-t bg-white">
+            <div className="border-t bg-white flex-shrink-0">
               {/* Action Buttons */}
               <div className="flex items-center justify-between p-4 pb-2">
                 <div className="flex items-center space-x-4">
