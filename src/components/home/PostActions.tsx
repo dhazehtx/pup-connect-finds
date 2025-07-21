@@ -1,16 +1,35 @@
 
-import React, { useState } from 'react';
+import React from 'react';
+import { Heart, MessageCircle, Share, Bookmark } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Share, Bookmark } from 'lucide-react';
-import AnimatedHeart from '@/components/ui/animated-heart';
-import { usePostLikes } from '@/hooks/usePostLikes';
-import CommentButton from '@/components/post/CommentButton';
-import CommentsModal from '@/components/post/CommentsModal';
-import { useToast } from '@/hooks/use-toast';
+
+interface User {
+  id: string;
+  name: string;
+  username: string;
+  avatar: string;
+  verified?: boolean;
+  isFollowing?: boolean;
+}
+
+interface Comment {
+  id: string;
+  user: {
+    id: string;
+    name: string;
+    username: string;
+    avatar: string;
+  };
+  text: string;
+  timestamp: string;
+  likes: number;
+  isLiked: boolean;
+  likedBy?: User[];
+}
 
 interface Post {
-  id: number;
-  postUuid: string; // Add the UUID for database operations
+  id: string;
+  postUuid: string;
   user: {
     id: string;
     username: string;
@@ -23,15 +42,17 @@ interface Post {
   isLiked: boolean;
   caption: string;
   timeAgo: string;
+  likedBy: User[];
+  comments: Comment[];
 }
 
 interface PostActionsProps {
   post: Post;
-  onLike: (postId: number) => void;
-  onComment: (postId: number) => void;
-  onShare: (postId: number) => void;
-  onBookmark: (postId: number) => void;
-  onShowLikes: (postId: number) => void;
+  onLike: (postId: string) => void;
+  onComment: (postId: string) => void;
+  onShare: (postId: string) => void;
+  onBookmark: (postId: string) => void;
+  onShowLikes: (postId: string) => void;
   onProfileClick: (userId: string) => void;
 }
 
@@ -44,121 +65,95 @@ const PostActions = ({
   onShowLikes,
   onProfileClick
 }: PostActionsProps) => {
-  // Use the actual UUID from the post
-  const { likesCount, isLiked, loading, toggleLike } = usePostLikes(post.postUuid);
-  const [showCommentsModal, setShowCommentsModal] = useState(false);
-  const { toast } = useToast();
-
-  const handleLikeToggle = async () => {
-    await toggleLike();
+  const handleLike = () => {
     onLike(post.id);
   };
 
-  const handleCommentClick = () => {
-    setShowCommentsModal(true);
+  const handleComment = () => {
     onComment(post.id);
   };
 
-  const handleShare = async () => {
-    const shareUrl = `${window.location.origin}/post/${post.postUuid}`;
-    
-    // Try native share API first (mobile devices)
-    if (navigator.share && navigator.canShare) {
-      try {
-        await navigator.share({
-          title: `Post by ${post.user.name}`,
-          text: post.caption,
-          url: shareUrl,
-        });
-        return;
-      } catch (error) {
-        // If user cancels share, don't show error
-        if (error.name === 'AbortError') {
-          return;
-        }
-      }
-    }
-
-    // Fallback: Copy to clipboard
-    try {
-      await navigator.clipboard.writeText(shareUrl);
-      toast({
-        title: "Link copied!",
-        description: "Post link has been copied to your clipboard.",
-      });
-    } catch (error) {
-      toast({
-        title: "Share failed",
-        description: "Unable to copy link to clipboard.",
-        variant: "destructive",
-      });
-    }
-
+  const handleShare = () => {
     onShare(post.id);
   };
 
+  const handleBookmark = () => {
+    onBookmark(post.id);
+  };
+
+  const handleShowLikes = () => {
+    onShowLikes(post.id);
+  };
+
   return (
-    <>
-      <div className="space-y-3">
-        {/* Action buttons */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-4">
-            <AnimatedHeart
-              isLiked={isLiked}
-              onToggle={handleLikeToggle}
-              size={24}
-              disabled={loading}
-            />
-            <CommentButton 
-              postId={post.postUuid}
-              onCommentClick={handleCommentClick}
-            />
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              className="p-0 h-auto"
-              onClick={handleShare}
-            >
-              <Share className="w-6 h-6" />
-            </Button>
-          </div>
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            className="p-0 h-auto"
-            onClick={() => onBookmark(post.id)}
+    <div className="space-y-3">
+      {/* Action buttons */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center space-x-4">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleLike}
+            className={`p-0 h-auto ${post.isLiked ? 'text-red-500' : 'text-gray-700'}`}
           >
-            <Bookmark className="w-6 h-6" />
+            <Heart className={`h-6 w-6 ${post.isLiked ? 'fill-current' : ''}`} />
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleComment}
+            className="p-0 h-auto text-gray-700"
+          >
+            <MessageCircle className="h-6 w-6" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleShare}
+            className="p-0 h-auto text-gray-700"
+          >
+            <Share className="h-6 w-6" />
           </Button>
         </div>
-
-        {/* Likes */}
-        <p 
-          className="font-semibold text-sm cursor-pointer hover:text-gray-600"
-          onClick={() => onShowLikes(post.id)}
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={handleBookmark}
+          className="p-0 h-auto text-gray-700"
         >
-          {likesCount.toLocaleString()} likes
-        </p>
-
-        {/* Caption */}
-        <div className="text-sm">
-          <span 
-            className="font-semibold cursor-pointer hover:underline"
-            onClick={() => onProfileClick(post.user.id)}
-          >
-            {post.user.username}
-          </span>{' '}
-          <span className="break-words">{post.caption}</span>
-        </div>
+          <Bookmark className="h-6 w-6" />
+        </Button>
       </div>
 
-      <CommentsModal
-        isOpen={showCommentsModal}
-        onClose={() => setShowCommentsModal(false)}
-        postId={post.postUuid}
-        onProfileClick={onProfileClick}
-      />
-    </>
+      {/* Likes count */}
+      <div className="space-y-2">
+        {post.likes > 0 && (
+          <p className="font-semibold text-sm cursor-pointer" onClick={handleShowLikes}>
+            {post.likes} {post.likes === 1 ? 'like' : 'likes'}
+          </p>
+        )}
+
+        {/* Caption */}
+        {post.caption && (
+          <div className="text-sm">
+            <span 
+              className="font-semibold cursor-pointer hover:underline mr-2"
+              onClick={() => onProfileClick(post.user.id)}
+            >
+              {post.user.username}
+            </span>
+            <span>{post.caption}</span>
+          </div>
+        )}
+
+        {/* Comments count */}
+        {post.comments.length > 0 && (
+          <p className="text-sm text-gray-500 cursor-pointer" onClick={handleComment}>
+            View all {post.comments.length} comments
+          </p>
+        )}
+      </div>
+    </div>
   );
 };
 
