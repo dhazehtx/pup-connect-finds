@@ -55,7 +55,7 @@ const FullPostModal = ({
 
   // Only use hooks when post exists
   const { likesCount, isLiked, toggleLike } = usePostLikes(post?.id || '');
-  const { comments, loading: commentsLoading, addComment, fetchComments } = useComments(post?.id || '');
+  const { comments, loading: commentsLoading, addComment } = useComments(post?.id || '');
 
   useEffect(() => {
     if (post && isOpen) {
@@ -67,8 +67,11 @@ const FullPostModal = ({
     return null;
   }
 
-  // Get the correct image URL
+  // Get the correct image URL - prioritize imageUrl, then image_url
   const imageUrl = post.imageUrl || post.image_url;
+  
+  console.log('Post data:', post);
+  console.log('Image URL:', imageUrl);
 
   const handleCommentSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -188,7 +191,7 @@ const FullPostModal = ({
       <DialogContent className="max-w-4xl h-[90vh] p-0 overflow-hidden">
         <div className="flex h-full">
           {/* Left side - Image/Video */}
-          <div className="flex-1 bg-black flex items-center justify-center">
+          <div className="flex-1 bg-black flex items-center justify-center relative">
             <Button
               variant="ghost"
               size="icon"
@@ -198,20 +201,39 @@ const FullPostModal = ({
               <X className="h-6 w-6" />
             </Button>
             
+            {/* Post Image */}
             {imageUrl && (
               <img
                 src={imageUrl}
                 alt="Post content"
                 className="max-w-full max-h-full object-contain w-full h-full"
+                onError={(e) => {
+                  console.error('Image failed to load:', imageUrl);
+                  e.currentTarget.style.display = 'none';
+                }}
+                onLoad={() => {
+                  console.log('Image loaded successfully:', imageUrl);
+                }}
               />
             )}
             
+            {/* Post Video */}
             {post.video_url && (
               <video
                 src={post.video_url}
                 controls
                 className="max-w-full max-h-full object-contain w-full h-full"
               />
+            )}
+            
+            {/* Fallback when no media */}
+            {!imageUrl && !post.video_url && (
+              <div className="flex items-center justify-center h-full w-full text-white">
+                <div className="text-center">
+                  <MessageCircle className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                  <p className="text-sm opacity-75">No media available</p>
+                </div>
+              </div>
             )}
           </div>
 
