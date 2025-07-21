@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import PostCard from './PostCard';
@@ -236,7 +235,6 @@ const HomeFeed = () => {
           setShowFullPostModal(false);
           setSelectedPost(null);
         }}
-        onProfileClick={handleProfileClick}
         onPostUpdate={handlePostUpdate}
         onPostDelete={handlePostDelete}
       />
