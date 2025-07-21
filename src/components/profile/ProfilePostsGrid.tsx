@@ -34,10 +34,6 @@ const ProfilePostsGrid = ({ userId }: ProfilePostsGridProps) => {
     handleCloseModal();
   };
 
-  const handleProfileClick = (userId: string) => {
-    console.log('Profile clicked:', userId);
-  };
-
   if (loading) {
     return <LoadingState message="Loading posts..." />;
   }
@@ -72,7 +68,6 @@ const ProfilePostsGrid = ({ userId }: ProfilePostsGridProps) => {
         post={selectedPost}
         isOpen={showModal}
         onClose={handleCloseModal}
-        onProfileClick={handleProfileClick}
         onPostUpdate={handlePostUpdate}
         onPostDelete={handlePostDelete}
       />
