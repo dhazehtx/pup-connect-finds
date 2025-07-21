@@ -18,6 +18,7 @@ import { formatDistanceToNow } from 'date-fns';
 import CommentsModal from './CommentsModal';
 import EditPostModal from '../home/EditPostModal';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useComments } from '@/hooks/useComments';
 
 interface FullPostModalProps {
   post: any;
@@ -26,6 +27,19 @@ interface FullPostModalProps {
   onProfileClick: (userId: string) => void;
   onPostUpdate?: (postId: string, newCaption: string) => void;
   onPostDelete?: (postId: string) => void;
+}
+
+interface Comment {
+  id: string;
+  content: string;
+  created_at: string;
+  user_id: string;
+  profiles?: {
+    full_name: string | null;
+    username: string | null;
+    avatar_url: string | null;
+  } | null;
+  replies?: Comment[];
 }
 
 const FullPostModal = ({ 
@@ -39,15 +53,21 @@ const FullPostModal = ({
   const { user } = useAuth();
   const { toast } = useToast();
   const isMobile = useIsMobile();
+  const { comments, loading, addComment } = useComments(post?.id);
   const [newComment, setNewComment] = useState('');
+  const [replyingTo, setReplyingTo] = useState<string | null>(null);
+  const [showAllComments, setShowAllComments] = useState(false);
   const [isLiked, setIsLiked] = useState(false);
   const [likesCount, setLikesCount] = useState(0);
   const [showComments, setShowComments] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [submittingComment, setSubmittingComment] = useState(false);
 
   if (!post) return null;
 
   const isOwner = user?.id === post.user_id;
+  const displayComments = showAllComments ? comments : comments.slice(0, 3);
+  const hasMoreComments = comments.length > 3;
 
   const handleLike = () => {
     if (!user) {
@@ -75,14 +95,19 @@ const FullPostModal = ({
     setShowComments(true);
   };
 
-  const handleAddComment = () => {
-    if (!newComment.trim()) return;
+  const handleAddComment = async () => {
+    if (!newComment.trim() || !user) return;
     
-    toast({
-      title: "Comment added!",
-      description: "Your comment has been posted",
-    });
-    setNewComment('');
+    setSubmittingComment(true);
+    try {
+      await addComment(newComment.trim());
+      setNewComment('');
+      setReplyingTo(null);
+    } catch (error) {
+      console.error('Error adding comment:', error);
+    } finally {
+      setSubmittingComment(false);
+    }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -90,6 +115,54 @@ const FullPostModal = ({
       handleAddComment();
     }
   };
+
+  const handleReply = (commentId: string, username: string) => {
+    setReplyingTo(commentId);
+    setNewComment(`@${username} `);
+  };
+
+  const handleUsernameClick = (username: string, userId: string) => {
+    onProfileClick(userId);
+  };
+
+  const renderComment = (comment: Comment, isReply = false) => (
+    <div key={comment.id} className={`${isReply ? 'ml-8 mt-2' : ''}`}>
+      <div className="flex gap-3">
+        <Avatar 
+          className="h-8 w-8 cursor-pointer hover:opacity-80 transition-opacity" 
+          onClick={() => handleUsernameClick(comment.profiles?.username || '', comment.user_id)}
+        >
+          <AvatarImage src={comment.profiles?.avatar_url || undefined} />
+          <AvatarFallback className="text-xs">
+            {comment.profiles?.full_name?.charAt(0) || 
+             comment.profiles?.username?.charAt(0) || 'U'}
+          </AvatarFallback>
+        </Avatar>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 mb-1">
+            <span 
+              className="font-medium text-sm cursor-pointer hover:underline"
+              onClick={() => handleUsernameClick(comment.profiles?.username || '', comment.user_id)}
+            >
+              {comment.profiles?.username || comment.profiles?.full_name || 'User'}
+            </span>
+            <span className="text-xs text-gray-500">
+              {formatDistanceToNow(new Date(comment.created_at), { addSuffix: true })}
+            </span>
+          </div>
+          <p className="text-sm break-words">{comment.content}</p>
+          {user && (
+            <button
+              onClick={() => handleReply(comment.id, comment.profiles?.username || 'User')}
+              className="text-xs text-gray-500 hover:text-gray-700 mt-1"
+            >
+              Reply
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
 
   const handleEdit = () => {
     setShowEditModal(true);
@@ -266,10 +339,38 @@ const FullPostModal = ({
 
                 {/* Comments Section */}
                 <div className="p-4">
-                  <div className="text-center text-gray-500 py-8">
-                    <p>No comments yet</p>
-                    <p className="text-sm">Be the first to comment!</p>
-                  </div>
+                  {loading ? (
+                    <div className="text-center text-gray-500 py-4">
+                      <p className="text-sm">Loading comments...</p>
+                    </div>
+                  ) : comments.length === 0 ? (
+                    <div className="text-center text-gray-500 py-8">
+                      <p>No comments yet</p>
+                      <p className="text-sm">Be the first to comment!</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      {displayComments.map((comment) => renderComment(comment))}
+                      
+                      {hasMoreComments && !showAllComments && (
+                        <button
+                          onClick={() => setShowAllComments(true)}
+                          className="text-sm text-gray-500 hover:text-gray-700 font-medium"
+                        >
+                          View all {comments.length} comments
+                        </button>
+                      )}
+                      
+                      {showAllComments && hasMoreComments && (
+                        <button
+                          onClick={() => setShowAllComments(false)}
+                          className="text-sm text-gray-500 hover:text-gray-700 font-medium"
+                        >
+                          Show less
+                        </button>
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -282,22 +383,34 @@ const FullPostModal = ({
                 `}>
                   <div className="flex items-center gap-2">
                     <Input
-                      placeholder="Add a comment..."
+                      placeholder={replyingTo ? "Add a reply..." : "Add a comment..."}
                       value={newComment}
                       onChange={(e) => setNewComment(e.target.value)}
                       onKeyPress={handleKeyPress}
+                      disabled={submittingComment}
                       className="flex-1 border-none focus:ring-0 p-0"
                     />
                     <Button 
                       onClick={handleAddComment}
-                      disabled={!newComment.trim()}
+                      disabled={!newComment.trim() || submittingComment}
                       variant="ghost"
                       size="sm"
                       className="text-blue-500 hover:text-blue-600 disabled:text-gray-400"
                     >
-                      Post
+                      {submittingComment ? 'Posting...' : 'Post'}
                     </Button>
                   </div>
+                  {replyingTo && (
+                    <button
+                      onClick={() => {
+                        setReplyingTo(null);
+                        setNewComment('');
+                      }}
+                      className="text-xs text-gray-500 hover:text-gray-700 mt-1"
+                    >
+                      Cancel reply
+                    </button>
+                  )}
                 </div>
               )}
             </div>
