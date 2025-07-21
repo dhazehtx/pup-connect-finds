@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Heart, MessageCircle, Share, MoreHorizontal, X } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -9,6 +9,7 @@ import { useRealtimePostLikes } from '@/hooks/useRealtimePostLikes';
 import { formatDistanceToNow } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
 import { Textarea } from '@/components/ui/textarea';
+import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
 
 interface Post {
   id: string;
@@ -42,6 +43,8 @@ interface FullPostModalProps {
   isOpen: boolean;
   onClose: () => void;
   onProfileClick?: (userId: string) => void;
+  onPostUpdate?: (postId: string, newCaption: string) => void;
+  onPostDelete?: (postId: string) => void;
   initialComments?: Comment[];
 }
 
@@ -50,6 +53,8 @@ const FullPostModal = ({
   isOpen, 
   onClose, 
   onProfileClick,
+  onPostUpdate,
+  onPostDelete,
   initialComments = []
 }: FullPostModalProps) => {
   const [newComment, setNewComment] = useState('');
@@ -89,9 +94,13 @@ const FullPostModal = ({
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl max-h-[90vh] p-0 overflow-hidden">
-        <div className="flex flex-col md:flex-row h-full">
+        <VisuallyHidden>
+          <DialogTitle>Post by {post.profiles?.username || 'Unknown User'}</DialogTitle>
+        </VisuallyHidden>
+        
+        <div className="flex flex-col h-full max-h-[90vh] md:flex-row">
           {/* Image Section */}
-          <div className="md:w-3/5 bg-black flex items-center justify-center relative">
+          <div className="bg-black flex items-center justify-center relative md:w-3/5">
             <Button
               variant="ghost"
               size="icon"
@@ -110,9 +119,9 @@ const FullPostModal = ({
           </div>
 
           {/* Content Section */}
-          <div className="md:w-2/5 flex flex-col h-full max-h-[90vh]">
+          <div className="flex flex-col h-full md:w-2/5 min-h-0">
             {/* Header */}
-            <div className="flex items-center justify-between p-4 border-b">
+            <div className="flex items-center justify-between p-4 border-b flex-shrink-0">
               <div className="flex items-center space-x-3">
                 <Avatar 
                   className="h-8 w-8 cursor-pointer"
@@ -147,19 +156,19 @@ const FullPostModal = ({
               </div>
             </div>
 
-            {/* Post Content and Comments */}
-            <div className="flex-1 overflow-y-auto">
-              {/* Post Caption */}
-              {post.caption && (
-                <div className="p-4 border-b">
+            {/* Scrollable Content Area */}
+            <div className="flex-1 overflow-y-auto min-h-0">
+              <div className="p-4 space-y-4">
+                {/* Post Caption */}
+                {post.caption && (
                   <div className="flex items-start space-x-3">
-                    <Avatar className="h-8 w-8">
+                    <Avatar className="h-8 w-8 flex-shrink-0">
                       <AvatarImage src={post.profiles?.avatar_url || ''} />
                       <AvatarFallback>
                         {post.profiles?.username?.[0]?.toUpperCase() || 'U'}
                       </AvatarFallback>
                     </Avatar>
-                    <div className="flex-1">
+                    <div className="flex-1 min-w-0">
                       <p className="text-sm">
                         <span className="font-semibold mr-2">
                           {post.profiles?.username || 'Unknown User'}
@@ -171,13 +180,11 @@ const FullPostModal = ({
                       </p>
                     </div>
                   </div>
-                </div>
-              )}
+                )}
 
-              {/* Comments Section */}
-              <div className="flex-1">
+                {/* Comments Section */}
                 {displayComments.length > 0 && (
-                  <div className="p-4 space-y-4">
+                  <div className="space-y-4">
                     {!showAllComments && displayComments.length > 2 && (
                       <button
                         onClick={() => setShowAllComments(true)}
@@ -189,13 +196,13 @@ const FullPostModal = ({
                     
                     {visibleComments.map((comment) => (
                       <div key={comment.id} className="flex items-start space-x-3">
-                        <Avatar className="h-8 w-8">
+                        <Avatar className="h-8 w-8 flex-shrink-0">
                           <AvatarImage src={comment.profiles?.avatar_url || ''} />
                           <AvatarFallback>
                             {comment.profiles?.username?.[0]?.toUpperCase() || 'U'}
                           </AvatarFallback>
                         </Avatar>
-                        <div className="flex-1">
+                        <div className="flex-1 min-w-0">
                           <p className="text-sm">
                             <span className="font-semibold mr-2">
                               {comment.profiles?.username || 'Unknown User'}
@@ -213,8 +220,8 @@ const FullPostModal = ({
               </div>
             </div>
 
-            {/* Actions and Comment Input */}
-            <div className="border-t">
+            {/* Fixed Bottom Actions and Input */}
+            <div className="border-t bg-white flex-shrink-0">
               {/* Action Buttons */}
               <div className="flex items-center justify-between p-4 pb-2">
                 <div className="flex items-center space-x-4">
