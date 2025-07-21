@@ -15,7 +15,7 @@ interface User {
 }
 
 interface Comment {
-  id: number;
+  id: string;
   user: {
     id: string;
     name: string;
@@ -30,7 +30,7 @@ interface Comment {
 }
 
 interface Post {
-  id: number;
+  id: string;
   postUuid: string;
   user: {
     id: string;
@@ -51,7 +51,7 @@ interface Post {
 // Mock data for testing purposes
 const initialMockPosts: Post[] = [
   {
-    id: 1,
+    id: '1',
     postUuid: '1',
     user: {
       id: '101',
@@ -69,7 +69,7 @@ const initialMockPosts: Post[] = [
     comments: [],
   },
   {
-    id: 2,
+    id: '2',
     postUuid: '2',
     user: {
       id: '102',
@@ -83,24 +83,6 @@ const initialMockPosts: Post[] = [
     isLiked: true,
     caption: 'Chasing squirrels is my cardio. 🐿️ #dogadventures #squirrelchase',
     timeAgo: '4 hours ago',
-    likedBy: [],
-    comments: [],
-  },
-  {
-    id: 3,
-    postUuid: '3',
-    user: {
-      id: '101',
-      username: 'mockUser1',
-      name: 'Mock User One',
-      location: 'Mockville',
-      avatar: 'https://i.pravatar.cc/150?img=1',
-    },
-    image: 'https://placedog.com/500/282',
-    likes: 18,
-    isLiked: false,
-    caption: 'Caught in the act of being cute. 🥰 #dogmodel #caughtintheact',
-    timeAgo: '6 hours ago',
     likedBy: [],
     comments: [],
   },
@@ -118,7 +100,7 @@ const HomeFeed = () => {
     // For now, we're using mock data
   }, []);
 
-  const handleLike = (postId: number) => {
+  const handleLike = (postId: string) => {
     setMockPosts((prevPosts) =>
       prevPosts.map((post) =>
         post.id === postId ? { ...post, isLiked: !post.isLiked, likes: post.isLiked ? post.likes - 1 : post.likes + 1 } : post
@@ -131,23 +113,23 @@ const HomeFeed = () => {
     // Add navigation logic here if needed
   };
 
-  const handleShare = (postId: number) => {
+  const handleShare = (postId: string) => {
     console.log(`Sharing post: ${postId}`);
   };
 
-  const handleBookmark = (postId: number) => {
+  const handleBookmark = (postId: string) => {
     console.log(`Bookmarking post: ${postId}`);
   };
 
-  const handleComment = (postId: number) => {
+  const handleComment = (postId: string) => {
     console.log(`Commenting on post: ${postId}`);
   };
 
-  const handleShowLikes = (postId: number) => {
+  const handleShowLikes = (postId: string) => {
     console.log(`Showing likes for post: ${postId}`);
   };
 
-  const handleCommentsUpdate = (postId: number) => (updateFn: (comments: Comment[]) => Comment[]) => {
+  const handleCommentsUpdate = (postId: string) => (updateFn: (comments: Comment[]) => Comment[]) => {
     setMockPosts((prevPosts) =>
       prevPosts.map((post) =>
         post.id === postId ? { ...post, comments: updateFn(post.comments) } : post
@@ -196,7 +178,7 @@ const HomeFeed = () => {
   };
 
   const mapDbPostToMockPost = (dbPost: any): Post => ({
-    id: parseInt(dbPost.id) || Math.random(),
+    id: dbPost.id,
     postUuid: dbPost.id,
     user: {
       id: dbPost.user_id,

@@ -1,10 +1,8 @@
 
 import React, { useState } from 'react';
 import { usePosts } from '@/hooks/usePosts';
-import { Heart, MessageCircle, Play } from 'lucide-react';
-import SkeletonLoader from '@/components/ui/skeleton-loader';
 import FullPostModal from '@/components/post/FullPostModal';
-import { useNavigate } from 'react-router-dom';
+import LoadingState from '@/components/ui/loading-state';
 
 interface ProfilePostsGridProps {
   userId: string;
@@ -13,36 +11,40 @@ interface ProfilePostsGridProps {
 const ProfilePostsGrid = ({ userId }: ProfilePostsGridProps) => {
   const { posts, loading } = usePosts(userId);
   const [selectedPost, setSelectedPost] = useState<any>(null);
-  const [showFullPostModal, setShowFullPostModal] = useState(false);
-  const navigate = useNavigate();
-
-  const handleProfileClick = (userId: string) => {
-    navigate(`/profile/${userId}`);
-  };
+  const [showModal, setShowModal] = useState(false);
 
   const handlePostClick = (post: any) => {
     setSelectedPost(post);
-    setShowFullPostModal(true);
+    setShowModal(true);
   };
 
   const handleCloseModal = () => {
-    setShowFullPostModal(false);
+    setShowModal(false);
     setSelectedPost(null);
   };
 
+  const handlePostUpdate = (postId: string, newCaption: string) => {
+    console.log('Post updated:', postId, newCaption);
+    // This would typically update the post in the local state
+  };
+
+  const handlePostDelete = (postId: string) => {
+    console.log('Post deleted:', postId);
+    // This would typically remove the post from the local state
+    handleCloseModal();
+  };
+
+  const handleProfileClick = (userId: string) => {
+    console.log('Profile clicked:', userId);
+  };
+
   if (loading) {
-    return (
-      <div className="grid grid-cols-3 gap-1">
-        {Array.from({ length: 9 }).map((_, i) => (
-          <SkeletonLoader key={i} variant="image" />
-        ))}
-      </div>
-    );
+    return <LoadingState message="Loading posts..." />;
   }
 
   if (posts.length === 0) {
     return (
-      <div className="text-center py-12">
+      <div className="text-center py-8">
         <p className="text-gray-500">No posts yet</p>
       </div>
     );
@@ -50,58 +52,29 @@ const ProfilePostsGrid = ({ userId }: ProfilePostsGridProps) => {
 
   return (
     <>
-      <div className="grid grid-cols-3 gap-1">
+      <div className="grid grid-cols-3 gap-1 md:gap-2">
         {posts.map((post) => (
-          <div 
-            key={post.id} 
-            className="relative aspect-square group cursor-pointer"
+          <div
+            key={post.id}
+            className="aspect-square cursor-pointer overflow-hidden rounded-sm hover:opacity-75 transition-opacity"
             onClick={() => handlePostClick(post)}
           >
-            {post.image_url ? (
-              <img
-                src={post.image_url}
-                alt={post.caption || 'Post'}
-                className="w-full h-full object-cover"
-              />
-            ) : post.video_url ? (
-              <div className="relative w-full h-full bg-gray-200 flex items-center justify-center">
-                <Play className="w-8 h-8 text-white" />
-                <video
-                  src={post.video_url}
-                  className="absolute inset-0 w-full h-full object-cover"
-                  muted
-                />
-              </div>
-            ) : (
-              <div className="w-full h-full bg-gray-100 flex items-center justify-center p-2">
-                <p className="text-xs text-gray-600 line-clamp-3 text-center">
-                  {post.caption}
-                </p>
-              </div>
-            )}
-            
-            {/* Hover overlay */}
-            <div className="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-              <div className="flex items-center space-x-4 text-white">
-                <div className="flex items-center">
-                  <Heart className="w-4 h-4 mr-1" />
-                  <span className="text-sm font-semibold">0</span>
-                </div>
-                <div className="flex items-center">
-                  <MessageCircle className="w-4 h-4 mr-1" />
-                  <span className="text-sm font-semibold">0</span>
-                </div>
-              </div>
-            </div>
+            <img
+              src={post.image_url || 'https://placedog.com/300/300'}
+              alt="Post"
+              className="w-full h-full object-cover"
+            />
           </div>
         ))}
       </div>
 
       <FullPostModal
         post={selectedPost}
-        isOpen={showFullPostModal}
+        isOpen={showModal}
         onClose={handleCloseModal}
         onProfileClick={handleProfileClick}
+        onPostUpdate={handlePostUpdate}
+        onPostDelete={handlePostDelete}
       />
     </>
   );

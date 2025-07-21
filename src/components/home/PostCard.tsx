@@ -15,7 +15,7 @@ interface User {
 }
 
 interface Comment {
-  id: number;
+  id: string;
   user: {
     id: string;
     name: string;
@@ -30,7 +30,7 @@ interface Comment {
 }
 
 interface Post {
-  id: number;
+  id: string;
   postUuid: string;
   user: {
     id: string;
@@ -50,12 +50,12 @@ interface Post {
 
 interface PostCardProps {
   post: Post;
-  onLike: (postId: number) => void;
+  onLike: (postId: string) => void;
   onProfileClick: (userId: string) => void;
-  onShare: (postId: number) => void;
-  onBookmark: (postId: number) => void;
-  onComment: (postId: number) => void;
-  onShowLikes: (postId: number) => void;
+  onShare: (postId: string) => void;
+  onBookmark: (postId: string) => void;
+  onComment: (postId: string) => void;
+  onShowLikes: (postId: string) => void;
   onCommentsUpdate: (updateFn: (comments: Comment[]) => Comment[]) => void;
   onPostUpdate: (postId: string, newCaption: string) => void;
   onPostDelete: (postId: string) => void;

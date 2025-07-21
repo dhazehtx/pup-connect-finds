@@ -4,58 +4,65 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 
-interface UserFollow {
+interface Follower {
   id: string;
   follower_id: string;
   following_id: string;
   created_at: string;
-  following_profile?: {
-    full_name: string | null;
-    username: string | null;
-    avatar_url: string | null;
-  };
 }
 
 export const useFollowSystem = (userId?: string) => {
-  const [followers, setFollowers] = useState<UserFollow[]>([]);
-  const [following, setFollowing] = useState<UserFollow[]>([]);
-  const [isFollowing, setIsFollowing] = useState(false);
-  const [loading, setLoading] = useState(false);
   const { user } = useAuth();
   const { toast } = useToast();
+  const [followers, setFollowers] = useState<Follower[]>([]);
+  const [following, setFollowing] = useState<Follower[]>([]);
+  const [isFollowing, setIsFollowing] = useState(false);
+  const [loading, setLoading] = useState(true);
 
-  const checkFollowStatus = async (targetUserId: string) => {
-    if (!user) return false;
+  const fetchFollowData = async () => {
+    if (!userId) return;
 
     try {
-      const { data, error } = await supabase
+      // Get followers
+      const { data: followersData, error: followersError } = await supabase
         .from('follows')
-        .select('id')
-        .eq('follower_id', user.id)
-        .eq('following_id', targetUserId)
-        .single();
+        .select('*')
+        .eq('following_id', userId);
 
-      if (error && error.code !== 'PGRST116') {
-        console.error('Error checking follow status:', error);
-        return false;
+      if (followersError) throw followersError;
+
+      // Get following
+      const { data: followingData, error: followingError } = await supabase
+        .from('follows')
+        .select('*')
+        .eq('follower_id', userId);
+
+      if (followingError) throw followingError;
+
+      setFollowers(followersData || []);
+      setFollowing(followingData || []);
+
+      // Check if current user is following this user
+      if (user?.id && userId !== user.id) {
+        const isUserFollowing = followersData?.some(
+          (follow) => follow.follower_id === user.id
+        );
+        setIsFollowing(!!isUserFollowing);
       }
-
-      return !!data;
     } catch (error) {
-      console.error('Error checking follow status:', error);
-      return false;
+      console.error('Error fetching follow data:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load follow data",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
     }
   };
 
   const followUser = async (targetUserId: string) => {
-    if (!user) {
-      toast({
-        title: "Error",
-        description: "You must be logged in to follow users",
-        variant: "destructive",
-      });
-      return false;
-    }
+    if (!user?.id || user.id === targetUserId) return;
 
     try {
       const { error } = await supabase
@@ -63,42 +70,36 @@ export const useFollowSystem = (userId?: string) => {
         .insert([
           {
             follower_id: user.id,
-            following_id: targetUserId
-          }
+            following_id: targetUserId,
+          },
         ]);
 
-      if (error) {
-        if (error.code === '23505') {
-          // Already following
-          toast({
-            title: "Info",
-            description: "You are already following this user",
-          });
-          return true;
-        }
-        throw error;
-      }
+      if (error) throw error;
 
       setIsFollowing(true);
+      setFollowers(prev => [...prev, {
+        id: '',
+        follower_id: user.id,
+        following_id: targetUserId,
+        created_at: new Date().toISOString(),
+      }]);
+
       toast({
         title: "Success",
-        description: "You are now following this user",
+        description: "User followed successfully",
       });
-
-      return true;
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error following user:', error);
       toast({
         title: "Error",
         description: "Failed to follow user",
         variant: "destructive",
       });
-      return false;
     }
   };
 
   const unfollowUser = async (targetUserId: string) => {
-    if (!user) return false;
+    if (!user?.id || user.id === targetUserId) return;
 
     try {
       const { error } = await supabase
@@ -110,103 +111,27 @@ export const useFollowSystem = (userId?: string) => {
       if (error) throw error;
 
       setIsFollowing(false);
+      setFollowers(prev => prev.filter(
+        follow => follow.follower_id !== user.id
+      ));
+
       toast({
         title: "Success",
-        description: "You have unfollowed this user",
+        description: "User unfollowed successfully",
       });
-
-      return true;
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error unfollowing user:', error);
       toast({
         title: "Error",
         description: "Failed to unfollow user",
         variant: "destructive",
       });
-      return false;
-    }
-  };
-
-  const getFollowers = async (targetUserId: string) => {
-    try {
-      setLoading(true);
-      const { data, error } = await supabase
-        .from('follows')
-        .select(`
-          id,
-          follower_id,
-          following_id,
-          created_at,
-          follower_profile:profiles!follows_follower_id_fkey (
-            full_name,
-            username,
-            avatar_url
-          )
-        `)
-        .eq('following_id', targetUserId)
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-
-      const followersWithProfile = (data || []).map(follow => ({
-        ...follow,
-        following_profile: follow.follower_profile
-      }));
-
-      setFollowers(followersWithProfile);
-    } catch (error) {
-      console.error('Error fetching followers:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load followers",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const getFollowing = async (targetUserId: string) => {
-    try {
-      setLoading(true);
-      const { data, error } = await supabase
-        .from('follows')
-        .select(`
-          id,
-          follower_id,
-          following_id,
-          created_at,
-          following_profile:profiles!follows_following_id_fkey (
-            full_name,
-            username,
-            avatar_url
-          )
-        `)
-        .eq('follower_id', targetUserId)
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-
-      setFollowing(data || []);
-    } catch (error) {
-      console.error('Error fetching following:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load following",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
     }
   };
 
   useEffect(() => {
-    if (userId && user) {
-      checkFollowStatus(userId).then(setIsFollowing);
-      getFollowers(userId);
-      getFollowing(userId);
-    }
-  }, [userId, user]);
+    fetchFollowData();
+  }, [userId, user?.id]);
 
   return {
     followers,
@@ -215,7 +140,6 @@ export const useFollowSystem = (userId?: string) => {
     loading,
     followUser,
     unfollowUser,
-    getFollowers,
-    getFollowing
+    refetch: fetchFollowData,
   };
 };

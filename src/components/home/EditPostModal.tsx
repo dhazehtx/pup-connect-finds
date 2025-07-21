@@ -12,7 +12,7 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 
 interface Post {
-  id: number;
+  id: string;
   postUuid: string;
   user: {
     id: string;
