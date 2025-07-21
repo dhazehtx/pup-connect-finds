@@ -10,7 +10,6 @@ import { usePostLikes } from '@/hooks/usePostLikes';
 import { useComments } from '@/hooks/useComments';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import CommentItem from './CommentItem';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -56,7 +55,7 @@ const FullPostModal = ({
 
   // Only use hooks when post exists
   const { likesCount, isLiked, toggleLike } = usePostLikes(post?.id || '');
-  const { comments, loading: commentsLoading, addComment, refetch } = useComments(post?.id || '');
+  const { comments, loading: commentsLoading, addComment, fetchComments } = useComments(post?.id || '');
 
   useEffect(() => {
     if (post && isOpen) {
@@ -299,11 +298,30 @@ const FullPostModal = ({
               ) : (
                 <div className="space-y-1">
                   {comments.map((comment) => (
-                    <CommentItem
-                      key={comment.id}
-                      comment={comment}
-                      onProfileClick={onProfileClick}
-                    />
+                    <div key={comment.id} className="p-4 hover:bg-gray-50">
+                      <div className="flex items-start space-x-3">
+                        <Avatar className="h-8 w-8">
+                          <AvatarImage src={comment.profiles?.avatar_url || undefined} />
+                          <AvatarFallback>
+                            {comment.profiles?.full_name?.charAt(0) || 'U'}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1">
+                          <div className="flex items-center space-x-2">
+                            <button
+                              onClick={() => onProfileClick && onProfileClick(comment.user_id)}
+                              className="text-sm font-semibold hover:text-gray-500"
+                            >
+                              {comment.profiles?.username || 'Unknown User'}
+                            </button>
+                            <span className="text-xs text-gray-500">
+                              {new Date(comment.created_at).toLocaleDateString()}
+                            </span>
+                          </div>
+                          <p className="text-sm mt-1">{comment.content}</p>
+                        </div>
+                      </div>
+                    </div>
                   ))}
                 </div>
               )}
