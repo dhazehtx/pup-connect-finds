@@ -132,7 +132,7 @@ const FullPostModal = ({
       <Dialog open={isOpen} onOpenChange={onClose}>
         <DialogContent className={`${isMobile ? 'max-w-full h-full m-0 rounded-none' : 'max-w-4xl max-h-[90vh]'} p-0 overflow-hidden`}>
           <div className={`${isMobile ? 'h-full' : 'max-h-[90vh]'} flex ${isMobile ? 'flex-col' : 'flex-row'}`}>
-            {/* Image Section - Fixed mobile scaling */}
+            {/* Image Section */}
             <div className={`${isMobile ? 'flex-shrink-0' : 'flex-1'} bg-black flex items-center justify-center relative`}>
               <Button
                 variant="ghost"
@@ -150,7 +150,7 @@ const FullPostModal = ({
                   className={`
                     w-full h-auto object-contain
                     ${isMobile 
-                      ? 'max-h-[50vh] min-h-[200px]' 
+                      ? 'max-h-[40vh] min-h-[200px]' 
                       : 'max-h-[80vh]'
                     }
                   `}
@@ -158,9 +158,9 @@ const FullPostModal = ({
               </div>
             </div>
 
-            {/* Content Section - Fixed mobile layout */}
-            <div className={`${isMobile ? 'flex-1 min-h-0' : 'w-96'} bg-white flex flex-col`}>
-              {/* Header */}
+            {/* Content Section - Fixed mobile layout with sticky comment input */}
+            <div className={`${isMobile ? 'flex-1 min-h-0' : 'w-96'} bg-white flex flex-col relative`}>
+              {/* Header - Fixed at top */}
               <div className="p-4 border-b flex items-center justify-between flex-shrink-0">
                 <div className="flex items-center gap-3">
                   <Avatar 
@@ -204,8 +204,8 @@ const FullPostModal = ({
                 )}
               </div>
 
-              {/* Scrollable Content Area */}
-              <div className="flex-1 overflow-y-auto min-h-0">
+              {/* Scrollable Content Area - Takes remaining space minus comment input */}
+              <div className={`flex-1 overflow-y-auto ${user ? 'pb-16' : 'pb-4'}`}>
                 {/* Actions */}
                 <div className="p-4 border-b">
                   <div className="flex items-center gap-4 mb-3">
@@ -265,7 +265,7 @@ const FullPostModal = ({
                 </div>
 
                 {/* Comments Section */}
-                <div className="p-4 pb-0">
+                <div className="p-4">
                   <div className="text-center text-gray-500 py-8">
                     <p>No comments yet</p>
                     <p className="text-sm">Be the first to comment!</p>
@@ -273,11 +273,12 @@ const FullPostModal = ({
                 </div>
               </div>
 
-              {/* Fixed Comment Input - Always visible */}
+              {/* Fixed Comment Input at Bottom - Always visible */}
               {user && (
                 <div className={`
-                  border-t bg-white flex-shrink-0
+                  absolute bottom-0 left-0 right-0 bg-white border-t
                   ${isMobile ? 'p-3' : 'p-4'}
+                  z-10
                 `}>
                   <div className="flex items-center gap-2">
                     <Input
