@@ -158,10 +158,10 @@ const FullPostModal = ({
               </div>
             </div>
 
-            {/* Content Section */}
+            {/* Content Section - Fixed mobile layout */}
             <div className={`${isMobile ? 'flex-1 min-h-0' : 'w-96'} bg-white flex flex-col`}>
               {/* Header */}
-              <div className="p-4 border-b flex items-center justify-between">
+              <div className="p-4 border-b flex items-center justify-between flex-shrink-0">
                 <div className="flex items-center gap-3">
                   <Avatar 
                     className="h-8 w-8 cursor-pointer" 
@@ -204,75 +204,81 @@ const FullPostModal = ({
                 )}
               </div>
 
-              {/* Actions */}
-              <div className="p-4 border-b">
-                <div className="flex items-center gap-4 mb-3">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={handleLike}
-                    className="p-0 h-auto hover:bg-transparent"
-                  >
-                    <Heart 
-                      size={24} 
-                      className={`${isLiked ? 'fill-red-500 text-red-500' : 'text-gray-700'} hover:text-gray-900`} 
-                    />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={handleComment}
-                    className="p-0 h-auto hover:bg-transparent"
-                  >
-                    <MessageCircle size={24} className="text-gray-700 hover:text-gray-900" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="p-0 h-auto hover:bg-transparent"
-                  >
-                    <Send size={24} className="text-gray-700 hover:text-gray-900" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="p-0 h-auto hover:bg-transparent ml-auto"
-                  >
-                    <Bookmark size={24} className="text-gray-700 hover:text-gray-900" />
-                  </Button>
+              {/* Scrollable Content Area */}
+              <div className="flex-1 overflow-y-auto min-h-0">
+                {/* Actions */}
+                <div className="p-4 border-b">
+                  <div className="flex items-center gap-4 mb-3">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={handleLike}
+                      className="p-0 h-auto hover:bg-transparent"
+                    >
+                      <Heart 
+                        size={24} 
+                        className={`${isLiked ? 'fill-red-500 text-red-500' : 'text-gray-700'} hover:text-gray-900`} 
+                      />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={handleComment}
+                      className="p-0 h-auto hover:bg-transparent"
+                    >
+                      <MessageCircle size={24} className="text-gray-700 hover:text-gray-900" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="p-0 h-auto hover:bg-transparent"
+                    >
+                      <Send size={24} className="text-gray-700 hover:text-gray-900" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="p-0 h-auto hover:bg-transparent ml-auto"
+                    >
+                      <Bookmark size={24} className="text-gray-700 hover:text-gray-900" />
+                    </Button>
+                  </div>
+
+                  <p className="font-medium text-sm mb-2">
+                    {likesCount.toLocaleString()} likes
+                  </p>
+
+                  {/* Caption */}
+                  <div className="mb-2">
+                    <span 
+                      className="font-medium text-sm mr-2 cursor-pointer hover:underline"
+                      onClick={() => onProfileClick(post.user_id)}
+                    >
+                      {post.profiles?.username}
+                    </span>
+                    <span className="text-sm">{post.caption}</span>
+                  </div>
+
+                  <p className="text-xs text-gray-500">
+                    {formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}
+                  </p>
                 </div>
 
-                <p className="font-medium text-sm mb-2">
-                  {likesCount.toLocaleString()} likes
-                </p>
-
-                {/* Caption */}
-                <div className="mb-2">
-                  <span 
-                    className="font-medium text-sm mr-2 cursor-pointer hover:underline"
-                    onClick={() => onProfileClick(post.user_id)}
-                  >
-                    {post.profiles?.username}
-                  </span>
-                  <span className="text-sm">{post.caption}</span>
+                {/* Comments Section */}
+                <div className="p-4 pb-0">
+                  <div className="text-center text-gray-500 py-8">
+                    <p>No comments yet</p>
+                    <p className="text-sm">Be the first to comment!</p>
+                  </div>
                 </div>
-
-                <p className="text-xs text-gray-500">
-                  {formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}
-                </p>
               </div>
 
-              {/* Comments Section - Scrollable */}
-              <div className="flex-1 overflow-y-auto p-4">
-                <div className="text-center text-gray-500 py-8">
-                  <p>No comments yet</p>
-                  <p className="text-sm">Be the first to comment!</p>
-                </div>
-              </div>
-
-              {/* Add Comment */}
+              {/* Fixed Comment Input - Always visible */}
               {user && (
-                <div className="p-4 border-t">
+                <div className={`
+                  border-t bg-white flex-shrink-0
+                  ${isMobile ? 'p-3' : 'p-4'}
+                `}>
                   <div className="flex items-center gap-2">
                     <Input
                       placeholder="Add a comment..."
