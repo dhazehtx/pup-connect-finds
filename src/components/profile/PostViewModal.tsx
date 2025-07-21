@@ -7,9 +7,10 @@ interface PostViewModalProps {
   onClose: () => void;
   postUrl: string;
   onShowLikes: () => void;
+  onProfileClick?: (userId: string) => void;
 }
 
-const PostViewModal = ({ isOpen, onClose, postUrl, onShowLikes }: PostViewModalProps) => {
+const PostViewModal = ({ isOpen, onClose, postUrl, onShowLikes, onProfileClick }: PostViewModalProps) => {
   // Mock post data - you can replace this with actual post data
   const mockPost = {
     id: '1',
@@ -25,17 +26,12 @@ const PostViewModal = ({ isOpen, onClose, postUrl, onShowLikes }: PostViewModalP
     }
   };
 
-  const handleProfileClick = (userId: string) => {
-    // Handle profile navigation
-    console.log('Navigate to profile:', userId);
-  };
-
   return (
     <FullPostModal
       post={mockPost}
       isOpen={isOpen}
       onClose={onClose}
-      onProfileClick={handleProfileClick}
+      onProfileClick={onProfileClick}
     />
   );
 };
