@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import PostCard from './PostCard';
 import { usePosts } from '@/hooks/usePosts';
+import FullPostModal from '@/components/post/FullPostModal';
 
 interface User {
   id: string;
@@ -109,6 +110,8 @@ const HomeFeed = () => {
   const { user } = useAuth();
   const { posts: dbPosts, loading } = usePosts();
   const [mockPosts, setMockPosts] = useState(initialMockPosts);
+  const [selectedPost, setSelectedPost] = useState<any>(null);
+  const [showFullPostModal, setShowFullPostModal] = useState(false);
 
   useEffect(() => {
     // You can fetch real posts from an API here
@@ -168,10 +171,32 @@ const HomeFeed = () => {
     setMockPosts(prevPosts => 
       prevPosts.filter(post => post.postUuid !== postId)
     );
+    setShowFullPostModal(false);
+    setSelectedPost(null);
+  };
+
+  const handleImageClick = (post: Post) => {
+    // Convert the post format for the modal
+    const modalPost = {
+      id: post.postUuid,
+      user_id: post.user.id,
+      caption: post.caption,
+      image_url: post.image,
+      video_url: null,
+      created_at: new Date().toISOString(),
+      profiles: {
+        full_name: post.user.name,
+        username: post.user.username,
+        avatar_url: post.user.avatar,
+      }
+    };
+    
+    setSelectedPost(modalPost);
+    setShowFullPostModal(true);
   };
 
   const mapDbPostToMockPost = (dbPost: any): Post => ({
-    id: dbPost.id,
+    id: parseInt(dbPost.id) || Math.random(),
     postUuid: dbPost.id,
     user: {
       id: dbPost.user_id,
@@ -200,25 +225,40 @@ const HomeFeed = () => {
   }
 
   return (
-    <div className="w-full max-w-md sm:max-w-lg md:max-w-xl lg:max-w-2xl xl:max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
-      <div className="space-y-6 sm:space-y-8">
-        {currentPosts.map((post) => (
-          <PostCard
-            key={post.id}
-            post={post}
-            onLike={handleLike}
-            onProfileClick={handleProfileClick}
-            onShare={handleShare}
-            onBookmark={handleBookmark}
-            onComment={handleComment}
-            onShowLikes={handleShowLikes}
-            onCommentsUpdate={handleCommentsUpdate(post.id)}
-            onPostUpdate={handlePostUpdate}
-            onPostDelete={handlePostDelete}
-          />
-        ))}
+    <>
+      <div className="w-full max-w-md sm:max-w-lg md:max-w-xl lg:max-w-2xl xl:max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
+        <div className="space-y-6 sm:space-y-8">
+          {currentPosts.map((post) => (
+            <PostCard
+              key={post.id}
+              post={post}
+              onLike={handleLike}
+              onProfileClick={handleProfileClick}
+              onShare={handleShare}
+              onBookmark={handleBookmark}
+              onComment={handleComment}
+              onShowLikes={handleShowLikes}
+              onCommentsUpdate={handleCommentsUpdate(post.id)}
+              onPostUpdate={handlePostUpdate}
+              onPostDelete={handlePostDelete}
+              onImageClick={handleImageClick}
+            />
+          ))}
+        </div>
       </div>
-    </div>
+
+      <FullPostModal
+        post={selectedPost}
+        isOpen={showFullPostModal}
+        onClose={() => {
+          setShowFullPostModal(false);
+          setSelectedPost(null);
+        }}
+        onProfileClick={handleProfileClick}
+        onPostUpdate={handlePostUpdate}
+        onPostDelete={handlePostDelete}
+      />
+    </>
   );
 };
 

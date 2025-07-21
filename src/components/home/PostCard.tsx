@@ -4,7 +4,6 @@ import { Card, CardContent } from '@/components/ui/card';
 import PostActions from './PostActions';
 import PostHeader from './PostHeader';
 import EditPostModal from './EditPostModal';
-import FullPostModal from '@/components/post/FullPostModal';
 
 interface User {
   id: string;
@@ -32,7 +31,7 @@ interface Comment {
 
 interface Post {
   id: number;
-  postUuid: string; // Add the UUID for database operations
+  postUuid: string;
   user: {
     id: string;
     username: string;
@@ -60,6 +59,7 @@ interface PostCardProps {
   onCommentsUpdate: (updateFn: (comments: Comment[]) => Comment[]) => void;
   onPostUpdate: (postId: string, newCaption: string) => void;
   onPostDelete: (postId: string) => void;
+  onImageClick?: (post: Post) => void;
 }
 
 const PostCard = ({
@@ -72,33 +72,16 @@ const PostCard = ({
   onShowLikes,
   onCommentsUpdate,
   onPostUpdate,
-  onPostDelete
+  onPostDelete,
+  onImageClick
 }: PostCardProps) => {
-  const [showFullPostModal, setShowFullPostModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingPost, setEditingPost] = useState<Post | null>(null);
 
-  // Convert the post format for the modal
-  const modalPost = {
-    id: post.postUuid,
-    user_id: post.user.id,
-    caption: post.caption,
-    image_url: post.image,
-    video_url: null,
-    created_at: new Date().toISOString(),
-    profiles: {
-      full_name: post.user.name,
-      username: post.user.username,
-      avatar_url: post.user.avatar,
-    }
-  };
-
   const handleImageClick = () => {
-    setShowFullPostModal(true);
-  };
-
-  const handleCloseModal = () => {
-    setShowFullPostModal(false);
+    if (onImageClick) {
+      onImageClick(post);
+    }
   };
 
   const handleEdit = (postToEdit: Post) => {
@@ -164,13 +147,6 @@ const PostCard = ({
           </div>
         </CardContent>
       </Card>
-
-      <FullPostModal
-        post={modalPost}
-        isOpen={showFullPostModal}
-        onClose={handleCloseModal}
-        onProfileClick={onProfileClick}
-      />
 
       <EditPostModal
         post={editingPost}
