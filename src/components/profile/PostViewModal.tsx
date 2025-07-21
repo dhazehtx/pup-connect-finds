@@ -25,11 +25,17 @@ const PostViewModal = ({ isOpen, onClose, postUrl, onShowLikes }: PostViewModalP
     }
   };
 
+  const handleProfileClick = (userId: string) => {
+    // Handle profile navigation
+    console.log('Navigate to profile:', userId);
+  };
+
   return (
     <FullPostModal
       post={mockPost}
       isOpen={isOpen}
       onClose={onClose}
+      onProfileClick={handleProfileClick}
     />
   );
 };

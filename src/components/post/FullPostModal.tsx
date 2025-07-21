@@ -18,21 +18,14 @@ interface FullPostModalProps {
   isOpen: boolean;
   onClose: () => void;
   onShare?: (post: any) => void;
-  onPostUpdate?: (postId: string, newCaption: string) => void;
-  onPostDelete?: (postId: string) => void;
 }
 
-const FullPostModal = ({ post, isOpen, onClose, onShare, onPostUpdate, onPostDelete }: FullPostModalProps) => {
+const FullPostModal = ({ post, isOpen, onClose, onShare }: FullPostModalProps) => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
-  
-  // Guard against null/undefined post
-  const postId = post?.id;
-  const isPostValid = postId && post;
-  
-  const { comments, loading: commentsLoading, addComment } = useComments(postId || '');
-  const { likesCount, isLiked, loading: likesLoading, toggleLike } = usePostLikes(postId || '');
+  const { comments, loading: commentsLoading, addComment } = useComments(post.id);
+  const { likesCount, isLiked, loading: likesLoading, toggleLike } = usePostLikes(post.id);
   
   const [newComment, setNewComment] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -41,7 +34,7 @@ const FullPostModal = ({ post, isOpen, onClose, onShare, onPostUpdate, onPostDel
 
   const handleSubmitComment = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newComment.trim() || !user || !isPostValid) return;
+    if (!newComment.trim() || !user) return;
 
     setIsSubmitting(true);
     try {
@@ -63,7 +56,7 @@ const FullPostModal = ({ post, isOpen, onClose, onShare, onPostUpdate, onPostDel
   };
 
   const handleLike = async () => {
-    if (!user || !isPostValid) {
+    if (!user) {
       toast({
         title: "Login required",
         description: "Please log in to like posts",
@@ -81,10 +74,12 @@ const FullPostModal = ({ post, isOpen, onClose, onShare, onPostUpdate, onPostDel
 
   const handleReply = (commentId: string) => {
     setReplyingTo(commentId);
+    // You can implement reply functionality here
     console.log('Replying to comment:', commentId);
   };
 
   const handleUsernameClick = (username: string) => {
+    // Navigate to user profile
     navigate(`/profile/${username}`);
     onClose();
   };
@@ -92,8 +87,7 @@ const FullPostModal = ({ post, isOpen, onClose, onShare, onPostUpdate, onPostDel
   const displayedComments = showAllComments ? comments : comments.slice(0, 3);
   const hasMoreComments = comments.length > 3;
 
-  // Don't render if post is invalid
-  if (!isPostValid) return null;
+  if (!post) return null;
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -103,16 +97,16 @@ const FullPostModal = ({ post, isOpen, onClose, onShare, onPostUpdate, onPostDel
           <div className="flex items-center justify-between p-4 border-b">
             <div className="flex items-center gap-3">
               <Avatar className="w-8 h-8">
-                <AvatarImage src={post.user?.avatar || post.profiles?.avatar_url} />
+                <AvatarImage src={post.user?.avatar} />
                 <AvatarFallback>
-                  {post.user?.name?.charAt(0) || post.profiles?.full_name?.charAt(0) || 'U'}
+                  {post.user?.name?.charAt(0) || 'U'}
                 </AvatarFallback>
               </Avatar>
               <button
-                onClick={() => handleProfileClick(post.user?.id || post.user_id)}
+                onClick={() => handleProfileClick(post.user?.id)}
                 className="font-medium hover:underline"
               >
-                {post.user?.name || post.profiles?.full_name || 'Unknown User'}
+                {post.user?.name}
               </button>
             </div>
             <div className="flex items-center gap-2">
@@ -130,7 +124,7 @@ const FullPostModal = ({ post, isOpen, onClose, onShare, onPostUpdate, onPostDel
             {/* Post Image */}
             <div className="relative bg-black flex items-center justify-center">
               <img
-                src={post.image || post.image_url}
+                src={post.image}
                 alt="Post"
                 className="max-w-full max-h-[50vh] object-contain"
               />
@@ -175,7 +169,7 @@ const FullPostModal = ({ post, isOpen, onClose, onShare, onPostUpdate, onPostDel
               {post.caption && (
                 <div className="mb-3">
                   <span className="font-medium text-sm mr-2">
-                    {post.user?.username || post.profiles?.username || 'user'}
+                    {post.user?.username}
                   </span>
                   <span className="text-sm">{post.caption}</span>
                 </div>
@@ -234,11 +228,11 @@ const FullPostModal = ({ post, isOpen, onClose, onShare, onPostUpdate, onPostDel
                 value={newComment}
                 onChange={(e) => setNewComment(e.target.value)}
                 className="flex-1 border-none focus:ring-0 focus-visible:ring-0"
-                disabled={!user || !isPostValid}
+                disabled={!user}
               />
               <Button
                 type="submit"
-                disabled={!newComment.trim() || isSubmitting || !user || !isPostValid}
+                disabled={!newComment.trim() || isSubmitting || !user}
                 variant="ghost"
                 size="sm"
                 className="text-blue-500 hover:text-blue-600 disabled:text-gray-400"
