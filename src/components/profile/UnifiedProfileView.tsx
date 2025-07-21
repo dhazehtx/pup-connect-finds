@@ -1,32 +1,34 @@
-
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { MapPin, Globe, Calendar, UserPlus, UserCheck } from 'lucide-react';
-import ProfileSettings from './ProfileSettings';
-import ProfileSettingsModal from './ProfileSettingsModal';
-import ProfilePostsGrid from './ProfilePostsGrid';
-import LoadingState from '@/components/ui/loading-state';
-import { useFollowSystem } from '@/hooks/useFollowSystem';
 import { usePosts } from '@/hooks/usePosts';
+import { useFollow } from '@/hooks/useFollow';
+import LoadingState from '@/components/ui/loading-state';
+import ProfileHeader from './ProfileHeader';
+import PostGrid from './PostGrid';
+import EditPostModal from '@/components/home/EditPostModal';
+import FullPostModal from '@/components/post/FullPostModal';
 
 interface Profile {
   id: string;
-  full_name: string;
-  username: string;
-  bio: string;
-  location: string;
-  website_url: string;
-  avatar_url: string;
-  user_type: string;
-  verified: boolean;
+  email: string;
+  full_name: string | null;
+  username: string | null;
+  bio: string | null;
+  location: string | null;
+  avatar_url: string | null;
+  website: string | null;
+  user_type: 'buyer' | 'seller' | 'both';
   rating: number;
   total_reviews: number;
-  years_experience: number;
   created_at: string;
+  privacy_settings: any;
+  social_links: any;
+  follower_count?: number;
+  following_count?: number;
+  post_count?: number;
+  verified?: boolean;
 }
 
 interface UnifiedProfileViewProps {
@@ -36,46 +38,142 @@ interface UnifiedProfileViewProps {
 
 const UnifiedProfileView = ({ userId, isCurrentUser }: UnifiedProfileViewProps) => {
   const { user } = useAuth();
+  const { toast } = useToast();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
-  const [showSettings, setShowSettings] = useState(false);
-  const [activeTab, setActiveTab] = useState('posts');
+  const [editingPost, setEditingPost] = useState<any>(null);
+  const [selectedPost, setSelectedPost] = useState<any>(null);
+  const [isFullPostModalOpen, setIsFullPostModalOpen] = useState(false);
 
-  const profileId = userId || user?.id;
-  const { followers, following, isFollowing, followUser, unfollowUser } = useFollowSystem(profileId);
-  const { postCount } = usePosts(profileId);
+  const targetUserId = userId || user?.id;
+  const { posts, loading: postsLoading, fetchPosts } = usePosts(targetUserId);
+  const { isFollowing, followerCount, followingCount, toggleFollow } = useFollow(targetUserId || '');
 
   useEffect(() => {
-    if (profileId) {
-      fetchProfile();
-    }
-  }, [profileId]);
+    const fetchProfile = async () => {
+      setLoading(true);
+      try {
+        const { data: profileData, error: profileError } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', targetUserId)
+          .single();
 
-  const fetchProfile = async () => {
+        if (profileError) {
+          console.error('Error fetching profile:', profileError);
+          toast({
+            title: "Error",
+            description: "Failed to load profile",
+            variant: "destructive",
+          });
+        }
+
+        const { data: followerData } = await supabase
+          .from('followers')
+          .select('*', { count: 'exact' })
+          .eq('following_id', targetUserId);
+
+        const { data: followingData } = await supabase
+          .from('followers')
+          .select('*', { count: 'exact' })
+          .eq('follower_id', targetUserId);
+
+        const { data: postData } = await supabase
+          .from('posts')
+          .select('*', { count: 'exact' })
+          .eq('user_id', targetUserId);
+
+        setProfile({
+          ...profileData,
+          follower_count: followerData ? followerData.length : 0,
+          following_count: followingData ? followingData.length : 0,
+          post_count: postData ? postData.length : 0,
+        } as Profile);
+      } catch (error) {
+        console.error('Error fetching profile:', error);
+        toast({
+          title: "Error",
+          description: "Failed to load profile",
+          variant: "destructive",
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProfile();
+  }, [targetUserId, toast]);
+
+  const handlePostUpdate = (postId: string, newCaption: string) => {
+    // Update the post in the local state
+    fetchPosts(); // Refresh posts
+    setEditingPost(null);
+    
+    toast({
+      title: "Post updated",
+      description: "Your post has been successfully updated.",
+    });
+  };
+
+  const handlePostDelete = async (postId: string) => {
     try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', profileId)
-        .single();
+      // Delete from Supabase
+      const { error } = await supabase
+        .from('posts')
+        .delete()
+        .eq('id', postId);
 
       if (error) throw error;
-      setProfile(data);
+
+      // Refresh posts
+      fetchPosts();
+      
+      toast({
+        title: "Post deleted",
+        description: "Your post has been successfully deleted.",
+      });
     } catch (error) {
-      console.error('Error fetching profile:', error);
-    } finally {
-      setLoading(false);
+      console.error('Error deleting post:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete post. Please try again.",
+        variant: "destructive",
+      });
     }
   };
 
-  const handleFollowToggle = async () => {
-    if (!profileId) return;
-    
-    if (isFollowing) {
-      await unfollowUser(profileId);
-    } else {
-      await followUser(profileId);
-    }
+  const handlePostClick = (post: any) => {
+    setSelectedPost(post);
+    setIsFullPostModalOpen(true);
+  };
+
+  const handleEditPost = (post: any) => {
+    // Transform the post data for EditPostModal
+    const transformedPost = {
+      id: parseInt(post.id) || 0,
+      postUuid: post.id,
+      user: {
+        id: post.user_id,
+        username: post.profiles?.username || post.profiles?.full_name || 'User',
+        name: post.profiles?.full_name || post.profiles?.username || 'User',
+        location: 'Location',
+        avatar: post.profiles?.avatar_url || `https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&h=150&fit=crop&crop=face`
+      },
+      image: post.image_url || '',
+      likes: 0,
+      isLiked: false,
+      caption: post.caption || '',
+      timeAgo: 'now'
+    };
+    setEditingPost(transformedPost);
+  };
+
+  const handlePostUpdateFromModal = (postId: string, newCaption: string) => {
+    fetchPosts(); // Refresh posts
+  };
+
+  const handlePostDeleteFromModal = (postId: string) => {
+    fetchPosts(); // Refresh posts
   };
 
   if (loading) {
@@ -84,173 +182,62 @@ const UnifiedProfileView = ({ userId, isCurrentUser }: UnifiedProfileViewProps) 
 
   if (!profile) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <p className="text-gray-500">Profile not found</p>
+      <div className="min-h-screen bg-gray-50">
+        <div className="max-w-4xl mx-auto p-4">
+          <div className="text-center py-8 text-gray-500">
+            Profile not found
+          </div>
+        </div>
       </div>
     );
   }
 
-  if (showSettings && isCurrentUser) {
-    return (
-      <ProfileSettings 
-        profile={profile} 
-        onBack={() => setShowSettings(false)}
-        onUpdate={fetchProfile}
-      />
-    );
-  }
-
   return (
-    <div className="max-w-4xl mx-auto p-4">
-      {/* Profile Header */}
-      <Card className="mb-6">
-        <CardContent className="p-6">
-          <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
-            {/* Avatar */}
-            <div className="w-32 h-32 rounded-full bg-gray-200 flex-shrink-0 overflow-hidden">
-              {profile.avatar_url ? (
-                <img
-                  src={profile.avatar_url}
-                  alt={profile.full_name}
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center text-gray-400 text-4xl font-bold">
-                  {profile.full_name?.charAt(0).toUpperCase() || 'U'}
-                </div>
-              )}
-            </div>
-
-            {/* Profile Info */}
-            <div className="flex-1">
-              <div className="flex items-center justify-between mb-2">
-                <div className="flex items-center gap-4">
-                  <h1 className="text-2xl font-bold">{profile.full_name}</h1>
-                  {profile.verified && (
-                    <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">
-                      Verified
-                    </span>
-                  )}
-                </div>
-                
-                {/* Settings Icon for current user */}
-                {isCurrentUser && (
-                  <ProfileSettingsModal onEditProfile={() => setShowSettings(true)} />
-                )}
-              </div>
-              
-              {profile.username && (
-                <p className="text-gray-600 mb-2">@{profile.username}</p>
-              )}
-
-              {/* Stats */}
-              <div className="flex gap-6 text-center mb-4">
-                <div>
-                  <div className="font-bold">{postCount}</div>
-                  <div className="text-sm text-gray-600">Posts</div>
-                </div>
-                <div>
-                  <div className="font-bold">{followers.length}</div>
-                  <div className="text-sm text-gray-600">Followers</div>
-                </div>
-                <div>
-                  <div className="font-bold">{following.length}</div>
-                  <div className="text-sm text-gray-600">Following</div>
-                </div>
-              </div>
-
-              {profile.bio && (
-                <p className="text-gray-700 mb-4">{profile.bio}</p>
-              )}
-
-              <div className="flex flex-wrap gap-4 text-sm text-gray-600 mb-4">
-                {profile.location && (
-                  <div className="flex items-center gap-1">
-                    <MapPin className="w-4 h-4" />
-                    {profile.location}
-                  </div>
-                )}
-                {profile.website_url && (
-                  <div className="flex items-center gap-1">
-                    <Globe className="w-4 h-4" />
-                    <a href={profile.website_url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
-                      Website
-                    </a>
-                  </div>
-                )}
-                <div className="flex items-center gap-1">
-                  <Calendar className="w-4 h-4" />
-                  Joined {new Date(profile.created_at).toLocaleDateString()}
-                </div>
-              </div>
-
-              {/* Action Buttons */}
-              <div className="flex gap-2">
-                {!isCurrentUser && (
-                  <Button
-                    onClick={handleFollowToggle}
-                    variant={isFollowing ? "outline" : "default"}
-                  >
-                    {isFollowing ? (
-                      <>
-                        <UserCheck className="w-4 h-4 mr-2" />
-                        Following
-                      </>
-                    ) : (
-                      <>
-                        <UserPlus className="w-4 h-4 mr-2" />
-                        Follow
-                      </>
-                    )}
-                  </Button>
-                )}
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Profile Content Tabs */}
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="posts">Posts</TabsTrigger>
-          <TabsTrigger value="about">About</TabsTrigger>
-        </TabsList>
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-4xl mx-auto">
+        <ProfileHeader
+          profile={profile}
+          isCurrentUser={isCurrentUser}
+          isFollowing={isFollowing}
+          followerCount={followerCount}
+          followingCount={followingCount}
+          postCount={posts.length}
+          onFollow={toggleFollow}
+          onEditProfile={() => {}}
+        />
         
-        <TabsContent value="posts" className="mt-6">
-          <ProfilePostsGrid userId={profileId!} />
-        </TabsContent>
-        
-        <TabsContent value="about" className="mt-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>About</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <h3 className="font-semibold text-gray-900">User Type</h3>
-                <p className="text-gray-600 capitalize">{profile.user_type}</p>
-              </div>
-              
-              {profile.years_experience > 0 && (
-                <div>
-                  <h3 className="font-semibold text-gray-900">Experience</h3>
-                  <p className="text-gray-600">{profile.years_experience} years</p>
-                </div>
-              )}
-              
-              {profile.total_reviews > 0 && (
-                <div>
-                  <h3 className="font-semibold text-gray-900">Reviews</h3>
-                  <p className="text-gray-600">
-                    {profile.rating.toFixed(1)} ★ ({profile.total_reviews} reviews)
-                  </p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+        <PostGrid
+          posts={posts}
+          loading={postsLoading}
+          isCurrentUser={isCurrentUser}
+          onPostClick={handlePostClick}
+          onEditPost={handleEditPost}
+          onDeletePost={handlePostDelete}
+        />
+      </div>
+
+      {/* Edit Post Modal */}
+      <EditPostModal
+        post={editingPost}
+        isOpen={!!editingPost}
+        onClose={() => setEditingPost(null)}
+        onUpdate={handlePostUpdate}
+      />
+
+      {/* Full Post Modal */}
+      <FullPostModal
+        post={selectedPost}
+        isOpen={isFullPostModalOpen}
+        onClose={() => {
+          setIsFullPostModalOpen(false);
+          setSelectedPost(null);
+        }}
+        onProfileClick={(userId) => {
+          // Handle profile navigation if needed
+        }}
+        onPostUpdate={handlePostUpdateFromModal}
+        onPostDelete={handlePostDeleteFromModal}
+      />
     </div>
   );
 };
