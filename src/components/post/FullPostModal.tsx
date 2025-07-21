@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -240,7 +241,7 @@ const FullPostModal = ({
           {/* Comments and interactions section - Full width on mobile, right side on desktop */}
           <div className="w-full md:w-96 flex flex-col bg-white">
             {/* Header */}
-            <div className="p-4 border-b">
+            <div className="p-4 border-b flex-shrink-0">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-3">
                   <Avatar className="h-8 w-8">
@@ -280,7 +281,7 @@ const FullPostModal = ({
             </div>
 
             {/* Caption */}
-            <div className="p-4 border-b">
+            <div className="p-4 border-b flex-shrink-0">
               {isEditing ? (
                 <div className="space-y-3">
                   <Textarea
@@ -316,44 +317,8 @@ const FullPostModal = ({
               )}
             </div>
 
-            {/* Comments */}
-            <div className="flex-1 overflow-y-auto">
-              {commentsLoading ? (
-                <div className="p-4 text-center text-gray-500">Loading comments...</div>
-              ) : (
-                <div className="space-y-1">
-                  {comments.map((comment) => (
-                    <div key={comment.id} className="p-4 hover:bg-gray-50">
-                      <div className="flex items-start space-x-3">
-                        <Avatar className="h-8 w-8">
-                          <AvatarImage src={comment.profiles?.avatar_url || undefined} />
-                          <AvatarFallback>
-                            {comment.profiles?.full_name?.charAt(0) || 'U'}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div className="flex-1">
-                          <div className="flex items-center space-x-2">
-                            <button
-                              onClick={() => onProfileClick && onProfileClick(comment.user_id)}
-                              className="text-sm font-semibold hover:text-gray-500"
-                            >
-                              {comment.profiles?.username || 'Unknown User'}
-                            </button>
-                            <span className="text-xs text-gray-500">
-                              {new Date(comment.created_at).toLocaleDateString()}
-                            </span>
-                          </div>
-                          <p className="text-sm mt-1">{comment.content}</p>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-
             {/* Action buttons */}
-            <div className="p-4 border-t">
+            <div className="p-4 border-b flex-shrink-0">
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center space-x-4">
                   <Button
@@ -381,20 +346,85 @@ const FullPostModal = ({
                   {likesCount} {likesCount === 1 ? 'like' : 'likes'}
                 </div>
               )}
+            </div>
 
-              {/* Comment input */}
-              <form onSubmit={handleCommentSubmit} className="flex items-center space-x-2">
-                <Textarea
-                  value={newComment}
-                  onChange={(e) => setNewComment(e.target.value)}
-                  placeholder="Add a comment..."
-                  className="flex-1 min-h-[40px] max-h-[120px] resize-none"
-                  disabled={isSubmitting}
-                />
+            {/* Comments Section */}
+            <div className="flex-1 flex flex-col min-h-0">
+              <div className="p-4 border-b flex-shrink-0">
+                <h3 className="text-sm font-semibold text-gray-900 mb-3">Comments</h3>
+              </div>
+              
+              {/* Comments List */}
+              <div className="flex-1 overflow-y-auto">
+                {commentsLoading ? (
+                  <div className="p-4 text-center text-gray-500">Loading comments...</div>
+                ) : comments.length === 0 ? (
+                  <div className="p-4 text-center text-gray-500">No comments yet. Be the first to comment!</div>
+                ) : (
+                  <div className="space-y-1">
+                    {comments.slice(0, 3).map((comment) => (
+                      <div key={comment.id} className="p-4 hover:bg-gray-50">
+                        <div className="flex items-start space-x-3">
+                          <Avatar className="h-8 w-8 flex-shrink-0">
+                            <AvatarImage src={comment.profiles?.avatar_url || undefined} />
+                            <AvatarFallback>
+                              {comment.profiles?.full_name?.charAt(0) || 'U'}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center space-x-2 mb-1">
+                              <button
+                                onClick={() => onProfileClick && onProfileClick(comment.user_id)}
+                                className="text-sm font-semibold hover:text-gray-500 truncate"
+                              >
+                                {comment.profiles?.username || 'Unknown User'}
+                              </button>
+                              <span className="text-xs text-gray-500 flex-shrink-0">
+                                {new Date(comment.created_at).toLocaleDateString()}
+                              </span>
+                            </div>
+                            <p className="text-sm text-gray-900 break-words">{comment.content}</p>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                    
+                    {comments.length > 3 && (
+                      <div className="p-4 text-center">
+                        <button className="text-sm text-blue-600 hover:text-blue-800">
+                          View all {comments.length} comments
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Comment Input - Fixed to bottom */}
+            <div className="p-4 border-t bg-white flex-shrink-0">
+              <form onSubmit={handleCommentSubmit} className="flex items-end space-x-3">
+                <Avatar className="h-8 w-8 flex-shrink-0">
+                  <AvatarImage src={user?.user_metadata?.avatar_url || undefined} />
+                  <AvatarFallback>
+                    {user?.user_metadata?.full_name?.charAt(0) || 'U'}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="flex-1">
+                  <Textarea
+                    value={newComment}
+                    onChange={(e) => setNewComment(e.target.value)}
+                    placeholder="Add a comment..."
+                    className="min-h-[40px] max-h-[120px] resize-none border-gray-200 focus:border-gray-300 focus:ring-1 focus:ring-gray-300"
+                    disabled={isSubmitting}
+                    rows={1}
+                  />
+                </div>
                 <Button
                   type="submit"
                   size="icon"
                   disabled={!newComment.trim() || isSubmitting}
+                  className="flex-shrink-0"
                 >
                   <Send className="h-4 w-4" />
                 </Button>
