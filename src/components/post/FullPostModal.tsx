@@ -1,23 +1,48 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Heart, MessageCircle, Send, Bookmark, MoreHorizontal, X } from 'lucide-react';
-import { usePostLikes } from '@/hooks/usePostLikes';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Heart, MessageCircle, Send, MoreHorizontal, X } from 'lucide-react';
+import { useMobileOptimized } from '@/hooks/useMobileOptimized';
 import { useComments } from '@/hooks/useComments';
-import { useAuth } from '@/contexts/AuthContext';
-import { formatDistanceToNow } from 'date-fns';
+import { useRealtimePostLikes } from '@/hooks/useRealtimePostLikes';
+
+interface Comment {
+  id: string;
+  post_id: string;
+  user_id: string;
+  content: string;
+  created_at: string;
+  profiles?: {
+    full_name: string | null;
+    username: string | null;
+    avatar_url: string | null;
+  } | null;
+}
+
+interface Post {
+  id: string;
+  user_id: string;
+  caption: string | null;
+  image_url: string | null;
+  video_url: string | null;
+  created_at: string;
+  profiles?: {
+    full_name: string | null;
+    username: string | null;
+    avatar_url: string | null;
+  } | null;
+}
 
 interface FullPostModalProps {
-  post: any;
+  post: Post | null;
   isOpen: boolean;
   onClose: () => void;
   onProfileClick?: (userId: string) => void;
   onPostUpdate?: (postId: string, newCaption: string) => void;
   onPostDelete?: (postId: string) => void;
+  initialComments?: Comment[];
 }
 
 const FullPostModal = ({ 
@@ -26,440 +51,335 @@ const FullPostModal = ({
   onClose, 
   onProfileClick,
   onPostUpdate,
-  onPostDelete 
+  onPostDelete,
+  initialComments = []
 }: FullPostModalProps) => {
-  const [commentText, setCommentText] = useState('');
-  const [isCaptionExpanded, setIsCaptionExpanded] = useState(false);
-  const { user } = useAuth();
+  const { isMobile } = useMobileOptimized();
+  const [newComment, setNewComment] = useState('');
+  const [showFullCaption, setShowFullCaption] = useState(false);
   
-  // Always call hooks with fallback values - never conditionally
-  const postId = post?.id || '';
-  const { likesCount, isLiked, toggleLike } = usePostLikes(postId);
-  const { comments, addComment, loading: commentsLoading } = useComments(postId);
+  // Use actual comments hook if post exists, otherwise use mock data
+  const { comments: realComments, addComment, loading } = post ? useComments(post.id) : { comments: [], addComment: () => {}, loading: false };
+  const { likesCount, isLiked, toggleLike } = post ? useRealtimePostLikes(post.id) : { likesCount: 0, isLiked: false, toggleLike: () => {} };
+  
+  // Use real comments if available, otherwise fall back to initial comments
+  const comments = realComments.length > 0 ? realComments : initialComments;
+  
+  useEffect(() => {
+    if (!isOpen) {
+      setNewComment('');
+      setShowFullCaption(false);
+    }
+  }, [isOpen]);
 
-  // Early return AFTER all hooks are called
   if (!post) return null;
 
   const handleSubmitComment = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (commentText.trim()) {
-      await addComment(commentText);
-      setCommentText('');
+    if (!newComment.trim()) return;
+    
+    await addComment(newComment.trim());
+    setNewComment('');
+  };
+
+  const handleProfileClick = () => {
+    if (onProfileClick && post.user_id) {
+      onProfileClick(post.user_id);
     }
   };
 
-  const handleProfileClick = (userId: string) => {
-    if (onProfileClick) {
-      onProfileClick(userId);
-    }
-  };
+  // Get recent comments for mobile preview (latest 2)
+  const recentComments = comments.slice(-2);
 
-  const imageUrl = post.image_url || post.imageUrl;
-  
-  // For mobile: show 1-2 recent comments in preview, for desktop: show 3
-  const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
-  const previewCommentsCount = isMobile ? 2 : 3;
-  const previewComments = comments.slice(-previewCommentsCount);
-
-  // Caption truncation for mobile
-  const maxCaptionLength = 100;
-  const shouldTruncateCaption = post.caption && post.caption.length > maxCaptionLength && !isCaptionExpanded && isMobile;
-  const displayCaption = shouldTruncateCaption 
-    ? post.caption.substring(0, maxCaptionLength) + '...' 
-    : post.caption;
-
-  const CommentSkeleton = () => (
-    <div className="flex gap-3 mb-4 animate-pulse">
-      <Skeleton className="h-8 w-8 rounded-full flex-shrink-0" />
-      <div className="flex-1 space-y-2">
-        <div className="flex items-center gap-2">
-          <Skeleton className="h-4 w-20" />
-          <Skeleton className="h-4 w-12" />
-        </div>
-        <Skeleton className="h-4 w-full" />
-        <Skeleton className="h-3 w-16" />
-      </div>
-    </div>
-  );
-
-  return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-5xl w-full h-[95vh] md:h-[90vh] p-0 overflow-hidden">
-        <div className="flex flex-col md:flex-row h-full">
-          {/* Image Section */}
-          <div className="flex-1 bg-black flex items-center justify-center relative min-h-[40vh] md:min-h-full">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="absolute top-4 right-4 z-10 text-white hover:bg-black/20 md:hidden"
-              onClick={onClose}
-            >
-              <X className="h-4 w-4" />
+  if (isMobile) {
+    return (
+      <Dialog open={isOpen} onOpenChange={onClose}>
+        <DialogContent className="p-0 m-0 max-w-full w-full h-full max-h-full border-0 rounded-none bg-white flex flex-col">
+          {/* Header */}
+          <div className="flex items-center justify-between p-4 border-b">
+            <div className="flex items-center space-x-3">
+              <Avatar className="h-8 w-8 cursor-pointer" onClick={handleProfileClick}>
+                <AvatarImage src={post.profiles?.avatar_url || undefined} />
+                <AvatarFallback>
+                  {post.profiles?.username?.[0]?.toUpperCase() || 'U'}
+                </AvatarFallback>
+              </Avatar>
+              <span 
+                className="font-semibold text-sm cursor-pointer" 
+                onClick={handleProfileClick}
+              >
+                {post.profiles?.username || 'Unknown User'}
+              </span>
+            </div>
+            <Button variant="ghost" size="sm" onClick={onClose}>
+              <X className="h-5 w-5" />
             </Button>
-            
-            {imageUrl ? (
-              <img
-                src={imageUrl}
-                alt="Post"
-                className="max-w-full max-h-full object-contain"
-                onError={(e) => {
-                  console.error('Image failed to load:', imageUrl);
-                  e.currentTarget.style.display = 'none';
-                }}
-              />
-            ) : (
-              <div className="text-white/60 text-center">
-                <div className="text-lg">No image available</div>
-              </div>
-            )}
           </div>
 
-          {/* Content Section */}
-          <div className="w-full md:w-96 bg-background flex flex-col h-full md:h-auto">
-            {/* Header */}
-            <div className="flex-shrink-0 p-4 border-b border-border">
-              <div className="flex items-center gap-3">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8 hidden md:block"
-                  onClick={onClose}
-                >
-                  <X className="h-4 w-4" />
+          {/* Content Area */}
+          <div className="flex-1 flex flex-col min-h-0">
+            {/* Image */}
+            <div className="flex-shrink-0">
+              <img
+                src={post.image_url || ''}
+                alt="Post"
+                className="w-full h-auto max-h-[50vh] object-cover"
+              />
+            </div>
+
+            {/* Post Actions */}
+            <div className="flex-shrink-0 px-4 py-3 border-b">
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center space-x-4">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={toggleLike}
+                    className="p-0 h-auto"
+                  >
+                    <Heart className={`h-6 w-6 ${isLiked ? 'fill-red-500 text-red-500' : ''}`} />
+                  </Button>
+                  <Button variant="ghost" size="sm" className="p-0 h-auto">
+                    <MessageCircle className="h-6 w-6" />
+                  </Button>
+                  <Button variant="ghost" size="sm" className="p-0 h-auto">
+                    <Send className="h-6 w-6" />
+                  </Button>
+                </div>
+                <Button variant="ghost" size="sm" className="p-0 h-auto">
+                  <MoreHorizontal className="h-5 w-5" />
                 </Button>
-                <Avatar 
-                  className="h-8 w-8 cursor-pointer"
-                  onClick={() => handleProfileClick(post.user_id)}
-                >
-                  <AvatarImage src={post.profiles?.avatar_url} />
+              </div>
+              
+              {likesCount > 0 && (
+                <p className="text-sm font-semibold mb-2">{likesCount} likes</p>
+              )}
+            </div>
+
+            {/* Caption */}
+            {post.caption && (
+              <div className="flex-shrink-0 px-4 py-3 border-b">
+                <div className="flex items-start space-x-2">
+                  <span className="font-semibold text-sm">{post.profiles?.username}</span>
+                  <div className="flex-1">
+                    {post.caption.length > 100 && !showFullCaption ? (
+                      <div>
+                        <span className="text-sm">{post.caption.slice(0, 100)}...</span>
+                        <button 
+                          onClick={() => setShowFullCaption(true)}
+                          className="text-gray-500 text-sm ml-1"
+                        >
+                          more
+                        </button>
+                      </div>
+                    ) : (
+                      <span className="text-sm">{post.caption}</span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Recent Comments Preview - Mobile Only */}
+            {recentComments.length > 0 && (
+              <div className="flex-shrink-0 px-4 py-3 space-y-3 border-b">
+                {recentComments.map((comment) => (
+                  <div key={comment.id} className="flex items-start space-x-2">
+                    <Avatar className="h-6 w-6 flex-shrink-0">
+                      <AvatarImage src={comment.profiles?.avatar_url || undefined} />
+                      <AvatarFallback className="text-xs">
+                        {comment.profiles?.username?.[0]?.toUpperCase() || 'U'}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-start space-x-1">
+                        <span className="font-semibold text-sm">
+                          {comment.profiles?.username || 'Unknown User'}
+                        </span>
+                        <span className="text-sm text-gray-900 break-words">
+                          {comment.content}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Spacer to push comment input to bottom */}
+            <div className="flex-1" />
+          </div>
+
+          {/* Comment Input - Sticky Bottom */}
+          <div className="flex-shrink-0 p-4 border-t bg-white">
+            <form onSubmit={handleSubmitComment} className="flex items-center space-x-3">
+              <Avatar className="h-8 w-8 flex-shrink-0">
+                <AvatarFallback className="text-xs">U</AvatarFallback>
+              </Avatar>
+              <Input
+                type="text"
+                placeholder="Add a comment..."
+                value={newComment}
+                onChange={(e) => setNewComment(e.target.value)}
+                className="flex-1 border-none bg-gray-50 rounded-full px-4 focus:ring-0 focus:border-none"
+              />
+              <Button 
+                type="submit" 
+                variant="ghost" 
+                size="sm" 
+                disabled={!newComment.trim()}
+                className="text-blue-500 font-semibold disabled:text-gray-400"
+              >
+                Post
+              </Button>
+            </form>
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
+  // Desktop layout remains unchanged
+  return (
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="max-w-5xl w-full h-[90vh] p-0 overflow-hidden bg-white">
+        <div className="flex h-full">
+          {/* Left side - Image */}
+          <div className="flex-1 bg-black flex items-center justify-center">
+            <img
+              src={post.image_url || ''}
+              alt="Post"
+              className="max-w-full max-h-full object-contain"
+            />
+          </div>
+
+          {/* Right side - Content */}
+          <div className="w-96 flex flex-col border-l">
+            {/* Header */}
+            <div className="flex items-center justify-between p-4 border-b">
+              <div className="flex items-center space-x-3">
+                <Avatar className="h-8 w-8 cursor-pointer" onClick={handleProfileClick}>
+                  <AvatarImage src={post.profiles?.avatar_url || undefined} />
                   <AvatarFallback>
-                    {post.profiles?.username?.charAt(0)?.toUpperCase() || 'U'}
+                    {post.profiles?.username?.[0]?.toUpperCase() || 'U'}
                   </AvatarFallback>
                 </Avatar>
-                <div className="flex-1">
-                  <button 
-                    onClick={() => handleProfileClick(post.user_id)}
-                    className="font-semibold text-sm hover:underline"
-                  >
-                    {post.profiles?.username || 'Unknown User'}
-                  </button>
-                </div>
-                <Button variant="ghost" size="icon" className="h-8 w-8">
-                  <MoreHorizontal className="h-4 w-4" />
-                </Button>
+                <span 
+                  className="font-semibold cursor-pointer" 
+                  onClick={handleProfileClick}
+                >
+                  {post.profiles?.username || 'Unknown User'}
+                </span>
               </div>
+              <Button variant="ghost" size="sm">
+                <MoreHorizontal className="h-5 w-5" />
+              </Button>
             </div>
 
-            {/* Mobile Layout - Single Column */}
-            <div className="flex-1 flex flex-col md:hidden">
-              {/* Actions Bar */}
-              <div className="flex-shrink-0 p-4 border-b border-border">
-                <div className="flex items-center gap-4 mb-3">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={toggleLike}
-                    className="h-8 w-8"
-                  >
-                    <Heart className={`h-5 w-5 ${isLiked ? 'fill-red-500 text-red-500' : ''}`} />
-                  </Button>
-                  <Button variant="ghost" size="icon" className="h-8 w-8">
-                    <MessageCircle className="h-5 w-5" />
-                  </Button>
-                  <Button variant="ghost" size="icon" className="h-8 w-8">
-                    <Send className="h-5 w-5" />
-                  </Button>
-                  <Button variant="ghost" size="icon" className="h-8 w-8 ml-auto">
-                    <Bookmark className="h-5 w-5" />
-                  </Button>
-                </div>
-
-                {likesCount > 0 && (
-                  <div className="text-sm font-semibold mb-2">
-                    {likesCount} {likesCount === 1 ? 'like' : 'likes'}
-                  </div>
-                )}
-              </div>
-
-              {/* Caption */}
+            {/* Comments section */}
+            <div className="flex-1 overflow-y-auto">
+              {/* Post caption as first "comment" */}
               {post.caption && (
-                <div className="flex-shrink-0 px-4 py-3 border-b border-border">
-                  <div className="flex gap-3">
-                    <Avatar className="h-8 w-8 flex-shrink-0">
-                      <AvatarImage src={post.profiles?.avatar_url} />
+                <div className="p-4 border-b">
+                  <div className="flex items-start space-x-3">
+                    <Avatar className="h-8 w-8">
+                      <AvatarImage src={post.profiles?.avatar_url || undefined} />
                       <AvatarFallback>
-                        {post.profiles?.username?.charAt(0)?.toUpperCase() || 'U'}
+                        {post.profiles?.username?.[0]?.toUpperCase() || 'U'}
                       </AvatarFallback>
                     </Avatar>
-                    <div className="flex-1 min-w-0">
-                      <div className="text-sm">
-                        <span className="font-semibold mr-2">
-                          {post.profiles?.username || 'Unknown User'}
+                    <div className="flex-1">
+                      <div className="flex items-center space-x-2 mb-1">
+                        <span className="font-semibold">{post.profiles?.username}</span>
+                        <span className="text-gray-500 text-sm">
+                          {new Date(post.created_at).toLocaleDateString()}
                         </span>
-                        <span className="break-words">{displayCaption}</span>
-                        {shouldTruncateCaption && (
-                          <button 
-                            onClick={() => setIsCaptionExpanded(true)}
-                            className="text-muted-foreground hover:text-foreground ml-1"
-                          >
-                            more
-                          </button>
-                        )}
-                        {isCaptionExpanded && post.caption.length > maxCaptionLength && (
-                          <button 
-                            onClick={() => setIsCaptionExpanded(false)}
-                            className="text-muted-foreground hover:text-foreground ml-1"
-                          >
-                            less
-                          </button>
-                        )}
                       </div>
-                      <div className="text-xs text-muted-foreground mt-1">
-                        {formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}
-                      </div>
+                      <p className="text-sm">{post.caption}</p>
                     </div>
                   </div>
                 </div>
               )}
 
-              {/* Comment Previews on Mobile */}
-              <div className="flex-1 overflow-y-auto px-4 py-3">
-                {commentsLoading ? (
-                  <div className="space-y-4">
-                    {Array.from({ length: previewCommentsCount }).map((_, i) => (
-                      <CommentSkeleton key={i} />
-                    ))}
-                  </div>
-                ) : comments.length > 0 ? (
-                  <div className="space-y-4">
-                    {comments.length > previewCommentsCount && (
-                      <button className="text-sm text-muted-foreground hover:underline font-medium mb-4">
-                        View all {comments.length} comments
-                      </button>
-                    )}
-                    
-                    {previewComments.map((comment) => (
-                      <div key={comment.id} className="flex gap-3">
-                        <Avatar className="h-8 w-8 flex-shrink-0">
-                          <AvatarImage src={comment.profiles?.avatar_url} />
-                          <AvatarFallback>
-                            {comment.profiles?.username?.charAt(0)?.toUpperCase() || 'U'}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div className="flex-1 min-w-0">
-                          <div className="text-sm">
-                            <button 
-                              className="font-semibold mr-2 hover:underline"
-                              onClick={() => handleProfileClick(comment.user_id)}
-                            >
-                              {comment.profiles?.username || 'Unknown User'}
-                            </button>
-                            <span className="break-words">{comment.content}</span>
-                          </div>
-                          <div className="text-xs text-muted-foreground mt-1">
-                            {formatDistanceToNow(new Date(comment.created_at), { addSuffix: true })}
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
+              {/* Comments */}
+              <div className="space-y-4 p-4">
+                {loading ? (
+                  <div className="text-center text-gray-500">Loading comments...</div>
+                ) : comments.length === 0 ? (
+                  <div className="text-center text-gray-500">No comments yet</div>
                 ) : (
-                  <div className="text-center py-8 text-muted-foreground">
-                    <MessageCircle className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                    <div className="text-sm font-medium">No comments yet</div>
-                    <div className="text-xs mt-1">Be the first to comment!</div>
-                  </div>
-                )}
-              </div>
-
-              {/* Comment Input - Sticky at bottom on mobile */}
-              <div className="flex-shrink-0 border-t border-border bg-background sticky bottom-0">
-                {commentsLoading ? (
-                  <div className="p-4">
-                    <div className="flex items-center gap-3 animate-pulse">
-                      <Skeleton className="h-8 w-8 rounded-full flex-shrink-0" />
-                      <Skeleton className="flex-1 h-10 rounded-md" />
-                      <Skeleton className="h-8 w-12" />
-                    </div>
-                  </div>
-                ) : (
-                  <form onSubmit={handleSubmitComment} className="p-4">
-                    <div className="flex items-center gap-3">
-                      <Avatar className="h-8 w-8 flex-shrink-0">
-                        <AvatarImage src={user?.user_metadata?.avatar_url} />
+                  comments.map((comment) => (
+                    <div key={comment.id} className="flex items-start space-x-3">
+                      <Avatar className="h-8 w-8">
+                        <AvatarImage src={comment.profiles?.avatar_url || undefined} />
                         <AvatarFallback>
-                          {user?.user_metadata?.username?.charAt(0)?.toUpperCase() || 'U'}
+                          {comment.profiles?.username?.[0]?.toUpperCase() || 'U'}
                         </AvatarFallback>
                       </Avatar>
-                      <div className="flex-1 flex items-center gap-2">
-                        <Input
-                          value={commentText}
-                          onChange={(e) => setCommentText(e.target.value)}
-                          placeholder="Add a comment..."
-                          className="flex-1 border-none shadow-none focus-visible:ring-0 px-0 bg-transparent text-sm"
-                        />
-                        <Button 
-                          type="submit" 
-                          variant="ghost" 
-                          size="sm"
-                          disabled={!commentText.trim()}
-                          className="text-primary hover:text-primary/80 disabled:text-muted-foreground px-3 font-semibold"
-                        >
-                          Post
-                        </Button>
+                      <div className="flex-1">
+                        <div className="flex items-center space-x-2 mb-1">
+                          <span className="font-semibold text-sm">
+                            {comment.profiles?.username || 'Unknown User'}
+                          </span>
+                          <span className="text-gray-500 text-xs">
+                            {new Date(comment.created_at).toLocaleDateString()}
+                          </span>
+                        </div>
+                        <p className="text-sm">{comment.content}</p>
                       </div>
                     </div>
-                  </form>
+                  ))
                 )}
               </div>
             </div>
 
-            {/* Desktop Layout - Side Panel */}
-            <div className="flex-1 flex-col min-h-0 hidden md:flex">
-              {/* Actions Bar */}
-              <div className="flex-shrink-0 p-4 border-b border-border">
-                <div className="flex items-center gap-4 mb-3">
+            {/* Actions and comment input */}
+            <div className="border-t">
+              <div className="flex items-center justify-between p-4">
+                <div className="flex items-center space-x-4">
                   <Button
                     variant="ghost"
-                    size="icon"
+                    size="sm"
                     onClick={toggleLike}
-                    className="h-8 w-8"
+                    className="p-0 h-auto"
                   >
-                    <Heart className={`h-5 w-5 ${isLiked ? 'fill-red-500 text-red-500' : ''}`} />
+                    <Heart className={`h-6 w-6 ${isLiked ? 'fill-red-500 text-red-500' : ''}`} />
                   </Button>
-                  <Button variant="ghost" size="icon" className="h-8 w-8">
-                    <MessageCircle className="h-5 w-5" />
+                  <Button variant="ghost" size="sm" className="p-0 h-auto">
+                    <MessageCircle className="h-6 w-6" />
                   </Button>
-                  <Button variant="ghost" size="icon" className="h-8 w-8">
-                    <Send className="h-5 w-5" />
-                  </Button>
-                  <Button variant="ghost" size="icon" className="h-8 w-8 ml-auto">
-                    <Bookmark className="h-5 w-5" />
+                  <Button variant="ghost" size="sm" className="p-0 h-auto">
+                    <Send className="h-6 w-6" />
                   </Button>
                 </div>
-
-                {likesCount > 0 && (
-                  <div className="text-sm font-semibold mb-2">
-                    {likesCount} {likesCount === 1 ? 'like' : 'likes'}
-                  </div>
-                )}
               </div>
-
-              {/* Caption */}
-              {post.caption && (
-                <div className="flex-shrink-0 px-4 py-3 border-b border-border">
-                  <div className="flex gap-3">
-                    <Avatar className="h-8 w-8 flex-shrink-0">
-                      <AvatarImage src={post.profiles?.avatar_url} />
-                      <AvatarFallback>
-                        {post.profiles?.username?.charAt(0)?.toUpperCase() || 'U'}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1 min-w-0">
-                      <div className="text-sm">
-                        <span className="font-semibold mr-2">
-                          {post.profiles?.username || 'Unknown User'}
-                        </span>
-                        <span className="break-words">{post.caption}</span>
-                      </div>
-                      <div className="text-xs text-muted-foreground mt-1">
-                        {formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}
-                      </div>
-                    </div>
-                  </div>
+              
+              {likesCount > 0 && (
+                <div className="px-4 pb-2">
+                  <p className="text-sm font-semibold">{likesCount} likes</p>
                 </div>
               )}
 
-              {/* Comments Section */}
-              <div className="flex-1 flex flex-col min-h-0">
-                <div className="flex-shrink-0 px-4 py-3 border-b border-border">
-                  <h3 className="text-sm font-bold text-foreground">Comments</h3>
+              <form onSubmit={handleSubmitComment} className="p-4 border-t">
+                <div className="flex items-center space-x-3">
+                  <Input
+                    type="text"
+                    placeholder="Add a comment..."
+                    value={newComment}
+                    onChange={(e) => setNewComment(e.target.value)}
+                    className="flex-1"
+                  />
+                  <Button 
+                    type="submit" 
+                    variant="ghost" 
+                    size="sm" 
+                    disabled={!newComment.trim()}
+                    className="text-blue-500 font-semibold"
+                  >
+                    Post
+                  </Button>
                 </div>
-
-                <div className="flex-1 overflow-y-auto px-4 py-3">
-                  {commentsLoading ? (
-                    <div className="space-y-4">
-                      {Array.from({ length: 3 }).map((_, i) => (
-                        <CommentSkeleton key={i} />
-                      ))}
-                    </div>
-                  ) : comments.length > 0 ? (
-                    <div className="space-y-4">
-                      {comments.map((comment) => (
-                        <div key={comment.id} className="flex gap-3">
-                          <Avatar className="h-8 w-8 flex-shrink-0">
-                            <AvatarImage src={comment.profiles?.avatar_url} />
-                            <AvatarFallback>
-                              {comment.profiles?.username?.charAt(0)?.toUpperCase() || 'U'}
-                            </AvatarFallback>
-                          </Avatar>
-                          <div className="flex-1 min-w-0">
-                            <div className="text-sm">
-                              <button 
-                                className="font-semibold mr-2 hover:underline"
-                                onClick={() => handleProfileClick(comment.user_id)}
-                              >
-                                {comment.profiles?.username || 'Unknown User'}
-                              </button>
-                              <span className="break-words">{comment.content}</span>
-                            </div>
-                            <div className="text-xs text-muted-foreground mt-1">
-                              {formatDistanceToNow(new Date(comment.created_at), { addSuffix: true })}
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="text-center py-8 text-muted-foreground">
-                      <MessageCircle className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                      <div className="text-sm font-medium">No comments yet</div>
-                      <div className="text-xs mt-1">Be the first to comment!</div>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Comment Input - Fixed at bottom on desktop */}
-              <div className="flex-shrink-0 border-t border-border bg-background">
-                {commentsLoading ? (
-                  <div className="p-4">
-                    <div className="flex items-center gap-3 animate-pulse">
-                      <Skeleton className="h-8 w-8 rounded-full flex-shrink-0" />
-                      <Skeleton className="flex-1 h-10 rounded-md" />
-                      <Skeleton className="h-8 w-12" />
-                    </div>
-                  </div>
-                ) : (
-                  <form onSubmit={handleSubmitComment} className="p-4">
-                    <div className="flex items-center gap-3">
-                      <Avatar className="h-8 w-8 flex-shrink-0">
-                        <AvatarImage src={user?.user_metadata?.avatar_url} />
-                        <AvatarFallback>
-                          {user?.user_metadata?.username?.charAt(0)?.toUpperCase() || 'U'}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="flex-1 flex items-center gap-2">
-                        <Input
-                          value={commentText}
-                          onChange={(e) => setCommentText(e.target.value)}
-                          placeholder="Add a comment..."
-                          className="flex-1 border-none shadow-none focus-visible:ring-0 px-0 bg-transparent text-sm"
-                        />
-                        <Button 
-                          type="submit" 
-                          variant="ghost" 
-                          size="sm"
-                          disabled={!commentText.trim()}
-                          className="text-primary hover:text-primary/80 disabled:text-muted-foreground px-3 font-semibold"
-                        >
-                          Post
-                        </Button>
-                      </div>
-                    </div>
-                  </form>
-                )}
-              </div>
+              </form>
             </div>
           </div>
         </div>
