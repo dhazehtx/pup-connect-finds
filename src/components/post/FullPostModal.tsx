@@ -1,4 +1,5 @@
 
+
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -58,6 +59,7 @@ const FullPostModal = ({
   const { isMobile } = useMobileOptimized();
   const [newComment, setNewComment] = useState('');
   const [showFullCaption, setShowFullCaption] = useState(false);
+  const [showAllComments, setShowAllComments] = useState(false);
   
   // Always call hooks - use empty string as fallback for postId to avoid conditional hook calls
   const postId = post?.id || '';
@@ -71,6 +73,7 @@ const FullPostModal = ({
     if (!isOpen) {
       setNewComment('');
       setShowFullCaption(false);
+      setShowAllComments(false);
     }
   }, [isOpen]);
 
@@ -91,15 +94,23 @@ const FullPostModal = ({
     }
   };
 
-  // Get recent comments for mobile preview (latest 2)
-  const recentComments = comments.slice(-2);
+  // Get comments to display based on mobile/desktop and showAllComments state
+  const getDisplayedComments = () => {
+    if (isMobile && !showAllComments) {
+      return comments.slice(-2); // Show last 2 comments on mobile
+    }
+    return comments;
+  };
+
+  const displayedComments = getDisplayedComments();
+  const hasMoreComments = isMobile && !showAllComments && comments.length > 2;
 
   if (isMobile) {
     return (
       <Dialog open={isOpen} onOpenChange={onClose}>
         <DialogContent className="p-0 m-0 max-w-full w-full h-full max-h-full border-0 rounded-none bg-white flex flex-col">
           {/* Header */}
-          <div className="flex items-center justify-between p-4 border-b">
+          <div className="flex items-center justify-between p-4 border-b flex-shrink-0">
             <div className="flex items-center space-x-3">
               <Avatar className="h-8 w-8 cursor-pointer" onClick={handleProfileClick}>
                 <AvatarImage src={post.profiles?.avatar_url || undefined} />
@@ -183,34 +194,53 @@ const FullPostModal = ({
               </div>
             )}
 
-            {/* Recent Comments Preview - Mobile Only */}
-            {recentComments.length > 0 && (
-              <div className="flex-shrink-0 px-4 py-3 space-y-3 border-b">
-                {recentComments.map((comment) => (
-                  <div key={comment.id} className="flex items-start space-x-2">
-                    <Avatar className="h-6 w-6 flex-shrink-0">
-                      <AvatarImage src={comment.profiles?.avatar_url || undefined} />
-                      <AvatarFallback className="text-xs">
-                        {comment.profiles?.username?.[0]?.toUpperCase() || 'U'}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-start space-x-1">
-                        <span className="font-semibold text-sm">
-                          {comment.profiles?.username || 'Unknown User'}
-                        </span>
-                        <span className="text-sm text-gray-900 break-words">
-                          {comment.content}
-                        </span>
-                      </div>
+            {/* Comments Section */}
+            <div className="flex-1 overflow-y-auto px-4 py-3">
+              {loading ? (
+                <div className="text-center text-gray-500 py-4">Loading comments...</div>
+              ) : (
+                <>
+                  {hasMoreComments && (
+                    <button
+                      onClick={() => setShowAllComments(true)}
+                      className="text-gray-500 text-sm mb-4 hover:text-gray-700"
+                    >
+                      View all {comments.length} comments
+                    </button>
+                  )}
+                  
+                  {displayedComments.length === 0 ? (
+                    <div className="text-center text-gray-500 py-4">No comments yet</div>
+                  ) : (
+                    <div className="space-y-4">
+                      {displayedComments.map((comment) => (
+                        <div key={comment.id} className="flex items-start space-x-3">
+                          <Avatar className="h-8 w-8 flex-shrink-0">
+                            <AvatarImage src={comment.profiles?.avatar_url || undefined} />
+                            <AvatarFallback>
+                              {comment.profiles?.username?.[0]?.toUpperCase() || 'U'}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div className="flex-1">
+                            <div className="flex items-center space-x-2 mb-1">
+                              <span className="font-semibold text-sm">
+                                {comment.profiles?.username || 'Unknown User'}
+                              </span>
+                              <span className="text-gray-500 text-xs">
+                                {new Date(comment.created_at).toLocaleDateString()}
+                              </span>
+                            </div>
+                            <p className="text-sm text-gray-900 break-words">
+                              {comment.content}
+                            </p>
+                          </div>
+                        </div>
+                      ))}
                     </div>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {/* Spacer to push comment input to bottom */}
-            <div className="flex-1" />
+                  )}
+                </>
+              )}
+            </div>
           </div>
 
           {/* Comment Input - Sticky Bottom */}
