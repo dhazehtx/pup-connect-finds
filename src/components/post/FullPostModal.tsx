@@ -17,7 +17,7 @@ import { useToast } from '@/hooks/use-toast';
 import { formatDistanceToNow } from 'date-fns';
 import CommentsModal from './CommentsModal';
 import EditPostModal from '../home/EditPostModal';
-import { useMobileOptimized } from '@/hooks/useMobileOptimized';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface FullPostModalProps {
   post: any;
@@ -38,7 +38,7 @@ const FullPostModal = ({
 }: FullPostModalProps) => {
   const { user } = useAuth();
   const { toast } = useToast();
-  const { isMobile } = useMobileOptimized();
+  const isMobile = useIsMobile();
   const [newComment, setNewComment] = useState('');
   const [isLiked, setIsLiked] = useState(false);
   const [likesCount, setLikesCount] = useState(0);
@@ -132,7 +132,7 @@ const FullPostModal = ({
       <Dialog open={isOpen} onOpenChange={onClose}>
         <DialogContent className={`${isMobile ? 'max-w-full h-full m-0 rounded-none' : 'max-w-4xl max-h-[90vh]'} p-0 overflow-hidden`}>
           <div className={`${isMobile ? 'h-full' : 'max-h-[90vh]'} flex ${isMobile ? 'flex-col' : 'flex-row'}`}>
-            {/* Image Section - Mobile responsive */}
+            {/* Image Section - Fixed mobile scaling */}
             <div className={`${isMobile ? 'flex-shrink-0' : 'flex-1'} bg-black flex items-center justify-center relative`}>
               <Button
                 variant="ghost"
@@ -147,11 +147,13 @@ const FullPostModal = ({
                 <img
                   src={post.image_url}
                   alt="Post"
-                  className={`${
-                    isMobile 
-                      ? 'w-full h-auto max-h-[60vh] object-contain' 
-                      : 'w-full h-full max-h-[80vh] object-contain'
-                  }`}
+                  className={`
+                    w-full h-auto object-contain
+                    ${isMobile 
+                      ? 'max-h-[50vh] min-h-[200px]' 
+                      : 'max-h-[80vh]'
+                    }
+                  `}
                 />
               </div>
             </div>
