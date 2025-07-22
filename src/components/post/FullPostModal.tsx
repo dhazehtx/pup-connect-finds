@@ -58,10 +58,10 @@ const FullPostModal = ({
   const [liked, setLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(0);
   
-  const { comments: fetchedComments, addComment } = useComments(post?.id || '');
+  const { comments: fetchedComments, addComment, fetchComments } = useComments(post?.id || '');
   
-  // Use initial comments if provided, otherwise use fetched comments
-  const comments = initialComments.length > 0 ? initialComments : fetchedComments;
+  // Always use fetched comments to ensure real-time updates
+  const comments = fetchedComments.length > 0 ? fetchedComments : initialComments;
 
   const handleSubmitComment = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -69,6 +69,8 @@ const FullPostModal = ({
 
     await addComment(newComment.trim());
     setNewComment('');
+    // Force refresh comments after adding
+    setTimeout(() => fetchComments(), 100);
   };
 
   const handleLike = () => {
