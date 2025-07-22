@@ -290,6 +290,10 @@ const FullPostModal = ({
             {/* Comments Section */}
             <div className="bg-white">
               <div className="p-4 space-y-4">
+                {/* Debug: Show comment count */}
+                <div className="text-xs text-gray-400 mb-2">
+                  Comments: {comments.length} | Initial: {initialComments.length} | Fetched: {fetchedComments.length}
+                </div>
                 {comments.map((comment) => (
                   <div key={comment.id} className="flex space-x-3">
                     <Avatar className="w-8 h-8 flex-shrink-0">
