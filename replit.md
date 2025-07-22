@@ -8,6 +8,11 @@ MY PUP is a comprehensive dog listing platform that connects dog lovers with bre
 
 Preferred communication style: Simple, everyday language.
 
+**Important: Preserve all existing Supabase functionality**
+- Keep all Supabase client calls, authentication, and storage intact
+- Do not remove or replace any existing Supabase integration
+- Supabase remains the primary backend service for this application
+
 ## System Architecture
 
 The application follows a full-stack architecture with clear separation between frontend and backend components:
