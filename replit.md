@@ -1,0 +1,99 @@
+# MY PUP - Dog Listing Platform
+
+## Overview
+
+MY PUP is a comprehensive dog listing platform that connects dog lovers with breeders, rescues, and individual sellers. The application provides a marketplace for buying and selling dogs, with integrated messaging, educational resources, and safety features. Built as a full-stack web application with React frontend and Express backend, utilizing PostgreSQL for data persistence and Supabase for authentication and real-time features.
+
+## User Preferences
+
+Preferred communication style: Simple, everyday language.
+
+## System Architecture
+
+The application follows a full-stack architecture with clear separation between frontend and backend components:
+
+**Frontend**: React 18 with TypeScript, using Vite for build tooling and development server
+**Backend**: Express.js server with TypeScript 
+**Database**: PostgreSQL with Drizzle ORM for type-safe database operations
+**Authentication**: Supabase Auth for user management and session handling
+**Real-time Features**: Supabase real-time subscriptions for live messaging and notifications
+**Styling**: Tailwind CSS with shadcn/ui component library for consistent design system
+
+## Key Components
+
+### Frontend Architecture
+- **Component Structure**: Modular React components organized by feature (messaging, listings, profiles, education)
+- **State Management**: React Context for global state (Auth, Theme, Realtime), React Query for server state management
+- **Routing**: React Router for client-side navigation with protected routes
+- **UI Framework**: shadcn/ui components built on Radix UI primitives with Tailwind styling
+- **Mobile Optimization**: Responsive design with mobile-first approach and bottom navigation
+
+### Backend Architecture
+- **API Structure**: RESTful Express.js server with route handlers organized by feature
+- **Database Layer**: Drizzle ORM with schema-first approach for type safety
+- **Storage Interface**: Abstracted storage layer for database operations
+- **Development Server**: Vite integration for hot module replacement in development
+
+### Database Schema
+The schema includes comprehensive tables for:
+- **Profiles**: User accounts with breeder/buyer distinctions
+- **Dog Listings**: Detailed pet information with images, health records, and pricing
+- **Messaging System**: Conversations and messages between users
+- **Reviews & Ratings**: User feedback and reputation system
+- **Favorites & Notifications**: User engagement tracking
+- **Transactions**: Payment and purchase history
+
+### Authentication & Authorization
+- **Supabase Integration**: Handles user registration, login, and session management
+- **Guest Mode**: Allows anonymous browsing with prompts for account creation
+- **Profile Management**: Automatic profile creation and synchronization with auth users
+- **Protected Routes**: Route-level protection for authenticated features
+
+## Data Flow
+
+1. **User Authentication**: Supabase handles auth, with profile sync to PostgreSQL
+2. **Listing Management**: CRUD operations through Express API to PostgreSQL
+3. **Real-time Messaging**: Supabase real-time for instant message delivery
+4. **File Uploads**: Image and document uploads through Supabase storage
+5. **Search & Filtering**: Advanced search with AI-powered recommendations
+6. **Analytics Tracking**: User behavior and platform metrics collection
+
+## External Dependencies
+
+### Core Technologies
+- **@neondatabase/serverless**: PostgreSQL connection pooling for serverless environments
+- **@supabase/supabase-js**: Authentication, real-time features, and file storage
+- **drizzle-orm**: Type-safe database operations and schema management
+- **@tanstack/react-query**: Server state management and caching
+
+### UI & Styling
+- **@radix-ui/**: Accessible UI primitives for form controls and overlays
+- **tailwindcss**: Utility-first CSS framework
+- **class-variance-authority**: Component variant management
+- **lucide-react**: Icon library
+
+### Development Tools
+- **tsx**: TypeScript execution for development server
+- **esbuild**: Fast bundling for production builds
+- **vite**: Development server with HMR
+
+## Deployment Strategy
+
+### Development Environment
+- **Development Server**: Vite dev server with Express backend integration
+- **Hot Reloading**: Automatic code reloading for rapid development
+- **Environment Variables**: Database URL and Supabase configuration
+
+### Production Build
+- **Frontend**: Vite build process generating optimized static assets
+- **Backend**: esbuild compilation to ESM modules for Node.js deployment
+- **Database**: Drizzle migrations for schema deployment to PostgreSQL
+- **Asset Management**: Static file serving through Express in production
+
+### Infrastructure Requirements
+- **Database**: PostgreSQL instance (Neon, Supabase, or traditional hosting)
+- **File Storage**: Supabase storage for images and documents
+- **Environment**: Node.js runtime supporting ESM modules
+- **SSL**: HTTPS required for Supabase integration and secure authentication
+
+The application is designed for modern web deployment with consideration for serverless environments while maintaining the flexibility for traditional server hosting.
