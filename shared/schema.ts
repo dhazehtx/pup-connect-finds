@@ -130,14 +130,20 @@ export const notifications = pgTable("notifications", {
 
 // Payment transactions table
 export const transactions = pgTable("transactions", {
-  id: uuid("id").primaryKey(),
+  id: text("id").primaryKey(), // Changed to text for Stripe IDs
+  user_id: uuid("user_id").references(() => profiles.id),
   buyer_id: uuid("buyer_id").references(() => profiles.id),
   seller_id: uuid("seller_id").references(() => profiles.id),
   listing_id: uuid("listing_id").references(() => dogListings.id),
+  type: text("type").notNull(), // payment, subscription, subscription_cancel
   amount: decimal("amount").notNull(),
+  currency: text("currency").default("usd"),
   status: text("status").default("pending"),
   payment_method: text("payment_method"),
+  product_type: text("product_type"), // pup_box, rehoming_feature, premium_subscription
   stripe_session_id: text("stripe_session_id"),
+  stripe_payment_intent_id: text("stripe_payment_intent_id"),
+  stripe_subscription_id: text("stripe_subscription_id"),
   created_at: timestamp("created_at").defaultNow(),
   updated_at: timestamp("updated_at").defaultNow(),
 });

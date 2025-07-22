@@ -100,6 +100,7 @@ export interface IStorage {
   // Transaction methods
   createTransaction(transaction: InsertTransaction): Promise<Transaction>;
   getTransaction(id: string): Promise<Transaction | undefined>;
+  getUserTransactions(userId: string, type?: string): Promise<Transaction[]>;
   updateTransaction(id: string, transaction: Partial<InsertTransaction>): Promise<Transaction | undefined>;
 }
 
@@ -132,7 +133,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createProfile(profile: InsertProfile): Promise<Profile> {
-    const result = await db.insert(profiles).values(profile).returning();
+    const result = await db.insert(profiles).values([profile]).returning();
     return result[0];
   }
 
@@ -185,7 +186,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createDogListing(listing: InsertDogListing): Promise<DogListing> {
-    const result = await db.insert(dogListings).values(listing).returning();
+    const result = await db.insert(dogListings).values([listing]).returning();
     return result[0];
   }
 
@@ -196,7 +197,7 @@ export class DatabaseStorage implements IStorage {
 
   async deleteDogListing(id: string): Promise<boolean> {
     const result = await db.delete(dogListings).where(eq(dogListings.id, id));
-    return result.rowCount > 0;
+    return (result.rowCount ?? 0) > 0;
   }
 
   // Conversation methods
@@ -212,7 +213,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createConversation(conversation: InsertConversation): Promise<Conversation> {
-    const result = await db.insert(conversations).values(conversation).returning();
+    const result = await db.insert(conversations).values([conversation]).returning();
     return result[0];
   }
 
@@ -224,7 +225,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createMessage(message: InsertMessage): Promise<Message> {
-    const result = await db.insert(messages).values(message).returning();
+    const result = await db.insert(messages).values([message]).returning();
     return result[0];
   }
 
@@ -232,7 +233,7 @@ export class DatabaseStorage implements IStorage {
     const result = await db.update(messages)
       .set({ read: true })
       .where(and(eq(messages.conversation_id, conversationId), eq(messages.sender_id, userId)));
-    return result.rowCount > 0;
+    return (result.rowCount ?? 0) > 0;
   }
 
   // Favorite methods
@@ -272,14 +273,14 @@ export class DatabaseStorage implements IStorage {
   }
 
   async addFavorite(favorite: InsertFavorite): Promise<Favorite> {
-    const result = await db.insert(favorites).values(favorite).returning();
+    const result = await db.insert(favorites).values([favorite]).returning();
     return result[0];
   }
 
   async removeFavorite(userId: string, listingId: string): Promise<boolean> {
     const result = await db.delete(favorites)
       .where(and(eq(favorites.user_id, userId), eq(favorites.listing_id, listingId)));
-    return result.rowCount > 0;
+    return (result.rowCount ?? 0) > 0;
   }
 
   // Review methods
@@ -292,7 +293,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createReview(review: InsertReview): Promise<Review> {
-    const result = await db.insert(reviews).values(review).returning();
+    const result = await db.insert(reviews).values([review]).returning();
     return result[0];
   }
 
@@ -311,7 +312,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createPost(post: InsertPost): Promise<Post> {
-    const result = await db.insert(posts).values(post).returning();
+    const result = await db.insert(posts).values([post]).returning();
     return result[0];
   }
 
@@ -326,7 +327,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createComment(comment: InsertComment): Promise<Comment> {
-    const result = await db.insert(comments).values(comment).returning();
+    const result = await db.insert(comments).values([comment]).returning();
     return result[0];
   }
 
@@ -338,24 +339,32 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createNotification(notification: InsertNotification): Promise<Notification> {
-    const result = await db.insert(notifications).values(notification).returning();
+    const result = await db.insert(notifications).values([notification]).returning();
     return result[0];
   }
 
   async markNotificationAsRead(id: string): Promise<boolean> {
     const result = await db.update(notifications).set({ read: true }).where(eq(notifications.id, id));
-    return result.rowCount > 0;
+    return (result.rowCount ?? 0) > 0;
   }
 
   // Transaction methods
   async createTransaction(transaction: InsertTransaction): Promise<Transaction> {
-    const result = await db.insert(transactions).values(transaction).returning();
+    const result = await db.insert(transactions).values([transaction]).returning();
     return result[0];
   }
 
   async getTransaction(id: string): Promise<Transaction | undefined> {
     const result = await db.select().from(transactions).where(eq(transactions.id, id)).limit(1);
     return result[0];
+  }
+
+  async getUserTransactions(userId: string, type?: string): Promise<Transaction[]> {
+    let query = db.select().from(transactions).where(eq(transactions.user_id, userId));
+    if (type) {
+      query = query.where(and(eq(transactions.user_id, userId), eq(transactions.type, type)));
+    }
+    return await query.orderBy(desc(transactions.created_at));
   }
 
   async updateTransaction(id: string, transaction: Partial<InsertTransaction>): Promise<Transaction | undefined> {

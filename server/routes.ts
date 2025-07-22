@@ -1,6 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
+import Stripe from 'stripe';
 import { 
   insertProfileSchema, 
   insertDogListingSchema, 
@@ -13,6 +14,11 @@ import {
   insertNotificationSchema,
   insertTransactionSchema
 } from "@shared/schema";
+
+// Initialize Stripe
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+  apiVersion: '2025-06-30.basil',
+});
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Profile routes
@@ -370,7 +376,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Error in AI image analysis:', error);
       res.status(500).json({ 
-        error: error.message,
+        error: error instanceof Error ? error.message : 'AI analysis failed',
         success: false 
       });
     }
@@ -430,6 +436,267 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error getting transaction:", error);
       res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  // Stripe Payment Routes
+  
+  // Create payment intent for one-time purchases (Pup Box, Rehoming Feature)
+  app.post("/api/payments/create-payment-intent", async (req, res) => {
+    try {
+      const { amount, currency = 'usd', productType, userId, metadata } = req.body;
+      
+      if (!amount || !productType || !userId) {
+        return res.status(400).json({ error: 'Missing required fields: amount, productType, userId' });
+      }
+
+      // Create payment intent
+      const paymentIntent = await stripe.paymentIntents.create({
+        amount: Math.round(amount * 100), // Convert to cents
+        currency,
+        automatic_payment_methods: {
+          enabled: true,
+        },
+        metadata: {
+          userId,
+          productType, // 'pup_box' or 'rehoming_feature'
+          ...metadata,
+        },
+      });
+
+      res.json({
+        clientSecret: paymentIntent.client_secret,
+        paymentIntentId: paymentIntent.id,
+      });
+    } catch (error) {
+      console.error('Error creating payment intent:', error);
+      res.status(500).json({ error: 'Failed to create payment intent' });
+    }
+  });
+
+  // Create subscription for Premium Plan
+  app.post("/api/payments/create-subscription", async (req, res) => {
+    try {
+      const { userId, email, priceId = 'price_premium_monthly' } = req.body;
+      
+      if (!userId || !email) {
+        return res.status(400).json({ error: 'Missing required fields: userId, email' });
+      }
+
+      // Create or retrieve customer
+      let customer;
+      try {
+        const customers = await stripe.customers.list({
+          email,
+          limit: 1,
+        });
+        customer = customers.data[0];
+      } catch (error) {
+        console.log('No existing customer found');
+      }
+
+      if (!customer) {
+        customer = await stripe.customers.create({
+          email,
+          metadata: {
+            userId,
+          },
+        });
+      }
+
+      // Create subscription
+      const subscription = await stripe.subscriptions.create({
+        customer: customer.id,
+        items: [{ price: priceId }],
+        payment_behavior: 'default_incomplete',
+        payment_settings: { save_default_payment_method: 'on_subscription' },
+        expand: ['latest_invoice.payment_intent'],
+        metadata: {
+          userId,
+          plan: 'premium',
+        },
+      });
+
+      const invoice = subscription.latest_invoice as Stripe.Invoice;
+      const paymentIntent = invoice?.payment_intent as Stripe.PaymentIntent;
+
+      res.json({
+        subscriptionId: subscription.id,
+        clientSecret: paymentIntent.client_secret,
+        customerId: customer.id,
+      });
+    } catch (error) {
+      console.error('Error creating subscription:', error);
+      res.status(500).json({ error: 'Failed to create subscription' });
+    }
+  });
+
+  // Webhook to handle successful payments
+  app.post("/api/webhooks/stripe", async (req, res) => {
+    const sig = req.headers['stripe-signature'];
+    let event;
+
+    try {
+      event = stripe.webhooks.constructEvent(req.body, sig as string, process.env.STRIPE_WEBHOOK_SECRET!);
+    } catch (error) {
+      console.error('Webhook signature verification failed:', error);
+      return res.status(400).send('Webhook signature verification failed');
+    }
+
+    try {
+      switch (event.type) {
+        case 'payment_intent.succeeded':
+          const paymentIntent = event.data.object as Stripe.PaymentIntent;
+          
+          // Record the transaction
+          await storage.createTransaction({
+            id: paymentIntent.id,
+            user_id: paymentIntent.metadata.userId,
+            type: 'payment',
+            amount: (paymentIntent.amount / 100).toString(), // Convert from cents to string
+            currency: paymentIntent.currency,
+            status: 'completed',
+            payment_method: 'stripe',
+            product_type: paymentIntent.metadata.productType || 'unknown',
+            stripe_payment_intent_id: paymentIntent.id,
+          });
+          
+          console.log('Payment successful:', paymentIntent.id);
+          break;
+
+        case 'customer.subscription.created':
+        case 'customer.subscription.updated':
+          const subscription = event.data.object as Stripe.Subscription;
+          
+          // Update user's subscription status
+          await storage.createTransaction({
+            id: subscription.id,
+            user_id: subscription.metadata.userId,
+            type: 'subscription',
+            amount: ((subscription.items.data[0].price.unit_amount || 0) / 100).toString(),
+            currency: subscription.currency,
+            status: subscription.status === 'active' ? 'completed' : 'pending',
+            payment_method: 'stripe',
+            product_type: 'premium_subscription',
+            stripe_subscription_id: subscription.id,
+          });
+          
+          console.log('Subscription updated:', subscription.id);
+          break;
+
+        case 'customer.subscription.deleted':
+          const canceledSubscription = event.data.object as Stripe.Subscription;
+          
+          // Record subscription cancellation
+          await storage.createTransaction({
+            id: `cancel_${canceledSubscription.id}`,
+            user_id: canceledSubscription.metadata.userId,
+            type: 'subscription_cancel',
+            amount: "0",
+            currency: canceledSubscription.currency,
+            status: 'completed',
+            payment_method: 'stripe',
+            product_type: 'premium_subscription',
+            stripe_subscription_id: canceledSubscription.id,
+          });
+          
+          console.log('Subscription canceled:', canceledSubscription.id);
+          break;
+
+        default:
+          console.log(`Unhandled event type: ${event.type}`);
+      }
+
+      res.json({ received: true });
+    } catch (error) {
+      console.error('Error handling webhook:', error);
+      res.status(500).json({ error: 'Webhook handler failed' });
+    }
+  });
+
+  // Get user's subscription status
+  app.get("/api/payments/subscription-status/:userId", async (req, res) => {
+    try {
+      const { userId } = req.params;
+      
+      // Get latest subscription transaction for user
+      const subscriptions = await storage.getUserTransactions(userId, 'subscription');
+      const activeSubscription = subscriptions.find(sub => 
+        sub.status === 'completed' && sub.product_type === 'premium_subscription'
+      );
+      
+      if (!activeSubscription || !activeSubscription.stripe_subscription_id) {
+        return res.json({ 
+          hasActiveSubscription: false,
+          plan: 'free',
+        });
+      }
+
+      // Verify with Stripe
+      const stripeSubscription = await stripe.subscriptions.retrieve(
+        activeSubscription.stripe_subscription_id
+      );
+
+      res.json({
+        hasActiveSubscription: stripeSubscription.status === 'active',
+        plan: stripeSubscription.status === 'active' ? 'premium' : 'free',
+        subscription: {
+          id: stripeSubscription.id,
+          status: stripeSubscription.status,
+          current_period_end: stripeSubscription.current_period_end,
+          cancel_at_period_end: stripeSubscription.cancel_at_period_end,
+        },
+      });
+    } catch (error) {
+      console.error('Error checking subscription status:', error);
+      res.status(500).json({ error: 'Failed to check subscription status' });
+    }
+  });
+
+  // Cancel subscription
+  app.post("/api/payments/cancel-subscription", async (req, res) => {
+    try {
+      const { userId, subscriptionId } = req.body;
+      
+      if (!userId || !subscriptionId) {
+        return res.status(400).json({ error: 'Missing required fields' });
+      }
+
+      // Cancel subscription at period end
+      const subscription = await stripe.subscriptions.update(subscriptionId, {
+        cancel_at_period_end: true,
+      });
+
+      res.json({
+        success: true,
+        subscription: {
+          id: subscription.id,
+          status: subscription.status,
+          cancel_at_period_end: subscription.cancel_at_period_end,
+          current_period_end: subscription.current_period_end,
+        },
+      });
+    } catch (error) {
+      console.error('Error canceling subscription:', error);
+      res.status(500).json({ error: 'Failed to cancel subscription' });
+    }
+  });
+
+  // Get user's payment history
+  app.get("/api/payments/history/:userId", async (req, res) => {
+    try {
+      const { userId } = req.params;
+      const transactions = await storage.getUserTransactions(userId);
+      
+      // Sort by creation date, most recent first
+      transactions.sort((a, b) => 
+        new Date(b.created_at!).getTime() - new Date(a.created_at!).getTime()
+      );
+      
+      res.json(transactions);
+    } catch (error) {
+      console.error('Error getting payment history:', error);
+      res.status(500).json({ error: 'Failed to get payment history' });
     }
   });
 
