@@ -269,7 +269,7 @@ const FullPostModal = ({
             </div>
 
             {/* Caption & Comments - Scrollable */}
-            <div className="flex-1 overflow-y-auto">
+            <div className="flex-1 overflow-y-auto min-h-0">
               {/* Caption */}
               {post.caption && (
                 <div className="p-4 border-b">
@@ -291,8 +291,12 @@ const FullPostModal = ({
               )}
 
               {/* Comments Section */}
-              <div className="p-4 space-y-4">
-                {/* Show if no comments */}
+              <div className="p-4 space-y-4 bg-white">
+                {/* Debug: Show comment count */}
+                <div className="text-xs text-gray-400 mb-2">
+                  Comments: {comments.length}
+                </div>
+                
                 {comments.length === 0 ? (
                   <div className="text-center py-8">
                     <MessageCircle className="w-12 h-12 mx-auto text-gray-300 mb-2" />
@@ -300,27 +304,29 @@ const FullPostModal = ({
                     <p className="text-gray-400 text-xs">Be the first to comment!</p>
                   </div>
                 ) : (
-                  comments.map((comment) => (
-                    <div key={comment.id} className="flex space-x-3">
-                      <Avatar className="w-8 h-8 flex-shrink-0">
-                        <AvatarImage src={comment.profiles?.avatar_url || ''} />
-                        <AvatarFallback>
-                          {comment.profiles?.username?.[0]?.toUpperCase() || 'U'}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="flex-1">
-                        <div className="flex items-center space-x-2">
-                          <span className="font-semibold text-sm">
-                            {comment.profiles?.username || 'Unknown User'}
-                          </span>
-                          <span className="text-xs text-gray-500">
-                            {formatDistanceToNow(new Date(comment.created_at), { addSuffix: true })}
-                          </span>
+                  <div className="space-y-4">
+                    {comments.map((comment) => (
+                      <div key={comment.id} className="flex space-x-3 bg-gray-50 p-3 rounded-lg">
+                        <Avatar className="w-8 h-8 flex-shrink-0">
+                          <AvatarImage src={comment.profiles?.avatar_url || ''} />
+                          <AvatarFallback>
+                            {comment.profiles?.username?.[0]?.toUpperCase() || 'U'}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1">
+                          <div className="flex items-center space-x-2">
+                            <span className="font-semibold text-sm">
+                              {comment.profiles?.username || 'Unknown User'}
+                            </span>
+                            <span className="text-xs text-gray-500">
+                              {formatDistanceToNow(new Date(comment.created_at), { addSuffix: true })}
+                            </span>
+                          </div>
+                          <p className="text-sm mt-1">{comment.content}</p>
                         </div>
-                        <p className="text-sm mt-1">{comment.content}</p>
                       </div>
-                    </div>
-                  ))
+                    ))}
+                  </div>
                 )}
               </div>
             </div>
