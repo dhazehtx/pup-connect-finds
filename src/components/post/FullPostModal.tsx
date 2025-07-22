@@ -208,9 +208,9 @@ const FullPostModal = ({
         </div>
 
         {/* Mobile Layout */}
-        <div className="md:hidden flex flex-col h-full">
+        <div className="md:hidden flex flex-col h-full max-h-[90vh]">
           {/* Header */}
-          <div className="flex items-center justify-between p-4 border-b bg-white">
+          <div className="flex items-center justify-between p-4 border-b bg-white flex-shrink-0">
             <div className="flex items-center space-x-3">
               <Avatar className="w-8 h-8">
                 <AvatarImage src={post.profiles?.avatar_url || ''} />
@@ -230,19 +230,19 @@ const FullPostModal = ({
             </Button>
           </div>
 
-          {/* Scrollable Content */}
-          <div className="flex-1 overflow-y-auto">
-            {/* Image */}
-            <div className="bg-black flex items-center justify-center aspect-square">
-              <img
-                src={post.image_url || 'https://placedog.com/600/600'}
-                alt="Post"
-                className="w-full h-full object-cover"
-              />
-            </div>
+          {/* Image */}
+          <div className="bg-black flex items-center justify-center aspect-square flex-shrink-0">
+            <img
+              src={post.image_url || 'https://placedog.com/600/600'}
+              alt="Post"
+              className="w-full h-full object-cover"
+            />
+          </div>
 
+          {/* Action Bar & Content */}
+          <div className="flex-1 flex flex-col bg-white min-h-0">
             {/* Action Bar */}
-            <div className="p-4 bg-white border-b">
+            <div className="p-4 border-b flex-shrink-0">
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center space-x-4">
                   <Button
@@ -261,84 +261,89 @@ const FullPostModal = ({
                   </Button>
                 </div>
               </div>
-
               {likeCount > 0 && (
-                <p className="text-sm font-semibold mb-3">{likeCount} likes</p>
+                <p className="text-sm font-semibold">{likeCount} likes</p>
               )}
             </div>
 
-            {/* Caption */}
-            {post.caption && (
-              <div className="p-4 bg-white border-b">
-                <div className="flex space-x-3">
-                  <Avatar className="w-8 h-8 flex-shrink-0">
-                    <AvatarImage src={post.profiles?.avatar_url || ''} />
-                    <AvatarFallback>
-                      {post.profiles?.username?.[0]?.toUpperCase() || 'U'}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="flex-1">
-                    <span className="font-semibold mr-2">
-                      {post.profiles?.username || 'Unknown User'}
-                    </span>
-                    <span className="text-sm">{post.caption}</span>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Comments Section */}
-            <div className="bg-white">
-              <div className="p-4 space-y-4">
-                {/* Debug: Show comment count */}
-                <div className="text-xs text-gray-400 mb-2">
-                  Comments: {comments.length} | Initial: {initialComments.length} | Fetched: {fetchedComments.length}
-                </div>
-                {comments.map((comment) => (
-                  <div key={comment.id} className="flex space-x-3">
+            {/* Caption & Comments - Scrollable */}
+            <div className="flex-1 overflow-y-auto">
+              {/* Caption */}
+              {post.caption && (
+                <div className="p-4 border-b">
+                  <div className="flex space-x-3">
                     <Avatar className="w-8 h-8 flex-shrink-0">
-                      <AvatarImage src={comment.profiles?.avatar_url || ''} />
+                      <AvatarImage src={post.profiles?.avatar_url || ''} />
                       <AvatarFallback>
-                        {comment.profiles?.username?.[0]?.toUpperCase() || 'U'}
+                        {post.profiles?.username?.[0]?.toUpperCase() || 'U'}
                       </AvatarFallback>
                     </Avatar>
                     <div className="flex-1">
-                      <div className="flex items-center space-x-2">
-                        <span className="font-semibold text-sm">
-                          {comment.profiles?.username || 'Unknown User'}
-                        </span>
-                        <span className="text-xs text-gray-500">
-                          {formatDistanceToNow(new Date(comment.created_at), { addSuffix: true })}
-                        </span>
-                      </div>
-                      <p className="text-sm mt-1">{comment.content}</p>
+                      <span className="font-semibold mr-2">
+                        {post.profiles?.username || 'Unknown User'}
+                      </span>
+                      <span className="text-sm">{post.caption}</span>
                     </div>
                   </div>
-                ))}
+                </div>
+              )}
+
+              {/* Comments Section */}
+              <div className="p-4 space-y-4">
+                {/* Show if no comments */}
+                {comments.length === 0 ? (
+                  <div className="text-center py-8">
+                    <MessageCircle className="w-12 h-12 mx-auto text-gray-300 mb-2" />
+                    <p className="text-gray-500 text-sm">No comments yet</p>
+                    <p className="text-gray-400 text-xs">Be the first to comment!</p>
+                  </div>
+                ) : (
+                  comments.map((comment) => (
+                    <div key={comment.id} className="flex space-x-3">
+                      <Avatar className="w-8 h-8 flex-shrink-0">
+                        <AvatarImage src={comment.profiles?.avatar_url || ''} />
+                        <AvatarFallback>
+                          {comment.profiles?.username?.[0]?.toUpperCase() || 'U'}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1">
+                        <div className="flex items-center space-x-2">
+                          <span className="font-semibold text-sm">
+                            {comment.profiles?.username || 'Unknown User'}
+                          </span>
+                          <span className="text-xs text-gray-500">
+                            {formatDistanceToNow(new Date(comment.created_at), { addSuffix: true })}
+                          </span>
+                        </div>
+                        <p className="text-sm mt-1">{comment.content}</p>
+                      </div>
+                    </div>
+                  ))
+                )}
               </div>
             </div>
-          </div>
 
-          {/* Sticky Comment Input */}
-          <div className="p-4 border-t bg-white">
-            <form onSubmit={handleSubmitComment} className="flex space-x-2">
-              <Input
-                type="text"
-                placeholder="Add a comment..."
-                value={newComment}
-                onChange={(e) => setNewComment(e.target.value)}
-                className="flex-1 border-gray-200"
-              />
-              <Button 
-                type="submit" 
-                variant="ghost" 
-                size="sm"
-                disabled={!newComment.trim()}
-                className="text-blue-500 font-semibold hover:bg-transparent disabled:opacity-50"
-              >
-                Post
-              </Button>
-            </form>
+            {/* Sticky Comment Input */}
+            <div className="p-4 border-t bg-white flex-shrink-0">
+              <form onSubmit={handleSubmitComment} className="flex space-x-2">
+                <Input
+                  type="text"
+                  placeholder="Add a comment..."
+                  value={newComment}
+                  onChange={(e) => setNewComment(e.target.value)}
+                  className="flex-1 border-gray-200"
+                />
+                <Button 
+                  type="submit" 
+                  variant="ghost" 
+                  size="sm"
+                  disabled={!newComment.trim()}
+                  className="text-blue-500 font-semibold hover:bg-transparent disabled:opacity-50"
+                >
+                  Post
+                </Button>
+              </form>
+            </div>
           </div>
         </div>
       </DialogContent>
