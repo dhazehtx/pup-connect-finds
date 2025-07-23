@@ -66,7 +66,23 @@ const PostDetail = () => {
       text: 'They are absolutely adorable! 😍',
       timestamp: '1h',
       likes: 5,
-      isLiked: false
+      isLiked: false,
+      replies: [
+        {
+          id: 11,
+          user: {
+            id: 'goldenpaws123',
+            name: 'Golden Paws Kennel',
+            username: 'goldenpaws',
+            avatar: 'https://images.unsplash.com/photo-1560743173-567a3b5658b1?w=150&h=150&fit=crop&crop=face'
+          },
+          text: 'Thank you! They are looking for loving homes 🏠',
+          timestamp: '45m',
+          likes: 2,
+          isLiked: false,
+          parent_comment_id: 1
+        }
+      ]
     },
     {
       id: 2,
@@ -76,10 +92,40 @@ const PostDetail = () => {
         username: 'mike_d', 
         avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face'
       },
-      text: 'Are any of them still available?',
+      text: 'What\'s the price range for these beauties?',
       timestamp: '45m',
       likes: 2,
-      isLiked: false
+      isLiked: true,
+      replies: [
+        {
+          id: 21,
+          user: {
+            id: 'goldenpaws123',
+            name: 'Golden Paws Kennel',
+            username: 'goldenpaws',
+            avatar: 'https://images.unsplash.com/photo-1560743173-567a3b5658b1?w=150&h=150&fit=crop&crop=face'
+          },
+          text: 'Prices start at $1200. Send me a DM for more details!',
+          timestamp: '30m',
+          likes: 1,
+          isLiked: false,
+          parent_comment_id: 2
+        },
+        {
+          id: 22,
+          user: {
+            id: 'mike456',
+            name: 'Mike D.',
+            username: 'mike_d',
+            avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face'
+          },
+          text: 'Perfect! Will message you now 👍',
+          timestamp: '25m',
+          likes: 0,
+          isLiked: false,
+          parent_comment_id: 2
+        }
+      ]
     }
   ]);
 

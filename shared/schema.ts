@@ -111,6 +111,7 @@ export const comments = pgTable("comments", {
   id: uuid("id").primaryKey(),
   post_id: uuid("post_id").references(() => posts.id),
   user_id: uuid("user_id").references(() => profiles.id),
+  parent_comment_id: uuid("parent_comment_id"),
   content: text("content").notNull(),
   created_at: timestamp("created_at").defaultNow(),
   updated_at: timestamp("updated_at").defaultNow(),
