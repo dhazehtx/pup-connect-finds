@@ -1,99 +1,95 @@
-
 import React from 'react';
-import { Bell, MessageCircle, Heart, Star, DollarSign, Shield, AlertTriangle, User } from 'lucide-react';
+import { Bell, MessageCircle, Heart, User, Star } from 'lucide-react';
 
-export const getNotificationIcon = (type: string) => {
+// Utility to generate notification URLs with deep linking
+export const getNotificationUrl = (notification: any): string => {
+  switch (notification.type) {
+    case 'comment_reply':
+      if (notification.post_id && notification.comment_id) {
+        return `/posts/${notification.post_id}?comment=${notification.comment_id}`;
+      }
+      return notification.post_id ? `/posts/${notification.post_id}` : '/home';
+    
+    case 'like':
+    case 'post_comment':
+      return notification.post_id ? `/posts/${notification.post_id}` : '/home';
+    
+    case 'follow':
+      return notification.from_user_id ? `/profile/${notification.from_user_id}` : '/home';
+    
+    case 'message':
+      return '/messages';
+    
+    default:
+      return '/home';
+  }
+};
+
+// Utility to get notification icon based on type
+export const getNotificationIcon = (type: string, className: string = 'w-4 h-4') => {
   switch (type) {
     case 'message':
-      return <MessageCircle className="w-4 h-4 text-blue-500" />;
+      return <MessageCircle className={`${className} text-royal-blue`} />;
     case 'comment_reply':
-      return <MessageCircle className="w-4 h-4 text-purple-500" />;
+      return <MessageCircle className={`${className} text-purple-500`} />;
     case 'like':
-    case 'favorite':
-      return <Heart className="w-4 h-4 text-red-500" />;
-    case 'review':
-      return <Star className="w-4 h-4 text-yellow-500" />;
-    case 'payment_confirmation':
-    case 'payment':
-      return <DollarSign className="w-4 h-4 text-green-500" />;
-    case 'security_alert':
-      return <Shield className="w-4 h-4 text-red-600" />;
+      return <Heart className={`${className} text-red-500`} />;
     case 'follow':
-      return <User className="w-4 h-4 text-purple-500" />;
-    case 'listing_interest':
-      return <AlertTriangle className="w-4 h-4 text-orange-500" />;
+      return <User className={`${className} text-mint-green`} />;
+    case 'review':
+      return <Star className={`${className} text-yellow-500`} />;
     default:
-      return <Bell className="w-4 h-4 text-gray-500" />;
+      return <Bell className={`${className} text-deep-navy`} />;
   }
 };
 
-export const getTypeLabel = (type: string): string => {
-  switch (type) {
-    case 'message': return 'Message';
-    case 'comment_reply': return 'Reply';
-    case 'like': return 'Like';
-    case 'favorite': return 'Favorite';
-    case 'review': return 'Review';
-    case 'payment_confirmation': return 'Payment';
-    case 'payment': return 'Payment';
-    case 'security_alert': return 'Security';
-    case 'follow': return 'Follow';
-    case 'listing_interest': return 'Interest';
-    default: return 'Notification';
-  }
-};
+// Utility to format notification content
+export const formatNotificationContent = (notification: any): string => {
+  const fromUser = notification.from_profile?.username || 
+                   notification.from_profile?.full_name || 
+                   'Someone';
 
-export const getNotificationColor = (type: string): string => {
-  switch (type) {
-    case 'message': return 'bg-blue-50 border-blue-200';
-    case 'comment_reply': return 'bg-purple-50 border-purple-200';
+  switch (notification.type) {
+    case 'comment_reply':
+      return `${fromUser} replied to your comment`;
     case 'like':
-    case 'favorite': return 'bg-red-50 border-red-200';
-    case 'review': return 'bg-yellow-50 border-yellow-200';
-    case 'payment_confirmation':
-    case 'payment': return 'bg-green-50 border-green-200';
-    case 'security_alert': return 'bg-red-50 border-red-300';
-    case 'follow': return 'bg-purple-50 border-purple-200';
-    case 'listing_interest': return 'bg-orange-50 border-orange-200';
-    default: return 'bg-gray-50 border-gray-200';
+      return `${fromUser} liked your post`;
+    case 'post_comment':
+      return `${fromUser} commented on your post`;
+    case 'follow':
+      return `${fromUser} started following you`;
+    case 'message':
+      return `New message from ${fromUser}`;
+    default:
+      return notification.content || 'New notification';
   }
 };
 
-export const shouldSendPushNotification = (type: string, userSettings: any): boolean => {
-  if (!userSettings?.push_enabled) return false;
-  
-  switch (type) {
-    case 'message': return userSettings.push_messages;
-    case 'like': return userSettings.push_likes;
-    case 'comment': return userSettings.push_comments;
-    case 'comment_reply': return userSettings.push_comments;
-    case 'follow': return userSettings.push_follows;
-    case 'payment_confirmation': return userSettings.push_payments;
-    default: return true;
-  }
+// Utility to scroll to and highlight a specific comment
+export const scrollToComment = (commentId: string, delay: number = 100) => {
+  setTimeout(() => {
+    const commentElement = document.getElementById(`comment-${commentId}`);
+    if (commentElement) {
+      commentElement.scrollIntoView({ 
+        behavior: 'smooth', 
+        block: 'center' 
+      });
+      
+      // Add a temporary highlight class
+      commentElement.classList.add('highlight-comment');
+      setTimeout(() => {
+        commentElement.classList.remove('highlight-comment');
+      }, 3000);
+    }
+  }, delay);
 };
 
-export const shouldSendEmailNotification = (type: string, userSettings: any): boolean => {
-  if (!userSettings?.email_enabled) return false;
+// Utility to handle notification badge animations
+export const triggerNotificationAnimation = (element: HTMLElement | null) => {
+  if (!element) return;
   
-  switch (type) {
-    case 'message': return userSettings.email_messages;
-    case 'security_alert': return userSettings.email_security;
-    case 'payment_confirmation': return true; // Always send payment confirmations
-    default: return false;
-  }
-};
-
-export const shouldSendSMSNotification = (type: string, userSettings: any): boolean => {
-  if (!userSettings?.sms_enabled) return false;
-  
-  if (userSettings.sms_critical_only) {
-    return ['payment_confirmation', 'security_alert'].includes(type);
-  }
-  
-  switch (type) {
-    case 'payment_confirmation': return userSettings.sms_payments;
-    case 'security_alert': return userSettings.sms_security;
-    default: return false;
-  }
+  element.classList.add('notification-pulse');
+  setTimeout(() => {
+    element.classList.remove('notification-pulse');
+  }, 1000);
 };

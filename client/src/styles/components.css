@@ -1,6 +1,43 @@
 
 @tailwind components;
 
+/* Notification animations */
+@keyframes notification-pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+}
+
+@keyframes notification-fade-in {
+  0% { opacity: 0; transform: translateY(-10px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+.notification-pulse {
+  animation: notification-pulse 0.6s ease-in-out;
+}
+
+.notification-fade-in {
+  animation: notification-fade-in 0.3s ease-out;
+}
+
+/* Comment highlighting */
+.highlight-comment {
+  animation: highlight-flash 0.5s ease-in-out;
+  background-color: #fef3c7 !important;
+  border-color: #f59e0b !important;
+}
+
+@keyframes highlight-flash {
+  0%, 100% { 
+    background-color: transparent; 
+    border-color: transparent; 
+  }
+  25%, 75% { 
+    background-color: #fef3c7; 
+    border-color: #f59e0b; 
+  }
+}
+
 /* Enhanced Button Styles */
 @layer components {
   .enhanced-button {

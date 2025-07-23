@@ -32,9 +32,12 @@ const ReplyNotificationItem = ({ notification, onMarkAsRead, onClick }: ReplyNot
       onMarkAsRead(notification.id);
     }
 
-    // Navigate to the post if post_id exists
+    // Navigate to the post with comment highlighting if post_id exists
     if (notification.post_id) {
-      setLocation(`/posts/${notification.post_id}`);
+      const url = notification.comment_id 
+        ? `/posts/${notification.post_id}?comment=${notification.comment_id}`
+        : `/posts/${notification.post_id}`;
+      setLocation(url);
     }
 
     if (onClick) {
@@ -48,9 +51,9 @@ const ReplyNotificationItem = ({ notification, onMarkAsRead, onClick }: ReplyNot
 
   return (
     <div 
-      className={`p-4 border-l-4 transition-all duration-200 cursor-pointer hover:bg-gray-50 ${
+      className={`p-4 border-l-4 transition-all duration-300 cursor-pointer hover:bg-gray-50 hover:border-purple-600 transform hover:scale-[1.01] ${
         !notification.is_read 
-          ? 'border-purple-500 bg-purple-50/50' 
+          ? 'border-purple-500 bg-purple-50/50 shadow-sm' 
           : 'border-gray-200 bg-white'
       }`}
       onClick={handleClick}

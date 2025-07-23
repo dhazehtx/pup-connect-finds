@@ -5,11 +5,13 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Bell, Check, X, Settings, Trash2, Heart, MessageCircle, User, Star } from 'lucide-react';
+import { Bell, Check, X, Settings, Trash2, Heart, MessageCircle, User, Star, CheckCheck } from 'lucide-react';
 import { useEnhancedNotifications } from '@/hooks/useEnhancedNotifications';
 import { useNotifications } from '@/hooks/useNotifications';
 import { formatDistanceToNow } from 'date-fns';
 import ReplyNotificationItem from './ReplyNotificationItem';
+import { useLocation } from 'wouter';
+import { getNotificationUrl, getNotificationIcon, formatNotificationContent } from '@/utils/notificationUtils';
 
 interface NotificationCenterProps {
   isOpen: boolean;
@@ -19,6 +21,7 @@ interface NotificationCenterProps {
 const NotificationCenter = ({ isOpen, onClose }: NotificationCenterProps) => {
   const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotifications();
   const [activeTab, setActiveTab] = useState('all');
+  const [, setLocation] = useLocation();
 
   if (!isOpen) return null;
 
@@ -27,22 +30,27 @@ const NotificationCenter = ({ isOpen, onClose }: NotificationCenterProps) => {
     return true;
   });
 
-  const getNotificationIcon = (type: string) => {
-    switch (type) {
-      case 'message':
-        return <MessageCircle className="w-4 h-4 text-royal-blue" />;
-      case 'comment_reply':
-        return <MessageCircle className="w-4 h-4 text-purple-500" />;
-      case 'like':
-        return <Heart className="w-4 h-4 text-red-500" />;
-      case 'follow':
-        return <User className="w-4 h-4 text-mint-green" />;
-      case 'review':
-        return <Star className="w-4 h-4 text-yellow-500" />;
-      default:
-        return <Bell className="w-4 h-4 text-deep-navy" />;
+  const handleNotificationClick = (notification: any) => {
+    // Mark as read if not already read
+    if (!notification.is_read) {
+      markAsRead(notification.id);
+    }
+
+    // Navigate using the utility function
+    const url = getNotificationUrl(notification);
+    setLocation(url);
+    onClose();
+  };
+
+  const handleMarkAllAsRead = async () => {
+    try {
+      await markAllAsRead();
+    } catch (error) {
+      console.error('Failed to mark all notifications as read:', error);
     }
   };
+
+
 
   return (
     <div className="fixed inset-0 z-50 bg-black/20 backdrop-blur-sm" onClick={onClose}>
@@ -140,7 +148,7 @@ const NotificationCenter = ({ isOpen, onClose }: NotificationCenterProps) => {
                               ? 'bg-white/10 border-l-4 border-l-white shadow-sm' 
                               : 'bg-white/5 hover:shadow-sm'
                           }`}
-                          onClick={() => markAsRead(notification.id)}
+                          onClick={() => handleNotificationClick(notification)}
                         >
                           <div className="flex items-start gap-3">
                             <div className="flex-shrink-0 mt-1">

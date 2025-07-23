@@ -7,6 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Heart, MessageCircle, Share, MoreHorizontal, X, Reply, ChevronDown, ChevronUp, Send } from 'lucide-react';
 import { useComments } from '@/hooks/useComments';
 import { formatDistanceToNow } from 'date-fns';
+import { useLocation } from 'wouter';
 
 interface Post {
   id: string;
@@ -63,11 +64,39 @@ const FullPostModal = ({
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
   const [replyContent, setReplyContent] = useState('');
   const [expandedComments, setExpandedComments] = useState<Set<string>>(new Set());
+  const [highlightedCommentId, setHighlightedCommentId] = useState<string | null>(null);
   
+  const [location] = useLocation();
   const { comments: fetchedComments, addComment, fetchComments } = useComments(post?.id || '');
   
   // Always use fetched comments to ensure real-time updates
   const comments = fetchedComments.length > 0 ? fetchedComments : initialComments;
+
+  // Handle deep linking to specific comments
+  useEffect(() => {
+    if (isOpen && location) {
+      const url = new URL(window.location.href);
+      const commentId = url.searchParams.get('comment');
+      if (commentId) {
+        setHighlightedCommentId(commentId);
+        // Auto-expand the highlighted comment's thread
+        setExpandedComments(prev => new Set(Array.from(prev).concat(commentId)));
+        
+        // Scroll to the comment after a short delay to ensure rendering
+        setTimeout(() => {
+          const commentElement = document.getElementById(`comment-${commentId}`);
+          if (commentElement) {
+            commentElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }
+        }, 100);
+
+        // Clear highlight after 3 seconds
+        setTimeout(() => {
+          setHighlightedCommentId(null);
+        }, 3000);
+      }
+    }
+  }, [isOpen, location]);
 
   const handleSubmitComment = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -205,7 +234,15 @@ const FullPostModal = ({
             {/* Comments */}
             <div className="flex-1 overflow-y-auto p-4 space-y-4">
               {organizedComments.map((comment) => (
-                <div key={comment.id} className="space-y-3">
+                <div 
+                  key={comment.id} 
+                  id={`comment-${comment.id}`}
+                  className={`space-y-3 transition-all duration-500 ${
+                    highlightedCommentId === comment.id 
+                      ? 'bg-yellow-100 border border-yellow-300 rounded-lg p-3 -m-3' 
+                      : ''
+                  }`}
+                >
                   {/* Main Comment */}
                   <div className="flex space-x-3">
                     <Avatar className="w-8 h-8 flex-shrink-0">
@@ -284,7 +321,15 @@ const FullPostModal = ({
                   {comment.replies && comment.replies.length > 0 && expandedComments.has(comment.id) && (
                     <div className="ml-11 space-y-3 border-l-2 border-gray-100 pl-4">
                       {comment.replies.map((reply) => (
-                        <div key={reply.id} className="flex space-x-3">
+                        <div 
+                          key={reply.id} 
+                          id={`comment-${reply.id}`}
+                          className={`flex space-x-3 transition-all duration-500 ${
+                            highlightedCommentId === reply.id 
+                              ? 'bg-yellow-100 border border-yellow-300 rounded-lg p-2 -m-2' 
+                              : ''
+                          }`}
+                        >
                           <Avatar className="w-6 h-6 flex-shrink-0">
                             <AvatarImage src={reply.profiles?.avatar_url || ''} />
                             <AvatarFallback className="text-xs">
