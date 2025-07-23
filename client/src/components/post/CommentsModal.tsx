@@ -6,6 +6,8 @@ import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Send } from 'lucide-react';
 import { useComments } from '@/hooks/useComments';
+import { useCommentsWithReplies } from '@/hooks/useCommentReplies';
+import CommentWithReplies from './CommentWithReplies';
 import { useAuth } from '@/contexts/AuthContext';
 import { formatDistanceToNow } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
@@ -58,32 +60,11 @@ const CommentsModal = ({ isOpen, onClose, postId, onProfileClick }: CommentsModa
             </div>
           ) : (
             comments.map((comment) => (
-              <div key={comment.id} className="flex gap-3">
-                <Avatar 
-                  className="h-8 w-8 cursor-pointer hover:opacity-80 transition-opacity" 
-                  onClick={() => handleProfileClick(comment.user_id)}
-                >
-                  <AvatarImage src={comment.profiles?.avatar_url || undefined} />
-                  <AvatarFallback className="text-xs">
-                    {comment.profiles?.full_name?.charAt(0) || 
-                     comment.profiles?.username?.charAt(0) || 'U'}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1">
-                    <span 
-                      className="font-medium text-sm cursor-pointer hover:underline"
-                      onClick={() => handleProfileClick(comment.user_id)}
-                    >
-                      {comment.profiles?.username || comment.profiles?.full_name || 'User'}
-                    </span>
-                    <span className="text-xs text-gray-500">
-                      {formatDistanceToNow(new Date(comment.created_at), { addSuffix: true })}
-                    </span>
-                  </div>
-                  <p className="text-sm break-words">{comment.content}</p>
-                </div>
-              </div>
+              <CommentWithReplies
+                key={comment.id}
+                comment={comment}
+                onProfileClick={handleProfileClick}
+              />
             ))
           )}
         </div>

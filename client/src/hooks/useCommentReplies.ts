@@ -1,167 +1,150 @@
 import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/contexts/AuthContext';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
 
-interface Reply {
+interface CommentReply {
   id: string;
+  comment_id: string;
+  user_id: string;
   content: string;
   created_at: string;
-  user_id: string;
-  parent_comment_id: string;
   profiles?: {
-    username: string | null;
     full_name: string | null;
+    username: string | null;
     avatar_url: string | null;
   } | null;
 }
 
-export const useCommentReplies = (parentCommentId: string) => {
-  const [replies, setReplies] = useState<Reply[]>([]);
-  const [loading, setLoading] = useState(false);
-  const { user } = useAuth();
+export const useCommentReplies = (commentId: string | null) => {
   const { toast } = useToast();
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
 
-  const fetchReplies = async () => {
-    if (!parentCommentId) return;
-    
-    setLoading(true);
-    try {
-      const { data, error } = await supabase
-        .from('comments')
-        .select(`
-          id,
-          content,
-          created_at,
-          user_id,
-          parent_comment_id,
-          profiles:user_id (
-            username,
-            full_name,
-            avatar_url
-          )
-        `)
-        .eq('parent_comment_id', parentCommentId)
-        .order('created_at', { ascending: true });
-
-      if (error) throw error;
-      setReplies(data || []);
-    } catch (error) {
-      console.error('Error fetching replies:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load replies",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const addReply = async (content: string) => {
-    if (!user || !content.trim()) return false;
-
-    try {
-      const { data, error } = await supabase
-        .from('comments')
-        .insert({
-          content: content.trim(),
-          user_id: user.id,
-          parent_comment_id: parentCommentId,
-          post_id: null, // This will be set by the parent component
-        })
-        .select(`
-          id,
-          content,
-          created_at,
-          user_id,
-          parent_comment_id,
-          profiles:user_id (
-            username,
-            full_name,
-            avatar_url
-          )
-        `)
-        .single();
-
-      if (error) throw error;
-
-      if (data) {
-        setReplies(prev => [...prev, data]);
-        toast({
-          title: "Reply posted",
-          description: "Your reply has been added",
-        });
-        return true;
+  // Fetch replies for a specific comment
+  const { data: replies = [], isLoading, error } = useQuery({
+    queryKey: ['comment-replies', commentId],
+    queryFn: async () => {
+      if (!commentId) return [];
+      
+      const response = await fetch(`/api/comments/${commentId}/replies`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch replies');
       }
-    } catch (error) {
-      console.error('Error adding reply:', error);
+      return response.json();
+    },
+    enabled: !!commentId,
+  });
+
+  // Create a new reply
+  const createReplyMutation = useMutation({
+    mutationFn: async ({ commentId, content }: { commentId: string; content: string }) => {
+      if (!user) throw new Error('User not authenticated');
+      
+      const response = await fetch('/api/comment-replies', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          comment_id: commentId,
+          user_id: user.id,
+          content,
+        }),
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to create reply');
+      }
+      
+      return response.json();
+    },
+    onSuccess: (newReply, variables) => {
+      // Invalidate and refetch the replies for this comment
+      queryClient.invalidateQueries({ queryKey: ['comment-replies', variables.commentId] });
+      
+      toast({
+        title: "Reply posted",
+        description: "Your reply has been added to the comment",
+      });
+    },
+    onError: (error) => {
+      console.error('Error creating reply:', error);
       toast({
         title: "Error",
-        description: "Failed to post reply",
+        description: "Failed to post reply. Please try again.",
         variant: "destructive",
       });
+    },
+  });
+
+  const addReply = (commentId: string, content: string) => {
+    if (!user) {
+      toast({
+        title: "Login required",
+        description: "Please log in to reply to comments",
+        variant: "destructive",
+      });
+      return;
     }
-    return false;
+    
+    if (!content.trim()) {
+      toast({
+        title: "Invalid input",
+        description: "Reply cannot be empty",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    createReplyMutation.mutate({ commentId, content: content.trim() });
   };
-
-  useEffect(() => {
-    fetchReplies();
-  }, [parentCommentId]);
-
-  // Subscribe to real-time updates for new replies
-  useEffect(() => {
-    if (!parentCommentId) return;
-
-    const subscription = supabase
-      .channel(`replies_${parentCommentId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'comments',
-          filter: `parent_comment_id=eq.${parentCommentId}`,
-        },
-        async (payload: any) => {
-          // Fetch the complete reply with profile data
-          const { data, error } = await supabase
-            .from('comments')
-            .select(`
-              id,
-              content,
-              created_at,
-              user_id,
-              parent_comment_id,
-              profiles:user_id (
-                username,
-                full_name,
-                avatar_url
-              )
-            `)
-            .eq('id', payload.new.id)
-            .single();
-
-          if (!error && data) {
-            setReplies(prev => {
-              // Avoid duplicates
-              if (prev.some(reply => reply.id === data.id)) return prev;
-              return [...prev, data];
-            });
-          }
-        }
-      )
-      .subscribe();
-
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, [parentCommentId]);
 
   return {
     replies,
-    loading,
+    isLoading,
+    error,
     addReply,
-    fetchReplies,
+    isCreatingReply: createReplyMutation.isPending,
+  };
+};
+
+// Hook for managing all replies across multiple comments
+export const useCommentsWithReplies = (postId: string) => {
+  const [expandedComments, setExpandedComments] = useState<Set<string>>(new Set());
+  
+  // Fetch comments for the post
+  const { data: comments = [], isLoading: commentsLoading } = useQuery({
+    queryKey: ['comments', postId],
+    queryFn: async () => {
+      if (!postId) return [];
+      
+      const response = await fetch(`/api/posts/${postId}/comments`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch comments');
+      }
+      return response.json();
+    },
+    enabled: !!postId,
+  });
+
+  const toggleReplies = (commentId: string) => {
+    setExpandedComments(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(commentId)) {
+        newSet.delete(commentId);
+      } else {
+        newSet.add(commentId);
+      }
+      return newSet;
+    });
+  };
+
+  return {
+    comments,
+    commentsLoading,
+    expandedComments,
+    toggleReplies,
+    isCommentExpanded: (commentId: string) => expandedComments.has(commentId),
   };
 };

@@ -94,6 +94,10 @@ export interface IStorage {
   // Comment methods
   getPostComments(postId: string): Promise<Comment[]>;
   createComment(comment: InsertComment): Promise<Comment>;
+
+  // Comment reply methods
+  getCommentReplies(commentId: string): Promise<CommentReply[]>;
+  createCommentReply(reply: InsertCommentReply): Promise<CommentReply>;
   
   // Comment reply methods
   getCommentReplies(commentId: string): Promise<CommentReply[]>;
