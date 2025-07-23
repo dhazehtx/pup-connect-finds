@@ -40,15 +40,15 @@ const Notifications = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 dark:from-gray-900 dark:to-gray-800">
+    <div className="min-h-screen bg-white dark:from-gray-900 dark:to-gray-800">
       {/* Header */}
-      <div className="sticky top-0 z-10 bg-gradient-to-r from-blue-100 to-teal-100 dark:from-blue-800 dark:to-purple-800 text-gray-800 dark:text-white p-4 shadow-lg">
+      <div className="sticky top-0 z-10 w-full bg-gradient-to-r from-blue-100 to-teal-100 px-4 py-3 shadow-lg">
         <div className="flex items-center justify-between max-w-md mx-auto">
-          <h1 className="text-xl font-bold">Notifications</h1>
+          <h1 className="text-lg font-semibold text-gray-800">Notifications</h1>
           <Button
             variant="ghost"
             size="sm"
-            className="text-gray-700 dark:text-white hover:bg-white/20"
+            className="text-gray-700 hover:bg-white/30"
           >
             <Settings className="w-5 h-5" />
           </Button>
@@ -56,8 +56,8 @@ const Notifications = () => {
       </div>
 
       {/* Tab Toggle */}
-      <div className="p-4 max-w-md mx-auto">
-        <div className="flex rounded-lg bg-white dark:bg-gray-800 p-1 shadow-sm border border-gray-200 dark:border-gray-700">
+      <div className="p-4 max-w-md mx-auto bg-white">
+        <div className="flex rounded-lg bg-gray-50 p-1 shadow-sm border border-gray-100">
           <Button
             variant={activeTab === 'all' ? 'default' : 'ghost'}
             size="sm"
@@ -83,22 +83,22 @@ const Notifications = () => {
       </div>
 
       {/* Content */}
-      <div className="px-4 pb-20 max-w-md mx-auto">
+      <div className="px-4 pb-20 max-w-md mx-auto bg-white">
         {loading ? (
-          <div className="flex items-center justify-center py-20">
+          <div className="flex items-center justify-center py-20 bg-white">
             <div className="text-center">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-              <p className="text-gray-600 dark:text-gray-400">Loading notifications...</p>
+              <p className="text-gray-600">Loading notifications...</p>
             </div>
           </div>
         ) : filteredNotifications.length === 0 ? (
           /* Empty State */
-          <div className="text-center py-20">
-            <Bell className="w-16 h-16 mx-auto text-gray-300 dark:text-gray-600 mb-4" />
-            <h2 className="text-xl font-semibold text-gray-600 dark:text-gray-300 mb-2">
+          <div className="flex flex-col items-center justify-center p-8 text-center bg-white">
+            <Bell className="w-16 h-16 mx-auto text-gray-300 mb-4" />
+            <h2 className="text-xl font-semibold text-gray-600 mb-2">
               {activeTab === 'unread' ? 'All caught up!' : 'No notifications yet'}
             </h2>
-            <p className="text-gray-500 dark:text-gray-400">
+            <p className="text-gray-500">
               {activeTab === 'unread' 
                 ? 'You have no unread notifications' 
                 : 'When you get notifications, they\'ll show up here'
@@ -114,8 +114,8 @@ const Notifications = () => {
                 onClick={() => handleNotificationClick(notification)}
                 className={`p-4 rounded-lg shadow-sm border cursor-pointer transition-colors ${
                   notification.is_read
-                    ? 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700'
-                    : 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800'
+                    ? 'bg-white border-gray-200'
+                    : 'bg-blue-50 border-blue-200'
                 }`}
               >
                 <div className="flex gap-3">
@@ -130,12 +130,12 @@ const Notifications = () => {
                       <div className="flex-1">
                         <p className={`text-sm leading-5 ${
                           notification.is_read 
-                            ? 'text-gray-700 dark:text-gray-300' 
-                            : 'text-gray-900 dark:text-white font-medium'
+                            ? 'text-gray-700' 
+                            : 'text-gray-900 font-medium'
                         }`}>
                           {notification.message}
                         </p>
-                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                        <p className="text-xs text-gray-500 mt-1">
                           {formatDistanceToNow(new Date(notification.created_at), { addSuffix: true })}
                         </p>
                       </div>
