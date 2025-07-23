@@ -1,6 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
+import userRoutes from './routes/user';
 import Stripe from 'stripe';
 import { 
   insertProfileSchema, 
@@ -722,6 +723,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ error: 'Failed to get payment history' });
     }
   });
+
+  // Mount user routes for GDPR compliance
+  app.use('/api/user', userRoutes);
 
   const httpServer = createServer(app);
   return httpServer;

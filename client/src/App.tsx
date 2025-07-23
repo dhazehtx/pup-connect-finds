@@ -24,6 +24,7 @@ import TrustSafety from './pages/TrustSafety';
 import Contact from './pages/Contact';
 import Services from './pages/Services';
 import LegalGuide from './pages/LegalGuide';
+import AccountSettingsPage from './pages/AccountSettings';
 import ProtectedRoute from './components/ProtectedRoute';
 
 const queryClient = new QueryClient({
@@ -62,6 +63,7 @@ function App() {
                   <Route path="/contact" element={<Contact />} />
                   <Route path="/services" element={<Services />} />
                   <Route path="/legal" element={<LegalGuide />} />
+                  <Route path="/account-settings" element={<ProtectedRoute><AccountSettingsPage /></ProtectedRoute>} />
                 </Routes>
               </Layout>
             </ThemeProvider>
