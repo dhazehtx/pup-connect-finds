@@ -1,287 +1,362 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { BookOpen, Search, GraduationCap, FileText, ExternalLink, Star, Clock } from 'lucide-react';
-import { useEducationSearch, type EducationResource } from '../hooks/useEducationSearch';
+import { Progress } from '@/components/ui/progress';
+import { 
+  Search, 
+  BookOpen, 
+  Users, 
+  Heart, 
+  Shield, 
+  Award,
+  Calendar,
+  MapPin,
+  Phone,
+  Mail,
+  ExternalLink,
+  Bookmark,
+  Share2,
+  FileText,
+  Star,
+  Check,
+  Home,
+  Stethoscope,
+  Tag,
+  Link,
+  Utensils,
+  Bed,
+  Scissors,
+  Car,
+  ClipboardList,
+  Camera,
+  GraduationCap,
+  ShoppingCart,
+  Activity
+} from 'lucide-react';
+
+// Educational articles data
+const educationalArticles = [
+  {
+    id: 1,
+    title: 'Complete Guide to Puppy Vaccination Schedule',
+    description: 'Essential vaccination timeline and health requirements for your new puppy from 6-16 weeks.',
+    author: 'American Veterinary Medical Association',
+    readTime: '8 min read',
+    rating: 4.9,
+    tags: ['vaccines', 'health', 'puppy', 'veterinary'],
+    category: 'Health & Wellness',
+    image: '/api/placeholder/300/200'
+  },
+  {
+    id: 2,
+    title: 'French Bulldog Breed Profile',
+    description: 'Comprehensive guide to French Bulldog temperament, exercise needs, grooming, and health considerations.',
+    author: 'American Kennel Club',
+    readTime: '12 min read',
+    rating: 4.8,
+    tags: ['french-bulldog', 'breed-guide', 'care', 'exercise'],
+    category: 'Breed Information',
+    image: '/api/placeholder/300/200'
+  },
+  {
+    id: 3,
+    title: 'House Training Your New Puppy: Step-by-Step Guide',
+    description: 'Proven methods for successful house training, crate training, and establishing good bathroom habits.',
+    author: 'Certified Dog Trainer Institute',
+    readTime: '10 min read',
+    rating: 4.7,
+    tags: ['training', 'house-training', 'puppy', 'behavior'],
+    category: 'Training & Behavior',
+    image: '/api/placeholder/300/200'
+  },
+  {
+    id: 4,
+    title: 'Nutrition Guidelines for Growing Puppies',
+    description: 'Complete feeding guide including portion sizes, feeding schedules, and nutritional requirements.',
+    author: 'Pet Nutrition Alliance',
+    readTime: '7 min read',
+    rating: 4.6,
+    tags: ['nutrition', 'feeding', 'puppy', 'health'],
+    category: 'Nutrition',
+    image: '/api/placeholder/300/200'
+  },
+  {
+    id: 5,
+    title: 'Creating a Safe Environment: Puppy-Proofing Your Home',
+    description: 'Essential safety checklist and hazard identification for new puppy owners.',
+    author: 'ASPCA Safety Division',
+    readTime: '6 min read',
+    rating: 4.8,
+    tags: ['safety', 'puppy-proofing', 'home', 'preparation'],
+    category: 'Safety & Preparation',
+    image: '/api/placeholder/300/200'
+  }
+];
+
+// New Owner Starter Pack checklist
+const starterPackItems = [
+  { icon: Home, task: 'Puppy-proof your home', completed: false },
+  { icon: Stethoscope, task: 'Schedule first vet appointment', completed: false },
+  { icon: Tag, task: 'Get ID tag and collar', completed: false },
+  { icon: Link, task: 'Purchase leash and harness', completed: false },
+  { icon: Utensils, task: 'Buy food and water bowls', completed: false },
+  { icon: Bed, task: 'Set up sleeping area', completed: false },
+  { icon: Scissors, task: 'Find grooming supplies', completed: false },
+  { icon: Car, task: 'Plan transportation setup', completed: false },
+  { icon: ClipboardList, task: 'Create care schedule', completed: false },
+  { icon: Camera, task: 'Document puppy photos', completed: false },
+  { icon: GraduationCap, task: 'Research training classes', completed: false },
+  { icon: ShoppingCart, task: 'Stock up on puppy supplies', completed: false }
+];
 
 const Education = () => {
-  // Sample education resources data
-  const sampleResources: EducationResource[] = [
-    {
-      id: 1,
-      category: 'Health',
-      title: 'Puppy Vaccination Schedule',
-      description: 'Complete guide to puppy shots and vaccination timeline',
-      readTime: '12 min read',
-      rating: 4.9,
-      reviews: 245,
-      image: '/api/placeholder/300/200',
-      author: {
-        name: 'Dr. Sarah Johnson',
-        credentials: 'DVM, DACVIM'
-      },
-      difficulty: 'Intermediate',
-      tags: ['vaccines', 'health', 'puppies', 'veterinary'],
-      url: 'https://www.akc.org/expert-advice/health/puppy-shots-complete-guide/'
-    },
-    {
-      id: 2,
-      category: 'Training',
-      title: 'Puppy Training Basics',
-      description: 'Essential training techniques for new puppy owners',
-      readTime: '15 min read',
-      rating: 4.8,
-      reviews: 189,
-      image: '/api/placeholder/300/200',
-      author: {
-        name: 'Mark Thompson',
-        credentials: 'Certified Dog Trainer'
-      },
-      difficulty: 'Beginner',
-      tags: ['training', 'behavior', 'puppies', 'obedience'],
-      url: 'https://www.akc.org/expert-advice/training/'
-    },
-    {
-      id: 3,
-      category: 'Legal',
-      title: 'Dog Ownership Laws by State',
-      description: 'Understanding legal requirements for dog ownership across different states',
-      readTime: '20 min read',
-      rating: 4.7,
-      reviews: 156,
-      image: '/api/placeholder/300/200',
-      author: {
-        name: 'Legal Team',
-        credentials: 'Pet Law Specialists'
-      },
-      difficulty: 'Advanced',
-      tags: ['legal', 'laws', 'ownership', 'regulations'],
-      url: '#'
-    },
-    {
-      id: 4,
-      category: 'Nutrition',
-      title: 'Puppy Nutrition Guide',
-      description: 'Everything you need to know about feeding your puppy',
-      readTime: '18 min read',
-      rating: 4.9,
-      reviews: 312,
-      image: '/api/placeholder/300/200',
-      author: {
-        name: 'Dr. Emily Chen',
-        credentials: 'Pet Nutritionist'
-      },
-      difficulty: 'Intermediate',
-      tags: ['nutrition', 'feeding', 'puppies', 'diet'],
-      url: 'https://www.akc.org/expert-advice/nutrition/'
-    }
-  ];
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [bookmarkedArticles, setBookmarkedArticles] = useState<number[]>([]);
+  const [checkedItems, setCheckedItems] = useState<number[]>([]);
 
-  const {
-    searchTerm,
-    setSearchTerm,
-    selectedCategory,
-    setSelectedCategory,
-    selectedDifficulty,
-    setSelectedDifficulty,
-    filteredResources
-  } = useEducationSearch(sampleResources);
+  const categories = ['all', 'Health & Wellness', 'Breed Information', 'Training & Behavior', 'Nutrition', 'Safety & Preparation'];
 
-  const categories = ['all', 'Health', 'Training', 'Legal', 'Nutrition'];
-  const difficulties = ['all', 'Beginner', 'Intermediate', 'Advanced'];
+  const filteredArticles = educationalArticles.filter(article => {
+    const matchesSearch = article.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         article.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase())) ||
+                         article.author.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesCategory = selectedCategory === 'all' || article.category === selectedCategory;
+    return matchesSearch && matchesCategory;
+  });
 
-  const stateLaws = [
-    {
-      state: 'California',
-      summary: 'Strict breeding regulations, mandatory microchipping, and lemon laws for puppy sales.',
-      keyPoints: ['Breeder licensing required', 'Health guarantees mandatory', 'Cooling-off period for purchases']
-    },
-    {
-      state: 'New York',
-      summary: 'Comprehensive pet dealer licensing and consumer protection laws.',
-      keyPoints: ['Pet dealer permits required', 'Veterinary records disclosure', 'Return/refund policies mandated']
-    },
-    {
-      state: 'Texas',
-      summary: 'Commercial breeder regulations and puppy mill prevention laws.',
-      keyPoints: ['Inspection requirements', 'Record keeping mandates', 'Facility standards enforced']
-    },
-    {
-      state: 'Florida',
-      summary: 'Pet sale regulations and consumer protection measures.',
-      keyPoints: ['Health certificates required', 'Warranty provisions', 'Disclosure requirements']
-    }
-  ];
+  const toggleBookmark = (articleId: number) => {
+    setBookmarkedArticles(prev => 
+      prev.includes(articleId) 
+        ? prev.filter(id => id !== articleId)
+        : [...prev, articleId]
+    );
+  };
+
+  const toggleCheckItem = (index: number) => {
+    setCheckedItems(prev => 
+      prev.includes(index) 
+        ? prev.filter(i => i !== index)
+        : [...prev, index]
+    );
+  };
+
+  const completionPercentage = (checkedItems.length / starterPackItems.length) * 100;
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="max-w-6xl mx-auto p-6 space-y-8">
       {/* Header */}
-      <div className="bg-gradient-to-r from-green-600 to-blue-600 text-white py-16">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <GraduationCap className="w-16 h-16 mx-auto mb-4" />
-          <h1 className="text-4xl font-bold mb-4">Education Center</h1>
-          <p className="text-xl text-green-100">
-            Learn everything you need to know about responsible dog ownership, breeding laws, and pet care.
-          </p>
-        </div>
+      <div className="text-center space-y-4">
+        <h1 className="text-4xl font-bold text-gray-900">Educational Resources</h1>
+        <p className="text-lg text-gray-600">
+          Learn everything you need to know about dog ownership and care
+        </p>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        
-        {/* Search and Filters */}
-        <div className="mb-8 bg-white p-6 rounded-lg shadow-sm">
-          <div className="grid md:grid-cols-4 gap-4">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-              <Input
-                type="text"
-                placeholder="Search articles..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
-              />
+      {/* Progress and Bookmarks Section */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <Card className="md:col-span-2">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-semibold text-gray-900">Your Learning Progress</h3>
+              <span className="text-sm text-gray-600">{checkedItems.length} of 5 articles completed</span>
             </div>
-            <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-              <SelectTrigger>
-                <SelectValue placeholder="Category" />
-              </SelectTrigger>
-              <SelectContent>
-                {categories.map((category) => (
-                  <SelectItem key={category} value={category}>
-                    {category === 'all' ? 'All Categories' : category}
-                  </SelectItem>
+            <Progress value={completionPercentage} className="h-2" />
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center gap-3">
+              <Bookmark className="w-5 h-5 text-blue-600" />
+              <div>
+                <h3 className="font-semibold text-gray-900">Bookmarked</h3>
+                <p className="text-sm text-gray-600">{bookmarkedArticles.length} articles saved</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Search Bar */}
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+        <Input
+          placeholder="Search resources, tags, authors…"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="pl-10 py-3 text-lg"
+        />
+      </div>
+
+      {/* New Owner Starter Pack */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <GraduationCap className="w-5 h-5 text-green-600" />
+            New Owner Starter Pack
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+            <div className="lg:col-span-3">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {starterPackItems.map((item, index) => (
+                  <div 
+                    key={index}
+                    className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
+                    onClick={() => toggleCheckItem(index)}
+                  >
+                    <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${
+                      checkedItems.includes(index) 
+                        ? 'bg-green-600 border-green-600' 
+                        : 'border-gray-300'
+                    }`}>
+                      {checkedItems.includes(index) && (
+                        <Check className="w-4 h-4 text-white" />
+                      )}
+                    </div>
+                    <item.icon className={`w-5 h-5 ${
+                      checkedItems.includes(index) ? 'text-green-600' : 'text-gray-600'
+                    }`} />
+                    <span className={`text-sm ${
+                      checkedItems.includes(index) ? 'text-green-600 line-through' : 'text-gray-700'
+                    }`}>
+                      {item.task}
+                    </span>
+                  </div>
                 ))}
-              </SelectContent>
-            </Select>
-            <Select value={selectedDifficulty} onValueChange={setSelectedDifficulty}>
-              <SelectTrigger>
-                <SelectValue placeholder="Difficulty" />
-              </SelectTrigger>
-              <SelectContent>
-                {difficulties.map((difficulty) => (
-                  <SelectItem key={difficulty} value={difficulty}>
-                    {difficulty === 'all' ? 'All Levels' : difficulty}
-                  </SelectItem>
+              </div>
+            </div>
+            <div className="lg:col-span-1">
+              <div className="bg-gray-100 rounded-lg h-48 flex items-center justify-center">
+                <Camera className="w-12 h-12 text-gray-400" />
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Category Filters */}
+      <div className="flex flex-wrap gap-2">
+        {categories.map((category) => (
+          <Button
+            key={category}
+            variant={selectedCategory === category ? "default" : "outline"}
+            onClick={() => setSelectedCategory(category)}
+            className="capitalize"
+          >
+            {category === 'all' ? 'All Categories' : category}
+          </Button>
+        ))}
+      </div>
+
+      {/* Educational Articles Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {filteredArticles.map((article) => (
+          <Card key={article.id} className="hover:shadow-lg transition-shadow">
+            <div className="relative">
+              <div className="bg-gray-200 h-40 rounded-t-lg flex items-center justify-center">
+                <BookOpen className="w-8 h-8 text-gray-400" />
+              </div>
+              <Badge 
+                variant="secondary" 
+                className="absolute top-2 left-2 bg-white/90"
+              >
+                {article.category}
+              </Badge>
+            </div>
+            
+            <CardContent className="p-4 space-y-3">
+              <h3 className="font-semibold text-gray-900 line-clamp-2">
+                {article.title}
+              </h3>
+              
+              <p className="text-sm text-gray-600 line-clamp-2">
+                {article.description}
+              </p>
+              
+              <div className="text-xs text-gray-500">
+                By {article.author}
+              </div>
+              
+              <div className="flex items-center justify-between text-xs text-gray-500">
+                <span>{article.readTime}</span>
+                <div className="flex items-center gap-1">
+                  <Star className="w-3 h-3 text-yellow-400 fill-current" />
+                  <span>{article.rating}</span>
+                </div>
+              </div>
+              
+              <div className="flex flex-wrap gap-1">
+                {article.tags.slice(0, 3).map((tag) => (
+                  <Badge key={tag} variant="outline" className="text-xs">
+                    {tag}
+                  </Badge>
                 ))}
-              </SelectContent>
-            </Select>
-            <Button variant="outline">
-              <BookOpen className="w-4 h-4 mr-2" />
-              Browse All
+              </div>
+              
+              <div className="flex items-center justify-between pt-2 border-t">
+                <div className="flex items-center gap-2">
+                  <Button variant="ghost" size="sm">
+                    <FileText className="w-4 h-4" />
+                  </Button>
+                  <Button variant="ghost" size="sm">
+                    <Share2 className="w-4 h-4" />
+                  </Button>
+                </div>
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  onClick={() => toggleBookmark(article.id)}
+                >
+                  <Bookmark className={`w-4 h-4 ${
+                    bookmarkedArticles.includes(article.id) 
+                      ? 'text-blue-600 fill-current' 
+                      : 'text-gray-400'
+                  }`} />
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      {/* State-by-State Legal Guide Section */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Shield className="w-5 h-5 text-blue-600" />
+            State-by-State Legal Guide
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-gray-600 mb-4">
+            Understanding your rights and responsibilities when buying or selling puppies varies by state. 
+            Explore regulations that protect you and ensure ethical practices.
+          </p>
+          <div className="flex flex-wrap gap-3">
+            <Button variant="outline" className="text-red-600 border-red-200 hover:bg-red-50">
+              <Shield className="w-4 h-4 mr-2" />
+              Strict Regulations
+            </Button>
+            <Button variant="outline" className="text-blue-600 border-blue-200 hover:bg-blue-50">
+              <Activity className="w-4 h-4 mr-2" />
+              Moderate Regulations
+            </Button>
+            <Button variant="outline" className="text-green-600 border-green-200 hover:bg-green-50">
+              <Check className="w-4 h-4 mr-2" />
+              Lenient Regulations
+            </Button>
+            <Button variant="default">
+              <ExternalLink className="w-4 h-4 mr-2" />
+              View Full Legal Guide
             </Button>
           </div>
-        </div>
-
-        <Tabs defaultValue="resources" className="space-y-8">
-          <TabsList className="grid w-full grid-cols-2 max-w-md mx-auto">
-            <TabsTrigger value="resources">Learning Resources</TabsTrigger>
-            <TabsTrigger value="laws">State Laws</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="resources">
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredResources.map((resource) => (
-                <Card key={resource.id} className="hover:shadow-md transition-shadow">
-                  <div className="aspect-video bg-gray-200 rounded-t-lg" />
-                  <CardHeader>
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm font-medium text-blue-600 bg-blue-50 px-2 py-1 rounded">
-                        {resource.category}
-                      </span>
-                      <span className="text-sm text-gray-500 flex items-center">
-                        <Clock className="w-3 h-3 mr-1" />
-                        {resource.readTime}
-                      </span>
-                    </div>
-                    <CardTitle className="text-lg line-clamp-2">{resource.title}</CardTitle>
-                    <p className="text-gray-600 text-sm line-clamp-3">{resource.description}</p>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="flex items-center text-sm text-gray-500">
-                        <Star className="w-4 h-4 text-yellow-400 mr-1" />
-                        {resource.rating} ({resource.reviews} reviews)
-                      </div>
-                      <span className={`text-xs px-2 py-1 rounded ${
-                        resource.difficulty === 'Beginner' ? 'bg-green-100 text-green-700' :
-                        resource.difficulty === 'Intermediate' ? 'bg-yellow-100 text-yellow-700' :
-                        'bg-red-100 text-red-700'
-                      }`}>
-                        {resource.difficulty}
-                      </span>
-                    </div>
-                    <div className="text-sm text-gray-600 mb-4">
-                      By {resource.author.name}, {resource.author.credentials}
-                    </div>
-                    <Button 
-                      className="w-full" 
-                      onClick={() => resource.url && window.open(resource.url, '_blank')}
-                    >
-                      <ExternalLink className="w-4 h-4 mr-2" />
-                      Read Article
-                    </Button>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </TabsContent>
-
-          <TabsContent value="laws">
-            <div className="space-y-6">
-              <div className="text-center mb-8">
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">State Laws & Regulations</h2>
-                <p className="text-gray-600 max-w-2xl mx-auto">
-                  Understanding the legal requirements for dog ownership and breeding in different states.
-                </p>
-              </div>
-
-              <div className="grid md:grid-cols-2 gap-6">
-                {stateLaws.map((law, index) => (
-                  <Card key={index}>
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
-                        <FileText className="w-5 h-5 text-blue-600" />
-                        {law.state}
-                      </CardTitle>
-                      <p className="text-gray-600 text-sm">{law.summary}</p>
-                    </CardHeader>
-                    <CardContent>
-                      <h4 className="font-semibold mb-2">Key Requirements:</h4>
-                      <ul className="space-y-1">
-                        {law.keyPoints.map((point, pointIndex) => (
-                          <li key={pointIndex} className="text-sm text-gray-600 flex items-start">
-                            <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 mr-3 flex-shrink-0" />
-                            {point}
-                          </li>
-                        ))}
-                      </ul>
-                      <Button variant="outline" size="sm" className="mt-4">
-                        View Full Details
-                      </Button>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-
-              <Card className="bg-blue-50 border-blue-200">
-                <CardContent className="p-6">
-                  <div className="text-center">
-                    <h3 className="font-semibold text-lg mb-2 text-blue-900">Need Legal Guidance?</h3>
-                    <p className="text-blue-700 text-sm mb-4">
-                      Laws vary significantly by state and can change frequently. Always consult with local authorities or legal professionals for the most current information.
-                    </p>
-                    <Button>Contact Legal Support</Button>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          </TabsContent>
-        </Tabs>
-
-      </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };
