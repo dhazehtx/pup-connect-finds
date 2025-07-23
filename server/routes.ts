@@ -3,6 +3,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import userRoutes from './routes/user';
 import fraudDemoRoutes from './routes/fraudDemo';
+import refundRoutes from './routes/refunds';
 import Stripe from 'stripe';
 import { 
   generalRateLimit, 
@@ -749,6 +750,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Mount fraud detection demo routes
   app.use('/api/fraud-demo', fraudDemoRoutes);
+  
+  // Mount refund routes
+  app.use('/api/refunds', refundRoutes);
 
   const httpServer = createServer(app);
   return httpServer;

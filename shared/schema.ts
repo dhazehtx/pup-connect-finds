@@ -192,6 +192,27 @@ export const fraudDetectionEvents = pgTable("fraud_detection_events", {
 
 export const insertFraudDetectionEventSchema = createInsertSchema(fraudDetectionEvents).omit({ id: true, created_at: true });
 
+// Refund requests table
+export const refundRequests = pgTable("refund_requests", {
+  id: uuid("id").primaryKey(),
+  user_id: uuid("user_id").references(() => profiles.id).notNull(),
+  transaction_id: text("transaction_id").references(() => transactions.id).notNull(),
+  charge_id: text("charge_id").notNull(), // Stripe charge/payment intent ID
+  reason: text("reason").notNull(), // canceled_order, scam_listing, dispute_resolved, other
+  detailed_reason: text("detailed_reason"), // User's detailed explanation
+  status: text("status").default("pending").notNull(), // pending, approved, declined, refunded, failed
+  refund_amount: decimal("refund_amount").notNull(),
+  currency: text("currency").default("usd"),
+  stripe_refund_id: text("stripe_refund_id"), // Stripe refund ID after processing
+  admin_notes: text("admin_notes"), // Internal admin notes
+  approved_by: uuid("approved_by").references(() => profiles.id), // Admin who approved/declined
+  processed_at: timestamp("processed_at"), // When refund was actually processed
+  created_at: timestamp("created_at").defaultNow(),
+  updated_at: timestamp("updated_at").defaultNow(),
+});
+
+export const insertRefundRequestSchema = createInsertSchema(refundRequests).omit({ id: true, created_at: true, updated_at: true });
+
 // Infer types
 export type Profile = typeof profiles.$inferSelect;
 export type InsertProfile = z.infer<typeof insertProfileSchema>;
@@ -217,6 +238,8 @@ export type Transaction = typeof transactions.$inferSelect;
 export type InsertTransaction = z.infer<typeof insertTransactionSchema>;
 export type FraudDetectionEvent = typeof fraudDetectionEvents.$inferSelect;
 export type InsertFraudDetectionEvent = z.infer<typeof insertFraudDetectionEventSchema>;
+export type RefundRequest = typeof refundRequests.$inferSelect;
+export type InsertRefundRequest = z.infer<typeof insertRefundRequestSchema>;
 
 // Legacy user table for backward compatibility (can be removed later)
 export const users = pgTable("users", {
