@@ -6,6 +6,8 @@ export const getNotificationIcon = (type: string) => {
   switch (type) {
     case 'message':
       return <MessageCircle className="w-4 h-4 text-blue-500" />;
+    case 'comment_reply':
+      return <MessageCircle className="w-4 h-4 text-purple-500" />;
     case 'like':
     case 'favorite':
       return <Heart className="w-4 h-4 text-red-500" />;
@@ -28,6 +30,7 @@ export const getNotificationIcon = (type: string) => {
 export const getTypeLabel = (type: string): string => {
   switch (type) {
     case 'message': return 'Message';
+    case 'comment_reply': return 'Reply';
     case 'like': return 'Like';
     case 'favorite': return 'Favorite';
     case 'review': return 'Review';
@@ -43,6 +46,7 @@ export const getTypeLabel = (type: string): string => {
 export const getNotificationColor = (type: string): string => {
   switch (type) {
     case 'message': return 'bg-blue-50 border-blue-200';
+    case 'comment_reply': return 'bg-purple-50 border-purple-200';
     case 'like':
     case 'favorite': return 'bg-red-50 border-red-200';
     case 'review': return 'bg-yellow-50 border-yellow-200';
@@ -62,6 +66,7 @@ export const shouldSendPushNotification = (type: string, userSettings: any): boo
     case 'message': return userSettings.push_messages;
     case 'like': return userSettings.push_likes;
     case 'comment': return userSettings.push_comments;
+    case 'comment_reply': return userSettings.push_comments;
     case 'follow': return userSettings.push_follows;
     case 'payment_confirmation': return userSettings.push_payments;
     default: return true;

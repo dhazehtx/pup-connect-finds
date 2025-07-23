@@ -7,7 +7,9 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Bell, Check, X, Settings, Trash2, Heart, MessageCircle, User, Star } from 'lucide-react';
 import { useEnhancedNotifications } from '@/hooks/useEnhancedNotifications';
+import { useNotifications } from '@/hooks/useNotifications';
 import { formatDistanceToNow } from 'date-fns';
+import ReplyNotificationItem from './ReplyNotificationItem';
 
 interface NotificationCenterProps {
   isOpen: boolean;
@@ -15,7 +17,7 @@ interface NotificationCenterProps {
 }
 
 const NotificationCenter = ({ isOpen, onClose }: NotificationCenterProps) => {
-  const { notifications, unreadCount, markAsRead, markAllAsRead, deleteNotification } = useEnhancedNotifications();
+  const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotifications();
   const [activeTab, setActiveTab] = useState('all');
 
   if (!isOpen) return null;
@@ -29,6 +31,8 @@ const NotificationCenter = ({ isOpen, onClose }: NotificationCenterProps) => {
     switch (type) {
       case 'message':
         return <MessageCircle className="w-4 h-4 text-royal-blue" />;
+      case 'comment_reply':
+        return <MessageCircle className="w-4 h-4 text-purple-500" />;
       case 'like':
         return <Heart className="w-4 h-4 text-red-500" />;
       case 'follow':
@@ -120,54 +124,50 @@ const NotificationCenter = ({ isOpen, onClose }: NotificationCenterProps) => {
                 ) : (
                   <div className="space-y-1 p-2">
                     {filteredNotifications.map((notification) => (
-                      <div
-                        key={notification.id}
-                        className={`p-4 rounded-xl transition-all duration-200 cursor-pointer hover:bg-white/10 group ${
-                          !notification.is_read 
-                            ? 'bg-white/10 border-l-4 border-l-white shadow-sm' 
-                            : 'bg-white/5 hover:shadow-sm'
-                        }`}
-                        onClick={() => markAsRead(notification.id)}
-                      >
-                        <div className="flex items-start gap-3">
-                          <div className="flex-shrink-0 mt-1">
-                            {getNotificationIcon(notification.type)}
-                          </div>
-                          
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-start justify-between mb-1">
-                              <h4 className={`text-sm font-medium text-white ${!notification.is_read ? 'font-semibold' : ''}`}>
-                                {notification.title}
-                              </h4>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  deleteNotification(notification.id);
-                                }}
-                                className="h-6 w-6 p-0 text-white/40 hover:text-red-300 opacity-0 group-hover:opacity-100 transition-opacity"
-                              >
-                                <Trash2 className="h-3 w-3" />
-                              </Button>
+                      notification.type === 'comment_reply' ? (
+                        <div key={notification.id} className="bg-white">
+                          <ReplyNotificationItem
+                            notification={notification}
+                            onMarkAsRead={markAsRead}
+                            onClick={onClose}
+                          />
+                        </div>
+                      ) : (
+                        <div
+                          key={notification.id}
+                          className={`p-4 rounded-xl transition-all duration-200 cursor-pointer hover:bg-white/10 group ${
+                            !notification.is_read 
+                              ? 'bg-white/10 border-l-4 border-l-white shadow-sm' 
+                              : 'bg-white/5 hover:shadow-sm'
+                          }`}
+                          onClick={() => markAsRead(notification.id)}
+                        >
+                          <div className="flex items-start gap-3">
+                            <div className="flex-shrink-0 mt-1">
+                              {getNotificationIcon(notification.type)}
                             </div>
                             
-                            <p className="text-sm text-white/70 mb-2 line-clamp-2">
-                              {notification.message}
-                            </p>
-                            
-                            <div className="flex items-center justify-between">
-                              <span className="text-xs text-white/50">
-                                {formatDistanceToNow(new Date(notification.created_at), { addSuffix: true })}
-                              </span>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-start justify-between mb-1">
+                                <div className="text-sm text-white/90 mb-1">
+                                  <span className="font-medium">{notification.from_profile?.full_name || 'Someone'}</span>
+                                  <span className="ml-1">{notification.message}</span>
+                                </div>
+                              </div>
                               
-                              {!notification.is_read && (
-                                <div className="w-2 h-2 bg-white rounded-full"></div>
-                              )}
+                              <div className="flex items-center justify-between">
+                                <span className="text-xs text-white/50">
+                                  {formatDistanceToNow(new Date(notification.created_at), { addSuffix: true })}
+                                </span>
+                                
+                                {!notification.is_read && (
+                                  <div className="w-2 h-2 bg-white rounded-full"></div>
+                                )}
+                              </div>
                             </div>
                           </div>
                         </div>
-                      </div>
+                      )
                     ))}
                   </div>
                 )}
@@ -199,25 +199,11 @@ const NotificationCenter = ({ isOpen, onClose }: NotificationCenterProps) => {
                           
                           <div className="flex-1 min-w-0">
                             <div className="flex items-start justify-between mb-1">
-                              <h4 className="text-sm font-semibold text-white">
-                                {notification.title}
-                              </h4>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  deleteNotification(notification.id);
-                                }}
-                                className="h-6 w-6 p-0 text-white/40 hover:text-red-300 opacity-0 group-hover:opacity-100 transition-opacity"
-                              >
-                                <Trash2 className="h-3 w-3" />
-                              </Button>
+                              <div className="text-sm text-white/90 mb-1">
+                                <span className="font-medium">{notification.from_profile?.full_name || 'Someone'}</span>
+                                <span className="ml-1">{notification.message}</span>
+                              </div>
                             </div>
-                            
-                            <p className="text-sm text-white/70 mb-2 line-clamp-2">
-                              {notification.message}
-                            </p>
                             
                             <div className="flex items-center justify-between">
                               <span className="text-xs text-white/50">

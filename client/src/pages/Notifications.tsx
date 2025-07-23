@@ -5,11 +5,14 @@ import NotificationTabs from '@/components/notifications/NotificationTabs';
 import NotificationSettings from '@/components/notifications/NotificationSettings';
 import NotificationItem from '@/components/notifications/NotificationItem';
 import EmptyNotifications from '@/components/notifications/EmptyNotifications';
+import ReplyNotificationItem from '@/components/notifications/ReplyNotificationItem';
+import { useNotifications } from '@/hooks/useNotifications';
 
 const Notifications = () => {
   const [activeTab, setActiveTab] = useState('all');
   const [showSettings, setShowSettings] = useState(false);
   const [followingUsers, setFollowingUsers] = useState(new Set<string>());
+  const { notifications, loading, markAsRead } = useNotifications();
 
   const handleFollowToggle = (username: string) => {
     setFollowingUsers(prev => {
@@ -23,8 +26,29 @@ const Notifications = () => {
     });
   };
 
-  // Mock notification data matching the expected interface
-  const notifications = [
+  // Filter notifications based on active tab
+  const filteredNotifications = notifications.filter(notification => {
+    if (activeTab === 'comments') return notification.type === 'comment_reply';
+    if (activeTab === 'follows') return notification.type === 'follow';
+    return true; // 'all' and 'following' show all notifications
+  });
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-cloud-white to-soft-sky/30">
+        <NotificationHeader showSettings={showSettings} onToggleSettings={() => setShowSettings(!showSettings)} />
+        <div className="flex items-center justify-center py-20">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-royal-blue mx-auto mb-4"></div>
+            <p className="text-deep-navy">Loading notifications...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Mock notification data for older system compatibility
+  const mockNotifications = [
     {
       id: 1,
       type: 'like',

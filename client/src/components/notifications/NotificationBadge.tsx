@@ -3,7 +3,7 @@ import React from 'react';
 import { Bell } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { useEnhancedNotifications } from '@/hooks/useEnhancedNotifications';
+import { useNotifications } from '@/hooks/useNotifications';
 
 interface NotificationBadgeProps {
   onClick: () => void;
@@ -11,7 +11,7 @@ interface NotificationBadgeProps {
 }
 
 const NotificationBadge = ({ onClick, className = '' }: NotificationBadgeProps) => {
-  const { unreadCount } = useEnhancedNotifications();
+  const { unreadCount } = useNotifications();
 
   return (
     <Button

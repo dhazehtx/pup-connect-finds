@@ -5,9 +5,12 @@ import { Heart, Menu, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+import NotificationBadge from '@/components/notifications/NotificationBadge';
+import NotificationCenter from '@/components/notifications/NotificationCenter';
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [showNotifications, setShowNotifications] = useState(false);
   const { user, signOut, isGuest } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -52,6 +55,12 @@ const Header = () => {
           <div className="flex items-center space-x-4">
             {user || isGuest ? (
               <div className="flex items-center space-x-4">
+                {user && (
+                  <NotificationBadge
+                    onClick={() => setShowNotifications(!showNotifications)}
+                    className="text-gray-600 hover:text-blue-600"
+                  />
+                )}
                 <Button variant="outline" size="sm" onClick={handleSignOut} className="border-blue-600 text-blue-600 hover:bg-blue-50">
                   {isGuest ? 'Exit Guest Mode' : 'Sign Out'}
                 </Button>
@@ -69,6 +78,12 @@ const Header = () => {
           </div>
         </div>
       </div>
+
+      {/* Notification Center Modal */}
+      <NotificationCenter
+        isOpen={showNotifications}
+        onClose={() => setShowNotifications(false)}
+      />
     </header>
   );
 };

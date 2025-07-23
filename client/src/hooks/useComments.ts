@@ -87,6 +87,36 @@ export const useComments = (postId: string) => {
 
       if (error) throw error;
       
+      // If this is a reply, create a notification for the original commenter
+      if (parentCommentId) {
+        try {
+          // Get the original comment to find the author
+          const { data: originalComment } = await supabase
+            .from('comments')
+            .select('user_id, profiles!comments_user_id_fkey(username)')
+            .eq('id', parentCommentId)
+            .single();
+
+          // Only notify if replying to someone else's comment
+          if (originalComment && originalComment.user_id !== user.id) {
+            await supabase
+              .from('notifications')
+              .insert({
+                type: 'comment_reply',
+                to_user_id: originalComment.user_id,
+                from_user_id: user.id,
+                post_id: postId,
+                comment_id: data.id,
+                message: 'replied to your comment',
+                is_read: false
+              });
+          }
+        } catch (notificationError) {
+          console.error('Error creating notification:', notificationError);
+          // Don't fail the comment creation if notification fails
+        }
+      }
+      
       setComments(prev => [...prev, data]);
       toast({
         title: "Comment added",

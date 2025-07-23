@@ -125,13 +125,14 @@ export const comments = pgTable("comments", {
 
 // Notifications table
 export const notifications = pgTable("notifications", {
-  id: uuid("id").primaryKey(),
-  user_id: uuid("user_id").references(() => profiles.id),
-  type: text("type").notNull(),
-  title: text("title").notNull(),
+  id: uuid("id").primaryKey().defaultRandom(),
+  type: text("type").notNull(), // 'like', 'comment', 'comment_reply', 'follow', etc.
+  to_user_id: uuid("to_user_id").references(() => profiles.id).notNull(),
+  from_user_id: uuid("from_user_id").references(() => profiles.id).notNull(),
+  post_id: uuid("post_id").references(() => posts.id),
+  comment_id: uuid("comment_id"),
   message: text("message").notNull(),
-  read: boolean("read").default(false),
-  related_id: uuid("related_id"),
+  is_read: boolean("is_read").default(false),
   created_at: timestamp("created_at").defaultNow(),
 });
 

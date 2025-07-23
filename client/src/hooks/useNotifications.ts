@@ -1,51 +1,59 @@
-
 import { useState, useEffect } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
 interface Notification {
   id: string;
-  user_id: string;
   type: string;
-  title: string;
+  to_user_id: string;
+  from_user_id: string;
+  post_id?: string | null;
+  comment_id?: string | null;
   message: string;
-  read: boolean;
-  action_url?: string;
-  metadata?: any;
+  is_read: boolean;
   created_at: string;
+  from_profile?: {
+    full_name: string | null;
+    username: string | null;
+    avatar_url: string | null;
+  } | null;
 }
 
-export const useNotifications = () => {
+export function useNotifications() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
-  const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(true);
-  const { user } = useAuth();
+  const [unreadCount, setUnreadCount] = useState(0);
   const { toast } = useToast();
 
   const fetchNotifications = async () => {
-    if (!user) return;
-
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
       const { data, error } = await supabase
         .from('notifications')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false })
-        .limit(50);
+        .select(`
+          *,
+          from_profile:profiles!notifications_from_user_id_fkey (
+            full_name,
+            username,
+            avatar_url
+          )
+        `)
+        .eq('to_user_id', user.id)
+        .order('created_at', { ascending: false });
 
       if (error) throw error;
-
-      // Transform data to match our interface
-      const transformedData = (data || []).map(item => ({
-        ...item,
-        read: item.is_read || false
-      }));
-
-      setNotifications(transformedData);
-      setUnreadCount(transformedData.filter(n => !n.read).length);
+      
+      setNotifications(data || []);
+      setUnreadCount(data?.filter(n => !n.is_read).length || 0);
     } catch (error) {
       console.error('Error fetching notifications:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load notifications",
+        variant: "destructive",
+      });
     } finally {
       setLoading(false);
     }
@@ -61,56 +69,60 @@ export const useNotifications = () => {
       if (error) throw error;
 
       setNotifications(prev => 
-        prev.map(n => n.id === notificationId ? { ...n, read: true } : n)
+        prev.map(n => 
+          n.id === notificationId 
+            ? { ...n, is_read: true }
+            : n
+        )
       );
+      
       setUnreadCount(prev => Math.max(0, prev - 1));
     } catch (error) {
       console.error('Error marking notification as read:', error);
+      toast({
+        title: "Error",
+        description: "Failed to mark notification as read",
+        variant: "destructive",
+      });
     }
   };
 
   const markAllAsRead = async () => {
-    if (!user) return;
-
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
       const { error } = await supabase
         .from('notifications')
         .update({ is_read: true })
-        .eq('user_id', user.id)
+        .eq('to_user_id', user.id)
         .eq('is_read', false);
 
       if (error) throw error;
 
-      setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+      setNotifications(prev => 
+        prev.map(n => ({ ...n, is_read: true }))
+      );
       setUnreadCount(0);
     } catch (error) {
       console.error('Error marking all notifications as read:', error);
-    }
-  };
-
-  const sendEmailNotification = async (
-    recipientEmail: string,
-    type: string,
-    data: any
-  ) => {
-    try {
-      await supabase.functions.invoke('send-email-notification', {
-        body: {
-          to: recipientEmail,
-          type,
-          data
-        }
+      toast({
+        title: "Error",
+        description: "Failed to mark all notifications as read",
+        variant: "destructive",
       });
-    } catch (error) {
-      console.error('Error sending email notification:', error);
     }
   };
 
   useEffect(() => {
-    if (user) {
-      fetchNotifications();
+    fetchNotifications();
 
-      // Set up real-time subscription
+    // Set up real-time subscription for notifications
+    const { data: { user } } = supabase.auth.getUser();
+    
+    user.then(({ data: { user } }) => {
+      if (!user) return;
+
       const channel = supabase
         .channel('notifications')
         .on(
@@ -119,22 +131,11 @@ export const useNotifications = () => {
             event: 'INSERT',
             schema: 'public',
             table: 'notifications',
-            filter: `user_id=eq.${user.id}`
+            filter: `to_user_id=eq.${user.id}`
           },
           (payload) => {
-            const newNotification = payload.new as any;
-            const transformedNotification: Notification = {
-              ...newNotification,
-              read: newNotification.is_read || false
-            };
-            
-            setNotifications(prev => [transformedNotification, ...prev]);
-            setUnreadCount(prev => prev + 1);
-            
-            toast({
-              title: transformedNotification.title,
-              description: transformedNotification.message,
-            });
+            console.log('New notification received:', payload);
+            fetchNotifications(); // Refresh notifications when new one is received
           }
         )
         .subscribe();
@@ -142,16 +143,15 @@ export const useNotifications = () => {
       return () => {
         supabase.removeChannel(channel);
       };
-    }
-  }, [user, toast]);
+    });
+  }, []);
 
   return {
     notifications,
-    unreadCount,
     loading,
+    unreadCount,
     fetchNotifications,
     markAsRead,
-    markAllAsRead,
-    sendEmailNotification
+    markAllAsRead
   };
-};
+}
