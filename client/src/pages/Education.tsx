@@ -48,6 +48,7 @@ const educationalArticles = [
     tags: ['vaccines', 'health', 'puppy', 'veterinary'],
     category: 'Health & Wellness',
     image: '/api/placeholder/300/200',
+    thumbnailUrl: 'https://cdn.akc.org/wp-content/uploads/2018/07/05171520/Vaccination-Puppy-Guide.jpg',
     url: 'https://www.akc.org/expert-advice/health/puppy-vaccination-schedule/'
   },
   {
@@ -60,6 +61,7 @@ const educationalArticles = [
     tags: ['french-bulldog', 'breed-guide', 'care', 'exercise'],
     category: 'Breed Information',
     image: '/api/placeholder/300/200',
+    thumbnailUrl: 'https://cdn.akc.org/wp-content/uploads/2017/11/12232851/French-Bulldog-standing-in-profile.jpg',
     url: 'https://www.akc.org/dog-breeds/french-bulldog/'
   },
   {
@@ -72,6 +74,7 @@ const educationalArticles = [
     tags: ['training', 'house-training', 'puppy', 'behavior'],
     category: 'Training & Behavior',
     image: '/api/placeholder/300/200',
+    thumbnailUrl: 'https://cdn.akc.org/wp-content/uploads/2017/11/06160313/puppy-house-training.jpg',
     url: 'https://www.akc.org/expert-advice/training/house-training-your-puppy/'
   },
   {
@@ -84,6 +87,7 @@ const educationalArticles = [
     tags: ['nutrition', 'feeding', 'puppy', 'health'],
     category: 'Nutrition',
     image: '/api/placeholder/300/200',
+    thumbnailUrl: 'https://cdn.akc.org/wp-content/uploads/2017/11/06160259/puppy-eating-food.jpg',
     url: 'https://www.akc.org/expert-advice/nutrition/best-puppy-food/'
   },
   {
@@ -302,32 +306,26 @@ const Education = () => {
         {filteredArticles.map((article) => (
           <Card key={article.id} className="hover:shadow-lg transition-shadow">
             <div className="relative">
-              <div className="bg-gradient-to-br from-blue-50 to-indigo-100 h-40 rounded-t-lg flex items-center justify-center overflow-hidden">
-                {article.category === 'Health & Wellness' && (
-                  <div className="flex items-center justify-center w-full h-full bg-gradient-to-br from-green-100 to-emerald-200">
-                    <Stethoscope className="w-12 h-12 text-green-600" />
-                  </div>
-                )}
-                {article.category === 'Breed Information' && (
-                  <div className="flex items-center justify-center w-full h-full bg-gradient-to-br from-amber-100 to-orange-200">
-                    <Heart className="w-12 h-12 text-orange-600" />
-                  </div>
-                )}
-                {article.category === 'Training & Behavior' && (
-                  <div className="flex items-center justify-center w-full h-full bg-gradient-to-br from-purple-100 to-violet-200">
-                    <GraduationCap className="w-12 h-12 text-purple-600" />
-                  </div>
-                )}
-                {article.category === 'Nutrition' && (
-                  <div className="flex items-center justify-center w-full h-full bg-gradient-to-br from-red-100 to-pink-200">
-                    <Utensils className="w-12 h-12 text-red-600" />
-                  </div>
-                )}
-                {article.category === 'Safety & Preparation' && (
-                  <div className="flex items-center justify-center w-full h-full bg-gradient-to-br from-blue-100 to-cyan-200">
-                    <Shield className="w-12 h-12 text-blue-600" />
-                  </div>
-                )}
+              <div className="h-40 rounded-t-lg overflow-hidden">
+                <img 
+                  src={article.thumbnailUrl || article.image} 
+                  alt={article.title}
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    // Fallback to gradient background if image fails to load
+                    const target = e.target as HTMLImageElement;
+                    target.style.display = 'none';
+                    const fallback = target.nextElementSibling as HTMLElement;
+                    if (fallback) fallback.style.display = 'flex';
+                  }}
+                />
+                <div className="hidden w-full h-full bg-gradient-to-br from-blue-50 to-indigo-100 items-center justify-center">
+                  {article.category === 'Health & Wellness' && <Stethoscope className="w-12 h-12 text-green-600" />}
+                  {article.category === 'Breed Information' && <Heart className="w-12 h-12 text-orange-600" />}
+                  {article.category === 'Training & Behavior' && <GraduationCap className="w-12 h-12 text-purple-600" />}
+                  {article.category === 'Nutrition' && <Utensils className="w-12 h-12 text-red-600" />}
+                  {article.category === 'Safety & Preparation' && <Shield className="w-12 h-12 text-blue-600" />}
+                </div>
               </div>
               <Badge 
                 variant="secondary" 

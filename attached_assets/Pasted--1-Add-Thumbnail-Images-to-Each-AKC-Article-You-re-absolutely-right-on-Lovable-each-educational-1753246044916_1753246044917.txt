@@ -1,0 +1,60 @@
+✅ 1. Add Thumbnail Images to Each AKC Article
+You’re absolutely right — on Lovable, each educational card pulled a real image thumbnail next to the AKC article title. Right now, Replit is defaulting to icons or blank visuals.
+
+🧠 Here’s what to do:
+Use official images (or free-use alternatives) to represent each article.
+
+🛠 Prompt: Restore Article Card Thumbnails
+plaintext
+Copy
+Edit
+Update the Education page article cards to display thumbnail images next to each article title. Use the following image URLs or local static files:
+
+1. **Puppy Vaccination Schedule**  
+Image: https://cdn.akc.org/wp-content/uploads/2018/07/05171520/Vaccination-Puppy-Guide.jpg
+
+2. **French Bulldog Breed Profile**  
+Image: https://cdn.akc.org/wp-content/uploads/2017/11/12232851/French-Bulldog-standing-in-profile.jpg
+
+3. **House Training Your New Puppy**  
+Image: https://cdn.akc.org/wp-content/uploads/2017/11/06160313/puppy-house-training.jpg
+
+4. **Nutrition Guidelines for Growing Puppies**  
+Image: https://cdn.akc.org/wp-content/uploads/2017/11/06160259/puppy-eating-food.jpg
+
+Use a consistent size (e.g., 120x120px), left-aligned, and maintain card layout. Use `img` tags or background-image containers as appropriate. Open links in a new tab with proper security (`target="_blank"`, `rel="noopener noreferrer"`).
+✅ 2. Add "Legal Guide" to Footer: Yes or No?
+Let’s weigh this choice:
+
+🔷 Option A: Yes, Add to Footer
+Pros:
+
+Always accessible site-wide
+
+Matches typical website UX for legal links
+
+Reinforces trust and transparency
+
+Cons:
+
+Slightly more footer clutter
+
+🔶 Option B: Only Link from Education Page
+Pros:
+
+Cleaner footer
+
+Legal page feels like an “extra resource”
+
+Cons:
+
+Hidden from users who don’t explore Education page
+
+💡 Recommendation: Add it to the Footer
+Since you're building a platform that values trust, safety, and education, having "Legal Guide" visible in the footer feels professional — like a privacy policy or terms page.
+
+🛠 Prompt: Add Legal Guide to Footer
+plaintext
+Copy
+Edit
+In the site footer under “Quick Links”, add a new item labeled “Legal Guide” that routes to /legal. Ensure the link opens in the same tab. Keep styling consistent with other links like “Browse Puppies” and “Education”. Do not affect any existing routes or layout.
