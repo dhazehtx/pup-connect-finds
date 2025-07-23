@@ -40,50 +40,56 @@ const Notifications = () => {
   }
 
   return (
-    <div className="min-h-screen bg-white dark:from-gray-900 dark:to-gray-800">
-      {/* Header */}
-      <div className="sticky top-0 z-10 w-full bg-gradient-to-r from-blue-100 to-teal-100 px-4 py-3 shadow-lg">
-        <div className="flex items-center justify-between max-w-md mx-auto">
-          <h1 className="text-lg font-semibold text-gray-800">Notifications</h1>
+    <div className="min-h-screen bg-gray-100 flex items-start justify-center pt-8 px-4">
+      {/* Modal Container */}
+      <div className="w-full max-w-md bg-white rounded-2xl shadow-xl overflow-hidden">
+        {/* Header */}
+        <div className="bg-gradient-to-r from-blue-100 to-teal-100 px-6 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
+              <Bell className="w-4 h-4 text-white" />
+            </div>
+            <h1 className="text-lg font-semibold text-gray-800">Notifications</h1>
+          </div>
           <Button
             variant="ghost"
             size="sm"
-            className="text-gray-700 hover:bg-white/30"
+            className="text-gray-700 hover:bg-white/30 p-1"
+            onClick={() => window.history.back()}
           >
-            <Settings className="w-5 h-5" />
+            ✕
           </Button>
         </div>
-      </div>
 
-      {/* Tab Toggle */}
-      <div className="p-4 max-w-md mx-auto bg-white">
-        <div className="flex rounded-lg bg-gray-50 p-1 shadow-sm border border-gray-100">
-          <Button
-            variant={activeTab === 'all' ? 'default' : 'ghost'}
-            size="sm"
-            onClick={() => setActiveTab('all')}
-            className="flex-1 rounded-md"
-          >
-            All
-          </Button>
-          <Button
-            variant={activeTab === 'unread' ? 'default' : 'ghost'}
-            size="sm"
-            onClick={() => setActiveTab('unread')}
-            className="flex-1 rounded-md relative"
-          >
-            Unread
-            {unreadCount > 0 && (
-              <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                {unreadCount > 9 ? '9+' : unreadCount}
-              </span>
-            )}
-          </Button>
+        {/* Tab Toggle */}
+        <div className="p-4 bg-white">
+          <div className="flex rounded-lg bg-gray-100 p-1">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setActiveTab('all')}
+              className={`flex-1 text-sm font-medium ${activeTab === 'all' ? 'bg-white shadow-sm text-gray-900' : 'text-gray-600 hover:bg-gray-50'}`}
+            >
+              All
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setActiveTab('unread')}
+              className={`flex-1 text-sm font-medium relative ${activeTab === 'unread' ? 'bg-white shadow-sm text-gray-900' : 'text-gray-600 hover:bg-gray-50'}`}
+            >
+              Unread
+              {unreadCount > 0 && (
+                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                  {unreadCount > 9 ? '9+' : unreadCount}
+                </span>
+              )}
+            </Button>
+          </div>
         </div>
-      </div>
 
-      {/* Content */}
-      <div className="px-4 pb-20 max-w-md mx-auto bg-white">
+        {/* Content */}
+        <div className="px-4 pb-6 bg-white min-h-[400px]">
         {loading ? (
           <div className="flex items-center justify-center py-20 bg-white">
             <div className="text-center">
@@ -93,14 +99,14 @@ const Notifications = () => {
           </div>
         ) : filteredNotifications.length === 0 ? (
           /* Empty State */
-          <div className="flex flex-col items-center justify-center p-8 text-center bg-white">
+          <div className="flex flex-col items-center justify-center py-16 text-center">
             <Bell className="w-16 h-16 mx-auto text-gray-300 mb-4" />
-            <h2 className="text-xl font-semibold text-gray-600 mb-2">
-              {activeTab === 'unread' ? 'All caught up!' : 'No notifications yet'}
+            <h2 className="text-lg font-semibold text-gray-600 mb-2">
+              {activeTab === 'unread' ? 'All caught up! 🎉' : 'No notifications yet'}
             </h2>
-            <p className="text-gray-500">
+            <p className="text-sm text-gray-500">
               {activeTab === 'unread' 
-                ? 'You have no unread notifications' 
+                ? 'No notifications yet' 
                 : 'When you get notifications, they\'ll show up here'
               }
             </p>
@@ -150,6 +156,7 @@ const Notifications = () => {
             ))}
           </div>
         )}
+        </div>
       </div>
     </div>
   );
