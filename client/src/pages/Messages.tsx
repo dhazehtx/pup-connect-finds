@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import Layout from '@/components/Layout';
+
 import MessageInbox from '@/components/messaging/MessageInbox';
 import { useConversationsManager } from '@/hooks/messaging/useConversationsManager';
 import { useAuth } from '@/contexts/AuthContext';
@@ -71,12 +71,10 @@ const Messages = () => {
   };
 
   return (
-    <Layout>
-      <MessageInbox 
-        onConversationSelect={handleConversationSelect}
-        loading={loading}
-      />
-    </Layout>
+    <MessageInbox 
+      onConversationSelect={handleConversationSelect}
+      loading={loading}
+    />
   );
 };
 
