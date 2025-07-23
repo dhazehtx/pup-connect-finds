@@ -129,18 +129,14 @@ export const commentReplies = pgTable("comment_replies", {
 // Notifications table - Updated to match database structure
 export const notifications = pgTable("notifications", {
   id: uuid("id").primaryKey(),
-  user_id: uuid("user_id").references(() => profiles.id),
-  type: text("type").notNull(), // 'like', 'comment', 'comment_reply', 'follow', etc.
-  title: text("title").notNull(),
-  message: text("message").notNull(),
-  read: boolean("read").default(false),
-  related_id: uuid("related_id"),
-  created_at: timestamp("created_at").defaultNow(),
+  to_user_id: uuid("to_user_id").references(() => profiles.id),
   from_user_id: uuid("from_user_id").references(() => profiles.id),
+  type: text("type").notNull(), // 'like', 'comment', 'comment_reply', 'follow', etc.
+  message: text("message").notNull(),
   post_id: uuid("post_id").references(() => posts.id),
-  comment_id: uuid("comment_id"),
-  message_id: uuid("message_id").references(() => messages.id),
+  comment_id: uuid("comment_id").references(() => comments.id),
   is_read: boolean("is_read").default(false),
+  created_at: timestamp("created_at").defaultNow(),
 });
 
 // Payment transactions table

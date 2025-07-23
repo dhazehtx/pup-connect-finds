@@ -1,9 +1,11 @@
 
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Home, Search, ShoppingBag, MessageCircle, User } from 'lucide-react';
+import { Home, Search, ShoppingBag, MessageCircle, Bell, User } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+import { useNotifications } from '@/hooks/useNotifications';
+import NotificationBadge from '@/components/ui/notification-badge';
 import GuestPrompt from '@/components/GuestPrompt';
 
 const BottomNavigation = () => {
@@ -11,6 +13,7 @@ const BottomNavigation = () => {
   const location = useLocation();
   const { user, isGuest } = useAuth();
   const { toast } = useToast();
+  const { unreadCount = 0 } = useNotifications() || {};
   const [showGuestPrompt, setShowGuestPrompt] = useState(false);
   const [promptAction, setPromptAction] = useState('');
 
@@ -59,6 +62,15 @@ const BottomNavigation = () => {
       onClick: () => handleProtectedNavigation('/messages', 'access your messages')
     },
     {
+      icon: Bell,
+      label: 'Notifications',
+      path: '/notifications',
+      protected: true,
+      showBadge: true,
+      badgeCount: unreadCount,
+      onClick: () => handleProtectedNavigation('/notifications', 'view your notifications')
+    },
+    {
       icon: User,
       label: 'Profile',
       path: '/profile',
@@ -82,7 +94,7 @@ const BottomNavigation = () => {
   return (
     <>
       <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-40 shadow-sm">
-        <div className="grid grid-cols-5 h-16">
+        <div className="grid grid-cols-6 h-16">
           {navItems.map((item, index) => {
             const Icon = item.icon;
             const active = isActive(item.path);
@@ -106,7 +118,14 @@ const BottomNavigation = () => {
                 type="button"
                 aria-label={item.label}
               >
-                <Icon size={20} className="flex-shrink-0" />
+                <div className="relative">
+                  <Icon size={20} className="flex-shrink-0" />
+                  {item.showBadge && item.badgeCount && item.badgeCount > 0 && (
+                    <div className="absolute -top-1 -right-1">
+                      <NotificationBadge count={item.badgeCount} className="text-xs" />
+                    </div>
+                  )}
+                </div>
                 <span className="text-xs mt-1 font-medium">{item.label}</span>
                 {item.protected && !user && !isGuest && (
                   <div className="absolute top-1 right-1 w-2 h-2 bg-blue-500 rounded-full"></div>

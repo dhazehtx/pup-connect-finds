@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface Notification {
   id: string;
@@ -24,22 +25,18 @@ export function useNotifications() {
   const [loading, setLoading] = useState(true);
   const [unreadCount, setUnreadCount] = useState(0);
   const { toast } = useToast();
+  const { user } = useAuth();
 
   const fetchNotifications = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      if (!user) {
+        setLoading(false);
+        return;
+      }
 
       const { data, error } = await supabase
         .from('notifications')
-        .select(`
-          *,
-          from_profile:profiles!notifications_from_user_id_fkey (
-            full_name,
-            username,
-            avatar_url
-          )
-        `)
+        .select('*')
         .eq('to_user_id', user.id)
         .order('created_at', { ascending: false });
 
@@ -115,14 +112,10 @@ export function useNotifications() {
   };
 
   useEffect(() => {
-    fetchNotifications();
+    if (user) {
+      fetchNotifications();
 
-    // Set up real-time subscription for notifications
-    const { data: { user } } = supabase.auth.getUser();
-    
-    user.then(({ data: { user } }) => {
-      if (!user) return;
-
+      // Set up real-time subscription for notifications
       const channel = supabase
         .channel('notifications')
         .on(
@@ -143,8 +136,10 @@ export function useNotifications() {
       return () => {
         supabase.removeChannel(channel);
       };
-    });
-  }, []);
+    } else {
+      setLoading(false);
+    }
+  }, [user]);
 
   return {
     notifications,

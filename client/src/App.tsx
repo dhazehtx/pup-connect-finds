@@ -17,6 +17,7 @@ import Marketplace from './pages/Marketplace';
 import ListingDetail from './pages/ListingDetail';
 import Messages from './pages/Messages';
 import MessageThread from './components/messaging/MessageThread';
+import Notifications from './pages/Notifications';
 import Education from './pages/Education';
 import HelpCenter from './pages/HelpCenter';
 import TrustSafety from './pages/TrustSafety';
@@ -54,6 +55,7 @@ function App() {
                   <Route path="/listing/:id" element={<ListingDetail />} />
                   <Route path="/messages" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
                   <Route path="/messages/:conversationId" element={<ProtectedRoute><MessageThread /></ProtectedRoute>} />
+                  <Route path="/notifications" element={<ProtectedRoute><Notifications /></ProtectedRoute>} />
                   <Route path="/education" element={<Education />} />
                   <Route path="/help-center" element={<HelpCenter />} />
                   <Route path="/trust-safety" element={<TrustSafety />} />

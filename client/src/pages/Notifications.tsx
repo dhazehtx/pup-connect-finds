@@ -1,172 +1,155 @@
-
 import React, { useState } from 'react';
-import NotificationHeader from '@/components/notifications/NotificationHeader';
-import NotificationTabs from '@/components/notifications/NotificationTabs';
-import NotificationSettings from '@/components/notifications/NotificationSettings';
-import NotificationItem from '@/components/notifications/NotificationItem';
-import EmptyNotifications from '@/components/notifications/EmptyNotifications';
-import ReplyNotificationItem from '@/components/notifications/ReplyNotificationItem';
+import { Button } from '@/components/ui/button';
+import { Bell, Settings } from 'lucide-react';
 import { useNotifications } from '@/hooks/useNotifications';
+import { useAuth } from '@/contexts/AuthContext';
+import { formatDistanceToNow } from 'date-fns';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 const Notifications = () => {
-  const [activeTab, setActiveTab] = useState('all');
-  const [showSettings, setShowSettings] = useState(false);
-  const [followingUsers, setFollowingUsers] = useState(new Set<string>());
-  const { notifications, loading, markAsRead } = useNotifications();
+  const [activeTab, setActiveTab] = useState<'all' | 'unread'>('all');
+  const { notifications = [], loading, markAsRead, unreadCount } = useNotifications() || {};
+  const { user } = useAuth();
 
-  const handleFollowToggle = (username: string) => {
-    setFollowingUsers(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(username)) {
-        newSet.delete(username);
-      } else {
-        newSet.add(username);
-      }
-      return newSet;
-    });
+  const filteredNotifications = activeTab === 'unread' 
+    ? notifications.filter(n => !n.is_read)
+    : notifications;
+
+  const handleNotificationClick = async (notification: any) => {
+    if (!notification.is_read) {
+      await markAsRead(notification.id);
+    }
+    // Handle navigation based on notification type
+    // For now, we'll just mark as read
   };
 
-  // Filter notifications based on active tab
-  const filteredNotifications = notifications.filter(notification => {
-    if (activeTab === 'comments') return notification.type === 'comment_reply';
-    if (activeTab === 'follows') return notification.type === 'follow';
-    return true; // 'all' and 'following' show all notifications
-  });
-
-  if (loading) {
+  if (!user) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-cloud-white to-soft-sky/30">
-        <NotificationHeader showSettings={showSettings} onToggleSettings={() => setShowSettings(!showSettings)} />
-        <div className="flex items-center justify-center py-20">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-royal-blue mx-auto mb-4"></div>
-            <p className="text-deep-navy">Loading notifications...</p>
-          </div>
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 dark:from-gray-900 dark:to-gray-800">
+        <div className="p-4 text-center">
+          <Bell className="w-16 h-16 mx-auto text-gray-400 mb-4" />
+          <h2 className="text-xl font-semibold text-gray-600 dark:text-gray-300 mb-2">
+            Login Required
+          </h2>
+          <p className="text-gray-500 dark:text-gray-400">
+            Please log in to view your notifications
+          </p>
         </div>
       </div>
     );
   }
 
-  // Mock notification data for older system compatibility
-  const mockNotifications = [
-    {
-      id: 1,
-      type: 'like',
-      title: 'New Like',
-      description: 'liked your post about Golden Retriever puppies',
-      time: '2m',
-      read: false,
-      avatar: 'https://images.unsplash.com/photo-1494790108755-2616b612bb10?w=150&h=150&fit=crop&crop=face',
-      username: 'sarahj',
-      actionable: false,
-      postImage: 'https://images.unsplash.com/photo-1552053831-71594a27632d?w=150&h=150&fit=crop'
-    },
-    {
-      id: 2,
-      type: 'comment',
-      title: 'New Comment',
-      description: 'commented: "What a beautiful pup! Is he still available?"',
-      time: '15m',
-      read: false,
-      avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face',
-      username: 'mikechen',
-      actionable: false,
-      postImage: 'https://images.unsplash.com/photo-1552053831-71594a27632d?w=150&h=150&fit=crop'
-    },
-    {
-      id: 3,
-      type: 'follow',
-      title: 'New Follower',
-      description: 'started following you',
-      time: '1h',
-      read: true,
-      avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face',
-      username: 'emmad',
-      actionable: false
-    },
-    {
-      id: 4,
-      type: 'message',
-      title: 'New Message',
-      description: 'sent you a message about the Labrador listing',
-      time: '2h',
-      read: true,
-      avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face',
-      username: 'alexthompson',
-      actionable: false
-    },
-    {
-      id: 5,
-      type: 'like',
-      title: 'New Like',
-      description: 'liked your post about puppy training tips',
-      time: '3h',
-      read: true,
-      avatar: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=150&h=150&fit=crop&crop=face',
-      username: 'jessicaw',
-      actionable: false,
-      postImage: 'https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=150&h=150&fit=crop'
-    },
-    {
-      id: 6,
-      type: 'comment',
-      title: 'New Comment',
-      description: 'commented: "Great advice! My puppy loves these tips."',
-      time: '4h',
-      read: true,
-      avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&h=150&fit=crop&crop=face',
-      username: 'davidlee',
-      actionable: false,
-      postImage: 'https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=150&h=150&fit=crop'
-    }
-  ];
-
-  const filteredNotifications = notifications.filter(notification => {
-    switch (activeTab) {
-      case 'following':
-        return ['like', 'comment'].includes(notification.type);
-      case 'comments':
-        return notification.type === 'comment';
-      case 'follows':
-        return notification.type === 'follow';
-      default:
-        return true;
-    }
-  });
-
   return (
-    <div className="min-h-screen bg-cloud-white">
-      <NotificationHeader 
-        showSettings={showSettings}
-        onToggleSettings={() => setShowSettings(!showSettings)}
-      />
-      
-      {showSettings && <NotificationSettings />}
-
-      <div className="pt-4">
-        <div className="px-4 mb-4">
-          <h2 className="text-deep-navy font-semibold text-base mb-3">Last 7 days</h2>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 dark:from-gray-900 dark:to-gray-800">
+      {/* Header */}
+      <div className="sticky top-0 z-10 bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-800 dark:to-purple-800 text-white p-4 shadow-lg">
+        <div className="flex items-center justify-between max-w-md mx-auto">
+          <h1 className="text-xl font-bold">Notifications</h1>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="text-white hover:bg-white/20"
+          >
+            <Settings className="w-5 h-5" />
+          </Button>
         </div>
-        
-        <NotificationTabs 
-          activeTab={activeTab}
-          onTabChange={setActiveTab}
-        />
+      </div>
 
-        <div className="px-4 space-y-1">
-          {filteredNotifications.length > 0 ? (
-            filteredNotifications.map((notification) => (
-              <NotificationItem
+      {/* Tab Toggle */}
+      <div className="p-4 max-w-md mx-auto">
+        <div className="flex rounded-lg bg-white dark:bg-gray-800 p-1 shadow-sm border border-gray-200 dark:border-gray-700">
+          <Button
+            variant={activeTab === 'all' ? 'default' : 'ghost'}
+            size="sm"
+            onClick={() => setActiveTab('all')}
+            className="flex-1 rounded-md"
+          >
+            All
+          </Button>
+          <Button
+            variant={activeTab === 'unread' ? 'default' : 'ghost'}
+            size="sm"
+            onClick={() => setActiveTab('unread')}
+            className="flex-1 rounded-md relative"
+          >
+            Unread
+            {unreadCount > 0 && (
+              <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                {unreadCount > 9 ? '9+' : unreadCount}
+              </span>
+            )}
+          </Button>
+        </div>
+      </div>
+
+      {/* Content */}
+      <div className="px-4 pb-20 max-w-md mx-auto">
+        {loading ? (
+          <div className="flex items-center justify-center py-20">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+              <p className="text-gray-600 dark:text-gray-400">Loading notifications...</p>
+            </div>
+          </div>
+        ) : filteredNotifications.length === 0 ? (
+          /* Empty State */
+          <div className="text-center py-20">
+            <Bell className="w-16 h-16 mx-auto text-gray-300 dark:text-gray-600 mb-4" />
+            <h2 className="text-xl font-semibold text-gray-600 dark:text-gray-300 mb-2">
+              {activeTab === 'unread' ? 'All caught up!' : 'No notifications yet'}
+            </h2>
+            <p className="text-gray-500 dark:text-gray-400">
+              {activeTab === 'unread' 
+                ? 'You have no unread notifications' 
+                : 'When you get notifications, they\'ll show up here'
+              }
+            </p>
+          </div>
+        ) : (
+          /* Notification List */
+          <div className="space-y-3">
+            {filteredNotifications.map((notification) => (
+              <div
                 key={notification.id}
-                notification={notification}
-                followingUsers={followingUsers}
-                onFollowToggle={handleFollowToggle}
-              />
-            ))
-          ) : (
-            <EmptyNotifications />
-          )}
-        </div>
+                onClick={() => handleNotificationClick(notification)}
+                className={`p-4 rounded-lg shadow-sm border cursor-pointer transition-colors ${
+                  notification.is_read
+                    ? 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700'
+                    : 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800'
+                }`}
+              >
+                <div className="flex gap-3">
+                  <Avatar className="h-10 w-10">
+                    <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-500 text-white">
+                      {notification.type?.charAt(0)?.toUpperCase() || 'N'}
+                    </AvatarFallback>
+                  </Avatar>
+                  
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <p className={`text-sm leading-5 ${
+                          notification.is_read 
+                            ? 'text-gray-700 dark:text-gray-300' 
+                            : 'text-gray-900 dark:text-white font-medium'
+                        }`}>
+                          {notification.message}
+                        </p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                          {formatDistanceToNow(new Date(notification.created_at), { addSuffix: true })}
+                        </p>
+                      </div>
+                      
+                      {!notification.is_read && (
+                        <div className="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0 mt-1"></div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
