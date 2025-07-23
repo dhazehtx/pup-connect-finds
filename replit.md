@@ -48,11 +48,14 @@ The schema includes comprehensive tables for:
 - **Favorites & Notifications**: User engagement tracking
 - **Transactions**: Payment and purchase history
 
-### Authentication & Authorization
+### Authentication & Authorization - 95% Complete
 - **Supabase Integration**: Handles user registration, login, and session management
 - **Guest Mode**: Allows anonymous browsing with prompts for account creation
 - **Profile Management**: Automatic profile creation and synchronization with auth users
 - **Protected Routes**: Route-level protection for authenticated features
+- **Session Management**: 30-minute inactivity timeout with 2-minute warning modal
+- **Token Refresh**: Failsafe token validation every 15 minutes with automatic refresh
+- **Security Features**: Activity monitoring, graceful logout, and comprehensive auth state handling
 
 ## Data Flow
 
@@ -102,3 +105,14 @@ The schema includes comprehensive tables for:
 - **SSL**: HTTPS required for Supabase integration and secure authentication
 
 The application is designed for modern web deployment with consideration for serverless environments while maintaining the flexibility for traditional server hosting.
+
+## Recent Updates
+
+### Session Management & Token Refresh Enhancement (July 2025)
+- Implemented comprehensive session timeout system with 30-minute inactivity logout
+- Added 2-minute warning modal with countdown timer and session extension option
+- Enhanced token refresh strategy with failsafe session checking every 15 minutes
+- Integrated activity monitoring for mouse, keyboard, touch, and scroll events
+- Created professional warning modal with progress indicator and security messaging
+- Added comprehensive auth state listening for all Supabase authentication events
+- Improved error handling and graceful logout with user notifications
