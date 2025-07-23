@@ -4,6 +4,16 @@ import { storage } from "./storage";
 import userRoutes from './routes/user';
 import Stripe from 'stripe';
 import { 
+  generalRateLimit, 
+  authRateLimit, 
+  messagingRateLimit, 
+  searchRateLimit, 
+  uploadRateLimit,
+  speedLimiter,
+  userContextMiddleware,
+  abuseDetectionMiddleware
+} from './middleware/rateLimiting';
+import { 
   insertProfileSchema, 
   insertDogListingSchema, 
   insertMessageSchema,
@@ -23,6 +33,12 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 });
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Apply global middleware
+  app.use(userContextMiddleware); // Extract user context for rate limiting
+  app.use(abuseDetectionMiddleware); // Detect suspicious patterns
+  app.use(speedLimiter); // Gradual slowdown for high-frequency requests
+  app.use(generalRateLimit); // Apply general rate limiting to all routes
+
   // Profile routes
   app.get("/api/profile/:id", async (req, res) => {
     try {
@@ -63,7 +79,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Dog listing routes
-  app.get("/api/listings", async (req, res) => {
+  app.get("/api/listings", searchRateLimit, async (req, res) => {
     try {
       const { breed, minPrice, maxPrice, location, status, userId } = req.query;
       const filters = {
@@ -166,7 +182,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/messages", async (req, res) => {
+  app.post("/api/messages", messagingRateLimit, async (req, res) => {
     try {
       const validatedData = insertMessageSchema.parse(req.body);
       const message = await storage.createMessage(validatedData);
@@ -724,8 +740,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Mount user routes for GDPR compliance
-  app.use('/api/user', userRoutes);
+  // Mount user routes for GDPR compliance (with auth rate limiting)
+  app.use('/api/user', authRateLimit, userRoutes);
 
   const httpServer = createServer(app);
   return httpServer;
