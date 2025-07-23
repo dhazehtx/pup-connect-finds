@@ -482,32 +482,33 @@ const MessageThread = ({ parentMessage, onClose, conversationId: propConversatio
       </div>
 
       {/* Messages Container */}
-      <div className="flex-1 overflow-y-auto px-4 py-6 space-y-6">
-        {messages.length === 0 ? (
-          <div className="text-center py-12">
-            <div className={`backdrop-blur-sm rounded-2xl p-8 mx-auto max-w-sm shadow-sm ${
-              theme === 'dark' ? 'bg-gray-800/60' : 'bg-white/60'
-            }`}>
-              <div className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 ${
-                theme === 'dark' 
-                  ? 'bg-gradient-to-br from-blue-900/50 to-purple-900/50' 
-                  : 'bg-gradient-to-br from-blue-100 to-purple-100'
+      <div className="flex-1 overflow-y-auto px-4 py-4 min-h-0">
+        <div className="space-y-4">
+          {messages.length === 0 ? (
+            <div className="text-center py-8">
+              <div className={`backdrop-blur-sm rounded-2xl p-6 mx-auto max-w-sm shadow-sm ${
+                theme === 'dark' ? 'bg-gray-800/60' : 'bg-white/60'
               }`}>
-                <Send className={`w-7 h-7 ${theme === 'dark' ? 'text-blue-400' : 'text-blue-600'}`} />
+                <div className={`w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3 ${
+                  theme === 'dark' 
+                    ? 'bg-gradient-to-br from-blue-900/50 to-purple-900/50' 
+                    : 'bg-gradient-to-br from-blue-100 to-purple-100'
+                }`}>
+                  <Send className={`w-5 h-5 ${theme === 'dark' ? 'text-blue-400' : 'text-blue-600'}`} />
+                </div>
+                <h3 className={`font-semibold mb-2 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                  Start the conversation
+                </h3>
+                <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
+                  Send your first message to begin chatting!
+                </p>
               </div>
-              <h3 className={`font-semibold mb-2 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-                Start the conversation
-              </h3>
-              <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-                Send your first message to begin chatting!
-              </p>
             </div>
-          </div>
-        ) : (
-          messageGroups.map((group, groupIndex) => {
-            const isOwnMessage = group.sender_id === user?.id;
-            return (
-              <div key={groupIndex} className={`flex ${isOwnMessage ? 'justify-end' : 'justify-start'} items-end gap-2`}>
+          ) : (
+            messageGroups.map((group, groupIndex) => {
+              const isOwnMessage = group.sender_id === user?.id;
+              return (
+                <div key={groupIndex} className={`flex ${isOwnMessage ? 'justify-end' : 'justify-start'} items-end gap-2`}>
                 {/* Avatar for received messages */}
                 {!isOwnMessage && (
                   <Avatar 
@@ -567,54 +568,55 @@ const MessageThread = ({ parentMessage, onClose, conversationId: propConversatio
                 </div>
               </div>
             );
-          })
-        )}
-        
-        {/* Typing Indicator */}
-        {typing && (
-          <div className="flex justify-start items-end gap-2 animate-pulse">
-            <Avatar className="w-8 h-8 ring-2 ring-white dark:ring-gray-600 shadow-sm flex-shrink-0">
-              <AvatarFallback className="bg-gradient-to-br from-gray-400 to-gray-600 text-white text-xs font-semibold">
-                {typing[0]?.toUpperCase() || 'U'}
-              </AvatarFallback>
-            </Avatar>
-            <div className={`px-4 py-2.5 rounded-2xl rounded-bl-md shadow-sm ${
-              theme === 'dark' 
-                ? 'bg-gray-700 border border-gray-600' 
-                : 'bg-white border border-gray-100'
-            }`}>
-              <div className="flex items-center gap-1">
-                <div className={`w-2 h-2 rounded-full animate-bounce ${
-                  theme === 'dark' ? 'bg-gray-400' : 'bg-gray-500'
-                }`} style={{ animationDelay: '0ms' }}></div>
-                <div className={`w-2 h-2 rounded-full animate-bounce ${
-                  theme === 'dark' ? 'bg-gray-400' : 'bg-gray-500'
-                }`} style={{ animationDelay: '150ms' }}></div>
-                <div className={`w-2 h-2 rounded-full animate-bounce ${
-                  theme === 'dark' ? 'bg-gray-400' : 'bg-gray-500'
-                }`} style={{ animationDelay: '300ms' }}></div>
+            })
+          )}
+          
+          {/* Typing Indicator */}
+          {typing && (
+            <div className="flex justify-start items-end gap-2 animate-pulse">
+              <Avatar className="w-8 h-8 ring-2 ring-white dark:ring-gray-600 shadow-sm flex-shrink-0">
+                <AvatarFallback className="bg-gradient-to-br from-gray-400 to-gray-600 text-white text-xs font-semibold">
+                  {typing[0]?.toUpperCase() || 'U'}
+                </AvatarFallback>
+              </Avatar>
+              <div className={`px-4 py-2.5 rounded-2xl rounded-bl-md shadow-sm ${
+                theme === 'dark' 
+                  ? 'bg-gray-700 border border-gray-600' 
+                  : 'bg-white border border-gray-100'
+              }`}>
+                <div className="flex items-center gap-1">
+                  <div className={`w-2 h-2 rounded-full animate-bounce ${
+                    theme === 'dark' ? 'bg-gray-400' : 'bg-gray-500'
+                  }`} style={{ animationDelay: '0ms' }}></div>
+                  <div className={`w-2 h-2 rounded-full animate-bounce ${
+                    theme === 'dark' ? 'bg-gray-400' : 'bg-gray-500'
+                  }`} style={{ animationDelay: '150ms' }}></div>
+                  <div className={`w-2 h-2 rounded-full animate-bounce ${
+                    theme === 'dark' ? 'bg-gray-400' : 'bg-gray-500'
+                  }`} style={{ animationDelay: '300ms' }}></div>
+                </div>
               </div>
             </div>
-          </div>
-        )}
+          )}
+        </div>
         
         <div ref={messagesEndRef} />
       </div>
 
       {/* Modern Message Input */}
-      <div className={`px-4 py-4 backdrop-blur-sm border-t ${
+      <div className={`flex-shrink-0 px-4 py-3 backdrop-blur-sm border-t ${
         theme === 'dark'
-          ? 'bg-gray-800/90 border-gray-700/60'
-          : 'bg-white/80 border-gray-200/60'
+          ? 'bg-gray-800/95 border-gray-700/60'
+          : 'bg-white/95 border-gray-200/60'
       }`}>
         {/* Typing Indicator Above Input */}
         {typing && (
-          <div className={`text-xs mb-2 px-4 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+          <div className={`text-xs mb-2 px-2 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
             {typing} is typing...
           </div>
         )}
         
-        <div className="flex items-end gap-3 max-w-4xl mx-auto">
+        <div className="flex items-end gap-2">
           <div className={`flex-1 rounded-2xl border shadow-sm hover:shadow-md transition-shadow ${
             theme === 'dark'
               ? 'bg-gray-700 border-gray-600/80'
@@ -628,7 +630,7 @@ const MessageThread = ({ parentMessage, onClose, conversationId: propConversatio
               }}
               onKeyPress={handleKeyPress}
               placeholder="Type a message..."
-              className={`border-0 rounded-2xl py-3 px-4 focus:ring-2 focus:ring-blue-500/20 resize-none text-sm bg-transparent ${
+              className={`border-0 rounded-2xl py-2.5 px-4 focus:ring-2 focus:ring-blue-500/20 resize-none text-sm bg-transparent ${
                 theme === 'dark' 
                   ? 'text-white placeholder-gray-400' 
                   : 'text-gray-900 placeholder-gray-500'
@@ -640,12 +642,12 @@ const MessageThread = ({ parentMessage, onClose, conversationId: propConversatio
           <Button 
             onClick={handleSendMessage}
             disabled={!newMessage.trim() || sending}
-            className="rounded-full w-12 h-12 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105 disabled:scale-100 disabled:hover:shadow-lg disabled:opacity-50"
+            className="rounded-full w-10 h-10 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105 disabled:scale-100 disabled:hover:shadow-lg disabled:opacity-50"
           >
             {sending ? (
-              <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent" />
+              <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent" />
             ) : (
-              <Send className="w-5 h-5" />
+              <Send className="w-4 h-4" />
             )}
           </Button>
         </div>
