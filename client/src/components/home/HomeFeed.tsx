@@ -95,17 +95,70 @@ const HomeFeed = () => {
   const [selectedPost, setSelectedPost] = useState<any>(null);
   const [showFullPostModal, setShowFullPostModal] = useState(false);
 
+  // Convert database posts to display format
+  const displayPosts = React.useMemo(() => {
+    if (dbPosts && dbPosts.length > 0) {
+      return dbPosts.map(post => ({
+        id: post.id,
+        postUuid: post.id,
+        user: {
+          id: post.user_id,
+          username: post.profiles?.username || 'User',
+          name: post.profiles?.full_name || 'Unknown User',
+          location: 'Location',
+          avatar: post.profiles?.avatar_url || `https://i.pravatar.cc/150?u=${post.user_id}`,
+        },
+        image: post.image_url || 'https://placedog.com/500/280',
+        likes: 0, // You can add likes functionality later
+        isLiked: false,
+        caption: post.caption || '',
+        timeAgo: new Date(post.created_at).toLocaleDateString(),
+        likedBy: [],
+        comments: [],
+      }));
+    }
+    // Fallback to mock data if no database posts
+    return mockPosts;
+  }, [dbPosts, mockPosts]);
+
   useEffect(() => {
-    // You can fetch real posts from an API here
-    // For now, we're using mock data
-  }, []);
+    // Add user's own posts to mock data if they exist
+    if (user && dbPosts.length === 0) {
+      const userPost = {
+        id: 'user_post_1',
+        postUuid: 'user_post_1',
+        user: {
+          id: user.id,
+          username: user.user_metadata?.username || user.email?.split('@')[0] || 'you',
+          name: user.user_metadata?.full_name || 'Your Name',
+          location: 'Your Location',
+          avatar: user.user_metadata?.avatar_url || `https://i.pravatar.cc/150?u=${user.id}`,
+        },
+        image: 'https://placedog.com/500/282',
+        likes: 5,
+        isLiked: false,
+        caption: 'Welcome to MY PUP! This is your first post. 🐕',
+        timeAgo: 'Just now',
+        likedBy: [],
+        comments: [],
+      };
+      setMockPosts(prev => [userPost, ...prev]);
+    }
+  }, [user, dbPosts]);
 
   const handleLike = (postId: string) => {
-    setMockPosts((prevPosts) =>
-      prevPosts.map((post) =>
-        post.id === postId ? { ...post, isLiked: !post.isLiked, likes: post.isLiked ? post.likes - 1 : post.likes + 1 } : post
-      )
-    );
+    // Handle both database posts and mock posts
+    if (dbPosts && dbPosts.length > 0) {
+      // For database posts, you would make an API call here
+      console.log('Liking database post:', postId);
+    } else {
+      // Handle mock posts
+      setMockPosts((prevPosts) =>
+        prevPosts.map((post) =>
+          post.id === postId ? { ...post, isLiked: !post.isLiked, likes: post.isLiked ? post.likes - 1 : post.likes + 1 } : post
+        )
+      );
+    }
   };
 
   const handleProfileClick = (userId: string) => {
@@ -170,77 +223,60 @@ const HomeFeed = () => {
         full_name: post.user.name,
         username: post.user.username,
         avatar_url: post.user.avatar,
-      }
+      },
     };
-    
     setSelectedPost(modalPost);
     setShowFullPostModal(true);
   };
 
-  const mapDbPostToMockPost = (dbPost: any): Post => ({
-    id: dbPost.id,
-    postUuid: dbPost.id,
-    user: {
-      id: dbPost.user_id,
-      username: dbPost.profiles?.username || 'Unknown User',
-      name: dbPost.profiles?.full_name || 'Unknown',
-      location: 'Unknown',
-      avatar: dbPost.profiles?.avatar_url || '',
-    },
-    image: dbPost.image_url || 'https://placedog.com/500/280',
-    likes: 0,
-    isLiked: false,
-    caption: dbPost.caption || 'No caption',
-    timeAgo: 'Just now',
-    likedBy: [],
-    comments: [],
-  });
-
-  const currentPosts = dbPosts.length > 0 ? dbPosts.map(mapDbPostToMockPost) : mockPosts;
-
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-64">
-        <div className="text-gray-500">Loading posts...</div>
+      <div className="flex justify-center items-center py-8">
+        <div className="animate-spin rounded-full h-8 w-8 border-4 border-blue-600 border-t-transparent"></div>
+        <span className="ml-2 text-gray-600">Loading posts...</span>
       </div>
     );
   }
 
   return (
-    <>
-      <div className="w-full max-w-md sm:max-w-lg md:max-w-xl lg:max-w-2xl xl:max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
-        <div className="space-y-6 sm:space-y-8">
-          {currentPosts.map((post) => (
-            <PostCard
-              key={post.id}
-              post={post}
-              onLike={handleLike}
-              onProfileClick={handleProfileClick}
-              onShare={handleShare}
-              onBookmark={handleBookmark}
-              onComment={handleComment}
-              onShowLikes={handleShowLikes}
-              onCommentsUpdate={handleCommentsUpdate(post.id)}
-              onPostUpdate={handlePostUpdate}
-              onPostDelete={handlePostDelete}
-              onImageClick={handleImageClick}
-            />
-          ))}
+    <div className="space-y-6 py-4">
+      {displayPosts.length === 0 ? (
+        <div className="text-center py-12">
+          <div className="text-gray-500 text-lg mb-2">No posts yet</div>
+          <div className="text-gray-400">Be the first to share something!</div>
         </div>
-      </div>
+      ) : (
+        displayPosts.map((post) => (
+          <PostCard
+            key={post.id}
+            post={post}
+            onLike={handleLike}
+            onProfileClick={handleProfileClick}
+            onShare={handleShare}
+            onBookmark={handleBookmark}
+            onComment={handleComment}
+            onShowLikes={handleShowLikes}
+            onCommentsUpdate={handleCommentsUpdate(post.id)}
+            onImageClick={() => handleImageClick(post)}
+            onPostUpdate={handlePostUpdate}
+            onPostDelete={handlePostDelete}
+          />
+        ))
+      )}
 
-      <FullPostModal
-        post={selectedPost}
-        isOpen={showFullPostModal}
-        onClose={() => {
-          setShowFullPostModal(false);
-          setSelectedPost(null);
-        }}
-        onProfileClick={handleProfileClick}
-        onPostUpdate={handlePostUpdate}
-        onPostDelete={handlePostDelete}
-      />
-    </>
+      {showFullPostModal && selectedPost && (
+        <FullPostModal
+          post={selectedPost}
+          isOpen={showFullPostModal}
+          onClose={() => {
+            setShowFullPostModal(false);
+            setSelectedPost(null);
+          }}
+          onPostUpdate={handlePostUpdate}
+          onPostDelete={handlePostDelete}
+        />
+      )}
+    </div>
   );
 };
 

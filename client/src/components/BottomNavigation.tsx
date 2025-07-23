@@ -34,8 +34,8 @@ const BottomNavigation = () => {
       icon: Home,
       label: 'Home',
       path: '/home',
-      protected: false,
-      onClick: () => handleNavigation('/home')
+      protected: true,
+      onClick: () => handleProtectedNavigation('/home', 'view your home feed')
     },
     {
       icon: Search,
@@ -55,15 +55,15 @@ const BottomNavigation = () => {
       icon: MessageCircle,
       label: 'Messages',
       path: '/messages',
-      protected: false,
-      onClick: () => handleNavigation('/messages')
+      protected: true,
+      onClick: () => handleProtectedNavigation('/messages', 'access your messages')
     },
     {
       icon: User,
       label: 'Profile',
       path: '/profile',
-      protected: false,
-      onClick: () => handleNavigation('/profile')
+      protected: true,
+      onClick: () => handleProtectedNavigation('/profile', 'view your profile')
     }
   ];
 

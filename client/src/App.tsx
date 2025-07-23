@@ -7,6 +7,7 @@ import { AuthProvider } from './contexts/AuthContext';
 import { RealtimeProvider } from './contexts/RealtimeContext';
 import Layout from './components/Layout';
 import Home from './pages/Home';
+import HomeFeedPage from './pages/HomeFeed';
 import Explore from './pages/Explore';
 import Post from './pages/Post';
 import Profile from './pages/Profile';
@@ -16,6 +17,7 @@ import Marketplace from './pages/Marketplace';
 import ListingDetail from './pages/ListingDetail';
 import Messages from './pages/Messages';
 import MessageThread from './components/messaging/MessageThread';
+import ProtectedRoute from './components/ProtectedRoute';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -35,16 +37,17 @@ function App() {
               <Layout>
                 <Routes>
                   <Route path="/" element={<Home />} />
+                  <Route path="/home" element={<ProtectedRoute><HomeFeedPage /></ProtectedRoute>} />
                   <Route path="/explore" element={<Explore />} />
                   <Route path="/marketplace" element={<Marketplace />} />
-                  <Route path="/post" element={<Post />} />
-                  <Route path="/profile/:userId" element={<Profile />} />
-                  <Route path="/profile" element={<Profile />} />
+                  <Route path="/post" element={<ProtectedRoute><Post /></ProtectedRoute>} />
+                  <Route path="/profile/:userId" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+                  <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
                   <Route path="/auth" element={<Auth />} />
-                  <Route path="/create-listing" element={<CreateListing />} />
+                  <Route path="/create-listing" element={<ProtectedRoute><CreateListing /></ProtectedRoute>} />
                   <Route path="/listing/:id" element={<ListingDetail />} />
-                  <Route path="/messages" element={<Messages />} />
-                  <Route path="/messages/:conversationId" element={<MessageThread />} />
+                  <Route path="/messages" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
+                  <Route path="/messages/:conversationId" element={<ProtectedRoute><MessageThread /></ProtectedRoute>} />
                 </Routes>
               </Layout>
             </ThemeProvider>
