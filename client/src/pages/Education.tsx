@@ -101,6 +101,7 @@ const educationalArticles = [
     tags: ['safety', 'puppy-proofing', 'home', 'preparation'],
     category: 'Safety & Preparation',
     image: '/api/placeholder/300/200',
+    thumbnailUrl: 'https://images.unsplash.com/photo-1581888227599-779811939961?w=400&h=300&fit=crop&crop=center',
     url: 'https://www.aspca.org/pet-care/dog-care/puppy-proofing'
   }
 ];
@@ -110,7 +111,7 @@ const starterPackItems = [
   { icon: Home, task: 'Puppy-proof your home', completed: false },
   { icon: Stethoscope, task: 'Schedule first vet appointment', completed: false },
   { icon: Tag, task: 'Get ID tag and collar', completed: false },
-  { icon: Link, task: 'Purchase leash and harness', completed: false },
+  { icon: LinkIcon, task: 'Purchase leash and harness', completed: false },
   { icon: Utensils, task: 'Buy food and water bowls', completed: false },
   { icon: Bed, task: 'Set up sleeping area', completed: false },
   { icon: Scissors, task: 'Find grooming supplies', completed: false },
@@ -313,6 +314,10 @@ const Education = () => {
                   alt={article.title}
                   className="w-full h-full object-cover transition-opacity duration-300"
                   loading="lazy"
+                  decoding="async"
+                  width="400"
+                  height="300"
+                  style={{ aspectRatio: '16/9' }}
                   onLoad={(e) => {
                     // Ensure image is visible when loaded
                     const target = e.target as HTMLImageElement;
