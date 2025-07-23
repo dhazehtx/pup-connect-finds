@@ -7,6 +7,7 @@ interface Comment {
   id: string;
   post_id: string;
   user_id: string;
+  parent_comment_id?: string | null;
   content: string;
   created_at: string;
   profiles?: {
@@ -14,6 +15,7 @@ interface Comment {
     username: string | null;
     avatar_url: string | null;
   } | null;
+  replies?: Comment[];
 }
 
 export const useComments = (postId: string) => {
@@ -57,17 +59,21 @@ export const useComments = (postId: string) => {
     }
   };
 
-  const addComment = async (content: string) => {
+  const addComment = async (content: string, parentCommentId?: string) => {
     // Skip if no postId
     if (!postId) return;
 
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('User not authenticated');
+
       const { data, error } = await supabase
         .from('comments')
         .insert([{
           post_id: postId,
-          user_id: (await supabase.auth.getUser()).data.user?.id,
-          content
+          user_id: user.id,
+          content,
+          parent_comment_id: parentCommentId || null
         }])
         .select(`
           *,

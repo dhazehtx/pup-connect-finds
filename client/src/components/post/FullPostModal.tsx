@@ -4,7 +4,7 @@ import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Heart, MessageCircle, Share, MoreHorizontal, X } from 'lucide-react';
+import { Heart, MessageCircle, Share, MoreHorizontal, X, Reply, ChevronDown, ChevronUp, Send } from 'lucide-react';
 import { useComments } from '@/hooks/useComments';
 import { formatDistanceToNow } from 'date-fns';
 
@@ -26,6 +26,7 @@ interface Comment {
   id: string;
   post_id: string;
   user_id: string;
+  parent_comment_id?: string | null;
   content: string;
   created_at: string;
   profiles?: {
@@ -33,6 +34,8 @@ interface Comment {
     username: string | null;
     avatar_url: string | null;
   } | null;
+  replies?: Comment[];
+  reply_count?: number;
 }
 
 interface FullPostModalProps {
@@ -57,6 +60,9 @@ const FullPostModal = ({
   const [newComment, setNewComment] = useState('');
   const [liked, setLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(0);
+  const [replyingTo, setReplyingTo] = useState<string | null>(null);
+  const [replyContent, setReplyContent] = useState('');
+  const [expandedComments, setExpandedComments] = useState<Set<string>>(new Set());
   
   const { comments: fetchedComments, addComment, fetchComments } = useComments(post?.id || '');
   
@@ -72,6 +78,65 @@ const FullPostModal = ({
     // Force refresh comments after adding
     setTimeout(() => fetchComments(), 100);
   };
+
+  const handleSubmitReply = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!replyContent.trim() || !post || !replyingTo) return;
+
+    await addComment(replyContent.trim(), replyingTo);
+    setReplyContent('');
+    setReplyingTo(null);
+    // Force refresh comments after adding
+    setTimeout(() => fetchComments(), 100);
+  };
+
+  const toggleExpanded = (commentId: string) => {
+    const newExpanded = new Set(expandedComments);
+    if (newExpanded.has(commentId)) {
+      newExpanded.delete(commentId);
+    } else {
+      newExpanded.add(commentId);
+    }
+    setExpandedComments(newExpanded);
+  };
+
+  // Organize comments into threaded structure
+  const organizeComments = (comments: Comment[]): Comment[] => {
+    const commentMap = new Map<string, Comment>();
+    const rootComments: Comment[] = [];
+
+    // Create map and initialize replies arrays
+    comments.forEach(comment => {
+      commentMap.set(comment.id, { ...comment, replies: [] });
+    });
+
+    // Organize into threads
+    comments.forEach(comment => {
+      const mappedComment = commentMap.get(comment.id)!;
+      
+      if (comment.parent_comment_id) {
+        // This is a reply, add to parent's replies
+        const parentComment = commentMap.get(comment.parent_comment_id);
+        if (parentComment) {
+          parentComment.replies!.push(mappedComment);
+        }
+      } else {
+        // This is a root comment
+        rootComments.push(mappedComment);
+      }
+    });
+
+    // Sort replies by creation date
+    commentMap.forEach(comment => {
+      if (comment.replies) {
+        comment.replies.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+      }
+    });
+
+    return rootComments.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+  };
+
+  const organizedComments = organizeComments(comments);
 
   const handleLike = () => {
     setLiked(!liked);
@@ -139,25 +204,108 @@ const FullPostModal = ({
 
             {/* Comments */}
             <div className="flex-1 overflow-y-auto p-4 space-y-4">
-              {comments.map((comment) => (
-                <div key={comment.id} className="flex space-x-3">
-                  <Avatar className="w-8 h-8 flex-shrink-0">
-                    <AvatarImage src={comment.profiles?.avatar_url || ''} />
-                    <AvatarFallback>
-                      {comment.profiles?.username?.[0]?.toUpperCase() || 'U'}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="flex-1">
-                    <div className="flex items-center space-x-2">
-                      <span className="font-semibold text-sm">
-                        {comment.profiles?.username || 'Unknown User'}
-                      </span>
-                      <span className="text-xs text-gray-500">
-                        {formatDistanceToNow(new Date(comment.created_at), { addSuffix: true })}
-                      </span>
+              {organizedComments.map((comment) => (
+                <div key={comment.id} className="space-y-3">
+                  {/* Main Comment */}
+                  <div className="flex space-x-3">
+                    <Avatar className="w-8 h-8 flex-shrink-0">
+                      <AvatarImage src={comment.profiles?.avatar_url || ''} />
+                      <AvatarFallback>
+                        {comment.profiles?.username?.[0]?.toUpperCase() || 'U'}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1">
+                      <div className="flex items-center space-x-2">
+                        <span className="font-semibold text-sm">
+                          {comment.profiles?.username || 'Unknown User'}
+                        </span>
+                        <span className="text-xs text-gray-500">
+                          {formatDistanceToNow(new Date(comment.created_at), { addSuffix: true })}
+                        </span>
+                      </div>
+                      <p className="text-sm mt-1">{comment.content}</p>
+                      
+                      {/* Comment Actions */}
+                      <div className="flex items-center space-x-4 mt-2">
+                        <button
+                          onClick={() => setReplyingTo(replyingTo === comment.id ? null : comment.id)}
+                          className="text-xs text-gray-500 hover:text-gray-700 flex items-center space-x-1"
+                        >
+                          <Reply className="w-3 h-3" />
+                          <span>Reply</span>
+                        </button>
+                        
+                        {comment.replies && comment.replies.length > 0 && (
+                          <button
+                            onClick={() => toggleExpanded(comment.id)}
+                            className="text-xs text-gray-500 hover:text-gray-700 flex items-center space-x-1"
+                          >
+                            {expandedComments.has(comment.id) ? (
+                              <>
+                                <ChevronUp className="w-3 h-3" />
+                                <span>Hide {comment.replies.length} replies</span>
+                              </>
+                            ) : (
+                              <>
+                                <ChevronDown className="w-3 h-3" />
+                                <span>View {comment.replies.length} replies</span>
+                              </>
+                            )}
+                          </button>
+                        )}
+                      </div>
+                      
+                      {/* Reply Input */}
+                      {replyingTo === comment.id && (
+                        <form onSubmit={handleSubmitReply} className="mt-3">
+                          <div className="flex space-x-2">
+                            <Avatar className="w-6 h-6 flex-shrink-0">
+                              <AvatarFallback className="text-xs">U</AvatarFallback>
+                            </Avatar>
+                            <div className="flex-1 flex space-x-2">
+                              <Input
+                                value={replyContent}
+                                onChange={(e) => setReplyContent(e.target.value)}
+                                placeholder={`Reply to ${comment.profiles?.username || 'this comment'}...`}
+                                className="text-sm"
+                                autoFocus
+                              />
+                              <Button type="submit" size="sm" disabled={!replyContent.trim()}>
+                                <Send className="w-3 h-3" />
+                              </Button>
+                            </div>
+                          </div>
+                        </form>
+                      )}
                     </div>
-                    <p className="text-sm mt-1">{comment.content}</p>
                   </div>
+                  
+                  {/* Replies */}
+                  {comment.replies && comment.replies.length > 0 && expandedComments.has(comment.id) && (
+                    <div className="ml-11 space-y-3 border-l-2 border-gray-100 pl-4">
+                      {comment.replies.map((reply) => (
+                        <div key={reply.id} className="flex space-x-3">
+                          <Avatar className="w-6 h-6 flex-shrink-0">
+                            <AvatarImage src={reply.profiles?.avatar_url || ''} />
+                            <AvatarFallback className="text-xs">
+                              {reply.profiles?.username?.[0]?.toUpperCase() || 'U'}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div className="flex-1">
+                            <div className="flex items-center space-x-2">
+                              <span className="font-semibold text-xs">
+                                {reply.profiles?.username || 'Unknown User'}
+                              </span>
+                              <span className="text-xs text-gray-500">
+                                {formatDistanceToNow(new Date(reply.created_at), { addSuffix: true })}
+                              </span>
+                            </div>
+                            <p className="text-xs mt-1 text-gray-700">{reply.content}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
@@ -292,12 +440,7 @@ const FullPostModal = ({
 
               {/* Comments Section */}
               <div className="p-4 space-y-4 bg-white">
-                {/* Debug: Show comment count */}
-                <div className="text-xs text-gray-400 mb-2">
-                  Comments: {comments.length}
-                </div>
-                
-                {comments.length === 0 ? (
+                {organizedComments.length === 0 ? (
                   <div className="text-center py-8">
                     <MessageCircle className="w-12 h-12 mx-auto text-gray-300 mb-2" />
                     <p className="text-gray-500 text-sm">No comments yet</p>
@@ -305,25 +448,108 @@ const FullPostModal = ({
                   </div>
                 ) : (
                   <div className="space-y-4">
-                    {comments.map((comment) => (
-                      <div key={comment.id} className="flex space-x-3 bg-gray-50 p-3 rounded-lg">
-                        <Avatar className="w-8 h-8 flex-shrink-0">
-                          <AvatarImage src={comment.profiles?.avatar_url || ''} />
-                          <AvatarFallback>
-                            {comment.profiles?.username?.[0]?.toUpperCase() || 'U'}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div className="flex-1">
-                          <div className="flex items-center space-x-2">
-                            <span className="font-semibold text-sm">
-                              {comment.profiles?.username || 'Unknown User'}
-                            </span>
-                            <span className="text-xs text-gray-500">
-                              {formatDistanceToNow(new Date(comment.created_at), { addSuffix: true })}
-                            </span>
+                    {organizedComments.map((comment) => (
+                      <div key={comment.id} className="space-y-3">
+                        {/* Main Comment */}
+                        <div className="flex space-x-3 bg-gray-50 p-3 rounded-lg">
+                          <Avatar className="w-8 h-8 flex-shrink-0">
+                            <AvatarImage src={comment.profiles?.avatar_url || ''} />
+                            <AvatarFallback>
+                              {comment.profiles?.username?.[0]?.toUpperCase() || 'U'}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div className="flex-1">
+                            <div className="flex items-center space-x-2">
+                              <span className="font-semibold text-sm">
+                                {comment.profiles?.username || 'Unknown User'}
+                              </span>
+                              <span className="text-xs text-gray-500">
+                                {formatDistanceToNow(new Date(comment.created_at), { addSuffix: true })}
+                              </span>
+                            </div>
+                            <p className="text-sm mt-1">{comment.content}</p>
+                            
+                            {/* Mobile Comment Actions */}
+                            <div className="flex items-center space-x-4 mt-2">
+                              <button
+                                onClick={() => setReplyingTo(replyingTo === comment.id ? null : comment.id)}
+                                className="text-xs text-gray-500 hover:text-gray-700 flex items-center space-x-1"
+                              >
+                                <Reply className="w-3 h-3" />
+                                <span>Reply</span>
+                              </button>
+                              
+                              {comment.replies && comment.replies.length > 0 && (
+                                <button
+                                  onClick={() => toggleExpanded(comment.id)}
+                                  className="text-xs text-gray-500 hover:text-gray-700 flex items-center space-x-1"
+                                >
+                                  {expandedComments.has(comment.id) ? (
+                                    <>
+                                      <ChevronUp className="w-3 h-3" />
+                                      <span>Hide {comment.replies.length} replies</span>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <ChevronDown className="w-3 h-3" />
+                                      <span>View {comment.replies.length} replies</span>
+                                    </>
+                                  )}
+                                </button>
+                              )}
+                            </div>
+                            
+                            {/* Mobile Reply Input */}
+                            {replyingTo === comment.id && (
+                              <form onSubmit={handleSubmitReply} className="mt-3">
+                                <div className="flex space-x-2">
+                                  <Avatar className="w-6 h-6 flex-shrink-0">
+                                    <AvatarFallback className="text-xs">U</AvatarFallback>
+                                  </Avatar>
+                                  <div className="flex-1 flex space-x-2">
+                                    <Input
+                                      value={replyContent}
+                                      onChange={(e) => setReplyContent(e.target.value)}
+                                      placeholder={`Reply to ${comment.profiles?.username || 'this comment'}...`}
+                                      className="text-sm"
+                                      autoFocus
+                                    />
+                                    <Button type="submit" size="sm" disabled={!replyContent.trim()}>
+                                      <Send className="w-3 h-3" />
+                                    </Button>
+                                  </div>
+                                </div>
+                              </form>
+                            )}
                           </div>
-                          <p className="text-sm mt-1">{comment.content}</p>
                         </div>
+                        
+                        {/* Mobile Replies */}
+                        {comment.replies && comment.replies.length > 0 && expandedComments.has(comment.id) && (
+                          <div className="ml-6 space-y-3 border-l-2 border-gray-200 pl-3">
+                            {comment.replies.map((reply) => (
+                              <div key={reply.id} className="flex space-x-3 bg-gray-100 p-2 rounded-lg">
+                                <Avatar className="w-6 h-6 flex-shrink-0">
+                                  <AvatarImage src={reply.profiles?.avatar_url || ''} />
+                                  <AvatarFallback className="text-xs">
+                                    {reply.profiles?.username?.[0]?.toUpperCase() || 'U'}
+                                  </AvatarFallback>
+                                </Avatar>
+                                <div className="flex-1">
+                                  <div className="flex items-center space-x-2">
+                                    <span className="font-semibold text-xs">
+                                      {reply.profiles?.username || 'Unknown User'}
+                                    </span>
+                                    <span className="text-xs text-gray-500">
+                                      {formatDistanceToNow(new Date(reply.created_at), { addSuffix: true })}
+                                    </span>
+                                  </div>
+                                  <p className="text-xs mt-1 text-gray-700">{reply.content}</p>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
                       </div>
                     ))}
                   </div>
