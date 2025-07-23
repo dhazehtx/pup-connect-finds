@@ -48,7 +48,7 @@ const educationalArticles = [
     tags: ['vaccines', 'health', 'puppy', 'veterinary'],
     category: 'Health & Wellness',
     image: '/api/placeholder/300/200',
-    thumbnailUrl: 'https://cdn.akc.org/wp-content/uploads/2018/07/05171520/Vaccination-Puppy-Guide.jpg',
+    thumbnailUrl: 'https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=400&h=300&fit=crop&crop=center',
     url: 'https://www.akc.org/expert-advice/health/puppy-vaccination-schedule/'
   },
   {
@@ -61,7 +61,7 @@ const educationalArticles = [
     tags: ['french-bulldog', 'breed-guide', 'care', 'exercise'],
     category: 'Breed Information',
     image: '/api/placeholder/300/200',
-    thumbnailUrl: 'https://cdn.akc.org/wp-content/uploads/2017/11/12232851/French-Bulldog-standing-in-profile.jpg',
+    thumbnailUrl: 'https://images.unsplash.com/photo-1583337130417-3346a1be7dee?w=400&h=300&fit=crop&crop=center',
     url: 'https://www.akc.org/dog-breeds/french-bulldog/'
   },
   {
@@ -74,7 +74,7 @@ const educationalArticles = [
     tags: ['training', 'house-training', 'puppy', 'behavior'],
     category: 'Training & Behavior',
     image: '/api/placeholder/300/200',
-    thumbnailUrl: 'https://cdn.akc.org/wp-content/uploads/2017/11/06160313/puppy-house-training.jpg',
+    thumbnailUrl: 'https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=400&h=300&fit=crop&crop=center',
     url: 'https://www.akc.org/expert-advice/training/house-training-your-puppy/'
   },
   {
@@ -87,7 +87,7 @@ const educationalArticles = [
     tags: ['nutrition', 'feeding', 'puppy', 'health'],
     category: 'Nutrition',
     image: '/api/placeholder/300/200',
-    thumbnailUrl: 'https://cdn.akc.org/wp-content/uploads/2017/11/06160259/puppy-eating-food.jpg',
+    thumbnailUrl: 'https://images.unsplash.com/photo-1551717743-49959800b1f6?w=400&h=300&fit=crop&crop=center',
     url: 'https://www.akc.org/expert-advice/nutrition/best-puppy-food/'
   },
   {
