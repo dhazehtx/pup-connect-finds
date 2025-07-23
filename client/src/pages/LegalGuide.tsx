@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
@@ -101,6 +101,15 @@ const legalResources = {
 const LegalGuide = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedFilter, setSelectedFilter] = useState<'all' | 'strict' | 'moderate' | 'lenient'>('all');
+
+  // Handle URL parameters for filtering
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const filterParam = urlParams.get('filter');
+    if (filterParam && ['strict', 'moderate', 'lenient'].includes(filterParam)) {
+      setSelectedFilter(filterParam as 'strict' | 'moderate' | 'lenient');
+    }
+  }, []);
 
   const filteredStates = stateRegulations.filter(state => {
     const matchesSearch = state.state.toLowerCase().includes(searchTerm.toLowerCase());

@@ -177,6 +177,16 @@ const Education = () => {
     link.click();
   };
 
+  const handleLegalGuideFilter = (regulationType: string) => {
+    // Navigate to legal page with filter applied
+    window.location.href = `/legal?filter=${regulationType.toLowerCase()}`;
+  };
+
+  const handleViewFullLegalGuide = () => {
+    // Navigate to the full legal guide page
+    window.location.href = '/legal';
+  };
+
   const completionPercentage = (checkedItems.length / starterPackItems.length) * 100;
 
   return (
@@ -416,19 +426,34 @@ const Education = () => {
             Explore regulations that protect you and ensure ethical practices.
           </p>
           <div className="flex flex-wrap gap-3">
-            <Button variant="outline" className="text-red-600 border-red-200 hover:bg-red-50">
+            <Button 
+              variant="outline" 
+              className="text-red-600 border-red-200 hover:bg-red-50"
+              onClick={() => handleLegalGuideFilter('strict')}
+            >
               <Shield className="w-4 h-4 mr-2" />
               Strict Regulations
             </Button>
-            <Button variant="outline" className="text-blue-600 border-blue-200 hover:bg-blue-50">
+            <Button 
+              variant="outline" 
+              className="text-blue-600 border-blue-200 hover:bg-blue-50"
+              onClick={() => handleLegalGuideFilter('moderate')}
+            >
               <Activity className="w-4 h-4 mr-2" />
               Moderate Regulations
             </Button>
-            <Button variant="outline" className="text-green-600 border-green-200 hover:bg-green-50">
+            <Button 
+              variant="outline" 
+              className="text-green-600 border-green-200 hover:bg-green-50"
+              onClick={() => handleLegalGuideFilter('lenient')}
+            >
               <Check className="w-4 h-4 mr-2" />
               Lenient Regulations
             </Button>
-            <Button variant="default">
+            <Button 
+              variant="default"
+              onClick={handleViewFullLegalGuide}
+            >
               <ExternalLink className="w-4 h-4 mr-2" />
               View Full Legal Guide
             </Button>
