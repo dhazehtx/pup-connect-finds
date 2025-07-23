@@ -22,6 +22,7 @@ import HelpCenter from './pages/HelpCenter';
 import TrustSafety from './pages/TrustSafety';
 import Contact from './pages/Contact';
 import Services from './pages/Services';
+import LegalGuide from './pages/LegalGuide';
 import ProtectedRoute from './components/ProtectedRoute';
 
 const queryClient = new QueryClient({
@@ -58,6 +59,7 @@ function App() {
                   <Route path="/trust-safety" element={<TrustSafety />} />
                   <Route path="/contact" element={<Contact />} />
                   <Route path="/services" element={<Services />} />
+                  <Route path="/legal" element={<LegalGuide />} />
                 </Routes>
               </Layout>
             </ThemeProvider>
