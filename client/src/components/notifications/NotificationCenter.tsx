@@ -19,11 +19,32 @@ interface NotificationCenterProps {
 }
 
 const NotificationCenter = ({ isOpen, onClose }: NotificationCenterProps) => {
-  const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotifications();
+  const { notifications, unreadCount, markAsRead, markAllAsRead, loading } = useNotifications();
   const [activeTab, setActiveTab] = useState('all');
   const [, setLocation] = useLocation();
 
   if (!isOpen) return null;
+
+  // Handle loading or error states
+  if (loading) {
+    return (
+      <div className="fixed inset-0 z-50 bg-black/20 backdrop-blur-sm" onClick={onClose}>
+        <div className="fixed top-16 right-4 w-96 max-h-[80vh] bg-white rounded-2xl shadow-2xl border border-gray-200 overflow-hidden p-6">
+          <div className="text-center">Loading notifications...</div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!notifications) {
+    return (
+      <div className="fixed inset-0 z-50 bg-black/20 backdrop-blur-sm" onClick={onClose}>
+        <div className="fixed top-16 right-4 w-96 max-h-[80vh] bg-white rounded-2xl shadow-2xl border border-gray-200 overflow-hidden p-6">
+          <div className="text-center">No notifications available</div>
+        </div>
+      </div>
+    );
+  }
 
   const filteredNotifications = notifications.filter(notification => {
     if (activeTab === 'unread') return !notification.is_read;

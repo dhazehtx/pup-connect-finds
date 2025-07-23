@@ -16,7 +16,7 @@ const Profile = () => {
     return <LoadingState message="Loading profile..." />;
   }
 
-  return <UnifiedProfileView userId={userId} isCurrentUser={isCurrentUser} />;
+  return <UnifiedProfileView userId={userId} isCurrentUser={isCurrentUser || false} />;
 };
 
 export default Profile;
