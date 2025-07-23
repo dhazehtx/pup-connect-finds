@@ -42,13 +42,13 @@ const Notifications = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 dark:from-gray-900 dark:to-gray-800">
       {/* Header */}
-      <div className="sticky top-0 z-10 bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-800 dark:to-purple-800 text-white p-4 shadow-lg">
+      <div className="sticky top-0 z-10 bg-gradient-to-r from-blue-100 to-teal-100 dark:from-blue-800 dark:to-purple-800 text-gray-800 dark:text-white p-4 shadow-lg">
         <div className="flex items-center justify-between max-w-md mx-auto">
           <h1 className="text-xl font-bold">Notifications</h1>
           <Button
             variant="ghost"
             size="sm"
-            className="text-white hover:bg-white/20"
+            className="text-gray-700 dark:text-white hover:bg-white/20"
           >
             <Settings className="w-5 h-5" />
           </Button>
