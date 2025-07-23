@@ -2,6 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import userRoutes from './routes/user';
+import fraudDemoRoutes from './routes/fraudDemo';
 import Stripe from 'stripe';
 import { 
   generalRateLimit, 
@@ -13,6 +14,7 @@ import {
   userContextMiddleware,
   abuseDetectionMiddleware
 } from './middleware/rateLimiting';
+import { fraudDetectionMiddleware, checkProfileStatus } from './middleware/fraudDetection';
 import { 
   insertProfileSchema, 
   insertDogListingSchema, 
@@ -36,6 +38,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Apply global middleware
   app.use(userContextMiddleware); // Extract user context for rate limiting
   app.use(abuseDetectionMiddleware); // Detect suspicious patterns
+  // app.use(fraudDetectionMiddleware); // TODO: Enable after database schema update
+  // app.use(checkProfileStatus); // TODO: Enable after database schema update
   app.use(speedLimiter); // Gradual slowdown for high-frequency requests
   app.use(generalRateLimit); // Apply general rate limiting to all routes
 
@@ -742,6 +746,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Mount user routes for GDPR compliance (with auth rate limiting)
   app.use('/api/user', authRateLimit, userRoutes);
+  
+  // Mount fraud detection demo routes
+  app.use('/api/fraud-demo', fraudDemoRoutes);
 
   const httpServer = createServer(app);
   return httpServer;

@@ -26,6 +26,7 @@ import Services from './pages/Services';
 import LegalGuide from './pages/LegalGuide';
 import AccountSettingsPage from './pages/AccountSettings';
 import ProtectedRoute from './components/ProtectedRoute';
+import { FraudDetectionDemo } from './components/security/FraudDetectionDemo';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -64,6 +65,7 @@ function App() {
                   <Route path="/services" element={<Services />} />
                   <Route path="/legal" element={<LegalGuide />} />
                   <Route path="/account-settings" element={<ProtectedRoute><AccountSettingsPage /></ProtectedRoute>} />
+                  <Route path="/fraud-demo" element={<ProtectedRoute><FraudDetectionDemo /></ProtectedRoute>} />
                 </Routes>
               </Layout>
             </ThemeProvider>

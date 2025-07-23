@@ -17,6 +17,10 @@ export const profiles = pgTable("profiles", {
   verified: boolean("verified").default(false),
   verification_document: text("verification_document"),
   breeder_license: text("breeder_license"),
+  fraud_score: integer("fraud_score").default(0),
+  profile_status: text("profile_status").default("active"), // active, under_review, suspended
+  last_login_ip: text("last_login_ip"),
+  suspicious_activity_count: integer("suspicious_activity_count").default(0),
   created_at: timestamp("created_at").defaultNow(),
   updated_at: timestamp("updated_at").defaultNow(),
 });
@@ -172,6 +176,22 @@ export const insertCommentReplySchema = createInsertSchema(commentReplies).omit(
 export const insertNotificationSchema = createInsertSchema(notifications).omit({ id: true, created_at: true });
 export const insertTransactionSchema = createInsertSchema(transactions).omit({ id: true, created_at: true, updated_at: true });
 
+// Fraud detection events table
+export const fraudDetectionEvents = pgTable("fraud_detection_events", {
+  id: uuid("id").primaryKey(),
+  user_id: uuid("user_id").references(() => profiles.id),
+  event_type: text("event_type").notNull(), // login_anomaly, duplicate_listing, banned_keywords, payment_fraud
+  risk_score: integer("risk_score").notNull(),
+  detection_method: text("detection_method").default("automated"),
+  details: jsonb("details"), // Store additional context as JSON
+  ip_address: text("ip_address"),
+  user_agent: text("user_agent"),
+  auto_action_taken: text("auto_action_taken"), // none, flagged, under_review, suspended
+  created_at: timestamp("created_at").defaultNow(),
+});
+
+export const insertFraudDetectionEventSchema = createInsertSchema(fraudDetectionEvents).omit({ id: true, created_at: true });
+
 // Infer types
 export type Profile = typeof profiles.$inferSelect;
 export type InsertProfile = z.infer<typeof insertProfileSchema>;
@@ -195,6 +215,8 @@ export type Notification = typeof notifications.$inferSelect;
 export type InsertNotification = z.infer<typeof insertNotificationSchema>;
 export type Transaction = typeof transactions.$inferSelect;
 export type InsertTransaction = z.infer<typeof insertTransactionSchema>;
+export type FraudDetectionEvent = typeof fraudDetectionEvents.$inferSelect;
+export type InsertFraudDetectionEvent = z.infer<typeof insertFraudDetectionEventSchema>;
 
 // Legacy user table for backward compatibility (can be removed later)
 export const users = pgTable("users", {
