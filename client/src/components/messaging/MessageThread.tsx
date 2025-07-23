@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -73,84 +72,20 @@ const MessageThread = ({ parentMessage, onClose, conversationId: propConversatio
   useEffect(() => {
     if (!activeConversationId || !user) return;
 
-    const loadConversation = async () => {
+    const loadConversationData = async () => {
+      setLoading(true);
       try {
-        // Handle mock conversations for demo purposes
-        if (activeConversationId.startsWith('mock_conv_')) {
-          const mockConversationData = {
-            'mock_conv_1': {
-              id: 'mock_conv_1',
-              other_user: {
-                id: '101',
-                full_name: 'Austin Reyes',
-                avatar_url: 'https://i.pravatar.cc/150?img=1'
-              },
-              listing: {
-                id: 'mock_listing_1',
-                dog_name: 'Buddy',
-                breed: 'Golden Retriever',
-                image_url: 'https://placedog.com/300/300'
-              }
-            },
-            'mock_conv_2': {
-              id: 'mock_conv_2',
-              other_user: {
-                id: '102',
-                full_name: 'Jennifer Martinez',
-                avatar_url: 'https://i.pravatar.cc/150?img=2'
-              },
-              listing: {
-                id: 'mock_listing_2',
-                dog_name: 'Luna',
-                breed: 'Labrador',
-                image_url: 'https://placedog.com/300/301'
-              }
-            }
-          };
+        console.log('Loading conversation:', activeConversationId);
 
-          const mockConv = mockConversationData[activeConversationId as keyof typeof mockConversationData];
-          if (mockConv) {
-            setConversation(mockConv);
-            
-            // Set mock messages
-            const mockMessages = [
-              {
-                id: 'msg_1',
-                conversation_id: activeConversationId,
-                sender_id: '101',
-                content: 'Hi! Thanks for your interest in Buddy. He\'s a beautiful Golden Retriever puppy, 8 weeks old.',
-                created_at: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-                message_type: 'text',
-                sender_profile: {
-                  full_name: 'Austin Reyes',
-                  avatar_url: 'https://i.pravatar.cc/150?img=1'
-                }
-              },
-              {
-                id: 'msg_2',
-                conversation_id: activeConversationId,
-                sender_id: user.id,
-                content: 'That sounds wonderful! Can you tell me more about his temperament and health records?',
-                created_at: new Date(Date.now() - 1.5 * 60 * 60 * 1000).toISOString(),
-                message_type: 'text',
-                sender_profile: {
-                  full_name: user.user_metadata?.full_name || 'You',
-                  avatar_url: user.user_metadata?.avatar_url || null
-                }
-              }
-            ];
-            setMessages(mockMessages);
-          }
-          
-          setLoading(false);
-          return;
-        }
-        // Load conversation details
+        // Load conversation details first
         const { data: convData, error: convError } = await supabase
           .from('conversations')
           .select(`
-            *,
-            listing:dog_listings!conversations_listing_id_dog_listings_id_fkey (
+            id,
+            buyer_id,
+            seller_id,
+            listing_id,
+            dog_listings!conversations_listing_id_dog_listings_id_fkey (
               id,
               dog_name,
               breed,
@@ -160,50 +95,86 @@ const MessageThread = ({ parentMessage, onClose, conversationId: propConversatio
           .eq('id', activeConversationId)
           .single();
 
-        if (convError) throw convError;
+        if (convError) {
+          console.error('Error loading conversation:', convError);
+          toast({
+            title: "Error",
+            description: "Failed to load conversation",
+            variant: "destructive",
+          });
+          return;
+        }
 
-        // Get the other user's profile
+        // Determine the other user
         const otherUserId = convData.buyer_id === user.id ? convData.seller_id : convData.buyer_id;
         
-        const { data: otherUserData } = await supabase
+        // Fetch other user's profile
+        const { data: profileData, error: profileError } = await supabase
           .from('profiles')
           .select('id, full_name, avatar_url')
           .eq('id', otherUserId)
           .single();
 
+        if (profileError) {
+          console.error('Error loading profile:', profileError);
+        }
+
+        // Set conversation data
         setConversation({
           id: convData.id,
-          other_user: otherUserData || { id: otherUserId, full_name: null, avatar_url: null },
-          listing: Array.isArray(convData.listing) ? convData.listing[0] : convData.listing
+          other_user: {
+            id: otherUserId,
+            full_name: profileData?.full_name || 'Unknown User',
+            avatar_url: profileData?.avatar_url || null
+          },
+          listing: convData.dog_listings ? {
+            id: convData.dog_listings.id,
+            dog_name: convData.dog_listings.dog_name,
+            breed: convData.dog_listings.breed,
+            image_url: convData.dog_listings.image_url
+          } : undefined
         });
 
-        // Load messages with proper error handling for sender_profile
+        // Load messages with profiles manually joined
         const { data: messagesData, error: messagesError } = await supabase
           .from('messages')
-          .select(`
-            *,
-            sender_profile:profiles!messages_sender_id_fkey (
-              full_name,
-              avatar_url
-            )
-          `)
+          .select('*')
           .eq('conversation_id', activeConversationId)
           .order('created_at', { ascending: true });
 
-        if (messagesError) throw messagesError;
+        if (messagesError) {
+          console.error('Error loading messages:', messagesError);
+          toast({
+            title: "Error",
+            description: "Failed to load messages",
+            variant: "destructive",
+          });
+          return;
+        }
 
-        // Process messages to handle sender_profile properly
-        const processedMessages = (messagesData || []).map(msg => ({
+        // Fetch profiles for all unique sender IDs
+        const senderIds = [...new Set(messagesData.map(msg => msg.sender_id))];
+        const { data: profilesData, error: profilesError } = await supabase
+          .from('profiles')
+          .select('id, full_name, avatar_url')
+          .in('id', senderIds);
+
+        if (profilesError) {
+          console.error('Error loading sender profiles:', profilesError);
+        }
+
+        // Combine messages with profile data
+        const messagesWithProfiles = messagesData.map(msg => ({
           ...msg,
-          sender_profile: Array.isArray(msg.sender_profile) ? msg.sender_profile[0] : msg.sender_profile
-        })) as Message[];
+          sender_profile: profilesData?.find(p => p.id === msg.sender_id) || null
+        }));
 
-        setMessages(processedMessages);
+        setMessages(messagesWithProfiles);
       } catch (error) {
-        console.error('Error loading conversation:', error);
+        console.error('Error in loadConversationData:', error);
         toast({
           title: "Error",
-          description: "Failed to load conversation",
+          description: "Failed to load conversation data",
           variant: "destructive",
         });
       } finally {
@@ -211,9 +182,9 @@ const MessageThread = ({ parentMessage, onClose, conversationId: propConversatio
       }
     };
 
-    loadConversation();
+    loadConversationData();
 
-    // Set up real-time subscription
+    // Set up real-time subscription for new messages
     const channel = supabase
       .channel(`messages-${activeConversationId}`)
       .on(
@@ -226,18 +197,21 @@ const MessageThread = ({ parentMessage, onClose, conversationId: propConversatio
         },
         async (payload) => {
           const newMessage = payload.new as Message;
+          console.log('New message received via realtime:', newMessage.id);
           
           // Fetch sender profile for the new message
           const { data: senderProfile } = await supabase
             .from('profiles')
-            .select('full_name, avatar_url')
+            .select('id, full_name, avatar_url')
             .eq('id', newMessage.sender_id)
             .single();
-          
-          setMessages(prev => [...prev, {
+
+          const messageWithProfile = {
             ...newMessage,
-            sender_profile: senderProfile
-          }]);
+            sender_profile: senderProfile || null
+          };
+
+          setMessages(prev => [...prev, messageWithProfile]);
         }
       )
       .subscribe();
@@ -247,69 +221,12 @@ const MessageThread = ({ parentMessage, onClose, conversationId: propConversatio
     };
   }, [activeConversationId, user, toast]);
 
-  const sendMessage = async () => {
-    if (!newMessage.trim() || !user || !activeConversationId) return;
+  // Send message function
+  const handleSendMessage = async () => {
+    if (!newMessage.trim() || !activeConversationId || !user || sending) return;
 
     setSending(true);
     try {
-      // Handle mock conversations
-      if (activeConversationId.startsWith('mock_conv_')) {
-        // Add message to mock conversation
-        const newMockMessage = {
-          id: `msg_${Date.now()}`,
-          conversation_id: activeConversationId,
-          sender_id: user.id,
-          content: newMessage.trim(),
-          created_at: new Date().toISOString(),
-          message_type: 'text',
-          sender_profile: {
-            full_name: user.user_metadata?.full_name || 'You',
-            avatar_url: user.user_metadata?.avatar_url || null
-          }
-        };
-        
-        setMessages(prev => [...prev, newMockMessage]);
-        setNewMessage('');
-        
-        // Simulate response after a delay
-        setTimeout(() => {
-          const responseMessage = {
-            id: `msg_${Date.now() + 1}`,
-            conversation_id: activeConversationId,
-            sender_id: activeConversationId === 'mock_conv_1' ? '101' : '102',
-            content: 'Thanks for your message! I\'ll get back to you soon with more details.',
-            created_at: new Date().toISOString(),
-            message_type: 'text',
-            sender_profile: {
-              full_name: activeConversationId === 'mock_conv_1' ? 'Austin Reyes' : 'Jennifer Martinez',
-              avatar_url: activeConversationId === 'mock_conv_1' ? 'https://i.pravatar.cc/150?img=1' : 'https://i.pravatar.cc/150?img=2'
-            }
-          };
-          setMessages(prev => [...prev, responseMessage]);
-        }, 1500);
-        
-        setSending(false);
-        return;
-      }
-
-      // Optimistic UI update - add message immediately
-      const optimisticMessage = {
-        id: `temp_${Date.now()}`,
-        conversation_id: activeConversationId,
-        sender_id: user.id,
-        content: newMessage.trim(),
-        created_at: new Date().toISOString(),
-        message_type: 'text',
-        sender_profile: {
-          full_name: user.user_metadata?.full_name || 'You',
-          avatar_url: user.user_metadata?.avatar_url || null
-        }
-      };
-      
-      setMessages(prev => [...prev, optimisticMessage]);
-      setNewMessage('');
-
-      // Real Supabase message sending
       const { data, error } = await supabase
         .from('messages')
         .insert({
@@ -321,22 +238,18 @@ const MessageThread = ({ parentMessage, onClose, conversationId: propConversatio
         .select()
         .single();
 
-      if (error) {
-        // Remove optimistic message on error
-        setMessages(prev => prev.filter(msg => msg.id !== optimisticMessage.id));
-        throw error;
-      }
+      if (error) throw error;
 
-      // Replace optimistic message with real message (includes real ID)
-      if (data) {
-        setMessages(prev => prev.map(msg => 
-          msg.id === optimisticMessage.id ? { 
-            ...data, 
-            sender_profile: optimisticMessage.sender_profile,
-            content: data.content || newMessage.trim() // Ensure content is never null
-          } as Message : msg
-        ));
-      }
+      // Update conversation last message timestamp
+      await supabase
+        .from('conversations')
+        .update({ 
+          last_message_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', activeConversationId);
+
+      setNewMessage('');
     } catch (error) {
       console.error('Error sending message:', error);
       toast({
@@ -349,27 +262,19 @@ const MessageThread = ({ parentMessage, onClose, conversationId: propConversatio
     }
   };
 
+  // Handle Enter key press
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
-      sendMessage();
-    }
-  };
-
-  const handleBack = () => {
-    if (onClose) {
-      onClose();
-    } else {
-      navigate('/messages');
+      handleSendMessage();
     }
   };
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2"></div>
-          <p>Loading conversation...</p>
+      <div className="flex flex-col h-screen">
+        <div className="flex items-center justify-center h-full">
+          <div className="animate-spin rounded-full h-8 w-8 border-2 border-blue-600 border-t-transparent"></div>
         </div>
       </div>
     );
@@ -377,127 +282,106 @@ const MessageThread = ({ parentMessage, onClose, conversationId: propConversatio
 
   if (!conversation) {
     return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="text-center">
-          <p>Conversation not found</p>
-          <Button onClick={handleBack} className="mt-2">
-            Back to Messages
-          </Button>
+      <div className="flex flex-col h-screen">
+        <div className="flex items-center justify-center h-full">
+          <div className="text-center">
+            <h3 className="text-lg font-semibold mb-2">Conversation not found</h3>
+            <p className="text-gray-600">This conversation may have been deleted or you don't have access to it.</p>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col h-screen max-w-4xl mx-auto">
+    <div className="flex flex-col h-screen bg-white">
       {/* Header */}
-      <Card className="rounded-none border-b">
-        <CardHeader className="p-4">
-          <div className="flex items-center gap-3">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={handleBack}
-            >
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
-
-            <Avatar className="h-10 w-10 cursor-pointer" onClick={() => {
-              navigate(`/profile/${conversation.other_user.id}`);
-            }}>
-              <AvatarImage src={conversation.other_user.avatar_url || undefined} />
-              <AvatarFallback>
-                {conversation.other_user.full_name?.charAt(0) || 'U'}
-              </AvatarFallback>
-            </Avatar>
-
-            <div className="flex-1 cursor-pointer" onClick={() => {
-              // Navigate to user profile
-              navigate(`/profile/${conversation.other_user.id}`);
-            }}>
-              <h2 className="font-semibold text-lg hover:underline">
-                {conversation.other_user.full_name || 'User'}
-              </h2>
-              {conversation.listing && (
-                <p className="text-sm text-muted-foreground">
-                  About {conversation.listing.dog_name} ({conversation.listing.breed})
-                </p>
-              )}
-            </div>
-          </div>
-        </CardHeader>
-      </Card>
+      <div className="flex items-center gap-3 p-4 border-b bg-white sticky top-0 z-10">
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          onClick={() => onClose ? onClose() : navigate('/messages')}
+          className="p-2"
+        >
+          <ArrowLeft className="w-4 h-4" />
+        </Button>
+        
+        <Avatar className="w-10 h-10">
+          <AvatarImage src={conversation.other_user.avatar_url || undefined} />
+          <AvatarFallback>
+            {conversation.other_user.full_name?.[0] || 'U'}
+          </AvatarFallback>
+        </Avatar>
+        
+        <div className="flex-1">
+          <h2 className="font-semibold text-gray-900">
+            {conversation.other_user.full_name || 'Unknown User'}
+          </h2>
+          {conversation.listing && (
+            <p className="text-sm text-gray-600">
+              About {conversation.listing.dog_name} • {conversation.listing.breed}
+            </p>
+          )}
+        </div>
+      </div>
 
       {/* Messages */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {messages.length === 0 ? (
-          <div className="text-center text-muted-foreground py-8">
-            <p>No messages yet. Start the conversation!</p>
+          <div className="text-center py-8">
+            <p className="text-gray-600">No messages yet. Start the conversation!</p>
           </div>
         ) : (
-          messages.map((message) => {
-            const isOwnMessage = message.sender_id === user?.id;
-            
-            return (
-              <div
-                key={message.id}
-                className={`flex ${isOwnMessage ? 'justify-end' : 'justify-start'}`}
-              >
-                <div className={`flex gap-2 max-w-[70%] ${isOwnMessage ? 'flex-row-reverse' : 'flex-row'}`}>
-                  {!isOwnMessage && (
-                    <Avatar className="h-8 w-8">
-                      <AvatarImage src={message.sender_profile?.avatar_url || undefined} />
-                      <AvatarFallback>
-                        {message.sender_profile?.full_name?.charAt(0) || 'U'}
-                      </AvatarFallback>
-                    </Avatar>
-                  )}
-                  
-                  <div
-                    className={`px-4 py-2 rounded-lg ${
-                      isOwnMessage
-                        ? 'bg-primary text-primary-foreground'
-                        : 'bg-muted'
-                    }`}
-                  >
-                    <p>{message.content}</p>
-                    <p className={`text-xs mt-1 ${isOwnMessage ? 'text-primary-foreground/70' : 'text-muted-foreground'}`}>
-                      {new Date(message.created_at).toLocaleTimeString([], {
-                        hour: '2-digit',
-                        minute: '2-digit'
-                      })}
-                    </p>
-                  </div>
-                </div>
+          messages.map((message) => (
+            <div 
+              key={message.id}
+              className={`flex ${message.sender_id === user?.id ? 'justify-end' : 'justify-start'}`}
+            >
+              <div className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
+                message.sender_id === user?.id 
+                  ? 'bg-blue-600 text-white' 
+                  : 'bg-gray-100 text-gray-900'
+              }`}>
+                <p className="text-sm">{message.content}</p>
+                <p className={`text-xs mt-1 ${
+                  message.sender_id === user?.id ? 'text-blue-100' : 'text-gray-500'
+                }`}>
+                  {new Date(message.created_at).toLocaleTimeString([], { 
+                    hour: '2-digit', 
+                    minute: '2-digit' 
+                  })}
+                </p>
               </div>
-            );
-          })
+            </div>
+          ))
         )}
         <div ref={messagesEndRef} />
       </div>
 
       {/* Message Input */}
-      <Card className="rounded-none border-t">
-        <CardContent className="p-4">
-          <div className="flex gap-2">
-            <Input
-              value={newMessage}
-              onChange={(e) => setNewMessage(e.target.value)}
-              onKeyPress={handleKeyPress}
-              placeholder="Type a message..."
-              className="flex-1"
-              disabled={sending}
-            />
-            <Button
-              onClick={sendMessage}
-              disabled={!newMessage.trim() || sending}
-              size="icon"
-            >
-              <Send className="h-4 w-4" />
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+      <div className="p-4 border-t bg-white">
+        <div className="flex gap-2">
+          <Input
+            value={newMessage}
+            onChange={(e) => setNewMessage(e.target.value)}
+            onKeyPress={handleKeyPress}
+            placeholder="Type a message..."
+            className="flex-1"
+            disabled={sending}
+          />
+          <Button 
+            onClick={handleSendMessage}
+            disabled={!newMessage.trim() || sending}
+            size="sm"
+          >
+            {sending ? (
+              <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent" />
+            ) : (
+              <Send className="w-4 h-4" />
+            )}
+          </Button>
+        </div>
+      </div>
     </div>
   );
 };

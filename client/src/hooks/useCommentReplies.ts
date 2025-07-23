@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 
@@ -123,7 +123,7 @@ export const useCommentReplies = (parentCommentId: string) => {
           table: 'comments',
           filter: `parent_comment_id=eq.${parentCommentId}`,
         },
-        async (payload) => {
+        async (payload: any) => {
           // Fetch the complete reply with profile data
           const { data, error } = await supabase
             .from('comments')

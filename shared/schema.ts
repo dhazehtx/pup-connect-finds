@@ -64,11 +64,16 @@ export const conversations = pgTable("conversations", {
 
 // Messages table
 export const messages = pgTable("messages", {
-  id: uuid("id").primaryKey(),
+  id: uuid("id").primaryKey().defaultRandom(),
   conversation_id: uuid("conversation_id").references(() => conversations.id),
   sender_id: uuid("sender_id").references(() => profiles.id),
   content: text("content").notNull(),
-  read: boolean("read").default(false),
+  message_type: text("message_type").default("text"),
+  image_url: text("image_url"),
+  read_at: timestamp("read_at"),
+  is_encrypted: boolean("is_encrypted").default(false),
+  encrypted_content: text("encrypted_content"),
+  encryption_key_id: text("encryption_key_id"),
   created_at: timestamp("created_at").defaultNow(),
 });
 
