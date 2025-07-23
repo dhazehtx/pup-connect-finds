@@ -67,6 +67,7 @@ export const messages = pgTable("messages", {
   id: uuid("id").primaryKey().defaultRandom(),
   conversation_id: uuid("conversation_id").references(() => conversations.id),
   sender_id: uuid("sender_id").references(() => profiles.id),
+  reply_to_message_id: uuid("reply_to_message_id").references(() => messages.id),
   content: text("content").notNull(),
   message_type: text("message_type").default("text"),
   image_url: text("image_url"),

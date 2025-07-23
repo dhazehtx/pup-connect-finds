@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, Send, Smile, Check, CheckCheck, MoreVertical, Moon, Sun } from 'lucide-react';
+import { ArrowLeft, Send, Smile, Check, CheckCheck, MoreVertical, Moon, Sun, Reply, X } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { useTheme } from '@/contexts/ThemeContext';
@@ -15,6 +15,7 @@ interface Message {
   id: string;
   conversation_id: string;
   sender_id: string;
+  reply_to_message_id?: string | null;
   content: string;
   created_at: string;
   message_type: string;
@@ -22,6 +23,7 @@ interface Message {
     full_name: string | null;
     avatar_url: string | null;
   } | null;
+  replies?: Message[];
 }
 
 interface ConversationData {
@@ -62,6 +64,8 @@ const MessageThread = ({ parentMessage, onClose, conversationId: propConversatio
   const [sending, setSending] = useState(false);
   const [typing, setTyping] = useState<string | null>(null);
   const [messageStatuses, setMessageStatuses] = useState<Record<string, 'sent' | 'delivered' | 'read'>>({});
+  const [replyingTo, setReplyingTo] = useState<Message | null>(null);
+  const [hoveredMessage, setHoveredMessage] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -169,14 +173,17 @@ const MessageThread = ({ parentMessage, onClose, conversationId: propConversatio
           console.error('Error loading sender profiles:', profilesError);
         }
 
-        // Combine messages with profile data
+        // Combine messages with profile data and organize replies
         const messagesWithProfiles = messagesData.map(msg => ({
           ...msg,
           content: msg.content || '',
-          sender_profile: profilesData?.find(p => p.id === msg.sender_id) || null
+          sender_profile: profilesData?.find(p => p.id === msg.sender_id) || null,
+          replies: []
         })) as Message[];
 
-        setMessages(messagesWithProfiles);
+        // Organize messages into threaded structure
+        const organizedMessages = organizeThreadedMessages(messagesWithProfiles);
+        setMessages(organizedMessages);
       } catch (error) {
         console.error('Error in loadConversationData:', error);
         toast({
@@ -216,10 +223,38 @@ const MessageThread = ({ parentMessage, onClose, conversationId: propConversatio
           const messageWithProfile = {
             ...newMessage,
             content: newMessage.content || '',
-            sender_profile: senderProfile || null
+            sender_profile: senderProfile || null,
+            replies: []
           } as Message;
 
-          setMessages(prev => [...prev, messageWithProfile]);
+          setMessages(prev => {
+            const updatedMessages = [...prev];
+            
+            if (messageWithProfile.reply_to_message_id) {
+              // This is a reply, add it to the parent message's replies
+              const addReplyToMessage = (messages: Message[]): Message[] => {
+                return messages.map(msg => {
+                  if (msg.id === messageWithProfile.reply_to_message_id) {
+                    return {
+                      ...msg,
+                      replies: [...(msg.replies || []), messageWithProfile]
+                    };
+                  } else if (msg.replies && msg.replies.length > 0) {
+                    return {
+                      ...msg,
+                      replies: addReplyToMessage(msg.replies)
+                    };
+                  }
+                  return msg;
+                });
+              };
+              
+              return addReplyToMessage(updatedMessages);
+            } else {
+              // This is a root message, add it to the end
+              return [...updatedMessages, messageWithProfile];
+            }
+          });
           
           // Update message status to delivered for others' messages
           if (newMessage.sender_id !== user.id) {
@@ -253,20 +288,60 @@ const MessageThread = ({ parentMessage, onClose, conversationId: propConversatio
     };
   }, [activeConversationId, user, toast]);
 
+  // Organize messages into threaded structure
+  const organizeThreadedMessages = (allMessages: Message[]): Message[] => {
+    const messageMap = new Map<string, Message>();
+    const rootMessages: Message[] = [];
+
+    // Create a map of all messages and initialize replies arrays
+    allMessages.forEach(msg => {
+      messageMap.set(msg.id, { ...msg, replies: [] });
+    });
+
+    // Organize into threads
+    allMessages.forEach(msg => {
+      const message = messageMap.get(msg.id)!;
+      
+      if (msg.reply_to_message_id) {
+        // This is a reply, add it to parent's replies
+        const parentMessage = messageMap.get(msg.reply_to_message_id);
+        if (parentMessage) {
+          parentMessage.replies!.push(message);
+        }
+      } else {
+        // This is a root message
+        rootMessages.push(message);
+      }
+    });
+
+    // Sort replies by creation date
+    messageMap.forEach(msg => {
+      if (msg.replies) {
+        msg.replies.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+      }
+    });
+
+    // Sort root messages by creation date
+    return rootMessages.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+  };
+
   // Send message function
   const handleSendMessage = async () => {
     if (!newMessage.trim() || !activeConversationId || !user || sending) return;
 
     setSending(true);
     try {
+      const messageData = {
+        conversation_id: activeConversationId,
+        sender_id: user.id,
+        content: newMessage.trim(),
+        message_type: 'text',
+        ...(replyingTo && { reply_to_message_id: replyingTo.id })
+      };
+
       const { data, error } = await supabase
         .from('messages')
-        .insert({
-          conversation_id: activeConversationId,
-          sender_id: user.id,
-          content: newMessage.trim(),
-          message_type: 'text'
-        })
+        .insert(messageData)
         .select()
         .single();
 
@@ -282,6 +357,7 @@ const MessageThread = ({ parentMessage, onClose, conversationId: propConversatio
         .eq('id', activeConversationId);
 
       setNewMessage('');
+      setReplyingTo(null);
       
       // Update message status to sent
       if (data) {
@@ -383,38 +459,106 @@ const MessageThread = ({ parentMessage, onClose, conversationId: propConversatio
     );
   }
 
-  // Group consecutive messages from the same sender
-  const groupMessages = (messages: Message[]) => {
-    const groups: Array<{
-      sender_id: string;
-      messages: Message[];
-      timestamp: string;
-      sender_profile?: any;
-    }> = [];
+  // Render a single message with replies
+  const renderMessage = (message: Message, isReply = false) => {
+    const isOwnMessage = message.sender_id === user?.id;
+    
+    return (
+      <div 
+        key={message.id} 
+        className={`${isReply ? 'ml-8 mt-2' : ''}`}
+        onMouseEnter={() => setHoveredMessage(message.id)}
+        onMouseLeave={() => setHoveredMessage(null)}
+      >
+        {/* Message Bubble */}
+        <div className={`flex ${isOwnMessage ? 'justify-end' : 'justify-start'} items-end gap-2 group relative`}>
+          {/* Avatar for received messages */}
+          {!isOwnMessage && (
+            <Avatar 
+              className={`${isReply ? 'w-6 h-6' : 'w-8 h-8'} ring-2 ring-white dark:ring-gray-600 shadow-sm flex-shrink-0 cursor-pointer hover:scale-105 transition-transform`}
+              onClick={() => handleProfileClick(message.sender_id)}
+            >
+              <AvatarImage src={message.sender_profile?.avatar_url || undefined} />
+              <AvatarFallback className="bg-gradient-to-br from-gray-400 to-gray-600 text-white text-xs font-semibold">
+                {message.sender_profile?.full_name?.[0]?.toUpperCase() || 'U'}
+              </AvatarFallback>
+            </Avatar>
+          )}
 
-    messages.forEach((message, index) => {
-      const prevMessage = messages[index - 1];
-      const isSameSender = prevMessage && prevMessage.sender_id === message.sender_id;
-      const timeDiff = prevMessage ? 
-        new Date(message.created_at).getTime() - new Date(prevMessage.created_at).getTime() : 0;
-      const shouldGroup = isSameSender && timeDiff < 300000; // Group within 5 minutes
+          {/* Message Content */}
+          <div className={`flex flex-col ${isReply ? 'max-w-xs' : 'max-w-xs sm:max-w-sm lg:max-w-md'} ${isOwnMessage ? 'items-end' : 'items-start'}`}>
+            <div className="relative">
+              <div
+                className={`px-4 py-2.5 rounded-2xl shadow-sm transition-all duration-200 hover:shadow-md ${
+                  isOwnMessage
+                    ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-br-md'
+                    : theme === 'dark'
+                    ? `${isReply ? 'bg-gray-800' : 'bg-gray-700'} text-gray-100 rounded-bl-md border border-gray-600`
+                    : `${isReply ? 'bg-gray-50' : 'bg-white'} text-gray-900 rounded-bl-md border border-gray-100`
+                } ${isReply ? 'text-sm' : ''}`}
+              >
+                <p className={`${isReply ? 'text-xs' : 'text-sm'} leading-relaxed break-words`}>
+                  {message.content}
+                </p>
+              </div>
+              
+              {/* Reply Button on Hover */}
+              {!isReply && hoveredMessage === message.id && (
+                <button
+                  onClick={() => setReplyingTo(message)}
+                  className={`absolute -right-8 top-1/2 transform -translate-y-1/2 p-1.5 rounded-full transition-all ${
+                    theme === 'dark' 
+                      ? 'bg-gray-700 hover:bg-gray-600 text-gray-300' 
+                      : 'bg-white hover:bg-gray-50 text-gray-600'
+                  } shadow-lg hover:shadow-xl`}
+                >
+                  <Reply className="w-3 h-3" />
+                </button>
+              )}
+              
+              {/* Message Status for own messages */}
+              {isOwnMessage && !isReply && (
+                <div className="flex items-center justify-end mt-1 px-2">
+                  {messageStatuses[message.id] === 'read' ? (
+                    <CheckCheck className="w-3 h-3 text-blue-500" />
+                  ) : messageStatuses[message.id] === 'delivered' ? (
+                    <CheckCheck className={`w-3 h-3 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`} />
+                  ) : (
+                    <Check className={`w-3 h-3 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`} />
+                  )}
+                </div>
+              )}
+            </div>
+            
+            {/* Timestamp */}
+            <div className={`mt-1 px-2 ${isOwnMessage ? 'text-right' : 'text-left'}`}>
+              <span className={`${isReply ? 'text-xs' : 'text-xs'} ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+                {new Date(message.created_at).toLocaleTimeString([], { 
+                  hour: '2-digit', 
+                  minute: '2-digit' 
+                })}
+              </span>
+            </div>
+          </div>
+        </div>
 
-      if (shouldGroup) {
-        groups[groups.length - 1].messages.push(message);
-      } else {
-        groups.push({
-          sender_id: message.sender_id,
-          messages: [message],
-          timestamp: message.created_at,
-          sender_profile: message.sender_profile
-        });
-      }
-    });
-
-    return groups;
+        {/* Thread Line and Replies */}
+        {message.replies && message.replies.length > 0 && (
+          <div className="relative">
+            {/* Vertical connector line */}
+            <div className={`absolute left-4 top-0 w-0.5 h-full ${
+              theme === 'dark' ? 'bg-gray-600' : 'bg-gray-300'
+            }`} />
+            
+            {/* Replies */}
+            <div className="space-y-2">
+              {message.replies.map(reply => renderMessage(reply, true))}
+            </div>
+          </div>
+        )}
+      </div>
+    );
   };
-
-  const messageGroups = groupMessages(messages);
 
   return (
     <div className={`flex flex-col h-screen transition-colors duration-200 ${
@@ -505,70 +649,7 @@ const MessageThread = ({ parentMessage, onClose, conversationId: propConversatio
               </div>
             </div>
           ) : (
-            messageGroups.map((group, groupIndex) => {
-              const isOwnMessage = group.sender_id === user?.id;
-              return (
-                <div key={groupIndex} className={`flex ${isOwnMessage ? 'justify-end' : 'justify-start'} items-end gap-2`}>
-                {/* Avatar for received messages */}
-                {!isOwnMessage && (
-                  <Avatar 
-                    className="w-8 h-8 mb-1 ring-2 ring-white dark:ring-gray-600 shadow-sm flex-shrink-0 cursor-pointer hover:scale-105 transition-transform"
-                    onClick={() => handleProfileClick(group.sender_id)}
-                  >
-                    <AvatarImage src={group.sender_profile?.avatar_url || undefined} />
-                    <AvatarFallback className="bg-gradient-to-br from-gray-400 to-gray-600 text-white text-xs font-semibold">
-                      {group.sender_profile?.full_name?.[0]?.toUpperCase() || 'U'}
-                    </AvatarFallback>
-                  </Avatar>
-                )}
-
-                {/* Message Group */}
-                <div className={`flex flex-col max-w-xs sm:max-w-sm lg:max-w-md ${isOwnMessage ? 'items-end' : 'items-start'}`}>
-                  {/* Messages */}
-                  {group.messages.map((message, messageIndex) => (
-                    <div key={message.id} className="relative">
-                      <div
-                        className={`mb-1 px-4 py-2.5 rounded-2xl shadow-sm transition-all duration-200 hover:shadow-md ${
-                          isOwnMessage
-                            ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-br-md'
-                            : theme === 'dark'
-                            ? 'bg-gray-700 text-gray-100 rounded-bl-md border border-gray-600'
-                            : 'bg-white text-gray-900 rounded-bl-md border border-gray-100'
-                        } ${messageIndex === 0 ? (isOwnMessage ? 'rounded-tr-2xl' : 'rounded-tl-2xl') : ''} ${
-                          messageIndex === group.messages.length - 1 ? (isOwnMessage ? 'rounded-br-md' : 'rounded-bl-md') : ''
-                        }`}
-                      >
-                        <p className="text-sm leading-relaxed break-words">{message.content}</p>
-                      </div>
-                      
-                      {/* Message Status for own messages */}
-                      {isOwnMessage && messageIndex === group.messages.length - 1 && (
-                        <div className="flex items-center justify-end mt-1 px-2">
-                          {messageStatuses[message.id] === 'read' ? (
-                            <CheckCheck className="w-3 h-3 text-blue-500" />
-                          ) : messageStatuses[message.id] === 'delivered' ? (
-                            <CheckCheck className={`w-3 h-3 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`} />
-                          ) : (
-                            <Check className={`w-3 h-3 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`} />
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                  
-                  {/* Timestamp */}
-                  <div className={`mt-1 px-2 ${isOwnMessage ? 'text-right' : 'text-left'}`}>
-                    <span className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
-                      {new Date(group.timestamp).toLocaleTimeString([], { 
-                        hour: '2-digit', 
-                        minute: '2-digit' 
-                      })}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            );
-            })
+            messages.map(message => renderMessage(message))
           )}
           
           {/* Typing Indicator */}
@@ -609,6 +690,34 @@ const MessageThread = ({ parentMessage, onClose, conversationId: propConversatio
           ? 'bg-gray-800/95 border-gray-700/60'
           : 'bg-white/95 border-gray-200/60'
       }`}>
+        {/* Reply Context */}
+        {replyingTo && (
+          <div className={`mb-3 p-3 rounded-lg border-l-4 border-blue-500 ${
+            theme === 'dark' ? 'bg-gray-700/50' : 'bg-blue-50'
+          }`}>
+            <div className="flex items-center justify-between">
+              <div className="flex-1">
+                <div className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
+                  Replying to {replyingTo.sender_profile?.full_name || 'Unknown User'}
+                </div>
+                <div className={`text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'} truncate`}>
+                  {replyingTo.content}
+                </div>
+              </div>
+              <button
+                onClick={() => setReplyingTo(null)}
+                className={`p-1 rounded-full ${
+                  theme === 'dark' 
+                    ? 'hover:bg-gray-600 text-gray-400' 
+                    : 'hover:bg-gray-200 text-gray-500'
+                }`}
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Typing Indicator Above Input */}
         {typing && (
           <div className={`text-xs mb-2 px-2 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
