@@ -306,20 +306,26 @@ const Education = () => {
         {filteredArticles.map((article) => (
           <Card key={article.id} className="hover:shadow-lg transition-shadow">
             <div className="relative">
-              <div className="h-40 rounded-t-lg overflow-hidden">
+              <div className="h-40 rounded-t-lg overflow-hidden bg-gray-100 relative">
                 <img 
                   src={article.thumbnailUrl || article.image} 
                   alt={article.title}
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-cover transition-opacity duration-300"
+                  loading="lazy"
+                  onLoad={(e) => {
+                    // Ensure image is visible when loaded
+                    const target = e.target as HTMLImageElement;
+                    target.style.opacity = '1';
+                  }}
                   onError={(e) => {
                     // Fallback to gradient background if image fails to load
                     const target = e.target as HTMLImageElement;
                     target.style.display = 'none';
-                    const fallback = target.nextElementSibling as HTMLElement;
+                    const fallback = target.parentElement?.querySelector('.fallback-icon') as HTMLElement;
                     if (fallback) fallback.style.display = 'flex';
                   }}
                 />
-                <div className="hidden w-full h-full bg-gradient-to-br from-blue-50 to-indigo-100 items-center justify-center">
+                <div className="fallback-icon hidden absolute inset-0 bg-gradient-to-br from-blue-50 to-indigo-100 items-center justify-center">
                   {article.category === 'Health & Wellness' && <Stethoscope className="w-12 h-12 text-green-600" />}
                   {article.category === 'Breed Information' && <Heart className="w-12 h-12 text-orange-600" />}
                   {article.category === 'Training & Behavior' && <GraduationCap className="w-12 h-12 text-purple-600" />}
