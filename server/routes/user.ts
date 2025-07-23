@@ -4,19 +4,27 @@ import { createClient } from '@supabase/supabase-js';
 const router = Router();
 
 // Initialize Supabase client with service role for admin operations
-const supabaseUrl = process.env.VITE_SUPABASE_URL!;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+const supabaseUrl = process.env.VITE_SUPABASE_URL;
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-const supabase = createClient(supabaseUrl, supabaseServiceKey, {
+if (!supabaseUrl || !supabaseServiceKey) {
+  console.warn('Missing Supabase environment variables. GDPR features will not work properly.');
+}
+
+const supabase = supabaseUrl && supabaseServiceKey ? createClient(supabaseUrl, supabaseServiceKey, {
   auth: {
     autoRefreshToken: false,
     persistSession: false
   }
-});
+}) : null;
 
 // Export user data (GDPR compliance)
 router.get('/export-data', async (req: Request, res: Response) => {
   try {
+    if (!supabase) {
+      return res.status(500).json({ error: 'Service unavailable - missing configuration' });
+    }
+
     const authHeader = req.headers.authorization;
     if (!authHeader?.startsWith('Bearer ')) {
       return res.status(401).json({ error: 'Unauthorized' });
@@ -33,14 +41,14 @@ router.get('/export-data', async (req: Request, res: Response) => {
     const userData = {
       export_date: new Date().toISOString(),
       user_id: user.id,
-      profile: {},
-      listings: [],
-      messages: [],
-      conversations: [],
-      reviews: [],
-      favorites: [],
-      notifications: [],
-      transactions: []
+      profile: {} as any,
+      listings: [] as any[],
+      messages: [] as any[],
+      conversations: [] as any[],
+      reviews: [] as any[],
+      favorites: [] as any[],
+      notifications: [] as any[],
+      transactions: [] as any[]
     };
 
     // Get profile data
@@ -122,6 +130,10 @@ router.get('/export-data', async (req: Request, res: Response) => {
 // Delete user account (GDPR compliance)
 router.delete('/delete-account', async (req: Request, res: Response) => {
   try {
+    if (!supabase) {
+      return res.status(500).json({ error: 'Service unavailable - missing configuration' });
+    }
+
     const authHeader = req.headers.authorization;
     if (!authHeader?.startsWith('Bearer ')) {
       return res.status(401).json({ error: 'Unauthorized' });

@@ -9,7 +9,7 @@ import { AlertTriangle, Download, Trash2, Shield, FileText } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { useMutation } from '@tanstack/react-query';
-import { apiRequest } from '@/lib/queryClient';
+import { supabase } from '@/integrations/supabase/client';
 
 const AccountSettings = () => {
   const { user, signOut } = useAuth();
@@ -20,9 +20,19 @@ const AccountSettings = () => {
   // Data export mutation
   const exportDataMutation = useMutation({
     mutationFn: async () => {
-      return apiRequest('/api/user/export-data', {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error('Not authenticated');
+      
+      const response = await fetch('/api/user/export-data', {
         method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`,
+          'Content-Type': 'application/json',
+        },
       });
+      
+      if (!response.ok) throw new Error('Failed to export data');
+      return response.json();
     },
     onSuccess: (data) => {
       // Create and download the data file
@@ -55,9 +65,19 @@ const AccountSettings = () => {
   // Account deletion mutation
   const deleteAccountMutation = useMutation({
     mutationFn: async () => {
-      return apiRequest('/api/user/delete-account', {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error('Not authenticated');
+      
+      const response = await fetch('/api/user/delete-account', {
         method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`,
+          'Content-Type': 'application/json',
+        },
       });
+      
+      if (!response.ok) throw new Error('Failed to delete account');
+      return response.json();
     },
     onSuccess: () => {
       toast({

@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Settings, Edit, CreditCard, HelpCircle, LogOut } from 'lucide-react';
+import { Settings, Edit, CreditCard, HelpCircle, LogOut, Shield } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Sheet,
@@ -45,6 +45,11 @@ const ProfileSettingsModal = ({ onEditProfile }: ProfileSettingsModalProps) => {
       icon: Edit,
       label: 'Edit Profile',
       action: onEditProfile,
+    },
+    {
+      icon: Shield,
+      label: 'Account Settings',
+      action: () => navigate('/account-settings'),
     },
     {
       icon: CreditCard,
