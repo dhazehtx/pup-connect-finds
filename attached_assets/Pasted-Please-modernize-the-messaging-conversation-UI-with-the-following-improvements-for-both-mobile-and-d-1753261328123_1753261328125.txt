@@ -1,0 +1,35 @@
+Please modernize the messaging conversation UI with the following improvements for both mobile and desktop responsiveness:
+
+1. 🔁 **Group messages by sender**  
+   - Consecutive messages from the same sender should appear in a single message group (i.e., chat bubble stack).  
+   - Show sender avatar and timestamp **only once** per message group.  
+
+2. 🫥 **Fix message bubble visibility for the current user**  
+   - Ensure that messages sent by the current logged-in user display with proper alignment, a visible rounded chat bubble, and appropriate color styling.
+
+3. 🫧 **Distinct styling for sent vs. received messages**  
+   - Sent messages: right-aligned with a light blue gradient background and white text.  
+   - Received messages: left-aligned with a white or soft gray bubble and dark text.  
+   - Add smooth shadow effects for both.
+
+4. 👤 **Tap avatar to view profile**  
+   - Make sender avatars clickable. On tap/click, redirect to the sender's profile page (using their Supabase user ID or username).
+
+5. 🧭 **Sticky conversation header**  
+   - Keep the back arrow, puppy details (e.g., “About blu • French Bulldog”), and sender name fixed at the top while scrolling.
+
+6. 🔄 **Smooth auto-scroll behavior**  
+   - Ensure conversation thread auto-scrolls to the latest message on open and after a message is sent.
+
+7. ✍️ **Typing indicator**  
+   - Add a real-time typing indicator (e.g., "Austin Reyes is typing...") when the other user is currently entering a message.  
+   - Use a subtle animated dot or shimmer text under the input box.
+
+8. ✅ **Message status indicators**  
+   - Show ✔️ "Sent", ✔✔️ "Delivered", and 🟦 "Read" status under each outgoing message (optional but accurate based on Supabase realtime events or flags).
+
+9. 🌙 **Dark mode support**  
+   - Add dark mode styling for conversation view. Use system preference if available.  
+   - Optional toggle switch to manually switch between light and dark modes.
+
+Please implement this cleanly using modular components, maintain Tailwind CSS (if used), and ensure the layout is mobile-first but responsive. Avoid duplicating avatars or timestamps unnecessarily and ensure the user experience feels like modern apps such as iMessage, WhatsApp, or Messenger.

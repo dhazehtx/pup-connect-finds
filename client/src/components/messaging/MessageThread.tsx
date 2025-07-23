@@ -4,9 +4,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { ArrowLeft, Send, Smile } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { ArrowLeft, Send, Smile, Check, CheckCheck, MoreVertical, Moon, Sun } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+import { useTheme } from '@/contexts/ThemeContext';
 import { supabase } from '@/integrations/supabase/client';
 
 interface Message {
@@ -48,6 +50,7 @@ const MessageThread = ({ parentMessage, onClose, conversationId: propConversatio
   const navigate = useNavigate();
   const { user } = useAuth();
   const { toast } = useToast();
+  const { theme, toggleTheme } = useTheme();
   
   // Use prop conversationId if provided, otherwise use URL param
   const activeConversationId = propConversationId || paramConversationId;
@@ -57,7 +60,10 @@ const MessageThread = ({ parentMessage, onClose, conversationId: propConversatio
   const [conversation, setConversation] = useState<ConversationData | null>(null);
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
+  const [typing, setTyping] = useState<string | null>(null);
+  const [messageStatuses, setMessageStatuses] = useState<Record<string, 'sent' | 'delivered' | 'read'>>({});
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Scroll to bottom when messages change
   const scrollToBottom = () => {
@@ -153,7 +159,7 @@ const MessageThread = ({ parentMessage, onClose, conversationId: propConversatio
         }
 
         // Fetch profiles for all unique sender IDs
-        const senderIds = [...new Set(messagesData.map(msg => msg.sender_id))];
+        const senderIds = Array.from(new Set(messagesData.map(msg => msg.sender_id)));
         const { data: profilesData, error: profilesError } = await supabase
           .from('profiles')
           .select('id, full_name, avatar_url')
@@ -166,8 +172,9 @@ const MessageThread = ({ parentMessage, onClose, conversationId: propConversatio
         // Combine messages with profile data
         const messagesWithProfiles = messagesData.map(msg => ({
           ...msg,
+          content: msg.content || '',
           sender_profile: profilesData?.find(p => p.id === msg.sender_id) || null
-        }));
+        })) as Message[];
 
         setMessages(messagesWithProfiles);
       } catch (error) {
@@ -184,8 +191,8 @@ const MessageThread = ({ parentMessage, onClose, conversationId: propConversatio
 
     loadConversationData();
 
-    // Set up real-time subscription for new messages
-    const channel = supabase
+    // Set up real-time subscriptions
+    const messageChannel = supabase
       .channel(`messages-${activeConversationId}`)
       .on(
         'postgres_changes',
@@ -208,16 +215,41 @@ const MessageThread = ({ parentMessage, onClose, conversationId: propConversatio
 
           const messageWithProfile = {
             ...newMessage,
+            content: newMessage.content || '',
             sender_profile: senderProfile || null
-          };
+          } as Message;
 
           setMessages(prev => [...prev, messageWithProfile]);
+          
+          // Update message status to delivered for others' messages
+          if (newMessage.sender_id !== user.id) {
+            updateMessageStatus(newMessage.id, 'delivered');
+          }
         }
       )
       .subscribe();
 
+    // Typing indicator subscription
+    const typingChannel = supabase
+      .channel(`typing-${activeConversationId}`)
+      .on('broadcast', { event: 'typing' }, (payload) => {
+        const { user_id, user_name, is_typing } = payload.payload;
+        if (user_id !== user.id) {
+          if (is_typing) {
+            setTyping(user_name);
+          } else {
+            setTyping(null);
+          }
+        }
+      })
+      .subscribe();
+
     return () => {
-      supabase.removeChannel(channel);
+      supabase.removeChannel(messageChannel);
+      supabase.removeChannel(typingChannel);
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+      }
     };
   }, [activeConversationId, user, toast]);
 
@@ -250,6 +282,16 @@ const MessageThread = ({ parentMessage, onClose, conversationId: propConversatio
         .eq('id', activeConversationId);
 
       setNewMessage('');
+      
+      // Update message status to sent
+      if (data) {
+        updateMessageStatus(data.id, 'sent');
+        
+        // Simulate delivery after a short delay
+        setTimeout(() => {
+          updateMessageStatus(data.id, 'delivered');
+        }, 1000);
+      }
     } catch (error) {
       console.error('Error sending message:', error);
       toast({
@@ -262,12 +304,60 @@ const MessageThread = ({ parentMessage, onClose, conversationId: propConversatio
     }
   };
 
+  // Handle typing indicators
+  const handleTyping = () => {
+    if (!activeConversationId || !user) return;
+
+    // Send typing event
+    supabase.channel(`typing-${activeConversationId}`)
+      .send({
+        type: 'broadcast',
+        event: 'typing',
+        payload: { 
+          user_id: user.id, 
+          user_name: user.user_metadata?.full_name || 'Someone',
+          is_typing: true 
+        }
+      });
+
+    // Clear previous timeout
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+    }
+
+    // Set timeout to stop typing indicator
+    typingTimeoutRef.current = setTimeout(() => {
+      supabase.channel(`typing-${activeConversationId}`)
+        .send({
+          type: 'broadcast',
+          event: 'typing',
+          payload: { 
+            user_id: user.id, 
+            is_typing: false 
+          }
+        });
+    }, 2000);
+  };
+
   // Handle Enter key press
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSendMessage();
     }
+  };
+
+  // Handle profile navigation
+  const handleProfileClick = (userId: string) => {
+    navigate(`/profile/${userId}`);
+  };
+
+  // Message status update
+  const updateMessageStatus = (messageId: string, status: 'sent' | 'delivered' | 'read') => {
+    setMessageStatuses(prev => ({
+      ...prev,
+      [messageId]: status
+    }));
   };
 
   if (loading) {
@@ -327,19 +417,34 @@ const MessageThread = ({ parentMessage, onClose, conversationId: propConversatio
   const messageGroups = groupMessages(messages);
 
   return (
-    <div className="flex flex-col h-screen bg-gradient-to-br from-blue-50/30 to-purple-50/30">
+    <div className={`flex flex-col h-screen transition-colors duration-200 ${
+      theme === 'dark' 
+        ? 'bg-gradient-to-br from-gray-900 to-gray-800' 
+        : 'bg-gradient-to-br from-blue-50/30 to-purple-50/30'
+    }`}>
       {/* Modern Header */}
-      <div className="flex items-center gap-3 px-4 py-3 bg-white/80 backdrop-blur-sm border-b border-gray-200/60 sticky top-0 z-10 shadow-sm">
+      <div className={`flex items-center gap-3 px-4 py-3 backdrop-blur-sm border-b sticky top-0 z-10 shadow-sm ${
+        theme === 'dark'
+          ? 'bg-gray-800/90 border-gray-700/60'
+          : 'bg-white/80 border-gray-200/60'
+      }`}>
         <Button 
           variant="ghost" 
           size="sm" 
           onClick={() => onClose ? onClose() : navigate('/messages')}
-          className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+          className={`p-2 rounded-full transition-colors ${
+            theme === 'dark' 
+              ? 'hover:bg-gray-700 text-gray-300' 
+              : 'hover:bg-gray-100 text-gray-600'
+          }`}
         >
-          <ArrowLeft className="w-5 h-5 text-gray-600" />
+          <ArrowLeft className="w-5 h-5" />
         </Button>
         
-        <Avatar className="w-11 h-11 ring-2 ring-white shadow-sm">
+        <Avatar 
+          className="w-11 h-11 ring-2 ring-white dark:ring-gray-600 shadow-sm cursor-pointer hover:scale-105 transition-transform"
+          onClick={() => handleProfileClick(conversation.other_user.id)}
+        >
           <AvatarImage src={conversation.other_user.avatar_url || undefined} />
           <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white font-semibold">
             {conversation.other_user.full_name?.[0]?.toUpperCase() || 'U'}
@@ -347,27 +452,55 @@ const MessageThread = ({ parentMessage, onClose, conversationId: propConversatio
         </Avatar>
         
         <div className="flex-1 min-w-0">
-          <h2 className="font-semibold text-gray-900 truncate">
+          <h2 className={`font-semibold truncate ${
+            theme === 'dark' ? 'text-white' : 'text-gray-900'
+          }`}>
             {conversation.other_user.full_name || 'Unknown User'}
           </h2>
           {conversation.listing && (
-            <p className="text-sm text-gray-500 truncate">
+            <p className={`text-sm truncate ${
+              theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
+            }`}>
               About {conversation.listing.dog_name} • {conversation.listing.breed}
             </p>
           )}
         </div>
+
+        {/* Dark Mode Toggle */}
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={toggleTheme}
+          className={`p-2 rounded-full transition-colors ${
+            theme === 'dark' 
+              ? 'hover:bg-gray-700 text-gray-300' 
+              : 'hover:bg-gray-100 text-gray-600'
+          }`}
+        >
+          {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+        </Button>
       </div>
 
       {/* Messages Container */}
       <div className="flex-1 overflow-y-auto px-4 py-6 space-y-6">
         {messages.length === 0 ? (
           <div className="text-center py-12">
-            <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-8 mx-auto max-w-sm shadow-sm">
-              <div className="w-16 h-16 bg-gradient-to-br from-blue-100 to-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Send className="w-7 h-7 text-blue-600" />
+            <div className={`backdrop-blur-sm rounded-2xl p-8 mx-auto max-w-sm shadow-sm ${
+              theme === 'dark' ? 'bg-gray-800/60' : 'bg-white/60'
+            }`}>
+              <div className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 ${
+                theme === 'dark' 
+                  ? 'bg-gradient-to-br from-blue-900/50 to-purple-900/50' 
+                  : 'bg-gradient-to-br from-blue-100 to-purple-100'
+              }`}>
+                <Send className={`w-7 h-7 ${theme === 'dark' ? 'text-blue-400' : 'text-blue-600'}`} />
               </div>
-              <h3 className="font-semibold text-gray-900 mb-2">Start the conversation</h3>
-              <p className="text-gray-600 text-sm">Send your first message to begin chatting!</p>
+              <h3 className={`font-semibold mb-2 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                Start the conversation
+              </h3>
+              <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
+                Send your first message to begin chatting!
+              </p>
             </div>
           </div>
         ) : (
@@ -377,7 +510,10 @@ const MessageThread = ({ parentMessage, onClose, conversationId: propConversatio
               <div key={groupIndex} className={`flex ${isOwnMessage ? 'justify-end' : 'justify-start'} items-end gap-2`}>
                 {/* Avatar for received messages */}
                 {!isOwnMessage && (
-                  <Avatar className="w-8 h-8 mb-1 ring-2 ring-white shadow-sm flex-shrink-0">
+                  <Avatar 
+                    className="w-8 h-8 mb-1 ring-2 ring-white dark:ring-gray-600 shadow-sm flex-shrink-0 cursor-pointer hover:scale-105 transition-transform"
+                    onClick={() => handleProfileClick(group.sender_id)}
+                  >
                     <AvatarImage src={group.sender_profile?.avatar_url || undefined} />
                     <AvatarFallback className="bg-gradient-to-br from-gray-400 to-gray-600 text-white text-xs font-semibold">
                       {group.sender_profile?.full_name?.[0]?.toUpperCase() || 'U'}
@@ -389,23 +525,39 @@ const MessageThread = ({ parentMessage, onClose, conversationId: propConversatio
                 <div className={`flex flex-col max-w-xs sm:max-w-sm lg:max-w-md ${isOwnMessage ? 'items-end' : 'items-start'}`}>
                   {/* Messages */}
                   {group.messages.map((message, messageIndex) => (
-                    <div
-                      key={message.id}
-                      className={`mb-1 px-4 py-2.5 rounded-2xl shadow-sm ${
-                        isOwnMessage
-                          ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-br-md'
-                          : 'bg-white text-gray-900 rounded-bl-md border border-gray-100'
-                      } ${messageIndex === 0 ? (isOwnMessage ? 'rounded-tr-2xl' : 'rounded-tl-2xl') : ''} ${
-                        messageIndex === group.messages.length - 1 ? (isOwnMessage ? 'rounded-br-md' : 'rounded-bl-md') : ''
-                      }`}
-                    >
-                      <p className="text-sm leading-relaxed break-words">{message.content}</p>
+                    <div key={message.id} className="relative">
+                      <div
+                        className={`mb-1 px-4 py-2.5 rounded-2xl shadow-sm transition-all duration-200 hover:shadow-md ${
+                          isOwnMessage
+                            ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-br-md'
+                            : theme === 'dark'
+                            ? 'bg-gray-700 text-gray-100 rounded-bl-md border border-gray-600'
+                            : 'bg-white text-gray-900 rounded-bl-md border border-gray-100'
+                        } ${messageIndex === 0 ? (isOwnMessage ? 'rounded-tr-2xl' : 'rounded-tl-2xl') : ''} ${
+                          messageIndex === group.messages.length - 1 ? (isOwnMessage ? 'rounded-br-md' : 'rounded-bl-md') : ''
+                        }`}
+                      >
+                        <p className="text-sm leading-relaxed break-words">{message.content}</p>
+                      </div>
+                      
+                      {/* Message Status for own messages */}
+                      {isOwnMessage && messageIndex === group.messages.length - 1 && (
+                        <div className="flex items-center justify-end mt-1 px-2">
+                          {messageStatuses[message.id] === 'read' ? (
+                            <CheckCheck className="w-3 h-3 text-blue-500" />
+                          ) : messageStatuses[message.id] === 'delivered' ? (
+                            <CheckCheck className={`w-3 h-3 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`} />
+                          ) : (
+                            <Check className={`w-3 h-3 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`} />
+                          )}
+                        </div>
+                      )}
                     </div>
                   ))}
                   
                   {/* Timestamp */}
                   <div className={`mt-1 px-2 ${isOwnMessage ? 'text-right' : 'text-left'}`}>
-                    <span className="text-xs text-gray-500">
+                    <span className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
                       {new Date(group.timestamp).toLocaleTimeString([], { 
                         hour: '2-digit', 
                         minute: '2-digit' 
@@ -417,19 +569,70 @@ const MessageThread = ({ parentMessage, onClose, conversationId: propConversatio
             );
           })
         )}
+        
+        {/* Typing Indicator */}
+        {typing && (
+          <div className="flex justify-start items-end gap-2 animate-pulse">
+            <Avatar className="w-8 h-8 ring-2 ring-white dark:ring-gray-600 shadow-sm flex-shrink-0">
+              <AvatarFallback className="bg-gradient-to-br from-gray-400 to-gray-600 text-white text-xs font-semibold">
+                {typing[0]?.toUpperCase() || 'U'}
+              </AvatarFallback>
+            </Avatar>
+            <div className={`px-4 py-2.5 rounded-2xl rounded-bl-md shadow-sm ${
+              theme === 'dark' 
+                ? 'bg-gray-700 border border-gray-600' 
+                : 'bg-white border border-gray-100'
+            }`}>
+              <div className="flex items-center gap-1">
+                <div className={`w-2 h-2 rounded-full animate-bounce ${
+                  theme === 'dark' ? 'bg-gray-400' : 'bg-gray-500'
+                }`} style={{ animationDelay: '0ms' }}></div>
+                <div className={`w-2 h-2 rounded-full animate-bounce ${
+                  theme === 'dark' ? 'bg-gray-400' : 'bg-gray-500'
+                }`} style={{ animationDelay: '150ms' }}></div>
+                <div className={`w-2 h-2 rounded-full animate-bounce ${
+                  theme === 'dark' ? 'bg-gray-400' : 'bg-gray-500'
+                }`} style={{ animationDelay: '300ms' }}></div>
+              </div>
+            </div>
+          </div>
+        )}
+        
         <div ref={messagesEndRef} />
       </div>
 
       {/* Modern Message Input */}
-      <div className="px-4 py-4 bg-white/80 backdrop-blur-sm border-t border-gray-200/60">
+      <div className={`px-4 py-4 backdrop-blur-sm border-t ${
+        theme === 'dark'
+          ? 'bg-gray-800/90 border-gray-700/60'
+          : 'bg-white/80 border-gray-200/60'
+      }`}>
+        {/* Typing Indicator Above Input */}
+        {typing && (
+          <div className={`text-xs mb-2 px-4 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+            {typing} is typing...
+          </div>
+        )}
+        
         <div className="flex items-end gap-3 max-w-4xl mx-auto">
-          <div className="flex-1 bg-white rounded-2xl border border-gray-200/80 shadow-sm hover:shadow-md transition-shadow">
+          <div className={`flex-1 rounded-2xl border shadow-sm hover:shadow-md transition-shadow ${
+            theme === 'dark'
+              ? 'bg-gray-700 border-gray-600/80'
+              : 'bg-white border-gray-200/80'
+          }`}>
             <Input
               value={newMessage}
-              onChange={(e) => setNewMessage(e.target.value)}
+              onChange={(e) => {
+                setNewMessage(e.target.value);
+                handleTyping();
+              }}
               onKeyPress={handleKeyPress}
               placeholder="Type a message..."
-              className="border-0 rounded-2xl py-3 px-4 focus:ring-2 focus:ring-blue-500/20 resize-none text-sm bg-transparent"
+              className={`border-0 rounded-2xl py-3 px-4 focus:ring-2 focus:ring-blue-500/20 resize-none text-sm bg-transparent ${
+                theme === 'dark' 
+                  ? 'text-white placeholder-gray-400' 
+                  : 'text-gray-900 placeholder-gray-500'
+              }`}
               disabled={sending}
             />
           </div>
@@ -437,7 +640,7 @@ const MessageThread = ({ parentMessage, onClose, conversationId: propConversatio
           <Button 
             onClick={handleSendMessage}
             disabled={!newMessage.trim() || sending}
-            className="rounded-full w-12 h-12 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105 disabled:scale-100 disabled:hover:shadow-lg"
+            className="rounded-full w-12 h-12 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105 disabled:scale-100 disabled:hover:shadow-lg disabled:opacity-50"
           >
             {sending ? (
               <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent" />
