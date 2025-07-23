@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { ArrowLeft, Send } from 'lucide-react';
+import { ArrowLeft, Send, Smile } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
@@ -293,91 +293,156 @@ const MessageThread = ({ parentMessage, onClose, conversationId: propConversatio
     );
   }
 
+  // Group consecutive messages from the same sender
+  const groupMessages = (messages: Message[]) => {
+    const groups: Array<{
+      sender_id: string;
+      messages: Message[];
+      timestamp: string;
+      sender_profile?: any;
+    }> = [];
+
+    messages.forEach((message, index) => {
+      const prevMessage = messages[index - 1];
+      const isSameSender = prevMessage && prevMessage.sender_id === message.sender_id;
+      const timeDiff = prevMessage ? 
+        new Date(message.created_at).getTime() - new Date(prevMessage.created_at).getTime() : 0;
+      const shouldGroup = isSameSender && timeDiff < 300000; // Group within 5 minutes
+
+      if (shouldGroup) {
+        groups[groups.length - 1].messages.push(message);
+      } else {
+        groups.push({
+          sender_id: message.sender_id,
+          messages: [message],
+          timestamp: message.created_at,
+          sender_profile: message.sender_profile
+        });
+      }
+    });
+
+    return groups;
+  };
+
+  const messageGroups = groupMessages(messages);
+
   return (
-    <div className="flex flex-col h-screen bg-white">
-      {/* Header */}
-      <div className="flex items-center gap-3 p-4 border-b bg-white sticky top-0 z-10">
+    <div className="flex flex-col h-screen bg-gradient-to-br from-blue-50/30 to-purple-50/30">
+      {/* Modern Header */}
+      <div className="flex items-center gap-3 px-4 py-3 bg-white/80 backdrop-blur-sm border-b border-gray-200/60 sticky top-0 z-10 shadow-sm">
         <Button 
           variant="ghost" 
           size="sm" 
           onClick={() => onClose ? onClose() : navigate('/messages')}
-          className="p-2"
+          className="p-2 hover:bg-gray-100 rounded-full transition-colors"
         >
-          <ArrowLeft className="w-4 h-4" />
+          <ArrowLeft className="w-5 h-5 text-gray-600" />
         </Button>
         
-        <Avatar className="w-10 h-10">
+        <Avatar className="w-11 h-11 ring-2 ring-white shadow-sm">
           <AvatarImage src={conversation.other_user.avatar_url || undefined} />
-          <AvatarFallback>
-            {conversation.other_user.full_name?.[0] || 'U'}
+          <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white font-semibold">
+            {conversation.other_user.full_name?.[0]?.toUpperCase() || 'U'}
           </AvatarFallback>
         </Avatar>
         
-        <div className="flex-1">
-          <h2 className="font-semibold text-gray-900">
+        <div className="flex-1 min-w-0">
+          <h2 className="font-semibold text-gray-900 truncate">
             {conversation.other_user.full_name || 'Unknown User'}
           </h2>
           {conversation.listing && (
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-gray-500 truncate">
               About {conversation.listing.dog_name} • {conversation.listing.breed}
             </p>
           )}
         </div>
       </div>
 
-      {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+      {/* Messages Container */}
+      <div className="flex-1 overflow-y-auto px-4 py-6 space-y-6">
         {messages.length === 0 ? (
-          <div className="text-center py-8">
-            <p className="text-gray-600">No messages yet. Start the conversation!</p>
+          <div className="text-center py-12">
+            <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-8 mx-auto max-w-sm shadow-sm">
+              <div className="w-16 h-16 bg-gradient-to-br from-blue-100 to-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Send className="w-7 h-7 text-blue-600" />
+              </div>
+              <h3 className="font-semibold text-gray-900 mb-2">Start the conversation</h3>
+              <p className="text-gray-600 text-sm">Send your first message to begin chatting!</p>
+            </div>
           </div>
         ) : (
-          messages.map((message) => (
-            <div 
-              key={message.id}
-              className={`flex ${message.sender_id === user?.id ? 'justify-end' : 'justify-start'}`}
-            >
-              <div className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
-                message.sender_id === user?.id 
-                  ? 'bg-blue-600 text-white' 
-                  : 'bg-gray-100 text-gray-900'
-              }`}>
-                <p className="text-sm">{message.content}</p>
-                <p className={`text-xs mt-1 ${
-                  message.sender_id === user?.id ? 'text-blue-100' : 'text-gray-500'
-                }`}>
-                  {new Date(message.created_at).toLocaleTimeString([], { 
-                    hour: '2-digit', 
-                    minute: '2-digit' 
-                  })}
-                </p>
+          messageGroups.map((group, groupIndex) => {
+            const isOwnMessage = group.sender_id === user?.id;
+            return (
+              <div key={groupIndex} className={`flex ${isOwnMessage ? 'justify-end' : 'justify-start'} items-end gap-2`}>
+                {/* Avatar for received messages */}
+                {!isOwnMessage && (
+                  <Avatar className="w-8 h-8 mb-1 ring-2 ring-white shadow-sm flex-shrink-0">
+                    <AvatarImage src={group.sender_profile?.avatar_url || undefined} />
+                    <AvatarFallback className="bg-gradient-to-br from-gray-400 to-gray-600 text-white text-xs font-semibold">
+                      {group.sender_profile?.full_name?.[0]?.toUpperCase() || 'U'}
+                    </AvatarFallback>
+                  </Avatar>
+                )}
+
+                {/* Message Group */}
+                <div className={`flex flex-col max-w-xs sm:max-w-sm lg:max-w-md ${isOwnMessage ? 'items-end' : 'items-start'}`}>
+                  {/* Messages */}
+                  {group.messages.map((message, messageIndex) => (
+                    <div
+                      key={message.id}
+                      className={`mb-1 px-4 py-2.5 rounded-2xl shadow-sm ${
+                        isOwnMessage
+                          ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-br-md'
+                          : 'bg-white text-gray-900 rounded-bl-md border border-gray-100'
+                      } ${messageIndex === 0 ? (isOwnMessage ? 'rounded-tr-2xl' : 'rounded-tl-2xl') : ''} ${
+                        messageIndex === group.messages.length - 1 ? (isOwnMessage ? 'rounded-br-md' : 'rounded-bl-md') : ''
+                      }`}
+                    >
+                      <p className="text-sm leading-relaxed break-words">{message.content}</p>
+                    </div>
+                  ))}
+                  
+                  {/* Timestamp */}
+                  <div className={`mt-1 px-2 ${isOwnMessage ? 'text-right' : 'text-left'}`}>
+                    <span className="text-xs text-gray-500">
+                      {new Date(group.timestamp).toLocaleTimeString([], { 
+                        hour: '2-digit', 
+                        minute: '2-digit' 
+                      })}
+                    </span>
+                  </div>
+                </div>
               </div>
-            </div>
-          ))
+            );
+          })
         )}
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Message Input */}
-      <div className="p-4 border-t bg-white">
-        <div className="flex gap-2">
-          <Input
-            value={newMessage}
-            onChange={(e) => setNewMessage(e.target.value)}
-            onKeyPress={handleKeyPress}
-            placeholder="Type a message..."
-            className="flex-1"
-            disabled={sending}
-          />
+      {/* Modern Message Input */}
+      <div className="px-4 py-4 bg-white/80 backdrop-blur-sm border-t border-gray-200/60">
+        <div className="flex items-end gap-3 max-w-4xl mx-auto">
+          <div className="flex-1 bg-white rounded-2xl border border-gray-200/80 shadow-sm hover:shadow-md transition-shadow">
+            <Input
+              value={newMessage}
+              onChange={(e) => setNewMessage(e.target.value)}
+              onKeyPress={handleKeyPress}
+              placeholder="Type a message..."
+              className="border-0 rounded-2xl py-3 px-4 focus:ring-2 focus:ring-blue-500/20 resize-none text-sm bg-transparent"
+              disabled={sending}
+            />
+          </div>
+          
           <Button 
             onClick={handleSendMessage}
             disabled={!newMessage.trim() || sending}
-            size="sm"
+            className="rounded-full w-12 h-12 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105 disabled:scale-100 disabled:hover:shadow-lg"
           >
             {sending ? (
-              <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent" />
+              <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent" />
             ) : (
-              <Send className="w-4 h-4" />
+              <Send className="w-5 h-5" />
             )}
           </Button>
         </div>
