@@ -62,19 +62,13 @@ export const conversations = pgTable("conversations", {
   updated_at: timestamp("updated_at").defaultNow(),
 });
 
-// Messages table
+// Messages table - Simplified to match database structure
 export const messages = pgTable("messages", {
-  id: uuid("id").primaryKey().defaultRandom(),
+  id: uuid("id").primaryKey(),
   conversation_id: uuid("conversation_id").references(() => conversations.id),
   sender_id: uuid("sender_id").references(() => profiles.id),
-  reply_to_message_id: uuid("reply_to_message_id").references(() => messages.id),
   content: text("content").notNull(),
-  message_type: text("message_type").default("text"),
-  image_url: text("image_url"),
-  read_at: timestamp("read_at"),
-  is_encrypted: boolean("is_encrypted").default(false),
-  encrypted_content: text("encrypted_content"),
-  encryption_key_id: text("encryption_key_id"),
+  read: boolean("read").default(false),
   created_at: timestamp("created_at").defaultNow(),
 });
 
@@ -123,17 +117,21 @@ export const comments = pgTable("comments", {
   updated_at: timestamp("updated_at").defaultNow(),
 });
 
-// Notifications table
+// Notifications table - Updated to match database structure
 export const notifications = pgTable("notifications", {
-  id: uuid("id").primaryKey().defaultRandom(),
+  id: uuid("id").primaryKey(),
+  user_id: uuid("user_id").references(() => profiles.id),
   type: text("type").notNull(), // 'like', 'comment', 'comment_reply', 'follow', etc.
-  to_user_id: uuid("to_user_id").references(() => profiles.id).notNull(),
-  from_user_id: uuid("from_user_id").references(() => profiles.id).notNull(),
+  title: text("title").notNull(),
+  message: text("message").notNull(),
+  read: boolean("read").default(false),
+  related_id: uuid("related_id"),
+  created_at: timestamp("created_at").defaultNow(),
+  from_user_id: uuid("from_user_id").references(() => profiles.id),
   post_id: uuid("post_id").references(() => posts.id),
   comment_id: uuid("comment_id"),
-  message: text("message").notNull(),
+  message_id: uuid("message_id").references(() => messages.id),
   is_read: boolean("is_read").default(false),
-  created_at: timestamp("created_at").defaultNow(),
 });
 
 // Payment transactions table
