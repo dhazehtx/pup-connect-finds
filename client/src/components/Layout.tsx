@@ -4,6 +4,8 @@ import Footer from './Footer';
 import BottomNavigation from './BottomNavigation';
 import FloatingTrustButton from './safety/FloatingTrustButton';
 import StickyHeader from './layout/StickyHeader';
+import { useSessionManager } from '@/hooks/useSessionManager';
+import SessionWarningModal from '@/components/auth/SessionWarningModal';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -11,6 +13,9 @@ interface LayoutProps {
 }
 
 const Layout = ({ children, showBottomNav = true }: LayoutProps) => {
+  // Initialize session management (timeout & token refresh)
+  const { showWarningModal, handleExtendSession, handleManualLogout } = useSessionManager();
+
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <StickyHeader />
@@ -20,6 +25,14 @@ const Layout = ({ children, showBottomNav = true }: LayoutProps) => {
       <Footer />
       {showBottomNav && <BottomNavigation />}
       <FloatingTrustButton />
+      
+      {/* Session Warning Modal */}
+      <SessionWarningModal
+        isOpen={showWarningModal}
+        onExtendSession={handleExtendSession}
+        onLogout={handleManualLogout}
+        warningTimeSeconds={120}
+      />
     </div>
   );
 };

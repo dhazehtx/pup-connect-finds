@@ -1,0 +1,90 @@
+✅ Feature 1: Session Timeout & Token Refresh
+🔍 Purpose:
+Automatically logs users out after inactivity (e.g., 30–60 mins).
+
+Refreshes tokens before they expire (if user is still active).
+
+Prevents stale sessions that could lead to security risks.
+
+🔧 Tech Stack Context:
+You’re using:
+
+Supabase Auth (which supports JWTs with expiration)
+
+React + TypeScript frontend
+
+Likely managing auth state in a global state or Supabase client
+
+🧠 Strategy
+We’ll implement two parts:
+
+1. Session Timeout Detection
+Trigger logout after 30 min of inactivity:
+
+Track user activity (mouse, keyboard, touch)
+
+Reset a timer on activity
+
+Logout when time elapses
+
+2. Token Refresh (Auto Sign-in Check)
+Supabase tokens expire (default: 1 hour). To keep users signed in:
+
+Call supabase.auth.getSession() or supabase.auth.refreshSession() on interval.
+
+Optionally enable “auto-refresh” from Supabase client config.
+
+🧩 Code Implementation: (Part 1 — Session Timeout Logic)
+Let’s start with tracking inactivity and auto-logout.
+
+📁 src/utils/sessionTimeout.ts
+ts
+Copy
+Edit
+let logoutTimer: NodeJS.Timeout;
+
+export function startSessionTimeout(onTimeout: () => void, timeoutMinutes = 30) {
+  const resetTimer = () => {
+    clearTimeout(logoutTimer);
+    logoutTimer = setTimeout(() => {
+      onTimeout();
+    }, timeoutMinutes * 60 * 1000); // Convert to ms
+  };
+
+  // Listen for activity
+  ['click', 'mousemove', 'keydown', 'scroll', 'touchstart'].forEach(event =>
+    window.addEventListener(event, resetTimer)
+  );
+
+  resetTimer(); // Start initially
+
+  return () => {
+    clearTimeout(logoutTimer);
+    ['click', 'mousemove', 'keydown', 'scroll', 'touchstart'].forEach(event =>
+      window.removeEventListener(event, resetTimer)
+    );
+  };
+}
+📁 Example usage in App.tsx or main layout:
+tsx
+Copy
+Edit
+import { useEffect } from 'react';
+import { startSessionTimeout } from './utils/sessionTimeout';
+import { supabase } from './supabaseClient';
+
+function App() {
+  useEffect(() => {
+    const cleanup = startSessionTimeout(() => {
+      alert('You’ve been logged out due to inactivity.');
+      supabase.auth.signOut();
+      window.location.href = '/login';
+    });
+
+    return cleanup;
+  }, []);
+
+  return (
+    // your layout
+  );
+}
