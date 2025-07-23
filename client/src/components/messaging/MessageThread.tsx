@@ -75,6 +75,76 @@ const MessageThread = ({ parentMessage, onClose, conversationId: propConversatio
 
     const loadConversation = async () => {
       try {
+        // Handle mock conversations for demo purposes
+        if (activeConversationId.startsWith('mock_conv_')) {
+          const mockConversationData = {
+            'mock_conv_1': {
+              id: 'mock_conv_1',
+              other_user: {
+                id: '101',
+                full_name: 'Austin Reyes',
+                avatar_url: 'https://i.pravatar.cc/150?img=1'
+              },
+              listing: {
+                id: 'mock_listing_1',
+                dog_name: 'Buddy',
+                breed: 'Golden Retriever',
+                image_url: 'https://placedog.com/300/300'
+              }
+            },
+            'mock_conv_2': {
+              id: 'mock_conv_2',
+              other_user: {
+                id: '102',
+                full_name: 'Jennifer Martinez',
+                avatar_url: 'https://i.pravatar.cc/150?img=2'
+              },
+              listing: {
+                id: 'mock_listing_2',
+                dog_name: 'Luna',
+                breed: 'Labrador',
+                image_url: 'https://placedog.com/300/301'
+              }
+            }
+          };
+
+          const mockConv = mockConversationData[activeConversationId as keyof typeof mockConversationData];
+          if (mockConv) {
+            setConversation(mockConv);
+            
+            // Set mock messages
+            const mockMessages = [
+              {
+                id: 'msg_1',
+                conversation_id: activeConversationId,
+                sender_id: '101',
+                content: 'Hi! Thanks for your interest in Buddy. He\'s a beautiful Golden Retriever puppy, 8 weeks old.',
+                created_at: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
+                message_type: 'text',
+                sender_profile: {
+                  full_name: 'Austin Reyes',
+                  avatar_url: 'https://i.pravatar.cc/150?img=1'
+                }
+              },
+              {
+                id: 'msg_2',
+                conversation_id: activeConversationId,
+                sender_id: user.id,
+                content: 'That sounds wonderful! Can you tell me more about his temperament and health records?',
+                created_at: new Date(Date.now() - 1.5 * 60 * 60 * 1000).toISOString(),
+                message_type: 'text',
+                sender_profile: {
+                  full_name: user.user_metadata?.full_name || 'You',
+                  avatar_url: user.user_metadata?.avatar_url || null
+                }
+              }
+            ];
+            setMessages(mockMessages);
+          }
+          
+          setLoading(false);
+          return;
+        }
         // Load conversation details
         const { data: convData, error: convError } = await supabase
           .from('conversations')
@@ -182,6 +252,47 @@ const MessageThread = ({ parentMessage, onClose, conversationId: propConversatio
 
     setSending(true);
     try {
+      // Handle mock conversations
+      if (activeConversationId.startsWith('mock_conv_')) {
+        // Add message to mock conversation
+        const newMockMessage = {
+          id: `msg_${Date.now()}`,
+          conversation_id: activeConversationId,
+          sender_id: user.id,
+          content: newMessage.trim(),
+          created_at: new Date().toISOString(),
+          message_type: 'text',
+          sender_profile: {
+            full_name: user.user_metadata?.full_name || 'You',
+            avatar_url: user.user_metadata?.avatar_url || null
+          }
+        };
+        
+        setMessages(prev => [...prev, newMockMessage]);
+        setNewMessage('');
+        
+        // Simulate response after a delay
+        setTimeout(() => {
+          const responseMessage = {
+            id: `msg_${Date.now() + 1}`,
+            conversation_id: activeConversationId,
+            sender_id: activeConversationId === 'mock_conv_1' ? '101' : '102',
+            content: 'Thanks for your message! I\'ll get back to you soon with more details.',
+            created_at: new Date().toISOString(),
+            message_type: 'text',
+            sender_profile: {
+              full_name: activeConversationId === 'mock_conv_1' ? 'Austin Reyes' : 'Jennifer Martinez',
+              avatar_url: activeConversationId === 'mock_conv_1' ? 'https://i.pravatar.cc/150?img=1' : 'https://i.pravatar.cc/150?img=2'
+            }
+          };
+          setMessages(prev => [...prev, responseMessage]);
+        }, 1500);
+        
+        setSending(false);
+        return;
+      }
+
+      // Real Supabase message sending
       const { error } = await supabase
         .from('messages')
         .insert({
@@ -259,15 +370,20 @@ const MessageThread = ({ parentMessage, onClose, conversationId: propConversatio
               <ArrowLeft className="h-5 w-5" />
             </Button>
 
-            <Avatar className="h-10 w-10">
+            <Avatar className="h-10 w-10 cursor-pointer" onClick={() => {
+              navigate(`/profile/${conversation.other_user.id}`);
+            }}>
               <AvatarImage src={conversation.other_user.avatar_url || undefined} />
               <AvatarFallback>
                 {conversation.other_user.full_name?.charAt(0) || 'U'}
               </AvatarFallback>
             </Avatar>
 
-            <div className="flex-1">
-              <h2 className="font-semibold text-lg">
+            <div className="flex-1 cursor-pointer" onClick={() => {
+              // Navigate to user profile
+              navigate(`/profile/${conversation.other_user.id}`);
+            }}>
+              <h2 className="font-semibold text-lg hover:underline">
                 {conversation.other_user.full_name || 'User'}
               </h2>
               {conversation.listing && (

@@ -133,7 +133,7 @@ const PostCard = ({
             </div>
           </div>
 
-          {/* Post Actions and Content - Improved spacing for mobile */}
+          {/* Post Actions and Content - Mobile-friendly layout */}
           <div className="p-3 md:p-4 space-y-3">
             <PostActions
               post={post}
@@ -145,8 +145,43 @@ const PostCard = ({
               onProfileClick={onProfileClick}
             />
 
+            {/* Caption - Show on both mobile and desktop */}
+            {post.caption && (
+              <div className="text-sm leading-relaxed">
+                <span className="font-semibold cursor-pointer hover:underline" onClick={() => onProfileClick(post.user.id)}>
+                  {post.user.username}
+                </span>{' '}
+                <span className="text-gray-800 dark:text-gray-200">{post.caption}</span>
+              </div>
+            )}
+
+            {/* Comments Preview - Show top 1-2 comments on mobile and desktop */}
+            {post.comments && post.comments.length > 0 && (
+              <div className="space-y-1">
+                {post.comments.slice(0, 2).map((comment) => (
+                  <div key={comment.id} className="text-sm leading-relaxed">
+                    <span 
+                      className="font-semibold cursor-pointer hover:underline" 
+                      onClick={() => onProfileClick(comment.user.id)}
+                    >
+                      {comment.user.username}
+                    </span>{' '}
+                    <span className="text-gray-800 dark:text-gray-200">{comment.text}</span>
+                  </div>
+                ))}
+                {post.comments.length > 2 && (
+                  <button 
+                    onClick={() => onComment(post.id)}
+                    className="text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
+                  >
+                    View all {post.comments.length} comments
+                  </button>
+                )}
+              </div>
+            )}
+
             {/* Time */}
-            <p className="text-xs text-gray-500">{post.timeAgo}</p>
+            <p className="text-xs text-gray-500 uppercase tracking-wide">{post.timeAgo}</p>
           </div>
         </CardContent>
       </Card>
