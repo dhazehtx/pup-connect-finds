@@ -292,19 +292,51 @@ const MessageThread = ({ parentMessage, onClose, conversationId: propConversatio
         return;
       }
 
+      // Optimistic UI update - add message immediately
+      const optimisticMessage = {
+        id: `temp_${Date.now()}`,
+        conversation_id: activeConversationId,
+        sender_id: user.id,
+        content: newMessage.trim(),
+        created_at: new Date().toISOString(),
+        message_type: 'text',
+        sender_profile: {
+          full_name: user.user_metadata?.full_name || 'You',
+          avatar_url: user.user_metadata?.avatar_url || null
+        }
+      };
+      
+      setMessages(prev => [...prev, optimisticMessage]);
+      setNewMessage('');
+
       // Real Supabase message sending
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('messages')
         .insert({
           conversation_id: activeConversationId,
           sender_id: user.id,
           content: newMessage.trim(),
           message_type: 'text'
-        });
+        })
+        .select()
+        .single();
 
-      if (error) throw error;
+      if (error) {
+        // Remove optimistic message on error
+        setMessages(prev => prev.filter(msg => msg.id !== optimisticMessage.id));
+        throw error;
+      }
 
-      setNewMessage('');
+      // Replace optimistic message with real message (includes real ID)
+      if (data) {
+        setMessages(prev => prev.map(msg => 
+          msg.id === optimisticMessage.id ? { 
+            ...data, 
+            sender_profile: optimisticMessage.sender_profile,
+            content: data.content || newMessage.trim() // Ensure content is never null
+          } as Message : msg
+        ));
+      }
     } catch (error) {
       console.error('Error sending message:', error);
       toast({

@@ -29,7 +29,10 @@ export const useMessagesManager = () => {
         .order('created_at', { ascending: true });
 
       if (error) throw error;
-      setMessages(data || []);
+      
+      // Filter out messages with null content and ensure type safety
+      const validMessages = (data || []).filter(msg => msg.content !== null) as Message[];
+      setMessages(validMessages);
     } catch (error) {
       console.error('Error fetching messages:', error);
       toast({

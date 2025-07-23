@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
@@ -24,7 +25,7 @@ import {
   Home,
   Stethoscope,
   Tag,
-  Link,
+  LinkIcon,
   Utensils,
   Bed,
   Scissors,
@@ -461,6 +462,32 @@ const Education = () => {
               <ExternalLink className="w-4 h-4 mr-2" />
               View Full Legal Guide
             </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Legal Guide Reference Card */}
+      <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
+        <CardContent className="p-6">
+          <div className="flex items-start gap-4">
+            <div className="p-3 bg-blue-100 rounded-full">
+              <BookOpen className="w-6 h-6 text-blue-600" />
+            </div>
+            <div className="flex-1">
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                📘 Need help understanding pet laws or breeder regulations?
+              </h3>
+              <p className="text-gray-600 mb-4">
+                View our comprehensive Legal Guide to learn about state-by-state regulations, 
+                breeder requirements, and your rights as a buyer or seller.
+              </p>
+              <Link to="/legal">
+                <Button className="bg-blue-600 hover:bg-blue-700 text-white">
+                  <ExternalLink className="w-4 h-4 mr-2" />
+                  View Full Legal Guide
+                </Button>
+              </Link>
+            </div>
           </div>
         </CardContent>
       </Card>
