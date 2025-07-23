@@ -47,7 +47,8 @@ const educationalArticles = [
     rating: 4.9,
     tags: ['vaccines', 'health', 'puppy', 'veterinary'],
     category: 'Health & Wellness',
-    image: '/api/placeholder/300/200'
+    image: '/api/placeholder/300/200',
+    url: 'https://www.avma.org/resources/pet-owners/petcare/dog-care/puppy-vaccinations'
   },
   {
     id: 2,
@@ -58,7 +59,8 @@ const educationalArticles = [
     rating: 4.8,
     tags: ['french-bulldog', 'breed-guide', 'care', 'exercise'],
     category: 'Breed Information',
-    image: '/api/placeholder/300/200'
+    image: '/api/placeholder/300/200',
+    url: 'https://www.akc.org/dog-breeds/french-bulldog/'
   },
   {
     id: 3,
@@ -69,7 +71,8 @@ const educationalArticles = [
     rating: 4.7,
     tags: ['training', 'house-training', 'puppy', 'behavior'],
     category: 'Training & Behavior',
-    image: '/api/placeholder/300/200'
+    image: '/api/placeholder/300/200',
+    url: 'https://www.akc.org/expert-advice/training/how-to-potty-train-a-puppy/'
   },
   {
     id: 4,
@@ -80,7 +83,8 @@ const educationalArticles = [
     rating: 4.6,
     tags: ['nutrition', 'feeding', 'puppy', 'health'],
     category: 'Nutrition',
-    image: '/api/placeholder/300/200'
+    image: '/api/placeholder/300/200',
+    url: 'https://www.akc.org/expert-advice/nutrition/puppy-feeding-guide/'
   },
   {
     id: 5,
@@ -91,7 +95,8 @@ const educationalArticles = [
     rating: 4.8,
     tags: ['safety', 'puppy-proofing', 'home', 'preparation'],
     category: 'Safety & Preparation',
-    image: '/api/placeholder/300/200'
+    image: '/api/placeholder/300/200',
+    url: 'https://www.aspca.org/pet-care/dog-care/puppy-proofing'
   }
 ];
 
@@ -141,6 +146,35 @@ const Education = () => {
         ? prev.filter(i => i !== index)
         : [...prev, index]
     );
+  };
+
+  const handleReadArticle = (article: any) => {
+    // Create a modal or navigate to full article view
+    window.open(article.url || '#', '_blank');
+  };
+
+  const handleShareArticle = (article: any) => {
+    if (navigator.share) {
+      navigator.share({
+        title: article.title,
+        text: article.description,
+        url: window.location.href
+      });
+    } else {
+      // Fallback: copy to clipboard
+      navigator.clipboard.writeText(`${article.title} - ${window.location.href}`);
+      alert('Article link copied to clipboard!');
+    }
+  };
+
+  const handleDownloadPDF = (article: any) => {
+    // Simulate PDF download or open sample PDF
+    const link = document.createElement('a');
+    link.href = `data:text/plain;charset=utf-8,${encodeURIComponent(
+      `${article.title}\n\n${article.description}\n\nBy ${article.author}\n${article.readTime}`
+    )}`;
+    link.download = `${article.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.txt`;
+    link.click();
   };
 
   const completionPercentage = (checkedItems.length / starterPackItems.length) * 100;
@@ -258,8 +292,32 @@ const Education = () => {
         {filteredArticles.map((article) => (
           <Card key={article.id} className="hover:shadow-lg transition-shadow">
             <div className="relative">
-              <div className="bg-gray-200 h-40 rounded-t-lg flex items-center justify-center">
-                <BookOpen className="w-8 h-8 text-gray-400" />
+              <div className="bg-gradient-to-br from-blue-50 to-indigo-100 h-40 rounded-t-lg flex items-center justify-center overflow-hidden">
+                {article.category === 'Health & Wellness' && (
+                  <div className="flex items-center justify-center w-full h-full bg-gradient-to-br from-green-100 to-emerald-200">
+                    <Stethoscope className="w-12 h-12 text-green-600" />
+                  </div>
+                )}
+                {article.category === 'Breed Information' && (
+                  <div className="flex items-center justify-center w-full h-full bg-gradient-to-br from-amber-100 to-orange-200">
+                    <Heart className="w-12 h-12 text-orange-600" />
+                  </div>
+                )}
+                {article.category === 'Training & Behavior' && (
+                  <div className="flex items-center justify-center w-full h-full bg-gradient-to-br from-purple-100 to-violet-200">
+                    <GraduationCap className="w-12 h-12 text-purple-600" />
+                  </div>
+                )}
+                {article.category === 'Nutrition' && (
+                  <div className="flex items-center justify-center w-full h-full bg-gradient-to-br from-red-100 to-pink-200">
+                    <Utensils className="w-12 h-12 text-red-600" />
+                  </div>
+                )}
+                {article.category === 'Safety & Preparation' && (
+                  <div className="flex items-center justify-center w-full h-full bg-gradient-to-br from-blue-100 to-cyan-200">
+                    <Shield className="w-12 h-12 text-blue-600" />
+                  </div>
+                )}
               </div>
               <Badge 
                 variant="secondary" 
@@ -300,17 +358,37 @@ const Education = () => {
               
               <div className="flex items-center justify-between pt-2 border-t">
                 <div className="flex items-center gap-2">
-                  <Button variant="ghost" size="sm">
+                  <Button 
+                    variant="ghost" 
+                    size="sm"
+                    onClick={() => handleDownloadPDF(article)}
+                    title="Download as PDF"
+                  >
                     <FileText className="w-4 h-4" />
                   </Button>
-                  <Button variant="ghost" size="sm">
+                  <Button 
+                    variant="ghost" 
+                    size="sm"
+                    onClick={() => handleShareArticle(article)}
+                    title="Share article"
+                  >
                     <Share2 className="w-4 h-4" />
+                  </Button>
+                  <Button 
+                    variant="default" 
+                    size="sm"
+                    onClick={() => handleReadArticle(article)}
+                    className="ml-2"
+                  >
+                    <BookOpen className="w-3 h-3 mr-1" />
+                    Read
                   </Button>
                 </div>
                 <Button 
                   variant="ghost" 
                   size="sm"
                   onClick={() => toggleBookmark(article.id)}
+                  title="Bookmark article"
                 >
                   <Bookmark className={`w-4 h-4 ${
                     bookmarkedArticles.includes(article.id) 
