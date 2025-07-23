@@ -39,7 +39,7 @@ const UnifiedProfileView = ({ userId, isCurrentUser }: UnifiedProfileViewProps) 
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
   const [showSettings, setShowSettings] = useState(false);
-  const [activeTab, setActiveTab] = useState('posts');
+
 
   const profileId = userId || user?.id;
   const { followers, following, isFollowing, followUser, unfollowUser } = useFollowSystem(profileId);
@@ -53,6 +53,11 @@ const UnifiedProfileView = ({ userId, isCurrentUser }: UnifiedProfileViewProps) 
 
   const fetchProfile = async () => {
     try {
+      if (!profileId) {
+        setLoading(false);
+        return;
+      }
+
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
@@ -60,7 +65,25 @@ const UnifiedProfileView = ({ userId, isCurrentUser }: UnifiedProfileViewProps) 
         .single();
 
       if (error) throw error;
-      setProfile(data);
+      
+      // Type-safe profile transformation
+      const profileData: Profile = {
+        id: data.id,
+        full_name: data.full_name || '',
+        username: data.username || '',
+        bio: data.bio || '',
+        location: data.location || '',
+        website_url: data.website_url || '',
+        avatar_url: data.avatar_url || '',
+        user_type: data.user_type || 'buyer',
+        verified: data.verified || false,
+        rating: data.rating || 0,
+        total_reviews: data.total_reviews || 0,
+        years_experience: data.years_experience || 0,
+        created_at: data.created_at || new Date().toISOString()
+      };
+      
+      setProfile(profileData);
     } catch (error) {
       console.error('Error fetching profile:', error);
     } finally {
@@ -210,47 +233,10 @@ const UnifiedProfileView = ({ userId, isCurrentUser }: UnifiedProfileViewProps) 
         </CardContent>
       </Card>
 
-      {/* Profile Content Tabs */}
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="posts">Posts</TabsTrigger>
-          <TabsTrigger value="about">About</TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value="posts" className="mt-6">
-          <ProfilePostsGrid userId={profileId!} />
-        </TabsContent>
-        
-        <TabsContent value="about" className="mt-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>About</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <h3 className="font-semibold text-gray-900">User Type</h3>
-                <p className="text-gray-600 capitalize">{profile.user_type}</p>
-              </div>
-              
-              {profile.years_experience > 0 && (
-                <div>
-                  <h3 className="font-semibold text-gray-900">Experience</h3>
-                  <p className="text-gray-600">{profile.years_experience} years</p>
-                </div>
-              )}
-              
-              {profile.total_reviews > 0 && (
-                <div>
-                  <h3 className="font-semibold text-gray-900">Reviews</h3>
-                  <p className="text-gray-600">
-                    {profile.rating.toFixed(1)} ★ ({profile.total_reviews} reviews)
-                  </p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+      {/* Profile Posts */}
+      <div className="mt-6">
+        <ProfilePostsGrid userId={profileId!} />
+      </div>
     </div>
   );
 };

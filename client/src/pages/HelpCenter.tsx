@@ -1,137 +1,234 @@
-
-import React from 'react';
-import Layout from '@/components/Layout';
-import { Search, Book, MessageCircle, Phone, Mail, HelpCircle } from 'lucide-react';
+import React, { useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { Search, HelpCircle, ChevronDown, MessageCircle, Phone, Mail, BookOpen } from 'lucide-react';
 
 const HelpCenter = () => {
-  const categories = [
+  const [searchTerm, setSearchTerm] = useState('');
+
+  const faqData = [
     {
-      title: "Getting Started",
-      icon: Book,
-      articles: [
-        "How to create an account",
-        "Setting up your profile",
-        "Finding the right puppy",
-        "Understanding breeder verification"
+      category: 'Getting Started',
+      questions: [
+        {
+          question: 'How do I create an account?',
+          answer: 'To create an account, click the "Sign Up" button in the top right corner, enter your email address, create a password, and verify your email address through the confirmation link we send you.'
+        },
+        {
+          question: 'How do I search for puppies?',
+          answer: 'Use our search filters on the Explore page to find puppies by breed, location, price range, and age. You can also use our AI-powered search to find puppies that match your specific preferences.'
+        },
+        {
+          question: 'How do I contact a breeder?',
+          answer: 'Click the "Contact Breeder" button on any listing to start a conversation. You can send messages directly through our platform to ask questions about the puppy.'
+        }
       ]
     },
     {
-      title: "Buying a Puppy",
-      icon: HelpCircle,
-      articles: [
-        "How to contact breeders",
-        "Questions to ask breeders",
-        "Payment and escrow process",
-        "Health guarantees and contracts"
+      category: 'Safety & Trust',
+      questions: [
+        {
+          question: 'How does MY PUP verify breeders?',
+          answer: 'We have a comprehensive verification process that includes background checks, facility inspections, and review of breeding practices. Verified breeders display a blue checkmark badge.'
+        },
+        {
+          question: 'What should I look for in a reputable breeder?',
+          answer: 'Look for breeders who provide health certificates, allow facility visits, have positive reviews, and are transparent about their breeding practices. Our Trust & Safety guide has more detailed information.'
+        },
+        {
+          question: 'How do I report suspicious activity?',
+          answer: 'Use the "Report" button on any listing or profile, or contact our Trust & Safety team directly. We investigate all reports and take appropriate action to maintain platform safety.'
+        }
       ]
     },
     {
-      title: "For Breeders",
-      icon: MessageCircle,
-      articles: [
-        "How to become a verified breeder",
-        "Creating your first listing",
-        "Managing your breeding business",
-        "Best practices for communication"
+      category: 'Payments & Transactions',
+      questions: [
+        {
+          question: 'What payment methods do you accept?',
+          answer: 'We accept all major credit cards, debit cards, and bank transfers through our secure payment system powered by Stripe. All payments are encrypted and protected.'
+        },
+        {
+          question: 'How does the escrow service work?',
+          answer: 'Our escrow service holds your payment securely until you receive your puppy and confirm satisfaction. The breeder receives payment only after successful delivery and your approval.'
+        },
+        {
+          question: 'What is your refund policy?',
+          answer: 'Refund policies vary by breeder and are clearly stated on each listing. Our escrow service provides additional protection for qualifying transactions. Contact support for specific cases.'
+        }
+      ]
+    },
+    {
+      category: 'Account Management',
+      questions: [
+        {
+          question: 'How do I update my profile?',
+          answer: 'Go to your profile page and click "Edit Profile" to update your information, profile picture, and preferences. Changes are saved automatically.'
+        },
+        {
+          question: 'How do I change my password?',
+          answer: 'Go to Profile > Settings > Security to change your password. You\'ll need to enter your current password and create a new one.'
+        },
+        {
+          question: 'How do I delete my account?',
+          answer: 'Contact our support team to request account deletion. We\'ll permanently remove your data within 30 days, though some information may be retained for legal compliance.'
+        }
       ]
     }
   ];
 
+  const contactOptions = [
+    {
+      icon: MessageCircle,
+      title: 'Live Chat',
+      description: 'Chat with our support team in real-time',
+      action: 'Start Chat',
+      available: 'Available 9 AM - 6 PM PST'
+    },
+    {
+      icon: Mail,
+      title: 'Email Support',
+      description: 'Send us a detailed message',
+      action: 'Send Email',
+      available: 'Response within 24 hours'
+    },
+    {
+      icon: Phone,
+      title: 'Phone Support',
+      description: 'Speak directly with our team',
+      action: 'Call Now',
+      available: 'Mon-Fri 9 AM - 6 PM PST'
+    }
+  ];
+
+  const filteredFAQs = faqData.map(category => ({
+    ...category,
+    questions: category.questions.filter(
+      q => 
+        q.question.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        q.answer.toLowerCase().includes(searchTerm.toLowerCase())
+    )
+  })).filter(category => category.questions.length > 0);
+
   return (
-    <Layout>
-      <div className="min-h-screen bg-white py-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Header */}
-          <div className="text-center mb-12">
-            <HelpCircle className="h-16 w-16 text-blue-600 mx-auto mb-4" />
-            <h1 className="text-4xl font-bold text-gray-900 mb-4">Help & Support Center</h1>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Find answers to common questions and get support when you need it
-            </p>
-          </div>
-
+    <div className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <div className="bg-blue-600 text-white py-16">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <HelpCircle className="w-16 h-16 mx-auto mb-4" />
+          <h1 className="text-4xl font-bold mb-4">Help Center</h1>
+          <p className="text-xl text-blue-100 mb-8">
+            Find answers to your questions and get the support you need
+          </p>
+          
           {/* Search Bar */}
-          <div className="max-w-2xl mx-auto mb-12">
-            <div className="relative">
-              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
-              <input
-                type="text"
-                placeholder="Search help articles... (e.g., 'puppy verification', 'payment methods')"
-                className="w-full pl-12 pr-4 py-4 border border-gray-300 rounded-lg text-lg focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent"
-              />
-            </div>
-          </div>
-
-          {/* Support Options */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
-            <div className="bg-white p-8 rounded-lg border border-gray-200 shadow-sm text-center">
-              <MessageCircle className="h-12 w-12 text-blue-600 mx-auto mb-4" />
-              <h3 className="text-xl font-bold text-gray-900 mb-2">Live Chat</h3>
-              <p className="text-gray-600 mb-4">Chat with our support team</p>
-              <p className="text-sm text-gray-500 mb-4">Available in-app<br />24/7</p>
-              <button className="bg-blue-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-blue-700 transition-colors">
-                Start Chat
-              </button>
-            </div>
-
-            <div className="bg-white p-8 rounded-lg border border-gray-200 shadow-sm text-center">
-              <Mail className="h-12 w-12 text-blue-600 mx-auto mb-4" />
-              <h3 className="text-xl font-bold text-gray-900 mb-2">Email Support</h3>
-              <p className="text-gray-600 mb-4">support@mypup.com</p>
-              <p className="text-sm text-gray-500 mb-4">Response within 4 hours</p>
-              <button className="bg-blue-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-blue-700 transition-colors">
-                Send Email
-              </button>
-            </div>
-
-            <div className="bg-white p-8 rounded-lg border border-gray-200 shadow-sm text-center">
-              <Phone className="h-12 w-12 text-blue-600 mx-auto mb-4" />
-              <h3 className="text-xl font-bold text-gray-900 mb-2">Emergency Line</h3>
-              <p className="text-gray-600 mb-4">For urgent animal welfare concerns</p>
-              <p className="text-sm text-gray-500 mb-4">(555) 123-HELP<br />24/7</p>
-              <button className="bg-red-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-red-700 transition-colors">
-                Call Now
-              </button>
-            </div>
-          </div>
-
-          {/* Help Categories */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
-            {categories.map((category, index) => {
-              const Icon = category.icon;
-              return (
-                <div key={index} className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
-                  <Icon className="h-8 w-8 text-blue-600 mb-4" />
-                  <h3 className="text-xl font-bold text-gray-900 mb-4">{category.title}</h3>
-                  <ul className="space-y-2">
-                    {category.articles.map((article, articleIndex) => (
-                      <li key={articleIndex}>
-                        <a href="#" className="text-blue-600 hover:text-blue-800 hover:underline">
-                          {article}
-                        </a>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              );
-            })}
-          </div>
-
-          {/* FAQ Section */}
-          <div className="bg-gray-50 rounded-lg p-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">Frequently Asked Questions</h2>
-            <p className="text-gray-600 text-center mb-6">
-              Browse by topic or use the search bar above to find specific answers
-            </p>
-            <div className="text-center">
-              <button className="bg-blue-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors">
-                View All FAQs
-              </button>
-            </div>
+          <div className="relative max-w-xl mx-auto">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+            <Input
+              type="text"
+              placeholder="Search for help articles..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10 pr-4 py-3 text-lg bg-white text-gray-900"
+            />
           </div>
         </div>
       </div>
-    </Layout>
+
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <Tabs defaultValue="faq" className="space-y-8">
+          <TabsList className="grid w-full grid-cols-2 max-w-md mx-auto">
+            <TabsTrigger value="faq" className="flex items-center gap-2">
+              <BookOpen className="w-4 h-4" />
+              FAQ
+            </TabsTrigger>
+            <TabsTrigger value="contact" className="flex items-center gap-2">
+              <MessageCircle className="w-4 h-4" />
+              Contact Us
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="faq">
+            <div className="space-y-6">
+              <div className="text-center mb-8">
+                <h2 className="text-2xl font-bold text-gray-900 mb-2">Frequently Asked Questions</h2>
+                <p className="text-gray-600">Quick answers to common questions</p>
+              </div>
+
+              {filteredFAQs.map((category, categoryIndex) => (
+                <Card key={categoryIndex}>
+                  <CardHeader>
+                    <CardTitle className="text-lg text-blue-600">{category.category}</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    {category.questions.map((faq, faqIndex) => (
+                      <Collapsible key={faqIndex}>
+                        <CollapsibleTrigger className="flex items-center justify-between w-full p-4 text-left bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                          <span className="font-medium">{faq.question}</span>
+                          <ChevronDown className="w-5 h-5 text-gray-500" />
+                        </CollapsibleTrigger>
+                        <CollapsibleContent className="px-4 py-3 text-gray-600 bg-white border-l-4 border-blue-200">
+                          {faq.answer}
+                        </CollapsibleContent>
+                      </Collapsible>
+                    ))}
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </TabsContent>
+
+          <TabsContent value="contact">
+            <div className="space-y-8">
+              <div className="text-center mb-8">
+                <h2 className="text-2xl font-bold text-gray-900 mb-2">Contact Support</h2>
+                <p className="text-gray-600">Choose the best way to reach our support team</p>
+              </div>
+
+              <div className="grid md:grid-cols-3 gap-6">
+                {contactOptions.map((option, index) => {
+                  const IconComponent = option.icon;
+                  return (
+                    <Card key={index} className="text-center hover:shadow-md transition-shadow">
+                      <CardContent className="p-6">
+                        <IconComponent className="w-12 h-12 text-blue-600 mx-auto mb-4" />
+                        <h3 className="text-lg font-semibold mb-2">{option.title}</h3>
+                        <p className="text-gray-600 mb-4">{option.description}</p>
+                        <p className="text-sm text-gray-500 mb-4">{option.available}</p>
+                        <Button className="w-full">{option.action}</Button>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+              </div>
+
+              {/* Contact Form */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Send us a message</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <Input placeholder="Your Name" />
+                    <Input placeholder="Your Email" type="email" />
+                  </div>
+                  <Input placeholder="Subject" />
+                  <textarea 
+                    className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    rows={6}
+                    placeholder="Describe your issue or question..."
+                  />
+                  <Button className="w-full">Send Message</Button>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+        </Tabs>
+      </div>
+    </div>
   );
 };
 

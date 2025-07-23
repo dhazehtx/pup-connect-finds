@@ -17,6 +17,11 @@ import Marketplace from './pages/Marketplace';
 import ListingDetail from './pages/ListingDetail';
 import Messages from './pages/Messages';
 import MessageThread from './components/messaging/MessageThread';
+import Education from './pages/Education';
+import HelpCenter from './pages/HelpCenter';
+import TrustSafety from './pages/TrustSafety';
+import Contact from './pages/Contact';
+import Services from './pages/Services';
 import ProtectedRoute from './components/ProtectedRoute';
 
 const queryClient = new QueryClient({
@@ -48,6 +53,11 @@ function App() {
                   <Route path="/listing/:id" element={<ListingDetail />} />
                   <Route path="/messages" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
                   <Route path="/messages/:conversationId" element={<ProtectedRoute><MessageThread /></ProtectedRoute>} />
+                  <Route path="/education" element={<Education />} />
+                  <Route path="/help-center" element={<HelpCenter />} />
+                  <Route path="/trust-safety" element={<TrustSafety />} />
+                  <Route path="/contact" element={<Contact />} />
+                  <Route path="/services" element={<Services />} />
                 </Routes>
               </Layout>
             </ThemeProvider>

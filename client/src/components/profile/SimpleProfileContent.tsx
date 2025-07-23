@@ -182,11 +182,10 @@ const SimpleProfileContent = ({
 
       {/* Profile Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="listings">Listings</TabsTrigger>
           <TabsTrigger value="reviews">Reviews</TabsTrigger>
-          <TabsTrigger value="about">About</TabsTrigger>
         </TabsList>
         
         <TabsContent value="overview" className="space-y-6">
@@ -218,49 +217,6 @@ const SimpleProfileContent = ({
             </CardHeader>
             <CardContent>
               <p className="text-gray-500">No reviews to display.</p>
-            </CardContent>
-          </Card>
-        </TabsContent>
-        
-        <TabsContent value="about" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>About {profile.full_name}</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {profile.user_type === 'breeder' && (
-                <div>
-                  <h4 className="font-medium text-gray-900">Experience</h4>
-                  <p className="text-gray-600">{profile.years_experience} years in breeding</p>
-                </div>
-              )}
-              
-              {profile.specializations && profile.specializations.length > 0 && (
-                <div>
-                  <h4 className="font-medium text-gray-900 mb-2">Specializations</h4>
-                  <div className="flex flex-wrap gap-2">
-                    {profile.specializations.map((spec, index) => (
-                      <Badge key={index} variant="secondary">
-                        {spec}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-              )}
-              
-              {profile.certifications && profile.certifications.length > 0 && (
-                <div>
-                  <h4 className="font-medium text-gray-900 mb-2">Certifications</h4>
-                  <div className="flex flex-wrap gap-2">
-                    {profile.certifications.map((cert, index) => (
-                      <Badge key={index} variant="outline">
-                        <Award className="w-3 h-3 mr-1" />
-                        {cert}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-              )}
             </CardContent>
           </Card>
         </TabsContent>
