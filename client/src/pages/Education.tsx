@@ -42,13 +42,13 @@ const educationalArticles = [
     id: 1,
     title: 'Complete Guide to Puppy Vaccination Schedule',
     description: 'Essential vaccination timeline and health requirements for your new puppy from 6-16 weeks.',
-    author: 'American Veterinary Medical Association',
+    author: 'American Kennel Club',
     readTime: '8 min read',
     rating: 4.9,
     tags: ['vaccines', 'health', 'puppy', 'veterinary'],
     category: 'Health & Wellness',
     image: '/api/placeholder/300/200',
-    url: 'https://www.avma.org/resources/pet-owners/petcare/dog-care/puppy-vaccinations'
+    url: 'https://www.akc.org/expert-advice/health/puppy-vaccination-schedule/'
   },
   {
     id: 2,
@@ -66,25 +66,25 @@ const educationalArticles = [
     id: 3,
     title: 'House Training Your New Puppy: Step-by-Step Guide',
     description: 'Proven methods for successful house training, crate training, and establishing good bathroom habits.',
-    author: 'Certified Dog Trainer Institute',
+    author: 'American Kennel Club',
     readTime: '10 min read',
     rating: 4.7,
     tags: ['training', 'house-training', 'puppy', 'behavior'],
     category: 'Training & Behavior',
     image: '/api/placeholder/300/200',
-    url: 'https://www.akc.org/expert-advice/training/how-to-potty-train-a-puppy/'
+    url: 'https://www.akc.org/expert-advice/training/house-training-your-puppy/'
   },
   {
     id: 4,
     title: 'Nutrition Guidelines for Growing Puppies',
     description: 'Complete feeding guide including portion sizes, feeding schedules, and nutritional requirements.',
-    author: 'Pet Nutrition Alliance',
+    author: 'American Kennel Club',
     readTime: '7 min read',
     rating: 4.6,
     tags: ['nutrition', 'feeding', 'puppy', 'health'],
     category: 'Nutrition',
     image: '/api/placeholder/300/200',
-    url: 'https://www.akc.org/expert-advice/nutrition/puppy-feeding-guide/'
+    url: 'https://www.akc.org/expert-advice/nutrition/best-puppy-food/'
   },
   {
     id: 5,
@@ -149,8 +149,8 @@ const Education = () => {
   };
 
   const handleReadArticle = (article: any) => {
-    // Create a modal or navigate to full article view
-    window.open(article.url || '#', '_blank');
+    // Open authentic AKC article in new tab with security attributes
+    window.open(article.url || '#', '_blank', 'noopener,noreferrer');
   };
 
   const handleShareArticle = (article: any) => {
