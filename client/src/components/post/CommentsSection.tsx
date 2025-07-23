@@ -37,7 +37,14 @@ interface CommentsSectionProps {
 const CommentsSection = ({ comments, setComments, onProfileClick }: CommentsSectionProps) => {
   const [showAllComments, setShowAllComments] = useState(false);
   const [showCommentLikesModal, setShowCommentLikesModal] = useState(false);
-  const [selectedCommentLikes, setSelectedCommentLikes] = useState([]);
+  const [selectedCommentLikes, setSelectedCommentLikes] = useState<Array<{
+    id: string;
+    name: string;
+    username: string;
+    avatar: string;
+    verified?: boolean;
+    isFollowing?: boolean;
+  }>>([]);
   const { user } = useAuth();
   const { toast } = useToast();
   
