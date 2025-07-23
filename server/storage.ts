@@ -8,6 +8,7 @@ import {
   reviews,
   posts,
   comments,
+  commentReplies,
   notifications,
   transactions,
   type User, 
@@ -28,6 +29,8 @@ import {
   type InsertPost,
   type Comment,
   type InsertComment,
+  type CommentReply,
+  type InsertCommentReply,
   type Notification,
   type InsertNotification,
   type Transaction,
@@ -91,6 +94,10 @@ export interface IStorage {
   // Comment methods
   getPostComments(postId: string): Promise<Comment[]>;
   createComment(comment: InsertComment): Promise<Comment>;
+  
+  // Comment reply methods
+  getCommentReplies(commentId: string): Promise<CommentReply[]>;
+  createCommentReply(reply: InsertCommentReply): Promise<CommentReply>;
   
   // Notification methods
   getUserNotifications(userId: string): Promise<Notification[]>;
@@ -328,6 +335,18 @@ export class DatabaseStorage implements IStorage {
 
   async createComment(comment: InsertComment): Promise<Comment> {
     const result = await db.insert(comments).values([comment]).returning();
+    return result[0];
+  }
+
+  // Comment reply methods
+  async getCommentReplies(commentId: string): Promise<CommentReply[]> {
+    return await db.select().from(commentReplies)
+      .where(eq(commentReplies.comment_id, commentId))
+      .orderBy(commentReplies.created_at);
+  }
+
+  async createCommentReply(reply: InsertCommentReply): Promise<CommentReply> {
+    const result = await db.insert(commentReplies).values([reply]).returning();
     return result[0];
   }
 

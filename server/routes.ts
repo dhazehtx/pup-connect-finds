@@ -11,6 +11,7 @@ import {
   insertReviewSchema,
   insertPostSchema,
   insertCommentSchema,
+  insertCommentReplySchema,
   insertNotificationSchema,
   insertTransactionSchema
 } from "@shared/schema";
@@ -273,6 +274,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(comment);
     } catch (error) {
       console.error("Error creating comment:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  // Comment reply routes
+  app.get("/api/comments/:id/replies", async (req, res) => {
+    try {
+      const replies = await storage.getCommentReplies(req.params.id);
+      res.json(replies);
+    } catch (error) {
+      console.error("Error getting comment replies:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  app.post("/api/comment-replies", async (req, res) => {
+    try {
+      const validatedData = insertCommentReplySchema.parse(req.body);
+      const reply = await storage.createCommentReply(validatedData);
+      res.json(reply);
+    } catch (error) {
+      console.error("Error creating comment reply:", error);
       res.status(500).json({ error: "Internal server error" });
     }
   });

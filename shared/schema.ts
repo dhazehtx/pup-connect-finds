@@ -117,6 +117,15 @@ export const comments = pgTable("comments", {
   updated_at: timestamp("updated_at").defaultNow(),
 });
 
+// Comment replies table
+export const commentReplies = pgTable("comment_replies", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  comment_id: uuid("comment_id").references(() => comments.id, { onDelete: "cascade" }).notNull(),
+  user_id: uuid("user_id").references(() => profiles.id, { onDelete: "cascade" }).notNull(),
+  content: text("content").notNull(),
+  created_at: timestamp("created_at", { withTimezone: true }).defaultNow(),
+});
+
 // Notifications table - Updated to match database structure
 export const notifications = pgTable("notifications", {
   id: uuid("id").primaryKey(),
@@ -163,6 +172,7 @@ export const insertFavoriteSchema = createInsertSchema(favorites).omit({ id: tru
 export const insertReviewSchema = createInsertSchema(reviews).omit({ id: true, created_at: true });
 export const insertPostSchema = createInsertSchema(posts).omit({ id: true, created_at: true, updated_at: true });
 export const insertCommentSchema = createInsertSchema(comments).omit({ id: true, created_at: true, updated_at: true });
+export const insertCommentReplySchema = createInsertSchema(commentReplies).omit({ id: true, created_at: true });
 export const insertNotificationSchema = createInsertSchema(notifications).omit({ id: true, created_at: true });
 export const insertTransactionSchema = createInsertSchema(transactions).omit({ id: true, created_at: true, updated_at: true });
 
@@ -183,6 +193,8 @@ export type Post = typeof posts.$inferSelect;
 export type InsertPost = z.infer<typeof insertPostSchema>;
 export type Comment = typeof comments.$inferSelect;
 export type InsertComment = z.infer<typeof insertCommentSchema>;
+export type CommentReply = typeof commentReplies.$inferSelect;
+export type InsertCommentReply = z.infer<typeof insertCommentReplySchema>;
 export type Notification = typeof notifications.$inferSelect;
 export type InsertNotification = z.infer<typeof insertNotificationSchema>;
 export type Transaction = typeof transactions.$inferSelect;
