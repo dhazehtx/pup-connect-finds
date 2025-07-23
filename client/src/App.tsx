@@ -28,6 +28,7 @@ import AccountSettingsPage from './pages/AccountSettings';
 import ProtectedRoute from './components/ProtectedRoute';
 import { FraudDetectionDemo } from './components/security/FraudDetectionDemo';
 import { RefundManagement } from './pages/RefundManagement';
+import { CommissionCenter } from './pages/CommissionCenter';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -68,6 +69,7 @@ function App() {
                   <Route path="/account-settings" element={<ProtectedRoute><AccountSettingsPage /></ProtectedRoute>} />
                   <Route path="/fraud-demo" element={<ProtectedRoute><FraudDetectionDemo /></ProtectedRoute>} />
                   <Route path="/refund-center" element={<ProtectedRoute><RefundManagement /></ProtectedRoute>} />
+                  <Route path="/commission-center" element={<ProtectedRoute><CommissionCenter /></ProtectedRoute>} />
                 </Routes>
               </Layout>
             </ThemeProvider>

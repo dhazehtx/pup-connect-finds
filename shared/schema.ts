@@ -213,6 +213,44 @@ export const refundRequests = pgTable("refund_requests", {
 
 export const insertRefundRequestSchema = createInsertSchema(refundRequests).omit({ id: true, created_at: true, updated_at: true });
 
+// Commission tracking table
+export const commissions = pgTable("commissions", {
+  id: uuid("id").primaryKey(),
+  transaction_id: text("transaction_id").references(() => transactions.id).notNull(),
+  seller_id: uuid("seller_id").references(() => profiles.id).notNull(),
+  buyer_id: uuid("buyer_id").references(() => profiles.id).notNull(),
+  total_amount: decimal("total_amount").notNull(), // Total transaction amount
+  commission_percent: decimal("commission_percent").notNull(), // Commission rate applied
+  platform_fee: decimal("platform_fee").notNull(), // Amount kept by platform
+  seller_payout: decimal("seller_payout").notNull(), // Amount paid to seller
+  listing_type: text("listing_type").notNull(), // puppy, service, rehoming, premium
+  listing_id: text("listing_id"), // Reference to specific listing if applicable
+  status: text("status").default("pending").notNull(), // pending, completed, refunded, disputed
+  stripe_transfer_id: text("stripe_transfer_id"), // Stripe transfer ID when payout is made
+  payout_date: timestamp("payout_date"), // When seller was actually paid
+  currency: text("currency").default("usd"),
+  notes: text("notes"), // Admin notes or special conditions
+  created_at: timestamp("created_at").defaultNow(),
+  updated_at: timestamp("updated_at").defaultNow(),
+});
+
+// Commission settings table for configurable rates
+export const commissionSettings = pgTable("commission_settings", {
+  id: uuid("id").primaryKey(),
+  listing_type: text("listing_type").notNull().unique(), // puppy, service, rehoming, premium
+  commission_percent: decimal("commission_percent").notNull(),
+  flat_fee: decimal("flat_fee"), // Optional flat fee instead of percentage
+  min_fee: decimal("min_fee"), // Minimum commission amount
+  max_fee: decimal("max_fee"), // Maximum commission amount (cap)
+  description: text("description"), // Human-readable description
+  is_active: boolean("is_active").default(true),
+  created_at: timestamp("created_at").defaultNow(),
+  updated_at: timestamp("updated_at").defaultNow(),
+});
+
+export const insertCommissionSchema = createInsertSchema(commissions).omit({ id: true, created_at: true, updated_at: true });
+export const insertCommissionSettingsSchema = createInsertSchema(commissionSettings).omit({ id: true, created_at: true, updated_at: true });
+
 // Infer types
 export type Profile = typeof profiles.$inferSelect;
 export type InsertProfile = z.infer<typeof insertProfileSchema>;
@@ -240,6 +278,10 @@ export type FraudDetectionEvent = typeof fraudDetectionEvents.$inferSelect;
 export type InsertFraudDetectionEvent = z.infer<typeof insertFraudDetectionEventSchema>;
 export type RefundRequest = typeof refundRequests.$inferSelect;
 export type InsertRefundRequest = z.infer<typeof insertRefundRequestSchema>;
+export type Commission = typeof commissions.$inferSelect;
+export type InsertCommission = z.infer<typeof insertCommissionSchema>;
+export type CommissionSettings = typeof commissionSettings.$inferSelect;
+export type InsertCommissionSettings = z.infer<typeof insertCommissionSettingsSchema>;
 
 // Legacy user table for backward compatibility (can be removed later)
 export const users = pgTable("users", {

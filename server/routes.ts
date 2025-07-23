@@ -4,6 +4,7 @@ import { storage } from "./storage";
 import userRoutes from './routes/user';
 import fraudDemoRoutes from './routes/fraudDemo';
 import refundRoutes from './routes/refunds';
+import commissionRoutes from './routes/commissions';
 import Stripe from 'stripe';
 import { 
   generalRateLimit, 
@@ -753,6 +754,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Mount refund routes
   app.use('/api/refunds', refundRoutes);
+  
+  // Mount commission routes
+  app.use('/api/commissions', commissionRoutes);
 
   const httpServer = createServer(app);
   return httpServer;
