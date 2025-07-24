@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { Suspense, lazy } from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ThemeProvider } from './contexts/ThemeContext';
@@ -8,16 +8,19 @@ import { RealtimeProvider } from './contexts/RealtimeContext';
 import Layout from './components/Layout';
 import Home from './pages/Home';
 import HomeFeedPage from './pages/HomeFeed';
-import Explore from './pages/Explore';
-import Post from './pages/Post';
-import Profile from './pages/Profile';
 import Auth from './pages/Auth';
 import CreateListing from './pages/CreateListing';
 import Marketplace from './pages/Marketplace';
 import ListingDetail from './pages/ListingDetail';
-import Messages from './pages/Messages';
+import Post from './pages/Post';
 import MessageThread from './components/messaging/MessageThread';
-import Notifications from './pages/Notifications';
+import { LoadingPage } from './components/ui/loading';
+
+// Lazy load heavy components for performance
+const LazyExplore = lazy(() => import('./pages/Explore'));
+const LazyProfile = lazy(() => import('./pages/Profile'));
+const LazyMessages = lazy(() => import('./pages/Messages'));
+const LazyNotifications = lazy(() => import('./pages/Notifications'));
 import Education from './pages/Education';
 import HelpCenter from './pages/HelpCenter';
 import TrustSafety from './pages/TrustSafety';
@@ -49,17 +52,45 @@ function App() {
                 <Routes>
                   <Route path="/" element={<Home />} />
                   <Route path="/home" element={<ProtectedRoute><HomeFeedPage /></ProtectedRoute>} />
-                  <Route path="/explore" element={<Explore />} />
+                  <Route path="/explore" element={
+                    <Suspense fallback={<LoadingPage message="Loading Explore..." />}>
+                      <LazyExplore />
+                    </Suspense>
+                  } />
                   <Route path="/marketplace" element={<Marketplace />} />
                   <Route path="/post" element={<ProtectedRoute><Post /></ProtectedRoute>} />
-                  <Route path="/profile/:userId" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
-                  <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+                  <Route path="/profile/:userId" element={
+                    <ProtectedRoute>
+                      <Suspense fallback={<LoadingPage message="Loading Profile..." />}>
+                        <LazyProfile />
+                      </Suspense>
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/profile" element={
+                    <ProtectedRoute>
+                      <Suspense fallback={<LoadingPage message="Loading Profile..." />}>
+                        <LazyProfile />
+                      </Suspense>
+                    </ProtectedRoute>
+                  } />
                   <Route path="/auth" element={<Auth />} />
                   <Route path="/create-listing" element={<ProtectedRoute><CreateListing /></ProtectedRoute>} />
                   <Route path="/listing/:id" element={<ListingDetail />} />
-                  <Route path="/messages" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
+                  <Route path="/messages" element={
+                    <ProtectedRoute>
+                      <Suspense fallback={<LoadingPage message="Loading Messages..." />}>
+                        <LazyMessages />
+                      </Suspense>
+                    </ProtectedRoute>
+                  } />
                   <Route path="/messages/:conversationId" element={<ProtectedRoute><MessageThread /></ProtectedRoute>} />
-                  <Route path="/notifications" element={<ProtectedRoute><Notifications /></ProtectedRoute>} />
+                  <Route path="/notifications" element={
+                    <ProtectedRoute>
+                      <Suspense fallback={<LoadingPage message="Loading Notifications..." />}>
+                        <LazyNotifications />
+                      </Suspense>
+                    </ProtectedRoute>
+                  } />
                   <Route path="/education" element={<Education />} />
                   <Route path="/help-center" element={<HelpCenter />} />
                   <Route path="/trust-safety" element={<TrustSafety />} />

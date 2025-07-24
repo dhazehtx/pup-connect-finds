@@ -5,6 +5,7 @@ import userRoutes from './routes/user';
 import fraudDemoRoutes from './routes/fraudDemo';
 import refundRoutes from './routes/refunds';
 import commissionRoutes from './routes/commissions';
+import CommissionService from './services/commissionService';
 import Stripe from 'stripe';
 import { 
   generalRateLimit, 
