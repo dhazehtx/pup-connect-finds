@@ -758,6 +758,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Mount commission routes
   app.use('/api/commissions', commissionRoutes);
+  
+  // Mount performance optimized routes
+  const performanceRoutes = await import('./routes/performanceRoutes');
+  app.use('/api/performance', performanceRoutes.default);
 
   const httpServer = createServer(app);
   return httpServer;

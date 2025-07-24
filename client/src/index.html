@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="MY PUP - A comprehensive dog listing platform connecting dog lovers with breeders, rescues, and sellers. Find your perfect puppy today!" />
+    <meta name="keywords" content="dogs, puppies, breeders, pet adoption, dog listings, pet marketplace" />
+    <meta name="author" content="MY PUP Platform" />
+    
+    <!-- Open Graph Meta Tags -->
+    <meta property="og:title" content="MY PUP - Dog Listing Platform" />
+    <meta property="og:description" content="Find your perfect puppy from verified breeders and rescues. Safe, secure, and comprehensive dog marketplace." />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://mypup.replit.app" />
+    <meta property="og:image" content="/og-image.jpg" />
+    
+    <!-- Twitter Card Meta Tags -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="MY PUP - Dog Listing Platform" />
+    <meta name="twitter:description" content="Find your perfect puppy from verified breeders and rescues." />
+    <meta name="twitter:image" content="/og-image.jpg" />
+    
+    <!-- PWA and Performance -->
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="theme-color" content="#2563eb" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    
+    <title>MY PUP - Dog Listing Platform</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+    
+    <!-- Service Worker Registration -->
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js')
+            .then((registration) => {
+              console.log('SW registered: ', registration);
+            })
+            .catch((registrationError) => {
+              console.log('SW registration failed: ', registrationError);
+            });
+        });
+      }
+    </script>
+  </body>
+</html>

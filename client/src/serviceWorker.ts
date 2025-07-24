@@ -1,23 +1,25 @@
-// Service Worker for MY PUP platform
-const CACHE_NAME = 'mypup-cache-v1';
+// Service Worker for caching static assets and API responses
+const CACHE_NAME = 'mypup-v1';
 const STATIC_CACHE = 'mypup-static-v1';
 const API_CACHE = 'mypup-api-v1';
 
 // Assets to cache immediately
 const STATIC_ASSETS = [
   '/',
-  '/manifest.json',
-  '/favicon.ico'
+  '/static/js/bundle.js',
+  '/static/css/main.css',
+  '/manifest.json'
 ];
 
 // API endpoints to cache
 const CACHEABLE_APIS = [
   '/api/breeds',
+  '/api/legal-content',
   '/api/education',
   '/api/help-center'
 ];
 
-self.addEventListener('install', (event) => {
+self.addEventListener('install', (event: ExtendableEvent) => {
   event.waitUntil(
     Promise.all([
       caches.open(STATIC_CACHE).then(cache => cache.addAll(STATIC_ASSETS)),
@@ -26,7 +28,7 @@ self.addEventListener('install', (event) => {
   );
 });
 
-self.addEventListener('fetch', (event) => {
+self.addEventListener('fetch', (event: FetchEvent) => {
   const { request } = event;
   const url = new URL(request.url);
 
@@ -75,7 +77,7 @@ self.addEventListener('fetch', (event) => {
   }
 });
 
-self.addEventListener('activate', (event) => {
+self.addEventListener('activate', (event: ExtendableEvent) => {
   event.waitUntil(
     caches.keys().then(cacheNames => {
       return Promise.all(

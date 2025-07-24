@@ -6,6 +6,8 @@ import { ThemeProvider } from './contexts/ThemeContext';
 import { AuthProvider } from './contexts/AuthContext';
 import { RealtimeProvider } from './contexts/RealtimeContext';
 import Layout from './components/Layout';
+import { PerformanceMonitor } from './components/ui/PerformanceMonitor';
+import { PageTransition } from './components/ui/transitions';
 import Home from './pages/Home';
 import HomeFeedPage from './pages/HomeFeed';
 import Auth from './pages/Auth';
@@ -21,11 +23,11 @@ const LazyExplore = lazy(() => import('./pages/Explore'));
 const LazyProfile = lazy(() => import('./pages/Profile'));
 const LazyMessages = lazy(() => import('./pages/Messages'));
 const LazyNotifications = lazy(() => import('./pages/Notifications'));
-import Education from './pages/Education';
+const LazyEducation = lazy(() => import('./pages/Education'));
+const LazyServices = lazy(() => import('./pages/Services'));
 import HelpCenter from './pages/HelpCenter';
 import TrustSafety from './pages/TrustSafety';
 import Contact from './pages/Contact';
-import Services from './pages/Services';
 import LegalGuide from './pages/LegalGuide';
 import AccountSettingsPage from './pages/AccountSettings';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -37,6 +39,12 @@ const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       staleTime: 60 * 1000, // 1 minute
+      gcTime: 300 * 1000, // 5 minutes
+      retry: 2,
+      refetchOnWindowFocus: false,
+    },
+    mutations: {
+      retry: 1,
     },
   },
 });
@@ -49,7 +57,8 @@ function App() {
           <RealtimeProvider>
             <ThemeProvider>
               <Layout>
-                <Routes>
+                <PageTransition>
+                  <Routes>
                   <Route path="/" element={<Home />} />
                   <Route path="/home" element={<ProtectedRoute><HomeFeedPage /></ProtectedRoute>} />
                   <Route path="/explore" element={
@@ -91,17 +100,27 @@ function App() {
                       </Suspense>
                     </ProtectedRoute>
                   } />
-                  <Route path="/education" element={<Education />} />
+                  <Route path="/education" element={
+                    <Suspense fallback={<LoadingPage message="Loading Education..." />}>
+                      <LazyEducation />
+                    </Suspense>
+                  } />
                   <Route path="/help-center" element={<HelpCenter />} />
                   <Route path="/trust-safety" element={<TrustSafety />} />
                   <Route path="/contact" element={<Contact />} />
-                  <Route path="/services" element={<Services />} />
+                  <Route path="/services" element={
+                    <Suspense fallback={<LoadingPage message="Loading Services..." />}>
+                      <LazyServices />
+                    </Suspense>
+                  } />
                   <Route path="/legal" element={<LegalGuide />} />
                   <Route path="/account-settings" element={<ProtectedRoute><AccountSettingsPage /></ProtectedRoute>} />
                   <Route path="/fraud-demo" element={<ProtectedRoute><FraudDetectionDemo /></ProtectedRoute>} />
                   <Route path="/refund-center" element={<ProtectedRoute><RefundManagement /></ProtectedRoute>} />
                   <Route path="/commission-center" element={<ProtectedRoute><CommissionCenter /></ProtectedRoute>} />
-                </Routes>
+                  </Routes>
+                </PageTransition>
+                <PerformanceMonitor />
               </Layout>
             </ThemeProvider>
           </RealtimeProvider>
