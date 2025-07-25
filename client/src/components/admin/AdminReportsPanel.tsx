@@ -310,23 +310,23 @@ const AdminReportsPanel = () => {
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-            <Select value={filters.type} onValueChange={(value) => setFilters({...filters, type: value})}>
+            <Select value={filters.type || "all"} onValueChange={(value) => setFilters({...filters, type: value === "all" ? "" : value})}>
               <SelectTrigger>
                 <SelectValue placeholder="Report Type" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Types</SelectItem>
+                <SelectItem value="all">All Types</SelectItem>
                 <SelectItem value="user">User Reports</SelectItem>
                 <SelectItem value="listing">Listing Reports</SelectItem>
               </SelectContent>
             </Select>
 
-            <Select value={filters.status} onValueChange={(value) => setFilters({...filters, status: value})}>
+            <Select value={filters.status || "all"} onValueChange={(value) => setFilters({...filters, status: value === "all" ? "" : value})}>
               <SelectTrigger>
                 <SelectValue placeholder="Status" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Status</SelectItem>
+                <SelectItem value="all">All Status</SelectItem>
                 <SelectItem value="pending">Pending</SelectItem>
                 <SelectItem value="investigating">Investigating</SelectItem>
                 <SelectItem value="resolved">Resolved</SelectItem>
@@ -334,12 +334,12 @@ const AdminReportsPanel = () => {
               </SelectContent>
             </Select>
 
-            <Select value={filters.severity} onValueChange={(value) => setFilters({...filters, severity: value})}>
+            <Select value={filters.severity || "all"} onValueChange={(value) => setFilters({...filters, severity: value === "all" ? "" : value})}>
               <SelectTrigger>
                 <SelectValue placeholder="Severity" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Severities</SelectItem>
+                <SelectItem value="all">All Severities</SelectItem>
                 <SelectItem value="low">Low</SelectItem>
                 <SelectItem value="medium">Medium</SelectItem>
                 <SelectItem value="high">High</SelectItem>
