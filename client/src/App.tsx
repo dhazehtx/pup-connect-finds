@@ -34,9 +34,14 @@ import ProtectedRoute from './components/ProtectedRoute';
 import { FraudDetectionDemo } from './components/security/FraudDetectionDemo';
 import { RefundManagement } from './pages/RefundManagement';
 import { CommissionCenter } from './pages/CommissionCenter';
+import ErrorBoundary from './components/ErrorBoundary';
 
 // Lazy load rate limit demo
 const RateLimitDemo = lazy(() => import('./pages/RateLimitDemo'));
+
+// Lazy load error monitoring panel
+const ErrorMonitoringPanel = lazy(() => import('./components/admin/ErrorMonitoringPanel'));
+const ErrorTestPage = lazy(() => import('./pages/ErrorTestPage'));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -54,13 +59,14 @@ const queryClient = new QueryClient({
 
 function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <Router>
-        <AuthProvider>
-          <RealtimeProvider>
-            <ThemeProvider>
-              <Layout>
-                <PageTransition>
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <Router>
+          <AuthProvider>
+            <RealtimeProvider>
+              <ThemeProvider>
+                <Layout>
+                  <PageTransition>
                   <Routes>
                   <Route path="/" element={<Home />} />
                   <Route path="/home" element={<ProtectedRoute><HomeFeedPage /></ProtectedRoute>} />
@@ -126,6 +132,18 @@ function App() {
                       <RateLimitDemo />
                     </Suspense>
                   } />
+                  <Route path="/admin/errors" element={
+                    <ProtectedRoute>
+                      <Suspense fallback={<LoadingPage message="Loading Error Monitoring..." />}>
+                        <ErrorMonitoringPanel />
+                      </Suspense>
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/error-test" element={
+                    <Suspense fallback={<LoadingPage message="Loading Error Test..." />}>
+                      <ErrorTestPage />
+                    </Suspense>
+                  } />
                   </Routes>
                 </PageTransition>
                 <PerformanceMonitor />
@@ -135,6 +153,7 @@ function App() {
         </AuthProvider>
       </Router>
     </QueryClientProvider>
+    </ErrorBoundary>
   );
 }
 

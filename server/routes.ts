@@ -11,6 +11,12 @@ import {
   checkLockout,
   getAbuseStats
 } from "./middleware/rateLimiting";
+
+// Error handling middleware
+import { globalErrorHandler, notFoundHandler, asyncHandler } from './middleware/errorHandler';
+
+// Logging routes
+import logsRouter from './routes/logs';
 import { 
   insertProfileSchema, 
   insertDogListingSchema, 
@@ -743,6 +749,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Add admin endpoints for abuse monitoring
   app.get('/api/admin/abuse-stats', getAbuseStats);
+
+  // Add logging routes
+  app.use('/api/logs', logsRouter);
+
+  // 404 handler for API routes only (not for static files)
+  app.use('/api/*', notFoundHandler);
+
+  // Global error handler (must be last)
+  app.use(globalErrorHandler);
 
   const httpServer = createServer(app);
   return httpServer;
