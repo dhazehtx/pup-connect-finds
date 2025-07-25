@@ -22,20 +22,21 @@ interface QuickFilterSelectsProps {
 const QuickFilterSelects = ({ filters, onFilterChange }: QuickFilterSelectsProps) => {
   const popularBreeds = [
     'All Breeds',
-    'Labrador Retriever',
-    'Golden Retriever', 
-    'German Shepherd',
-    'Bulldog',
-    'Poodle',
     'Beagle',
-    'Rottweiler',
-    'Yorkshire Terrier',
-    'Dachshund',
-    'Siberian Husky',
-    'Great Dane',
-    'Chihuahua',
+    'Belgian Malinois',
     'Border Collie',
-    'Boxer'
+    'Boxer',
+    'Bulldog',
+    'Chihuahua',
+    'Dachshund',
+    'German Shepherd',
+    'Golden Retriever',
+    'Great Dane',
+    'Labrador Retriever',
+    'Poodle',
+    'Rottweiler',
+    'Siberian Husky',
+    'Yorkshire Terrier'
   ];
 
   return (

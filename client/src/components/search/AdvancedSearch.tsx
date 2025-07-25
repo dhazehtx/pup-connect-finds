@@ -32,9 +32,9 @@ interface AdvancedSearchProps {
 }
 
 const breeds = [
-  'Golden Retriever', 'Labrador Retriever', 'German Shepherd', 'Bulldog',
-  'Poodle', 'Beagle', 'Rottweiler', 'Yorkshire Terrier', 'Dachshund',
-  'Siberian Husky', 'Shih Tzu', 'Boston Terrier', 'Pomeranian', 'Australian Shepherd'
+  'Australian Shepherd', 'Beagle', 'Belgian Malinois', 'Boston Terrier', 'Bulldog',
+  'Dachshund', 'German Shepherd', 'Golden Retriever', 'Labrador Retriever', 
+  'Pomeranian', 'Poodle', 'Rottweiler', 'Shih Tzu', 'Siberian Husky', 'Yorkshire Terrier'
 ];
 
 const sizes = ['Small', 'Medium', 'Large', 'Extra Large'];

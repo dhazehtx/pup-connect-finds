@@ -39,26 +39,28 @@ const ExploreContainer = ({
   const [favorites, setFavorites] = useState<string[]>([]);
 
   const breedOptions = [
-    'Labrador Retriever',
-    'Golden Retriever',
-    'German Shepherd',
-    'French Bulldog',
-    'Bulldog',
-    'Poodle',
     'Beagle',
+    'Belgian Malinois',
+    'Bulldog',
+    'Dachshund',
+    'French Bulldog',
+    'German Shepherd',
+    'Golden Retriever',
+    'Labrador Retriever',
+    'Poodle',
     'Rottweiler',
-    'Yorkshire Terrier',
-    'Dachshund'
+    'Yorkshire Terrier'
   ];
 
   // Fix: Make popularBreeds a string array as expected by PopularBreeds component
   const popularBreeds = [
-    'Golden Retriever',
-    'Labrador Retriever', 
-    'German Shepherd',
+    'Beagle',
+    'Belgian Malinois',
     'French Bulldog',
-    'Poodle',
-    'Beagle'
+    'German Shepherd',
+    'Golden Retriever',
+    'Labrador Retriever',
+    'Poodle'
   ];
 
   const handleFilterChange = (key: string, value: any) => {

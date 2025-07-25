@@ -157,3 +157,12 @@ The application is designed for modern web deployment with consideration for ser
 - Built optimized listing cards with skeleton loaders and enhanced user experience
 - Added infinite scroll pagination with cursor-based queries for better database performance
 - Created performance middleware for backend query optimization and slow query detection
+
+### Belgian Malinois Breed Addition (July 2025)
+- Added "Belgian Malinois" as a new breed option across all filter components and backend search functionality
+- Updated 8+ filter components with alphabetically sorted breed lists including Belgian Malinois
+- Added breed color mappings for Belgian Malinois (Fawn, Mahogany, Red, Red Sable, Fawn Sable) to database
+- Created database migration for Belgian Malinois breed colors
+- Updated sample listings to include Belgian Malinois example
+- Ensured breed filtering works seamlessly across desktop and mobile layouts
+- Verified backend search queries recognize and filter Belgian Malinois listings correctly

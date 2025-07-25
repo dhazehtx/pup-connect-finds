@@ -30,11 +30,12 @@ const QuickFilters = ({ filters, onFiltersChange, onClearFilters }: QuickFilters
   const [showFilters, setShowFilters] = useState(false);
   
   const popularBreeds = [
+    'Beagle',
+    'Belgian Malinois',
     'French Bulldog',
-    'Golden Retriever', 
     'German Shepherd',
-    'Labrador',
-    'Beagle'
+    'Golden Retriever',
+    'Labrador'
   ];
 
   const quickFilters = [

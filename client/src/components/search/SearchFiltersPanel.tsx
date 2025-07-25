@@ -28,8 +28,9 @@ interface SearchFiltersPanelProps {
 }
 
 const popularBreeds = [
-  'Labrador Retriever', 'Golden Retriever', 'German Shepherd', 'French Bulldog',
-  'Bulldog', 'Poodle', 'Beagle', 'Rottweiler', 'Siberian Husky', 'Dachshund'
+  'Beagle', 'Belgian Malinois', 'Bulldog', 'Dachshund', 'French Bulldog',
+  'German Shepherd', 'Golden Retriever', 'Labrador Retriever', 'Poodle', 
+  'Rottweiler', 'Siberian Husky'
 ];
 
 const SearchFiltersPanel = ({ filters, onFiltersChange, onClose }: SearchFiltersPanelProps) => {

@@ -32,8 +32,9 @@ const AdvancedSearchFilters = ({ onSearch, onSaveSearch }: {
   const { toast } = useToast();
 
   const popularBreeds = [
-    'Labrador Retriever', 'Golden Retriever', 'German Shepherd', 'Bulldog',
-    'Poodle', 'Beagle', 'Rottweiler', 'Yorkshire Terrier', 'Boxer', 'Siberian Husky'
+    'Beagle', 'Belgian Malinois', 'Boxer', 'Bulldog', 'German Shepherd',
+    'Golden Retriever', 'Labrador Retriever', 'Poodle', 'Rottweiler', 
+    'Siberian Husky', 'Yorkshire Terrier'
   ];
 
   const handleBreedToggle = (breed: string) => {
