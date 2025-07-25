@@ -166,3 +166,15 @@ The application is designed for modern web deployment with consideration for ser
 - Updated sample listings to include Belgian Malinois example
 - Ensured breed filtering works seamlessly across desktop and mobile layouts
 - Verified backend search queries recognize and filter Belgian Malinois listings correctly
+
+### API Rate Limiting & Abuse Protection System (July 2025)
+- Implemented comprehensive middleware-based rate limiting with IP and user-based throttling (60 requests/minute)
+- Created tiered rate limiting: General (60/min), Messaging (30/min), Listing Creation (10/hour), Auth (5/15min)
+- Built exponential backoff system with lockout mechanism for repeated abuse (1min → 24hr progressive penalties)
+- Added professional RateLimitErrorModal with countdown timers and retry guidance for user-friendly error handling
+- Developed comprehensive AbuseMonitoringPanel for admin oversight with real-time statistics and violation tracking
+- Integrated useRateLimitHandler hook for seamless frontend rate limit error management across all API calls
+- Created interactive RateLimitDemo at /rate-limit-demo for testing and demonstrating the protection system
+- Applied specific rate limiting to sensitive endpoints: authentication, messaging, listing creation, and profile updates
+- Added automated cleanup system for clearing old abuse logs and expired lockouts every hour
+- Enhanced security with lockout checks preventing access from flagged IPs/users before processing requests

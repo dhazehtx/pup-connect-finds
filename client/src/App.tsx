@@ -35,6 +35,9 @@ import { FraudDetectionDemo } from './components/security/FraudDetectionDemo';
 import { RefundManagement } from './pages/RefundManagement';
 import { CommissionCenter } from './pages/CommissionCenter';
 
+// Lazy load rate limit demo
+const RateLimitDemo = lazy(() => import('./pages/RateLimitDemo'));
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -118,6 +121,11 @@ function App() {
                   <Route path="/fraud-demo" element={<ProtectedRoute><FraudDetectionDemo /></ProtectedRoute>} />
                   <Route path="/refund-center" element={<ProtectedRoute><RefundManagement /></ProtectedRoute>} />
                   <Route path="/commission-center" element={<ProtectedRoute><CommissionCenter /></ProtectedRoute>} />
+                  <Route path="/rate-limit-demo" element={
+                    <Suspense fallback={<LoadingPage message="Loading Rate Limit Demo..." />}>
+                      <RateLimitDemo />
+                    </Suspense>
+                  } />
                   </Routes>
                 </PageTransition>
                 <PerformanceMonitor />

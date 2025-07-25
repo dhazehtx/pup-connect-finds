@@ -1,23 +1,25 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import userRoutes from './routes/user';
-import fraudDemoRoutes from './routes/fraudDemo';
-import refundRoutes from './routes/refunds';
-import commissionRoutes from './routes/commissions';
-import CommissionService from './services/commissionService';
-import Stripe from 'stripe';
 import { 
   generalRateLimit, 
+  strictRateLimit, 
   authRateLimit, 
   messagingRateLimit, 
-  searchRateLimit, 
-  uploadRateLimit,
+  listingRateLimit,
   speedLimiter,
-  userContextMiddleware,
-  abuseDetectionMiddleware
-} from './middleware/rateLimiting';
-import { fraudDetectionMiddleware, checkProfileStatus } from './middleware/fraudDetection';
+  checkLockout,
+  getAbuseStats
+} from "./middleware/rateLimiting";
+import { 
+  insertProfileSchema, 
+  insertDogListingSchema, 
+  insertMessageSchema,
+  insertConversationSchema,
+  insertFavoriteSchema,
+  insertReviewSchema,
+  insertNotificationSchema,
+} from "@shared/schema";
 import { 
   insertProfileSchema, 
   insertDogListingSchema, 
@@ -32,17 +34,9 @@ import {
   insertTransactionSchema
 } from "@shared/schema";
 
-// Initialize Stripe
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2025-06-30.basil',
-});
-
 export async function registerRoutes(app: Express): Promise<Server> {
   // Apply global middleware
-  app.use(userContextMiddleware); // Extract user context for rate limiting
-  app.use(abuseDetectionMiddleware); // Detect suspicious patterns
-  // app.use(fraudDetectionMiddleware); // TODO: Enable after database schema update
-  // app.use(checkProfileStatus); // TODO: Enable after database schema update
+  app.use(checkLockout); // Check for locked out IPs/users
   app.use(speedLimiter); // Gradual slowdown for high-frequency requests
   app.use(generalRateLimit); // Apply general rate limiting to all routes
 
@@ -85,8 +79,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Dog listing routes
-  app.get("/api/listings", searchRateLimit, async (req, res) => {
+  // Dog listing routes (with rate limiting for creation)
+  app.get("/api/listings", async (req, res) => {
     try {
       const { breed, minPrice, maxPrice, location, status, userId } = req.query;
       const filters = {
@@ -118,7 +112,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/listings", async (req, res) => {
+  app.post("/api/listings", listingRateLimit, async (req, res) => {
     try {
       const validatedData = insertDogListingSchema.parse(req.body);
       const listing = await storage.createDogListing(validatedData);
@@ -747,21 +741,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Mount user routes for GDPR compliance (with auth rate limiting)
-  app.use('/api/user', authRateLimit, userRoutes);
-  
-  // Mount fraud detection demo routes
-  app.use('/api/fraud-demo', fraudDemoRoutes);
-  
-  // Mount refund routes
-  app.use('/api/refunds', refundRoutes);
-  
-  // Mount commission routes
-  app.use('/api/commissions', commissionRoutes);
-  
-  // Mount performance optimized routes
-  const performanceRoutes = await import('./routes/performanceRoutes');
-  app.use('/api/performance', performanceRoutes.default);
+  // Add admin endpoints for abuse monitoring
+  app.get('/api/admin/abuse-stats', getAbuseStats);
 
   const httpServer = createServer(app);
   return httpServer;

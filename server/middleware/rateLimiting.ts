@@ -1,257 +1,360 @@
-import rateLimit from 'express-rate-limit';
+import { Request, Response, NextFunction } from 'express';
+import rateLimit, { RateLimitRequestHandler } from 'express-rate-limit';
 import slowDown from 'express-slow-down';
-import { Request, Response } from 'express';
 
-// Extend Request interface to include user property
+// Extend Express Request interface to include user
 declare global {
   namespace Express {
     interface Request {
-      user?: { id: string };
+      user?: {
+        id: string;
+        isAdmin?: boolean;
+      };
     }
   }
 }
 
-// Rate limiting configuration
-export const rateLimitConfig = {
-  // Authentication routes (login, register, password reset)
-  auth: {
-    windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 5, // 5 attempts per window
-    message: {
-      error: 'Too many authentication attempts',
-      message: 'Please wait 15 minutes before trying again',
-      retryAfter: 15 * 60 // seconds
-    }
-  },
-  
-  // General API requests
-  general: {
-    windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 100, // 100 requests per window
-    message: {
-      error: 'Too many requests',
-      message: 'You have exceeded the rate limit. Please try again later.',
-      retryAfter: 15 * 60 // seconds
-    }
-  },
-  
-  // Message posting
-  messaging: {
-    windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 30, // 30 messages per window
-    message: {
-      error: 'Too many messages sent',
-      message: 'Please wait before sending more messages',
-      retryAfter: 15 * 60 // seconds
-    }
-  },
-  
-  // Search and data-intensive operations
-  search: {
-    windowMs: 5 * 60 * 1000, // 5 minutes
-    max: 20, // 20 searches per window
-    message: {
-      error: 'Too many search requests',
-      message: 'Please wait before performing more searches',
-      retryAfter: 5 * 60 // seconds
-    }
-  },
-  
-  // File uploads
-  uploads: {
-    windowMs: 10 * 60 * 1000, // 10 minutes
-    max: 10, // 10 uploads per window
-    message: {
-      error: 'Too many upload attempts',
-      message: 'Please wait before uploading more files',
-      retryAfter: 10 * 60 // seconds
-    }
-  }
-};
+// Store for tracking abuse attempts
+interface AbuseAttempt {
+  ip: string;
+  userId?: string;
+  endpoint: string;
+  timestamp: Date;
+  userAgent: string;
+  attempts: number;
+}
 
-// Custom key generator that uses user ID when available, falls back to IP
-const createKeyGenerator = (useUserId = false) => {
-  return (req: Request): string => {
-    if (useUserId && req.user?.id) {
-      return `user:${req.user.id}`;
-    }
+class RateLimitStore {
+  private attempts: Map<string, AbuseAttempt> = new Map();
+  private lockouts: Map<string, Date> = new Map();
+
+  // Log abuse attempt
+  logAbuseAttempt(req: Request, endpoint: string): void {
+    const key = this.getKey(req);
+    const existing = this.attempts.get(key);
     
-    // Get real IP address, handling proxies
-    const forwarded = req.headers['x-forwarded-for'] as string;
-    const ip = forwarded ? forwarded.split(',')[0].trim() : req.connection.remoteAddress;
-    return `ip:${ip}`;
-  };
-};
-
-// Custom handler for rate limit exceeded
-const createRateLimitHandler = (limitType: string) => {
-  return (req: Request, res: Response) => {
-    const config = rateLimitConfig[limitType as keyof typeof rateLimitConfig];
-    const identifier = createKeyGenerator(limitType === 'messaging')(req);
-    
-    // Log abuse attempt
-    console.warn(`Rate limit exceeded [${limitType}]:`, {
-      identifier,
-      ip: req.ip,
-      userAgent: req.headers['user-agent'],
-      endpoint: req.path,
-      method: req.method,
-      timestamp: new Date().toISOString()
-    });
-    
-    // Set appropriate headers
-    res.set({
-      'Retry-After': config.message.retryAfter.toString(),
-      'X-RateLimit-Limit': config.max.toString(),
-      'X-RateLimit-Remaining': '0',
-      'X-RateLimit-Reset': new Date(Date.now() + config.windowMs).toISOString()
-    });
-    
-    return res.status(429).json(config.message);
-  };
-};
-
-// Authentication rate limiter (stricter for login attempts)
-export const authRateLimit = rateLimit({
-  windowMs: rateLimitConfig.auth.windowMs,
-  max: rateLimitConfig.auth.max,
-  keyGenerator: createKeyGenerator(false), // Use IP for auth attempts
-  handler: createRateLimitHandler('auth'),
-  standardHeaders: true,
-  legacyHeaders: false,
-  skip: (req) => {
-    // Skip rate limiting for successful authentication
-    return req.method === 'GET' || req.path.includes('/verify');
-  }
-});
-
-// General API rate limiter
-export const generalRateLimit = rateLimit({
-  windowMs: rateLimitConfig.general.windowMs,
-  max: rateLimitConfig.general.max,
-  keyGenerator: createKeyGenerator(false), // Use IP for general requests
-  handler: createRateLimitHandler('general'),
-  standardHeaders: true,
-  legacyHeaders: false,
-  skip: (req) => {
-    // Skip for static assets, Vite dev assets, and health checks
-    return req.path.startsWith('/assets') || 
-           req.path.startsWith('/@') || // Vite dev assets
-           req.path.startsWith('/src') || // Vite source files
-           req.path.startsWith('/node_modules') ||
-           req.path === '/health' || 
-           req.path === '/favicon.ico';
-  }
-});
-
-// Messaging rate limiter (per user)
-export const messagingRateLimit = rateLimit({
-  windowMs: rateLimitConfig.messaging.windowMs,
-  max: rateLimitConfig.messaging.max,
-  keyGenerator: createKeyGenerator(true), // Use user ID for messaging
-  handler: createRateLimitHandler('messaging'),
-  standardHeaders: true,
-  legacyHeaders: false,
-  skip: (req) => {
-    // Only apply to POST requests (sending messages)
-    return req.method !== 'POST';
-  }
-});
-
-// Search rate limiter
-export const searchRateLimit = rateLimit({
-  windowMs: rateLimitConfig.search.windowMs,
-  max: rateLimitConfig.search.max,
-  keyGenerator: createKeyGenerator(false), // Use IP for search requests
-  handler: createRateLimitHandler('search'),
-  standardHeaders: true,
-  legacyHeaders: false
-});
-
-// Upload rate limiter
-export const uploadRateLimit = rateLimit({
-  windowMs: rateLimitConfig.uploads.windowMs,
-  max: rateLimitConfig.uploads.max,
-  keyGenerator: createKeyGenerator(true), // Use user ID for uploads
-  handler: createRateLimitHandler('uploads'),
-  standardHeaders: true,
-  legacyHeaders: false
-});
-
-// Slow down middleware for gradual response delays
-export const speedLimiter = slowDown({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  delayAfter: 50, // Allow 50 requests at full speed
-  delayMs: () => 500, // Add 500ms delay per request after threshold
-  maxDelayMs: 20000, // Maximum delay of 20 seconds
-  keyGenerator: createKeyGenerator(false),
-  skip: (req) => {
-    return req.path.startsWith('/assets') || 
-           req.path.startsWith('/@') || // Vite dev assets
-           req.path.startsWith('/src') || // Vite source files
-           req.path.startsWith('/node_modules') ||
-           req.path === '/health';
-  },
-  validate: { delayMs: false } // Disable warning message
-});
-
-// Middleware to extract user info for rate limiting
-export const userContextMiddleware = (req: Request, res: Response, next: () => void) => {
-  // Extract user from JWT token if present
-  const authHeader = req.headers.authorization;
-  if (authHeader?.startsWith('Bearer ')) {
-    try {
-      const token = authHeader.substring(7);
-      // This is a simplified extraction - in production you'd verify the JWT
-      const payload = JSON.parse(Buffer.from(token.split('.')[1], 'base64').toString());
-      req.user = { id: payload.sub };
-    } catch (error) {
-      // Invalid token, continue without user context
-    }
-  }
-  next();
-};
-
-// Abuse detection middleware
-export const abuseDetectionMiddleware = (req: Request, res: Response, next: () => void) => {
-  const suspiciousPatterns = [
-    /admin/i,
-    /\.\.\//, // Directory traversal
-    /<script/i, // XSS attempts
-    /union.*select/i, // SQL injection
-    /eval\(/i, // Code injection
-  ];
-  
-  const requestData = JSON.stringify({
-    url: req.url,
-    body: req.body,
-    query: req.query,
-    headers: req.headers
-  });
-  
-  const isSuspicious = suspiciousPatterns.some(pattern => pattern.test(requestData));
-  
-  if (isSuspicious) {
-    console.warn('Suspicious request detected:', {
-      ip: req.ip,
-      userAgent: req.headers['user-agent'],
-      url: req.url,
-      method: req.method,
-      timestamp: new Date().toISOString()
-    });
-    
-    // Don't block, just log for now - you could implement blocking here
-  }
-  
-  next();
-};
-
-// Export configuration for easy updates
-export const updateRateLimitConfig = (type: string, newConfig: Partial<typeof rateLimitConfig.general>) => {
-  if (rateLimitConfig[type as keyof typeof rateLimitConfig]) {
-    rateLimitConfig[type as keyof typeof rateLimitConfig] = {
-      ...rateLimitConfig[type as keyof typeof rateLimitConfig],
-      ...newConfig
+    const attempt: AbuseAttempt = {
+      ip: req.ip || 'unknown',
+      userId: req.user?.id,
+      endpoint,
+      timestamp: new Date(),
+      userAgent: req.get('User-Agent') || 'unknown',
+      attempts: existing ? existing.attempts + 1 : 1
     };
+
+    this.attempts.set(key, attempt);
+    
+    // Log to console for now (can be extended to database logging)
+    console.log(`[RATE_LIMIT_ABUSE] ${JSON.stringify({
+      ip: attempt.ip,
+      userId: attempt.userId,
+      endpoint: attempt.endpoint,
+      attempts: attempt.attempts,
+      timestamp: attempt.timestamp.toISOString(),
+      userAgent: attempt.userAgent
+    })}`);
   }
+
+  // Check if IP/user is locked out
+  isLockedOut(req: Request): boolean {
+    const key = this.getKey(req);
+    const lockoutTime = this.lockouts.get(key);
+    
+    if (lockoutTime && new Date() < lockoutTime) {
+      return true;
+    }
+    
+    if (lockoutTime && new Date() >= lockoutTime) {
+      this.lockouts.delete(key);
+    }
+    
+    return false;
+  }
+
+  // Apply lockout with exponential backoff
+  applyLockout(req: Request, attempts: number): void {
+    const key = this.getKey(req);
+    // Exponential backoff: 1min, 5min, 15min, 1hr, 24hr
+    const backoffMinutes = Math.min(Math.pow(2, attempts - 5) * 1, 1440); // Max 24 hours
+    const lockoutUntil = new Date(Date.now() + backoffMinutes * 60 * 1000);
+    
+    this.lockouts.set(key, lockoutUntil);
+    
+    console.log(`[LOCKOUT_APPLIED] ${JSON.stringify({
+      key,
+      attempts,
+      lockoutMinutes: backoffMinutes,
+      lockoutUntil: lockoutUntil.toISOString()
+    })}`);
+  }
+
+  private getKey(req: Request): string {
+    // Prefer user ID if authenticated, otherwise use IP
+    return req.user?.id ? `user:${req.user.id}` : `ip:${req.ip}`;
+  }
+
+  // Get abuse statistics for admin panel
+  getAbuseStats(): { attempts: AbuseAttempt[], lockouts: Array<{key: string, until: Date}> } {
+    const attempts: AbuseAttempt[] = [];
+    const lockouts: Array<{key: string, until: Date}> = [];
+    
+    this.attempts.forEach((attempt) => attempts.push(attempt));
+    this.lockouts.forEach((until, key) => lockouts.push({ key, until }));
+    
+    return { attempts, lockouts };
+  }
+
+  // Make attempts accessible for admin checks
+  getAttempts() {
+    return this.attempts;
+  }
+
+  // Clean up old entries (call periodically)
+  cleanup(): void {
+    const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+    
+    // Clean up old attempts
+    this.attempts.forEach((attempt, key) => {
+      if (attempt.timestamp < oneDayAgo) {
+        this.attempts.delete(key);
+      }
+    });
+    
+    // Clean up expired lockouts
+    const now = new Date();
+    this.lockouts.forEach((until, key) => {
+      if (now >= until) {
+        this.lockouts.delete(key);
+      }
+    });
+  }
+}
+
+const rateLimitStore = new RateLimitStore();
+
+// Clean up old entries every hour
+setInterval(() => rateLimitStore.cleanup(), 60 * 60 * 1000);
+
+// Helper function to check if request should be rate limited
+const shouldRateLimit = (req: Request): boolean => {
+  const path = req.path;
+  
+  // Skip rate limiting for static assets, Vite HMR, and dev server resources
+  if (
+    path.startsWith('/@vite') ||
+    path.startsWith('/@fs') ||
+    path.startsWith('/src/') ||
+    path.startsWith('/node_modules/') ||
+    path.includes('.js') ||
+    path.includes('.css') ||
+    path.includes('.png') ||
+    path.includes('.jpg') ||
+    path.includes('.svg') ||
+    path.includes('.ico') ||
+    path.includes('.woff') ||
+    path.includes('.ttf') ||
+    path.includes('__vite_ping') ||
+    req.headers['accept']?.includes('text/css') ||
+    req.headers['accept']?.includes('application/javascript') ||
+    req.headers['sec-fetch-dest'] === 'script' ||
+    req.headers['sec-fetch-dest'] === 'style'
+  ) {
+    return false;
+  }
+  
+  return true;
 };
+
+// Lockout check middleware
+export const checkLockout = (req: Request, res: Response, next: NextFunction) => {
+  // Skip rate limiting for development assets
+  if (!shouldRateLimit(req)) {
+    next();
+    return;
+  }
+  
+  if (rateLimitStore.isLockedOut(req)) {
+    return res.status(429).json({
+      error: 'Account temporarily locked due to suspicious activity',
+      message: 'Your account has been temporarily locked due to repeated violations. Please try again later.',
+      retryAfter: 3600 // 1 hour default
+    });
+  }
+  next();
+};
+
+// General rate limiter - 200 requests per minute (increased for dev)
+export const generalRateLimit: RateLimitRequestHandler = rateLimit({
+  windowMs: 60 * 1000, // 1 minute
+  max: 200, // Increased to accommodate dev server requests
+  skip: (req: Request) => !shouldRateLimit(req), // Skip static assets
+  message: {
+    error: 'Too many requests',
+    message: "You're doing that too much. Please wait a moment.",
+    retryAfter: 60
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+  keyGenerator: (req: Request) => {
+    return req.user?.id ? `user:${req.user.id}` : req.ip || 'unknown';
+  },
+  handler: (req: Request, res: Response) => {
+    rateLimitStore.logAbuseAttempt(req, req.path);
+    res.status(429).json({
+      error: 'Too many requests',
+      message: "You're doing that too much. Please wait a moment.",
+      retryAfter: 60
+    });
+  },
+  validate: {
+    keyGeneratorIpFallback: false
+  }
+});
+
+// Strict rate limiter for sensitive endpoints - 10 requests per minute
+export const strictRateLimit: RateLimitRequestHandler = rateLimit({
+  windowMs: 60 * 1000, // 1 minute
+  max: 10,
+  skip: (req: Request) => !shouldRateLimit(req), // Skip static assets
+  message: {
+    error: 'Too many requests to sensitive endpoint',
+    message: "You're making too many requests to this endpoint. Please wait before trying again.",
+    retryAfter: 60
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+  keyGenerator: (req: Request) => {
+    return req.user?.id ? `user:${req.user.id}` : req.ip || 'unknown';
+  },
+  handler: (req: Request, res: Response) => {
+    rateLimitStore.logAbuseAttempt(req, req.path);
+    
+    // Apply lockout after 5 violations
+    const key = req.user?.id ? `user:${req.user.id}` : req.ip || 'unknown';
+    const attempts = rateLimitStore.getAttempts().get(key)?.attempts || 0;
+    
+    if (attempts >= 5) {
+      rateLimitStore.applyLockout(req, attempts);
+    }
+    
+    res.status(429).json({
+      error: 'Too many requests to sensitive endpoint',
+      message: "You're making too many requests to this endpoint. Please wait before trying again.",
+      retryAfter: 60
+    });
+  },
+  validate: {
+    keyGeneratorIpFallback: false
+  }
+});
+
+// Auth rate limiter - 5 attempts per 15 minutes
+export const authRateLimit: RateLimitRequestHandler = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 5,
+  skip: (req: Request) => !shouldRateLimit(req), // Skip static assets
+  message: {
+    error: 'Too many authentication attempts',
+    message: "Too many login attempts. Please wait 15 minutes before trying again.",
+    retryAfter: 900
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+  keyGenerator: (req: Request) => `auth:${req.ip || 'unknown'}`,
+  handler: (req: Request, res: Response) => {
+    rateLimitStore.logAbuseAttempt(req, 'auth');
+    
+    // Immediate lockout for auth abuse
+    rateLimitStore.applyLockout(req, 10);
+    
+    res.status(429).json({
+      error: 'Too many authentication attempts',
+      message: "Too many login attempts. Please wait 15 minutes before trying again.",
+      retryAfter: 900
+    });
+  },
+  validate: {
+    keyGeneratorIpFallback: false
+  }
+});
+
+// Messaging rate limiter - 30 messages per minute
+export const messagingRateLimit: RateLimitRequestHandler = rateLimit({
+  windowMs: 60 * 1000, // 1 minute
+  max: 30,
+  skip: (req: Request) => !shouldRateLimit(req), // Skip static assets
+  message: {
+    error: 'Too many messages sent',
+    message: "You're sending messages too quickly. Please slow down.",
+    retryAfter: 60
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+  keyGenerator: (req: Request) => {
+    return req.user?.id ? `msg:${req.user.id}` : `msg:${req.ip || 'unknown'}`;
+  },
+  handler: (req: Request, res: Response) => {
+    rateLimitStore.logAbuseAttempt(req, 'messaging');
+    res.status(429).json({
+      error: 'Too many messages sent',
+      message: "You're sending messages too quickly. Please slow down.",
+      retryAfter: 60
+    });
+  },
+  validate: {
+    keyGeneratorIpFallback: false
+  }
+});
+
+// Listing creation rate limiter - 10 listings per hour
+export const listingRateLimit: RateLimitRequestHandler = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hour
+  max: 10,
+  skip: (req: Request) => !shouldRateLimit(req), // Skip static assets
+  message: {
+    error: 'Too many listings created',
+    message: "You're creating listings too quickly. Please wait before creating another.",
+    retryAfter: 3600
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+  keyGenerator: (req: Request) => {
+    return req.user?.id ? `listing:${req.user.id}` : `listing:${req.ip || 'unknown'}`;
+  },
+  handler: (req: Request, res: Response) => {
+    rateLimitStore.logAbuseAttempt(req, 'listing-creation');
+    res.status(429).json({
+      error: 'Too many listings created',
+      message: "You're creating listings too quickly. Please wait before creating another.",
+      retryAfter: 3600
+    });
+  },
+  validate: {
+    keyGeneratorIpFallback: false
+  }
+});
+
+// Speed limiter with progressive delays
+export const speedLimiter = slowDown({
+  windowMs: 60 * 1000, // 1 minute
+  delayAfter: 100, // Allow 100 requests per minute at full speed (increased for dev)
+  delayMs: () => 200, // Reduced delay for better dev experience
+  maxDelayMs: 5000, // Reduced maximum delay
+  skip: (req: Request) => !shouldRateLimit(req), // Skip static assets
+  keyGenerator: (req: Request) => {
+    return req.user?.id ? `speed:${req.user.id}` : `speed:${req.ip || 'unknown'}`;
+  }
+});
+
+// Admin endpoint to get abuse statistics
+export const getAbuseStats = (req: Request, res: Response) => {
+  // Check if user is admin (implement your admin check logic)
+  if (!req.user || !req.user.isAdmin) {
+    return res.status(403).json({ error: 'Admin access required' });
+  }
+  
+  const stats = rateLimitStore.getAbuseStats();
+  res.json(stats);
+};
+
+export default rateLimitStore;
