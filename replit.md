@@ -190,3 +190,14 @@ The application is designed for modern web deployment with consideration for ser
 - Added log statistics dashboard showing total logs, error counts, average response times, and hourly trends
 - Implemented log resolution system for tracking and marking errors as resolved by administrators
 - Created comprehensive log filtering by level, category, date range, user ID, and resolution status
+
+### Trust, Safety & Legal Compliance - User Reporting System (July 2025)
+- Built comprehensive user reporting and moderation system with database schema for user_reports, listing_reports, and report_rate_limit tables
+- Implemented ReportingService with rate limiting (5 reports/day), duplicate prevention, and automatic notification system
+- Created REST API endpoints for reporting users/listings, admin report management, and resolution workflows
+- Built ReportUserModal and ReportListingModal components with validation, reason selection, and severity levels
+- Added AdminReportsPanel at /admin/reports with filtering, statistics dashboard, and resolution interface
+- Integrated intelligent report categorization: user reports (harassment, fraud, fake profiles) and listing reports (puppy mills, scams, misleading info)
+- Implemented admin actions: warnings, bans, listing removal, and comprehensive audit trail with notifications
+- Added ReportButton component for easy integration across profiles and listings with consistent UX
+- Created automatic high-severity alert system and comprehensive reporting statistics for administrative oversight

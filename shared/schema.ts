@@ -324,3 +324,58 @@ export const systemLogs = pgTable("system_logs", {
 export const insertSystemLogSchema = createInsertSchema(systemLogs).omit({ id: true, created_at: true });
 export type SystemLog = typeof systemLogs.$inferSelect;
 export type InsertSystemLog = z.infer<typeof insertSystemLogSchema>;
+
+// User reports table for reporting inappropriate behavior
+export const userReports = pgTable("user_reports", {
+  id: uuid("id").primaryKey(),
+  reporter_id: uuid("reporter_id").references(() => profiles.id).notNull(),
+  reported_user_id: uuid("reported_user_id").references(() => profiles.id).notNull(),
+  reason: text("reason").notNull(), // inappropriate_content, harassment, spam, fraud, fake_profile, other
+  message: text("message").notNull(),
+  severity: text("severity").default("medium"), // low, medium, high, critical
+  status: text("status").default("pending"), // pending, investigating, resolved, dismissed
+  admin_notes: text("admin_notes"),
+  action_taken: text("action_taken"), // none, warning_issued, temporary_ban, permanent_ban, profile_restricted
+  resolved_by: uuid("resolved_by").references(() => profiles.id),
+  resolved_at: timestamp("resolved_at"),
+  created_at: timestamp("created_at").defaultNow(),
+  updated_at: timestamp("updated_at").defaultNow(),
+});
+
+// Listing reports table for reporting inappropriate listings
+export const listingReports = pgTable("listing_reports", {
+  id: uuid("id").primaryKey(),
+  reporter_id: uuid("reporter_id").references(() => profiles.id).notNull(),
+  listing_id: uuid("listing_id").references(() => dogListings.id).notNull(),
+  listing_owner_id: uuid("listing_owner_id").references(() => profiles.id).notNull(),
+  reason: text("reason").notNull(), // misleading_info, overpriced, sick_animal, puppy_mill, scam, inappropriate_content, other
+  message: text("message").notNull(),
+  severity: text("severity").default("medium"), // low, medium, high, critical
+  status: text("status").default("pending"), // pending, investigating, resolved, dismissed
+  admin_notes: text("admin_notes"),
+  action_taken: text("action_taken"), // none, listing_removed, warning_issued, user_banned, listing_flagged
+  resolved_by: uuid("resolved_by").references(() => profiles.id),
+  resolved_at: timestamp("resolved_at"),
+  created_at: timestamp("created_at").defaultNow(),
+  updated_at: timestamp("updated_at").defaultNow(),
+});
+
+// Report rate limiting tracking
+export const reportRateLimit = pgTable("report_rate_limit", {
+  id: uuid("id").primaryKey(),
+  user_id: uuid("user_id").references(() => profiles.id).notNull(),
+  report_count: integer("report_count").default(0),
+  last_report_date: timestamp("last_report_date").defaultNow(),
+  reset_date: timestamp("reset_date").defaultNow(),
+});
+
+export const insertUserReportSchema = createInsertSchema(userReports).omit({ id: true, created_at: true, updated_at: true });
+export const insertListingReportSchema = createInsertSchema(listingReports).omit({ id: true, created_at: true, updated_at: true });
+export const insertReportRateLimitSchema = createInsertSchema(reportRateLimit).omit({ id: true, created_at: true });
+
+export type UserReport = typeof userReports.$inferSelect;
+export type InsertUserReport = z.infer<typeof insertUserReportSchema>;
+export type ListingReport = typeof listingReports.$inferSelect;
+export type InsertListingReport = z.infer<typeof insertListingReportSchema>;
+export type ReportRateLimit = typeof reportRateLimit.$inferSelect;
+export type InsertReportRateLimit = z.infer<typeof insertReportRateLimitSchema>;

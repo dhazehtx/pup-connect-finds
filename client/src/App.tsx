@@ -43,6 +43,8 @@ const RateLimitDemo = lazy(() => import('./pages/RateLimitDemo'));
 const ErrorMonitoringPanel = lazy(() => import('./components/admin/ErrorMonitoringPanel'));
 const ErrorTestPage = lazy(() => import('./pages/ErrorTestPage'));
 const AdminLogsPage = lazy(() => import('./pages/AdminLogsPage'));
+const AdminReportsPage = lazy(() => import('./pages/AdminReportsPage'));
+const ReportsTestPage = lazy(() => import('./pages/ReportsTestPage'));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -151,6 +153,18 @@ function App() {
                         <AdminLogsPage />
                       </Suspense>
                     </ProtectedRoute>
+                  } />
+                  <Route path="/admin/reports" element={
+                    <ProtectedRoute>
+                      <Suspense fallback={<LoadingPage message="Loading Reports Panel..." />}>
+                        <AdminReportsPage />
+                      </Suspense>
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/reports-test" element={
+                    <Suspense fallback={<LoadingPage message="Loading Reports Test..." />}>
+                      <ReportsTestPage />
+                    </Suspense>
                   } />
                   </Routes>
                 </PageTransition>

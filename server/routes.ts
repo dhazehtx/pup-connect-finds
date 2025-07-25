@@ -19,6 +19,9 @@ import { globalErrorHandler, notFoundHandler, asyncHandler } from './middleware/
 import logsRouter from './routes/logs';
 import adminLogsRouter from './routes/adminLogs';
 
+// Reporting routes
+import reportsRouter from './routes/reports';
+
 // Logging middleware
 import { apiLoggingMiddleware, performanceLogger } from './middleware/loggingMiddleware';
 import { 
@@ -761,6 +764,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Add logging routes
   app.use('/api/logs', logsRouter);
   app.use('/api/admin/logs', adminLogsRouter);
+  
+  // Add reporting routes
+  app.use('/api/reports', reportsRouter);
 
   // 404 handler for API routes only (not for static files)
   app.use('/api/*', notFoundHandler);
