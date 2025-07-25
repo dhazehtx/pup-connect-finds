@@ -17,6 +17,10 @@ import { globalErrorHandler, notFoundHandler, asyncHandler } from './middleware/
 
 // Logging routes
 import logsRouter from './routes/logs';
+import adminLogsRouter from './routes/adminLogs';
+
+// Logging middleware
+import { apiLoggingMiddleware, performanceLogger } from './middleware/loggingMiddleware';
 import { 
   insertProfileSchema, 
   insertDogListingSchema, 
@@ -45,6 +49,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use(checkLockout); // Check for locked out IPs/users
   app.use(speedLimiter); // Gradual slowdown for high-frequency requests
   app.use(generalRateLimit); // Apply general rate limiting to all routes
+  
+  // Add comprehensive logging middleware
+  app.use(apiLoggingMiddleware); // Log all API requests
+  app.use(performanceLogger(2000)); // Log slow responses (>2s)
 
   // Profile routes
   app.get("/api/profile/:id", async (req, res) => {
@@ -752,6 +760,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Add logging routes
   app.use('/api/logs', logsRouter);
+  app.use('/api/admin/logs', adminLogsRouter);
 
   // 404 handler for API routes only (not for static files)
   app.use('/api/*', notFoundHandler);

@@ -42,6 +42,7 @@ const RateLimitDemo = lazy(() => import('./pages/RateLimitDemo'));
 // Lazy load error monitoring panel
 const ErrorMonitoringPanel = lazy(() => import('./components/admin/ErrorMonitoringPanel'));
 const ErrorTestPage = lazy(() => import('./pages/ErrorTestPage'));
+const AdminLogsPage = lazy(() => import('./pages/AdminLogsPage'));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -143,6 +144,13 @@ function App() {
                     <Suspense fallback={<LoadingPage message="Loading Error Test..." />}>
                       <ErrorTestPage />
                     </Suspense>
+                  } />
+                  <Route path="/admin/logs" element={
+                    <ProtectedRoute>
+                      <Suspense fallback={<LoadingPage message="Loading Log Viewer..." />}>
+                        <AdminLogsPage />
+                      </Suspense>
+                    </ProtectedRoute>
                   } />
                   </Routes>
                 </PageTransition>

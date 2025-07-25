@@ -297,3 +297,30 @@ export const insertUserSchema = createInsertSchema(users).pick({
 
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
+
+// System logs table for comprehensive monitoring
+export const systemLogs = pgTable("system_logs", {
+  id: uuid("id").primaryKey(),
+  log_id: text("log_id").notNull().unique(), // Unique identifier for each log entry
+  level: text("level").notNull(), // debug, info, warn, error, critical
+  category: text("category").notNull(), // api, frontend, auth, payment, database, etc.
+  message: text("message").notNull(),
+  details: jsonb("details"), // Additional structured data
+  user_id: uuid("user_id").references(() => profiles.id), // Optional user context
+  session_id: text("session_id"), // Session identifier
+  ip_address: text("ip_address"),
+  user_agent: text("user_agent"),
+  endpoint: text("endpoint"), // API endpoint or page route
+  method: text("method"), // HTTP method for API calls
+  status_code: integer("status_code"), // HTTP status code
+  response_time: integer("response_time"), // Response time in milliseconds
+  error_stack: text("error_stack"), // Full error stack trace for errors
+  resolved: boolean("resolved").default(false), // For error tracking
+  resolved_by: uuid("resolved_by").references(() => profiles.id),
+  resolved_at: timestamp("resolved_at"),
+  created_at: timestamp("created_at").defaultNow(),
+});
+
+export const insertSystemLogSchema = createInsertSchema(systemLogs).omit({ id: true, created_at: true });
+export type SystemLog = typeof systemLogs.$inferSelect;
+export type InsertSystemLog = z.infer<typeof insertSystemLogSchema>;
