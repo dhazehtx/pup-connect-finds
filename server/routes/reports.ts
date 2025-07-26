@@ -43,11 +43,11 @@ const reportFiltersSchema = z.object({
  * Check rate limit for reporting
  */
 router.get('/rate-limit', asyncHandler(async (req: Request, res: Response) => {
-  if (!req.isAuthenticated()) {
+  if (!(req as any).isAuthenticated?.()) {
     return res.status(401).json({ error: 'Authentication required' });
   }
 
-  const userId = (req.user as any).id;
+  const userId = ((req as any).user as any).id;
   const rateLimitInfo = await reportingService.canUserReport(userId);
 
   res.json({
@@ -64,13 +64,13 @@ router.get('/rate-limit', asyncHandler(async (req: Request, res: Response) => {
 router.post('/user', 
   userActionLogger('report_user_submitted'),
   asyncHandler(async (req: Request, res: Response) => {
-    if (!req.isAuthenticated()) {
+    if (!(req as any).isAuthenticated?.()) {
       return res.status(401).json({ error: 'Authentication required' });
     }
 
     try {
       const data = reportUserSchema.parse(req.body);
-      const reporterId = (req.user as any).id;
+      const reporterId = ((req as any).user as any).id;
 
       const result = await reportingService.reportUser({
         reporterId,
@@ -107,13 +107,13 @@ router.post('/user',
 router.post('/listing',
   userActionLogger('report_listing_submitted'),
   asyncHandler(async (req: Request, res: Response) => {
-    if (!req.isAuthenticated()) {
+    if (!(req as any).isAuthenticated?.()) {
       return res.status(401).json({ error: 'Authentication required' });
     }
 
     try {
       const data = reportListingSchema.parse(req.body);
-      const reporterId = (req.user as any).id;
+      const reporterId = ((req as any).user as any).id;
 
       const result = await reportingService.reportListing({
         reporterId,
@@ -149,8 +149,15 @@ router.post('/listing',
  * Get reports for admin dashboard (admin only)
  */
 router.get('/admin/reports', asyncHandler(async (req: Request, res: Response) => {
+  // Check admin authorization
+  if (!(req as any).isAuthenticated?.() || !(req as any).user || !((req as any).user as any).is_admin) {
+    return res.status(403).json({ 
+      error: 'Forbidden', 
+      message: 'Administrator privileges required' 
+    });
+  }
   // TODO: Add admin authentication check
-  // if (!req.user?.isAdmin) {
+  // if (!(req as any).user?.isAdmin) {
   //   return res.status(403).json({ error: 'Admin access required' });
   // }
 
@@ -196,16 +203,26 @@ router.get('/admin/reports', asyncHandler(async (req: Request, res: Response) =>
  * Resolve a report (admin only)
  */
 router.patch('/admin/resolve',
+  // Check admin authorization  
+  asyncHandler(async (req: Request, res: Response, next) => {
+    if (!(req as any).isAuthenticated?.() || !(req as any).user || !(req as any).user.is_admin) {
+      return res.status(403).json({ 
+        error: 'Forbidden', 
+        message: 'Administrator privileges required' 
+      });
+    }
+    next();
+  }),
   userActionLogger('report_resolved_by_admin'),
   asyncHandler(async (req: Request, res: Response) => {
     // TODO: Add admin authentication check
-    // if (!req.user?.isAdmin) {
+    // if (!(req as any).user?.isAdmin) {
     //   return res.status(403).json({ error: 'Admin access required' });
     // }
 
     try {
       const data = resolveReportSchema.parse(req.body);
-      const adminId = (req.user as any)?.id || 'admin'; // Fallback for now
+      const adminId = ((req as any).user as any)?.id || 'admin'; // Fallback for now
 
       const result = await reportingService.resolveReport({
         reportId: data.reportId,
@@ -239,8 +256,15 @@ router.patch('/admin/resolve',
  * Get reporting statistics (admin only)
  */
 router.get('/admin/stats', asyncHandler(async (req: Request, res: Response) => {
+  // Check admin authorization
+  if (!(req as any).isAuthenticated?.() || !(req as any).user || !((req as any).user as any).is_admin) {
+    return res.status(403).json({ 
+      error: 'Forbidden', 
+      message: 'Administrator privileges required' 
+    });
+  }
   // TODO: Add admin authentication check
-  // if (!req.user?.isAdmin) {
+  // if (!(req as any).user?.isAdmin) {
   //   return res.status(403).json({ error: 'Admin access required' });
   // }
 

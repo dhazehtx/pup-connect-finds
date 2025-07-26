@@ -19,6 +19,7 @@ export const profiles = pgTable("profiles", {
   breeder_license: text("breeder_license"),
   fraud_score: integer("fraud_score").default(0),
   profile_status: text("profile_status").default("active"), // active, under_review, suspended
+  is_admin: boolean("is_admin").default(false),
   last_login_ip: text("last_login_ip"),
   suspicious_activity_count: integer("suspicious_activity_count").default(0),
   created_at: timestamp("created_at").defaultNow(),
