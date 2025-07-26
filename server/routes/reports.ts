@@ -149,8 +149,16 @@ router.post('/listing',
  * Get reports for admin dashboard (admin only)
  */
 router.get('/admin/reports', asyncHandler(async (req: Request, res: Response) => {
-  // Check admin authorization
-  if (!(req as any).isAuthenticated?.() || !(req as any).user || !((req as any).user as any).is_admin) {
+  // Check admin authorization - temporarily allow danieluke97/Royalbabybullz
+  const user = (req as any).user;
+  const isAdmin = user && (
+    user.is_admin === true || 
+    user.username === 'danieluke97' || 
+    user.email === 'danieluke97@yahoo.com' ||
+    user.username === 'Royalbabybullz'
+  );
+  
+  if (!(req as any).isAuthenticated?.() || !user || !isAdmin) {
     return res.status(403).json({ 
       error: 'Forbidden', 
       message: 'Administrator privileges required' 
@@ -205,7 +213,16 @@ router.get('/admin/reports', asyncHandler(async (req: Request, res: Response) =>
 router.patch('/admin/resolve',
   // Check admin authorization  
   asyncHandler(async (req: Request, res: Response, next) => {
-    if (!(req as any).isAuthenticated?.() || !(req as any).user || !(req as any).user.is_admin) {
+    // Check admin authorization - temporarily allow danieluke97/Royalbabybullz
+    const user = (req as any).user;
+    const isAdmin = user && (
+      user.is_admin === true || 
+      user.username === 'danieluke97' || 
+      user.email === 'danieluke97@yahoo.com' ||
+      user.username === 'Royalbabybullz'
+    );
+    
+    if (!(req as any).isAuthenticated?.() || !user || !isAdmin) {
       return res.status(403).json({ 
         error: 'Forbidden', 
         message: 'Administrator privileges required' 
@@ -256,8 +273,16 @@ router.patch('/admin/resolve',
  * Get reporting statistics (admin only)
  */
 router.get('/admin/stats', asyncHandler(async (req: Request, res: Response) => {
-  // Check admin authorization
-  if (!(req as any).isAuthenticated?.() || !(req as any).user || !((req as any).user as any).is_admin) {
+  // Check admin authorization - temporarily allow danieluke97/Royalbabybullz
+  const user = (req as any).user;
+  const isAdmin = user && (
+    user.is_admin === true || 
+    user.username === 'danieluke97' || 
+    user.email === 'danieluke97@yahoo.com' ||
+    user.username === 'Royalbabybullz'
+  );
+  
+  if (!(req as any).isAuthenticated?.() || !user || !isAdmin) {
     return res.status(403).json({ 
       error: 'Forbidden', 
       message: 'Administrator privileges required' 
