@@ -22,9 +22,15 @@ export const useAuthState = () => {
         throw error;
       }
       
-      console.log('Profile fetched from Supabase:', data);
-      setProfile(data || null);
-      return data;
+      // Temporarily set admin status for danieluke97 until Supabase table is updated
+      const profileData = data || null;
+      if (profileData && (profileData.username === 'danieluke97' || profileData.email === 'danieluke97@yahoo.com')) {
+        profileData.is_admin = true;
+      }
+      
+      console.log('Profile fetched from Supabase:', profileData);
+      setProfile(profileData);
+      return profileData;
     } catch (error: any) {
       console.error('Error fetching profile:', error);
       return null;
