@@ -22,6 +22,7 @@ export const useAuthState = () => {
         throw error;
       }
       
+      console.log('Profile fetched from Supabase:', data);
       setProfile(data || null);
       return data;
     } catch (error: any) {

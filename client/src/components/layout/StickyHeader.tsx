@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { Heart, Search, Plus, Bell } from 'lucide-react';
+import { Heart, Search, Plus, Bell, Shield } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useAuth } from '@/contexts/AuthContext';
@@ -11,7 +11,7 @@ import ModernPostCreator from '@/components/home/ModernPostCreator';
 import NotificationCenter from '@/components/notifications/NotificationCenter';
 
 const StickyHeader = () => {
-  const { user, isGuest } = useAuth();
+  const { user, isGuest, profile } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const { toast } = useToast();
@@ -115,6 +115,20 @@ const StickyHeader = () => {
                   </Button>
                 )}
 
+                {/* Hidden Admin Panel Access - Only for admin users */}
+                {profile?.is_admin && (
+                  <Link to="/admin/reports">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="relative p-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50 hover:shadow-sm transition-all duration-200 rounded-full"
+                      title="Reports & Moderation"
+                    >
+                      <Shield className="h-6 w-6" />
+                    </Button>
+                  </Link>
+                )}
+
                 {/* Notification Bell - Only for authenticated users */}
                 {(user || isGuest) && (
                   <div className="relative">
@@ -162,6 +176,20 @@ const StickyHeader = () => {
                   >
                     <Plus className="w-4 h-4" />
                   </Button>
+                )}
+
+                {/* Mobile Hidden Admin Panel Access - Only for admin users */}
+                {profile?.is_admin && (
+                  <Link to="/admin/reports">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="relative p-1.5 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-full w-8 h-8"
+                      title="Reports & Moderation"
+                    >
+                      <Shield className="h-5 w-5" />
+                    </Button>
+                  </Link>
                 )}
 
                 {/* Mobile Notification Bell - Only for authenticated users */}
