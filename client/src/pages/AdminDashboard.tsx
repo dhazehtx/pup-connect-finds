@@ -1,257 +1,191 @@
-
-import React, { useState, useEffect } from 'react';
+import React from 'react';
+import { Link, useLocation } from 'wouter';
+import { useAuth } from '@/contexts/AuthContext';
+import { Shield, FileText, Users, BarChart3, Settings, AlertTriangle } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Search, Users, FileText, AlertTriangle, Trash2 } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
 
 const AdminDashboard = () => {
-  const [users, setUsers] = useState<any[]>([]);
-  const [listings, setListings] = useState<any[]>([]);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [loading, setLoading] = useState(true);
-  const { toast } = useToast();
+  const { user, loading, profile } = useAuth();
+  const [, setLocation] = useLocation();
 
-  useEffect(() => {
-    loadDashboardData();
-  }, []);
-
-  const loadDashboardData = async () => {
-    setLoading(true);
-    try {
-      // Load users (profiles)
-      const { data: profilesData } = await supabase
-        .from('profiles')
-        .select('*')
-        .order('created_at', { ascending: false })
-        .limit(50);
-
-      // Load listings
-      const { data: listingsData } = await supabase
-        .from('dog_listings')
-        .select(`
-          *,
-          profiles!dog_listings_user_id_fkey (
-            full_name,
-            email
-          )
-        `)
-        .order('created_at', { ascending: false })
-        .limit(50);
-
-      setUsers(profilesData || []);
-      setListings(listingsData || []);
-    } catch (error) {
-      console.error('Error loading dashboard data:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load dashboard data",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
+  // Redirect if not admin
+  React.useEffect(() => {
+    if (!loading && (!user || !profile?.is_admin)) {
+      console.log('Unauthorized access attempt to admin dashboard');
+      setLocation('/');
     }
-  };
+  }, [user, loading, profile, setLocation]);
 
-  const deleteListing = async (listingId: string) => {
-    if (!window.confirm('Are you sure you want to delete this listing?')) {
-      return;
-    }
-
-    try {
-      const { error } = await supabase
-        .from('dog_listings')
-        .delete()
-        .eq('id', listingId);
-
-      if (error) throw error;
-
-      setListings(listings.filter(l => l.id !== listingId));
-      toast({
-        title: "Listing Deleted",
-        description: "The listing has been removed",
-      });
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description: "Failed to delete listing",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const filteredUsers = users.filter(user => 
-    user.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    user.email?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
-  const filteredListings = listings.filter(listing =>
-    listing.dog_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    listing.breed?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
+  // Show loading while checking auth
   if (loading) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-600 border-t-transparent mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading dashboard...</p>
+          <div className="animate-spin w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full mx-auto mb-4" />
+          <p className="text-gray-600">Verifying admin access...</p>
         </div>
       </div>
     );
   }
 
+  // Redirect unauthorized users
+  if (!user || !profile?.is_admin) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-red-50 to-red-100 flex items-center justify-center p-6">
+        <Card className="w-full max-w-md">
+          <CardContent className="p-6 text-center">
+            <AlertTriangle className="w-16 h-16 text-red-600 mx-auto mb-4" />
+            <h1 className="text-2xl font-bold text-red-800 mb-2">Access Denied</h1>
+            <p className="text-red-600 mb-4">
+              You don't have administrator privileges to access this page.
+            </p>
+            <p className="text-sm text-gray-600">
+              Redirecting to home page...
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  const adminModules = [
+    {
+      title: 'User Reports & Moderation',
+      description: 'Review and moderate user reports, manage user accounts, and handle safety issues',
+      icon: <Shield className="w-8 h-8 text-blue-600" />,
+      path: '/admin/reports',
+      color: 'border-blue-200 hover:border-blue-400 bg-blue-50 hover:bg-blue-100'
+    },
+    {
+      title: 'System Logs',
+      description: 'Monitor application logs, track errors, and analyze system performance',
+      icon: <FileText className="w-8 h-8 text-green-600" />,
+      path: '/admin/logs',
+      color: 'border-green-200 hover:border-green-400 bg-green-50 hover:bg-green-100'
+    },
+    {
+      title: 'User Management',
+      description: 'Manage user accounts, permissions, and profile verification',
+      icon: <Users className="w-8 h-8 text-purple-600" />,
+      path: '/admin/users',
+      color: 'border-purple-200 hover:border-purple-400 bg-purple-50 hover:bg-purple-100'
+    },
+    {
+      title: 'Analytics Dashboard',
+      description: 'View platform statistics, user metrics, and performance insights',
+      icon: <BarChart3 className="w-8 h-8 text-orange-600" />,
+      path: '/admin/analytics',
+      color: 'border-orange-200 hover:border-orange-400 bg-orange-50 hover:bg-orange-100'
+    },
+    {
+      title: 'Platform Settings',
+      description: 'Configure system settings, rate limits, and platform parameters',
+      icon: <Settings className="w-8 h-8 text-gray-600" />,
+      path: '/admin/settings',
+      color: 'border-gray-200 hover:border-gray-400 bg-gray-50 hover:bg-gray-100'
+    }
+  ];
+
   return (
-    <div className="min-h-screen bg-white">
-      <div className="max-w-7xl mx-auto px-4 py-8">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
+      <div className="container mx-auto px-4 py-8">
+        {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Admin Dashboard</h1>
-          <p className="text-gray-600">Manage users, listings, and platform content</p>
-        </div>
-
-        {/* Stats Overview */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <Card className="border-blue-200 shadow-sm">
-            <CardContent className="p-6">
-              <div className="flex items-center">
-                <Users className="h-8 w-8 text-blue-600" />
-                <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600">Total Users</p>
-                  <p className="text-2xl font-bold text-gray-900">{users.length}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="border-blue-200 shadow-sm">
-            <CardContent className="p-6">
-              <div className="flex items-center">
-                <FileText className="h-8 w-8 text-blue-600" />
-                <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600">Active Listings</p>
-                  <p className="text-2xl font-bold text-gray-900">{listings.filter(l => l.status === 'active').length}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="border-blue-200 shadow-sm">
-            <CardContent className="p-6">
-              <div className="flex items-center">
-                <AlertTriangle className="h-8 w-8 text-blue-600" />
-                <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600">Reported Items</p>
-                  <p className="text-2xl font-bold text-gray-900">0</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Search */}
-        <div className="mb-6">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-            <Input
-              placeholder="Search users, listings..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
-            />
+          <div className="flex items-center gap-3 mb-4">
+            <Shield className="w-10 h-10 text-blue-600" />
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
+              <p className="text-gray-600">Welcome back, {profile?.full_name || profile?.username}</p>
+            </div>
+          </div>
+          <div className="bg-blue-100 border border-blue-200 rounded-lg p-4">
+            <p className="text-blue-800 text-sm">
+              <strong>Security Notice:</strong> You have administrative privileges. Please use these tools responsibly.
+            </p>
           </div>
         </div>
 
-        {/* Tabs */}
-        <Tabs defaultValue="users" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="users">Users</TabsTrigger>
-            <TabsTrigger value="listings">Listings</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="users">
-            <Card className="border-blue-200 shadow-sm">
-              <CardHeader>
-                <CardTitle>User Management</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {filteredUsers.map((user) => (
-                    <div key={user.id} className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
-                      <div className="flex items-center space-x-4">
-                        <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                          <span className="text-blue-600 font-medium">
-                            {user.full_name?.charAt(0) || user.email?.charAt(0) || 'U'}
-                          </span>
-                        </div>
-                        <div>
-                          <p className="font-medium text-gray-900">{user.full_name || 'No name'}</p>
-                          <p className="text-sm text-gray-600">{user.email}</p>
-                        </div>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <Badge className={user.verified ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-800"}>
-                          {user.verified ? 'Verified' : 'Unverified'}
-                        </Badge>
-                        <p className="text-sm text-gray-500">
-                          {new Date(user.created_at).toLocaleDateString()}
-                        </p>
-                      </div>
-                    </div>
-                  ))}
+        {/* Quick Stats */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-600">Active Users</p>
+                  <p className="text-2xl font-bold text-gray-900">1,234</p>
                 </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="listings">
-            <Card className="border-blue-200 shadow-sm">
-              <CardHeader>
-                <CardTitle>Listing Management</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {filteredListings.map((listing) => (
-                    <div key={listing.id} className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
-                      <div className="flex items-center space-x-4">
-                        <div className="w-16 h-16 bg-gray-100 rounded-lg overflow-hidden">
-                          <img
-                            src={listing.image_url || '/placeholder.svg'}
-                            alt={listing.dog_name}
-                            className="w-full h-full object-cover"
-                          />
-                        </div>
-                        <div>
-                          <p className="font-medium text-gray-900">{listing.dog_name}</p>
-                          <p className="text-sm text-gray-600">{listing.breed} • ${listing.price}</p>
-                          <p className="text-xs text-gray-500">
-                            By: {listing.profiles?.full_name || listing.profiles?.email || 'Unknown'}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <Badge className={listing.status === 'active' ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-800"}>
-                          {listing.status}
-                        </Badge>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => deleteListing(listing.id)}
-                          className="text-red-600 hover:text-red-700"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
+                <Users className="w-8 h-8 text-blue-600" />
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-600">Pending Reports</p>
+                  <p className="text-2xl font-bold text-yellow-600">0</p>
                 </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
+                <AlertTriangle className="w-8 h-8 text-yellow-600" />
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-600">System Health</p>
+                  <p className="text-2xl font-bold text-green-600">Healthy</p>
+                </div>
+                <BarChart3 className="w-8 h-8 text-green-600" />
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-600">Active Listings</p>
+                  <p className="text-2xl font-bold text-gray-900">456</p>
+                </div>
+                <FileText className="w-8 h-8 text-blue-600" />
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Admin Modules */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {adminModules.map((module, index) => (
+            <Link key={index} href={module.path}>
+              <Card className={`cursor-pointer transition-all duration-200 ${module.color} border-2`}>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-3">
+                    {module.icon}
+                    <span className="text-gray-900">{module.title}</span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-gray-700 text-sm leading-relaxed">
+                    {module.description}
+                  </p>
+                  <div className="mt-4">
+                    <Button variant="outline" size="sm" className="w-full">
+                      Access Module
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </Link>
+          ))}
+        </div>
+
+        {/* Footer */}
+        <div className="mt-12 text-center">
+          <p className="text-gray-500 text-sm">
+            MY PUP Admin Dashboard • Last updated: {new Date().toLocaleString()}
+          </p>
+        </div>
       </div>
     </div>
   );

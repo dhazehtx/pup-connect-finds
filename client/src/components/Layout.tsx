@@ -3,6 +3,7 @@ import React from 'react';
 import Footer from './Footer';
 import BottomNavigation from './BottomNavigation';
 import FloatingTrustButton from './safety/FloatingTrustButton';
+import AdminAccessButton from './AdminAccessButton';
 import StickyHeader from './layout/StickyHeader';
 import { useSessionManager } from '@/hooks/useSessionManager';
 import SessionWarningModal from '@/components/auth/SessionWarningModal';
@@ -25,6 +26,7 @@ const Layout = ({ children, showBottomNav = true }: LayoutProps) => {
       <Footer />
       {showBottomNav && <BottomNavigation />}
       <FloatingTrustButton />
+      <AdminAccessButton />
       
       {/* Session Warning Modal */}
       <SessionWarningModal

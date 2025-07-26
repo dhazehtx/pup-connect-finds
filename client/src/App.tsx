@@ -44,6 +44,7 @@ const ErrorMonitoringPanel = lazy(() => import('./components/admin/ErrorMonitori
 const ErrorTestPage = lazy(() => import('./pages/ErrorTestPage'));
 const AdminLogsPage = lazy(() => import('./pages/AdminLogsPage'));
 const AdminReportsPage = lazy(() => import('./pages/AdminReportsPage'));
+const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
 const ReportsTestPage = lazy(() => import('./pages/ReportsTestPage'));
 
 const queryClient = new QueryClient({
@@ -146,6 +147,13 @@ function App() {
                     <Suspense fallback={<LoadingPage message="Loading Error Test..." />}>
                       <ErrorTestPage />
                     </Suspense>
+                  } />
+                  <Route path="/admin" element={
+                    <ProtectedRoute>
+                      <Suspense fallback={<LoadingPage message="Loading Admin Dashboard..." />}>
+                        <AdminDashboard />
+                      </Suspense>
+                    </ProtectedRoute>
                   } />
                   <Route path="/admin/logs" element={
                     <ProtectedRoute>
