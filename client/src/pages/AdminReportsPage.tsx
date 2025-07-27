@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { useLocation } from 'wouter';
 import { useAuth } from '@/contexts/AuthContext';
 import AdminReportsPanel from '@/components/admin/AdminReportsPanel';
-import { logInfo } from '@/utils/logger';
+import { logAdminAction } from '@/utils/logger';
 import { Shield, AlertTriangle } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 
@@ -21,7 +21,7 @@ const AdminReportsPage = () => {
   useEffect(() => {
     // Log page access for monitoring (only if admin)
     if (!loading && user && profile?.is_admin) {
-      logInfo('user-action', 'Admin accessed reports panel', {
+      logAdminAction('Admin accessed reports panel', {
         page: '/admin/reports',
         timestamp: new Date().toISOString(),
         adminUser: user.id

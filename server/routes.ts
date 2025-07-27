@@ -17,7 +17,6 @@ import { globalErrorHandler, notFoundHandler, asyncHandler } from './middleware/
 
 // Logging routes
 import logsRouter from './routes/logs';
-import adminLogsRouter from './routes/adminLogs';
 
 // Reporting routes
 import reportsRouter from './routes/reports';
@@ -763,7 +762,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Add logging routes
   app.use('/api/logs', logsRouter);
-  app.use('/api/admin/logs', adminLogsRouter);
+
   
   // Add reporting routes
   app.use('/api/reports', reportsRouter);

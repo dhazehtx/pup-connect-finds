@@ -1,173 +1,174 @@
-// Frontend logging utility
-interface LogEntry {
-  level: 'debug' | 'info' | 'warn' | 'error' | 'critical';
-  category: string;
-  message: string;
-  details?: Record<string, any>;
-  stack?: string;
-  url?: string;
-  userAgent?: string;
+/**
+ * Client-side logging utility for tracking admin actions and errors
+ * This logger can be extended to send logs to backend/Supabase for persistent audit trails
+ */
+
+export interface LogEvent {
+  action: string;
+  timestamp: string;
   userId?: string;
-  sessionId?: string;
+  metadata?: any;
+  level: 'info' | 'warn' | 'error' | 'debug';
+  category: 'admin' | 'api' | 'ui' | 'auth' | 'error';
 }
 
-class FrontendLogger {
-  private endpoint = '/api/admin/logs/frontend-error';
-  private queue: LogEntry[] = [];
-  private isProcessing = false;
-
-  async log(entry: LogEntry) {
-    // Add to queue
-    this.queue.push({
-      ...entry,
-      url: window.location.href,
-      userAgent: navigator.userAgent,
+class Logger {
+  private logs: LogEvent[] = [];
+  private maxLogSize = 1000; // Keep last 1000 logs in memory
+  
+  /**
+   * Log an event with metadata
+   */
+  logEvent(
+    action: string, 
+    metadata?: any, 
+    level: LogEvent['level'] = 'info',
+    category: LogEvent['category'] = 'admin'
+  ): void {
+    const logEntry: LogEvent = {
+      action,
+      timestamp: new Date().toISOString(),
       userId: this.getCurrentUserId(),
-      sessionId: this.getSessionId()
-    });
+      metadata,
+      level,
+      category
+    };
 
-    // Process queue if not already processing
-    if (!this.isProcessing) {
-      this.processQueue();
+    // Add to memory logs
+    this.logs.push(logEntry);
+    
+    // Keep logs under limit
+    if (this.logs.length > this.maxLogSize) {
+      this.logs = this.logs.slice(-this.maxLogSize);
     }
+
+    // Console output for development
+    if (process.env.NODE_ENV === 'development') {
+      const logMethod = level === 'error' ? console.error : 
+                       level === 'warn' ? console.warn : console.log;
+      logMethod(`[${category.toUpperCase()}] ${action}`, metadata || '');
+    }
+
+    // Send to backend if needed (can be implemented later)
+    this.sendToBackend(logEntry);
   }
 
-  private async processQueue() {
-    if (this.queue.length === 0 || this.isProcessing) return;
-    
-    this.isProcessing = true;
-    
-    while (this.queue.length > 0) {
-      const entry = this.queue.shift();
-      if (entry) {
-        try {
-          await fetch(this.endpoint, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(entry)
-          });
-        } catch (error) {
-          // If logging fails, just console log
-          console.error('Failed to send log to server:', error);
-          console.log('Original log entry:', entry);
-        }
-      }
-    }
-    
-    this.isProcessing = false;
+  /**
+   * Log admin actions specifically
+   */
+  logAdminAction(action: string, metadata?: any): void {
+    this.logEvent(action, metadata, 'info', 'admin');
   }
 
+  /**
+   * Log API errors
+   */
+  logApiError(action: string, error: any, metadata?: any): void {
+    this.logEvent(action, { 
+      error: error.message || error, 
+      stack: error.stack,
+      ...metadata 
+    }, 'error', 'api');
+  }
+
+  /**
+   * Log UI interactions
+   */
+  logUIAction(action: string, metadata?: any): void {
+    this.logEvent(action, metadata, 'info', 'ui');
+  }
+
+  /**
+   * Log authentication events
+   */
+  logAuthEvent(action: string, metadata?: any): void {
+    this.logEvent(action, metadata, 'info', 'auth');
+  }
+
+  /**
+   * Get current user ID from auth context
+   */
   private getCurrentUserId(): string | undefined {
-    // Try to get user ID from various sources
     try {
-      // From React context, local storage, etc.
-      const user = JSON.parse(localStorage.getItem('user') || '{}');
-      return user.id;
-    } catch {
-      return undefined;
+      // Try to get from Supabase session if available
+      const authData = localStorage.getItem('sb-wneticxjhxpjpfghnclr-auth-token');
+      if (authData) {
+        const parsed = JSON.parse(authData);
+        return parsed?.user?.id;
+      }
+    } catch (error) {
+      // Silently fail
+    }
+    return undefined;
+  }
+
+  /**
+   * Send log to backend for persistent storage
+   */
+  private async sendToBackend(logEntry: LogEvent): Promise<void> {
+    try {
+      // Only send important logs to backend to avoid spam
+      if (logEntry.level === 'error' || logEntry.category === 'admin') {
+        await fetch('/api/logs/frontend', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(logEntry)
+        });
+      }
+    } catch (error) {
+      // Silently fail - don't want logging to break the app
+      console.warn('Failed to send log to backend:', error);
     }
   }
 
-  private getSessionId(): string | undefined {
-    try {
-      return sessionStorage.getItem('sessionId') || undefined;
-    } catch {
-      return undefined;
-    }
+  /**
+   * Get recent logs for debugging
+   */
+  getRecentLogs(limit = 50): LogEvent[] {
+    return this.logs.slice(-limit);
   }
 
-  // Convenience methods
-  debug(category: string, message: string, details?: Record<string, any>) {
-    return this.log({ level: 'debug', category, message, details });
-  }
-
-  info(category: string, message: string, details?: Record<string, any>) {
-    return this.log({ level: 'info', category, message, details });
-  }
-
-  warn(category: string, message: string, details?: Record<string, any>) {
-    return this.log({ level: 'warn', category, message, details });
-  }
-
-  error(category: string, message: string, details?: Record<string, any>, error?: Error) {
-    return this.log({ 
-      level: 'error', 
-      category, 
-      message, 
-      details,
-      stack: error?.stack 
+  /**
+   * Filter logs by category or level
+   */
+  filterLogs(filters: {
+    category?: LogEvent['category'];
+    level?: LogEvent['level'];
+    since?: Date;
+  }): LogEvent[] {
+    return this.logs.filter(log => {
+      if (filters.category && log.category !== filters.category) return false;
+      if (filters.level && log.level !== filters.level) return false;
+      if (filters.since && new Date(log.timestamp) < filters.since) return false;
+      return true;
     });
   }
 
-  critical(category: string, message: string, details?: Record<string, any>, error?: Error) {
-    return this.log({ 
-      level: 'critical', 
-      category, 
-      message, 
-      details,
-      stack: error?.stack 
-    });
+  /**
+   * Clear logs (useful for testing)
+   */
+  clearLogs(): void {
+    this.logs = [];
   }
 }
 
 // Export singleton instance
-export const logger = new FrontendLogger();
+export const logger = new Logger();
 
-// Export convenience functions
-export const logDebug = (category: string, message: string, details?: Record<string, any>) =>
-  logger.debug(category, message, details);
+// Convenience functions for common use cases
+export const logAdminAction = (action: string, metadata?: any) => 
+  logger.logAdminAction(action, metadata);
 
-export const logInfo = (category: string, message: string, details?: Record<string, any>) =>
-  logger.info(category, message, details);
+export const logApiError = (action: string, error: any, metadata?: any) => 
+  logger.logApiError(action, error, metadata);
 
-export const logWarn = (category: string, message: string, details?: Record<string, any>) =>
-  logger.warn(category, message, details);
+export const logUIAction = (action: string, metadata?: any) => 
+  logger.logUIAction(action, metadata);
 
-export const logError = (category: string, message: string, details?: Record<string, any>, error?: Error) =>
-  logger.error(category, message, details, error);
+export const logAuthEvent = (action: string, metadata?: any) => 
+  logger.logAuthEvent(action, metadata);
 
-export const logCritical = (category: string, message: string, details?: Record<string, any>, error?: Error) =>
-  logger.critical(category, message, details, error);
-
-// Auto-capture unhandled errors
-window.addEventListener('error', (event) => {
-  logger.error('frontend', `Unhandled error: ${event.message}`, {
-    filename: event.filename,
-    lineno: event.lineno,
-    colno: event.colno
-  }, event.error);
-});
-
-window.addEventListener('unhandledrejection', (event) => {
-  logger.error('frontend', `Unhandled promise rejection: ${event.reason}`, {
-    reason: event.reason
-  });
-});
-
-// Performance monitoring
-if ('PerformanceObserver' in window) {
-  try {
-    const perfObserver = new PerformanceObserver((list) => {
-      for (const entry of list.getEntries()) {
-        if (entry.entryType === 'navigation') {
-          const navEntry = entry as PerformanceNavigationTiming;
-          
-          // Log slow page loads (>3 seconds)
-          if (navEntry.loadEventEnd - navEntry.navigationStart > 3000) {
-            logger.warn('performance', 'Slow page load detected', {
-              loadTime: navEntry.loadEventEnd - navEntry.navigationStart,
-              domContentLoaded: navEntry.domContentLoadedEventEnd - navEntry.navigationStart,
-              url: navEntry.name
-            });
-          }
-        }
-      }
-    });
-    
-    perfObserver.observe({ entryTypes: ['navigation'] });
-  } catch (error) {
-    console.warn('Performance observer not available:', error);
-  }
-}
+export const logEvent = (action: string, metadata?: any, level?: LogEvent['level'], category?: LogEvent['category']) => 
+  logger.logEvent(action, metadata, level, category);

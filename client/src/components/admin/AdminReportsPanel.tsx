@@ -20,6 +20,7 @@ import {
   ShieldCheck
 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
+import { logAdminAction, logApiError, logUIAction } from '@/utils/logger';
 
 interface Report {
   id: string;
@@ -73,6 +74,7 @@ const AdminReportsPanel = () => {
   });
 
   useEffect(() => {
+    logAdminAction('AdminReportsPanel mounted', { component: 'AdminReportsPanel' });
     loadConfig();
     loadReports();
     loadStats();
@@ -80,12 +82,17 @@ const AdminReportsPanel = () => {
 
   const loadConfig = async () => {
     try {
+      logAdminAction('Loading report config', { endpoint: '/api/reports/config' });
       const response = await fetch('/api/reports/config');
       const data = await response.json();
       if (data.success) {
         setConfig(data.config);
+        logAdminAction('Report config loaded successfully', { configKeys: Object.keys(data.config) });
+      } else {
+        logApiError('Failed to load config', data.error || 'Unknown error');
       }
     } catch (error) {
+      logApiError('Failed to load config', error, { endpoint: '/api/reports/config' });
       console.error('Failed to load config:', error);
     }
   };
@@ -101,12 +108,26 @@ const AdminReportsPanel = () => {
         }
       });
 
+      logAdminAction('Loading reports with filters', { 
+        filters: Object.fromEntries(Object.entries(filters).filter(([_, v]) => v)),
+        endpoint: '/api/reports/admin/reports'
+      });
+
       const response = await fetch(`/api/reports/admin/reports?${queryParams}`);
       const data = await response.json();
       
       if (data.success) {
         setReports(data.reports);
+        if (data.reports.length === 0) {
+          logAdminAction('No reports found', { appliedFilters: filters });
+        } else {
+          logAdminAction('Reports loaded successfully', { 
+            reportCount: data.reports.length,
+            totalCount: data.totalCount 
+          });
+        }
       } else {
+        logApiError('Failed to load reports', data.error || 'Unknown error', { filters });
         toast({
           title: "Error",
           description: "Failed to load reports",
@@ -114,6 +135,10 @@ const AdminReportsPanel = () => {
         });
       }
     } catch (error) {
+      logApiError('Failed to load reports', error, { 
+        endpoint: '/api/reports/admin/reports',
+        filters 
+      });
       console.error('Failed to load reports:', error);
       toast({
         title: "Error",
@@ -127,19 +152,33 @@ const AdminReportsPanel = () => {
 
   const loadStats = async () => {
     try {
+      logAdminAction('Loading report statistics', { endpoint: '/api/reports/admin/stats' });
       const response = await fetch('/api/reports/admin/stats');
       const data = await response.json();
       
       if (data.success) {
         setStats(data.stats);
+        logAdminAction('Report statistics loaded', { 
+          totalReports: data.stats.totalReports,
+          pendingReports: data.stats.pendingReports,
+          highSeverityPending: data.stats.highSeverityPending
+        });
+      } else {
+        logApiError('Failed to load stats', data.error || 'Unknown error');
       }
     } catch (error) {
+      logApiError('Failed to load stats', error, { endpoint: '/api/reports/admin/stats' });
       console.error('Failed to load stats:', error);
     }
   };
 
   const handleResolveReport = async () => {
     if (!selectedReport || !actionTaken) {
+      logUIAction('Admin resolve report validation failed', { 
+        reason: 'Missing required fields',
+        hasReport: !!selectedReport,
+        hasAction: !!actionTaken
+      });
       toast({
         title: "Missing Information",
         description: "Please select an action",
@@ -149,6 +188,14 @@ const AdminReportsPanel = () => {
     }
 
     setIsResolving(true);
+    
+    logAdminAction('Admin resolving report', {
+      reportId: selectedReport.id,
+      reportType: selectedReport.type,
+      status: resolveStatus,
+      actionTaken,
+      hasNotes: !!adminNotes.trim()
+    });
 
     try {
       const response = await fetch('/api/reports/admin/resolve', {
@@ -165,6 +212,12 @@ const AdminReportsPanel = () => {
       const data = await response.json();
 
       if (data.success) {
+        logAdminAction('Admin resolved report successfully', {
+          reportId: selectedReport.id,
+          finalStatus: resolveStatus,
+          actionTaken
+        });
+        
         toast({
           title: "Success",
           description: `Report ${resolveStatus} successfully`
@@ -181,6 +234,10 @@ const AdminReportsPanel = () => {
         loadReports();
         loadStats();
       } else {
+        logApiError('Failed to resolve report', data.error || 'Unknown error', {
+          reportId: selectedReport.id,
+          status: resolveStatus
+        });
         toast({
           title: "Error",
           description: data.error || `Failed to ${resolveStatus} report`,
@@ -188,6 +245,10 @@ const AdminReportsPanel = () => {
         });
       }
     } catch (error) {
+      logApiError('Failed to resolve report', error, {
+        reportId: selectedReport.id,
+        endpoint: '/api/reports/admin/resolve'
+      });
       console.error('Failed to resolve report:', error);
       toast({
         title: "Error",
@@ -232,7 +293,10 @@ const AdminReportsPanel = () => {
           <ShieldCheck className="w-8 h-8 text-blue-600" />
           Reports & Moderation
         </h1>
-        <Button onClick={loadReports} disabled={loading}>
+        <Button onClick={() => {
+          logUIAction('Admin clicked refresh reports button');
+          loadReports();
+        }} disabled={loading}>
           <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
           Refresh
         </Button>
@@ -354,7 +418,12 @@ const AdminReportsPanel = () => {
               placeholder="Start Date"
             />
 
-            <Button onClick={loadReports} className="w-full">
+            <Button onClick={() => {
+              logAdminAction('Admin applied report filters', { 
+                appliedFilters: Object.fromEntries(Object.entries(filters).filter(([_, v]) => v))
+              });
+              loadReports();
+            }} className="w-full">
               Apply Filters
             </Button>
           </div>
@@ -451,6 +520,11 @@ const AdminReportsPanel = () => {
                         <Button
                           size="sm"
                           onClick={() => {
+                            logAdminAction('Admin opened report for resolution', {
+                              reportId: report.id,
+                              reportType: report.type,
+                              reportSeverity: report.severity
+                            });
                             setSelectedReport(report);
                             setResolveModalOpen(true);
                           }}
