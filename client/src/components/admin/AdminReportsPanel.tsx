@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { logAdminAction, logApiError, logUIAction } from '@/utils/logger';
+import { logToSupabase, useAdminLogger } from '@/utils/logToSupabase';
 
 interface Report {
   id: string;
@@ -75,6 +76,10 @@ const AdminReportsPanel = () => {
 
   useEffect(() => {
     logAdminAction('AdminReportsPanel mounted', { component: 'AdminReportsPanel' });
+    logToSupabase('Visited Reports Dashboard', { 
+      page: '/admin/reports',
+      timestamp: new Date().toISOString() 
+    });
     loadConfig();
     loadReports();
     loadStats();
@@ -216,6 +221,12 @@ const AdminReportsPanel = () => {
           reportId: selectedReport.id,
           finalStatus: resolveStatus,
           actionTaken
+        });
+        
+        logToSupabase(`Performed ${actionTaken} on report`, { 
+          reportId: selectedReport.id,
+          action: actionTaken,
+          status: resolveStatus
         });
         
         toast({
@@ -419,8 +430,13 @@ const AdminReportsPanel = () => {
             />
 
             <Button onClick={() => {
-              logAdminAction('Admin applied report filters', { 
-                appliedFilters: Object.fromEntries(Object.entries(filters).filter(([_, v]) => v))
+              const appliedFilters = Object.fromEntries(Object.entries(filters).filter(([_, v]) => v));
+              logAdminAction('Admin applied report filters', { appliedFilters });
+              logToSupabase('Applied filters', {
+                type: filters.type || 'all',
+                status: filters.status || 'all',
+                severity: filters.severity || 'all',
+                date: filters.startDate || 'none'
               });
               loadReports();
             }} className="w-full">
@@ -524,6 +540,10 @@ const AdminReportsPanel = () => {
                               reportId: report.id,
                               reportType: report.type,
                               reportSeverity: report.severity
+                            });
+                            logToSupabase(`Opened ${report.type} report for resolution`, { 
+                              reportId: report.id,
+                              severity: report.severity 
                             });
                             setSelectedReport(report);
                             setResolveModalOpen(true);

@@ -374,9 +374,22 @@ export const insertUserReportSchema = createInsertSchema(userReports).omit({ id:
 export const insertListingReportSchema = createInsertSchema(listingReports).omit({ id: true, created_at: true, updated_at: true });
 export const insertReportRateLimitSchema = createInsertSchema(reportRateLimit).omit({ id: true, created_at: true });
 
+// Admin logs table for audit trail
+export const adminLogs = pgTable("admin_logs", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  admin_id: uuid("admin_id").references(() => profiles.id),
+  action: text("action").notNull(),
+  metadata: jsonb("metadata"),
+  created_at: timestamp("created_at").defaultNow(),
+});
+
+export const insertAdminLogSchema = createInsertSchema(adminLogs).omit({ id: true, created_at: true });
+
 export type UserReport = typeof userReports.$inferSelect;
 export type InsertUserReport = z.infer<typeof insertUserReportSchema>;
 export type ListingReport = typeof listingReports.$inferSelect;
 export type InsertListingReport = z.infer<typeof insertListingReportSchema>;
 export type ReportRateLimit = typeof reportRateLimit.$inferSelect;
 export type InsertReportRateLimit = z.infer<typeof insertReportRateLimitSchema>;
+export type AdminLog = typeof adminLogs.$inferSelect;
+export type InsertAdminLog = z.infer<typeof insertAdminLogSchema>;

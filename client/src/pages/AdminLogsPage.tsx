@@ -3,6 +3,7 @@ import { useLocation } from 'wouter';
 import { useAuth } from '@/contexts/AuthContext';
 import LoggingDashboard from '@/components/admin/LoggingDashboard';
 import { logAdminAction } from '@/utils/logger';
+import { logToSupabase } from '@/utils/logToSupabase';
 import { Activity, AlertTriangle } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 
@@ -25,6 +26,11 @@ const AdminLogsPage = () => {
         page: '/admin/logs',
         timestamp: new Date().toISOString(),
         adminUser: user.id
+      });
+      
+      logToSupabase('Accessed admin logs dashboard', {
+        page: '/admin/logs',
+        timestamp: new Date().toISOString()
       });
     }
   }, [user, loading, profile]);
