@@ -6,7 +6,7 @@ import { ThemeProvider } from './contexts/ThemeContext';
 import { AuthProvider } from './contexts/AuthContext';
 import { RealtimeProvider } from './contexts/RealtimeContext';
 import Layout from './components/Layout';
-import { PerformanceMonitor } from './components/ui/PerformanceMonitor';
+
 import { PageTransition } from './components/ui/transitions';
 import Home from './pages/Home';
 import HomeFeedPage from './pages/HomeFeed';
@@ -176,7 +176,6 @@ function App() {
                   } />
                   </Routes>
                 </PageTransition>
-                <PerformanceMonitor />
               </Layout>
             </ThemeProvider>
           </RealtimeProvider>
