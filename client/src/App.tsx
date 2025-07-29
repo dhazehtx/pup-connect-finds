@@ -48,6 +48,7 @@ const AdminReportsPage = lazy(() => import('./pages/AdminReportsPage'));
 const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
 const ReportsTestPage = lazy(() => import('./pages/ReportsTestPage'));
 const NavigationTestPage = lazy(() => import('./pages/NavigationTestPage'));
+const AdminActionTestPage = lazy(() => import('./pages/AdminActionTestPage'));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -180,6 +181,11 @@ function App() {
                   <Route path="/navigation-test" element={
                     <Suspense fallback={<LoadingPage message="Loading Navigation Test..." />}>
                       <NavigationTestPage />
+                    </Suspense>
+                  } />
+                  <Route path="/admin-action-test" element={
+                    <Suspense fallback={<LoadingPage message="Loading Admin Action Test..." />}>
+                      <AdminActionTestPage />
                     </Suspense>
                   } />
                   </Routes>

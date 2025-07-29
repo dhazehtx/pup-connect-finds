@@ -177,8 +177,12 @@ const SupabaseLogViewer = () => {
                 <SelectItem value="">All actions</SelectItem>
                 <SelectItem value="Navigated">Navigation Events</SelectItem>
                 <SelectItem value="Visited">Page Visits</SelectItem>
-                <SelectItem value="Applied">Filter Actions</SelectItem>
-                <SelectItem value="Performed">Report Actions</SelectItem>
+                <SelectItem value="Filter">Filter Actions</SelectItem>
+                <SelectItem value="Moderation">Moderation Actions</SelectItem>
+                <SelectItem value="Data operation">Data Operations</SelectItem>
+                <SelectItem value="Search">Search Actions</SelectItem>
+                <SelectItem value="Bulk">Bulk Actions</SelectItem>
+                <SelectItem value="Report">Report Resolutions</SelectItem>
                 <SelectItem value="Initial">Session Starts</SelectItem>
               </SelectContent>
             </Select>
@@ -249,9 +253,9 @@ const SupabaseLogViewer = () => {
         <Card>
           <CardContent className="p-4">
             <div className="text-2xl font-bold text-purple-600">
-              {logs.filter(log => log.action.includes('Visited')).length}
+              {logs.filter(log => log.action.includes('Filter') || log.action.includes('Moderation')).length}
             </div>
-            <p className="text-sm text-muted-foreground">Page Visits</p>
+            <p className="text-sm text-muted-foreground">Admin Actions</p>
           </CardContent>
         </Card>
         <Card>
@@ -307,19 +311,34 @@ const SupabaseLogViewer = () => {
                               Navigation
                             </Badge>
                           )}
-                          {log.action.includes('Visited') && (
-                            <Badge className="text-xs bg-purple-100 text-purple-800">
-                              Page Visit
-                            </Badge>
-                          )}
-                          {log.action.includes('Applied') && (
+                          {log.action.includes('Filter') && (
                             <Badge className="text-xs bg-yellow-100 text-yellow-800">
                               Filter
                             </Badge>
                           )}
-                          {log.action.includes('Performed') && (
+                          {log.action.includes('Moderation') && (
                             <Badge className="text-xs bg-red-100 text-red-800">
-                              Action
+                              Moderation
+                            </Badge>
+                          )}
+                          {log.action.includes('Data operation') && (
+                            <Badge className="text-xs bg-green-100 text-green-800">
+                              Data
+                            </Badge>
+                          )}
+                          {log.action.includes('Search') && (
+                            <Badge className="text-xs bg-indigo-100 text-indigo-800">
+                              Search
+                            </Badge>
+                          )}
+                          {log.action.includes('Bulk') && (
+                            <Badge className="text-xs bg-orange-100 text-orange-800">
+                              Bulk
+                            </Badge>
+                          )}
+                          {log.action.includes('Report') && (
+                            <Badge className="text-xs bg-pink-100 text-pink-800">
+                              Report
                             </Badge>
                           )}
                         </div>

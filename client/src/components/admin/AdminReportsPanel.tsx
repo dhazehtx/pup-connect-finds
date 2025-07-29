@@ -22,6 +22,7 @@ import {
 import { toast } from '@/hooks/use-toast';
 import { logAdminAction, logApiError, logUIAction } from '@/utils/logger';
 import { logToSupabase, useAdminLogger } from '@/utils/logToSupabase';
+import { logAdminFilterAction, logAdminModerationAction, logAdminReportResolution } from '@/utils/adminActionLogger';
 
 interface Report {
   id: string;
@@ -217,6 +218,26 @@ const AdminReportsPanel = () => {
       const data = await response.json();
 
       if (data.success) {
+        // Log comprehensive moderation and report resolution actions
+        await logAdminModerationAction({
+          actionType: actionTaken as any,
+          targetType: 'report',
+          targetId: selectedReport.id,
+          reason: adminNotes.trim() || 'No reason provided',
+          severity: selectedReport.severity,
+          additionalData: {
+            reportType: selectedReport.type,
+            originalStatus: selectedReport.status,
+            newStatus: resolveStatus
+          }
+        });
+
+        await logAdminReportResolution(
+          selectedReport.id,
+          resolveStatus,
+          adminNotes.trim() || undefined
+        );
+
         logAdminAction('Admin resolved report successfully', {
           reportId: selectedReport.id,
           finalStatus: resolveStatus,
@@ -429,8 +450,23 @@ const AdminReportsPanel = () => {
               placeholder="Start Date"
             />
 
-            <Button onClick={() => {
+            <Button onClick={async () => {
               const appliedFilters = Object.fromEntries(Object.entries(filters).filter(([_, v]) => v));
+              
+              // Log filter action with comprehensive details
+              await logAdminFilterAction({
+                filterType: 'report_filters',
+                filters: {
+                  type: filters.type || 'all',
+                  status: filters.status || 'all',
+                  severity: filters.severity || 'all',
+                  startDate: filters.startDate || 'none',
+                  endDate: filters.endDate || 'none'
+                },
+                appliedAt: new Date().toISOString(),
+                pageContext: 'AdminReportsPanel'
+              });
+
               logAdminAction('Admin applied report filters', { appliedFilters });
               logToSupabase('Applied filters', {
                 type: filters.type || 'all',
