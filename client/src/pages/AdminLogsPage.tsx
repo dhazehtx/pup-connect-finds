@@ -3,6 +3,7 @@ import { useLocation } from 'wouter';
 import { useAuth } from '@/contexts/AuthContext';
 import LoggingDashboard from '@/components/admin/LoggingDashboard';
 import AdminLogFilterPanel from '@/components/admin/AdminLogFilterPanel';
+import RealtimeAdminLogPanel from '@/components/admin/RealtimeAdminLogPanel';
 import { logAdminAction } from '@/utils/logger';
 import { logToSupabase } from '@/utils/logToSupabase';
 import { useAdminPageTracking } from '@/hooks/useAdminPageTracking';
@@ -81,6 +82,7 @@ const AdminLogsPage = () => {
         </div>
         
         <LoggingDashboard />
+        <RealtimeAdminLogPanel />
         <AdminLogFilterPanel />
       </div>
     </div>
