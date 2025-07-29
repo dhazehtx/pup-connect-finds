@@ -18,6 +18,10 @@ import {
 import { toast } from '@/hooks/use-toast';
 import { logger, type LogEvent } from '@/utils/logger';
 import { logAdminAction, logUIAction } from '@/utils/logger';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Database, Navigation } from 'lucide-react';
+import SupabaseLogViewer from './SupabaseLogViewer';
+import NavigationAnalytics from './NavigationAnalytics';
 
 const LoggingDashboard = () => {
   const [logs, setLogs] = useState<LogEvent[]>([]);
@@ -199,8 +203,8 @@ const LoggingDashboard = () => {
     <div className="container mx-auto p-6 space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold flex items-center gap-2">
-          <Activity className="w-8 h-8 text-green-600" />
-          System Logs & Monitoring
+          <Activity className="w-8 h-8 text-blue-600" />
+          Admin Monitoring & Logging
         </h1>
         <div className="flex gap-2">
           <Button onClick={exportLogs} variant="outline" disabled={filteredLogs.length === 0}>
@@ -213,6 +217,24 @@ const LoggingDashboard = () => {
           </Button>
         </div>
       </div>
+
+      <Tabs defaultValue="client-logs" className="w-full">
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="client-logs" className="flex items-center gap-2">
+            <Activity className="w-4 h-4" />
+            Client Logs
+          </TabsTrigger>
+          <TabsTrigger value="supabase-logs" className="flex items-center gap-2">
+            <Database className="w-4 h-4" />
+            Admin Actions
+          </TabsTrigger>
+          <TabsTrigger value="navigation" className="flex items-center gap-2">
+            <Navigation className="w-4 h-4" />
+            Navigation Analytics
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="client-logs" className="space-y-6">
 
       {/* Filters */}
       <Card>
@@ -384,6 +406,16 @@ const LoggingDashboard = () => {
           )}
         </CardContent>
       </Card>
+        </TabsContent>
+
+        <TabsContent value="supabase-logs" className="space-y-6">
+          <SupabaseLogViewer />
+        </TabsContent>
+
+        <TabsContent value="navigation" className="space-y-6">
+          <NavigationAnalytics />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };

@@ -22,14 +22,12 @@ export async function logToSupabase(action: string, metadata?: any): Promise<boo
       return false;
     }
 
-    // Insert log entry
-    const { error } = await supabase
-      .from('admin_logs')
-      .insert({
-        admin_id: session.user.id,
-        action,
-        metadata: metadata || null
-      });
+    // Use RPC call to insert into admin_logs table
+    const { error } = await supabase.rpc('insert_admin_log', {
+      p_admin_id: session.user.id,
+      p_action: action,
+      p_metadata: metadata || null
+    });
 
     if (error) {
       console.error('Failed to log admin action to Supabase:', error);
@@ -45,47 +43,24 @@ export async function logToSupabase(action: string, metadata?: any): Promise<boo
 }
 
 /**
- * Retrieve admin logs from Supabase
+ * Retrieve admin logs from Supabase with navigation tracking
  */
 export async function getAdminLogs(options: {
   limit?: number;
   adminId?: string;
   startDate?: string;
   endDate?: string;
+  actionType?: string;
 } = {}): Promise<AdminLogEntry[]> {
   try {
-    let query = supabase
-      .from('admin_logs')
-      .select(`
-        id,
-        admin_id,
-        action,
-        metadata,
-        created_at,
-        profiles:admin_id (
-          username,
-          full_name
-        )
-      `)
-      .order('created_at', { ascending: false });
-
-    if (options.limit) {
-      query = query.limit(options.limit);
-    }
-
-    if (options.adminId) {
-      query = query.eq('admin_id', options.adminId);
-    }
-
-    if (options.startDate) {
-      query = query.gte('created_at', options.startDate);
-    }
-
-    if (options.endDate) {
-      query = query.lte('created_at', options.endDate);
-    }
-
-    const { data, error } = await query;
+    // Use RPC call to query admin_logs table
+    const { data, error } = await supabase.rpc('get_admin_logs', {
+      p_limit: options.limit || 100,
+      p_admin_id: options.adminId || null,
+      p_start_date: options.startDate || null,
+      p_end_date: options.endDate || null,
+      p_action_type: options.actionType || null
+    });
 
     if (error) {
       console.error('Failed to fetch admin logs:', error);

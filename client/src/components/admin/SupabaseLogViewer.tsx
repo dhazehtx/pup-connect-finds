@@ -25,7 +25,8 @@ const SupabaseLogViewer = () => {
     adminId: '',
     search: '',
     limit: '50',
-    days: '7'
+    days: '7',
+    actionType: ''
   });
 
   useEffect(() => {
@@ -43,7 +44,8 @@ const SupabaseLogViewer = () => {
       const logsData = await getAdminLogs({
         limit: parseInt(filters.limit),
         adminId: filters.adminId || undefined,
-        startDate: startDate.toISOString()
+        startDate: startDate.toISOString(),
+        actionType: filters.actionType || undefined
       });
       
       // Apply search filter client-side
@@ -76,7 +78,8 @@ const SupabaseLogViewer = () => {
       adminId: '',
       search: '',
       limit: '50',
-      days: '7'
+      days: '7',
+      actionType: ''
     });
     logUIAction('Cleared Supabase log filters');
   };
@@ -149,7 +152,7 @@ const SupabaseLogViewer = () => {
             Filters
           </CardTitle>
         </CardHeader>
-        <CardContent className="grid grid-cols-1 md:grid-cols-5 gap-4">
+        <CardContent className="grid grid-cols-1 md:grid-cols-6 gap-4">
           <div>
             <label className="text-sm font-medium mb-2 block">Search Actions</label>
             <div className="relative">
@@ -161,6 +164,24 @@ const SupabaseLogViewer = () => {
                 className="pl-10"
               />
             </div>
+          </div>
+
+          <div>
+            <label className="text-sm font-medium mb-2 block">Action Type</label>
+            <Select value={filters.actionType || ''} onValueChange={(value) => 
+              setFilters(prev => ({ ...prev, actionType: value }))}>
+              <SelectTrigger>
+                <SelectValue placeholder="All actions" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">All actions</SelectItem>
+                <SelectItem value="Navigated">Navigation Events</SelectItem>
+                <SelectItem value="Visited">Page Visits</SelectItem>
+                <SelectItem value="Applied">Filter Actions</SelectItem>
+                <SelectItem value="Performed">Report Actions</SelectItem>
+                <SelectItem value="Initial">Session Starts</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           <div>
@@ -210,16 +231,32 @@ const SupabaseLogViewer = () => {
       </Card>
 
       {/* Statistics */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
         <Card>
           <CardContent className="p-4">
             <div className="text-2xl font-bold">{logs.length}</div>
-            <p className="text-sm text-muted-foreground">Total Admin Actions</p>
+            <p className="text-sm text-muted-foreground">Total Actions</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4">
             <div className="text-2xl font-bold text-blue-600">
+              {logs.filter(log => log.action.includes('Navigated')).length}
+            </div>
+            <p className="text-sm text-muted-foreground">Navigation Events</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4">
+            <div className="text-2xl font-bold text-purple-600">
+              {logs.filter(log => log.action.includes('Visited')).length}
+            </div>
+            <p className="text-sm text-muted-foreground">Page Visits</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4">
+            <div className="text-2xl font-bold text-orange-600">
               {new Set(logs.map(log => log.admin_id)).size}
             </div>
             <p className="text-sm text-muted-foreground">Unique Admins</p>
@@ -265,6 +302,26 @@ const SupabaseLogViewer = () => {
                             <User className="w-3 h-3 mr-1" />
                             {log.admin_id?.slice(0, 8)}...
                           </Badge>
+                          {log.action.includes('Navigated') && (
+                            <Badge className="text-xs bg-blue-100 text-blue-800">
+                              Navigation
+                            </Badge>
+                          )}
+                          {log.action.includes('Visited') && (
+                            <Badge className="text-xs bg-purple-100 text-purple-800">
+                              Page Visit
+                            </Badge>
+                          )}
+                          {log.action.includes('Applied') && (
+                            <Badge className="text-xs bg-yellow-100 text-yellow-800">
+                              Filter
+                            </Badge>
+                          )}
+                          {log.action.includes('Performed') && (
+                            <Badge className="text-xs bg-red-100 text-red-800">
+                              Action
+                            </Badge>
+                          )}
                         </div>
                         <div className="flex items-center gap-4 text-sm text-muted-foreground mb-2">
                           <div className="flex items-center gap-1">

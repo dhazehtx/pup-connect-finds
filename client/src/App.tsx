@@ -6,6 +6,7 @@ import { ThemeProvider } from './contexts/ThemeContext';
 import { AuthProvider } from './contexts/AuthContext';
 import { RealtimeProvider } from './contexts/RealtimeContext';
 import Layout from './components/Layout';
+import AdminNavigationTracker from './components/admin/AdminNavigationTracker';
 
 import { PageTransition } from './components/ui/transitions';
 import Home from './pages/Home';
@@ -69,6 +70,7 @@ function App() {
           <AuthProvider>
             <RealtimeProvider>
               <ThemeProvider>
+                <AdminNavigationTracker />
                 <Layout>
                   <PageTransition>
                   <Routes>
