@@ -183,6 +183,9 @@ const SupabaseLogViewer = () => {
                 <SelectItem value="Search">Search Actions</SelectItem>
                 <SelectItem value="Bulk">Bulk Actions</SelectItem>
                 <SelectItem value="Report">Report Resolutions</SelectItem>
+                <SelectItem value="viewed">Report Views</SelectItem>
+                <SelectItem value="resolved">Report Resolutions</SelectItem>
+                <SelectItem value="escalated">Report Escalations</SelectItem>
                 <SelectItem value="Initial">Session Starts</SelectItem>
               </SelectContent>
             </Select>
@@ -339,6 +342,21 @@ const SupabaseLogViewer = () => {
                           {log.action.includes('Report') && (
                             <Badge className="text-xs bg-pink-100 text-pink-800">
                               Report
+                            </Badge>
+                          )}
+                          {log.action.includes('viewed') && (
+                            <Badge className="text-xs bg-blue-100 text-blue-800">
+                              View
+                            </Badge>
+                          )}
+                          {log.action.includes('resolved') && (
+                            <Badge className="text-xs bg-green-100 text-green-800">
+                              Resolved
+                            </Badge>
+                          )}
+                          {log.action.includes('escalated') && (
+                            <Badge className="text-xs bg-red-100 text-red-800">
+                              Escalated
                             </Badge>
                           )}
                         </div>

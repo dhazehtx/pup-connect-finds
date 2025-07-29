@@ -23,6 +23,7 @@ import { toast } from '@/hooks/use-toast';
 import { logAdminAction, logApiError, logUIAction } from '@/utils/logger';
 import { logToSupabase, useAdminLogger } from '@/utils/logToSupabase';
 import { logAdminFilterAction, logAdminModerationAction, logAdminReportResolution } from '@/utils/adminActionLogger';
+import { logReportView, logReportResolution, logModerationAction } from '@/utils/reportActionLogger';
 
 interface Report {
   id: string;
@@ -218,7 +219,33 @@ const AdminReportsPanel = () => {
       const data = await response.json();
 
       if (data.success) {
-        // Log comprehensive moderation and report resolution actions
+        // Log comprehensive report resolution with new logging utility
+        await logReportResolution({
+          reportId: selectedReport.id,
+          reportType: selectedReport.type,
+          resolutionType: resolveStatus === 'resolved' ? 'resolved' : 'dismissed',
+          actionTaken: actionTaken,
+          adminNotes: adminNotes.trim() || undefined,
+          previousStatus: selectedReport.status,
+          newStatus: resolveStatus,
+          resolutionReason: actionTaken
+        });
+
+        // Log moderation action if applicable
+        if (actionTaken.includes('ban') || actionTaken.includes('warn') || actionTaken.includes('suspend')) {
+          await logModerationAction({
+            reportId: selectedReport.id,
+            actionType: actionTaken.includes('ban') ? 'ban_user' : 
+                       actionTaken.includes('warn') ? 'warn_user' : 'suspend_account',
+            targetType: selectedReport.type === 'user' ? 'user' : 'listing',
+            targetId: selectedReport.reported_username || selectedReport.id,
+            severity: selectedReport.severity,
+            reason: adminNotes.trim() || actionTaken,
+            reversible: !actionTaken.includes('permanent')
+          });
+        }
+
+        // Keep existing logging for compatibility
         await logAdminModerationAction({
           actionType: actionTaken as any,
           targetType: 'report',
@@ -563,7 +590,17 @@ const AdminReportsPanel = () => {
                       <Button
                         size="sm"
                         variant="outline"
-                        onClick={() => setSelectedReport(report)}
+                        onClick={async () => {
+                          // Log comprehensive report viewing action
+                          await logReportView({
+                            reportId: report.id,
+                            reportType: report.type,
+                            reportSeverity: report.severity,
+                            reportStatus: report.status,
+                            accessedFrom: 'AdminReportsPanel'
+                          });
+                          setSelectedReport(report);
+                        }}
                       >
                         <Eye className="w-4 h-4 mr-1" />
                         View Details
@@ -571,7 +608,16 @@ const AdminReportsPanel = () => {
                       {report.status === 'pending' && (
                         <Button
                           size="sm"
-                          onClick={() => {
+                          onClick={async () => {
+                            // Log report viewing and opening for resolution
+                            await logReportView({
+                              reportId: report.id,
+                              reportType: report.type,
+                              reportSeverity: report.severity,
+                              reportStatus: report.status,
+                              accessedFrom: 'AdminReportsPanel_Resolution'
+                            });
+
                             logAdminAction('Admin opened report for resolution', {
                               reportId: report.id,
                               reportType: report.type,
