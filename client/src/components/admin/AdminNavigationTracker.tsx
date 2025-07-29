@@ -35,7 +35,11 @@ const AdminNavigationTracker = () => {
         };
 
         // Log to both Supabase and client-side logger
-        await logToSupabase(`Navigated to ${location.pathname}`, navigationData);
+        await logToSupabase(`Navigated to ${location.pathname}`, {
+          event_type: 'NAVIGATION',
+          event_detail: `Admin navigated from ${previousLocation.current} to ${location.pathname}`,
+          ...navigationData
+        });
         
         logAdminAction('Admin navigation event', {
           event_type: 'NAVIGATION',
@@ -67,7 +71,11 @@ const AdminNavigationTracker = () => {
             session_start: true
           };
 
-          await logToSupabase(`Initial page load: ${location.pathname}`, initialLoadData);
+          await logToSupabase(`Initial page load: ${location.pathname}`, {
+            event_type: 'SESSION_START',
+            event_detail: `Admin session started at ${location.pathname}`,
+            ...initialLoadData
+          });
           
           logAdminAction('Admin session started', {
             event_type: 'SESSION_START',

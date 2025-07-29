@@ -26,6 +26,8 @@ export async function logToSupabase(action: string, metadata?: any): Promise<boo
     const { error } = await supabase.rpc('insert_admin_log', {
       p_admin_id: session.user.id,
       p_action: action,
+      p_event_type: metadata?.event_type || 'ACTION',
+      p_event_detail: metadata?.event_detail || action,
       p_metadata: metadata || null
     });
 
