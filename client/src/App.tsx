@@ -51,6 +51,7 @@ const NavigationTestPage = lazy(() => import('./pages/NavigationTestPage'));
 const AdminActionTestPage = lazy(() => import('./pages/AdminActionTestPage'));
 const ReportActionTestPage = lazy(() => import('./pages/ReportActionTestPage'));
 const AdminPageTrackingTestPage = lazy(() => import('./pages/AdminPageTrackingTestPage'));
+const AdminLogFilterTestPage = lazy(() => import('./pages/AdminLogFilterTestPage'));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -198,6 +199,11 @@ function App() {
                   <Route path="/admin-page-tracking-test" element={
                     <Suspense fallback={<LoadingPage message="Loading Admin Page Tracking Test..." />}>
                       <AdminPageTrackingTestPage />
+                    </Suspense>
+                  } />
+                  <Route path="/admin-log-filter-test" element={
+                    <Suspense fallback={<LoadingPage message="Loading Admin Log Filter Test..." />}>
+                      <AdminLogFilterTestPage />
                     </Suspense>
                   } />
                   </Routes>

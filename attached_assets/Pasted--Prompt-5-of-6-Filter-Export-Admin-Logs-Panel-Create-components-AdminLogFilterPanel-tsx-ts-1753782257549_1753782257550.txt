@@ -1,0 +1,96 @@
+✅ Prompt 5 of 6 – Filter + Export Admin Logs Panel
+🗂️ Create /components/AdminLogFilterPanel.tsx
+tsx
+Copy
+Edit
+import { useState, useEffect } from 'react'
+import { supabase } from '@/utils/supabaseClient'
+import { CSVLink } from 'react-csv'
+
+export default function AdminLogFilterPanel() {
+  const [logs, setLogs] = useState([])
+  const [type, setType] = useState('ALL')
+  const [filtered, setFiltered] = useState([])
+
+  useEffect(() => {
+    const fetchLogs = async () => {
+      const { data, error } = await supabase.from('admin_logs').select('*').order('timestamp', { ascending: false })
+      if (!error) {
+        setLogs(data)
+        setFiltered(data)
+      }
+    }
+    fetchLogs()
+  }, [])
+
+  const filterLogs = () => {
+    if (type === 'ALL') return setFiltered(logs)
+    setFiltered(logs.filter(log => log.event_type === type))
+  }
+
+  useEffect(filterLogs, [type])
+
+  return (
+    <div className="p-4 border rounded-lg bg-white">
+      <div className="flex items-center gap-4 mb-4">
+        <select
+          className="border p-2 rounded"
+          value={type}
+          onChange={(e) => setType(e.target.value)}
+        >
+          <option value="ALL">All Types</option>
+          <option value="REPORT_VIEW">Report View</option>
+          <option value="REPORT_RESOLUTION">Report Resolution</option>
+          <option value="ADMIN_NAVIGATION">Page Navigation</option>
+          <option value="MODERATION_ACTION">Moderation Action</option>
+        </select>
+        <CSVLink
+          data={filtered}
+          filename={`admin-logs-${new Date().toISOString()}.csv`}
+          className="bg-blue-600 text-white px-4 py-2 rounded"
+        >
+          Export CSV
+        </CSVLink>
+      </div>
+
+      <div className="overflow-auto max-h-[500px]">
+        <table className="min-w-full text-sm text-left">
+          <thead className="bg-gray-100">
+            <tr>
+              <th className="p-2">Timestamp</th>
+              <th className="p-2">Admin</th>
+              <th className="p-2">Type</th>
+              <th className="p-2">Details</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filtered.map((log, idx) => (
+              <tr key={idx} className="border-t">
+                <td className="p-2">{new Date(log.timestamp).toLocaleString()}</td>
+                <td className="p-2">{log.admin_id}</td>
+                <td className="p-2">{log.event_type}</td>
+                <td className="p-2">{log.event_detail}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  )
+}
+🧩 Usage
+Import this panel into your /admin/logs.tsx or /admin/reports.tsx page:
+
+tsx
+Copy
+Edit
+import AdminLogFilterPanel from '@/components/AdminLogFilterPanel'
+
+export default function AdminLogsPage() {
+  return (
+    <div className="max-w-6xl mx-auto mt-8">
+      <h1 className="text-2xl font-semibold mb-4">Audit Logs</h1>
+      <AdminLogFilterPanel />
+    </div>
+  )
+}

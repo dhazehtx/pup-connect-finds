@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { useLocation } from 'wouter';
 import { useAuth } from '@/contexts/AuthContext';
 import LoggingDashboard from '@/components/admin/LoggingDashboard';
+import AdminLogFilterPanel from '@/components/admin/AdminLogFilterPanel';
 import { logAdminAction } from '@/utils/logger';
 import { logToSupabase } from '@/utils/logToSupabase';
 import { useAdminPageTracking } from '@/hooks/useAdminPageTracking';
@@ -73,7 +74,15 @@ const AdminLogsPage = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <LoggingDashboard />
+      <div className="container mx-auto p-6 space-y-6">
+        <div className="flex items-center gap-2 mb-6">
+          <Activity className="w-8 h-8 text-green-600" />
+          <h1 className="text-3xl font-bold">Admin Logs & Analytics</h1>
+        </div>
+        
+        <LoggingDashboard />
+        <AdminLogFilterPanel />
+      </div>
     </div>
   );
 };
