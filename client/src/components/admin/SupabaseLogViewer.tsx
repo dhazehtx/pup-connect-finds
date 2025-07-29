@@ -186,6 +186,9 @@ const SupabaseLogViewer = () => {
                 <SelectItem value="viewed">Report Views</SelectItem>
                 <SelectItem value="resolved">Report Resolutions</SelectItem>
                 <SelectItem value="escalated">Report Escalations</SelectItem>
+                <SelectItem value="ADMIN_PAGE_VIEW">Page Views</SelectItem>
+                <SelectItem value="ADMIN_SECTION_SWITCH">Section Switches</SelectItem>
+                <SelectItem value="ADMIN_METRICS_ACCESS">Metrics Access</SelectItem>
                 <SelectItem value="Initial">Session Starts</SelectItem>
               </SelectContent>
             </Select>
@@ -357,6 +360,21 @@ const SupabaseLogViewer = () => {
                           {log.action.includes('escalated') && (
                             <Badge className="text-xs bg-red-100 text-red-800">
                               Escalated
+                            </Badge>
+                          )}
+                          {log.action.includes('ADMIN_PAGE_VIEW') && (
+                            <Badge className="text-xs bg-indigo-100 text-indigo-800">
+                              Page View
+                            </Badge>
+                          )}
+                          {log.action.includes('ADMIN_SECTION_SWITCH') && (
+                            <Badge className="text-xs bg-cyan-100 text-cyan-800">
+                              Section Switch
+                            </Badge>
+                          )}
+                          {log.action.includes('ADMIN_METRICS_ACCESS') && (
+                            <Badge className="text-xs bg-violet-100 text-violet-800">
+                              Metrics
                             </Badge>
                           )}
                         </div>

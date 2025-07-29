@@ -4,12 +4,16 @@ import { useAuth } from '@/contexts/AuthContext';
 import LoggingDashboard from '@/components/admin/LoggingDashboard';
 import { logAdminAction } from '@/utils/logger';
 import { logToSupabase } from '@/utils/logToSupabase';
+import { useAdminPageTracking } from '@/hooks/useAdminPageTracking';
 import { Activity, AlertTriangle } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 
 const AdminLogsPage = () => {
   const { user, loading, profile } = useAuth();
   const [, setLocation] = useLocation();
+  
+  // Track admin page navigation and time spent
+  useAdminPageTracking('System Logs & Analytics');
 
   useEffect(() => {
     // Check if user is not authenticated or not an admin

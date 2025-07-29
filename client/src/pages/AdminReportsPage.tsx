@@ -3,12 +3,16 @@ import { useLocation } from 'wouter';
 import { useAuth } from '@/contexts/AuthContext';
 import AdminReportsPanel from '@/components/admin/AdminReportsPanel';
 import { logAdminAction } from '@/utils/logger';
+import { useAdminPageTracking } from '@/hooks/useAdminPageTracking';
 import { Shield, AlertTriangle } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 
 const AdminReportsPage = () => {
   const { user, loading, profile } = useAuth();
   const [, setLocation] = useLocation();
+  
+  // Track admin page navigation and time spent
+  useAdminPageTracking('Reports & Moderation');
 
   useEffect(() => {
     // Check if user is not authenticated or not an admin

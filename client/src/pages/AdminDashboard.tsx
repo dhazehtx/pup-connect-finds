@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link, useLocation } from 'wouter';
 import { useAuth } from '@/contexts/AuthContext';
+import { useAdminPageTracking } from '@/hooks/useAdminPageTracking';
 import { Shield, FileText, Users, BarChart3, Settings, AlertTriangle } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -8,6 +9,9 @@ import { Button } from '@/components/ui/button';
 const AdminDashboard = () => {
   const { user, loading, profile } = useAuth();
   const [, setLocation] = useLocation();
+  
+  // Track admin page navigation and time spent
+  useAdminPageTracking('Admin Dashboard');
 
   // Redirect if not admin
   React.useEffect(() => {
