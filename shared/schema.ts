@@ -698,6 +698,28 @@ export const supportTicketReplies = pgTable('support_ticket_replies', {
   created_at: timestamp('created_at').defaultNow(),
 });
 
+// Bug Reports Schema
+export const bugReports = pgTable('bug_reports', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  user_id: uuid('user_id').notNull().references(() => profiles.id),
+  subject: text('subject').notNull(),
+  description: text('description').notNull(),
+  screenshot_url: text('screenshot_url'),
+  steps_to_reproduce: text('steps_to_reproduce'),
+  expected_behavior: text('expected_behavior'),
+  actual_behavior: text('actual_behavior'),
+  browser_info: text('browser_info'),
+  device_info: text('device_info'),
+  status: text('status').notNull().default('open'), // 'open', 'in_progress', 'resolved', 'closed'
+  priority: text('priority').notNull().default('medium'), // 'low', 'medium', 'high', 'critical'
+  assigned_admin_id: uuid('assigned_admin_id').references(() => profiles.id),
+  admin_notes: text('admin_notes'),
+  resolution: text('resolution'),
+  created_at: timestamp('created_at').defaultNow(),
+  updated_at: timestamp('updated_at').defaultNow(),
+  resolved_at: timestamp('resolved_at'),
+});
+
 // Support ticket schema exports
 export const insertSupportTicketSchema = createInsertSchema(supportTickets).omit({ 
   id: true, 
@@ -711,7 +733,16 @@ export const insertSupportTicketReplySchema = createInsertSchema(supportTicketRe
   created_at: true 
 });
 
+// Bug report schema exports
+export const insertBugReportSchema = createInsertSchema(bugReports).omit({ 
+  id: true, 
+  created_at: true, 
+  updated_at: true 
+});
+
 export type SupportTicket = typeof supportTickets.$inferSelect;
 export type InsertSupportTicket = z.infer<typeof insertSupportTicketSchema>;
 export type SupportTicketReply = typeof supportTicketReplies.$inferSelect;
 export type InsertSupportTicketReply = z.infer<typeof insertSupportTicketReplySchema>;
+export type BugReport = typeof bugReports.$inferSelect;
+export type InsertBugReport = z.infer<typeof insertBugReportSchema>;

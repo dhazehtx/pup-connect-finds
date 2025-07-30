@@ -65,6 +65,8 @@ const CommunityPage = lazy(() => import('./pages/CommunityPage'));
 const GroupDetailPage = lazy(() => import('./pages/GroupDetailPage'));
 const SupportPage = lazy(() => import('./pages/SupportPage'));
 const AdminSupportPage = lazy(() => import('./pages/AdminSupportPage'));
+const AdminBugsPage = lazy(() => import('./pages/AdminBugsPage'));
+const BugTestPage = lazy(() => import('./pages/BugTestPage'));
 
 // Import new notification component
 import NotificationButton from './components/notifications/NotificationButton';
@@ -286,6 +288,20 @@ function App() {
                     <ProtectedRoute>
                       <Suspense fallback={<LoadingPage message="Loading Admin Support..." />}>
                         <AdminSupportPage />
+                      </Suspense>
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/admin/bugs" element={
+                    <ProtectedRoute>
+                      <Suspense fallback={<LoadingPage message="Loading Bug Reports..." />}>
+                        <AdminBugsPage />
+                      </Suspense>
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/bug-test" element={
+                    <ProtectedRoute>
+                      <Suspense fallback={<LoadingPage message="Loading Bug Test..." />}>
+                        <BugTestPage />
                       </Suspense>
                     </ProtectedRoute>
                   } />

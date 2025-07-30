@@ -9,6 +9,7 @@ import { MapPin, Globe, Calendar, UserPlus, UserCheck } from 'lucide-react';
 import ProfileSettings from './ProfileSettings';
 import ProfileSettingsModal from './ProfileSettingsModal';
 import ProfilePostsGrid from './ProfilePostsGrid';
+import BugReportButton from '@/components/bugs/BugReportButton';
 import LoadingState from '@/components/ui/loading-state';
 import { useFollowSystem } from '@/hooks/useFollowSystem';
 import { usePosts } from '@/hooks/usePosts';
@@ -226,6 +227,9 @@ const UnifiedProfileView = ({ userId, isCurrentUser }: UnifiedProfileViewProps) 
                       </>
                     )}
                   </Button>
+                )}
+                {isCurrentUser && (
+                  <BugReportButton variant="outline" size="sm" />
                 )}
               </div>
             </div>
