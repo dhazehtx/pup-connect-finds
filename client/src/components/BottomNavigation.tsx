@@ -85,7 +85,7 @@ const BottomNavigation = () => {
 
   return (
     <>
-      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-40 shadow-sm">
+      <nav className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 z-40 shadow-sm">
         <div className="grid grid-cols-5 h-16">
           {navItems.map((item, index) => {
             const Icon = item.icon;
@@ -104,8 +104,8 @@ const BottomNavigation = () => {
                 }}
                 className={`flex flex-col items-center justify-center p-2 transition-colors relative ${
                   active 
-                    ? 'text-blue-600 bg-blue-50' 
-                    : 'text-gray-600 hover:text-blue-600 hover:bg-gray-50'
+                    ? 'text-blue-600 bg-blue-50 dark:bg-blue-900/20' 
+                    : 'text-gray-600 dark:text-gray-300 hover:text-blue-600 hover:bg-gray-50 dark:hover:bg-gray-700'
                 }`}
                 type="button"
                 aria-label={item.label}
@@ -113,7 +113,7 @@ const BottomNavigation = () => {
                 <div className="relative">
                   <Icon size={20} className="flex-shrink-0" />
                 </div>
-                <span className="text-xs mt-1 font-medium">{item.label}</span>
+                <span className="text-xs mt-1 font-medium text-inherit">{item.label}</span>
                 {item.protected && !user && !isGuest && (
                   <div className="absolute top-1 right-1 w-2 h-2 bg-blue-500 rounded-full"></div>
                 )}

@@ -1,0 +1,114 @@
+✅ Prompt 23: Bug Reporting System
+sql
+Copy
+Edit
+🪲 Implement a Bug Reporting System for MY PUP
+Add an in-app way for users to report bugs directly to the admin dashboard.
+
+1. Add a “Report a Bug” button in the profile or settings page.
+2. Clicking opens a modal with:
+   - Subject (dropdown or text input)
+   - Bug description (textarea)
+   - Optional screenshot upload (if supported)
+3. Store reports in Supabase table: `bug_reports`
+   - Fields: id, user_id, subject, description, screenshot_url (optional), timestamp, status (open/resolved)
+4. Add new page at `/admin/bugs` for admins to view, filter, and mark reports as resolved.
+5. Send notification or log entry when new bug is submitted.
+✅ Prompt 24: Customer Support Ticketing System
+sql
+Copy
+Edit
+🎫 Add a Customer Support Ticketing System to MY PUP
+Enable users to request help and track their support interactions.
+
+1. Create a “Help Center” or “Support” button in profile/settings.
+2. Users can create a ticket:
+   - Subject (dropdown or input)
+   - Message
+   - Optional attachment
+3. Store tickets in Supabase table: `support_tickets`
+   - Fields: id, user_id, subject, message, status (open/closed), created_at, admin_response
+4. Allow admins to view/respond via `/admin/support`
+   - Reply to user’s ticket from dashboard
+5. Notify users when a reply is sent or ticket is resolved.
+✅ Prompt 25: AI-Powered Advanced Explore Filters
+markdown
+Copy
+Edit
+🧠 Enhance Explore Filters with Smart Recommendations
+Upgrade search filters to include intelligent suggestions.
+
+1. Use Supabase edge functions or helper logic to recommend listings based on:
+   - Recently viewed breeds
+   - Saved/bookmarked posts
+   - Location + breed popularity
+2. Add a “Recommended for You” section to top of Explore page
+3. Include filters like:
+   - Breed match % (if logged in)
+   - Popular in your area
+   - Trending listings
+✅ Prompt 26: Story Uploads (Profile Stories)
+pgsql
+Copy
+Edit
+📸 Add Story Upload Feature (like Instagram/Facebook)
+Let users post temporary photo/video stories to their profile.
+
+1. Add “Your Story” at top of profile/home feed if logged in
+2. Allow users to upload images/videos that expire after 24 hrs
+3. Create Supabase table: `stories`
+   - Fields: id, user_id, media_url, created_at, expires_at
+4. Display stories from followed users in a horizontal story bar
+5. Optionally allow story reactions (❤️ / 😂 / 👏)
+✅ Prompt 27: Bookmark/Save Post Feature
+pgsql
+Copy
+Edit
+🔖 Add Save/Bookmark Feature for Posts
+Let users save posts to their profile for later.
+
+1. Add a bookmark icon on every post (toggleable)
+2. Create Supabase table: `saved_posts`
+   - Fields: id, user_id, post_id, saved_at
+3. Add “Saved” tab or section to user profile
+4. Optionally: sort bookmarks into folders (future upgrade)
+✅ Prompt 28: Post Sharing Options
+vbnet
+Copy
+Edit
+📤 Add Post Sharing Functionality
+Let users share posts easily within or outside the app.
+
+1. Add a share icon to posts
+2. On click, display modal:
+   - Copy Link button
+   - Option to share on external platforms (optional)
+3. Generate unique URL for each post: `/post/:postId`
+4. Enable meta tags for preview if shared externally
+✅ Prompt 29: Report System for Content
+markdown
+Copy
+Edit
+🚩 Add Report System for Posts & Comments
+Give users a way to flag inappropriate content.
+
+1. Add “Report” option to post & comment dropdown menus
+2. Report modal includes:
+   - Reason (dropdown: spam, harassment, inappropriate, etc.)
+   - Optional message
+3. Store in `reports` Supabase table:
+   - Fields: id, reporter_id, content_type, content_id, reason, message, status, created_at
+4. Admin page `/admin/reports` to review and act (delete content, ban user, etc.)
+✅ Prompt 30: GDPR Data Export Option
+pgsql
+Copy
+Edit
+📦 Add Data Export (GDPR Compliance) Feature
+Allow users to request a downloadable archive of their data.
+
+1. Add “Download My Data” button in profile settings
+2. On click, generate export file (JSON or .zip):
+   - Profile info, posts, messages, saved listings, etc.
+3. Email download link to user OR provide direct download
+4. Log request in `data_exports` table with user_id, timestamp
+5. Optional rate-limit requests (1 per 30 days)

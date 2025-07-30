@@ -7,6 +7,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import NotificationBadge from '@/components/notifications/NotificationBadge';
 import NotificationCenter from '@/components/notifications/NotificationCenter';
+import { ThemeToggle } from '@/components/ui/theme-toggle';
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -42,13 +43,13 @@ const Header = () => {
   };
 
   return (
-    <header className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-50">
+    <header className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700 sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <Link to={getHomeLink()} className="flex items-center space-x-2">
             <Heart className="h-8 w-8 text-blue-600" />
-            <span className="text-xl font-bold text-gray-900">MY PUP</span>
+            <span className="text-xl font-bold text-gray-900 dark:text-white">MY PUP</span>
           </Link>
 
           {/* Simple Sign In/Sign Up buttons on the right */}
@@ -56,17 +57,22 @@ const Header = () => {
             {user || isGuest ? (
               <div className="flex items-center space-x-4">
                 {user && (
-                  <NotificationBadge
-                    onClick={() => setShowNotifications(!showNotifications)}
-                    className="text-gray-600 hover:text-blue-600"
-                  />
+                  <>
+                    <NotificationBadge
+                      onClick={() => setShowNotifications(!showNotifications)}
+                      className="text-gray-600 hover:text-blue-600"
+                    />
+                    <ThemeToggle />
+                  </>
                 )}
-                <Button variant="outline" size="sm" onClick={handleSignOut} className="border-blue-600 text-blue-600 hover:bg-blue-50">
+
+                <Button variant="outline" size="sm" onClick={handleSignOut} className="border-blue-600 text-blue-600 hover:bg-blue-50 dark:hover:bg-gray-700">
                   {isGuest ? 'Exit Guest Mode' : 'Sign Out'}
                 </Button>
               </div>
             ) : (
               <div className="flex items-center space-x-3">
+                <ThemeToggle />
                 <Link to="/auth">
                   <Button size="sm" className="bg-blue-600 hover:bg-blue-700 text-white">Sign In</Button>
                 </Link>

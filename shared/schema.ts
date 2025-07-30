@@ -669,3 +669,49 @@ export type GroupPostLike = typeof groupPostLikes.$inferSelect;
 export type InsertGroupPostLike = z.infer<typeof insertGroupPostLikeSchema>;
 export type GroupCommentLike = typeof groupCommentLikes.$inferSelect;
 export type InsertGroupCommentLike = z.infer<typeof insertGroupCommentLikeSchema>;
+
+// Support Tickets Schema
+export const supportTickets = pgTable('support_tickets', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  user_id: uuid('user_id').notNull().references(() => profiles.id),
+  category: text('category').notNull(),
+  subject: text('subject'),
+  description: text('description').notNull(),
+  attachment_url: text('attachment_url'),
+  status: text('status').notNull().default('open'), // 'open', 'in_progress', 'resolved', 'closed'
+  priority: text('priority').notNull().default('medium'), // 'low', 'medium', 'high', 'urgent'
+  assigned_admin_id: uuid('assigned_admin_id').references(() => profiles.id),
+  admin_notes: text('admin_notes'),
+  resolution: text('resolution'),
+  created_at: timestamp('created_at').defaultNow(),
+  updated_at: timestamp('updated_at').defaultNow(),
+  resolved_at: timestamp('resolved_at'),
+});
+
+export const supportTicketReplies = pgTable('support_ticket_replies', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  ticket_id: uuid('ticket_id').notNull().references(() => supportTickets.id, { onDelete: 'cascade' }),
+  author_id: uuid('author_id').notNull().references(() => profiles.id),
+  message: text('message').notNull(),
+  is_admin_reply: boolean('is_admin_reply').notNull().default(false),
+  attachment_url: text('attachment_url'),
+  created_at: timestamp('created_at').defaultNow(),
+});
+
+// Support ticket schema exports
+export const insertSupportTicketSchema = createInsertSchema(supportTickets).omit({ 
+  id: true, 
+  created_at: true, 
+  updated_at: true,
+  resolved_at: true 
+});
+
+export const insertSupportTicketReplySchema = createInsertSchema(supportTicketReplies).omit({ 
+  id: true, 
+  created_at: true 
+});
+
+export type SupportTicket = typeof supportTickets.$inferSelect;
+export type InsertSupportTicket = z.infer<typeof insertSupportTicketSchema>;
+export type SupportTicketReply = typeof supportTicketReplies.$inferSelect;
+export type InsertSupportTicketReply = z.infer<typeof insertSupportTicketReplySchema>;

@@ -63,6 +63,8 @@ const NotificationTestPage = lazy(() => import('./pages/NotificationTestPage'));
 const EnhancedExplorePage = lazy(() => import('./pages/EnhancedExplorePage'));
 const CommunityPage = lazy(() => import('./pages/CommunityPage'));
 const GroupDetailPage = lazy(() => import('./pages/GroupDetailPage'));
+const SupportPage = lazy(() => import('./pages/SupportPage'));
+const AdminSupportPage = lazy(() => import('./pages/AdminSupportPage'));
 
 // Import new notification component
 import NotificationButton from './components/notifications/NotificationButton';
@@ -274,6 +276,18 @@ function App() {
                     <Suspense fallback={<LoadingPage message="Loading Group..." />}>
                       <GroupDetailPage />
                     </Suspense>
+                  } />
+                  <Route path="/support" element={
+                    <Suspense fallback={<LoadingPage message="Loading Support..." />}>
+                      <SupportPage />
+                    </Suspense>
+                  } />
+                  <Route path="/admin/support" element={
+                    <ProtectedRoute>
+                      <Suspense fallback={<LoadingPage message="Loading Admin Support..." />}>
+                        <AdminSupportPage />
+                      </Suspense>
+                    </ProtectedRoute>
                   } />
                   </Routes>
                 </PageTransition>

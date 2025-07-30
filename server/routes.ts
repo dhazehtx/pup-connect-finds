@@ -7,6 +7,7 @@ import followsRouter from './routes/follows';
 import notificationsRouter from './routes/notifications';
 import communityRouter from './routes/community';
 import groupPostsRouter from './routes/group-posts';
+import supportRouter from './routes/support';
 import { storage } from "./storage";
 import { 
   generalRateLimit, 
@@ -784,6 +785,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api/content-reports', reportsRouter);
   app.use('/api/community', communityRouter);
   app.use('/api/groups', groupPostsRouter);
+  app.use('/api/support', supportRouter);
 
   // Register follows routes
   app.use('/api/follows', followsRouter);

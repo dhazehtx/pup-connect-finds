@@ -73,6 +73,11 @@ const Footer = () => {
                   Contact Us
                 </Link>
               </li>
+              <li>
+                <Link to="/support" onClick={handleLinkClick} className="text-white hover:text-blue-200 transition-colors">
+                  Support Tickets
+                </Link>
+              </li>
             </ul>
           </div>
         </div>
