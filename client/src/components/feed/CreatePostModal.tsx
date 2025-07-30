@@ -44,6 +44,7 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({
   const [imagePreviewUrls, setImagePreviewUrls] = useState<string[]>([]);
   const [videoPreviewUrl, setVideoPreviewUrl] = useState<string>('');
   const [hashtags, setHashtags] = useState<string[]>([]);
+  const [hashtagInput, setHashtagInput] = useState('');
   const [topicTags, setTopicTags] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
 
@@ -157,7 +158,7 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({
     try {
       // Extract hashtags from content
       const contentHashtags = extractHashtagsFromText(content);
-      const allHashtags = [...new Set([...hashtags, ...contentHashtags])];
+      const allHashtags = Array.from(new Set([...hashtags, ...contentHashtags]));
 
       const postData = {
         title: title.trim(),
