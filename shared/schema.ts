@@ -471,11 +471,49 @@ export const savedPosts = pgTable("saved_posts", {
   uniqueUserPost: unique("unique_user_post").on(table.user_id, table.post_id),
 }));
 
+// Bookmarks table for listings and posts
+export const bookmarks = pgTable("bookmarks", {
+  id: uuid("id").primaryKey(),
+  user_id: uuid("user_id").references(() => profiles.id, { onDelete: "cascade" }).notNull(),
+  content_id: uuid("content_id").notNull(), // Can reference posts or dog_listings
+  content_type: text("content_type").notNull(), // 'post' or 'listing'
+  created_at: timestamp("created_at").defaultNow(),
+}, (table) => ({
+  uniqueUserContent: unique("unique_user_content").on(table.user_id, table.content_id, table.content_type),
+}));
+
+// Reports table for content moderation
+export const reports = pgTable("reports", {
+  id: uuid("id").primaryKey(),
+  reporter_id: uuid("reporter_id").references(() => profiles.id, { onDelete: "cascade" }).notNull(),
+  target_id: uuid("target_id").notNull(), // Can reference users, posts, comments, listings
+  target_type: text("target_type").notNull(), // 'user', 'post', 'comment', 'listing'
+  reason: text("reason").notNull(),
+  description: text("description"),
+  status: text("status").default("pending"), // pending, reviewed, resolved, dismissed
+  reviewed_by: uuid("reviewed_by").references(() => profiles.id),
+  reviewed_at: timestamp("reviewed_at"),
+  created_at: timestamp("created_at").defaultNow(),
+});
+
+// Follows table for user relationships
+export const follows = pgTable("follows", {
+  id: uuid("id").primaryKey(),
+  follower_id: uuid("follower_id").references(() => profiles.id, { onDelete: "cascade" }).notNull(),
+  followed_id: uuid("followed_id").references(() => profiles.id, { onDelete: "cascade" }).notNull(),
+  created_at: timestamp("created_at").defaultNow(),
+}, (table) => ({
+  uniqueFollow: unique("unique_follow").on(table.follower_id, table.followed_id),
+}));
+
 export const insertCommentLikeSchema = createInsertSchema(commentLikes).omit({ id: true, created_at: true });
 export const insertMentionSchema = createInsertSchema(mentions).omit({ id: true, created_at: true });
 export const insertPostTagSchema = createInsertSchema(postTags).omit({ id: true, created_at: true });
 export const insertPopularTagSchema = createInsertSchema(popularTags).omit({ id: true, created_at: true, updated_at: true });
 export const insertSavedPostSchema = createInsertSchema(savedPosts).omit({ id: true, created_at: true });
+export const insertBookmarkSchema = createInsertSchema(bookmarks).omit({ id: true, created_at: true });
+export const insertReportSchema = createInsertSchema(reports).omit({ id: true, created_at: true });
+export const insertFollowSchema = createInsertSchema(follows).omit({ id: true, created_at: true });
 
 export type PostLike = typeof postLikes.$inferSelect;
 export type InsertPostLike = z.infer<typeof insertPostLikeSchema>;
@@ -491,3 +529,9 @@ export type PopularTag = typeof popularTags.$inferSelect;
 export type InsertPopularTag = z.infer<typeof insertPopularTagSchema>;
 export type SavedPost = typeof savedPosts.$inferSelect;
 export type InsertSavedPost = z.infer<typeof insertSavedPostSchema>;
+export type Bookmark = typeof bookmarks.$inferSelect;
+export type InsertBookmark = z.infer<typeof insertBookmarkSchema>;
+export type Report = typeof reports.$inferSelect;
+export type InsertReport = z.infer<typeof insertReportSchema>;
+export type Follow = typeof follows.$inferSelect;
+export type InsertFollow = z.infer<typeof insertFollowSchema>;

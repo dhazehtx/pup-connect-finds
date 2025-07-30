@@ -10,13 +10,16 @@ import {
   MoreHorizontal,
   Play,
   Volume2,
-  VolumeX
+  VolumeX,
+  Flag
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import ImageCarousel from './ImageCarousel';
 import PostDetailModal from '@/components/posts/PostDetailModal';
 import HashtagParser from '@/components/tags/HashtagParser';
 import SavePostButton from '@/components/posts/SavePostButton';
+import BookmarkButton from '@/components/bookmarks/BookmarkButton';
+import ReportModal from '@/components/reports/ReportModal';
 import { useAuth } from '@/contexts/AuthContext';
 
 interface PostCardProps {
@@ -259,6 +262,25 @@ export const PostCard: React.FC<PostCardProps> = ({
 
           {/* Save Post Button */}
           <SavePostButton postId={post.id} size="sm" />
+
+          {/* Bookmark Button */}
+          <BookmarkButton contentId={post.id} contentType="post" size="sm" />
+
+          {/* Report Button */}
+          <ReportModal
+            targetId={post.id}
+            targetType="post"
+            targetTitle={post.title || post.content?.substring(0, 50)}
+            trigger={
+              <Button
+                variant="ghost"
+                size="sm"
+                className="p-0 h-auto text-muted-foreground hover:text-red-600"
+              >
+                <Flag className="w-4 h-4" />
+              </Button>
+            }
+          />
         </div>
 
           {/* Views for video content */}

@@ -57,6 +57,8 @@ const ReelsPage = lazy(() => import('./pages/ReelsPage'));
 const CommentsTestPage = lazy(() => import('./pages/CommentsTestPage'));
 const HashtagTestPage = lazy(() => import('./pages/HashtagTestPage'));
 const SavedPostsPage = lazy(() => import('./pages/SavedPostsPage'));
+const BookmarksPage = lazy(() => import('./pages/BookmarksPage'));
+const ProfilesTestPage = lazy(() => import('./pages/ProfilesTestPage'));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -234,6 +236,16 @@ function App() {
                   <Route path="/saved" element={
                     <Suspense fallback={<LoadingPage message="Loading Saved Posts..." />}>
                       <SavedPostsPage />
+                    </Suspense>
+                  } />
+                  <Route path="/bookmarks" element={
+                    <Suspense fallback={<LoadingPage message="Loading Bookmarks..." />}>
+                      <BookmarksPage />
+                    </Suspense>
+                  } />
+                  <Route path="/profiles-test" element={
+                    <Suspense fallback={<LoadingPage message="Loading Profiles Test..." />}>
+                      <ProfilesTestPage />
                     </Suspense>
                   } />
                   </Routes>
