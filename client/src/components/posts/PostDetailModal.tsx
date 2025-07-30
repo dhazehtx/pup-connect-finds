@@ -6,10 +6,10 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Heart, MessageCircle, Share, MoreHorizontal, X } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { useLocation } from 'wouter';
-import HashtagParser from '@/components/ui/hashtag-parser';
+import HashtagParser from '@/components/tags/HashtagParser';
 import CommentsSection from '@/components/comments/CommentsSection';
-import SavePostButton from '@/components/saved/SavePostButton';
-import EnhancedMediaCarousel from '@/components/ui/enhanced-media-carousel';
+import SavePostButton from '@/components/posts/SavePostButton';
+import ImageCarousel from '@/components/feed/ImageCarousel';
 
 interface PostDetailModalProps {
   post: any;
@@ -48,12 +48,12 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({
     // Image content
     if (post.images && post.images.length > 0) {
       return (
-        <EnhancedMediaCarousel
-          media={post.images.map((url: string) => ({ url, type: 'image' }))}
+        <ImageCarousel
+          images={post.images}
           alt={post.title || 'Post image'}
           aspectRatio="landscape"
-          showIndicators={false}
-          showNavigation={false}
+          showIndicators={true}
+          showNavigation={true}
         />
       );
     }
