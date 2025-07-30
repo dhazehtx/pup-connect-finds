@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, boolean, timestamp, uuid, decimal, jsonb } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp, uuid, decimal, jsonb, unique } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -461,10 +461,21 @@ export const popularTags = pgTable("popular_tags", {
   updated_at: timestamp("updated_at").defaultNow(),
 });
 
+// Saved posts table for user bookmarks
+export const savedPosts = pgTable("saved_posts", {
+  id: uuid("id").primaryKey(),
+  user_id: uuid("user_id").references(() => profiles.id, { onDelete: "cascade" }).notNull(),
+  post_id: uuid("post_id").references(() => posts.id, { onDelete: "cascade" }).notNull(),
+  created_at: timestamp("created_at").defaultNow(),
+}, (table) => ({
+  uniqueUserPost: unique("unique_user_post").on(table.user_id, table.post_id),
+}));
+
 export const insertCommentLikeSchema = createInsertSchema(commentLikes).omit({ id: true, created_at: true });
 export const insertMentionSchema = createInsertSchema(mentions).omit({ id: true, created_at: true });
 export const insertPostTagSchema = createInsertSchema(postTags).omit({ id: true, created_at: true });
 export const insertPopularTagSchema = createInsertSchema(popularTags).omit({ id: true, created_at: true, updated_at: true });
+export const insertSavedPostSchema = createInsertSchema(savedPosts).omit({ id: true, created_at: true });
 
 export type PostLike = typeof postLikes.$inferSelect;
 export type InsertPostLike = z.infer<typeof insertPostLikeSchema>;
@@ -478,3 +489,5 @@ export type PostTag = typeof postTags.$inferSelect;
 export type InsertPostTag = z.infer<typeof insertPostTagSchema>;
 export type PopularTag = typeof popularTags.$inferSelect;
 export type InsertPopularTag = z.infer<typeof insertPopularTagSchema>;
+export type SavedPost = typeof savedPosts.$inferSelect;
+export type InsertSavedPost = z.infer<typeof insertSavedPostSchema>;

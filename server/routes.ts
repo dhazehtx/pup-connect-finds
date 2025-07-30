@@ -1,5 +1,6 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
+import savedPostsRouter from './routes/saved-posts';
 import { storage } from "./storage";
 import { 
   generalRateLimit, 
@@ -766,6 +767,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Add reporting routes
   app.use('/api/reports', reportsRouter);
+
+  // Register saved posts routes
+  app.use('/api/saved-posts', savedPostsRouter);
 
   // 404 handler for API routes only (not for static files)
   app.use('/api/*', notFoundHandler);

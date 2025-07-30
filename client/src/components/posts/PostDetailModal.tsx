@@ -19,6 +19,7 @@ import { formatDistanceToNow } from 'date-fns';
 import ImageCarousel from '@/components/feed/ImageCarousel';
 import CommentsSection from '@/components/comments/CommentsSection';
 import HashtagParser from '@/components/tags/HashtagParser';
+import SavePostButton from '@/components/posts/SavePostButton';
 
 interface Post {
   id: string;
@@ -235,6 +236,10 @@ export const PostDetailModal: React.FC<PostDetailModalProps> = ({
                     {post.shares_count}
                   </Button>
                 </div>
+
+                {/* Save Post Button */}
+                <SavePostButton postId={post.id} size="sm" />
+              </div>
 
                 {/* Views for video content */}
                 {post.views_count !== undefined && (

@@ -16,6 +16,7 @@ import { formatDistanceToNow } from 'date-fns';
 import ImageCarousel from './ImageCarousel';
 import PostDetailModal from '@/components/posts/PostDetailModal';
 import HashtagParser from '@/components/tags/HashtagParser';
+import SavePostButton from '@/components/posts/SavePostButton';
 import { useAuth } from '@/contexts/AuthContext';
 
 interface PostCardProps {
@@ -255,6 +256,10 @@ export const PostCard: React.FC<PostCardProps> = ({
               {post.shares_count}
             </Button>
           </div>
+
+          {/* Save Post Button */}
+          <SavePostButton postId={post.id} size="sm" />
+        </div>
 
           {/* Views for video content */}
           {post.views_count !== undefined && (

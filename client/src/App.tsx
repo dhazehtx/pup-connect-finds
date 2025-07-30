@@ -56,6 +56,7 @@ const RealtimeLogTestPage = lazy(() => import('./pages/RealtimeLogTestPage'));
 const ReelsPage = lazy(() => import('./pages/ReelsPage'));
 const CommentsTestPage = lazy(() => import('./pages/CommentsTestPage'));
 const HashtagTestPage = lazy(() => import('./pages/HashtagTestPage'));
+const SavedPostsPage = lazy(() => import('./pages/SavedPostsPage'));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -228,6 +229,11 @@ function App() {
                   <Route path="/hashtag-test" element={
                     <Suspense fallback={<LoadingPage message="Loading Hashtag Test..." />}>
                       <HashtagTestPage />
+                    </Suspense>
+                  } />
+                  <Route path="/saved" element={
+                    <Suspense fallback={<LoadingPage message="Loading Saved Posts..." />}>
+                      <SavedPostsPage />
                     </Suspense>
                   } />
                   </Routes>
