@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import ImageCarousel from './ImageCarousel';
+import PostDetailModal from '@/components/posts/PostDetailModal';
 import { useAuth } from '@/contexts/AuthContext';
 
 interface PostCardProps {
@@ -56,6 +57,7 @@ export const PostCard: React.FC<PostCardProps> = ({
 }) => {
   const [isLiked, setIsLiked] = useState(false);
   const [isMuted, setIsMuted] = useState(true);
+  const [showDetailModal, setShowDetailModal] = useState(false);
   const { user } = useAuth();
 
   const handleLike = () => {
@@ -241,7 +243,7 @@ export const PostCard: React.FC<PostCardProps> = ({
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => onComment?.(post.id)}
+              onClick={() => setShowDetailModal(true)}
               className="p-0 h-auto text-muted-foreground"
             >
               <MessageCircle className="w-5 h-5 mr-1" />
@@ -267,6 +269,15 @@ export const PostCard: React.FC<PostCardProps> = ({
           )}
         </div>
       </CardContent>
+
+      {/* Post Detail Modal with Comments */}
+      <PostDetailModal
+        post={post}
+        open={showDetailModal}
+        onOpenChange={setShowDetailModal}
+        onLike={onLike}
+        onShare={onShare}
+      />
     </Card>
   );
 };

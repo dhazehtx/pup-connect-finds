@@ -179,6 +179,18 @@ The application is designed for modern web deployment with consideration for ser
 - Added automated cleanup system for clearing old abuse logs and expired lockouts every hour
 - Enhanced security with lockout checks preventing access from flagged IPs/users before processing requests
 
+### Advanced Comment System with Threaded Replies & @Mentions (July 2025)
+- Built comprehensive threaded comment system supporting nested replies up to 3 levels deep with visual threading
+- Implemented @mentions functionality with auto-suggest dropdown, user search, and notification integration
+- Created CommentThread component with expand/collapse replies, individual comment likes, and timestamp display
+- Built CommentInput component with @mention auto-suggest, user tagging, and mention badge management
+- Added CommentsSection component with sorting (newest/oldest), pagination, and real-time engagement tracking
+- Enhanced database schema with parent_comment_id for threading, mentions array, comment_likes, and mentions tables
+- Integrated PostDetailModal for immersive comment viewing with full post context and media display
+- Updated PostCard to open comment modal on comment button click for seamless user experience
+- Created comprehensive CommentsTestPage at /comments-test for feature demonstration and testing
+- Added support for @username linking, mention notifications, and threaded conversation workflows
+
 ### Comprehensive Monitoring & Logging Infrastructure (July 2025)
 - Built enterprise-grade logging system with LoggingService class supporting 5 log levels (debug, info, warn, error, critical)
 - Created system_logs database table with comprehensive fields: user context, IP tracking, response times, error stacks

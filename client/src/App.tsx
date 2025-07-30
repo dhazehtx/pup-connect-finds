@@ -54,6 +54,7 @@ const AdminPageTrackingTestPage = lazy(() => import('./pages/AdminPageTrackingTe
 const AdminLogFilterTestPage = lazy(() => import('./pages/AdminLogFilterTestPage'));
 const RealtimeLogTestPage = lazy(() => import('./pages/RealtimeLogTestPage'));
 const ReelsPage = lazy(() => import('./pages/ReelsPage'));
+const CommentsTestPage = lazy(() => import('./pages/CommentsTestPage'));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -216,6 +217,11 @@ function App() {
                   <Route path="/reels" element={
                     <Suspense fallback={<LoadingPage message="Loading Reels..." />}>
                       <ReelsPage />
+                    </Suspense>
+                  } />
+                  <Route path="/comments-test" element={
+                    <Suspense fallback={<LoadingPage message="Loading Comments Test..." />}>
+                      <CommentsTestPage />
                     </Suspense>
                   } />
                   </Routes>

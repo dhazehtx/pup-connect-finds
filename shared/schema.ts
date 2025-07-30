@@ -126,6 +126,9 @@ export const comments = pgTable("comments", {
   user_id: uuid("user_id").references(() => profiles.id),
   parent_comment_id: uuid("parent_comment_id"),
   content: text("content").notNull(),
+  mentions: text("mentions").array(), // Array of mentioned usernames
+  likes_count: integer("likes_count").default(0),
+  replies_count: integer("replies_count").default(0),
   created_at: timestamp("created_at").defaultNow(),
   updated_at: timestamp("updated_at").defaultNow(),
 });
@@ -422,7 +425,31 @@ export type InsertAdminLog = z.infer<typeof insertAdminLogSchema>;
 export const insertPostLikeSchema = createInsertSchema(postLikes).omit({ id: true, created_at: true });
 export const insertPostShareSchema = createInsertSchema(postShares).omit({ id: true, created_at: true });
 
+// Comment likes table
+export const commentLikes = pgTable("comment_likes", {
+  id: uuid("id").primaryKey(),
+  comment_id: uuid("comment_id").references(() => comments.id, { onDelete: "cascade" }).notNull(),
+  user_id: uuid("user_id").references(() => profiles.id, { onDelete: "cascade" }).notNull(),
+  created_at: timestamp("created_at").defaultNow(),
+});
+
+// Mentions table for tracking @mentions in comments
+export const mentions = pgTable("mentions", {
+  id: uuid("id").primaryKey(),
+  comment_id: uuid("comment_id").references(() => comments.id, { onDelete: "cascade" }).notNull(),
+  mentioned_user_id: uuid("mentioned_user_id").references(() => profiles.id, { onDelete: "cascade" }).notNull(),
+  mentioning_user_id: uuid("mentioning_user_id").references(() => profiles.id, { onDelete: "cascade" }).notNull(),
+  created_at: timestamp("created_at").defaultNow(),
+});
+
+export const insertCommentLikeSchema = createInsertSchema(commentLikes).omit({ id: true, created_at: true });
+export const insertMentionSchema = createInsertSchema(mentions).omit({ id: true, created_at: true });
+
 export type PostLike = typeof postLikes.$inferSelect;
 export type InsertPostLike = z.infer<typeof insertPostLikeSchema>;
 export type PostShare = typeof postShares.$inferSelect;
 export type InsertPostShare = z.infer<typeof insertPostShareSchema>;
+export type CommentLike = typeof commentLikes.$inferSelect;
+export type InsertCommentLike = z.infer<typeof insertCommentLikeSchema>;
+export type Mention = typeof mentions.$inferSelect;
+export type InsertMention = z.infer<typeof insertMentionSchema>;
