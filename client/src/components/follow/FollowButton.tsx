@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { UserPlus, UserCheck, UserMinus } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
-import { apiRequest } from '@/lib/queryClient';
+import { apiRequest } from '@/lib/api';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 interface FollowButtonProps {
@@ -132,7 +132,7 @@ export const FollowButton: React.FC<FollowButtonProps> = ({
   return (
     <Button
       variant={getButtonVariant()}
-      size={size}
+      size={size === 'md' ? 'default' : size}
       onClick={handleFollowToggle}
       disabled={followMutation.isPending}
       className={`transition-all duration-200 ${className}`}
