@@ -9,6 +9,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useEnhancedNotifications } from '@/hooks/useEnhancedNotifications';
 import ModernPostCreator from '@/components/home/ModernPostCreator';
 import NotificationCenter from '@/components/notifications/NotificationCenter';
+import NotificationButton from '@/components/notifications/NotificationButton';
 
 const StickyHeader = () => {
   const { user, isGuest, profile } = useAuth();
@@ -131,19 +132,7 @@ const StickyHeader = () => {
 
                 {/* Notification Bell - Only for authenticated users */}
                 {(user || isGuest) && (
-                  <div className="relative">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setShowNotifications(!showNotifications)}
-                      className="relative p-2 text-[#2C3EDC] hover:text-[#2C3EDC] hover:bg-[#2C3EDC]/5 hover:shadow-sm transition-all duration-200 rounded-full"
-                    >
-                      <Bell className="h-6 w-6" />
-                      {unreadCount > 0 && (
-                        <div className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-[#FF3B30] rounded-full border border-white"></div>
-                      )}
-                    </Button>
-                  </div>
+                  <NotificationButton className="p-2 text-[#2C3EDC] hover:text-[#2C3EDC] hover:bg-[#2C3EDC]/5 hover:shadow-sm transition-all duration-200 rounded-full" />
                 )}
               </div>
             </div>

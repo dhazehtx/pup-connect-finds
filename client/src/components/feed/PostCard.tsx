@@ -20,6 +20,7 @@ import HashtagParser from '@/components/tags/HashtagParser';
 import SavePostButton from '@/components/posts/SavePostButton';
 import BookmarkButton from '@/components/bookmarks/BookmarkButton';
 import ReportModal from '@/components/reports/ReportModal';
+import ShareModal from '@/components/share/ShareModal';
 import { useAuth } from '@/contexts/AuthContext';
 
 interface PostCardProps {
@@ -249,15 +250,22 @@ export const PostCard: React.FC<PostCardProps> = ({
               {post.comments_count}
             </Button>
             
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => onShare?.(post.id)}
-              className="p-0 h-auto text-muted-foreground"
-            >
-              <Share className="w-5 h-5 mr-1" />
-              {post.shares_count}
-            </Button>
+            <ShareModal
+              postId={post.id}
+              postTitle={post.title}
+              postContent={post.content}
+              postImage={post.images?.[0]}
+              trigger={
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="p-0 h-auto text-muted-foreground hover:text-green-600"
+                >
+                  <Share className="w-5 h-5 mr-1" />
+                  {post.shares_count}
+                </Button>
+              }
+            />
           </div>
 
           {/* Save Post Button */}

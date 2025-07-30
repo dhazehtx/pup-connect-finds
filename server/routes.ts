@@ -4,6 +4,7 @@ import savedPostsRouter from './routes/saved-posts';
 import bookmarksRouter from './routes/bookmarks';
 import reportsRouter from './routes/reports';
 import followsRouter from './routes/follows';
+import notificationsRouter from './routes/notifications';
 import { storage } from "./storage";
 import { 
   generalRateLimit, 
@@ -782,6 +783,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Register follows routes
   app.use('/api/follows', followsRouter);
+
+  // Register notifications routes
+  app.use('/api/notifications', notificationsRouter);
 
   // 404 handler for API routes only (not for static files)
   app.use('/api/*', notFoundHandler);

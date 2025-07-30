@@ -506,6 +506,30 @@ export const follows = pgTable("follows", {
   uniqueFollow: unique("unique_follow").on(table.follower_id, table.followed_id),
 }));
 
+// Enhanced notifications table for comprehensive engagement tracking (replaces existing notifications)
+export const enhancedNotifications = pgTable("enhanced_notifications", {
+  id: uuid("id").primaryKey(),
+  user_id: uuid("user_id").references(() => profiles.id, { onDelete: "cascade" }).notNull(),
+  actor_id: uuid("actor_id").references(() => profiles.id, { onDelete: "cascade" }).notNull(),
+  type: text("type").notNull(), // 'like', 'comment', 'reply', 'follow', 'mention', 'post_share'
+  target_id: uuid("target_id"), // ID of post, comment, etc.
+  target_type: text("target_type"), // 'post', 'comment', 'listing'
+  content: text("content"), // Optional message/preview
+  read: boolean("read").default(false),
+  grouped_count: integer("grouped_count").default(1), // For grouping similar notifications
+  created_at: timestamp("created_at").defaultNow(),
+});
+
+// User preferences for notifications and explore
+export const userPreferences = pgTable("user_preferences", {
+  id: uuid("id").primaryKey(),
+  user_id: uuid("user_id").references(() => profiles.id, { onDelete: "cascade" }).notNull().unique(),
+  explore_filters: jsonb("explore_filters"), // Saved search/filter preferences
+  notification_settings: jsonb("notification_settings"), // Notification preferences
+  created_at: timestamp("created_at").defaultNow(),
+  updated_at: timestamp("updated_at").defaultNow(),
+});
+
 export const insertCommentLikeSchema = createInsertSchema(commentLikes).omit({ id: true, created_at: true });
 export const insertMentionSchema = createInsertSchema(mentions).omit({ id: true, created_at: true });
 export const insertPostTagSchema = createInsertSchema(postTags).omit({ id: true, created_at: true });
@@ -514,6 +538,8 @@ export const insertSavedPostSchema = createInsertSchema(savedPosts).omit({ id: t
 export const insertBookmarkSchema = createInsertSchema(bookmarks).omit({ id: true, created_at: true });
 export const insertReportSchema = createInsertSchema(reports).omit({ id: true, created_at: true });
 export const insertFollowSchema = createInsertSchema(follows).omit({ id: true, created_at: true });
+export const insertEnhancedNotificationSchema = createInsertSchema(enhancedNotifications).omit({ id: true, created_at: true });
+export const insertUserPreferencesSchema = createInsertSchema(userPreferences).omit({ id: true, created_at: true, updated_at: true });
 
 export type PostLike = typeof postLikes.$inferSelect;
 export type InsertPostLike = z.infer<typeof insertPostLikeSchema>;
@@ -535,3 +561,7 @@ export type Report = typeof reports.$inferSelect;
 export type InsertReport = z.infer<typeof insertReportSchema>;
 export type Follow = typeof follows.$inferSelect;
 export type InsertFollow = z.infer<typeof insertFollowSchema>;
+export type EnhancedNotification = typeof enhancedNotifications.$inferSelect;
+export type InsertEnhancedNotification = z.infer<typeof insertEnhancedNotificationSchema>;
+export type UserPreferences = typeof userPreferences.$inferSelect;
+export type InsertUserPreferences = z.infer<typeof insertUserPreferencesSchema>;

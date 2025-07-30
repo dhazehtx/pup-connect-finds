@@ -59,6 +59,11 @@ const HashtagTestPage = lazy(() => import('./pages/HashtagTestPage'));
 const SavedPostsPage = lazy(() => import('./pages/SavedPostsPage'));
 const BookmarksPage = lazy(() => import('./pages/BookmarksPage'));
 const ProfilesTestPage = lazy(() => import('./pages/ProfilesTestPage'));
+const NotificationTestPage = lazy(() => import('./pages/NotificationTestPage'));
+const EnhancedExplorePage = lazy(() => import('./pages/EnhancedExplorePage'));
+
+// Import new notification component
+import NotificationButton from './components/notifications/NotificationButton';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -246,6 +251,16 @@ function App() {
                   <Route path="/profiles-test" element={
                     <Suspense fallback={<LoadingPage message="Loading Profiles Test..." />}>
                       <ProfilesTestPage />
+                    </Suspense>
+                  } />
+                  <Route path="/notification-test" element={
+                    <Suspense fallback={<LoadingPage message="Loading Notification Test..." />}>
+                      <NotificationTestPage />
+                    </Suspense>
+                  } />
+                  <Route path="/enhanced-explore" element={
+                    <Suspense fallback={<LoadingPage message="Loading Enhanced Explore..." />}>
+                      <EnhancedExplorePage />
                     </Suspense>
                   } />
                   </Routes>
