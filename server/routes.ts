@@ -5,6 +5,8 @@ import bookmarksRouter from './routes/bookmarks';
 import reportsRouter from './routes/reports';
 import followsRouter from './routes/follows';
 import notificationsRouter from './routes/notifications';
+import communityRouter from './routes/community';
+import groupPostsRouter from './routes/group-posts';
 import { storage } from "./storage";
 import { 
   generalRateLimit, 
@@ -780,6 +782,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Register reports routes (separate from existing reports)
   app.use('/api/content-reports', reportsRouter);
+  app.use('/api/community', communityRouter);
+  app.use('/api/groups', groupPostsRouter);
 
   // Register follows routes
   app.use('/api/follows', followsRouter);

@@ -61,6 +61,8 @@ const BookmarksPage = lazy(() => import('./pages/BookmarksPage'));
 const ProfilesTestPage = lazy(() => import('./pages/ProfilesTestPage'));
 const NotificationTestPage = lazy(() => import('./pages/NotificationTestPage'));
 const EnhancedExplorePage = lazy(() => import('./pages/EnhancedExplorePage'));
+const CommunityPage = lazy(() => import('./pages/CommunityPage'));
+const GroupDetailPage = lazy(() => import('./pages/GroupDetailPage'));
 
 // Import new notification component
 import NotificationButton from './components/notifications/NotificationButton';
@@ -261,6 +263,16 @@ function App() {
                   <Route path="/enhanced-explore" element={
                     <Suspense fallback={<LoadingPage message="Loading Enhanced Explore..." />}>
                       <EnhancedExplorePage />
+                    </Suspense>
+                  } />
+                  <Route path="/community" element={
+                    <Suspense fallback={<LoadingPage message="Loading Community..." />}>
+                      <CommunityPage />
+                    </Suspense>
+                  } />
+                  <Route path="/community/groups/:groupId" element={
+                    <Suspense fallback={<LoadingPage message="Loading Group..." />}>
+                      <GroupDetailPage />
                     </Suspense>
                   } />
                   </Routes>

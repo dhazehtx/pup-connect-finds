@@ -530,6 +530,92 @@ export const userPreferences = pgTable("user_preferences", {
   updated_at: timestamp("updated_at").defaultNow(),
 });
 
+// Community groups for breed-specific and interest-based forums
+export const communityGroups = pgTable("community_groups", {
+  id: uuid("id").primaryKey(),
+  name: text("name").notNull(),
+  description: text("description"),
+  breed_tag: text("breed_tag"), // e.g., 'golden-retriever', 'labrador', 'mixed-breed'
+  region: text("region"), // Optional regional focus
+  privacy: text("privacy").notNull().default("public"), // 'public', 'private', 'restricted'
+  cover_image: text("cover_image"),
+  group_icon: text("group_icon"), // Breed emoji or custom icon
+  creator_id: uuid("creator_id").references(() => profiles.id, { onDelete: "cascade" }).notNull(),
+  member_count: integer("member_count").default(1),
+  post_count: integer("post_count").default(0),
+  is_verified: boolean("is_verified").default(false), // Official breed clubs
+  is_active: boolean("is_active").default(true),
+  rules: text("rules"), // Group rules and guidelines
+  tags: text("tags").array(), // Additional tags for discovery
+  created_at: timestamp("created_at").defaultNow(),
+  updated_at: timestamp("updated_at").defaultNow(),
+});
+
+// Group memberships for tracking who belongs to which groups
+export const groupMemberships = pgTable("group_memberships", {
+  id: uuid("id").primaryKey(),
+  group_id: uuid("group_id").references(() => communityGroups.id, { onDelete: "cascade" }).notNull(),
+  user_id: uuid("user_id").references(() => profiles.id, { onDelete: "cascade" }).notNull(),
+  role: text("role").notNull().default("member"), // 'admin', 'moderator', 'member'
+  status: text("status").notNull().default("active"), // 'active', 'pending', 'banned'
+  joined_at: timestamp("joined_at").defaultNow(),
+  last_activity: timestamp("last_activity").defaultNow(),
+}, (table) => ({
+  uniqueMembership: unique("unique_group_membership").on(table.group_id, table.user_id),
+}));
+
+// Group-specific posts that don't appear on global feed unless cross-posted
+export const groupPosts = pgTable("group_posts", {
+  id: uuid("id").primaryKey(),
+  group_id: uuid("group_id").references(() => communityGroups.id, { onDelete: "cascade" }).notNull(),
+  author_id: uuid("author_id").references(() => profiles.id, { onDelete: "cascade" }).notNull(),
+  title: text("title"),
+  content: text("content").notNull(),
+  images: text("images").array(), // Array of image URLs
+  post_type: text("post_type").notNull().default("discussion"), // 'discussion', 'photo', 'question', 'announcement'
+  is_pinned: boolean("is_pinned").default(false),
+  is_cross_posted: boolean("is_cross_posted").default(false), // If true, appears on global feed
+  likes_count: integer("likes_count").default(0),
+  comments_count: integer("comments_count").default(0),
+  views_count: integer("views_count").default(0),
+  tags: text("tags").array(), // Post-specific tags
+  created_at: timestamp("created_at").defaultNow(),
+  updated_at: timestamp("updated_at").defaultNow(),
+});
+
+// Comments on group posts
+export const groupPostComments = pgTable("group_post_comments", {
+  id: uuid("id").primaryKey(),
+  post_id: uuid("post_id").references(() => groupPosts.id, { onDelete: "cascade" }).notNull(),
+  author_id: uuid("author_id").references(() => profiles.id, { onDelete: "cascade" }).notNull(),
+  content: text("content").notNull(),
+  parent_comment_id: uuid("parent_comment_id").references(() => groupPostComments.id, { onDelete: "cascade" }), // For nested replies
+  likes_count: integer("likes_count").default(0),
+  is_pinned: boolean("is_pinned").default(false),
+  created_at: timestamp("created_at").defaultNow(),
+  updated_at: timestamp("updated_at").defaultNow(),
+});
+
+// Likes on group posts
+export const groupPostLikes = pgTable("group_post_likes", {
+  id: uuid("id").primaryKey(),
+  post_id: uuid("post_id").references(() => groupPosts.id, { onDelete: "cascade" }).notNull(),
+  user_id: uuid("user_id").references(() => profiles.id, { onDelete: "cascade" }).notNull(),
+  created_at: timestamp("created_at").defaultNow(),
+}, (table) => ({
+  uniqueLike: unique("unique_group_post_like").on(table.post_id, table.user_id),
+}));
+
+// Likes on group post comments
+export const groupCommentLikes = pgTable("group_comment_likes", {
+  id: uuid("id").primaryKey(),
+  comment_id: uuid("comment_id").references(() => groupPostComments.id, { onDelete: "cascade" }).notNull(),
+  user_id: uuid("user_id").references(() => profiles.id, { onDelete: "cascade" }).notNull(),
+  created_at: timestamp("created_at").defaultNow(),
+}, (table) => ({
+  uniqueLike: unique("unique_group_comment_like").on(table.comment_id, table.user_id),
+}));
+
 export const insertCommentLikeSchema = createInsertSchema(commentLikes).omit({ id: true, created_at: true });
 export const insertMentionSchema = createInsertSchema(mentions).omit({ id: true, created_at: true });
 export const insertPostTagSchema = createInsertSchema(postTags).omit({ id: true, created_at: true });
@@ -540,6 +626,12 @@ export const insertReportSchema = createInsertSchema(reports).omit({ id: true, c
 export const insertFollowSchema = createInsertSchema(follows).omit({ id: true, created_at: true });
 export const insertEnhancedNotificationSchema = createInsertSchema(enhancedNotifications).omit({ id: true, created_at: true });
 export const insertUserPreferencesSchema = createInsertSchema(userPreferences).omit({ id: true, created_at: true, updated_at: true });
+export const insertCommunityGroupSchema = createInsertSchema(communityGroups).omit({ id: true, created_at: true, updated_at: true });
+export const insertGroupMembershipSchema = createInsertSchema(groupMemberships).omit({ id: true, joined_at: true, last_activity: true });
+export const insertGroupPostSchema = createInsertSchema(groupPosts).omit({ id: true, created_at: true, updated_at: true });
+export const insertGroupPostCommentSchema = createInsertSchema(groupPostComments).omit({ id: true, created_at: true, updated_at: true });
+export const insertGroupPostLikeSchema = createInsertSchema(groupPostLikes).omit({ id: true, created_at: true });
+export const insertGroupCommentLikeSchema = createInsertSchema(groupCommentLikes).omit({ id: true, created_at: true });
 
 export type PostLike = typeof postLikes.$inferSelect;
 export type InsertPostLike = z.infer<typeof insertPostLikeSchema>;
@@ -565,3 +657,15 @@ export type EnhancedNotification = typeof enhancedNotifications.$inferSelect;
 export type InsertEnhancedNotification = z.infer<typeof insertEnhancedNotificationSchema>;
 export type UserPreferences = typeof userPreferences.$inferSelect;
 export type InsertUserPreferences = z.infer<typeof insertUserPreferencesSchema>;
+export type CommunityGroup = typeof communityGroups.$inferSelect;
+export type InsertCommunityGroup = z.infer<typeof insertCommunityGroupSchema>;
+export type GroupMembership = typeof groupMemberships.$inferSelect;
+export type InsertGroupMembership = z.infer<typeof insertGroupMembershipSchema>;
+export type GroupPost = typeof groupPosts.$inferSelect;
+export type InsertGroupPost = z.infer<typeof insertGroupPostSchema>;
+export type GroupPostComment = typeof groupPostComments.$inferSelect;
+export type InsertGroupPostComment = z.infer<typeof insertGroupPostCommentSchema>;
+export type GroupPostLike = typeof groupPostLikes.$inferSelect;
+export type InsertGroupPostLike = z.infer<typeof insertGroupPostLikeSchema>;
+export type GroupCommentLike = typeof groupCommentLikes.$inferSelect;
+export type InsertGroupCommentLike = z.infer<typeof insertGroupCommentLikeSchema>;
