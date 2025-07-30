@@ -268,36 +268,37 @@ export const PostCard: React.FC<PostCardProps> = ({
             />
           </div>
 
-          {/* Save Post Button */}
-          <SavePostButton postId={post.id} size="sm" />
+          <div className="flex items-center gap-2">
+            {/* Save Post Button */}
+            <SavePostButton postId={post.id} size="sm" />
 
-          {/* Bookmark Button */}
-          <BookmarkButton contentId={post.id} contentType="post" size="sm" />
+            {/* Bookmark Button */}
+            <BookmarkButton contentId={post.id} contentType="post" size="sm" />
 
-          {/* Report Button */}
-          <ReportModal
-            targetId={post.id}
-            targetType="post"
-            targetTitle={post.title || post.content?.substring(0, 50)}
-            trigger={
-              <Button
-                variant="ghost"
-                size="sm"
-                className="p-0 h-auto text-muted-foreground hover:text-red-600"
-              >
-                <Flag className="w-4 h-4" />
-              </Button>
-            }
-          />
+            {/* Report Button */}
+            <ReportModal
+              targetId={post.id}
+              targetType="post"
+              targetTitle={post.title || post.content?.substring(0, 50)}
+              trigger={
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="p-0 h-auto text-muted-foreground hover:text-red-600"
+                >
+                  <Flag className="w-4 h-4" />
+                </Button>
+              }
+            />
+          </div>
         </div>
 
         {/* Views for video content */}
         {post.views_count !== undefined && (
-          <span className="text-xs text-muted-foreground">
+          <span className="text-xs text-muted-foreground mt-2 block">
             {post.views_count} views
           </span>
         )}
-        </div>
       </CardContent>
 
       {/* Post Detail Modal with Comments */}

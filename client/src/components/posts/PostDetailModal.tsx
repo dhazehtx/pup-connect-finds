@@ -1,67 +1,38 @@
-import React from 'react';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
+import React, { useState, useEffect } from 'react';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { 
-  Heart, 
-  MessageCircle, 
-  Share, 
-  MoreHorizontal,
-  X
-} from 'lucide-react';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Heart, MessageCircle, Share, MoreHorizontal, X } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
-import ImageCarousel from '@/components/feed/ImageCarousel';
+import { useLocation } from 'wouter';
+import HashtagParser from '@/components/ui/hashtag-parser';
 import CommentsSection from '@/components/comments/CommentsSection';
-import HashtagParser from '@/components/tags/HashtagParser';
-import SavePostButton from '@/components/posts/SavePostButton';
-
-interface Post {
-  id: string;
-  user_id: string;
-  title?: string;
-  content: string;
-  image_url?: string;
-  images?: string[];
-  video_url?: string;
-  post_type: string;
-  caption?: string;
-  hashtags?: string[];
-  likes_count: number;
-  comments_count: number;
-  shares_count: number;
-  views_count?: number;
-  created_at: string;
-  profiles?: {
-    full_name: string;
-    username: string;
-    avatar_url?: string;
-    verified?: boolean;
-  };
-}
+import SavePostButton from '@/components/saved/SavePostButton';
+import EnhancedMediaCarousel from '@/components/ui/enhanced-media-carousel';
 
 interface PostDetailModalProps {
-  post: Post;
+  post: any;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onLike?: (postId: string) => void;
   onShare?: (postId: string) => void;
 }
 
-export const PostDetailModal: React.FC<PostDetailModalProps> = ({
+const PostDetailModal: React.FC<PostDetailModalProps> = ({
   post,
   open,
   onOpenChange,
   onLike,
   onShare
 }) => {
-  const [isLiked, setIsLiked] = React.useState(false);
-  const [commentsCount, setCommentsCount] = React.useState(post.comments_count);
+  const [location, setLocation] = useLocation();
+  const [isLiked, setIsLiked] = useState(false);
+  const [commentsCount, setCommentsCount] = useState(post.comments_count || 0);
+
+  useEffect(() => {
+    setIsLiked(post.is_liked || false);
+  }, [post.is_liked]);
 
   const handleLike = () => {
     setIsLiked(!isLiked);
@@ -69,29 +40,16 @@ export const PostDetailModal: React.FC<PostDetailModalProps> = ({
   };
 
   const handleHashtagClick = (hashtag: string) => {
-    // Will navigate to filtered feed page
-    console.log('Hashtag clicked:', hashtag);
+    setLocation(`/explore?hashtag=${encodeURIComponent(hashtag)}`);
+    onOpenChange(false);
   };
 
   const getMediaContent = () => {
-    // Multiple images
+    // Image content
     if (post.images && post.images.length > 0) {
       return (
-        <ImageCarousel 
-          images={post.images}
-          alt={post.title || 'Post image'}
-          aspectRatio="landscape"
-          showIndicators={true}
-          showNavigation={true}
-        />
-      );
-    }
-    
-    // Legacy single image
-    if (post.image_url) {
-      return (
-        <ImageCarousel 
-          images={[post.image_url]}
+        <EnhancedMediaCarousel
+          media={post.images.map((url: string) => ({ url, type: 'image' }))}
           alt={post.title || 'Post image'}
           aspectRatio="landscape"
           showIndicators={false}
@@ -192,7 +150,7 @@ export const PostDetailModal: React.FC<PostDetailModalProps> = ({
               {/* Hashtags */}
               {post.hashtags && post.hashtags.length > 0 && (
                 <div className="flex flex-wrap gap-1 mb-3">
-                  {post.hashtags.map((hashtag, index) => (
+                  {post.hashtags.map((hashtag: string, index: number) => (
                     <Badge 
                       key={index}
                       variant="secondary"
@@ -241,13 +199,12 @@ export const PostDetailModal: React.FC<PostDetailModalProps> = ({
                 <SavePostButton postId={post.id} size="sm" />
               </div>
 
-                {/* Views for video content */}
-                {post.views_count !== undefined && (
-                  <span className="text-xs text-muted-foreground">
-                    {post.views_count} views
-                  </span>
-                )}
-              </div>
+              {/* Views for video content */}
+              {post.views_count !== undefined && (
+                <span className="text-xs text-muted-foreground mt-2 block">
+                  {post.views_count} views
+                </span>
+              )}
             </div>
 
             {/* Comments Section */}
