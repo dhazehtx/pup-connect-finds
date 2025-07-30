@@ -1,0 +1,86 @@
+🔐 GDPR Prompt – Cookie Consent & Privacy‑Settings Manager
+tsx
+Copy
+Edit
+🛡️ GDPR: Cookie Consent Banner + Manage Privacy Settings
+
+1. **Cookie Consent Banner**
+   • Display the banner on a user’s first visit (use localStorage `cookie_consent=true` to remember acceptance).  
+   • Banner text:  
+     “We use cookies to improve your experience, analyze traffic, and personalize content. By clicking Accept, you consent to our Privacy Policy.”  
+   • Buttons: **Accept** (stores consent and closes banner) and **Learn More** (opens /privacy).
+
+2. **Manage Privacy Settings**
+   • Add a “Privacy Settings” link in the Settings page.  
+   • On click, open a modal or page with toggles:  
+     – *Performance cookies* (usage analytics)  
+     – *Personalization cookies* (recommended content)  
+   • Allow users to withdraw consent (clear the localStorage flag and reload banner).
+
+3. **Regional Logic**
+   • Display banner to all EU/UK visitors by default.  
+   • For other regions, show banner only if `localStorage.cookie_consent` is undefined.
+
+4. **Accessibility**
+   • Ensure WCAG contrast and keyboard navigation compliance.
+
+Implement this so the banner never re‑appears after acceptance unless the user re‑opens **Privacy Settings** and resets consent.
+🛠 Production‑Infrastructure Prompt – Sentry, Analytics, Email, Health Endpoint
+ts
+Copy
+Edit
+📡 Production Infrastructure & Monitoring Setup
+
+1. **Error Tracking (Sentry)**
+   • Install `@sentry/react` and `@sentry/node`.  
+   • Wrap React app in `<Sentry.ErrorBoundary>`.  
+   • Initialize Sentry in server entry with DSN from env var `SENTRY_DSN`.  
+   • Capture unhandled rejections and API errors.
+
+2. **Analytics (Plausible or Google Analytics)**
+   • Add GA4 via `NEXT_PUBLIC_GA_ID` or Plausible script via env flag.  
+   • Track page views and custom events (post like, new message, checkout).
+
+3. **Email Service (SendGrid)**
+   • Install `@sendgrid/mail`.  
+   • Add env var `SENDGRID_API_KEY`.  
+   • Create a utility `sendEmail(to, subject, html)`; use for password reset, support replies, GDPR exports.
+
+4. **Health‑Check Endpoint**
+   • Add `/api/health` route that returns `{ status: 'ok', time: new Date().toISOString() }`.  
+   • Integrate uptime monitoring (e.g., BetterStack, UptimeRobot).
+
+5. **CDN & Static Assets**
+   • Enable Replit’s asset proxy or configure a CDN (Cloudflare) for `/public/*`.  
+   • Set cache headers for images and videos (1 month).
+
+6. **Environment Variables (.env)**
+   ```env
+   SENTRY_DSN=…
+   NEXT_PUBLIC_GA_ID=…
+   SENDGRID_API_KEY=…
+• Ensure these are masked in logs and never exposed client‑side (except NEXT_PUBLIC_*).
+
+Deployment Check
+• Verify build succeeds with npm run build.
+• Confirm Sentry captures a test error and GA records a test page view.
+• Hit /api/health and expect 200.
+
+After these steps, production stability and observability will be ready for launch.
+
+yaml
+Copy
+Edit
+
+---
+
+Paste each prompt into Replit (one at a time or together if you prefer), let the agent run, and tell me when they’re done. Then we can schedule final QA and soft‑launch prep.
+
+
+
+
+
+
+
+
+Ask ChatGPT

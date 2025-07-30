@@ -9,6 +9,7 @@ import communityRouter from './routes/community';
 import groupPostsRouter from './routes/group-posts';
 import supportRouter from './routes/support';
 import bugsRouter from './routes/bugs';
+import { registerHealthRoutes } from './routes/health';
 import { storage } from "./storage";
 import { 
   generalRateLimit, 
@@ -794,6 +795,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Register notifications routes
   app.use('/api/notifications', notificationsRouter);
+
+  // Register health check routes
+  registerHealthRoutes(app);
 
   // 404 handler for API routes only (not for static files)
   app.use('/api/*', notFoundHandler);

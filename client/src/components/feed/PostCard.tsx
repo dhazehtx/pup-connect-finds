@@ -291,12 +291,12 @@ export const PostCard: React.FC<PostCardProps> = ({
           />
         </div>
 
-          {/* Views for video content */}
-          {post.views_count !== undefined && (
-            <span className="text-xs text-muted-foreground">
-              {post.views_count} views
-            </span>
-          )}
+        {/* Views for video content */}
+        {post.views_count !== undefined && (
+          <span className="text-xs text-muted-foreground">
+            {post.views_count} views
+          </span>
+        )}
         </div>
       </CardContent>
 

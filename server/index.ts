@@ -1,6 +1,10 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
+import { initializeSentry, Sentry, captureError } from "./utils/sentry";
+
+// Initialize Sentry as early as possible
+initializeSentry();
 
 const app = express();
 app.use(express.json());
@@ -39,9 +43,21 @@ app.use((req, res, next) => {
 (async () => {
   const server = await registerRoutes(app);
 
+  // Sentry error handling middleware (only if initialized)
+  if (process.env.SENTRY_DSN) {
+    app.use(Sentry.Handlers.errorHandler());
+  }
+
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;
     const message = err.message || "Internal Server Error";
+    
+    // Capture error in Sentry
+    captureError(err, {
+      url: _req.url,
+      method: _req.method,
+      status
+    });
 
     res.status(status).json({ message });
     throw err;
