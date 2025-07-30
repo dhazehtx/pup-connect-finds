@@ -100,13 +100,21 @@ export const reviews = pgTable("reviews", {
 export const posts = pgTable("posts", {
   id: uuid("id").primaryKey(),
   user_id: uuid("user_id").references(() => profiles.id),
-  title: text("title").notNull(),
+  title: text("title"),
   content: text("content").notNull(),
-  image_url: text("image_url"),
-  video_url: text("video_url"),
+  image_url: text("image_url"), // Legacy single image support
+  images: text("images").array(), // Multiple images support
+  video_url: text("video_url"), // Single video for reels
+  videos: text("videos").array(), // Multiple videos support
+  post_type: text("post_type").default("text"), // text, image, video, reel
   category: text("category"),
+  hashtags: text("hashtags").array(), // Array of hashtags
+  caption: text("caption"), // Video caption for reels
   likes_count: integer("likes_count").default(0),
   comments_count: integer("comments_count").default(0),
+  shares_count: integer("shares_count").default(0),
+  views_count: integer("views_count").default(0),
+  duration: integer("duration"), // Video duration in seconds
   created_at: timestamp("created_at").defaultNow(),
   updated_at: timestamp("updated_at").defaultNow(),
 });
@@ -129,6 +137,22 @@ export const commentReplies = pgTable("comment_replies", {
   user_id: uuid("user_id").references(() => profiles.id, { onDelete: "cascade" }).notNull(),
   content: text("content").notNull(),
   created_at: timestamp("created_at", { withTimezone: true }).defaultNow(),
+});
+
+// Post likes table
+export const postLikes = pgTable("post_likes", {
+  id: uuid("id").primaryKey(),
+  post_id: uuid("post_id").references(() => posts.id, { onDelete: "cascade" }).notNull(),
+  user_id: uuid("user_id").references(() => profiles.id, { onDelete: "cascade" }).notNull(),
+  created_at: timestamp("created_at").defaultNow(),
+});
+
+// Post shares table
+export const postShares = pgTable("post_shares", {
+  id: uuid("id").primaryKey(),
+  post_id: uuid("post_id").references(() => posts.id, { onDelete: "cascade" }).notNull(),
+  user_id: uuid("user_id").references(() => profiles.id, { onDelete: "cascade" }).notNull(),
+  created_at: timestamp("created_at").defaultNow(),
 });
 
 // Notifications table - Updated to match database structure
@@ -372,7 +396,7 @@ export const reportRateLimit = pgTable("report_rate_limit", {
 
 export const insertUserReportSchema = createInsertSchema(userReports).omit({ id: true, created_at: true, updated_at: true });
 export const insertListingReportSchema = createInsertSchema(listingReports).omit({ id: true, created_at: true, updated_at: true });
-export const insertReportRateLimitSchema = createInsertSchema(reportRateLimit).omit({ id: true, created_at: true });
+export const insertReportRateLimitSchema = createInsertSchema(reportRateLimit).omit({ id: true, last_report_date: true, reset_date: true });
 
 // Admin logs table for audit trail
 export const adminLogs = pgTable("admin_logs", {
@@ -393,3 +417,12 @@ export type ReportRateLimit = typeof reportRateLimit.$inferSelect;
 export type InsertReportRateLimit = z.infer<typeof insertReportRateLimitSchema>;
 export type AdminLog = typeof adminLogs.$inferSelect;
 export type InsertAdminLog = z.infer<typeof insertAdminLogSchema>;
+
+// Additional post-related schemas for new features
+export const insertPostLikeSchema = createInsertSchema(postLikes).omit({ id: true, created_at: true });
+export const insertPostShareSchema = createInsertSchema(postShares).omit({ id: true, created_at: true });
+
+export type PostLike = typeof postLikes.$inferSelect;
+export type InsertPostLike = z.infer<typeof insertPostLikeSchema>;
+export type PostShare = typeof postShares.$inferSelect;
+export type InsertPostShare = z.infer<typeof insertPostShareSchema>;

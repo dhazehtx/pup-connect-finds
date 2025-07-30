@@ -53,6 +53,7 @@ const ReportActionTestPage = lazy(() => import('./pages/ReportActionTestPage'));
 const AdminPageTrackingTestPage = lazy(() => import('./pages/AdminPageTrackingTestPage'));
 const AdminLogFilterTestPage = lazy(() => import('./pages/AdminLogFilterTestPage'));
 const RealtimeLogTestPage = lazy(() => import('./pages/RealtimeLogTestPage'));
+const ReelsPage = lazy(() => import('./pages/ReelsPage'));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -210,6 +211,11 @@ function App() {
                   <Route path="/realtime-log-test" element={
                     <Suspense fallback={<LoadingPage message="Loading Realtime Log Test..." />}>
                       <RealtimeLogTestPage />
+                    </Suspense>
+                  } />
+                  <Route path="/reels" element={
+                    <Suspense fallback={<LoadingPage message="Loading Reels..." />}>
+                      <ReelsPage />
                     </Suspense>
                   } />
                   </Routes>

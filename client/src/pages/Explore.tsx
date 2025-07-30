@@ -1,14 +1,9 @@
 
 import React from 'react';
-import ExploreWithFilters from '@/components/explore/ExploreWithFilters';
+import EnhancedFeed from '@/components/feed/EnhancedFeed';
 
 const Explore = () => {
-  return (
-    <div className="min-h-screen bg-gray-50">
-      {/* No separate header needed - unified with StickyHeader */}
-      <ExploreWithFilters />
-    </div>
-  );
+  return <EnhancedFeed />;
 };
 
 export default Explore;
