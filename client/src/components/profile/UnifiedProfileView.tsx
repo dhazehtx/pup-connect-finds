@@ -5,7 +5,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { MapPin, Globe, Calendar, UserPlus, UserCheck } from 'lucide-react';
+import { MapPin, Globe, Calendar, UserPlus, UserCheck, Shield } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import ProfileSettings from './ProfileSettings';
 import ProfileSettingsModal from './ProfileSettingsModal';
 import ProfilePostsGrid from './ProfilePostsGrid';
@@ -37,6 +38,7 @@ interface UnifiedProfileViewProps {
 
 const UnifiedProfileView = ({ userId, isCurrentUser }: UnifiedProfileViewProps) => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
   const [showSettings, setShowSettings] = useState(false);
@@ -229,7 +231,18 @@ const UnifiedProfileView = ({ userId, isCurrentUser }: UnifiedProfileViewProps) 
                   </Button>
                 )}
                 {isCurrentUser && (
-                  <BugReportButton variant="outline" size="sm" />
+                  <>
+                    <BugReportButton variant="outline" size="sm" />
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => navigate('/privacy-settings')}
+                      className="gap-2"
+                    >
+                      <Shield className="w-4 h-4" />
+                      Privacy
+                    </Button>
+                  </>
                 )}
               </div>
             </div>

@@ -1,0 +1,69 @@
+✅ Let’s proceed with GDPR & Privacy Compliance (High Priority)
+These next features are required for user data rights, app store policies, and legal safety.
+
+🔐 Prompt 1: Add User Data Export (GDPR Download Request)
+tsx
+Copy
+Edit
+📦 Add GDPR Data Export Feature for MY PUP
+
+Create a feature that allows users to request and download all their personal data in JSON format, including:
+
+- Profile info
+- Posts and listings
+- Messages
+- Comments
+- Payment/subscription info (if applicable)
+
+Steps:
+1. Add a "Download My Data" button in the settings or profile page.
+2. Create a serverless endpoint like `/api/export-user-data`:
+   - Authenticate user
+   - Query Supabase for all related data by user ID
+   - Bundle data into a single JSON file
+   - Trigger a file download on the frontend
+3. Show a success toast when the download starts.
+
+Security:
+- Only authenticated users can export their data
+- Add rate limit to avoid abuse (e.g., once every 24 hrs)
+
+🧹 Prompt 2: Add "Delete My Account" Feature (GDPR Right to Erasure)
+tsx
+Copy
+Edit
+❌ Add GDPR-Compliant Account Deletion for MY PUP
+
+Allow users to permanently delete their account and associated data.
+
+Steps:
+1. Add a “Delete My Account” button in user settings (with a confirmation modal).
+2. On confirmation:
+   - Revoke Supabase session (sign user out)
+   - Call backend endpoint `/api/delete-account`
+   - Delete user profile, posts, comments, messages, and media
+   - Optionally, archive deleted data for audit logging
+
+Safety:
+- Show a warning modal: "This cannot be undone"
+- Send a confirmation email or require password confirmation (optional)
+
+📜 Prompt 3: Add Privacy Policy Page & Consent Notice
+tsx
+Copy
+Edit
+📜 Add Privacy Policy Page & Cookie Consent for MY PUP
+
+1. Create a `/privacy` page that:
+   - Explains what data is collected
+   - How it is used and stored (mention Supabase + Stripe)
+   - Includes GDPR and CCPA language for global compliance
+
+2. Add a cookie consent banner:
+   - Show on first visit if not already accepted
+   - Use a cookie or localStorage to remember consent
+   - “Accept” button dismisses the banner
+
+Optional:
+- Add a “Manage Privacy Settings” link to re-show the banner
+

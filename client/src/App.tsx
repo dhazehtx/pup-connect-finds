@@ -7,6 +7,7 @@ import { AuthProvider } from './contexts/AuthContext';
 import { RealtimeProvider } from './contexts/RealtimeContext';
 import Layout from './components/Layout';
 import AdminNavigationTracker from './components/admin/AdminNavigationTracker';
+import CookieConsentBanner from '@/components/privacy/CookieConsentBanner';
 
 import { PageTransition } from './components/ui/transitions';
 import Home from './pages/Home';
@@ -67,6 +68,8 @@ const SupportPage = lazy(() => import('./pages/SupportPage'));
 const AdminSupportPage = lazy(() => import('./pages/AdminSupportPage'));
 const AdminBugsPage = lazy(() => import('./pages/AdminBugsPage'));
 const BugTestPage = lazy(() => import('./pages/BugTestPage'));
+const PrivacyPolicyPage = lazy(() => import('./pages/PrivacyPolicyPage'));
+const PrivacySettingsPage = lazy(() => import('./pages/PrivacySettingsPage'));
 
 // Import new notification component
 import NotificationButton from './components/notifications/NotificationButton';
@@ -305,9 +308,22 @@ function App() {
                       </Suspense>
                     </ProtectedRoute>
                   } />
+                  <Route path="/privacy" element={
+                    <Suspense fallback={<LoadingPage message="Loading Privacy Policy..." />}>
+                      <PrivacyPolicyPage />
+                    </Suspense>
+                  } />
+                  <Route path="/privacy-settings" element={
+                    <ProtectedRoute>
+                      <Suspense fallback={<LoadingPage message="Loading Privacy Settings..." />}>
+                        <PrivacySettingsPage />
+                      </Suspense>
+                    </ProtectedRoute>
+                  } />
                   </Routes>
                 </PageTransition>
               </Layout>
+              <CookieConsentBanner />
             </ThemeProvider>
           </RealtimeProvider>
         </AuthProvider>

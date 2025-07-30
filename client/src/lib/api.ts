@@ -1,5 +1,5 @@
-// API utility for making HTTP requests
-export async function apiRequest(method: string, url: string, data?: any) {
+// Simple API client for making authenticated requests
+export const apiRequest = async (method: string, url: string, data?: any) => {
   const options: RequestInit = {
     method,
     headers: {
@@ -12,12 +12,5 @@ export async function apiRequest(method: string, url: string, data?: any) {
     options.body = JSON.stringify(data);
   }
 
-  const response = await fetch(url, options);
-  
-  if (!response.ok) {
-    const errorData = await response.text();
-    throw new Error(`HTTP ${response.status}: ${errorData}`);
-  }
-
-  return response;
-}
+  return fetch(url, options);
+};
