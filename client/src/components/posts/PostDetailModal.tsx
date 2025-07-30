@@ -18,6 +18,7 @@ import {
 import { formatDistanceToNow } from 'date-fns';
 import ImageCarousel from '@/components/feed/ImageCarousel';
 import CommentsSection from '@/components/comments/CommentsSection';
+import HashtagParser from '@/components/tags/HashtagParser';
 
 interface Post {
   id: string;
@@ -66,17 +67,9 @@ export const PostDetailModal: React.FC<PostDetailModalProps> = ({
     onLike?.(post.id);
   };
 
-  const parseHashtags = (text: string) => {
-    return text.split(/(\s+)/).map((word, index) => {
-      if (word.startsWith('#')) {
-        return (
-          <span key={index} className="text-blue-600 hover:underline cursor-pointer font-medium">
-            {word}
-          </span>
-        );
-      }
-      return word;
-    });
+  const handleHashtagClick = (hashtag: string) => {
+    // Will navigate to filtered feed page
+    console.log('Hashtag clicked:', hashtag);
   };
 
   const getMediaContent = () => {
@@ -188,9 +181,11 @@ export const PostDetailModal: React.FC<PostDetailModalProps> = ({
               )}
 
               <div className="mb-3">
-                <p className="text-sm leading-relaxed">
-                  {post.caption ? parseHashtags(post.caption) : parseHashtags(post.content)}
-                </p>
+                <HashtagParser
+                  text={post.caption || post.content}
+                  className="text-sm leading-relaxed"
+                  onHashtagClick={handleHashtagClick}
+                />
               </div>
 
               {/* Hashtags */}

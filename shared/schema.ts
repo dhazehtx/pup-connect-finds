@@ -442,8 +442,29 @@ export const mentions = pgTable("mentions", {
   created_at: timestamp("created_at").defaultNow(),
 });
 
+// Post tags table for topic tagging and hashtag tracking
+export const postTags = pgTable("post_tags", {
+  id: uuid("id").primaryKey(),
+  post_id: uuid("post_id").references(() => posts.id, { onDelete: "cascade" }).notNull(),
+  tag_text: text("tag_text").notNull(),
+  tag_type: text("tag_type").notNull().default("hashtag"), // hashtag, topic, category
+  created_at: timestamp("created_at").defaultNow(),
+});
+
+// Popular tags for autocomplete and trending
+export const popularTags = pgTable("popular_tags", {
+  id: uuid("id").primaryKey(),
+  tag_text: text("tag_text").notNull(),
+  usage_count: integer("usage_count").default(1),
+  category: text("category"), // puppy, training, health, breed, etc.
+  created_at: timestamp("created_at").defaultNow(),
+  updated_at: timestamp("updated_at").defaultNow(),
+});
+
 export const insertCommentLikeSchema = createInsertSchema(commentLikes).omit({ id: true, created_at: true });
 export const insertMentionSchema = createInsertSchema(mentions).omit({ id: true, created_at: true });
+export const insertPostTagSchema = createInsertSchema(postTags).omit({ id: true, created_at: true });
+export const insertPopularTagSchema = createInsertSchema(popularTags).omit({ id: true, created_at: true, updated_at: true });
 
 export type PostLike = typeof postLikes.$inferSelect;
 export type InsertPostLike = z.infer<typeof insertPostLikeSchema>;
@@ -453,3 +474,7 @@ export type CommentLike = typeof commentLikes.$inferSelect;
 export type InsertCommentLike = z.infer<typeof insertCommentLikeSchema>;
 export type Mention = typeof mentions.$inferSelect;
 export type InsertMention = z.infer<typeof insertMentionSchema>;
+export type PostTag = typeof postTags.$inferSelect;
+export type InsertPostTag = z.infer<typeof insertPostTagSchema>;
+export type PopularTag = typeof popularTags.$inferSelect;
+export type InsertPopularTag = z.infer<typeof insertPopularTagSchema>;

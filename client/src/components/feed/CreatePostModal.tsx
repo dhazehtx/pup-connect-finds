@@ -22,6 +22,8 @@ import {
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import ImageCarousel from './ImageCarousel';
+import TagSelector from '@/components/tags/TagSelector';
+import HashtagParser from '@/components/tags/HashtagParser';
 
 interface CreatePostModalProps {
   trigger: React.ReactNode;
@@ -42,7 +44,7 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({
   const [imagePreviewUrls, setImagePreviewUrls] = useState<string[]>([]);
   const [videoPreviewUrl, setVideoPreviewUrl] = useState<string>('');
   const [hashtags, setHashtags] = useState<string[]>([]);
-  const [hashtagInput, setHashtagInput] = useState('');
+  const [topicTags, setTopicTags] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
 
   const imageInputRef = useRef<HTMLInputElement>(null);
@@ -178,7 +180,7 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({
       setImagePreviewUrls([]);
       setVideoPreviewUrl('');
       setHashtags([]);
-      setHashtagInput('');
+      setTopicTags([]);
       setPostType('text');
       setOpen(false);
 
@@ -277,9 +279,31 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({
               placeholder={
                 postType === 'video' || postType === 'reel' 
                   ? "Write a caption for your video... Use #hashtags to reach more people"
-                  : "What's on your mind? Share your thoughts or ask a question..."
+                  : "What's on your mind? Share your thoughts or ask a question... Use #hashtags for better discovery"
               }
               className="mt-1 min-h-[100px]"
+            />
+            {content && (
+              <div className="mt-2">
+                <Label className="text-sm text-muted-foreground">Preview:</Label>
+                <div className="p-2 bg-gray-50 rounded text-sm">
+                  <HashtagParser text={content} />
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Topic Tags Selector */}
+          <div>
+            <Label>Topic Tags (Optional)</Label>
+            <p className="text-xs text-muted-foreground mb-2">
+              Add up to 3 topic tags to help others discover your content
+            </p>
+            <TagSelector
+              selectedTags={topicTags}
+              onTagsChange={setTopicTags}
+              maxTags={3}
+              placeholder="Add topic tags for better discoverability..."
             />
           </div>
 

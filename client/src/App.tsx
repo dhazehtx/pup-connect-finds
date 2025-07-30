@@ -55,6 +55,7 @@ const AdminLogFilterTestPage = lazy(() => import('./pages/AdminLogFilterTestPage
 const RealtimeLogTestPage = lazy(() => import('./pages/RealtimeLogTestPage'));
 const ReelsPage = lazy(() => import('./pages/ReelsPage'));
 const CommentsTestPage = lazy(() => import('./pages/CommentsTestPage'));
+const HashtagTestPage = lazy(() => import('./pages/HashtagTestPage'));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -222,6 +223,11 @@ function App() {
                   <Route path="/comments-test" element={
                     <Suspense fallback={<LoadingPage message="Loading Comments Test..." />}>
                       <CommentsTestPage />
+                    </Suspense>
+                  } />
+                  <Route path="/hashtag-test" element={
+                    <Suspense fallback={<LoadingPage message="Loading Hashtag Test..." />}>
+                      <HashtagTestPage />
                     </Suspense>
                   } />
                   </Routes>
