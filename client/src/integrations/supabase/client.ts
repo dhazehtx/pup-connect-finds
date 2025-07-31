@@ -2,8 +2,22 @@
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from './types';
 
-const SUPABASE_URL = "https://wneticxjhxpjpfghnclr.supabase.co";
-const SUPABASE_PUBLISHABLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InduZXRpY3hqaHhwanBmZ2huY2xyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDgzOTQ5MDksImV4cCI6MjA2Mzk3MDkwOX0.7bFOxaZyK97nruVmJFbyNpd6VnmgJpGVTzYtcZ74lUo";
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || "https://wneticxjhxpjpfghnclr.supabase.co";
+const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InduZXRpY3hqaHhwanBmZ2huY2xyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDgzOTQ5MDksImV4cCI6MjA2Mzk3MDkwOX0.7bFOxaZyK97nruVmJFbyNpd6VnmgJpGVTzYtcZ74lUo";
+
+// Log environment variables status for debugging
+console.log('Supabase environment variables:', {
+  SUPABASE_URL: SUPABASE_URL ? `${SUPABASE_URL.substring(0, 30)}...` : 'Missing',
+  SUPABASE_ANON_KEY: SUPABASE_PUBLISHABLE_KEY ? `${SUPABASE_PUBLISHABLE_KEY.substring(0, 30)}...` : 'Missing'
+});
+
+// Log warning if environment variables are missing
+if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
+  console.error('Missing Supabase environment variables:', {
+    SUPABASE_URL: SUPABASE_URL ? 'Set' : 'Missing',
+    SUPABASE_ANON_KEY: SUPABASE_PUBLISHABLE_KEY ? 'Set' : 'Missing'
+  });
+}
 
 // Import the supabase client like this:
 // import { supabase } from "@/integrations/supabase/client";
