@@ -1,0 +1,89 @@
+Excellent—let’s lock in session management next. Paste these three numbered prompts into Replit’s AI console to implement a 15-minute idle timeout, token refresh, and an expiration modal:
+
+php
+Copy
+Edit
+1. (Server Middleware) Create a session-timeout middleware for our API routes:
+   ```js
+   // src/middleware/sessionTimeout.js
+   import { supabase } from '../lib/supabaseClient';
+
+   export default async function sessionTimeout(req, res, next) {
+     const session = supabase.auth.session();
+     if (!session) return res.status(401).json({ error: 'Not authenticated' });
+
+     const now = Date.now();
+     const lastActive = new Date(session.user.last_active_at || session.expires_at * 1000).getTime();
+     if (now - lastActive > 15 * 60 * 1000) {
+       await supabase.auth.signOut();
+       return res.status(440).json({ error: 'Session expired' });
+     }
+
+     // Update last_active_at
+     await supabase
+       .from('profiles')
+       .update({ last_active_at: new Date().toISOString() })
+       .eq('id', session.user.id);
+
+     next();
+   }
+Attach sessionTimeout to all protected API routes without altering existing logic.
+
+(Client Token Refresh) In your main app wrapper (e.g. src/App.jsx), subscribe to auth changes and auto-refresh:
+
+js
+Copy
+Edit
+import { supabase } from './lib/supabaseClient';
+import { useEffect } from 'react';
+
+function App() {
+  useEffect(() => {
+    const { data: listener } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === 'TOKEN_REFRESHED') return;
+      if (event === 'USER_UPDATED' || event === 'SIGNED_IN') {
+        // store new session and reset timer
+        localStorage.setItem('lastActive', Date.now());
+      }
+      if (event === 'TOKEN_REFRESHED') {
+        localStorage.setItem('lastActive', Date.now());
+      }
+      if (event === 'SIGNED_OUT') {
+        // redirect to sign-in
+        window.location.href = '/signin';
+      }
+    });
+    return () => listener.unsubscribe();
+  }, []);
+}
+export default App;
+This keeps lastActive updated and listens for refresh/fail events.
+
+(Session Expired Modal) Create a modal component that shows on a 440 response:
+
+jsx
+Copy
+Edit
+// src/components/SessionExpiredModal.jsx
+import { useState } from 'react';
+import Modal from '@/components/ui/Modal';
+
+export default function SessionExpiredModal() {
+  const [open, setOpen] = useState(false);
+
+  // Intercept 440 responses globally
+  useEffect(() => {
+    window.addEventListener('fetchError', (e) => {
+      if (e.detail.status === 440) setOpen(true);
+    });
+  }, []);
+
+  return (
+    <Modal isOpen={open} onClose={() => window.location.href = '/signin'}>
+      <h2>Session Expired</h2>
+      <p>Your session has timed out. Please sign in again to continue.</p>
+      <button onClick={() => window.location.href = '/signin'}>Sign In</button>
+    </Modal>
+  );
+}
+Import and render <SessionExpiredModal /> at the root of your app.

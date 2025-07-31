@@ -1,106 +1,99 @@
-import { useEffect, useCallback, useState } from 'react';
+import { useEffect, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { startSessionTimeout, stopSessionTimeout } from '@/utils/sessionTimeout';
-import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
-import { setupAuthStateListener } from '@/utils/authStateListener';
 
-export const useSessionManager = () => {
+const SESSION_TIMEOUT = 15 * 60 * 1000; // 15 minutes in milliseconds
+const ACTIVITY_EVENTS = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart', 'click'];
+
+export function useSessionManager() {
   const { user, signOut } = useAuth();
-  const { toast } = useToast();
-  const [showWarningModal, setShowWarningModal] = useState(false);
 
-  const handleSessionTimeout = useCallback(async () => {
-    setShowWarningModal(false);
-    toast({
-      title: "Session Expired",
-      description: "You've been logged out due to inactivity for security.",
-      variant: "destructive",
-    });
-    
-    await signOut();
-  }, [signOut, toast]);
-
-  const handleSessionWarning = useCallback(() => {
-    setShowWarningModal(true);
-  }, []);
-
-  const handleExtendSession = useCallback(() => {
-    setShowWarningModal(false);
-    // Activity will automatically reset the timers
-  }, []);
-
-  const handleManualLogout = useCallback(async () => {
-    setShowWarningModal(false);
-    await signOut();
-  }, [signOut]);
-
-  const handleTokenRefresh = useCallback(async () => {
-    try {
-      // First check current session validity
-      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
-      
-      if (sessionError || !sessionData.session) {
-        console.warn('Session expired or invalid — signing out');
-        await handleSessionTimeout();
-        return;
-      }
-
-      // If session exists but token is near expiry, refresh it
-      const expiresAt = sessionData.session.expires_at;
-      const now = Math.floor(Date.now() / 1000);
-      const timeUntilExpiry = expiresAt - now;
-      
-      // Refresh if less than 10 minutes remaining
-      if (timeUntilExpiry < 600) {
-        const { data, error } = await supabase.auth.refreshSession();
-        if (error) {
-          console.error('Token refresh failed:', error);
-          await handleSessionTimeout();
-        } else {
-          console.log('Token refreshed successfully');
-        }
-      }
-    } catch (error) {
-      console.error('Token refresh error:', error);
-      await handleSessionTimeout();
+  const updateLastActive = useCallback(() => {
+    if (user) {
+      localStorage.setItem('lastActive', Date.now().toString());
     }
-  }, [handleSessionTimeout]);
+  }, [user]);
+
+  const checkSessionExpiry = useCallback(() => {
+    if (!user) return;
+
+    const lastActive = localStorage.getItem('lastActive');
+    if (!lastActive) {
+      updateLastActive();
+      return;
+    }
+
+    const timeSinceActive = Date.now() - parseInt(lastActive);
+    
+    if (timeSinceActive > SESSION_TIMEOUT) {
+      // Session expired, trigger modal
+      const event = new CustomEvent('sessionExpired', {
+        detail: { status: 440, message: 'Session expired due to inactivity' }
+      });
+      window.dispatchEvent(event);
+      
+      // Sign out user
+      signOut();
+    }
+  }, [user, signOut, updateLastActive]);
+
+  const refreshToken = useCallback(async () => {
+    if (!user) return;
+
+    try {
+      // Update last active time
+      updateLastActive();
+      
+      // Optional: Make a lightweight API call to refresh server session
+      await fetch('/api/auth/refresh', {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+    } catch (error) {
+      console.error('Token refresh failed:', error);
+    }
+  }, [user, updateLastActive]);
 
   useEffect(() => {
     if (!user) return;
 
-    // Start session timeout monitoring with warning
-    const cleanup = startSessionTimeout(handleSessionTimeout, handleSessionWarning, 30, 2);
+    // Set up activity listeners
+    const handleActivity = () => {
+      updateLastActive();
+    };
 
-    // Set up token refresh interval (every 15 minutes for failsafe checking)
-    const refreshInterval = setInterval(handleTokenRefresh, 15 * 60 * 1000);
-
-    // Set up comprehensive auth state listener
-    const subscription = setupAuthStateListener();
-    
-    // Additional listener for session management specific events
-    const { data: { subscription: sessionSubscription } } = supabase.auth.onAuthStateChange((event: string, session: any) => {
-      if (event === 'TOKEN_REFRESHED') {
-        console.log('Token refreshed via Supabase auth listener');
-      } else if (event === 'SIGNED_OUT') {
-        stopSessionTimeout();
-        clearInterval(refreshInterval);
-      }
+    ACTIVITY_EVENTS.forEach(event => {
+      document.addEventListener(event, handleActivity, { passive: true });
     });
 
-    return () => {
-      cleanup();
-      clearInterval(refreshInterval);
-      subscription.unsubscribe();
-      sessionSubscription.unsubscribe();
-    };
-  }, [user, handleSessionTimeout, handleSessionWarning, handleTokenRefresh]);
+    // Check session expiry every minute
+    const sessionCheckInterval = setInterval(checkSessionExpiry, 60 * 1000);
 
-  // Return modal state and handlers for external usage
+    // Refresh token every 10 minutes if user is active
+    const refreshInterval = setInterval(() => {
+      const lastActive = localStorage.getItem('lastActive');
+      if (lastActive && Date.now() - parseInt(lastActive) < 10 * 60 * 1000) {
+        refreshToken();
+      }
+    }, 10 * 60 * 1000);
+
+    // Initial session check
+    checkSessionExpiry();
+
+    return () => {
+      ACTIVITY_EVENTS.forEach(event => {
+        document.removeEventListener(event, handleActivity);
+      });
+      clearInterval(sessionCheckInterval);
+      clearInterval(refreshInterval);
+    };
+  }, [user, updateLastActive, checkSessionExpiry, refreshToken]);
+
   return {
-    showWarningModal,
-    handleExtendSession,
-    handleManualLogout
+    updateLastActive,
+    checkSessionExpiry,
+    refreshToken
   };
-};
+}
