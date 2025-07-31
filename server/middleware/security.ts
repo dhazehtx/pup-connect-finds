@@ -22,8 +22,9 @@ export const securityMiddleware = helmet({
         "https://api.stripe.com",
         "https://www.google-analytics.com",
         "https://region1.google-analytics.com",
-        process.env.SUPABASE_URL || "",
-        "wss:"
+        process.env.VITE_SUPABASE_URL || "https://wneticxjhxpjpfghnclr.supabase.co",
+        "wss:",
+        "ws:"
       ],
       frameSrc: ["'self'", "https://js.stripe.com"],
       objectSrc: ["'none'"],
