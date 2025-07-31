@@ -154,12 +154,12 @@ const Explore = () => {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
 
-  // Auth guard - redirect unauthenticated users
-  useEffect(() => {
-    if (!loading && !user) {
-      navigate('/');
-    }
-  }, [user, loading, navigate]);
+  // Remove auth guard - Explore is now publicly accessible
+  // useEffect(() => {
+  //   if (!loading && !user) {
+  //     navigate('/');
+  //   }
+  // }, [user, loading, navigate]);
 
   if (loading) {
     return (
@@ -169,15 +169,16 @@ const Explore = () => {
     );
   }
 
-  if (!user) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-gray-600">Redirecting...</p>
-        </div>
-      </div>
-    );
-  }
+  // Remove user check - allow guests to access Explore
+  // if (!user) {
+  //   return (
+  //     <div className="min-h-screen flex items-center justify-center">
+  //       <div className="text-center">
+  //         <p className="text-gray-600">Redirecting...</p>
+  //       </div>
+  //     </div>
+  //   );
+  // }
 
   return (
     <div className="min-h-screen bg-gray-50">
