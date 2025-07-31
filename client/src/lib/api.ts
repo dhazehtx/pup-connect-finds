@@ -25,15 +25,33 @@ export const apiRequest = async (method: string, url: string, data?: any) => {
   return fetch(url, options);
 };
 
-// Improved Supabase REST API helper with proper headers and error handling
+// Centralized Supabase REST API helper with proper authentication
 export async function api(path: string, opts: RequestInit = {}) {
-  const { data: { session } } = await supabase.auth.getSession();
-  return fetch(`${import.meta.env.VITE_SUPABASE_URL}/rest/v1/${path}`, {
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+
+  const token = session?.access_token || '';
+  const base = import.meta.env.VITE_SUPABASE_URL;
+
+  return fetch(`${base}/rest/v1/${path}`, {
     ...opts,
     headers: {
-      Accept: "application/json",
-      Authorization: `Bearer ${session?.access_token ?? ""}`,
-      ...opts.headers,
+      Accept: 'application/json',
+      Authorization: `Bearer ${token}`,
+      ...(opts.headers as Record<string, string>),
     },
   });
+}
+
+// Helper for parsing JSON responses with error handling
+export async function apiJson<T = any>(path: string, opts: RequestInit = {}): Promise<T> {
+  const response = await api(path, opts);
+  
+  if (!response.ok) {
+    const errorText = await response.text().catch(() => 'Unknown error');
+    throw new Error(`API Error ${response.status}: ${errorText}`);
+  }
+  
+  return response.json();
 }

@@ -59,18 +59,15 @@ export const useEnhancedNotifications = () => {
     if (!user) return;
 
     try {
-      const { data, error } = await supabase
-        .from('user_preferences')
-        .select('*')
-        .eq('user_id', user.id)
-        .single();
-
-      if (error && error.code !== 'PGRST116') throw error;
-
-      if (data && data.matching_criteria) {
-        const criteria = data.matching_criteria as any;
-        if (criteria.notification_settings) {
-          setSettings(prev => ({ ...prev, ...criteria.notification_settings }));
+      const response = await fetch(`/api/user/preferences?user_id=${user.id}`);
+      
+      if (response.ok) {
+        const data = await response.json();
+        if (data && data.matching_criteria) {
+          const criteria = data.matching_criteria as any;
+          if (criteria.notification_settings) {
+            setSettings(prev => ({ ...prev, ...criteria.notification_settings }));
+          }
         }
       }
     } catch (error) {
@@ -84,17 +81,21 @@ export const useEnhancedNotifications = () => {
     try {
       const updatedSettings = { ...settings, ...newSettings };
       
-      const { error } = await supabase
-        .from('user_preferences')
-        .upsert({
+      const response = await fetch('/api/user/preferences', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
           user_id: user.id,
           matching_criteria: {
             notification_settings: updatedSettings
           } as any,
           updated_at: new Date().toISOString()
-        });
+        })
+      });
 
-      if (error) throw error;
+      if (!response.ok) throw new Error('Failed to update settings');
 
       setSettings(updatedSettings);
       

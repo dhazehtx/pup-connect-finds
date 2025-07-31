@@ -1,0 +1,69 @@
+I’m seeing these remaining symptoms in the app after the Supabase connection was fixed:
+
+When logged in, clicking navigation items (Home/logo, Profile, Messages, Explore) sometimes freezes or shows no UI change.
+
+There are still 406 errors on GET …/rest/v1/user_preferences?select=* (likely missing headers or session context).
+
+RPC calls to insert_admin_log are failing with 401 Unauthorized and the console shows admin log error {"message":"No API key found in request"}.
+
+Authentication works (signed in), but some Supabase REST calls are missing required headers, and the admin log failures are noisy and potentially blocking UI transitions.
+
+Please do the following fixes and verify navigation is smooth:
+
+Centralize Supabase REST fetching:
+Create/update a shared helper (e.g., client/src/lib/api.ts) that all pages use instead of raw fetch for Supabase REST endpoints. It must:
+
+ts
+Copy
+Edit
+// client/src/lib/api.ts
+import { supabase } from '@/integrations/supabase/client';
+
+export async function api(path: string, opts: RequestInit = {}) {
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+
+  const token = session?.access_token || '';
+  const base = import.meta.env.VITE_SUPABASE_URL;
+
+  return fetch(`${base}/rest/v1/${path}`, {
+    ...opts,
+    headers: {
+      Accept: 'application/json',
+      Authorization: `Bearer ${token}`,
+      ...(opts.headers as Record<string, string>),
+    },
+  });
+}
+Replace all direct fetch calls for things like user_preferences, posts, etc., with this helper (e.g., await api('user_preferences?select=*')), and handle JSON parsing and error checking centrally.
+
+Fix admin log RPC calls:
+
+Do not call insert_admin_log directly from the client with the service role key exposed. Instead:
+
+Move admin logging to the backend (server-side endpoint) where the service role key or secret can be used securely.
+
+If the client must trigger it, have it call a protected server endpoint (e.g., /api/log-navigation) which then performs the rpc('insert_admin_log', ...) with the service role context.
+
+Catch and swallow non-critical RPC errors on the client so UI navigation isn’t blocked by these failures (e.g., wrap log calls in try/catch).
+
+Ensure navigation components are lightweight and declarative:
+
+Verify the logo and nav tabs use React Router’s <Link> or useNavigate without synchronous blocking logic.
+
+Wrap route content in an error boundary so a single route error doesn’t freeze the whole UI.
+
+Test and verify:
+
+Click the logo and each bottom nav tab; confirm the URL changes and UI updates instantly (no freezes).
+
+In DevTools → Network, confirm:
+
+No 406 errors from user_preferences or other REST endpoints (they should return 200/304 with proper JSON).
+
+insert_admin_log is either gone from the client or routed through backend safely.
+
+Console should not show uncaught fetch/type errors for those navigation transitions.
+
+If any header is still missing, log the failing request’s headers so we can adapt the wrapper further. Provide the minimal patch code applied and a summary of what was fixed.

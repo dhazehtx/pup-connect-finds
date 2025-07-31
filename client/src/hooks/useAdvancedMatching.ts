@@ -152,15 +152,19 @@ export const useAdvancedMatching = () => {
     if (!user) return;
 
     try {
-      const { error } = await supabase
-        .from('user_preferences')
-        .upsert({
+      const response = await fetch('/api/user/preferences', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
           user_id: user.id,
           matching_criteria: JSON.parse(JSON.stringify(preferences)), // Convert to JSON compatible format
           updated_at: new Date().toISOString()
-        });
+        })
+      });
 
-      if (error) throw error;
+      if (!response.ok) throw new Error('Failed to save preferences');
     } catch (error) {
       console.error('Error saving preferences:', error);
     }
@@ -170,13 +174,14 @@ export const useAdvancedMatching = () => {
     if (!user) return null;
 
     try {
-      const { data, error } = await supabase
-        .from('user_preferences')
-        .select('matching_criteria')
-        .eq('user_id', user.id)
-        .single();
-
-      if (error && error.code !== 'PGRST116') throw error;
+      const response = await fetch(`/api/user/preferences?user_id=${user.id}`);
+      
+      if (!response.ok) {
+        if (response.status === 404) return null; // No preferences found
+        throw new Error('Failed to load preferences');
+      }
+      
+      const data = await response.json();
       
       if (data && data.matching_criteria) {
         const parsedCriteria = data.matching_criteria as unknown as MatchingCriteria;

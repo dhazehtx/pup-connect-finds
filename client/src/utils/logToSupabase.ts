@@ -22,17 +22,24 @@ export async function logToSupabase(action: string, metadata?: any): Promise<boo
       return false;
     }
 
-    // Use RPC call to insert into admin_logs table
-    const { error } = await supabase.rpc('insert_admin_log', {
-      p_admin_id: session.user.id,
-      p_action: action,
-      p_event_type: metadata?.event_type || 'ACTION',
-      p_event_detail: metadata?.event_detail || action,
-      p_metadata: metadata || null
+    // Use backend endpoint instead of direct RPC call for security
+    const response = await fetch('/api/admin/log-action', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${session.access_token}`
+      },
+      body: JSON.stringify({
+        admin_id: session.user.id,
+        action: action,
+        event_type: metadata?.event_type || 'ACTION',
+        event_detail: metadata?.event_detail || action,
+        metadata: metadata || null
+      })
     });
-
-    if (error) {
-      console.error('Failed to log admin action to Supabase:', error);
+    
+    if (!response.ok) {
+      console.error('Failed to log admin action:', response.status, response.statusText);
       return false;
     }
 
@@ -55,20 +62,32 @@ export async function getAdminLogs(options: {
   actionType?: string;
 } = {}): Promise<AdminLogEntry[]> {
   try {
-    // Use RPC call to query admin_logs table
-    const { data, error } = await supabase.rpc('get_admin_logs', {
-      p_limit: options.limit || 100,
-      p_admin_id: options.adminId || null,
-      p_start_date: options.startDate || null,
-      p_end_date: options.endDate || null,
-      p_action_type: options.actionType || null
-    });
-
-    if (error) {
-      console.error('Failed to fetch admin logs:', error);
+    // Get current session for authorization
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session?.access_token) {
+      console.warn('No active session for fetching admin logs');
       return [];
     }
 
+    // Use backend endpoint for admin logs query
+    const response = await fetch('/api/admin/logs?' + new URLSearchParams({
+      limit: (options.limit || 100).toString(),
+      ...(options.adminId && { admin_id: options.adminId }),
+      ...(options.startDate && { start_date: options.startDate }),
+      ...(options.endDate && { end_date: options.endDate }),
+      ...(options.actionType && { action_type: options.actionType })
+    }), {
+      headers: {
+        'Authorization': `Bearer ${session.access_token}`
+      }
+    });
+
+    if (!response.ok) {
+      console.error('Failed to fetch admin logs:', response.status, response.statusText);
+      return [];
+    }
+
+    const data = await response.json();
     return data || [];
   } catch (error) {
     console.error('Error fetching admin logs:', error);
