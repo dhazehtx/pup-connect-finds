@@ -35,6 +35,7 @@ import Contact from './pages/Contact';
 import LegalGuide from './pages/LegalGuide';
 import AccountSettingsPage from './pages/AccountSettings';
 import ProtectedRoute from './components/ProtectedRoute';
+import RequireAuth from './components/RequireAuth';
 import { FraudDetectionDemo } from './components/security/FraudDetectionDemo';
 import { RefundManagement } from './pages/RefundManagement';
 import { CommissionCenter } from './pages/CommissionCenter';
@@ -93,47 +94,47 @@ function App() {
                 <Layout>
                   <PageTransition>
                   <Routes>
-                  <Route path="/" element={<ProtectedRoute><HomeFeedPage /></ProtectedRoute>} />
+                  <Route path="/" element={<RequireAuth><HomeFeedPage /></RequireAuth>} />
                   <Route path="/greeting" element={<Home />} />
-                  <Route path="/home" element={<ProtectedRoute><HomeFeedPage /></ProtectedRoute>} />
+                  <Route path="/home" element={<RequireAuth><HomeFeedPage /></RequireAuth>} />
                   <Route path="/explore" element={
                     <Suspense fallback={<LoadingPage message="Loading Explore..." />}>
                       <LazyExplore />
                     </Suspense>
                   } />
                   <Route path="/marketplace" element={<Marketplace />} />
-                  <Route path="/post" element={<ProtectedRoute><Post /></ProtectedRoute>} />
+                  <Route path="/post" element={<RequireAuth><Post /></RequireAuth>} />
                   <Route path="/profile/:userId" element={
-                    <ProtectedRoute>
+                    <RequireAuth>
                       <Suspense fallback={<LoadingPage message="Loading Profile..." />}>
                         <LazyProfile />
                       </Suspense>
-                    </ProtectedRoute>
+                    </RequireAuth>
                   } />
                   <Route path="/profile" element={
-                    <ProtectedRoute>
+                    <RequireAuth>
                       <Suspense fallback={<LoadingPage message="Loading Profile..." />}>
                         <LazyProfile />
                       </Suspense>
-                    </ProtectedRoute>
+                    </RequireAuth>
                   } />
                   <Route path="/auth" element={<Auth />} />
-                  <Route path="/create-listing" element={<ProtectedRoute><CreateListing /></ProtectedRoute>} />
+                  <Route path="/create-listing" element={<RequireAuth><CreateListing /></RequireAuth>} />
                   <Route path="/listing/:id" element={<ListingDetail />} />
                   <Route path="/messages" element={
-                    <ProtectedRoute>
+                    <RequireAuth>
                       <Suspense fallback={<LoadingPage message="Loading Messages..." />}>
                         <LazyMessages />
                       </Suspense>
-                    </ProtectedRoute>
+                    </RequireAuth>
                   } />
-                  <Route path="/messages/:conversationId" element={<ProtectedRoute><MessageThread /></ProtectedRoute>} />
+                  <Route path="/messages/:conversationId" element={<RequireAuth><MessageThread /></RequireAuth>} />
                   <Route path="/notifications" element={
-                    <ProtectedRoute>
+                    <RequireAuth>
                       <Suspense fallback={<LoadingPage message="Loading Notifications..." />}>
                         <LazyNotifications />
                       </Suspense>
-                    </ProtectedRoute>
+                    </RequireAuth>
                   } />
                   <Route path="/education" element={
                     <Suspense fallback={<LoadingPage message="Loading Education..." />}>
@@ -149,10 +150,10 @@ function App() {
                     </Suspense>
                   } />
                   <Route path="/legal" element={<LegalGuide />} />
-                  <Route path="/account-settings" element={<ProtectedRoute><AccountSettingsPage /></ProtectedRoute>} />
-                  <Route path="/fraud-demo" element={<ProtectedRoute><FraudDetectionDemo /></ProtectedRoute>} />
-                  <Route path="/refund-center" element={<ProtectedRoute><RefundManagement /></ProtectedRoute>} />
-                  <Route path="/commission-center" element={<ProtectedRoute><CommissionCenter /></ProtectedRoute>} />
+                  <Route path="/account-settings" element={<RequireAuth><AccountSettingsPage /></RequireAuth>} />
+                  <Route path="/fraud-demo" element={<RequireAuth><FraudDetectionDemo /></RequireAuth>} />
+                  <Route path="/refund-center" element={<RequireAuth><RefundManagement /></RequireAuth>} />
+                  <Route path="/commission-center" element={<RequireAuth><CommissionCenter /></RequireAuth>} />
                   <Route path="/rate-limit-demo" element={
                     <Suspense fallback={<LoadingPage message="Loading Rate Limit Demo..." />}>
                       <RateLimitDemo />

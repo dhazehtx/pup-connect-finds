@@ -1,0 +1,96 @@
+1 Create the guard component
+client/src/components/RequireAuth.tsx
+
+tsx
+Copy
+Edit
+import { Navigate, useLocation } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
+
+export default function RequireAuth({ children }: { children: JSX.Element }) {
+  const { user, isLoading } = useAuth();
+  const location = useLocation();
+
+  // Wait until AuthContext finishes its first check
+  if (isLoading) return null;
+
+  // Not signed-in ➜ go to greeting and remember where they tried to go
+  if (!user) {
+    return <Navigate to="/greeting" state={{ from: location }} replace />;
+  }
+
+  // Signed-in ➜ render the protected page
+  return children;
+}
+2 Wrap the protected routes
+Open your router file (usually client/src/App.tsx or client/src/routes.tsx) and change the routes you mentioned:
+
+tsx
+Copy
+Edit
+import RequireAuth from '@/components/RequireAuth';
+import Home        from '@/pages/HomeSignedIn';   // ← if you have a separate signed-in home
+import Messages    from '@/pages/Messages';
+import Profile     from '@/pages/Profile';
+
+<Route
+  path="/"
+  element={
+    <RequireAuth>
+      <Home />
+    </RequireAuth>
+  }
+/>
+
+<Route
+  path="/messages"
+  element={
+    <RequireAuth>
+      <Messages />
+    </RequireAuth>
+  }
+/>
+
+<Route
+  path="/profile"
+  element={
+    <RequireAuth>
+      <Profile />
+    </RequireAuth>
+  }
+/>
+(Your public pages such as /greeting, /explore, /marketplace, etc. stay outside the guard.)
+
+3 Update the bottom-nav clicks (optional)
+If the nav already links to the routes above, no change is needed—React-Router will run the guard.
+If you prefer to short-circuit in the click handler:
+
+tsx
+Copy
+Edit
+const { user } = useAuth();
+const navigate = useNavigate();
+
+function handleProfileClick() {
+  if (!user) navigate('/greeting');
+  else       navigate('/profile');
+}
+4 Test
+Signed-out
+
+Click Home, Messages, Profile ➜ lands on /greeting
+
+Browse as Guest ➜ still allowed on /explore
+
+Signed-in
+
+Same buttons now open the real pages
+
+Logging out and clicking again returns to /greeting
+
+Commit it
+bash
+Copy
+Edit
+git add client/src/components/RequireAuth.tsx client/src/*router file*
+git commit -m "Add RequireAuth and redirect unauth users to /greeting"
