@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { useLocation } from 'react-router-dom';
 import Footer from './Footer';
 import BottomNavigation from './BottomNavigation';
 import FloatingTrustButton from './safety/FloatingTrustButton';
@@ -13,16 +14,21 @@ interface LayoutProps {
 }
 
 const Layout = ({ children, showBottomNav = true }: LayoutProps) => {
+  const location = useLocation();
   // Initialize session management (timeout & token refresh)
   const { showWarningModal, handleExtendSession, handleManualLogout } = useSessionManager();
 
+  // Hide sticky header and footer on greeting page for clean design
+  const showStickyHeader = location.pathname !== '/greeting';
+  const showFooter = location.pathname !== '/greeting';
+
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      <StickyHeader />
+      {showStickyHeader && <StickyHeader />}
       <main className="flex-1 pb-16 md:pb-0">
         {children}
       </main>
-      <Footer />
+      {showFooter && <Footer />}
       {showBottomNav && <BottomNavigation />}
       <FloatingTrustButton />
       
