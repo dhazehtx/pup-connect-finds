@@ -1,4 +1,4 @@
-import ExploreRouter from '@/components/ExploreRouter';
+import ExploreRouter from './ExploreRouter';
 
 const Explore = () => {
   return <ExploreRouter />;
