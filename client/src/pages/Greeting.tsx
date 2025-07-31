@@ -47,7 +47,7 @@ const Greeting = () => {
           </button>
           <button 
             onClick={() => navigate('/auth')}
-            className="px-6 py-3 rounded-lg bg-white text-blue-600 border hover:bg-blue-50 flex items-center gap-2"
+            className="px-6 py-3 rounded-lg border border-blue-600 text-blue-600 bg-white hover:bg-blue-50 flex items-center gap-2"
           >
             Sign In
           </button>
@@ -59,7 +59,7 @@ const Greeting = () => {
           </button>
           <button 
             onClick={() => navigate('/explore')}
-            className="px-6 py-3 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 flex items-center gap-2"
+            className="px-6 py-3 rounded-lg border border-blue-600 text-blue-600 bg-white hover:bg-blue-50 flex items-center gap-2"
           >
             Explore Puppies
           </button>
