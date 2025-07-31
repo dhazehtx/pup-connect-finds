@@ -1,0 +1,86 @@
+Below is a fresh copy-and-paste prompt you can drop straight into the Replit-AI chat.
+It tells the agent exactly what’s broken (406 & 500 from /user_preferences), shows how to reproduce it while logged-in, and walks it through the precise client + server fixes so Profile / Home / Messages load again.
+
+prompt
+Copy
+Edit
+### BUG: Logged-in navigation still stalls (Profile / Home / Messages)
+
+**How to reproduce**
+1. Sign in with any test account (see console → `Auth state changed: SIGNED_IN`).
+2. Click **Profile**, **Home**, **Messages** in BottomNavigation.  
+   *UI stays on Explore; console shows*  
+GET …/rest/v1/user_preferences?select=* 406 (Not Acceptable)
+GET …/admin/reports 500 (Internal Server Error)
+
+markdown
+Copy
+Edit
+
+**What these errors mean**
+* **406** – Supabase REST endpoint is rejecting the request because the `Accept` header isn’t `application/json`, or RLS policy blocks the signed-in user.
+* **500** – The Express route (`/admin/reports` or `/messages`) throws inside the DB call because `req.user` isn’t populated (token not forwarded).
+
+---
+
+### Tasks
+
+1. **Re-confirm the failure**
+* Sign in; open devtools → Network.  
+* Note the missing / wrong `Authorization: Bearer` header or wrong `Accept`.
+
+2. **Client-side patch**
+* In `client/src/lib/api.ts` (or wherever fetch helper lives) ensure:
+  ```ts
+  export async function api(path: string, opts: RequestInit = {}) {
+    const { data: { session } } = await supabase.auth.getSession();
+    return fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
+      ...opts,
+      headers: {
+        Accept: 'application/json',
+        Authorization: `Bearer ${session?.access_token ?? ''}`,
+        ...opts.headers,
+      },
+    });
+  }
+  ```
+* Replace any raw `fetch('/user_preferences…')` with `api('user_preferences?select=*')`.
+
+3. **Server-side patch (optional fallback)**
+* In `server/middleware/auth.ts` make sure:
+  ```ts
+  const token = req.headers.authorization?.replace('Bearer ', '');
+  if (token) {
+    const { data, error } = await supabase.admin.auth.getUser(token);
+    if (!error) req.user = data.user;
+  }
+  ```
+* Use `req.user.id` (not email) when querying Postgres.
+
+4. **Row-Level Security / Policy check**
+* In Supabase dashboard → SQL Editor run:
+  ```sql
+  -- should return at least one row when signed-in token is used
+  select * from user_preferences limit 1;
+  ```
+  If it fails, add policy:
+  ```sql
+  create policy "Allow owner read"
+  on public.user_preferences
+  for select
+  using ( auth.uid() = user_id );
+  ```
+
+5. **Retest**
+* Sign in again → click Profile, Messages, Home.  
+* Expect 200/304 responses, route renders instantly, **no red errors** in console / Network.
+
+6. **Commit**
+fix(auth): include Accept & Bearer headers in all data fetches
+chore(db): RLS policy for user_preferences
+
+sql
+Copy
+Edit
+
+Return ✅ **“Navigation working – 200 OK from /user_preferences & /profile”** when done, or list any remaining failing routes.
