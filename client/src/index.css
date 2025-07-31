@@ -11,7 +11,9 @@
 }
 
 .btn-list-puppy, 
+.btn-list-puppy *, 
 .greeting-page button, 
+.greeting-page button *,
 .marketplace .tabs button {
   color: white !important;
 }
@@ -30,5 +32,17 @@
 .bottom-nav button,
 .bottom-nav button svg,
 .bottom-nav button span {
+  color: white !important;
+}
+
+/* List Puppy button specific styling */
+.btn-list-puppy svg,
+.btn-list-puppy span {
+  color: white !important;
+}
+
+/* Greeting page button styling */
+.greeting-page svg,
+.greeting-page span {
   color: white !important;
 }

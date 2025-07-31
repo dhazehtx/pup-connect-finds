@@ -102,9 +102,9 @@ const BottomNavigation = () => {
                   console.log('Button clicked for:', item.label, item.path);
                   item.onClick();
                 }}
-                className={`flex flex-col items-center justify-center p-2 transition-colors relative ${
+                className={`flex flex-col items-center justify-center p-2 transition-colors relative text-white ${
                   active 
-                    ? 'text-white bg-white/20' 
+                    ? 'bg-white/20' 
                     : 'text-white/80 hover:text-white hover:bg-white/10'
                 }`}
                 type="button"

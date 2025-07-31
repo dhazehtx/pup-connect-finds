@@ -39,9 +39,9 @@ const NavbarDesktopActions = ({ onCreatePost }: NavbarDesktopActionsProps) => {
   };
 
   const getButtonIcon = () => {
-    if (isMarketplacePage) return <Plus className="h-5 w-5" />;
-    if (isProfilePage) return <Plus className="h-5 w-5" />;
-    return <ShoppingBag className="h-5 w-5" />;
+    if (isMarketplacePage) return <Plus className="h-5 w-5 text-white" />;
+    if (isProfilePage) return <Plus className="h-5 w-5 text-white" />;
+    return <ShoppingBag className="h-5 w-5 text-white" />;
   };
 
   const getButtonColor = () => {
@@ -65,7 +65,7 @@ const NavbarDesktopActions = ({ onCreatePost }: NavbarDesktopActionsProps) => {
           size="sm"
         >
           {getButtonIcon()}
-          <span className="font-medium">{getButtonText()}</span>
+          <span className="font-medium text-white">{getButtonText()}</span>
         </Button>
       </div>
 
