@@ -37,29 +37,29 @@ const Greeting = () => {
           Connect with verified breeders and discover adorable, healthy puppies waiting for their forever homes.
         </p>
 
-        {/* Action buttons */}
-        <div className="mt-10 flex flex-col sm:flex-row gap-4 justify-center">
+        {/* Action buttons in 2x2 grid layout to match original design */}
+        <div className="mt-10 grid grid-cols-2 gap-4 max-w-md mx-auto">
           <button 
             onClick={() => navigate('/auth')}
-            className="px-6 py-3 rounded-lg bg-blue-600 text-white hover:bg-blue-700 flex items-center gap-2"
+            className="px-6 py-3 rounded-lg bg-blue-600 text-white hover:bg-blue-700 flex items-center justify-center gap-2"
           >
             Sign Up
           </button>
           <button 
             onClick={() => navigate('/auth')}
-            className="px-6 py-3 rounded-lg border border-blue-600 text-blue-600 bg-white hover:bg-blue-50 flex items-center gap-2"
+            className="px-6 py-3 rounded-lg bg-blue-600 text-white hover:bg-blue-700 flex items-center justify-center gap-2"
           >
             Sign In
           </button>
           <button
-            className="px-6 py-3 rounded-lg bg-blue-600 text-white hover:bg-blue-700 flex items-center gap-2"
+            className="px-6 py-3 rounded-lg bg-blue-600 text-white hover:bg-blue-700 flex items-center justify-center gap-2"
             onClick={() => navigate('/explore')}
           >
             Browse as Guest
           </button>
           <button 
             onClick={() => navigate('/explore')}
-            className="px-6 py-3 rounded-lg border border-blue-600 text-blue-600 bg-white hover:bg-blue-50 flex items-center gap-2"
+            className="px-6 py-3 rounded-lg bg-blue-600 text-white hover:bg-blue-700 flex items-center justify-center gap-2"
           >
             Explore Puppies
           </button>
