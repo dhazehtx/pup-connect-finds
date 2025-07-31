@@ -1,4 +1,4 @@
-// Google Analytics 4 integration
+// Google Analytics 4 Integration
 declare global {
   interface Window {
     gtag: (...args: any[]) => void;
@@ -6,167 +6,212 @@ declare global {
   }
 }
 
-export const initializeAnalytics = () => {
-  const gaId = import.meta.env.VITE_GA_ID;
-  
-  if (gaId && typeof window !== 'undefined') {
-    // Load Google Analytics script
-    const script = document.createElement('script');
-    script.async = true;
-    script.src = `https://www.googletagmanager.com/gtag/js?id=${gaId}`;
-    document.head.appendChild(script);
+class AnalyticsService {
+  private static isInitialized = false;
+  private static GA_ID = import.meta.env.VITE_GA_MEASUREMENT_ID;
 
-    // Initialize dataLayer and gtag
+  static initialize() {
+    if (this.isInitialized || !this.GA_ID) {
+      if (!this.GA_ID) {
+        console.warn('Google Analytics ID not configured');
+      }
+      return;
+    }
+
+    // Initialize dataLayer
     window.dataLayer = window.dataLayer || [];
-    window.gtag = function gtag() {
+    window.gtag = function() {
       window.dataLayer.push(arguments);
     };
-    
+
+    // Load GA4 script
+    const script = document.createElement('script');
+    script.async = true;
+    script.src = `https://www.googletagmanager.com/gtag/js?id=${this.GA_ID}`;
+    document.head.appendChild(script);
+
+    // Configure GA4
     window.gtag('js', new Date());
-    window.gtag('config', gaId, {
+    window.gtag('config', this.GA_ID, {
       page_title: document.title,
       page_location: window.location.href,
     });
-    
-    console.log('Google Analytics initialized');
-  } else {
-    console.warn('Google Analytics ID not configured');
-  }
-};
 
-// Track page views
-export const trackPageView = (pagePath: string, pageTitle?: string) => {
-  if (typeof window !== 'undefined' && window.gtag) {
-    window.gtag('config', import.meta.env.VITE_GA_ID, {
+    this.isInitialized = true;
+    console.log('Google Analytics 4 initialized');
+  }
+
+  // Track page views
+  static trackPageView(pagePath: string, pageTitle?: string) {
+    if (!this.isInitialized || !window.gtag) return;
+
+    window.gtag('config', this.GA_ID, {
       page_path: pagePath,
       page_title: pageTitle || document.title,
     });
   }
-};
 
-// Track custom events
-export const trackEvent = (eventName: string, parameters?: Record<string, any>) => {
-  if (typeof window !== 'undefined' && window.gtag) {
-    window.gtag('event', eventName, {
-      event_category: 'engagement',
-      event_label: eventName,
-      ...parameters,
+  // Track custom events
+  static trackEvent(eventName: string, parameters: Record<string, any> = {}) {
+    if (!this.isInitialized || !window.gtag) return;
+
+    window.gtag('event', eventName, parameters);
+  }
+
+  // User Authentication Events
+  static trackSignUp(method: string = 'email') {
+    this.trackEvent('sign_up', {
+      method,
+      event_category: 'authentication',
     });
   }
-};
 
-// Predefined event tracking functions
-export const analytics = {
-  // User actions
-  trackSignUp: (method: string = 'email') => {
-    trackEvent('sign_up', { method });
-  },
-  
-  trackLogin: (method: string = 'email') => {
-    trackEvent('login', { method });
-  },
-  
-  trackLogout: () => {
-    trackEvent('logout');
-  },
-
-  // Content interactions
-  trackPostLike: (postId: string) => {
-    trackEvent('post_like', { post_id: postId });
-  },
-  
-  trackPostShare: (postId: string, platform: string) => {
-    trackEvent('share', { 
-      content_type: 'post',
-      content_id: postId,
-      method: platform 
+  static trackLogin(method: string = 'email') {
+    this.trackEvent('login', {
+      method,
+      event_category: 'authentication',
     });
-  },
-  
-  trackCommentCreate: (postId: string) => {
-    trackEvent('comment_create', { post_id: postId });
-  },
+  }
 
-  // Marketplace actions
-  trackListingView: (listingId: string, breed: string, price: number) => {
-    trackEvent('view_item', {
+  static trackLogout() {
+    this.trackEvent('logout', {
+      event_category: 'authentication',
+    });
+  }
+
+  // Marketplace Events
+  static trackListingView(listingId: string, breed: string, price: number) {
+    this.trackEvent('view_item', {
       item_id: listingId,
-      item_category: breed,
+      item_name: `${breed} Puppy`,
+      item_category: 'puppy_listing',
       value: price,
-      currency: 'USD'
-    });
-  },
-  
-  trackListingCreate: (breed: string, price: number) => {
-    trackEvent('create_listing', {
-      item_category: breed,
-      value: price,
-      currency: 'USD'
-    });
-  },
-  
-  trackListingFavorite: (listingId: string) => {
-    trackEvent('add_to_wishlist', { item_id: listingId });
-  },
-
-  // Messaging
-  trackMessageSent: (conversationId: string) => {
-    trackEvent('message_sent', { conversation_id: conversationId });
-  },
-  
-  trackConversationStart: (listingId: string) => {
-    trackEvent('conversation_start', { listing_id: listingId });
-  },
-
-  // Search and discovery
-  trackSearch: (query: string, results: number) => {
-    trackEvent('search', {
-      search_term: query,
-      results_count: results
-    });
-  },
-  
-  trackFilterApply: (filterType: string, filterValue: string) => {
-    trackEvent('filter_apply', {
-      filter_type: filterType,
-      filter_value: filterValue
-    });
-  },
-
-  // Profile actions
-  trackProfileView: (profileId: string, userType: string) => {
-    trackEvent('profile_view', {
-      profile_id: profileId,
-      user_type: userType
-    });
-  },
-  
-  trackFollow: (profileId: string) => {
-    trackEvent('follow_user', { profile_id: profileId });
-  },
-
-  // Error tracking
-  trackError: (errorType: string, errorMessage: string) => {
-    trackEvent('error', {
-      error_type: errorType,
-      error_message: errorMessage
-    });
-  },
-
-  // Performance tracking
-  trackPageLoadTime: (pageName: string, loadTime: number) => {
-    trackEvent('page_load_time', {
-      page_name: pageName,
-      load_time: loadTime
+      currency: 'USD',
+      event_category: 'marketplace',
     });
   }
-};
 
-// Hook for tracking page views in React Router
-export const usePageTracking = () => {
-  const trackPage = (pathname: string) => {
-    trackPageView(pathname);
-  };
-  
-  return trackPage;
-};
+  static trackListingContact(listingId: string, breed: string) {
+    this.trackEvent('contact_seller', {
+      item_id: listingId,
+      item_name: `${breed} Puppy`,
+      item_category: 'puppy_listing',
+      event_category: 'marketplace',
+    });
+  }
+
+  static trackListingFavorite(listingId: string, breed: string, action: 'add' | 'remove') {
+    this.trackEvent('favorite_listing', {
+      item_id: listingId,
+      item_name: `${breed} Puppy`,
+      item_category: 'puppy_listing',
+      action,
+      event_category: 'engagement',
+    });
+  }
+
+  // Social Features
+  static trackPostCreate(postType: string = 'text') {
+    this.trackEvent('create_post', {
+      post_type: postType,
+      event_category: 'social',
+    });
+  }
+
+  static trackPostLike(postId: string, action: 'like' | 'unlike') {
+    this.trackEvent('post_engagement', {
+      post_id: postId,
+      engagement_type: action,
+      event_category: 'social',
+    });
+  }
+
+  static trackCommentCreate(postId: string) {
+    this.trackEvent('create_comment', {
+      post_id: postId,
+      event_category: 'social',
+    });
+  }
+
+  static trackGroupJoin(groupId: string, groupType: string) {
+    this.trackEvent('join_group', {
+      group_id: groupId,
+      group_type: groupType,
+      event_category: 'community',
+    });
+  }
+
+  // Search and Discovery
+  static trackSearch(searchTerm: string, category: string = 'listings') {
+    this.trackEvent('search', {
+      search_term: searchTerm,
+      search_category: category,
+      event_category: 'discovery',
+    });
+  }
+
+  static trackFilterUse(filterType: string, filterValue: string) {
+    this.trackEvent('use_filter', {
+      filter_type: filterType,
+      filter_value: filterValue,
+      event_category: 'discovery',
+    });
+  }
+
+  // Payment Events
+  static trackPurchaseIntent(itemType: string, value: number) {
+    this.trackEvent('begin_checkout', {
+      item_type: itemType,
+      value,
+      currency: 'USD',
+      event_category: 'ecommerce',
+    });
+  }
+
+  static trackPurchaseComplete(transactionId: string, value: number, itemType: string) {
+    this.trackEvent('purchase', {
+      transaction_id: transactionId,
+      value,
+      currency: 'USD',
+      item_type: itemType,
+      event_category: 'ecommerce',
+    });
+  }
+
+  // User Engagement
+  static trackTimeOnSite(seconds: number) {
+    this.trackEvent('session_duration', {
+      value: seconds,
+      event_category: 'engagement',
+    });
+  }
+
+  static trackFeatureUse(featureName: string, context?: string) {
+    this.trackEvent('feature_use', {
+      feature_name: featureName,
+      context,
+      event_category: 'features',
+    });
+  }
+
+  // Error Tracking
+  static trackError(errorType: string, errorMessage: string, context?: string) {
+    this.trackEvent('exception', {
+      description: `${errorType}: ${errorMessage}`,
+      fatal: false,
+      context,
+      event_category: 'errors',
+    });
+  }
+
+  // Admin Actions (for analytics dashboard)
+  static trackAdminAction(action: string, target: string) {
+    this.trackEvent('admin_action', {
+      action,
+      target,
+      event_category: 'admin',
+    });
+  }
+}
+
+export default AnalyticsService;

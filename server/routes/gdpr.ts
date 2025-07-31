@@ -1,5 +1,6 @@
 import type { Express, Request, Response } from "express";
 import { db } from "../db";
+import { EmailService } from '../utils/emailService';
 import { profiles, dogListings, posts, comments, messages, conversations, favorites, reviews } from "@shared/schema";
 import { eq, or } from "drizzle-orm";
 import rateLimit from "express-rate-limit";
@@ -22,7 +23,7 @@ const exportRateLimit = rateLimit({
 
 export function registerGDPRRoutes(app: Express) {
   // Export user data endpoint
-  app.get("/api/export-user-data", exportRateLimit, async (req: AuthenticatedRequest, res: Response) => {
+  app.get("/api/export-user-data", exportRateLimit, async (req: Request, res: Response) => {
     try {
       if (!req.isAuthenticated()) {
         return res.status(401).json({ error: "Authentication required" });
@@ -105,6 +106,13 @@ export function registerGDPRRoutes(app: Express) {
         }
       };
 
+      // Send email notification with download link (if email service is configured)
+      const userProfile = profileData[0];
+      if (userProfile && (userProfile as any).email) {
+        const downloadUrl = `${process.env.FRONTEND_URL || 'http://localhost:5000'}/api/export-user-data?token=${userId}-${Date.now()}`;
+        await EmailService.sendDataExportEmail((userProfile as any).email, downloadUrl);
+      }
+
       // Set headers for file download
       res.setHeader('Content-Type', 'application/json');
       res.setHeader('Content-Disposition', `attachment; filename="my-pup-data-export-${userId}-${new Date().toISOString().split('T')[0]}.json"`);
@@ -165,6 +173,15 @@ export function registerGDPRRoutes(app: Express) {
         // Finally delete profile
         await tx.delete(profiles).where(eq(profiles.id, userId));
       });
+
+      // Send account deletion confirmation email (if profile exists)
+      const userProfile = await db.select().from(profiles).where(eq(profiles.id, userId)).limit(1);
+      if (userProfile[0] && (userProfile[0] as any).email) {
+        await EmailService.sendAccountDeletionEmail(
+          (userProfile[0] as any).email, 
+          userProfile[0].username || 'User'
+        );
+      }
 
       // Log the user out by destroying session
       req.logout((err) => {

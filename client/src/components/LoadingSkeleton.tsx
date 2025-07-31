@@ -6,7 +6,7 @@ interface LoadingSkeletonProps {
   count?: number;
 }
 
-const LoadingSkeleton = ({ viewMode, count = 3 }: LoadingSkeletonProps) => {
+export const LoadingSkeleton = ({ viewMode, count = 3 }: LoadingSkeletonProps) => {
   const skeletonItems = Array.from({ length: count }, (_, i) => i);
 
   if (viewMode === 'list') {

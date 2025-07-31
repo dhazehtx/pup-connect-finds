@@ -44,6 +44,13 @@ import { logPostAction, logCommentAction, logSubscriptionAction } from './utils/
 // GDPR routes
 import { registerGDPRRoutes } from './routes/gdpr';
 
+// Security and performance middleware
+import { compressionMiddleware } from './middleware/compression';
+import { securityMiddleware, additionalSecurityHeaders } from './middleware/security';
+
+// AI Content Moderation
+import { contentModerationMiddleware } from './utils/aiModeration';
+
 // Stripe initialization
 import Stripe from 'stripe';
 
@@ -66,6 +73,11 @@ import {
 } from "@shared/schema";
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Apply security and performance middleware first
+  app.use(securityMiddleware); // Security headers and CSP
+  app.use(additionalSecurityHeaders); // Custom security headers
+  app.use(compressionMiddleware); // Gzip compression
+
   // Apply global middleware
   app.use(checkLockout); // Check for locked out IPs/users
   app.use(speedLimiter); // Gradual slowdown for high-frequency requests
@@ -74,6 +86,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Add comprehensive logging middleware
   app.use(apiLoggingMiddleware); // Log all API requests
   app.use(performanceLogger(2000)); // Log slow responses (>2s)
+  
+  // Add AI content moderation
+  app.use(contentModerationMiddleware); // Moderate user-generated content
   
   // Add authentication middleware for all API routes
   app.use('/api', authMiddleware);

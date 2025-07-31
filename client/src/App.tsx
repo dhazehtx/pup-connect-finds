@@ -9,6 +9,7 @@ import { RealtimeProvider } from './contexts/RealtimeContext';
 import Layout from './components/Layout';
 import AdminNavigationTracker from './components/admin/AdminNavigationTracker';
 import CookieConsentBanner from '@/components/privacy/CookieConsentBanner';
+import Analytics from './components/Analytics';
 import SessionExpiredModal from '@/components/auth/SessionExpiredModal';
 
 import { PageTransition } from './components/ui/transitions';
@@ -333,6 +334,7 @@ function App() {
                   </Routes>
                 </PageTransition>
               </Layout>
+              <Analytics />
               <CookieConsentBanner />
               <SessionExpiredModal />
             </ThemeProvider>
