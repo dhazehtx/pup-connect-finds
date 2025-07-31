@@ -1,8 +1,15 @@
-import React from 'react';
-import { useNavigate } from 'react-router-dom';
+Let’s force-replace the file manually
+Copy the code block below and paste it directly into src/pages/greeting.jsx
+(via the Replit editor, not through the AI). Then click the green Run button, and hard-refresh the preview.
 
-const Greeting = () => {
-  const navigate = useNavigate();
+jsx
+Copy
+Edit
+import Link from 'next/link';
+import { useRouter } from 'next/router';
+
+export default function Greeting() {
+  const router = useRouter();
 
   return (
     <main className="min-h-screen flex flex-col bg-gradient-to-br from-blue-50 to-blue-100">
@@ -19,8 +26,8 @@ const Greeting = () => {
 
         {/* mini auth buttons */}
         <div className="flex gap-3">
-          <button onClick={() => navigate('/auth')} className="px-4 py-1 rounded-full bg-blue-600 text-white text-sm hover:bg-blue-700">Sign In</button>
-          <button onClick={() => navigate('/auth')} className="px-4 py-1 rounded-full bg-blue-600 text-white text-sm hover:bg-blue-700">Sign Up</button>
+          <Link href="/signin" className="px-4 py-1 rounded-full bg-blue-600 text-white text-sm hover:bg-blue-700">Sign In</Link>
+          <Link href="/signup" className="px-4 py-1 rounded-full bg-blue-600 text-white text-sm hover:bg-blue-700">Sign Up</Link>
         </div>
       </header>
 
@@ -38,14 +45,14 @@ const Greeting = () => {
 
         {/* four pill buttons in one row */}
         <div className="mt-10 flex flex-wrap gap-4 justify-center">
-          <button onClick={() => navigate('/auth')} className="w-[128px] px-6 py-3 rounded-full bg-blue-600 text-white hover:bg-blue-700 shadow">Sign Up</button>
-          <button onClick={() => navigate('/auth')} className="w-[128px] px-6 py-3 rounded-full bg-blue-600 text-white hover:bg-blue-700 shadow">Sign In</button>
-          <button onClick={() => navigate('/explore')} className="w-[128px] px-6 py-3 rounded-full bg-blue-600 text-white hover:bg-blue-700 shadow">
+          <Link href="/signup" className="w-[128px] px-6 py-3 rounded-full bg-blue-600 text-white hover:bg-blue-700 shadow">Sign Up</Link>
+          <Link href="/signin" className="w-[128px] px-6 py-3 rounded-full bg-blue-600 text-white hover:bg-blue-700 shadow">Sign In</Link>
+          <button onClick={() => router.push('/explore')} className="w-[128px] px-6 py-3 rounded-full bg-blue-600 text-white hover:bg-blue-700 shadow">
             Browse as Guest
           </button>
-          <button onClick={() => navigate('/explore')} className="w-[190px] px-6 py-3 rounded-full bg-blue-600 text-white hover:bg-blue-700 shadow">
+          <Link href="/explore" className="w-[190px] px-6 py-3 rounded-full bg-blue-600 text-white hover:bg-blue-700 shadow">
             Explore Puppies
-          </button>
+          </Link>
         </div>
 
         {/* feature bullets */}
@@ -57,6 +64,4 @@ const Greeting = () => {
       </section>
     </main>
   );
-};
-
-export default Greeting;
+}
