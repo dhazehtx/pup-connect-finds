@@ -49,29 +49,29 @@ const Greeting = () => {
           waiting for their forever homes.
         </p>
 
-        {/* pill buttons row */}
+        {/* rectangular buttons row */}
         <div className="mt-10 flex flex-wrap gap-4 justify-center">
           <button 
             onClick={() => navigate('/auth')}
-            className="w-32 px-6 py-3 rounded-full bg-blue-600 text-white hover:bg-blue-700 shadow"
+            className="w-32 px-6 py-3 rounded-lg bg-blue-600 text-white hover:bg-blue-700 shadow font-medium"
           >
             Sign Up
           </button>
           <button 
             onClick={() => navigate('/auth')}
-            className="w-32 px-6 py-3 rounded-full bg-blue-600 text-white hover:bg-blue-700 shadow"
+            className="w-32 px-6 py-3 rounded-lg bg-blue-600 text-white hover:bg-blue-700 shadow font-medium"
           >
             Sign In
           </button>
           <button
             onClick={() => navigate('/explore')}
-            className="w-32 px-6 py-3 rounded-full bg-blue-600 text-white hover:bg-blue-700 shadow"
+            className="w-32 px-6 py-3 rounded-lg bg-blue-600 text-white hover:bg-blue-700 shadow font-medium"
           >
             Browse as Guest
           </button>
           <button
             onClick={() => navigate('/explore')}
-            className="w-48 px-6 py-3 rounded-full bg-blue-600 text-white hover:bg-blue-700 shadow"
+            className="w-48 px-6 py-3 rounded-lg bg-blue-600 text-white hover:bg-blue-700 shadow font-medium"
           >
             Explore Puppies
           </button>
