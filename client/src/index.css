@@ -3,3 +3,32 @@
 @import './styles/components.css';
 @import './styles/utilities.css';
 @import './styles/accessibility.css';
+
+/* Bottom Navigation & Button Styling - White Text/Icons */
+.bottom-nav a, 
+.bottom-nav svg {
+  color: white !important;
+}
+
+.btn-list-puppy, 
+.greeting-page button, 
+.marketplace .tabs button {
+  color: white !important;
+}
+
+/* Additional marketplace tab styling */
+.marketplace .tabs-list button {
+  color: white !important;
+}
+
+/* Bottom navigation container styling */
+.bottom-nav {
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+}
+
+/* Ensure icons and text remain white in all states */
+.bottom-nav button,
+.bottom-nav button svg,
+.bottom-nav button span {
+  color: white !important;
+}

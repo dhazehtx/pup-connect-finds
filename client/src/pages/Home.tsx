@@ -49,7 +49,7 @@ const Home = () => {
           {/* Main 4 Buttons */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
             <Link to="/auth">
-              <Button size="lg" className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 text-lg font-semibold">
+              <Button size="lg" className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 text-lg font-semibold btn-list-puppy">
                 <UserPlus className="w-5 h-5 mr-2" />
                 Sign Up
               </Button>

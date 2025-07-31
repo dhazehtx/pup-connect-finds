@@ -85,7 +85,7 @@ const BottomNavigation = () => {
 
   return (
     <>
-      <nav className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 z-40 shadow-sm">
+      <nav className="fixed bottom-0 left-0 right-0 bottom-nav border-t border-gray-200 dark:border-gray-700 z-40 shadow-sm">
         <div className="grid grid-cols-5 h-16">
           {navItems.map((item, index) => {
             const Icon = item.icon;
@@ -104,8 +104,8 @@ const BottomNavigation = () => {
                 }}
                 className={`flex flex-col items-center justify-center p-2 transition-colors relative ${
                   active 
-                    ? 'text-blue-600 bg-blue-50 dark:bg-blue-900/20' 
-                    : 'text-gray-600 dark:text-gray-300 hover:text-blue-600 hover:bg-gray-50 dark:hover:bg-gray-700'
+                    ? 'text-white bg-white/20' 
+                    : 'text-white/80 hover:text-white hover:bg-white/10'
                 }`}
                 type="button"
                 aria-label={item.label}
