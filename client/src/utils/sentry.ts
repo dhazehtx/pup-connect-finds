@@ -8,11 +8,7 @@ export const initializeSentry = () => {
       dsn,
       environment: import.meta.env.MODE || 'development',
       integrations: [
-        new Sentry.BrowserTracing(),
-        new Sentry.Replay({
-          maskAllText: true,
-          blockAllMedia: true,
-        }),
+        // BrowserTracing and Replay integrations removed for compatibility
       ],
       tracesSampleRate: import.meta.env.MODE === 'production' ? 0.1 : 1.0,
       replaysSessionSampleRate: 0.1,

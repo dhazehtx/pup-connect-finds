@@ -88,7 +88,7 @@ export const lighthouseOptimizations = {
     media.forEach(element => {
       if (!element.hasAttribute('width') && !element.hasAttribute('height')) {
         // Set default aspect ratio to prevent layout shift
-        element.style.aspectRatio = '16/9';
+        (element as HTMLElement).style.aspectRatio = '16/9';
       }
     });
   },
