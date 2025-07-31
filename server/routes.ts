@@ -848,6 +848,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Admin Logs API - Get last 100 entries for admin dashboard
+  app.get("/api/admin/logs", async (req, res) => {
+    try {
+      // Check if user is admin
+      const userId = req.query.userId as string;
+      if (!userId) {
+        return res.status(401).json({ error: 'Authentication required' });
+      }
+
+      const userProfile = await storage.getProfile(userId);
+      if (!userProfile?.is_admin) {
+        return res.status(403).json({ error: 'Admin access required' });
+      }
+
+      const logs = await storage.getAdminLogs(100);
+      res.json(logs);
+    } catch (error) {
+      console.error('Error fetching admin logs:', error);
+      res.status(500).json({ error: 'Failed to fetch admin logs' });
+    }
+  });
+
   // Create Stripe checkout session for subscriptions
   app.post("/api/create-subscription-checkout", async (req, res) => {
     try {

@@ -11,6 +11,7 @@ import {
   commentReplies,
   notifications,
   transactions,
+  adminLogs,
   type User, 
   type InsertUser,
   type Profile,
@@ -34,7 +35,9 @@ import {
   type Notification,
   type InsertNotification,
   type Transaction,
-  type InsertTransaction
+  type InsertTransaction,
+  type AdminLog,
+  type InsertAdminLog
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, or, like, sql } from "drizzle-orm";
@@ -74,6 +77,10 @@ export interface IStorage {
   getConversationMessages(conversationId: string): Promise<Message[]>;
   createMessage(message: InsertMessage): Promise<Message>;
   markMessagesAsRead(conversationId: string, userId: string): Promise<boolean>;
+  
+  // Admin Log methods
+  createAdminLog(log: InsertAdminLog): Promise<AdminLog>;
+  getAdminLogs(limit?: number): Promise<AdminLog[]>;
   
   // Favorite methods
   getUserFavorites(userId: string): Promise<DogListing[]>;
@@ -393,6 +400,18 @@ export class DatabaseStorage implements IStorage {
   async updateTransaction(id: string, transaction: Partial<InsertTransaction>): Promise<Transaction | undefined> {
     const result = await db.update(transactions).set(transaction).where(eq(transactions.id, id)).returning();
     return result[0];
+  }
+
+  // Admin Log methods
+  async createAdminLog(log: InsertAdminLog): Promise<AdminLog> {
+    const result = await db.insert(adminLogs).values([log]).returning();
+    return result[0];
+  }
+
+  async getAdminLogs(limit: number = 100): Promise<AdminLog[]> {
+    return await db.select().from(adminLogs)
+      .orderBy(desc(adminLogs.created_at))
+      .limit(limit);
   }
 }
 
