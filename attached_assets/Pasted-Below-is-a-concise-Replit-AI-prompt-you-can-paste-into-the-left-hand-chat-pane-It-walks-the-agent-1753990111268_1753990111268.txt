@@ -1,0 +1,53 @@
+Below is a concise “Replit-AI prompt” you can paste into the left-hand chat pane.
+It walks the agent through (1) reproducing the problem, (2) tracing the click handler + router, and (3) auto-patching whatever is blocking navigation only when the user is signed-in.
+
+prompt
+Copy
+Edit
+### Bug: BottomNavigation tabs do nothing when user is authenticated
+**Symptoms**
+1. While signed-out, the RequireAuth guard redirects as expected.
+2. After signing-in successfully, clicking Home / Messages / Profile (any “protected” tab) logs
+Button clicked for: Profile /profile
+Navigating to protected route: /profile
+server responded with a status of 401 (Unauthorized) <-- seen in console
+
+markdown
+Copy
+Edit
+but the page never changes.
+
+**Goals**
+1. Identify the exact blocker:
+– Is the router navigation prevented by a failed fetch (401/406)?  
+– Is `useAuth()` returning `null` (stale session) when the click happens?  
+– Is BottomNavigation calling `navigate('/profile')` **before** the auth context finishes re-hydrating?
+
+2. Fix it so that:
+* Signed-in users can move between **Home / Messages / Profile** tabs without page freeze.  
+* RequireAuth still redirects signed-out users back to `/greeting`.  
+* No CSP / 401 errors appear in Dev-Tools after the patch.
+
+**Constraints**
+* Keep the existing RequireAuth pattern (`<ProtectedRoute>`) intact.
+* Do **not** touch Supabase keys or CSP headers again.
+* All edits must be limited to:
+- `client/src/components/BottomNavigation.tsx`
+- `client/src/contexts/AuthContext.tsx`
+- `client/src/routes/RequireAuth.tsx`
+* Add clear console logs (`console.info('[Auth] session', session)`) while debugging, then remove them before finishing.
+
+**Suggested plan**
+1. Reproduce: open Preview → sign-in → click Profile → watch console.
+2. Inspect BottomNavigation `onClick` handlers – confirm they use `navigate()` from `react-router`.
+3. Add a one-time log in `AuthContext` right after `supabase.auth.getSession()` to verify the session exists.
+4. If session is `null` or `error` when the click occurs:
+* Wrap the BottomNavigation handler in `await auth.refreshSession()` (or wait for `onAuthStateChange`).
+5. If the 401/406 is coming from `/profile` fetch:
+* Ensure the server route honors the JWT sent by Supabase.
+* Quick patch: in `server/routes/profile.ts`, add `authMiddleware` **before** the handler.  
+6. Run `pnpm dev` again, sign-in, and confirm tabs switch pages with no console errors.
+7. Remove temp logs, commit with message:  
+`fix(navigation): allow authenticated users to switch tabs; maintain RequireAuth redirects`
+
+Return **“✅ Navigation working for authenticated users”** when done, or list any remaining edge-ca

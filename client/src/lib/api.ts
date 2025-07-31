@@ -1,10 +1,20 @@
+import { supabase } from '@/integrations/supabase/client';
+
 // Simple API client for making authenticated requests
 export const apiRequest = async (method: string, url: string, data?: any) => {
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+  };
+
+  // Get current Supabase session and add Authorization header if available
+  const { data: { session } } = await supabase.auth.getSession();
+  if (session?.access_token) {
+    headers['Authorization'] = `Bearer ${session.access_token}`;
+  }
+
   const options: RequestInit = {
     method,
-    headers: {
-      'Content-Type': 'application/json',
-    },
+    headers,
     credentials: 'include', // Include cookies for authentication
   };
 

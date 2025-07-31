@@ -17,19 +17,17 @@ const BottomNavigation = () => {
   const [showGuestPrompt, setShowGuestPrompt] = useState(false);
   const [promptAction, setPromptAction] = useState('');
 
-  const handleProtectedNavigation = (path: string, action: string) => {
+  const handleProtectedNavigation = async (path: string, action: string) => {
     if (!user && !isGuest) {
       // Force redirect to greeting page for unauthenticated users
-      console.log('Redirecting unauthenticated user to /greeting');
       navigate('/greeting');
       return;
     }
-    console.log('Navigating to protected route:', path);
+    
     navigate(path);
   };
 
   const handleNavigation = (path: string) => {
-    console.log('Navigating to public route:', path);
     navigate(path);
   };
 
@@ -40,7 +38,6 @@ const BottomNavigation = () => {
       path: '/home',
       protected: true,
       onClick: () => {
-        console.log('Button clicked for:', 'Home', '/home');
         handleProtectedNavigation('/home', 'view your home feed');
       }
     },
@@ -50,7 +47,6 @@ const BottomNavigation = () => {
       path: '/explore',
       protected: false,
       onClick: () => {
-        console.log('Button clicked for:', 'Explore', '/explore');
         handleNavigation('/explore');
       }
     },
@@ -60,7 +56,6 @@ const BottomNavigation = () => {
       path: '/marketplace',
       protected: false,
       onClick: () => {
-        console.log('Button clicked for:', 'Marketplace', '/marketplace');
         handleNavigation('/marketplace');
       }
     },
@@ -70,7 +65,6 @@ const BottomNavigation = () => {
       path: '/messages',
       protected: true,
       onClick: () => {
-        console.log('Button clicked for:', 'Messages', '/messages');
         handleProtectedNavigation('/messages', 'access your messages');
       }
     },
@@ -81,7 +75,6 @@ const BottomNavigation = () => {
       path: '/profile',
       protected: true,
       onClick: () => {
-        console.log('Button clicked for:', 'Profile', '/profile');
         handleProtectedNavigation('/profile', 'view your profile');
       }
     }
@@ -97,8 +90,6 @@ const BottomNavigation = () => {
     return location.pathname.startsWith(path);
   };
 
-  console.log('BottomNavigation rendering with navItems:', navItems);
-
   return (
     <>
       <nav className="fixed bottom-0 left-0 right-0 bottom-nav border-t border-gray-200 dark:border-gray-700 z-40 shadow-sm">
@@ -107,15 +98,12 @@ const BottomNavigation = () => {
             const Icon = item.icon;
             const active = isActive(item.path);
             
-            console.log(`Rendering nav item ${index}: ${item.label}`);
-            
             return (
               <button
                 key={item.path}
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
-                  console.log('Button clicked for:', item.label, item.path);
                   item.onClick();
                 }}
                 className={`flex flex-col items-center justify-center p-2 transition-colors relative text-white ${
