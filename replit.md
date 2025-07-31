@@ -473,11 +473,12 @@ The application is designed for modern web deployment with consideration for ser
 - Simplified architecture focuses on user experience: demo for conversion, functional filters for authenticated users
 - Live data fetching integrates with existing Supabase backend and listings API endpoints
 
-### Greeting Page Restoration (July 2025)
-- Restored greeting page to original clean hero layout design with "Find Your Perfect Puppy Companion" heading
-- Removed duplicate headers and complex card layouts for simplified user experience
-- Implemented fixed header with logo and auth buttons using backdrop blur effect
-- Created centered hero section with gradient background and clear call-to-action buttons
-- Added feature bullets (Verified Breeders, Health Guaranteed, 5-Star Support) for trust building
-- Maintained auth redirect functionality while streamlining visual presentation
-- Used proper button styling with white text on blue backgrounds and blue text on white backgrounds
+### Greeting Page Pixel-Perfect Restoration (July 2025)
+- Completely restored greeting page to match original design from user screenshots
+- Implemented proper flex layout with centered hero section taking full viewport height
+- Created single-row pill-style buttons (rounded-full) instead of grid layout for authentic appearance
+- Fixed header styling with backdrop blur effect and smaller button sizing (py-1)
+- Applied proper button styling: blue buttons with white text, white buttons with blue borders
+- Added shadow effects to buttons for enhanced visual depth
+- Hidden bottom navigation on greeting page to eliminate visual clutter
+- Maintained all authentication redirect functionality while achieving pixel-perfect design match
