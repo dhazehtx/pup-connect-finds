@@ -19,8 +19,9 @@ const BottomNavigation = () => {
 
   const handleProtectedNavigation = (path: string, action: string) => {
     if (!user && !isGuest) {
-      setPromptAction(action);
-      setShowGuestPrompt(true);
+      // Force redirect to greeting page for unauthenticated users
+      console.log('Redirecting unauthenticated user to /greeting');
+      navigate('/greeting');
       return;
     }
     console.log('Navigating to protected route:', path);
@@ -38,28 +39,40 @@ const BottomNavigation = () => {
       label: 'Home',
       path: '/home',
       protected: true,
-      onClick: () => handleProtectedNavigation('/home', 'view your home feed')
+      onClick: () => {
+        console.log('Button clicked for:', 'Home', '/home');
+        handleProtectedNavigation('/home', 'view your home feed');
+      }
     },
     {
       icon: Search,
       label: 'Explore',
       path: '/explore',
       protected: false,
-      onClick: () => handleNavigation('/explore')
+      onClick: () => {
+        console.log('Button clicked for:', 'Explore', '/explore');
+        handleNavigation('/explore');
+      }
     },
     {
       icon: ShoppingBag,
       label: 'Marketplace',
       path: '/marketplace',
       protected: false,
-      onClick: () => handleNavigation('/marketplace')
+      onClick: () => {
+        console.log('Button clicked for:', 'Marketplace', '/marketplace');
+        handleNavigation('/marketplace');
+      }
     },
     {
       icon: MessageCircle,
       label: 'Messages',
       path: '/messages',
       protected: true,
-      onClick: () => handleProtectedNavigation('/messages', 'access your messages')
+      onClick: () => {
+        console.log('Button clicked for:', 'Messages', '/messages');
+        handleProtectedNavigation('/messages', 'access your messages');
+      }
     },
 
     {
@@ -67,7 +80,10 @@ const BottomNavigation = () => {
       label: 'Profile',
       path: '/profile',
       protected: true,
-      onClick: () => handleProtectedNavigation('/profile', 'view your profile')
+      onClick: () => {
+        console.log('Button clicked for:', 'Profile', '/profile');
+        handleProtectedNavigation('/profile', 'view your profile');
+      }
     }
   ];
 

@@ -1,0 +1,56 @@
+/* ─────────  BOTTOM-NAV: FORCE REDIRECT FOR GUESTS  ─────────
+   Goal: If user is NOT signed-in, clicking Home / Messages / Profile
+   should immediately navigate to /greeting.
+
+   Steps
+   1.  Edit  client/src/components/BottomNav.tsx  (or BottomNav.jsx)
+   2.  Wrap each nav item in a <button> that decides where to go:
+       • If route needs auth and !user  → navigate('/greeting')
+       • Else                           → navigate(to)
+
+   Do NOT change styling; just swap <Link> / onClick logic.
+
+────────────────────────────────────────────────────────── */
+
+import { useAuth } from '@/contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
+import { HomeIcon, MessageSquareIcon, UserIcon, StoreIcon } from 'lucide-react'; // keep your icons
+
+export default function BottomNav() {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+
+  const navItems = [
+    { to: '/',          label: 'Home',      icon: <HomeIcon/>,     auth: true },
+    { to: '/messages',  label: 'Messages',  icon: <MessageSquareIcon/>, auth: true },
+    { to: '/profile',   label: 'Profile',   icon: <UserIcon/>,     auth: true },
+    { to: '/marketplace', label: 'Marketplace', icon: <StoreIcon/>, auth: false },
+    { to: '/explore',     label: 'Explore',     icon: '🐾',         auth: false },
+  ];
+
+  return (
+    <nav className="bottom-nav fixed bottom-0 inset-x-0 bg-blue-600 text-white flex justify-around py-2">
+      {navItems.map(item => (
+        <button
+          key={item.label}
+          onClick={() => {
+            if (item.auth && !user) navigate('/greeting');
+            else navigate(item.to);
+          }}
+          className="flex flex-col items-center gap-1 text-sm"
+        >
+          {item.icon}
+          <span>{item.label}</span>
+        </button>
+      ))}
+    </nav>
+  );
+}
+
+/* 3. Save / Run / hard-refresh
+
+   ✅ Signed-out: clicking Home, Messages, or Profile → /greeting
+   ✅ Signed-in: buttons open the correct pages
+   ✅ Explore & Marketplace always open (public routes)
+   ✅ Design/styling unchanged
+────────────────────────────────────────────────────────── */
