@@ -461,3 +461,14 @@ The application is designed for modern web deployment with consideration for ser
 - Created SessionManagerDemo component for comprehensive testing of timeout, refresh, and modal functionality
 - Added automatic activity detection for mouse, keyboard, touch, and scroll events with localStorage persistence
 - System provides enterprise-grade session security with user-friendly timeout warnings and extension capabilities
+
+### Dual-Mode Explore Page Refactor (July 2025)
+- Implemented comprehensive dual-mode Explore page system based on authentication status
+- Created DemoExplore component with static search bar, horizontal breed pills, and two demo puppy cards
+- Built PillFilterBar component with dropdown filters for Breed, Gender, Price, Age, and Location for authenticated users
+- Developed PuppyGrid component for displaying live Supabase data with filtering capabilities
+- Updated main Explore page with conditional rendering: guests see demo mode, authenticated users see live data with pill filters
+- Removed complex filter panels for authenticated users, replaced with simple pill-based filtering system
+- All guest clicks on demo puppies redirect to /greeting page for account creation
+- Simplified architecture focuses on user experience: demo for conversion, functional filters for authenticated users
+- Live data fetching integrates with existing Supabase backend and listings API endpoints

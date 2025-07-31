@@ -3,27 +3,50 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import DemoExplore from '@/components/explore/DemoExplore';
-import AdvancedFilters from '@/components/explore/AdvancedFilters';
-import LivePuppyGrid from '@/components/explore/LivePuppyGrid';
-import FeaturedPosts from '@/components/FeaturedPosts';
+import PillFilterBar from '@/components/explore/PillFilterBar';
+import PuppyGrid from '@/components/explore/PuppyGrid';
 
-// This component has been replaced with DemoExplore and LivePuppyGrid
+interface Filters {
+  breed?: string;
+  gender?: string;
+  price?: number;
+  age?: number;
+  location?: string;
+}
 
 const Explore = () => {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
-  const [filters, setFilters] = useState({
-    breeds: [] as string[],
-    ageRange: [0, 10] as [number, number],
-    gender: 'all' as 'all' | 'male' | 'female',
-    location: '',
-    priceRange: [0, 5000] as [number, number],
-    sortBy: 'newest' as 'newest' | 'price_low' | 'price_high' | 'verified' | 'popular',
-    verifiedOnly: false,
-    healthTested: false,
-    vaccinated: false,
-    keywords: ''
-  });
+  const [filters, setFilters] = useState<Filters>({});
+  const [puppies, setPuppies] = useState([]);
+
+  // Fetch puppies when filters change (for authenticated users)
+  useEffect(() => {
+    if (!user) return; // Skip if not authenticated
+    
+    const fetchPuppies = async () => {
+      try {
+        const queryParams = new URLSearchParams();
+        
+        if (filters.breed) queryParams.append('breed', filters.breed);
+        if (filters.gender) queryParams.append('gender', filters.gender.toLowerCase());
+        if (filters.price) queryParams.append('maxPrice', filters.price.toString());
+        if (filters.age) queryParams.append('maxAge', filters.age.toString());
+        if (filters.location) queryParams.append('location', filters.location);
+
+        const response = await fetch(`/api/listings?${queryParams}`);
+        if (response.ok) {
+          const data = await response.json();
+          setPuppies(data);
+        }
+      } catch (error) {
+        console.error('Failed to fetch puppies:', error);
+        setPuppies([]);
+      }
+    };
+
+    fetchPuppies();
+  }, [filters, user]);
 
   if (loading) {
     return (
@@ -33,31 +56,22 @@ const Explore = () => {
     );
   }
 
-  // For guest users, show demo explore mode
+  // GUEST PATH - show demo explore
   if (!user) {
     return <DemoExplore />;
   }
 
-  // For authenticated users, show full featured explore with filters
+  // SIGNED-IN PATH - show pill bar & live Supabase grid
   return (
     <div className="px-4 py-6">
       <h1 className="text-2xl font-bold mb-4">Explore Puppies</h1>
       <p className="mb-6">Find your perfect puppy companion from verified breeders</p>
       
-      {/* Advanced Filters for authenticated users */}
-      <AdvancedFilters 
-        onFiltersChange={setFilters}
-        className="mb-6"
-      />
+      {/* Pill filter bar for authenticated users */}
+      <PillFilterBar filters={filters} setFilters={setFilters} />
       
-      {/* Live Puppy Grid with real data */}
-      <LivePuppyGrid filters={filters} />
-      
-      {/* Featured Posts Section */}
-      <div className="mt-12">
-        <h2 className="text-xl font-semibold mb-4">Featured Posts</h2>
-        <FeaturedPosts />
-      </div>
+      {/* Live puppy grid with real Supabase data */}
+      <PuppyGrid data={puppies} filters={filters} />
     </div>
   );
 };
