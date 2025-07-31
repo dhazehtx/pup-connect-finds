@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { Search, Filter, Heart, MapPin, Star } from 'lucide-react';
+import FeaturedPosts from '@/components/FeaturedPosts';
 
 const SearchInput = ({ placeholder }: { placeholder: string }) => (
   <div className="relative mb-6">
@@ -187,6 +188,10 @@ const Explore = () => {
       <SearchInput placeholder="Search puppies, breeds, or breeders..." />
       <BreedFilterTabs />
       <PuppyGrid data={[]} />
+      
+      {/* Featured Posts Section */}
+      <h2 className="text-xl font-semibold mt-10 mb-4">Featured Posts</h2>
+      <FeaturedPosts />
     </div>
   );
 };

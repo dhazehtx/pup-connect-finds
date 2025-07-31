@@ -15,6 +15,13 @@ const Home = () => {
     document.title = 'My Pup - Find Your Perfect Puppy Companion';
   }, []);
 
+  // Force redirect when signed out - adapted for React Router
+  useEffect(() => {
+    if (!loading && !user && !isGuest) {
+      navigate('/greeting');
+    }
+  }, [user, loading, isGuest, navigate]);
+
   const handleGuestAccess = () => {
     continueAsGuest();
     navigate('/explore');

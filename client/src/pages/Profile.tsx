@@ -10,10 +10,10 @@ const Profile = () => {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
   
-  // Auth guard - redirect unauthenticated users
+  // Force redirect when signed out - adapted for React Router  
   useEffect(() => {
     if (!loading && !user) {
-      navigate('/');
+      navigate('/greeting');
     }
   }, [user, loading, navigate]);
   
