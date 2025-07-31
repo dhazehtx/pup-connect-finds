@@ -23,7 +23,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
 
   // Redirect unauthenticated users to the greeting page (landing page)
   if (!user && !isGuest) {
-    return <Navigate to="/" replace />;
+    return <Navigate to="/greeting" replace />;
   }
 
   return <>{children}</>;

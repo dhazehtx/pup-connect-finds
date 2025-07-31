@@ -93,7 +93,8 @@ function App() {
                 <Layout>
                   <PageTransition>
                   <Routes>
-                  <Route path="/" element={<Home />} />
+                  <Route path="/" element={<ProtectedRoute><HomeFeedPage /></ProtectedRoute>} />
+                  <Route path="/greeting" element={<Home />} />
                   <Route path="/home" element={<ProtectedRoute><HomeFeedPage /></ProtectedRoute>} />
                   <Route path="/explore" element={
                     <Suspense fallback={<LoadingPage message="Loading Explore..." />}>
