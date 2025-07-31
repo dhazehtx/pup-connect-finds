@@ -13,7 +13,7 @@ const Footer = () => {
   };
 
   return (
-    <footer className="bg-blue-900 text-white mt-auto">
+    <footer className="text-white mt-auto" style={{ backgroundColor: '#336FCC' }}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {/* MY PUP Section */}
@@ -83,7 +83,7 @@ const Footer = () => {
         </div>
 
         {/* Bottom Section */}
-        <div className="border-t border-blue-700 mt-8 pt-8 text-center">
+        <div className="border-t border-blue-400 mt-8 pt-8 text-center">
           <div className="text-white text-sm">
             <span>© 2024 MY PUP. All rights reserved.</span>
           </div>
