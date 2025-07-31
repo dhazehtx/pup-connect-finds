@@ -16,11 +16,6 @@ const BottomNavigation = () => {
   const [showGuestPrompt, setShowGuestPrompt] = useState(false);
   const [promptAction, setPromptAction] = useState('');
 
-  // Hide bottom nav on greeting page
-  if (location.pathname === '/greeting') {
-    return null;
-  }
-
   const handleProtectedNavigation = (path: string, action: string) => {
     if (!user && !isGuest) {
       setPromptAction(action);
