@@ -15,7 +15,7 @@ interface PremiumPlanDialogProps {
 
 const PremiumPlanDialog: React.FC<PremiumPlanDialogProps> = ({ isOpen, onClose }) => {
   const [selectedPlan, setSelectedPlan] = useState<'monthly' | 'yearly'>('monthly');
-  const { createSubscription, processing, subscriptionStatus, getSubscriptionStatus } = usePayments();
+  const { processing, subscriptionStatus, getSubscriptionStatus } = usePayments();
   const { user } = useAuth();
   const { toast } = useToast();
 
@@ -89,19 +89,16 @@ const PremiumPlanDialog: React.FC<PremiumPlanDialogProps> = ({ isOpen, onClose }
       return;
     }
 
-    const result = await createSubscription({
-      priceId: plans[selectedPlan].id,
-    });
+    // Import the usePayments hook
+    const { usePayments } = await import('@/hooks/usePayments');
+    const { createSubscriptionCheckout } = usePayments();
 
-    if (result?.clientSecret) {
-      // Here you would normally integrate with Stripe Elements
-      // For now, we'll just show a success message
-      toast({
-        title: "Subscription Created",
-        description: "Please complete payment to activate your premium features",
-      });
-      onClose();
-    }
+    // Redirect to Stripe Checkout
+    await createSubscriptionCheckout({
+      productType: 'premium',
+      priceId: plans[selectedPlan].id,
+      trialDays: 14 // Premium comes with 14-day trial
+    });
   };
 
   const currentPlan = plans[selectedPlan];

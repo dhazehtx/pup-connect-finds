@@ -71,6 +71,8 @@ const AdminBugsPage = lazy(() => import('./pages/AdminBugsPage'));
 const BugTestPage = lazy(() => import('./pages/BugTestPage'));
 const PrivacyPolicyPage = lazy(() => import('./pages/PrivacyPolicyPage'));
 const PrivacySettingsPage = lazy(() => import('./pages/PrivacySettingsPage'));
+const SubscriptionSuccess = lazy(() => import('./pages/SubscriptionSuccess'));
+const SubscriptionCancelled = lazy(() => import('./pages/SubscriptionCancelled'));
 
 // Import new notification component
 import NotificationButton from './components/notifications/NotificationButton';
@@ -308,6 +310,16 @@ function App() {
                         <PrivacySettingsPage />
                       </Suspense>
                     </ProtectedRoute>
+                  } />
+                  <Route path="/subscription-success" element={
+                    <Suspense fallback={<LoadingPage message="Processing..." />}>
+                      <SubscriptionSuccess />
+                    </Suspense>
+                  } />
+                  <Route path="/subscription-cancelled" element={
+                    <Suspense fallback={<LoadingPage message="Loading..." />}>
+                      <SubscriptionCancelled />
+                    </Suspense>
                   } />
                   </Routes>
                 </PageTransition>

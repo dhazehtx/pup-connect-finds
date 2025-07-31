@@ -1,217 +1,154 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+import { apiRequest } from '@/lib/queryClient';
 
-interface PaymentIntentRequest {
+interface CreateSubscriptionParams {
+  productType: 'premium' | 'pupbox';
+  priceId: string;
+  trialDays?: number;
+}
+
+interface CreatePaymentParams {
   amount: number;
-  currency?: string;
-  productType: 'pup_box' | 'rehoming_feature';
+  productType: 'pupbox_onetime' | 'rehoming_feature';
   metadata?: Record<string, string>;
-}
-
-interface SubscriptionRequest {
-  priceId?: string;
-}
-
-interface PaymentHistory {
-  id: string;
-  type: string;
-  amount: string;
-  currency: string;
-  status: string;
-  product_type: string;
-  created_at: string;
-}
-
-interface SubscriptionStatus {
-  hasActiveSubscription: boolean;
-  plan: 'free' | 'premium';
-  subscription?: {
-    id: string;
-    status: string;
-    current_period_end: number;
-    cancel_at_period_end: boolean;
-  };
 }
 
 export const usePayments = () => {
   const [processing, setProcessing] = useState(false);
-  const [paymentHistory, setPaymentHistory] = useState<PaymentHistory[]>([]);
-  const [subscriptionStatus, setSubscriptionStatus] = useState<SubscriptionStatus | null>(null);
+  const [subscriptionStatus, setSubscriptionStatus] = useState<any>(null);
   const { user } = useAuth();
   const { toast } = useToast();
 
-  const createPaymentIntent = async (request: PaymentIntentRequest) => {
-    if (!user) {
+  const createSubscriptionCheckout = useCallback(async ({ productType, priceId, trialDays = 0 }: CreateSubscriptionParams) => {
+    if (!user?.id) {
       toast({
-        title: "Authentication required",
-        description: "Please log in to make a purchase",
-        variant: "destructive",
+        title: "Authentication Required",
+        description: "Please sign in to subscribe",
+        variant: "destructive"
       });
       return null;
     }
 
     setProcessing(true);
     try {
-      const response = await fetch('/api/payments/create-payment-intent', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          ...request,
-          userId: user.id,
-          metadata: {
-            userEmail: user.email,
-            ...request.metadata,
-          },
-        }),
+      const response = await apiRequest('POST', '/api/create-subscription-checkout', {
+        userId: user.id,
+        productType,
+        priceId,
+        trialDays
       });
 
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Failed to create payment intent');
-      }
-
       const data = await response.json();
+      
+      if (data.url) {
+        // Redirect to Stripe Checkout
+        window.location.href = data.url;
+        return { success: true, sessionId: data.sessionId };
+      }
+      
       return data;
-    } catch (error) {
-      console.error('Error creating payment intent:', error);
+    } catch (error: any) {
+      console.error('Subscription checkout error:', error);
       toast({
-        title: "Payment Error",
-        description: error instanceof Error ? error.message : 'Failed to process payment',
-        variant: "destructive",
+        title: "Checkout Failed",
+        description: error.message || "Unable to start checkout. Please try again.",
+        variant: "destructive"
       });
       return null;
     } finally {
       setProcessing(false);
     }
-  };
+  }, [user?.id, toast]);
 
-  const createSubscription = async (request: SubscriptionRequest = {}) => {
-    if (!user) {
+  const createPaymentIntent = useCallback(async ({ amount, productType, metadata }: CreatePaymentParams) => {
+    if (!user?.id) {
       toast({
-        title: "Authentication required", 
-        description: "Please log in to subscribe",
-        variant: "destructive",
+        title: "Authentication Required",
+        description: "Please sign in to make a purchase",
+        variant: "destructive"
       });
       return null;
     }
 
     setProcessing(true);
     try {
-      const response = await fetch('/api/payments/create-subscription', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          userId: user.id,
-          email: user.email,
-          priceId: request.priceId || 'price_premium_monthly',
-        }),
+      const response = await apiRequest('POST', '/api/payments/create-payment-intent', {
+        userId: user.id,
+        amount,
+        productType,
+        metadata
       });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Failed to create subscription');
-      }
 
       const data = await response.json();
       return data;
-    } catch (error) {
-      console.error('Error creating subscription:', error);
+    } catch (error: any) {
+      console.error('Payment intent error:', error);
       toast({
-        title: "Subscription Error",
-        description: error instanceof Error ? error.message : 'Failed to create subscription',
-        variant: "destructive",
+        title: "Payment Failed",
+        description: error.message || "Unable to create payment. Please try again.",
+        variant: "destructive"
       });
       return null;
     } finally {
       setProcessing(false);
     }
-  };
+  }, [user?.id, toast]);
 
-  const getSubscriptionStatus = async () => {
-    if (!user) return;
+  const getSubscriptionStatus = useCallback(async () => {
+    if (!user?.id) return null;
 
     try {
-      const response = await fetch(`/api/payments/subscription-status/${user.id}`);
-      if (response.ok) {
-        const data = await response.json();
-        setSubscriptionStatus(data);
-        return data;
-      }
+      const response = await apiRequest('GET', `/api/payments/subscription-status/${user.id}`);
+      const data = await response.json();
+      setSubscriptionStatus(data);
+      return data;
     } catch (error) {
       console.error('Error fetching subscription status:', error);
+      return null;
     }
-  };
+  }, [user?.id]);
 
-  const cancelSubscription = async (subscriptionId: string) => {
-    if (!user) return false;
+  const createSubscription = useCallback(async ({ priceId }: { priceId: string }) => {
+    if (!user?.id || !user.email) {
+      toast({
+        title: "Authentication Required",
+        description: "Please sign in to subscribe",
+        variant: "destructive"
+      });
+      return null;
+    }
 
     setProcessing(true);
     try {
-      const response = await fetch('/api/payments/cancel-subscription', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          userId: user.id,
-          subscriptionId,
-        }),
+      const response = await apiRequest('POST', '/api/payments/create-subscription', {
+        userId: user.id,
+        email: user.email,
+        priceId
       });
 
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Failed to cancel subscription');
-      }
-
+      const data = await response.json();
+      return data;
+    } catch (error: any) {
+      console.error('Create subscription error:', error);
       toast({
-        title: "Subscription Canceled",
-        description: "Your subscription will end at the end of the current billing period",
+        title: "Subscription Failed",
+        description: error.message || "Unable to create subscription. Please try again.",
+        variant: "destructive"
       });
-
-      // Refresh subscription status
-      await getSubscriptionStatus();
-      return true;
-    } catch (error) {
-      console.error('Error canceling subscription:', error);
-      toast({
-        title: "Cancellation Error",
-        description: error instanceof Error ? error.message : 'Failed to cancel subscription',
-        variant: "destructive",
-      });
-      return false;
+      return null;
     } finally {
       setProcessing(false);
     }
-  };
-
-  const getPaymentHistory = async () => {
-    if (!user) return;
-
-    try {
-      const response = await fetch(`/api/payments/history/${user.id}`);
-      if (response.ok) {
-        const data = await response.json();
-        setPaymentHistory(data);
-        return data;
-      }
-    } catch (error) {
-      console.error('Error fetching payment history:', error);
-    }
-  };
+  }, [user?.id, user?.email, toast]);
 
   return {
     processing,
-    paymentHistory,
     subscriptionStatus,
+    createSubscriptionCheckout,
     createPaymentIntent,
-    createSubscription,
     getSubscriptionStatus,
-    cancelSubscription,
-    getPaymentHistory,
+    createSubscription
   };
 };

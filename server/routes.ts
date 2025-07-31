@@ -28,20 +28,16 @@ import { globalErrorHandler, notFoundHandler, asyncHandler } from './middleware/
 // Logging routes
 import logsRouter from './routes/logs';
 
-// Reporting routes
-import reportsRouter from './routes/reports';
-
 // Logging middleware
 import { apiLoggingMiddleware, performanceLogger } from './middleware/loggingMiddleware';
-import { 
-  insertProfileSchema, 
-  insertDogListingSchema, 
-  insertMessageSchema,
-  insertConversationSchema,
-  insertFavoriteSchema,
-  insertReviewSchema,
-  insertNotificationSchema,
-} from "@shared/schema";
+
+// Stripe initialization
+import Stripe from 'stripe';
+
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
+  apiVersion: '2024-06-20',
+});
+
 import { 
   insertProfileSchema, 
   insertDogListingSchema, 
@@ -637,7 +633,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
           
           // Update user's subscription status
           await storage.createTransaction({
-            id: subscription.id,
             user_id: subscription.metadata.userId,
             type: 'subscription',
             amount: ((subscription.items.data[0].price.unit_amount || 0) / 100).toString(),
@@ -656,7 +651,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
           
           // Record subscription cancellation
           await storage.createTransaction({
-            id: `cancel_${canceledSubscription.id}`,
             user_id: canceledSubscription.metadata.userId,
             type: 'subscription_cancel',
             amount: "0",
@@ -681,6 +675,243 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // GDPR Data Export Route
+  app.get("/api/export-data", async (req, res) => {
+    try {
+      const userId = req.query.userId as string;
+      
+      if (!userId) {
+        return res.status(400).json({ error: 'User ID is required' });
+      }
+
+      // Get user profile
+      const profile = await storage.getProfile(userId);
+      if (!profile) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+
+      // Get user's listings
+      const listings = await storage.getUserListings(userId);
+      
+      // Get user's conversations and messages
+      const conversations = await storage.getUserConversations(userId);
+      const messages: any[] = [];
+      
+      for (const conversation of conversations) {
+        const conversationMessages = await storage.getMessages(conversation.id);
+        messages.push(...conversationMessages);
+      }
+
+      // Get user's posts and comments (if they exist in storage)
+      let posts: any[] = [];
+      let comments: any[] = [];
+      
+      try {
+        // These methods might not exist in storage yet, so we wrap in try-catch
+        posts = await storage.getUserPosts?.(userId) || [];
+        comments = await storage.getUserComments?.(userId) || [];
+      } catch (e) {
+        console.log('Posts/comments retrieval not implemented yet');
+      }
+
+      // Get user's transactions
+      const transactions = await storage.getUserTransactions(userId);
+
+      // Bundle all user data
+      const userData = {
+        exportDate: new Date().toISOString(),
+        user: {
+          id: profile.id,
+          email: profile.email,
+          username: profile.username,
+          full_name: profile.full_name,
+          bio: profile.bio,
+          location: profile.location,
+          created_at: profile.created_at,
+          updated_at: profile.updated_at
+        },
+        listings: listings.map(listing => ({
+          id: listing.id,
+          title: listing.title,
+          description: listing.description,
+          price: listing.price,
+          breed: listing.breed,
+          created_at: listing.created_at
+        })),
+        conversations: conversations.map(conv => ({
+          id: conv.id,
+          participant_id: conv.participant_id,
+          created_at: conv.created_at,
+          updated_at: conv.updated_at
+        })),
+        messages: messages.map(msg => ({
+          id: msg.id,
+          content: msg.content,
+          created_at: msg.created_at,
+          conversation_id: msg.conversation_id
+        })),
+        posts: posts,
+        comments: comments,
+        transactions: transactions.map(tx => ({
+          id: tx.id,
+          type: tx.type,
+          amount: tx.amount,
+          status: tx.status,
+          created_at: tx.created_at
+        }))
+      };
+
+      // Set headers for file download
+      res.setHeader('Content-Type', 'application/json');
+      res.setHeader('Content-Disposition', `attachment; filename="my-pup-data-${userId}-${Date.now()}.json"`);
+      
+      res.json(userData);
+    } catch (error) {
+      console.error('Error exporting user data:', error);
+      res.status(500).json({ error: 'Failed to export user data' });
+    }
+  });
+
+  // GDPR Account Deletion Route
+  app.delete("/api/delete-account", async (req, res) => {
+    try {
+      const userId = req.body.userId as string;
+      const confirmDelete = req.body.confirmDelete as boolean;
+      
+      if (!userId) {
+        return res.status(400).json({ error: 'User ID is required' });
+      }
+
+      if (!confirmDelete) {
+        return res.status(400).json({ error: 'Account deletion must be confirmed' });
+      }
+
+      // Verify user exists
+      const profile = await storage.getProfile(userId);
+      if (!profile) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+
+      // Start deletion process - this should be done in a transaction
+      console.log(`Starting account deletion for user ${userId}`);
+
+      // Delete user's messages first (due to foreign key constraints)
+      const conversations = await storage.getUserConversations(userId);
+      for (const conversation of conversations) {
+        try {
+          await storage.deleteConversation(conversation.id);
+        } catch (e) {
+          console.error('Error deleting conversation:', e);
+        }
+      }
+
+      // Delete user's listings
+      const listings = await storage.getUserListings(userId);
+      for (const listing of listings) {
+        try {
+          await storage.deleteListing(listing.id);
+        } catch (e) {
+          console.error('Error deleting listing:', e);
+        }
+      }
+
+      // Delete user's transactions
+      const transactions = await storage.getUserTransactions(userId);
+      for (const transaction of transactions) {
+        try {
+          await storage.deleteTransaction?.(transaction.id);
+        } catch (e) {
+          console.error('Error deleting transaction:', e);
+        }
+      }
+
+      // Delete user's posts and comments (if methods exist)
+      try {
+        await storage.deleteUserPosts?.(userId);
+        await storage.deleteUserComments?.(userId);
+      } catch (e) {
+        console.log('Posts/comments deletion not implemented yet');
+      }
+
+      // Finally, delete the user profile
+      await storage.deleteProfile(userId);
+
+      console.log(`Account deletion completed for user ${userId}`);
+      
+      res.json({ 
+        success: true, 
+        message: 'Account and all associated data have been permanently deleted' 
+      });
+    } catch (error) {
+      console.error('Error deleting user account:', error);
+      res.status(500).json({ error: 'Failed to delete user account' });
+    }
+  });
+
+  // Create Stripe checkout session for subscriptions
+  app.post("/api/create-subscription-checkout", async (req, res) => {
+    try {
+      const { userId, productType, priceId, trialDays = 0 } = req.body;
+
+      if (!userId) {
+        return res.status(400).json({ error: 'User ID is required' });
+      }
+
+      // Get or create Stripe customer
+      let customer;
+      const user = await storage.getProfile(userId);
+      if (!user?.email) {
+        return res.status(400).json({ error: 'User email not found' });
+      }
+
+      const existingCustomers = await stripe.customers.list({
+        email: user.email,
+        limit: 1
+      });
+
+      if (existingCustomers.data.length > 0) {
+        customer = existingCustomers.data[0];
+      } else {
+        customer = await stripe.customers.create({
+          email: user.email,
+          metadata: { userId }
+        });
+      }
+
+      // Create checkout session
+      const sessionConfig: Stripe.Checkout.SessionCreateParams = {
+        customer: customer.id,
+        mode: 'subscription',
+        line_items: [{
+          price: priceId,
+          quantity: 1,
+        }],
+        success_url: `${process.env.CLIENT_URL || 'http://localhost:5000'}/subscription-success?session_id={CHECKOUT_SESSION_ID}`,
+        cancel_url: `${process.env.CLIENT_URL || 'http://localhost:5000'}/subscription-cancelled`,
+        metadata: {
+          userId,
+          productType
+        }
+      };
+
+      if (trialDays > 0) {
+        sessionConfig.subscription_data = {
+          trial_period_days: trialDays
+        };
+      }
+
+      const session = await stripe.checkout.sessions.create(sessionConfig);
+
+      res.json({ 
+        sessionId: session.id,
+        url: session.url 
+      });
+    } catch (error) {
+      console.error('Error creating subscription checkout:', error);
+      res.status(500).json({ error: 'Failed to create checkout session' });
+    }
+  });
+
   // Get user's subscription status
   app.get("/api/payments/subscription-status/:userId", async (req, res) => {
     try {
@@ -701,7 +932,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Verify with Stripe
       const stripeSubscription = await stripe.subscriptions.retrieve(
-        activeSubscription.stripe_subscription_id
+        activeSubscription.stripe_subscription_id!
       );
 
       res.json({

@@ -1,7 +1,9 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-import { Shield, FileText, Cookie, Database, Users, Mail, Eye, Globe } from 'lucide-react';
+import { Shield, FileText, Cookie, Database, Users, Mail, Eye, Globe, Settings } from 'lucide-react';
+import DataExportButton from '@/components/privacy/DataExportButton';
+import DeleteAccountButton from '@/components/privacy/DeleteAccountButton';
 
 const PrivacyPolicyPage: React.FC = () => {
   return (
@@ -283,6 +285,49 @@ const PrivacyPolicyPage: React.FC = () => {
                     Data stored in secure, compliant facilities
                   </p>
                 </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Your Data Rights */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Settings className="w-5 h-5 text-orange-600" />
+                Manage Your Data
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <p className="text-gray-700 dark:text-gray-300">
+                Exercise your privacy rights with these tools:
+              </p>
+              
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
+                  <h4 className="font-medium text-gray-900 dark:text-white mb-2">
+                    Download Your Data
+                  </h4>
+                  <p className="text-sm text-gray-600 dark:text-gray-300 mb-3">
+                    Export all your personal data including profile, listings, messages, and activity history.
+                  </p>
+                  <DataExportButton />
+                </div>
+                
+                <div className="p-4 border border-red-200 dark:border-red-800 rounded-lg bg-red-50 dark:bg-red-900/10">
+                  <h4 className="font-medium text-red-900 dark:text-red-200 mb-2">
+                    Delete Your Account
+                  </h4>
+                  <p className="text-sm text-red-700 dark:text-red-300 mb-3">
+                    Permanently delete your account and all associated data. This action cannot be undone.
+                  </p>
+                  <DeleteAccountButton />
+                </div>
+              </div>
+              
+              <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg border border-blue-200 dark:border-blue-800">
+                <p className="text-sm text-blue-700 dark:text-blue-300">
+                  <strong>Note:</strong> Data export may take a few moments to process. Account deletion is immediate and irreversible.
+                </p>
               </div>
             </CardContent>
           </Card>

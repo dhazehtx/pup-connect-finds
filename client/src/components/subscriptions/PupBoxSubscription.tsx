@@ -6,11 +6,13 @@ import { Switch } from '@/components/ui/switch';
 import { Gift, Truck, Calendar, Star, ShoppingCart, RotateCcw } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+import { usePayments } from '@/hooks/usePayments';
 import StripeCheckout from '@/components/checkout/StripeCheckout';
 
 const PupBoxSubscription = () => {
   const { user } = useAuth();
   const { toast } = useToast();
+  const { createSubscriptionCheckout, createPaymentIntent, processing } = usePayments();
   const [selectedPlan, setSelectedPlan] = useState('');
   const [showCheckout, setShowCheckout] = useState(false);
   const [checkoutPlan, setCheckoutPlan] = useState<any>(null);
@@ -60,7 +62,7 @@ const PupBoxSubscription = () => {
     }));
   };
 
-  const handleProceedToCheckout = () => {
+  const handleProceedToCheckout = async () => {
     if (!user) {
       toast({
         title: "Authentication required",
@@ -76,19 +78,29 @@ const PupBoxSubscription = () => {
     const purchaseType = purchaseTypes[plan.id];
     const price = purchaseType === 'subscription' ? plan.subscriptionPrice : plan.oneTimePrice;
 
-    setCheckoutPlan({
-      name: `${plan.name} ${purchaseType === 'subscription' ? 'Subscription' : 'One-Time Purchase'}`,
-      price: price,
-      features: [
-        `${plan.items}`,
-        'Hand-picked toys and treats by pet experts',
-        'Always free shipping, right to your door',
-        purchaseType === 'subscription' ? 'Skip, pause, or cancel anytime' : 'No commitment required'
-      ],
-      popular: plan.badge === 'Most Popular',
-      purchaseType: purchaseType
-    });
-    setShowCheckout(true);
+    if (purchaseType === 'subscription') {
+      // For subscription, redirect to Stripe Checkout
+      await createSubscriptionCheckout({
+        productType: 'pupbox',
+        priceId: `price_pupbox_${plan.size}_monthly`, // This should match your Stripe price IDs
+        trialDays: 0
+      });
+    } else {
+      // For one-time purchase, use the existing checkout modal
+      setCheckoutPlan({
+        name: `${plan.name} One-Time Purchase`,
+        price: price,
+        features: [
+          `${plan.items}`,
+          'Hand-picked toys and treats by pet experts',
+          'Always free shipping, right to your door',
+          'No commitment required'
+        ],
+        popular: plan.badge === 'Most Popular',
+        purchaseType: purchaseType
+      });
+      setShowCheckout(true);
+    }
   };
 
   return (

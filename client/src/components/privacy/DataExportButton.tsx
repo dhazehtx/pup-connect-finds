@@ -1,89 +1,77 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Download, Loader2 } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
-import { apiRequest } from '@/lib/api';
 
-interface DataExportButtonProps {
-  variant?: "default" | "outline" | "secondary" | "destructive" | "ghost" | "link";
-  size?: "default" | "sm" | "lg" | "icon";
-}
-
-const DataExportButton: React.FC<DataExportButtonProps> = ({ 
-  variant = "outline", 
-  size = "default" 
-}) => {
-  const [isExporting, setIsExporting] = useState(false);
+const DataExportButton: React.FC = () => {
+  const [loading, setLoading] = useState(false);
+  const { user } = useAuth();
   const { toast } = useToast();
 
-  const handleDataExport = async () => {
+  const handleExportData = async () => {
+    if (!user?.id) {
+      toast({
+        title: "Authentication Required",
+        description: "Please log in to export your data",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setLoading(true);
     try {
-      setIsExporting(true);
-      
-      const response = await apiRequest('GET', '/api/export-user-data');
-      
+      const response = await fetch(`/api/export-data?userId=${user.id}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Failed to export data');
+        throw new Error('Failed to export data');
       }
 
-      // Get the data and create a blob for download
-      const userData = await response.json();
-      const blob = new Blob([JSON.stringify(userData, null, 2)], {
-        type: 'application/json'
-      });
-      
-      // Create download link
+      // Create a blob from the response and trigger download
+      const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.download = `my-pup-data-export-${new Date().toISOString().split('T')[0]}.json`;
-      
-      // Trigger download
+      link.download = `my-pup-data-${user.id}-${Date.now()}.json`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
 
       toast({
-        title: "Data Export Complete",
-        description: "Your personal data has been downloaded successfully",
+        title: "Data Export Successful",
+        description: "Your data has been downloaded as a JSON file",
       });
-    } catch (error: any) {
-      console.error('Data export error:', error);
-      
-      if (error.message.includes('once every 24 hours')) {
-        toast({
-          title: "Export Limit Reached",
-          description: "Data export is limited to once every 24 hours for security",
-          variant: "destructive",
-        });
-      } else {
-        toast({
-          title: "Export Failed",
-          description: error.message || "Failed to export your data. Please try again.",
-          variant: "destructive",
-        });
-      }
+    } catch (error) {
+      console.error('Export error:', error);
+      toast({
+        title: "Export Failed",
+        description: "Unable to export your data. Please try again.",
+        variant: "destructive"
+      });
     } finally {
-      setIsExporting(false);
+      setLoading(false);
     }
   };
 
   return (
     <Button
-      variant={variant}
-      size={size}
-      onClick={handleDataExport}
-      disabled={isExporting}
-      className="gap-2"
+      onClick={handleExportData}
+      disabled={loading}
+      variant="outline"
+      className="flex items-center gap-2"
     >
-      {isExporting ? (
+      {loading ? (
         <Loader2 className="w-4 h-4 animate-spin" />
       ) : (
         <Download className="w-4 h-4" />
       )}
-      {isExporting ? 'Exporting...' : 'Download My Data'}
+      {loading ? 'Exporting...' : 'Download My Data'}
     </Button>
   );
 };
