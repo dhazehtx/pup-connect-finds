@@ -24,3 +24,16 @@ export const apiRequest = async (method: string, url: string, data?: any) => {
 
   return fetch(url, options);
 };
+
+// Supabase REST API helper with proper headers
+export async function api(path: string, opts: RequestInit = {}) {
+  const { data: { session } } = await supabase.auth.getSession();
+  return fetch(`${import.meta.env.VITE_SUPABASE_URL}/rest/v1/${path}`, {
+    ...opts,
+    headers: {
+      Accept: 'application/json',
+      Authorization: `Bearer ${session?.access_token ?? ''}`,
+      ...(opts.headers || {})
+    }
+  });
+}
