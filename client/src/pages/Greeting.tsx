@@ -6,15 +6,15 @@ const Greeting = () => {
 
   return (
     <main className="min-h-screen flex flex-col bg-gradient-to-br from-blue-50 to-blue-100">
-      {/* top header */}
-      <header className="flex items-center justify-between px-8 py-4 bg-white shadow">
+      {/* single white header */}
+      <header className="flex items-center justify-between px-8 py-4 bg-white shadow-sm">
         <div className="flex items-center gap-2 text-xl font-bold">
           <span role="img" aria-label="heart">💙</span> MY PUP
         </div>
         <div className="flex gap-3">
           <button 
             onClick={() => navigate('/auth')}
-            className="px-4 py-1 rounded-full border border-blue-600 text-blue-600 hover:bg-blue-50 text-sm"
+            className="px-4 py-1 rounded-full bg-blue-600 text-white hover:bg-blue-700 text-sm"
           >
             Sign In
           </button>
@@ -37,29 +37,29 @@ const Greeting = () => {
           Connect with verified breeders and discover adorable, healthy puppies waiting for their forever homes.
         </p>
 
-        {/* hero buttons */}
+        {/* four blue pill buttons in one row */}
         <div className="mt-10 flex flex-wrap gap-4 justify-center">
           <button 
             onClick={() => navigate('/auth')}
-            className="px-6 py-3 rounded-md bg-blue-600 text-white hover:bg-blue-700 font-medium shadow"
+            className="px-6 py-3 rounded-full bg-blue-600 text-white hover:bg-blue-700 shadow"
           >
             Sign Up
           </button>
           <button 
             onClick={() => navigate('/auth')}
-            className="px-6 py-3 rounded-md bg-blue-600 text-white hover:bg-blue-700 font-medium shadow"
+            className="px-6 py-3 rounded-full bg-blue-600 text-white hover:bg-blue-700 shadow"
           >
             Sign In
           </button>
           <button 
             onClick={() => navigate('/explore')}
-            className="px-6 py-3 rounded-md bg-blue-600 text-white hover:bg-blue-700 font-medium shadow"
+            className="px-6 py-3 rounded-full bg-blue-600 text-white hover:bg-blue-700 shadow"
           >
             Browse as Guest
           </button>
           <button 
             onClick={() => navigate('/explore')}
-            className="px-6 py-3 rounded-md bg-blue-600 text-white hover:bg-blue-700 font-medium shadow w-48"
+            className="px-6 py-3 rounded-full bg-blue-600 text-white hover:bg-blue-700 shadow w-48 text-center"
           >
             Explore Puppies
           </button>
