@@ -15,10 +15,9 @@ interface AuthenticatedRequest extends Request {
 const exportRateLimit = rateLimit({
   windowMs: 24 * 60 * 60 * 1000, // 24 hours
   max: 1, // limit each user to 1 request per windowMs
-  message: { error: "Data export is limited to once every 24 hours" },
+  message: "Data export is limited to once every 24 hours",
   standardHeaders: true,
   legacyHeaders: false,
-  keyGenerator: (req: AuthenticatedRequest) => req.user?.id || req.ip,
 });
 
 export function registerGDPRRoutes(app: Express) {

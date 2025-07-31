@@ -41,6 +41,9 @@ import { authMiddleware } from './middleware/auth';
 // Admin logging utilities
 import { logPostAction, logCommentAction, logSubscriptionAction } from './utils/adminLogger';
 
+// GDPR routes
+import { registerGDPRRoutes } from './routes/gdpr';
+
 // Stripe initialization
 import Stripe from 'stripe';
 
@@ -74,6 +77,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Add authentication middleware for all API routes
   app.use('/api', authMiddleware);
+
+  // Register GDPR compliance routes
+  registerGDPRRoutes(app);
 
   // Profile routes
   app.get("/api/profile/:id", async (req, res) => {
@@ -620,7 +626,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Webhook to handle successful payments
-  app.post("/api/webhooks/stripe", async (req, res) => {
+  const stripeWebhookHandler = async (req: any, res: any) => {
     const sig = req.headers['stripe-signature'];
     let event;
 
@@ -709,7 +715,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error('Error handling webhook:', error);
       res.status(500).json({ error: 'Webhook handler failed' });
     }
-  });
+  };
+
+  // Register webhook handlers on both paths
+  app.post("/api/webhooks/stripe", stripeWebhookHandler);
+  app.post("/api/payments/webhook", stripeWebhookHandler);
 
   // GDPR Data Export Route
   app.get("/api/export-data", async (req, res) => {
