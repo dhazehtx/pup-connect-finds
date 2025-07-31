@@ -27,21 +27,21 @@ const Greeting = () => {
         </p>
 
         {/* ROW 1 – three pills */}
-        <div className="mt-8 flex flex-wrap gap-4 justify-center">
-          <button onClick={() => navigate('/auth')} className="w-40 px-6 py-3 rounded-full bg-blue-600 text-white flex justify-center items-center gap-2 shadow">
-            👤 Sign Up
+        <div className="mt-6 flex flex-wrap gap-4 justify-center">
+          <button onClick={() => navigate('/auth')} className="w-[154px] px-6 py-3 rounded-full bg-blue-600 text-white flex justify-center items-center gap-2 shadow">
+            <span className="-mt-0.5">👤</span> Sign Up
           </button>
-          <button onClick={() => navigate('/auth')} className="w-40 px-6 py-3 rounded-full bg-blue-600 text-white flex justify-center items-center gap-2 shadow">
-            🔑 Sign In
+          <button onClick={() => navigate('/auth')} className="w-[154px] px-6 py-3 rounded-full bg-blue-600 text-white flex justify-center items-center gap-2 shadow">
+            <span className="-mt-0.5">🔑</span> Sign In
           </button>
-          <button onClick={() => navigate('/explore')} className="w-44 px-6 py-3 rounded-full bg-blue-600 text-white flex justify-center items-center gap-2 shadow">
-            👀 Browse as Guest
+          <button onClick={() => navigate('/explore')} className="w-[154px] px-6 py-3 rounded-full bg-blue-600 text-white flex justify-center items-center gap-2 shadow">
+            <span className="-mt-0.5">👀</span> Browse as Guest
           </button>
         </div>
 
         {/* ROW 2 – wide Explore button */}
-        <button onClick={() => navigate('/explore')} className="mt-4 w-56 px-6 py-3 rounded-full bg-blue-600 text-white flex justify-center items-center gap-2 shadow">
-          🔍 Explore Puppies
+        <button onClick={() => navigate('/explore')} className="mt-4 w-[220px] px-6 py-3 rounded-full bg-blue-600 text-white flex justify-center items-center gap-2 shadow">
+          <span className="-mt-0.5">🔍</span> Explore Puppies
         </button>
 
         {/* Feature bullets */}
