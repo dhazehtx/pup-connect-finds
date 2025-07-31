@@ -6,11 +6,21 @@ const Greeting = () => {
 
   return (
     <main className="min-h-screen flex flex-col bg-gradient-to-br from-blue-50 to-blue-100">
-      {/* single white header */}
-      <header className="flex items-center justify-between px-8 py-4 bg-white shadow-sm">
+      {/* header with search bar */}
+      <header className="flex items-center gap-6 px-8 py-3 bg-white shadow">
+        {/* logo */}
         <div className="flex items-center gap-2 text-xl font-bold">
-          <span role="img" aria-label="heart">💙</span> MY PUP
+          💙 MY PUP
         </div>
+
+        {/* search field */}
+        <input
+          type="text"
+          placeholder="Search puppies, breeds, or breeders…"
+          className="flex-1 max-w-lg px-4 py-2 rounded-md border bg-gray-50 focus:outline-none"
+        />
+
+        {/* auth buttons (mini) */}
         <div className="flex gap-3">
           <button 
             onClick={() => navigate('/auth')}
@@ -37,31 +47,31 @@ const Greeting = () => {
           Connect with verified breeders and discover adorable, healthy puppies waiting for their forever homes.
         </p>
 
-        {/* four blue pill buttons in one row */}
-        <div className="mt-10 flex flex-wrap gap-4 justify-center">
+        {/* four blue pill buttons with icons in one row */}
+        <div className="mt-6 flex flex-wrap gap-4 justify-center">
           <button 
             onClick={() => navigate('/auth')}
-            className="px-6 py-3 rounded-full bg-blue-600 text-white hover:bg-blue-700 shadow"
+            className="flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-blue-600 text-white hover:bg-blue-700 shadow"
           >
-            Sign Up
+            👤 Sign Up
           </button>
           <button 
             onClick={() => navigate('/auth')}
-            className="px-6 py-3 rounded-full bg-blue-600 text-white hover:bg-blue-700 shadow"
+            className="flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-blue-600 text-white hover:bg-blue-700 shadow"
           >
-            Sign In
+            🔑 Sign In
           </button>
           <button 
             onClick={() => navigate('/explore')}
-            className="px-6 py-3 rounded-full bg-blue-600 text-white hover:bg-blue-700 shadow"
+            className="flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-blue-600 text-white hover:bg-blue-700 shadow"
           >
-            Browse as Guest
+            👁 Browse as Guest
           </button>
           <button 
             onClick={() => navigate('/explore')}
-            className="px-6 py-3 rounded-full bg-blue-600 text-white hover:bg-blue-700 shadow w-48 text-center"
+            className="flex items-center justify-center gap-2 px-6 py-3 w-48 rounded-full bg-blue-600 text-white hover:bg-blue-700 shadow"
           >
-            Explore Puppies
+            🐾 Explore Puppies
           </button>
         </div>
 
