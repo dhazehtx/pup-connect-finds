@@ -35,6 +35,9 @@ import { apiLoggingMiddleware, performanceLogger } from './middleware/loggingMid
 // Session timeout middleware
 import { sessionTimeout, lightSessionCheck } from './middleware/sessionTimeout';
 
+// Authentication middleware
+import { authMiddleware } from './middleware/auth';
+
 // Admin logging utilities
 import { logPostAction, logCommentAction, logSubscriptionAction } from './utils/adminLogger';
 
@@ -68,6 +71,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Add comprehensive logging middleware
   app.use(apiLoggingMiddleware); // Log all API requests
   app.use(performanceLogger(2000)); // Log slow responses (>2s)
+  
+  // Add authentication middleware for all API routes
+  app.use('/api', authMiddleware);
 
   // Profile routes
   app.get("/api/profile/:id", async (req, res) => {
