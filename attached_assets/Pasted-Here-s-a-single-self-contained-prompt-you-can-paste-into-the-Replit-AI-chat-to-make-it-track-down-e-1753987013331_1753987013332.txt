@@ -1,0 +1,48 @@
+Here’s a single, self-contained prompt you can paste into the Replit AI chat to make it track down exactly why the bottom-nav buttons no longer load their pages and then fix the problem.
+
+markdown
+Copy
+Edit
+🔎 **Bug:** After wiring Supabase and restarting, the bottom navigation bar (Home / Explore / Marketplace / Messages / Profile) no longer renders the target pages.  
+Clicks are logged in the console (e.g. “Navigating to protected route :/profile”) but nothing mounts — the current screen just stays in place.
+
+👩‍💻 **Tasks**
+
+1. **Reproduce & capture:**  
+   • Open the Preview → click each nav item once and note the console output.  
+   • Take a screenshot that shows at least one of the “Navigating to …” logs plus the UI not changing.
+
+2. **Isolate the failure point:**  
+   • Inspect `client/src/components/BottomNavigation.tsx` (or wherever the nav lives).  
+   • Verify the click handler (likely `navigate('/profile')`, etc.) is firing.  
+   • Trace the route to `client/src/App.tsx` / React-Router tree.  
+   • Confirm matching `<Route path="/profile" element={<ProfilePage/>} …>` exists **and** that `RequireAuth` (or your guard) is *not* blocking unauthenticated users from simply loading the component (it should redirect — but the redirect page should still mount).
+
+3. **Diagnose rendering stall:**  
+   Check each of these and log the finding:
+
+   | Check                                    | OK / Issue | Fix (if needed) |
+   | ---------------------------------------- | ---------- | --------------- |
+   | `navigate()` actually pushes a new URL   |            |                 |
+   | The new route *has* a matching `<Route>` |            |                 |
+   | Component lazy-loaded? import succeeds   |            |                 |
+   | `RequireAuth`/`ForceRedirect` returns `<Outlet />` when redirecting | | |
+   | No runtime error in the shadow DOM       |            |                 |
+
+4. **Fix the root cause** (whichever applies):
+
+   *A)* If guard returns `null` (nothing rendered), change it to `return <Navigate to="/greeting" />` so a page always mounts.  
+   *B)* If routes are missing, add them back.  
+   *C)* If CSP still blocks a fetch needed for initial page data, add that domain to the header in `server/middleware/security.ts`.
+
+5. **Regression test:**  
+   • Reload, click every nav item while *signed out* and *signed in*.  
+   • Confirm public routes load and protected routes redirect to `/greeting` (or desired page) instead of freezing.  
+   • Post before/after screenshots and a short bullet list of commits made.
+
+📝 **Acceptance criteria**
+
+- Navigating to **Home, Explore, Marketplace** always renders the correct page.
+- Clicking **Messages / Profile** while signed out redirects to the Greeting page (no blank screen).
+- Console shows *no* ‘Failed to construct URL’ or CSP violations.
+- All changes committed with clear messages; no hard-coded secrets or URLs.
