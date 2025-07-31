@@ -1,0 +1,78 @@
+1. Final Bug-Fix & QA Sweep
+Goals:
+
+Ensure like/unlike toggles only affect the targeted post
+
+Confirm comments preview on both desktop & mobile
+
+Eliminate duplicate headers/footers in messaging
+
+Replit prompt (copy-paste):
+
+“Fix the handleLike logic in PostCard so it only toggles the state of the clicked post. Also adjust the mobile comment preview component to mirror the desktop layout, and remove the extra header/footer include in MessagesPage. Make minimal edits—only update those specific components.”
+
+2. Stripe Checkout Integration
+Goals:
+
+Wire up “Pup Box” and Premium upgrade buttons to Stripe
+
+Handle success & cancel callbacks
+
+Use existing API keys, no UI layout changes
+
+Replit prompt:
+
+“Implement Stripe checkout in SubscriptionPage: hook the ‘Subscribe’ buttons for Pup Box and Premium to our Stripe API, include success and cancel handlers, and update user records in Supabase on confirmation. Do not alter any CSS or layouts—focus on wiring the payment logic.”
+
+3. GDPR & Account Management Endpoints
+Goals:
+
+Add “Export My Data” and “Delete My Account” endpoints
+
+Connect to Supabase storage and auth
+
+Update Privacy Policy page with links
+
+Replit prompt:
+
+“Create two new API routes: /api/export-data to bundle and send the user’s profile, posts, and messages as JSON, and /api/delete-account to remove all user data from Supabase. Expose buttons on the Privacy Policy page linking to these routes. Keep the existing UI intact.”
+
+4. Admin Logs & Monitoring
+Goals:
+
+Finalize the 6-part admin log system (actions, timestamps, user IDs)
+
+Hook into key actions (post creation, comments, subscriptions)
+
+Surface logs in a secured /admin/logs dashboard
+
+Replit prompt:
+
+“Complete the admin log feature: for each CRUD action on posts, comments, and subscriptions, insert a log entry (user, action, timestamp) into admin_logs table. Build a protected /admin/logs page that lists the last 100 entries, sortable by date. Don’t refactor existing auth logic.”
+
+5. Session Management & Security
+Goals:
+
+Implement session timeout and token refresh (15 min idle timeout)
+
+Enforce on both client and server
+
+Display “Session expired” modal
+
+Replit prompt:
+
+“Add session management middleware: expire sessions after 15 minutes of inactivity and trigger a token refresh flow. On the client, show a ‘Session expired’ modal with a button to re-authenticate. Integrate without touching existing UI components.”
+
+6. Final Deployment & Monitoring Setup
+Goals:
+
+Configure environment variables for production (Supabase, Stripe)
+
+Set up basic CI (GitHub Actions) for linting & tests
+
+Integrate Sentry (or similar) for error tracking
+
+Replit prompt:
+
+“Prepare for production: move all secrets to env vars, add a GH Actions workflow to run lint and test on push, and integrate Sentry for frontend/backend error monitoring. Do not change any source files beyond config additions.”
+
