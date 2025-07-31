@@ -120,6 +120,18 @@ export interface IStorage {
   getTransaction(id: string): Promise<Transaction | undefined>;
   getUserTransactions(userId: string, type?: string): Promise<Transaction[]>;
   updateTransaction(id: string, transaction: Partial<InsertTransaction>): Promise<Transaction | undefined>;
+  deleteTransaction(id: string): Promise<boolean>;
+  
+  // Additional methods needed by routes
+  getUserListings(userId: string): Promise<DogListing[]>;
+  getMessages(conversationId: string): Promise<Message[]>;
+  getUserPosts(userId: string): Promise<Post[]>;
+  getUserComments(userId: string): Promise<Comment[]>;
+  deleteConversation(id: string): Promise<boolean>;
+  deleteListing(id: string): Promise<boolean>;
+  deleteUserPosts(userId: string): Promise<boolean>;
+  deleteUserComments(userId: string): Promise<boolean>;
+  deleteProfile(id: string): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -412,6 +424,58 @@ export class DatabaseStorage implements IStorage {
     return await db.select().from(adminLogs)
       .orderBy(desc(adminLogs.created_at))
       .limit(limit);
+  }
+
+  // Additional methods needed by routes
+  async getUserListings(userId: string): Promise<DogListing[]> {
+    return await db.select().from(dogListings)
+      .where(eq(dogListings.user_id, userId))
+      .orderBy(desc(dogListings.created_at));
+  }
+
+  async getMessages(conversationId: string): Promise<Message[]> {
+    return await this.getConversationMessages(conversationId);
+  }
+
+  async getUserPosts(userId: string): Promise<Post[]> {
+    return await db.select().from(posts)
+      .where(eq(posts.user_id, userId))
+      .orderBy(desc(posts.created_at));
+  }
+
+  async getUserComments(userId: string): Promise<Comment[]> {
+    return await db.select().from(comments)
+      .where(eq(comments.user_id, userId))
+      .orderBy(desc(comments.created_at));
+  }
+
+  async deleteConversation(id: string): Promise<boolean> {
+    const result = await db.delete(conversations).where(eq(conversations.id, id));
+    return (result.rowCount ?? 0) > 0;
+  }
+
+  async deleteListing(id: string): Promise<boolean> {
+    return await this.deleteDogListing(id);
+  }
+
+  async deleteTransaction(id: string): Promise<boolean> {
+    const result = await db.delete(transactions).where(eq(transactions.id, id));
+    return (result.rowCount ?? 0) > 0;
+  }
+
+  async deleteUserPosts(userId: string): Promise<boolean> {
+    const result = await db.delete(posts).where(eq(posts.user_id, userId));
+    return (result.rowCount ?? 0) > 0;
+  }
+
+  async deleteUserComments(userId: string): Promise<boolean> {
+    const result = await db.delete(comments).where(eq(comments.user_id, userId));
+    return (result.rowCount ?? 0) > 0;
+  }
+
+  async deleteProfile(id: string): Promise<boolean> {
+    const result = await db.delete(profiles).where(eq(profiles.id, id));
+    return (result.rowCount ?? 0) > 0;
   }
 }
 

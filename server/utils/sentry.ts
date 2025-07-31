@@ -6,8 +6,8 @@ export const initializeSentry = () => {
       dsn: process.env.SENTRY_DSN,
       environment: process.env.NODE_ENV || 'development',
       integrations: [
-        new Sentry.Integrations.Http({ tracing: true }),
-        new Sentry.Integrations.Express({ app: undefined }),
+        Sentry.httpIntegration({ tracing: true }),
+        Sentry.expressIntegration(),
       ],
       tracesSampleRate: process.env.NODE_ENV === 'production' ? 0.1 : 1.0,
       beforeSend(event) {

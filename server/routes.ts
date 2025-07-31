@@ -55,7 +55,7 @@ import { contentModerationMiddleware } from './utils/aiModeration';
 import Stripe from 'stripe';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
-  apiVersion: '2024-06-20',
+  apiVersion: '2025-07-30.basil',
 });
 
 import { 
@@ -627,7 +627,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       const invoice = subscription.latest_invoice as Stripe.Invoice;
-      const paymentIntent = invoice?.payment_intent as Stripe.PaymentIntent;
+      const paymentIntent = (invoice as any)?.payment_intent as Stripe.PaymentIntent;
 
       res.json({
         subscriptionId: subscription.id,
@@ -659,7 +659,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
           
           // Record the transaction
           await storage.createTransaction({
-            id: paymentIntent.id,
             user_id: paymentIntent.metadata.userId,
             type: 'payment',
             amount: (paymentIntent.amount / 100).toString(), // Convert from cents to string
@@ -1129,7 +1128,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Update user's last activity
       await storage.updateProfile(userId, {
-        updated_at: new Date(),
         last_login_ip: req.ip || req.connection.remoteAddress || 'unknown'
       });
 

@@ -45,7 +45,7 @@ app.use((req, res, next) => {
 
   // Sentry error handling middleware (only if initialized)
   if (process.env.SENTRY_DSN) {
-    app.use(Sentry.Handlers.errorHandler());
+    app.use(Sentry.expressErrorHandler());
   }
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
