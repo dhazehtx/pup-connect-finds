@@ -6,31 +6,31 @@ const Greeting = () => {
 
   return (
     <main className="min-h-screen flex flex-col bg-gradient-to-br from-blue-50 to-blue-100">
-      {/* header with search bar */}
-      <header className="flex items-center gap-6 px-8 py-3 bg-white shadow">
+      {/* top header – white bar with logo, search, auth buttons */}
+      <header className="flex items-center gap-6 px-8 py-3 bg-white shadow-sm border-b">
         {/* logo */}
-        <div className="flex items-center gap-2 text-xl font-bold">
+        <span className="flex items-center gap-2 text-xl font-bold whitespace-nowrap">
           💙 MY PUP
-        </div>
+        </span>
 
-        {/* search field */}
+        {/* search bar */}
         <input
           type="text"
           placeholder="Search puppies, breeds, or breeders…"
-          className="flex-1 max-w-lg px-4 py-2 rounded-md border bg-gray-50 focus:outline-none"
+          className="flex-1 max-w-lg px-4 py-2 bg-gray-100 rounded-md text-sm focus:outline-none"
         />
 
-        {/* auth buttons (mini) */}
+        {/* mini auth buttons */}
         <div className="flex gap-3">
           <button 
             onClick={() => navigate('/auth')}
-            className="px-4 py-1 rounded-full bg-blue-600 text-white hover:bg-blue-700 text-sm"
+            className="px-4 py-1 rounded-full bg-blue-600 text-white text-sm hover:bg-blue-700"
           >
             Sign In
           </button>
           <button 
             onClick={() => navigate('/auth')}
-            className="px-4 py-1 rounded-full bg-blue-600 text-white hover:bg-blue-700 text-sm"
+            className="px-4 py-1 rounded-full bg-blue-600 text-white text-sm hover:bg-blue-700"
           >
             Sign Up
           </button>
@@ -43,35 +43,37 @@ const Greeting = () => {
           Find Your Perfect <br />
           <span className="text-blue-600">Puppy Companion</span>
         </h1>
+
         <p className="mt-4 max-w-xl text-gray-600">
-          Connect with verified breeders and discover adorable, healthy puppies waiting for their forever homes.
+          Connect with verified breeders and discover adorable, healthy puppies
+          waiting for their forever homes.
         </p>
 
-        {/* four blue pill buttons with icons in one row */}
-        <div className="mt-6 flex flex-wrap gap-4 justify-center">
+        {/* pill buttons row */}
+        <div className="mt-10 flex flex-wrap gap-4 justify-center">
           <button 
             onClick={() => navigate('/auth')}
-            className="flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-blue-600 text-white hover:bg-blue-700 shadow"
+            className="w-32 px-6 py-3 rounded-full bg-blue-600 text-white hover:bg-blue-700 shadow"
           >
-            👤 Sign Up
+            Sign Up
           </button>
           <button 
             onClick={() => navigate('/auth')}
-            className="flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-blue-600 text-white hover:bg-blue-700 shadow"
+            className="w-32 px-6 py-3 rounded-full bg-blue-600 text-white hover:bg-blue-700 shadow"
           >
-            🔑 Sign In
+            Sign In
           </button>
-          <button 
+          <button
             onClick={() => navigate('/explore')}
-            className="flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-blue-600 text-white hover:bg-blue-700 shadow"
+            className="w-32 px-6 py-3 rounded-full bg-blue-600 text-white hover:bg-blue-700 shadow"
           >
-            👁 Browse as Guest
+            Browse as Guest
           </button>
-          <button 
+          <button
             onClick={() => navigate('/explore')}
-            className="flex items-center justify-center gap-2 px-6 py-3 w-48 rounded-full bg-blue-600 text-white hover:bg-blue-700 shadow"
+            className="w-48 px-6 py-3 rounded-full bg-blue-600 text-white hover:bg-blue-700 shadow"
           >
-            🐾 Explore Puppies
+            Explore Puppies
           </button>
         </div>
 
