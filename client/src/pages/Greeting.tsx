@@ -6,25 +6,16 @@ const Greeting = () => {
 
   return (
     <main className="min-h-screen flex flex-col bg-gradient-to-br from-blue-50 to-blue-100">
-      {/* single white header */}
-      <header className="flex items-center gap-6 px-8 py-3 bg-white shadow-sm border-b">
-        <span className="flex items-center gap-2 text-xl font-bold">💙 MY PUP</span>
-
-        {/* search bar */}
-        <input
-          type="text"
-          placeholder="Search puppies, breeds, or breeders…"
-          className="flex-1 max-w-lg px-4 py-2 bg-gray-100 rounded-md text-sm focus:outline-none"
-        />
-
-        {/* mini auth buttons */}
+      {/* HEADER ─ logo left, auth buttons right */}
+      <header className="flex items-center justify-between px-8 py-3 bg-white shadow-sm">
+        <span className="text-xl font-bold flex items-center gap-2">💙 MY PUP</span>
         <div className="flex gap-3">
-          <button onClick={() => navigate('/auth')} className="px-4 py-1 rounded-full bg-blue-600 text-white text-sm hover:bg-blue-700">Sign In</button>
-          <button onClick={() => navigate('/auth')} className="px-4 py-1 rounded-full bg-blue-600 text-white text-sm hover:bg-blue-700">Sign Up</button>
+          <button onClick={() => navigate('/auth')} className="px-4 py-1 rounded-full bg-blue-600 text-white text-sm">Sign In</button>
+          <button onClick={() => navigate('/auth')} className="px-4 py-1 rounded-full bg-blue-600 text-white text-sm">Sign Up</button>
         </div>
       </header>
 
-      {/* hero */}
+      {/* HERO */}
       <section className="flex flex-col items-center justify-center flex-1 text-center px-4">
         <h1 className="text-4xl md:text-5xl font-extrabold leading-tight">
           Find Your Perfect <br />
@@ -32,23 +23,28 @@ const Greeting = () => {
         </h1>
 
         <p className="mt-4 max-w-xl text-gray-600">
-          Connect with verified breeders and discover adorable, healthy puppies
-          waiting for their forever homes.
+          Connect with verified breeders and discover adorable, healthy puppies waiting for their forever homes.
         </p>
 
-        {/* four pill buttons in one row */}
-        <div className="mt-10 flex flex-wrap gap-4 justify-center">
-          <button onClick={() => navigate('/auth')} className="w-[128px] px-6 py-3 rounded-full bg-blue-600 text-white hover:bg-blue-700 shadow">Sign Up</button>
-          <button onClick={() => navigate('/auth')} className="w-[128px] px-6 py-3 rounded-full bg-blue-600 text-white hover:bg-blue-700 shadow">Sign In</button>
-          <button onClick={() => navigate('/explore')} className="w-[128px] px-6 py-3 rounded-full bg-blue-600 text-white hover:bg-blue-700 shadow">
-            Browse as Guest
+        {/* ROW 1 – three pills */}
+        <div className="mt-8 flex flex-wrap gap-4 justify-center">
+          <button onClick={() => navigate('/auth')} className="w-40 px-6 py-3 rounded-full bg-blue-600 text-white flex justify-center items-center gap-2 shadow">
+            👤 Sign Up
           </button>
-          <button onClick={() => navigate('/explore')} className="w-[190px] px-6 py-3 rounded-full bg-blue-600 text-white hover:bg-blue-700 shadow">
-            Explore Puppies
+          <button onClick={() => navigate('/auth')} className="w-40 px-6 py-3 rounded-full bg-blue-600 text-white flex justify-center items-center gap-2 shadow">
+            🔑 Sign In
+          </button>
+          <button onClick={() => navigate('/explore')} className="w-44 px-6 py-3 rounded-full bg-blue-600 text-white flex justify-center items-center gap-2 shadow">
+            👀 Browse as Guest
           </button>
         </div>
 
-        {/* feature bullets */}
+        {/* ROW 2 – wide Explore button */}
+        <button onClick={() => navigate('/explore')} className="mt-4 w-56 px-6 py-3 rounded-full bg-blue-600 text-white flex justify-center items-center gap-2 shadow">
+          🔍 Explore Puppies
+        </button>
+
+        {/* Feature bullets */}
         <ul className="mt-8 flex flex-wrap gap-6 justify-center text-sm text-gray-500">
           <li className="flex items-center gap-1">🟢 Verified Breeders</li>
           <li className="flex items-center gap-1">❤️ Health Guaranteed</li>

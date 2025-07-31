@@ -1,0 +1,79 @@
+Here’s the fastest way to make /greeting look exactly like the 4-th screenshot:
+
+What must change
+Item	Screenshot	Current
+Header	logo + mini Sign In / Sign Up – no search bar	Header includes a search bar
+Buttons layout	Row 1: Sign Up · Sign In · Browse as Guest
+Row 2 (centered, wider): Explore Puppies	One row with 4 buttons
+Button style	Blue pill, white text, small icon at left	Blue pills (OK) but no icons & wrong layout
+Spacing	Buttons sit closer to headline; hero centered	Buttons lower
+
+Copy-paste this into src/pages/greeting.jsx
+(Replace the whole file → Save → Run → hard-refresh)
+
+jsx
+Copy
+Edit
+import Link from 'next/link';
+import { useRouter } from 'next/router';
+
+export default function Greeting() {
+  const router = useRouter();
+
+  return (
+    <main className="min-h-screen flex flex-col bg-gradient-to-br from-blue-50 to-blue-100">
+      {/* HEADER ─ logo left, auth buttons right */}
+      <header className="flex items-center justify-between px-8 py-3 bg-white shadow-sm">
+        <span className="text-xl font-bold flex items-center gap-2">💙 MY PUP</span>
+        <div className="flex gap-3">
+          <Link href="/signin" className="px-4 py-1 rounded-full bg-blue-600 text-white text-sm">Sign In</Link>
+          <Link href="/signup" className="px-4 py-1 rounded-full bg-blue-600 text-white text-sm">Sign Up</Link>
+        </div>
+      </header>
+
+      {/* HERO */}
+      <section className="flex flex-col items-center justify-center flex-1 text-center px-4">
+        <h1 className="text-4xl md:text-5xl font-extrabold leading-tight">
+          Find Your Perfect <br />
+          <span className="text-blue-600">Puppy Companion</span>
+        </h1>
+
+        <p className="mt-4 max-w-xl text-gray-600">
+          Connect with verified breeders and discover adorable, healthy puppies waiting for their forever homes.
+        </p>
+
+        {/* ROW 1 – three pills */}
+        <div className="mt-8 flex flex-wrap gap-4 justify-center">
+          {/* small icons via emoji (replace with Heroicons if desired) */}
+          <Link href="/signup" className="w-40 px-6 py-3 rounded-full bg-blue-600 text-white flex justify-center items-center gap-2 shadow">
+            👤 Sign Up
+          </Link>
+          <Link href="/signin" className="w-40 px-6 py-3 rounded-full bg-blue-600 text-white flex justify-center items-center gap-2 shadow">
+            🔑 Sign In
+          </Link>
+          <button onClick={() => router.push('/explore')} className="w-44 px-6 py-3 rounded-full bg-blue-600 text-white flex justify-center items-center gap-2 shadow">
+            👀 Browse as Guest
+          </button>
+        </div>
+
+        {/* ROW 2 – wide Explore button */}
+        <Link href="/explore" className="mt-4 w-56 px-6 py-3 rounded-full bg-blue-600 text-white flex justify-center items-center gap-2 shadow">
+          🔍 Explore Puppies
+        </Link>
+
+        {/* Feature bullets */}
+        <ul className="mt-8 flex flex-wrap gap-6 justify-center text-sm text-gray-500">
+          <li className="flex items-center gap-1">🟢 Verified Breeders</li>
+          <li className="flex items-center gap-1">❤️ Health Guaranteed</li>
+          <li className="flex items-center gap-1">⭐ 5-Star Support</li>
+        </ul>
+      </section>
+    </main>
+  );
+}
+Nothing else to edit
+No search bar anywhere in the header.
+
+Bottom nav bar stays visible (exactly as in the screenshot).
+
+Auth guards remain unchanged.
