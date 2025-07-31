@@ -472,3 +472,12 @@ The application is designed for modern web deployment with consideration for ser
 - All guest clicks on demo puppies redirect to /greeting page for account creation
 - Simplified architecture focuses on user experience: demo for conversion, functional filters for authenticated users
 - Live data fetching integrates with existing Supabase backend and listings API endpoints
+
+### Greeting Page Restoration (July 2025)
+- Restored greeting page to original clean hero layout design with "Find Your Perfect Puppy Companion" heading
+- Removed duplicate headers and complex card layouts for simplified user experience
+- Implemented fixed header with logo and auth buttons using backdrop blur effect
+- Created centered hero section with gradient background and clear call-to-action buttons
+- Added feature bullets (Verified Breeders, Health Guaranteed, 5-Star Support) for trust building
+- Maintained auth redirect functionality while streamlining visual presentation
+- Used proper button styling with white text on blue backgrounds and blue text on white backgrounds
