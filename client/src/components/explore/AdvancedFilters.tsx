@@ -287,7 +287,7 @@ const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
                       <SelectValue placeholder="Select state..." />
                     </SelectTrigger>
                     <SelectContent className="max-h-60">
-                      <SelectItem value="all">All Locations</SelectItem>
+                      <SelectItem value="">All Locations</SelectItem>
                       {US_STATES.map(state => (
                         <SelectItem key={state} value={state}>{state}</SelectItem>
                       ))}
