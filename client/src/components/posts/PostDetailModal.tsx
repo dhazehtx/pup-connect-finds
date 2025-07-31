@@ -35,7 +35,7 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({
   }, [post.is_liked]);
 
   const handleLike = () => {
-    setIsLiked(!isLiked);
+    setIsLiked(prev => !prev);
     onLike?.(post.id);
   };
 

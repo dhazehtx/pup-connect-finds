@@ -103,7 +103,7 @@ export const VideoPost: React.FC<VideoPostProps> = ({
   };
 
   const handleLike = () => {
-    setIsLiked(!isLiked);
+    setIsLiked(prev => !prev);
     onLike(post.id);
   };
 

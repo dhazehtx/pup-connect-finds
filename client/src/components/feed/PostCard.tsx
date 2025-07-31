@@ -67,7 +67,7 @@ export const PostCard: React.FC<PostCardProps> = ({
   const { user } = useAuth();
 
   const handleLike = () => {
-    setIsLiked(!isLiked);
+    setIsLiked(prev => !prev);
     onLike?.(post.id);
   };
 

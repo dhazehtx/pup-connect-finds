@@ -168,7 +168,7 @@ const FullPostModal = ({
   const organizedComments = organizeComments(comments);
 
   const handleLike = () => {
-    setLiked(!liked);
+    setLiked(prev => !prev);
     setLikeCount(prev => liked ? prev - 1 : prev + 1);
   };
 
