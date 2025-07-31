@@ -31,6 +31,9 @@ import logsRouter from './routes/logs';
 // Logging middleware
 import { apiLoggingMiddleware, performanceLogger } from './middleware/loggingMiddleware';
 
+// Admin logging utilities
+import { logPostAction, logCommentAction, logSubscriptionAction } from './utils/adminLogger';
+
 // Stripe initialization
 import Stripe from 'stripe';
 
@@ -289,6 +292,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const validatedData = insertPostSchema.parse(req.body);
       const post = await storage.createPost(validatedData);
+      
+      // Log admin action for post creation
+      if (validatedData.user_id) {
+        await logPostAction(validatedData.user_id, 'create', post.id);
+      }
+      
       res.json(post);
     } catch (error) {
       console.error("Error creating post:", error);
@@ -311,6 +320,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const validatedData = insertCommentSchema.parse(req.body);
       const comment = await storage.createComment(validatedData);
+      
+      // Log admin action for comment creation
+      if (validatedData.user_id) {
+        await logCommentAction(validatedData.user_id, 'create', comment.id);
+      }
+      
       res.json(comment);
     } catch (error) {
       console.error("Error creating comment:", error);
@@ -643,6 +658,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
             stripe_subscription_id: subscription.id,
           });
           
+          // Log admin action for subscription creation/update
+          if (subscription.metadata.userId) {
+            const action = event.type === 'customer.subscription.created' ? 'create' : 'update';
+            await logSubscriptionAction(subscription.metadata.userId, action, subscription.id);
+          }
+          
           console.log('Subscription updated:', subscription.id);
           break;
 
@@ -660,6 +681,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
             product_type: 'premium_subscription',
             stripe_subscription_id: canceledSubscription.id,
           });
+          
+          // Log admin action for subscription cancellation
+          if (canceledSubscription.metadata.userId) {
+            await logSubscriptionAction(canceledSubscription.metadata.userId, 'delete', canceledSubscription.id);
+          }
           
           console.log('Subscription canceled:', canceledSubscription.id);
           break;
@@ -986,6 +1012,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const subscription = await stripe.subscriptions.update(subscriptionId, {
         cancel_at_period_end: true,
       });
+
+      // Log admin action for subscription cancellation
+      await logSubscriptionAction(userId, 'delete', subscriptionId);
 
       res.json({
         success: true,
