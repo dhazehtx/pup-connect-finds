@@ -4,6 +4,13 @@
 
 MY PUP is a comprehensive dog listing platform connecting dog lovers with breeders, rescues, and individual sellers. It serves as a marketplace for buying and selling dogs, offering integrated messaging, educational resources, and safety features. The platform aims to provide a trusted and efficient environment for dog adoption and sales, with a vision for substantial market potential in the pet industry.
 
+## Recent Changes (July 31, 2025)
+
+✅ **Critical Navigation Bug Fixed**: Resolved authentication flow issue where authenticated users couldn't navigate between protected routes (Home, Messages, Profile). 
+- **Root Cause**: API client wasn't sending Supabase JWT tokens in Authorization headers
+- **Solution**: Updated `client/src/lib/api.ts` to automatically include `Authorization: Bearer <token>` headers
+- **Result**: Bottom navigation tabs now work correctly for authenticated users while maintaining RequireAuth guards
+
 ## User Preferences
 
 Preferred communication style: Simple, everyday language.

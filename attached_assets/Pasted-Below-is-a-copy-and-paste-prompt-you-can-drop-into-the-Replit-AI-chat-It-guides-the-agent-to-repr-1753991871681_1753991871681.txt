@@ -1,0 +1,74 @@
+Below is a copy-and-paste prompt you can drop into the Replit-AI chat.
+It guides the agent to:
+
+reproduce the “buttons do nothing when I’m signed-in” bug,
+
+trace the 401 / 406 / 500 errors you see in the right-hand console, and
+
+patch both the client (navigation handlers + auth context) and the server (Supabase RPC / middleware) so every nav item responds instantly for an authenticated user.
+
+prompt
+Copy
+Edit
+### BUG: No navigation / button action after sign-in  
+While signed-out everything redirects correctly.  
+As soon as I log in:
+
+* BottomNavigation buttons (Home / Messages / Profile) show **no UI change**.  
+* Console shows 401, 406 or 500 responses from
+GET …/rest/v1/user_preferences?select=*
+/profiles → 406 (Not acceptable)
+/user_preferences → 500 (Internal Server Error)
+
+markdown
+Copy
+Edit
+* React console log: `Auth state changed: SIGNED_IN` followed by *fetch failed*.
+
+#### What to do
+1. **Reproduce the bug**  
+ * Sign in with any test user.  
+ * Click Home, Messages, Profile 2–3 times – watch the console / Network tab.
+
+2. **Trace where it breaks**  
+ * `client/src/components/BottomNavigation.tsx` – confirm onClick uses `navigate()` or `<NavLink>`.  
+ * `AuthContext` – check that `session?.access_token` exists by the time the click happens.  
+ * Network tab – confirm the failing request includes a valid `Authorization: Bearer <token>` header.
+
+3. **Patch**  
+ **Client**  
+ * If `session` is `null` on first click, wait for `supabase.auth.getSession()` (or `onAuthStateChange`) before navigating.  
+ * Ensure every `fetch()`/Axios call sets
+   ```js
+   headers: { Authorization: `Bearer ${session?.access_token}` }
+   ```
+   (or rely on `supabase.from()` which handles this).
+
+ **Server**  
+ * Open `server/middleware/auth.ts` (or equivalent).  
+ * Accept the Supabase JWT:  
+   ```ts
+   const token = req.headers.authorization?.replace('Bearer ', '');
+   const { data: user, error } = await supabase.auth.getUser(token);
+   ```  
+ * Attach `req.user = user` and `next()` only if `!error`.
+
+ * For REST 406 errors, add  
+   ```ts
+   res.setHeader('Accept', 'application/json');
+   ```  
+   or update the Supabase query to `supabase.from('profiles').select('*')`.
+
+4. **Test again**  
+ * Sign-in → click every nav item – confirm route changes **immediately** and no red errors in the console.  
+ * Verify signed-out users are still redirected back to `/greeting`.
+
+5. **Clean-up & commit**  
+ * Remove any temporary `console.log`.  
+ * Commit message:  
+   ```
+   fix(nav): restore tab navigation for authenticated users
+   chore(api): accept Supabase JWT + correct Accept headers
+   ```
+
+Return ✅ **“Navigation working for authenticated users – no 401/406/500 in console”** when finished, or list any edge-cases still failing.
