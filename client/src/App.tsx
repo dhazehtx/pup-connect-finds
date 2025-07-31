@@ -78,6 +78,7 @@ const SessionTestPage = lazy(() => import('./pages/SessionTestPage'));
 
 // Import new notification component
 import NotificationButton from './components/notifications/NotificationButton';
+import Greeting from './pages/Greeting';
 
 
 
@@ -94,7 +95,7 @@ function App() {
                   <PageTransition>
                   <Routes>
                   <Route path="/" element={<ProtectedRoute><HomeFeedPage /></ProtectedRoute>} />
-                  <Route path="/greeting" element={<Home />} />
+                  <Route path="/greeting" element={<Greeting />} />
                   <Route path="/home" element={<ProtectedRoute><HomeFeedPage /></ProtectedRoute>} />
                   <Route path="/explore" element={
                     <Suspense fallback={<LoadingPage message="Loading Explore..." />}>
