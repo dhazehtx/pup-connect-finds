@@ -5,6 +5,7 @@ import { Home, Search, ShoppingBag, MessageCircle, User } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { useNotifications } from '@/hooks/useNotifications';
+import { logNav } from '@/lib/adminLog';
 
 import GuestPrompt from '@/components/GuestPrompt';
 
@@ -24,10 +25,12 @@ const BottomNavigation = () => {
       return;
     }
     
+    logNav({ from: location.pathname, to: path });
     navigate(path);
   };
 
   const handleNavigation = (path: string) => {
+    logNav({ from: location.pathname, to: path });
     navigate(path);
   };
 

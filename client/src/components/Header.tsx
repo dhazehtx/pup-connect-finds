@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Heart, Menu, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
@@ -8,12 +8,14 @@ import { useToast } from '@/hooks/use-toast';
 import NotificationBadge from '@/components/notifications/NotificationBadge';
 import NotificationCenter from '@/components/notifications/NotificationCenter';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
+import { logNav } from '@/lib/adminLog';
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const { user, signOut, isGuest } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const { toast } = useToast();
 
   const handleSignOut = async () => {
@@ -47,10 +49,17 @@ const Header = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
-          <Link to={getHomeLink()} className="flex items-center space-x-2">
+          <button 
+            onClick={() => {
+              const homeLink = getHomeLink();
+              logNav({ from: location.pathname, to: homeLink });
+              navigate(homeLink);
+            }}
+            className="flex items-center space-x-2 cursor-pointer"
+          >
             <Heart className="h-8 w-8 text-blue-600" />
             <span className="text-xl font-bold text-gray-900 dark:text-white">MY PUP</span>
-          </Link>
+          </button>
 
           {/* Simple Sign In/Sign Up buttons on the right */}
           <div className="flex items-center space-x-4">

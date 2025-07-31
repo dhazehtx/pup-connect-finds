@@ -1,0 +1,111 @@
+### Un-freeze navigation -- kill remaining 404/406 on insert_admin_log + user_preferences
+
+**Current blocking errors**
+
+| Route | Status | Console hint |
+|-------|--------|--------------|
+| POST /rest/v1/**rpc/insert_admin_log** | 404 (Not Found) | “function public.insert_admin_log not found in schema cache” |
+| GET  /rest/v1/**user_preferences?select=*** | 406 | no Accept / Bearer header |
+
+These requests fire every time a nav tab is clicked; the rejected Promises bubble up and React Suspense freezes the page.
+
+---
+
+#### 1  Make insert_admin_log safe
+
+*File *: **client/src/lib/adminLog.ts (new)**  
+```ts
+import { api } from '@/lib/api';
+
+export async function logNav(event: {from:string; to:string}) {
+  try {
+    // Call the RPC only if it exists – swallow 404 to avoid UI crash
+    const res = await api('rpc/insert_admin_log', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ event_type: 'NAVIGATION', payload: event })
+    });
+    if (res.status === 404) return;        // function not deployed in prod → ignore
+    if (!res.ok) console.warn('admin log error', await res.text());
+  } catch (err) {
+    console.warn('admin log network error', err);
+  }
+}
+*File *: client/src/components/BottomNavigation.tsx
+
+diff
+Copy
+Edit
+ import { logNav } from '@/lib/adminLog';
+ ...
+ onClick={() => {
+   logNav({ from: location.pathname, to: item.path });
+   navigate(item.path);
+ }}
+(Do the same for the Header logo onClick.)
+
+2 Always fetch user_preferences via shared helper
+*File *: client/src/pages/Home.tsx
+
+diff
+Copy
+Edit
+-import useSWR from 'swr';
+-const { data: prefs } = useSWR('/rest/v1/user_preferences?select=*', fetch);
++import { api } from '@/lib/api';
++import { useQuery } from '@tanstack/react-query';
++const { data: prefs } = useQuery(['prefs'], () =>
++  api('user_preferences?select=*').then(r => r.json())
++);
+That guarantees Accept: application/json and Authorization: Bearer …, eliminating the 406.
+
+3 Quick DB hot-fix (optional but cleaner)
+If you do want the analytics:
+
+sql
+Copy
+Edit
+-- SQL editor in Supabase
+create or replace function public.insert_admin_log(
+  _lvl text default 'INFO',
+  _event_type text,
+  _payload jsonb)
+returns void language plpgsql as $$
+begin
+  insert into admin_logs(level,event_type,payload)
+  values(_lvl, _event_type, _payload);
+end $$;
+4 Run & verify
+Restart dev server.
+
+Open DevTools → Network, click Home / Messages / Profile.
+
+No more 404/406.
+
+Any 2xx/304 responses are OK.
+
+Do not touch RequireAuth or CSP again – they’re correct now.
+
+End prompt
+yaml
+Copy
+Edit
+
+---
+
+**What this does**
+
+* Prevents the missing **insert_admin_log** RPC from ever blocking UI.  
+* Routes all Supabase REST calls through your `api()` helper so headers are always set.  
+* Keeps analytics optional – add the SQL later if you really need it.  
+
+Paste the block above into the Replit chat, let the agent apply the changes, restart, and the navigation buttons (and logo) should respond instantly without freezing.
+
+
+
+
+
+
+
+
+Ask ChatGPT
