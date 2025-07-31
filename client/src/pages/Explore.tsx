@@ -181,17 +181,12 @@ const Explore = () => {
   // }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="container mx-auto px-4 py-6">
-        <div className="mb-6">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Explore Puppies</h1>
-          <p className="text-gray-600">Find your perfect puppy companion from verified breeders</p>
-        </div>
-        
-        <SearchInput placeholder="Search puppies, breeds, or breeders..." />
-        <BreedFilterTabs />
-        <PuppyGrid data={[]} />
-      </div>
+    <div className="px-4 py-6">
+      <h1 className="text-2xl font-bold mb-4">Explore Puppies</h1>
+      <p className="mb-6">Find your perfect puppy companion from verified breeders</p>
+      <SearchInput placeholder="Search puppies, breeds, or breeders..." />
+      <BreedFilterTabs />
+      <PuppyGrid data={[]} />
     </div>
   );
 };
