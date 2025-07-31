@@ -9,6 +9,7 @@ import { RealtimeProvider } from './contexts/RealtimeContext';
 import Layout from './components/Layout';
 import AdminNavigationTracker from './components/admin/AdminNavigationTracker';
 import CookieConsentBanner from '@/components/privacy/CookieConsentBanner';
+import SessionExpiredModal from '@/components/auth/SessionExpiredModal';
 
 import { PageTransition } from './components/ui/transitions';
 import Home from './pages/Home';
@@ -73,6 +74,7 @@ const PrivacyPolicyPage = lazy(() => import('./pages/PrivacyPolicyPage'));
 const PrivacySettingsPage = lazy(() => import('./pages/PrivacySettingsPage'));
 const SubscriptionSuccess = lazy(() => import('./pages/SubscriptionSuccess'));
 const SubscriptionCancelled = lazy(() => import('./pages/SubscriptionCancelled'));
+const SessionTestPage = lazy(() => import('./pages/SessionTestPage'));
 
 // Import new notification component
 import NotificationButton from './components/notifications/NotificationButton';
@@ -321,10 +323,16 @@ function App() {
                       <SubscriptionCancelled />
                     </Suspense>
                   } />
+                  <Route path="/session-test" element={
+                    <Suspense fallback={<LoadingPage message="Loading Session Test..." />}>
+                      <SessionTestPage />
+                    </Suspense>
+                  } />
                   </Routes>
                 </PageTransition>
               </Layout>
               <CookieConsentBanner />
+              <SessionExpiredModal />
             </ThemeProvider>
           </RealtimeProvider>
         </AuthProvider>

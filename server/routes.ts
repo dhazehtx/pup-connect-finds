@@ -9,6 +9,7 @@ import communityRouter from './routes/community';
 import groupPostsRouter from './routes/group-posts';
 import supportRouter from './routes/support';
 import bugsRouter from './routes/bugs';
+import authRouter from './routes/auth';
 import { registerHealthRoutes } from './routes/health';
 import { storage } from "./storage";
 import { 
@@ -1080,6 +1081,81 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Register notifications routes
   app.use('/api/notifications', notificationsRouter);
+
+
+
+  // Auth routes for session management (must be before 404 handler)
+  app.post("/api/auth/refresh", async (req, res) => {
+    try {
+      const userId = req.body?.user_id || req.user?.id;
+      
+      if (!userId) {
+        return res.status(401).json({ 
+          error: 'Not authenticated',
+          message: 'User ID not found in request' 
+        });
+      }
+
+      // Update user's last activity
+      await storage.updateProfile(userId, {
+        updated_at: new Date(),
+        last_login_ip: req.ip || req.connection.remoteAddress || 'unknown'
+      });
+
+      res.json({ 
+        success: true, 
+        message: 'Session refreshed',
+        timestamp: new Date().toISOString()
+      });
+    } catch (error) {
+      console.error('Auth refresh error:', error);
+      res.status(500).json({ 
+        error: 'Internal server error',
+        message: 'Failed to refresh session' 
+      });
+    }
+  });
+
+  app.get("/api/auth/status", async (req, res) => {
+    try {
+      const userId = req.query?.user_id as string || req.user?.id;
+      
+      if (!userId) {
+        return res.status(401).json({ 
+          authenticated: false,
+          message: 'No user session found' 
+        });
+      }
+
+      const profile = await storage.getProfile(userId);
+      if (!profile) {
+        return res.status(404).json({ 
+          authenticated: false,
+          message: 'User profile not found' 
+        });
+      }
+
+      // Check session validity (15 minutes)
+      const now = Date.now();
+      const lastActive = new Date(profile.updated_at!).getTime();
+      const fifteenMinutes = 15 * 60 * 1000;
+      const isExpired = now - lastActive > fifteenMinutes;
+
+      res.json({
+        authenticated: !isExpired,
+        user_id: userId,
+        last_active: profile.updated_at,
+        session_expired: isExpired,
+        time_remaining: isExpired ? 0 : fifteenMinutes - (now - lastActive)
+      });
+    } catch (error) {
+      console.error('Session status check error:', error);
+      res.status(500).json({ 
+        error: 'Internal server error',
+        message: 'Failed to check session status' 
+      });
+    }
+  });
 
   // Register health check routes
   registerHealthRoutes(app);
