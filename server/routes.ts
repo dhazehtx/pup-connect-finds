@@ -319,6 +319,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get posts for authenticated user's home feed
+  app.get('/api/posts/home-feed', authMiddleware, async (req, res) => {
+    try {
+      console.log('[API] Home feed request for user:', req.user?.id);
+      
+      // For now, return empty array since we don't have posts in the database yet
+      // In the future, this would fetch posts from followed users, etc.
+      const posts = [];
+      
+      console.log('[API] Returning home feed with', posts.length, 'posts');
+      res.json(posts);
+    } catch (error) {
+      console.error('[API] Error fetching home feed:', error);
+      res.status(500).json({ error: 'Failed to fetch home feed' });
+    }
+  });
+
   app.post("/api/posts", sessionTimeout, async (req, res) => {
     try {
       const validatedData = insertPostSchema.parse(req.body);
