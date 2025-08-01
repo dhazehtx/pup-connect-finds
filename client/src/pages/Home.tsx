@@ -1,7 +1,7 @@
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -10,27 +10,45 @@ import { Heart, Search, Shield, Users, Star, ArrowRight, UserPlus, LogIn, Eye } 
 const Home = () => {
   const { user, loading, continueAsGuest, isGuest } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
-  // Debug logging - throttled to avoid excessive re-renders
-  useEffect(() => {
-    console.log('[HOME PAGE] Component state changed', { user: !!user, loading, isGuest });
-  }, [user, loading, isGuest]);
+  // 1. INSTRUMENT FOR CLARITY - Comprehensive logging
+  console.log('[HOME PAGE] Rendering Home component', {
+    userId: user?.id,
+    hasUser: !!user,
+    loading,
+    isGuest,
+    pathname: location.pathname,
+    timestamp: Date.now()
+  });
+
+  // Stable user identity for dependency tracking
+  const stableUserId = useMemo(() => user?.id || null, [user?.id]);
 
   useEffect(() => {
-    console.log('[HOME PAGE] Component mounted');
+    console.log('[HOME PAGE] Component mounted', { user: !!user, loading, isGuest });
     document.title = 'My Pup - Find Your Perfect Puppy Companion';
+    return () => console.log('[HOME PAGE] Component unmounted');
   }, []);
 
   useEffect(() => {
-    console.log('[HOME PAGE] Auth state changed:', { user: !!user, loading, isGuest });
-  }, [user, loading, isGuest]);
+    console.log('[HOME PAGE] Auth state changed:', { 
+      userId: stableUserId, 
+      hasUser: !!user, 
+      loading, 
+      isGuest,
+      pathname: location.pathname
+    });
+  }, [stableUserId, !!user, loading, isGuest, location.pathname]);
 
-  // Force redirect when signed out - adapted for React Router
+  // 2. AUDIT AND FIX GUARD LOGIC - Prevent redirect loops
   useEffect(() => {
-    if (!loading && !user && !isGuest) {
-      navigate('/greeting');
+    // Only redirect if we're definitely not authenticated and not on greeting page
+    if (!loading && !user && !isGuest && location.pathname !== '/greeting') {
+      console.log('[HOME PAGE] Redirecting unauthenticated user to greeting from:', location.pathname);
+      navigate('/greeting', { replace: true });
     }
-  }, [user, loading, isGuest, navigate]);
+  }, [loading, user, isGuest, location.pathname, navigate]);
 
   const handleGuestAccess = () => {
     continueAsGuest();

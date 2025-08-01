@@ -1,0 +1,122 @@
+Prompt for fixing navigation freeze / rendering bug in pup-connect-finds
+
+Context:
+When signed in, clicking the Home or Explore navigation tabs (or logo) updates the URL but the UI either “freezes” (content doesn’t render properly) or shows excessive/repeated rendering logs. There are no 4xx/5xx network errors during these transitions, so the problem is client-side. Console shows repeated component render logs like Rendering ExploreAuth component, Rendering Home component even when nothing should be changing, suggesting possible redirect loops, guard logic issues, or state updates causing infinite re-renders.
+
+Goal:
+Make navigation instantaneous and correct. Clicking logo / Home / Explore / Messages / Profile should change view, mount the appropriate component exactly once per navigation, reflect the current auth state, and not cause UI freezes or runaway re-renders.
+
+Tasks (in order, but apply holistically):
+
+Instrument for clarity:
+
+Add scoped console logs at the top of each route/page component: HomePage, ExplorePage, ExploreAuth, ExploreGuest, etc., logging mount/unmount, incoming props/state, and auth status. Example:
+
+ts
+Copy
+Edit
+useEffect(() => {
+  console.log('[HOME PAGE] Component mounted', { user, loading, isGuest });
+  return () => console.log('[HOME PAGE] Component unmounted');
+}, []);
+Log inside any navigation guard: current path, target path, and whether a redirect is happening. Prevent blind redirects to the same route.
+
+Audit and fix guard logic / redirects:
+
+Ensure the “require auth” guard doesn’t inadvertently redirect in a loop or trigger on already-correct routes. Before calling navigate(...), compare location.pathname to the intended target; skip if identical.
+
+If guard uses user/session state, make sure it waits for stable resolution (e.g., if (loading) return null; before deciding).
+
+Fix infinite or excessive re-renders:
+
+Search for any setState calls that happen unconditionally during render or in useEffect without proper dependency guards. For example, avoid patterns like:
+
+ts
+Copy
+Edit
+useEffect(() => {
+  if (!user) setUser(fetched); // could cause loop if user stays falsy temporarily
+});
+Instead, guard:
+
+ts
+Copy
+Edit
+useEffect(() => {
+  if (!user && session) {
+    setUser(...);
+  }
+}, [user, session]);
+Validate all useEffect dependency arrays: include all external values used, and don’t recreate stable callbacks on every render. Use useCallback / useMemo where appropriate for derived state used in children to prevent cascading re-renders.
+
+Auth context stability:
+
+Verify AuthContext (or equivalent) does not reset or recompute the user on every route change. It should derive once from the supabase session and memoize it. Example:
+
+ts
+Copy
+Edit
+const value = useMemo(() => ({ user, hasUser: !!user, ... }), [user]);
+Component rendering conditions:
+
+On the Explore/Home pages, ensure they conditionally render based on stable flags (e.g., if (loading) return <Loading/>;). Don’t mix guest vs auth logic that toggles rapidly causing flicker or re-mounting.
+
+Navigation link correctness:
+
+Confirm the logo and bottom nav items use proper React Router Link or NavLink (not full reloads) and aren’t triggering unnecessary state resets. Example:
+
+tsx
+Copy
+Edit
+<Link to="/home" aria-label="Home">...</Link>
+Debounce or throttle heavy logic if needed:
+
+If any expensive computation or fetch is tied to navigation, debounce it so the UI isn’t blocked on route changes.
+
+Fallback / error boundary:
+
+Add a local fallback UI in case the home/explore component fails to render, and surface any unexpected exceptions instead of freezing silently.
+
+Post-fix verification instructions:
+
+Click logo and each bottom tab: Home, Explore, Messages, Profile (signed-in and guest states).
+
+Expect: URL updates, component mount log appears once per navigation, no freezes, no excessive repeated render logs for the same view.
+
+Confirm Network tab shows no errors and that page content appears.
+
+Ensure guard logic does not cause redirects to itself.
+
+Optional improvement (if not already done): shared navigation/fetch helper
+
+Verify all Supabase requests (including preference fetching) go through a helper that attaches required headers and uses cached session, e.g.:
+
+ts
+Copy
+Edit
+export async function api(path: string, opts: RequestInit = {}) {
+  const { data: { session } } = await supabase.auth.getSession();
+  return fetch(`${import.meta.env.VITE_SUPABASE_URL}/rest/v1/${path}`, {
+    ...opts,
+    headers: {
+      Accept: 'application/json',
+      Authorization: `Bearer ${session?.access_token || ''}`,
+      ...(opts.headers || {}),
+    },
+  });
+}
+Deliverable requested from you:
+
+A patch/diff that:
+
+Fixes any redirect loop in guard logic.
+
+Corrects useEffect dependency issues causing re-renders.
+
+Stabilizes auth context provisioning.
+
+Ensures Home/Explore components mount once per navigation.
+
+Adds the instrumentation logs described above.
+
+A brief summary after applying: what was the root cause of the “freeze” and what change eliminated it.

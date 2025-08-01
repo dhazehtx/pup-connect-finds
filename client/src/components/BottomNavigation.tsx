@@ -18,10 +18,25 @@ const BottomNavigation = () => {
   const [showGuestPrompt, setShowGuestPrompt] = useState(false);
   const [promptAction, setPromptAction] = useState('');
 
+  // 2. AUDIT AND FIX GUARD LOGIC - Prevent redundant navigation
   const handleProtectedNavigation = async (path: string, action: string) => {
+    console.log('[BOTTOM NAV] Protected navigation guard:', {
+      currentPath: location.pathname,
+      targetPath: path,
+      hasUser: !!user,
+      isGuest,
+      shouldRedirect: !user && !isGuest
+    });
+
+    // Skip navigation if already on target path
+    if (location.pathname === path) {
+      console.log('[BOTTOM NAV] Already on target path, skipping navigation');
+      return;
+    }
+
     if (!user && !isGuest) {
-      // Force redirect to greeting page for unauthenticated users
-      navigate('/greeting');
+      console.log('[BOTTOM NAV] Redirecting unauthenticated user to greeting');
+      navigate('/greeting', { replace: true });
       return;
     }
     
@@ -30,6 +45,17 @@ const BottomNavigation = () => {
   };
 
   const handleNavigation = (path: string) => {
+    console.log('[BOTTOM NAV] Regular navigation:', {
+      currentPath: location.pathname,
+      targetPath: path
+    });
+
+    // Skip navigation if already on target path
+    if (location.pathname === path) {
+      console.log('[BOTTOM NAV] Already on target path, skipping navigation');
+      return;
+    }
+
     logNav({ from: location.pathname, to: path });
     navigate(path);
   };

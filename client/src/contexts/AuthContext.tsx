@@ -63,26 +63,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     return !authState.user && localStorage.getItem('guestMode') === 'true';
   }, [authState.user]);
 
-  // 3. REFACTOR - ROOT CAUSE FIX: Simplify and stabilize with minimal propagation
-  // Only re-memoize when actual identity changes, not object references
-  const stableUser = useMemo(() => authState.user, [authState.user?.id]);
-  const stableProfile = useMemo(() => authState.profile, [authState.profile?.id]);
-  
-  // Memoize the entire context value to prevent unnecessary re-renders
+  // 3. REFACTOR - COMPREHENSIVE FIX: Stabilize auth context completely
+  // Create stable context value that only changes when core identity changes
   const value: AuthContextType = useMemo(() => {
-    console.log('[AUTH CONTEXT] Creating new context value:', {
-      userId: authState.user?.id,
-      hasUser: !!authState.user,
-      loading: authState.loading,
-      isGuest,
-      timestamp: Date.now()
-    });
+    // Only log when context actually needs to be recreated
+    console.log('[AUTH CONTEXT] Context stable, user ID:', authState.user?.id || 'none');
     
     return {
-      user: stableUser,
+      user: authState.user,
       session: authState.session,
       loading: authState.loading,
-      profile: stableProfile,
+      profile: authState.profile,
       isGuest,
       signUp,
       signIn,
@@ -93,18 +84,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       resetPassword,
     };
   }, [
-    stableUser,
-    authState.session,
-    authState.loading,
-    stableProfile,
-    authState.signOut,
-    authState.refreshProfile,
-    isGuest,
-    signUp,
-    signIn,
-    updateProfile,
-    continueAsGuest,
-    resetPassword,
+    // Only re-create context when these core values actually change
+    authState.user?.id,  // User identity only, not full object
+    authState.session?.access_token, // Session identity only
+    authState.loading,   // Loading state
+    isGuest,            // Guest mode
   ]);
 
   return (

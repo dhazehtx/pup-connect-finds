@@ -260,21 +260,16 @@ export const useAuthState = () => {
     };
   }, []);
 
-  // 4. CENTRALIZE AND STABILIZE - Return stable function references
-  const stableAPI = useMemo(() => ({
+  return {
+    user,
+    session,
+    loading,
+    profile,
     signUp,
     signIn,
     signOut,
     updateProfile,
     refreshProfile,
     resetPassword
-  }), []);
-
-  return {
-    user,
-    session,
-    loading,
-    profile,
-    ...stableAPI
   };
 };
