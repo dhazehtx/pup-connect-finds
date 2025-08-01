@@ -1,9 +1,11 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useQuery } from '@tanstack/react-query';
 import PostCard from './PostCard';
 import { usePosts } from '@/hooks/usePosts';
 import FullPostModal from '@/components/post/FullPostModal';
+import { apiRequest } from '@/lib/api';
 
 interface User {
   id: string;
@@ -130,15 +132,72 @@ const initialMockPosts: Post[] = [
 ];
 
 const HomeFeed = () => {
-  const { user } = useAuth();
-  const { posts: dbPosts, loading } = usePosts();
+  const { user, loading: authLoading } = useAuth();
   const [mockPosts, setMockPosts] = useState(initialMockPosts);
   const [selectedPost, setSelectedPost] = useState<any>(null);
   const [showFullPostModal, setShowFullPostModal] = useState(false);
 
-  // Convert database posts to display format
+  // 1. ONE-TIME FETCH GUARD - Prevent fetch loops with ref guard
+  const hasFetchedPostsRef = useRef(false);
+
+  console.log('[HOME FEED] Rendering component', {
+    userId: user?.id,
+    hasUser: !!user,
+    authLoading,
+    hasFetchedPosts: hasFetchedPostsRef.current
+  });
+
+  useEffect(() => {
+    console.log('[HOME FEED] Component mounted');
+    return () => {
+      console.log('[HOME FEED] Component unmounted');
+      // Reset fetch guard on unmount
+      hasFetchedPostsRef.current = false;
+    };
+  }, []);
+
+  // 2. DELAY FETCH UNTIL AUTH IS SETTLED - Wait for auth loading to complete
+  const shouldFetchPosts = !authLoading && user && !hasFetchedPostsRef.current;
+
+  // Fetch posts with proper guards
+  const { data: dbPosts, isLoading: postsLoading, error: postsError } = useQuery({
+    queryKey: ['home-feed-posts'],
+    queryFn: async () => {
+      console.log('[HOME FEED] Starting posts fetch...');
+      hasFetchedPostsRef.current = true;
+      
+      try {
+        // Try to fetch from API
+        const response = await apiRequest('/api/posts/home-feed');
+        console.log('[HOME FEED] Posts data loaded from API:', response?.length || 0, 'posts');
+        return response || [];
+      } catch (error) {
+        console.error('[HOME FEED] Posts fetch error:', error);
+        // Return empty array - use mock posts as fallback in component logic
+        console.log('[HOME FEED] Using mock posts as fallback');
+        return [];
+      }
+    },
+    enabled: shouldFetchPosts,
+  });
+
+  // 3. LOG CLEARLY WHEN DATA ARRIVES OR ERRORS
+  useEffect(() => {
+    if (dbPosts && Array.isArray(dbPosts)) {
+      console.log('[HOME FEED] Posts data loaded successfully:', dbPosts.length, 'items');
+    }
+    if (postsError) {
+      console.error('[HOME FEED] Posts loading failed:', postsError);
+    }
+  }, [dbPosts, postsError]);
+
+  const loading = authLoading || postsLoading;
+
+  // Convert database posts to display format or use mock data
   const displayPosts = React.useMemo(() => {
-    if (dbPosts && dbPosts.length > 0) {
+    // Use database posts if available and not empty
+    if (dbPosts && Array.isArray(dbPosts) && dbPosts.length > 0) {
+      console.log('[HOME FEED] Using database posts:', dbPosts.length);
       return dbPosts.map(post => ({
         id: post.id,
         postUuid: post.id,
@@ -150,7 +209,7 @@ const HomeFeed = () => {
           avatar: post.profiles?.avatar_url || `https://i.pravatar.cc/150?u=${post.user_id}`,
         },
         image: post.image_url || 'https://placedog.com/500/280',
-        likes: 0, // You can add likes functionality later
+        likes: 0,
         isLiked: false,
         caption: post.caption || '',
         timeAgo: new Date(post.created_at).toLocaleDateString(),
@@ -158,13 +217,16 @@ const HomeFeed = () => {
         comments: [],
       }));
     }
-    // Fallback to mock data if no database posts
+    
+    // Fallback to mock data
+    console.log('[HOME FEED] Using mock posts:', mockPosts.length);
     return mockPosts;
   }, [dbPosts, mockPosts]);
 
   useEffect(() => {
-    // Add user's own posts to mock data if they exist
-    if (user && dbPosts.length === 0) {
+    // Add user's own posts to mock data only if no database posts and user is authenticated
+    if (user && (!dbPosts || dbPosts.length === 0) && !authLoading && hasFetchedPostsRef.current) {
+      console.log('[HOME FEED] Adding welcome post for user:', user.id);
       const userPost = {
         id: 'user_post_1',
         postUuid: 'user_post_1',
@@ -183,9 +245,16 @@ const HomeFeed = () => {
         likedBy: [],
         comments: [],
       };
-      setMockPosts(prev => [userPost, ...prev]);
+      
+      setMockPosts(prev => {
+        // Only add if not already present
+        if (prev.some(p => p.id === 'user_post_1')) {
+          return prev;
+        }
+        return [userPost, ...prev];
+      });
     }
-  }, [user, dbPosts]);
+  }, [user, dbPosts, authLoading]);
 
   const handleLike = async (postId: string) => {
     // Handle both database posts and mock posts

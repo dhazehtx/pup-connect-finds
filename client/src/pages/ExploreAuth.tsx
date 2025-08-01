@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Search, Grid, List } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
@@ -13,23 +13,51 @@ import { apiRequest } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
 
 const ExploreAuth: React.FC = () => {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
   const [activeTab, setActiveTab] = useState<'listings' | 'posts'>('listings');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [filters, setFilters] = useState<any>({});
   const [resultCount, setResultCount] = useState(0);
 
-  // Debug logging - throttled to avoid excessive re-renders
-  useEffect(() => {
-    console.log('[EXPLORE AUTH] Component state changed', { user: !!user, activeTab, viewMode });
-  }, [user, activeTab, viewMode]);
+  // 1. ONE-TIME FETCH GUARD - Prevent fetch loops with ref guards (move hooks to top)
+  const hasFetchedListingsRef = useRef(false);
+  const hasFetchedPostsRef = useRef(false);
 
-  // Fetch listings based on filters - disable by default to prevent rate limiting
-  const { data: listings, isLoading: loadingListings, refetch: refetchListings } = useQuery({
+  console.log('[EXPLORE AUTH] Rendering component', {
+    userId: user?.id,
+    hasUser: !!user,
+    loading,
+    activeTab,
+    viewMode,
+    hasFetchedListings: hasFetchedListingsRef.current,
+    hasFetchedPosts: hasFetchedPostsRef.current
+  });
+
+  useEffect(() => {
+    console.log('[EXPLORE AUTH] Component mounted');
+    return () => {
+      console.log('[EXPLORE AUTH] Component unmounted');
+      // Reset fetch guards on unmount
+      hasFetchedListingsRef.current = false;
+      hasFetchedPostsRef.current = false;
+    };
+  }, []);
+
+  // 2. DELAY FETCH UNTIL AUTH IS SETTLED - Wait for auth loading to complete
+  const shouldFetchListings = !loading && user && activeTab === 'listings' && !hasFetchedListingsRef.current;
+  const shouldFetchPosts = !loading && user && activeTab === 'posts' && !hasFetchedPostsRef.current;
+
+  // Fetch listings with proper guards - using mock data to prevent API issues
+  const { data: listings, isLoading: loadingListings, refetch: refetchListings, error: listingsError } = useQuery({
     queryKey: ['explore-listings', filters],
     queryFn: async () => {
-      // Return mock data to prevent API rate limiting
-      return Array.from({ length: 6 }, (_, i) => ({
+      console.log('[EXPLORE AUTH] Starting listings fetch...');
+      hasFetchedListingsRef.current = true;
+      
+      // Simulate API delay
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      const mockData = Array.from({ length: 6 }, (_, i) => ({
         id: `listing-${i}`,
         title: `Beautiful ${['Golden Retriever', 'Labrador', 'German Shepherd'][i % 3]} Puppy`,
         breed: ['Golden Retriever', 'Labrador', 'German Shepherd'][i % 3],
@@ -41,16 +69,24 @@ const ExploreAuth: React.FC = () => {
         health_tested: true,
         vaccinated: true
       }));
+      
+      console.log('[EXPLORE AUTH] Listings data loaded:', mockData.length, 'listings');
+      return mockData;
     },
-    enabled: false, // Disable auto-fetch to prevent rate limiting
+    enabled: shouldFetchListings,
   });
 
-  // Fetch posts based on filters - use mock data to prevent rate limiting
-  const { data: posts, isLoading: loadingPosts, refetch: refetchPosts } = useQuery({
+  // Fetch posts with proper guards - using mock data to prevent API issues
+  const { data: posts, isLoading: loadingPosts, refetch: refetchPosts, error: postsError } = useQuery({
     queryKey: ['explore-posts', filters],
     queryFn: async () => {
-      // Return mock data to prevent API rate limiting
-      return Array.from({ length: 4 }, (_, i) => ({
+      console.log('[EXPLORE AUTH] Starting posts fetch...');
+      hasFetchedPostsRef.current = true;
+      
+      // Simulate API delay
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      const mockData = Array.from({ length: 4 }, (_, i) => ({
         id: `post-${i}`,
         user_id: `user-${i}`,
         content: `Amazing day at the dog park with my ${['Golden Retriever', 'Beagle', 'Poodle', 'Labrador'][i]}! 🐕`,
@@ -68,27 +104,67 @@ const ExploreAuth: React.FC = () => {
           verified: i % 2 === 0
         }
       }));
+      
+      console.log('[EXPLORE AUTH] Posts data loaded:', mockData.length, 'posts');
+      return mockData;
     },
-    enabled: false, // Disable auto-fetch to prevent rate limiting
+    enabled: shouldFetchPosts,
   });
 
-  // Update result count with mock data
+  // Update result count based on actual data
   useEffect(() => {
-    if (activeTab === 'listings') {
-      setResultCount(6); // Mock listings count
-    } else if (activeTab === 'posts') {
-      setResultCount(4); // Mock posts count
+    if (activeTab === 'listings' && listings && Array.isArray(listings)) {
+      setResultCount(listings.length);
+    } else if (activeTab === 'posts' && posts && Array.isArray(posts)) {
+      setResultCount(posts.length);
+    } else {
+      setResultCount(0);
     }
-  }, [activeTab]);
+  }, [activeTab, listings, posts]);
 
   const handleFiltersChange = (newFilters: any) => {
+    console.log('[EXPLORE AUTH] Filters changed:', newFilters);
     setFilters(newFilters);
     
-    // Refetch data based on active tab
+    // Reset fetch guards to allow refetch with new filters
     if (activeTab === 'listings') {
+      hasFetchedListingsRef.current = false;
       refetchListings();
     } else {
+      hasFetchedPostsRef.current = false;
       refetchPosts();
+    }
+  };
+
+  // 3. LOG CLEARLY WHEN DATA ARRIVES OR ERRORS
+  useEffect(() => {
+    if (listings && Array.isArray(listings)) {
+      console.log('[EXPLORE AUTH] Listings data loaded successfully:', listings.length, 'items');
+    }
+    if (listingsError) {
+      console.error('[EXPLORE AUTH] Listings loading failed:', listingsError);
+    }
+  }, [listings, listingsError]);
+
+  useEffect(() => {
+    if (posts && Array.isArray(posts)) {
+      console.log('[EXPLORE AUTH] Posts data loaded successfully:', posts.length, 'items');
+    }
+    if (postsError) {
+      console.error('[EXPLORE AUTH] Posts loading failed:', postsError);
+    }
+  }, [posts, postsError]);
+
+  // Handle tab changes - reset appropriate fetch guard
+  const handleTabChange = (newTab: 'listings' | 'posts') => {
+    console.log('[EXPLORE AUTH] Tab changed from', activeTab, 'to', newTab);
+    setActiveTab(newTab);
+    
+    // Reset fetch guard for the new tab if it hasn't been fetched yet
+    if (newTab === 'listings' && !hasFetchedListingsRef.current) {
+      console.log('[EXPLORE AUTH] Will fetch listings for first time');
+    } else if (newTab === 'posts' && !hasFetchedPostsRef.current) {
+      console.log('[EXPLORE AUTH] Will fetch posts for first time');
     }
   };
 
@@ -141,7 +217,7 @@ const ExploreAuth: React.FC = () => {
         </div>
 
         {/* Tabs */}
-        <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'listings' | 'posts')} className="mb-6">
+        <Tabs value={activeTab} onValueChange={(value) => handleTabChange(value as 'listings' | 'posts')} className="mb-6">
           <TabsList className="grid w-full max-w-md grid-cols-2">
             <TabsTrigger value="listings">Puppy Listings</TabsTrigger>
             <TabsTrigger value="posts">Community Posts</TabsTrigger>
