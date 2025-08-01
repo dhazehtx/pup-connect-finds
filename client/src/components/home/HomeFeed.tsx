@@ -140,6 +140,10 @@ const HomeFeed = () => {
   // 1. ONE-TIME FETCH GUARD - Prevent fetch loops with ref guard
   const hasFetchedPostsRef = useRef(false);
 
+  // 4. TIMEOUT DIAGNOSTICS - Track data fetch timeouts
+  const [showTimeoutFallback, setShowTimeoutFallback] = useState(false);
+  const fetchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
   console.log('[HOME FEED] Rendering component', {
     userId: user?.id,
     hasUser: !!user,
@@ -153,28 +157,64 @@ const HomeFeed = () => {
       console.log('[HOME FEED] Component unmounted');
       // Reset fetch guard on unmount
       hasFetchedPostsRef.current = false;
+      // Clear timeout on unmount
+      if (fetchTimeoutRef.current) {
+        clearTimeout(fetchTimeoutRef.current);
+      }
     };
   }, []);
 
   // 2. DELAY FETCH UNTIL AUTH IS SETTLED - Wait for auth loading to complete
   const shouldFetchPosts = !authLoading && user && !hasFetchedPostsRef.current;
 
-  // Fetch posts with proper guards
-  const { data: dbPosts, isLoading: postsLoading, error: postsError } = useQuery({
+  // Fetch posts with timeout diagnostics
+  const { data: dbPosts, isLoading: postsLoading, error: postsError, refetch: refetchPosts } = useQuery({
     queryKey: ['home-feed-posts'],
     queryFn: async () => {
       console.log('[HOME FEED] Starting posts fetch...');
       hasFetchedPostsRef.current = true;
+      
+      // Clear any existing timeout
+      if (fetchTimeoutRef.current) {
+        clearTimeout(fetchTimeoutRef.current);
+      }
+      
+      // Set 5-second timeout for diagnostics
+      fetchTimeoutRef.current = setTimeout(() => {
+        console.warn('[HOME FEED] Posts data still missing after 5 second timeout');
+        setShowTimeoutFallback(true);
+        // Diagnostic dump
+        console.log('[FREEZE DIAGNOSTIC] Current state:', {
+          user: !!user,
+          authLoading,
+          hasFetchedPosts: hasFetchedPostsRef.current,
+          timestamp: Date.now()
+        });
+      }, 5000);
       
       try {
         // Try to fetch from API - using proper API request format
         const response = await apiRequest('/api/posts/home-feed', {
           method: 'GET',
         });
+        
+        // Clear timeout on successful completion
+        if (fetchTimeoutRef.current) {
+          clearTimeout(fetchTimeoutRef.current);
+          setShowTimeoutFallback(false);
+        }
+        
         console.log('[HOME FEED] Posts data loaded from API:', response?.length || 0, 'posts');
         return response || [];
       } catch (error) {
         console.error('[HOME FEED] Posts fetch error:', error);
+        
+        // Clear timeout even on error
+        if (fetchTimeoutRef.current) {
+          clearTimeout(fetchTimeoutRef.current);
+          setShowTimeoutFallback(false);
+        }
+        
         // Return empty array - use mock posts as fallback in component logic
         console.log('[HOME FEED] Using mock posts as fallback');
         return [];

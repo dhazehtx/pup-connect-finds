@@ -79,6 +79,34 @@ MY PUP is a comprehensive dog listing platform connecting dog lovers with breede
 - Clean console logs showing guard decisions and skipped redundant redirects
 - URL and UI change immediately without navigation delays
 
+✅ **Timeout Diagnostics & Fallback UI ADDED**: Implemented comprehensive timeout detection and non-blocking fallback interface to prevent silent hangs.
+
+**Timeout Diagnostics Implementation:**
+- **5-Second Timeout Warnings**: Data fetches log warnings if not completed within 5 seconds
+- **Freeze Diagnostic Dumps**: Periodic snapshots of critical state (auth user/loading, fetched data) when freeze-like behavior appears
+- **Non-blocking Fallback UI**: Timeout fallback screens with retry buttons prevent silent hangs
+- **Navigation Click Logging**: All nav button clicks logged with "[NAV CLICK] home/explore/etc" for debugging
+- **Retry Mechanisms**: Users can retry data loading or switch to alternative content
+
+**Technical Implementation:**
+- Updated `ExploreAuth.tsx` with timeout guards for listings and posts fetch
+- Updated `HomeFeed.tsx` component with timeout diagnostics and fallback UI
+- Added timeout fallback UI to both listings and posts tabs with retry buttons
+- Enhanced `BottomNavigation.tsx` with "[NAV CLICK]" diagnostic logging
+- Timeout guards use refs and setTimeout to detect delayed data loading
+
+**Fallback UI Features:**
+- Clear warning icons and messages when data loading is delayed
+- "Retry Loading" buttons to restart failed data fetches
+- "Switch to X" buttons to navigate to alternative content
+- Non-blocking design keeps UI responsive even during data delays
+
+**Expected Behavior:**
+- Immediate timeout warnings in console after 5 seconds of missing data
+- Fallback UI appears instead of silent hangs or endless loading spinners
+- Users can always take action (retry or navigate) when data is delayed
+- Diagnostic logs help identify stuck states and navigation issues
+
 ✅ **Critical Navigation Bug Fixed** (July 31): Resolved authentication flow issue where authenticated users couldn't navigate between protected routes (Home, Messages, Profile). 
 - **Root Cause**: API client wasn't sending Supabase JWT tokens in Authorization headers
 - **Solution**: Updated `client/src/lib/api.ts` to automatically include `Authorization: Bearer <token>` headers

@@ -19,9 +19,13 @@ const ExploreAuth: React.FC = () => {
   const [filters, setFilters] = useState<any>({});
   const [resultCount, setResultCount] = useState(0);
 
-  // 1. ONE-TIME FETCH GUARD - Prevent fetch loops with ref guards (move hooks to top)
+  // 1. ONE-TIME FETCH GUARD - Prevent fetch loops with ref guards
   const hasFetchedListingsRef = useRef(false);
   const hasFetchedPostsRef = useRef(false);
+
+  // 4. TIMEOUT DIAGNOSTICS - Track data fetch timeouts
+  const [showTimeoutFallback, setShowTimeoutFallback] = useState(false);
+  const fetchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   console.log('[EXPLORE AUTH] Rendering component', {
     userId: user?.id,
@@ -62,15 +66,41 @@ const ExploreAuth: React.FC = () => {
   const shouldFetchListings = !loading && user && activeTab === 'listings' && !hasFetchedListingsRef.current;
   const shouldFetchPosts = !loading && user && activeTab === 'posts' && !hasFetchedPostsRef.current;
 
-  // Fetch listings with proper guards - using mock data to prevent API issues
+  // Fetch listings with timeout diagnostics
   const { data: listings, isLoading: loadingListings, refetch: refetchListings, error: listingsError } = useQuery({
     queryKey: ['explore-listings', filters],
     queryFn: async () => {
       console.log('[EXPLORE AUTH] Starting listings fetch...');
       hasFetchedListingsRef.current = true;
       
+      // Clear any existing timeout
+      if (fetchTimeoutRef.current) {
+        clearTimeout(fetchTimeoutRef.current);
+      }
+      
+      // Set 5-second timeout for diagnostics
+      fetchTimeoutRef.current = setTimeout(() => {
+        console.warn('[EXPLORE AUTH] Listings data still missing after 5 second timeout');
+        setShowTimeoutFallback(true);
+        // Diagnostic dump
+        console.log('[FREEZE DIAGNOSTIC] Current state:', {
+          activeTab,
+          user: !!user,
+          loading,
+          hasFetchedListings: hasFetchedListingsRef.current,
+          hasFetchedPosts: hasFetchedPostsRef.current,
+          timestamp: Date.now()
+        });
+      }, 5000);
+      
       // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 500));
+      await new Promise(resolve => setTimeout(resolve, 800));
+      
+      // Clear timeout on successful completion
+      if (fetchTimeoutRef.current) {
+        clearTimeout(fetchTimeoutRef.current);
+        setShowTimeoutFallback(false);
+      }
       
       const mockData = Array.from({ length: 6 }, (_, i) => ({
         id: `listing-${i}`,
@@ -91,15 +121,41 @@ const ExploreAuth: React.FC = () => {
     enabled: shouldFetchListings,
   });
 
-  // Fetch posts with proper guards - using mock data to prevent API issues
+  // Fetch posts with timeout diagnostics
   const { data: posts, isLoading: loadingPosts, refetch: refetchPosts, error: postsError } = useQuery({
     queryKey: ['explore-posts', filters],
     queryFn: async () => {
       console.log('[EXPLORE AUTH] Starting posts fetch...');
       hasFetchedPostsRef.current = true;
       
+      // Clear any existing timeout
+      if (fetchTimeoutRef.current) {
+        clearTimeout(fetchTimeoutRef.current);
+      }
+      
+      // Set 5-second timeout for diagnostics
+      fetchTimeoutRef.current = setTimeout(() => {
+        console.warn('[EXPLORE AUTH] Posts data still missing after 5 second timeout');
+        setShowTimeoutFallback(true);
+        // Diagnostic dump
+        console.log('[FREEZE DIAGNOSTIC] Current state:', {
+          activeTab,
+          user: !!user,
+          loading,
+          hasFetchedListings: hasFetchedListingsRef.current,
+          hasFetchedPosts: hasFetchedPostsRef.current,
+          timestamp: Date.now()
+        });
+      }, 5000);
+      
       // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 500));
+      await new Promise(resolve => setTimeout(resolve, 800));
+      
+      // Clear timeout on successful completion
+      if (fetchTimeoutRef.current) {
+        clearTimeout(fetchTimeoutRef.current);
+        setShowTimeoutFallback(false);
+      }
       
       const mockData = Array.from({ length: 4 }, (_, i) => ({
         id: `post-${i}`,
@@ -170,10 +226,17 @@ const ExploreAuth: React.FC = () => {
     }
   }, [posts, postsError]);
 
-  // Handle tab changes - reset appropriate fetch guard
+  // Handle tab changes with navigation diagnostics
   const handleTabChange = (newTab: 'listings' | 'posts') => {
+    console.log('[NAV CLICK] explore tab:', newTab);
     console.log('[EXPLORE AUTH] Tab changed from', activeTab, 'to', newTab);
     setActiveTab(newTab);
+    
+    // Clear timeout fallback when switching tabs
+    setShowTimeoutFallback(false);
+    if (fetchTimeoutRef.current) {
+      clearTimeout(fetchTimeoutRef.current);
+    }
     
     // Reset fetch guard for the new tab if it hasn't been fetched yet
     if (newTab === 'listings' && !hasFetchedListingsRef.current) {
@@ -182,6 +245,15 @@ const ExploreAuth: React.FC = () => {
       console.log('[EXPLORE AUTH] Will fetch posts for first time');
     }
   };
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (fetchTimeoutRef.current) {
+        clearTimeout(fetchTimeoutRef.current);
+      }
+    };
+  }, []);
 
   const isLoading = loadingListings || loadingPosts;
 
@@ -239,7 +311,37 @@ const ExploreAuth: React.FC = () => {
           </TabsList>
 
           <TabsContent value="listings" className="mt-6">
-            {isLoading ? (
+            {showTimeoutFallback && activeTab === 'listings' ? (
+              <div className="flex flex-col items-center justify-center py-12">
+                <div className="text-center">
+                  <div className="text-yellow-600 mb-2 text-2xl">⚠️</div>
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">Listings Loading Delayed</h3>
+                  <p className="text-gray-600 mb-4">Listings are taking longer than expected to load.</p>
+                  <div className="flex flex-col sm:flex-row gap-2">
+                    <Button 
+                      onClick={() => {
+                        console.log('[RETRY CLICK] retrying listings fetch');
+                        setShowTimeoutFallback(false);
+                        hasFetchedListingsRef.current = false;
+                        refetchListings();
+                      }}
+                      variant="outline"
+                    >
+                      Retry Loading
+                    </Button>
+                    <Button 
+                      onClick={() => {
+                        console.log('[NAV CLICK] switching to posts from timeout fallback');
+                        handleTabChange('posts');
+                      }}
+                      variant="ghost"
+                    >
+                      Switch to Posts
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            ) : isLoading ? (
               <div className="flex items-center justify-center py-12">
                 <LoadingSpinner />
               </div>
@@ -276,7 +378,37 @@ const ExploreAuth: React.FC = () => {
           </TabsContent>
 
           <TabsContent value="posts" className="mt-6">
-            {isLoading ? (
+            {showTimeoutFallback && activeTab === 'posts' ? (
+              <div className="flex flex-col items-center justify-center py-12">
+                <div className="text-center">
+                  <div className="text-yellow-600 mb-2 text-2xl">⚠️</div>
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">Posts Loading Delayed</h3>
+                  <p className="text-gray-600 mb-4">Posts are taking longer than expected to load.</p>
+                  <div className="flex flex-col sm:flex-row gap-2">
+                    <Button 
+                      onClick={() => {
+                        console.log('[RETRY CLICK] retrying posts fetch');
+                        setShowTimeoutFallback(false);
+                        hasFetchedPostsRef.current = false;
+                        refetchPosts();
+                      }}
+                      variant="outline"
+                    >
+                      Retry Loading
+                    </Button>
+                    <Button 
+                      onClick={() => {
+                        console.log('[NAV CLICK] switching to listings from timeout fallback');
+                        handleTabChange('listings');
+                      }}
+                      variant="ghost"
+                    >
+                      Switch to Listings
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            ) : isLoading ? (
               <div className="flex items-center justify-center py-12">
                 <LoadingSpinner />
               </div>

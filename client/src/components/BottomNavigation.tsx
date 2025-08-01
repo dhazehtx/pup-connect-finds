@@ -18,8 +18,9 @@ const BottomNavigation = () => {
   const [showGuestPrompt, setShowGuestPrompt] = useState(false);
   const [promptAction, setPromptAction] = useState('');
 
-  // 2. AUDIT AND FIX GUARD LOGIC - Prevent redundant navigation
+  // PROTECTED NAVIGATION with diagnostics
   const handleProtectedNavigation = async (path: string, action: string) => {
+    console.log('[NAV CLICK]', path.replace('/', ''));
     console.log('[BOTTOM NAV] Protected navigation guard:', {
       currentPath: location.pathname,
       targetPath: path,
@@ -45,6 +46,7 @@ const BottomNavigation = () => {
   };
 
   const handleNavigation = (path: string) => {
+    console.log('[NAV CLICK]', path.replace('/', ''));
     console.log('[BOTTOM NAV] Regular navigation:', {
       currentPath: location.pathname,
       targetPath: path
