@@ -107,10 +107,11 @@ MY PUP is a comprehensive dog listing platform connecting dog lovers with breede
 - Users can always take action (retry or navigate) when data is delayed
 - Diagnostic logs help identify stuck states and navigation issues
 
-✅ **Critical Navigation Bug Fixed** (July 31): Resolved authentication flow issue where authenticated users couldn't navigate between protected routes (Home, Messages, Profile). 
-- **Root Cause**: API client wasn't sending Supabase JWT tokens in Authorization headers
-- **Solution**: Updated `client/src/lib/api.ts` to automatically include `Authorization: Bearer <token>` headers
-- **Result**: Bottom navigation tabs now work correctly for authenticated users while maintaining RequireAuth guards
+✅ **Critical Navigation Bug Fixed** (August 1): Resolved authentication flow issue and API fetch errors causing navigation freezes.
+- **Root Cause**: Malformed API helper function using incorrect fetch parameter order causing "not a valid HTTP method" errors
+- **API Helper Fixed**: Complete rewrite of `client/src/lib/api.ts` with proper `apiRequest(path, options)` signature and timeout protection
+- **HomeFeed Modernized**: Updated HomeFeed component to use clean useEffect-based data fetching with proper loading/error/fallback states
+- **Result**: Navigation between Home/Explore works smoothly with proper error handling and fallback content
 
 ## User Preferences
 

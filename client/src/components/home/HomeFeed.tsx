@@ -134,112 +134,64 @@ const initialMockPosts: Post[] = [
 
 const HomeFeed = () => {
   const { user, loading: authLoading } = useAuth();
-  const [mockPosts, setMockPosts] = useState(initialMockPosts);
+  const [posts, setPosts] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [selectedPost, setSelectedPost] = useState<any>(null);
   const [showFullPostModal, setShowFullPostModal] = useState(false);
-
-  // 1. ONE-TIME FETCH GUARD - Prevent fetch loops with ref guard
-  const hasFetchedPostsRef = useRef(false);
-
-  // 4. TIMEOUT DIAGNOSTICS - Track data fetch timeouts
-  const [showTimeoutFallback, setShowTimeoutFallback] = useState(false);
-  const fetchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   console.log('[HOME FEED] Rendering component', {
     userId: user?.id,
     hasUser: !!user,
     authLoading,
-    hasFetchedPosts: hasFetchedPostsRef.current
+    postsCount: posts.length
   });
 
+  // Mock posts fallback function
+  const getMockPosts = () => initialMockPosts;
+
   useEffect(() => {
-    console.log('[HOME FEED] Component mounted');
+    if (!user) return;
+    
+    console.log('[HOME FEED] Starting data fetch for user:', user.id);
+    let cancelled = false;
+    setLoading(true);
+    setError(null);
+    
+    apiRequest('/posts/home-feed')
+      .then((data) => {
+        if (cancelled) return;
+        console.log('[HOME FEED] Posts loaded from API:', data?.length || 0, 'posts');
+        setPosts(data || []);
+      })
+      .catch((err) => {
+        if (cancelled) return;
+        console.warn('[HOME FEED] Feed fetch error, using fallback:', err);
+        setError('Failed to load feed, showing fallback content.');
+        setPosts(getMockPosts());
+      })
+      .finally(() => {
+        if (cancelled) return;
+        setLoading(false);
+      });
+    
     return () => {
-      console.log('[HOME FEED] Component unmounted');
-      // Reset fetch guard on unmount
-      hasFetchedPostsRef.current = false;
-      // Clear timeout on unmount
-      if (fetchTimeoutRef.current) {
-        clearTimeout(fetchTimeoutRef.current);
-      }
+      cancelled = true;
     };
-  }, []);
+  }, [user]);
 
-  // 2. DELAY FETCH UNTIL AUTH IS SETTLED - Wait for auth loading to complete
-  const shouldFetchPosts = !authLoading && !!user && !hasFetchedPostsRef.current;
-
-  // Fetch posts with timeout diagnostics
-  const { data: dbPosts, isLoading: postsLoading, error: postsError, refetch: refetchPosts } = useQuery({
-    queryKey: ['home-feed-posts'],
-    queryFn: async () => {
-      console.log('[HOME FEED] Starting posts fetch...');
-      hasFetchedPostsRef.current = true;
-      
-      // Clear any existing timeout
-      if (fetchTimeoutRef.current) {
-        clearTimeout(fetchTimeoutRef.current);
-      }
-      
-      // Set 5-second timeout for diagnostics
-      fetchTimeoutRef.current = setTimeout(() => {
-        console.warn('[HOME FEED] Posts data still missing after 5 second timeout');
-        setShowTimeoutFallback(true);
-        // Diagnostic dump
-        console.log('[FREEZE DIAGNOSTIC] Current state:', {
-          user: !!user,
-          authLoading,
-          hasFetchedPosts: hasFetchedPostsRef.current,
-          timestamp: Date.now()
-        });
-      }, 5000);
-      
-      try {
-        // Try to fetch from API - using corrected API request format
-        const response = await apiRequest('/posts/home-feed');
-        
-        // Clear timeout on successful completion
-        if (fetchTimeoutRef.current) {
-          clearTimeout(fetchTimeoutRef.current);
-          setShowTimeoutFallback(false);
-        }
-        
-        console.log('[HOME FEED] Posts data loaded from API:', response?.length || 0, 'posts');
-        return response || [];
-      } catch (error) {
-        console.error('[HOME FEED] Posts fetch error:', error);
-        
-        // Clear timeout even on error
-        if (fetchTimeoutRef.current) {
-          clearTimeout(fetchTimeoutRef.current);
-          setShowTimeoutFallback(false);
-        }
-        
-        // Return empty array - use mock posts as fallback in component logic
-        console.log('[HOME FEED] Using mock posts as fallback');
-        return [];
-      }
-    },
-    enabled: shouldFetchPosts,
-  });
-
-  // 3. LOG CLEARLY WHEN DATA ARRIVES OR ERRORS
-  useEffect(() => {
-    if (dbPosts && Array.isArray(dbPosts)) {
-      console.log('[HOME FEED] Posts data loaded successfully:', dbPosts.length, 'items');
-    }
-    if (postsError) {
-      console.error('[HOME FEED] Posts loading failed:', postsError);
-    }
-  }, [dbPosts, postsError]);
-
-  const loading = authLoading || postsLoading;
-
-  // Convert database posts to display format or use mock data
+  // Convert database posts to display format
   const displayPosts = React.useMemo(() => {
-    // Use database posts if available and not empty
-    if (dbPosts && Array.isArray(dbPosts) && dbPosts.length > 0) {
-      console.log('[HOME FEED] Using database posts:', dbPosts.length);
-      return dbPosts.map(post => ({
+    if (posts && Array.isArray(posts) && posts.length > 0) {
+      // Check if posts are already in display format (mock data) or need conversion (API data)
+      if (posts[0]?.postUuid) {
+        console.log('[HOME FEED] Using formatted posts:', posts.length);
+        return posts;
+      }
+      
+      // Convert API posts to display format
+      console.log('[HOME FEED] Converting API posts to display format:', posts.length);
+      return posts.map(post => ({
         id: post.id,
         postUuid: post.id,
         user: {
@@ -259,15 +211,13 @@ const HomeFeed = () => {
       }));
     }
     
-    // Fallback to mock data
-    console.log('[HOME FEED] Using mock posts:', mockPosts.length);
-    return mockPosts;
-  }, [dbPosts, mockPosts]);
+    return posts || [];
+  }, [posts]);
 
   useEffect(() => {
-    // Add user's own posts to mock data only if no database posts and user is authenticated
-    if (user && (!dbPosts || dbPosts.length === 0) && !authLoading && hasFetchedPostsRef.current) {
-      console.log('[HOME FEED] Adding welcome post for user:', user.id);
+    // Add user's welcome post to mock data when using fallback
+    if (user && error && posts === getMockPosts()) {
+      console.log('[HOME FEED] Adding welcome post for user in fallback mode:', user.id);
       const userPost = {
         id: 'user_post_1',
         postUuid: 'user_post_1',
@@ -287,7 +237,7 @@ const HomeFeed = () => {
         comments: [],
       };
       
-      setMockPosts(prev => {
+      setPosts(prev => {
         // Only add if not already present
         if (prev.some(p => p.id === 'user_post_1')) {
           return prev;
@@ -295,34 +245,29 @@ const HomeFeed = () => {
         return [userPost, ...prev];
       });
     }
-  }, [user, dbPosts, authLoading]);
+  }, [user, error, posts]);
 
   const handleLike = async (postId: string) => {
-    // Handle both database posts and mock posts
-    if (dbPosts && dbPosts.length > 0) {
-      // For database posts, use the actual like API
+    // Handle post likes - update local state optimistically
+    setPosts((prevPosts) =>
+      prevPosts.map((post) =>
+        post.id === postId || post.postUuid === postId ? { 
+          ...post, 
+          isLiked: !post.isLiked, 
+          likes: post.isLiked ? post.likes - 1 : post.likes + 1 
+        } : post
+      )
+    );
+    
+    // For API posts, also attempt to sync with backend
+    if (!error) {
       try {
-        // Find the specific post and toggle its like status
-        const postToUpdate = displayPosts.find(p => p.id === postId);
-        if (!postToUpdate) return;
-        
-        // Use the proper post likes hook logic here
-        // This is a simplified version - in real implementation you'd use usePostLikes hook
-        console.log('Liking database post:', postId);
-      } catch (error) {
-        console.error('Error liking database post:', error);
+        console.log('[HOME FEED] Syncing like for post:', postId);
+        // Add API call to sync like status
+        // await apiRequest(`/posts/${postId}/like`, { method: 'POST' });
+      } catch (err) {
+        console.warn('[HOME FEED] Failed to sync like:', err);
       }
-    } else {
-      // Handle mock posts - this logic is already correct
-      setMockPosts((prevPosts) =>
-        prevPosts.map((post) =>
-          post.id === postId ? { 
-            ...post, 
-            isLiked: !post.isLiked, 
-            likes: post.isLiked ? post.likes - 1 : post.likes + 1 
-          } : post
-        )
-      );
     }
   };
 
@@ -348,16 +293,16 @@ const HomeFeed = () => {
   };
 
   const handleCommentsUpdate = (postId: string) => (updateFn: (comments: Comment[]) => Comment[]) => {
-    setMockPosts((prevPosts) =>
+    setPosts((prevPosts) =>
       prevPosts.map((post) =>
-        post.id === postId ? { ...post, comments: updateFn(post.comments) } : post
+        post.id === postId || post.postUuid === postId ? { ...post, comments: updateFn(post.comments) } : post
       )
     );
   };
 
   const handlePostUpdate = (postId: string, newCaption: string) => {
-    console.log('Updating post in feed:', postId, newCaption);
-    setMockPosts(prevPosts => 
+    console.log('[HOME FEED] Updating post:', postId, newCaption);
+    setPosts(prevPosts => 
       prevPosts.map(post => 
         post.postUuid === postId 
           ? { ...post, caption: newCaption }
@@ -367,8 +312,8 @@ const HomeFeed = () => {
   };
 
   const handlePostDelete = (postId: string) => {
-    console.log('Deleting post from feed:', postId);
-    setMockPosts(prevPosts => 
+    console.log('[HOME FEED] Deleting post:', postId);
+    setPosts(prevPosts => 
       prevPosts.filter(post => post.postUuid !== postId)
     );
     setShowFullPostModal(false);
@@ -394,15 +339,46 @@ const HomeFeed = () => {
     setShowFullPostModal(true);
   };
 
+  // Loading state
   if (loading) {
     return (
       <div className="flex justify-center items-center py-8">
         <div className="animate-spin rounded-full h-8 w-8 border-4 border-blue-600 border-t-transparent"></div>
-        <span className="ml-2 text-gray-600">Loading posts...</span>
+        <span className="ml-2 text-gray-600">Loading Home Feed...</span>
       </div>
     );
   }
 
+  // Error state with fallback content
+  if (error) {
+    return (
+      <div className="space-y-4">
+        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+          <div className="text-yellow-800 text-sm font-medium">{error}</div>
+        </div>
+        <div className="space-y-6 py-4">
+          {displayPosts.map((post) => (
+            <PostCard
+              key={post.id}
+              post={post}
+              onLike={handleLike}
+              onProfileClick={handleProfileClick}
+              onShare={handleShare}
+              onBookmark={handleBookmark}
+              onComment={handleComment}
+              onShowLikes={handleShowLikes}
+              onCommentsUpdate={handleCommentsUpdate(post.id)}
+              onImageClick={() => handleImageClick(post)}
+              onPostUpdate={handlePostUpdate}
+              onPostDelete={handlePostDelete}
+            />
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  // Normal state
   return (
     <div className="space-y-6 py-4">
       {displayPosts.length === 0 ? (
