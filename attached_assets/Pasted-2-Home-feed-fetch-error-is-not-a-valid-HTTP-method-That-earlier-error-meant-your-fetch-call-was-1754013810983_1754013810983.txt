@@ -1,0 +1,70 @@
+2. Home-feed fetch error (“is not a valid HTTP method”)
+That earlier error meant your fetch call was malformed — you likely passed the URL in a wrong position so fetch interpreted it as the method argument. Example bad usage:
+
+ts
+Copy
+Edit
+// ❌ wrong: second argument shouldn’t just be the path string
+fetch('/api/posts/home-feed', '/api/posts/home-feed');
+Correct usage:
+
+ts
+Copy
+Edit
+fetch('/api/posts/home-feed', {
+  method: 'GET',
+  headers: {
+    'Accept': 'application/json',
+    Authorization: `Bearer ${token}`, // if needed
+  },
+});
+Double-check your apiRequest / helper wrapper so that:
+
+It prefixes with /api/ correctly.
+
+It passes an options object (not a string) as the second argument.
+
+It includes necessary headers (Accept, Authorization from session).
+
+3. Missing backend route
+The agent’s message “home-feed route doesn’t exist” means you’re calling /api/posts/home-feed but there’s no handler defined. You need to implement that endpoint server-side (e.g., Express) so the front end can fetch real posts instead of hanging or using fallback.
+
+Minimal example (adjust to your code structure):
+
+ts
+Copy
+Edit
+// server/routes/posts.ts
+import { Router } from 'express';
+import { createClient } from '@supabase/supabase-js';
+
+const router = Router();
+const supabase = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_SERVICE_KEY!);
+
+router.get('/posts/home-feed', async (req, res) => {
+  const { data, error } = await supabase
+    .from('posts')
+    .select('*')
+    .order('created_at', { ascending: false })
+    .limit(20);
+  if (error) return res.status(500).json({ error: error.message });
+  res.json(data);
+});
+
+export default router;
+And mount it:
+
+ts
+Copy
+Edit
+import postsRouter from './routes/posts';
+app.use('/api', postsRouter);
+4. Next immediate diagnostics I need from you
+Paste the first lines of the server log after you hit Run (especially any error or crash trace).
+
+Show the network request for /api/posts/home-feed when you click Home (status/code and response).
+
+Show the current implementation of the apiRequest or wherever you call fetch('/api/posts/home-feed', ...) so I can verify the arguments.
+
+Summary
+Right now the app’s backend isn’t reliably running (503), and even when up you had a malformed fetch plus a missing route for the home feed. Fixing those in order — (1) get the server running without crashes, (2) implement the /api/posts/home-feed handler, (3) correct the fetch call signature, (4) add a timeout/fallback in the HomeFeed component — will unblock the freezing/navigation issues.
