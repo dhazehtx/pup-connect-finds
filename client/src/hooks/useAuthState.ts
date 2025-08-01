@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -260,16 +260,21 @@ export const useAuthState = () => {
     };
   }, []);
 
-  return {
-    user,
-    session,
-    loading,
-    profile,
+  // 4. CENTRALIZE AND STABILIZE - Return stable function references
+  const stableAPI = useMemo(() => ({
     signUp,
     signIn,
     signOut,
     updateProfile,
     refreshProfile,
     resetPassword
+  }), []);
+
+  return {
+    user,
+    session,
+    loading,
+    profile,
+    ...stableAPI
   };
 };

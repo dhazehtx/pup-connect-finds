@@ -63,25 +63,40 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     return !authState.user && localStorage.getItem('guestMode') === 'true';
   }, [authState.user]);
 
+  // 3. REFACTOR - ROOT CAUSE FIX: Simplify and stabilize with minimal propagation
+  // Only re-memoize when actual identity changes, not object references
+  const stableUser = useMemo(() => authState.user, [authState.user?.id]);
+  const stableProfile = useMemo(() => authState.profile, [authState.profile?.id]);
+  
   // Memoize the entire context value to prevent unnecessary re-renders
-  const value: AuthContextType = useMemo(() => ({
-    user: authState.user,
-    session: authState.session,
-    loading: authState.loading,
-    profile: authState.profile,
-    isGuest,
-    signUp,
-    signIn,
-    signOut: authState.signOut,
-    updateProfile,
-    refreshProfile: authState.refreshProfile,
-    continueAsGuest,
-    resetPassword,
-  }), [
-    authState.user,
+  const value: AuthContextType = useMemo(() => {
+    console.log('[AUTH CONTEXT] Creating new context value:', {
+      userId: authState.user?.id,
+      hasUser: !!authState.user,
+      loading: authState.loading,
+      isGuest,
+      timestamp: Date.now()
+    });
+    
+    return {
+      user: stableUser,
+      session: authState.session,
+      loading: authState.loading,
+      profile: stableProfile,
+      isGuest,
+      signUp,
+      signIn,
+      signOut: authState.signOut,
+      updateProfile,
+      refreshProfile: authState.refreshProfile,
+      continueAsGuest,
+      resetPassword,
+    };
+  }, [
+    stableUser,
     authState.session,
     authState.loading,
-    authState.profile,
+    stableProfile,
     authState.signOut,
     authState.refreshProfile,
     isGuest,

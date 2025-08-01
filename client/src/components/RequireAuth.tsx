@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { LoadingPage } from '@/components/ui/loading';
@@ -7,29 +7,52 @@ export default function RequireAuth({ children }: { children: JSX.Element }) {
   const { user, loading } = useAuth();
   const location = useLocation();
 
-  // Debug logging - throttled to avoid excessive re-renders
+  // 1. INSTRUMENT - Navigation guard activity logging
+  console.log('[REQUIRE AUTH] Guard check:', { 
+    userId: user?.id,
+    hasUser: !!user, 
+    loading, 
+    pathname: location.pathname,
+    timestamp: Date.now()
+  });
+
+  // Stable user identity to prevent unnecessary re-evaluations
+  const stableUserId = useMemo(() => user?.id || null, [user?.id]);
+  
+  // Auth state change detection
   useEffect(() => {
     console.log('[REQUIRE AUTH] Auth state changed:', { 
-      user: !!user, 
+      userId: stableUserId,
+      hasUser: !!user, 
       loading, 
       pathname: location.pathname,
-      timestamp: Date.now()
     });
-  }, [user, loading, location.pathname]);
+  }, [stableUserId, !!user, loading, location.pathname]);
+
+  // 2. DIAGNOSE - Guard redirect safety
+  const shouldRedirect = useMemo(() => {
+    const result = !loading && !user;
+    console.log('[REQUIRE AUTH] Redirect decision:', {
+      shouldRedirect: result,
+      loading,
+      hasUser: !!user,
+      pathname: location.pathname
+    });
+    return result;
+  }, [loading, !!user, location.pathname]);
 
   // Wait until AuthContext finishes its first check
   if (loading) {
     console.log('[REQUIRE AUTH] Still loading, showing auth loading page');
-    return <LoadingPage message="Authenticating..." />;
+    return <LoadingPage message="Checking authentication..." />;
   }
 
-  // Not signed-in → go to greeting and remember where they tried to go
-  if (!user) {
-    console.log('[REQUIRE AUTH] No user, redirecting to greeting from:', location.pathname);
-    return <Navigate to="/greeting" state={{ from: location }} replace />;
+  // 3. REFACTOR - Guard redirects safely, only when truly needed
+  if (shouldRedirect) {
+    console.log('[REQUIRE AUTH] User not authenticated, redirecting to greeting from:', location.pathname);
+    return <Navigate to="/greeting" replace />;
   }
 
-  // Signed-in → render the protected page
   console.log('[REQUIRE AUTH] User authenticated, rendering protected content for:', location.pathname);
   return children;
 }

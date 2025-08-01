@@ -1,0 +1,33 @@
+The Home/HomeFeed navigation freezes even though the URL changes and no 4xx/5xx network errors appear. It’s a client-side rendering / state-loop issue. Please do the following end-to-end:
+
+1. **Instrument & Detect**  
+   - Add focused console logging at the top of the Home route component and inside each useEffect there. Log the props/state it depends on (e.g., user, loading, isGuest, activeTab). Example tags: “[HOME PAGE] Render”, “[HOME PAGE] Effect running”, “[HOME PAGE] Auth state changed”.  
+   - Log any navigation guard activity (e.g., if it calls `navigate('/home')` or redirects).
+
+2. **Diagnose the freeze**  
+   - Identify if a useEffect, auth guard, or derived-state update is triggering repeated renders or redundant navigation when clicking Home.  
+   - Specifically, look for unstable dependencies (like full user objects instead of `user.id`), navigation calls that run even when already on `/home`, or any state updates happening during render.
+
+3. **Refactor to stop runaway updates**  
+   - Memoize auth/user context so consumers get stable references: e.g., `useMemo(() => user, [user?.id])` and only propagate minimal identity.  
+   - In HomePage:
+       * Only run effects when truly needed: depend on stable values such as `user?.id` or `!!user` instead of entire objects.  
+       * Guard redirects safely: only do `navigate('/login')` if unauthenticated and not already redirecting.  
+       * Avoid setting state during render; initialize defaults via `useState` or inside guarded effects.  
+   - Ensure no effect does something like `if (!user) navigate(...)` in a way that toggles back and forth because user/auth state is unstable.
+
+4. **Centralize and stabilize any shared helpers** (if applicable) so the Home feed/data fetch uses a consistent helper that includes auth headers and doesn’t cause extra re-renders.
+
+5. **Produce patch output**  
+   - Return a before/after diff or the minimal patched versions of:  
+       * The auth/context provider (showing memoization)  
+       * The Home/HomeFeed component including its guard logic and effects  
+   - Inline comments explaining what was wrong and why the change fixes the freeze.
+
+6. **Test plan to validate fix**  
+   - Click the Home logo/tab and confirm: URL updates, component logs appear once per navigation, no infinite effect loop.  
+   - Navigate between bottom tabs (Explore, Messages, Profile) and ensure smooth transitions without UI freezing.  
+   - Verify no redundant `navigate('/home')` loops or toggling auth guard redirects.  
+   - Report back: what was the root cause, what was changed, and a summary of how to avoid regressions.
+
+Give me the patched code and a concise summary of what was causing the freeze and how you fixed it. 
