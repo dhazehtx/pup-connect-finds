@@ -41,8 +41,15 @@ const BottomNavigation = () => {
       return;
     }
     
-    logNav({ from: location.pathname, to: path });
-    navigate(path);
+    try {
+      logNav({ from: location.pathname, to: path });
+      navigate(path);
+      console.log('[BOTTOM NAV] Protected navigation to', path, 'completed successfully');
+    } catch (error) {
+      console.error('[BOTTOM NAV] Protected navigation error to', path, ':', error);
+      // Force navigation as fallback
+      window.location.href = path;
+    }
   };
 
   const handleNavigation = (path: string) => {
@@ -58,8 +65,15 @@ const BottomNavigation = () => {
       return;
     }
 
-    logNav({ from: location.pathname, to: path });
-    navigate(path);
+    try {
+      logNav({ from: location.pathname, to: path });
+      navigate(path);
+      console.log('[BOTTOM NAV] Regular navigation to', path, 'completed successfully');
+    } catch (error) {
+      console.error('[BOTTOM NAV] Regular navigation error to', path, ':', error);
+      // Force navigation as fallback
+      window.location.href = path;
+    }
   };
 
   const navItems = [

@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLocation } from 'react-router-dom';
 import ExploreRouter from './ExploreRouter';
+import ErrorBoundaryWrapper from '@/components/ErrorBoundaryWrapper';
 
 const Explore = () => {
   const { user, loading, isGuest } = useAuth();
@@ -32,7 +33,11 @@ const Explore = () => {
     });
   }, [user?.id, loading, isGuest, location.pathname]);
 
-  return <ExploreRouter />;
+  return (
+    <ErrorBoundaryWrapper fallbackMessage="Explore page failed to load">
+      <ExploreRouter />
+    </ErrorBoundaryWrapper>
+  );
 };
 
 export default Explore;
