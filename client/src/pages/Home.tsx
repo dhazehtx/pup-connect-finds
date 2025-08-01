@@ -41,13 +41,35 @@ const Home = () => {
     });
   }, [stableUserId, !!user, loading, isGuest, location.pathname]);
 
-  // 2. AUDIT AND FIX GUARD LOGIC - Prevent redirect loops
+  // HARDEN NAVIGATION GUARD - Prevent redirect loops and redundant navigation  
   useEffect(() => {
-    // Only redirect if we're definitely not authenticated and not on greeting page
-    if (!loading && !user && !isGuest && location.pathname !== '/greeting') {
-      console.log('[HOME PAGE] Redirecting unauthenticated user to greeting from:', location.pathname);
-      navigate('/greeting', { replace: true });
+    const shouldRedirect = !loading && !user && !isGuest;
+    const currentPath = location.pathname;
+    const targetPath = '/greeting';
+    
+    console.log('[HOME PAGE] Navigation guard check:', {
+      loading,
+      hasUser: !!user,
+      isGuest,
+      pathname: currentPath,
+      shouldRedirect,
+      alreadyOnGreeting: currentPath === targetPath
+    });
+    
+    // Skip redirect if already on target path
+    if (shouldRedirect && currentPath === targetPath) {
+      console.log('[NAV GUARD] Already on target path (/greeting), skipping redirect');
+      return;
     }
+    
+    // Only redirect if we're definitely not authenticated and not on greeting page
+    if (shouldRedirect) {
+      console.log('[NAV GUARD] Redirecting unauthenticated user from', currentPath, 'to', targetPath);
+      navigate(targetPath, { replace: true });
+      return;
+    }
+    
+    console.log('[NAV GUARD] No redirect needed - user authenticated or guest');
   }, [loading, user, isGuest, location.pathname, navigate]);
 
   const handleGuestAccess = () => {

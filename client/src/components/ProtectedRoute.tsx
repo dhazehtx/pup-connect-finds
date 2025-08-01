@@ -9,8 +9,16 @@ interface ProtectedRouteProps {
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   const { user, loading, isGuest } = useAuth();
 
+  console.log('[PROTECTED ROUTE] Guard check:', {
+    hasUser: !!user,
+    loading,
+    isGuest,
+    shouldRedirect: !loading && !user && !isGuest
+  });
+
   // Show loading while checking auth state
   if (loading) {
+    console.log('[PROTECTED ROUTE] Showing loading - auth is resolving');
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
         <div className="text-center">
@@ -21,11 +29,13 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
     );
   }
 
-  // Redirect unauthenticated users to the greeting page (landing page)
+  // HARDEN GUARD - Redirect unauthenticated users to the greeting page (landing page)
   if (!user && !isGuest) {
+    console.log('[NAV GUARD] Executing redirect - protected route requires auth, redirecting to /greeting');
     return <Navigate to="/greeting" replace />;
   }
 
+  console.log('[PROTECTED ROUTE] Auth verified - rendering protected content');
   return <>{children}</>;
 };
 

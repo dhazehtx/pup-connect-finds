@@ -29,15 +29,29 @@ export default function RequireAuth({ children }: { children: JSX.Element }) {
     });
   }, [stableUserId, !!user, loading, location.pathname]);
 
-  // 2. DIAGNOSE - Guard redirect safety
+  // HARDEN GUARD REDIRECT SAFETY - Prevent redundant redirects  
   const shouldRedirect = useMemo(() => {
     const result = !loading && !user;
+    const currentPath = location.pathname;
+    const targetPath = '/greeting';
+    const alreadyOnTarget = currentPath === targetPath;
+    
     console.log('[REQUIRE AUTH] Redirect decision:', {
       shouldRedirect: result,
       loading,
       hasUser: !!user,
-      pathname: location.pathname
+      pathname: currentPath,
+      targetPath,
+      alreadyOnTarget,
+      willSkipRedirect: result && alreadyOnTarget
     });
+    
+    // Don't redirect if already on target path
+    if (result && alreadyOnTarget) {
+      console.log('[NAV GUARD] Already on target path (/greeting), skipping redirect');
+      return false;
+    }
+    
     return result;
   }, [loading, !!user, location.pathname]);
 
@@ -47,9 +61,9 @@ export default function RequireAuth({ children }: { children: JSX.Element }) {
     return <LoadingPage message="Checking authentication..." />;
   }
 
-  // 3. REFACTOR - Guard redirects safely, only when truly needed
+  // EXECUTE REDIRECT - Only when truly needed and not already on target
   if (shouldRedirect) {
-    console.log('[REQUIRE AUTH] User not authenticated, redirecting to greeting from:', location.pathname);
+    console.log('[NAV GUARD] Executing redirect - user not authenticated, redirecting from', location.pathname, 'to /greeting');
     return <Navigate to="/greeting" replace />;
   }
 

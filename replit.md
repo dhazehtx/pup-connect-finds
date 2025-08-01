@@ -57,6 +57,28 @@ MY PUP is a comprehensive dog listing platform connecting dog lovers with breede
 - No infinite loops, race conditions, or freezing
 - Responsive UI throughout navigation with proper loading states
 
+✅ **Navigation Guard Logic HARDENED**: Comprehensive audit and fix of all navigation guard redirects to prevent loops and redundant navigation.
+
+**Navigation Guard Hardening:**
+- **Redundant Redirect Prevention**: All guards now check if already on target path before redirecting
+- **Enhanced Logging**: Clear console logs show guard decisions: "Already on target, skipping" or "Redirecting from X to Y"
+- **Consistent Guard Pattern**: Standardized guard logic across all components (HomeFeed, Home, RequireAuth, ProtectedRoute)
+- **Loop Prevention**: Guards skip execution if current path equals target path
+- **Decision Transparency**: Detailed logging of guard decisions for debugging
+
+**Technical Implementation:**
+- Updated `HomeFeed.tsx` guard to check current vs target path before redirecting
+- Updated `Home.tsx` guard with hardened path checking logic
+- Updated `RequireAuth.tsx` to prevent redirects when already on target path
+- Updated `ProtectedRoute.tsx` with enhanced logging and guard logic
+- Standardized "[NAV GUARD]" logging prefix for all guard decisions
+
+**Expected Navigation Flow:**
+- Instant tab switching between Home, Explore, Messages, Profile
+- No redundant navigation logs or guard-induced stalling
+- Clean console logs showing guard decisions and skipped redundant redirects
+- URL and UI change immediately without navigation delays
+
 ✅ **Critical Navigation Bug Fixed** (July 31): Resolved authentication flow issue where authenticated users couldn't navigate between protected routes (Home, Messages, Profile). 
 - **Root Cause**: API client wasn't sending Supabase JWT tokens in Authorization headers
 - **Solution**: Updated `client/src/lib/api.ts` to automatically include `Authorization: Bearer <token>` headers

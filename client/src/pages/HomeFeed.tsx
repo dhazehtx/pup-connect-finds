@@ -38,22 +38,35 @@ const HomeFeedPage = () => {
     });
   }, [stableUserId, stableAuthState.hasUser, stableAuthState.loading, stableAuthState.isGuest, location.pathname]);
 
-  // Navigation guard with logging
+  // HARDEN NAVIGATION GUARD - Prevent redundant redirects
   useEffect(() => {
+    const shouldRedirect = !loading && !user && !isGuest;
+    const currentPath = location.pathname;
+    const targetPath = '/greeting';
+    
     console.log('[HOME FEED PAGE] Navigation guard check:', {
       loading,
       hasUser: !!user,
       isGuest,
-      pathname: location.pathname,
-      shouldRedirect: !loading && !user && !isGuest
+      pathname: currentPath,
+      shouldRedirect,
+      alreadyOnGreeting: currentPath === targetPath
     });
     
-    // Only redirect if auth check is complete and user is not authenticated/guest
-    if (!loading && !user && !isGuest) {
-      console.log('[HOME FEED PAGE] Redirecting unauthenticated user to greeting');
-      navigate('/greeting', { replace: true });
+    // Skip redirect if already on target path
+    if (shouldRedirect && currentPath === targetPath) {
+      console.log('[NAV GUARD] Already on target path (/greeting), skipping redirect');
       return;
     }
+    
+    // Only redirect if auth check is complete and user is not authenticated/guest
+    if (shouldRedirect) {
+      console.log('[NAV GUARD] Redirecting unauthenticated user from', currentPath, 'to', targetPath);
+      navigate(targetPath, { replace: true });
+      return;
+    }
+    
+    console.log('[NAV GUARD] No redirect needed - user authenticated or guest');
   }, [loading, user, isGuest, location.pathname, navigate]);
 
   // Mount/unmount detection
