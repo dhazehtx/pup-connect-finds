@@ -63,8 +63,8 @@ const ExploreAuth: React.FC = () => {
   }, []);
 
   // 2. DELAY FETCH UNTIL AUTH IS SETTLED - Wait for auth loading to complete
-  const shouldFetchListings = !loading && user && activeTab === 'listings' && !hasFetchedListingsRef.current;
-  const shouldFetchPosts = !loading && user && activeTab === 'posts' && !hasFetchedPostsRef.current;
+  const shouldFetchListings = !loading && !!user && activeTab === 'listings' && !hasFetchedListingsRef.current;
+  const shouldFetchPosts = !loading && !!user && activeTab === 'posts' && !hasFetchedPostsRef.current;
 
   // Fetch listings with timeout diagnostics
   const { data: listings, isLoading: loadingListings, refetch: refetchListings, error: listingsError } = useQuery({

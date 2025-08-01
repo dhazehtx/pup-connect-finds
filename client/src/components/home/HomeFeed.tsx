@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useQuery } from '@tanstack/react-query';
+import { Button } from '@/components/ui/button';
 import PostCard from './PostCard';
 import { usePosts } from '@/hooks/usePosts';
 import FullPostModal from '@/components/post/FullPostModal';
@@ -165,7 +166,7 @@ const HomeFeed = () => {
   }, []);
 
   // 2. DELAY FETCH UNTIL AUTH IS SETTLED - Wait for auth loading to complete
-  const shouldFetchPosts = !authLoading && user && !hasFetchedPostsRef.current;
+  const shouldFetchPosts = !authLoading && !!user && !hasFetchedPostsRef.current;
 
   // Fetch posts with timeout diagnostics
   const { data: dbPosts, isLoading: postsLoading, error: postsError, refetch: refetchPosts } = useQuery({
@@ -193,10 +194,8 @@ const HomeFeed = () => {
       }, 5000);
       
       try {
-        // Try to fetch from API - using proper API request format
-        const response = await apiRequest('/api/posts/home-feed', {
-          method: 'GET',
-        });
+        // Try to fetch from API - using corrected API request format
+        const response = await apiRequest('/posts/home-feed');
         
         // Clear timeout on successful completion
         if (fetchTimeoutRef.current) {
