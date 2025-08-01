@@ -140,6 +140,7 @@ const HomeFeed = () => {
   const [selectedPost, setSelectedPost] = useState<any>(null);
   const [showFullPostModal, setShowFullPostModal] = useState(false);
 
+  console.log('[HOME FEED] Auth state:', user, authLoading);
   console.log('[HOME FEED] Rendering component', {
     userId: user?.id,
     hasUser: !!user,
@@ -161,11 +162,14 @@ const HomeFeed = () => {
     
     if (!user?.id) {
       console.log('[HOME FEED] No user ID yet, skipping fetch. User:', user);
+      console.log('no user yet, skipping fetch');
       setLoading(false);
       setError('Authentication required');
       setPosts(getMockPosts()); // Show fallback content for unauthenticated state
       return;
     }
+    
+    console.log('[HOME FEED] Fetching posts for user:', user?.id);
     
     console.log('[HOME FEED] Auth state:', {
       userId: user.id,
