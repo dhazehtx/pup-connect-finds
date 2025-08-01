@@ -105,8 +105,7 @@ const PuppyGrid = () => {
 };
 
 const ExploreGuest = () => {
-  // Debug logging for navigation issues
-  console.log('[EXPLORE GUEST] Rendering ExploreGuest component');
+  // Debug logging - throttled to avoid excessive re-renders
 
   useEffect(() => {
     console.log('[EXPLORE GUEST] Component mounted');

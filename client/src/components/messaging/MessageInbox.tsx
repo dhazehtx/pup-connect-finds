@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { MessageCircle, Clock } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
@@ -15,8 +15,10 @@ const MessageInbox = ({ onConversationSelect, loading }: MessageInboxProps) => {
   const { user } = useAuth();
   const { conversations, loading: conversationsLoading } = useConversationsManager();
 
-  // Debug logging for navigation issues
-  console.log('[MESSAGE INBOX] Rendering MessageInbox component', { user: !!user, loading, conversationsLoading });
+  // Debug logging - throttled to avoid excessive re-renders
+  useEffect(() => {
+    console.log('[MESSAGE INBOX] Component state changed', { user: !!user, loading, conversationsLoading });
+  }, [user, loading, conversationsLoading]);
 
   if (!user) {
     return (
@@ -109,7 +111,7 @@ const MessageInbox = ({ onConversationSelect, loading }: MessageInboxProps) => {
                       </p>
                     )}
                     
-                    {conversation.unread_count > 0 && (
+                    {(conversation.unread_count || 0) > 0 && (
                       <div className="flex items-center mt-2">
                         <span className="bg-blue-600 text-white text-xs px-2 py-1 rounded-full">
                           {conversation.unread_count} new

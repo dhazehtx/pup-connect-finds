@@ -1,3 +1,4 @@
+import React, { useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import ExploreGuest from '@/pages/ExploreGuest';
 import ExploreAuth from '@/pages/ExploreAuth';
@@ -5,8 +6,10 @@ import ExploreAuth from '@/pages/ExploreAuth';
 export default function ExploreRouter() {
   const { user, loading } = useAuth();
 
-  // Debug logging for navigation issues
-  console.log('[EXPLORE ROUTER] Rendering router', { user: !!user, loading });
+  // Debug logging - throttled to avoid excessive re-renders
+  useEffect(() => {
+    console.log('[EXPLORE ROUTER] Router state changed', { user: !!user, loading });
+  }, [user, loading]);
 
   if (loading) {
     console.log('[EXPLORE ROUTER] Still loading, showing null');

@@ -11,8 +11,10 @@ const Home = () => {
   const { user, loading, continueAsGuest, isGuest } = useAuth();
   const navigate = useNavigate();
 
-  // Debug logging for navigation issues
-  console.log('[HOME PAGE] Rendering Home component', { user: !!user, loading, isGuest });
+  // Debug logging - throttled to avoid excessive re-renders
+  useEffect(() => {
+    console.log('[HOME PAGE] Component state changed', { user: !!user, loading, isGuest });
+  }, [user, loading, isGuest]);
 
   useEffect(() => {
     console.log('[HOME PAGE] Component mounted');

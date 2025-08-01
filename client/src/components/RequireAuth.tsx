@@ -1,3 +1,4 @@
+import React, { useEffect } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { LoadingPage } from '@/components/ui/loading';
@@ -6,13 +7,15 @@ export default function RequireAuth({ children }: { children: JSX.Element }) {
   const { user, loading } = useAuth();
   const location = useLocation();
 
-  // Debug logging for navigation issues
-  console.log('[REQUIRE AUTH] Guard check:', { 
-    user: !!user, 
-    loading, 
-    pathname: location.pathname,
-    timestamp: Date.now()
-  });
+  // Debug logging - throttled to avoid excessive re-renders
+  useEffect(() => {
+    console.log('[REQUIRE AUTH] Auth state changed:', { 
+      user: !!user, 
+      loading, 
+      pathname: location.pathname,
+      timestamp: Date.now()
+    });
+  }, [user, loading, location.pathname]);
 
   // Wait until AuthContext finishes its first check
   if (loading) {

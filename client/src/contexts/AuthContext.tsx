@@ -1,5 +1,5 @@
 
-import React, { createContext, useContext, ReactNode } from 'react';
+import React, { createContext, useContext, ReactNode, useMemo, useCallback } from 'react';
 import { useAuthState } from '@/hooks/useAuthState';
 import { User, Session } from '@supabase/supabase-js';
 
@@ -35,32 +35,36 @@ interface AuthProviderProps {
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const authState = useAuthState();
 
-  const continueAsGuest = () => {
+  // Memoize callback functions to prevent unnecessary re-renders
+  const continueAsGuest = useCallback(() => {
     localStorage.setItem('guestMode', 'true');
     console.log('Continuing as guest');
-  };
+  }, []);
 
-  const resetPassword = async (email: string) => {
+  const resetPassword = useCallback(async (email: string) => {
     return authState.resetPassword(email);
-  };
+  }, [authState.resetPassword]);
 
-  // Wrapper functions to ensure void return type
-  const signUp = async (email: string, password: string, userData?: any) => {
+  // Wrapper functions to ensure void return type - memoized
+  const signUp = useCallback(async (email: string, password: string, userData?: any) => {
     await authState.signUp(email, password, userData);
-  };
+  }, [authState.signUp]);
 
-  const signIn = async (email: string, password: string) => {
+  const signIn = useCallback(async (email: string, password: string) => {
     await authState.signIn(email, password);
-  };
+  }, [authState.signIn]);
 
-  const updateProfile = async (updates: any) => {
+  const updateProfile = useCallback(async (updates: any) => {
     await authState.updateProfile(updates);
-  };
+  }, [authState.updateProfile]);
 
-  // Guest detection logic
-  const isGuest = !authState.user && localStorage.getItem('guestMode') === 'true';
+  // Memoize guest detection logic
+  const isGuest = useMemo(() => {
+    return !authState.user && localStorage.getItem('guestMode') === 'true';
+  }, [authState.user]);
 
-  const value: AuthContextType = {
+  // Memoize the entire context value to prevent unnecessary re-renders
+  const value: AuthContextType = useMemo(() => ({
     user: authState.user,
     session: authState.session,
     loading: authState.loading,
@@ -73,7 +77,20 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     refreshProfile: authState.refreshProfile,
     continueAsGuest,
     resetPassword,
-  };
+  }), [
+    authState.user,
+    authState.session,
+    authState.loading,
+    authState.profile,
+    authState.signOut,
+    authState.refreshProfile,
+    isGuest,
+    signUp,
+    signIn,
+    updateProfile,
+    continueAsGuest,
+    resetPassword,
+  ]);
 
   return (
     <AuthContext.Provider value={value}>

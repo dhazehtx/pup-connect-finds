@@ -10,8 +10,10 @@ const Profile = () => {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
   
-  // Debug logging for navigation issues
-  console.log('[PROFILE PAGE] Rendering Profile component', { userId, user: !!user, loading });
+  // Debug logging - throttled to avoid excessive re-renders
+  useEffect(() => {
+    console.log('[PROFILE PAGE] Component state changed', { userId, user: !!user, loading });
+  }, [userId, user, loading]);
 
   useEffect(() => {
     console.log('[PROFILE PAGE] Component mounted', { userId });

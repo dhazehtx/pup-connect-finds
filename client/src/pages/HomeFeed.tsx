@@ -1,13 +1,15 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import HomeFeed from '@/components/home/HomeFeed';
 
 const HomeFeedPage = () => {
   const { user, isGuest } = useAuth();
 
-  // Debug logging for navigation issues
-  console.log('[HOME FEED PAGE] Rendering HomeFeedPage component', { user: !!user, isGuest });
+  // Debug logging - throttled to avoid excessive re-renders
+  useEffect(() => {
+    console.log('[HOME FEED PAGE] Component state changed', { user: !!user, isGuest });
+  }, [user, isGuest]);
 
   if (!user && !isGuest) {
     console.log('[HOME FEED PAGE] No user and not guest, returning null');

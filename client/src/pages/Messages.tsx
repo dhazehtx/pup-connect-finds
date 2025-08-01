@@ -19,8 +19,10 @@ const Messages = () => {
   const contactUserId = searchParams.get('contact');
   const listingId = searchParams.get('listing');
 
-  // Debug logging for navigation issues
-  console.log('[MESSAGES PAGE] Rendering Messages component', { user: !!user, loading, conversationsCount: conversations.length });
+  // Debug logging - throttled to avoid excessive re-renders
+  useEffect(() => {
+    console.log('[MESSAGES PAGE] Component state changed', { user: !!user, loading, conversationsCount: conversations.length });  
+  }, [user, loading, conversations.length]);
 
   useEffect(() => {
     console.log('[MESSAGES PAGE] Component mounted');
