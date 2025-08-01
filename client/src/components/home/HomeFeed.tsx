@@ -144,29 +144,66 @@ const HomeFeed = () => {
     userId: user?.id,
     hasUser: !!user,
     authLoading,
-    postsCount: posts.length
+    postsCount: posts.length,
+    loadingState: loading,
+    errorState: !!error
   });
 
   // Mock posts fallback function
   const getMockPosts = () => initialMockPosts;
 
   useEffect(() => {
-    if (!user) return;
+    // Enhanced auth guards - wait for auth to resolve and ensure user ID exists
+    if (authLoading) {
+      console.log('[HOME FEED] Auth still loading, skipping fetch');
+      return;
+    }
     
-    console.log('[HOME FEED] Starting data fetch for user:', user.id);
+    if (!user?.id) {
+      console.log('[HOME FEED] No user ID yet, skipping fetch. User:', user);
+      setLoading(false);
+      setError('Authentication required');
+      setPosts(getMockPosts()); // Show fallback content for unauthenticated state
+      return;
+    }
+    
+    console.log('[HOME FEED] Auth state:', {
+      userId: user.id,
+      email: user.email,
+      authenticated: !!user
+    });
+    console.log('[HOME FEED] Fetching posts for user:', user.id);
+    
     let cancelled = false;
+    const controller = new AbortController();
     setLoading(true);
     setError(null);
     
-    apiRequest('/posts/home-feed')
+    // 5-second timeout for diagnostics
+    const timeout = setTimeout(() => {
+      if (!cancelled) {
+        console.warn('[HOME FEED] API timeout after 5 seconds, showing fallback');
+        setError('Request timeout, showing fallback content.');
+        setPosts(getMockPosts());
+        setLoading(false);
+      }
+    }, 5000);
+    
+    apiRequest('/posts/home-feed', { signal: controller.signal })
       .then((data) => {
         if (cancelled) return;
-        console.log('[HOME FEED] Posts loaded from API:', data?.length || 0, 'posts');
+        clearTimeout(timeout);
+        console.log('[HOME FEED] Posts fetch result: success, count:', data?.length || 0);
         setPosts(data || []);
       })
       .catch((err) => {
         if (cancelled) return;
-        console.warn('[HOME FEED] Feed fetch error, using fallback:', err);
+        clearTimeout(timeout);
+        if (err.name === 'AbortError') {
+          console.log('[HOME FEED] Request aborted');
+          return;
+        }
+        console.warn('[HOME FEED] Posts fetch result: error -', err.message);
         setError('Failed to load feed, showing fallback content.');
         setPosts(getMockPosts());
       })
@@ -177,8 +214,10 @@ const HomeFeed = () => {
     
     return () => {
       cancelled = true;
+      controller.abort();
+      clearTimeout(timeout);
     };
-  }, [user]);
+  }, [user?.id, authLoading]); // Depend on user.id specifically, not the whole user object
 
   // Convert database posts to display format
   const displayPosts = React.useMemo(() => {
@@ -339,7 +378,17 @@ const HomeFeed = () => {
     setShowFullPostModal(true);
   };
 
-  // Loading state
+  // Auth loading state
+  if (authLoading) {
+    return (
+      <div className="flex justify-center items-center py-8">
+        <div className="animate-spin rounded-full h-8 w-8 border-4 border-blue-600 border-t-transparent"></div>
+        <span className="ml-2 text-gray-600">Authenticating...</span>
+      </div>
+    );
+  }
+
+  // Data loading state (after auth is resolved)
   if (loading) {
     return (
       <div className="flex justify-center items-center py-8">

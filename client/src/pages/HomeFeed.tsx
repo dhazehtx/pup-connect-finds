@@ -3,6 +3,7 @@ import React, { useEffect, useMemo } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLocation, useNavigate } from 'react-router-dom';
 import HomeFeed from '@/components/home/HomeFeed';
+import ErrorBoundaryWrapper from '@/components/ErrorBoundaryWrapper';
 
 const HomeFeedPage = () => {
   const { user, loading, isGuest } = useAuth();
@@ -98,11 +99,13 @@ const HomeFeedPage = () => {
 
   console.log('[HOME FEED PAGE] Auth settled - rendering full home feed for:', { userId: user?.id, isGuest });
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-4xl mx-auto">
-        <HomeFeed />
+    <ErrorBoundaryWrapper fallbackMessage="Home feed failed to load">
+      <div className="min-h-screen bg-gray-50">
+        <div className="max-w-4xl mx-auto">
+          <HomeFeed />
+        </div>
       </div>
-    </div>
+    </ErrorBoundaryWrapper>
   );
 };
 

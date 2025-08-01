@@ -1,0 +1,34 @@
+I need you to debug and fix the remaining HomeFeed/navigation staleness issues. Current state: the backend /api/posts/home-feed route returns 200 OK, but the frontend log shows [HOME FEED] Starting data fetch for user: undefined, so the feed never reliably populates and sometimes the UI freezes after navigating (e.g., from Explore).
+
+Goal: full end-to-end Home/HomeFeed experience for a signed-in user with no freezes, correct user ID, and graceful fallback.
+
+Tasks:
+
+Fix the undefined userId — inspect the AuthContext / useAuth hook and the HomeFeed component. Ensure HomeFeed waits until auth is resolved before querying. Add guards like if (loading) return; and if (!user?.id) { console.log('no user yet, skipping fetch'); return; } so the fetch only runs when user.id is defined. Use useMemo or similar to avoid recreating context value each render. Log the actual user ID at the start of the fetch.
+
+Eliminate stale/race fetches — ensure the effect that triggers apiRequest('/posts/home-feed') has proper dependencies and doesn’t loop. Debounce or cancel previous fetches with an AbortController if needed. Confirm the 5-second timeout fallback activates only on real hangs.
+
+Improve loading / fallback UX — the HomeFeed should show a spinner while waiting, then either display posts or a clear “no content” state. If the fetch fails, show a yellow error banner (not an indefinite spinner).
+
+Prevent navigation freezes — wrap route-level content in an error boundary so a single component failure doesn’t lock the whole view. Verify that switching between Home/Explore/Profile for a signed-in user updates the UI instantly without hanging.
+
+Add diagnostic logs (only for development):
+
+[HOME FEED] Auth state: output the resolved user object.
+
+[HOME FEED] Fetching posts for user: with the user ID.
+
+[HOME FEED] Posts fetch result: with status and payload or error.
+
+Verify expectations:
+
+Console shows [HOME FEED] Starting data fetch for user: <actual-id>.
+
+Network tab has a 200 OK for /api/posts/home-feed with the auth token.
+
+HomeFeed renders either posts or an explicit empty state; no endless spinner.
+
+Navigation between tabs never freezes; URL and component logs update accordingly.
+
+If any of these fail, explain what’s causing it (race condition, missing guard, context recreation, etc.) and apply the minimal change to correct it. Then re-run the signed-in navigation test.
+
