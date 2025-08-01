@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -105,6 +105,13 @@ const PuppyGrid = () => {
 };
 
 const ExploreGuest = () => {
+  // Debug logging for navigation issues
+  console.log('[EXPLORE GUEST] Rendering ExploreGuest component');
+
+  useEffect(() => {
+    console.log('[EXPLORE GUEST] Component mounted');
+  }, []);
+
   return (
     <div className="px-4 py-6">
       <h1 className="text-2xl font-bold mb-4">Explore Puppies</h1>

@@ -6,10 +6,15 @@ import HomeFeed from '@/components/home/HomeFeed';
 const HomeFeedPage = () => {
   const { user, isGuest } = useAuth();
 
+  // Debug logging for navigation issues
+  console.log('[HOME FEED PAGE] Rendering HomeFeedPage component', { user: !!user, isGuest });
+
   if (!user && !isGuest) {
+    console.log('[HOME FEED PAGE] No user and not guest, returning null');
     return null; // This should be handled by ProtectedRoute
   }
 
+  console.log('[HOME FEED PAGE] Rendering home feed content');
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-4xl mx-auto">

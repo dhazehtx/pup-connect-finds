@@ -15,6 +15,9 @@ const MessageInbox = ({ onConversationSelect, loading }: MessageInboxProps) => {
   const { user } = useAuth();
   const { conversations, loading: conversationsLoading } = useConversationsManager();
 
+  // Debug logging for navigation issues
+  console.log('[MESSAGE INBOX] Rendering MessageInbox component', { user: !!user, loading, conversationsLoading });
+
   if (!user) {
     return (
       <div className="max-w-4xl mx-auto px-4 py-6">

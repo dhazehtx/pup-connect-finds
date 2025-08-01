@@ -1,0 +1,30 @@
+Goal: Fix the remaining navigation unresponsiveness when signed in.
+Current state: Clicking the logo or bottom nav updates the URL, network requests return 200/304 with no 4xx/5xx errors, but the UI sometimes does not update or appears frozen.
+Please do the following diagnostic & fix steps:
+
+Add debug logging inside each route component (Home/Greeting, Explore, Messages, Profile) to console.log when they mount and when key props/state (e.g., auth/session) change, so we can verify they’re actually rendering.
+
+Inspect the authentication guard (RequireAuth): ensure it isn’t blocking rendering inadvertently—log its decision path and current session object.
+
+Verify the React Router configuration and the navigation links: confirm that the <Link>/navigation calls target the correct paths and that no stray preventDefault or stale state is blocking the component updates.
+
+Ensure all async data fetches on those pages have proper error handling and visible loading/fallback state; if they resolve to empty data the UI should still render (avoid silent no-ops).
+
+If the issue persists, isolate by temporarily disabling the guard or replacing the page’s data fetch with a stub so we can tell whether it’s the routing, auth gating, or data layer.
+
+Summarize what’s causing the perceived freeze and propose the minimal code change to make navigation feel instant and reliable for signed-in users.
+
+Quick manual checks you can do right now:
+
+Open DevTools → Console, then click each nav item:
+
+Do you see the console.log from those route components? (If not, they aren’t mounting.)
+
+In Network, confirm any XHR/fetch tied to those pages isn’t stalling indefinitely.
+
+Try signing out and back in (or use an incognito window) to rule out stale session/state.
+
+Hard reload with cache disabled (DevTools Network tab → check “Disable cache”) to rule out client-side caching weirdness.
+
+If you haven’t already, add a very simple visual indicator in each route like console.log('Rendering HomePage') and a temporary heading so you can tell if the component is rendering even when data might be missing.
+

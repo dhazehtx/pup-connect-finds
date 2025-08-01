@@ -11,9 +11,17 @@ const Home = () => {
   const { user, loading, continueAsGuest, isGuest } = useAuth();
   const navigate = useNavigate();
 
+  // Debug logging for navigation issues
+  console.log('[HOME PAGE] Rendering Home component', { user: !!user, loading, isGuest });
+
   useEffect(() => {
+    console.log('[HOME PAGE] Component mounted');
     document.title = 'My Pup - Find Your Perfect Puppy Companion';
   }, []);
+
+  useEffect(() => {
+    console.log('[HOME PAGE] Auth state changed:', { user: !!user, loading, isGuest });
+  }, [user, loading, isGuest]);
 
   // Force redirect when signed out - adapted for React Router
   useEffect(() => {

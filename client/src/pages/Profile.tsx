@@ -10,9 +10,21 @@ const Profile = () => {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
   
+  // Debug logging for navigation issues
+  console.log('[PROFILE PAGE] Rendering Profile component', { userId, user: !!user, loading });
+
+  useEffect(() => {
+    console.log('[PROFILE PAGE] Component mounted', { userId });
+  }, [userId]);
+
+  useEffect(() => {
+    console.log('[PROFILE PAGE] Auth state changed:', { user: !!user, loading });
+  }, [user, loading]);
+  
   // Force redirect when signed out - adapted for React Router  
   useEffect(() => {
     if (!loading && !user) {
+      console.log('[PROFILE PAGE] Redirecting to greeting - no user');
       navigate('/greeting');
     }
   }, [user, loading, navigate]);

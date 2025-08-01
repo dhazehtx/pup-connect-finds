@@ -19,6 +19,17 @@ const Messages = () => {
   const contactUserId = searchParams.get('contact');
   const listingId = searchParams.get('listing');
 
+  // Debug logging for navigation issues
+  console.log('[MESSAGES PAGE] Rendering Messages component', { user: !!user, loading, conversationsCount: conversations.length });
+
+  useEffect(() => {
+    console.log('[MESSAGES PAGE] Component mounted');
+  }, []);
+
+  useEffect(() => {
+    console.log('[MESSAGES PAGE] Auth state changed:', { user: !!user });
+  }, [user]);
+
   useEffect(() => {
     if (contactUserId && listingId && user) {
       handleContactFlow();

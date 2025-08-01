@@ -5,7 +5,19 @@ import ExploreAuth from '@/pages/ExploreAuth';
 export default function ExploreRouter() {
   const { user, loading } = useAuth();
 
-  if (loading) return null;          // wait until auth is resolved
-  if (!user)      return <ExploreGuest />;   // guest 2-card demo
+  // Debug logging for navigation issues
+  console.log('[EXPLORE ROUTER] Rendering router', { user: !!user, loading });
+
+  if (loading) {
+    console.log('[EXPLORE ROUTER] Still loading, showing null');
+    return null;          // wait until auth is resolved
+  }
+  
+  if (!user) {
+    console.log('[EXPLORE ROUTER] No user, showing guest explore');
+    return <ExploreGuest />;   // guest 2-card demo
+  }
+  
+  console.log('[EXPLORE ROUTER] User authenticated, showing auth explore');
   return <ExploreAuth />;                    // signed-in filters
 }

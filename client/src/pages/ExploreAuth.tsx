@@ -19,6 +19,9 @@ const ExploreAuth: React.FC = () => {
   const [filters, setFilters] = useState<any>({});
   const [resultCount, setResultCount] = useState(0);
 
+  // Debug logging for navigation issues
+  console.log('[EXPLORE AUTH] Rendering ExploreAuth component', { user: !!user, activeTab, viewMode });
+
   // Fetch listings based on filters - disable by default to prevent rate limiting
   const { data: listings, isLoading: loadingListings, refetch: refetchListings } = useQuery({
     queryKey: ['explore-listings', filters],
