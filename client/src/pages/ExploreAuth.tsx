@@ -33,6 +33,21 @@ const ExploreAuth: React.FC = () => {
     hasFetchedPosts: hasFetchedPostsRef.current
   });
 
+  // EARLY RETURN: Show loading spinner while auth is resolving
+  if (loading) {
+    console.log('[EXPLORE AUTH] Showing loading spinner - auth is still resolving');
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-600 border-t-transparent mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading explore page...</p>
+        </div>
+      </div>
+    );
+  }
+
+  console.log('[EXPLORE AUTH] Auth settled - rendering full component', { userId: user?.id });
+
   useEffect(() => {
     console.log('[EXPLORE AUTH] Component mounted');
     return () => {

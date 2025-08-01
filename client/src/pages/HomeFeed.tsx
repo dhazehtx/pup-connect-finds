@@ -64,9 +64,9 @@ const HomeFeedPage = () => {
     };
   }, [location.pathname]);
 
-  // Show loading state while auth is resolving
+  // EARLY RETURN: Show loading spinner while auth is resolving
   if (loading) {
-    console.log('[HOME FEED PAGE] Showing loading state');
+    console.log('[HOME FEED PAGE] Showing loading spinner - auth is still resolving');
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
@@ -83,7 +83,7 @@ const HomeFeedPage = () => {
     return null;
   }
 
-  console.log('[HOME FEED PAGE] Rendering home feed content for:', { userId: user?.id, isGuest });
+  console.log('[HOME FEED PAGE] Auth settled - rendering full home feed for:', { userId: user?.id, isGuest });
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-4xl mx-auto">

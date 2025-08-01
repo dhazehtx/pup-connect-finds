@@ -167,8 +167,10 @@ const HomeFeed = () => {
       hasFetchedPostsRef.current = true;
       
       try {
-        // Try to fetch from API
-        const response = await apiRequest('/api/posts/home-feed');
+        // Try to fetch from API - using proper API request format
+        const response = await apiRequest('/api/posts/home-feed', {
+          method: 'GET',
+        });
         console.log('[HOME FEED] Posts data loaded from API:', response?.length || 0, 'posts');
         return response || [];
       } catch (error) {
