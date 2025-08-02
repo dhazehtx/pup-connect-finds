@@ -31,7 +31,7 @@ export const BookmarkButton: React.FC<BookmarkButtonProps> = ({
     queryKey: ['bookmark', contentId, contentType],
     queryFn: async () => {
       if (!user) return false;
-      const response = await apiRequest('GET', `/api/bookmarks/check/${contentId}/${contentType}`);
+      const response = await apiRequest(`bookmarks/check/${contentId}/${contentType}`);
       return response.json();
     },
     enabled: !!user,
@@ -48,12 +48,12 @@ export const BookmarkButton: React.FC<BookmarkButtonProps> = ({
     mutationFn: async () => {
       if (isBookmarked) {
         // Remove bookmark
-        return apiRequest('DELETE', `/api/bookmarks/${contentId}/${contentType}`);
+        return apiRequest(`bookmarks/${contentId}/${contentType}`, { method: 'DELETE' });
       } else {
         // Add bookmark
-        return apiRequest('POST', '/api/bookmarks', { 
-          content_id: contentId, 
-          content_type: contentType 
+        return apiRequest('bookmarks', { 
+          method: 'POST',
+          body: { content_id: contentId, content_type: contentType }
         });
       }
     },

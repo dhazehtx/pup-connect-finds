@@ -37,7 +37,7 @@ export const FollowButton: React.FC<FollowButtonProps> = ({
     queryKey: ['follow-status', userId],
     queryFn: async () => {
       if (!user) return false;
-      const response = await apiRequest('GET', `/api/follows/check/${userId}`);
+      const response = await apiRequest(`follows/check/${userId}`);
       return response.json();
     },
     enabled: !!user,
@@ -54,10 +54,10 @@ export const FollowButton: React.FC<FollowButtonProps> = ({
     mutationFn: async () => {
       if (isFollowing) {
         // Unfollow user
-        return apiRequest('DELETE', `/api/follows/${userId}`);
+        return apiRequest(`follows/${userId}`, { method: 'DELETE' });
       } else {
         // Follow user
-        return apiRequest('POST', '/api/follows', { followed_id: userId });
+        return apiRequest('follows', { method: 'POST', body: { followed_id: userId } });
       }
     },
     onSuccess: () => {

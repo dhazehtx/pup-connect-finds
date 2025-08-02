@@ -212,10 +212,10 @@ export class DatabaseStorage implements IStorage {
       conditions.push(sql`${dogListings.price}::numeric <= ${filters.maxPrice}`);
     }
     if (filters?.minAge !== undefined) {
-      conditions.push(sql`${dogListings.age_months}::integer >= ${filters.minAge}`);
+      conditions.push(sql`${dogListings.age}::integer >= ${filters.minAge}`);
     }
     if (filters?.maxAge !== undefined) {
-      conditions.push(sql`${dogListings.age_months}::integer <= ${filters.maxAge}`);
+      conditions.push(sql`${dogListings.age}::integer <= ${filters.maxAge}`);
     }
     if (filters?.location) {
       conditions.push(like(dogListings.location, `%${filters.location}%`));
@@ -229,12 +229,8 @@ export class DatabaseStorage implements IStorage {
     if (filters?.userId) {
       conditions.push(eq(dogListings.user_id, filters.userId));
     }
-    if (filters?.verifiedOnly) {
-      conditions.push(eq(dogListings.verified, true));
-    }
-    if (filters?.healthTested) {
-      conditions.push(eq(dogListings.health_tested, true));
-    }
+    // Note: verified and health_tested columns don't exist in current schema
+    // Skip these filters for now
     if (filters?.vaccinated) {
       conditions.push(eq(dogListings.vaccinated, true));
     }
