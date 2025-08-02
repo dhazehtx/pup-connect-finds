@@ -33,7 +33,10 @@ export default function SearchBar({ placeholder = "Search breeders, puppies, she
       // Instagram-style behavior: Enter selects highlighted result or first result if none highlighted
       const targetResult = highlightedIndex >= 0 ? results[highlightedIndex] : results[0];
       if (targetResult) {
-        choose(targetResult);
+        console.log("Enter key navigation →", targetResult);
+        setLocation(targetResult.type === "listing" ? `/listing/${targetResult.id}` : `/profile/${targetResult.id}`);
+        setQuery(""); 
+        setHighlightedIndex(-1);
       }
     }
     if (e.key === "Escape") {
@@ -77,8 +80,9 @@ export default function SearchBar({ placeholder = "Search breeders, puppies, she
             results.map((result, index) => (
               <Link
                 key={result.id}
-                to={result.type === "listing" ? `/listing/${result.id}` : `/profile/${result.id}`}
+                href={result.type === "listing" ? `/listing/${result.id}` : `/profile/${result.id}`}
                 onClick={() => { 
+                  console.log("Link clicked →", result);
                   setQuery(""); 
                   setHighlightedIndex(-1); 
                 }}

@@ -1,0 +1,102 @@
+Below is a small surgical patch that guarantees both mouse / tap clicks and Enter-key navigation by letting React-Router handle the routing for us. You won’t need any more custom navigate() calls or event juggling.
+
+1 Replace each result row with a real <Link>
+Open client/src/components/SearchBar.tsx and locate the loop that renders the dropdown:
+
+tsx
+Copy
+Edit
+results.map((r, i) => (   /* … */
+Delete the existing <button …> (or <li>…) markup inside that map and paste this new block:
+
+tsx
+Copy
+Edit
+<Link
+  key={r.id}
+  to={r.type === "listing" ? `/listing/${r.id}` : `/profile/${r.id}`}
+  onClick={() => { setQ(""); setI(-1); }}      // clear query after click
+  className={`flex w-full items-center gap-3 px-4 py-2 text-left
+              ${i === idx ? "bg-gray-100" : "hover:bg-gray-50"}`}
+  role="option"
+  aria-selected={i === idx}
+>
+  {r.thumb ? (
+    <img
+      src={r.thumb}
+      alt={r.title}
+      className={`h-10 w-10 object-cover ${
+        r.type === "profile" ? "rounded-full" : "rounded"
+      }`}
+    />
+  ) : (
+    <div className="h-10 w-10 rounded bg-gray-200" />
+  )}
+  <div className="min-w-0">
+    <p className="truncate font-medium">{r.title}</p>
+    <p className="truncate text-xs text-gray-500">{r.sub}</p>
+  </div>
+</Link>
+Add the import at the top of the file:
+
+tsx
+Copy
+Edit
+import { Link } from "react-router-dom";
+2 Let Enter choose the highlighted (or first) link
+Keep the key-handling block but adjust the Enter case so it simply clicks the focused link:
+
+tsx
+Copy
+Edit
+onKeyDown={e => {
+  if (e.key === "ArrowDown") setI(i => Math.min(i + 1, results.length - 1));
+  if (e.key === "ArrowUp")   setI(i => Math.max(i - 1, 0));
+  if (e.key === "Escape")    { setQ(""); setI(-1); }
+
+  if (e.key === "Enter") {
+    e.preventDefault();
+    const chosen = results[idx >= 0 ? idx : 0];
+    if (chosen) window.location.href =
+      chosen.type === "listing"
+        ? `/listing/${chosen.id}`
+        : `/profile/${chosen.id}`;
+  }
+}}
+(Because the <Link> is now focusable, Enter would normally activate it automatically, but on some browsers the <input> still captures Enter. The snippet above forces navigation if that happens.)
+
+3 Remove the old choose() utility (optional)
+Since links handle navigation directly, you can delete the choose() function and its console.log. Or leave it—it will simply not be called.
+
+4 Save → reload → quick test
+Type austin – dropdown appears.
+
+Click (or tap) “Austin Reyes” – you should land on /profile/... instantly.
+
+Arrow-down to highlight, press Enter – navigates the same.
+
+Mobile simulator – tap a result, it navigates.
+
+Because we use native <Link> elements:
+
+React Router guarantees the route change.
+
+Mouse, touch, keyboard all share the same code path.
+
+Screen-reader users hear “link” and can press Enter/Space.
+
+Still not navigating?
+Make sure your route definition matches the path (e.g., /profile/:id or /profile/:username).
+
+Confirm you don’t have pointer-events:none or overflow:hidden clipping the dropdown.
+
+Verify only one Router exists in the React tree (no nested <BrowserRouter>).
+
+Apply the patch and let me know if clicks and Enter now take you straight to the profile or listing!
+
+
+
+
+
+
+
