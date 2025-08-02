@@ -70,7 +70,7 @@ const SupportPage: React.FC = () => {
       if (statusFilter !== 'all') params.append('status', statusFilter);
       if (categoryFilter !== 'all') params.append('category', categoryFilter);
       
-      const response = await apiRequest('GET', `/api/support/tickets?${params.toString()}`);
+      const response = await apiRequest(`/api/support/tickets?${params.toString()}`);
       return response.json();
     },
     enabled: !!user,
@@ -79,7 +79,10 @@ const SupportPage: React.FC = () => {
   // Create ticket mutation
   const createTicketMutation = useMutation({
     mutationFn: async (ticketData: any) => {
-      return apiRequest('POST', '/api/support/tickets', ticketData);
+      return apiRequest('/api/support/tickets', {
+        method: 'POST',
+        body: ticketData
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['support-tickets'] });

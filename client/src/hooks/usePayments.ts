@@ -33,11 +33,14 @@ export const usePayments = () => {
 
     setProcessing(true);
     try {
-      const response = await apiRequest('POST', '/api/create-subscription-checkout', {
-        userId: user.id,
-        productType,
-        priceId,
-        trialDays
+      const response = await apiRequest('/api/create-subscription-checkout', {
+        method: 'POST',
+        body: {
+          userId: user.id,
+          productType,
+          priceId,
+          trialDays
+        }
       });
 
       const data = await response.json();
@@ -74,11 +77,14 @@ export const usePayments = () => {
 
     setProcessing(true);
     try {
-      const response = await apiRequest('POST', '/api/payments/create-payment-intent', {
-        userId: user.id,
-        amount,
-        productType,
-        metadata
+      const response = await apiRequest('/api/payments/create-payment-intent', {
+        method: 'POST',
+        body: {
+          userId: user.id,
+          amount,
+          productType,
+          metadata
+        }
       });
 
       const data = await response.json();
@@ -100,7 +106,7 @@ export const usePayments = () => {
     if (!user?.id) return null;
 
     try {
-      const response = await apiRequest('GET', `/api/payments/subscription-status/${user.id}`);
+      const response = await apiRequest(`/api/payments/subscription-status/${user.id}`);
       const data = await response.json();
       setSubscriptionStatus(data);
       return data;
@@ -122,10 +128,13 @@ export const usePayments = () => {
 
     setProcessing(true);
     try {
-      const response = await apiRequest('POST', '/api/payments/create-subscription', {
-        userId: user.id,
-        email: user.email,
-        priceId
+      const response = await apiRequest('/api/payments/create-subscription', {
+        method: 'POST',
+        body: {
+          userId: user.id,
+          email: user.email,
+          priceId
+        }
       });
 
       const data = await response.json();

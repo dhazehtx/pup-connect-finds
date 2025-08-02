@@ -70,7 +70,7 @@ const AdminBugsPage: React.FC = () => {
         }
       });
       
-      const response = await apiRequest('GET', `/api/bugs/admin/reports?${params.toString()}`);
+      const response = await apiRequest(`/api/bugs/admin/reports?${params.toString()}`);
       return response.json();
     },
     enabled: !!user?.is_admin,
@@ -79,7 +79,10 @@ const AdminBugsPage: React.FC = () => {
   // Update bug mutation
   const updateBugMutation = useMutation({
     mutationFn: async ({ bugId, updates }: { bugId: string; updates: any }) => {
-      return apiRequest('PATCH', `/api/bugs/admin/reports/${bugId}`, updates);
+      return apiRequest(`/api/bugs/admin/reports/${bugId}`, {
+        method: 'PATCH',
+        body: updates
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-bug-reports'] });
@@ -99,7 +102,7 @@ const AdminBugsPage: React.FC = () => {
   // Assign bug mutation
   const assignBugMutation = useMutation({
     mutationFn: async (bugId: string) => {
-      return apiRequest('POST', `/api/bugs/admin/reports/${bugId}/assign`);
+      return apiRequest(`/api/bugs/admin/reports/${bugId}/assign`, { method: 'POST' });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-bug-reports'] });

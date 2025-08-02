@@ -81,7 +81,7 @@ const AdminSupportPage: React.FC = () => {
         }
       });
       
-      const response = await apiRequest('GET', `/api/support/admin/tickets?${params.toString()}`);
+      const response = await apiRequest(`/api/support/admin/tickets?${params.toString()}`);
       return response.json();
     },
     enabled: !!user?.is_admin,
@@ -90,7 +90,10 @@ const AdminSupportPage: React.FC = () => {
   // Update ticket mutation
   const updateTicketMutation = useMutation({
     mutationFn: async ({ ticketId, updates }: { ticketId: string; updates: any }) => {
-      return apiRequest('PATCH', `/api/support/admin/tickets/${ticketId}`, updates);
+      return apiRequest(`/api/support/admin/tickets/${ticketId}`, {
+        method: 'PATCH',
+        body: updates
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-support-tickets'] });
@@ -110,9 +113,12 @@ const AdminSupportPage: React.FC = () => {
   // Add admin reply mutation
   const addReplyMutation = useMutation({
     mutationFn: async ({ ticketId, message, updateStatus }: { ticketId: string; message: string; updateStatus?: string }) => {
-      return apiRequest('POST', `/api/support/admin/tickets/${ticketId}/replies`, {
-        message,
-        updateStatus
+      return apiRequest(`/api/support/admin/tickets/${ticketId}/replies`, {
+        method: 'POST',
+        body: {
+          message,
+          updateStatus
+        }
       });
     },
     onSuccess: () => {
