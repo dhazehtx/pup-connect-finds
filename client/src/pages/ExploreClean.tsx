@@ -8,6 +8,8 @@ import { apiRequest } from '@/lib/api';
 import { supabase } from '@/integrations/supabase/client';
 import { useLocation } from 'wouter';
 import LoadingSpinner from '@/components/ui/loading-spinner';
+import ListingCard from '@/components/ListingCard';
+import EmptyState from '@/components/EmptyState';
 
 // Demo data for unauthenticated users
 const demoListings = [
@@ -151,9 +153,9 @@ const Explore = () => {
   );
 };
 
-// Demo listings component
+// Demo listings component with responsive grid
 const DemoListings = ({ data }: { data: any[] }) => (
-  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+  <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
     {data?.map((listing) => (
       <Card key={listing.id} className="hover:shadow-lg transition-shadow border-2 border-dashed border-gray-300">
         <CardContent className="p-4">
@@ -173,21 +175,38 @@ const DemoListings = ({ data }: { data: any[] }) => (
   </div>
 );
 
-// Real listings component  
+// Skeleton Grid Component for loading state
+const SkeletonGrid = ({ count = 8 }: { count?: number }) => (
+  <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+    {Array.from({ length: count }).map((_, i) => (
+      <Card key={i} className="animate-pulse">
+        <div className="aspect-[4/3] bg-gray-200 rounded-t-lg" />
+        <CardContent className="p-4 space-y-3">
+          <div className="h-6 bg-gray-200 rounded w-3/4" />
+          <div className="h-4 bg-gray-200 rounded w-1/2" />
+          <div className="h-4 bg-gray-200 rounded w-1/3" />
+          <div className="h-6 bg-gray-200 rounded w-1/4" />
+        </CardContent>
+      </Card>
+    ))}
+  </div>
+);
+
+// Real listings component with Facebook-Marketplace-style responsive grid
 const RealListings = ({ data, loading }: { data: any[], loading: boolean }) => {
   if (loading) {
-    return (
-      <div className="text-center py-12">
-        <LoadingSpinner />
-        <p className="text-gray-600 mt-4">Loading real listings...</p>
-      </div>
-    );
+    return <SkeletonGrid count={8} />;
   }
 
   if (!data || data.length === 0) {
     return (
-      <div className="text-center py-12">
-        <p className="text-gray-600">No listings found. Be the first to post!</p>
+      <div className="text-center py-16">
+        <div className="mb-4 mx-auto w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center">
+          <svg className="w-8 h-8 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+          </svg>
+        </div>
+        <p className="text-lg text-gray-600 max-w-md mx-auto">No puppies found. Try adjusting your filters or be the first to post!</p>
         <Button className="mt-4" onClick={() => window.location.href = '/create-listing'}>
           Create Listing
         </Button>
@@ -196,33 +215,17 @@ const RealListings = ({ data, loading }: { data: any[], loading: boolean }) => {
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      {data.map((listing) => (
-        <Card key={listing.id} className="hover:shadow-lg transition-shadow">
-          <CardContent className="p-4">
-
-            <h3 className="font-semibold text-lg mb-2">{listing.dog_name}</h3>
-            <p className="text-sm text-gray-600 mb-1">{listing.breed} • {listing.age} {listing.age === 1 ? 'week' : 'weeks'}</p>
-            <p className="text-sm text-gray-600 mb-2">{listing.location}</p>
-            <p className="text-xl font-bold text-green-600 mb-2">${listing.price}</p>
-            {listing.description && (
-              <p className="text-sm text-gray-500">{listing.description}</p>
-            )}
-            <div className="flex gap-2 mt-2">
-              {listing.vaccinated && (
-                <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
-                  Vaccinated
-                </Badge>
-              )}
-              {listing.health_tested && (
-                <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
-                  Health Tested
-                </Badge>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-      ))}
+    <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+      {data.map((listing) => {
+        // Transform Supabase data to match ListingCard expected format
+        const transformedListing = {
+          ...listing,
+          name: listing.dog_name,
+          images: listing.image_url ? [listing.image_url] : [],
+          user_id: listing.user_id
+        };
+        return <ListingCard key={listing.id} listing={transformedListing} />;
+      })}
     </div>
   );
 };
