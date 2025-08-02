@@ -75,12 +75,15 @@ export default function SearchBar({ placeholder = "Search breeders, puppies, she
             </li>
           ) : (
             results.map((result, index) => (
-              <li
+              <button
                 key={result.id}
-                onMouseDown={() => choose(result)}
+                type="button"
+                onClick={() => choose(result)}
                 onMouseEnter={() => setHighlightedIndex(index)}
-                className={`flex cursor-pointer items-center gap-3 px-4 py-3 transition-colors duration-200 border-b border-gray-100 last:border-b-0
+                className={`flex w-full items-center gap-3 px-4 py-3 text-left transition-colors duration-200 border-b border-gray-100 last:border-b-0
                   ${index === highlightedIndex ? "bg-primary-50" : "hover:bg-gray-50"}`}
+                role="option"
+                aria-selected={index === highlightedIndex}
               >
                 {result.thumb ? (
                   <img
@@ -99,7 +102,7 @@ export default function SearchBar({ placeholder = "Search breeders, puppies, she
                   <p className="truncate font-medium text-gray-900">{result.title}</p>
                   <p className="truncate text-xs text-gray-500">{result.sub}</p>
                 </div>
-              </li>
+              </button>
             ))
           )}
         </ul>
