@@ -1,0 +1,195 @@
+Below is a copy-paste-ready patch that removes the auto-redirect you’re seeing and turns the top bar into a true “type → see suggestions → pick one” search, just like Instagram or TikTok. It:
+
+Debounces queries so Supabase isn’t spammed
+
+Combines listings, breeders, shelters & user profiles in one dropdown
+
+Keeps you on the current page unless you explicitly choose an item (click, tap, or ↵ while a result is highlighted)
+
+Lets you arrow-key through results and dismiss with Esc
+
+1 – Supabase side (one-time)
+sql
+Copy
+Edit
+-- enable trigram + full-text for quick fuzzy matches
+alter extension pg_trgm   if not exists;
+alter extension unaccent  if not exists;
+
+-- profiles
+create index if not exists profiles_ft_idx
+  on profiles using gin (
+    to_tsvector('simple',
+      coalesce(username,'')       || ' ' ||
+      coalesce(kennel_name,'')    || ' ' ||
+      coalesce(shelter_name,'')
+    )
+  );
+
+-- listings (name & breed)
+create index if not exists listings_ft_idx
+  on listings using gin (
+    to_tsvector('simple',
+      coalesce(name,'') || ' ' || coalesce(breed,'')
+    )
+  );
+Tip: run it once in Supabase SQL editor; no schema changes needed beyond the indexes.
+
+2 – hook: src/hooks/useGlobalSearch.ts
+tsx
+Copy
+Edit
+import { useEffect, useState } from "react";
+import { supabase } from "../utils/supabaseClient";
+
+export type SearchResult =
+  | { type: "listing"; id: string; title: string; sub: string; thumb: string }
+  | { type: "profile"; id: string; title: string; sub: string; thumb: string };
+
+export function useGlobalSearch(query: string) {
+  const [results, set] = useState<SearchResult[]>([]);
+
+  useEffect(() => {
+    if (!query.trim()) { set([]); return; }
+
+    const t = setTimeout(async () => {
+      const like = `%${query}%`;
+
+      const [{ data: list = [] }, { data: prof = [] }] = await Promise.all([
+        supabase
+          .from("listings")
+          .select("id,name,breed,price,images")
+          .ilike("name", like)
+          .limit(8),
+        supabase
+          .from("profiles")
+          .select("id,username,kennel_name,avatar_url")
+          .or(`username.ilike.${like},kennel_name.ilike.${like},shelter_name.ilike.${like}`)
+          .limit(8)
+      ]);
+
+      set([
+        ...list.map(l => ({
+          type: "listing",
+          id: l.id,
+          title: l.name,
+          sub:  `$${l.price.toLocaleString()} · ${l.breed}`,
+          thumb: l.images?.[0] ?? ""
+        })),
+        ...prof.map(p => ({
+          type: "profile",
+          id: p.id,
+          title: `@${p.username}`,
+          sub:  p.kennel_name ?? "Breeder / Shelter",
+          thumb: p.avatar_url ?? ""
+        }))
+      ]);
+    }, 250);              // 👈 debounce
+
+    return () => clearTimeout(t);
+  }, [query]);
+
+  return results;
+}
+3 – component patch: src/components/SearchBar.tsx
+tsx
+Copy
+Edit
+import { useState, useRef } from "react";
+import { useNavigate } from "react-router-dom";
+import { useGlobalSearch } from "../hooks/useGlobalSearch";
+
+export default function SearchBar() {
+  const [q, setQ]   = useState("");
+  const [idx, setI] = useState(-1);
+  const results     = useGlobalSearch(q);
+  const nav         = useNavigate();
+  const inputRef    = useRef<HTMLInputElement>(null);
+
+  const choose = (r: ReturnType<typeof useGlobalSearch>[number]) => {
+    nav(r.type === "listing" ? `/listing/${r.id}` : `/profile/${r.id}`);
+    setQ(""); setI(-1);
+    setTimeout(() => inputRef.current?.focus(), 0); // retain focus
+  };
+
+  return (
+    <form onSubmit={e => e.preventDefault()} className="relative w-full">
+      <input
+        ref={inputRef}
+        value={q}
+        onChange={e => { setQ(e.target.value); setI(-1); }}
+        onKeyDown={e => {
+          if (e.key === "ArrowDown") setI(i => Math.min(i + 1, results.length - 1));
+          if (e.key === "ArrowUp")   setI(i => Math.max(i - 1, 0));
+          if (e.key === "Enter" && idx >= 0) { e.preventDefault(); choose(results[idx]); }
+          if (e.key === "Escape") { setQ(""); setI(-1); }
+        }}
+        placeholder="Search breeders, puppies, shelters…"
+        className="w-full rounded-lg border px-4 py-2 focus:ring-primary-600"
+      />
+
+      {/* suggestions */}
+      {q && (
+        <ul className="absolute z-50 mt-1 max-h-80 w-full overflow-y-auto rounded-lg bg-white shadow-lg">
+          {results.length === 0 ? (
+            <li className="p-4 text-sm text-gray-500">No results</li>
+          ) : (
+            results.map((r, i) => (
+              <li
+                key={r.id}
+                onMouseDown={() => choose(r)}
+                className={`flex cursor-pointer items-center gap-3 px-4 py-2
+                  ${i === idx ? "bg-gray-100" : "hover:bg-gray-50"}`}
+              >
+                {r.thumb ? (
+                  <img
+                    src={r.thumb}
+                    alt={r.title}
+                    className={`h-10 w-10 object-cover ${
+                      r.type === "profile" ? "rounded-full" : "rounded"
+                    }`}
+                  />
+                ) : (
+                  <div className="h-10 w-10 rounded bg-gray-200" />
+                )}
+                <div className="min-w-0">
+                  <p className="truncate font-medium">{r.title}</p>
+                  <p className="truncate text-xs text-gray-500">{r.sub}</p>
+                </div>
+              </li>
+            ))
+          )}
+        </ul>
+      )}
+    </form>
+  );
+}
+Why this fixes the “jump back to / explore”
+We cancel the browser’s default form submit (onSubmit={e => e.preventDefault()}), so pressing ↵ doesn’t reload or push any route.
+
+Navigation only fires in choose() after a result is deliberately selected.
+
+If you press ↵ with no suggestion highlighted, nothing happens—mirrors IG/Facebook behaviour.
+
+4 – Styling (optional)
+If you want the dropdown to feel native-mobile:
+
+css
+Copy
+Edit
+/* tailwind.css overrides (optional) */
+.dropdown-enter   { @apply opacity-0 scale-95; }
+.dropdown-enter-to{ @apply opacity-100 scale-100; }
+.dropdown-leave   { @apply opacity-100 scale-100; }
+.dropdown-leave-to{ @apply opacity-0 scale-95; }
+Then wrap <ul> in <Transition> from @headlessui/react for a subtle fade/scale.
+
+Sanity-check list
+Test	Expected outcome
+Type “blue”	dropdown shows Blue listing + any breeder named Blue
+Arrow keys ↓↑	row highlight moves; Esc closes list
+Press ↵ with highlight	navigates to target profile/listing
+Press ↵ with no highlight	input stays, page doesn’t change
+Click empty page area	dropdown disappears
+
+Run npm run dev, give it a whirl, and watch the console—there should be zero redirects and only one query per ¼ second while typing.

@@ -13,7 +13,7 @@ import EmptyState from '@/components/EmptyState';
 import { Search, Filter, CheckSquare } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import GlobalSearch from '@/components/GlobalSearch';
+import SearchBar from '@/components/SearchBar';
 import { COMPONENTS, buildCardClass, buildButtonClass } from '@/styles/constants';
 
 // Advanced Filters Panel Component
@@ -182,7 +182,7 @@ const SearchAndFilters = ({ showAdvanced, setShowAdvanced }: { showAdvanced: boo
     
     <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
       <div className="flex-1 w-full sm:max-w-md">
-        <GlobalSearch 
+        <SearchBar 
           placeholder="Search puppies, breeds, or breeders..." 
           className="w-full"
         />

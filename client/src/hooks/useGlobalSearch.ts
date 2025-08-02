@@ -2,8 +2,8 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
 export type SearchResult =
-  | { type: "listing"; id: string; name: string; breed: string; price: number; image: string; location?: string }
-  | { type: "profile"; id: string; username: string; avatar_url: string; full_name?: string };
+  | { type: "listing"; id: string; title: string; sub: string; thumb: string }
+  | { type: "profile"; id: string; title: string; sub: string; thumb: string };
 
 export function useGlobalSearch(query: string) {
   const [results, setResults] = useState<SearchResult[]>([]);
@@ -20,14 +20,15 @@ export function useGlobalSearch(query: string) {
     const timer = setTimeout(async () => {
       try {
         console.log('[GLOBAL SEARCH] Searching for:', query);
+        const like = `%${query}%`;
         
-        // Search both listings and profiles in parallel
+        // Search both listings and profiles in parallel with improved queries
         const [listResp, profResp] = await Promise.all([
-          // Search in dog_listings table - prioritize name matches
+          // Search in dog_listings table
           supabase
             .from("dog_listings")
-            .select("id, dog_name, breed, price, image_url, location")
-            .or(`dog_name.ilike.%${query}%, breed.ilike.%${query}%, location.ilike.%${query}%`)
+            .select("id, dog_name, breed, price, image_url")
+            .or(`dog_name.ilike.${like}, breed.ilike.${like}`)
             .eq("status", "active")
             .order('created_at', { ascending: false })
             .limit(8),
@@ -36,32 +37,30 @@ export function useGlobalSearch(query: string) {
           supabase
             .from("profiles")
             .select("id, username, full_name, avatar_url")
-            .or(`username.ilike.%${query}%, full_name.ilike.%${query}%`)
+            .or(`username.ilike.${like}, full_name.ilike.${like}`)
             .order('created_at', { ascending: false })
-            .limit(6),
+            .limit(8),
         ]);
 
         console.log('[GLOBAL SEARCH] Listings found:', listResp.data?.length || 0);
         console.log('[GLOBAL SEARCH] Profiles found:', profResp.data?.length || 0);
 
-        // Transform listings data
+        // Transform listings data to match SearchResult interface
         const listings: SearchResult[] = (listResp.data ?? []).map(l => ({
           type: "listing" as const,
           id: l.id,
-          name: l.dog_name || '',
-          breed: l.breed || '',
-          price: l.price || 0,
-          image: l.image_url || "",
-          location: l.location || '',
+          title: l.dog_name || '',
+          sub: `$${(l.price || 0).toLocaleString()} · ${l.breed || ''}`,
+          thumb: l.image_url || "",
         }));
 
-        // Transform profiles data
+        // Transform profiles data to match SearchResult interface
         const profiles: SearchResult[] = (profResp.data ?? []).map(p => ({
           type: "profile" as const,
           id: p.id,
-          username: p.username || '',
-          avatar_url: p.avatar_url || '',
-          full_name: p.full_name || '',
+          title: `@${p.username || ''}`,
+          sub: p.full_name || "Breeder / User",
+          thumb: p.avatar_url || "",
         }));
 
         // Combine and set results
@@ -74,12 +73,9 @@ export function useGlobalSearch(query: string) {
       } finally {
         setLoading(false);
       }
-    }, 300); // debounce
+    }, 250); // reduced debounce for snappier feel
 
-    return () => {
-      clearTimeout(timer);
-      setLoading(false);
-    };
+    return () => clearTimeout(timer);
   }, [query]);
 
   return { results, loading };
