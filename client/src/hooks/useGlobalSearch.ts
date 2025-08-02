@@ -42,11 +42,21 @@ export function useGlobalSearch(query: string) {
             .limit(8),
         ]);
 
-        console.log('[GLOBAL SEARCH] Listings found:', listResp.data?.length || 0);
-        console.log('[GLOBAL SEARCH] Profiles found:', profResp.data?.length || 0);
+        // Debug logging to trace search data flow
+        const { data: list = [] } = listResp;
+        const { data: prof = [] } = profResp;
+        console.table({ 
+          query, 
+          listCount: list?.length || 0, 
+          profCount: prof?.length || 0, 
+          profSample: prof?.[0],
+          listSample: list?.[0]
+        });
+
+        console.log('[GLOBAL SEARCH] Raw response lengths - listings:', list?.length || 0, 'profiles:', prof?.length || 0);
 
         // Transform listings data to match SearchResult interface
-        const listings: SearchResult[] = (listResp.data ?? []).map(l => ({
+        const listings: SearchResult[] = (list || []).map(l => ({
           type: "listing" as const,
           id: l.id,
           title: l.dog_name || '',
@@ -55,7 +65,7 @@ export function useGlobalSearch(query: string) {
         }));
 
         // Transform profiles data with enhanced display logic
-        const profiles: SearchResult[] = (profResp.data ?? []).map(p => ({
+        const profiles: SearchResult[] = (prof || []).map(p => ({
           type: "profile" as const,
           id: p.id,
           title: p.full_name ? p.full_name : `@${p.username || ''}`,

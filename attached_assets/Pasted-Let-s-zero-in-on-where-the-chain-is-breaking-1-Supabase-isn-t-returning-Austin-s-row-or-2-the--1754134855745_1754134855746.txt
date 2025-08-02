@@ -1,0 +1,71 @@
+Let’s zero-in on where the chain is breaking: (1) Supabase isn’t returning Austin’s row, or (2) the dropdown isn’t rendering what Supabase does return.
+Two super-quick checks will pinpoint which.
+
+① Front-end sanity probe – log raw results
+Add one line inside the debounce callback of useGlobalSearch (right after the await Promise.all([listQ, profQ])):
+
+tsx
+Copy
+Edit
+const [{ data: list = [] }, { data: prof = [] }] = await Promise.all([listQ, profQ]);
+
+console.table({ listCount: list.length, profCount: prof.length, profSample: prof?.[0] });
+Save ➜ reload ➜ open Console ➜ type austin.
+
+Expected: a table row showing profCount : 1 (or more) and profSample.username : "austinreyes95".
+
+If profCount is 0 ➜ the data never arrives → jump to DB/RLS check below.
+
+If profCount is >0 but the dropdown is still empty ➜ the render logic is the culprit (we’ll fix that next).
+
+② Network tab – see the actual API payload
+Keep DevTools open, switch to Network > XHR.
+
+Type austin again.
+
+You’ll see a call like /rest/v1/profiles?...ilike.%25austin%25....
+
+Click it ➜ Response panel.
+
+Scenario	What the response tells you
+JSON array with Austin’s row	Front-end mapping bug – we’ll fix render logic.
+[] empty array	Supabase isn’t allowed to return the row (RLS) or we spelled columns wrong.
+401 / 403 error	RLS denies SELECT for this user.
+400 “column … does not exist”	Column names in the select() or or() clause are wrong (e.g., fullName vs full_name).
+
+③ Quick SQL check inside Supabase
+Open SQL editor and run:
+
+sql
+Copy
+Edit
+select id, username, full_name, kennel_name
+from profiles
+where username ilike '%austin%' or full_name ilike '%austin%';
+Row appears? Good → front-end/RLS issue.
+
+No row? Maybe the profile’s username is actually AustinReyes95 (mixed case) or stored in another column. Double-check the data.
+
+RLS tip: for now, make sure you have a permissive SELECT policy while debugging:
+
+sql
+Copy
+Edit
+create policy "debug read profiles"
+  on profiles for select using ( true );
+If raw data is coming down but dropdown still blank
+Double-check that the search bar you’re typing into is the new component:
+
+In SearchBar.tsx verify the line that maps results:
+
+tsx
+Copy
+Edit
+{results.map((r, i) => ( ... ))}
+Confirm the useGlobalSearch import path is correct:
+
+tsx
+Copy
+Edit
+import { useGlobalSearch } from "../hooks/useGlobalSearch";
+Make sure you removed the old search component from the layout so there aren’t two overlapping inputs.
