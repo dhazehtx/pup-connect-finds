@@ -1,5 +1,5 @@
 import { useState, useRef } from "react";
-import { useLocation } from "wouter";
+import { useLocation, Link } from "wouter";
 import { useGlobalSearch } from "../hooks/useGlobalSearch";
 import { Search } from "lucide-react";
 import { COMPONENTS, buildCardClass } from "../styles/constants";
@@ -12,6 +12,7 @@ export default function SearchBar({ placeholder = "Search breeders, puppies, she
   const inputRef = useRef<HTMLInputElement>(null);
 
   const choose = (result: typeof results[number]) => {
+    console.log("CHOOSE fired →", result);
     setLocation(result.type === "listing" ? `/listing/${result.id}` : `/profile/${result.id}`);
     setQuery(""); 
     setHighlightedIndex(-1);
@@ -74,12 +75,15 @@ export default function SearchBar({ placeholder = "Search breeders, puppies, she
             </li>
           ) : (
             results.map((result, index) => (
-              <button
+              <Link
                 key={result.id}
-                type="button"
-                onClick={() => choose(result)}
+                to={result.type === "listing" ? `/listing/${result.id}` : `/profile/${result.id}`}
+                onClick={() => { 
+                  setQuery(""); 
+                  setHighlightedIndex(-1); 
+                }}
                 onMouseEnter={() => setHighlightedIndex(index)}
-                className={`flex w-full items-center gap-3 px-4 py-3 text-left transition-colors duration-200 border-b border-gray-100 last:border-b-0
+                className={`flex w-full items-center gap-3 px-4 py-3 text-left transition-colors duration-200 border-b border-gray-100 last:border-b-0 cursor-pointer
                   ${index === highlightedIndex ? "bg-primary-50" : "hover:bg-gray-50"}`}
                 role="option"
                 aria-selected={index === highlightedIndex}
@@ -101,7 +105,7 @@ export default function SearchBar({ placeholder = "Search breeders, puppies, she
                   <p className="truncate font-medium text-gray-900">{result.title}</p>
                   <p className="truncate text-xs text-gray-500">{result.sub}</p>
                 </div>
-              </button>
+              </Link>
             ))
           )}
         </ul>

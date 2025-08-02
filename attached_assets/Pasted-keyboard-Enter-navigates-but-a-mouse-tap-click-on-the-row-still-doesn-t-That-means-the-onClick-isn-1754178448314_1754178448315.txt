@@ -1,0 +1,67 @@
+keyboard Enter navigates, but a mouse/tap click on the row still doesn’t.
+That means the onClick isn’t reaching our choose() function. Let’s fix that in two simple moves:
+
+What we’ll do	Why
+1. Verify the click never hits choose() (5-second console test).	Confirms the handler path.
+2. Swap each row from a <button> to a real React-Router <Link>.	Guarantees navigation for mouse, tap, and keyboard with zero event-handling edge cases.
+
+1 Quick console probe (takes 5 seconds)
+Open SearchBar.tsx.
+
+Inside const choose = … keep the temporary line:
+
+tsx
+Copy
+Edit
+console.log("CHOOSE fired →", r);
+Reload the preview, type austin, click the row.
+
+If the log prints → choose() fires → skip straight to step 2.
+
+If no log → something is swallowing the click; step 2 still fixes it because <Link> bypasses custom handlers.
+
+(You can remove that console.log after testing.)
+
+2 Patch: render each row as a <Link>
+Replace the list-item block inside the dropdown map:
+
+diff
+Copy
+Edit
+- <button
+-   key={r.id}
+-   type="button"
+-   onClick={() => choose(r)}
+-   className={`flex w-full items-center gap-3 px-4 py-2 text-left
+-               ${i === idx ? "bg-gray-100" : "hover:bg-gray-50"}`}
+-   role="option"
+-   aria-selected={i === idx}
+- >
++ <Link
++   key={r.id}
++   to={r.type === "listing" ? `/listing/${r.id}` : `/profile/${r.id}`}
++   onClick={() => { setQ(""); setI(-1); }}
++   className={`flex w-full items-center gap-3 px-4 py-2 text-left
++               ${i === idx ? "bg-gray-100" : "hover:bg-gray-50"}`}
++   role="option"
++   aria-selected={i === idx}
++ >
+     {/* thumbnail + text go here */}
+- </button>
++ </Link>
+Imports you may need at top of file
+
+tsx
+Copy
+Edit
+import { Link } from "react-router-dom";
+Why this works
+
+<Link> is the official React-Router element; it handles click and tap by default.
+
+No custom navigate() call needed—React Router swaps the URL instantly.
+
+Keyboard support remains: when a row has focus, Enter activates the link automatically.
+
+We still clear the query with onClick={() => { setQ(""); setI(-1); }} so the bar resets.
+
