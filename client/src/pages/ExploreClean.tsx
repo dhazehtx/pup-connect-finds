@@ -49,7 +49,7 @@ const Explore = () => {
     
     // Filter to show only this user's listings for debugging
     if (response && response.length > 0) {
-      const userListings = response.filter(listing => listing.user_id === userId);
+      const userListings = response.filter((listing: any) => listing.user_id === userId);
       console.log('[EXPLORE CLEAN] User\'s own listings:', userListings.length, 'out of', response.length);
       console.log('[EXPLORE CLEAN] First listing owner ID:', response[0]?.user_id, 'vs user ID:', userId);
     }
@@ -183,11 +183,7 @@ const RealListings = ({ data, loading }: { data: any[], loading: boolean }) => {
       {data.map((listing) => (
         <Card key={listing.id} className="hover:shadow-lg transition-shadow">
           <CardContent className="p-4">
-            <div className="mb-2">
-              <Badge variant="default" className="bg-green-100 text-green-800">
-                Real Listing
-              </Badge>
-            </div>
+
             <h3 className="font-semibold text-lg mb-2">{listing.dog_name}</h3>
             <p className="text-sm text-gray-600 mb-1">{listing.breed} • {listing.age} weeks</p>
             <p className="text-sm text-gray-600 mb-2">{listing.location}</p>
