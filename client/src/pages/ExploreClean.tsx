@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/contexts/AuthContext';
 import { apiRequest } from '@/lib/api';
+import { supabase } from '@/integrations/supabase/client';
 import { useLocation } from 'wouter';
 import LoadingSpinner from '@/components/ui/loading-spinner';
 
@@ -41,20 +42,36 @@ const Explore = () => {
   const isAuthenticated = !!user && !authLoading;
 
   const fetchRealListings = async (userId: string) => {
-    console.log('[EXPLORE CLEAN] Fetching real listings for user:', userId);
+    console.log('[EXPLORE CLEAN] Fetching real listings from Supabase for user:', userId);
     console.log('[EXPLORE CLEAN] User ID type:', typeof userId, 'Length:', userId?.length);
-    const response = await apiRequest('listings');
-    console.log('[EXPLORE CLEAN] Real listings fetched:', response?.length || 0);
-    console.log('[EXPLORE CLEAN] Raw listings response:', response);
     
-    // Filter to show only this user's listings for debugging
-    if (response && response.length > 0) {
-      const userListings = response.filter((listing: any) => listing.user_id === userId);
-      console.log('[EXPLORE CLEAN] User\'s own listings:', userListings.length, 'out of', response.length);
-      console.log('[EXPLORE CLEAN] First listing owner ID:', response[0]?.user_id, 'vs user ID:', userId);
+    try {
+      // Fetch directly from Supabase dog_listings table
+      const { data, error } = await supabase
+        .from('dog_listings')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('[EXPLORE CLEAN] Supabase error:', error);
+        return [];
+      }
+
+      console.log('[EXPLORE CLEAN] Supabase listings fetched:', data?.length || 0);
+      console.log('[EXPLORE CLEAN] Raw Supabase response:', data);
+      
+      // Show all listings (not just user's own) for marketplace experience
+      if (data && data.length > 0) {
+        const userOwnedListings = data.filter((listing: any) => listing.user_id === userId);
+        console.log('[EXPLORE CLEAN] User\'s own listings:', userOwnedListings.length, 'out of', data.length);
+        console.log('[EXPLORE CLEAN] Found listings by names:', data.map((l: any) => l.dog_name));
+      }
+      
+      return data || [];
+    } catch (error) {
+      console.error('[EXPLORE CLEAN] Error fetching from Supabase:', error);
+      return [];
     }
-    
-    return response || [];
   };
 
   useEffect(() => {
@@ -124,7 +141,7 @@ const Explore = () => {
     <div className="min-h-screen bg-gray-50 p-4">
       <div className="max-w-6xl mx-auto">
         <div className="mb-6">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Explore Real Listings</h1>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Explore</h1>
           <p className="text-gray-600">Discover dogs from verified breeders and rescues</p>
         </div>
         
@@ -185,17 +202,24 @@ const RealListings = ({ data, loading }: { data: any[], loading: boolean }) => {
           <CardContent className="p-4">
 
             <h3 className="font-semibold text-lg mb-2">{listing.dog_name}</h3>
-            <p className="text-sm text-gray-600 mb-1">{listing.breed} • {listing.age} weeks</p>
+            <p className="text-sm text-gray-600 mb-1">{listing.breed} • {listing.age} {listing.age === 1 ? 'week' : 'weeks'}</p>
             <p className="text-sm text-gray-600 mb-2">{listing.location}</p>
             <p className="text-xl font-bold text-green-600 mb-2">${listing.price}</p>
             {listing.description && (
               <p className="text-sm text-gray-500">{listing.description}</p>
             )}
-            {listing.vaccinated && (
-              <Badge variant="outline" className="mt-2">
-                Vaccinated
-              </Badge>
-            )}
+            <div className="flex gap-2 mt-2">
+              {listing.vaccinated && (
+                <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+                  Vaccinated
+                </Badge>
+              )}
+              {listing.health_tested && (
+                <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+                  Health Tested
+                </Badge>
+              )}
+            </div>
           </CardContent>
         </Card>
       ))}

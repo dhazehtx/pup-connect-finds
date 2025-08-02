@@ -1,0 +1,68 @@
+Brief description of the problem + expected behavior, e.g.:
+
+Current Explore page shows “Bella” and “Max” with a “Real Listing” badge and the title “Explore Real Listings” even when I’m signed in. I have real listings in Supabase (dog_names: "blu" and "Frenchie bob") owned by my user. I want the page to:
+
+Be titled “Explore” (not “Explore Real Listings”).
+
+Show my actual Supabase listings (blu, Frenchie bob) when signed in, without a “Real Listing” badge.
+
+Only show demo data when signed out, with an orange “Demo Data” badge.
+
+Preserve the “Vaccinated” badge when appropriate.
+
+The relevant code snippets (copy-paste these):
+
+The React component (e.g., ExploreClean or whatever renders the Explore page) that decides which listings to show and the title/badge.
+
+The function that fetches listings from Supabase (the supabase.from('dog_listings')... call and any filtering logic, including how authentication/session is passed).
+
+The conditional rendering logic for badges/titles.
+
+(Optional but helpful) The RLS policy definitions you have for dog_listings if they’re in code or SQL.
+
+Example of a focused prompt you can paste:
+
+Here’s the issue: the Explore page is showing seeded/demo “real” listings (Bella & Max) and labels them “Real Listing” with the title “Explore Real Listings.” I have actual listings in Supabase (dog_names “blu” and “Frenchie bob”) associated with my authenticated user.
+
+Desired behavior:
+
+Title should be “Explore” for signed-in users.
+
+Show my real dog_listings when signed in (no “Real Listing” badge).
+
+Only fall back to demo data when signed out, and then show it with an explicit “Demo Data” badge.
+
+Keep “Vaccinated” badge on real listings if applicable.
+
+Please help me adjust the code to:
+
+Correctly fetch and display my Supabase listings (blu, Frenchie bob) when signed in.
+
+Remove the “Real Listing” badge from my real listings and revert the title.
+
+Ensure demo data appears only when unsigned and is clearly marked.
+
+Here are the relevant code snippets: [paste the Explore component, the Supabase fetch logic, and the badge/title rendering logic].
+
+Quick manual checklist you can try before or alongside:
+Confirm that the authenticated user’s ID matches the owner_id (or equivalent) on your “blu” / “Frenchie bob” rows.
+
+Inspect the network request on Explore when signed in: is it querying dog_listings and returning those two records, or is it hitting a different seed endpoint?
+
+Adjust the badge/title logic in the component, e.g.:
+
+tsx
+Copy
+Edit
+const isSignedIn = !!session?.user;
+const title = 'Explore'; // keep static
+const listingsToShow = isSignedIn ? realListings : demoListings;
+
+<ListingCard 
+  {...listing} 
+  badge={
+    !isSignedIn ? 'Demo Data' : listing.vaccinated ? 'Vaccinated' : undefined
+  }
+/>
+Ensure the “Real Listing” badge/title isn’t hardcoded for all signed-in views—make it conditional or remove it.
+
