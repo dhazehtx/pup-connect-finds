@@ -1,0 +1,88 @@
+Why you’re not seeing “Austin Reyes” (or your own account)
+Column mismatch – in the current query we only search username, kennel_name, and shelter_name.
+Your profile table looks like it stores the display name in full_name (and maybe display_bio, about, etc.), so “Austin Reyes” never matches.
+
+RLS / row-level security – if RLS policies restrict SELECT to a subset of columns for non-owners, the query can silently return empty arrays even though the row exists.
+
+Case sensitivity & accents – ilike is insensitive to case but not to accents or fuzzy typos (“Reyez” vs “Reyes”). Trigram pg_trgm helps, but we didn’t add it to those extra columns yet.
+
+Below is a quick-patch that (a) widens the search columns, (b) proves the SQL returns what you expect in the Supabase SQL editor, and (c) updates the hook so the dropdown finally shows “Austin Reyes”, your own profile, and any listing with a matching breed or name.
+
+1 — Verify in Supabase (run once)
+sql
+Copy
+Edit
+-- which columns actually contain your data?
+select id, username, full_name, kennel_name
+from profiles
+where full_name ilike '%reyes%' OR username ilike '%austin%';
+
+-- if rows show up, great. now add indexes for them:
+create index if not exists profiles_fullname_trgm on profiles
+  using gin (full_name gin_trgm_ops);
+
+-- extend the listings index to cover breed & description too
+create index if not exists listings_name_breed_desc_trgm on listings
+  using gin ((name || ' ' || breed || ' ' || coalesce(description, '')) gin_trgm_ops);
+(If RLS blocks that select, temporarily enable a policy for your test user or run the query with the service key.)
+
+2 — Update useGlobalSearch.ts
+tsx
+Copy
+Edit
+export function useGlobalSearch(query: string) {
+  const [results, set] = useState<SearchResult[]>([]);
+
+  useEffect(() => {
+    if (!query.trim()) { set([]); return; }
+    const like = `%${query}%`;
+
+    const t = setTimeout(async () => {
+      // --- 1 ▶ listings (name, breed, description)
+      const listQ = supabase.from("listings")
+        .select("id,name,breed,price,images")
+        .or(`name.ilike.${like},breed.ilike.${like},description.ilike.${like}`)
+        .limit(8);
+
+      // --- 2 ▶ profiles (username, full_name, kennel_name, shelter_name)
+      const profQ = supabase.from("profiles")
+        .select("id,username,full_name,kennel_name,avatar_url")
+        .or([
+          `username.ilike.${like}`,
+          `full_name.ilike.${like}`,
+          `kennel_name.ilike.${like}`,
+          `shelter_name.ilike.${like}`
+        ].join(","))
+        .limit(8);
+
+      const [{ data: list = [] }, { data: prof = [] }] = await Promise.all([listQ, profQ]);
+
+      set([
+        ...list.map(l => ({
+          type : "listing",
+          id   : l.id,
+          title: l.name,
+          sub  : `${l.breed} · $${l.price.toLocaleString()}`,
+          thumb: l.images?.[0] ?? ""
+        })),
+        ...prof.map(p => ({
+          type : "profile",
+          id   : p.id,
+          title: p.full_name ? `${p.full_name}` : `@${p.username}`,
+          sub  : p.kennel_name ?? "Breeder / Shelter",
+          thumb: p.avatar_url ?? ""
+        }))
+      ]);
+    }, 250);
+
+    return () => clearTimeout(t);
+  }, [query]);
+
+  return results;
+}
+What changed?
+Before	After
+Only username, kennel_name, shelter_name searched	Adds full_name (good for “Austin Reyes”)
+Listings matched name only	Matches breed and description too
+No trigram index on full_name	Index added ⇒ faster fuzzy matches
+

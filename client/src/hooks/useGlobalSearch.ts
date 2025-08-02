@@ -22,18 +22,18 @@ export function useGlobalSearch(query: string) {
         console.log('[GLOBAL SEARCH] Searching for:', query);
         const like = `%${query}%`;
         
-        // Search both listings and profiles in parallel with improved queries
+        // Enhanced search covering all relevant columns
         const [listResp, profResp] = await Promise.all([
-          // Search in dog_listings table
+          // Search dog_listings: name, breed, and description
           supabase
             .from("dog_listings")
-            .select("id, dog_name, breed, price, image_url")
-            .or(`dog_name.ilike.${like}, breed.ilike.${like}`)
+            .select("id, dog_name, breed, price, image_url, description")
+            .or(`dog_name.ilike.${like}, breed.ilike.${like}, description.ilike.${like}`)
             .eq("status", "active")
             .order('created_at', { ascending: false })
             .limit(8),
           
-          // Search profiles by username and full_name
+          // Search profiles: username and full_name for comprehensive results
           supabase
             .from("profiles")
             .select("id, username, full_name, avatar_url")
@@ -54,12 +54,12 @@ export function useGlobalSearch(query: string) {
           thumb: l.image_url || "",
         }));
 
-        // Transform profiles data to match SearchResult interface
+        // Transform profiles data with enhanced display logic
         const profiles: SearchResult[] = (profResp.data ?? []).map(p => ({
           type: "profile" as const,
           id: p.id,
-          title: `@${p.username || ''}`,
-          sub: p.full_name || "Breeder / User",
+          title: p.full_name ? p.full_name : `@${p.username || ''}`,
+          sub: p.username ? `@${p.username}` : "User Profile",
           thumb: p.avatar_url || "",
         }));
 
