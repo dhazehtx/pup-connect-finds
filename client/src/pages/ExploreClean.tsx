@@ -42,8 +42,18 @@ const Explore = () => {
 
   const fetchRealListings = async (userId: string) => {
     console.log('[EXPLORE CLEAN] Fetching real listings for user:', userId);
+    console.log('[EXPLORE CLEAN] User ID type:', typeof userId, 'Length:', userId?.length);
     const response = await apiRequest('listings');
     console.log('[EXPLORE CLEAN] Real listings fetched:', response?.length || 0);
+    console.log('[EXPLORE CLEAN] Raw listings response:', response);
+    
+    // Filter to show only this user's listings for debugging
+    if (response && response.length > 0) {
+      const userListings = response.filter(listing => listing.user_id === userId);
+      console.log('[EXPLORE CLEAN] User\'s own listings:', userListings.length, 'out of', response.length);
+      console.log('[EXPLORE CLEAN] First listing owner ID:', response[0]?.user_id, 'vs user ID:', userId);
+    }
+    
     return response || [];
   };
 
