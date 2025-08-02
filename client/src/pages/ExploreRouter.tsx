@@ -2,7 +2,7 @@ import React, { useEffect, useMemo } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLocation } from 'react-router-dom';
 import ExploreGuest from '@/pages/ExploreGuest';
-import ExploreAuth from '@/pages/ExploreAuth';
+import ExploreClean from '@/pages/ExploreClean';
 
 export default function ExploreRouter() {
   const { user, loading } = useAuth();
@@ -47,6 +47,6 @@ export default function ExploreRouter() {
     return <ExploreGuest />;
   }
   
-  console.log('[EXPLORE ROUTER] User authenticated, showing auth explore');
-  return <ExploreAuth />;
+  console.log('[EXPLORE ROUTER] User authenticated, showing clean explore');
+  return <ExploreClean />;
 }
