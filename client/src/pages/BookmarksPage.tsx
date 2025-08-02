@@ -41,8 +41,7 @@ const BookmarksPage = () => {
   const { data: bookmarks, isLoading, error } = useQuery({
     queryKey: ['bookmarks', filterType],
     queryFn: async () => {
-      const response = await apiRequest('GET', `/api/bookmarks?type=${filterType}`);
-      return response.json();
+      return await apiRequest(`/api/bookmarks?type=${filterType}`);
     },
     enabled: !!user,
   });

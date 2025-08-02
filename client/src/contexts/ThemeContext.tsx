@@ -36,8 +36,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
       try {
         if (user) {
           // Load theme from user preferences if authenticated
-          const response = await apiRequest('GET', '/api/support/preferences');
-          const data = await response.json();
+          const data = await apiRequest('/api/support/preferences');
           const savedTheme = data.theme || 'light';
           setThemeState(savedTheme);
           applyTheme(savedTheme);
@@ -84,7 +83,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
     try {
       if (user) {
         // Save to user preferences if authenticated
-        await apiRequest('PATCH', '/api/support/preferences', { theme: newTheme });
+        await apiRequest('/api/support/preferences', { method: 'PATCH', body: { theme: newTheme } });
       } else {
         // Save to localStorage for unauthenticated users
         localStorage.setItem('theme', newTheme);

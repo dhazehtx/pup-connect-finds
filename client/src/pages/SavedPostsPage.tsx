@@ -42,8 +42,7 @@ const SavedPostsPage = () => {
   const { data: savedPosts, isLoading, error } = useQuery({
     queryKey: ['saved-posts', sortBy, filterBy],
     queryFn: async () => {
-      const response = await apiRequest('GET', `/api/saved-posts?sort=${sortBy}&filter=${filterBy}`);
-      return response.json();
+      return await apiRequest(`/api/saved-posts?sort=${sortBy}&filter=${filterBy}`);
     },
     enabled: !!user,
   });
