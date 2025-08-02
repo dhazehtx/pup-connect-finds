@@ -14,7 +14,7 @@ import { Search, Filter, CheckSquare } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import GlobalSearch from '@/components/GlobalSearch';
-import { COMPONENTS, buildCardClass } from '@/styles/constants';
+import { COMPONENTS, buildCardClass, buildButtonClass } from '@/styles/constants';
 
 // Advanced Filters Panel Component
 const AdvancedFilters = () => (
@@ -167,12 +167,12 @@ const AdvancedFilters = () => (
 
 // Search & Filter Component
 const SearchAndFilters = ({ showAdvanced, setShowAdvanced }: { showAdvanced: boolean, setShowAdvanced: (show: boolean) => void }) => (
-  <div className="mb-8">
-    <div className="flex items-center justify-between mb-4">
-      <h2 className="text-xl font-semibold text-gray-900">Search & Filter</h2>
+  <div className={`mb-8 ${buildCardClass('base')} p-6`}>
+    <div className="flex items-center justify-between mb-6">
+      <h2 className={`${COMPONENTS.HEADING_SECONDARY}`}>Search & Filter</h2>
       <Button 
         variant="ghost" 
-        className="text-blue-600 font-medium"
+        className="text-primary-600 font-medium hover:bg-gray-100"
         onClick={() => setShowAdvanced(!showAdvanced)}
       >
         <Filter className="w-4 h-4 mr-2" />
@@ -180,35 +180,39 @@ const SearchAndFilters = ({ showAdvanced, setShowAdvanced }: { showAdvanced: boo
       </Button>
     </div>
     
-    <div className="flex gap-4 items-center">
-      <div className="flex-1 max-w-sm">
+    <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
+      <div className="flex-1 w-full sm:max-w-md">
         <GlobalSearch 
-          placeholder="Search puppies..." 
+          placeholder="Search puppies, breeds, or breeders..." 
           className="w-full"
         />
       </div>
       
-      <Select defaultValue="all-breeds">
-        <SelectTrigger className="w-40">
-          <SelectValue />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="all-breeds">All Breeds</SelectItem>
-          <SelectItem value="golden-retriever">Golden Retriever</SelectItem>
-          <SelectItem value="labrador">Labrador</SelectItem>
-          <SelectItem value="french-bulldog">French Bulldog</SelectItem>
-        </SelectContent>
-      </Select>
-      
-      <div className="flex items-center gap-2">
-        <CheckSquare className="w-4 h-4 text-gray-400" />
-        <span className="text-sm text-gray-600">Verified only</span>
+      <div className="flex flex-wrap gap-3">
+        <Select defaultValue="all-breeds">
+          <SelectTrigger className={`w-40 ${COMPONENTS.SELECT_BASE}`}>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all-breeds">All Breeds</SelectItem>
+            <SelectItem value="golden-retriever">Golden Retriever</SelectItem>
+            <SelectItem value="labrador">Labrador</SelectItem>
+            <SelectItem value="french-bulldog">French Bulldog</SelectItem>
+            <SelectItem value="german-shepherd">German Shepherd</SelectItem>
+            <SelectItem value="bulldog">Bulldog</SelectItem>
+          </SelectContent>
+        </Select>
+        
+        <div className="flex items-center gap-2 px-3 py-2 bg-gray-50 rounded-lg">
+          <CheckSquare className="w-4 h-4 text-gray-400" />
+          <span className={`text-sm ${COMPONENTS.TEXT_MUTED}`}>Verified only</span>
+        </div>
+        
+        <Button variant="ghost" className="hover:bg-gray-100">
+          <Filter className="w-4 h-4 mr-2" />
+          Clear Filters
+        </Button>
       </div>
-      
-      <Button variant="ghost" className="text-gray-600">
-        <Filter className="w-4 h-4 mr-2" />
-        Clear Filters
-      </Button>
     </div>
   </div>
 );

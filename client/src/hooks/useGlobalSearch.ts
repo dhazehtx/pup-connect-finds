@@ -23,12 +23,13 @@ export function useGlobalSearch(query: string) {
         
         // Search both listings and profiles in parallel
         const [listResp, profResp] = await Promise.all([
-          // Search in dog_listings table first, then fallback to listings
+          // Search in dog_listings table - prioritize name matches
           supabase
             .from("dog_listings")
             .select("id, dog_name, breed, price, image_url, location")
             .or(`dog_name.ilike.%${query}%, breed.ilike.%${query}%, location.ilike.%${query}%`)
             .eq("status", "active")
+            .order('created_at', { ascending: false })
             .limit(8),
           
           // Search profiles by username and full_name
@@ -36,6 +37,7 @@ export function useGlobalSearch(query: string) {
             .from("profiles")
             .select("id, username, full_name, avatar_url")
             .or(`username.ilike.%${query}%, full_name.ilike.%${query}%`)
+            .order('created_at', { ascending: false })
             .limit(6),
         ]);
 

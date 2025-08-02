@@ -50,7 +50,7 @@ const GlobalSearch: React.FC<GlobalSearchProps> = ({
     if (result.type === 'listing') {
       setLocation(`/listing/${result.id}`);
     } else if (result.type === 'profile') {
-      setLocation(`/profile/${result.id}`);
+      setLocation(`/profile/${result.username}`);
     }
     
     setIsOpen(false);
@@ -60,6 +60,7 @@ const GlobalSearch: React.FC<GlobalSearchProps> = ({
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Escape') {
       setIsOpen(false);
+      setQuery('');
     }
   };
 
@@ -96,7 +97,7 @@ const GlobalSearch: React.FC<GlobalSearchProps> = ({
                 <button
                   key={`${result.type}-${result.id}`}
                   onClick={() => handleResultClick(result)}
-                  className="w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors duration-200 border-b border-gray-100 last:border-b-0"
+                  className="w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors duration-200 border-b border-gray-100 last:border-b-0 focus:bg-gray-50 focus:outline-none"
                 >
                   {result.type === 'listing' ? (
                     <div className="flex items-center space-x-3">
