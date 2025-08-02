@@ -24,7 +24,7 @@ import MessageThread from './components/messaging/MessageThread';
 import { LoadingPage } from './components/ui/loading';
 
 // Lazy load heavy components for performance
-const LazyExplore = lazy(() => import('./pages/Explore'));
+const LazyExplore = lazy(() => import('./pages/ExploreClean'));
 const LazyProfile = lazy(() => import('./pages/Profile'));
 const LazyMessages = lazy(() => import('./pages/Messages'));
 const LazyNotifications = lazy(() => import('./pages/Notifications'));
