@@ -210,10 +210,11 @@ const PostDetail = () => {
   };
 
   const handleHashtagClick = (hashtag: string) => {
-    navigate(`/?search=${encodeURIComponent(hashtag)}`);
+    // Navigate to explore and let the user manually search for hashtag
+    navigate('/explore');
     toast({
-      title: "Hashtag Search",
-      description: `Searching for posts with ${hashtag}`,
+      title: "Navigate to Explore",
+      description: `Navigate to Explore to search for ${hashtag}`,
     });
   };
 

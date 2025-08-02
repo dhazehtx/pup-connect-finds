@@ -10,7 +10,7 @@ import NotificationCenter from '@/components/notifications/NotificationCenter';
 import NotificationButton from '@/components/notifications/NotificationButton';
 import SearchBar from '../SearchBar';
 
-const StickyHeader = () => {
+const CleanStickyHeader = () => {
   const { user, isGuest, profile } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -219,4 +219,4 @@ const StickyHeader = () => {
   );
 };
 
-export default StickyHeader;
+export default CleanStickyHeader;
