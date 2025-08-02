@@ -138,19 +138,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Dog listing routes (with rate limiting for creation)
   app.get("/api/listings", async (req, res) => {
     try {
-      const { breed, minPrice, maxPrice, location, status, userId } = req.query;
+      const { breed, minPrice, maxPrice, location, status, userId, min_price, max_price, min_age, max_age, gender, verified_only, health_tested, vaccinated, breeds } = req.query;
       const filters = {
         breed: breed as string,
-        minPrice: minPrice ? parseFloat(minPrice as string) : undefined,
-        maxPrice: maxPrice ? parseFloat(maxPrice as string) : undefined,
+        breeds: breeds ? (breeds as string).split(',') : undefined,
+        minPrice: minPrice ? parseFloat(minPrice as string) : min_price ? parseFloat(min_price as string) : undefined,
+        maxPrice: maxPrice ? parseFloat(maxPrice as string) : max_price ? parseFloat(max_price as string) : undefined,
+        minAge: min_age ? parseInt(min_age as string) : undefined,
+        maxAge: max_age ? parseInt(max_age as string) : undefined,
         location: location as string,
+        gender: gender as string,
         status: status as string,
         userId: userId as string,
+        verifiedOnly: verified_only === 'true',
+        healthTested: health_tested === 'true',
+        vaccinated: vaccinated === 'true',
       };
+      
+      console.log('[API] Fetching listings with filters:', filters);
       const listings = await storage.getDogListings(filters);
+      console.log('[API] Found', listings.length, 'listings');
       res.json(listings);
     } catch (error) {
       console.error("Error getting listings:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  // Get user's specific listings
+  app.get("/api/listings/user/:userId", async (req, res) => {
+    try {
+      const { status } = req.query;
+      const filters = {
+        userId: req.params.userId,
+        status: status as string,
+      };
+      
+      console.log('[API] Fetching user listings with filters:', filters);
+      const listings = await storage.getDogListings(filters);
+      console.log('[API] Found', listings.length, 'user listings');
+      res.json(listings);
+    } catch (error) {
+      console.error("Error getting user listings:", error);
       res.status(500).json({ error: "Internal server error" });
     }
   });

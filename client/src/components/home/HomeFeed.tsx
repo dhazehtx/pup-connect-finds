@@ -7,6 +7,7 @@ import PostCard from './PostCard';
 import { usePosts } from '@/hooks/usePosts';
 import FullPostModal from '@/components/post/FullPostModal';
 import { apiRequest } from '@/lib/api';
+import { AlertTriangle, RotateCcw } from 'lucide-react';
 
 interface User {
   id: string;
@@ -193,7 +194,7 @@ const HomeFeed = () => {
       }
     }, 5000);
     
-    apiRequest('/posts/home-feed', { signal: controller.signal })
+    apiRequest('posts/home-feed', { signal: controller.signal })
       .then((data) => {
         if (cancelled) return;
         clearTimeout(timeout);

@@ -180,11 +180,18 @@ export class DatabaseStorage implements IStorage {
 
   async getDogListings(filters?: {
     breed?: string;
+    breeds?: string[];
     minPrice?: number;
     maxPrice?: number;
+    minAge?: number;
+    maxAge?: number;
     location?: string;
+    gender?: string;
     status?: string;
     userId?: string;
+    verifiedOnly?: boolean;
+    healthTested?: boolean;
+    vaccinated?: boolean;
   }): Promise<DogListing[]> {
     let query = db.select().from(dogListings);
     const conditions = [];
@@ -192,20 +199,44 @@ export class DatabaseStorage implements IStorage {
     if (filters?.breed) {
       conditions.push(like(dogListings.breed, `%${filters.breed}%`));
     }
-    if (filters?.minPrice) {
+    if (filters?.breeds && filters.breeds.length > 0) {
+      const breedConditions = filters.breeds.map(breed => 
+        like(dogListings.breed, `%${breed}%`)
+      );
+      conditions.push(or(...breedConditions));
+    }
+    if (filters?.minPrice !== undefined) {
       conditions.push(sql`${dogListings.price}::numeric >= ${filters.minPrice}`);
     }
-    if (filters?.maxPrice) {
+    if (filters?.maxPrice !== undefined) {
       conditions.push(sql`${dogListings.price}::numeric <= ${filters.maxPrice}`);
+    }
+    if (filters?.minAge !== undefined) {
+      conditions.push(sql`${dogListings.age_months}::integer >= ${filters.minAge}`);
+    }
+    if (filters?.maxAge !== undefined) {
+      conditions.push(sql`${dogListings.age_months}::integer <= ${filters.maxAge}`);
     }
     if (filters?.location) {
       conditions.push(like(dogListings.location, `%${filters.location}%`));
+    }
+    if (filters?.gender && filters.gender !== 'all') {
+      conditions.push(eq(dogListings.gender, filters.gender));
     }
     if (filters?.status) {
       conditions.push(eq(dogListings.status, filters.status));
     }
     if (filters?.userId) {
       conditions.push(eq(dogListings.user_id, filters.userId));
+    }
+    if (filters?.verifiedOnly) {
+      conditions.push(eq(dogListings.verified, true));
+    }
+    if (filters?.healthTested) {
+      conditions.push(eq(dogListings.health_tested, true));
+    }
+    if (filters?.vaccinated) {
+      conditions.push(eq(dogListings.vaccinated, true));
     }
 
     if (conditions.length > 0) {

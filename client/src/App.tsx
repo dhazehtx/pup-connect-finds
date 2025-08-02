@@ -77,6 +77,7 @@ const PrivacySettingsPage = lazy(() => import('./pages/PrivacySettingsPage'));
 const SubscriptionSuccess = lazy(() => import('./pages/SubscriptionSuccess'));
 const SubscriptionCancelled = lazy(() => import('./pages/SubscriptionCancelled'));
 const SessionTestPage = lazy(() => import('./pages/SessionTestPage'));
+const MyListingsPage = lazy(() => import('./pages/MyListingsPage'));
 
 // Import new notification component
 import NotificationButton from './components/notifications/NotificationButton';
@@ -121,6 +122,13 @@ function App() {
                   } />
                   <Route path="/auth" element={<Auth />} />
                   <Route path="/create-listing" element={<RequireAuth><CreateListing /></RequireAuth>} />
+                  <Route path="/my-listings" element={
+                    <RequireAuth>
+                      <Suspense fallback={<LoadingPage message="Loading My Listings..." />}>
+                        <MyListingsPage />
+                      </Suspense>
+                    </RequireAuth>
+                  } />
                   <Route path="/listing/:id" element={<ListingDetail />} />
                   <Route path="/messages" element={
                     <RequireAuth>

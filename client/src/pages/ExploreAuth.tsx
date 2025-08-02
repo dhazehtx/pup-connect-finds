@@ -83,11 +83,11 @@ const ExploreAuth: React.FC = () => {
   // STABLE QUERY KEYS - Serialize filters to prevent object reference changes
   const filtersKey = useMemo(() => JSON.stringify(filters), [filters]);
 
-  // Fetch listings with timeout diagnostics
+  // Fetch listings with real API call
   const { data: listings, isLoading: loadingListings, refetch: refetchListings, error: listingsError } = useQuery({
     queryKey: ['explore-listings', filtersKey],
     queryFn: async () => {
-      console.log('[EXPLORE AUTH] Starting listings fetch...');
+      console.log('[EXPLORE AUTH] Starting real listings fetch...');
       hasFetchedListingsRef.current = true;
       
       // Clear any existing timeout
@@ -99,50 +99,68 @@ const ExploreAuth: React.FC = () => {
       fetchTimeoutRef.current = setTimeout(() => {
         console.warn('[EXPLORE AUTH] Listings data still missing after 5 second timeout');
         setShowTimeoutFallback(true);
-        // Diagnostic dump
-        console.log('[FREEZE DIAGNOSTIC] Current state:', {
-          activeTab,
-          user: !!user,
-          loading,
-          hasFetchedListings: hasFetchedListingsRef.current,
-          hasFetchedPosts: hasFetchedPostsRef.current,
-          timestamp: Date.now()
-        });
       }, 5000);
       
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 800));
-      
-      // Clear timeout on successful completion
-      if (fetchTimeoutRef.current) {
-        clearTimeout(fetchTimeoutRef.current);
-        setShowTimeoutFallback(false);
+      try {
+        // Build query parameters from filters
+        const params = new URLSearchParams();
+        if (filters.breeds?.length > 0) {
+          params.append('breeds', filters.breeds.join(','));
+        }
+        if (filters.location && filters.location !== 'all') {
+          params.append('location', filters.location);
+        }
+        if (filters.gender && filters.gender !== 'all') {
+          params.append('gender', filters.gender);
+        }
+        if (filters.priceRange) {
+          params.append('min_price', filters.priceRange[0].toString());
+          params.append('max_price', filters.priceRange[1].toString());
+        }
+        if (filters.ageRange) {
+          params.append('min_age', filters.ageRange[0].toString());
+          params.append('max_age', filters.ageRange[1].toString());
+        }
+        if (filters.verifiedOnly) {
+          params.append('verified_only', 'true');
+        }
+        if (filters.healthTested) {
+          params.append('health_tested', 'true');
+        }
+        if (filters.vaccinated) {
+          params.append('vaccinated', 'true');
+        }
+        
+        console.log('[EXPLORE AUTH] Fetching listings with params:', params.toString());
+        
+        const response = await apiRequest(`listings?${params.toString()}`);
+        
+        // Clear timeout on successful completion
+        if (fetchTimeoutRef.current) {
+          clearTimeout(fetchTimeoutRef.current);
+          setShowTimeoutFallback(false);
+        }
+        
+        console.log('[EXPLORE AUTH] Real listings data loaded:', response.length, 'listings');
+        setResultCount(response.length);
+        return response;
+      } catch (error) {
+        console.error('[EXPLORE AUTH] Error fetching listings:', error);
+        // Clear timeout on error
+        if (fetchTimeoutRef.current) {
+          clearTimeout(fetchTimeoutRef.current);
+        }
+        throw error;
       }
-      
-      const mockData = Array.from({ length: 6 }, (_, i) => ({
-        id: `listing-${i}`,
-        title: `Beautiful ${['Golden Retriever', 'Labrador', 'German Shepherd'][i % 3]} Puppy`,
-        breed: ['Golden Retriever', 'Labrador', 'German Shepherd'][i % 3],
-        price: [1200, 1000, 1500][i % 3],
-        age_months: [2, 3, 4][i % 3],
-        gender: ['male', 'female'][i % 2],
-        location: ['San Francisco, CA', 'Los Angeles, CA', 'New York, NY'][i % 3],
-        images: [`https://images.unsplash.com/photo-${1552053831 + i * 1000}?w=400`],
-        health_tested: true,
-        vaccinated: true
-      }));
-      
-      console.log('[EXPLORE AUTH] Listings data loaded:', mockData.length, 'listings');
-      return mockData;
     },
     enabled: shouldFetchListings,
   });
 
-  // Fetch posts with timeout diagnostics
+  // Fetch posts with real API call
   const { data: posts, isLoading: loadingPosts, refetch: refetchPosts, error: postsError } = useQuery({
     queryKey: ['explore-posts', filtersKey],
     queryFn: async () => {
-      console.log('[EXPLORE AUTH] Starting posts fetch...');
+      console.log('[EXPLORE AUTH] Starting real posts fetch...');
       hasFetchedPostsRef.current = true;
       
       // Clear any existing timeout
@@ -154,47 +172,29 @@ const ExploreAuth: React.FC = () => {
       fetchTimeoutRef.current = setTimeout(() => {
         console.warn('[EXPLORE AUTH] Posts data still missing after 5 second timeout');
         setShowTimeoutFallback(true);
-        // Diagnostic dump
-        console.log('[FREEZE DIAGNOSTIC] Current state:', {
-          activeTab,
-          user: !!user,
-          loading,
-          hasFetchedListings: hasFetchedListingsRef.current,
-          hasFetchedPosts: hasFetchedPostsRef.current,
-          timestamp: Date.now()
-        });
       }, 5000);
       
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 800));
-      
-      // Clear timeout on successful completion
-      if (fetchTimeoutRef.current) {
-        clearTimeout(fetchTimeoutRef.current);
-        setShowTimeoutFallback(false);
-      }
-      
-      const mockData = Array.from({ length: 4 }, (_, i) => ({
-        id: `post-${i}`,
-        user_id: `user-${i}`,
-        content: `Amazing day at the dog park with my ${['Golden Retriever', 'Beagle', 'Poodle', 'Labrador'][i]}! 🐕`,
-        images: [`https://images.unsplash.com/photo-${1552053831 + i * 2000}?w=600`],
-        hashtags: ['DogPark', 'PuppyLife', 'DogLover'],
-        post_type: 'photo',
-        created_at: new Date().toISOString(),
-        likes_count: 15 + i * 5,
-        comments_count: 3 + i,
-        shares_count: 1 + i,
-        profiles: {
-          full_name: `Dog Owner ${i + 1}`,
-          username: `dogowner${i + 1}`,
-          avatar_url: `https://images.unsplash.com/photo-${1494790108 + i * 1000}?w=150`,
-          verified: i % 2 === 0
+      try {
+        console.log('[EXPLORE AUTH] Fetching real posts...');
+        
+        const response = await apiRequest('posts');
+        
+        // Clear timeout on successful completion
+        if (fetchTimeoutRef.current) {
+          clearTimeout(fetchTimeoutRef.current);
+          setShowTimeoutFallback(false);
         }
-      }));
-      
-      console.log('[EXPLORE AUTH] Posts data loaded:', mockData.length, 'posts');
-      return mockData;
+        
+        console.log('[EXPLORE AUTH] Real posts data loaded:', response.length, 'posts');
+        return response;
+      } catch (error) {
+        console.error('[EXPLORE AUTH] Error fetching posts:', error);
+        // Clear timeout on error
+        if (fetchTimeoutRef.current) {
+          clearTimeout(fetchTimeoutRef.current);
+        }
+        throw error;
+      }
     },
     enabled: shouldFetchPosts,
   });
