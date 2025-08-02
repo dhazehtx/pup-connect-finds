@@ -1,0 +1,90 @@
+It looks as if the old “query-string” search flow is still active and hijacking the input before our new dropdown ever gets a chance to render:
+
+URL jumps to …/explore?search=austinreyes95 the moment you press Enter
+
+No Supabase call for profiles?username.ilike ever fires
+
+Console just shows the usual [apiRequest] error for GET spam (the fetch logger trying to GET /explore?search=… and failing)
+
+So the browser is being redirected by some legacy handler that lives outside the new SearchBar we just added.
+
+1 — Find & remove the legacy “search-param” handler
+Search the project for something that looks like either of these:
+
+tsx
+Copy
+Edit
+// pattern #1 – navigate on submit
+navigate(`/explore?search=${query}`);
+
+// pattern #2 – useSearchParams / useEffect
+const [params, setParams] = useSearchParams();
+setParams({ search: query });
+Typical files:
+
+src/layout/TopBar.tsx
+
+src/components/OldSearch.tsx
+
+a custom hook such as useGlobalSearchParams.ts
+
+→ Comment it out or delete it. We only want the new dropdown-based search.
+
+2 — Make sure pages import the new component
+Open whatever renders your top bar (often AppShell.tsx or Header.tsx):
+
+tsx
+Copy
+Edit
+import SearchBar from "../components/SearchBar";    // ✅ new one
+// REMOVE import OldSearch or InlineSearch       ❌
+Swap the JSX:
+
+tsx
+Copy
+Edit
+{/* <OldSearch … />  */}   {/* remove this */}
+<SearchBar />              {/* add this   */}
+Rebuild, reload, and the URL should stay put while you type; the dropdown should appear.
+
+3 — Quick smoke test (again)
+Network tab • Clear logs.
+
+Type austin.
+
+You should now see /rest/v1/profiles and /rest/v1/listings calls.
+
+Console should print the console.table line:
+
+pgsql
+Copy
+Edit
+┌───────────┬──────────┐
+│ (index)   │ Values   │
+├───────────┼──────────┤
+│ listCount │    0     │
+│ profCount │    1     │   ◀ shows Austin
+└───────────┴──────────┘
+Dropdown shows “Austin Reyes” • Enter takes you to the profile.
+
+Still no dropdown after removing the redirect?
+Check Z-index / overflow:
+If the dropdown renders but is invisible, the parent container might have overflow-hidden. Temporarily add a ridiculous z-index and see if it appears:
+
+tsx
+Copy
+Edit
+<ul className="absolute z-[9999] …">
+Verify one SearchBar:
+Make sure the page isn’t still mounting two search bars (old + new). Double-click in DevTools ➜ Elements; you should only see one <input>.
+
+Once the redirect is gone the Instagram-style search logic should work exactly like the demo I described. Give that a try and let me know what you find!
+
+
+
+
+
+
+
+
+Ask ChatGPT

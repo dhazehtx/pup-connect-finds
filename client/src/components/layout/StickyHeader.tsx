@@ -1,15 +1,15 @@
 
 import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { Heart, Search, Plus, Bell, Shield } from 'lucide-react';
+import { Heart, Plus, Bell, Shield } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { useEnhancedNotifications } from '@/hooks/useEnhancedNotifications';
 import ModernPostCreator from '@/components/home/ModernPostCreator';
 import NotificationCenter from '@/components/notifications/NotificationCenter';
 import NotificationButton from '@/components/notifications/NotificationButton';
+import SearchBar from '../SearchBar';
 
 const StickyHeader = () => {
   const { user, isGuest, profile } = useAuth();
@@ -17,16 +17,8 @@ const StickyHeader = () => {
   const location = useLocation();
   const { toast } = useToast();
   const { unreadCount } = useEnhancedNotifications();
-  const [searchQuery, setSearchQuery] = useState('');
   const [showPostCreator, setShowPostCreator] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
-
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (searchQuery.trim()) {
-      navigate(`/explore?search=${encodeURIComponent(searchQuery.trim())}`);
-    }
-  };
 
   const handleCreatePost = () => {
     if (!user && !isGuest) {
@@ -87,17 +79,10 @@ const StickyHeader = () => {
 
             {/* Center: Search bar + Create Post button + Notification Bell */}
             <div className="flex-1 max-w-2xl mx-8 hidden md:flex items-center space-x-4">
-              <form onSubmit={handleSearch} className="flex-1">
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                  <Input
-                    placeholder="Search puppies, breeds, or breeders..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-10 bg-white text-gray-900 border-gray-300 focus:border-blue-600 focus:ring-blue-600"
-                  />
-                </div>
-              </form>
+              <SearchBar 
+                placeholder="Search puppies, breeds, or breeders..." 
+                className="flex-1"
+              />
               
               <div className="flex items-center space-x-3">
                 {/* Dynamic Post Button */}
@@ -139,17 +124,10 @@ const StickyHeader = () => {
 
             {/* Mobile search and create */}
             <div className="flex md:hidden items-center space-x-2 flex-1 mx-4">
-              <form onSubmit={handleSearch} className="flex-1">
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                  <Input
-                    placeholder="Search..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-10 text-sm"
-                  />
-                </div>
-              </form>
+              <SearchBar 
+                placeholder="Search..." 
+                className="flex-1 text-sm"
+              />
               
               <div className="flex items-center space-x-2">
                 {/* Mobile Dynamic Post Button */}
