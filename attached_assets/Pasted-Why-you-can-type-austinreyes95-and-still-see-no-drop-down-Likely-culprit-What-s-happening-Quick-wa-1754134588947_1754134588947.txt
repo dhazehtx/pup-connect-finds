@@ -1,0 +1,40 @@
+Why you can type “austinreyes95” and still see no drop-down
+Likely culprit	What’s happening	Quick way to prove it
+1 ️⃣ We only show the suggestion box after the first Supabase round-trip ⇒ if the request throws (RLS, typo, network) you never get a list.	Look in DevTools → Network while you type → if the /rest/v1/profiles call returns [] or 404, the UI stays silent.	Type “aus” → network tab should fire profiles?or=username.ilike.%25aus%25…. Does it return rows?
+2 ️⃣ You press Enter with no row highlighted ⇒ our code prevents navigation (by design). Instagram instead runs a fallback search: it opens a result page if you press ↵ without selecting.	When you hit ↵ while idx === -1, we just preventDefault() and stop.	Arrow‐down once, THEN press ↵ → you should jump to Austin’s profile.
+3 ️⃣ Your RLS policy blocks full-text columns (full_name).	The SQL editor shows the row, but the signed-in client can’t select full_name so the API returns null, the filter fails, and you get 0 rows.	Temporarily disable RLS or run the query with the service key – does it return the profile?
+
+Below is a two-line patch that gives you Instagram/TikTok behaviour: press ↵ with no highlight ➜ jump to the top result (or open a mini results page if nothing matches).
+
+1 — Component tweak (SearchBar.tsx)
+diff
+Copy
+Edit
+- if (e.key === "Enter" && idx >= 0) { e.preventDefault(); choose(results[idx]); }
++ if (e.key === "Enter") {
++   e.preventDefault();
++   choose(idx >= 0 ? results[idx] : results[0]);   // ↵ with no highlight ⇒ first hit
++ }
+(leave the Esc / arrow logic unchanged)
+
+2 — Optional: “full-results” page fallback
+If you’d rather mirror TikTok — open a standalone results page when nothing in the dropdown is selected — replace the line above with:
+
+ts
+Copy
+Edit
+if (idx >= 0) choose(results[idx]);
+else nav(`/search?q=${encodeURIComponent(q)}`);
+…and add a simple /search route that shows the same list component in full screen.
+
+3 — Sanity-check RLS
+Make sure your profiles SELECT policy lets all signed-in users read:
+
+sql
+Copy
+Edit
+create policy "Public read profiles"
+on profiles
+for select
+using ( true );      -- tighten later if needed
+Do the same for listings. Once the policy is in place the /profiles call should start returning Austin’s row and the dropdown (and fallback enter key) will pick it up.

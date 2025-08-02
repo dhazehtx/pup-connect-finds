@@ -28,9 +28,13 @@ export default function SearchBar({ placeholder = "Search breeders, puppies, she
       e.preventDefault();
       setHighlightedIndex(i => Math.max(i - 1, 0));
     }
-    if (e.key === "Enter" && highlightedIndex >= 0) {
+    if (e.key === "Enter") {
       e.preventDefault();
-      choose(results[highlightedIndex]);
+      // Instagram-style behavior: Enter selects highlighted result or first result if none highlighted
+      const targetResult = highlightedIndex >= 0 ? results[highlightedIndex] : results[0];
+      if (targetResult) {
+        choose(targetResult);
+      }
     }
     if (e.key === "Escape") {
       setQuery("");
