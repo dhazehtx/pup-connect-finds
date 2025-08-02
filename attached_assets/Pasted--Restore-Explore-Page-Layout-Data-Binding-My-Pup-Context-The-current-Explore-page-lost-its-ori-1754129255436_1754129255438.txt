@@ -1,0 +1,185 @@
+ Restore Explore Page Layout & Data Binding (My Pup)
+
+Context: The current Explore page lost its original marketplace-style grid and no longer shows listings from Supabase. We need to revert to the previous UX: a clean, Facebook‑Marketplace‑style card grid that automatically populates with active listings, while keeping the new search & filter header (including Advanced Filters) intact.
+
+Goal:
+
+Fetch listings from Supabase (table: listings) on load.
+
+Render them as responsive cards in a grid (2 cols tablet, 3 cols desktop, 4 cols ≥1280 px).
+
+Maintain the Search/Filter + Advanced Filters section at the top.
+
+Show skeleton placeholders while loading, and an empty‑state panel only when the query returns 0 rows.
+
+Keep route /explore unchanged and do not modify any global styles or nav layout.
+
+Instructions (paste into Replit shell, then follow inline TODOs):
+
+# 1️⃣ Revert/replace Explore page component
+nano src/pages/Explore.tsx
+
+// ✅ RESET FILE CONTENT BELOW THIS LINE
+import { useEffect, useState } from "react";
+import { supabase } from "../utils/supabaseClient";
+import ListingCard from "../components/ListingCard";
+import SkeletonGrid from "../components/SkeletonGrid";
+import EmptyState from "../components/EmptyState";
+
+interface Listing {
+  id: string;
+  name: string;
+  breed: string;
+  price: number;
+  images: string[];
+  created_at: string;
+  // ➕ add any extra columns you need here
+}
+
+export default function Explore() {
+  const [listings, setListings] = useState<Listing[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchListings() {
+      const { data, error } = await supabase
+        .from("listings")
+        .select("*")
+        .eq("status", "active")
+        .order("created_at", { ascending: false });
+
+      if (error) console.error("Supabase error:", error);
+      setListings(data ?? []);
+      setLoading(false);
+    }
+
+    fetchListings();
+  }, []);
+
+  return (
+    <div className="container mx-auto px-4 py-8">
+      {/* Header & Advanced Filters (leave as‑is) */}
+      <header className="mb-8">
+        {/* existing Search & Filter component import here */}
+      </header>
+
+      {/* Listings grid */}
+      {loading ? (
+        <SkeletonGrid count={6} />
+      ) : listings.length === 0 ? (
+        <EmptyState message="No puppies found. Try adjusting your filters." />
+      ) : (
+        <div className="grid gap-6 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4">
+          {listings.map(listing => (
+            <ListingCard key={listing.id} listing={listing} />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+# 2️⃣ Ensure helper components exist (skip if already present)
+nano src/components/SkeletonGrid.tsx
+
+export default function SkeletonGrid({ count = 6 }) {
+  return (
+    <div className="grid gap-6 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 animate-pulse">
+      {Array.from({ length: count }).map((_, i) => (
+        <div key={i} className="h-64 rounded-xl bg-gray-200" />
+      ))}
+    </div>
+  );
+}
+
+nano src/components/EmptyState.tsx
+
+export default function EmptyState({ message }: { message: string }) {
+  return (
+    <div className="flex flex-col items-center justify-center py-16 text-center">
+      <div className="mb-4 h-16 w-16 rounded-full bg-blue-50 p-4">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+          strokeWidth={1.5}
+          stroke="currentColor"
+          className="h-full w-full text-blue-500"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M12 5.25v13.5m6.75-6.75H5.25"
+          />
+        </svg>
+      </div>
+      <p className="max-w-md text-lg text-gray-600">{message}</p>
+    </div>
+  );
+}
+
+# 3️⃣ Verify ListingCard still matches new grid (update if necessary)
+# – Should be max‑width 100%, rounded, shadow, image top + details below.
+
+# 4️⃣ Save, run `npm run dev`, visit /explore, confirm:
+#    ✔ Listings appear
+#    ✔ Search & Advanced Filters still functional
+#    ✔ Responsive grid on resize
+#    ✔ No layout shifts or missing styles
+
+Edge‑case checks
+
+No listings ➡ shows EmptyState.
+
+Slow network ➡ skeleton placeholders.
+
+Filters query ➡ updates listings state (ensure existing filter logic calls the same setListings).
+
+Mobile Safari padding at bottom (account for fixed nav bar height).
+
+🔄 Advanced Filters Toggle Fix
+
+Problem: Clicking the "Advanced Filters" label/icon does nothing. We need a simple state toggle so the filter panel slides down (desktop) or appears full‑width (mobile).
+
+Quick patch (add inside Explore.tsx):
+
+// above return()
+const [showFilters, setShowFilters] = useState(false);
+
+/* inside header JSX – replace label + icon wrapper */
+<button
+  onClick={() => setShowFilters(p => !p)}
+  aria-expanded={showFilters}
+  className="flex items-center gap-1 text-sm font-medium text-gray-600 hover:text-primary-600 focus:outline-none"
+>
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="h-4 w-4"><path d="M10.5 3...."/></svg>
+  Advanced Filters
+</button>
+
+/* right below header */
+{showFilters && (
+  <AdvancedFilters onApply={setListings} />
+)}
+
+Notes:
+
+AdvancedFilters component should already hold the grid of dropdowns/inputs you showed in the screenshot. If it’s inline HTML, extract it into its own component for clarity.
+
+Pass an onApply prop so the panel can call setListings after building a filtered query.
+
+🎨 For a smooth UI, wrap the panel in a Tailwind transition-all duration-300 div and animate max-h-0 → max-h-[1200px].
+
+Close panel after applying or on Esc key press for accessibility.
+
+Rollback plan
+
+If anything breaks, git checkout HEAD~1 -- src/pages/Explore.tsx to revert.
+
+NEXT STEPS (post‑merge)
+
+Wire Search box to debounce & apply supabase text search.
+
+Hook Advanced Filters panel into the same fetch call (server‑side filtering for perf).
+
+Prefetch first 12 cards, lazy‑load rest on scroll.
+

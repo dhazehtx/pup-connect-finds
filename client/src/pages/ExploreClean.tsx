@@ -14,12 +14,165 @@ import { Search, Filter, CheckSquare } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
+// Advanced Filters Panel Component
+const AdvancedFilters = () => (
+  <div className="mb-8 bg-gray-50 rounded-lg p-6">
+    <div className="flex items-center justify-between mb-6">
+      <h3 className="text-lg font-semibold text-gray-900">Advanced Filters</h3>
+      <Button variant="ghost" className="text-gray-600 text-sm">Clear All</Button>
+    </div>
+    
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {/* Sort By */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">Sort By</label>
+        <Select defaultValue="newest">
+          <SelectTrigger>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="newest">Newest First</SelectItem>
+            <SelectItem value="price-low">Price: Low to High</SelectItem>
+            <SelectItem value="price-high">Price: High to Low</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+      
+      {/* Breed */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">Breed</label>
+        <Select defaultValue="all-breeds">
+          <SelectTrigger>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all-breeds">All Breeds</SelectItem>
+            <SelectItem value="french-bulldog">French Bulldog</SelectItem>
+            <SelectItem value="golden-retriever">Golden Retriever</SelectItem>
+            <SelectItem value="labrador">Labrador</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+      
+      {/* Source */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">Source</label>
+        <Select defaultValue="all-sources">
+          <SelectTrigger>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all-sources">All Sources</SelectItem>
+            <SelectItem value="breeder">Breeder</SelectItem>
+            <SelectItem value="rescue">Rescue</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+      
+      {/* Age Group */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">Age Group</label>
+        <Select defaultValue="all-ages">
+          <SelectTrigger>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all-ages">All Ages</SelectItem>
+            <SelectItem value="puppy">Puppy (0-1 year)</SelectItem>
+            <SelectItem value="young">Young (1-3 years)</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+      
+      {/* Gender */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">Gender</label>
+        <Select defaultValue="all-genders">
+          <SelectTrigger>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all-genders">All Genders</SelectItem>
+            <SelectItem value="male">Male</SelectItem>
+            <SelectItem value="female">Female</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+      
+      {/* Color */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">Color</label>
+        <Select defaultValue="all-colors">
+          <SelectTrigger>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all-colors">All Colors</SelectItem>
+            <SelectItem value="black">Black</SelectItem>
+            <SelectItem value="brown">Brown</SelectItem>
+            <SelectItem value="white">White</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+    </div>
+    
+    {/* Price Range */}
+    <div className="mt-6">
+      <label className="block text-sm font-medium text-gray-700 mb-2">Price Range: $0 - $10000</label>
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <Input placeholder="0" className="text-sm" />
+        </div>
+        <div>
+          <Input placeholder="10000" className="text-sm" />
+        </div>
+      </div>
+    </div>
+    
+    {/* Age Range */}
+    <div className="mt-6 grid grid-cols-2 gap-4">
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">Min Age (weeks)</label>
+        <Input placeholder="0" className="text-sm" />
+      </div>
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">Max Age (weeks)</label>
+        <Input placeholder="104" className="text-sm" />
+      </div>
+    </div>
+    
+    {/* Checkboxes */}
+    <div className="mt-6 grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="flex items-center space-x-2">
+        <input type="checkbox" id="verified" className="rounded border-gray-300" />
+        <label htmlFor="verified" className="text-sm text-gray-600">Verified only</label>
+      </div>
+      <div className="flex items-center space-x-2">
+        <input type="checkbox" id="available" className="rounded border-gray-300" />
+        <label htmlFor="available" className="text-sm text-gray-600">Available now</label>
+      </div>
+      <div className="flex items-center space-x-2">
+        <input type="checkbox" id="health-checked" className="rounded border-gray-300" />
+        <label htmlFor="health-checked" className="text-sm text-gray-600">Health checked</label>
+      </div>
+      <div className="flex items-center space-x-2">
+        <input type="checkbox" id="vaccinated" className="rounded border-gray-300" />
+        <label htmlFor="vaccinated" className="text-sm text-gray-600">Vaccinated</label>
+      </div>
+    </div>
+  </div>
+);
+
 // Search & Filter Component
-const SearchAndFilters = () => (
+const SearchAndFilters = ({ showAdvanced, setShowAdvanced }: { showAdvanced: boolean, setShowAdvanced: (show: boolean) => void }) => (
   <div className="mb-8">
     <div className="flex items-center justify-between mb-4">
       <h2 className="text-xl font-semibold text-gray-900">Search & Filter</h2>
-      <Button variant="ghost" className="text-blue-600 font-medium">
+      <Button 
+        variant="ghost" 
+        className="text-blue-600 font-medium"
+        onClick={() => setShowAdvanced(!showAdvanced)}
+      >
         <Filter className="w-4 h-4 mr-2" />
         Advanced Filters
       </Button>
@@ -113,6 +266,7 @@ const Explore = () => {
   const { user, loading: authLoading } = useAuth();
   const [listings, setListings] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
   
   // Check if user is authenticated
   const isAuthenticated = !!user && !authLoading;
@@ -198,7 +352,14 @@ const Explore = () => {
           </div>
           
           {/* Search & Filter Section */}
-          <SearchAndFilters />
+          <SearchAndFilters showAdvanced={showAdvancedFilters} setShowAdvanced={setShowAdvancedFilters} />
+          
+          {/* Advanced Filters Panel */}
+          {showAdvancedFilters && (
+            <div className="transition-all duration-300">
+              <AdvancedFilters />
+            </div>
+          )}
           
           {/* Popular Breeds */}
           <PopularBreeds />
@@ -239,7 +400,14 @@ const Explore = () => {
         </div>
         
         {/* Search & Filter Section */}
-        <SearchAndFilters />
+        <SearchAndFilters showAdvanced={showAdvancedFilters} setShowAdvanced={setShowAdvancedFilters} />
+        
+        {/* Advanced Filters Panel */}
+        {showAdvancedFilters && (
+          <div className="transition-all duration-300">
+            <AdvancedFilters />
+          </div>
+        )}
         
         {/* Popular Breeds */}
         <PopularBreeds />
@@ -306,14 +474,15 @@ const RealListings = ({ data, loading }: { data: any[], loading: boolean }) => {
   if (!data || data.length === 0) {
     return (
       <div className="text-center py-16">
-        <div className="mb-4 mx-auto w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center">
+        <div className="mb-6 mx-auto w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center">
           <svg className="w-8 h-8 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
           </svg>
         </div>
-        <p className="text-lg text-gray-600 max-w-md mx-auto">No puppies found. Try adjusting your filters or be the first to post!</p>
-        <Button className="mt-4" onClick={() => window.location.href = '/create-listing'}>
-          Create Listing
+        <h3 className="text-lg font-semibold text-gray-900 mb-2">No puppies found</h3>
+        <p className="text-gray-600 mb-6">Try adjusting your search filters to find more puppies.</p>
+        <Button className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg">
+          Clear All Filters
         </Button>
       </div>
     );
@@ -325,8 +494,8 @@ const RealListings = ({ data, loading }: { data: any[], loading: boolean }) => {
         // Transform Supabase data to match ListingCard expected format
         const transformedListing = {
           ...listing,
-          name: listing.dog_name,
-          images: listing.image_url ? [listing.image_url] : [],
+          name: listing.dog_name || listing.name,
+          images: listing.image_url ? [listing.image_url] : (listing.images || []),
           user_id: listing.user_id
         };
         return <ListingCard key={listing.id} listing={transformedListing} />;
