@@ -10,6 +10,80 @@ import { useLocation } from 'wouter';
 import LoadingSpinner from '@/components/ui/loading-spinner';
 import ListingCard from '@/components/ListingCard';
 import EmptyState from '@/components/EmptyState';
+import { Search, Filter, CheckSquare } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+
+// Search & Filter Component
+const SearchAndFilters = () => (
+  <div className="mb-8">
+    <div className="flex items-center justify-between mb-4">
+      <h2 className="text-xl font-semibold text-gray-900">Search & Filter</h2>
+      <Button variant="ghost" className="text-blue-600 font-medium">
+        <Filter className="w-4 h-4 mr-2" />
+        Advanced Filters
+      </Button>
+    </div>
+    
+    <div className="flex gap-4 items-center">
+      <div className="relative flex-1 max-w-sm">
+        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+        <Input 
+          placeholder="Search puppies..." 
+          className="pl-10"
+        />
+      </div>
+      
+      <Select defaultValue="all-breeds">
+        <SelectTrigger className="w-40">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="all-breeds">All Breeds</SelectItem>
+          <SelectItem value="golden-retriever">Golden Retriever</SelectItem>
+          <SelectItem value="labrador">Labrador</SelectItem>
+          <SelectItem value="french-bulldog">French Bulldog</SelectItem>
+        </SelectContent>
+      </Select>
+      
+      <div className="flex items-center gap-2">
+        <CheckSquare className="w-4 h-4 text-gray-400" />
+        <span className="text-sm text-gray-600">Verified only</span>
+      </div>
+      
+      <Button variant="ghost" className="text-gray-600">
+        <Filter className="w-4 h-4 mr-2" />
+        Clear Filters
+      </Button>
+    </div>
+  </div>
+);
+
+// Popular Breeds Component
+const PopularBreeds = () => {
+  const breeds = [
+    "Golden Retriever", "Labrador Retriever", "German Shepherd", 
+    "French Bulldog", "Bulldog", "Poodle", "Beagle", "Rottweiler"
+  ];
+  
+  return (
+    <div className="mb-8">
+      <h2 className="text-lg font-semibold text-gray-900 mb-4">Popular Breeds</h2>
+      <div className="flex flex-wrap gap-2">
+        {breeds.map((breed) => (
+          <Button
+            key={breed}
+            variant="outline"
+            size="sm"
+            className="text-sm text-gray-700 border-gray-300 hover:bg-gray-50"
+          >
+            {breed}
+          </Button>
+        ))}
+      </div>
+    </div>
+  );
+};
 
 // Demo data for unauthenticated users
 const demoListings = [
@@ -115,22 +189,38 @@ const Explore = () => {
   // Show demo content for unauthenticated users
   if (!isAuthenticated && !loading) {
     return (
-      <div className="min-h-screen bg-gray-50 p-4">
-        <div className="max-w-6xl mx-auto">
-          <div className="mb-6 text-center">
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Explore Demo Listings</h1>
-            <p className="text-gray-600">Sign in to see real listings from breeders and rescues</p>
+      <div className="min-h-screen bg-white">
+        <div className="max-w-6xl mx-auto px-4 py-6">
+          {/* Header */}
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">Explore Puppies</h1>
+            <p className="text-gray-600">Find your perfect furry companion</p>
           </div>
           
-          <DemoListings data={listings} />
+          {/* Search & Filter Section */}
+          <SearchAndFilters />
           
-          <div className="mt-8 text-center">
+          {/* Popular Breeds */}
+          <PopularBreeds />
+          
+          {/* Results Count */}
+          <div className="mb-6">
+            <h2 className="text-xl font-semibold text-gray-900">0 Puppies Found</h2>
+          </div>
+          
+          {/* Empty State */}
+          <div className="text-center py-16">
+            <div className="mb-6 mx-auto w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center">
+              <svg className="w-8 h-8 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+              </svg>
+            </div>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">No puppies found</h3>
+            <p className="text-gray-600 mb-6">Try adjusting your search filters to find more puppies.</p>
             <Button 
-              onClick={() => window.location.href = '/auth'}
-              size="lg"
-              className="bg-blue-600 hover:bg-blue-700"
+              className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg"
             >
-              Sign in to see real listings
+              Clear All Filters
             </Button>
           </div>
         </div>
@@ -140,13 +230,28 @@ const Explore = () => {
 
   // Show real listings for authenticated users
   return (
-    <div className="min-h-screen bg-gray-50 p-4">
-      <div className="max-w-6xl mx-auto">
-        <div className="mb-6">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Explore</h1>
-          <p className="text-gray-600">Discover dogs from verified breeders and rescues</p>
+    <div className="min-h-screen bg-white">
+      <div className="max-w-6xl mx-auto px-4 py-6">
+        {/* Header */}
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Explore Puppies</h1>
+          <p className="text-gray-600">Find your perfect furry companion</p>
         </div>
         
+        {/* Search & Filter Section */}
+        <SearchAndFilters />
+        
+        {/* Popular Breeds */}
+        <PopularBreeds />
+        
+        {/* Results Count */}
+        <div className="mb-6">
+          <h2 className="text-xl font-semibold text-gray-900">
+            {loading ? "Loading..." : `${listings?.length || 0} Puppies Found`}
+          </h2>
+        </div>
+        
+        {/* Listings Grid */}
         <RealListings data={listings} loading={loading} />
       </div>
     </div>
