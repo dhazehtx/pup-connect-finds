@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Search, Grid, List } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
@@ -16,7 +16,21 @@ const ExploreAuth: React.FC = () => {
   const { user, loading } = useAuth();
   const [activeTab, setActiveTab] = useState<'listings' | 'posts'>('listings');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
-  const [filters, setFilters] = useState<any>({});
+  // STABLE INITIAL FILTERS - Prevent infinite re-renders with stable default values
+  const initialFilters = useMemo(() => ({
+    breeds: [],
+    ageRange: [0, 10],
+    gender: 'all',
+    location: '',
+    priceRange: [0, 5000],
+    sortBy: 'newest',
+    verifiedOnly: false,
+    healthTested: false,
+    vaccinated: false,
+    keywords: ''
+  }), []);
+
+  const [filters, setFilters] = useState<any>(initialFilters);
   const [resultCount, setResultCount] = useState(0);
 
   // 1. ONE-TIME FETCH GUARD - Prevent fetch loops with ref guards
@@ -66,9 +80,12 @@ const ExploreAuth: React.FC = () => {
   const shouldFetchListings = !loading && !!user && activeTab === 'listings' && !hasFetchedListingsRef.current;
   const shouldFetchPosts = !loading && !!user && activeTab === 'posts' && !hasFetchedPostsRef.current;
 
+  // STABLE QUERY KEYS - Serialize filters to prevent object reference changes
+  const filtersKey = useMemo(() => JSON.stringify(filters), [filters]);
+
   // Fetch listings with timeout diagnostics
   const { data: listings, isLoading: loadingListings, refetch: refetchListings, error: listingsError } = useQuery({
-    queryKey: ['explore-listings', filters],
+    queryKey: ['explore-listings', filtersKey],
     queryFn: async () => {
       console.log('[EXPLORE AUTH] Starting listings fetch...');
       hasFetchedListingsRef.current = true;
@@ -123,7 +140,7 @@ const ExploreAuth: React.FC = () => {
 
   // Fetch posts with timeout diagnostics
   const { data: posts, isLoading: loadingPosts, refetch: refetchPosts, error: postsError } = useQuery({
-    queryKey: ['explore-posts', filters],
+    queryKey: ['explore-posts', filtersKey],
     queryFn: async () => {
       console.log('[EXPLORE AUTH] Starting posts fetch...');
       hasFetchedPostsRef.current = true;
@@ -193,7 +210,8 @@ const ExploreAuth: React.FC = () => {
     }
   }, [activeTab, listings, posts]);
 
-  const handleFiltersChange = (newFilters: any) => {
+  // STABLE FILTER HANDLER - Prevent recreation on every render
+  const handleFiltersChange = useCallback((newFilters: any) => {
     console.log('[EXPLORE AUTH] Filters changed:', newFilters);
     setFilters(newFilters);
     
@@ -205,7 +223,7 @@ const ExploreAuth: React.FC = () => {
       hasFetchedPostsRef.current = false;
       refetchPosts();
     }
-  };
+  }, [activeTab, refetchListings, refetchPosts]);
 
   // 3. LOG CLEARLY WHEN DATA ARRIVES OR ERRORS
   useEffect(() => {
