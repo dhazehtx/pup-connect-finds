@@ -12,11 +12,10 @@ export default function SearchBar({ placeholder = "Search breeders, puppies, she
   const inputRef = useRef<HTMLInputElement>(null);
 
   const choose = (result: typeof results[number]) => {
-    console.log('[SEARCH BAR] Result selected:', result);
     setLocation(result.type === "listing" ? `/listing/${result.id}` : `/profile/${result.id}`);
     setQuery(""); 
     setHighlightedIndex(-1);
-    setTimeout(() => inputRef.current?.focus(), 0); // retain focus
+    setTimeout(() => inputRef.current?.focus(), 0);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {

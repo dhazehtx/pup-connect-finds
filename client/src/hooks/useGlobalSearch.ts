@@ -42,18 +42,8 @@ export function useGlobalSearch(query: string) {
             .limit(8),
         ]);
 
-        // Debug logging to trace search data flow
         const { data: list = [] } = listResp;
         const { data: prof = [] } = profResp;
-        console.table({ 
-          query, 
-          listCount: list?.length || 0, 
-          profCount: prof?.length || 0, 
-          profSample: prof?.[0],
-          listSample: list?.[0]
-        });
-
-        console.log('[GLOBAL SEARCH] Raw response lengths - listings:', list?.length || 0, 'profiles:', prof?.length || 0);
 
         // Transform listings data to match SearchResult interface
         const listings: SearchResult[] = (list || []).map(l => ({
