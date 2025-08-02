@@ -1,0 +1,85 @@
+module.exports = {
+  extends: [
+    'eslint:recommended',
+    '@typescript-eslint/recommended',
+    'plugin:tailwindcss/recommended'
+  ],
+  plugins: ['tailwindcss'],
+  rules: {
+    // Enforce design system constants usage
+    'tailwindcss/no-custom-classname': [
+      'warn',
+      {
+        whitelist: [
+          // Allow system constants from our design system
+          'bg-primary-.*',
+          'text-primary-.*',
+          'border-primary-.*',
+          'bg-secondary-.*',
+          'text-secondary-.*',
+          'border-secondary-.*',
+          'bg-success-.*',
+          'text-success-.*',
+          'border-success-.*',
+          'bg-error-.*',
+          'text-error-.*',
+          'border-error-.*',
+          'bg-warning-.*',
+          'text-warning-.*',
+          'border-warning-.*',
+          // Allow standard Tailwind utilities
+          'flex',
+          'grid',
+          'items-center',
+          'justify-center',
+          'space-.*',
+          'gap-.*',
+          'p-.*',
+          'm-.*',
+          'w-.*',
+          'h-.*',
+          'max-w-.*',
+          'min-h-.*',
+          'rounded-.*',
+          'shadow-.*',
+          'transition-.*',
+          'duration-.*',
+          'ease-.*',
+          'transform',
+          'scale-.*',
+          'translate-.*',
+          'rotate-.*',
+          'opacity-.*',
+          'cursor-.*',
+          'select-.*',
+          'pointer-events-.*',
+          'sr-only',
+          'not-sr-only',
+          'focus:.*',
+          'hover:.*',
+          'active:.*',
+          'disabled:.*',
+          'group-hover:.*',
+          'sm:.*',
+          'md:.*',
+          'lg:.*',
+          'xl:.*',
+          '2xl:.*',
+          'dark:.*',
+        ]
+      }
+    ],
+    'tailwindcss/enforces-negative-arbitrary-values': 'warn',
+    'tailwindcss/enforces-shorthand': 'warn',
+    'tailwindcss/migration-from-tailwind-2': 'warn',
+    'tailwindcss/no-arbitrary-value': 'off', // Allow arbitrary values when needed
+    'tailwindcss/no-contradicting-classname': 'error',
+    'tailwindcss/no-unnecessary-arbitrary-value': 'warn',
+  },
+  settings: {
+    tailwindcss: {
+      config: './tailwind.config.ts',
+      format: 'auto',
+    },
+  },
+};

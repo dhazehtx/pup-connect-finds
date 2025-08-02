@@ -1,0 +1,11 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+# Run lint-staged to check design system compliance
+npx lint-staged
+
+# Run design system validation
+echo "🎨 Checking design system compliance..."
+node scripts/check-design-system.js $(git diff --cached --name-only --diff-filter=ACMR)
+
+echo "✅ Pre-commit checks passed"

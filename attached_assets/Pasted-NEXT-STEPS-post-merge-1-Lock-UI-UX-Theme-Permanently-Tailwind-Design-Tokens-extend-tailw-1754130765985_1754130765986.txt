@@ -1,0 +1,92 @@
+NEXT STEPS (post‑merge)
+
+🔒 1. Lock UI / UX Theme Permanently
+
+Tailwind Design Tokens – extend tailwind.config.js with a custom theme (colors, fontFamily, borderRadius, spacing). From now on, devs should only use theme() values (e.g., text-primary-700) so the palette never drifts.
+
+Global Style Freeze – add styles/constants.ts exporting key classes (CARD_BASE, BTN_PRIMARY, etc.) and import them instead of ad‑hoc class strings.
+
+Lint Rule – install eslint-plugin-tailwindcss and enable no-custom-classname to catch accidental class additions.
+
+CI Guard – include a Git pre‑commit hook (lint-staged) that fails commits when unauthorized style files change.
+
+🔍 2. Unified Search: Listings + Profiles
+
+Goal: A single search box that can return puppy listings or user profiles.
+
+DB Prep
+
+Ensure profiles table has username, kennel_name, and avatar_url indexed with a GIN tsvector column for full‑text search.
+
+Code (Excerpt) – drop this into a new hook useGlobalSearch.ts and call from the search input:
+
+import { useEffect, useState } from "react";
+import { supabase } from "../utils/supabaseClient";
+
+export type SearchResult =
+  | { type: "listing"; id: string; name: string; breed: string; price: number; image: string }
+  | { type: "profile"; id: string; username: string; avatar_url: string };
+
+export function useGlobalSearch(query: string) {
+  const [results, setResults] = useState<SearchResult[]>([]);
+  useEffect(() => {
+    if (!query.trim()) { setResults([]); return; }
+
+    const timer = setTimeout(async () => {
+      const [listResp, profResp] = await Promise.all([
+        supabase
+          .from("listings")
+          .select("id,name,breed,price,images")
+          .ilike("name", `%${query}%`)
+          .limit(10),
+        supabase
+          .from("profiles")
+          .select("id,username,avatar_url")
+          .ilike("username", `%${query}%`)
+          .limit(10),
+      ]);
+
+      const listings = (listResp.data ?? []).map(l => ({
+        type: "listing",
+        id: l.id,
+        name: l.name,
+        breed: l.breed,
+        price: l.price,
+        image: l.images?.[0] ?? "",
+      }));
+      const profiles = (profResp.data ?? []).map(p => ({
+        type: "profile",
+        id: p.id,
+        username: p.username,
+        avatar_url: p.avatar_url,
+      }));
+      setResults([...listings, ...profiles]);
+    }, 300); // debounce
+    return () => clearTimeout(timer);
+  }, [query]);
+
+  return results;
+}
+
+UI – inside the search component, map results into a dropdown:
+
+Listings ➡ show thumbnail + name + price
+
+Profiles ➡ show avatar + @username
+
+On click, navigate to /listing/:id or /profile/:id.
+
+Edge‑cases
+
+Render “No results” state if both arrays empty.
+
+Close dropdown on route change or Escape key.
+
+⏭ 3. Nice‑to‑Have Queue (post‑launch)
+
+Infinite scroll / intersection observer lazy‑load.
+
+Cache search suggestions in localStorage for 24 h.
+
+ElasticSearch integration for fuzzy matches at scale.
+

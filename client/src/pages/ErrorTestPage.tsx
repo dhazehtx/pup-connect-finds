@@ -2,11 +2,14 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { AlertTriangle, Bug, Database, Network, Clock } from 'lucide-react';
-import { useErrorReporting } from '@/components/ErrorBoundary';
+// import { useErrorReporting } from '@/components/ErrorBoundary';
 
 const ErrorTestPage = () => {
   const [loading, setLoading] = useState(false);
-  const { reportError } = useErrorReporting();
+  // const { reportError } = useErrorReporting();
+  const reportError = (error: Error, context: string) => {
+    console.error(`[${context}]`, error);
+  };
 
   const triggerComponentError = () => {
     // This will trigger the error boundary
