@@ -11,7 +11,7 @@ import NotificationButton from '@/components/notifications/NotificationButton';
 import SearchBar from '../SearchBar';
 
 const StickyHeader = () => {
-  const { user, isGuest, profile } = useAuth();
+  const { user, isGuest, profile, loading } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const { toast } = useToast();
@@ -105,7 +105,9 @@ const StickyHeader = () => {
                   )}
 
                   {/* Admin Panel Access - Only for admin users */}
-                  {(profile?.is_admin || profile?.user_type === 'admin') && (
+                  {loading ? (
+                    <div className="h-8 w-8 rounded-full" />
+                  ) : (profile?.is_admin || profile?.user_type === 'admin') && (
                     <Link to="/admin/reports">
                       <Button
                         variant="ghost"
@@ -151,7 +153,9 @@ const StickyHeader = () => {
                   )}
 
                   {/* Mobile Admin Panel Access - Only for admin users */}
-                  {(profile?.is_admin || profile?.user_type === 'admin') && (
+                  {loading ? (
+                    <div className="h-8 w-8 rounded-full" />
+                  ) : (profile?.is_admin || profile?.user_type === 'admin') && (
                     <Link to="/admin/reports">
                       <Button
                         variant="ghost"

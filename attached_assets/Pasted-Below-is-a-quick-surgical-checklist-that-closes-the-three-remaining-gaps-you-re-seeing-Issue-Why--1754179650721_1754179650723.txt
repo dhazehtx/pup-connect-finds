@@ -1,0 +1,77 @@
+Below is a quick, surgical checklist that closes the three remaining gaps you’re seeing:
+
+Issue	Why it still happens	One-shot fix
+1. Search-dropdown link opens the right URL only if you press Enter – but not on mouse-click / tap.	Your <Link> rows are inside the same <form> as the search <input>. When you click, the form’s default submit still fires first → the <Link> click never reaches React Router.	Wrap the search bar in a <div> instead of <form>.
+
+tsx\nreturn (\n <div className=\"relative w-full\" role=\"search\">\n <input … />\n {query && <ul>…</ul>}\n </div>\n);\n
+No <form> = no implicit submit = the <Link> click works for mouse, tap, and Enter.
+2. Follower/Following counts don’t open the user lists, and names inside those lists aren’t clickable.	The FollowersModal (or whatever component lists the users) still renders plain <li> items, not links.	In FollowersModal.tsx (and FollowingModal.tsx) swap each list row for the same <Link to=\"/profile/${u.id}\"> … </Link> pattern we used in the search dropdown. 5-line change.
+3. Admin shield still missing next to the bell.	The shield renders before profile finishes loading, then React never re-renders the header.	1. In StickyHeader.tsx switch profile retrieval to the real-time auth context so it updates:
+```tsx\nconst { profile, loading } = useUser();\nconst isAdmin = !loading && (profile?.is_admin
+
+30-second Replit patch
+bash
+Copy
+Edit
+# title: “Final Nav + Admin Shield Fix”
+
+# 1️⃣ Change SearchBar wrapper from <form> to <div>
+apply_patch <<'PATCH'
+*** Begin Patch
+*** Update File: client/src/components/SearchBar.tsx
+@@
+-  return (
+-    <form onSubmit={e => e.preventDefault()} className="relative w-full">
++  return (
++    <div role="search" className="relative w-full">
+@@
+-    </form>
++    </div>
+   );
+ }
+*** End Patch
+PATCH
+
+# 2️⃣ Make follower/following rows real links
+apply_patch <<'PATCH'
+*** Begin Patch
+*** Update File: client/src/components/social/FollowersModal.tsx
+@@
+-  <li key={u.id} className="flex items-center gap-3 px-4 py-2">
++  <Link key={u.id}
++        to={`/profile/${u.id}`}
++        className="flex items-center gap-3 px-4 py-2 hover:bg-gray-50">
+     <Avatar … />
+     <span className="font-medium">{u.full_name || '@'+u.username}</span>
+-  </li>
++  </Link>
+*** End Patch
+PATCH
+#   (repeat the same for FollowingModal if you have one)
+
+# 3️⃣ Ensure admin shield waits for profile load
+apply_patch <<'PATCH'
+*** Begin Patch
+*** Update File: client/src/components/layout/StickyHeader.tsx
+@@
+-import { useUser } from "../../contexts/AuthContext";
++import { useUser } from "../../contexts/AuthContext";
++…
+-  const { profile } = useUser();
+-  const isAdmin = profile?.is_admin || profile?.user_type === "admin";
++  const { profile, loading } = useUser();
++  const isAdmin = !loading && (profile?.is_admin || profile?.user_type === "admin");
+…
+-        {isAdmin && (
++        {loading ? (
++          <div className="h-6 w-6" />       {/* keeps layout stable */}
++        ) : isAdmin && (
+           <Link to="/admin" className="shrink-0" title="Admin Panel">
+             <ShieldCheck className="h-6 w-6 text-primary-700 hover:text-primary-900" />
+           </Link>
+         )}
+*** End Patch
+PATCH
+
+npm run dev --silent &
+echo "🔄  Reload the preview – mouse click, tap, and Enter should now navigate; shield appears after profile loads."

@@ -52,7 +52,7 @@ export default function SearchBar({ placeholder = "Search breeders, puppies, she
   };
 
   return (
-    <form onSubmit={e => e.preventDefault()} className={`relative w-full ${className}`}>
+    <div role="search" className={`relative w-full ${className}`}>
       <div className="relative">
         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
         <input
@@ -115,6 +115,6 @@ export default function SearchBar({ placeholder = "Search breeders, puppies, she
           )}
         </ul>
       )}
-    </form>
+    </div>
   );
 }
