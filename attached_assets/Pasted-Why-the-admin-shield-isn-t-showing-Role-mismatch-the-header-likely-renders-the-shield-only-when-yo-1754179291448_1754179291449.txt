@@ -1,0 +1,88 @@
+Why the admin shield isn’t showing
+Role mismatch – the header likely renders the shield only when your profiles.user_type (or whatever field you use) is "admin".
+
+Header refactor – when we rebuilt StickyHeader.tsx we trimmed extra icons; the shield component may have been removed unintentionally.
+
+CSS / z-index – if the new search bar stretches full-width the shield could be pushed outside the flex container.
+
+Below is a quick patch that (a) reloads the user’s role from Supabase, (b) conditionally shows the shield next to the notification bell, and (c) keeps it hidden on /auth just like the search bar.
+
+1 Verify your role column
+In Supabase profiles table make sure your row has:
+
+column	value
+user_type	admin
+
+If you use another column (e.g., role, is_admin, or permissions), adjust the code below.
+
+2 Patch StickyHeader.tsx
+Open client/src/components/layout/StickyHeader.tsx and insert the highlighted lines.
+
+tsx
+Copy
+Edit
+import { ShieldCheck } from "lucide-react";          // ← icon
+import { useUser } from "../../contexts/AuthContext"; // ← adjust to your auth hook
+
+export default function StickyHeader() {
+  const { pathname } = useLocation();
+  const showSearch = !pathname.startsWith("/auth");
+
+  const { profile } = useUser();                     // { user_type: 'admin' | 'breeder' | ... }
+  const isAdmin = profile?.user_type === "admin";    // tweak if you use another column
+
+  return (
+    <header className="sticky top-0 z-40 flex items-center bg-white shadow-sm px-4 py-2">
+      <Logo />
+
+      {showSearch && (
+        <div className="mx-auto w-full max-w-xl">
+          <SearchBar />
+        </div>
+      )}
+
+      {/* RIGHT-SIDE ICONS */}
+      <div className="ml-auto flex items-center gap-4">
+        {isAdmin && (
+          <Link
+            to="/admin"
+            className="relative"
+            title="Admin Panel"
+          >
+            <ShieldCheck className="h-6 w-6 text-primary-700 hover:text-primary-900" />
+          </Link>
+        )}
+
+        <Link to="/notifications" title="Notifications">
+          <Bell className="h-6 w-6 text-gray-600 hover:text-primary-700" />
+        </Link>
+
+        <AuthButtons />
+      </div>
+    </header>
+  );
+}
+Imports you may need
+
+tsx
+Copy
+Edit
+import { Bell } from "lucide-react";
+import { Link } from "react-router-dom";
+3 Confirm styles
+The shield inherits Tailwind color classes; adjust as needed.
+
+If you want the shield inside the same clickable area as the bell, wrap both icons in a single <Link>.
+
+4 Replit one-shot prompt
+If you’d rather let the Agent apply the patch:
+
+bash
+Copy
+Edit
+# title: "Add Admin Shield to Header"
+
+open client/src/components/layout/StickyHeader.tsx
+# insert the code above (be sure to keep existing imports)
+npm run dev --silent &
+echo "✅  Admin shield added; reload /explore while logged in as admin to see it."

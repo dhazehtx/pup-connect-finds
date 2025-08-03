@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { Heart, Plus, Bell, Shield } from 'lucide-react';
+import { Heart, Plus, Bell, Shield, ShieldCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
@@ -104,16 +104,16 @@ const StickyHeader = () => {
                     </Button>
                   )}
 
-                  {/* Hidden Admin Panel Access - Only for admin users */}
-                  {profile?.is_admin && (
+                  {/* Admin Panel Access - Only for admin users */}
+                  {(profile?.is_admin || profile?.user_type === 'admin') && (
                     <Link to="/admin/reports">
                       <Button
                         variant="ghost"
                         size="sm"
                         className="relative p-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50 hover:shadow-sm transition-all duration-200 rounded-full"
-                        title="Reports & Moderation"
+                        title="Admin Panel - Reports & Moderation"
                       >
-                        <Shield className="h-6 w-6" />
+                        <ShieldCheck className="h-6 w-6" />
                       </Button>
                     </Link>
                   )}
@@ -150,16 +150,16 @@ const StickyHeader = () => {
                     </Button>
                   )}
 
-                  {/* Mobile Hidden Admin Panel Access - Only for admin users */}
-                  {profile?.is_admin && (
+                  {/* Mobile Admin Panel Access - Only for admin users */}
+                  {(profile?.is_admin || profile?.user_type === 'admin') && (
                     <Link to="/admin/reports">
                       <Button
                         variant="ghost"
                         size="sm"
                         className="relative p-1.5 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-full w-8 h-8"
-                        title="Reports & Moderation"
+                        title="Admin Panel"
                       >
-                        <Shield className="h-5 w-5" />
+                        <ShieldCheck className="h-5 w-5" />
                       </Button>
                     </Link>
                   )}

@@ -1,5 +1,6 @@
 import { useState, useRef } from "react";
-import { useLocation, Link } from "wouter";
+import { useLocation as useWouterLocation } from "wouter";
+import { Link, useNavigate } from "react-router-dom";
 import { useGlobalSearch } from "../hooks/useGlobalSearch";
 import { Search } from "lucide-react";
 import { COMPONENTS, buildCardClass } from "../styles/constants";
@@ -8,12 +9,12 @@ export default function SearchBar({ placeholder = "Search breeders, puppies, she
   const [query, setQuery] = useState("");
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
   const { results, loading } = useGlobalSearch(query);
-  const [, setLocation] = useLocation();
+  const navigate = useNavigate();
   const inputRef = useRef<HTMLInputElement>(null);
 
   const choose = (result: typeof results[number]) => {
     console.log("CHOOSE fired →", result);
-    setLocation(result.type === "listing" ? `/listing/${result.id}` : `/profile/${result.id}`);
+    navigate(result.type === "listing" ? `/listing/${result.id}` : `/profile/${result.id}`);
     setQuery(""); 
     setHighlightedIndex(-1);
     setTimeout(() => inputRef.current?.focus(), 0);
@@ -34,7 +35,7 @@ export default function SearchBar({ placeholder = "Search breeders, puppies, she
       const targetResult = highlightedIndex >= 0 ? results[highlightedIndex] : results[0];
       if (targetResult) {
         console.log("Enter key navigation →", targetResult);
-        setLocation(targetResult.type === "listing" ? `/listing/${targetResult.id}` : `/profile/${targetResult.id}`);
+        navigate(targetResult.type === "listing" ? `/listing/${targetResult.id}` : `/profile/${targetResult.id}`);
         setQuery(""); 
         setHighlightedIndex(-1);
       }
@@ -80,7 +81,7 @@ export default function SearchBar({ placeholder = "Search breeders, puppies, she
             results.map((result, index) => (
               <Link
                 key={result.id}
-                href={result.type === "listing" ? `/listing/${result.id}` : `/profile/${result.id}`}
+                to={result.type === "listing" ? `/listing/${result.id}` : `/profile/${result.id}`}
                 onClick={() => { 
                   console.log("Link clicked →", result);
                   setQuery(""); 
