@@ -153,9 +153,10 @@ const UnifiedProfileView = ({ userId, isCurrentUser }: UnifiedProfileViewProps) 
                 <div className="flex items-center gap-4">
                   <h1 className="text-2xl font-bold">{profile.full_name}</h1>
                   {profile.verified && (
-                    <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">
-                      Verified
-                    </span>
+                    <div className="flex items-center gap-1 bg-blue-100 text-blue-800 text-xs px-3 py-1 rounded-full">
+                      <Shield className="w-3 h-3" />
+                      Official
+                    </div>
                   )}
                 </div>
                 

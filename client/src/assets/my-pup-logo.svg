@@ -1,0 +1,43 @@
+<svg width="120" height="120" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background circle with gradient -->
+  <defs>
+    <radialGradient id="bgGradient" cx="0.5" cy="0.3" r="0.8">
+      <stop offset="0%" stop-color="#3B82F6"/>
+      <stop offset="100%" stop-color="#1E40AF"/>
+    </radialGradient>
+    <linearGradient id="pawGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="100%" stop-color="#F1F5F9"/>
+    </linearGradient>
+  </defs>
+  
+  <!-- Main background -->
+  <circle cx="60" cy="60" r="58" fill="url(#bgGradient)" stroke="#1E40AF" stroke-width="4"/>
+  
+  <!-- Paw print design -->
+  <g transform="translate(60, 60)">
+    <!-- Main pad -->
+    <ellipse cx="0" cy="8" rx="14" ry="16" fill="url(#pawGradient)"/>
+    
+    <!-- Toe pads -->
+    <ellipse cx="-12" cy="-8" rx="6" ry="9" fill="url(#pawGradient)"/>
+    <ellipse cx="-4" cy="-14" rx="6" ry="9" fill="url(#pawGradient)"/>
+    <ellipse cx="4" cy="-14" rx="6" ry="9" fill="url(#pawGradient)"/>
+    <ellipse cx="12" cy="-8" rx="6" ry="9" fill="url(#pawGradient)"/>
+  </g>
+  
+  <!-- Company name arc -->
+  <path id="textArc" d="M 20 60 A 40 40 0 1 1 100 60" fill="none"/>
+  <text font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#FFFFFF">
+    <textPath href="#textArc" startOffset="50%" text-anchor="middle">
+      MY PUP
+    </textPath>
+  </text>
+  
+  <!-- Sparkle accents -->
+  <g fill="#FBBF24" opacity="0.8">
+    <polygon points="25,25 27,30 32,28 27,33 25,38 23,33 18,28 23,30" transform="scale(0.6)"/>
+    <polygon points="90,30 92,35 97,33 92,38 90,43 88,38 83,33 88,35" transform="scale(0.5)"/>
+    <polygon points="95,80 97,85 102,83 97,88 95,93 93,88 88,83 93,85" transform="scale(0.4)"/>
+  </g>
+</svg>
