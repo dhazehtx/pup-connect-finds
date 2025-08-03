@@ -113,7 +113,7 @@ const PupStore = () => {
                 className="pl-10"
               />
             </div>
-            <Button variant="outline" className="flex items-center gap-2">
+            <Button variant="outline" className="flex items-center gap-2 bg-white text-primary-600 border-primary-600 hover:bg-primary-50">
               <Filter className="h-4 w-4" />
               Filters
             </Button>
@@ -125,7 +125,11 @@ const PupStore = () => {
               <Badge
                 key={category}
                 variant={selectedCategory === category ? "default" : "outline"}
-                className="cursor-pointer px-3 py-1"
+                className={`cursor-pointer px-4 py-1 rounded-full transition-colors ${
+                  selectedCategory === category 
+                    ? 'bg-primary-100 text-primary-700 hover:bg-primary-200' 
+                    : 'bg-white text-primary-600 border-primary-600 hover:bg-primary-50'
+                }`}
                 onClick={() => setSelectedCategory(category)}
               >
                 {category}
@@ -172,11 +176,11 @@ const PupStore = () => {
                 </div>
 
                 <div className="flex items-center justify-between pt-2">
-                  <span className="text-xl font-bold text-blue-600">${product.price}</span>
+                  <span className="text-xl font-bold text-primary-600">${product.price}</span>
                   <Button 
                     size="sm" 
                     disabled={!product.inStock}
-                    className="flex items-center gap-2"
+                    className="w-full mt-2 py-2 rounded-2xl text-white bg-primary-600 hover:bg-primary-700 flex items-center justify-center gap-2"
                   >
                     <ShoppingCart className="h-4 w-4" />
                     Add to Cart
