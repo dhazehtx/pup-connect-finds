@@ -165,7 +165,8 @@ const Auth = () => {
                     : 'text-black hover:opacity-80'
                 }`}
                 style={{
-                  backgroundColor: activeTab === 'signin' ? '#2363FF' : '#E5EEFF'
+                  backgroundColor: activeTab === 'signin' ? '#2363FF' : '#E5EEFF',
+                  color: activeTab === 'signin' ? '#FFFFFF' : '#000000'
                 }}
               >
                 Sign In
@@ -179,7 +180,8 @@ const Auth = () => {
                     : 'text-black hover:opacity-80'
                 }`}
                 style={{
-                  backgroundColor: activeTab === 'signup' ? '#2363FF' : '#E5EEFF'
+                  backgroundColor: activeTab === 'signup' ? '#2363FF' : '#E5EEFF',
+                  color: activeTab === 'signup' ? '#FFFFFF' : '#000000'
                 }}
               >
                 Sign Up
@@ -260,7 +262,7 @@ const Auth = () => {
                 type="submit"
                 disabled={loading || isSubmitting}
                 className="w-full h-12 text-white font-semibold rounded-lg shadow-lg transition-all duration-200"
-                style={{ backgroundColor: '#2363FF', border: 'none' }}
+                style={{ backgroundColor: '#2363FF', border: 'none', color: '#FFFFFF' }}
                 onMouseEnter={(e) => {
                   if (!loading && !isSubmitting) e.currentTarget.style.backgroundColor = '#1E52D0';
                 }}
@@ -309,7 +311,7 @@ const Auth = () => {
                   });
                 }}
                 className="w-full h-12 text-white font-medium rounded-lg transition-all duration-200"
-                style={{ backgroundColor: '#2363FF', border: 'none' }}
+                style={{ backgroundColor: '#2363FF', border: 'none', color: '#FFFFFF' }}
                 onMouseEnter={(e) => {
                   if (!loading && !isSubmitting) e.currentTarget.style.backgroundColor = '#1E52D0';
                 }}
@@ -331,7 +333,7 @@ const Auth = () => {
                   });
                 }}
                 className="w-full h-12 text-white font-medium rounded-lg transition-all duration-200"
-                style={{ backgroundColor: '#2363FF', border: 'none' }}
+                style={{ backgroundColor: '#2363FF', border: 'none', color: '#FFFFFF' }}
                 onMouseEnter={(e) => {
                   if (!loading && !isSubmitting) e.currentTarget.style.backgroundColor = '#1E52D0';
                 }}
@@ -364,7 +366,7 @@ const Auth = () => {
             type="button"
             onClick={handleGuestAccess}
             className="w-full mt-4 h-12 text-white font-semibold rounded-lg transition-all duration-200"
-            style={{ backgroundColor: '#2363FF', border: 'none' }}
+            style={{ backgroundColor: '#2363FF', border: 'none', color: '#FFFFFF' }}
             onMouseEnter={(e) => {
               if (!loading && !isSubmitting) e.currentTarget.style.backgroundColor = '#1E52D0';
             }}
