@@ -191,7 +191,7 @@ const StickyHeader = () => {
               {!user && !isGuest && (
                 <div className="flex items-center space-x-3">
                   <Link to="/auth">
-                    <Button size="sm" className="bg-blue-600 hover:bg-blue-700 text-white">
+                    <Button size="sm" className="btn-primary px-5 py-2 text-sm">
                       Sign In
                     </Button>
                   </Link>
