@@ -147,7 +147,7 @@ const PupStore = () => {
                 
                 <Button 
                   disabled={!product.inStock}
-                  className="btn-primary w-full py-2"
+                  className="w-full py-2 btn-primary"
                 >
                   Add to Cart
                 </Button>

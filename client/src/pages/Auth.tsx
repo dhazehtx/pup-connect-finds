@@ -261,7 +261,7 @@ const Auth = () => {
               <Button
                 type="submit"
                 disabled={loading || isSubmitting}
-                className="btn-primary w-full h-12 shadow-lg"
+                className="w-full h-12 shadow-lg btn-primary"
               >
                 {loading || isSubmitting ? (
                   <>
@@ -303,7 +303,7 @@ const Auth = () => {
                     description: "Google sign-in will be available soon.",
                   });
                 }}
-                className="btn-primary w-full h-12"
+                className="w-full h-12 btn-primary"
                 disabled={loading || isSubmitting}
               >
                 <Mail size={18} className="mr-3" />
@@ -318,7 +318,7 @@ const Auth = () => {
                     description: "Facebook sign-in will be available soon.",
                   });
                 }}
-                className="btn-primary w-full h-12"
+                className="w-full h-12 btn-primary"
                 disabled={loading || isSubmitting}
               >
                 <User size={18} className="mr-3" />
@@ -344,7 +344,7 @@ const Auth = () => {
           <Button 
             type="button"
             onClick={handleGuestAccess}
-            className="btn-primary w-full mt-4 h-12"
+            className="w-full mt-4 h-12 btn-primary"
             disabled={loading || isSubmitting}
           >
             Continue as Guest
