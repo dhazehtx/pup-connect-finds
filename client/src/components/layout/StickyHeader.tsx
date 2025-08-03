@@ -113,9 +113,11 @@ const StickyHeader = () => {
                       title="Admin Dashboard"
                       className="shrink-0 hover:text-primary-700"
                     >
-                      <ShieldCheck className="h-6 w-6" />
+                      <ShieldCheck className="h-6 w-6 text-blue-600" />
                     </Link>
                   )}
+                  
+
 
                   {/* Notification Bell - Only for authenticated users */}
                   {(user || isGuest) && (

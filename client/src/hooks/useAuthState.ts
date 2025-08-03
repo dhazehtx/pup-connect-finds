@@ -24,7 +24,7 @@ export const useAuthState = () => {
       
       // Temporarily set admin status for danieluke97 until Supabase table is updated
       const profileData = data || null;
-      if (profileData && (profileData.username === 'danieluke97' || profileData.email === 'danieluke97@yahoo.com' || profileData.username === 'Royalbabybullz')) {
+      if (profileData && (profileData.username === 'danieluke97' || profileData.email === 'danieluke97@yahoo.com' || profileData.username === 'Royalbabybullz' || profileData.id === '8b7adf6a-eb74-43a0-9a26-575e65886ac5')) {
         (profileData as any).is_admin = true;
       }
       
