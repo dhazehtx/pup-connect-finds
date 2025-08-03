@@ -13,17 +13,7 @@ import SearchBar from '../SearchBar';
 const StickyHeader = () => {
   const { user, isGuest, profile, loading } = useAuth();
   
-  // Debug profile state in header
-  React.useEffect(() => {
-    console.log('🔍 [STICKY HEADER] Profile state:', { 
-      profile: !!profile, 
-      is_admin: profile?.is_admin, 
-      role: profile?.role, 
-      user_type: profile?.user_type,
-      loading,
-      user: !!user 
-    });
-  }, [profile, loading, user]);
+
   const navigate = useNavigate();
   const location = useLocation();
   const { toast } = useToast();
@@ -127,7 +117,7 @@ const StickyHeader = () => {
                     >
                       <ShieldCheck className="h-6 w-6 text-blue-600" />
                     </Link>
-                  ) : console.log('🔍 Admin shield hidden - profile:', { is_admin: profile?.is_admin, role: profile?.role, user_type: profile?.user_type, hasProfile: !!profile })}
+                  ) : null}
                   
 
 

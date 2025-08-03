@@ -26,11 +26,7 @@ export const useAuthState = () => {
       const profileData = data || null;
       if (profileData && profileData.id === '8b7adf6a-eb74-43a0-9a26-575e65886ac5') {
         (profileData as any).is_admin = true;
-        console.log('✅ ADMIN STATUS GRANTED to creator account');
-      }
-      
-      console.log('Profile fetched from Supabase:', profileData);
-      console.log('Profile is_admin value:', profileData?.is_admin);
+        }
       setProfile(profileData);
       return profileData;
     } catch (error: any) {

@@ -67,12 +67,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   // Create stable context value that only changes when core identity changes
   const value: AuthContextType = useMemo(() => {
     // Only log when context actually needs to be recreated
-    console.log('[AUTH CONTEXT] Context update:', { 
-      userId: authState.user?.id || 'none',
-      hasProfile: !!authState.profile,
-      profileIsAdmin: authState.profile?.is_admin,
-      loading: authState.loading
-    });
+    // Context updates when user, session, loading, profile, or guest status changes
     
     return {
       user: authState.user,
