@@ -1,0 +1,52 @@
+Below is a tighter, laser-scoped prompt that tells Replit AI to touch only the Marketplace → Store tab and to make every royal-blue button read white text.
+Copy-paste it as one single message so the agent gets the full guardrails at once.
+
+sql
+Copy
+Edit
+### TASK: Apply brand-blue theme ONLY to the “Store” tab inside the Marketplace page
+and make all blue “Add to Cart” buttons render white text.
+
+SCOPE
+• Modify **_only_** the Store tab component and its children:
+   client/src/pages/Marketplace/StoreTab.tsx  (or equivalent path)
+   client/src/components/Store/**/*           (if present)
+• No edits to Pet Services tab, Pup Box tab, or any other screens (Auth, Explore, Home, etc.).
+• Do not rename, move, or refactor unrelated files.
+
+STEPS
+1. If StoreTab component doesn’t exist yet, create it and mount it behind the “Store” tab
+   toggle that already lives in Marketplace.
+
+2. Tailwind palette  
+   – Confirm tailwind.config.ts already has the “primary” royal-blue shades  
+     (primary-50 … primary-800 from previous task).  
+   – **DO NOT** change any other colors.
+
+3. StoreTab markup tweaks  
+   • Wrap the tab content in `<div className="bg-primary-50 min-h-screen pb-24">…</div>`  
+   • Category chips:  
+     `class="rounded-full px-4 py-1 bg-primary-100 text-primary-700 hover:bg-primary-200"`  
+   • Product card shadow (optional):  
+     `hover:shadow-[0_4px_12px_rgba(10,84,255,0.15)]`
+
+4. **Add to Cart** buttons  
+   – Replace existing class list with:  
+     ```tsx
+     className="w-full py-2 rounded-2xl bg-primary-600 text-white
+                font-medium hover:bg-primary-700 transition"
+     ```  
+   – If a shared `<Button>` component is in use, extend it with a
+     `.btn-primary` utility and apply it **only in StoreTab**.
+
+5. Verify visually  
+   • Marketplace → Store: royal-blue background, chips & cards tinted blue, button text **white**.  
+   • Marketplace → Pet Services & Pup Box: original styling (no blue background).  
+   • Auth, Home, Explore, Profile, Messages remain unchanged.
+
+6. Quality gate  
+   **git diff --stat main..HEAD** → must list StoreTab files + tailwind.config only.  
+
+7. Commit  
+   `git commit -am "feat(store): blue theme + white-text buttons (Store tab only)"`
+
