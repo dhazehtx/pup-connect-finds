@@ -1,0 +1,87 @@
+The search dropdown is now solid — so the only thing left is to make sure the admin shield actually appears once your profile (has admin=true) arrives.
+
+Why it’s still blank
+Wrong field name – the header is checking profile.is_admin, but your table uses profile.role === 'admin' (or profile.user_type).
+
+Context never re-renders – if StickyHeader subscribes to the loading flag but not to the final profile object, React won’t re-run the render when the data arrives.
+
+Flex shrink / overflow – the shield is in the DOM but hidden off-screen because the flex container is shrinking it to zero.
+
+Below is a tiny patch that covers all three:
+
+1 Open client/src/components/layout/StickyHeader.tsx
+Add these imports (if they aren’t there already):
+
+tsx
+Copy
+Edit
+import { ShieldCheck } from "lucide-react";
+import { Link }       from "react-router-dom";
+import { useUser }    from "../../contexts/AuthContext";   // path to your auth context
+2 Replace the admin-shield block
+Find the right-side icon area (just above the <AuthButtons />).
+Swap in this code:
+
+tsx
+Copy
+Edit
+// profile + loading come from your auth context
+const { profile, loading } = useUser();
+
+/** adjust this line to match your schema **/
+const isAdmin =
+  !loading &&
+  (profile?.is_admin || profile?.role === "admin" || profile?.user_type === "admin");
+
+…
+
+<div className="ml-auto flex items-center gap-4">
+  {loading && <div className="h-6 w-6" />}        {/* keeps layout stable */}
+
+  {!loading && isAdmin && (
+    <Link
+      to="/admin"
+      title="Admin Dashboard"
+      className="shrink-0 hover:text-primary-700"
+    >
+      <ShieldCheck className="h-6 w-6" />
+    </Link>
+  )}
+
+  <Link to="/notifications" title="Notifications" className="shrink-0">
+    <Bell className="h-6 w-6" />
+  </Link>
+
+  <AuthButtons />
+</div>
+Notes
+Field flexibility – the isAdmin line now checks three possible columns:
+is_admin, role, or user_type. Keep whichever matches your schema.
+
+shrink-0 – makes sure the shield never collapses in the flex row.
+
+Loading placeholder – a 6 × 6 px empty div reserves space so icons don’t jump.
+
+3 Test in 20 seconds
+Reload /explore while logged in on your admin account.
+
+Watch DevTools → Console; you should see no errors, and when profile arrives the shield renders.
+
+Click the shield ➜ should route to /admin.
+
+Log in as a normal user ➜ shield disappears.
+
+Still no shield?
+
+Open DevTools → Elements. If the <Link to="/admin">…Shield…</Link> is missing, double-check the isAdmin condition and profile data.
+
+If the element exists but is invisible, inspect its box model—add className="text-red-500" temporarily to see if it’s just overlapping / opacity issue.
+
+With that tiny tweak you’ll have:
+
+Search bar on every main page
+
+Admin shield that appears only when user_type === 'admin'
+
+Shield hidden (and search hidden) on /auth routes
+

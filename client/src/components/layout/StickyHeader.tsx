@@ -106,17 +106,14 @@ const StickyHeader = () => {
 
                   {/* Admin Panel Access - Only for admin users */}
                   {loading ? (
-                    <div className="h-8 w-8 rounded-full" />
-                  ) : (profile?.is_admin || profile?.user_type === 'admin') && (
-                    <Link to="/admin/reports">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="relative p-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50 hover:shadow-sm transition-all duration-200 rounded-full"
-                        title="Admin Panel - Reports & Moderation"
-                      >
-                        <ShieldCheck className="h-6 w-6" />
-                      </Button>
+                    <div className="h-6 w-6" />
+                  ) : (profile?.is_admin || profile?.role === 'admin' || profile?.user_type === 'admin') && (
+                    <Link
+                      to="/admin"
+                      title="Admin Dashboard"
+                      className="shrink-0 hover:text-primary-700"
+                    >
+                      <ShieldCheck className="h-6 w-6" />
                     </Link>
                   )}
 
@@ -154,17 +151,14 @@ const StickyHeader = () => {
 
                   {/* Mobile Admin Panel Access - Only for admin users */}
                   {loading ? (
-                    <div className="h-8 w-8 rounded-full" />
-                  ) : (profile?.is_admin || profile?.user_type === 'admin') && (
-                    <Link to="/admin/reports">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="relative p-1.5 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-full w-8 h-8"
-                        title="Admin Panel"
-                      >
-                        <ShieldCheck className="h-5 w-5" />
-                      </Button>
+                    <div className="h-6 w-6" />
+                  ) : (profile?.is_admin || profile?.role === 'admin' || profile?.user_type === 'admin') && (
+                    <Link
+                      to="/admin"
+                      title="Admin Dashboard"  
+                      className="shrink-0 hover:text-primary-700"
+                    >
+                      <ShieldCheck className="h-5 w-5" />
                     </Link>
                   )}
 
