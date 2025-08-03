@@ -1,0 +1,76 @@
+1. Confirm the data really changed in Supabase
+Open Table Editor → profiles and look at the row for your admin UID (8b7adf…):
+
+column	Should now read
+name	My Pup Official
+username	MyPupOfficial
+bio	Building a safe, fun & verified marketplace…
+avatar_url	points to a logo file
+is_verified	true
+is_admin	true
+
+If those fields are still the old values, the “automatic” update never ran (or it ran on a different project DB). In that case, just run the seed script or update manually as described earlier.
+
+2. If the row is updated but UI is stale
+Your profile page probably fetches the data once on page load, then stores it in React context or state. Two common fixes:
+
+A) Quick reload trick (no code)
+Hard-refresh the running preview tab (⌘⇧R / Ctrl+Shift+R).
+
+If you still see the old name, log out → log back in (forces a new profile fetch).
+
+B) One-liner refetch on mount (recommended)
+Add a select('*', { head: false }) call right after sign-in or page navigation so the client always pulls the latest row:
+
+tsx
+Copy
+Edit
+// inside useEffect of ProfilePage.tsx (or wherever you load profile)
+useEffect(() => {
+  (async () => {
+    const { data: session } = await supabase.auth.getSession();
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', session.user.id)   // your PK
+      .single();                   // <- ensures one row
+
+    setProfile(profile);           // update state
+  })();
+}, [location.pathname]);            // refetch whenever route changes
+C) Bust the SWR / react-query cache (if you use one)
+tsx
+Copy
+Edit
+import { queryClient } from '@/queryClient';
+queryClient.invalidateQueries(['profile', userId]);
+3. One-click Replit AI prompt to verify + log
+If you’d like Replit to show you what’s in Supabase right now, paste this in the agent:
+
+csharp
+Copy
+Edit
+// Prompt name: DebugProfileRow
+
+/*
+Goal: Print the current admin profile row so we know what the DB has.
+*/
+
+import { supabase } from '@/supabaseClient';
+const { data, error } = await supabase
+  .from('profiles')
+  .select('*')
+  .eq('id', '8b7adf6a-eb74-43…')   // replace with your UID
+  .single();
+
+console.log('👀 Current profile row:', data ?? error);
+Checklist to get you unblocked
+Table Editor → verify data actually changed.
+
+If unchanged: re-run seed script or manual edit.
+
+If changed but UI stale:
+
+Force hard refresh / re-login, or
+
+Add the refetch snippet so state updates automatically.
