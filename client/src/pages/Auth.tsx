@@ -261,14 +261,7 @@ const Auth = () => {
               <Button
                 type="submit"
                 disabled={loading || isSubmitting}
-                className="w-full h-12 text-white font-semibold rounded-lg shadow-lg transition-all duration-200"
-                style={{ backgroundColor: '#2363FF', border: 'none', color: '#FFFFFF' }}
-                onMouseEnter={(e) => {
-                  if (!loading && !isSubmitting) e.currentTarget.style.backgroundColor = '#1E52D0';
-                }}
-                onMouseLeave={(e) => {
-                  if (!loading && !isSubmitting) e.currentTarget.style.backgroundColor = '#2363FF';
-                }}
+                className="btn-primary w-full h-12 shadow-lg"
               >
                 {loading || isSubmitting ? (
                   <>
@@ -310,14 +303,7 @@ const Auth = () => {
                     description: "Google sign-in will be available soon.",
                   });
                 }}
-                className="w-full h-12 text-white font-medium rounded-lg transition-all duration-200"
-                style={{ backgroundColor: '#2363FF', border: 'none', color: '#FFFFFF' }}
-                onMouseEnter={(e) => {
-                  if (!loading && !isSubmitting) e.currentTarget.style.backgroundColor = '#1E52D0';
-                }}
-                onMouseLeave={(e) => {
-                  if (!loading && !isSubmitting) e.currentTarget.style.backgroundColor = '#2363FF';
-                }}
+                className="btn-primary w-full h-12"
                 disabled={loading || isSubmitting}
               >
                 <Mail size={18} className="mr-3" />
@@ -332,14 +318,7 @@ const Auth = () => {
                     description: "Facebook sign-in will be available soon.",
                   });
                 }}
-                className="w-full h-12 text-white font-medium rounded-lg transition-all duration-200"
-                style={{ backgroundColor: '#2363FF', border: 'none', color: '#FFFFFF' }}
-                onMouseEnter={(e) => {
-                  if (!loading && !isSubmitting) e.currentTarget.style.backgroundColor = '#1E52D0';
-                }}
-                onMouseLeave={(e) => {
-                  if (!loading && !isSubmitting) e.currentTarget.style.backgroundColor = '#2363FF';
-                }}
+                className="btn-primary w-full h-12"
                 disabled={loading || isSubmitting}
               >
                 <User size={18} className="mr-3" />
@@ -365,14 +344,7 @@ const Auth = () => {
           <Button 
             type="button"
             onClick={handleGuestAccess}
-            className="w-full mt-4 h-12 text-white font-semibold rounded-lg transition-all duration-200"
-            style={{ backgroundColor: '#2363FF', border: 'none', color: '#FFFFFF' }}
-            onMouseEnter={(e) => {
-              if (!loading && !isSubmitting) e.currentTarget.style.backgroundColor = '#1E52D0';
-            }}
-            onMouseLeave={(e) => {
-              if (!loading && !isSubmitting) e.currentTarget.style.backgroundColor = '#2363FF';
-            }}
+            className="btn-primary w-full mt-4 h-12"
             disabled={loading || isSubmitting}
           >
             Continue as Guest

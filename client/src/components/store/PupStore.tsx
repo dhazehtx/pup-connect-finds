@@ -147,7 +147,7 @@ const PupStore = () => {
                 
                 <Button 
                   disabled={!product.inStock}
-                  className="w-full py-2 rounded-2xl bg-primary-600 text-white font-medium hover:bg-primary-700 transition-colors"
+                  className="btn-primary w-full py-2"
                 >
                   Add to Cart
                 </Button>

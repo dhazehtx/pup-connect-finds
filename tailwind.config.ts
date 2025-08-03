@@ -225,5 +225,16 @@ export default {
       },
     },
   },
-  plugins: [require("tailwindcss-animate"), require("@tailwindcss/typography")],
+  plugins: [
+    require("tailwindcss-animate"), 
+    require("@tailwindcss/typography"),
+    function ({ addComponents, theme }) {
+      addComponents({
+        /* primary (royal-blue) button — ALWAYS white text */
+        '.btn-primary': {
+          '@apply inline-flex items-center justify-center rounded-2xl bg-primary-600 text-white font-medium hover:bg-primary-700 transition focus:outline-none': {},
+        },
+      });
+    },
+  ],
 } satisfies Config;

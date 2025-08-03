@@ -1,0 +1,79 @@
+1 ▸ Centralize the style in Tailwind
+Add a custom component class inside tailwind.config.js:
+
+js
+Copy
+Edit
+// tailwind.config.js
+module.exports = {
+  content: [/* … */],
+  theme: {
+    extend: {
+      colors: {
+        primary: {
+          600: '#0a54ff',
+          700: '#0046db',
+          /* … */
+        },
+      },
+    },
+  },
+  plugins: [
+    function ({ addComponents, theme }) {
+      addComponents({
+        /* primary (royal-blue) button — ALWAYS white text */
+        '.btn-primary': {
+          @apply inline-flex items-center justify-center rounded-2xl
+                  bg-primary-600 text-white font-medium
+                  hover:bg-primary-700 transition focus:outline-none;
+        },
+      });
+    },
+  ],
+};
+Tailwind will now generate .btn-primary with text-white baked in.
+
+2 ▸ Replace ad-hoc class strings
+Open each component that renders a royal-blue CTA (Auth, Store tab, “List Puppy”, etc.) and swap the verbose classes for the utility:
+
+tsx
+Copy
+Edit
+<button className="btn-primary w-full py-2">
+  Add to Cart
+</button>
+Helpful grep in Replit’s file tree:
+cmd/ctrl + shift + f → search bg-primary-600 and change each match.
+
+3 ▸ Safety prompt for Replit AI
+Paste this as one block so it respects scope:
+
+sql
+Copy
+Edit
+### TASK: enforce white text on ALL royal-blue buttons
+
+SCOPE
+• Only change class names (or props) for buttons with bg-primary-600 / 700.
+• Acceptable edits: add or replace with .btn-primary utility created in tailwind.config.js.
+• Do NOT modify layout, copy, or non-blue buttons.
+
+STEPS
+1. tailwind.config.js → add .btn-primary (see code in chat).
+2. Replace class strings in:
+   • client/src/pages/Auth/*
+   • client/src/pages/Marketplace/StoreTab.tsx
+   • any shared <Button> component
+   • Header “Sign In” & “List Puppy” buttons
+3. Leave secondary/outlined buttons untouched.
+4. Run `npm run dev` → verify every royal-blue button now shows white text.
+5. Commit: `git commit -am "style(buttons): ensure white text on primary buttons"`
+4 ▸ Quick visual test checklist
+Route	Button Text	Expectation
+/auth	Sign In / Sign Up / OAuth	white
+/marketplace → Store	Add to Cart	white
+Header	List Puppy	white
+Any modal / toast	Continue / Confirm	white
+
+If any blue button still shows dark text, grep for its component and apply btn-primary.
+
