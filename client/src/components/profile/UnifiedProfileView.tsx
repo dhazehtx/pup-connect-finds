@@ -54,6 +54,17 @@ const UnifiedProfileView = ({ userId, isCurrentUser }: UnifiedProfileViewProps) 
     }
   }, [profileId]);
 
+  // Force refetch on route changes to ensure fresh data
+  useEffect(() => {
+    if (profileId) {
+      const timeoutId = setTimeout(() => {
+        fetchProfile();
+      }, 100); // Small delay to ensure component is mounted
+      
+      return () => clearTimeout(timeoutId);
+    }
+  }, [window.location.pathname]);
+
   const fetchProfile = async () => {
     try {
       if (!profileId) {
@@ -61,6 +72,7 @@ const UnifiedProfileView = ({ userId, isCurrentUser }: UnifiedProfileViewProps) 
         return;
       }
 
+      // Force fresh data with cache busting
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
