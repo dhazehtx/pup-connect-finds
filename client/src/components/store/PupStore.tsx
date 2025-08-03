@@ -95,15 +95,18 @@ const PupStore = () => {
   });
 
   return (
-    <div className="bg-primary-600 min-h-screen pb-24">
+    <div className="bg-white min-h-screen pb-24">
+      {/* Subtle blue accent divider */}
+      <div className="h-2 w-full bg-primary-200 rounded-b-3xl"></div>
+      
       <div className="p-4 space-y-6">
         {/* Filter and Sort Section */}
         <div className="flex items-center justify-between pt-4">
-          <Button className="flex items-center gap-2 bg-transparent border-2 border-white text-white rounded-full px-6 py-2 hover:bg-white hover:text-primary-600 transition-colors">
+          <Button className="flex items-center gap-2 border border-primary-600 text-primary-600 bg-white rounded-full px-6 py-2 hover:bg-primary-50 transition-colors">
             <Filter className="h-4 w-4" />
             Filter
           </Button>
-          <Button className="flex items-center gap-2 bg-transparent border-2 border-white text-white rounded-full px-6 py-2 hover:bg-white hover:text-primary-600 transition-colors">
+          <Button className="flex items-center gap-2 border border-primary-600 text-primary-600 bg-white rounded-full px-6 py-2 hover:bg-primary-50 transition-colors">
             Sort
             <svg className="h-4 w-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
@@ -114,7 +117,7 @@ const PupStore = () => {
         {/* Products Grid */}
         <div className="grid grid-cols-2 gap-4">
           {filteredProducts.map((product) => (
-            <div key={product.id} className="bg-white rounded-2xl p-4 shadow-sm">
+            <div key={product.id} className="bg-white rounded-3xl border border-gray-200 shadow-sm p-4">
               <div className="relative mb-3">
                 <img
                   src={product.image}
@@ -154,7 +157,7 @@ const PupStore = () => {
         </div>
 
         {filteredProducts.length === 0 && (
-          <div className="bg-white rounded-2xl p-12 text-center mx-4">
+          <div className="bg-white rounded-3xl border border-gray-200 shadow-sm p-12 text-center mx-4">
             <div className="text-gray-500">
               <h3 className="text-lg font-semibold mb-2">No products found</h3>
               <p>Try adjusting your search or filter criteria</p>
