@@ -1,0 +1,122 @@
+1️⃣ High-level game plan
+Create a new route/component src/pages/AdminDashboard.tsx (or /admin if you’re using React-Router) that renders only when profile.is_admin === true.
+
+Refactor the header/navbar
+
+Add a shield icon 🛡 that appears only for admins; clicking it routes to the dashboard.
+
+Keep the bell, post button, etc. unchanged for non-admins.
+
+Server-side (or client-side) guard – if a non-admin somehow hits /admin, immediately redirect to /home.
+
+Dashboard MVP widgets
+
+Section	Data source
+Total users / breeders / shelters	supabase.from('profiles').count()
+Active listings last 24 h	supabase.from('listings').eq('status','active').gte('created_at', yesterday)
+Flagged reports queue	supabase.from('reports').eq('status','open')
+Revenue this month	Stripe → /v1/balance_transactions?created[gte]=…
+
+2️⃣ Prompt for Replit AI (just paste)
+javascript
+Copy
+Edit
+// Prompt name: AddAdminDashboardAndShield
+
+/*
+Goal: Introduce a role-based admin dashboard and shield icon.
+Stack: React + TypeScript + Supabase.
+Constraints: Do NOT alter existing profile logic for non-admins.
+*/
+
+1. 📄  Create src/pages/AdminDashboard.tsx
+------------------------------------------------
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { supabase } from '@/supabaseClient';
+
+export default function AdminDashboard() {
+  const nav = useNavigate();
+  const [metrics, setMetrics] = useState(null);
+
+  useEffect(() => {
+    const session = supabase.auth.getSession();
+    const profile = session?.user?.user_metadata;
+    if (!profile?.is_admin) {
+      nav('/home');        // block non-admins
+      return;
+    }
+
+    (async () => {
+      const [{ count: userCnt }, { count: listingCnt }, { count: reportCnt }] = await Promise.all([
+        supabase.from('profiles').select('*', { count: 'exact', head: true }),
+        supabase.from('listings').eq('status', 'active').select('*', { count: 'exact', head: true }),
+        supabase.from('reports').eq('status', 'open').select('*', { count: 'exact', head: true }),
+      ]);
+      setMetrics({ userCnt, listingCnt, reportCnt });
+    })();
+  }, []);
+
+  if (!metrics) return <p className="p-8">Loading…</p>;
+
+  return (
+    <main className="p-8 space-y-6">
+      <h1 className="text-2xl font-bold">🐾 My Pup Admin Dashboard</h1>
+
+      <section className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <StatCard label="Total Users" value={metrics.userCnt} />
+        <StatCard label="Active Listings" value={metrics.listingCnt} />
+        <StatCard label="Open Reports" value={metrics.reportCnt} />
+      </section>
+    </main>
+  );
+}
+
+function StatCard({ label, value }) {
+  return (
+    <div className="rounded-xl border p-4 shadow-md">
+      <p className="text-gray-500">{label}</p>
+      <p className="text-3xl font-semibold">{value ?? 0}</p>
+    </div>
+  );
+}
+
+2. 🔗  Update router
+-------------------
+Add:
+  <Route path="/admin" element={<AdminDashboard />} />
+
+3. 🛡  Modify Header/Nav component
+---------------------------------
+import { ShieldCheck } from 'lucide-react';
+
+const session = supabase.auth.getSession();
+const isAdmin = session?.user?.user_metadata?.is_admin;
+
+{isAdmin && (
+  <button
+    onClick={() => navigate('/admin')}
+    title="Admin dashboard"
+    className="relative ml-4">
+      <ShieldCheck className="h-5 w-5 text-pink-600" />
+  </button>
+)}
+
+4. ✅  Done – run, then navigate: Home → Explore → Home
+------------------------------------------------------
+With is_admin=true you should now see the shield, and the /admin dashboard should load with counts.
+3️⃣ What to double-check in Supabase
+Your profile row has is_admin: true (already set).
+
+reports table exists; if not, comment out that widget or create the table.
+
+RLS policies allow the admin account to select the needed data.
+
+4️⃣ Next iterations once this works
+Add pagination tables for Manage Listings and User Reports (use daisyUI or shadcn tables).
+
+Pipe Stripe’s monthly revenue via a serverless function and display charts with Recharts.
+
+Log every admin action to your new admin_log table for audit compliance.
+
+Give that prompt a whirl, and let me know if anything breaks or if you’d like to flesh out more widgets!
