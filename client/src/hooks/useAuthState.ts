@@ -22,13 +22,15 @@ export const useAuthState = () => {
         throw error;
       }
       
-      // Temporarily set admin status for danieluke97 until Supabase table is updated
+      // Set admin status for creator account
       const profileData = data || null;
-      if (profileData && (profileData.username === 'danieluke97' || profileData.email === 'danieluke97@yahoo.com' || profileData.username === 'Royalbabybullz' || profileData.id === '8b7adf6a-eb74-43a0-9a26-575e65886ac5')) {
+      if (profileData && profileData.id === '8b7adf6a-eb74-43a0-9a26-575e65886ac5') {
         (profileData as any).is_admin = true;
+        console.log('✅ ADMIN STATUS GRANTED to creator account');
       }
       
       console.log('Profile fetched from Supabase:', profileData);
+      console.log('Profile is_admin value:', profileData?.is_admin);
       setProfile(profileData);
       return profileData;
     } catch (error: any) {

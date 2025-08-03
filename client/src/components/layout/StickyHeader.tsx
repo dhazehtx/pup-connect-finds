@@ -107,7 +107,7 @@ const StickyHeader = () => {
                   {/* Admin Panel Access - Only for admin users */}
                   {loading ? (
                     <div className="h-6 w-6" />
-                  ) : (profile?.is_admin || profile?.role === 'admin' || profile?.user_type === 'admin') && (
+                  ) : (profile?.is_admin || profile?.role === 'admin' || profile?.user_type === 'admin') ? (
                     <Link
                       to="/admin"
                       title="Admin Dashboard"
@@ -115,7 +115,7 @@ const StickyHeader = () => {
                     >
                       <ShieldCheck className="h-6 w-6 text-blue-600" />
                     </Link>
-                  )}
+                  ) : console.log('🔍 Admin shield hidden - profile:', { is_admin: profile?.is_admin, role: profile?.role, user_type: profile?.user_type, hasProfile: !!profile })}
                   
 
 
