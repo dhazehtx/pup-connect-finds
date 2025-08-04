@@ -29,7 +29,7 @@ export default function CartFab() {
         ${isPressed ? 'scale-95' : ''}
       `}
     >
-      <FiShoppingCart className="w-6 h-6" />
+      <FiShoppingCart className="w-6 h-6 text-white" />
       <span
         className="
           absolute -top-1.5 -right-1.5 h-5 min-w-[20px] rounded-full

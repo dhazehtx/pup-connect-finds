@@ -29,33 +29,21 @@ const Marketplace = () => {
           <TabsList className="grid w-full grid-cols-3 max-w-lg mx-auto rounded-lg overflow-hidden shadow-sm" style={{ backgroundColor: '#E5EEFF', border: '2px solid #CBD5E1' }}>
             <TabsTrigger 
               value="services" 
-              className="flex items-center space-x-2 font-medium transition-all duration-200"
-              style={{
-                backgroundColor: activeTab === 'services' ? '#2363FF' : 'transparent',
-                color: activeTab === 'services' ? 'white' : '#2363FF'
-              }}
+              className="radix-active:bg-primary-600 radix-active:text-white bg-transparent text-primary-600 flex items-center space-x-2 font-medium transition-all duration-200"
             >
               <Briefcase className="w-4 h-4" />
               <span>Pet Services</span>
             </TabsTrigger>
             <TabsTrigger 
               value="pupbox" 
-              className="flex items-center space-x-2 font-medium transition-all duration-200"
-              style={{
-                backgroundColor: activeTab === 'pupbox' ? '#2363FF' : 'transparent',
-                color: activeTab === 'pupbox' ? 'white' : '#2363FF'
-              }}
+              className="radix-active:bg-primary-600 radix-active:text-white bg-transparent text-primary-600 flex items-center space-x-2 font-medium transition-all duration-200"
             >
               <Gift className="w-4 h-4" />
               <span>Pup Box</span>
             </TabsTrigger>
             <TabsTrigger 
               value="store" 
-              className="flex items-center space-x-2 font-medium transition-all duration-200"
-              style={{
-                backgroundColor: activeTab === 'store' ? '#2363FF' : 'transparent',
-                color: activeTab === 'store' ? 'white' : '#2363FF'
-              }}
+              className="radix-active:bg-primary-600 radix-active:text-white bg-transparent text-primary-600 flex items-center space-x-2 font-medium transition-all duration-200"
             >
               <Store className="w-4 h-4" />
               <span>Store</span>

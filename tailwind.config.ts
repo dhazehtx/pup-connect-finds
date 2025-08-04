@@ -1,8 +1,10 @@
 import type { Config } from "tailwindcss";
+const plugin = require('tailwindcss/plugin');
 
 export default {
   darkMode: ["class"],
   content: ["./client/index.html", "./client/src/**/*.{js,jsx,ts,tsx}"],
+  safelist: ['data-[state=active]:text-white'],
   theme: {
     container: {
       center: true,
@@ -228,6 +230,9 @@ export default {
   plugins: [
     require("tailwindcss-animate"), 
     require("@tailwindcss/typography"),
+    plugin(function ({ addVariant }) {
+      addVariant('radix-active', '&[data-state="active"]');
+    }),
     function ({ addComponents, theme }) {
       addComponents({
         /* primary (royal-blue) button — ALWAYS white text */
