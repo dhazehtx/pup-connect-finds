@@ -5,13 +5,14 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Search } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import SortPopover from '@/components/ui/SortPopover';
 import CreateServiceDialog from './CreateServiceDialog';
 
 interface ServiceProvider {
   id: string;
   business_name: string;
   service_types: string[];
-  description: string;
+  description: string | null;
   location: string;
   pricing: any;
   rating: number;
@@ -91,23 +92,30 @@ const ServicesMarketplace = () => {
           </div>
         </div>
 
-        {/* Service Filter Tags */}
-        <div className="flex flex-wrap justify-center gap-3 mb-12">
-          {serviceFilters.map((filter) => (
-            <Button
-              key={filter}
-              variant={activeFilter === filter ? "default" : "outline"}
-              onClick={() => setActiveFilter(filter)}
-              className={`rounded-full px-6 py-2 font-medium transition-all duration-200 ${
-                activeFilter === filter
-                  ? 'bg-[#2363FF] text-white border-[#2363FF] !text-white'
-                  : 'bg-[#E5EEFF] text-primary-600 border-primary-600 hover:opacity-80 !text-primary-600'
-              }`}
-              style={{ border: '2px solid' }}
-            >
-              {filter}
-            </Button>
-          ))}
+        {/* Service Filter Tags with Sort */}
+        <div className="space-y-4 mb-12">
+          <div className="flex flex-wrap justify-center gap-3">
+            {serviceFilters.map((filter) => (
+              <Button
+                key={filter}
+                variant={activeFilter === filter ? "default" : "outline"}
+                onClick={() => setActiveFilter(filter)}
+                className={`rounded-full px-6 py-2 font-medium transition-all duration-200 ${
+                  activeFilter === filter
+                    ? 'bg-[#2363FF] text-white border-[#2363FF] !text-white'
+                    : 'bg-[#E5EEFF] text-primary-600 border-primary-600 hover:opacity-80 !text-primary-600'
+                }`}
+                style={{ border: '2px solid' }}
+              >
+                {filter}
+              </Button>
+            ))}
+          </div>
+          
+          {/* Sort Controls */}
+          <div className="flex justify-end">
+            <SortPopover onSortChange={(sort) => console.log('Sort changed:', sort)} />
+          </div>
         </div>
 
         {/* Empty State */}
