@@ -21,7 +21,7 @@ export default function CartFab() {
       onMouseUp={() => setIsPressed(false)}
       onMouseLeave={() => setIsPressed(false)}
       className={`
-        fixed bottom-20 right-4 sm:bottom-16 sm:right-3 z-50
+        fixed bottom-24 right-4 sm:bottom-20 sm:right-3 z-50
         flex items-center justify-center
         h-14 w-14 rounded-full bg-primary-600 text-white
         shadow-lg transition-transform duration-150

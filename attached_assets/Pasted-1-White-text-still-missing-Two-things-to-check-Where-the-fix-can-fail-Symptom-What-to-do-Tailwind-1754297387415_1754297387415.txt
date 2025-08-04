@@ -1,0 +1,51 @@
+1 — White text still missing? Two things to check
+Where the fix can fail	Symptom	What to do
+Tailwind didn’t rebuild after you added the new variant/safelist	DevTools shows the pill still has text-primary-foreground and no rule for [data-state=active] → color:#fff	Stop the dev server → npm run dev again. Tailwind only reads tailwind.config.ts on startup.
+Class name typo	The trigger has radix-active:text-white but we registered the variant as radix-active (or vice-versa)	Make sure the variant name in the config and the utility in JSX match exactly. Example:
+addVariant('radix-active', '&[data-state="active"]') ⇆ className="radix-active:text-white …"
+
+Quick verification
+Hard-refresh (⌘⇧R / Ctrl + Shift + R).
+
+Inspect the active pill → Styles pane should show something like:
+
+css
+Copy
+Edit
+button[data-state="active"] {
+  color:#fff;
+}
+If you see that rule but it’s struck out, another utility is still later in the cascade—double-check the class order (put the variant after any other text-*). If the rule is missing entirely, Tailwind didn’t rebuild.
+
+2 — Move the FAB so it never overlaps the bottom nav
+In CartFab.tsx bump it up a bit and add a small right-margin on ultra-small screens:
+
+tsx
+Copy
+Edit
+<button
+  className="
+    fixed bottom-24   right-4        /* ↑ lift it 4 more rem */
+    sm:bottom-20      sm:right-3     /* default mobile */
+    z-50 h-14 w-14 rounded-full bg-primary-600 text-white
+    flex items-center justify-center shadow-lg
+    hover:scale-105 active:scale-95 transition"
+  onClick={() => setOpen(true)}
+>
+  <FiShoppingCart className="w-6 h-6 text-white" />
+  {/* badge … */}
+</button>
+Feel free to tweak the bottom-* value:
+bottom-24 = 6 rem, bottom-20 = 5 rem.
+
+On iOS Safari the safe-area inset can be read with pb-safe if you prefer CSS env variables, but the 5-6 rem offset usually clears a standard bottom nav.
+
+Re-run & check
+Restart the dev server if you updated the config file.
+
+Navigate through Pet Services ↔ Pup Box ↔ Store → active label should now be white.
+
+Add an item → FAB shows → scroll/tap around; it should hover above the blue bottom nav bar.
+
+If the pills are still not white after a rebuild, copy the exact class string that appears on the active button (right-click → Inspect → Elements pane) and send it to me—then I can craft the matching variant precisely.
+
