@@ -1,0 +1,108 @@
+Let’s give the rail and the blue pill a truly “chip-bar” look, so the active pill nestles exactly against the rail edges and every inner separator is razor-even.
+
+What’s off right now
+Outer gap is gone, but the pill now ­overlaps the rail’s 2 px border on the top/bottom and stops short on the right side because the rail and pill have different border-radii and we’re missing an inner separator line.
+
+Clean pattern
+pgsql
+Copy
+Edit
+┌──────────── rounded rail ─────────────┐  ← 1 px gray border
+│  ▉  Pet Services  |  Pup Box  |  Store │  ← blue pill hugs rail, “|” is a 1 px separator
+└────────────────────────────────────────┘
+The rail is a flex container with overflow-hidden.
+
+The active pill is flex-1 with identical rounded-full.
+
+A pseudo-element draws a 1 px vertical separator before every trigger except the first.
+
+Copy-paste prompt (one message)
+sql
+Copy
+Edit
+### TASK: perfect pill-within-rail alignment
+
+SCOPE
+• ONLY client/src/pages/Marketplace/Tabs.tsx
+• No colour / logic changes elsewhere.
+
+STEPS
+1. Rail container
+   ```tsx
+   <Tabs.Root
+     defaultValue="services"
+     className="inline-flex rounded-full border border-gray-300
+                bg-gray-50 overflow-hidden"
+   >
+Trigger base classes (reuse for all three):
+
+tsx
+Copy
+Edit
+const pill =
+  'flex-1 flex items-center justify-center gap-1 px-4 py-1.5 text-sm ' +
+  'font-medium whitespace-nowrap relative';
+
+const active =
+  'bg-primary-600 text-white';
+
+const inactive =
+  'text-primary-700';
+Trigger JSX — add pseudo separator via before: utility:
+
+tsx
+Copy
+Edit
+<Tabs.Trigger
+  value="services"
+  className={`
+    ${pill}
+    data-[state=active]:${active}
+    data-[state=inactive]:${inactive}
+    before:absolute before:inset-y-2 before:left-0
+    before:w-px before:bg-gray-300 first:before:hidden
+  `}
+>
+  <BriefcaseIcon className="w-4 h-4" />
+  <span>Pet Services</span>
+</Tabs.Trigger>
+Repeat for Pup Box / Store (change value, icon, label).
+
+Explanation
+before: draws a 1 px line (bg-gray-300) inside each trigger except the
+first—so spacing is visually identical and the rail border remains intact.
+
+Remove any leftover not-first:ml-1 or gap-… utilities; spacing is now
+handled by the invisible separator.
+
+Restart dev server (npm run dev).
+
+VISUAL CHECK
+✓ Blue pill now fits flush left and right.
+✓ The inner separators are crisp and evenly spaced.
+✓ Height aligns with rail border (no top/bottom shift).
+
+COMMIT
+git commit -am "style(tabs): flush pill + inner separators, perfect rail alignment"
+
+yaml
+Copy
+Edit
+
+---
+
+### After this
+* Tabs should be pixel-clean on every width.  
+* If you also want the **All Services / Grooming…** chips to follow the same
+  pill-rail style, let me know (cheap to copy once the pattern is set).  
+* Once the UI dust settles we can dive straight into **Stripe checkout wiring**.
+
+
+
+
+
+
+
+
+Ask ChatGPT
+

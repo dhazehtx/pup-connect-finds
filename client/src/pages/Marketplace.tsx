@@ -26,27 +26,27 @@ const Marketplace = () => {
 
       <div className="container mx-auto px-4 pb-8">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="marketplace space-y-6">
-          <TabsList className="grid w-full grid-cols-3 max-w-lg mx-auto rounded-full border-2 border-gray-300 bg-[#E5EEFF] p-0 overflow-hidden">
+          <TabsList className="inline-flex rounded-full border border-gray-300 bg-[#E5EEFF] overflow-hidden max-w-lg mx-auto">
             <TabsTrigger 
               value="services" 
-              className="px-4 py-3 flex items-center gap-2 text-sm font-medium transition-all duration-200 text-primary-600 data-[state=active]:text-white data-[state=active]:bg-primary-600 justify-center border-0 rounded-l-full m-0"
+              className="flex-1 flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium whitespace-nowrap relative transition-all duration-200 data-[state=active]:bg-primary-600 data-[state=active]:text-white text-primary-600 before:absolute before:inset-y-2 before:left-0 before:w-px before:bg-gray-300 first:before:hidden"
             >
               <Briefcase className="w-4 h-4" />
-              <span className="whitespace-nowrap">Pet Services</span>
+              <span>Pet Services</span>
             </TabsTrigger>
             <TabsTrigger 
               value="pupbox" 
-              className="px-4 py-3 flex items-center gap-2 text-sm font-medium transition-all duration-200 text-primary-600 data-[state=active]:text-white data-[state=active]:bg-primary-600 justify-center border-0 rounded-none m-0"
+              className="flex-1 flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium whitespace-nowrap relative transition-all duration-200 data-[state=active]:bg-primary-600 data-[state=active]:text-white text-primary-600 before:absolute before:inset-y-2 before:left-0 before:w-px before:bg-gray-300 first:before:hidden"
             >
               <Gift className="w-4 h-4" />
-              <span className="whitespace-nowrap">Pup Box</span>
+              <span>Pup Box</span>
             </TabsTrigger>
             <TabsTrigger 
               value="store" 
-              className="px-4 py-3 flex items-center gap-2 text-sm font-medium transition-all duration-200 text-primary-600 data-[state=active]:text-white data-[state=active]:bg-primary-600 justify-center border-0 rounded-r-full m-0"
+              className="flex-1 flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium whitespace-nowrap relative transition-all duration-200 data-[state=active]:bg-primary-600 data-[state=active]:text-white text-primary-600 before:absolute before:inset-y-2 before:left-0 before:w-px before:bg-gray-300 first:before:hidden"
             >
               <Store className="w-4 h-4" />
-              <span className="whitespace-nowrap">Store</span>
+              <span>Store</span>
             </TabsTrigger>
           </TabsList>
 
