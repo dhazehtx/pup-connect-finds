@@ -1,7 +1,8 @@
 import React, { useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
-import { Filter, Star, ChevronDown } from 'lucide-react';
+import { Filter, Star, ChevronDown, Check } from 'lucide-react';
 import FilterDrawer from './FilterDrawer';
+import { useCart } from '@/lib/CartContext';
 
 interface Product {
   id: number;
@@ -24,6 +25,9 @@ interface FilterState {
 }
 
 const StoreTab = () => {
+  const { addItem } = useCart();
+  const [addedItems, setAddedItems] = useState<Set<number>>(new Set());
+
   // Product seed data
   const [products] = useState<Product[]>([
     {
@@ -183,6 +187,25 @@ const StoreTab = () => {
 
   const currentSortLabel = sortOptions.find(option => option.value === sortType)?.label || 'Featured';
 
+  const handleAddToCart = (product: Product) => {
+    addItem({
+      id: product.id,
+      name: product.name,
+      price: product.price,
+      image: product.image
+    });
+    
+    // Show "Added" state for 1.5 seconds
+    setAddedItems(prev => new Set(prev).add(product.id));
+    setTimeout(() => {
+      setAddedItems(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(product.id);
+        return newSet;
+      });
+    }, 1500);
+  };
+
   return (
     <div className="bg-white min-h-screen pb-24">
       {/* Subtle blue accent divider */}
@@ -250,10 +273,18 @@ const StoreTab = () => {
                 </div>
                 
                 <Button 
-                  disabled={!product.inStock}
+                  disabled={!product.inStock || addedItems.has(product.id)}
+                  onClick={() => handleAddToCart(product)}
                   className="w-full py-2 btn-primary"
                 >
-                  Add to Cart
+                  {addedItems.has(product.id) ? (
+                    <>
+                      <Check className="w-4 h-4 mr-2" />
+                      Added
+                    </>
+                  ) : (
+                    'Add to Cart'
+                  )}
                 </Button>
               </div>
             </div>

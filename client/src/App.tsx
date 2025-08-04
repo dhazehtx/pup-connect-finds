@@ -6,6 +6,7 @@ import { queryClient } from '@/lib/queryClient';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { AuthProvider } from './contexts/AuthContext';
 import { RealtimeProvider } from './contexts/RealtimeContext';
+import { CartProvider } from './lib/CartContext';
 import Layout from './components/Layout';
 import AdminNavigationTracker from './components/admin/AdminNavigationTracker';
 import CookieConsentBanner from '@/components/privacy/CookieConsentBanner';
@@ -18,6 +19,7 @@ import HomeFeedPage from './pages/HomeFeed';
 import Auth from './pages/Auth';
 import CreateListing from './pages/CreateListing';
 import Marketplace from './pages/Marketplace';
+import Cart from './pages/Cart';
 import ListingDetail from './pages/ListingDetail';
 import Post from './pages/Post';
 import MessageThread from './components/messaging/MessageThread';
@@ -92,7 +94,8 @@ function App() {
           <AuthProvider>
             <RealtimeProvider>
               <ThemeProvider>
-                <AdminNavigationTracker />
+                <CartProvider>
+                  <AdminNavigationTracker />
                 <Layout>
                   <PageTransition>
                   <Routes>
@@ -105,6 +108,7 @@ function App() {
                     </Suspense>
                   } />
                   <Route path="/marketplace" element={<Marketplace />} />
+                  <Route path="/cart" element={<Cart />} />
                   <Route path="/post" element={<RequireAuth><Post /></RequireAuth>} />
                   <Route path="/profile/:userId" element={
                     <RequireAuth>
@@ -345,9 +349,10 @@ function App() {
               <Analytics />
               <CookieConsentBanner />
               <SessionExpiredModal />
-            </ThemeProvider>
-          </RealtimeProvider>
-        </AuthProvider>
+                </CartProvider>
+              </ThemeProvider>
+            </RealtimeProvider>
+          </AuthProvider>
       </Router>
     </QueryClientProvider>
     </ErrorBoundary>
