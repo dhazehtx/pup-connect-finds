@@ -1,0 +1,94 @@
+That last 2-pixel “halo” you’re seeing is the rail’s own border + padding peeking through.
+The easiest way to make the blue pill fill the rail edge-to-edge, top-to-bottom is to let a pseudo-element do the painting, so the highlight ignores interior padding and covers the entire trigger area.
+
+Below is a single Replit-AI prompt that does exactly that—no more gaps:
+
+pgsql
+Copy
+Edit
+### TASK: make the active blue pill fully fill the rail (zero gap)
+
+SCOPE
+• Edit ONLY client/src/pages/Marketplace/Tabs.tsx
+
+STRATEGY
+• Keep the rounded rail with 1 px border.
+• For each trigger add a `before:` pseudo that becomes the blue background
+  **only when the tab is active**.  
+  Because `before:` is `absolute` + `inset-0`, it covers the trigger’s whole
+  cell, hiding the rail padding/border completely.
+
+STEPS
+────────────────────────────────────────────────────
+1. Rail container (unchanged from previous step)
+
+```tsx
+<Tabs.Root
+  defaultValue="services"
+  className="inline-flex overflow-hidden rounded-full
+             border border-gray-300 bg-gray-50"
+>
+Trigger (apply to every tab)
+
+tsx
+Copy
+Edit
+<Tabs.Trigger
+  value="services"
+  className="
+    relative flex-1 z-10   /* z-10 keeps icon/text above pseudo */
+    flex items-center justify-center gap-2
+    px-4 py-1.5 text-sm font-medium whitespace-nowrap
+
+    text-primary-700          /* inactive */
+
+    before:content-[''] before:absolute before:inset-0
+    before:rounded-full before:bg-primary-600
+    before:opacity-0
+    data-[state=active]:before:opacity-100
+    data-[state=active]:text-white
+  "
+>
+  <BriefcaseIcon className="w-4 h-4" />
+  <span>Pet Services</span>
+</Tabs.Trigger>
+Remove any bg-primary-600 you previously placed directly on the trigger; the pseudo now paints the background.
+
+Restart npm run dev, hard-refresh.
+
+RESULT
+• The blue highlight now touches the rail’s border on every side.
+• Inner 1 px separators remain crisp (they sit above the pseudo because
+pseudo belongs to each cell, not the rail).
+
+COMMIT
+
+bash
+Copy
+Edit
+git commit -am "style(tabs): pseudo-element fills active pill flush with rail"
+pgsql
+Copy
+Edit
+
+---
+
+### Why this works
+`before:absolute inset-0` stretches the pseudo-element to the exact interior
+of the trigger, so no matter what padding/border the rail has, the blue layer
+covers it completely. We keep text/icon above it with `relative z-10`.
+
+Apply the same pattern to Pup Box and Store triggers and the pill will look
+perfectly flush on every tab.
+
+Ping me once you’re happy with the look, and we can move on to Stripe checkout
+integration or any other next step you’d like.
+
+
+
+
+
+
+
+
+Ask ChatGPT
