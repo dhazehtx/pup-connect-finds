@@ -25,28 +25,28 @@ const Marketplace = () => {
       </div>
 
       <div className="container mx-auto px-4 pb-8">
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="marketplace space-y-6">
           <TabsList className="grid w-full grid-cols-3 max-w-lg mx-auto rounded-lg overflow-hidden shadow-sm" style={{ backgroundColor: '#E5EEFF', border: '2px solid #CBD5E1' }}>
             <TabsTrigger 
               value="services" 
-              className="radix-active:bg-primary-600 radix-active:text-white bg-transparent text-primary-600 flex items-center space-x-2 font-medium transition-all duration-200"
+              className="data-[state=active]:bg-primary-600 data-[state=active]:text-white bg-transparent text-primary-600 flex items-center space-x-2 font-medium transition-all duration-200"
             >
-              <Briefcase className="w-4 h-4" />
-              <span className="whitespace-nowrap">Pet Services</span>
+              <Briefcase className="w-4 h-4 data-[state=active]:text-white" />
+              <span className="whitespace-nowrap data-[state=active]:text-white">Pet Services</span>
             </TabsTrigger>
             <TabsTrigger 
               value="pupbox" 
-              className="radix-active:bg-primary-600 radix-active:text-white bg-transparent text-primary-600 flex items-center space-x-2 font-medium transition-all duration-200"
+              className="data-[state=active]:bg-primary-600 data-[state=active]:text-white bg-transparent text-primary-600 flex items-center space-x-2 font-medium transition-all duration-200"
             >
-              <Gift className="w-4 h-4" />
-              <span className="whitespace-nowrap">Pup Box</span>
+              <Gift className="w-4 h-4 data-[state=active]:text-white" />
+              <span className="whitespace-nowrap data-[state=active]:text-white">Pup Box</span>
             </TabsTrigger>
             <TabsTrigger 
               value="store" 
-              className="radix-active:bg-primary-600 radix-active:text-white bg-transparent text-primary-600 flex items-center space-x-2 font-medium transition-all duration-200"
+              className="data-[state=active]:bg-primary-600 data-[state=active]:text-white bg-transparent text-primary-600 flex items-center space-x-2 font-medium transition-all duration-200"
             >
-              <Store className="w-4 h-4" />
-              <span className="whitespace-nowrap">Store</span>
+              <Store className="w-4 h-4 data-[state=active]:text-white" />
+              <span className="whitespace-nowrap data-[state=active]:text-white">Store</span>
             </TabsTrigger>
           </TabsList>
 

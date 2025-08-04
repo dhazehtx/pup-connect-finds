@@ -67,3 +67,21 @@ button.btn-primary * {
 [data-state="active"] svg {
   color: white !important;
 }
+
+/* Force white text on marketplace filter buttons */
+.bg-\[#2363FF\] {
+  color: white !important;
+}
+
+/* Force white text on active marketplace tabs */
+.marketplace [data-state="active"] {
+  color: white !important;
+}
+
+.marketplace [data-state="active"] span {
+  color: white !important;
+}
+
+.marketplace [data-state="active"] svg {
+  color: white !important;
+}
