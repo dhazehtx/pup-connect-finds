@@ -68,12 +68,12 @@ button.btn-primary * {
   color: white !important;
 }
 
-/* Force white text on marketplace filter buttons */
+/* Force white text on marketplace filter buttons when active */
 .bg-\[#2363FF\] {
   color: white !important;
 }
 
-/* Force white text on active marketplace tabs */
+/* Force white text on active marketplace tabs only */
 .marketplace [data-state="active"] {
   color: white !important;
 }
@@ -84,4 +84,17 @@ button.btn-primary * {
 
 .marketplace [data-state="active"] svg {
   color: white !important;
+}
+
+/* Ensure inactive marketplace tabs have blue text */
+.marketplace [data-state="inactive"] {
+  color: #2563eb !important;
+}
+
+.marketplace [data-state="inactive"] span {
+  color: #2563eb !important;
+}
+
+.marketplace [data-state="inactive"] svg {
+  color: #2563eb !important;
 }
