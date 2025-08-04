@@ -18,7 +18,7 @@ const PupStore = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
 
-  const categories = ['All', 'Food & Treats', 'Toys', 'Health & Wellness', 'Accessories', 'Grooming'];
+  const categories = ['All', 'Treats', 'Toys', 'Health & Wellness', 'Accessories', 'Grooming'];
 
   const products: Product[] = [
     {
