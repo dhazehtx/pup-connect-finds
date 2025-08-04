@@ -102,32 +102,12 @@ const StoreTab = () => {
     },
     {
       id: 8,
-      name: "Premium Dog Treats",
-      category: "Treats",
-      price: 12,
+      name: "Premium Dog Food",
+      category: "Food & Treats",
+      price: 35,
       rating: 4.9,
       image: "https://images.unsplash.com/photo-1589924691995-400dc9ecc119?w=400",
-      description: "High-quality training treats",
-      inStock: true
-    },
-    {
-      id: 9,
-      name: "Chicken Training Treats",
-      category: "Treats",
-      price: 8,
-      rating: 4.7,
-      image: "https://images.unsplash.com/photo-1583337130417-3346a1be7dee?w=400",
-      description: "All-natural chicken flavor training treats",
-      inStock: true
-    },
-    {
-      id: 10,
-      name: "Dental Chew Treats",
-      category: "Treats",
-      price: 15,
-      rating: 4.5,
-      image: "https://images.unsplash.com/photo-1605568427561-40dd23c2acea?w=400",
-      description: "Promotes dental health while treating",
+      description: "High-quality dry dog food",
       inStock: true
     }
   ]);
