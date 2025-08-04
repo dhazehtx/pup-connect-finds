@@ -1,0 +1,101 @@
+Below is an updated single-paste Replit AI prompt that matches what I see in your inspection
+(button[role="tab"] rendered by Radix Tabs with the class string beginning
+button[radix--::ra-trigger-services …]).
+
+It adds text-white whenever the tab chip has data-state="active" (Radix’s flag)
+or aria-selected="true"—without touching colour, size, spacing, or inactive pills.
+
+bash
+Copy
+Edit
+### TASK: Make active Marketplace pills render white text (Radix Tabs version)
+
+SCOPE
+• ONLY edit the chip components:
+  1. client/src/pages/Marketplace/Tabs.tsx          (Pet Services | Pup Box | Store)
+  2. client/src/components/Marketplace/CategoryChip.tsx
+• Do NOT change any other files, styles, or colours.
+
+CONTEXT
+• Top-row chips are Radix `<Tabs.Trigger>` elements rendered as:
+    <button role="tab" data-state="active" …>
+• Bottom-row chips are plain buttons that receive active={true|false} prop.
+
+GOAL
+• When `data-state="active"` (or `aria-selected="true"`) → add `text-white`
+  **in addition to** existing bg-primary-600 / outline styling.
+• Inactive chips stay exactly the same.
+
+STEPS
+1. **Tabs.tsx**
+   ```tsx
+   import { TabsTrigger } from '@radix-ui/react-tabs';
+
+   const base =
+     'flex items-center space-x-2 font-medium whitespace-nowrap rounded-sm px-3 py-1.5 text-sm ' +
+     'transition-colors duration-200';
+
+   <TabsTrigger
+     value={tab.value}
+     className={({ 'data-state': state }) =>
+       state === 'active'
+         ? `${base} bg-primary-600 text-white`
+         : `${base} bg-primary-50 text-primary-700`
+     }
+   >
+     {tab.icon}
+     <span>{tab.label}</span>
+   </TabsTrigger>
+(If you’re using the className string Radix variant helper, use its
+data-[state=active]:text-white syntax instead.)
+
+CategoryChip.tsx
+
+tsx
+Copy
+Edit
+export function CategoryChip({ label, active, onClick }: Props) {
+  const activeClasses =
+    'bg-primary-600 text-white border-primary-600';
+  const inactiveClasses =
+    'bg-white text-primary-700 border-primary-200';
+
+  return (
+    <button
+      className={`px-4 py-1 rounded-full border text-sm font-medium
+                  ${active ? activeClasses : inactiveClasses}`}
+      onClick={onClick}
+    >
+      {label}
+    </button>
+  );
+}
+Restart the dev server (npm run dev) so Tailwind recompiles.
+
+Visual check
+• Switch between Pet Services ↔ Pup Box ↔ Store → active pill shows
+white text on the same blue background.
+• Category row chips behave the same.
+• Inactive pills unchanged.
+
+Ensure git diff --stat lists only Tabs.tsx and CategoryChip.tsx.
+
+COMMIT
+git commit -am "style(pills): white text on active Radix tabs & chips"
+
+vbnet
+Copy
+Edit
+
+Paste that as one message to the Agent, let it run, and the blue highlight colour
+stays the same while the active label turns white.  
+Ping me once it looks right, and we can continue with filter/sort or Stripe checkout—your call!
+
+
+
+
+
+
+
+
+Ask ChatGPT
