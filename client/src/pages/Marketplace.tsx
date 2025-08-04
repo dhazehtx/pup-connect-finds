@@ -32,21 +32,21 @@ const Marketplace = () => {
               className="radix-active:bg-primary-600 radix-active:text-white bg-transparent text-primary-600 flex items-center space-x-2 font-medium transition-all duration-200"
             >
               <Briefcase className="w-4 h-4" />
-              <span>Pet Services</span>
+              <span className="whitespace-nowrap">Pet Services</span>
             </TabsTrigger>
             <TabsTrigger 
               value="pupbox" 
               className="radix-active:bg-primary-600 radix-active:text-white bg-transparent text-primary-600 flex items-center space-x-2 font-medium transition-all duration-200"
             >
               <Gift className="w-4 h-4" />
-              <span>Pup Box</span>
+              <span className="whitespace-nowrap">Pup Box</span>
             </TabsTrigger>
             <TabsTrigger 
               value="store" 
               className="radix-active:bg-primary-600 radix-active:text-white bg-transparent text-primary-600 flex items-center space-x-2 font-medium transition-all duration-200"
             >
               <Store className="w-4 h-4" />
-              <span>Store</span>
+              <span className="whitespace-nowrap">Store</span>
             </TabsTrigger>
           </TabsList>
 

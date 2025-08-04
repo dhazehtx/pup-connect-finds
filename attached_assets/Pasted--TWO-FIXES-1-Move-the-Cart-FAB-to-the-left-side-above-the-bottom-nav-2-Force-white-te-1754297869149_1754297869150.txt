@@ -1,0 +1,82 @@
+### TWO FIXES
+1️⃣  Move the Cart FAB to the **left** side (above the bottom-nav)
+2️⃣  Force white text / white icon on ACTIVE pills & service chips
+    by nuking the lingering  `text-primary-foreground`  utility
+
+────────────────────────────────────────
+SCOPE  (only these files)
+• client/src/components/ui/CartFab.tsx
+• client/src/pages/Marketplace/Tabs.tsx
+• client/src/components/Marketplace/CategoryChip.tsx
+────────────────────────────────────────
+
+🅰  CartFab – change position
+─────────────────────────────
+replace className on the <button> with
+
+```tsx
+className="
+  fixed bottom-24 left-4 sm:bottom-20 sm:left-3
+  z-50 h-14 w-14 rounded-full bg-primary-600 text-white
+  flex items-center justify-center shadow-lg
+  hover:scale-105 active:scale-95 transition"
+that moves it to bottom-left and clears the nav bar.
+
+🅱 Pills & chips – remove overriding colour
+────────────────────────────────────────────
+
+Tabs.tsx
+
+Search for <span> (label inside the trigger) — it currently has
+text-primary-foreground. Delete that utility.
+The button already carries
+radix-active:bg-primary-600 radix-active:text-white
+so the label will now inherit white.
+
+tsx
+Copy
+Edit
+<Tabs.Trigger …>
+  {icon}
+  <span className="whitespace-nowrap">{tab.label}</span>
+</Tabs.Trigger>
+(do the same for the icon wrapper if it has a text class)
+
+CategoryChip.tsx
+
+Inside the active branch delete any text-primary-foreground, leaving:
+
+tsx
+Copy
+Edit
+const active =
+  'bg-primary-600 text-white border-primary-600';
+SAVE & restart (npm run dev) so Tailwind recompiles.
+
+────────────────────────────────────────
+VERIFY
+────────────────────────────────────────
+✓ Pet Services ↔ Pup Box ↔ Store — active pill label white
+✓ All Services / Grooming / … — active chip label white
+✓ FAB now bottom-left, icon white, badge unobstructed
+✓ No colour change anywhere else
+
+COMMIT
+git commit -am "style(ui): move cart FAB left + white active pill text"
+
+pgsql
+Copy
+Edit
+
+---
+
+**Why this works**
+
+* The problem wasn’t the variant—it was a late `text-primary-foreground`
+  utility on the inner `<span>` that kept winning. Removing it lets the
+  parent’s `radix-active:text-white` cascade down.
+* Moving the FAB only adjusts its Tailwind positional classes.
+
+Run the prompt, hard-refresh (⌘⇧R / Ctrl-Shift-R) once, and you should see the
+white labels and relocated FAB immediately.  
+After you confirm, we can proceed to the Stripe checkout wiring.

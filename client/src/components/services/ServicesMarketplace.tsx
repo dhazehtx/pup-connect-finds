@@ -98,11 +98,7 @@ const ServicesMarketplace = () => {
               key={filter}
               variant={activeFilter === filter ? "default" : "outline"}
               onClick={() => setActiveFilter(filter)}
-              className={`rounded-full px-6 py-2 font-medium transition-all duration-200 ${
-                activeFilter === filter
-                  ? 'text-white'
-                  : 'text-black hover:opacity-80'
-              }`}
+              className="rounded-full px-6 py-2 font-medium transition-all duration-200 text-white data-[variant=outline]:text-black data-[variant=outline]:hover:opacity-80"
               style={{
                 backgroundColor: activeFilter === filter ? '#2363FF' : '#E5EEFF',
                 borderColor: '#2363FF',

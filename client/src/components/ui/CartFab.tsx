@@ -20,14 +20,11 @@ export default function CartFab() {
       onMouseDown={() => setIsPressed(true)}
       onMouseUp={() => setIsPressed(false)}
       onMouseLeave={() => setIsPressed(false)}
-      className={`
-        fixed bottom-24 right-4 sm:bottom-20 sm:right-3 z-50
-        flex items-center justify-center
-        h-14 w-14 rounded-full bg-primary-600 text-white
-        shadow-lg transition-transform duration-150
-        hover:scale-105 active:scale-95
-        ${isPressed ? 'scale-95' : ''}
-      `}
+      className="
+        fixed bottom-24 left-4 sm:bottom-20 sm:left-3
+        z-50 h-14 w-14 rounded-full bg-primary-600 text-white
+        flex items-center justify-center shadow-lg
+        hover:scale-105 active:scale-95 transition"
     >
       <FiShoppingCart className="w-6 h-6 text-white" />
       <span
