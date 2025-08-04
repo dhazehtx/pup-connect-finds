@@ -1,0 +1,97 @@
+How to eliminate the “uneven gap” around the blue-highlight pill
+(so the active chip fits snugly inside the light-gray rail on every tab)
+
+Below is a single Replit-AI prompt that:
+
+Redraws the tab rail as a pill-container (inline-flex with gap-1).
+
+Gives each <Tabs.Trigger> a full-width blue pill (rounded-full) when active.
+
+Removes ad-hoc margins, making the highlight always flush with the rail’s edges.
+
+swift
+Copy
+Edit
+### TASK: make marketplace tabs perfectly symmetrical (no gap)
+
+SCOPE
+• ONLY edit client/src/pages/Marketplace/Tabs.tsx
+• NO changes to colours, logic, or other components.
+
+DESIGN
+┌──────── light rail (gray border) ───────┐
+│ [ Pet Services ] [ Pup Box ] [ Store ]  │
+└──────────────────────────────────────────┘
+When a tab is active the **entire trigger** turns royal-blue with white icon + text, no extra margin.
+
+STEPS
+1. Tabs container
+   Replace current wrapper with:
+
+   ```tsx
+   <Tabs.Root
+     defaultValue="services"
+     className="inline-flex rounded-full border border-gray-300
+                bg-gray-50 p-1 gap-1"
+   >
+     {/* triggers here */}
+   </Tabs.Root>
+Trigger component
+Replace className with variant util – no margins, full rounding:
+
+tsx
+Copy
+Edit
+<Tabs.Trigger
+  value="services"
+  className="
+    px-4 py-1.5 flex items-center gap-2 text-sm font-medium
+    rounded-full transition-all duration-200
+    text-primary-700 data-[state=active]:text-white
+    data-[state=active]:bg-primary-600
+  "
+>
+  <BriefcaseIcon className="w-4 h-4" />
+  <span>Pet Services</span>
+</Tabs.Trigger>
+– Do the same for Pup Box & Store triggers (change value and icon).
+
+Remove any mx-…, space-x-2, or margin utilities around triggers—you now rely on the gap-1 in the parent for even spacing.
+
+Restart dev server (npm run dev) so Tailwind recompiles.
+
+VISUAL CHECK
+• Blue pill touches the rail’s inner border evenly on left & right.
+• Hover / focus states still work.
+• Inactive pills show gray text on gray-50 background.
+
+COMMIT
+
+bash
+Copy
+Edit
+git commit -am "style(tabs): flush blue pill, remove uneven gap"
+pgsql
+Copy
+Edit
+
+---
+
+### Why this fixes the gap
+
+* The **rail** is now a single rounded container (`p-1`) with `gap-1` between triggers—no manual margins to drift out of sync.  
+* Each trigger has `rounded-full`; when active, its blue background exactly fills the parent’s interior padding.  
+* Because the blue pill is applied via `data-[state=active]`, the highlight always matches the trigger’s width.
+
+After you paste the prompt, save, and hard-refresh, the blue highlight should be perfectly flush with the light rail on every tab.  
+
+Let me know if you’d like the same rail style for the lower “All Services / Grooming …” chips or if we’re ready to move on to Stripe checkout wiring!
+
+
+
+
+
+
+
+
+Ask ChatGPT
