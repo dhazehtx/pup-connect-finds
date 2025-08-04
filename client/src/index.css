@@ -98,3 +98,8 @@ button.btn-primary * {
 .marketplace [data-state="inactive"] svg {
   color: #2563eb !important;
 }
+
+/* Force service filter buttons to match tab color */
+.text-primary-600 {
+  color: #2563eb !important;
+}
