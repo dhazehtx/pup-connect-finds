@@ -18,6 +18,14 @@
   color: white !important;
 }
 
+/* Force white text on all .btn-primary buttons */
+.btn-primary,
+.btn-primary *,
+button.btn-primary,
+button.btn-primary * {
+  color: white !important;
+}
+
 /* Additional marketplace tab styling */
 .marketplace .tabs-list button {
   color: white !important;
