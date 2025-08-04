@@ -100,14 +100,9 @@ const ServicesMarketplace = () => {
               onClick={() => setActiveFilter(filter)}
               className={`rounded-full px-6 py-2 font-medium transition-all duration-200 ${
                 activeFilter === filter
-                  ? 'text-white'
-                  : 'text-black hover:opacity-80'
+                  ? 'bg-primary-600 text-white border-primary-600'
+                  : 'bg-primary-50 text-primary-700 border-primary-200 hover:opacity-80'
               }`}
-              style={{
-                backgroundColor: activeFilter === filter ? '#2363FF' : '#E5EEFF',
-                borderColor: '#2363FF',
-                border: '2px solid'
-              }}
             >
               {filter}
             </Button>
