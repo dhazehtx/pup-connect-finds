@@ -1,0 +1,251 @@
+Sketch of pattern B in Tailwind/React
+tsx
+Copy
+Edit
+// components/CartFab.tsx
+import { FiShoppingCart } from 'react-icons/fi';
+import { useCart } from '@/lib/CartContext';
+
+export default function CartFab() {
+  const { items } = useCart();
+  if (!items.length) return null;
+
+  return (
+    <button
+      onClick={() => setOpen(true)}
+      className="fixed bottom-20 right-4 z-50 rounded-full bg-primary-600
+                 text-white p-4 shadow-lg hover:scale-105 transition">
+      <FiShoppingCart className="w-6 h-6" />
+      <span
+        className="absolute -top-1 -right-1 h-5 min-w-[20px] rounded-full
+                   bg-red-500 text-[11px] font-semibold flex items-center
+                   justify-center">
+        {items.length}
+      </span>
+    </button>
+  );
+}
+Add <CartFab /> inside your root App.tsx so it’s always mounted but self-hides when empty.
+
+2 ▸ FINAL text-colour fix (buttons + pills)
+The class list Radix outputs ends with text-primary-foreground which over-rides
+text-white. We’ll attach data-[state=active]:text-white to the trigger
+so the colour flips via Tailwind’s arbitrary variant – no more class-order games.
+
+Paste this single prompt into the Replit Agent
+vbnet
+Copy
+Edit
+### TASK: Force white text on active blue pills & blue buttons
+
+SCOPE
+• ONLY modify
+  ─ client/src/pages/Marketplace/Tabs.tsx
+  ─ client/src/components/Marketplace/CategoryChip.tsx
+  ─ tailwind.config.ts (add one safelist rule)
+
+GOAL
+• Active Tabs.Trigger (data-state="active") → text-white
+• Active CategoryChip (prop active)        → text-white
+• No change to background or inactive pills
+• Add-to-Cart buttons already show white, leave as-is
+
+STEPS
+1. tailwind.config.ts  ➜  add to safelist so JIT keeps the rule:
+
+   ```ts
+   safelist: [
+     'data-[state=active]:text-white',   // Radix tabs active
+   ],
+Tabs.tsx ➜ className update:
+
+tsx
+Copy
+Edit
+<Tabs.Trigger
+  value={tab.value}
+  className="
+    data-[state=active]:text-white
+    data-[state=active]:bg-primary-600
+    bg-primary-50 text-primary-700
+    flex items-center px-3 py-1.5 rounded-sm
+    whitespace-nowrap text-sm font-medium
+    transition-colors duration-200"
+>
+  {icon}
+  <span>{label}</span>
+</Tabs.Trigger>
+CategoryChip.tsx ➜
+
+tsx
+Copy
+Edit
+const base =
+  'px-4 py-1 rounded-full border text-sm font-medium transition-colors';
+const active =
+  'bg-primary-600 text-white border-primary-600';
+const inactive =
+  'bg-white text-primary-700 border-primary-200';
+
+<button
+  className={`${base} ${active ? active : inactive}`}
+  onClick={() => onClick(id)}
+>
+  {label}
+</button>
+Restart dev server (npm run dev) so Tailwind picks up the safelist.
+
+Hard-refresh preview.
+✔ Pet Services / Pup Box / Store – active label white
+✔ Bottom chips – active label white
+✔ All other colours unchanged.
+
+COMMIT
+git commit -am "style(pills): white text via data-state variant"
+
+pgsql
+Copy
+Edit
+
+---
+
+### After styles & cart pattern are settled
+
+Let me know which cart pattern you’d like to implement (and whether the
+white-text pills look good).  
+Then we can move on to **Stripe checkout**: add `stripe_price_id`, create the
+checkout-session edge function, and connect the Cart sheet’s “Checkout” button.
+
+
+
+
+
+
+
+You said:
+B. Floating FAB	A 56 × 56 round blue “bag” FAB appears bottom-right only when cart.items.length > 0; tap → slide-over cart panel.	Never visible until user adds something. Works anywhere in the app.	One more floating element on small screens. Let's go with this option, option B, or pattern B, the floating FAB.
+
+
+ChatGPT said:
+
+Thought for a few seconds
+Floating-Cart FAB (Pattern B) — drop-in implementation
+Below is a single Replit-AI prompt that will:
+
+Create the floating cart FAB – only appears when items.length > 0.
+
+Open an existing cart drawer (or a quick placeholder) on tap.
+
+Remove the old cart icon from the global Header.
+
+Keep performance-friendly on mobile (56 × 56, right-bottom, safe-area aware).
+
+(If you still need the white-text fix for active pills, run the pill prompt first, then run this one.)
+
+pgsql
+Copy
+Edit
+### TASK: Add floating Cart FAB that shows only when cart has items
+
+SCOPE
+• New file: client/src/components/ui/CartFab.tsx
+• Root layout / App: import <CartFab /> so it renders on every route
+• Remove cart icon from global Header.tsx (keep Sign In & List Puppy)
+
+REQUIREMENTS
+• FAB size 56×56, round, bg-primary-600, text-white
+• Positioned: bottom-20 right-4 on md+, bottom-16 right-3 on ≤640px
+  (use `fixed` + Tailwind’s responsive classes)
+• Pop visible **only** when `useCart().items.length > 0`
+• Tap ➜ open existing CartDrawer (if present) else stub `alert('Cart')`
+• FAB scales 105 % on hover / active for micro-interaction
+• Includes badge showing item count
+
+STEPS
+1. Create CartFab.tsx
+
+```tsx
+import { FiShoppingCart } from 'react-icons/fi';
+import { useCart } from '@/lib/CartContext';
+import { useState } from 'react';
+
+export default function CartFab() {
+  const { items } = useCart();
+  const [open, setOpen] = useState(false);
+  const count = items.length;
+  if (!count) return null;
+
+  return (
+    <>
+      <button
+        onClick={() => setOpen(true)}
+        className="
+          fixed bottom-20 right-4 sm:bottom-16 sm:right-3 z-50
+          flex items-center justify-center
+          h-14 w-14 rounded-full bg-primary-600 text-white
+          shadow-lg transition-transform duration-150
+          active:scale-95 hover:scale-105
+        ">
+        <FiShoppingCart className="w-6 h-6" />
+        <span
+          className="
+            absolute -top-1.5 -right-1.5 h-5 min-w-[20px] rounded-full
+            bg-red-500 text-[11px] font-semibold flex items-center
+            justify-center leading-none">
+          {count}
+        </span>
+      </button>
+
+      {/* TEMP drawer placeholder */}
+      {open && (
+        <div
+          className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm"
+          onClick={() => setOpen(false)}>
+          <aside
+            onClick={(e) => e.stopPropagation()}
+            className="absolute right-0 top-0 h-full w-80 bg-white p-6 shadow-xl">
+            <h2 className="font-semibold text-lg mb-4">Your Cart</h2>
+            <p className="text-sm text-gray-500">
+              {count} item{count > 1 && 's'} – checkout flow coming soon
+            </p>
+          </aside>
+        </div>
+      )}
+    </>
+  );
+}
+Root layout (App.tsx or Layout.tsx)
+
+tsx
+Copy
+Edit
+import CartFab from '@/components/ui/CartFab';
+…
+<CartFab />
+Header.tsx
+• Remove existing cart icon import & JSX.
+
+Check on Store page:
+• Add two items → FAB appears bottom-right with badge “2”.
+• Navigate Home / Explore → FAB persists.
+• Clear cart (or localStorage) → FAB disappears.
+
+Commit
+
+bash
+Copy
+Edit
+git add .
+git commit -m "feat(cart): floating FAB with badge shows when items > 0"
+yaml
+Copy
+Edit
+
+---
+
+### Next up  
+
+* **Stripe checkout** – when you’re ready, I’ll supply the `stripe_price_id` column, edge function, and button handler to replace that placeholder drawer.  
+* **Pill white-text** – run the earlier “data-state=active text-white” prompt first if you haven’t yet, then merge this FAB change.
+
+Let me know how the floating FAB feels (spacing, badge, animation) and we’ll keep rolling!

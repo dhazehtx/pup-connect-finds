@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { Heart, Plus, Bell, Shield, ShieldCheck, ShoppingCart } from 'lucide-react';
+import { Heart, Plus, Bell, Shield, ShieldCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
-import { useCart } from '@/lib/CartContext';
+
 import { useToast } from '@/hooks/use-toast';
 import { useEnhancedNotifications } from '@/hooks/useEnhancedNotifications';
 import ModernPostCreator from '@/components/home/ModernPostCreator';
@@ -13,7 +13,6 @@ import SearchBar from '../SearchBar';
 
 const StickyHeader = () => {
   const { user, isGuest, profile, loading } = useAuth();
-  const { totalItems } = useCart();
   
   const navigate = useNavigate();
   const location = useLocation();
@@ -122,28 +121,7 @@ const StickyHeader = () => {
                   
 
 
-                  {/* Cart Icon */}
-                  <Link to="/cart" className="relative p-2 text-[#2C3EDC] hover:text-[#2C3EDC] hover:bg-[#2C3EDC]/5 hover:shadow-sm transition-all duration-200 rounded-full">
-                    <ShoppingCart className="h-6 w-6" />
-                    {totalItems > 0 && (
-                      <div className="absolute -top-1 -right-1 w-5 h-5 bg-[#FF3B30] text-white text-xs rounded-full flex items-center justify-center font-bold">
-                        {totalItems > 9 ? '9+' : totalItems}
-                      </div>
-                    )}
-                  </Link>
 
-                  {/* Cart Icon - Show for all users */}
-                  <Link
-                    to="/cart"
-                    className="relative p-2 text-[#2C3EDC] hover:text-[#2C3EDC] hover:bg-[#2C3EDC]/5 hover:shadow-sm transition-all duration-200 rounded-full"
-                  >
-                    <ShoppingCart className="h-6 w-6" />
-                    {totalItems > 0 && (
-                      <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-semibold">
-                        {totalItems > 99 ? '99+' : totalItems}
-                      </span>
-                    )}
-                  </Link>
 
                   {/* Notification Bell - Only for authenticated users */}
                   {(user || isGuest) && (
@@ -177,18 +155,7 @@ const StickyHeader = () => {
                     </Button>
                   )}
 
-                  {/* Mobile Cart Icon */}
-                  <Link 
-                    to="/cart" 
-                    className="relative p-1.5 text-[#2C3EDC] hover:text-[#2C3EDC] hover:bg-[#2C3EDC]/5 rounded-full w-8 h-8 flex items-center justify-center"
-                  >
-                    <ShoppingCart className="h-5 w-5" />
-                    {totalItems > 0 && (
-                      <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-red-500 text-white text-xs rounded-full flex items-center justify-center font-semibold">
-                        {totalItems > 9 ? '9+' : totalItems}
-                      </span>
-                    )}
-                  </Link>
+
 
                   {/* Mobile Admin Panel Access - Only for admin users */}
                   {loading ? (
