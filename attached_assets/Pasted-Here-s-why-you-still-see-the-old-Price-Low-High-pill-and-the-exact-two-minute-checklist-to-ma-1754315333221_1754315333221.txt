@@ -1,0 +1,44 @@
+Here’s why you still see the old “Price (Low ▸ High)” pill, and the exact two-minute checklist to make the new design actually appear in the preview.
+
+1 What’s happening
+The visual you’re looking at is still the original <SortPopover />.
+The new component you pasted (Segmented / Chip Bar / Sheet) hasn’t been mounted in Marketplace.tsx, so the DOM never changes.
+
+Vite’s fast-refresh often keeps stale CSS in memory.
+Even when you replace the component, tailwind’s JIT may need a full restart to pick up new class names (scrollbar-hide, etc.).
+
+2 Quick “show-me-now” checklist
+Step	What to do	Where	Time
+1	Stop dev server
+press <kbd>Ctrl + C</kbd> in the Replit shell	Shell tab	5 s
+2	Replace old component
+tsx<br>// Marketplace.tsx<br-import SortPopover<br+import SortSegment from '@/components/SortSegment'<br>…<br-<SortPopover sort={sort} setSort={setSort} />;<br+<SortSegment sort={sort} setSort={setSort} />;	client/src/pages/Marketplace.tsx	30 s
+3	Restart npm run dev	Shell tab	5 s
+4	Hard-refresh preview
+<kbd>⌘ ⇧ R</kbd> (Mac) or <kbd>Ctrl ⇧ R</kbd>	Preview pane	2 s
+5	Check: pills should now read
+Featured • Price ↑ • Price ↓ • Rating	Browser	—
+
+If you chose the Chip Bar instead, the import / JSX swap is identical—just import SortChipBar instead of SortSegment.
+
+3 What you should see
+Desktop ≥ 768 px
+Inline blue pills; the selected one is filled, others are outlined.
+
+nginx
+Copy
+Edit
+Featured   Price ↑   Price ↓   Rating
+Mobile ‹ 768 px
+The bar scrolls horizontally (no visible scrollbar).
+
+State
+Choosing a pill sets sort, which already drives your product-ordering hook—so no extra logic required.
+
+4 Troubleshooting
+Symptom	Fix
+Still shows old pill	Confirm import path & component swap; search the file for SortPopover to ensure it’s gone.
+CSS missing (no blue fill)	Restart dev server; Tailwind may have cached classes before you added them.
+Horizontal chips scroll but no fade	Add the utility to tailwind.config:
+scrollbar-hide: { '::-webkit-scrollbar': { display: 'none' }, '-ms-overflow-style': 'none', 'scrollbar-width': 'none' }
+

@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Filter, Star, ChevronDown, Check } from 'lucide-react';
 import FilterDrawer from './FilterDrawer';
 import { useCart } from '@/lib/CartContext';
+import SortChips from '@/components/ui/SortPopover';
 
 interface Product {
   id: number;
@@ -16,7 +17,7 @@ interface Product {
   inStock: boolean;
 }
 
-type SortType = 'featured' | 'price-low-high' | 'price-high-low' | 'rating';
+type SortType = 'Featured' | 'Price ↑' | 'Price ↓' | 'Rating' | 'Newest' | 'Oldest';
 
 interface FilterState {
   categories: string[];
@@ -112,7 +113,7 @@ const StoreTab = () => {
     }
   ]);
 
-  const [sortType, setSortType] = useState<SortType>('featured');
+  const [sortType, setSortType] = useState<SortType>('Featured');
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [filters, setFilters] = useState<FilterState>({
     categories: [],
@@ -120,12 +121,7 @@ const StoreTab = () => {
     maxPrice: 100
   });
 
-  const sortOptions = [
-    { value: 'featured', label: 'Featured' },
-    { value: 'price-low-high', label: 'Price (Low→High)' },
-    { value: 'price-high-low', label: 'Price (High→Low)' },
-    { value: 'rating', label: 'Rating' }
-  ];
+  // Remove old sortOptions array since we're using SortChips now
 
   // Apply filters function
   const applyFilters = (products: Product[], filterState: FilterState): Product[] => {
@@ -147,13 +143,17 @@ const StoreTab = () => {
     const sorted = [...products];
     
     switch (sortType) {
-      case 'price-low-high':
+      case 'Price ↑':
         return sorted.sort((a, b) => a.price - b.price);
-      case 'price-high-low':
+      case 'Price ↓':
         return sorted.sort((a, b) => b.price - a.price);
-      case 'rating':
+      case 'Rating':
         return sorted.sort((a, b) => (b.rating || 0) - (a.rating || 0));
-      case 'featured':
+      case 'Newest':
+        return sorted.sort((a, b) => b.id - a.id);
+      case 'Oldest':
+        return sorted.sort((a, b) => a.id - b.id);
+      case 'Featured':
       default:
         return sorted.sort((a, b) => a.id - b.id);
     }
@@ -165,10 +165,8 @@ const StoreTab = () => {
     return applySort(filtered, sortType);
   }, [products, filters, sortType]);
 
-  const handleSortChange = () => {
-    const currentIndex = sortOptions.findIndex(option => option.value === sortType);
-    const nextIndex = (currentIndex + 1) % sortOptions.length;
-    setSortType(sortOptions[nextIndex].value as SortType);
+  const handleSortChange = (sort: SortType) => {
+    setSortType(sort);
   };
 
   const handleFilterApply = (newFilters: FilterState) => {
@@ -185,7 +183,7 @@ const StoreTab = () => {
     setIsFilterOpen(false);
   };
 
-  const currentSortLabel = sortOptions.find(option => option.value === sortType)?.label || 'Featured';
+  // Remove currentSortLabel since we're using SortChips now
 
   const handleAddToCart = (product: Product) => {
     addItem({
@@ -213,27 +211,26 @@ const StoreTab = () => {
       
       <div className="p-4 space-y-6">
         {/* Filter and Sort Section */}
-        <div className="flex items-center justify-between pt-4">
-          <Button 
-            onClick={() => setIsFilterOpen(true)}
-            className="flex items-center gap-2 border border-primary-600 text-primary-600 bg-white rounded-full px-6 py-2 hover:bg-primary-50 transition-colors"
-          >
-            <Filter className="h-4 w-4" />
-            Filter
-            {(filters.categories.length > 0 || filters.minPrice > 0 || filters.maxPrice < 100) && (
-              <span className="bg-primary-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center ml-1">
-                !
-              </span>
-            )}
-          </Button>
+        <div className="space-y-4 pt-4">
+          <div className="flex items-center justify-between">
+            <Button 
+              onClick={() => setIsFilterOpen(true)}
+              className="flex items-center gap-2 border border-primary-600 text-primary-600 bg-white rounded-full px-6 py-2 hover:bg-primary-50 transition-colors"
+            >
+              <Filter className="h-4 w-4" />
+              Filter
+              {(filters.categories.length > 0 || filters.minPrice > 0 || filters.maxPrice < 100) && (
+                <span className="bg-primary-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center ml-1">
+                  !
+                </span>
+              )}
+            </Button>
+          </div>
           
-          <Button 
-            onClick={handleSortChange}
-            className="flex items-center gap-2 border border-primary-600 text-primary-600 bg-white rounded-full px-6 py-2 hover:bg-primary-50 transition-colors"
-          >
-            {currentSortLabel}
-            <ChevronDown className="h-4 w-4" />
-          </Button>
+          {/* Sort Chips */}
+          <div className="flex justify-center">
+            <SortChips onSortChange={handleSortChange} className="max-w-full" />
+          </div>
         </div>
 
         {/* Results count */}
