@@ -34,7 +34,6 @@ const LazyNotifications = lazy(() => import('./pages/Notifications'));
 const LazyEducation = lazy(() => import('./pages/Education'));
 const LazyServices = lazy(() => import('./pages/Services'));
 import HelpCenter from './pages/HelpCenter';
-import TrustSafety from './pages/TrustSafety';
 import Contact from './pages/Contact';
 import LegalGuide from './pages/LegalGuide';
 import AccountSettingsPage from './pages/AccountSettings';
@@ -156,7 +155,7 @@ function App() {
                     </Suspense>
                   } />
                   <Route path="/help-center" element={<HelpCenter />} />
-                  <Route path="/trust-safety" element={<TrustSafety />} />
+                  <Route path="/help" element={<HelpCenter />} />
                   <Route path="/contact" element={<Contact />} />
                   <Route path="/services" element={
                     <Suspense fallback={<LoadingPage message="Loading Services..." />}>
