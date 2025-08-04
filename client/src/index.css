@@ -103,3 +103,14 @@ button.btn-primary * {
 .text-primary-600 {
   color: #2563eb !important;
 }
+
+/* Fix marketplace tab alignment and spacing */
+.marketplace [data-state="active"] {
+  margin: 2px !important;
+  border-radius: 6px !important;
+}
+
+.marketplace .TabsList > button {
+  margin: 2px !important;
+  border-radius: 6px !important;
+}
