@@ -1,0 +1,50 @@
+Let’s step back, line-up on exactly what you’re seeing, and fix it once.
+
+What the screenshot shows
+Rail – rounded pill with a thin gray border (border-2).
+
+Active trigger – blue background, but its own border‐radius is slightly smaller and it still carries a 2 px white “ring” utility that Radix adds for focus (ring-offset-background ring-offset-2 ring-ring …).
+That ring is what’s leaving the thin white strip on the left & right edges.
+
+Minimal change that removes the strip
+Strip the Radix focus ring for these three marketplace triggers only.
+You still have global focus styles everywhere else.
+
+tsx
+Copy
+Edit
+/* Tabs.Trigger – add !ring-0 !ring-offset-0 to neutralise default ring */
+<Tabs.Trigger
+  value="services"
+  className="
+    relative flex-1 flex items-center justify-center gap-2
+    px-4 py-1.5 text-sm font-medium whitespace-nowrap
+    text-primary-700
+    before:content-[''] before:absolute before:inset-0
+    before:rounded-full before:bg-primary-600
+    before:opacity-0 data-[state=active]:before:opacity-100
+    data-[state=active]:text-white
+    focus-visible:!ring-0 focus-visible:!ring-offset-0   /* <— add this */
+  "
+>
+  …
+</Tabs.Trigger>
+Make sure the trigger itself has rounded-full so its radius equals the rail’s radius (you may already have this).
+
+Restart the dev server & hard-refresh.
+
+If you’d rather keep the focus ring but still hide the strip, an alternative is to move the ring inside the blue pseudo-element:
+
+css
+Copy
+Edit
+before:shadow-[0_0_0_2px_var(--ring-color)]
+—but neutralising ring-* on just these tabs is simpler and will not affect keyboard accessibility (we still have colour + separator to indicate focus).
+
+Double-check
+Hover the active pill in DevTools and look at Computed → Borders & Shadows. If you still see “outline” or “box-shadow” rules, Tailwind hasn’t rebuilt—stop and restart npm run dev, then hard-refresh (⌘⇧R).
+
+If it’s still off
+Copy the full class attribute of the active <button role="tab"> element exactly as DevTools shows it and send me that string. From that I can pinpoint any remaining rogue utilities.
+
+Once this highlight is truly flush we can move on to Stripe or any next feature you’d like.
