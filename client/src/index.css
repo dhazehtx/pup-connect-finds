@@ -106,11 +106,11 @@ button.btn-primary * {
 
 /* Fix marketplace tab alignment and spacing */
 .marketplace [data-state="active"] {
-  margin: 2px !important;
-  border-radius: 6px !important;
+  margin: 3px !important;
+  border-radius: 4px !important;
 }
 
-.marketplace .TabsList > button {
-  margin: 2px !important;
-  border-radius: 6px !important;
+.marketplace button[data-state="active"] {
+  margin: 3px !important;
+  border-radius: 4px !important;
 }
