@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Search } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import SortPopover from '@/components/ui/SortPopover';
+import SortChips from '@/components/ui/SortPopover';
 import CreateServiceDialog from './CreateServiceDialog';
 
 interface ServiceProvider {
@@ -15,9 +15,9 @@ interface ServiceProvider {
   description: string | null;
   location: string;
   pricing: any;
-  rating: number;
-  total_bookings: number;
-  verified: boolean;
+  rating: number | null;
+  total_bookings: number | null;
+  verified: boolean | null;
   user_id: string;
 }
 
@@ -113,8 +113,8 @@ const ServicesMarketplace = () => {
           </div>
           
           {/* Sort Controls */}
-          <div className="flex justify-end">
-            <SortPopover onSortChange={(sort) => console.log('Sort changed:', sort)} />
+          <div className="flex justify-center">
+            <SortChips onSortChange={(sort) => console.log('Sort changed:', sort)} className="max-w-full" />
           </div>
         </div>
 
