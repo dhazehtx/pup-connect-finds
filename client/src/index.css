@@ -104,4 +104,17 @@ button.btn-primary * {
   color: #2563eb !important;
 }
 
-/* Remove previous tab spacing rules - now using pill design */
+/* Force flush tab alignment - no gaps */
+.marketplace [data-state="active"] {
+  border-radius: inherit !important;
+  margin: 0 !important;
+  padding: 12px 16px !important;
+}
+
+.marketplace [data-state="active"]:first-child {
+  border-radius: 9999px 0 0 9999px !important;
+}
+
+.marketplace [data-state="active"]:last-child {
+  border-radius: 0 9999px 9999px 0 !important;
+}

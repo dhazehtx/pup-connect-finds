@@ -26,24 +26,24 @@ const Marketplace = () => {
 
       <div className="container mx-auto px-4 pb-8">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="marketplace space-y-6">
-          <TabsList className="inline-flex rounded-full border-2 border-gray-300 bg-[#E5EEFF] max-w-lg mx-auto overflow-hidden">
+          <TabsList className="grid w-full grid-cols-3 max-w-lg mx-auto rounded-full border-2 border-gray-300 bg-[#E5EEFF] p-0 overflow-hidden">
             <TabsTrigger 
               value="services" 
-              className="px-4 py-2 flex items-center gap-2 text-sm font-medium transition-all duration-200 text-primary-600 data-[state=active]:text-white data-[state=active]:bg-primary-600 flex-1 justify-center rounded-l-full"
+              className="px-4 py-3 flex items-center gap-2 text-sm font-medium transition-all duration-200 text-primary-600 data-[state=active]:text-white data-[state=active]:bg-primary-600 justify-center border-0 rounded-l-full m-0"
             >
               <Briefcase className="w-4 h-4" />
               <span className="whitespace-nowrap">Pet Services</span>
             </TabsTrigger>
             <TabsTrigger 
               value="pupbox" 
-              className="px-4 py-2 flex items-center gap-2 text-sm font-medium transition-all duration-200 text-primary-600 data-[state=active]:text-white data-[state=active]:bg-primary-600 flex-1 justify-center border-l border-gray-300"
+              className="px-4 py-3 flex items-center gap-2 text-sm font-medium transition-all duration-200 text-primary-600 data-[state=active]:text-white data-[state=active]:bg-primary-600 justify-center border-0 rounded-none m-0"
             >
               <Gift className="w-4 h-4" />
               <span className="whitespace-nowrap">Pup Box</span>
             </TabsTrigger>
             <TabsTrigger 
               value="store" 
-              className="px-4 py-2 flex items-center gap-2 text-sm font-medium transition-all duration-200 text-primary-600 data-[state=active]:text-white data-[state=active]:bg-primary-600 flex-1 justify-center rounded-r-full border-l border-gray-300"
+              className="px-4 py-3 flex items-center gap-2 text-sm font-medium transition-all duration-200 text-primary-600 data-[state=active]:text-white data-[state=active]:bg-primary-600 justify-center border-0 rounded-r-full m-0"
             >
               <Store className="w-4 h-4" />
               <span className="whitespace-nowrap">Store</span>
