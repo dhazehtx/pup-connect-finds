@@ -54,3 +54,16 @@ button.btn-primary * {
 .greeting-page span {
   color: white !important;
 }
+
+/* Force white text on active Radix tabs */
+[data-state="active"] {
+  color: white !important;
+}
+
+[data-state="active"] span {
+  color: white !important;
+}
+
+[data-state="active"] svg {
+  color: white !important;
+}
