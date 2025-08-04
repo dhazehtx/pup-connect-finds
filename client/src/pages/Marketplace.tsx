@@ -26,7 +26,7 @@ const Marketplace = () => {
 
       <div className="container mx-auto px-4 pb-8">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="marketplace space-y-6">
-          <TabsList className="inline-flex rounded-full border-2 border-gray-300 bg-[#E5EEFF] p-1 gap-1 max-w-lg mx-auto">
+          <TabsList className="inline-flex rounded-full border-2 border-gray-300 bg-[#E5EEFF] p-1 max-w-lg mx-auto">
             <TabsTrigger 
               value="services" 
               className="px-4 py-2 flex items-center gap-2 text-sm font-medium rounded-full transition-all duration-200 text-primary-600 data-[state=active]:text-white data-[state=active]:bg-primary-600"
@@ -36,14 +36,14 @@ const Marketplace = () => {
             </TabsTrigger>
             <TabsTrigger 
               value="pupbox" 
-              className="px-4 py-2 flex items-center gap-2 text-sm font-medium rounded-full transition-all duration-200 text-primary-600 data-[state=active]:text-white data-[state=active]:bg-primary-600"
+              className="not-first:ml-1 px-4 py-2 flex items-center gap-2 text-sm font-medium rounded-full transition-all duration-200 text-primary-600 data-[state=active]:text-white data-[state=active]:bg-primary-600"
             >
               <Gift className="w-4 h-4" />
               <span className="whitespace-nowrap">Pup Box</span>
             </TabsTrigger>
             <TabsTrigger 
               value="store" 
-              className="px-4 py-2 flex items-center gap-2 text-sm font-medium rounded-full transition-all duration-200 text-primary-600 data-[state=active]:text-white data-[state=active]:bg-primary-600"
+              className="not-first:ml-1 px-4 py-2 flex items-center gap-2 text-sm font-medium rounded-full transition-all duration-200 text-primary-600 data-[state=active]:text-white data-[state=active]:bg-primary-600"
             >
               <Store className="w-4 h-4" />
               <span className="whitespace-nowrap">Store</span>
