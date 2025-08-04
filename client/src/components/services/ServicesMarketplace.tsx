@@ -101,7 +101,7 @@ const ServicesMarketplace = () => {
               className={`rounded-full px-6 py-2 font-medium transition-all duration-200 ${
                 activeFilter === filter
                   ? 'bg-[#2363FF] text-white border-[#2363FF] !text-white'
-                  : 'bg-[#E5EEFF] text-[#2563eb] border-[#2563eb] hover:opacity-80'
+                  : 'bg-[#E5EEFF] text-primary-600 border-primary-600 hover:opacity-80'
               }`}
               style={{ border: '2px solid' }}
             >
