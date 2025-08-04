@@ -5,7 +5,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Gift, Users, Briefcase, Store } from 'lucide-react';
 import ServicesMarketplace from '@/components/services/ServicesMarketplace';
 import PupBoxSubscription from '@/components/subscriptions/PupBoxSubscription';
-import PupStore from '@/components/store/PupStore';
+import StoreTab from './Marketplace/StoreTab';
 import AdBanner from '@/components/advertising/AdBanner';
 
 const Marketplace = () => {
@@ -14,7 +14,7 @@ const Marketplace = () => {
   const tabs = [
     { key: 'services', label: 'Pet Services', component: <ServicesMarketplace /> },
     { key: 'pupbox', label: 'Pup Box', component: <PupBoxSubscription /> },
-    { key: 'store', label: 'Store', component: <PupStore /> },
+    { key: 'store', label: 'Store', component: <StoreTab /> },
   ];
 
   return (
@@ -77,7 +77,7 @@ const Marketplace = () => {
           </TabsContent>
 
           <TabsContent value="store" className="space-y-6">
-            <PupStore />
+            <StoreTab />
           </TabsContent>
         </Tabs>
       </div>
