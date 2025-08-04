@@ -26,24 +26,24 @@ const Marketplace = () => {
 
       <div className="container mx-auto px-4 pb-8">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="marketplace space-y-6">
-          <TabsList className="grid w-full grid-cols-3 max-w-lg mx-auto rounded-lg overflow-hidden shadow-sm" style={{ backgroundColor: '#E5EEFF', border: '2px solid #CBD5E1' }}>
+          <TabsList className="grid w-full grid-cols-3 max-w-lg mx-auto rounded-lg overflow-hidden shadow-sm bg-[#E5EEFF] border-2 border-[#CBD5E1]">
             <TabsTrigger 
               value="services" 
-              className="data-[state=active]:bg-primary-600 data-[state=active]:text-white bg-transparent text-primary-600 flex items-center space-x-2 font-medium transition-all duration-200"
+              className="data-[state=active]:bg-primary-600 data-[state=active]:text-white bg-transparent text-primary-600 flex items-center justify-center space-x-2 font-medium transition-all duration-200 h-12 px-4 rounded-md"
             >
               <Briefcase className="w-4 h-4 data-[state=active]:text-white" />
               <span className="whitespace-nowrap data-[state=active]:text-white">Pet Services</span>
             </TabsTrigger>
             <TabsTrigger 
               value="pupbox" 
-              className="data-[state=active]:bg-primary-600 data-[state=active]:text-white bg-transparent text-primary-600 flex items-center space-x-2 font-medium transition-all duration-200"
+              className="data-[state=active]:bg-primary-600 data-[state=active]:text-white bg-transparent text-primary-600 flex items-center justify-center space-x-2 font-medium transition-all duration-200 h-12 px-4 rounded-md"
             >
               <Gift className="w-4 h-4 data-[state=active]:text-white" />
               <span className="whitespace-nowrap data-[state=active]:text-white">Pup Box</span>
             </TabsTrigger>
             <TabsTrigger 
               value="store" 
-              className="data-[state=active]:bg-primary-600 data-[state=active]:text-white bg-transparent text-primary-600 flex items-center space-x-2 font-medium transition-all duration-200"
+              className="data-[state=active]:bg-primary-600 data-[state=active]:text-white bg-transparent text-primary-600 flex items-center justify-center space-x-2 font-medium transition-all duration-200 h-12 px-4 rounded-md"
             >
               <Store className="w-4 h-4 data-[state=active]:text-white" />
               <span className="whitespace-nowrap data-[state=active]:text-white">Store</span>
