@@ -93,11 +93,10 @@ const StoreTab = () => {
   const applyFilters = (products: Product[], filterState: FilterState): Product[] => {
     return products.filter(product => {
       // Category filter - derive category from product name or description
-      const productName = product.name || '';
       const category = product.category || (
-        productName.toLowerCase().includes('toy') ? 'Toys' :
-        productName.toLowerCase().includes('bed') || productName.toLowerCase().includes('bowl') ? 'Accessories' :
-        productName.toLowerCase().includes('food') || productName.toLowerCase().includes('treat') ? 'Food & Treats' :
+        product.name.toLowerCase().includes('toy') ? 'Toys' :
+        product.name.toLowerCase().includes('bed') || product.name.toLowerCase().includes('bowl') ? 'Accessories' :
+        product.name.toLowerCase().includes('food') || product.name.toLowerCase().includes('treat') ? 'Food & Treats' :
         'Other'
       );
       
@@ -105,11 +104,11 @@ const StoreTab = () => {
         filterState.categories.includes(category);
       
       // Price filter
-      const price = parseFloat(product.unit_price || '0');
+      const price = parseFloat(product.unit_price);
       const matchesPrice = price >= filterState.minPrice && 
         price <= filterState.maxPrice;
       
-      return matchesCategory && matchesPrice && (product.is_active !== false);
+      return matchesCategory && matchesPrice && product.is_active;
     });
   };
 
@@ -119,22 +118,22 @@ const StoreTab = () => {
     
     switch (sortType) {
       case 'price-low-high':
-        return sorted.sort((a, b) => parseFloat(a.unit_price || '0') - parseFloat(b.unit_price || '0'));
+        return sorted.sort((a, b) => parseFloat(a.unit_price) - parseFloat(b.unit_price));
       case 'price-high-low':
-        return sorted.sort((a, b) => parseFloat(b.unit_price || '0') - parseFloat(a.unit_price || '0'));
+        return sorted.sort((a, b) => parseFloat(b.unit_price) - parseFloat(a.unit_price));
       case 'sale':
         return sorted.sort((a, b) => {
           // Prioritize discounted items first
           if (a.is_discounted && !b.is_discounted) return -1;
           if (!a.is_discounted && b.is_discounted) return 1;
           // Then sort by price ascending
-          return parseFloat(a.unit_price || '0') - parseFloat(b.unit_price || '0');
+          return parseFloat(a.unit_price) - parseFloat(b.unit_price);
         });
       case 'bestseller':
         return sorted.sort((a, b) => (b.total_sold || 0) - (a.total_sold || 0));
       case 'featured':
       default:
-        return sorted.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+        return sorted.sort((a, b) => a.name.localeCompare(b.name));
     }
   };
 
