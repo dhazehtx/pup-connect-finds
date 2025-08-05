@@ -20,6 +20,8 @@ import Auth from './pages/Auth';
 import CreateListing from './pages/CreateListing';
 import Marketplace from './pages/Marketplace';
 import Cart from './pages/Cart';
+import CheckoutSuccess from './pages/CheckoutSuccess';
+import CheckoutCancel from './pages/CheckoutCancel';
 import ListingDetail from './pages/ListingDetail';
 import Post from './pages/Post';
 import MessageThread from './components/messaging/MessageThread';
@@ -107,6 +109,8 @@ function App() {
                   } />
                   <Route path="/marketplace" element={<Marketplace />} />
                   <Route path="/cart" element={<Cart />} />
+                  <Route path="/checkout/success" element={<CheckoutSuccess />} />
+                  <Route path="/checkout/cancel" element={<CheckoutCancel />} />
                   <Route path="/post" element={<RequireAuth><Post /></RequireAuth>} />
                   <Route path="/profile/:userId" element={
                     <RequireAuth>

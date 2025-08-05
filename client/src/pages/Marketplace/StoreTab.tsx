@@ -1,10 +1,12 @@
 import React, { useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
-import { Filter, Star, Check } from 'lucide-react';
+import { Filter, Star, Check, ShoppingCart, CreditCard } from 'lucide-react';
 import FilterDrawer from './FilterDrawer';
 import FilterBar from '@/components/FilterBar';
 import { useCart } from '@/hooks/use-cart';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation } from '@tanstack/react-query';
+import { apiRequest } from '@/lib/queryClient';
+import { useToast } from '@/hooks/use-toast';
 
 interface Product {
   id: string;
@@ -30,6 +32,7 @@ interface FilterState {
 
 const StoreTab = () => {
   const { addToCart, isInCart } = useCart();
+  const { toast } = useToast();
   const [addedItems, setAddedItems] = useState<Set<string>>(new Set());
   const [sortType, setSortType] = useState<SortType>('featured');
   const [isFilterOpen, setIsFilterOpen] = useState(false);
@@ -52,6 +55,28 @@ const StoreTab = () => {
   });
 
   const products = productsResponse?.data || [];
+
+  // Create checkout session mutation
+  const checkoutMutation = useMutation({
+    mutationFn: async (productId: string) => {
+      const response = await apiRequest('POST', '/api/checkout', {
+        product_id: productId,
+        quantity: 1
+      });
+      return response.json();
+    },
+    onSuccess: (data) => {
+      // Redirect to Stripe checkout
+      window.location.href = data.url;
+    },
+    onError: (error) => {
+      toast({
+        title: "Checkout Error",
+        description: "Failed to create checkout session. Please try again.",
+        variant: "destructive",
+      });
+    }
+  });
 
   const sortOptions = [
     { value: 'featured', label: 'Featured' },
@@ -220,23 +245,49 @@ const StoreTab = () => {
                     )}
                   </div>
 
-                  {/* Add to Cart Button */}
-                  <Button
-                    onClick={() => handleAddToCart(product)}
-                    disabled={addedItems.has(product.id)}
-                    className="w-full mt-3 bg-primary-600 hover:bg-primary-700 text-white"
-                  >
-                    {addedItems.has(product.id) ? (
-                      <>
-                        <Check className="w-4 h-4 mr-2" />
-                        Added!
-                      </>
-                    ) : isInCart(product.id) ? (
-                      'In Cart'
-                    ) : (
-                      'Add to Cart'
-                    )}
-                  </Button>
+                  {/* Action Buttons */}
+                  <div className="grid grid-cols-2 gap-2 mt-3">
+                    <Button
+                      onClick={() => handleAddToCart(product)}
+                      disabled={addedItems.has(product.id)}
+                      variant="outline"
+                      className="border-primary-600 text-primary-600 hover:bg-primary-50"
+                    >
+                      {addedItems.has(product.id) ? (
+                        <>
+                          <Check className="w-4 h-4 mr-1" />
+                          Added
+                        </>
+                      ) : isInCart(product.id) ? (
+                        <>
+                          <ShoppingCart className="w-4 h-4 mr-1" />
+                          In Cart
+                        </>
+                      ) : (
+                        <>
+                          <ShoppingCart className="w-4 h-4 mr-1" />
+                          Add
+                        </>
+                      )}
+                    </Button>
+                    <Button
+                      onClick={() => checkoutMutation.mutate(product.id)}
+                      disabled={checkoutMutation.isPending}
+                      className="bg-primary-600 hover:bg-primary-700 text-white"
+                    >
+                      {checkoutMutation.isPending ? (
+                        <>
+                          <div className="w-4 h-4 mr-1 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
+                          Processing
+                        </>
+                      ) : (
+                        <>
+                          <CreditCard className="w-4 h-4 mr-1" />
+                          Buy Now
+                        </>
+                      )}
+                    </Button>
+                  </div>
                 </div>
               </div>
             ))}

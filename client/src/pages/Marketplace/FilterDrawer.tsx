@@ -28,7 +28,6 @@ interface FilterDrawerProps {
   filters: FilterState;
   onApply: (filters: FilterState) => void;
   onClear: () => void;
-  products: Product[];
 }
 
 const FilterDrawer: React.FC<FilterDrawerProps> = ({
@@ -36,8 +35,7 @@ const FilterDrawer: React.FC<FilterDrawerProps> = ({
   onClose,
   filters,
   onApply,
-  onClear,
-  products
+  onClear
 }) => {
   const [localFilters, setLocalFilters] = useState<FilterState>(filters);
 
@@ -46,12 +44,12 @@ const FilterDrawer: React.FC<FilterDrawerProps> = ({
     setLocalFilters(filters);
   }, [filters]);
 
-  // Get unique categories from products
-  const categories = Array.from(new Set(products.map(p => p.category))).sort();
+  // Static categories for filtering
+  const categories = ['Toys', 'Accessories', 'Food & Treats', 'Other'];
   
-  // Get price range
-  const minProductPrice = Math.min(...products.map(p => p.price));
-  const maxProductPrice = Math.max(...products.map(p => p.price));
+  // Static price range
+  const minProductPrice = 0;
+  const maxProductPrice = 100;
 
   const handleCategoryChange = (category: string, checked: boolean) => {
     setLocalFilters(prev => ({
@@ -116,7 +114,6 @@ const FilterDrawer: React.FC<FilterDrawerProps> = ({
             <div className="space-y-3">
               {categories.map(category => {
                 const isChecked = localFilters.categories.includes(category);
-                const productCount = products.filter(p => p.category === category).length;
                 
                 return (
                   <div key={category} className="flex items-center space-x-3">
@@ -133,7 +130,6 @@ const FilterDrawer: React.FC<FilterDrawerProps> = ({
                     >
                       {category}
                     </label>
-                    <span className="text-xs text-gray-500">({productCount})</span>
                   </div>
                 );
               })}
@@ -159,20 +155,13 @@ const FilterDrawer: React.FC<FilterDrawerProps> = ({
             </div>
           </div>
 
-          {/* Results Preview */}
+          {/* Active Filters Summary */}
           <div className="mb-8 p-4 bg-gray-50 rounded-lg">
             <div className="text-sm text-gray-600">
-              {(() => {
-                const filteredCount = products.filter(product => {
-                  const matchesCategory = localFilters.categories.length === 0 || 
-                    localFilters.categories.includes(product.category);
-                  const matchesPrice = product.price >= localFilters.minPrice && 
-                    product.price <= localFilters.maxPrice;
-                  return matchesCategory && matchesPrice;
-                }).length;
-                
-                return `${filteredCount} products match your filters`;
-              })()}
+              {localFilters.categories.length > 0 && (
+                <div className="mb-2">Categories: {localFilters.categories.join(', ')}</div>
+              )}
+              <div>Price: ${localFilters.minPrice} - ${localFilters.maxPrice}</div>
             </div>
           </div>
 
