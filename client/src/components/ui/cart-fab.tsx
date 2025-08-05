@@ -10,56 +10,17 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import { useCart, type CartItem } from "@/hooks/use-cart";
-import { useAuthState } from '@/hooks/useAuthState';
+import { useCart } from "@/hooks/use-cart";
 
 interface CartFabProps {
   className?: string;
 }
 
 export function CartFab({ className = "" }: CartFabProps) {
-  const { cart, updateQuantity, removeFromCart, getTotalPrice, getItemCount, clearCart } = useCart();
+  const { cart, updateQuantity, removeFromCart, getTotalPrice, getItemCount } = useCart();
   const [isOpen, setIsOpen] = useState(false);
-  const [isCheckingOut, setIsCheckingOut] = useState(false);
-  const { user, session } = useAuthState();
 
   const totalItems = getItemCount();
-
-  const handleCheckout = async () => {
-    if (!user?.id) {
-      alert('Please sign in to checkout');
-      return;
-    }
-
-    setIsCheckingOut(true);
-    try {
-      const response = await fetch('/api/checkout/create-session', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session?.access_token}`,
-        },
-        body: JSON.stringify({
-          items: cart
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to create checkout session');
-      }
-
-      const { url } = await response.json();
-      
-      // Clear cart and redirect to Stripe
-      clearCart();
-      window.location.href = url;
-    } catch (error) {
-      console.error('Checkout error:', error);
-      alert('Failed to process checkout. Please try again.');
-    } finally {
-      setIsCheckingOut(false);
-    }
-  };
 
   if (totalItems === 0) {
     return null;
@@ -100,7 +61,7 @@ export function CartFab({ className = "" }: CartFabProps) {
             </p>
           ) : (
             <>
-              {cart.map((item: CartItem) => (
+              {cart.map((item) => (
                 <div key={item.id} className="flex items-center space-x-4 p-4 border rounded-lg">
                   <img
                     src={item.image_url || "/placeholder-product.jpg"}
@@ -149,10 +110,12 @@ export function CartFab({ className = "" }: CartFabProps) {
                 <Button
                   className="w-full mt-4"
                   size="lg"
-                  onClick={handleCheckout}
-                  disabled={isCheckingOut}
+                  onClick={() => {
+                    // TODO: Implement checkout
+                    console.log("Proceeding to checkout...");
+                  }}
                 >
-                  {isCheckingOut ? 'Processing...' : 'Proceed to Checkout'}
+                  Proceed to Checkout
                 </Button>
               </div>
             </>

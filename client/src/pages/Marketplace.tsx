@@ -7,7 +7,6 @@ import ServicesMarketplace from '@/components/services/ServicesMarketplace';
 import PupBoxSubscription from '@/components/subscriptions/PupBoxSubscription';
 import StoreTab from './Marketplace/StoreTab';
 import AdBanner from '@/components/advertising/AdBanner';
-import { CartFab } from '@/components/ui/cart-fab';
 
 const Marketplace = () => {
   const [activeTab, setActiveTab] = useState('services');
@@ -70,9 +69,6 @@ const Marketplace = () => {
           </TabsContent>
         </Tabs>
       </div>
-      
-      {/* Shopping Cart FAB */}
-      <CartFab />
     </div>
   );
 };
