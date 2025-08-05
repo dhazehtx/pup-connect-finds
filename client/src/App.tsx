@@ -6,8 +6,7 @@ import { queryClient } from '@/lib/queryClient';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { AuthProvider } from './contexts/AuthContext';
 import { RealtimeProvider } from './contexts/RealtimeContext';
-import { CartProvider } from './lib/CartContext';
-import CartFab from './components/ui/CartFab';
+import { CartFab } from './components/ui/cart-fab';
 import Layout from './components/Layout';
 import AdminNavigationTracker from './components/admin/AdminNavigationTracker';
 import CookieConsentBanner from '@/components/privacy/CookieConsentBanner';
@@ -94,7 +93,6 @@ function App() {
           <AuthProvider>
             <RealtimeProvider>
               <ThemeProvider>
-                <CartProvider>
                   <AdminNavigationTracker />
                 <Layout>
                   <PageTransition>
@@ -350,12 +348,11 @@ function App() {
               <CookieConsentBanner />
               <SessionExpiredModal />
               <CartFab />
-                </CartProvider>
               </ThemeProvider>
             </RealtimeProvider>
           </AuthProvider>
-      </Router>
-    </QueryClientProvider>
+        </Router>
+      </QueryClientProvider>
     </ErrorBoundary>
   );
 }
