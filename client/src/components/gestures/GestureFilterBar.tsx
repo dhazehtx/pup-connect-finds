@@ -1,7 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { useSpring, animated } from '@react-spring/web';
-import { useDrag } from '@use-gesture/react';
-import { Filter, ChevronDown, RotateCcw, ArrowUpDown, Heart } from 'lucide-react';
+import React from 'react';
+import { Filter, ArrowUpDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 type SortType = 'featured' | 'price-low-high' | 'price-high-low' | 'rating';
@@ -83,33 +81,16 @@ const GestureFilterBar: React.FC<GestureFilterBarProps> = ({
 
   return (
     <div className="space-y-4">
-      {/* Gesture Hints */}
-      {showGestureHints && (
-        <animated.div
-          style={{
-            opacity: showGestureHints ? 1 : 0
-          }}
-          className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-sm text-blue-700"
-        >
-          <div className="flex items-center gap-2 mb-2">
-            <RotateCcw className="w-4 h-4" />
-            <span className="font-medium">Gesture Controls</span>
-          </div>
-          <div className="space-y-1 text-xs">
-            <div>• Swipe ← → on sort button to change sorting</div>
-            <div>• Swipe cards ← → for quick actions</div>
-          </div>
-        </animated.div>
-      )}
+      {/* Gesture hints removed for cleaner interface */}
 
       {/* Filter and Sort Bar */}
       <div className="flex items-center justify-between">
         {/* Filter Button */}
         <Button 
           onClick={onFilterOpen}
-          className="flex items-center gap-2 border border-primary-600 text-primary-600 bg-white rounded-full px-6 py-2 hover:bg-primary-50 transition-colors"
+          className="flex items-center gap-2 border border-gray-400 text-gray-700 bg-white rounded-full px-6 py-2 hover:bg-gray-50 transition-colors"
         >
-          <Filter className="h-4 w-4" />
+          <Filter className="h-4 w-4 text-gray-700" />
           Filter
           {hasActiveFilters && (
             <span className="bg-primary-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center ml-1">
@@ -118,36 +99,18 @@ const GestureFilterBar: React.FC<GestureFilterBarProps> = ({
           )}
         </Button>
         
-        {/* Gesture-enabled Sort Button */}
-        <animated.div
-          {...bindSortDrag()}
-          style={{
-            scale: sortProgress.to(p => 1 + p * 0.1),
-            background: sortProgress.to(p => 
-              p > 0.5 ? '#3b82f6' : 'white'
-            ),
-            color: sortProgress.to(p => 
-              p > 0.5 ? 'white' : '#3b82f6'
-            )
-          }}
-          className={`
-            touch-none select-none cursor-grab active:cursor-grabbing
-            flex items-center gap-2 border border-primary-600 rounded-full px-6 py-2 
-            transition-all duration-200
-            ${isDragging ? 'shadow-lg' : 'hover:bg-primary-50'}
-          `}
+        {/* Regular Sort Button */}
+        <select
+          value={sortType}
+          onChange={(e) => onSortChange(e.target.value as any)}
+          className="flex items-center gap-2 border border-primary-600 text-primary-600 bg-white rounded-full px-6 py-2 hover:bg-primary-50 transition-colors cursor-pointer"
         >
-          {currentSort?.icon}
-          <span className="font-medium">{currentSort?.label}</span>
-          <ChevronDown className="h-4 w-4" />
-          
-          {/* Swipe indicator */}
-          {isDragging && (
-            <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 text-xs text-blue-600 font-medium">
-              Swipe to change
-            </div>
-          )}
-        </animated.div>
+          {sortOptions.map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </select>
       </div>
 
       {/* Price range filtering removed for cleaner interface */}

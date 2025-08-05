@@ -1,11 +1,10 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
-import { Filter, Star, ChevronDown, Check } from 'lucide-react';
+import { Filter, Star, Check } from 'lucide-react';
 import FilterDrawer from './FilterDrawer';
+import FilterBar from '@/components/FilterBar';
 import { useCart } from '@/hooks/use-cart';
 import { useQuery } from '@tanstack/react-query';
-import GestureProductCard from '@/components/gestures/GestureProductCard';
-import GestureFilterBar from '@/components/gestures/GestureFilterBar';
 
 interface Product {
   id: string;
@@ -32,6 +31,13 @@ interface FilterState {
 const StoreTab = () => {
   const { addToCart, isInCart } = useCart();
   const [addedItems, setAddedItems] = useState<Set<string>>(new Set());
+  const [sortType, setSortType] = useState<SortType>('featured');
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [filters, setFilters] = useState<FilterState>({
+    categories: [],
+    minPrice: 0,
+    maxPrice: 100
+  });
 
   // Fetch products from API
   const { data: productsResponse, isLoading, error } = useQuery({
@@ -46,16 +52,6 @@ const StoreTab = () => {
   });
 
   const products = productsResponse?.data || [];
-
-  const [sortType, setSortType] = useState<SortType>('featured');
-  const [isFilterOpen, setIsFilterOpen] = useState(false);
-  const [filters, setFilters] = useState<FilterState>({
-    categories: [],
-    minPrice: 0,
-    maxPrice: 100
-  });
-
-  const [favorites, setFavorites] = useState<Set<string>>(new Set());
 
   const sortOptions = [
     { value: 'featured', label: 'Featured' },
@@ -110,12 +106,6 @@ const StoreTab = () => {
     return applySort(filtered, sortType);
   }, [products, filters, sortType]);
 
-  const handleSortChange = () => {
-    const currentIndex = sortOptions.findIndex(option => option.value === sortType);
-    const nextIndex = (currentIndex + 1) % sortOptions.length;
-    setSortType(sortOptions[nextIndex].value as SortType);
-  };
-
   const handleFilterApply = (newFilters: FilterState) => {
     setFilters(newFilters);
     setIsFilterOpen(false);
@@ -129,8 +119,6 @@ const StoreTab = () => {
     });
     setIsFilterOpen(false);
   };
-
-  const currentSortLabel = sortOptions.find(option => option.value === sortType)?.label || 'Featured';
 
   const handleAddToCart = (product: Product) => {
     addToCart({
@@ -152,31 +140,6 @@ const StoreTab = () => {
     }, 1500);
   };
 
-  const handleFavorite = (product: Product) => {
-    setFavorites(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(product.id)) {
-        newSet.delete(product.id);
-      } else {
-        newSet.add(product.id);
-      }
-      return newSet;
-    });
-  };
-
-  const handleQuickView = (product: Product) => {
-    // For now, just add to cart as quick action
-    handleAddToCart(product);
-  };
-
-  const handlePriceRangeChange = (min: number, max: number) => {
-    setFilters(prev => ({
-      ...prev,
-      minPrice: min,
-      maxPrice: max
-    }));
-  };
-
   const hasActiveFilters = filters.categories.length > 0 || filters.minPrice > 0 || filters.maxPrice < 100;
 
   return (
@@ -185,15 +148,13 @@ const StoreTab = () => {
       <div className="h-2 w-full bg-primary-200 rounded-b-3xl"></div>
       
       <div className="p-4 space-y-6">
-        {/* Gesture-based Filter and Sort Section */}
+        {/* Filter and Sort Section */}
         <div className="pt-4">
-          <GestureFilterBar
+          <FilterBar
             sortType={sortType}
             onSortChange={setSortType}
             onFilterOpen={() => setIsFilterOpen(true)}
             hasActiveFilters={hasActiveFilters}
-            onPriceRangeChange={handlePriceRangeChange}
-            priceRange={{ min: filters.minPrice, max: filters.maxPrice }}
           />
         </div>
 
@@ -219,29 +180,79 @@ const StoreTab = () => {
           </div>
         )}
 
-        {/* Gesture-based Products Grid */}
+        {/* Products Grid */}
         {!isLoading && !error && (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {filteredAndSortedProducts.map((product) => (
-              <GestureProductCard
-                key={product.id}
-                product={product}
-                onAddToCart={handleAddToCart}
-                onQuickView={handleQuickView}
-                onFavorite={handleFavorite}
-                isInCart={isInCart(product.id)}
-                isAdded={addedItems.has(product.id)}
-              />
+              <div key={product.id} className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow">
+                {/* Product Image */}
+                <div className="aspect-square bg-gray-100 rounded-lg mb-3 overflow-hidden">
+                  {product.image_url ? (
+                    <img
+                      src={product.image_url}
+                      alt={product.name}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-gray-400">
+                      <Filter className="w-8 h-8" />
+                    </div>
+                  )}
+                </div>
+
+                {/* Product Info */}
+                <div className="space-y-2">
+                  <h3 className="font-medium text-gray-900 line-clamp-2">{product.name}</h3>
+                  {product.description && (
+                    <p className="text-sm text-gray-600 line-clamp-2">{product.description}</p>
+                  )}
+                  
+                  {/* Price and Rating */}
+                  <div className="flex items-center justify-between">
+                    <span className="text-lg font-semibold text-primary-600">
+                      ${parseFloat(product.unit_price).toFixed(2)}
+                    </span>
+                    {product.rating && (
+                      <div className="flex items-center gap-1">
+                        <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                        <span className="text-sm text-gray-600">{product.rating}</span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Add to Cart Button */}
+                  <Button
+                    onClick={() => handleAddToCart(product)}
+                    disabled={addedItems.has(product.id)}
+                    className="w-full mt-3 bg-primary-600 hover:bg-primary-700 text-white"
+                  >
+                    {addedItems.has(product.id) ? (
+                      <>
+                        <Check className="w-4 h-4 mr-2" />
+                        Added!
+                      </>
+                    ) : isInCart(product.id) ? (
+                      'In Cart'
+                    ) : (
+                      'Add to Cart'
+                    )}
+                  </Button>
+                </div>
+              </div>
             ))}
           </div>
         )}
 
-        {filteredAndSortedProducts.length === 0 && (
-          <div className="bg-white rounded-3xl border border-gray-200 shadow-sm p-12 text-center mx-4">
-            <div className="text-gray-500">
-              <h3 className="text-lg font-semibold mb-2">No products found</h3>
-              <p>Try adjusting your filter criteria</p>
-            </div>
+        {/* No results */}
+        {!isLoading && !error && filteredAndSortedProducts.length === 0 && (
+          <div className="text-center py-8">
+            <p className="text-gray-600">No products found matching your criteria.</p>
+            <Button 
+              onClick={() => setFilters({ categories: [], minPrice: 0, maxPrice: 100 })}
+              className="mt-4"
+            >
+              Clear Filters
+            </Button>
           </div>
         )}
       </div>
@@ -253,7 +264,6 @@ const StoreTab = () => {
         filters={filters}
         onApply={handleFilterApply}
         onClear={handleFilterClear}
-        products={products}
       />
     </div>
   );
