@@ -1,11 +1,13 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { useCart } from '@/lib/CartContext';
+import { useCart } from '@/hooks/use-cart';
 import { Minus, Plus, Trash2, ShoppingBag } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const Cart = () => {
-  const { items, removeItem, updateQuantity, clearCart, totalPrice } = useCart();
+  const { cart, removeFromCart, updateQuantity, clearCart, getTotalPrice } = useCart();
+  const items = cart;
+  const totalPrice = getTotalPrice();
 
   if (items.length === 0) {
     return (
@@ -44,9 +46,9 @@ const Cart = () => {
           <div className="space-y-4">
             {items.map((item) => (
               <div key={item.id} className="flex items-center gap-4 p-4 border border-gray-200 rounded-xl">
-                {item.image && (
+                {item.image_url && (
                   <img
-                    src={item.image}
+                    src={item.image_url}
                     alt={item.name}
                     className="w-16 h-16 object-cover rounded-lg"
                   />
@@ -54,25 +56,25 @@ const Cart = () => {
                 
                 <div className="flex-1">
                   <h3 className="font-semibold text-gray-900">{item.name}</h3>
-                  <p className="text-lg font-bold text-primary-600">${item.price}</p>
+                  <p className="text-lg font-bold text-primary-600">${parseFloat(item.unit_price).toFixed(2)}</p>
                 </div>
 
                 <div className="flex items-center gap-2">
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => updateQuantity(item.id, item.qty - 1)}
+                    onClick={() => updateQuantity(item.id, item.quantity - 1)}
                     className="w-8 h-8 p-0"
                   >
                     <Minus className="h-4 w-4" />
                   </Button>
                   
-                  <span className="w-8 text-center font-semibold">{item.qty}</span>
+                  <span className="w-8 text-center font-semibold">{item.quantity}</span>
                   
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => updateQuantity(item.id, item.qty + 1)}
+                    onClick={() => updateQuantity(item.id, item.quantity + 1)}
                     className="w-8 h-8 p-0"
                   >
                     <Plus className="h-4 w-4" />
@@ -82,7 +84,7 @@ const Cart = () => {
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => removeItem(item.id)}
+                  onClick={() => removeFromCart(item.id)}
                   className="text-red-600 hover:text-red-700 hover:bg-red-50"
                 >
                   <Trash2 className="h-4 w-4" />
@@ -98,7 +100,7 @@ const Cart = () => {
           
           <div className="space-y-2 mb-6">
             <div className="flex justify-between text-gray-600">
-              <span>Items ({items.reduce((sum, item) => sum + item.qty, 0)})</span>
+              <span>Items ({items.reduce((sum, item) => sum + item.quantity, 0)})</span>
               <span>${totalPrice.toFixed(2)}</span>
             </div>
             <div className="flex justify-between text-gray-600">

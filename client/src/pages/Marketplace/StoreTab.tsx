@@ -4,6 +4,8 @@ import { Filter, Star, ChevronDown, Check } from 'lucide-react';
 import FilterDrawer from './FilterDrawer';
 import { useCart } from '@/hooks/use-cart';
 import { useQuery } from '@tanstack/react-query';
+import GestureProductCard from '@/components/gestures/GestureProductCard';
+import GestureFilterBar from '@/components/gestures/GestureFilterBar';
 
 interface Product {
   id: string;
@@ -52,6 +54,8 @@ const StoreTab = () => {
     minPrice: 0,
     maxPrice: 100
   });
+
+  const [favorites, setFavorites] = useState<Set<string>>(new Set());
 
   const sortOptions = [
     { value: 'featured', label: 'Featured' },
@@ -148,34 +152,49 @@ const StoreTab = () => {
     }, 1500);
   };
 
+  const handleFavorite = (product: Product) => {
+    setFavorites(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(product.id)) {
+        newSet.delete(product.id);
+      } else {
+        newSet.add(product.id);
+      }
+      return newSet;
+    });
+  };
+
+  const handleQuickView = (product: Product) => {
+    // For now, just add to cart as quick action
+    handleAddToCart(product);
+  };
+
+  const handlePriceRangeChange = (min: number, max: number) => {
+    setFilters(prev => ({
+      ...prev,
+      minPrice: min,
+      maxPrice: max
+    }));
+  };
+
+  const hasActiveFilters = filters.categories.length > 0 || filters.minPrice > 0 || filters.maxPrice < 100;
+
   return (
     <div className="bg-white min-h-screen pb-24">
       {/* Subtle blue accent divider */}
       <div className="h-2 w-full bg-primary-200 rounded-b-3xl"></div>
       
       <div className="p-4 space-y-6">
-        {/* Filter and Sort Section */}
-        <div className="flex items-center justify-between pt-4">
-          <Button 
-            onClick={() => setIsFilterOpen(true)}
-            className="flex items-center gap-2 border border-primary-600 text-primary-600 bg-white rounded-full px-6 py-2 hover:bg-primary-50 transition-colors"
-          >
-            <Filter className="h-4 w-4" />
-            Filter
-            {(filters.categories.length > 0 || filters.minPrice > 0 || filters.maxPrice < 100) && (
-              <span className="bg-primary-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center ml-1">
-                !
-              </span>
-            )}
-          </Button>
-          
-          <Button 
-            onClick={handleSortChange}
-            className="flex items-center gap-2 border border-primary-600 text-primary-600 bg-white rounded-full px-6 py-2 hover:bg-primary-50 transition-colors"
-          >
-            {currentSortLabel}
-            <ChevronDown className="h-4 w-4" />
-          </Button>
+        {/* Gesture-based Filter and Sort Section */}
+        <div className="pt-4">
+          <GestureFilterBar
+            sortType={sortType}
+            onSortChange={setSortType}
+            onFilterOpen={() => setIsFilterOpen(true)}
+            hasActiveFilters={hasActiveFilters}
+            onPriceRangeChange={handlePriceRangeChange}
+            priceRange={{ min: filters.minPrice, max: filters.maxPrice }}
+          />
         </div>
 
         {/* Loading state */}
@@ -200,75 +219,20 @@ const StoreTab = () => {
           </div>
         )}
 
-        {/* Products Grid */}
+        {/* Gesture-based Products Grid */}
         {!isLoading && !error && (
-          <div className="grid grid-cols-2 gap-4">
-            {filteredAndSortedProducts.map((product) => {
-              const price = parseFloat(product.unit_price);
-              const inStock = product.inventory_qty > 0;
-              const alreadyInCart = isInCart(product.id);
-              
-              return (
-                <div key={product.id} className="bg-white rounded-3xl border border-gray-200 shadow-sm p-4">
-                  <div className="relative mb-3">
-                    <img
-                      src={product.image_url || "https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=400"}
-                      alt={product.name}
-                      className="w-full h-32 object-cover rounded-xl"
-                    />
-                    {product.is_subscription && (
-                      <div className="absolute top-2 right-2 bg-orange-500 text-white text-xs px-2 py-1 rounded-full">
-                        Subscription
-                      </div>
-                    )}
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <h3 className="font-semibold text-primary-600 text-base">{product.name}</h3>
-                    
-                    <div className="flex items-center gap-1">
-                      {[...Array(5)].map((_, i) => (
-                        <Star 
-                          key={i} 
-                          className={`h-3 w-3 ${i < Math.floor(product.rating || 4.5) ? 'text-yellow-400 fill-current' : 'text-gray-300'}`} 
-                        />
-                      ))}
-                      <span className="text-xs text-gray-600 ml-1">{product.rating || '4.5'}</span>
-                    </div>
-
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-lg font-bold text-primary-600">
-                        ${price.toFixed(2)}
-                        {product.is_subscription && <span className="text-sm font-normal">/month</span>}
-                      </span>
-                    </div>
-                    
-                    <Button 
-                      disabled={!inStock || addedItems.has(product.id) || alreadyInCart}
-                      onClick={() => handleAddToCart(product)}
-                      className="w-full py-2 btn-primary"
-                      variant={alreadyInCart ? "secondary" : "default"}
-                    >
-                      {addedItems.has(product.id) ? (
-                        <>
-                          <Check className="w-4 h-4 mr-2" />
-                          Added
-                        </>
-                      ) : alreadyInCart ? (
-                        <>
-                          <Check className="w-4 h-4 mr-2" />
-                          In Cart
-                        </>
-                      ) : !inStock ? (
-                        'Out of Stock'
-                      ) : (
-                        'Add to Cart'
-                      )}
-                    </Button>
-                  </div>
-                </div>
-              );
-            })}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {filteredAndSortedProducts.map((product) => (
+              <GestureProductCard
+                key={product.id}
+                product={product}
+                onAddToCart={handleAddToCart}
+                onQuickView={handleQuickView}
+                onFavorite={handleFavorite}
+                isInCart={isInCart(product.id)}
+                isAdded={addedItems.has(product.id)}
+              />
+            ))}
           </div>
         )}
 
