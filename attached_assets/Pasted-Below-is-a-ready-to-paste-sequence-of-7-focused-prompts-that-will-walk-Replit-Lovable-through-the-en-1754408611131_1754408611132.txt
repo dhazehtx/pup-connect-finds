@@ -1,0 +1,177 @@
+Below is a ready-to-paste sequence of 7 focused prompts that will walk Replit/Lovable through the entire 0 : 10 – 1 : 10 checkout-flow block of your three-hour work plan. Feed them one at a time (letting the tool finish each step before starting the next).
+
+Prompt 1 – Sync product & price IDs
+sql
+Copy
+Edit
+# ✅ STEP 1 — Verify Product & Price IDs
+1. Open the Stripe Dashboard → Products.  
+2. Locate the “Pup Box” subscription and every one-off store item you already created.
+   • Copy each **prod_*** Product ID and its active **price_*** Price ID.  
+3. In Supabase:
+   • `products` table → ensure `stripe_product_id` and `stripe_price_id` columns exist.  
+   • Upsert rows so each product’s Stripe IDs match the dashboard.
+4. Reply “DONE” with the mapping table you saved (product_name → prod_ID / price_ID).
+Prompt 2 – Create createCheckoutSession server function
+php
+Copy
+Edit
+# ✅ STEP 2 — Server-side checkoutSession helper
+Build a TypeScript function in `src/stripe/createCheckoutSession.ts`:
+
+import Stripe from "stripe";
+import { supabase } from "../lib/supabaseClient";
+
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: "2024-08-16" });
+
+export async function createCheckoutSession(
+  user_id: string,
+  product_id: string,
+  quantity: number = 1
+): Promise<string> {
+  // 1. Fetch Stripe price ID from Supabase
+  const { data, error } = await supabase
+    .from("products")
+    .select("stripe_price_id, is_subscription")
+    .eq("id", product_id)
+    .single();
+
+  if (error || !data) throw new Error("Invalid product_id");
+
+  const session = await stripe.checkout.sessions.create({
+    mode: data.is_subscription ? "subscription" : "payment",
+    line_items: [{ price: data.stripe_price_id, quantity }],
+    client_reference_id: user_id,
+    success_url: `${process.env.APP_URL}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
+    cancel_url: `${process.env.APP_URL}/checkout/cancel`,
+  });
+
+  return session.url!;
+}
+Return “READY” when the file compiles without errors.
+
+Prompt 3 – Expose API route
+pgsql
+Copy
+Edit
+# ✅ STEP 3 — API endpoint
+In `src/pages/api/checkout.ts` (Next.js) *or* an Express route `/api/checkout`:
+
+import type { NextApiRequest, NextApiResponse } from "next";
+import { createCheckoutSession } from "../../stripe/createCheckoutSession";
+
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  if (req.method !== "POST") return res.status(405).end();
+
+  const { user_id, product_id, quantity } = req.body;
+
+  try {
+    const url = await createCheckoutSession(user_id, product_id, quantity || 1);
+    res.status(200).json({ url });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ message: "Failed to create session" });
+  }
+}
+Confirm route returns {"url":"https://checkout.stripe.com/..."} on POST.
+
+Prompt 4 – Wire front-end handlers
+php
+Copy
+Edit
+# ✅ STEP 4 — Button onClick helpers
+// Example React utility
+async function handlePurchase(productId: string, quantity = 1) {
+  const { data } = await axios.post("/api/checkout", {
+    user_id: supabase.auth.getUser().data.user?.id,
+    product_id: productId,
+    quantity,
+  });
+  window.location.href = data.url;
+}
+
+/* Pup Box card */
+<Button onClick={() => handlePurchase("PUP_BOX_DB_ID", 1)}>Subscribe</Button>
+
+/* One-off “Buy” button */
+<Button onClick={() => handlePurchase(PRODUCT_ID_FROM_DB, 1)}>Buy Now</Button>
+Return screenshot showing the buttons redirecting to Stripe Checkout.
+
+Prompt 5 – Add webhook listener
+php
+Copy
+Edit
+# ✅ STEP 5 — Stripe webhook (checkout.session.completed)
+In `src/pages/api/webhooks/stripe.ts` or Express `/webhooks/stripe`:
+
+import Stripe from "stripe";
+import { buffer } from "micro";
+import { supabase } from "../../lib/supabaseClient";
+
+export const config = { api: { bodyParser: false } };
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: "2024-08-16" });
+
+export default async function handler(req, res) {
+  const sig = req.headers["stripe-signature"];
+  const buf = await buffer(req);
+
+  let event: Stripe.Event;
+  try {
+    event = stripe.webhooks.constructEvent(
+      buf.toString(),
+      sig!,
+      process.env.STRIPE_WEBHOOK_SECRET!
+    );
+  } catch (err) {
+    console.error(err);
+    return res.status(400).send(`Webhook Error: ${(err as Error).message}`);
+  }
+
+  if (event.type === "checkout.session.completed") {
+    const session = event.data.object as Stripe.Checkout.Session;
+
+    // 1. Record order
+    await supabase.from("orders").insert({
+      user_id: session.client_reference_id,
+      stripe_session_id: session.id,
+      amount_total: session.amount_total,
+      is_subscription: session.mode === "subscription",
+      status: "paid",
+    });
+
+    // 2. For subscriptions, store sub info
+    if (session.mode === "subscription") {
+      await supabase.from("subscriptions").insert({
+        user_id: session.client_reference_id,
+        stripe_subscription_id: session.subscription,
+        status: "active",
+      });
+    }
+  }
+
+  res.status(200).json({ received: true });
+}
+Deploy → expose local tunnel if testing (stripe listen --forward-to localhost:3000/api/webhooks/stripe).
+
+Prompt 6 – Environment variables checklist
+ini
+Copy
+Edit
+# ✅ STEP 6 — Set env vars
+STRIPE_SECRET_KEY=sk_live_...
+STRIPE_WEBHOOK_SECRET=whsec_...
+APP_URL=http://localhost:3000   # or prod URL
+Return “ENV SET” after saving secrets in Replit.
+
+Prompt 7 – Smoke-test flow
+pgsql
+Copy
+Edit
+# ✅ STEP 7 — Run end-to-end test
+1. npm run dev (or yarn / pnpm).  
+2. Click a “Buy” or “Subscribe” button → Stripe Checkout appears.  
+3. Use test card 4242 4242 4242 4242 with any future date & CVC.  
+4. Complete payment → expect redirect to `/checkout/success`.  
+5. Verify `orders` (and `subscriptions` for Pup Box) tables in Supabase now contain the new row.
+
+Reply “PASS” with order row JSON or explain any failures.
