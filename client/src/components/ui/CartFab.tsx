@@ -1,13 +1,14 @@
 import { FiShoppingCart } from 'react-icons/fi';
-import { useCart } from '@/lib/CartContext';
+import { useCart } from '@/hooks/use-cart';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 export default function CartFab() {
-  const { items, totalItems } = useCart();
+  const { getItemCount } = useCart();
   const navigate = useNavigate();
   const [isPressed, setIsPressed] = useState(false);
   
+  const totalItems = getItemCount();
   if (!totalItems) return null;
 
   const handleClick = () => {
@@ -21,7 +22,7 @@ export default function CartFab() {
       onMouseUp={() => setIsPressed(false)}
       onMouseLeave={() => setIsPressed(false)}
       className="
-        fixed bottom-24 right-4 sm:bottom-20 sm:right-3
+        fixed bottom-24 left-4 sm:bottom-20 sm:left-3
         z-50 h-14 w-14 rounded-full bg-primary-600 text-white
         flex items-center justify-center shadow-lg
         hover:scale-105 active:scale-95 transition"

@@ -7,6 +7,7 @@ import ServicesMarketplace from '@/components/services/ServicesMarketplace';
 import PupBoxSubscription from '@/components/subscriptions/PupBoxSubscription';
 import StoreTab from './Marketplace/StoreTab';
 import AdBanner from '@/components/advertising/AdBanner';
+import CartFab from '@/components/ui/CartFab';
 
 const Marketplace = () => {
   const [activeTab, setActiveTab] = useState('services');
@@ -69,6 +70,9 @@ const Marketplace = () => {
           </TabsContent>
         </Tabs>
       </div>
+      
+      {/* Cart FAB - shows on all marketplace tabs */}
+      <CartFab />
     </div>
   );
 };
