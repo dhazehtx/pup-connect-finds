@@ -1,0 +1,74 @@
+Below is a drop-in prompt you can paste straight into the Replit Agent (or into your terminal if you’re comfortable with Git) that will re-apply the exact Explore-page layout you had in the screenshots—without touching any new schema logic, filters, or listing data.
+
+pgsql
+Copy
+Edit
+🎯 GOAL  
+Restore the Explore page UI (search-bar card at top, collapsible
+Advanced Filters grid, centred “No puppies found” state) exactly
+as shown in screenshots from Aug-05 11 AM, while keeping all
+new sorting logic and database columns.
+
+────────────────────────  1️⃣  LOCATE GOOD COMMIT  ──────────────────────────
+git log --oneline -- client/src/pages/Explore \
+                        client/src/components/FilterBar.tsx \
+                        client/src/components/AdvancedFilters.tsx \
+                        client/src/styles/explore.css | head -20
+
+# Look for the commit made BEFORE today’s rollback.
+# Example: 7b3e5c4 "feat(ui): polish Explore filters ✓"
+
+────────────────────────  2️⃣  NEW FIX BRANCH  ──────────────────────────────
+git checkout -b fix/explore-layout
+
+────────────────────────  3️⃣  CHECK OUT JUST THOSE FILES  ──────────────────
+git checkout 7b3e5c4 -- \
+  client/src/pages/Explore \
+  client/src/components/FilterBar.tsx \
+  client/src/components/AdvancedFilters.tsx \
+  client/src/styles/explore.css
+
+────────────────────────  4️⃣  RESOLVE CONFLICTS  ───────────────────────────
+# Keep ➜
+#  • All JSX/CSS from the good commit
+#  • Any NEW TypeScript props/types you added this week
+git add .
+git commit -m "ui(explore): restore Aug-05 layout"
+
+────────────────────────  5️⃣  VERIFY  ──────────────────────────────────────
+npm run dev  (or rely on hot-reload)
+
+✅  Search & Filter row matches screenshot  
+✅  “Advanced Filters” button toggles full grid (Breed, Source, …)  
+✅  Popular Breeds chips inline  
+✅  Listings (Bob & Blu) still render  
+✅  No red console errors
+
+────────────────────────  6️⃣  PUSH & MERGE  ────────────────────────────────
+git push origin fix/explore-layout
+# Merge the branch → main / staging
+
+────────────────────────  7️⃣  POST-MERGE SANITY  ───────────────────────────
+- Preview /explore on mobile width (filters collapse)  
+- Try Breed dropdown + Verified checkbox → Supabase query still fires  
+- “Clear All Filters” resets to default
+Why this works
+Only UI files are cherry-picked; backend code, new sort keys, and listing data stay intact.
+
+You get back the exact Tailwind/CSS spacing and empty-state card that matched your mockups.
+
+If a future refactor breaks it again you can repeat with a single cherry-pick.
+
+If you prefer a Lovable-only fix
+Open the Lovable prompt editor and run:
+
+sql
+Copy
+Edit
+Undo recent layout changes to the Explore page.
+Re-apply the August-05 Explore layout:
+– Top “Search & Filter” card with dropdown + Verified checkbox
+– Toggleable Advanced Filters grid (Breed, Source, Age, etc.)
+– Popular Breeds chips under Search card
+– Centred empty-state (“No puppies found”) when 0 listings
+Keep all new sort keys & listing queries exactly as is.

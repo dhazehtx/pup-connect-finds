@@ -52,7 +52,7 @@ import {
   type InsertSubscription
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, and, or, like, sql } from "drizzle-orm";
+import { eq, desc, and, or, like, sql, isNotNull } from "drizzle-orm";
 
 export interface IStorage {
   // Legacy user methods
@@ -538,16 +538,18 @@ export class DatabaseStorage implements IStorage {
   // Store/Ecommerce methods
   async getProducts(filters?: { isActive?: boolean; isSubscription?: boolean }): Promise<Product[]> {
     let query = db.select().from(products);
-    if (filters?.isActive !== undefined) {
-      query = query.where(eq(products.is_active, filters.isActive));
-    }
+    
+    // Always filter for active products with Stripe backing
+    const conditions = [
+      eq(products.is_active, true),
+      isNotNull(products.stripe_price_id)
+    ];
+    
     if (filters?.isSubscription !== undefined) {
-      if (filters.isActive !== undefined) {
-        query = query.where(and(eq(products.is_active, filters.isActive), eq(products.is_subscription, filters.isSubscription)));
-      } else {
-        query = query.where(eq(products.is_subscription, filters.isSubscription));
-      }
+      conditions.push(eq(products.is_subscription, filters.isSubscription));
     }
+    
+    query = query.where(and(...conditions));
     return await query.orderBy(products.name);
   }
 
