@@ -2,7 +2,7 @@ import React from 'react';
 import { Filter, ArrowUpDown, Star } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
-type SortType = 'featured' | 'price-low-high' | 'price-high-low' | 'rating';
+type SortType = 'featured' | 'price-low-high' | 'price-high-low' | 'sale' | 'best-selling';
 
 interface FilterBarProps {
   sortType: SortType;
@@ -19,9 +19,10 @@ const FilterBar: React.FC<FilterBarProps> = ({
 }) => {
   const sortOptions: { value: SortType; label: string; icon: React.ReactNode }[] = [
     { value: 'featured', label: 'Featured', icon: <Star className="w-4 h-4" /> },
-    { value: 'price-low-high', label: 'Price: Low to High', icon: <ArrowUpDown className="w-4 h-4" /> },
-    { value: 'price-high-low', label: 'Price: High to Low', icon: <ArrowUpDown className="w-4 h-4 rotate-180" /> },
-    { value: 'rating', label: 'Highest Rated', icon: <Star className="w-4 h-4" /> }
+    { value: 'price-low-high', label: 'Price: Low→High', icon: <ArrowUpDown className="w-4 h-4" /> },
+    { value: 'price-high-low', label: 'Price: High→Low', icon: <ArrowUpDown className="w-4 h-4 rotate-180" /> },
+    { value: 'sale', label: 'Sale', icon: <Filter className="w-4 h-4" /> },
+    { value: 'best-selling', label: 'Best-Selling', icon: <Star className="w-4 h-4" /> }
   ];
 
   const currentSort = sortOptions.find(opt => opt.value === sortType);

@@ -19,10 +19,13 @@ interface Product {
   inventory_qty: number;
   category?: string;
   rating?: number;
-  reviews?: number;
+  reviews_count?: number;
+  is_discounted?: boolean;
+  original_price?: string;
+  sales_count?: number;
 }
 
-type SortType = 'featured' | 'price-low-high' | 'price-high-low' | 'rating';
+type SortType = 'featured' | 'price-low-high' | 'price-high-low' | 'sale' | 'best-selling';
 
 interface FilterState {
   categories: string[];
@@ -85,12 +88,18 @@ const StoreTab = () => {
     { value: 'featured', label: 'Featured' },
     { value: 'price-low-high', label: 'Price (Low→High)' },
     { value: 'price-high-low', label: 'Price (High→Low)' },
-    { value: 'rating', label: 'Rating' }
+    { value: 'sale', label: 'Sale' },
+    { value: 'best-selling', label: 'Best-Selling' }
   ];
 
   // Apply filters function
   const applyFilters = (products: Product[], filterState: FilterState): Product[] => {
     return products.filter(product => {
+      // Add null safety checks
+      if (!product || !product.name || !product.unit_price) {
+        return false;
+      }
+
       // Category filter - derive category from product name or description
       const category = product.category || (
         product.name.toLowerCase().includes('toy') ? 'Toys' :
@@ -113,15 +122,27 @@ const StoreTab = () => {
 
   // Apply sort function
   const applySort = (products: Product[], sortType: SortType): Product[] => {
-    const sorted = [...products];
+    const sorted = [...products].filter(product => product && product.name); // Add null safety
     
     switch (sortType) {
       case 'price-low-high':
         return sorted.sort((a, b) => parseFloat(a.unit_price) - parseFloat(b.unit_price));
       case 'price-high-low':
         return sorted.sort((a, b) => parseFloat(b.unit_price) - parseFloat(a.unit_price));
-      case 'rating':
-        return sorted.sort((a, b) => (b.rating || 4.5) - (a.rating || 4.5));
+      case 'sale':
+        // Show discounted items first, then sort by discount amount
+        return sorted.sort((a, b) => {
+          if (a.is_discounted && !b.is_discounted) return -1;
+          if (!a.is_discounted && b.is_discounted) return 1;
+          if (a.is_discounted && b.is_discounted && a.original_price && b.original_price) {
+            const aDiscount = parseFloat(a.original_price) - parseFloat(a.unit_price);
+            const bDiscount = parseFloat(b.original_price) - parseFloat(b.unit_price);
+            return bDiscount - aDiscount; // Bigger discounts first
+          }
+          return a.name.localeCompare(b.name);
+        });
+      case 'best-selling':
+        return sorted.sort((a, b) => (b.sales_count || 0) - (a.sales_count || 0));
       case 'featured':
       default:
         return sorted.sort((a, b) => a.name.localeCompare(b.name));

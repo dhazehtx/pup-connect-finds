@@ -766,6 +766,12 @@ export const products = pgTable("products", {
   is_active: boolean("is_active").default(true),
   unit_price: text("unit_price").notNull(), // Stored as string to avoid precision issues
   currency: text("currency").default("usd"),
+  is_discounted: boolean("is_discounted").default(false), // For sale filtering
+  original_price: text("original_price"), // Original price before discount
+  sales_count: integer("sales_count").default(0), // For best-selling sorting
+  rating: decimal("rating", { precision: 3, scale: 2 }), // Average rating (4.50)
+  reviews_count: integer("reviews_count").default(0), // Number of reviews
+  category: text("category"), // Product category for filtering
   metadata: jsonb("metadata"), // Store additional Stripe metadata
   created_at: timestamp("created_at").defaultNow(),
   updated_at: timestamp("updated_at").defaultNow(),

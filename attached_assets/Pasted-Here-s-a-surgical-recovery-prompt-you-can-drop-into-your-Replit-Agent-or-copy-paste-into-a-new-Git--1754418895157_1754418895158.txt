@@ -1,0 +1,54 @@
+Here’s a surgical recovery prompt you can drop into your Replit Agent (or copy-paste into a new Git branch) to bring the Explore / Advanced Filters UI back to the “good” layout you see in screenshots ① & ②, without touching any listing data (Bob, Blu, etc.).
+
+sql
+Copy
+Edit
+🎯 GOAL  
+Restore the Explore page UI (search bar-plus-filter card +
+horizontal Advanced Filters grid) that existed before the
+recent rollback, while leaving all Supabase data & new
+schema columns intact.
+
+──────────────────────── 1️⃣  IDENTIFY “GOOD” COMMIT ────────────────────────
+# Inside workspace shell
+git log --oneline --graph --decorate -- client/src/pages/Explore*
+
+# Look for the commit just BEFORE the rollback
+# Example hash: ab12cd3  "feat(ui): polish Explore filters"
+
+──────────────────────── 2️⃣  CREATE FIX BRANCH  ────────────────────────────
+git checkout -b restore-explore-ui
+
+──────────────────────── 3️⃣  CHERRY-PICK ONLY THE UI FILES  ────────────────
+git checkout ab12cd3 -- \
+  client/src/pages/Explore/index.tsx \
+  client/src/components/FilterBar.tsx \
+  client/src/components/AdvancedFilters.tsx \
+  client/src/styles/explore.css
+
+# (Add more files if your layout classes live elsewhere)
+
+──────────────────────── 4️⃣  RESOLVE CONFLICTS  ────────────────────────────
+# If the cherry-pick shows conflicts, keep:
+#   – ALL markup / Tailwind / CSS from the good commit
+#   – ALL new TypeScript types added since (listingCategory, is_discounted, etc.)
+git add .
+git commit -m "chore(ui): restore Explore filters layout after rollback"
+
+──────────────────────── 5️⃣  VERIFY  ───────────────────────────────────────
+npm run dev   # or your Replit hot reload
+
+✅  Search bar + dropdown + “Verified only” checkbox inline  
+✅  Advanced Filters toggles open grid (Breed, Source, Age…)  
+✅  Listings (Bob, Blu) still render (2 Puppies Found)  
+✅  No red console errors
+
+──────────────────────── 6️⃣  PUSH & MERGE  ────────────────────────────────
+git push origin restore-explore-ui
+# Merge the PR / branch into main when happy
+Why this works
+Data untouched – we only overwrite front-end JSX/CSS files, not the Supabase schema or seeds.
+
+Zero regressions – cherry-picking a single known-good commit for those four files prevents other pages from changing again.
+
+Easy rollback – if anything breaks you can simply git checkout main -- <file> to undo.
