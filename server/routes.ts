@@ -10,6 +10,9 @@ import groupPostsRouter from './routes/group-posts';
 import supportRouter from './routes/support';
 import bugsRouter from './routes/bugs';
 import authRouter from './routes/auth';
+import productsRouter from './routes/products';
+import checkoutRouter from './routes/checkout';
+import ordersRouter from './routes/orders';
 import { registerHealthRoutes } from './routes/health';
 import { storage } from "./storage";
 import { 
@@ -90,7 +93,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Add AI content moderation
   app.use(contentModerationMiddleware); // Moderate user-generated content
   
-  // Add authentication middleware for all API routes
+  // Register store/ecommerce routes first (before auth middleware for public product listing)
+  app.use('/api/products', productsRouter);
+  app.use('/api/checkout', checkoutRouter);
+  app.use('/api/orders', ordersRouter);
+
+  // Add authentication middleware for all other API routes
   app.use('/api', authMiddleware);
 
   // Register GDPR compliance routes

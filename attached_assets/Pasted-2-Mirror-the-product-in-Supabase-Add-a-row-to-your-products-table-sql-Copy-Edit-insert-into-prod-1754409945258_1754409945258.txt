@@ -1,0 +1,109 @@
+2 ⃣ Mirror the product in Supabase
+Add a row to your products table:
+
+sql
+Copy
+Edit
+insert into products
+  (id, name, price_id, image_url, inventory_qty, is_active)
+values
+  ('prod_SoQA5dM74NBE7A',
+   'Off-White Ceramic Dog Bowl',
+   'price_1QzABCdEFgHIjk',      -- real price ID from step 1
+   'https://your-bucket.supabase.co/storage/v1/object/public/images/dog-bowl.png',
+   100,                         -- if you want to track stock
+   true);
+3 ⃣ Backend route: POST /api/create-checkout-session
+Example (Node/Express on Replit, but adapt to your stack):
+
+js
+Copy
+Edit
+import Stripe from 'stripe';
+import express from 'express';
+import cors from 'cors';
+
+const app = express();
+app.use(cors());
+app.use(express.json());
+
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+
+app.post('/api/create-checkout-session', async (req, res) => {
+  const { user_id, price_id, quantity = 1 } = req.body;
+
+  try {
+    const session = await stripe.checkout.sessions.create({
+      mode: 'payment',
+      line_items: [
+        { price: price_id, quantity },
+      ],
+      metadata: { supabase_user_id: user_id },   // handy for the webhook
+      success_url: `${process.env.FRONTEND_URL}/success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url:  `${process.env.FRONTEND_URL}/cart`,
+    });
+
+    res.json({ url: session.url });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'stripe_error' });
+  }
+});
+
+app.listen(3000, () => console.log('server running'));
+4 ⃣ Front-end “Buy” button
+tsx
+Copy
+Edit
+// React example
+const handleBuy = async () => {
+  const res = await fetch('/api/create-checkout-session', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      user_id: currentUser.id,
+      price_id: product.price_id,
+      quantity: 1,
+    }),
+  });
+
+  const { url } = await res.json();
+  window.location.href = url;   // redirect to Stripe Checkout
+};
+Wire that to your “Add to Cart / Buy Now” UI.
+
+5 ⃣ Webhook: checkout.session.completed
+Create the endpoint in Stripe → copy the signing secret → store in STRIPE_WEBHOOK_SECRET.
+
+js
+Copy
+Edit
+app.post('/api/stripe-webhook', express.raw({ type: 'application/json' }), (req, res) => {
+  let event;
+  try {
+    event = stripe.webhooks.constructEvent(
+      req.body,
+      req.headers['stripe-signature'],
+      process.env.STRIPE_WEBHOOK_SECRET
+    );
+  } catch (err) {
+    console.error('⚠️  Webhook signature verification failed.', err);
+    return res.sendStatus(400);
+  }
+
+  if (event.type === 'checkout.session.completed') {
+    const session = event.data.object;
+    // 1. look up price_id / product in Supabase
+    // 2. write to orders + order_items tables
+    // 3. update inventory if you track it
+  }
+
+  res.json({ received: true });
+});
+6 ⃣ Environment variables to set in Replit
+ini
+Copy
+Edit
+STRIPE_SECRET_KEY=sk_test_...
+STRIPE_WEBHOOK_SECRET=whsec_...
+FRONTEND_URL=https://your-mypup-site.repl.co

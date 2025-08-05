@@ -12,6 +12,10 @@ import {
   notifications,
   transactions,
   adminLogs,
+  products,
+  orders,
+  orderItems,
+  subscriptions,
   type User, 
   type InsertUser,
   type Profile,
@@ -37,7 +41,15 @@ import {
   type Transaction,
   type InsertTransaction,
   type AdminLog,
-  type InsertAdminLog
+  type InsertAdminLog,
+  type Product,
+  type InsertProduct,
+  type Order,
+  type InsertOrder,
+  type OrderItem,
+  type InsertOrderItem,
+  type Subscription,
+  type InsertSubscription
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, or, like, sql } from "drizzle-orm";
@@ -132,6 +144,24 @@ export interface IStorage {
   deleteUserPosts(userId: string): Promise<boolean>;
   deleteUserComments(userId: string): Promise<boolean>;
   deleteProfile(id: string): Promise<boolean>;
+
+  // Store/Ecommerce methods
+  getProducts(filters?: { isActive?: boolean; isSubscription?: boolean }): Promise<Product[]>;
+  getProduct(id: string): Promise<Product | undefined>;
+  getProductById(id: string): Promise<Product | undefined>;
+  createProduct(product: InsertProduct): Promise<Product>;
+  updateProduct(id: string, product: Partial<InsertProduct>): Promise<Product | undefined>;
+  
+  createOrder(order: InsertOrder): Promise<Order>;
+  getOrder(id: string): Promise<Order | undefined>;
+  getUserOrders(userId: string): Promise<Order[]>;
+  
+  createOrderItem(orderItem: InsertOrderItem): Promise<OrderItem>;
+  getOrderItems(orderId: string): Promise<OrderItem[]>;
+  
+  createSubscription(subscription: InsertSubscription): Promise<Subscription>;
+  getSubscription(id: string): Promise<Subscription | undefined>;
+  getUserSubscriptions(userId: string): Promise<Subscription[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -503,6 +533,83 @@ export class DatabaseStorage implements IStorage {
   async deleteProfile(id: string): Promise<boolean> {
     const result = await db.delete(profiles).where(eq(profiles.id, id));
     return (result.rowCount ?? 0) > 0;
+  }
+
+  // Store/Ecommerce methods
+  async getProducts(filters?: { isActive?: boolean; isSubscription?: boolean }): Promise<Product[]> {
+    let query = db.select().from(products);
+    if (filters?.isActive !== undefined) {
+      query = query.where(eq(products.is_active, filters.isActive));
+    }
+    if (filters?.isSubscription !== undefined) {
+      if (filters.isActive !== undefined) {
+        query = query.where(and(eq(products.is_active, filters.isActive), eq(products.is_subscription, filters.isSubscription)));
+      } else {
+        query = query.where(eq(products.is_subscription, filters.isSubscription));
+      }
+    }
+    return await query.orderBy(products.name);
+  }
+
+  async getProduct(id: string): Promise<Product | undefined> {
+    const result = await db.select().from(products).where(eq(products.id, id)).limit(1);
+    return result[0];
+  }
+
+  async getProductById(id: string): Promise<Product | undefined> {
+    return await this.getProduct(id);
+  }
+
+  async createProduct(product: InsertProduct): Promise<Product> {
+    const result = await db.insert(products).values([product]).returning();
+    return result[0];
+  }
+
+  async updateProduct(id: string, product: Partial<InsertProduct>): Promise<Product | undefined> {
+    const result = await db.update(products).set(product).where(eq(products.id, id)).returning();
+    return result[0];
+  }
+
+  async createOrder(order: InsertOrder): Promise<Order> {
+    const result = await db.insert(orders).values([order]).returning();
+    return result[0];
+  }
+
+  async getOrder(id: string): Promise<Order | undefined> {
+    const result = await db.select().from(orders).where(eq(orders.id, id)).limit(1);
+    return result[0];
+  }
+
+  async getUserOrders(userId: string): Promise<Order[]> {
+    return await db.select().from(orders)
+      .where(eq(orders.user_id, userId))
+      .orderBy(desc(orders.created_at));
+  }
+
+  async createOrderItem(orderItem: InsertOrderItem): Promise<OrderItem> {
+    const result = await db.insert(orderItems).values([orderItem]).returning();
+    return result[0];
+  }
+
+  async getOrderItems(orderId: string): Promise<OrderItem[]> {
+    return await db.select().from(orderItems)
+      .where(eq(orderItems.order_id, orderId));
+  }
+
+  async createSubscription(subscription: InsertSubscription): Promise<Subscription> {
+    const result = await db.insert(subscriptions).values([subscription]).returning();
+    return result[0];
+  }
+
+  async getSubscription(id: string): Promise<Subscription | undefined> {
+    const result = await db.select().from(subscriptions).where(eq(subscriptions.id, id)).limit(1);
+    return result[0];
+  }
+
+  async getUserSubscriptions(userId: string): Promise<Subscription[]> {
+    return await db.select().from(subscriptions)
+      .where(eq(subscriptions.user_id, userId))
+      .orderBy(desc(subscriptions.created_at));
   }
 }
 

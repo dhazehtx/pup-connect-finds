@@ -750,3 +750,87 @@ export type SupportTicketReply = typeof supportTicketReplies.$inferSelect;
 export type InsertSupportTicketReply = z.infer<typeof insertSupportTicketReplySchema>;
 export type BugReport = typeof bugReports.$inferSelect;
 export type InsertBugReport = z.infer<typeof insertBugReportSchema>;
+
+// ===== STORE & ECOMMERCE SCHEMAS =====
+
+// Products table for marketplace items
+export const products = pgTable("products", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  name: text("name").notNull(),
+  description: text("description"),
+  stripe_product_id: text("stripe_product_id"),
+  stripe_price_id: text("stripe_price_id"),
+  image_url: text("image_url"),
+  inventory_qty: integer("inventory_qty").default(0),
+  is_subscription: boolean("is_subscription").default(false),
+  is_active: boolean("is_active").default(true),
+  unit_price: decimal("unit_price", { precision: 10, scale: 2 }).notNull(),
+  created_at: timestamp("created_at").defaultNow(),
+  updated_at: timestamp("updated_at").defaultNow(),
+});
+
+// Orders table for purchase tracking
+export const orders = pgTable("orders", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  user_id: uuid("user_id").references(() => profiles.id),
+  stripe_session_id: text("stripe_session_id"),
+  amount_total: decimal("amount_total", { precision: 10, scale: 2 }).notNull(),
+  status: text("status").default("pending"), // pending, paid, shipped, cancelled
+  is_subscription: boolean("is_subscription").default(false),
+  created_at: timestamp("created_at").defaultNow(),
+  updated_at: timestamp("updated_at").defaultNow(),
+});
+
+// Order items for detailed purchase tracking
+export const orderItems = pgTable("order_items", {
+  id: serial("id").primaryKey(),
+  order_id: uuid("order_id").references(() => orders.id, { onDelete: "cascade" }),
+  product_id: uuid("product_id").references(() => products.id),
+  qty: integer("qty").notNull(),
+  unit_price: decimal("unit_price", { precision: 10, scale: 2 }).notNull(),
+  created_at: timestamp("created_at").defaultNow(),
+});
+
+// Subscriptions table for Pup Box tracking
+export const subscriptions = pgTable("subscriptions", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  user_id: uuid("user_id").references(() => profiles.id),
+  stripe_subscription_id: text("stripe_subscription_id").unique(),
+  status: text("status").default("active"), // active, cancelled, past_due
+  created_at: timestamp("created_at").defaultNow(),
+  updated_at: timestamp("updated_at").defaultNow(),
+});
+
+// Store schema exports
+export const insertProductSchema = createInsertSchema(products).omit({ 
+  id: true, 
+  created_at: true, 
+  updated_at: true 
+});
+
+export const insertOrderSchema = createInsertSchema(orders).omit({ 
+  id: true, 
+  created_at: true, 
+  updated_at: true 
+});
+
+export const insertOrderItemSchema = createInsertSchema(orderItems).omit({ 
+  id: true, 
+  created_at: true 
+});
+
+export const insertSubscriptionSchema = createInsertSchema(subscriptions).omit({ 
+  id: true, 
+  created_at: true, 
+  updated_at: true 
+});
+
+// Store type exports
+export type Product = typeof products.$inferSelect;
+export type InsertProduct = z.infer<typeof insertProductSchema>;
+export type Order = typeof orders.$inferSelect;
+export type InsertOrder = z.infer<typeof insertOrderSchema>;
+export type OrderItem = typeof orderItems.$inferSelect;
+export type InsertOrderItem = z.infer<typeof insertOrderItemSchema>;
+export type Subscription = typeof subscriptions.$inferSelect;
+export type InsertSubscription = z.infer<typeof insertSubscriptionSchema>;
