@@ -16,30 +16,31 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import SearchBar from '@/components/SearchBar';
 import { COMPONENTS, buildCardClass, buildButtonClass } from '@/styles/constants';
 
-// Advanced Filters Panel Component
+// Advanced Filters Panel Component - Matches screenshot layout
 const AdvancedFilters = () => (
-  <div className="mb-8 bg-gray-50 rounded-lg p-6">
+  <div className="mb-8 bg-white border border-gray-200 rounded-lg p-6">
     <div className="flex items-center justify-between mb-6">
       <h3 className="text-lg font-semibold text-gray-900">Advanced Filters</h3>
-      <Button variant="ghost" className="text-gray-600 text-sm">Clear All</Button>
+      <Button variant="ghost" className="text-gray-600 text-sm hover:text-gray-900">Clear All</Button>
     </div>
     
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      {/* Sort By */}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">Sort By</label>
-        <Select defaultValue="newest">
-          <SelectTrigger>
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="newest">Newest First</SelectItem>
-            <SelectItem value="price-low">Price: Low to High</SelectItem>
-            <SelectItem value="price-high">Price: High to Low</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-      
+    {/* Sort By */}
+    <div className="mb-6">
+      <label className="block text-sm font-medium text-gray-700 mb-2">Sort By</label>
+      <Select defaultValue="newest">
+        <SelectTrigger className="w-48">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="newest">Newest First</SelectItem>
+          <SelectItem value="price-low">Price: Low to High</SelectItem>
+          <SelectItem value="price-high">Price: High to Low</SelectItem>
+        </SelectContent>
+      </Select>
+    </div>
+    
+    {/* Main Filter Grid - 6 columns like screenshot */}
+    <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
       {/* Breed */}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">Breed</label>
@@ -116,35 +117,106 @@ const AdvancedFilters = () => (
           </SelectContent>
         </Select>
       </div>
+      
+      {/* Coat Length */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">Coat Length</label>
+        <Select defaultValue="all-coat">
+          <SelectTrigger>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all-coat">All Coat Types</SelectItem>
+            <SelectItem value="short">Short</SelectItem>
+            <SelectItem value="medium">Medium</SelectItem>
+            <SelectItem value="long">Long</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
     </div>
     
     {/* Price Range */}
-    <div className="mt-6">
+    <div className="mb-6">
       <label className="block text-sm font-medium text-gray-700 mb-2">Price Range: $0 - $10000</label>
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <Input placeholder="0" className="text-sm" />
-        </div>
-        <div>
-          <Input placeholder="10000" className="text-sm" />
-        </div>
-      </div>
     </div>
     
-    {/* Age Range */}
-    <div className="mt-6 grid grid-cols-2 gap-4">
+    {/* Age, Location, Distance, Size Row */}
+    <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">Min Age (weeks)</label>
+        <label className="block text-sm font-medium text-gray-700 mb-2">📅 Min Age (weeks)</label>
         <Input placeholder="0" className="text-sm" />
       </div>
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">Max Age (weeks)</label>
+        <label className="block text-sm font-medium text-gray-700 mb-2">📅 Max Age (weeks)</label>
         <Input placeholder="104" className="text-sm" />
+      </div>
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">🌍 Location</label>
+        <Input placeholder="City, State" className="text-sm" />
+      </div>
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">📏 Size</label>
+        <Select defaultValue="any-size">
+          <SelectTrigger>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="any-size">Any Size</SelectItem>
+            <SelectItem value="small">Small</SelectItem>
+            <SelectItem value="medium">Medium</SelectItem>
+            <SelectItem value="large">Large</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
     </div>
     
-    {/* Checkboxes */}
-    <div className="mt-6 grid grid-cols-2 md:grid-cols-4 gap-4">
+    {/* Training, Energy, Paperwork Row */}
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">Training Level</label>
+        <Select defaultValue="any-level">
+          <SelectTrigger>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="any-level">Any Level</SelectItem>
+            <SelectItem value="basic">Basic</SelectItem>
+            <SelectItem value="intermediate">Intermediate</SelectItem>
+            <SelectItem value="advanced">Advanced</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">Energy Level</label>
+        <Select defaultValue="any-energy">
+          <SelectTrigger>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="any-energy">Any Level</SelectItem>
+            <SelectItem value="low">Low</SelectItem>
+            <SelectItem value="medium">Medium</SelectItem>
+            <SelectItem value="high">High</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">Paperwork</label>
+        <Select defaultValue="any-papers">
+          <SelectTrigger>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="any-papers">Any</SelectItem>
+            <SelectItem value="akc">AKC Registered</SelectItem>
+            <SelectItem value="champion">Champion Bloodline</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+    </div>
+    
+    {/* Checkboxes - Match screenshot layout */}
+    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
       <div className="flex items-center space-x-2">
         <input type="checkbox" id="verified" className="rounded border-gray-300" />
         <label htmlFor="verified" className="text-sm text-gray-600">Verified only</label>
@@ -161,63 +233,78 @@ const AdvancedFilters = () => (
         <input type="checkbox" id="vaccinated" className="rounded border-gray-300" />
         <label htmlFor="vaccinated" className="text-sm text-gray-600">Vaccinated</label>
       </div>
+      <div className="flex items-center space-x-2">
+        <input type="checkbox" id="spayed" className="rounded border-gray-300" />
+        <label htmlFor="spayed" className="text-sm text-gray-600">Spayed/Neutered</label>
+      </div>
+      <div className="flex items-center space-x-2">
+        <input type="checkbox" id="good-kids" className="rounded border-gray-300" />
+        <label htmlFor="good-kids" className="text-sm text-gray-600">Good with kids</label>
+      </div>
     </div>
   </div>
 );
 
-// Search & Filter Component
+// Search & Filter Component - Clean Layout like screenshots
 const SearchAndFilters = ({ showAdvanced, setShowAdvanced }: { showAdvanced: boolean, setShowAdvanced: (show: boolean) => void }) => (
-  <div className={`mb-8 ${buildCardClass('base')} p-6`}>
-    <div className="flex items-center justify-between mb-6">
-      <h2 className={`${COMPONENTS.HEADING_SECONDARY}`}>Search & Filter</h2>
+  <div className="mb-6">
+    {/* Search & Filter Header */}
+    <div className="flex items-center justify-between mb-4">
+      <h2 className="text-lg font-semibold text-gray-900">Search & Filter</h2>
       <Button 
         variant="ghost" 
-        className="text-primary-600 font-medium hover:bg-gray-100"
+        className="text-gray-600 hover:text-gray-900 hover:bg-gray-100 flex items-center gap-2"
         onClick={() => setShowAdvanced(!showAdvanced)}
       >
-        <Filter className="w-4 h-4 mr-2" />
+        <Filter className="w-4 h-4" />
         Advanced Filters
       </Button>
     </div>
     
-    <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
-      <div className="flex-1 w-full sm:max-w-md">
-        <SearchBar 
-          placeholder="Search puppies, breeds, or breeders..." 
-          className="w-full"
-        />
+    {/* Search Bar Row */}
+    <div className="flex items-center gap-4">
+      {/* Search Input */}
+      <div className="flex-1">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+          <Input
+            placeholder="Search puppies..."
+            className="pl-10 h-10 border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+          />
+        </div>
       </div>
       
-      <div className="flex flex-wrap gap-3">
-        <Select defaultValue="all-breeds">
-          <SelectTrigger className={`w-40 ${COMPONENTS.SELECT_BASE}`}>
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all-breeds">All Breeds</SelectItem>
-            <SelectItem value="golden-retriever">Golden Retriever</SelectItem>
-            <SelectItem value="labrador">Labrador</SelectItem>
-            <SelectItem value="french-bulldog">French Bulldog</SelectItem>
-            <SelectItem value="german-shepherd">German Shepherd</SelectItem>
-            <SelectItem value="bulldog">Bulldog</SelectItem>
-          </SelectContent>
-        </Select>
-        
-        <div className="flex items-center gap-2 px-3 py-2 bg-gray-50 rounded-lg">
-          <CheckSquare className="w-4 h-4 text-gray-400" />
-          <span className={`text-sm ${COMPONENTS.TEXT_MUTED}`}>Verified only</span>
-        </div>
-        
-        <Button variant="ghost" className="hover:bg-gray-100">
-          <Filter className="w-4 h-4 mr-2" />
-          Clear Filters
-        </Button>
+      {/* All Breeds Dropdown */}
+      <Select defaultValue="all-breeds">
+        <SelectTrigger className="w-40 h-10 border-gray-300">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="all-breeds">All Breeds</SelectItem>
+          <SelectItem value="golden-retriever">Golden Retriever</SelectItem>
+          <SelectItem value="labrador">Labrador</SelectItem>
+          <SelectItem value="french-bulldog">French Bulldog</SelectItem>
+          <SelectItem value="german-shepherd">German Shepherd</SelectItem>
+          <SelectItem value="bulldog">Bulldog</SelectItem>
+        </SelectContent>
+      </Select>
+      
+      {/* Verified Only Checkbox */}
+      <div className="flex items-center gap-2">
+        <input type="checkbox" id="verified-only" className="rounded border-gray-300" />
+        <label htmlFor="verified-only" className="text-sm text-gray-700">Verified only</label>
       </div>
+      
+      {/* Clear Filters */}
+      <Button variant="ghost" className="text-gray-600 hover:text-gray-900 hover:bg-gray-100 flex items-center gap-2">
+        <Filter className="w-4 h-4" />
+        Clear Filters
+      </Button>
     </div>
   </div>
 );
 
-// Popular Breeds Component
+// Popular Breeds Component - Matches screenshot layout exactly
 const PopularBreeds = () => {
   const breeds = [
     "Golden Retriever", "Labrador Retriever", "German Shepherd", 
@@ -225,15 +312,15 @@ const PopularBreeds = () => {
   ];
   
   return (
-    <div className="mb-8">
-      <h2 className="text-lg font-semibold text-gray-900 mb-4">Popular Breeds</h2>
+    <div className="mb-6">
+      <h3 className="text-lg font-semibold text-gray-900 mb-3">Popular Breeds</h3>
       <div className="flex flex-wrap gap-2">
         {breeds.map((breed) => (
           <Button
             key={breed}
             variant="outline"
             size="sm"
-            className="text-sm text-gray-700 border-gray-300 hover:bg-gray-50"
+            className="text-sm text-gray-700 border-gray-300 hover:bg-gray-50 rounded-full px-4 py-2 h-auto"
           >
             {breed}
           </Button>
