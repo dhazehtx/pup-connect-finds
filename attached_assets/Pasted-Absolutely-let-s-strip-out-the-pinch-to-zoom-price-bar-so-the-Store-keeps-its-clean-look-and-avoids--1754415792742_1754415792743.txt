@@ -1,0 +1,92 @@
+Absolutely—let’s strip out the pinch-to-zoom price bar so the Store keeps its clean look and avoids accidental zoom gestures. Below is a safe, copy-paste-ready approach that:
+
+Removes the pinch gesture handler and the visual slider bar.
+
+Keeps the rest of your gesture features (swipe to fav / add-to-cart).
+
+Leaves a quick hook if you decide to add a classic min/max price filter later.
+
+1 Find the filter component
+In your project tree you should have something like:
+
+cpp
+Copy
+Edit
+/components
+ └─ StoreFilterBar.tsx   // <- this is the one we’ll edit
+If your file is named differently, open the one that contains:
+
+tsx
+Copy
+Edit
+import { useGesture } from '@use-gesture/react'   // or 'react-use-gesture'
+...
+const bind = useGesture({
+  onPinch: ({ da }) => setPriceRange(da[0]),      // <-- pinch handler
+})
+2 Remove the pinch logic
+A. Delete the gesture hook
+diff
+Copy
+Edit
+-import { useGesture } from '@use-gesture/react';
+...
+-const bind = useGesture({
+-  onPinch: ({ da }) => setPriceRange(da[0]),
+-});
+B. Remove the spread props on your price bar container
+diff
+Copy
+Edit
+-<div {...bind()} className="price-slider">   // old
++{/* Price slider removed */}
+C. (Optional) Yank the state & instructions
+diff
+Copy
+Edit
+-const [priceRange, setPriceRange] = useState([0, 100]);
+...
+-<p className="text-center text-xs text-gray-500">
+-  Use pinch gesture to adjust price range
+-</p>
+If anything else references priceRange, comment those lines out or Switch to a simple fixed value.
+
+3 Delete / hide the bar in JSX
+If you had a horizontal slider styled like the blue bar in your screenshot, comment it out:
+
+diff
+Copy
+Edit
+-<div className="w-full h-1 bg-gray-200 rounded-full overflow-hidden mt-4">
+-  <div
+-    className="h-full bg-primaryBlue transition-all"
+-    style={{ width: `${priceRange}%` }}
+-  />
+-</div>
+Now nothing renders and no gestures are attached.
+
+4 (Option) Replace with a classic dropdown later
+tsx
+Copy
+Edit
+{/* Simple price sort – easiest fallback */}
+<select
+  className="border rounded-lg px-3 py-2"
+  onChange={(e) => setSort(e.target.value)}
+>
+  <option value="price_asc">Price: Low → High</option>
+  <option value="price_desc">Price: High → Low</option>
+</select>
+No gestures needed; you can wire it to your Supabase query.
+
+5 Remove the instruction text block
+In your Gesture Controls panel delete the “Pinch on price bar to adjust range” list item so the help copy stays accurate.
+
+6 Commit & test
+Save → the preview pane should hot-reload.
+
+Scroll the Store page—no blue slider bar, no instructions, swipe actions still work.
+
+Tap / pinch—Store cards shouldn’t move or zoom anymore.
+
+If everything looks good, push to your main branch and deploy.
