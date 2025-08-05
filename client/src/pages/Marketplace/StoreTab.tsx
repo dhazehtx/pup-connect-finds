@@ -1,19 +1,22 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Filter, Star, ChevronDown, Check } from 'lucide-react';
 import FilterDrawer from './FilterDrawer';
-import { useCart } from '@/lib/CartContext';
+import { useCart } from '@/hooks/use-cart';
+import { useQuery } from '@tanstack/react-query';
 
 interface Product {
-  id: number;
+  id: string;
   name: string;
-  category: string;
-  price: number;
+  description: string | null;
+  unit_price: string;
+  image_url: string | null;
+  is_subscription: boolean;
+  is_active: boolean;
+  inventory_qty: number;
+  category?: string;
   rating?: number;
   reviews?: number;
-  image: string;
-  description: string;
-  inStock: boolean;
 }
 
 type SortType = 'featured' | 'price-low-high' | 'price-high-low' | 'rating';
@@ -25,92 +28,22 @@ interface FilterState {
 }
 
 const StoreTab = () => {
-  const { addItem } = useCart();
-  const [addedItems, setAddedItems] = useState<Set<number>>(new Set());
+  const { addToCart, isInCart } = useCart();
+  const [addedItems, setAddedItems] = useState<Set<string>>(new Set());
 
-  // Product seed data
-  const [products] = useState<Product[]>([
-    {
-      id: 1,
-      name: "Bone Toy",
-      category: "Toys",
-      price: 10,
-      rating: 4.5,
-      image: "https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=400",
-      description: "Classic bone-shaped toy for dogs",
-      inStock: true
+  // Fetch products from API
+  const { data: productsResponse, isLoading, error } = useQuery({
+    queryKey: ['/api/products'],
+    queryFn: async () => {
+      const response = await fetch('/api/products');
+      if (!response.ok) {
+        throw new Error('Failed to fetch products');
+      }
+      return response.json();
     },
-    {
-      id: 2,
-      name: "Dog Bed",
-      category: "Accessories",
-      price: 49,
-      rating: 4.2,
-      image: "https://images.unsplash.com/photo-1581888227599-779811939961?w=400",
-      description: "Comfortable orthopedic bed",
-      inStock: true
-    },
-    {
-      id: 3,
-      name: "Rope Toy",
-      category: "Toys",
-      price: 12,
-      rating: 4.8,
-      image: "https://images.unsplash.com/photo-1548199973-03cce0bbc87b?w=400",
-      description: "Interactive rope toy for play",
-      inStock: true
-    },
-    {
-      id: 4,
-      name: "Dog Bowl",
-      category: "Accessories",
-      price: 8,
-      rating: 4.1,
-      image: "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=400",
-      description: "Durable food and water bowl",
-      inStock: true
-    },
-    {
-      id: 5,
-      name: "Dog Mat",
-      category: "Accessories",
-      price: 27,
-      rating: 4.0,
-      image: "https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?w=400",
-      description: "Non-slip feeding mat",
-      inStock: true
-    },
-    {
-      id: 6,
-      name: "Ball Toy",
-      category: "Toys",
-      price: 6,
-      rating: 4.7,
-      image: "https://images.unsplash.com/photo-1589924691995-400dc9ecc119?w=400",
-      description: "Bouncy rubber ball toy",
-      inStock: true
-    },
-    {
-      id: 7,
-      name: "Pet Bowl",
-      category: "Accessories",
-      price: 15,
-      rating: 4.3,
-      image: "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=400",
-      description: "Stainless steel pet bowl",
-      inStock: true
-    },
-    {
-      id: 8,
-      name: "Premium Dog Food",
-      category: "Food & Treats",
-      price: 35,
-      rating: 4.9,
-      image: "https://images.unsplash.com/photo-1589924691995-400dc9ecc119?w=400",
-      description: "High-quality dry dog food",
-      inStock: true
-    }
-  ]);
+  });
+
+  const products = productsResponse?.data || [];
 
   const [sortType, setSortType] = useState<SortType>('featured');
   const [isFilterOpen, setIsFilterOpen] = useState(false);
@@ -130,15 +63,23 @@ const StoreTab = () => {
   // Apply filters function
   const applyFilters = (products: Product[], filterState: FilterState): Product[] => {
     return products.filter(product => {
-      // Category filter
+      // Category filter - derive category from product name or description
+      const category = product.category || (
+        product.name.toLowerCase().includes('toy') ? 'Toys' :
+        product.name.toLowerCase().includes('bed') || product.name.toLowerCase().includes('bowl') ? 'Accessories' :
+        product.name.toLowerCase().includes('food') || product.name.toLowerCase().includes('treat') ? 'Food & Treats' :
+        'Other'
+      );
+      
       const matchesCategory = filterState.categories.length === 0 || 
-        filterState.categories.includes(product.category);
+        filterState.categories.includes(category);
       
       // Price filter
-      const matchesPrice = product.price >= filterState.minPrice && 
-        product.price <= filterState.maxPrice;
+      const price = parseFloat(product.unit_price);
+      const matchesPrice = price >= filterState.minPrice && 
+        price <= filterState.maxPrice;
       
-      return matchesCategory && matchesPrice;
+      return matchesCategory && matchesPrice && product.is_active;
     });
   };
 
@@ -148,14 +89,14 @@ const StoreTab = () => {
     
     switch (sortType) {
       case 'price-low-high':
-        return sorted.sort((a, b) => a.price - b.price);
+        return sorted.sort((a, b) => parseFloat(a.unit_price) - parseFloat(b.unit_price));
       case 'price-high-low':
-        return sorted.sort((a, b) => b.price - a.price);
+        return sorted.sort((a, b) => parseFloat(b.unit_price) - parseFloat(a.unit_price));
       case 'rating':
-        return sorted.sort((a, b) => (b.rating || 0) - (a.rating || 0));
+        return sorted.sort((a, b) => (b.rating || 4.5) - (a.rating || 4.5));
       case 'featured':
       default:
-        return sorted.sort((a, b) => a.id - b.id);
+        return sorted.sort((a, b) => a.name.localeCompare(b.name));
     }
   };
 
@@ -188,11 +129,12 @@ const StoreTab = () => {
   const currentSortLabel = sortOptions.find(option => option.value === sortType)?.label || 'Featured';
 
   const handleAddToCart = (product: Product) => {
-    addItem({
+    addToCart({
       id: product.id,
       name: product.name,
-      price: product.price,
-      image: product.image
+      unit_price: product.unit_price,
+      image_url: product.image_url,
+      is_subscription: product.is_subscription
     });
     
     // Show "Added" state for 1.5 seconds
@@ -236,60 +178,99 @@ const StoreTab = () => {
           </Button>
         </div>
 
+        {/* Loading state */}
+        {isLoading && (
+          <div className="text-center py-8">
+            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
+            <p className="mt-2 text-gray-600">Loading products...</p>
+          </div>
+        )}
+
+        {/* Error state */}
+        {error && (
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-center">
+            <p className="text-red-600">Failed to load products. Please try again.</p>
+          </div>
+        )}
+
         {/* Results count */}
-        <div className="text-sm text-gray-600">
-          Showing {filteredAndSortedProducts.length} products
-        </div>
+        {!isLoading && !error && (
+          <div className="text-sm text-gray-600">
+            Showing {filteredAndSortedProducts.length} products
+          </div>
+        )}
 
         {/* Products Grid */}
-        <div className="grid grid-cols-2 gap-4">
-          {filteredAndSortedProducts.map((product) => (
-            <div key={product.id} className="bg-white rounded-3xl border border-gray-200 shadow-sm p-4">
-              <div className="relative mb-3">
-                <img
-                  src={product.image}
-                  alt={product.name}
-                  className="w-full h-32 object-cover rounded-xl"
-                />
-              </div>
+        {!isLoading && !error && (
+          <div className="grid grid-cols-2 gap-4">
+            {filteredAndSortedProducts.map((product) => {
+              const price = parseFloat(product.unit_price);
+              const inStock = product.inventory_qty > 0;
+              const alreadyInCart = isInCart(product.id);
               
-              <div className="space-y-2">
-                <h3 className="font-semibold text-primary-600 text-base">{product.name}</h3>
-                
-                {product.rating && (
-                  <div className="flex items-center gap-1">
-                    {[...Array(5)].map((_, i) => (
-                      <Star 
-                        key={i} 
-                        className={`h-3 w-3 ${i < Math.floor(product.rating || 0) ? 'text-yellow-400 fill-current' : 'text-gray-300'}`} 
-                      />
-                    ))}
-                    <span className="text-xs text-gray-600 ml-1">{product.rating}</span>
+              return (
+                <div key={product.id} className="bg-white rounded-3xl border border-gray-200 shadow-sm p-4">
+                  <div className="relative mb-3">
+                    <img
+                      src={product.image_url || "https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=400"}
+                      alt={product.name}
+                      className="w-full h-32 object-cover rounded-xl"
+                    />
+                    {product.is_subscription && (
+                      <div className="absolute top-2 right-2 bg-orange-500 text-white text-xs px-2 py-1 rounded-full">
+                        Subscription
+                      </div>
+                    )}
                   </div>
-                )}
+                  
+                  <div className="space-y-2">
+                    <h3 className="font-semibold text-primary-600 text-base">{product.name}</h3>
+                    
+                    <div className="flex items-center gap-1">
+                      {[...Array(5)].map((_, i) => (
+                        <Star 
+                          key={i} 
+                          className={`h-3 w-3 ${i < Math.floor(product.rating || 4.5) ? 'text-yellow-400 fill-current' : 'text-gray-300'}`} 
+                        />
+                      ))}
+                      <span className="text-xs text-gray-600 ml-1">{product.rating || '4.5'}</span>
+                    </div>
 
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-lg font-bold text-primary-600">${product.price}</span>
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-lg font-bold text-primary-600">
+                        ${price.toFixed(2)}
+                        {product.is_subscription && <span className="text-sm font-normal">/month</span>}
+                      </span>
+                    </div>
+                    
+                    <Button 
+                      disabled={!inStock || addedItems.has(product.id) || alreadyInCart}
+                      onClick={() => handleAddToCart(product)}
+                      className="w-full py-2 btn-primary"
+                      variant={alreadyInCart ? "secondary" : "default"}
+                    >
+                      {addedItems.has(product.id) ? (
+                        <>
+                          <Check className="w-4 h-4 mr-2" />
+                          Added
+                        </>
+                      ) : alreadyInCart ? (
+                        <>
+                          <Check className="w-4 h-4 mr-2" />
+                          In Cart
+                        </>
+                      ) : !inStock ? (
+                        'Out of Stock'
+                      ) : (
+                        'Add to Cart'
+                      )}
+                    </Button>
+                  </div>
                 </div>
-                
-                <Button 
-                  disabled={!product.inStock || addedItems.has(product.id)}
-                  onClick={() => handleAddToCart(product)}
-                  className="w-full py-2 btn-primary"
-                >
-                  {addedItems.has(product.id) ? (
-                    <>
-                      <Check className="w-4 h-4 mr-2" />
-                      Added
-                    </>
-                  ) : (
-                    'Add to Cart'
-                  )}
-                </Button>
-              </div>
-            </div>
-          ))}
-        </div>
+              );
+            })}
+          </div>
+        )}
 
         {filteredAndSortedProducts.length === 0 && (
           <div className="bg-white rounded-3xl border border-gray-200 shadow-sm p-12 text-center mx-4">
