@@ -54,6 +54,7 @@ const ErrorTestPage = lazy(() => import('./pages/ErrorTestPage'));
 const AdminLogsPage = lazy(() => import('./pages/AdminLogsPage'));
 const AdminReportsPage = lazy(() => import('./pages/AdminReportsPage'));
 const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
+const AdminStore = lazy(() => import('./pages/AdminStore'));
 const ReportsTestPage = lazy(() => import('./pages/ReportsTestPage'));
 const NavigationTestPage = lazy(() => import('./pages/NavigationTestPage'));
 const AdminActionTestPage = lazy(() => import('./pages/AdminActionTestPage'));
@@ -190,6 +191,13 @@ function App() {
                     <ProtectedRoute>
                       <Suspense fallback={<LoadingPage message="Loading Admin Dashboard..." />}>
                         <AdminDashboard />
+                      </Suspense>
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/admin/store" element={
+                    <ProtectedRoute>
+                      <Suspense fallback={<LoadingPage message="Loading Admin Store..." />}>
+                        <AdminStore />
                       </Suspense>
                     </ProtectedRoute>
                   } />

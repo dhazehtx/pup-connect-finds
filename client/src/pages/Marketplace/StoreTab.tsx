@@ -59,9 +59,12 @@ const StoreTab = () => {
   // Create checkout session mutation
   const checkoutMutation = useMutation({
     mutationFn: async (productId: string) => {
-      const response = await apiRequest('POST', '/api/checkout', {
-        product_id: productId,
-        quantity: 1
+      const response = await apiRequest('/api/checkout', {
+        method: 'POST',
+        body: JSON.stringify({
+          product_id: productId,
+          quantity: 1
+        })
       });
       return response.json();
     },
