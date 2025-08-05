@@ -10,8 +10,8 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import { useCart } from "@/hooks/use-cart";
-import { useAuthState } from '@/lib/auth';
+import { useCart, type CartItem } from "@/hooks/use-cart";
+import { useAuthState } from '@/hooks/useAuthState';
 
 interface CartFabProps {
   className?: string;
@@ -21,12 +21,12 @@ export function CartFab({ className = "" }: CartFabProps) {
   const { cart, updateQuantity, removeFromCart, getTotalPrice, getItemCount, clearCart } = useCart();
   const [isOpen, setIsOpen] = useState(false);
   const [isCheckingOut, setIsCheckingOut] = useState(false);
-  const { authState } = useAuthState();
+  const { user, session } = useAuthState();
 
   const totalItems = getItemCount();
 
   const handleCheckout = async () => {
-    if (!authState.user?.id) {
+    if (!user?.id) {
       alert('Please sign in to checkout');
       return;
     }
@@ -37,7 +37,7 @@ export function CartFab({ className = "" }: CartFabProps) {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${authState.session?.access_token}`,
+          'Authorization': `Bearer ${session?.access_token}`,
         },
         body: JSON.stringify({
           items: cart
@@ -100,7 +100,7 @@ export function CartFab({ className = "" }: CartFabProps) {
             </p>
           ) : (
             <>
-              {cart.map((item) => (
+              {cart.map((item: CartItem) => (
                 <div key={item.id} className="flex items-center space-x-4 p-4 border rounded-lg">
                   <img
                     src={item.image_url || "/placeholder-product.jpg"}
