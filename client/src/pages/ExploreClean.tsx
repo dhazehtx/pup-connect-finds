@@ -582,16 +582,36 @@ const RealListings = ({ data, loading }: { data: any[], loading: boolean }) => {
 
   return (
     <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-      {data.map((listing) => {
-        // Transform Supabase data to match ListingCard expected format
-        const transformedListing = {
-          ...listing,
-          name: listing.dog_name || listing.name,
-          images: listing.image_url ? [listing.image_url] : (listing.images || []),
-          user_id: listing.user_id
-        };
-        return <ListingCard key={listing.id} listing={transformedListing} />;
-      })}
+      {data.map((listing) => (
+        <Card key={listing.id} className="hover:shadow-lg transition-shadow">
+          <div className="aspect-[4/3] overflow-hidden">
+            <img
+              src={listing.image_url || '/placeholder.svg'}
+              alt={listing.dog_name}
+              className="w-full h-full object-cover"
+              onError={(e) => {
+                (e.target as HTMLImageElement).src = '/placeholder.svg';
+              }}
+            />
+          </div>
+          <CardContent className="p-4">
+            <div className="mb-2">
+              <Badge className="bg-green-600 text-white text-xs mb-2">
+                ${listing.price?.toLocaleString() || 'Contact'}
+              </Badge>
+            </div>
+            <h3 className="font-semibold text-lg mb-2">{listing.dog_name}</h3>
+            <div className="space-y-1">
+              <p className="text-sm text-gray-600">{listing.breed}</p>
+              <p className="text-sm text-gray-600">{listing.age} weeks old</p>
+              <p className="text-sm text-gray-600">{listing.location}</p>
+            </div>
+            {listing.description && (
+              <p className="text-sm text-gray-500 mt-2 line-clamp-2">{listing.description}</p>
+            )}
+          </CardContent>
+        </Card>
+      ))}
     </div>
   );
 };
