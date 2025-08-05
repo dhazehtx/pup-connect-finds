@@ -4,18 +4,19 @@ import { authMiddleware } from "../middleware/auth";
 
 const router = Router();
 
-// GET /api/products - Get all products with filtering
+// GET /api/products - Get all products with filtering and sorting
 router.get("/", async (req, res) => {
   try {
     const page = parseInt(req.query.page as string) || 1;
     const limit = parseInt(req.query.limit as string) || 10;
     const activeOnly = req.query.active !== "false";
     const subscriptionOnly = req.query.subscription === "true";
+    const sort = req.query.sort as string || 'featured';
 
     const products = await storage.getProducts({
       isActive: activeOnly,
       isSubscription: subscriptionOnly ? true : undefined
-    });
+    }, sort);
 
     // Simple pagination
     const startIndex = (page - 1) * limit;

@@ -1,6 +1,7 @@
 import { Router } from "express";
 import Stripe from "stripe";
 import { storage } from "../storage";
+import { PostHog } from 'posthog-node';
 
 const router = Router();
 
@@ -9,6 +10,14 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
 });
 
 const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
+
+// Initialize PostHog (only if token is available)
+const posthog = process.env.POSTHOG_TOKEN ? new PostHog(
+  process.env.POSTHOG_TOKEN,
+  { 
+    host: process.env.POSTHOG_HOST || 'https://app.posthog.com'
+  }
+) : null;
 
 // Stripe webhook endpoint
 router.post("/stripe", async (req, res) => {
@@ -70,6 +79,25 @@ router.post("/stripe", async (req, res) => {
         });
 
         console.log('✅ Order created successfully:', order.id);
+        
+        // Track purchase event in PostHog
+        if (posthog && session.customer) {
+          try {
+            await posthog.capture({
+              distinctId: session.customer,
+              event: 'purchase',
+              properties: {
+                order_id: order.id,
+                total: session.amount_total / 100,
+                currency: session.currency,
+                items: [productId]
+              }
+            });
+            console.log('📊 Purchase event tracked in PostHog');
+          } catch (analyticsError) {
+            console.error('⚠️ Failed to track purchase event:', analyticsError);
+          }
+        }
         
       } catch (error) {
         console.error('Error processing checkout session:', error);
