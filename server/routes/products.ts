@@ -60,4 +60,34 @@ router.post("/", authMiddleware, async (req, res) => {
   }
 });
 
+// POST /api/products/sync-stripe - Sync products from Stripe
+router.post("/sync-stripe", authMiddleware, async (req, res) => {
+  try {
+    const { syncStripeProducts } = await import("../utils/stripeSync");
+    const syncedProducts = await syncStripeProducts();
+    res.json({ 
+      message: `Successfully synced ${syncedProducts.length} products from Stripe`,
+      products: syncedProducts 
+    });
+  } catch (error) {
+    console.error("Error syncing Stripe products:", error);
+    res.status(500).json({ error: "Failed to sync Stripe products" });
+  }
+});
+
+// POST /api/products/:id/checkout - Create Stripe checkout session
+router.post("/:id/checkout", authMiddleware, async (req, res) => {
+  try {
+    const { createStripeCheckoutSession } = await import("../utils/stripeSync");
+    const { quantity = 1 } = req.body;
+    const userId = req.user?.id;
+    
+    const session = await createStripeCheckoutSession(req.params.id, quantity, userId);
+    res.json({ checkout_url: session.url });
+  } catch (error) {
+    console.error("Error creating checkout session:", error);
+    res.status(500).json({ error: "Failed to create checkout session" });
+  }
+});
+
 export default router;

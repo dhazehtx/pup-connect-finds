@@ -755,7 +755,7 @@ export type InsertBugReport = z.infer<typeof insertBugReportSchema>;
 
 // Products table for marketplace items
 export const products = pgTable("products", {
-  id: uuid("id").primaryKey().defaultRandom(),
+  id: text("id").primaryKey(), // Using Stripe product ID as primary key
   name: text("name").notNull(),
   description: text("description"),
   stripe_product_id: text("stripe_product_id"),
@@ -764,7 +764,9 @@ export const products = pgTable("products", {
   inventory_qty: integer("inventory_qty").default(0),
   is_subscription: boolean("is_subscription").default(false),
   is_active: boolean("is_active").default(true),
-  unit_price: decimal("unit_price", { precision: 10, scale: 2 }).notNull(),
+  unit_price: text("unit_price").notNull(), // Stored as string to avoid precision issues
+  currency: text("currency").default("usd"),
+  metadata: jsonb("metadata"), // Store additional Stripe metadata
   created_at: timestamp("created_at").defaultNow(),
   updated_at: timestamp("updated_at").defaultNow(),
 });
