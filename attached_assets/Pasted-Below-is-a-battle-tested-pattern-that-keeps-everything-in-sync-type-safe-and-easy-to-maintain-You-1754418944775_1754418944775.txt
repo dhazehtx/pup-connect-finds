@@ -1,0 +1,191 @@
+Below is a battle-tested pattern that keeps everything in sync, type-safe, and easy to maintain.
+You already have Stripe ↔ Supabase ↔ React set up for checkout; we’ll plug the Store UI into the same pipeline.
+
+0 Folder / file map
+pgsql
+Copy
+Edit
+/src
+ ├─ lib/
+ │   ├─ supabase.ts         ← Supabase JS client
+ │   └─ stripe.ts           ← axios wrapper pointing at your “create-checkout-session” route
+ ├─ pages/
+ │   ├─ marketplace/
+ │   │   └─ index.tsx       ← *Shop / Store* tab
+ │   └─ api/
+ │       └─ create-checkout-session.ts
+ └─ components/
+     ├─ ProductCard.tsx
+     └─ BuyButton.tsx
+1 Mirror Stripe products in Supabase
+You already inserted rows manually, but automation keeps them fresh:
+
+ts
+Copy
+Edit
+// scripts/syncStripeToSupabase.ts
+import Stripe from 'stripe';
+import { createClient } from '@supabase/supabase-js';
+
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string);
+const supabase = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE!);
+
+(async () => {
+  const products = await stripe.products.list({ limit: 100 });
+  for (const p of products.data) {
+    const price = (await stripe.prices.list({ product: p.id })).data[0];
+
+    await supabase
+      .from('products')
+      .upsert({
+        id: p.id,                        // prod_…
+        name: p.name,
+        price_id: price.id,              // price_…
+        price: price.unit_amount!,       // cents
+        currency: price.currency,
+        image_url: p.images[0] ?? null,  // you can push your own later
+        is_active: !p.metadata.hidden,
+      });
+  }
+})();
+Run locally or as a GitHub/Replit cron whenever you add products in Stripe.
+
+2 Store the product photos
+Upload each PNG/JPG to Supabase Storage → bucket “product-images”.
+
+Turn on “Public” policy (or generate signed URLs at runtime).
+
+Copy the public URL; paste it into the image_url cell for that product (or set p.images[0] in Stripe, then resync).
+
+3 Client-side: fetch and display
+tsx
+Copy
+Edit
+// pages/marketplace/index.tsx
+import { useEffect, useState } from 'react';
+import { supabase } from '@/lib/supabase';
+import ProductCard from '@/components/ProductCard';
+
+export default function StorePage() {
+  const [products, setProducts] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    supabase
+      .from('products')
+      .select('*')
+      .eq('is_active', true)
+      .order('price', { ascending: true })
+      .then(({ data, error }) => {
+        if (error) console.error(error);
+        setProducts(data || []);
+        setLoading(false);
+      });
+  }, []);
+
+  if (loading) return <p className="text-center mt-10">Loading…</p>;
+
+  return (
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 p-4">
+      {products.map((p) => (
+        <ProductCard key={p.id} product={p} />
+      ))}
+    </div>
+  );
+}
+4 Product card component
+tsx
+Copy
+Edit
+// components/ProductCard.tsx
+import BuyButton from './BuyButton';
+
+export default function ProductCard({ product }: { product: any }) {
+  return (
+    <div className="rounded-xl shadow-md bg-white p-4 flex flex-col">
+      <img
+        src={product.image_url ?? '/placeholder.png'}
+        alt={product.name}
+        className="aspect-square object-cover rounded-lg mb-4"
+      />
+      <h3 className="font-semibold text-lg">{product.name}</h3>
+      <p className="text-primaryBlue mt-auto mb-2">
+        {(product.price / 100).toFixed(2)} {product.currency.toUpperCase()}
+      </p>
+      <BuyButton priceId={product.price_id} />
+    </div>
+  );
+}
+5 Buy button (Stripe redirect)
+tsx
+Copy
+Edit
+// components/BuyButton.tsx
+import { useState } from 'react';
+import axios from 'axios';
+
+export default function BuyButton({ priceId }: { priceId: string }) {
+  const [loading, setLoading] = useState(false);
+
+  const handleClick = async () => {
+    setLoading(true);
+    try {
+      const { data } = await axios.post('/api/create-checkout-session', {
+        price_id: priceId,
+        quantity: 1,
+        user_id: localStorage.getItem('uid'), // or pull from auth context
+      });
+      window.location.href = data.url;       // Stripe Checkout
+    } catch (err) {
+      console.error(err);
+      alert('Payment error');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <button
+      onClick={handleClick}
+      disabled={loading}
+      className="bg-primaryBlue text-white rounded-lg py-2 hover:bg-primaryBlue/90 disabled:opacity-50"
+    >
+      {loading ? 'Redirecting…' : 'Buy now'}
+    </button>
+  );
+}
+Client key: you don’t need the Stripe publishable key here because you’re redirecting—Stripe-JS is loaded within Checkout.
+If you ever switch to Payment Element or Link, add loadStripe(PUBLISHABLE_KEY).
+
+6 Server route recap
+You already have this, but ensure it’s reachable at /api/create-checkout-session and returns { url }.
+
+ts
+Copy
+Edit
+line_items: [{ price: req.body.price_id, quantity: req.body.quantity }]
+7 Webhook → orders
+Your /api/stripe-webhook should:
+
+Verify the event.
+
+On checkout.session.completed, insert into orders & order_items (use session.metadata.supabase_user_id).
+
+Optionally send a confirmation e-mail.
+
+8 Navigation tab / routing
+In whatever file defines your bottom navbar:
+
+tsx
+Copy
+Edit
+<Link href="/marketplace">
+  <NavItem icon={<StoreIcon />} title="Store" active={pathname === '/marketplace'} />
+</Link>
+…and that’s it—your Store tab now:
+
+pulls live product rows from Supabase,
+
+shows the polished images you generated,
+
+and sends users to Stripe Checkout with a single click.
