@@ -14,7 +14,6 @@ import productsRouter from './routes/products';
 import checkoutRouter from './routes/checkout';
 import ordersRouter from './routes/orders';
 import webhookRouter from './routes/webhook';
-import discountsRouter from './routes/discounts';
 import { registerHealthRoutes } from './routes/health';
 import { storage } from "./storage";
 import { 
@@ -100,7 +99,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api/checkout', checkoutRouter);
   app.use('/api/orders', ordersRouter);
   app.use('/api/webhook', webhookRouter);
-  app.use('/api/discounts', discountsRouter);
 
   // Add authentication middleware for all other API routes
   app.use('/api', authMiddleware);

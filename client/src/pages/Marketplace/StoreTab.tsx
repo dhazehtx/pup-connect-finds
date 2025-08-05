@@ -22,7 +22,7 @@ interface Product {
   reviews?: number;
 }
 
-type SortType = 'featured' | 'price-low-high' | 'price-high-low' | 'sale' | 'bestseller';
+type SortType = 'featured' | 'price-low-high' | 'price-high-low' | 'rating';
 
 interface FilterState {
   categories: string[];
@@ -42,11 +42,11 @@ const StoreTab = () => {
     maxPrice: 100
   });
 
-  // Fetch products from API with sort parameter
+  // Fetch products from API
   const { data: productsResponse, isLoading, error } = useQuery({
-    queryKey: ['/api/products', sortType],
+    queryKey: ['/api/products'],
     queryFn: async () => {
-      const response = await fetch(`/api/products?sort=${sortType}`);
+      const response = await fetch('/api/products');
       if (!response.ok) {
         throw new Error('Failed to fetch products');
       }
@@ -83,10 +83,9 @@ const StoreTab = () => {
 
   const sortOptions = [
     { value: 'featured', label: 'Featured' },
-    { value: 'price-low-high', label: 'Price: Low → High' },
-    { value: 'price-high-low', label: 'Price: High → Low' },
-    { value: 'sale', label: 'Sale' },
-    { value: 'bestseller', label: 'Best-Selling' }
+    { value: 'price-low-high', label: 'Price (Low→High)' },
+    { value: 'price-high-low', label: 'Price (High→Low)' },
+    { value: 'rating', label: 'Rating' }
   ];
 
   // Apply filters function
@@ -121,16 +120,8 @@ const StoreTab = () => {
         return sorted.sort((a, b) => parseFloat(a.unit_price) - parseFloat(b.unit_price));
       case 'price-high-low':
         return sorted.sort((a, b) => parseFloat(b.unit_price) - parseFloat(a.unit_price));
-      case 'sale':
-        return sorted.sort((a, b) => {
-          // Prioritize discounted items first
-          if (a.is_discounted && !b.is_discounted) return -1;
-          if (!a.is_discounted && b.is_discounted) return 1;
-          // Then sort by price ascending
-          return parseFloat(a.unit_price) - parseFloat(b.unit_price);
-        });
-      case 'bestseller':
-        return sorted.sort((a, b) => (b.total_sold || 0) - (a.total_sold || 0));
+      case 'rating':
+        return sorted.sort((a, b) => (b.rating || 4.5) - (a.rating || 4.5));
       case 'featured':
       default:
         return sorted.sort((a, b) => a.name.localeCompare(b.name));

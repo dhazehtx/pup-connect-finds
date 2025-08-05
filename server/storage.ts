@@ -146,14 +146,7 @@ export interface IStorage {
   deleteProfile(id: string): Promise<boolean>;
 
   // Store/Ecommerce methods
-  getProducts(filters?: { isActive?: boolean; isSubscription?: boolean }, sort?: string): Promise<Product[]>;
-  getLowStockProducts(): Promise<Product[]>;
-  markProductAsAlerted(id: string): Promise<void>;
-
-  // Discount methods
-  createDiscount(data: any): Promise<any>;
-  getAllDiscounts(): Promise<any[]>;
-  validateDiscountCode(code: string): Promise<any | null>;
+  getProducts(filters?: { isActive?: boolean; isSubscription?: boolean }): Promise<Product[]>;
   getProduct(id: string): Promise<Product | undefined>;
   getProductById(id: string): Promise<Product | undefined>;
   createProduct(product: InsertProduct): Promise<Product>;
@@ -543,72 +536,19 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Store/Ecommerce methods
-  async getProducts(filters?: { isActive?: boolean; isSubscription?: boolean }, sort?: string): Promise<Product[]> {
-    // Use product_sales view for sorting capabilities
-    let query = db.select().from(sql`product_sales`);
-    
+  async getProducts(filters?: { isActive?: boolean; isSubscription?: boolean }): Promise<Product[]> {
+    let query = db.select().from(products);
     if (filters?.isActive !== undefined) {
-      query = query.where(sql`is_active = ${filters.isActive}`);
+      query = query.where(eq(products.is_active, filters.isActive));
     }
     if (filters?.isSubscription !== undefined) {
       if (filters.isActive !== undefined) {
-        query = query.where(sql`is_active = ${filters.isActive} AND is_subscription = ${filters.isSubscription}`);
+        query = query.where(and(eq(products.is_active, filters.isActive), eq(products.is_subscription, filters.isSubscription)));
       } else {
-        query = query.where(sql`is_subscription = ${filters.isSubscription}`);
+        query = query.where(eq(products.is_subscription, filters.isSubscription));
       }
     }
-    
-    // Apply sorting
-    switch (sort) {
-      case 'price-low-high':
-        query = query.orderBy(sql`unit_price::numeric ASC`);
-        break;
-      case 'price-high-low':
-        query = query.orderBy(sql`unit_price::numeric DESC`);
-        break;
-      case 'sale':
-        query = query.orderBy(sql`is_discounted DESC, unit_price::numeric ASC`);
-        break;
-      case 'bestseller':
-        query = query.orderBy(sql`total_sold DESC`);
-        break;
-      case 'featured':
-      default:
-        query = query.orderBy(sql`is_active DESC, name ASC`);
-        break;
-    }
-    
-    return await query;
-  }
-
-  async getLowStockProducts(): Promise<Product[]> {
-    return await db.select().from(products)
-      .where(and(
-        sql`inventory_qty < 5`,
-        eq(products.low_stock_alerted, false)
-      ));
-  }
-
-  async markProductAsAlerted(id: string): Promise<void> {
-    await db.update(products)
-      .set({ low_stock_alerted: true })
-      .where(eq(products.id, id));
-  }
-
-  // Discount methods - simplified for now
-  async createDiscount(data: any): Promise<any> {
-    console.log('Create discount called with:', data);
-    return { id: 'discount-1', ...data };
-  }
-
-  async getAllDiscounts(): Promise<any[]> {
-    console.log('Get all discounts called');
-    return [];
-  }
-
-  async validateDiscountCode(code: string): Promise<any | null> {
-    console.log('Validate discount code called with:', code);
-    return null;
+    return await query.orderBy(products.name);
   }
 
   async getProduct(id: string): Promise<Product | undefined> {

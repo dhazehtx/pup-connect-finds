@@ -1,6 +1,5 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
-import { setupInventoryAlerts } from "./cron/inventory-alerts";
 import { setupVite, serveStatic, log } from "./vite";
 import { initializeSentry, Sentry, captureError } from "./utils/sentry";
 
@@ -43,9 +42,6 @@ app.use((req, res, next) => {
 
 (async () => {
   const server = await registerRoutes(app);
-  
-  // Setup cron jobs
-  setupInventoryAlerts();
 
   // Sentry error handling middleware (only if initialized)
   if (process.env.SENTRY_DSN) {
