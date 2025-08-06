@@ -1,5 +1,6 @@
 import React from 'react';
-import { Link, useLocation } from 'wouter';
+import { Link } from 'react-router-dom';
+import { useLocation } from 'wouter';
 import { useAuth } from '@/contexts/AuthContext';
 import { useAdminPageTracking } from '@/hooks/useAdminPageTracking';
 import { Shield, FileText, Users, BarChart3, Settings, AlertTriangle } from 'lucide-react';
@@ -168,8 +169,8 @@ const AdminDashboard = () => {
         {/* Admin Modules */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {adminModules.map((module, index) => (
-            <Link key={index} href={module.path}>
-              <Card className={`cursor-pointer transition-all duration-200 ${module.color} border-2`}>
+            <Link key={index} to={module.path} className="text-decoration-none">
+              <Card className={`cursor-pointer transition-all duration-200 hover:shadow-lg ${module.color} border-2`}>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-3">
                     {module.icon}
