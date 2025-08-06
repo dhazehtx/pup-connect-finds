@@ -33,45 +33,24 @@ const FilterBarWithSupabase = ({
   const [breeds, setBreeds] = useState([]);
   const [loadingBreeds, setLoadingBreeds] = useState(true);
 
-  // Fetch breeds from Supabase
+  // Fetch all 50 popular breeds from Supabase
   useEffect(() => {
     const fetchBreeds = async () => {
       try {
-        // First, try to get distinct breeds from existing listings if breeds table doesn't exist
-        const { data, error } = await supabase
-          .from('dog_listings')
-          .select('breed')
-          .eq('status', 'active');
+        const { data: breeds, error } = await supabase
+          .from('breeds')
+          .select('name')
+          .order('popularity_rank', { ascending: true })
+          .limit(50);
         
         if (error) {
-          console.error('Error fetching breeds from listings:', error);
-          // Fallback to popular breeds if query fails
-          setBreeds([
-            { name: 'Golden Retriever' },
-            { name: 'Labrador Retriever' },
-            { name: 'German Shepherd' },
-            { name: 'French Bulldog' },
-            { name: 'Bulldog' },
-            { name: 'Poodle' },
-            { name: 'Beagle' },
-            { name: 'Rottweiler' }
-          ]);
-        } else {
-          // Get unique breeds from actual listings
-          const uniqueBreeds = [...new Set(data?.map(item => item.breed) || [])];
-          setBreeds(uniqueBreeds.map(breed => ({ name: breed })));
+          console.error('Error fetching breeds:', error);
+          return;
         }
+        
+        setBreeds(breeds || []);
       } catch (error) {
         console.error('Error fetching breeds:', error);
-        // Fallback to popular breeds
-        setBreeds([
-          { name: 'Golden Retriever' },
-          { name: 'Labrador Retriever' },
-          { name: 'German Shepherd' },
-          { name: 'French Bulldog' },
-          { name: 'Bulldog' },
-          { name: 'Poodle' }
-        ]);
       } finally {
         setLoadingBreeds(false);
       }
