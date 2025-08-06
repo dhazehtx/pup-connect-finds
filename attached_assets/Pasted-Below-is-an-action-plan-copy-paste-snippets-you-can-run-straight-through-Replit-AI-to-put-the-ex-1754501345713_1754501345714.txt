@@ -1,0 +1,304 @@
+Below is an “action plan + copy-paste snippets” you can run straight through Replit AI to put the exact advanced-filter experience you remember back in place. It assumes you’ve already adopted the scaffold from the canvas prompt (“Explore Page Redesign Prompt”) and that your Supabase tables breeds, breed_colors, and listings are still intact.
+
+1 ▪ Recover the last good filter UI (optional but fast)
+Lovable version history
+
+Open the Explore page file’s history (⌘⇧H in Lovable).
+
+Scroll back to the commit right before the refactor (the one whose preview still shows the big advanced-filters sheet).
+
+Copy the JSX for the AdvancedFilters component and any utility hooks (useBreedColorOptions, etc.).
+
+Paste into a scratch file in Replit for reference.
+
+Git (if committed)
+
+bash
+Copy
+Edit
+# In the Replit shell
+git log --oneline -- pages/explore.tsx
+git checkout <good-commit> -- pages/explore/AdvancedFilters.tsx
+Save that file under /components/legacy/AdvancedFilters_old.tsx for comparison.
+
+If you can’t find the old code, skip to step 2—everything is rebuilt below.
+
+2 ▪ Supabase: verify / seed data
+sql
+Copy
+Edit
+-- breeds (only id + name needed for filter)
+INSERT INTO breeds (id, name)
+SELECT * FROM (VALUES
+  (1,'French Bulldog'),
+  (2,'Golden Retriever'),
+  (3,'Labrador Retriever'),
+  … -- supply the rest of your top-50 list
+) AS tmp
+ON CONFLICT DO NOTHING;
+
+-- breed_colors (one row per (breed_id, color))
+INSERT INTO breed_colors (breed_id, color)
+VALUES
+  (1,'Brindle'), (1,'Cream'), (1,'Fawn'),
+  (2,'Golden'), (2,'Light Golden'),
+  …
+ON CONFLICT DO NOTHING;
+Tip: If the tables already exist, just make sure they still contain at least those 50 breeds and their color sets.
+
+3 ▪ Create the reusable filters context & hooks
+/context/ExploreFiltersContext.tsx
+
+tsx
+Copy
+Edit
+import { createContext, useContext, useState } from 'react';
+
+export type Filters = {
+  breedId: number | null;
+  color: string | null;
+  gender: 'male' | 'female' | 'any';
+  price: [number, number];
+  location: { city: string; lat: number | null; lng: number | null; radiusKm: number };
+  sort: 'newest' | 'price_low' | 'price_high' | 'featured';
+  age: { minWeeks: number; maxWeeks: number };
+  source: string | null;
+  coatLength: string | null;
+  training: string | null;
+  energy: string | null;
+  paperwork: string | null;
+  toggles: {
+    verified: boolean;
+    availableNow: boolean;
+    healthChecked: boolean;
+    vaccinated: boolean;
+    goodWithKids: boolean;
+    goodWithPets: boolean;
+    spayedNeutered: boolean;
+  };
+};
+
+const defaultFilters: Filters = {
+  breedId: null,
+  color: null,
+  gender: 'any',
+  price: [0, 10000],
+  location: { city: '', lat: null, lng: null, radiusKm: 999 },
+  sort: 'newest',
+  age: { minWeeks: 0, maxWeeks: 104 },
+  source: null,
+  coatLength: null,
+  training: null,
+  energy: null,
+  paperwork: null,
+  toggles: {
+    verified: false,
+    availableNow: false,
+    healthChecked: false,
+    vaccinated: false,
+    goodWithKids: false,
+    goodWithPets: false,
+    spayedNeutered: false,
+  },
+};
+
+const ExploreFiltersContext = createContext<{
+  filters: Filters;
+  setFilters: React.Dispatch<React.SetStateAction<Filters>>;
+}>({ filters: defaultFilters, setFilters: () => {} });
+
+export const ExploreFiltersProvider = ({ children }: { children: React.ReactNode }) => {
+  const [filters, setFilters] = useState<Filters>(defaultFilters);
+  return (
+    <ExploreFiltersContext.Provider value={{ filters, setFilters }}>
+      {children}
+    </ExploreFiltersContext.Provider>
+  );
+};
+
+export const useExploreFilters = () => useContext(ExploreFiltersContext);
+4 ▪ Dynamic breed → color dropdowns
+/hooks/useBreedColorOptions.ts
+
+ts
+Copy
+Edit
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/lib/supabaseClient';
+
+export const useBreeds = () =>
+  useQuery(['breeds'], async () =>
+    (await supabase.from('breeds').select('id,name').order('name')).data || []
+  );
+
+export const useColorsByBreed = (breedId: number | null) =>
+  useQuery(
+    ['colors', breedId],
+    async () =>
+      breedId
+        ? (
+            await supabase
+              .from('breed_colors')
+              .select('color')
+              .eq('breed_id', breedId)
+              .order('color')
+          ).data?.map((c) => c.color) || []
+        : [],
+    { enabled: !!breedId }
+  );
+5 ▪ AdvancedFilters component (compact but mirrors your screenshot)
+tsx
+Copy
+Edit
+// /components/AdvancedFilters.tsx
+import { Listbox, Switch } from '@headlessui/react';
+import { useBreeds, useColorsByBreed } from '@/hooks/useBreedColorOptions';
+import { useExploreFilters } from '@/context/ExploreFiltersContext';
+
+export default function AdvancedFilters() {
+  const { filters, setFilters } = useExploreFilters();
+  const { data: breeds } = useBreeds();
+  const { data: colors } = useColorsByBreed(filters.breedId);
+
+  return (
+    <section className="space-y-4">
+      {/* Sort */}
+      <Listbox value={filters.sort} onChange={(v) => setFilters((f) => ({ ...f, sort: v }))}>
+        {/* button / options omitted for brevity */}
+      </Listbox>
+
+      {/* Grid of dropdowns */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        {/* Breed */}
+        <Listbox
+          value={filters.breedId}
+          onChange={(id) => setFilters((f) => ({ ...f, breedId: id, color: null }))}
+        >
+          {/* ... */}
+          {breeds?.slice(0, 50).map((b) => (
+            <Listbox.Option key={b.id} value={b.id}>
+              {b.name}
+            </Listbox.Option>
+          ))}
+        </Listbox>
+
+        {/* Color – only shows if a breed is selected */}
+        <Listbox
+          disabled={!filters.breedId}
+          value={filters.color}
+          onChange={(c) => setFilters((f) => ({ ...f, color: c }))}
+        >
+          {colors?.map((c) => (
+            <Listbox.Option key={c} value={c}>
+              {c}
+            </Listbox.Option>
+          ))}
+        </Listbox>
+
+        {/* Gender, Coat Length, etc. – replicate pattern */}
+      </div>
+
+      {/* Age, price, toggles */}
+      {/* … add inputs / sliders exactly per screenshot … */}
+    </section>
+  );
+}
+Why HeadlessUI Listbox? It’s tiny, accessible, easy to style, and already bundled in most Tailwind setups.
+
+6 ▪ Fetch listings via stored procedure
+sql
+Copy
+Edit
+-- In Supabase SQL editor
+create or replace function fetch_listings(filters jsonb, page_size int, page_offset int)
+returns setof listings as $$
+begin
+  return query
+  select *
+  from listings l
+  where ($1->>'breedId' is null or l.breed_id = ($1->>'breedId')::int)
+    and ($1->>'color'   is null or l.color = $1->>'color')
+    and (l.price between ($1->'price')->>0::int and ($1->'price')->>1::int)
+    -- add remaining filter clauses
+  order by
+    case when $1->>'sort' = 'newest'       then l.created_at end desc,
+    case when $1->>'sort' = 'price_low'    then l.price      end asc,
+    case when $1->>'sort' = 'price_high'   then l.price      end desc,
+    case when $1->>'sort' = 'featured'     then l.is_featured end desc
+  limit page_size offset page_offset;
+end;
+$$ language plpgsql;
+/hooks/useListings.ts
+
+ts
+Copy
+Edit
+import { useInfiniteQuery } from '@tanstack/react-query';
+import { supabase } from '@/lib/supabaseClient';
+import { useExploreFilters } from '@/context/ExploreFiltersContext';
+
+export const useListings = () => {
+  const { filters } = useExploreFilters();
+  return useInfiniteQuery(
+    ['listings', filters],
+    async ({ pageParam = 0 }) => {
+      const { data, error } = await supabase.rpc('fetch_listings', {
+        filters,
+        page_size: 20,
+        page_offset: pageParam,
+      });
+      if (error) throw error;
+      return data;
+    },
+    {
+      getNextPageParam: (_, pages) => pages.length * 20,
+    }
+  );
+};
+7 ▪ Wire filters to the Explore page
+tsx
+Copy
+Edit
+// /pages/explore.tsx
+import { ExploreFiltersProvider } from '@/context/ExploreFiltersContext';
+import AdvancedFilters from '@/components/AdvancedFilters';
+import ListingsGrid from '@/components/ListingsGrid';
+
+export default function ExplorePage() {
+  return (
+    <ExploreFiltersProvider>
+      <main className="max-w-7xl mx-auto px-4 py-6">
+        <h1 className="text-2xl font-semibold mb-4">Explore Puppies</h1>
+        <AdvancedFilters />
+        <ListingsGrid />
+      </main>
+    </ExploreFiltersProvider>
+  );
+}
+ListingsGrid just consumes useListings() and renders <PuppyCard />, with an IntersectionObserver on the last card to trigger fetchNextPage().
+
+8 ▪ Quick QA checklist
+Check	Expectation
+Breed ➜ color	Color dropdown enabled only after breed select and includes correct colors
+Top-50 breeds	Dropdown truncated, alphabetical
+Pagination	Infinite scroll loads 20 listings at a time
+Sort	“Newest first / Price low-high / Price high-low / Featured” all work
+Mobile	Filter sheet collapses into slide-up modal (use @headlessui/react Dialog)
+Lighthouse	≥ 90 score, no console errors
+
+Ready-to-paste prompt (for Replit AI)
+Feel free to lift this block directly:
+
+pgsql
+Copy
+Edit
+🚀 Task: Restore full AdvancedFilters UI with breed → color linkage (top-50 breeds) and connect to Supabase.
+
+1. Add context/hooks from /context/ExploreFiltersContext.tsx and /hooks/useBreedColorOptions.ts.
+2. Create AdvancedFilters.tsx exactly as provided (HeadlessUI Listbox inputs).
+3. Seed/update Supabase tables `breeds` and `breed_colors` with 50 breeds + colors.
+4. Add SQL function `fetch_listings` and implement useListings hook.
+5. Mount ExploreFiltersProvider in pages/explore.tsx and include AdvancedFilters + ListingsGrid.
+6. Verify breed/color dependency, price slider, age range, toggles, and sort dropdown.
+7. Push; preview; Lighthouse ≥ 90; no TypeScript errors.
+Run the above, commit, and you’ll be right back to the rich filter experience shown in your first three screenshots. Ping me with any compile errors or UI glitches and we’ll iron them out fast.
