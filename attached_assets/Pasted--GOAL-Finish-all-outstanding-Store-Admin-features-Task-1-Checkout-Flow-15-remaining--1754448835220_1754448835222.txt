@@ -1,0 +1,103 @@
+🎯 GOAL  
+Finish all outstanding Store & Admin features:
+
+🚀 Task 1: Checkout Flow (15% remaining)  
+  • Implement Stripe webhook handler for checkout.session.completed →  
+      – verify signature, insert into orders & order_items, decrement inventory_qty  
+  • Wire every “Buy Now” button to call /api/checkout → redirect to session.url  
+  • Smoke-test a purchase with 4242 4242 4242 4242 and confirm order row + inventory change  
+
+🏪 Task 2: Store Backend (10% remaining)  
+  • Create “seedProducts.ts” script to bulk-manage real products via Stripe API ↔ Supabase  
+  • In your checkout webhook, after order insert, decrement products.inventory_qty  
+
+🛠️ Task 3: Admin Panel (80% remaining)  
+  • Implement GET/POST/PUT/DELETE handlers in `/admin/store` route (protected by is_admin)  
+  • Build `<AdminStoreTable>` with inline edits for name, price, stock, is_active → Supabase mutations  
+  • Create `<AddProductModal>`:  
+      – Fields: name, price_id (dropdown from Stripe), upload image → Supabase Storage  
+      – On submit: insert into products table  
+  • Add toggles/buttons in the table for activation/deactivation and stock adjustment  
+
+──────────────────────── IMPLEMENTATION DETAILS ────────────────────────
+
+1️⃣ **Webhook**  
+```js
+// server/routes/webhook.ts
+import { stripe } from '@/lib/stripe';
+import { supabase } from '@/lib/supabase';
+
+router.post('/stripe', express.raw({ type: 'application/json' }), (req,res) => {
+  const event = stripe.webhooks.constructEvent(req.body, req.headers['stripe-signature'], process.env.STRIPE_WEBHOOK_SECRET);
+  if (event.type === 'checkout.session.completed') {
+    const sess = event.data.object;
+    // insert orders & order_items
+    // decrement inventory_qty
+  }
+  res.sendStatus(200);
+});
+2️⃣ Buy Buttons
+
+tsx
+Copy
+Edit
+// components/BuyButton.tsx
+const handleClick = async () => {
+  const { url } = await fetchJson('/api/checkout', { price_id, quantity, user_id });
+  window.location.href = url;
+};
+3️⃣ Seeder Script
+
+ts
+Copy
+Edit
+// scripts/seedProducts.ts
+import Stripe from 'stripe';
+import { createClient } from '@supabase/supabase-js';
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
+const sb = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE);
+
+async function seed() {
+  const stripeProducts = await stripe.products.list();
+  for (let p of stripeProducts.data) {
+    const price = (await stripe.prices.list({ product: p.id })).data[0];
+    await sb.from('products').upsert({ id: p.id, name: p.name, price_id: price.id, inventory_qty: 100, image_url: p.images[0], is_active: true });
+  }
+}
+seed();
+4️⃣ Admin Table & Modal
+
+tsx
+Copy
+Edit
+// pages/admin/store.tsx
+export default function AdminStore() {
+  const { data: prods } = useSupabaseQuery('products');
+  return (
+    <AdminLayout>
+      <Button onClick={() => setShowModal(true)}>Add Product</Button>
+      <Table data={prods} columns={[/* name, price, stock, active, actions */]} />
+      {showModal && <AddProductModal onClose={...} />}
+    </AdminLayout>
+  );
+}
+5️⃣ Inventory Decrement
+
+js
+Copy
+Edit
+// inside webhook
+await supabase.from('products')
+  .update({ inventory_qty: supabase.raw('inventory_qty - ?', [qty]) })
+  .eq('id', product_id);
+──────────────────────── QA CHECKLIST (auto-run) ───────────────────
+
+Task	Pass/Fail	Notes
+Webhook inserts order + decrements		
+“Buy Now” redirects to Stripe Checkout		
+Seeder script populates real products		
+Admin table CRUD works (inline edits)		
+Add-Product modal inserts new row		
+Inventory updates on purchase		
+
+Run this prompt and the Agent will scaffold the handlers, components, and scripts, then hand you the QA table so you can quickly thumb-through and close out those last tasks. Once everything is ✅, your Store + Admin MVP is truly done. Good luck!

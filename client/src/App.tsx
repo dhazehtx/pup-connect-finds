@@ -54,7 +54,7 @@ const ErrorTestPage = lazy(() => import('./pages/ErrorTestPage'));
 const AdminLogsPage = lazy(() => import('./pages/AdminLogsPage'));
 const AdminReportsPage = lazy(() => import('./pages/AdminReportsPage'));
 const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
-const AdminStore = lazy(() => import('./pages/AdminStore'));
+const AdminStore = lazy(() => import('./pages/admin/AdminStore'));
 const ReportsTestPage = lazy(() => import('./pages/ReportsTestPage'));
 const NavigationTestPage = lazy(() => import('./pages/NavigationTestPage'));
 const AdminActionTestPage = lazy(() => import('./pages/AdminActionTestPage'));

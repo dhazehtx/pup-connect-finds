@@ -151,6 +151,7 @@ export interface IStorage {
   getProductById(id: string): Promise<Product | undefined>;
   createProduct(product: InsertProduct): Promise<Product>;
   updateProduct(id: string, product: Partial<InsertProduct>): Promise<Product | undefined>;
+  decrementProductInventory(productId: string, quantity: number): Promise<boolean>;
   
   createOrder(order: InsertOrder): Promise<Order>;
   getOrder(id: string): Promise<Order | undefined>;
@@ -570,6 +571,22 @@ export class DatabaseStorage implements IStorage {
   async updateProduct(id: string, product: Partial<InsertProduct>): Promise<Product | undefined> {
     const result = await db.update(products).set(product).where(eq(products.id, id)).returning();
     return result[0];
+  }
+
+  async decrementProductInventory(productId: string, quantity: number): Promise<boolean> {
+    try {
+      const result = await db.update(products)
+        .set({ 
+          inventory_qty: sql`${products.inventory_qty} - ${quantity}`,
+          updated_at: new Date()
+        })
+        .where(eq(products.id, productId))
+        .returning();
+      return result.length > 0;
+    } catch (error) {
+      console.error('Error decrementing inventory:', error);
+      return false;
+    }
   }
 
   async createOrder(order: InsertOrder): Promise<Order> {

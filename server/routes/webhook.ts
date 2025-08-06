@@ -69,7 +69,11 @@ router.post("/stripe", async (req, res) => {
           unit_price: product.unit_price
         });
 
+        // Decrement inventory
+        await storage.decrementProductInventory(productId, quantity);
+
         console.log('✅ Order created successfully:', order.id);
+        console.log('✅ Inventory decremented for product:', productId, 'by', quantity);
         
       } catch (error) {
         console.error('Error processing checkout session:', error);
