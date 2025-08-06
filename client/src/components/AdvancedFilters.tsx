@@ -87,11 +87,11 @@ export default function AdvancedFilters() {
         <div>
           <Label className="text-sm font-medium text-gray-700 mb-2 block">Breed</Label>
           <Select
-            value={filters.breedId?.toString() || ''}
+            value={filters.breedId?.toString() || 'all'}
             onValueChange={(value) =>
               setFilters(prev => ({
                 ...prev,
-                breedId: value ? parseInt(value) : null,
+                breedId: value === 'all' ? null : parseInt(value),
                 color: null // Reset color when breed changes
               }))
             }
@@ -100,7 +100,7 @@ export default function AdvancedFilters() {
               <SelectValue placeholder="All Breeds" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All Breeds</SelectItem>
+              <SelectItem value="all">All Breeds</SelectItem>
               {breeds?.slice(0, 50).map((breed: any) => (
                 <SelectItem key={breed.id} value={breed.id.toString()}>
                   {breed.name}
@@ -114,16 +114,16 @@ export default function AdvancedFilters() {
         <div>
           <Label className="text-sm font-medium text-gray-700 mb-2 block">Source</Label>
           <Select
-            value={filters.source || ''}
+            value={filters.source || 'all'}
             onValueChange={(value) =>
-              setFilters(prev => ({ ...prev, source: value || null }))
+              setFilters(prev => ({ ...prev, source: value === 'all' ? null : value }))
             }
           >
             <SelectTrigger>
               <SelectValue placeholder="All Sources" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All Sources</SelectItem>
+              <SelectItem value="all">All Sources</SelectItem>
               <SelectItem value="breeder">Breeder</SelectItem>
               <SelectItem value="rescue">Rescue</SelectItem>
               <SelectItem value="shelter">Shelter</SelectItem>
@@ -136,17 +136,21 @@ export default function AdvancedFilters() {
         <div>
           <Label className="text-sm font-medium text-gray-700 mb-2 block">Age Group</Label>
           <Select
-            value={`${filters.age.minWeeks}-${filters.age.maxWeeks}`}
+            value={filters.age.minWeeks === 0 && filters.age.maxWeeks === 104 ? 'all' : `${filters.age.minWeeks}-${filters.age.maxWeeks}`}
             onValueChange={(value) => {
-              const [min, max] = value.split('-').map(Number);
-              setFilters(prev => ({ ...prev, age: { minWeeks: min, maxWeeks: max } }));
+              if (value === 'all') {
+                setFilters(prev => ({ ...prev, age: { minWeeks: 0, maxWeeks: 104 } }));
+              } else {
+                const [min, max] = value.split('-').map(Number);
+                setFilters(prev => ({ ...prev, age: { minWeeks: min, maxWeeks: max } }));
+              }
             }}
           >
             <SelectTrigger>
               <SelectValue placeholder="All Ages" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="0-104">All Ages</SelectItem>
+              <SelectItem value="all">All Ages</SelectItem>
               <SelectItem value="0-8">Puppy (0-8 weeks)</SelectItem>
               <SelectItem value="8-16">Young (8-16 weeks)</SelectItem>
               <SelectItem value="16-52">Adolescent (16-52 weeks)</SelectItem>
