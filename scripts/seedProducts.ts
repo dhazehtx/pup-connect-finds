@@ -94,16 +94,14 @@ async function seedProducts() {
 }
 
 // Run the seeder
-if (require.main === module) {
-  seedProducts()
-    .then(() => {
-      console.log('🏁 Seeding process finished');
-      process.exit(0);
-    })
-    .catch((error) => {
-      console.error('💥 Seeding failed:', error);
-      process.exit(1);
-    });
-}
+seedProducts()
+  .then(() => {
+    console.log('🏁 Seeding process finished');
+    process.exit(0);
+  })
+  .catch((error) => {
+    console.error('💥 Seeding failed:', error);
+    process.exit(1);
+  });
 
 export { seedProducts };
