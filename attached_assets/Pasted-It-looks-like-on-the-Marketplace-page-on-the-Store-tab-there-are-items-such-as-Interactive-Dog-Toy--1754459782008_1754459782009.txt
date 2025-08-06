@@ -1,0 +1,58 @@
+It looks like on the Marketplace page on the Store tab, there are items such as Interactive Dog Toy Bundle, Monthly Grooming Subscription, Organic Training Treats, Premium Dog Food, Large Breed. Those are items or products on the page, but they are not on my Stripe system as in my Product Catalog. The Store should not have any other products on there unless they are on the Stripe Catalog.Let's fix this issue. Write a prompt out.
+
+ChatGPT said:
+Here’s a single “fix-it” prompt you can paste into your Agent (or run as a one-off task) to lock the Store tab down so it only ever shows products you’ve synced from Stripe:
+
+ruby
+Copy
+Edit
+🎯 GOAL  
+Ensure the Marketplace/Store page only displays products that actually exist in your Stripe catalog (i.e. have a valid `stripe_price_id` and `is_active = true` in your Supabase table). Remove any hard-coded or stale entries.
+
+🛠️ TASKS
+
+1. **Backend: tighten the `/api/products` query**  
+   - In your server code (e.g. `server/routes/products.ts` or Supabase Function), update the GET handler to:
+     ```ts
+     const { data, error } = await supabase
+       .from('products')
+       .select('*')
+       .eq('is_active', true)
+       .not('stripe_price_id', 'is', null)      // only Stripe-backed
+       .order('created_at', { ascending: false });
+     ```
+   - Remove any `.or()` or manual arrays that pull in non-Stripe items.
+
+2. **Frontend: use live API response only**  
+   - In `StoreTab.tsx` (or wherever you fetch products), delete any fallback or sample-data imports:
+     ```diff
+     - import sampleProducts from '@/data/sampleProducts'
+     ```
+   - Ensure your `useEffect` or `getServerSideProps` exclusively calls `/api/products` and renders those results—no mixing with hard-coded lists.
+
+3. **Cleanup: remove stale entries**  
+   - Delete any hard-coded product arrays, JSON files, or test seed data you’re rendering in the Store UI.
+   - Confirm that your component’s state only holds the API’s `products` array.
+
+4. **Smoke Test**  
+   - Deploy the changes and visit `/marketplace` (Store tab).
+   - You should only see the 11 active, Stripe-synced products you seeded—nothing else.
+   - Click “Buy Now” on one item and verify you get taken to a valid Stripe Checkout session.
+
+──────────────────────── QA CHECKLIST ────────────────────────
+
+| ✔️  Only shows Stripe-backed items (no extras)   | Pass/Fail | Notes        |
+|:-----------------------------------------------:|:---------:|--------------|
+| API returns only `is_active=true` & `stripe_price_id≠null` |           |              |
+| Frontend renders exclusively from `/api/products` |           |              |
+| No fallback/sample data surfaces in UI         |           |              |
+| Buy buttons still work on each displayed item  |           |              |
+
+Paste that into your Agent to have it update both the backend query and frontend component, then validate using the QA table above. Once everything passes, your Store will be strictly synced to your Stripe catalog.
+
+
+
+
+
+
+
