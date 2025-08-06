@@ -2,7 +2,7 @@ import React, { useEffect, useMemo } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLocation } from 'react-router-dom';
 import ExploreGuest from '@/pages/ExploreGuest';
-import ExploreClean from '@/pages/ExploreClean';
+import ExploreAdvanced from '@/pages/ExploreAdvanced';
 
 export default function ExploreRouter() {
   const { user, loading } = useAuth();
@@ -47,6 +47,6 @@ export default function ExploreRouter() {
     return <ExploreGuest />;
   }
   
-  console.log('[EXPLORE ROUTER] User authenticated, showing clean explore');
-  return <ExploreClean />;
+  console.log('[EXPLORE ROUTER] User authenticated, showing advanced explore');
+  return <ExploreAdvanced />;
 }
