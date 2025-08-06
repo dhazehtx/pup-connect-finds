@@ -1,0 +1,169 @@
+It looks like your /admin/store route is being guarded more strictly than your main Admin Dashboard (/admin)—so even though you’re an admin for the Dashboard, the Store sub-page is still blocked. Let’s streamline that guard so any route under /admin/* is accessible to users with is_admin === true, and keep the Admin Store UI itself as simple as possible.
+
+1. Unify your admin guard
+Find the component or hook you use to protect admin routes—something like:
+
+tsx
+Copy
+Edit
+// src/components/AdminRoute.tsx
+export function AdminRoute({ children }: { children: ReactNode }) {
+  const { user } = useAuth();
+  if (!user || !user.is_admin) {
+    return <AccessDenied />;
+  }
+  return <>{children}</>;
+}
+Make sure your routing wraps both /admin and /admin/store in that same guard:
+
+tsx
+Copy
+Edit
+// src/App.tsx or wherever your router is defined
+<Routes>
+  <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
+  <Route path="/admin/store" element={<AdminRoute><AdminStore /></AdminRoute>} />
+  {/* …other routes… */}
+</Routes>
+If you’re using a layout pattern:
+
+tsx
+Copy
+Edit
+// src/pages/admin/Layout.tsx
+export default function AdminLayout({ children }) {
+  const { user } = useAuth();
+  if (!user?.is_admin) return <AccessDenied />;
+  return (
+    <>
+      <Sidebar />
+      <main>{children}</main>
+    </>
+  );
+}
+
+// Then in your pages:
+<Route path="/admin/*" element={<AdminLayout />}>
+  <Route index element={<AdminDashboard />} />
+  <Route path="store" element={<AdminStore />} />
+</Route>
+2. Simplify the Admin Store page
+Since you just want basic CRUD—inline edits and an “Add” modal—let’s strip it back:
+
+tsx
+Copy
+Edit
+// src/pages/admin/store.tsx
+import { useState, useEffect } from 'react';
+import { supabase } from '@/lib/supabase';
+import AdminLayout from '@/components/AdminLayout';
+
+export default function AdminStore() {
+  const [products, setProducts] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [showModal, setShowModal] = useState(false);
+
+  useEffect(() => {
+    supabase
+      .from('products')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .then(({ data }) => {
+        setProducts(data ?? []);
+        setLoading(false);
+      });
+  }, []);
+
+  const updateProduct = async (id, updates) => {
+    await supabase.from('products').update(updates).eq('id', id);
+    setProducts((ps) => ps.map((p) => p.id === id ? { ...p, ...updates } : p));
+  };
+
+  return (
+    <AdminLayout>
+      <h1 className="text-2xl font-bold mb-4">Store Management</h1>
+      <button onClick={() => setShowModal(true)} className="mb-4 btn">
+        + Add Product
+      </button>
+      {loading ? <p>Loading…</p> : (
+        <table className="w-full table-auto">
+          <thead>
+            <tr>
+              {['Name','Price','Stock','Active','Actions'].map((h) => (
+                <th key={h} className="p-2 text-left">{h}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {products.map((p) => (
+              <tr key={p.id} className="border-t">
+                <td><input value={p.name} onChange={(e) => updateProduct(p.id, { name: e.target.value })} className="w-full" /></td>
+                <td><input type="number" value={p.price} onChange={(e) => updateProduct(p.id, { price: +e.target.value })} className="w-full" /></td>
+                <td><input type="number" value={p.inventory_qty} onChange={(e) => updateProduct(p.id, { inventory_qty: +e.target.value })} className="w-full" /></td>
+                <td>
+                  <input
+                    type="checkbox"
+                    checked={p.is_active}
+                    onChange={(e) => updateProduct(p.id, { is_active: e.target.checked })}
+                  />
+                </td>
+                <td>
+                  <button onClick={() => {/* optionally delete */}} className="text-red-500">
+                    Delete
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+
+      {showModal && (
+        <AddProductModal onClose={() => setShowModal(false)} onCreated={(newP) => {
+          setProducts([newP, ...products]);
+          setShowModal(false);
+        }} />
+      )}
+    </AdminLayout>
+  );
+}
+And a super-basic modal:
+
+tsx
+Copy
+Edit
+// src/components/AddProductModal.tsx
+import { useState } from 'react';
+import { supabase } from '@/lib/supabase';
+
+export default function AddProductModal({ onClose, onCreated }) {
+  const [form, setForm] = useState({ name: '', price: '', price_id: '', image_url: '', inventory_qty: 0, is_active: true });
+
+  const handleSubmit = async () => {
+    const { data } = await supabase.from('products').insert([form]);
+    onCreated(data[0]);
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center">
+      <div className="bg-white p-6 rounded-lg w-96">
+        <h2 className="text-xl mb-4">Add Product</h2>
+        {['name','price','price_id','image_url','inventory_qty'].map((f) => (
+          <div className="mb-2" key={f}>
+            <label className="block">{f.replace('_',' ')}</label>
+            <input
+              type={f==='inventory_qty'||f==='price'?'number':'text'}
+              value={form[f]}
+              onChange={(e) => setForm({ ...form, [f]: f==='inventory_qty'||f==='price'? +e.target.value : e.target.value })}
+              className="w-full border px-2 py-1"
+            />
+          </div>
+        ))}
+        <div className="flex justify-end space-x-2 mt-4">
+          <button onClick={onClose} className="btn-secondary">Cancel</button>
+          <button onClick={handleSubmit} className="btn-primary">Create</button>
+        </div>
+      </div>
+    </div>
+  );
+}

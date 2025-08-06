@@ -40,7 +40,7 @@ interface EditingProduct {
 }
 
 const AdminStore = () => {
-  const { user } = useAuth();
+  const { profile } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [editingProducts, setEditingProducts] = useState<{ [key: string]: EditingProduct }>({});
@@ -56,24 +56,32 @@ const AdminStore = () => {
 
   // Fetch products
   const { data: products = [], isLoading } = useQuery({
-    queryKey: ['/api/admin/products'],
+    queryKey: ['/api/products'],
     queryFn: async () => {
-      const response = await apiRequest('/api/admin/products', { method: 'GET' });
-      return response.data || [];
+      const response = await fetch('/api/products');
+      if (!response.ok) {
+        throw new Error(`Failed to fetch products: ${response.status}`);
+      }
+      const data = await response.json();
+      return data.data || data || [];
     },
   });
 
   // Update product mutation
   const updateProductMutation = useMutation({
     mutationFn: async ({ id, updates }: { id: string; updates: Partial<Product> }) => {
-      return apiRequest(`/api/admin/products/${id}`, {
+      const response = await fetch(`/api/admin/products/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(updates)
       });
+      if (!response.ok) {
+        throw new Error('Failed to update product');
+      }
+      return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/admin/products'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/products'] });
       toast({ title: "Product updated successfully" });
     },
     onError: () => {
@@ -84,14 +92,18 @@ const AdminStore = () => {
   // Add product mutation
   const addProductMutation = useMutation({
     mutationFn: async (product: any) => {
-      return apiRequest('/api/admin/products', {
+      const response = await fetch('/api/admin/products', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(product)
       });
+      if (!response.ok) {
+        throw new Error('Failed to create product');
+      }
+      return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/admin/products'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/products'] });
       setShowAddModal(false);
       setNewProduct({
         name: '',
@@ -156,7 +168,7 @@ const AdminStore = () => {
     });
   };
 
-  if (!user?.is_admin) {
+  if (!profile?.is_admin) {
     return (
       <div className="p-8 text-center">
         <h1 className="text-2xl font-bold text-red-600">Access Denied</h1>
@@ -270,7 +282,7 @@ const AdminStore = () => {
                 <DollarSign className="w-8 h-8 text-green-600" />
                 <div>
                   <p className="text-sm text-gray-600">Active Products</p>
-                  <p className="text-2xl font-bold">{products.filter(p => p.is_active).length}</p>
+                  <p className="text-2xl font-bold">{products.filter((p: Product) => p.is_active).length}</p>
                 </div>
               </div>
             </CardContent>
@@ -281,7 +293,7 @@ const AdminStore = () => {
                 <BarChart3 className="w-8 h-8 text-purple-600" />
                 <div>
                   <p className="text-sm text-gray-600">Total Sales</p>
-                  <p className="text-2xl font-bold">{products.reduce((sum, p) => sum + (p.sales_count || 0), 0)}</p>
+                  <p className="text-2xl font-bold">{products.reduce((sum: number, p: Product) => sum + (p.sales_count || 0), 0)}</p>
                 </div>
               </div>
             </CardContent>
@@ -314,7 +326,7 @@ const AdminStore = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {products.map((product) => {
+                  {products.map((product: Product) => {
                     const isEditing = editingProducts[product.id];
                     return (
                       <tr key={product.id} className="border-b">
