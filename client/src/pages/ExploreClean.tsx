@@ -16,93 +16,22 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import SearchBar from '@/components/SearchBar';
 import { COMPONENTS, buildCardClass, buildButtonClass } from '@/styles/constants';
 
-// Simple Search & Filter Component - Matching screenshot layout exactly
-const SimpleSearchAndFilters = () => (
-  <div className="mb-6">
-    {/* Search & Filter Header with Advanced Filters toggle */}
-    <div className="flex items-center justify-between mb-4">
-      <h2 className="text-lg font-semibold text-gray-900">Search & Filter</h2>
-      <Button 
-        variant="ghost" 
-        className="text-gray-600 hover:text-gray-900 hover:bg-gray-100 flex items-center gap-2 text-sm"
-      >
-        <Filter className="w-4 h-4" />
-        Advanced Filters
-      </Button>
-    </div>
-    
-    {/* Search Bar Row - exact layout from screenshot */}
-    <div className="flex items-center gap-4">
-      {/* Search Input */}
-      <div className="flex-1">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-          <Input
-            placeholder="Search puppies..."
-            className="pl-10 h-10 border-gray-300 rounded-md focus:border-blue-500 focus:ring-blue-500"
-          />
-        </div>
-      </div>
-      
-      {/* All Breeds Dropdown */}
-      <Select defaultValue="all-breeds">
-        <SelectTrigger className="w-40 h-10 border-gray-300 rounded-md">
-          <SelectValue />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="all-breeds">All Breeds</SelectItem>
-          <SelectItem value="golden-retriever">Golden Retriever</SelectItem>
-          <SelectItem value="labrador">Labrador</SelectItem>
-          <SelectItem value="french-bulldog">French Bulldog</SelectItem>
-          <SelectItem value="german-shepherd">German Shepherd</SelectItem>
-          <SelectItem value="bulldog">Bulldog</SelectItem>
-        </SelectContent>
-      </Select>
-      
-      {/* Verified Only Checkbox */}
-      <div className="flex items-center gap-2">
-        <input type="checkbox" id="verified-only" className="rounded border-gray-300" />
-        <label htmlFor="verified-only" className="text-sm text-gray-700 whitespace-nowrap">Verified only</label>
-      </div>
-      
-      {/* Clear Filters Button */}
-      <Button 
-        variant="ghost" 
-        className="text-gray-600 hover:text-gray-900 hover:bg-gray-100 flex items-center gap-2 text-sm"
-      >
-        <Filter className="w-4 h-4" />
-        Clear Filters
-      </Button>
+// Header Search Component - Simple, original design
+const HeaderSearchInput = () => (
+  <div className="mb-8">
+    <div className="relative max-w-md">
+      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+      <Input
+        placeholder="Search puppies, breeds, or locations..."
+        className="pl-10 h-12 border-gray-300 rounded-lg focus:border-blue-500 focus:ring-blue-500 text-lg"
+      />
     </div>
   </div>
 );
 
 
 
-// Popular Breeds Component - Exact screenshot layout with pill buttons
-const PopularBreeds = () => {
-  const breeds = [
-    "Golden Retriever", "Labrador Retriever", "German Shepherd", 
-    "French Bulldog", "Bulldog", "Poodle", "Beagle", "Rottweiler"
-  ];
-  
-  return (
-    <div className="mb-8">
-      <h3 className="text-lg font-semibold text-gray-900 mb-4">Popular Breeds</h3>
-      <div className="flex flex-wrap gap-3">
-        {breeds.map((breed) => (
-          <Badge
-            key={breed}
-            variant="outline"
-            className="cursor-pointer text-sm text-gray-700 border-gray-300 hover:bg-gray-50 rounded-full px-4 py-2 font-normal"
-          >
-            {breed}
-          </Badge>
-        ))}
-      </div>
-    </div>
-  );
-};
+
 
 // Demo data for unauthenticated users
 const demoListings = [
@@ -217,11 +146,8 @@ const Explore = () => {
             <p className="text-gray-600">Find your perfect furry companion</p>
           </div>
           
-          {/* Search & Filter Section */}
-          <SimpleSearchAndFilters />
-          
-          {/* Popular Breeds */}
-          <PopularBreeds />
+          {/* Header Search Input Only */}
+          <HeaderSearchInput />
           
           {/* Results Count - Match screenshot format */}
           <div className="mb-6">
@@ -258,11 +184,8 @@ const Explore = () => {
           <p className="text-gray-600">Find your perfect furry companion</p>
         </div>
         
-        {/* Search & Filter Section */}
-        <SimpleSearchAndFilters />
-        
-        {/* Popular Breeds */}
-        <PopularBreeds />
+        {/* Header Search Input Only */}
+        <HeaderSearchInput />
         
         {/* Results Count - Match screenshot format */}
         <div className="mb-6">
@@ -341,10 +264,10 @@ const RealListings = ({ data, loading }: { data: any[], loading: boolean }) => {
   }
 
   return (
-    <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3">
+    <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
       {data.map((listing) => (
         <Card key={listing.id} className="hover:shadow-lg transition-shadow border border-gray-200 rounded-lg overflow-hidden">
-          <div className="relative aspect-square overflow-hidden">
+          <div className="aspect-[4/3] overflow-hidden">
             <img
               src={listing.image_url || '/placeholder.svg'}
               alt={listing.dog_name}
@@ -353,28 +276,19 @@ const RealListings = ({ data, loading }: { data: any[], loading: boolean }) => {
                 (e.target as HTMLImageElement).src = '/placeholder.svg';
               }}
             />
-            {/* Price Badge - positioned like in screenshot */}
-            <div className="absolute top-3 left-3">
-              <Badge className="bg-blue-600 text-white text-sm px-3 py-1 rounded-full font-medium">
+          </div>
+          <CardContent className="p-4">
+            <div className="mb-2">
+              <Badge className="bg-blue-600 text-white text-sm px-2 py-1 rounded">
                 ${listing.price?.toLocaleString() || 'Contact'}
               </Badge>
             </div>
-            {/* Heart Icon - positioned like in screenshot */}
-            <Button
-              size="sm"
-              variant="ghost"
-              className="absolute top-3 right-3 bg-white/90 hover:bg-white rounded-full w-8 h-8 p-0"
-            >
-              <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-              </svg>
-            </Button>
-          </div>
-          <CardContent className="p-4">
-            <h3 className="font-semibold text-lg mb-1 text-gray-900">{listing.dog_name}</h3>
-            <p className="text-sm text-gray-600 mb-1">{listing.breed}</p>
-            <p className="text-sm text-gray-600 mb-1">{listing.age} weeks old</p>
-            <p className="text-sm text-gray-600">{listing.location}</p>
+            <h3 className="font-semibold text-lg mb-2">{listing.dog_name}</h3>
+            <div className="space-y-1">
+              <p className="text-sm text-gray-600">{listing.breed}</p>
+              <p className="text-sm text-gray-600">{listing.age} weeks old</p>
+              <p className="text-sm text-gray-600">{listing.location}</p>
+            </div>
             {listing.description && (
               <p className="text-sm text-gray-500 mt-2 line-clamp-2">{listing.description}</p>
             )}
