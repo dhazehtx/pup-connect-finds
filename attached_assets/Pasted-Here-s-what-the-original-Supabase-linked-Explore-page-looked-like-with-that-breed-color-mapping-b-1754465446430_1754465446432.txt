@@ -1,0 +1,39 @@
+Here’s what the original Supabase-linked Explore page looked like, with that breed ↔ color mapping baked right into the FilterBar:
+
+Single header search
+A full-width “Search puppies, breeds, or breeders…” input up top—no extra chrome.
+
+Filter row immediately beneath
+
+Breed dropdown: a <Select> showing all 50 breeds, each option prefixed by a tiny colored dot (e.g. Golden Retriever → gold, French Bulldog → light gray, Poodle → soft pink).
+
+Color dropdown/swatches: right next to Breed, a “Color” filter. When you opened it, you saw all the coat colors we store in Supabase—Black, White, Brown, Golden, Brindle, Gray, Fawn, Merle, etc.—each rendered as a little circle filled with that exact hue.
+
+Age (weeks), Gender, Verified only checkbox, and the Price slider all to the right of those two.
+
+Popular breeds bar
+Below the filters was a horizontal, scrollable row of clickable pill-buttons for the top 10–12 breeds. Each pill was tinted with its breed’s color (e.g. “Golden Retriever” pill had a gold background, “German Shepherd” pill was tan/black, etc.). Clicking one instantly applied both the breed and its color filter.
+
+Listings grid
+Your Supabase results then poured in—each card showing only the real listings (no “demo” badge), but if you were signed out you’d see the orange “Demo Data” badge instead.
+
+Visually it looked like:
+
+less
+Copy
+Edit
+┌───────────────────────────────────────────────────────────────┐
+│ [🔍 Search puppies, breeds, or breeders…                      ] │
+├───────────────────────────────────────────────────────────────┤
+│ Breed ▼   Color ▼   Age ▼   Gender ▼   [✓ Verified only]      │
+│ Price: ◯────────────────────────────◯                       │
+├───────────────────────────────────────────────────────────────┤
+│ [Golden Retriever] [French Bulldog] [Poodle] …               │
+├───────────────────────────────────────────────────────────────┤
+│ • Card  • Card  • Card  …                                     │
+└───────────────────────────────────────────────────────────────┘
+If you paste the earlier prompt I gave into the Agent, just extend it with:
+
+…and re-add the Color filter <Select> that queries your colors table (or breeds.color field), renders each option as a swatch, and wires up exactly like the Breed dropdown.
+
+That will restore exactly the layout—and the tight breed↔color mapping—you’d had before.

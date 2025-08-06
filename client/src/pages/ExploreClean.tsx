@@ -21,6 +21,8 @@ interface FilterBarProps {
   onSearchChange: (value: string) => void;
   selectedBreed: string;
   onBreedChange: (value: string) => void;
+  selectedColor: string;
+  onColorChange: (value: string) => void;
   ageRange: string;
   onAgeChange: (value: string) => void;
   selectedGender: string;
@@ -33,14 +35,22 @@ interface FilterBarProps {
 
 interface Breed {
   name: string;
+  color?: string;
 }
 
-// Supabase-Powered FilterBar Component with breed dropdown from database
+interface Color {
+  name: string;
+  hex: string;
+}
+
+// Supabase-Powered FilterBar Component with breed and color dropdowns
 const FilterBarWithSupabase: React.FC<FilterBarProps> = ({ 
   searchTerm, 
   onSearchChange, 
   selectedBreed, 
   onBreedChange,
+  selectedColor,
+  onColorChange,
   ageRange,
   onAgeChange,
   selectedGender,
@@ -51,7 +61,9 @@ const FilterBarWithSupabase: React.FC<FilterBarProps> = ({
   onVerifiedChange 
 }) => {
   const [breeds, setBreeds] = useState<Breed[]>([]);
+  const [colors, setColors] = useState<Color[]>([]);
   const [loadingBreeds, setLoadingBreeds] = useState(true);
+  const [loadingColors, setLoadingColors] = useState(true);
 
   // Fetch all 50 popular breeds from Supabase
   useEffect(() => {
@@ -65,60 +77,60 @@ const FilterBarWithSupabase: React.FC<FilterBarProps> = ({
         
         if (error) {
           console.error('Error fetching breeds:', error);
-          // If breeds table doesn't exist, use the full 50 popular breeds list
-          const popularBreeds: Breed[] = [
-            { name: 'Labrador Retriever' },
-            { name: 'Golden Retriever' },
-            { name: 'German Shepherd' },
-            { name: 'French Bulldog' },
-            { name: 'Bulldog' },
-            { name: 'Poodle' },
-            { name: 'Beagle' },
-            { name: 'Rottweiler' },
-            { name: 'Yorkshire Terrier' },
-            { name: 'German Shorthaired Pointer' },
-            { name: 'Siberian Husky' },
-            { name: 'Dachshund' },
-            { name: 'Pembroke Welsh Corgi' },
-            { name: 'Australian Shepherd' },
-            { name: 'Boston Terrier' },
-            { name: 'Bernese Mountain Dog' },
-            { name: 'Boxer' },
-            { name: 'Cocker Spaniel' },
-            { name: 'Border Collie' },
-            { name: 'Great Dane' },
-            { name: 'Pomeranian' },
-            { name: 'Shih Tzu' },
-            { name: 'Mastiff' },
-            { name: 'Chihuahua' },
-            { name: 'Brittany' },
-            { name: 'Shetland Sheepdog' },
-            { name: 'Belgian Malinois' },
-            { name: 'Weimaraner' },
-            { name: 'Miniature Schnauzer' },
-            { name: 'Cavalier King Charles Spaniel' },
-            { name: 'Doberman Pinscher' },
-            { name: 'Australian Cattle Dog' },
-            { name: 'Cane Corso' },
-            { name: 'Collie' },
-            { name: 'Rhodesian Ridgeback' },
-            { name: 'Newfoundland' },
-            { name: 'West Highland White Terrier' },
-            { name: 'Saint Bernard' },
-            { name: 'Bloodhound' },
-            { name: 'Bull Terrier' },
-            { name: 'Basset Hound' },
-            { name: 'Bichon Frise' },
-            { name: 'Akita' },
-            { name: 'Portuguese Water Dog' },
-            { name: 'Whippet' },
-            { name: 'Alaskan Malamute' },
-            { name: 'Scottish Terrier' },
-            { name: 'Australian Terrier' },
-            { name: 'Chinese Shar-Pei' },
-            { name: 'Vizsla' }
+          // If breeds table doesn't exist, use the full 50 popular breeds list with colors
+          const popularBreedsWithColors: Breed[] = [
+            { name: 'Labrador Retriever', color: '#F4D03F' },
+            { name: 'Golden Retriever', color: '#F1C40F' },
+            { name: 'German Shepherd', color: '#8D6E63' },
+            { name: 'French Bulldog', color: '#BDC3C7' },
+            { name: 'Bulldog', color: '#ECF0F1' },
+            { name: 'Poodle', color: '#F8C9D4' },
+            { name: 'Beagle', color: '#F39C12' },
+            { name: 'Rottweiler', color: '#2C3E50' },
+            { name: 'Yorkshire Terrier', color: '#D4AC0D' },
+            { name: 'German Shorthaired Pointer', color: '#A0522D' },
+            { name: 'Siberian Husky', color: '#85C1E9' },
+            { name: 'Dachshund', color: '#CB4335' },
+            { name: 'Pembroke Welsh Corgi', color: '#E67E22' },
+            { name: 'Australian Shepherd', color: '#5D6D7E' },
+            { name: 'Boston Terrier', color: '#17202A' },
+            { name: 'Bernese Mountain Dog', color: '#2C3E50' },
+            { name: 'Boxer', color: '#D35400' },
+            { name: 'Cocker Spaniel', color: '#A04000' },
+            { name: 'Border Collie', color: '#2C3E50' },
+            { name: 'Great Dane', color: '#566573' },
+            { name: 'Pomeranian', color: '#F39C12' },
+            { name: 'Shih Tzu', color: '#F4D03F' },
+            { name: 'Mastiff', color: '#D4AC0D' },
+            { name: 'Chihuahua', color: '#A04000' },
+            { name: 'Brittany', color: '#E67E22' },
+            { name: 'Shetland Sheepdog', color: '#8D6E63' },
+            { name: 'Belgian Malinois', color: '#B7950B' },
+            { name: 'Weimaraner', color: '#AEB6BF' },
+            { name: 'Miniature Schnauzer', color: '#566573' },
+            { name: 'Cavalier King Charles Spaniel', color: '#CB4335' },
+            { name: 'Doberman Pinscher', color: '#2C3E50' },
+            { name: 'Australian Cattle Dog', color: '#5D6D7E' },
+            { name: 'Cane Corso', color: '#2C3E50' },
+            { name: 'Collie', color: '#8D6E63' },
+            { name: 'Rhodesian Ridgeback', color: '#D35400' },
+            { name: 'Newfoundland', color: '#17202A' },
+            { name: 'West Highland White Terrier', color: '#FDFEFE' },
+            { name: 'Saint Bernard', color: '#CB4335' },
+            { name: 'Bloodhound', color: '#A04000' },
+            { name: 'Bull Terrier', color: '#FDFEFE' },
+            { name: 'Basset Hound', color: '#F39C12' },
+            { name: 'Bichon Frise', color: '#FDFEFE' },
+            { name: 'Akita', color: '#E67E22' },
+            { name: 'Portuguese Water Dog', color: '#2C3E50' },
+            { name: 'Whippet', color: '#AEB6BF' },
+            { name: 'Alaskan Malamute', color: '#566573' },
+            { name: 'Scottish Terrier', color: '#17202A' },
+            { name: 'Australian Terrier', color: '#D4AC0D' },
+            { name: 'Chinese Shar-Pei', color: '#D35400' },
+            { name: 'Vizsla', color: '#CB4335' }
           ];
-          setBreeds(popularBreeds);
+          setBreeds(popularBreedsWithColors);
           return;
         }
         
@@ -133,6 +145,38 @@ const FilterBarWithSupabase: React.FC<FilterBarProps> = ({
     fetchBreeds();
   }, []);
 
+  // Fetch coat colors
+  useEffect(() => {
+    const fetchColors = async () => {
+      try {
+        // Try to fetch from Supabase colors table or use hardcoded list
+        const coatColors: Color[] = [
+          { name: 'Black', hex: '#2C3E50' },
+          { name: 'White', hex: '#FDFEFE' },
+          { name: 'Brown', hex: '#A04000' },
+          { name: 'Golden', hex: '#F1C40F' },
+          { name: 'Cream', hex: '#F4D03F' },
+          { name: 'Gray', hex: '#566573' },
+          { name: 'Silver', hex: '#AEB6BF' },
+          { name: 'Fawn', hex: '#D35400' },
+          { name: 'Red', hex: '#CB4335' },
+          { name: 'Blue', hex: '#85C1E9' },
+          { name: 'Brindle', hex: '#8D6E63' },
+          { name: 'Merle', hex: '#5D6D7E' },
+          { name: 'Sable', hex: '#B7950B' },
+          { name: 'Tri-color', hex: '#E67E22' }
+        ];
+        setColors(coatColors);
+      } catch (error) {
+        console.error('Error fetching colors:', error);
+      } finally {
+        setLoadingColors(false);
+      }
+    };
+
+    fetchColors();
+  }, []);
+
   return (
     <Card className="mb-6">
       <CardContent className="p-4">
@@ -141,7 +185,7 @@ const FilterBarWithSupabase: React.FC<FilterBarProps> = ({
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
             <Input
-              placeholder="Search puppies..."
+              placeholder="Search puppies, breeds, or breeders..."
               value={searchTerm}
               onChange={(e) => onSearchChange(e.target.value)}
               className="pl-10 h-10 border-gray-300 focus:border-blue-500 focus:ring-blue-500"
@@ -150,8 +194,8 @@ const FilterBarWithSupabase: React.FC<FilterBarProps> = ({
         </div>
 
         {/* Filter Controls */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
-          {/* Breed Filter - Supabase powered */}
+        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-4">
+          {/* Breed Filter with Color Dots */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Breed</label>
             <Select value={selectedBreed} onValueChange={onBreedChange}>
@@ -162,7 +206,39 @@ const FilterBarWithSupabase: React.FC<FilterBarProps> = ({
                 <SelectItem value="all">All Breeds</SelectItem>
                 {breeds.map((breed) => (
                   <SelectItem key={breed.name} value={breed.name}>
-                    {breed.name}
+                    <div className="flex items-center gap-2">
+                      {breed.color && (
+                        <div 
+                          className="w-3 h-3 rounded-full border border-gray-300" 
+                          style={{ backgroundColor: breed.color }}
+                        />
+                      )}
+                      {breed.name}
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Color Filter with Swatches */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Color</label>
+            <Select value={selectedColor} onValueChange={onColorChange}>
+              <SelectTrigger className="h-10">
+                <SelectValue placeholder={loadingColors ? "Loading..." : "All Colors"} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Colors</SelectItem>
+                {colors.map((color) => (
+                  <SelectItem key={color.name} value={color.name}>
+                    <div className="flex items-center gap-2">
+                      <div 
+                        className="w-4 h-4 rounded-full border border-gray-300" 
+                        style={{ backgroundColor: color.hex }}
+                      />
+                      {color.name}
+                    </div>
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -237,26 +313,31 @@ const FilterBarWithSupabase: React.FC<FilterBarProps> = ({
   );
 };
 
-// Popular Breeds Component
-const PopularBreedsComponent: React.FC<{ onBreedSelect: (breed: string) => void }> = ({ onBreedSelect }) => {
-  const popularBreeds = [
-    'Golden Retriever', 'Labrador Retriever', 'German Shepherd',
-    'French Bulldog', 'Bulldog', 'Poodle', 'Beagle', 'Rottweiler'
-  ];
+// Color-coded Popular Breeds Component
+const PopularBreedsComponent: React.FC<{ 
+  onBreedSelect: (breed: string, color?: string) => void;
+  breeds: Breed[];
+}> = ({ onBreedSelect, breeds }) => {
+  // Top 10-12 most popular breeds for the bar
+  const topBreeds = breeds.slice(0, 12);
 
   return (
     <Card className="mb-6">
       <CardContent className="p-4">
         <h3 className="text-lg font-semibold text-gray-900 mb-3">Popular Breeds</h3>
-        <div className="flex flex-wrap gap-2">
-          {popularBreeds.map((breed) => (
+        <div className="flex flex-wrap gap-2 overflow-x-auto">
+          {topBreeds.map((breed) => (
             <Badge
-              key={breed}
+              key={breed.name}
               variant="outline"
-              className="cursor-pointer hover:bg-gray-50 px-3 py-1"
-              onClick={() => onBreedSelect(breed)}
+              className="cursor-pointer hover:opacity-80 px-3 py-1 border-none text-white font-medium whitespace-nowrap"
+              style={{ 
+                backgroundColor: breed.color || '#6B7280',
+                color: breed.color === '#FDFEFE' || breed.color === '#F4D03F' ? '#000000' : '#FFFFFF'
+              }}
+              onClick={() => onBreedSelect(breed.name, breed.color)}
             >
-              {breed}
+              {breed.name}
             </Badge>
           ))}
         </div>
@@ -363,10 +444,33 @@ const Explore = () => {
   // Filter states
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedBreed, setSelectedBreed] = useState('all');
+  const [selectedColor, setSelectedColor] = useState('all');
   const [ageRange, setAgeRange] = useState('all');
   const [selectedGender, setSelectedGender] = useState('all');
   const [priceRange, setPriceRange] = useState([0, 10000]);
   const [verifiedOnly, setVerifiedOnly] = useState(false);
+  
+  // Breeds data for popular breeds component
+  const [breeds, setBreeds] = useState<Breed[]>([]);
+
+  // Fetch breeds for popular breeds bar
+  useEffect(() => {
+    const popularBreedsWithColors: Breed[] = [
+      { name: 'Labrador Retriever', color: '#F4D03F' },
+      { name: 'Golden Retriever', color: '#F1C40F' },
+      { name: 'German Shepherd', color: '#8D6E63' },
+      { name: 'French Bulldog', color: '#BDC3C7' },
+      { name: 'Bulldog', color: '#ECF0F1' },
+      { name: 'Poodle', color: '#F8C9D4' },
+      { name: 'Beagle', color: '#F39C12' },
+      { name: 'Rottweiler', color: '#2C3E50' },
+      { name: 'Yorkshire Terrier', color: '#D4AC0D' },
+      { name: 'German Shorthaired Pointer', color: '#A0522D' },
+      { name: 'Siberian Husky', color: '#85C1E9' },
+      { name: 'Dachshund', color: '#CB4335' }
+    ];
+    setBreeds(popularBreedsWithColors);
+  }, []);
 
   // Check if user is authenticated
   const isAuthenticated = !!user && !authLoading;
@@ -384,6 +488,10 @@ const Explore = () => {
       // Apply filters
       if (selectedBreed !== 'all') {
         query = query.eq('breed', selectedBreed);
+      }
+
+      if (selectedColor !== 'all') {
+        query = query.eq('color', selectedColor);
       }
       
       if (selectedGender !== 'all') {
@@ -419,7 +527,7 @@ const Explore = () => {
       setLoading(true);
       fetchListings();
     }
-  }, [selectedBreed, ageRange, selectedGender, priceRange, verifiedOnly, searchTerm, authLoading]);
+  }, [selectedBreed, selectedColor, ageRange, selectedGender, priceRange, verifiedOnly, searchTerm, authLoading]);
 
   // Show loading while auth is resolving
   if (authLoading) {
@@ -448,6 +556,8 @@ const Explore = () => {
           onSearchChange={setSearchTerm}
           selectedBreed={selectedBreed}
           onBreedChange={setSelectedBreed}
+          selectedColor={selectedColor}
+          onColorChange={setSelectedColor}
           ageRange={ageRange}
           onAgeChange={setAgeRange}
           selectedGender={selectedGender}
@@ -458,8 +568,33 @@ const Explore = () => {
           onVerifiedChange={setVerifiedOnly}
         />
 
-        {/* Popular Breeds */}
-        <PopularBreedsComponent onBreedSelect={setSelectedBreed} />
+        {/* Color-coded Popular Breeds Bar */}
+        <PopularBreedsComponent 
+          onBreedSelect={(breed, color) => {
+            setSelectedBreed(breed);
+            if (color) {
+              // Find the matching color name from our color list
+              const colorNames = ['Black', 'Brown', 'Golden', 'Cream', 'Gray', 'Silver', 'Fawn', 'Red', 'Blue', 'White'];
+              const colorHexMap = {
+                '#2C3E50': 'Black', '#17202A': 'Black',
+                '#A04000': 'Brown', '#8D6E63': 'Brown',
+                '#F1C40F': 'Golden', '#D4AC0D': 'Golden',
+                '#F4D03F': 'Cream', '#F39C12': 'Golden',
+                '#566573': 'Gray', '#5D6D7E': 'Gray',
+                '#AEB6BF': 'Silver', '#BDC3C7': 'Silver',
+                '#D35400': 'Fawn', '#E67E22': 'Fawn',
+                '#CB4335': 'Red',
+                '#85C1E9': 'Blue',
+                '#FDFEFE': 'White', '#ECF0F1': 'White'
+              };
+              const colorName = colorHexMap[color as keyof typeof colorHexMap];
+              if (colorName) {
+                setSelectedColor(colorName);
+              }
+            }
+          }} 
+          breeds={breeds || []}
+        />
 
         {/* Results Count */}
         <div className="mb-6">
