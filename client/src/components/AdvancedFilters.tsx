@@ -183,9 +183,9 @@ export default function AdvancedFilters() {
         <div>
           <Label className="text-sm font-medium text-gray-700 mb-2 block">Color</Label>
           <Select
-            value={filters.color || ''}
+            value={filters.color || 'all'}
             onValueChange={(value) =>
-              setFilters(prev => ({ ...prev, color: value || null }))
+              setFilters(prev => ({ ...prev, color: value === 'all' ? null : value }))
             }
             disabled={!filters.breedId}
           >
@@ -193,7 +193,7 @@ export default function AdvancedFilters() {
               <SelectValue placeholder={filters.breedId ? "All Colors" : "Select breed first"} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All Colors</SelectItem>
+              <SelectItem value="all">All Colors</SelectItem>
               {colors?.map((color) => (
                 <SelectItem key={color} value={color}>
                   {color}
@@ -207,16 +207,16 @@ export default function AdvancedFilters() {
         <div>
           <Label className="text-sm font-medium text-gray-700 mb-2 block">Coat Length</Label>
           <Select
-            value={filters.coatLength || ''}
+            value={filters.coatLength || 'all'}
             onValueChange={(value) =>
-              setFilters(prev => ({ ...prev, coatLength: value || null }))
+              setFilters(prev => ({ ...prev, coatLength: value === 'all' ? null : value }))
             }
           >
             <SelectTrigger>
               <SelectValue placeholder="All Coat Types" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All Coat Types</SelectItem>
+              <SelectItem value="all">All Coat Types</SelectItem>
               <SelectItem value="short">Short</SelectItem>
               <SelectItem value="medium">Medium</SelectItem>
               <SelectItem value="long">Long</SelectItem>
@@ -323,16 +323,16 @@ export default function AdvancedFilters() {
         <div>
           <Label className="text-sm font-medium text-gray-700 mb-2 block">Training Level</Label>
           <Select
-            value={filters.training || ''}
+            value={filters.training || 'all'}
             onValueChange={(value) =>
-              setFilters(prev => ({ ...prev, training: value || null }))
+              setFilters(prev => ({ ...prev, training: value === 'all' ? null : value }))
             }
           >
             <SelectTrigger>
               <SelectValue placeholder="Any Level" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Any Level</SelectItem>
+              <SelectItem value="all">Any Level</SelectItem>
               <SelectItem value="none">No Training</SelectItem>
               <SelectItem value="basic">Basic Training</SelectItem>
               <SelectItem value="advanced">Advanced Training</SelectItem>
@@ -344,16 +344,16 @@ export default function AdvancedFilters() {
         <div>
           <Label className="text-sm font-medium text-gray-700 mb-2 block">Energy Level</Label>
           <Select
-            value={filters.energy || ''}
+            value={filters.energy || 'all'}
             onValueChange={(value) =>
-              setFilters(prev => ({ ...prev, energy: value || null }))
+              setFilters(prev => ({ ...prev, energy: value === 'all' ? null : value }))
             }
           >
             <SelectTrigger>
               <SelectValue placeholder="Any Level" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Any Level</SelectItem>
+              <SelectItem value="all">Any Level</SelectItem>
               <SelectItem value="low">Low Energy</SelectItem>
               <SelectItem value="moderate">Moderate Energy</SelectItem>
               <SelectItem value="high">High Energy</SelectItem>
@@ -365,16 +365,16 @@ export default function AdvancedFilters() {
         <div>
           <Label className="text-sm font-medium text-gray-700 mb-2 block">Paperwork</Label>
           <Select
-            value={filters.paperwork || ''}
+            value={filters.paperwork || 'all'}
             onValueChange={(value) =>
-              setFilters(prev => ({ ...prev, paperwork: value || null }))
+              setFilters(prev => ({ ...prev, paperwork: value === 'all' ? null : value }))
             }
           >
             <SelectTrigger>
               <SelectValue placeholder="Any" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Any</SelectItem>
+              <SelectItem value="all">Any</SelectItem>
               <SelectItem value="akc">AKC Registered</SelectItem>
               <SelectItem value="ckc">CKC Registered</SelectItem>
               <SelectItem value="papers">Registration Papers</SelectItem>
