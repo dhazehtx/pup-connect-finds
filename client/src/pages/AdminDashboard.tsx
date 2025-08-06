@@ -83,6 +83,13 @@ const AdminDashboard = () => {
       color: 'border-orange-200 hover:border-orange-400 bg-orange-50 hover:bg-orange-100'
     },
     {
+      title: 'Store Management',
+      description: 'Manage products, inventory, pricing, and monitor store performance',
+      icon: <BarChart3 className="w-8 h-8 text-indigo-600" />,
+      path: '/admin/store',
+      color: 'border-indigo-200 hover:border-indigo-400 bg-indigo-50 hover:bg-indigo-100'
+    },
+    {
       title: 'Platform Settings',
       description: 'Configure system settings, rate limits, and platform parameters',
       icon: <Settings className="w-8 h-8 text-gray-600" />,
