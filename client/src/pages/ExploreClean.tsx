@@ -15,8 +15,28 @@ import {
   MapPin
 } from 'lucide-react';
 
+// Types for FilterBar props
+interface FilterBarProps {
+  searchTerm: string;
+  onSearchChange: (value: string) => void;
+  selectedBreed: string;
+  onBreedChange: (value: string) => void;
+  ageRange: string;
+  onAgeChange: (value: string) => void;
+  selectedGender: string;
+  onGenderChange: (value: string) => void;
+  priceRange: number[];
+  onPriceChange: (value: number[]) => void;
+  verifiedOnly: boolean;
+  onVerifiedChange: (value: boolean) => void;
+}
+
+interface Breed {
+  name: string;
+}
+
 // Supabase-Powered FilterBar Component with breed dropdown from database
-const FilterBarWithSupabase = ({ 
+const FilterBarWithSupabase: React.FC<FilterBarProps> = ({ 
   searchTerm, 
   onSearchChange, 
   selectedBreed, 
@@ -30,7 +50,7 @@ const FilterBarWithSupabase = ({
   verifiedOnly,
   onVerifiedChange 
 }) => {
-  const [breeds, setBreeds] = useState([]);
+  const [breeds, setBreeds] = useState<Breed[]>([]);
   const [loadingBreeds, setLoadingBreeds] = useState(true);
 
   // Fetch all 50 popular breeds from Supabase
@@ -38,13 +58,67 @@ const FilterBarWithSupabase = ({
     const fetchBreeds = async () => {
       try {
         const { data: breeds, error } = await supabase
-          .from('breeds')
+          .from('breeds' as any)
           .select('name')
           .order('popularity_rank', { ascending: true })
-          .limit(50);
+          .limit(50) as { data: Breed[] | null; error: any };
         
         if (error) {
           console.error('Error fetching breeds:', error);
+          // If breeds table doesn't exist, use the full 50 popular breeds list
+          const popularBreeds: Breed[] = [
+            { name: 'Labrador Retriever' },
+            { name: 'Golden Retriever' },
+            { name: 'German Shepherd' },
+            { name: 'French Bulldog' },
+            { name: 'Bulldog' },
+            { name: 'Poodle' },
+            { name: 'Beagle' },
+            { name: 'Rottweiler' },
+            { name: 'Yorkshire Terrier' },
+            { name: 'German Shorthaired Pointer' },
+            { name: 'Siberian Husky' },
+            { name: 'Dachshund' },
+            { name: 'Pembroke Welsh Corgi' },
+            { name: 'Australian Shepherd' },
+            { name: 'Boston Terrier' },
+            { name: 'Bernese Mountain Dog' },
+            { name: 'Boxer' },
+            { name: 'Cocker Spaniel' },
+            { name: 'Border Collie' },
+            { name: 'Great Dane' },
+            { name: 'Pomeranian' },
+            { name: 'Shih Tzu' },
+            { name: 'Mastiff' },
+            { name: 'Chihuahua' },
+            { name: 'Brittany' },
+            { name: 'Shetland Sheepdog' },
+            { name: 'Belgian Malinois' },
+            { name: 'Weimaraner' },
+            { name: 'Miniature Schnauzer' },
+            { name: 'Cavalier King Charles Spaniel' },
+            { name: 'Doberman Pinscher' },
+            { name: 'Australian Cattle Dog' },
+            { name: 'Cane Corso' },
+            { name: 'Collie' },
+            { name: 'Rhodesian Ridgeback' },
+            { name: 'Newfoundland' },
+            { name: 'West Highland White Terrier' },
+            { name: 'Saint Bernard' },
+            { name: 'Bloodhound' },
+            { name: 'Bull Terrier' },
+            { name: 'Basset Hound' },
+            { name: 'Bichon Frise' },
+            { name: 'Akita' },
+            { name: 'Portuguese Water Dog' },
+            { name: 'Whippet' },
+            { name: 'Alaskan Malamute' },
+            { name: 'Scottish Terrier' },
+            { name: 'Australian Terrier' },
+            { name: 'Chinese Shar-Pei' },
+            { name: 'Vizsla' }
+          ];
+          setBreeds(popularBreeds);
           return;
         }
         
@@ -164,7 +238,7 @@ const FilterBarWithSupabase = ({
 };
 
 // Popular Breeds Component
-const PopularBreedsComponent = ({ onBreedSelect }) => {
+const PopularBreedsComponent: React.FC<{ onBreedSelect: (breed: string) => void }> = ({ onBreedSelect }) => {
   const popularBreeds = [
     'Golden Retriever', 'Labrador Retriever', 'German Shepherd',
     'French Bulldog', 'Bulldog', 'Poodle', 'Beagle', 'Rottweiler'
@@ -191,8 +265,19 @@ const PopularBreedsComponent = ({ onBreedSelect }) => {
   );
 };
 
-// Listing Grid Component
-const ListingGrid = ({ listings, loading }) => {
+// Listing Grid Component  
+interface Listing {
+  id: string;
+  dog_name: string;
+  breed: string;
+  age: number;
+  price: number;
+  location: string;
+  description?: string;
+  image_url?: string;
+}
+
+const ListingGrid: React.FC<{ listings: Listing[]; loading: boolean }> = ({ listings, loading }) => {
   if (loading) {
     return (
       <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
@@ -272,7 +357,7 @@ const ListingGrid = ({ listings, loading }) => {
 // Main Explore Component
 const Explore = () => {
   const { user, loading: authLoading } = useAuth();
-  const [listings, setListings] = useState([]);
+  const [listings, setListings] = useState<Listing[]>([]);
   const [loading, setLoading] = useState(true);
   
   // Filter states
