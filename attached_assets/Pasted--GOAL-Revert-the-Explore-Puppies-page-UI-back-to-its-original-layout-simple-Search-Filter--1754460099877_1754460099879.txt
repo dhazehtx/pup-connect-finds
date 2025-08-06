@@ -1,0 +1,41 @@
+🎯 GOAL  
+Revert the “Explore Puppies” page UI back to its original layout (simple Search & Filter + Popular Breeds), removing the large “Advanced Filters” panel and returning the streamlined design you had before.
+
+🛠️ TASKS  
+
+1. **Remove the expanded Advanced Filters section**  
+   - In `ExplorePage.tsx` (or wherever you render the filters), delete or comment out the `<AdvancedFilters>` component import and JSX.  
+   - Ensure only the top‐level Search input, Breed dropdown, and “Verified only” checkbox remain.
+
+2. **Restore the original simple filter bar**  
+   - Revert `FilterBar.tsx` to its previous version that included only:  
+     ```  
+     • Search input (“Search puppies…”)  
+     • Breed select (“All Breeds”)  
+     • Verified only checkbox  
+     ```  
+   - Remove any extra age, location, distance, or paperwork fields.
+
+3. **Bring back the horizontal Popular Breeds row**  
+   - Confirm the `<PopularBreeds>` component renders immediately under the simple filter bar, as before.  
+   - Remove spacing or padding inserted to accommodate the old advanced filter panel.
+
+4. **Clean up related CSS/layout**  
+   - Delete or revert any grid or flex styling changes made for the large Advanced Filters panel (e.g. extra margins, full‐width containers).  
+   - Ensure the filter bar and popular breeds are enclosed in the same card container as before.
+
+5. **Smoke Test**  
+   - Reload `/explore` and verify:  
+     - Only the simple Search & Filter bar appears by default.  
+     - Popular Breeds appear directly below.  
+     - No “Advanced Filters” section is visible.  
+     - Layout and spacing match your original design.
+
+──────────────────────── QA CHECKLIST ────────────────────────  
+
+| ✔️  Simple filter bar only (no advanced panel) | Pass/Fail | Notes        |
+|:---------------------------------------------:|:---------:|--------------|
+| Search input + Breed dropdown + Verified only |           |              |
+| Popular Breeds row below filters              |           |              |
+| No extra filter fields visible                |           |              |
+| Layout/spacing matches original mockups       |           |              |

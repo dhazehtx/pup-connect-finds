@@ -16,250 +16,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import SearchBar from '@/components/SearchBar';
 import { COMPONENTS, buildCardClass, buildButtonClass } from '@/styles/constants';
 
-// Advanced Filters Panel Component - Matches screenshot layout
-const AdvancedFilters = () => (
-  <div className="mb-8 bg-white border border-gray-200 rounded-lg p-6">
-    <div className="flex items-center justify-between mb-6">
-      <h3 className="text-lg font-semibold text-gray-900">Advanced Filters</h3>
-      <Button variant="ghost" className="text-gray-600 text-sm hover:text-gray-900">Clear All</Button>
-    </div>
-    
-    {/* Sort By */}
-    <div className="mb-6">
-      <label className="block text-sm font-medium text-gray-700 mb-2">Sort By</label>
-      <Select defaultValue="newest">
-        <SelectTrigger className="w-48">
-          <SelectValue />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="newest">Newest First</SelectItem>
-          <SelectItem value="price-low">Price: Low to High</SelectItem>
-          <SelectItem value="price-high">Price: High to Low</SelectItem>
-        </SelectContent>
-      </Select>
-    </div>
-    
-    {/* Main Filter Grid - 6 columns like screenshot */}
-    <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
-      {/* Breed */}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">Breed</label>
-        <Select defaultValue="all-breeds">
-          <SelectTrigger>
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all-breeds">All Breeds</SelectItem>
-            <SelectItem value="french-bulldog">French Bulldog</SelectItem>
-            <SelectItem value="golden-retriever">Golden Retriever</SelectItem>
-            <SelectItem value="labrador">Labrador</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-      
-      {/* Source */}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">Source</label>
-        <Select defaultValue="all-sources">
-          <SelectTrigger>
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all-sources">All Sources</SelectItem>
-            <SelectItem value="breeder">Breeder</SelectItem>
-            <SelectItem value="rescue">Rescue</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-      
-      {/* Age Group */}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">Age Group</label>
-        <Select defaultValue="all-ages">
-          <SelectTrigger>
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all-ages">All Ages</SelectItem>
-            <SelectItem value="puppy">Puppy (0-1 year)</SelectItem>
-            <SelectItem value="young">Young (1-3 years)</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-      
-      {/* Gender */}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">Gender</label>
-        <Select defaultValue="all-genders">
-          <SelectTrigger>
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all-genders">All Genders</SelectItem>
-            <SelectItem value="male">Male</SelectItem>
-            <SelectItem value="female">Female</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-      
-      {/* Color */}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">Color</label>
-        <Select defaultValue="all-colors">
-          <SelectTrigger>
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all-colors">All Colors</SelectItem>
-            <SelectItem value="black">Black</SelectItem>
-            <SelectItem value="brown">Brown</SelectItem>
-            <SelectItem value="white">White</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-      
-      {/* Coat Length */}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">Coat Length</label>
-        <Select defaultValue="all-coat">
-          <SelectTrigger>
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all-coat">All Coat Types</SelectItem>
-            <SelectItem value="short">Short</SelectItem>
-            <SelectItem value="medium">Medium</SelectItem>
-            <SelectItem value="long">Long</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-    </div>
-    
-    {/* Price Range */}
-    <div className="mb-6">
-      <label className="block text-sm font-medium text-gray-700 mb-2">Price Range: $0 - $10000</label>
-    </div>
-    
-    {/* Age, Location, Distance, Size Row */}
-    <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">📅 Min Age (weeks)</label>
-        <Input placeholder="0" className="text-sm" />
-      </div>
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">📅 Max Age (weeks)</label>
-        <Input placeholder="104" className="text-sm" />
-      </div>
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">🌍 Location</label>
-        <Input placeholder="City, State" className="text-sm" />
-      </div>
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">📏 Size</label>
-        <Select defaultValue="any-size">
-          <SelectTrigger>
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="any-size">Any Size</SelectItem>
-            <SelectItem value="small">Small</SelectItem>
-            <SelectItem value="medium">Medium</SelectItem>
-            <SelectItem value="large">Large</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-    </div>
-    
-    {/* Training, Energy, Paperwork Row */}
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">Training Level</label>
-        <Select defaultValue="any-level">
-          <SelectTrigger>
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="any-level">Any Level</SelectItem>
-            <SelectItem value="basic">Basic</SelectItem>
-            <SelectItem value="intermediate">Intermediate</SelectItem>
-            <SelectItem value="advanced">Advanced</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">Energy Level</label>
-        <Select defaultValue="any-energy">
-          <SelectTrigger>
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="any-energy">Any Level</SelectItem>
-            <SelectItem value="low">Low</SelectItem>
-            <SelectItem value="medium">Medium</SelectItem>
-            <SelectItem value="high">High</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">Paperwork</label>
-        <Select defaultValue="any-papers">
-          <SelectTrigger>
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="any-papers">Any</SelectItem>
-            <SelectItem value="akc">AKC Registered</SelectItem>
-            <SelectItem value="champion">Champion Bloodline</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-    </div>
-    
-    {/* Checkboxes - Match screenshot layout */}
-    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-      <div className="flex items-center space-x-2">
-        <input type="checkbox" id="verified" className="rounded border-gray-300" />
-        <label htmlFor="verified" className="text-sm text-gray-600">Verified only</label>
-      </div>
-      <div className="flex items-center space-x-2">
-        <input type="checkbox" id="available" className="rounded border-gray-300" />
-        <label htmlFor="available" className="text-sm text-gray-600">Available now</label>
-      </div>
-      <div className="flex items-center space-x-2">
-        <input type="checkbox" id="health-checked" className="rounded border-gray-300" />
-        <label htmlFor="health-checked" className="text-sm text-gray-600">Health checked</label>
-      </div>
-      <div className="flex items-center space-x-2">
-        <input type="checkbox" id="vaccinated" className="rounded border-gray-300" />
-        <label htmlFor="vaccinated" className="text-sm text-gray-600">Vaccinated</label>
-      </div>
-      <div className="flex items-center space-x-2">
-        <input type="checkbox" id="spayed" className="rounded border-gray-300" />
-        <label htmlFor="spayed" className="text-sm text-gray-600">Spayed/Neutered</label>
-      </div>
-      <div className="flex items-center space-x-2">
-        <input type="checkbox" id="good-kids" className="rounded border-gray-300" />
-        <label htmlFor="good-kids" className="text-sm text-gray-600">Good with kids</label>
-      </div>
-    </div>
-  </div>
-);
-
-// Search & Filter Component - Clean Layout like screenshots
-const SearchAndFilters = ({ showAdvanced, setShowAdvanced }: { showAdvanced: boolean, setShowAdvanced: (show: boolean) => void }) => (
-  <div className="mb-6">
-    {/* Search & Filter Header */}
-    <div className="flex items-center justify-between mb-4">
-      <h2 className="text-lg font-semibold text-gray-900">Search & Filter</h2>
-      <Button 
-        variant="ghost" 
-        className="text-gray-600 hover:text-gray-900 hover:bg-gray-100 flex items-center gap-2"
-        onClick={() => setShowAdvanced(!showAdvanced)}
-      >
-        <Filter className="w-4 h-4" />
-        Advanced Filters
-      </Button>
-    </div>
+// Simple Search & Filter Component - Clean, streamlined layout
+const SimpleSearchAndFilters = () => (
+  <div className="mb-6 bg-white border border-gray-200 rounded-lg p-4">
+    <h2 className="text-lg font-semibold text-gray-900 mb-4">Search & Filter</h2>
     
     {/* Search Bar Row */}
     <div className="flex items-center gap-4">
@@ -294,15 +54,11 @@ const SearchAndFilters = ({ showAdvanced, setShowAdvanced }: { showAdvanced: boo
         <input type="checkbox" id="verified-only" className="rounded border-gray-300" />
         <label htmlFor="verified-only" className="text-sm text-gray-700">Verified only</label>
       </div>
-      
-      {/* Clear Filters */}
-      <Button variant="ghost" className="text-gray-600 hover:text-gray-900 hover:bg-gray-100 flex items-center gap-2">
-        <Filter className="w-4 h-4" />
-        Clear Filters
-      </Button>
     </div>
   </div>
 );
+
+
 
 // Popular Breeds Component - Matches screenshot layout exactly
 const PopularBreeds = () => {
@@ -358,7 +114,7 @@ const Explore = () => {
   const { user, loading: authLoading } = useAuth();
   const [listings, setListings] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
+
   
   // Check if user is authenticated
   const isAuthenticated = !!user && !authLoading;
@@ -444,14 +200,7 @@ const Explore = () => {
           </div>
           
           {/* Search & Filter Section */}
-          <SearchAndFilters showAdvanced={showAdvancedFilters} setShowAdvanced={setShowAdvancedFilters} />
-          
-          {/* Advanced Filters Panel */}
-          {showAdvancedFilters && (
-            <div className="transition-all duration-300">
-              <AdvancedFilters />
-            </div>
-          )}
+          <SimpleSearchAndFilters />
           
           {/* Popular Breeds */}
           <PopularBreeds />
@@ -492,14 +241,7 @@ const Explore = () => {
         </div>
         
         {/* Search & Filter Section */}
-        <SearchAndFilters showAdvanced={showAdvancedFilters} setShowAdvanced={setShowAdvancedFilters} />
-        
-        {/* Advanced Filters Panel */}
-        {showAdvancedFilters && (
-          <div className="transition-all duration-300">
-            <AdvancedFilters />
-          </div>
-        )}
+        <SimpleSearchAndFilters />
         
         {/* Popular Breeds */}
         <PopularBreeds />
