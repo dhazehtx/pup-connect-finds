@@ -6,6 +6,7 @@ import { Gift, Users, Briefcase, Store } from 'lucide-react';
 import ServicesMarketplace from '@/components/services/ServicesMarketplace';
 import PupBoxSubscription from '@/components/subscriptions/PupBoxSubscription';
 import StoreTab from './Marketplace/StoreTab';
+import { ServicesTab } from './Services/ServicesTab';
 import AdBanner from '@/components/advertising/AdBanner';
 import CartFab from '@/components/ui/CartFab';
 
@@ -13,7 +14,7 @@ const Marketplace = () => {
   const [activeTab, setActiveTab] = useState('services');
 
   const tabs = [
-    { key: 'services', label: 'Pet Services', component: <ServicesMarketplace /> },
+    { key: 'services', label: 'Pet Services', component: <ServicesTab /> },
     { key: 'pupbox', label: 'Pup Box', component: <PupBoxSubscription /> },
     { key: 'store', label: 'Store', component: <StoreTab /> },
   ];
@@ -52,7 +53,7 @@ const Marketplace = () => {
           </TabsList>
 
           <TabsContent value="services" className="space-y-6">
-            {/* Services spotlight ads */}
+            <ServicesTab />
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
               <AdBanner targetPage="marketplace" format="sponsored" />
               <AdBanner targetPage="marketplace" format="sponsored" />

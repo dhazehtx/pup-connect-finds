@@ -871,3 +871,55 @@ export type Subscription = typeof subscriptions.$inferSelect;
 export type InsertSubscription = z.infer<typeof insertSubscriptionSchema>;
 export type ProductReview = typeof productReviews.$inferSelect;
 export type InsertProductReview = z.infer<typeof insertProductReviewSchema>;
+
+// ===== PET SERVICES SCHEMAS =====
+
+// Pet Service Providers table for marketplace services
+export const petServiceProviders = pgTable("pet_service_providers", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  user_id: uuid("user_id").notNull().references(() => profiles.id, { onDelete: "cascade" }),
+  service_type: text("service_type").notNull(), // grooming, walking, sitting, training, etc.
+  bio: text("bio").notNull(),
+  price: decimal("price", { precision: 10, scale: 2 }).notNull(),
+  availability: text("availability"), // JSON string or text description
+  location: text("location"),
+  is_verified: boolean("is_verified").default(false),
+  verification_status: text("verification_status").default("pending"), // pending, verified, rejected
+  created_at: timestamp("created_at").defaultNow(),
+  updated_at: timestamp("updated_at").defaultNow(),
+});
+
+// Service Bookings table for booking requests
+export const serviceBookings = pgTable("service_bookings", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  provider_id: uuid("provider_id").notNull().references(() => petServiceProviders.id, { onDelete: "cascade" }),
+  user_id: uuid("user_id").notNull().references(() => profiles.id, { onDelete: "cascade" }),
+  service_date: timestamp("service_date").notNull(),
+  duration_hours: decimal("duration_hours", { precision: 4, scale: 2 }).notNull(),
+  total_price: decimal("total_price", { precision: 10, scale: 2 }).notNull(),
+  status: text("status").default("pending"), // pending, confirmed, completed, cancelled
+  special_instructions: text("special_instructions"),
+  created_at: timestamp("created_at").defaultNow(),
+  updated_at: timestamp("updated_at").defaultNow(),
+});
+
+// Pet Services insert schemas
+export const insertPetServiceProviderSchema = createInsertSchema(petServiceProviders).omit({ 
+  id: true, 
+  created_at: true, 
+  updated_at: true,
+  is_verified: true,
+  verification_status: true
+});
+
+export const insertServiceBookingSchema = createInsertSchema(serviceBookings).omit({ 
+  id: true, 
+  created_at: true, 
+  updated_at: true 
+});
+
+// Pet Services type exports
+export type PetServiceProvider = typeof petServiceProviders.$inferSelect;
+export type InsertPetServiceProvider = z.infer<typeof insertPetServiceProviderSchema>;
+export type ServiceBooking = typeof serviceBookings.$inferSelect;
+export type InsertServiceBooking = z.infer<typeof insertServiceBookingSchema>;

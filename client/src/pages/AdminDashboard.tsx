@@ -96,6 +96,13 @@ const AdminDashboard = () => {
       icon: <Settings className="w-8 h-8 text-gray-600" />,
       path: '/admin/settings',
       color: 'border-gray-200 hover:border-gray-400 bg-gray-50 hover:bg-gray-100'
+    },
+    {
+      title: 'Service Provider Applications',
+      description: 'Review and approve pet service provider applications and verifications',
+      icon: <Shield className="w-8 h-8 text-emerald-600" />,
+      path: '/admin/service-applications',
+      color: 'border-emerald-200 hover:border-emerald-400 bg-emerald-50 hover:bg-emerald-100'
     }
   ];
 

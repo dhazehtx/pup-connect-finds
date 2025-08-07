@@ -17,6 +17,8 @@ import {
   orderItems,
   subscriptions,
   productReviews,
+  petServiceProviders,
+  serviceBookings,
   type User, 
   type InsertUser,
   type Profile,
@@ -52,7 +54,11 @@ import {
   type Subscription,
   type InsertSubscription,
   type ProductReview,
-  type InsertProductReview
+  type InsertProductReview,
+  type PetServiceProvider,
+  type InsertPetServiceProvider,
+  type ServiceBooking,
+  type InsertServiceBooking
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, or, like, sql, isNotNull } from "drizzle-orm";
@@ -856,6 +862,110 @@ export class DatabaseStorage implements IStorage {
       .where(eq(orders.id, id))
       .returning();
     return result[0];
+  }
+
+  async updateShippingInfo(orderId: string, shippingData: { tracking_number?: string; carrier?: string; is_shipped?: boolean }): Promise<boolean> {
+    const updateData: any = { ...shippingData, updated_at: new Date() };
+    
+    // If marking as shipped, set shipped_at timestamp
+    if (shippingData.is_shipped === true) {
+      updateData.shipped_at = new Date();
+    }
+
+    const result = await db.update(orders)
+      .set(updateData)
+      .where(eq(orders.id, orderId));
+    
+    return (result.rowCount ?? 0) > 0;
+  }
+
+  // ===== PET SERVICES METHODS =====
+
+  async createServiceProvider(data: InsertPetServiceProvider): Promise<PetServiceProvider> {
+    const [provider] = await db
+      .insert(petServiceProviders)
+      .values(data)
+      .returning();
+    return provider;
+  }
+
+  async getServiceProviders(filters?: { 
+    isVerified?: boolean; 
+    serviceType?: string; 
+    location?: string;
+    minPrice?: number;
+    maxPrice?: number;
+  }): Promise<PetServiceProvider[]> {
+    let query = db.select().from(petServiceProviders);
+    
+    const conditions = [];
+    if (filters?.isVerified !== undefined) {
+      conditions.push(eq(petServiceProviders.is_verified, filters.isVerified));
+    }
+    if (filters?.serviceType) {
+      conditions.push(eq(petServiceProviders.service_type, filters.serviceType));
+    }
+    if (filters?.location) {
+      conditions.push(sql`${petServiceProviders.location} ILIKE ${`%${filters.location}%`}`);
+    }
+    if (filters?.minPrice !== undefined) {
+      conditions.push(sql`${petServiceProviders.price}::numeric >= ${filters.minPrice}`);
+    }
+    if (filters?.maxPrice !== undefined) {
+      conditions.push(sql`${petServiceProviders.price}::numeric <= ${filters.maxPrice}`);
+    }
+    
+    if (conditions.length > 0) {
+      query = query.where(and(...conditions));
+    }
+    
+    return await query.orderBy(desc(petServiceProviders.created_at));
+  }
+
+  async getServiceProviderById(id: string): Promise<PetServiceProvider | null> {
+    const [provider] = await db
+      .select()
+      .from(petServiceProviders)
+      .where(eq(petServiceProviders.id, id))
+      .limit(1);
+    return provider || null;
+  }
+
+  async updateServiceProviderStatus(id: string, status: string, isVerified: boolean): Promise<boolean> {
+    const result = await db
+      .update(petServiceProviders)
+      .set({
+        verification_status: status,
+        is_verified: isVerified,
+        updated_at: new Date(),
+      })
+      .where(eq(petServiceProviders.id, id));
+    
+    return (result.rowCount ?? 0) > 0;
+  }
+
+  async createServiceBooking(data: InsertServiceBooking): Promise<ServiceBooking> {
+    const [booking] = await db
+      .insert(serviceBookings)
+      .values(data)
+      .returning();
+    return booking;
+  }
+
+  async getServiceBookingsByUser(userId: string): Promise<ServiceBooking[]> {
+    return await db
+      .select()
+      .from(serviceBookings)
+      .where(eq(serviceBookings.user_id, userId))
+      .orderBy(desc(serviceBookings.created_at));
+  }
+
+  async getServiceBookingsByProvider(providerId: string): Promise<ServiceBooking[]> {
+    return await db
+      .select()
+      .from(serviceBookings)
+      .where(eq(serviceBookings.provider_id, providerId))
+      .orderBy(desc(serviceBookings.created_at));
   }
 }
 

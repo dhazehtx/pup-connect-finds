@@ -1,0 +1,107 @@
+✅ MASTER PROMPT – PHASE 3: Pet Services System (Replit Implementation)
+Prompt:
+"I'm adding a Pet Services Marketplace system to my My Pup app, using Replit with Express.js, Supabase, and React. The Services page UI already exists, but I now need to implement the full backend and frontend logic, including safety-focused provider verification. Please create the following components cleanly and efficiently to match the rest of my project setup:"
+
+🧱 1. Supabase Schema – pet_service_providers
+Create a new table with the following fields:
+
+Field	Type	Notes
+id	UUID	Primary key
+user_id	UUID	FK to users
+service_type	Text	e.g. "grooming", "walking", "sitting"
+bio	Text	Provider description
+price	Numeric	Per session or per hour
+availability	JSON/Text	Availability data or string summary
+location	Text	Optional location for filtering
+is_verified	Boolean	Default = false
+verification_status	Text	Values: pending, verified, rejected
+created_at	Timestamp	Default to now()
+
+🔧 2. Backend Routes (Express API)
+Build the following routes in /api/services and /api/admin:
+
+User Routes
+POST /api/services/signup
+→ Accepts form data from user
+→ Inserts into pet_service_providers with is_verified = false and verification_status = "pending"
+
+GET /api/services/search?type=&location=&min_price=&max_price=
+→ Returns only is_verified = true providers
+→ Supports optional filters for type, location, price range
+
+Admin Routes
+GET /api/admin/service-applications
+→ Returns all provider applications where verification_status = 'pending'
+
+PATCH /api/admin/service-applications/:id
+→ Body: { status: 'verified' | 'rejected' }
+→ Updates verification_status and is_verified boolean
+
+✅ Add basic admin auth check for these routes using req.user.is_admin
+
+🎨 3. Frontend UI Components
+User: Service Provider Signup Form
+Located on /services/signup or as modal
+
+Fields:
+
+Service Type (dropdown)
+
+Bio (textarea)
+
+Price (number)
+
+Availability (text input or JSON editor)
+
+Location (text input)
+
+Submit button → calls POST /api/services/signup
+
+Admin: Application Review Dashboard
+Route: /admin/service-verification
+
+Table layout of pending applications
+
+Name, service type, bio, price, created_at
+
+Approve ✅ / Reject ❌ buttons (calls PATCH route)
+
+Explore Page: Verified Providers Search
+Route: /services
+
+Display only verified providers
+
+Filters:
+
+Service Type
+
+Location
+
+Price Range
+
+Each card shows:
+
+Provider name + avatar
+
+Bio
+
+Price
+
+Verified badge ✅
+
+(Optional): “Request Booking” button placeholder
+
+🔒 Notes:
+Use current user session to link service applications to their profile
+
+Use Supabase RLS to restrict unverified users from showing in search
+
+You may skip actual booking functionality for now (we’ll add later)
+
+All components should match existing Tailwind-based UI styling
+
+Once this is done, your app will have:
+✅ Verified service provider onboarding
+✅ Admin safety layer for approvals
+✅ Fully filterable trusted services directory
+

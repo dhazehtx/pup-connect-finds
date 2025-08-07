@@ -76,6 +76,7 @@ const GroupDetailPage = lazy(() => import('./pages/GroupDetailPage'));
 const SupportPage = lazy(() => import('./pages/SupportPage'));
 const AdminSupportPage = lazy(() => import('./pages/AdminSupportPage'));
 const AdminBugsPage = lazy(() => import('./pages/AdminBugsPage'));
+const ServiceProviderApplications = lazy(() => import('./pages/admin/ServiceProviderApplications'));
 const BugTestPage = lazy(() => import('./pages/BugTestPage'));
 const PrivacyPolicyPage = lazy(() => import('./pages/PrivacyPolicyPage'));
 const PrivacySettingsPage = lazy(() => import('./pages/PrivacySettingsPage'));
@@ -322,6 +323,13 @@ function App() {
                     <ProtectedRoute>
                       <Suspense fallback={<LoadingPage message="Loading Bug Reports..." />}>
                         <AdminBugsPage />
+                      </Suspense>
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/admin/service-applications" element={
+                    <ProtectedRoute>
+                      <Suspense fallback={<LoadingPage message="Loading Service Applications..." />}>
+                        <ServiceProviderApplications />
                       </Suspense>
                     </ProtectedRoute>
                   } />

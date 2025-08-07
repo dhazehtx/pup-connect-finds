@@ -1,0 +1,66 @@
+Perfect. You’ve officially reached Phase 3 — this is where the My Pup app becomes more than a store… it becomes a full-service, peer-to-peer platform for the dog world. Let’s build this next piece methodically.
+
+✅ Phase 3 Kickoff: Pet Services Marketplace
+🎯 Goal:
+Enable users to sign up as service providers (dog walkers, groomers, sitters, etc.), while maintaining trust and safety through a basic verification process — think: Uber for dog services 🐕💼
+
+🔒 Step 1 – Safety & Verification System (Priority)
+You already have a Services page, so this part will add logic and guardrails.
+
+🧱 Supabase Schema: pet_service_providers
+Field	Type	Notes
+id	UUID	Primary key
+user_id	UUID	FK to users
+service_type	Text	e.g., grooming, walking, sitting
+bio	Text	Description of experience
+price	Numeric	Per hour or per session
+availability	JSON/Text	Schedule or general availability info
+location	Text	Optional for local filtering
+is_verified	Boolean	Default false, toggled by admin only
+verification_status	Text	pending, verified, rejected
+created_at	Timestamp	Auto
+
+🔧 Backend Features:
+POST /api/services/signup
+→ Allow users to apply to become a service provider
+→ Automatically set is_verified = false, verification_status = "pending"
+
+GET /api/admin/service-applications
+→ Admin route to view all pending applications
+
+PATCH /api/admin/service-applications/:id
+→ Admin approves or rejects application
+→ Set is_verified = true and verification_status = "verified"
+
+GET /api/services/search
+→ Return only is_verified = true listings
+→ Support filters: service type, location, price range
+
+👥 Frontend Features:
+Service Signup Form
+
+Name, bio, services offered, rate, availability
+
+Submit button → triggers backend signup route
+
+Admin Review Panel
+
+See pending applications
+
+Approve or reject with one click
+
+Explore Services Page
+
+Show only verified providers
+
+Add filters (type, price, location)
+
+Display verified badge (✅) on each card
+
+⚠️ Trust & Safety Notice (for Future)
+Eventually, you may integrate:
+
+ID verification (via Stripe or Persona)
+
+Background check provider (Checkr or Evident)
+But for now: manual admin approval is enough for beta launch.
