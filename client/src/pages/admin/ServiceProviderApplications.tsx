@@ -28,7 +28,7 @@ interface ServiceApplication {
   };
 }
 
-export function ServiceProviderApplications() {
+function ServiceProviderApplications() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -274,3 +274,5 @@ export function ServiceProviderApplications() {
     </div>
   );
 }
+
+export default ServiceProviderApplications;

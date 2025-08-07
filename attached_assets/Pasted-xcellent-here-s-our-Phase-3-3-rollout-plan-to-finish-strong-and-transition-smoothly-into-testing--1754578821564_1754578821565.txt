@@ -1,0 +1,94 @@
+xcellent — here's our Phase 3.3 rollout plan to finish strong and transition smoothly into testing, monetization, and legal prep.
+
+✅ Phase 3.3: Final Pet Services Booking Features
+🎯 Goals:
+Let providers view and manage their bookings
+
+Let users track their own bookings
+
+Add status updates for transparency
+
+Set up for testing, monetization, and compliance
+
+🧩 Build Prompt: Finalize Booking System (Copy to Replit)
+Prompt:
+"I'm completing Phase 3.3 of the Pet Services system for My Pup. Please implement the following components using Supabase, Express.js, and React. All styling should match existing UI. We’ve already implemented the pet_service_providers and bookings tables."
+
+🛠️ Backend
+Booking Status Enhancements:
+Update the bookings table:
+
+Add status (text) → Values: pending, accepted, rejected, completed
+
+Add updated_at timestamp
+
+Update routes:
+
+PATCH /api/bookings/:id/status
+→ Body: { status: "accepted" | "rejected" | "completed" }
+→ Only accessible by the service provider linked to the booking
+
+GET /api/bookings/provider/:user_id
+→ Returns bookings received by that provider
+
+GET /api/bookings/user/:user_id
+→ Returns bookings submitted by the user
+
+🖥️ Frontend
+Provider Dashboard Page: /dashboard/provider
+List of all bookings received
+
+Show: client name, service, date, price, status
+
+Allow provider to accept, reject, or mark completed
+
+Filter by status (pending, active, completed)
+
+User Dashboard Page: /dashboard/bookings
+Show all bookings submitted by the user
+
+Display service, provider, status, date, total cost
+
+Show status color tags (pending = yellow, accepted = green, rejected = red)
+
+Booking Request Enhancements
+Add confirmation screen/modal after submission
+
+Include short terms notice (e.g. "You agree to use verified providers only.")
+
+✅ Optional: Badge or Messaging
+Show “Verified Provider” badge ✅ on service cards
+
+Add a notice to bookings like “Only verified providers are available for booking.”
+
+Once complete, this will make your pet services system fully interactive and ready for real-world use.
+
+🔍 Coming Up Next
+Once 3.3 is finished, we’ll move on to:
+
+🧪 Testing & Bug Tracking Checklist
+Full-feature test list (store, services, profiles, bookings, reviews)
+
+Shared test doc or Notion board
+
+Replit or local bug list tracker
+
+“Test user” accounts with fake Stripe/test data
+
+💸 Monetization Features
+Charge providers to list services (one-time or subscription)
+
+Booking commission fee (e.g. 5–15%)
+
+Pup Box upsell bundling with services
+
+Boosted listing system (like Facebook Ads)
+
+⚖️ Legal / Safety Overlays
+Terms of Service + Privacy Policy pages
+
+Mandatory checkbox for bookings or sign-up
+
+Community Guidelines (optional)
+
+Age restriction or content filter logic

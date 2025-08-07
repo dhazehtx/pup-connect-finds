@@ -897,7 +897,7 @@ export const serviceBookings = pgTable("service_bookings", {
   service_date: timestamp("service_date").notNull(),
   duration_hours: decimal("duration_hours", { precision: 4, scale: 2 }).notNull(),
   total_price: decimal("total_price", { precision: 10, scale: 2 }).notNull(),
-  status: text("status").default("pending"), // pending, confirmed, completed, cancelled
+  status: text("status").default("pending").notNull(), // pending, accepted, rejected, completed
   special_instructions: text("special_instructions"),
   created_at: timestamp("created_at").defaultNow(),
   updated_at: timestamp("updated_at").defaultNow(),

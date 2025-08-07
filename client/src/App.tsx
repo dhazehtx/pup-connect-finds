@@ -77,6 +77,8 @@ const SupportPage = lazy(() => import('./pages/SupportPage'));
 const AdminSupportPage = lazy(() => import('./pages/AdminSupportPage'));
 const AdminBugsPage = lazy(() => import('./pages/AdminBugsPage'));
 const ServiceProviderApplications = lazy(() => import('./pages/admin/ServiceProviderApplications'));
+const ProviderDashboard = lazy(() => import('./pages/dashboard/ProviderDashboard'));
+const UserBookings = lazy(() => import('./pages/dashboard/UserBookings'));
 const BugTestPage = lazy(() => import('./pages/BugTestPage'));
 const PrivacyPolicyPage = lazy(() => import('./pages/PrivacyPolicyPage'));
 const PrivacySettingsPage = lazy(() => import('./pages/PrivacySettingsPage'));
@@ -330,6 +332,20 @@ function App() {
                     <ProtectedRoute>
                       <Suspense fallback={<LoadingPage message="Loading Service Applications..." />}>
                         <ServiceProviderApplications />
+                      </Suspense>
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/dashboard/provider" element={
+                    <ProtectedRoute>
+                      <Suspense fallback={<LoadingPage message="Loading Provider Dashboard..." />}>
+                        <ProviderDashboard />
+                      </Suspense>
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/dashboard/bookings" element={
+                    <ProtectedRoute>
+                      <Suspense fallback={<LoadingPage message="Loading Your Bookings..." />}>
+                        <UserBookings />
                       </Suspense>
                     </ProtectedRoute>
                   } />
