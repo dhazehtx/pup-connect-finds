@@ -1,0 +1,99 @@
+✅ MASTER PROMPT — PHASE 4 TEST + MONETIZATION + LEGAL SETUP (Replit)
+Prompt:
+"I'm preparing the My Pup app for final launch testing, monetization, and compliance. Please generate seed data for testing and implement both monetization logic and legal/safety overlay features using my existing Replit project (Supabase, Express, Stripe, React). Complete the following in one structured flow:"
+
+🧪 PART 1: TEST DATA SEEDING (QA)
+✅ Create 3 Test Accounts:
+Test Buyer → testbuyer@mypup.com
+→ user_type = buyer
+
+Test Provider → testprovider@mypup.com
+→ user_type = provider, also create a service application
+→ Add 1 approved (verified) listing and 1 pending/unverified listing
+
+Test Admin → admin@mypup.com
+→ is_admin = true, full access
+
+✅ Populate Data:
+Create 3 Sample Products (toy, treat, bundle)
+→ Include prices, images, categories, is_featured toggles
+
+Create 2 Service Bookings
+→ Linked to testbuyer and testprovider
+→ 1 with status = accepted, 1 with status = pending
+
+Create 1 Paid Stripe Order
+→ Using Stripe test mode (simulate purchase with 4242 4242 4242 4242)
+→ Add to testbuyer’s order history in Supabase
+
+💸 PART 2: MONETIZATION ENGINE SETUP
+✅ A. Pet Services Monetization
+Booking Commission Logic
+
+On successful booking (status = completed), calculate platform fee (e.g. 10%)
+
+Store in platform_commissions table:
+| booking_id | amount | provider_id | date |
+
+Paid Service Listing Option
+
+Allow providers to optionally “Boost” their listing for $4.99
+
+Add Stripe checkout button to service provider dashboard
+
+Update is_boosted boolean in listings table
+
+Provider Subscription Option (Optional MVP)
+
+Basic plan: $9.99/mo = unlimited bookings, badge, priority placement
+
+Store subscription data via Stripe + Supabase subscriptions table
+
+✅ B. Store Monetization
+Featured Product Placement (Boosted)
+
+Admin or brand pays $5.99 for featured spot
+
+Toggle is_featured = true on product after payment
+
+Add Stripe payment flow for this
+
+⚖️ PART 3: LEGAL + SAFETY OVERLAYS
+✅ Create Legal Pages (Static Pages)
+/legal/terms – Terms of Service
+
+/legal/privacy – Privacy Policy
+
+/legal/guidelines – Community Rules (optional)
+
+Store text in /client/src/pages/legal/*.tsx files
+
+✅ Add Overlay Checkboxes
+User Signup Form:
+
+Checkbox: “I agree to the [Terms] and [Privacy Policy]” (with links)
+
+Booking Confirmation Modal:
+
+Checkbox: “I understand I am booking a verified provider and agree to platform policies”
+
+Prevent submission unless these are checked
+
+🔐 Optional (if time allows)
+Add legal_acknowledged = true flag in profiles
+
+Only allow actions (e.g. booking, messaging) after agreement is confirmed
+
+📌 Notes:
+All payments use Stripe test mode for now
+
+Use existing user sessions/auth hooks
+
+Legal pages should match existing Tailwind styling
+
+Monetization fees should be editable in config or constants
+
+Once complete, your app will be:
+✅ Fully testable
+✅ Legally protected
+✅ Revenue-ready
