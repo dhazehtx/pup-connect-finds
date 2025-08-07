@@ -10,6 +10,7 @@ import { CartFab } from './components/ui/cart-fab';
 import Layout from './components/Layout';
 import AdminNavigationTracker from './components/admin/AdminNavigationTracker';
 import CookieConsentBanner from '@/components/privacy/CookieConsentBanner';
+import { FloatingBugReportButton } from '@/components/FloatingBugReportButton';
 import Analytics from './components/Analytics';
 import SessionExpiredModal from '@/components/auth/SessionExpiredModal';
 
@@ -79,6 +80,9 @@ const AdminBugsPage = lazy(() => import('./pages/AdminBugsPage'));
 const ServiceProviderApplications = lazy(() => import('./pages/admin/ServiceProviderApplications'));
 const ProviderDashboard = lazy(() => import('./pages/dashboard/ProviderDashboard'));
 const UserBookings = lazy(() => import('./pages/dashboard/UserBookings'));
+const TestChecklist = lazy(() => import('./pages/dashboard/TestChecklist'));
+const BugReports = lazy(() => import('./pages/admin/BugReports'));
+const QADashboard = lazy(() => import('./pages/QADashboard'));
 const BugTestPage = lazy(() => import('./pages/BugTestPage'));
 const PrivacyPolicyPage = lazy(() => import('./pages/PrivacyPolicyPage'));
 const PrivacySettingsPage = lazy(() => import('./pages/PrivacySettingsPage'));
@@ -349,6 +353,27 @@ function App() {
                       </Suspense>
                     </ProtectedRoute>
                   } />
+                  <Route path="/dashboard/test-checklist" element={
+                    <ProtectedRoute>
+                      <Suspense fallback={<LoadingPage message="Loading Testing Dashboard..." />}>
+                        <TestChecklist />
+                      </Suspense>
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/qa" element={
+                    <ProtectedRoute>
+                      <Suspense fallback={<LoadingPage message="Loading QA Dashboard..." />}>
+                        <QADashboard />
+                      </Suspense>
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/admin/bug-reports" element={
+                    <ProtectedRoute>
+                      <Suspense fallback={<LoadingPage message="Loading Bug Reports..." />}>
+                        <BugReports />
+                      </Suspense>
+                    </ProtectedRoute>
+                  } />
                   <Route path="/bug-test" element={
                     <ProtectedRoute>
                       <Suspense fallback={<LoadingPage message="Loading Bug Test..." />}>
@@ -390,6 +415,7 @@ function App() {
               <CookieConsentBanner />
               <SessionExpiredModal />
               <CartFab />
+              <FloatingBugReportButton />
               </ThemeProvider>
             </RealtimeProvider>
           </AuthProvider>

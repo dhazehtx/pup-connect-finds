@@ -18,6 +18,7 @@ import adminRouter from './routes/admin';
 import analyticsRouter from './routes/analytics';
 import reviewsRouter from './routes/reviews';
 import servicesRouter from './routes/services';
+import qaRouter from './routes/qa';
 import { registerHealthRoutes } from './routes/health';
 import { storage } from "./storage";
 import { 
@@ -107,6 +108,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api/admin', adminRouter);
   app.use('/api/admin/analytics', analyticsRouter);
   app.use('/api/webhook', webhookRouter);
+  app.use('/api/qa', qaRouter);
 
   // Add authentication middleware for all other API routes
   app.use('/api', authMiddleware);

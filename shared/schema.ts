@@ -620,9 +620,22 @@ export const groupCommentLikes = pgTable("group_comment_likes", {
   uniqueLike: unique("unique_group_comment_like").on(table.comment_id, table.user_id),
 }));
 
+// QA Bug Reports table for testing and quality assurance
+export const qaBugReports = pgTable("qa_bug_reports", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  user_id: uuid("user_id").references(() => profiles.id, { onDelete: "cascade" }).notNull(),
+  route: text("route").notNull(),
+  description: text("description").notNull(),
+  severity: text("severity").notNull(), // low, medium, high, critical
+  status: text("status").notNull().default("open"), // open, in_progress, fixed, wont_fix
+  created_at: timestamp("created_at").defaultNow().notNull(),
+  updated_at: timestamp("updated_at").defaultNow().notNull(),
+});
+
 export const insertCommentLikeSchema = createInsertSchema(commentLikes).omit({ id: true, created_at: true });
 export const insertMentionSchema = createInsertSchema(mentions).omit({ id: true, created_at: true });
 export const insertPostTagSchema = createInsertSchema(postTags).omit({ id: true, created_at: true });
+export const insertQaBugReportSchema = createInsertSchema(qaBugReports).omit({ id: true, created_at: true, updated_at: true });
 export const insertPopularTagSchema = createInsertSchema(popularTags).omit({ id: true, created_at: true, updated_at: true });
 export const insertSavedPostSchema = createInsertSchema(savedPosts).omit({ id: true, created_at: true });
 export const insertBookmarkSchema = createInsertSchema(bookmarks).omit({ id: true, created_at: true });
@@ -748,8 +761,8 @@ export type SupportTicket = typeof supportTickets.$inferSelect;
 export type InsertSupportTicket = z.infer<typeof insertSupportTicketSchema>;
 export type SupportTicketReply = typeof supportTicketReplies.$inferSelect;
 export type InsertSupportTicketReply = z.infer<typeof insertSupportTicketReplySchema>;
-export type BugReport = typeof bugReports.$inferSelect;
-export type InsertBugReport = z.infer<typeof insertBugReportSchema>;
+export type QaBugReport = typeof qaBugReports.$inferSelect;
+export type InsertQaBugReport = z.infer<typeof insertQaBugReportSchema>;
 
 // ===== STORE & ECOMMERCE SCHEMAS =====
 

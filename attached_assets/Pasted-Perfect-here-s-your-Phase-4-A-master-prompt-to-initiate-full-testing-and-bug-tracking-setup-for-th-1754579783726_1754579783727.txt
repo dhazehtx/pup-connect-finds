@@ -1,0 +1,101 @@
+Perfect — here’s your Phase 4-A master prompt to initiate full testing and bug tracking setup for the My Pup app. This will give you total visibility into what works, what needs polish, and what’s ready to ship.
+
+✅ MASTER PROMPT – PHASE 4-A: Testing & Bug Tracking Setup
+Prompt:
+"I'm entering Phase 4-A of My Pup's development cycle. Please help me implement a full QA testing and bug tracking system across the app. The app is built with Replit (React frontend, Express backend, Supabase + Stripe). We've completed the Store, Pet Services Marketplace, Admin Panel, Messaging, and Dashboards. I now need to tighten everything up with structured testing, logging, and visual QA tools. Please complete the following:"
+
+🧪 1. Create Testing Accounts
+Seed the database with:
+
+Test Buyer Account (email: testbuyer@mypup.com)
+
+Test Provider Account (email: testprovider@mypup.com)
+
+Test Admin Account (email: admin@mypup.com)
+
+Pre-populate:
+
+A few dummy products
+
+A few service listings (verified + unverified)
+
+A few bookings with different statuses (pending, accepted, etc.)
+
+One paid order in Stripe test mode
+
+🧼 2. Build Testing Checklist Dashboard (Internal Only)
+Create /dashboard/test-checklist for internal dev/admin use
+
+Display:
+
+Links to key test areas (Store, Services, Admin Panel, Dashboards)
+
+Checklist components for:
+
+Product flow (browse, checkout, order history)
+
+Services flow (signup, apply, approve, book, confirm)
+
+Messaging flow (send/receive)
+
+Admin flow (verify providers, manage products)
+
+Status toggles (✅, ⚠️, ❌) for each tested section
+
+“Submit bug” button → opens feedback modal
+
+🐞 3. Basic Bug Logging System
+Create Supabase table: bug_reports
+| Field | Type |
+|---------------|------------|
+| id | UUID |
+| user_id | UUID |
+| route | Text |
+| description | Text |
+| severity | Text (low, med, high) |
+| status | Text (open, fixed, wontfix) |
+| created_at | Timestamp |
+
+Build:
+
+POST /api/bugs route to accept submissions
+
+Admin view: /admin/bug-reports
+→ Filter by severity/status
+→ Mark as resolved or update status
+
+Add floating bug report button on all dev-mode pages (bottom-right)
+
+👁️ 4. Visual QA Checklist (Optional)
+Add toggle to highlight common UI issues:
+
+Check image loading, modal responsiveness, text clipping
+
+Tailwind utility audit if needed
+
+Implement /qa-tools with:
+
+Grid tester
+
+Font size checker
+
+Modal preview tester
+
+🧪 5. Testing Tags (Frontend Dev Mode Only)
+Add a DEV_MODE toggle in your config
+
+When enabled:
+
+Show testing labels (e.g., “Fake Product”, “Demo Provider”)
+
+Enable access to internal QA dashboards
+
+Display dummy Stripe test card info (4242 4242 4242 4242, etc.)
+
+🧠 Notes:
+These tools are internal only — exclude from public build or production mode
+
+bug_reports table should restrict viewing/editing to admin users
+
+You may optionally connect bug reports to Slack, Notion, or email in future
+
