@@ -163,6 +163,16 @@ export interface IStorage {
   createSubscription(subscription: InsertSubscription): Promise<Subscription>;
   getSubscription(id: string): Promise<Subscription | undefined>;
   getUserSubscriptions(userId: string): Promise<Subscription[]>;
+  
+  // Analytics methods
+  getAdminAnalytics(): Promise<{
+    totalOrders: number;
+    totalRevenue: string;
+    totalProducts: number;
+    pendingOrders: number;
+    topProducts: Array<{ name: string; sales_count: number }>;
+    recentSales: Array<{ amount_total: string; created_at: string }>;
+  }>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -629,6 +639,80 @@ export class DatabaseStorage implements IStorage {
     return await db.select().from(subscriptions)
       .where(eq(subscriptions.user_id, userId))
       .orderBy(desc(subscriptions.created_at));
+  }
+
+  // Analytics implementation
+  async getAdminAnalytics(): Promise<{
+    totalOrders: number;
+    totalRevenue: string;
+    totalProducts: number;
+    pendingOrders: number;
+    topProducts: Array<{ name: string; sales_count: number }>;
+    recentSales: Array<{ amount_total: string; created_at: string }>;
+  }> {
+    try {
+      // Get total orders count
+      const totalOrdersResult = await db.select({ count: sql<number>`count(*)` }).from(orders);
+      const totalOrders = totalOrdersResult[0]?.count || 0;
+
+      // Get total revenue (sum of paid orders)
+      const revenueResult = await db.select({ 
+        revenue: sql<string>`coalesce(sum(${orders.amount_total}), 0)` 
+      }).from(orders).where(eq(orders.status, 'paid'));
+      const totalRevenue = revenueResult[0]?.revenue || '0';
+
+      // Get total products count
+      const productsResult = await db.select({ count: sql<number>`count(*)` }).from(products);
+      const totalProducts = productsResult[0]?.count || 0;
+
+      // Get pending orders count
+      const pendingResult = await db.select({ count: sql<number>`count(*)` })
+        .from(orders).where(eq(orders.status, 'pending'));
+      const pendingOrders = pendingResult[0]?.count || 0;
+
+      // Get top 5 products by sales count
+      const topProducts = await db.select({
+        name: products.name,
+        sales_count: products.sales_count
+      }).from(products)
+        .where(isNotNull(products.sales_count))
+        .orderBy(desc(products.sales_count))
+        .limit(5);
+
+      // Get recent 10 sales
+      const recentSales = await db.select({
+        amount_total: orders.amount_total,
+        created_at: orders.created_at
+      }).from(orders)
+        .where(eq(orders.status, 'paid'))
+        .orderBy(desc(orders.created_at))
+        .limit(10);
+
+      return {
+        totalOrders,
+        totalRevenue,
+        totalProducts,
+        pendingOrders,
+        topProducts: topProducts.map(p => ({ 
+          name: p.name, 
+          sales_count: p.sales_count || 0 
+        })),
+        recentSales: recentSales.map(s => ({
+          amount_total: s.amount_total.toString(),
+          created_at: s.created_at?.toISOString() || ''
+        }))
+      };
+    } catch (error) {
+      console.error('Error fetching admin analytics:', error);
+      return {
+        totalOrders: 0,
+        totalRevenue: '0',
+        totalProducts: 0,
+        pendingOrders: 0,
+        topProducts: [],
+        recentSales: []
+      };
+    }
   }
 }
 

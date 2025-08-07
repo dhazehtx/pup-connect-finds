@@ -31,13 +31,22 @@ router.get('/products', async (req, res) => {
 // Create new product
 const createProductSchema = z.object({
   name: z.string().min(1, "Product name is required"),
-  description: z.string().optional(),
+  description: z.string().optional().nullable(),
   unit_price: z.string().min(1, "Price is required"),
   inventory_qty: z.number().min(0, "Inventory must be non-negative"),
-  category: z.string().optional(),
-  stripe_price_id: z.string().optional(),
+  category: z.string().optional().nullable(),
+  stripe_price_id: z.string().optional().nullable(),
+  stripe_product_id: z.string().optional().nullable(),
+  image_url: z.string().optional().nullable(),
   is_subscription: z.boolean().default(false),
-  is_active: z.boolean().default(true)
+  is_active: z.boolean().default(true),
+  currency: z.string().default("usd"),
+  is_discounted: z.boolean().default(false),
+  original_price: z.string().optional().nullable(),
+  sales_count: z.number().default(0),
+  rating: z.string().optional().nullable(),
+  reviews_count: z.number().default(0),
+  metadata: z.any().optional()
 });
 
 router.post('/products', async (req, res) => {
@@ -47,10 +56,28 @@ router.post('/products', async (req, res) => {
     // Generate a unique ID for the product
     const productId = `prod_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     
-    const product = await storage.createProduct({
-      ...validatedData,
-      id: productId
-    });
+    const productData = {
+      id: productId,
+      name: validatedData.name,
+      unit_price: validatedData.unit_price,
+      inventory_qty: validatedData.inventory_qty,
+      description: validatedData.description,
+      category: validatedData.category,
+      stripe_price_id: validatedData.stripe_price_id,
+      stripe_product_id: validatedData.stripe_product_id,
+      image_url: validatedData.image_url,
+      is_subscription: validatedData.is_subscription,
+      is_active: validatedData.is_active,
+      currency: validatedData.currency,
+      is_discounted: validatedData.is_discounted,
+      original_price: validatedData.original_price,
+      sales_count: validatedData.sales_count,
+      rating: validatedData.rating,
+      reviews_count: validatedData.reviews_count,
+      metadata: validatedData.metadata
+    };
+    
+    const product = await storage.createProduct(productData);
     
     res.json({ success: true, data: product });
   } catch (error) {
@@ -65,13 +92,22 @@ router.post('/products', async (req, res) => {
 // Update product
 const updateProductSchema = z.object({
   name: z.string().optional(),
-  description: z.string().optional(),
+  description: z.string().optional().nullable(),
   unit_price: z.string().optional(),
   inventory_qty: z.number().optional(),
-  category: z.string().optional(),
-  stripe_price_id: z.string().optional(),
+  category: z.string().optional().nullable(),
+  stripe_price_id: z.string().optional().nullable(),
+  stripe_product_id: z.string().optional().nullable(),
+  image_url: z.string().optional().nullable(),
   is_subscription: z.boolean().optional(),
-  is_active: z.boolean().optional()
+  is_active: z.boolean().optional(),
+  currency: z.string().optional(),
+  is_discounted: z.boolean().optional(),
+  original_price: z.string().optional().nullable(),
+  sales_count: z.number().optional(),
+  rating: z.string().optional().nullable(),
+  reviews_count: z.number().optional(),
+  metadata: z.any().optional()
 });
 
 router.put('/products/:id', async (req, res) => {
