@@ -764,6 +764,8 @@ export const products = pgTable("products", {
   inventory_qty: integer("inventory_qty").default(0),
   is_subscription: boolean("is_subscription").default(false),
   is_active: boolean("is_active").default(true),
+  is_featured: boolean("is_featured").default(false), // Featured products
+  tags: text("tags").array(), // Product tags for filtering
   unit_price: text("unit_price").notNull(), // Stored as string to avoid precision issues
   currency: text("currency").default("usd"),
   is_discounted: boolean("is_discounted").default(false), // For sale filtering
@@ -785,6 +787,12 @@ export const orders = pgTable("orders", {
   amount_total: decimal("amount_total", { precision: 10, scale: 2 }).notNull(),
   status: text("status").default("pending"), // pending, paid, shipped, cancelled
   is_subscription: boolean("is_subscription").default(false),
+  // Shipping & tracking fields
+  shipping_address: text("shipping_address"),
+  tracking_number: text("tracking_number"),
+  carrier: text("carrier"), // UPS, FedEx, USPS, etc.
+  is_shipped: boolean("is_shipped").default(false),
+  shipped_at: timestamp("shipped_at"),
   created_at: timestamp("created_at").defaultNow(),
   updated_at: timestamp("updated_at").defaultNow(),
 });
@@ -805,6 +813,19 @@ export const subscriptions = pgTable("subscriptions", {
   user_id: uuid("user_id").references(() => profiles.id),
   stripe_subscription_id: text("stripe_subscription_id").unique(),
   status: text("status").default("active"), // active, cancelled, past_due
+  created_at: timestamp("created_at").defaultNow(),
+  updated_at: timestamp("updated_at").defaultNow(),
+});
+
+// Product reviews table for ratings and feedback
+export const productReviews = pgTable("product_reviews", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  product_id: text("product_id").references(() => products.id, { onDelete: "cascade" }),
+  user_id: uuid("user_id").references(() => profiles.id, { onDelete: "cascade" }),
+  rating: integer("rating").notNull(), // 1-5 stars
+  review: text("review"), // Review text (optional)
+  is_verified_purchase: boolean("is_verified_purchase").default(false),
+  is_hidden: boolean("is_hidden").default(false), // Admin moderation
   created_at: timestamp("created_at").defaultNow(),
   updated_at: timestamp("updated_at").defaultNow(),
 });
@@ -833,6 +854,12 @@ export const insertSubscriptionSchema = createInsertSchema(subscriptions).omit({
   updated_at: true 
 });
 
+export const insertProductReviewSchema = createInsertSchema(productReviews).omit({ 
+  id: true, 
+  created_at: true, 
+  updated_at: true 
+});
+
 // Store type exports
 export type Product = typeof products.$inferSelect;
 export type InsertProduct = z.infer<typeof insertProductSchema>;
@@ -842,3 +869,5 @@ export type OrderItem = typeof orderItems.$inferSelect;
 export type InsertOrderItem = z.infer<typeof insertOrderItemSchema>;
 export type Subscription = typeof subscriptions.$inferSelect;
 export type InsertSubscription = z.infer<typeof insertSubscriptionSchema>;
+export type ProductReview = typeof productReviews.$inferSelect;
+export type InsertProductReview = z.infer<typeof insertProductReviewSchema>;

@@ -16,6 +16,7 @@ import {
   orders,
   orderItems,
   subscriptions,
+  productReviews,
   type User, 
   type InsertUser,
   type Profile,
@@ -49,7 +50,9 @@ import {
   type OrderItem,
   type InsertOrderItem,
   type Subscription,
-  type InsertSubscription
+  type InsertSubscription,
+  type ProductReview,
+  type InsertProductReview
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, or, like, sql, isNotNull } from "drizzle-orm";
@@ -146,7 +149,7 @@ export interface IStorage {
   deleteProfile(id: string): Promise<boolean>;
 
   // Store/Ecommerce methods
-  getProducts(filters?: { isActive?: boolean; isSubscription?: boolean }): Promise<Product[]>;
+  getProducts(filters?: { isActive?: boolean; isSubscription?: boolean; featured?: boolean; tag?: string }): Promise<Product[]>;
   getProduct(id: string): Promise<Product | undefined>;
   getProductById(id: string): Promise<Product | undefined>;
   createProduct(product: InsertProduct): Promise<Product>;
@@ -173,6 +176,17 @@ export interface IStorage {
     topProducts: Array<{ name: string; sales_count: number }>;
     recentSales: Array<{ amount_total: string; created_at: string }>;
   }>;
+  
+  // Product review methods
+  getProductReviews(productId: string): Promise<ProductReview[]>;
+  createProductReview(review: InsertProductReview): Promise<ProductReview>;
+  updateProductReview(id: string, review: Partial<InsertProductReview>): Promise<ProductReview | undefined>;
+  updateProductRating(productId: string): Promise<void>;
+  
+  // Enhanced order methods
+  getUserOrdersWithItems(userId: string): Promise<Array<Order & { items: Array<OrderItem & { product: Product }> }>>;
+  getOrderWithItems(orderId: string): Promise<(Order & { items: Array<OrderItem & { product: Product }> }) | undefined>;
+  updateOrder(id: string, order: Partial<InsertOrder>): Promise<Order | undefined>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -547,21 +561,31 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Store/Ecommerce methods
-  async getProducts(filters?: { isActive?: boolean; isSubscription?: boolean }): Promise<Product[]> {
+  async getProducts(filters?: { isActive?: boolean; isSubscription?: boolean; featured?: boolean; tag?: string }): Promise<Product[]> {
     let query = db.select().from(products);
     
-    // Always filter for active products with Stripe backing
-    const conditions = [
-      eq(products.is_active, true),
-      isNotNull(products.stripe_price_id)
-    ];
+    const conditions = [];
+    if (filters?.isActive !== undefined) {
+      conditions.push(eq(products.is_active, filters.isActive));
+    } else {
+      conditions.push(eq(products.is_active, true)); // Default to active products
+    }
     
     if (filters?.isSubscription !== undefined) {
       conditions.push(eq(products.is_subscription, filters.isSubscription));
     }
+    if (filters?.featured !== undefined) {
+      conditions.push(eq(products.is_featured, filters.featured));
+    }
+    if (filters?.tag) {
+      conditions.push(sql`${products.tags} @> ARRAY[${filters.tag}]`);
+    }
     
-    query = query.where(and(...conditions));
-    return await query.orderBy(products.name);
+    if (conditions.length > 0) {
+      query = query.where(and(...conditions));
+    }
+    
+    return await query.orderBy(desc(products.created_at));
   }
 
   async getProduct(id: string): Promise<Product | undefined> {
@@ -713,6 +737,125 @@ export class DatabaseStorage implements IStorage {
         recentSales: []
       };
     }
+  }
+
+  // Product review methods implementation
+  async getProductReviews(productId: string): Promise<ProductReview[]> {
+    return await db.select()
+      .from(productReviews)
+      .where(and(
+        eq(productReviews.product_id, productId),
+        eq(productReviews.is_hidden, false)
+      ))
+      .orderBy(desc(productReviews.created_at));
+  }
+
+  async createProductReview(review: InsertProductReview): Promise<ProductReview> {
+    const result = await db.insert(productReviews).values([review]).returning();
+    return result[0];
+  }
+
+  async updateProductReview(id: string, review: Partial<InsertProductReview>): Promise<ProductReview | undefined> {
+    const result = await db.update(productReviews)
+      .set(review)
+      .where(eq(productReviews.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async updateProductRating(productId: string): Promise<void> {
+    try {
+      // Calculate average rating for the product
+      const reviews = await db.select({ rating: productReviews.rating })
+        .from(productReviews)
+        .where(and(
+          eq(productReviews.product_id, productId),
+          eq(productReviews.is_hidden, false)
+        ));
+
+      if (reviews.length === 0) {
+        // No reviews, reset rating
+        await db.update(products)
+          .set({ 
+            rating: null, 
+            reviews_count: 0,
+            updated_at: new Date()
+          })
+          .where(eq(products.id, productId));
+        return;
+      }
+
+      const totalRating = reviews.reduce((sum, review) => sum + review.rating, 0);
+      const averageRating = (totalRating / reviews.length).toFixed(2);
+
+      await db.update(products)
+        .set({ 
+          rating: averageRating, 
+          reviews_count: reviews.length,
+          updated_at: new Date()
+        })
+        .where(eq(products.id, productId));
+    } catch (error) {
+      console.error('Error updating product rating:', error);
+    }
+  }
+
+  // Enhanced order methods implementation
+  async getUserOrdersWithItems(userId: string): Promise<Array<Order & { items: Array<OrderItem & { product: Product }> }>> {
+    const userOrders = await db.select().from(orders)
+      .where(eq(orders.user_id, userId))
+      .orderBy(desc(orders.created_at));
+
+    const ordersWithItems = [];
+    for (const order of userOrders) {
+      const items = await db.select({
+        id: orderItems.id,
+        order_id: orderItems.order_id,
+        product_id: orderItems.product_id,
+        qty: orderItems.qty,
+        unit_price: orderItems.unit_price,
+        created_at: orderItems.created_at,
+        product: products
+      })
+      .from(orderItems)
+      .leftJoin(products, eq(orderItems.product_id, products.id))
+      .where(eq(orderItems.order_id, order.id));
+
+      ordersWithItems.push({ ...order, items });
+    }
+
+    return ordersWithItems;
+  }
+
+  async getOrderWithItems(orderId: string): Promise<(Order & { items: Array<OrderItem & { product: Product }> }) | undefined> {
+    const order = await db.select().from(orders)
+      .where(eq(orders.id, orderId))
+      .limit(1);
+
+    if (!order[0]) return undefined;
+
+    const items = await db.select({
+      id: orderItems.id,
+      order_id: orderItems.order_id,
+      product_id: orderItems.product_id,
+      qty: orderItems.qty,
+      unit_price: orderItems.unit_price,
+      created_at: orderItems.created_at,
+      product: products
+    })
+    .from(orderItems)
+    .leftJoin(products, eq(orderItems.product_id, products.id))
+    .where(eq(orderItems.order_id, orderId));
+
+    return { ...order[0], items };
+  }
+
+  async updateOrder(id: string, order: Partial<InsertOrder>): Promise<Order | undefined> {
+    const result = await db.update(orders)
+      .set({ ...order, updated_at: new Date() })
+      .where(eq(orders.id, id))
+      .returning();
+    return result[0];
   }
 }
 

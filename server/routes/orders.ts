@@ -1,109 +1,86 @@
 import { Router } from "express";
+import { z } from "zod";
 import { storage } from "../storage";
 import { authMiddleware } from "../middleware/auth";
 
 const router = Router();
 
-interface OrderItem {
-  product_id: string;
-  qty: number;
-}
-
-// POST /api/orders - Create manual order (admin functionality)
-router.post("/", authMiddleware, async (req, res) => {
+// Get user's order history
+router.get('/user/:user_id', authMiddleware, async (req, res) => {
   try {
-    const { user_id, items }: { user_id: string; items: OrderItem[] } = req.body;
+    const { user_id } = req.params;
+    const requestingUserId = req.user?.id;
 
-    if (!user_id || !items || !Array.isArray(items)) {
-      return res.status(400).json({ error: "user_id and items array are required" });
+    // Users can only view their own orders (unless admin)
+    if (user_id !== requestingUserId && !req.user?.is_admin) {
+      return res.status(403).json({ error: 'Access denied' });
     }
 
-    // Fetch product details and calculate total
-    const productIds = items.map(item => item.product_id);
-    const productPromises = productIds.map(id => storage.getProduct(id));
-    const products = await Promise.all(productPromises);
-
-    // Check if all products exist
-    const missingProducts = products.some(p => !p);
-    if (missingProducts) {
-      return res.status(400).json({ error: "One or more products not found" });
-    }
-
-    // Calculate line items and total
-    const lineItems = items.map(item => {
-      const product = products.find(p => p?.id === item.product_id)!;
-      const subtotal = parseFloat(product.unit_price) * item.qty;
-      return {
-        ...item,
-        unit_price: product.unit_price,
-        subtotal
-      };
-    });
-
-    const total = lineItems.reduce((sum, item) => sum + item.subtotal, 0);
-
-    // Create order
-    const order = await storage.createOrder({
-      user_id,
-      amount_total: total.toString(),
-      status: "paid"
-    });
-
-    // Create order items
-    const orderItemsPromises = lineItems.map(item =>
-      storage.createOrderItem({
-        order_id: order.id,
-        product_id: item.product_id,
-        qty: item.qty,
-        unit_price: item.unit_price
-      })
-    );
-
-    const orderItems = await Promise.all(orderItemsPromises);
-
-    res.status(201).json({ order, items: orderItems });
+    const orders = await storage.getUserOrdersWithItems(user_id);
+    res.json({ success: true, data: orders });
   } catch (error) {
-    console.error("Error creating order:", error);
-    res.status(500).json({ error: "Failed to create order" });
+    console.error('Error fetching user orders:', error);
+    res.status(500).json({ error: 'Failed to fetch orders' });
   }
 });
 
-// GET /api/orders - Get user's orders
-router.get("/", authMiddleware, async (req, res) => {
+// Admin: Update shipping information
+router.patch('/:id/shipping', authMiddleware, async (req, res) => {
   try {
-    const user_id = req.user?.id;
-    if (!user_id) {
-      return res.status(401).json({ error: "User not authenticated" });
+    if (!req.user?.is_admin) {
+      return res.status(403).json({ error: 'Admin access required' });
     }
 
-    const orders = await storage.getUserOrders(user_id);
-    res.json(orders);
-  } catch (error) {
-    console.error("Error fetching orders:", error);
-    res.status(500).json({ error: "Failed to fetch orders" });
-  }
-});
+    const { id } = req.params;
+    const shippingSchema = z.object({
+      shipping_address: z.string().optional(),
+      tracking_number: z.string().optional(),
+      carrier: z.string().optional(),
+      is_shipped: z.boolean().optional(),
+    });
 
-// GET /api/orders/:id - Get specific order
-router.get("/:id", authMiddleware, async (req, res) => {
-  try {
-    const order = await storage.getOrder(req.params.id);
+    const validatedData = shippingSchema.parse(req.body);
+
+    // If marking as shipped, set shipped_at timestamp
+    if (validatedData.is_shipped === true) {
+      (validatedData as any).shipped_at = new Date();
+    }
+
+    const order = await storage.updateOrder(id, validatedData);
+    
     if (!order) {
-      return res.status(404).json({ error: "Order not found" });
+      return res.status(404).json({ error: 'Order not found' });
     }
 
-    // Check if user owns the order (or is admin)
-    const user_id = req.user?.id;
-    if (order.user_id !== user_id) {
-      // TODO: Add admin check here
-      return res.status(403).json({ error: "Access denied" });
-    }
-
-    const orderItems = await storage.getOrderItems(order.id);
-    res.json({ ...order, items: orderItems });
+    res.json({ success: true, data: order });
   } catch (error) {
-    console.error("Error fetching order:", error);
-    res.status(500).json({ error: "Failed to fetch order" });
+    console.error('Error updating order shipping:', error);
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ error: 'Invalid input', details: error.errors });
+    }
+    res.status(500).json({ error: 'Failed to update order shipping' });
+  }
+});
+
+// Get order details with items
+router.get('/:id', authMiddleware, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const order = await storage.getOrderWithItems(id);
+    
+    if (!order) {
+      return res.status(404).json({ error: 'Order not found' });
+    }
+
+    // Users can only view their own orders (unless admin)
+    if (order.user_id !== req.user?.id && !req.user?.is_admin) {
+      return res.status(403).json({ error: 'Access denied' });
+    }
+
+    res.json({ success: true, data: order });
+  } catch (error) {
+    console.error('Error fetching order:', error);
+    res.status(500).json({ error: 'Failed to fetch order' });
   }
 });
 

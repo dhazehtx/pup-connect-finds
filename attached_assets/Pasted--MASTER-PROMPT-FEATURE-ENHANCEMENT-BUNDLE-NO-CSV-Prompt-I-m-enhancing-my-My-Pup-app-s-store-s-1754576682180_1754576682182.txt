@@ -1,0 +1,118 @@
+✅ MASTER PROMPT – FEATURE ENHANCEMENT BUNDLE (NO CSV)
+Prompt:
+"I'm enhancing my My Pup app's store system with premium eCommerce features. The base system is already functional with product CRUD, Stripe checkout, admin panel, and order creation. Please help me implement the following four features in my Replit + Supabase + Stripe setup using Express.js and React. All database changes should use Supabase. Here's what I need you to build:"
+
+🔹 1. Featured Products + Tag System
+Supabase Schema Updates:
+Add is_featured (boolean) to products table
+
+Add tags (array of text or comma-separated string) to products
+
+Backend:
+Update GET /products to allow filters:
+
+?featured=true
+
+?tag=toys
+
+Frontend:
+Display “Featured Products” section on the Store tab (top of page)
+
+Filter sidebar or tag badges under each product (clickable to filter)
+
+🔹 2. Order History Page (User Dashboard)
+Supabase:
+Use existing orders + order_items tables
+
+Backend:
+GET /api/orders/user/:user_id – return full list of user’s orders
+
+Include product details, quantities, prices, status, shipping info
+
+Frontend:
+Add “My Orders” page under user dashboard/profile
+
+Show each order with:
+
+Order date
+
+Items
+
+Status (Pending, Paid, Fulfilled, Shipped)
+
+Total price
+
+🔹 3. Shipping & Tracking Fields
+Supabase Schema:
+Add to orders table:
+
+shipping_address (text)
+
+tracking_number (text)
+
+carrier (text)
+
+is_shipped (boolean)
+
+shipped_at (timestamp)
+
+Backend:
+Allow admin to update shipping status via:
+
+PATCH /api/admin/orders/:id/shipping
+
+Frontend:
+On “My Orders” page, display:
+
+Shipped or not
+
+Carrier + tracking number (if available)
+
+Admin Panel: Add shipping form in order view
+
+🔹 4. Product Reviews & Ratings
+Supabase:
+Create new table: product_reviews
+
+Field	Type
+id	UUID
+product_id	UUID
+user_id	UUID
+rating	Integer (1–5)
+review	Text
+created_at	Timestamp
+
+Backend:
+POST /api/reviews – Create a review (authenticated users only)
+
+GET /api/reviews/:product_id – Get all reviews for a product
+
+Prevent duplicate reviews from same user
+
+Frontend:
+On each Product Page:
+
+Show star rating average (1–5)
+
+Review list with text and date
+
+“Write a Review” button (if user purchased)
+
+In Admin Panel:
+
+Optional moderation toggle (e.g. hide/delete reviews)
+
+✅ Notes:
+Supabase schema should remain compatible with existing tables
+
+Keep styling consistent with current UI (Tailwind, Replit setup)
+
+Use placeholder tracking URLs (e.g. UPS, FedEx) for now if needed
+
+Use user_id from session/auth to link reviews and orders
+
+Once this is implemented, you’ll have:
+✅ A high-converting product catalog
+✅ Fully tracked order lifecycle
+✅ Social proof (reviews/ratings)
+✅ A clean, user-centered dashboard

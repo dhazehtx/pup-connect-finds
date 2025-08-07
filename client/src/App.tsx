@@ -43,6 +43,7 @@ import RequireAuth from './components/RequireAuth';
 import { FraudDetectionDemo } from './components/security/FraudDetectionDemo';
 import { RefundManagement } from './pages/RefundManagement';
 import { CommissionCenter } from './pages/CommissionCenter';
+import OrderHistory from './pages/OrderHistory';
 import ErrorBoundary from './components/ErrorBoundary';
 
 // Lazy load rate limit demo
@@ -112,6 +113,11 @@ function App() {
                   <Route path="/cart" element={<Cart />} />
                   <Route path="/checkout/success" element={<CheckoutSuccess />} />
                   <Route path="/checkout/cancel" element={<CheckoutCancel />} />
+                  <Route path="/orders" element={
+                    <RequireAuth>
+                      <OrderHistory />
+                    </RequireAuth>
+                  } />
                   <Route path="/post" element={<RequireAuth><Post /></RequireAuth>} />
                   <Route path="/profile/:userId" element={
                     <RequireAuth>

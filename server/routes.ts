@@ -16,6 +16,7 @@ import ordersRouter from './routes/orders';
 import webhookRouter from './routes/webhook';
 import adminRouter from './routes/admin';
 import analyticsRouter from './routes/analytics';
+import reviewsRouter from './routes/reviews';
 import { registerHealthRoutes } from './routes/health';
 import { storage } from "./storage";
 import { 
@@ -100,6 +101,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api/products', productsRouter);
   app.use('/api/checkout', checkoutRouter);
   app.use('/api/orders', ordersRouter);
+  app.use('/api/reviews', reviewsRouter);
   app.use('/api/admin', adminRouter);
   app.use('/api/admin/analytics', analyticsRouter);
   app.use('/api/webhook', webhookRouter);

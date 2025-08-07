@@ -4,30 +4,23 @@ import { authMiddleware } from "../middleware/auth";
 
 const router = Router();
 
-// GET /api/products - Get all products with filtering
+// GET /api/products - Get all products with enhanced filtering
 router.get("/", async (req, res) => {
   try {
-    const page = parseInt(req.query.page as string) || 1;
-    const limit = parseInt(req.query.limit as string) || 10;
-    const activeOnly = req.query.active !== "false";
-    const subscriptionOnly = req.query.subscription === "true";
+    const { isActive = true, isSubscription, featured, tag } = req.query;
+    
+    const filters: any = {};
+    if (isActive !== undefined) filters.isActive = isActive === 'true';
+    if (isSubscription !== undefined) filters.isSubscription = isSubscription === 'true';
+    if (featured !== undefined) filters.featured = featured === 'true';
+    if (tag) filters.tag = tag as string;
 
-    const products = await storage.getProducts({
-      isActive: activeOnly,
-      isSubscription: subscriptionOnly ? true : undefined
-    });
-
-    // Simple pagination
-    const startIndex = (page - 1) * limit;
-    const endIndex = startIndex + limit;
-    const paginatedProducts = products.slice(startIndex, endIndex);
+    const products = await storage.getProducts(filters);
 
     res.json({
-      data: paginatedProducts,
-      count: products.length,
-      page,
-      limit,
-      totalPages: Math.ceil(products.length / limit)
+      success: true,
+      data: products,
+      count: products.length
     });
   } catch (error) {
     console.error("Error fetching products:", error);

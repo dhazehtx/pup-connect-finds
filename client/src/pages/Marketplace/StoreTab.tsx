@@ -7,6 +7,9 @@ import { useCart } from '@/hooks/use-cart';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
+import FeaturedProducts from '@/components/FeaturedProducts';
+import ProductTags from '@/components/ProductTags';
+import { Separator } from '@/components/ui/separator';
 
 interface Product {
   id: string;
@@ -16,6 +19,8 @@ interface Product {
   image_url: string | null;
   is_subscription: boolean;
   is_active: boolean;
+  is_featured?: boolean;
+  tags?: string[] | null;
   inventory_qty: number;
   category?: string;
   rating?: number;
@@ -39,17 +44,19 @@ const StoreTab = () => {
   const [addedItems, setAddedItems] = useState<Set<string>>(new Set());
   const [sortType, setSortType] = useState<SortType>('featured');
   const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [selectedTag, setSelectedTag] = useState<string | null>(null);
   const [filters, setFilters] = useState<FilterState>({
     categories: [],
     minPrice: 0,
     maxPrice: 100
   });
 
-  // Fetch products from API
+  // Fetch products from API with tag filtering
   const { data: productsResponse, isLoading, error } = useQuery({
-    queryKey: ['/api/products'],
+    queryKey: ['/api/products', { tag: selectedTag }],
     queryFn: async () => {
-      const response = await fetch('/api/products');
+      const url = selectedTag ? `/api/products?tag=${encodeURIComponent(selectedTag)}` : '/api/products';
+      const response = await fetch(url);
       if (!response.ok) {
         throw new Error('Failed to fetch products');
       }
@@ -323,11 +330,24 @@ const StoreTab = () => {
           <div className="text-center py-8">
             <p className="text-gray-600">No products found matching your criteria.</p>
             <Button 
-              onClick={() => setFilters({ categories: [], minPrice: 0, maxPrice: 100 })}
+              onClick={() => {
+                setFilters({ categories: [], minPrice: 0, maxPrice: 100 });
+                setSelectedTag(null);
+              }}
               className="mt-4"
             >
               Clear Filters
             </Button>
+          </div>
+        )}
+
+        {/* Tag Filter Section */}
+        {!isLoading && !error && (
+          <div className="mt-8">
+            <ProductTags 
+              selectedTag={selectedTag}
+              onTagSelect={setSelectedTag}
+            />
           </div>
         )}
       </div>
