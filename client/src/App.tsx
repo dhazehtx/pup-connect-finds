@@ -84,6 +84,9 @@ const TestChecklist = lazy(() => import('./pages/dashboard/TestChecklist'));
 const BugReports = lazy(() => import('./pages/admin/BugReports'));
 const QADashboard = lazy(() => import('./pages/QADashboard'));
 const BugTestPage = lazy(() => import('./pages/BugTestPage'));
+const TermsOfService = lazy(() => import('./pages/legal/TermsOfService'));
+const PrivacyPolicy = lazy(() => import('./pages/legal/PrivacyPolicy'));
+const CommunityGuidelines = lazy(() => import('./pages/legal/CommunityGuidelines'));
 const PrivacyPolicyPage = lazy(() => import('./pages/PrivacyPolicyPage'));
 const PrivacySettingsPage = lazy(() => import('./pages/PrivacySettingsPage'));
 const SubscriptionSuccess = lazy(() => import('./pages/SubscriptionSuccess'));
@@ -406,6 +409,21 @@ function App() {
                   <Route path="/session-test" element={
                     <Suspense fallback={<LoadingPage message="Loading Session Test..." />}>
                       <SessionTestPage />
+                    </Suspense>
+                  } />
+                  <Route path="/legal/terms" element={
+                    <Suspense fallback={<LoadingPage message="Loading Terms..." />}>
+                      <TermsOfService />
+                    </Suspense>
+                  } />
+                  <Route path="/legal/privacy" element={
+                    <Suspense fallback={<LoadingPage message="Loading Privacy Policy..." />}>
+                      <PrivacyPolicy />
+                    </Suspense>
+                  } />
+                  <Route path="/legal/guidelines" element={
+                    <Suspense fallback={<LoadingPage message="Loading Guidelines..." />}>
+                      <CommunityGuidelines />
                     </Suspense>
                   } />
                   </Routes>

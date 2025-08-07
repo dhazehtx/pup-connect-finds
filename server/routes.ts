@@ -19,6 +19,7 @@ import analyticsRouter from './routes/analytics';
 import reviewsRouter from './routes/reviews';
 import servicesRouter from './routes/services';
 import qaRouter from './routes/qa';
+import monetizationRouter from './routes/monetization';
 import { registerHealthRoutes } from './routes/health';
 import { storage } from "./storage";
 import { 

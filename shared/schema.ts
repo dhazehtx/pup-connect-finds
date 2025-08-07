@@ -764,6 +764,75 @@ export type InsertSupportTicketReply = z.infer<typeof insertSupportTicketReplySc
 export type QaBugReport = typeof qaBugReports.$inferSelect;
 export type InsertQaBugReport = z.infer<typeof insertQaBugReportSchema>;
 
+// Monetization Tables for Phase 4-B
+export const platformCommissions = pgTable('platform_commissions', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  bookingId: uuid('booking_id').notNull(), // Simple reference without FK constraint
+  amount: decimal('amount', { precision: 10, scale: 2 }).notNull(),
+  providerId: uuid('provider_id').notNull().references(() => profiles.id, { onDelete: 'cascade' }),
+  commissionRate: decimal('commission_rate', { precision: 5, scale: 2 }).notNull().default('10.00'),
+  status: text('status').notNull().default('pending'), // pending, paid, cancelled
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  paidAt: timestamp('paid_at'),
+});
+
+export const providerSubscriptions = pgTable('provider_subscriptions', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('user_id').notNull().references(() => profiles.id, { onDelete: 'cascade' }),
+  stripeSubscriptionId: text('stripe_subscription_id').unique(),
+  stripeCustomerId: text('stripe_customer_id'),
+  plan: text('plan').notNull(), // basic, premium
+  status: text('status').notNull(), // active, cancelled, past_due
+  currentPeriodStart: timestamp('current_period_start'),
+  currentPeriodEnd: timestamp('current_period_end'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+export const boostedListings = pgTable('boosted_listings', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  listingId: uuid('listing_id').references(() => dogListings.id, { onDelete: 'cascade' }),
+  productId: text('product_id'), // Simple reference without FK constraint
+  serviceId: uuid('service_id'), // Simple reference without FK constraint
+  userId: uuid('user_id').notNull().references(() => profiles.id, { onDelete: 'cascade' }),
+  amount: decimal('amount', { precision: 10, scale: 2 }).notNull(),
+  stripePaymentIntentId: text('stripe_payment_intent_id'),
+  status: text('status').notNull().default('active'), // active, expired, cancelled
+  boostType: text('boost_type').notNull(), // featured_product, boosted_service, premium_listing
+  expiresAt: timestamp('expires_at').notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+export const monetizationOrders = pgTable('monetization_orders', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('user_id').notNull().references(() => profiles.id, { onDelete: 'cascade' }),
+  stripePaymentIntentId: text('stripe_payment_intent_id').unique(),
+  stripeSessionId: text('stripe_session_id'),
+  totalAmount: decimal('total_amount', { precision: 10, scale: 2 }).notNull(),
+  currency: text('currency').notNull().default('usd'),
+  status: text('status').notNull().default('pending'), // pending, completed, failed, refunded
+  items: jsonb('items').notNull(), // Array of {productId, quantity, price, name}
+  shippingAddress: jsonb('shipping_address'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+// Monetization Schema Validation
+export const insertPlatformCommissionSchema = createInsertSchema(platformCommissions).omit({ id: true, createdAt: true });
+export const insertProviderSubscriptionSchema = createInsertSchema(providerSubscriptions).omit({ id: true, createdAt: true, updatedAt: true });
+export const insertBoostedListingSchema = createInsertSchema(boostedListings).omit({ id: true, createdAt: true });
+export const insertMonetizationOrderSchema = createInsertSchema(monetizationOrders).omit({ id: true, createdAt: true, updatedAt: true });
+
+// Monetization Types
+export type PlatformCommission = typeof platformCommissions.$inferSelect;
+export type InsertPlatformCommission = z.infer<typeof insertPlatformCommissionSchema>;
+export type ProviderSubscription = typeof providerSubscriptions.$inferSelect;
+export type InsertProviderSubscription = z.infer<typeof insertProviderSubscriptionSchema>;
+export type BoostedListing = typeof boostedListings.$inferSelect;
+export type InsertBoostedListing = z.infer<typeof insertBoostedListingSchema>;
+export type MonetizationOrder = typeof monetizationOrders.$inferSelect;
+export type InsertMonetizationOrder = z.infer<typeof insertMonetizationOrderSchema>;
+
 // ===== STORE & ECOMMERCE SCHEMAS =====
 
 // Products table for marketplace items
