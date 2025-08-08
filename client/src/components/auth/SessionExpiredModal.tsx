@@ -81,7 +81,7 @@ export default function SessionExpiredModal({ onRedirect }: SessionExpiredModalP
     <Dialog open={open} onOpenChange={() => {}}>
       <DialogContent className="sm:max-w-md" hideCloseButton>
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-amber-600">
+          <DialogTitle className="flex items-center gap-2 text-red-600">
             <AlertTriangle className="h-5 w-5" />
             Session Expired
           </DialogTitle>
@@ -92,8 +92,8 @@ export default function SessionExpiredModal({ onRedirect }: SessionExpiredModalP
             Your session has timed out due to inactivity. For your security, you'll need to sign in again to continue.
           </p>
           
-          <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-3">
-            <p className="text-sm text-amber-800 dark:text-amber-200">
+          <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-3">
+            <p className="text-sm text-gray-800 dark:text-gray-200">
               Automatically redirecting in <span className="font-bold">{countdown}</span> seconds...
             </p>
           </div>

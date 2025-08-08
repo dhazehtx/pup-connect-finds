@@ -152,12 +152,12 @@ export const SellerEarningsCard: React.FC<SellerEarningsCardProps> = ({
               <h4 className="font-medium text-gray-900">Payout Status</h4>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="flex items-center justify-between p-3 bg-amber-50 rounded-lg">
+                <div className="flex items-center justify-between p-3 bg-orange-50 rounded-lg">
                   <div className="flex items-center gap-2">
-                    <Clock className="h-4 w-4 text-amber-600" />
-                    <span className="text-sm font-medium text-amber-800">Pending</span>
+                    <Clock className="h-4 w-4 text-orange-600" />
+                    <span className="text-sm font-medium text-orange-800">Pending</span>
                   </div>
-                  <span className="font-semibold text-amber-900">
+                  <span className="font-semibold text-orange-900">
                     ${earnings.pending_payouts.toFixed(2)}
                   </span>
                 </div>

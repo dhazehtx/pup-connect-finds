@@ -37,7 +37,7 @@ const getToastStyles = (type: ToastType) => {
     case 'error':
       return 'border-red-200 bg-red-50';
     case 'warning':
-      return 'border-yellow-200 bg-yellow-50';
+      return 'border-orange-200 bg-orange-50';
     case 'info':
     default:
       return 'border-blue-200 bg-blue-50';

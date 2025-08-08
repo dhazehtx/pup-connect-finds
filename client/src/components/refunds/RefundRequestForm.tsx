@@ -261,8 +261,8 @@ export const RefundRequestForm: React.FC<RefundRequestFormProps> = ({
             {/* Warning for Scam Reports */}
             {selectedReason === 'scam_listing' && (
               <Alert>
-                <AlertTriangle className="h-4 w-4 text-amber-600" />
-                <AlertDescription className="text-amber-800">
+                <AlertTriangle className="h-4 w-4 text-orange-600" />
+                <AlertDescription className="text-orange-800">
                   <strong>Important:</strong> Scam reports require thorough investigation. Please provide 
                   detailed evidence and documentation to support your claim. False reports may result in account restrictions.
                 </AlertDescription>

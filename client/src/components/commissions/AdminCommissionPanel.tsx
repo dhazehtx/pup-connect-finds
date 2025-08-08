@@ -224,11 +224,11 @@ export const AdminCommissionPanel: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Pending Payouts</p>
-                <p className="text-2xl font-bold text-amber-600">
+                <p className="text-2xl font-bold text-orange-600">
                   {formatCurrency(summary.pending_payouts)}
                 </p>
               </div>
-              <TrendingUp className="h-8 w-8 text-amber-600" />
+              <TrendingUp className="h-8 w-8 text-orange-600" />
             </div>
           </CardContent>
         </Card>

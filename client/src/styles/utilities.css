@@ -56,6 +56,6 @@
   }
 
   .bg-amber-50, .bg-yellow-50, .bg-orange-50 {
-    background-color: hsl(var(--secondary)) !important;
+    background-color: hsl(var(--card)) !important;
   }
 }

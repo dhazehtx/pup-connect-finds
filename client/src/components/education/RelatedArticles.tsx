@@ -82,7 +82,7 @@ export const RelatedArticles: React.FC<RelatedArticlesProps> = ({
                     {article.readTime}
                   </span>
                   <span className="flex items-center gap-1">
-                    <Star size={12} className="text-amber-500 fill-current" />
+                    <Star size={12} className="text-orange-500 fill-current" />
                     {article.rating}
                   </span>
                 </div>

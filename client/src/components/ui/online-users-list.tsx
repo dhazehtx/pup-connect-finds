@@ -73,7 +73,7 @@ const OnlineUsersList = ({
       case 'online':
         return 'bg-green-500';
       case 'away':
-        return 'bg-yellow-500';
+        return 'bg-orange-500';
       case 'busy':
         return 'bg-red-500';
       default:

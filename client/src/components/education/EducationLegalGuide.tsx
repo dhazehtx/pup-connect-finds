@@ -29,7 +29,7 @@ export const EducationLegalGuide: React.FC<EducationLegalGuideProps> = ({ onRegu
           </Button>
           <Button 
             variant="outline" 
-            className="justify-start bg-yellow-50 border-yellow-200 text-yellow-800 hover:bg-yellow-100"
+            className="justify-start bg-orange-50 border-orange-200 text-orange-800 hover:bg-orange-100"
             onClick={() => onRegulationClick('moderate')}
           >
             Moderate Regulations

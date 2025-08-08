@@ -42,7 +42,7 @@ export const FraudWarningModal: React.FC<FraudWarningModalProps> = ({
         return {
           title: 'Account Under Review',
           description: 'Your account is currently under security review. Some features may be limited.',
-          color: 'bg-amber-600',
+          color: 'bg-red-600',
           textColor: 'text-amber-600',
           icon: Shield,
           severity: 'Medium'
@@ -65,7 +65,7 @@ export const FraudWarningModal: React.FC<FraudWarningModalProps> = ({
   const getRiskLevel = (score: number) => {
     if (score >= 90) return { level: 'Critical', color: 'bg-red-100 text-red-800 border-red-200' };
     if (score >= 70) return { level: 'High', color: 'bg-orange-100 text-orange-800 border-orange-200' };
-    if (score >= 50) return { level: 'Medium', color: 'bg-amber-100 text-amber-800 border-amber-200' };
+    if (score >= 50) return { level: 'Medium', color: 'bg-orange-100 text-orange-800 border-orange-200' };
     return { level: 'Low', color: 'bg-blue-100 text-blue-800 border-blue-200' };
   };
 
@@ -114,7 +114,7 @@ export const FraudWarningModal: React.FC<FraudWarningModalProps> = ({
                 <div 
                   className={`h-2 rounded-full transition-all duration-300 ${
                     fraudScore >= 70 ? 'bg-red-500' : 
-                    fraudScore >= 50 ? 'bg-amber-500' : 
+                    fraudScore >= 50 ? 'bg-orange-500' : 
                     'bg-blue-500'
                   }`}
                   style={{ width: `${Math.min(fraudScore, 100)}%` }}
@@ -136,7 +136,7 @@ export const FraudWarningModal: React.FC<FraudWarningModalProps> = ({
           )}
 
           {profileStatus === 'under_review' && (
-            <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg">
+            <div className="p-4 bg-orange-50 border border-orange-200 rounded-lg">
               <div className="flex items-start gap-2">
                 <Info className="h-4 w-4 text-amber-600 mt-0.5" />
                 <div className="text-sm text-amber-800">

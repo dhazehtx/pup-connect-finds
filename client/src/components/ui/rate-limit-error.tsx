@@ -31,7 +31,7 @@ export const RateLimitError: React.FC<RateLimitErrorProps> = ({ error, onRetry }
   };
 
   return (
-    <Alert className="border-amber-200 bg-amber-50">
+    <Alert className="border-orange-200 bg-orange-50">
       <AlertTriangle className="h-4 w-4 text-amber-600" />
       <AlertTitle className="text-amber-900">Rate Limit Exceeded</AlertTitle>
       <AlertDescription className="text-amber-800">
@@ -48,7 +48,7 @@ export const RateLimitError: React.FC<RateLimitErrorProps> = ({ error, onRetry }
               variant="outline" 
               size="sm" 
               onClick={onRetry}
-              className="mt-2 border-amber-300 text-amber-700 hover:bg-amber-100"
+              className="mt-2 border-orange-300 text-orange-700 hover:bg-orange-100"
             >
               Try Again
             </Button>

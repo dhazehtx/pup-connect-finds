@@ -28,7 +28,7 @@ const PresenceIndicator = ({
       ring: 'ring-green-500/20'
     },
     away: {
-      color: 'bg-yellow-500',
+      color: 'bg-orange-500',
       label: 'Away',
       ring: 'ring-yellow-500/20'
     },

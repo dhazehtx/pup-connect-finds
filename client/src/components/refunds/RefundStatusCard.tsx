@@ -32,9 +32,9 @@ export const RefundStatusCard: React.FC<RefundStatusCardProps> = ({
       case 'pending':
         return {
           icon: Clock,
-          color: 'bg-amber-100 text-amber-800 border-amber-300',
-          bgColor: 'bg-amber-50',
-          iconColor: 'text-amber-600',
+          color: 'bg-orange-100 text-orange-800 border-orange-300',
+          bgColor: 'bg-orange-50',
+          iconColor: 'text-orange-600',
           label: 'Pending Review'
         };
       case 'approved':

@@ -90,7 +90,7 @@ function TestChecklist() {
       case 'pass':
         return <CheckCircle className="h-4 w-4 text-green-600" />;
       case 'warning':
-        return <AlertTriangle className="h-4 w-4 text-yellow-600" />;
+        return <AlertTriangle className="h-4 w-4 text-orange-600" />;
       case 'fail':
         return <XCircle className="h-4 w-4 text-red-600" />;
       default:
@@ -103,7 +103,7 @@ function TestChecklist() {
       case 'pass':
         return 'bg-green-100 text-green-800';
       case 'warning':
-        return 'bg-yellow-100 text-yellow-800';
+        return 'bg-orange-100 text-orange-800';
       case 'fail':
         return 'bg-red-100 text-red-800';
       default:
