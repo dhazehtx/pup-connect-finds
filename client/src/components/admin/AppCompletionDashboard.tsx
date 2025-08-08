@@ -755,7 +755,7 @@ const AppCompletionDashboard = () => {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'completed': return 'text-green-600 bg-green-100';
-      case 'partial': return 'text-yellow-600 bg-yellow-100';
+      case 'partial': return 'text-orange-600 bg-orange-100';
       case 'missing': return 'text-red-600 bg-red-100';
       default: return 'text-gray-600 bg-gray-100';
     }
@@ -773,7 +773,7 @@ const AppCompletionDashboard = () => {
   const getPriorityColor = (priority: string) => {
     switch (priority) {
       case 'high': return 'bg-red-100 text-red-800';
-      case 'medium': return 'bg-yellow-100 text-yellow-800';
+      case 'medium': return 'bg-orange-100 text-orange-800';
       case 'low': return 'bg-green-100 text-green-800';
       default: return 'bg-gray-100 text-gray-800';
     }
@@ -827,15 +827,15 @@ const AppCompletionDashboard = () => {
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-br from-yellow-500 to-orange-500 text-white">
+        <Card className="bg-gradient-to-br from-orange-500 to-red-500 text-white">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-yellow-100">In Progress</p>
+                <p className="text-orange-100">In Progress</p>
                 <p className="text-3xl font-bold">{partialFeatures}</p>
-                <p className="text-sm text-yellow-100">14% in progress</p>
+                <p className="text-sm text-orange-100">14% in progress</p>
               </div>
-              <Clock className="w-12 h-12 text-yellow-200" />
+              <Clock className="w-12 h-12 text-orange-200" />
             </div>
           </CardContent>
         </Card>
@@ -1028,7 +1028,7 @@ const AppCompletionDashboard = () => {
                     <span className="text-sm">Critical for launch</span>
                   </div>
                   <div className="space-y-1">
-                    <Badge className="bg-yellow-100 text-yellow-800 mr-2">MEDIUM</Badge>
+                    <Badge className="bg-orange-100 text-orange-800 mr-2">MEDIUM</Badge>
                     <span className="text-sm">Important but not blocking</span>
                   </div>
                   <div className="space-y-1">

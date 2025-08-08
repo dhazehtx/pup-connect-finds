@@ -84,7 +84,7 @@ const TrustSafetyTools = () => {
     switch (severity) {
       case 'high': return 'text-red-600 bg-red-100';
       case 'medium': return 'text-orange-600 bg-orange-100';
-      case 'low': return 'text-yellow-600 bg-yellow-100';
+      case 'low': return 'text-orange-600 bg-orange-100';
       default: return 'text-gray-600 bg-gray-100';
     }
   };
@@ -93,7 +93,7 @@ const TrustSafetyTools = () => {
     switch (status) {
       case 'resolved': return 'text-green-600 bg-green-100';
       case 'investigating': return 'text-blue-600 bg-blue-100';
-      case 'pending': return 'text-yellow-600 bg-yellow-100';
+      case 'pending': return 'text-orange-600 bg-orange-100';
       default: return 'text-gray-600 bg-gray-100';
     }
   };
@@ -352,10 +352,10 @@ const TrustSafetyTools = () => {
                   <div>
                     <div className="flex justify-between text-sm mb-1">
                       <span>User Verification</span>
-                      <span className="text-yellow-600">95.1% Uptime</span>
+                      <span className="text-orange-600">95.1% Uptime</span>
                     </div>
                     <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div className="bg-yellow-600 h-2 rounded-full" style={{ width: '95%' }}></div>
+                      <div className="bg-orange-600 h-2 rounded-full" style={{ width: '95%' }}></div>
                     </div>
                   </div>
                 </div>

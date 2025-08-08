@@ -48,14 +48,63 @@
     color: hsl(var(--foreground)) !important;
   }
 
-  /* Remove any brown/yellow overrides */
-  .text-amber-600, .text-amber-700, .text-amber-800,
-  .text-yellow-600, .text-yellow-700, .text-yellow-800,
-  .text-orange-600, .text-orange-700, .text-orange-800 {
+  /* Remove any brown/yellow overrides - Complete elimination */
+  .text-amber-100, .text-amber-200, .text-amber-300, .text-amber-400, .text-amber-500,
+  .text-amber-600, .text-amber-700, .text-amber-800, .text-amber-900,
+  .text-yellow-100, .text-yellow-200, .text-yellow-300, .text-yellow-400, .text-yellow-500,
+  .text-yellow-600, .text-yellow-700, .text-yellow-800, .text-yellow-900 {
     color: hsl(var(--primary)) !important;
   }
 
-  .bg-amber-50, .bg-yellow-50, .bg-orange-50 {
+  .bg-amber-50, .bg-amber-100, .bg-amber-200, .bg-amber-300, .bg-amber-400, .bg-amber-500,
+  .bg-amber-600, .bg-amber-700, .bg-amber-800, .bg-amber-900,
+  .bg-yellow-50, .bg-yellow-100, .bg-yellow-200, .bg-yellow-300, .bg-yellow-400, .bg-yellow-500,
+  .bg-yellow-600, .bg-yellow-700, .bg-yellow-800, .bg-yellow-900 {
     background-color: hsl(var(--card)) !important;
+  }
+
+  /* Mobile-specific color overrides - Complete theme alignment */
+  @media (max-width: 768px) {
+    /* Force removal of ALL yellow/amber backgrounds on mobile */
+    .bg-yellow-50, .bg-yellow-100, .bg-yellow-200, .bg-yellow-300, .bg-yellow-400, .bg-yellow-500,
+    .bg-amber-50, .bg-amber-100, .bg-amber-200, .bg-amber-300, .bg-amber-400, .bg-amber-500 {
+      background-color: #FFFFFF !important;
+    }
+
+    /* Mobile page backgrounds */
+    body, .min-h-screen, .bg-gray-50, .bg-gray-100 {
+      background-color: #FFFFFF !important;
+    }
+
+    /* Mobile input and search containers */
+    .search-container, .input-container, input[type="search"], input[type="text"] {
+      background-color: #F5F7FB !important;
+      border-color: #E5E7EB !important;
+    }
+
+    /* Mobile cards and panels */
+    .card, .product-card, .service-card, .marketplace-card, [class*="Card"] {
+      background-color: #FFFFFF !important;
+      border-color: #E5E7EB !important;
+    }
+
+    /* Mobile filter panels */
+    .filter-panel, .search-panel, .service-filter {
+      background-color: #F5F7FB !important;
+    }
+
+    /* Mobile marketplace components */
+    .pup-box-card, .pet-service-card, .store-product-card {
+      background-color: #FFFFFF !important;
+      border: 1px solid #E5E7EB !important;
+    }
+
+    /* Ensure consistent mobile theme */
+    * {
+      --mobile-card-bg: #FFFFFF;
+      --mobile-panel-bg: #F5F7FB;
+      --mobile-text: #0F172A;
+      --mobile-border: #E5E7EB;
+    }
   }
 }

@@ -151,7 +151,7 @@ const ListingCard = ({
           {listing.profiles?.rating && (
             <div className="flex items-center gap-2">
               <div className="flex items-center gap-1">
-                <Star className="h-4 w-4 text-yellow-500 fill-current" />
+                <Star className="h-4 w-4 text-orange-500 fill-current" />
                 <span className="text-sm font-medium">{listing.profiles.rating.toFixed(1)}</span>
               </div>
               <span className="text-sm text-muted-foreground">

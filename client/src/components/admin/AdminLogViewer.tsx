@@ -217,7 +217,7 @@ const AdminLogViewer = () => {
     switch (level) {
       case 'debug': return 'bg-gray-100 text-gray-800';
       case 'info': return 'bg-blue-100 text-blue-800';
-      case 'warn': return 'bg-yellow-100 text-yellow-800';
+      case 'warn': return 'bg-orange-100 text-orange-800';
       case 'error': return 'bg-red-100 text-red-800';
       case 'critical': return 'bg-red-200 text-red-900';
       default: return 'bg-gray-100 text-gray-800';

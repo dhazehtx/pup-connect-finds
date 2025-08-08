@@ -355,7 +355,7 @@ const ErrorMonitoringPanel = () => {
                             className={`h-2 rounded-full ${
                               severity === 'critical' ? 'bg-red-500' :
                               severity === 'high' ? 'bg-orange-500' :
-                              severity === 'medium' ? 'bg-yellow-500' : 'bg-green-500'
+                              severity === 'medium' ? 'bg-orange-500' : 'bg-green-500'
                             }`}
                             style={{
                               width: `${((count / (stats?.stats.total || 1)) * 100)}%`

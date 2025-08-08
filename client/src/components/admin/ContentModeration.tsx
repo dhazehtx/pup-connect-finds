@@ -115,7 +115,7 @@ const ContentModeration = () => {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'pending':
-        return <Badge className="bg-yellow-100 text-yellow-800">Pending</Badge>;
+        return <Badge className="bg-orange-100 text-orange-800">Pending</Badge>;
       case 'approved':
         return <Badge className="bg-green-100 text-green-800">Approved</Badge>;
       case 'rejected':

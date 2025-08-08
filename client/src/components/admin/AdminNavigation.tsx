@@ -66,7 +66,7 @@ const AdminNavigation = () => {
       description: 'Review flagged content and listings',
       icon: AlertTriangle,
       path: '/admin/moderation',
-      color: 'from-yellow-500 to-amber-600'
+      color: 'from-orange-500 to-red-600'
     },
     {
       title: 'Revenue Analytics',

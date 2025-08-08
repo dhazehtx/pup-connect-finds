@@ -42,7 +42,7 @@ interface BreedProfileProps {
 const BreedProfile = ({ breed }: BreedProfileProps) => {
   const getProgressColor = (value: number) => {
     if (value <= 3) return 'bg-green-500';
-    if (value <= 7) return 'bg-yellow-500';
+    if (value <= 7) return 'bg-orange-500';
     return 'bg-red-500';
   };
 

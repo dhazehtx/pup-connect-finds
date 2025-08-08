@@ -134,7 +134,7 @@ const PupStore = () => {
                     {[...Array(5)].map((_, i) => (
                       <Star 
                         key={i} 
-                        className={`h-3 w-3 ${i < Math.floor(product.rating || 0) ? 'text-yellow-400 fill-current' : 'text-gray-300'}`} 
+                        className={`h-3 w-3 ${i < Math.floor(product.rating || 0) ? 'text-orange-400 fill-current' : 'text-gray-300'}`} 
                       />
                     ))}
                     <span className="text-xs text-gray-600 ml-1">{product.rating}</span>

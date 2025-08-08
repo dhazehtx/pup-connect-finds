@@ -65,7 +65,7 @@ const ServicesMarketplace = () => {
   });
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-white">
       {/* Header with Gradient */}
       <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white py-16">
         <div className="container mx-auto px-4 text-center">
@@ -78,14 +78,14 @@ const ServicesMarketplace = () => {
 
       <div className="container mx-auto px-4 py-8 max-w-6xl">
         {/* Search Bar */}
-        <div className="mb-8">
+        <div className="mb-8 bg-white rounded-lg p-6 shadow-sm border border-gray-200">
           <div className="relative max-w-4xl mx-auto">
             <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
             <Input
               placeholder="Search services, providers, or locations..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-12 py-4 text-lg rounded-lg shadow-sm border-2"
+              className="pl-12 py-4 text-lg rounded-lg shadow-sm border-2 bg-white"
               style={{ borderColor: '#CBD5E1' }}
             />
           </div>
