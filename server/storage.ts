@@ -376,6 +376,7 @@ export class DatabaseStorage implements IStorage {
       price: dogListings.price,
       description: dogListings.description,
       location: dogListings.location,
+      title: dogListings.title,
       image_url: dogListings.image_url,
       images: dogListings.images,
       video_url: dogListings.video_url,
@@ -472,7 +473,7 @@ export class DatabaseStorage implements IStorage {
   // Notification methods
   async getUserNotifications(userId: string): Promise<Notification[]> {
     return await db.select().from(notifications)
-      .where(eq(notifications.user_id, userId))
+      .where(eq(notifications.to_user_id, userId))
       .orderBy(desc(notifications.created_at));
   }
 
@@ -482,13 +483,18 @@ export class DatabaseStorage implements IStorage {
   }
 
   async markNotificationAsRead(id: string): Promise<boolean> {
-    const result = await db.update(notifications).set({ read: true }).where(eq(notifications.id, id));
+    const result = await db.update(notifications).set({ is_read: true }).where(eq(notifications.id, id));
     return (result.rowCount ?? 0) > 0;
   }
 
   // Transaction methods
   async createTransaction(transaction: InsertTransaction): Promise<Transaction> {
-    const result = await db.insert(transactions).values([transaction]).returning();
+    // Generate a unique ID for the transaction (since it's text type for Stripe IDs)
+    const transactionWithId = { 
+      ...transaction, 
+      id: `txn_${Date.now()}_${Math.random().toString(36).substring(2, 9)}` 
+    };
+    const result = await db.insert(transactions).values([transactionWithId]).returning();
     return result[0];
   }
 
@@ -498,10 +504,14 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getUserTransactions(userId: string, type?: string): Promise<Transaction[]> {
-    let query = db.select().from(transactions).where(eq(transactions.user_id, userId));
+    let query = db.select().from(transactions);
+    const conditions = [eq(transactions.user_id, userId)];
+    
     if (type) {
-      query = query.where(and(eq(transactions.user_id, userId), eq(transactions.type, type)));
+      conditions.push(eq(transactions.type, type));
     }
+    
+    query = query.where(and(...conditions));
     return await query.orderBy(desc(transactions.created_at));
   }
 
@@ -620,7 +630,12 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createProduct(product: InsertProduct): Promise<Product> {
-    const result = await db.insert(products).values([product]).returning();
+    // Generate a unique ID for the product (since it's text type for Stripe product IDs)
+    const productWithId = { 
+      ...product, 
+      id: `prod_${Date.now()}_${Math.random().toString(36).substring(2, 9)}` 
+    };
+    const result = await db.insert(products).values([productWithId]).returning();
     return result[0];
   }
 
@@ -989,7 +1004,7 @@ export class DatabaseStorage implements IStorage {
     return await db
       .select()
       .from(breeds)
-      .orderBy(breeds.popularity_rank);
+      .orderBy(breeds.name);
   }
 
   async getBreed(id: number): Promise<Breed | undefined> {

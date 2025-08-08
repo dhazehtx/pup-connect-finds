@@ -4,7 +4,7 @@ import { z } from "zod";
 
 // Core user profiles table
 export const profiles = pgTable("profiles", {
-  id: uuid("id").primaryKey(),
+  id: uuid("id").primaryKey().defaultRandom(),
   username: text("username"),
   full_name: text("full_name"),
   email: text("email"),
@@ -30,7 +30,7 @@ export const profiles = pgTable("profiles", {
 
 // Dog listings table
 export const dogListings = pgTable("dog_listings", {
-  id: uuid("id").primaryKey(),
+  id: uuid("id").primaryKey().defaultRandom(),
   user_id: uuid("user_id").references(() => profiles.id),
   dog_name: text("dog_name").notNull(),
   breed: text("breed").notNull(),
@@ -61,7 +61,7 @@ export const dogListings = pgTable("dog_listings", {
 
 // Conversations table
 export const conversations = pgTable("conversations", {
-  id: uuid("id").primaryKey(),
+  id: uuid("id").primaryKey().defaultRandom(),
   buyer_id: uuid("buyer_id").references(() => profiles.id),
   seller_id: uuid("seller_id").references(() => profiles.id),
   listing_id: uuid("listing_id").references(() => dogListings.id),
@@ -73,7 +73,7 @@ export const conversations = pgTable("conversations", {
 
 // Messages table - Simplified to match database structure
 export const messages = pgTable("messages", {
-  id: uuid("id").primaryKey(),
+  id: uuid("id").primaryKey().defaultRandom(),
   conversation_id: uuid("conversation_id").references(() => conversations.id),
   sender_id: uuid("sender_id").references(() => profiles.id),
   content: text("content").notNull(),
@@ -83,7 +83,7 @@ export const messages = pgTable("messages", {
 
 // Favorites/Wishlist table
 export const favorites = pgTable("favorites", {
-  id: uuid("id").primaryKey(),
+  id: uuid("id").primaryKey().defaultRandom(),
   user_id: uuid("user_id").references(() => profiles.id),
   listing_id: uuid("listing_id").references(() => dogListings.id),
   created_at: timestamp("created_at").defaultNow(),
@@ -91,7 +91,7 @@ export const favorites = pgTable("favorites", {
 
 // Reviews table
 export const reviews = pgTable("reviews", {
-  id: uuid("id").primaryKey(),
+  id: uuid("id").primaryKey().defaultRandom(),
   reviewer_id: uuid("reviewer_id").references(() => profiles.id),
   reviewee_id: uuid("reviewee_id").references(() => profiles.id),
   listing_id: uuid("listing_id").references(() => dogListings.id),
@@ -102,7 +102,7 @@ export const reviews = pgTable("reviews", {
 
 // Posts table for community features
 export const posts = pgTable("posts", {
-  id: uuid("id").primaryKey(),
+  id: uuid("id").primaryKey().defaultRandom(),
   user_id: uuid("user_id").references(() => profiles.id),
   title: text("title"),
   content: text("content").notNull(),
@@ -125,7 +125,7 @@ export const posts = pgTable("posts", {
 
 // Comments table
 export const comments = pgTable("comments", {
-  id: uuid("id").primaryKey(),
+  id: uuid("id").primaryKey().defaultRandom(),
   post_id: uuid("post_id").references(() => posts.id),
   user_id: uuid("user_id").references(() => profiles.id),
   parent_comment_id: uuid("parent_comment_id"),
@@ -148,7 +148,7 @@ export const commentReplies = pgTable("comment_replies", {
 
 // Post likes table
 export const postLikes = pgTable("post_likes", {
-  id: uuid("id").primaryKey(),
+  id: uuid("id").primaryKey().defaultRandom(),
   post_id: uuid("post_id").references(() => posts.id, { onDelete: "cascade" }).notNull(),
   user_id: uuid("user_id").references(() => profiles.id, { onDelete: "cascade" }).notNull(),
   created_at: timestamp("created_at").defaultNow(),
@@ -156,7 +156,7 @@ export const postLikes = pgTable("post_likes", {
 
 // Post shares table
 export const postShares = pgTable("post_shares", {
-  id: uuid("id").primaryKey(),
+  id: uuid("id").primaryKey().defaultRandom(),
   post_id: uuid("post_id").references(() => posts.id, { onDelete: "cascade" }).notNull(),
   user_id: uuid("user_id").references(() => profiles.id, { onDelete: "cascade" }).notNull(),
   created_at: timestamp("created_at").defaultNow(),
@@ -164,7 +164,7 @@ export const postShares = pgTable("post_shares", {
 
 // Notifications table - Updated to match database structure
 export const notifications = pgTable("notifications", {
-  id: uuid("id").primaryKey(),
+  id: uuid("id").primaryKey().defaultRandom(),
   to_user_id: uuid("to_user_id").references(() => profiles.id),
   from_user_id: uuid("from_user_id").references(() => profiles.id),
   type: text("type").notNull(), // 'like', 'comment', 'comment_reply', 'follow', etc.
@@ -210,7 +210,7 @@ export const insertTransactionSchema = createInsertSchema(transactions).omit({ i
 
 // Fraud detection events table
 export const fraudDetectionEvents = pgTable("fraud_detection_events", {
-  id: uuid("id").primaryKey(),
+  id: uuid("id").primaryKey().defaultRandom(),
   user_id: uuid("user_id").references(() => profiles.id),
   event_type: text("event_type").notNull(), // login_anomaly, duplicate_listing, banned_keywords, payment_fraud
   risk_score: integer("risk_score").notNull(),
@@ -226,7 +226,7 @@ export const insertFraudDetectionEventSchema = createInsertSchema(fraudDetection
 
 // Refund requests table
 export const refundRequests = pgTable("refund_requests", {
-  id: uuid("id").primaryKey(),
+  id: uuid("id").primaryKey().defaultRandom(),
   user_id: uuid("user_id").references(() => profiles.id).notNull(),
   transaction_id: text("transaction_id").references(() => transactions.id).notNull(),
   charge_id: text("charge_id").notNull(), // Stripe charge/payment intent ID
@@ -247,7 +247,7 @@ export const insertRefundRequestSchema = createInsertSchema(refundRequests).omit
 
 // Commission tracking table
 export const commissions = pgTable("commissions", {
-  id: uuid("id").primaryKey(),
+  id: uuid("id").primaryKey().defaultRandom(),
   transaction_id: text("transaction_id").references(() => transactions.id).notNull(),
   seller_id: uuid("seller_id").references(() => profiles.id).notNull(),
   buyer_id: uuid("buyer_id").references(() => profiles.id).notNull(),
@@ -268,7 +268,7 @@ export const commissions = pgTable("commissions", {
 
 // Commission settings table for configurable rates
 export const commissionSettings = pgTable("commission_settings", {
-  id: uuid("id").primaryKey(),
+  id: uuid("id").primaryKey().defaultRandom(),
   listing_type: text("listing_type").notNull().unique(), // puppy, service, rehoming, premium
   commission_percent: decimal("commission_percent").notNull(),
   flat_fee: decimal("flat_fee"), // Optional flat fee instead of percentage
@@ -332,7 +332,7 @@ export type User = typeof users.$inferSelect;
 
 // System logs table for comprehensive monitoring
 export const systemLogs = pgTable("system_logs", {
-  id: uuid("id").primaryKey(),
+  id: uuid("id").primaryKey().defaultRandom(),
   log_id: text("log_id").notNull().unique(), // Unique identifier for each log entry
   level: text("level").notNull(), // debug, info, warn, error, critical
   category: text("category").notNull(), // api, frontend, auth, payment, database, etc.
@@ -359,7 +359,7 @@ export type InsertSystemLog = z.infer<typeof insertSystemLogSchema>;
 
 // User reports table for reporting inappropriate behavior
 export const userReports = pgTable("user_reports", {
-  id: uuid("id").primaryKey(),
+  id: uuid("id").primaryKey().defaultRandom(),
   reporter_id: uuid("reporter_id").references(() => profiles.id).notNull(),
   reported_user_id: uuid("reported_user_id").references(() => profiles.id).notNull(),
   reason: text("reason").notNull(), // inappropriate_content, harassment, spam, fraud, fake_profile, other
@@ -376,7 +376,7 @@ export const userReports = pgTable("user_reports", {
 
 // Listing reports table for reporting inappropriate listings
 export const listingReports = pgTable("listing_reports", {
-  id: uuid("id").primaryKey(),
+  id: uuid("id").primaryKey().defaultRandom(),
   reporter_id: uuid("reporter_id").references(() => profiles.id).notNull(),
   listing_id: uuid("listing_id").references(() => dogListings.id).notNull(),
   listing_owner_id: uuid("listing_owner_id").references(() => profiles.id).notNull(),
@@ -394,7 +394,7 @@ export const listingReports = pgTable("listing_reports", {
 
 // Report rate limiting tracking
 export const reportRateLimit = pgTable("report_rate_limit", {
-  id: uuid("id").primaryKey(),
+  id: uuid("id").primaryKey().defaultRandom(),
   user_id: uuid("user_id").references(() => profiles.id).notNull(),
   report_count: integer("report_count").default(0),
   last_report_date: timestamp("last_report_date").defaultNow(),
@@ -431,7 +431,7 @@ export const insertPostShareSchema = createInsertSchema(postShares).omit({ id: t
 
 // Comment likes table
 export const commentLikes = pgTable("comment_likes", {
-  id: uuid("id").primaryKey(),
+  id: uuid("id").primaryKey().defaultRandom(),
   comment_id: uuid("comment_id").references(() => comments.id, { onDelete: "cascade" }).notNull(),
   user_id: uuid("user_id").references(() => profiles.id, { onDelete: "cascade" }).notNull(),
   created_at: timestamp("created_at").defaultNow(),
@@ -439,7 +439,7 @@ export const commentLikes = pgTable("comment_likes", {
 
 // Mentions table for tracking @mentions in comments
 export const mentions = pgTable("mentions", {
-  id: uuid("id").primaryKey(),
+  id: uuid("id").primaryKey().defaultRandom(),
   comment_id: uuid("comment_id").references(() => comments.id, { onDelete: "cascade" }).notNull(),
   mentioned_user_id: uuid("mentioned_user_id").references(() => profiles.id, { onDelete: "cascade" }).notNull(),
   mentioning_user_id: uuid("mentioning_user_id").references(() => profiles.id, { onDelete: "cascade" }).notNull(),
@@ -448,7 +448,7 @@ export const mentions = pgTable("mentions", {
 
 // Post tags table for topic tagging and hashtag tracking
 export const postTags = pgTable("post_tags", {
-  id: uuid("id").primaryKey(),
+  id: uuid("id").primaryKey().defaultRandom(),
   post_id: uuid("post_id").references(() => posts.id, { onDelete: "cascade" }).notNull(),
   tag_text: text("tag_text").notNull(),
   tag_type: text("tag_type").notNull().default("hashtag"), // hashtag, topic, category
@@ -457,7 +457,7 @@ export const postTags = pgTable("post_tags", {
 
 // Popular tags for autocomplete and trending
 export const popularTags = pgTable("popular_tags", {
-  id: uuid("id").primaryKey(),
+  id: uuid("id").primaryKey().defaultRandom(),
   tag_text: text("tag_text").notNull(),
   usage_count: integer("usage_count").default(1),
   category: text("category"), // puppy, training, health, breed, etc.
@@ -467,7 +467,7 @@ export const popularTags = pgTable("popular_tags", {
 
 // Saved posts table for user bookmarks
 export const savedPosts = pgTable("saved_posts", {
-  id: uuid("id").primaryKey(),
+  id: uuid("id").primaryKey().defaultRandom(),
   user_id: uuid("user_id").references(() => profiles.id, { onDelete: "cascade" }).notNull(),
   post_id: uuid("post_id").references(() => posts.id, { onDelete: "cascade" }).notNull(),
   created_at: timestamp("created_at").defaultNow(),
@@ -477,7 +477,7 @@ export const savedPosts = pgTable("saved_posts", {
 
 // Bookmarks table for listings and posts
 export const bookmarks = pgTable("bookmarks", {
-  id: uuid("id").primaryKey(),
+  id: uuid("id").primaryKey().defaultRandom(),
   user_id: uuid("user_id").references(() => profiles.id, { onDelete: "cascade" }).notNull(),
   content_id: uuid("content_id").notNull(), // Can reference posts or dog_listings
   content_type: text("content_type").notNull(), // 'post' or 'listing'
@@ -488,7 +488,7 @@ export const bookmarks = pgTable("bookmarks", {
 
 // Reports table for content moderation
 export const reports = pgTable("reports", {
-  id: uuid("id").primaryKey(),
+  id: uuid("id").primaryKey().defaultRandom(),
   reporter_id: uuid("reporter_id").references(() => profiles.id, { onDelete: "cascade" }).notNull(),
   target_id: uuid("target_id").notNull(), // Can reference users, posts, comments, listings
   target_type: text("target_type").notNull(), // 'user', 'post', 'comment', 'listing'
@@ -502,7 +502,7 @@ export const reports = pgTable("reports", {
 
 // Follows table for user relationships
 export const follows = pgTable("follows", {
-  id: uuid("id").primaryKey(),
+  id: uuid("id").primaryKey().defaultRandom(),
   follower_id: uuid("follower_id").references(() => profiles.id, { onDelete: "cascade" }).notNull(),
   followed_id: uuid("followed_id").references(() => profiles.id, { onDelete: "cascade" }).notNull(),
   created_at: timestamp("created_at").defaultNow(),
@@ -512,7 +512,7 @@ export const follows = pgTable("follows", {
 
 // Enhanced notifications table for comprehensive engagement tracking (replaces existing notifications)
 export const enhancedNotifications = pgTable("enhanced_notifications", {
-  id: uuid("id").primaryKey(),
+  id: uuid("id").primaryKey().defaultRandom(),
   user_id: uuid("user_id").references(() => profiles.id, { onDelete: "cascade" }).notNull(),
   actor_id: uuid("actor_id").references(() => profiles.id, { onDelete: "cascade" }).notNull(),
   type: text("type").notNull(), // 'like', 'comment', 'reply', 'follow', 'mention', 'post_share'
@@ -526,7 +526,7 @@ export const enhancedNotifications = pgTable("enhanced_notifications", {
 
 // User preferences for notifications and explore
 export const userPreferences = pgTable("user_preferences", {
-  id: uuid("id").primaryKey(),
+  id: uuid("id").primaryKey().defaultRandom(),
   user_id: uuid("user_id").references(() => profiles.id, { onDelete: "cascade" }).notNull().unique(),
   explore_filters: jsonb("explore_filters"), // Saved search/filter preferences
   notification_settings: jsonb("notification_settings"), // Notification preferences
@@ -536,7 +536,7 @@ export const userPreferences = pgTable("user_preferences", {
 
 // Community groups for breed-specific and interest-based forums
 export const communityGroups = pgTable("community_groups", {
-  id: uuid("id").primaryKey(),
+  id: uuid("id").primaryKey().defaultRandom(),
   name: text("name").notNull(),
   description: text("description"),
   breed_tag: text("breed_tag"), // e.g., 'golden-retriever', 'labrador', 'mixed-breed'
@@ -557,7 +557,7 @@ export const communityGroups = pgTable("community_groups", {
 
 // Group memberships for tracking who belongs to which groups
 export const groupMemberships = pgTable("group_memberships", {
-  id: uuid("id").primaryKey(),
+  id: uuid("id").primaryKey().defaultRandom(),
   group_id: uuid("group_id").references(() => communityGroups.id, { onDelete: "cascade" }).notNull(),
   user_id: uuid("user_id").references(() => profiles.id, { onDelete: "cascade" }).notNull(),
   role: text("role").notNull().default("member"), // 'admin', 'moderator', 'member'
@@ -570,7 +570,7 @@ export const groupMemberships = pgTable("group_memberships", {
 
 // Group-specific posts that don't appear on global feed unless cross-posted
 export const groupPosts = pgTable("group_posts", {
-  id: uuid("id").primaryKey(),
+  id: uuid("id").primaryKey().defaultRandom(),
   group_id: uuid("group_id").references(() => communityGroups.id, { onDelete: "cascade" }).notNull(),
   author_id: uuid("author_id").references(() => profiles.id, { onDelete: "cascade" }).notNull(),
   title: text("title"),
@@ -589,7 +589,7 @@ export const groupPosts = pgTable("group_posts", {
 
 // Comments on group posts
 export const groupPostComments = pgTable("group_post_comments", {
-  id: uuid("id").primaryKey(),
+  id: uuid("id").primaryKey().defaultRandom(),
   post_id: uuid("post_id").references(() => groupPosts.id, { onDelete: "cascade" }).notNull(),
   author_id: uuid("author_id").references(() => profiles.id, { onDelete: "cascade" }).notNull(),
   content: text("content").notNull(),
@@ -602,7 +602,7 @@ export const groupPostComments = pgTable("group_post_comments", {
 
 // Likes on group posts
 export const groupPostLikes = pgTable("group_post_likes", {
-  id: uuid("id").primaryKey(),
+  id: uuid("id").primaryKey().defaultRandom(),
   post_id: uuid("post_id").references(() => groupPosts.id, { onDelete: "cascade" }).notNull(),
   user_id: uuid("user_id").references(() => profiles.id, { onDelete: "cascade" }).notNull(),
   created_at: timestamp("created_at").defaultNow(),
@@ -612,7 +612,7 @@ export const groupPostLikes = pgTable("group_post_likes", {
 
 // Likes on group post comments
 export const groupCommentLikes = pgTable("group_comment_likes", {
-  id: uuid("id").primaryKey(),
+  id: uuid("id").primaryKey().defaultRandom(),
   comment_id: uuid("comment_id").references(() => groupPostComments.id, { onDelete: "cascade" }).notNull(),
   user_id: uuid("user_id").references(() => profiles.id, { onDelete: "cascade" }).notNull(),
   created_at: timestamp("created_at").defaultNow(),
