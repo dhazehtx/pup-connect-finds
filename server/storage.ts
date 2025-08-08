@@ -19,6 +19,7 @@ import {
   productReviews,
   petServiceProviders,
   serviceBookings,
+  breeds,
   type User, 
   type InsertUser,
   type Profile,
@@ -58,7 +59,9 @@ import {
   type PetServiceProvider,
   type InsertPetServiceProvider,
   type ServiceBooking,
-  type InsertServiceBooking
+  type InsertServiceBooking,
+  type Breed,
+  type InsertBreed
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, or, like, sql, isNotNull } from "drizzle-orm";
@@ -193,6 +196,11 @@ export interface IStorage {
   getUserOrdersWithItems(userId: string): Promise<Array<Order & { items: Array<OrderItem & { product: Product }> }>>;
   getOrderWithItems(orderId: string): Promise<(Order & { items: Array<OrderItem & { product: Product }> }) | undefined>;
   updateOrder(id: string, order: Partial<InsertOrder>): Promise<Order | undefined>;
+
+  // Breed methods
+  getBreeds(): Promise<Breed[]>;
+  getBreed(id: number): Promise<Breed | undefined>;
+  getBreedByName(name: string): Promise<Breed | undefined>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -974,6 +982,32 @@ export class DatabaseStorage implements IStorage {
       .from(serviceBookings)
       .where(eq(serviceBookings.provider_id, providerId))
       .orderBy(desc(serviceBookings.created_at));
+  }
+
+  // Breed methods implementation
+  async getBreeds(): Promise<Breed[]> {
+    return await db
+      .select()
+      .from(breeds)
+      .orderBy(breeds.popularity_rank);
+  }
+
+  async getBreed(id: number): Promise<Breed | undefined> {
+    const result = await db
+      .select()
+      .from(breeds)
+      .where(eq(breeds.id, id))
+      .limit(1);
+    return result[0];
+  }
+
+  async getBreedByName(name: string): Promise<Breed | undefined> {
+    const result = await db
+      .select()
+      .from(breeds)
+      .where(eq(breeds.name, name))
+      .limit(1);
+    return result[0];
   }
 }
 

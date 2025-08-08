@@ -1153,6 +1153,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Add admin endpoints for abuse monitoring
   app.get('/api/admin/abuse-stats', getAbuseStats);
 
+  // Breeds API endpoints
+  app.get("/api/breeds", async (req, res) => {
+    try {
+      const breeds = await storage.getBreeds();
+      res.json(breeds);
+    } catch (error) {
+      console.error("Error fetching breeds:", error);
+      res.status(500).json({ error: "Failed to fetch breeds" });
+    }
+  });
+
+  // Support preferences endpoints to prevent errors
+  app.get('/api/support/preferences', authMiddleware, asyncHandler(async (req: any, res: any) => {
+    try {
+      const userId = req.query.user_id || req.user?.id;
+      if (!userId) {
+        return res.status(400).json({ error: 'User ID required' });
+      }
+      
+      // Return default theme preferences
+      res.json({ 
+        user_id: userId, 
+        theme: 'light',
+        notifications: true,
+        privacy_settings: {}
+      });
+    } catch (error) {
+      console.error('Error fetching support preferences:', error);
+      res.status(500).json({ error: 'Failed to fetch preferences' });
+    }
+  }));
+
   // Add logging routes
   app.use('/api/logs', logsRouter);
 
