@@ -241,9 +241,9 @@ const StoreTab = () => {
         {!isLoading && !error && (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {filteredAndSortedProducts.map((product) => (
-              <div key={product.id} className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow">
+              <div key={product.id} className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow flex flex-col h-full">
                 {/* Product Image */}
-                <div className="aspect-square bg-gray-100 rounded-lg mb-3 overflow-hidden">
+                <div className="aspect-square bg-gray-100 rounded-lg mb-3 overflow-hidden flex-shrink-0">
                   {product.image_url ? (
                     <img
                       src={product.image_url}
@@ -258,14 +258,14 @@ const StoreTab = () => {
                 </div>
 
                 {/* Product Info */}
-                <div className="space-y-2">
+                <div className="flex flex-col flex-grow space-y-2">
                   <h3 className="font-medium text-gray-900 line-clamp-2">{product.name}</h3>
                   {product.description && (
                     <p className="text-sm text-gray-600 line-clamp-2">{product.description}</p>
                   )}
                   
                   {/* Price and Rating */}
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between mb-auto">
                     <span className="text-lg font-semibold text-primary-600">
                       ${parseFloat(product.unit_price).toFixed(2)}
                     </span>
@@ -278,44 +278,44 @@ const StoreTab = () => {
                   </div>
 
                   {/* Action Buttons */}
-                  <div className="grid grid-cols-2 gap-2 mt-3">
+                  <div className="grid grid-cols-2 gap-2 mt-4 pt-2">
                     <Button
                       onClick={() => handleAddToCart(product)}
                       disabled={addedItems.has(product.id)}
                       variant="outline"
-                      className="border-primary-600 text-primary-600 hover:bg-primary-50"
+                      className="h-10 px-3 border-primary-600 text-primary-600 hover:bg-primary-50 flex items-center justify-center text-sm font-medium"
                     >
                       {addedItems.has(product.id) ? (
                         <>
-                          <Check className="w-4 h-4 mr-1" />
-                          Added
+                          <Check className="w-4 h-4 mr-1.5 flex-shrink-0" />
+                          <span className="truncate">Added</span>
                         </>
                       ) : isInCart(product.id) ? (
                         <>
-                          <ShoppingCart className="w-4 h-4 mr-1" />
-                          In Cart
+                          <ShoppingCart className="w-4 h-4 mr-1.5 flex-shrink-0" />
+                          <span className="truncate">In Cart</span>
                         </>
                       ) : (
                         <>
-                          <ShoppingCart className="w-4 h-4 mr-1" />
-                          Add
+                          <ShoppingCart className="w-4 h-4 mr-1.5 flex-shrink-0" />
+                          <span className="truncate">Add</span>
                         </>
                       )}
                     </Button>
                     <Button
                       onClick={() => checkoutMutation.mutate(product.id)}
                       disabled={checkoutMutation.isPending}
-                      className="bg-primary-600 hover:bg-primary-700 text-white"
+                      className="h-10 px-3 bg-primary-600 hover:bg-primary-700 text-white flex items-center justify-center text-sm font-medium"
                     >
                       {checkoutMutation.isPending ? (
                         <>
-                          <div className="w-4 h-4 mr-1 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
-                          Processing
+                          <div className="w-4 h-4 mr-1.5 flex-shrink-0 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
+                          <span className="truncate">Processing</span>
                         </>
                       ) : (
                         <>
-                          <CreditCard className="w-4 h-4 mr-1" />
-                          Buy Now
+                          <CreditCard className="w-4 h-4 mr-1.5 flex-shrink-0" />
+                          <span className="truncate">Buy Now</span>
                         </>
                       )}
                     </Button>
