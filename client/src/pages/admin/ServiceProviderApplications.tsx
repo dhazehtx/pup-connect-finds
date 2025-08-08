@@ -114,7 +114,7 @@ function ServiceProviderApplications() {
             variant="outline" 
             className={
               application.verification_status === 'pending' 
-                ? 'border-yellow-300 text-yellow-700 bg-yellow-50'
+                ? 'border-blue-300 text-blue-700 bg-blue-50'
                 : 'border-gray-300 text-gray-700'
             }
           >

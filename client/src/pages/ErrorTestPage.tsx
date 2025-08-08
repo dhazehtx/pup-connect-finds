@@ -95,12 +95,12 @@ const ErrorTestPage = () => {
         <h1 className="text-3xl font-bold">Error Handling Test Center</h1>
       </div>
 
-      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
+      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
         <div className="flex items-center gap-2">
-          <AlertTriangle className="w-5 h-5 text-yellow-600" />
-          <p className="text-yellow-800 font-medium">Development Mode Only</p>
+          <AlertTriangle className="w-5 h-5 text-blue-600" />
+          <p className="text-blue-800 font-medium">Development Mode Only</p>
         </div>
-        <p className="text-yellow-700 mt-1">
+        <p className="text-blue-700 mt-1">
           This page is designed to test the error handling and monitoring system. 
           All errors are intentional and will be logged for demonstration purposes.
         </p>
@@ -215,9 +215,9 @@ const ErrorTestPage = () => {
                   <div className="text-green-600 font-medium">Low</div>
                   <div className="text-xs text-green-500">Info, warnings</div>
                 </div>
-                <div className="bg-yellow-50 border border-yellow-200 rounded p-2 text-center">
-                  <div className="text-yellow-600 font-medium">Medium</div>
-                  <div className="text-xs text-yellow-500">Validation errors</div>
+                <div className="bg-blue-50 border border-blue-200 rounded p-2 text-center">
+                  <div className="text-blue-600 font-medium">Medium</div>
+                  <div className="text-xs text-blue-500">Validation errors</div>
                 </div>
                 <div className="bg-orange-50 border border-orange-200 rounded p-2 text-center">
                   <div className="text-orange-600 font-medium">High</div>

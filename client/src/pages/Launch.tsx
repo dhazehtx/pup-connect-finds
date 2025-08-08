@@ -52,7 +52,7 @@ const Launch = () => {
       <Card className="mb-8 bg-gradient-to-r from-green-50 to-blue-50 border-green-200">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl text-green-800 flex items-center justify-center gap-2">
-            <Star className="w-6 h-6 text-yellow-500" />
+            <Star className="w-6 h-6 text-blue-500" />
             Overall Launch Readiness: 98%
           </CardTitle>
           <p className="text-green-700">Excellent - Ready for Production Deployment</p>
@@ -65,7 +65,7 @@ const Launch = () => {
                 <div className="text-sm text-gray-600 mb-2">{metric.label}</div>
                 <Badge 
                   variant={metric.status === 'excellent' ? 'default' : 'secondary'}
-                  className={metric.status === 'excellent' ? 'bg-green-500' : 'bg-yellow-500'}
+                  className={metric.status === 'excellent' ? 'bg-green-500' : 'bg-blue-600'}
                 >
                   {metric.status === 'excellent' ? 'Excellent' : 'Good'}
                 </Badge>
@@ -124,7 +124,7 @@ const Launch = () => {
                 Real-time Messaging System
               </div>
               <div className="flex items-center gap-2">
-                <Star className="w-4 h-4 text-yellow-500" />
+                <Star className="w-4 h-4 text-blue-500" />
                 AI-Powered Recommendations
               </div>
               <div className="flex items-center gap-2">

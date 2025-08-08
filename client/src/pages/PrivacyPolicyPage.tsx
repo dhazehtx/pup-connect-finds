@@ -123,7 +123,7 @@ const PrivacyPolicyPage: React.FC = () => {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Cookie className="w-5 h-5 text-yellow-600" />
+                <Cookie className="w-5 h-5 text-blue-600" />
                 Cookies & Tracking
               </CardTitle>
             </CardHeader>
@@ -152,8 +152,8 @@ const PrivacyPolicyPage: React.FC = () => {
                 </div>
               </div>
               
-              <div className="bg-yellow-50 dark:bg-yellow-900/20 p-4 rounded-lg border border-yellow-200 dark:border-yellow-800">
-                <p className="text-sm text-yellow-700 dark:text-yellow-300">
+              <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg border border-blue-200 dark:border-blue-800">
+                <p className="text-sm text-blue-700 dark:text-blue-300">
                   You can manage your cookie preferences through our cookie banner or privacy settings.
                 </p>
               </div>

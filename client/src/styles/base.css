@@ -3,7 +3,15 @@
 
 @layer base {
   :root {
-    /* Clean blue and white theme */
+    /* Clean blue and white theme - consistent with desktop */
+    --bg: #fff;               /* page background */
+    --surface: #f5f7fb;       /* card/panel background used on desktop */
+    --text: #0f172a;
+    --muted: #6b7280;
+    --brand: #2563eb;         /* exact desktop brand token */
+    --accent: #f59e0b;        /* warning/accent only - never as page bg */
+    
+    /* Standard theme variables */
     --background: 255 255 255; /* Pure white background */
     --foreground: 30 30 30; /* Dark text for readability */
 
@@ -35,7 +43,24 @@
     --radius: 0.5rem;
   }
 
+  [data-theme="light"] { 
+    /* ensure light theme matches desktop */
+    --bg: #fff;
+    --surface: #f5f7fb;
+    --text: #0f172a;
+    --muted: #6b7280;
+    --brand: #2563eb;
+    --accent: #f59e0b;
+  }
+  
   .dark {
+    --bg: #fff;
+    --surface: #f5f7fb;
+    --text: #0f172a;
+    --muted: #6b7280;
+    --brand: #2563eb;
+    --accent: #f59e0b;
+    
     --background: 255 255 255;
     --foreground: 30 30 30;
     --card: 255 255 255;
@@ -67,4 +92,9 @@
     @apply bg-white text-gray-900;
     font-feature-settings: "rlig" 1, "calt" 1;
   }
+  
+  /* Brand theme enforcement */
+  .brand-primary { @apply bg-blue-600 text-white; }
+  .brand-secondary { @apply bg-blue-50 text-blue-900; }
+  .brand-accent { @apply bg-blue-100 text-blue-800; }
 }
