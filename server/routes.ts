@@ -376,7 +376,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // For now, return empty array since we don't have posts in the database yet
       // In the future, this would fetch posts from followed users, etc.
-      const posts = [];
+      const posts: any[] = [];
       
       console.log('[API] Returning home feed with', posts.length, 'posts');
       res.json(posts);
@@ -1090,7 +1090,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         subscription: {
           id: stripeSubscription.id,
           status: stripeSubscription.status,
-          current_period_end: stripeSubscription.current_period_end,
+          current_period_end: (stripeSubscription as any).current_period_end,
           cancel_at_period_end: stripeSubscription.cancel_at_period_end,
         },
       });
@@ -1123,7 +1123,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           id: subscription.id,
           status: subscription.status,
           cancel_at_period_end: subscription.cancel_at_period_end,
-          current_period_end: subscription.current_period_end,
+          current_period_end: (subscription as any).current_period_end,
         },
       });
     } catch (error) {

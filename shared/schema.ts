@@ -1005,3 +1005,36 @@ export type PetServiceProvider = typeof petServiceProviders.$inferSelect;
 export type InsertPetServiceProvider = z.infer<typeof insertPetServiceProviderSchema>;
 export type ServiceBooking = typeof serviceBookings.$inferSelect;
 export type InsertServiceBooking = z.infer<typeof insertServiceBookingSchema>;
+
+// ===== BREEDS TABLE =====
+
+// Dog breeds table for breed information and filtering
+export const breeds = pgTable("breeds", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull().unique(),
+  size: text("size"), // small, medium, large
+  temperament: text("temperament").array(),
+  life_span: text("life_span"), // e.g., "10-12 years"
+  weight_range: text("weight_range"), // e.g., "20-30 lbs"
+  height_range: text("height_range"), // e.g., "12-15 inches"
+  energy_level: text("energy_level"), // low, medium, high
+  grooming_needs: text("grooming_needs"), // low, medium, high
+  good_with_kids: boolean("good_with_kids"),
+  good_with_pets: boolean("good_with_pets"),
+  description: text("description"),
+  origin: text("origin"),
+  akc_group: text("akc_group"), // working, sporting, herding, etc.
+  image_url: text("image_url"),
+  color: text("color"), // Primary color for UI
+  created_at: timestamp("created_at").defaultNow(),
+  updated_at: timestamp("updated_at").defaultNow(),
+});
+
+export const insertBreedSchema = createInsertSchema(breeds).omit({ 
+  id: true, 
+  created_at: true, 
+  updated_at: true 
+});
+
+export type Breed = typeof breeds.$inferSelect;
+export type InsertBreed = z.infer<typeof insertBreedSchema>;

@@ -1,0 +1,76 @@
+PROMPT FOR REPLIT
+
+Goal: Completely align the mobile design with the desktop theme for the My Pup app. All background colors, card surfaces, dropdowns, and accent colors must be identical to desktop. Remove all remaining yellow where it is not part of the intentional brand accent.
+
+Requirements
+Match desktop color palette exactly
+
+Background: White (#FFFFFF)
+
+Card / Panel / Filter backgrounds: Light gray / neutral (#F5F7FB or the desktop surface color)
+
+Text: Standard desktop text color (#0F172A or equivalent token)
+
+Primary buttons / links: Brand blue from desktop theme
+
+Accents: Yellow only for explicit warning elements (alerts, validation), not as a section or card background
+
+Audit & replace remaining yellow backgrounds on mobile
+
+Explore Page: Advanced Filters, dropdown menus, "Featured Posts", and section headers must use desktop surface/background colors.
+
+Marketplace Page: Product/service cards, skeleton placeholders, and footer sections must match desktop colors.
+
+Auth Pages: Sign In / Sign Up screens must have desktop background colors with no yellow.
+
+Session Expired Screen: Full background should use desktop background, not yellow.
+
+Greeting Page: No yellow behind CTA buttons or icons.
+
+Fix dropdowns & select menus
+
+Mobile dropdown background should be white with black/desktop-text color.
+
+Remove any mobile-only CSS rules applying bg-yellow-* or background-color: yellow.
+
+Ensure consistency between breakpoints
+
+Use the same Tailwind classes / theme tokens for mobile and desktop backgrounds.
+
+Remove breakpoint-specific overrides that introduce yellow on smaller screens.
+
+Check all components for media-query-specific color changes and correct them.
+
+No functional changes
+
+Do not alter component structure, layout, or spacing.
+
+Only update colors, background classes, and theme variables.
+
+Implementation Steps
+Find and remove:
+
+All bg-yellow-* classes from mobile breakpoints
+
+Any inline styles setting yellow backgrounds
+
+Any debug/highlight classes left over from testing
+
+Replace with desktop tokens/classes:
+
+Page background → bg-white or bg-[var(--bg)]
+
+Panels/cards → bg-[var(--surface)]
+
+Buttons → desktop brand blue button classes
+
+Dropdowns → bg-white + desktop border/text colors
+
+Test & verify:
+
+Mobile viewport in Chrome DevTools and iPhone devices shows no unintended yellow.
+
+All pages/screens visually match desktop color scheme.
+
+Deliverable:
+A PR with updated Tailwind classes/CSS so that the mobile UI is visually identical to desktop in colors and style. Include before/after screenshots for Explore, Marketplace, Auth, Session Expired, and Greeting pages.
