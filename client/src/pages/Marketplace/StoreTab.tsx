@@ -14,9 +14,9 @@ import { Separator } from '@/components/ui/separator';
 interface Product {
   id: string;
   name: string;
-  description: string | null;
+  description?: string | null;
   unit_price: string;
-  image_url: string | null;
+  image_url?: string | null;
   is_subscription: boolean;
   is_active: boolean;
   is_featured?: boolean;
@@ -55,6 +55,7 @@ const StoreTab = () => {
   const { data: productsResponse, isLoading, error } = useQuery({
     queryKey: ['/api/products', { tag: selectedTag }],
     queryFn: async () => {
+      // Don't pass any query parameters to get all products
       const url = selectedTag ? `/api/products?tag=${encodeURIComponent(selectedTag)}` : '/api/products';
       const response = await fetch(url);
       if (!response.ok) {
@@ -181,7 +182,7 @@ const StoreTab = () => {
       id: product.id,
       name: product.name,
       unit_price: product.unit_price,
-      image_url: product.image_url,
+      image_url: product.image_url || null,
       is_subscription: product.is_subscription
     });
     
@@ -345,7 +346,7 @@ const StoreTab = () => {
         {!isLoading && !error && (
           <div className="mt-8">
             <ProductTags 
-              selectedTag={selectedTag}
+              selectedTag={selectedTag || undefined}
               onTagSelect={setSelectedTag}
             />
           </div>

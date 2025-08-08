@@ -568,22 +568,27 @@ export class DatabaseStorage implements IStorage {
 
   // Store/Ecommerce methods
   async getProducts(filters?: { isActive?: boolean; isSubscription?: boolean; featured?: boolean; tag?: string }): Promise<Product[]> {
+    console.log("Storage getProducts - Received filters:", filters);
     let query = db.select().from(products);
     
     const conditions = [];
+    
+    // Only filter by is_active if explicitly provided
     if (filters?.isActive !== undefined) {
+      console.log("Storage getProducts - Adding isActive filter:", filters.isActive);
       conditions.push(eq(products.is_active, filters.isActive));
-    } else {
-      conditions.push(eq(products.is_active, true)); // Default to active products
     }
     
     if (filters?.isSubscription !== undefined) {
+      console.log("Storage getProducts - Adding isSubscription filter:", filters.isSubscription);
       conditions.push(eq(products.is_subscription, filters.isSubscription));
     }
     if (filters?.featured !== undefined) {
+      console.log("Storage getProducts - Adding featured filter:", filters.featured);
       conditions.push(eq(products.is_featured, filters.featured));
     }
     if (filters?.tag) {
+      console.log("Storage getProducts - Adding tag filter:", filters.tag);
       conditions.push(sql`${products.tags} @> ARRAY[${filters.tag}]`);
     }
     
@@ -591,7 +596,10 @@ export class DatabaseStorage implements IStorage {
       query = query.where(and(...conditions));
     }
     
-    return await query.orderBy(desc(products.created_at));
+    console.log("Storage getProducts - Executing query with", conditions.length, "conditions");
+    const result = await query.orderBy(desc(products.created_at));
+    console.log("Storage getProducts - Found", result.length, "products");
+    return result;
   }
 
   async getProduct(id: string): Promise<Product | undefined> {

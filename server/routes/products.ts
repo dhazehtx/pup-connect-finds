@@ -7,7 +7,7 @@ const router = Router();
 // GET /api/products - Get all products with enhanced filtering
 router.get("/", async (req, res) => {
   try {
-    const { isActive = true, isSubscription, featured, tag } = req.query;
+    const { isActive, isSubscription, featured, tag } = req.query;
     
     const filters: any = {};
     if (isActive !== undefined) filters.isActive = isActive === 'true';
@@ -15,7 +15,9 @@ router.get("/", async (req, res) => {
     if (featured !== undefined) filters.featured = featured === 'true';
     if (tag) filters.tag = tag as string;
 
+    console.log("Products API - Filters:", filters);
     const products = await storage.getProducts(filters);
+    console.log("Products API - Found products:", products.length);
 
     res.json({
       success: true,
