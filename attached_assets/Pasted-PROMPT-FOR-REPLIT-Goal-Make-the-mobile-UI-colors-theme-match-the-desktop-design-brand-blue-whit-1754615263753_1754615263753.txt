@@ -1,0 +1,89 @@
+PROMPT FOR REPLIT
+
+Goal: Make the mobile UI colors/theme match the desktop design (brand blue + white + subtle gray surfaces). Remove the solid yellow backgrounds that are showing up on mobile across Explore, Marketplace, Auth, and the Session Expired screen.
+
+Do NOT refactor layout or component structure. Only update theme variables/styles and any mistaken utility classes.
+
+What’s wrong (mobile)
+Large yellow backgrounds on: Explore “Advanced Filters” block, dropdowns/selects, cards, Featured Posts area, Marketplace cards, Session Expired screen, and some CTA sections.
+
+Yellow appears to be coming from bg-yellow utility classes, fallback CSS, or a mobile-only media query.
+
+Expected (match desktop)
+Background: white (surface)
+
+Cards/panels: light gray/neutral surface used on desktop
+
+Primary buttons/links: brand blue
+
+Accents: yellow only for small warning toasts/alerts, not page backgrounds
+
+Implementation steps
+Centralize theme: Use the existing desktop tokens (Tailwind config or theme file). If not already present, define CSS variables in globals.css (or the theme file) that reflect the desktop palette and apply them globally:
+
+css
+Copy
+:root {
+  --bg: #fff;               /* page background */
+  --surface: #f5f7fb;       /* card/panel background used on desktop */
+  --text: #0f172a;
+  --muted: #6b7280;
+  --brand: var(--brand-blue-desktop); /* use the exact desktop brand token */
+  --accent: var(--accent-desktop);    /* keep but never as page bg */
+}
+[data-theme="light"] { /* ensure light theme matches desktop */ }
+In tailwind.config.js, map colors to these tokens so components use the same palette on all breakpoints.
+
+Remove yellow on mobile: Search and replace only where needed:
+
+Any bg-yellow-* (including responsive variants like sm:bg-yellow-*) on:
+
+pages/explore/* (Advanced Filters, selects, “Featured Posts” section)
+
+pages/marketplace/* (product/service cards & skeletons)
+
+pages/auth/* (sign in/up container)
+
+components/SessionTimeout/* (Session Expired screen)
+Replace with:
+
+Container/panel: bg-[var(--surface)]
+
+Page background: bg-[var(--bg)]
+
+Buttons/CTAs: use the existing desktop primary classes (brand blue)
+
+Normalize native selects/dropdowns on mobile:
+
+Ensure background-color: var(--surface); and color: var(--text);
+
+Remove any debug highlight classes (e.g., .debug, .highlight, .dev-bg) attached under mobile media queries.
+
+If a mobile-only style block is forcing yellow, delete it or swap to the surface/bg tokens.
+
+Session Expired screen:
+
+Change full-screen background from yellow to var(--surface) (or the same gradient/neutral used on desktop).
+
+Keep primary action button blue to match desktop.
+
+Regression checks (must pass):
+
+On iPhone 12/13/14 viewport, no section has a yellow background except explicit warning toasts.
+
+Explore > Advanced Filters panel, selects, and cards use the same colors as desktop.
+
+Marketplace cards/skeletons use surface/white, not yellow.
+
+Auth and Session Expired screens match desktop styling.
+
+Dark mode (if enabled) remains unchanged.
+
+Do not change:
+
+Layout, spacing, copy, or logic.
+
+Component hierarchy. Only theme classes/variables.
+
+Deliverable: PR with only theme/token and class updates + before/after screenshots from mobile for: Explore (top + filters), Marketplace (cards), Auth, Session Expired.
+
