@@ -3,7 +3,7 @@ import { apiRequest } from '@/lib/api';
 export async function logNav(event: {from:string; to:string}) {
   try {
     // Use backend endpoint for admin logging instead of direct RPC call
-    await apiRequest('/api/admin/log-navigation', {
+    await apiRequest('admin/log-navigation', {
       method: 'POST',
       body: {
         event_type: 'NAVIGATION',

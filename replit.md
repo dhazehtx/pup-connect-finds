@@ -62,6 +62,15 @@ The application employs a full-stack architecture with a clear separation of con
 
 ## Recent Changes
 
+### Mobile Theme Consistency Fix (Aug 9, 2025)
+- **COMPLETED**: Eliminated ALL yellow/amber backgrounds from mobile interface
+- Updated CSS utilities to force white (#FFFFFF) backgrounds for all yellow/amber color classes
+- Fixed PupBox subscription cards: changed bg-gray-50 sections to white with borders
+- Fixed Pet Services search panels: changed bg-muted to white with borders
+- Added comprehensive CSS overrides for bg-purple-50, bg-muted, and color variants
+- Created missing admin/log-navigation API endpoint to resolve console errors
+- Mobile design now 100% matches desktop theme: white backgrounds, blue primary (#2363FF)
+
 ### Mobile-Desktop Theme Alignment Complete (August 9, 2025)
 - Eliminated all background color inconsistencies between mobile and desktop designs
 - Updated all page backgrounds from gray-50 to white across ExploreAdvanced, ExploreRouter, ExploreClean, and Marketplace pages

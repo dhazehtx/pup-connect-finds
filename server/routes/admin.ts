@@ -14,11 +14,38 @@ const adminMiddleware = (req: any, res: any, next: any) => {
 };
 
 // Apply auth and admin middleware to all routes
+// Apply auth middleware to all routes, but not admin middleware for navigation logging
 router.use(authMiddleware);
-router.use(adminMiddleware);
+
+// Navigation logging endpoint - doesn't require admin privileges, just authentication
+router.post('/log-navigation', async (req, res) => {
+  try {
+    const { event_type, payload } = req.body;
+    
+    // Log navigation event silently - don't throw errors
+    console.log(`[ADMIN LOG] ${event_type}:`, payload);
+    
+    // You can add database logging here if needed
+    // await storage.logAdminAction({ 
+    //   user_id: req.user?.id,
+    //   event_type,
+    //   payload
+    // });
+    
+    res.status(204).end();
+  } catch (error) {
+    console.error('Navigation logging failed:', error);
+    // Return success anyway to prevent UI issues
+    res.status(204).end();
+  }
+});
+
+// Apply admin middleware to protected routes
+const protectedRoutes = Router();
+protectedRoutes.use(adminMiddleware);
 
 // Get all products (admin view)
-router.get('/products', async (req, res) => {
+protectedRoutes.get('/products', async (req, res) => {
   try {
     const products = await storage.getProducts();
     res.json({ success: true, data: products });
@@ -49,7 +76,7 @@ const createProductSchema = z.object({
   metadata: z.any().optional()
 });
 
-router.post('/products', async (req, res) => {
+protectedRoutes.post('/products', async (req, res) => {
   try {
     const validatedData = createProductSchema.parse(req.body);
     
@@ -110,7 +137,7 @@ const updateProductSchema = z.object({
   metadata: z.any().optional()
 });
 
-router.put('/products/:id', async (req, res) => {
+protectedRoutes.put('/products/:id', async (req, res) => {
   try {
     const { id } = req.params;
     const validatedData = updateProductSchema.parse(req.body);
@@ -132,7 +159,7 @@ router.put('/products/:id', async (req, res) => {
 });
 
 // Delete product
-router.delete('/products/:id', async (req, res) => {
+protectedRoutes.delete('/products/:id', async (req, res) => {
   try {
     const { id } = req.params;
     
@@ -149,5 +176,8 @@ router.delete('/products/:id', async (req, res) => {
     res.status(500).json({ error: 'Failed to deactivate product' });
   }
 });
+
+// Mount protected routes
+router.use('/', protectedRoutes);
 
 export default router;
