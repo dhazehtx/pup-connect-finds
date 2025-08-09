@@ -59,15 +59,18 @@
   .bg-amber-50, .bg-amber-100, .bg-amber-200, .bg-amber-300, .bg-amber-400, .bg-amber-500,
   .bg-amber-600, .bg-amber-700, .bg-amber-800, .bg-amber-900,
   .bg-yellow-50, .bg-yellow-100, .bg-yellow-200, .bg-yellow-300, .bg-yellow-400, .bg-yellow-500,
-  .bg-yellow-600, .bg-yellow-700, .bg-yellow-800, .bg-yellow-900 {
-    background-color: hsl(var(--card)) !important;
+  .bg-yellow-600, .bg-yellow-700, .bg-yellow-800, .bg-yellow-900,
+  .bg-purple-50, .bg-purple-100, .bg-muted, .bg-muted\/50 {
+    background-color: #FFFFFF !important;
   }
 
   /* Mobile-specific color overrides - Complete theme alignment */
   @media (max-width: 768px) {
     /* Force removal of ALL yellow/amber backgrounds on mobile */
     .bg-yellow-50, .bg-yellow-100, .bg-yellow-200, .bg-yellow-300, .bg-yellow-400, .bg-yellow-500,
-    .bg-amber-50, .bg-amber-100, .bg-amber-200, .bg-amber-300, .bg-amber-400, .bg-amber-500 {
+    .bg-amber-50, .bg-amber-100, .bg-amber-200, .bg-amber-300, .bg-amber-400, .bg-amber-500,
+    .bg-yellow-600, .bg-yellow-700, .bg-yellow-800, .bg-yellow-900,
+    .bg-amber-600, .bg-amber-700, .bg-amber-800, .bg-amber-900 {
       background-color: #FFFFFF !important;
     }
 
@@ -77,7 +80,7 @@
     }
     
     /* Additional mobile background overrides */
-    .bg-blue-50, .bg-slate-50, .bg-neutral-50 {
+    .bg-blue-50, .bg-slate-50, .bg-neutral-50, .bg-purple-50, .bg-muted, .bg-muted\/50 {
       background-color: #FFFFFF !important;
     }
 

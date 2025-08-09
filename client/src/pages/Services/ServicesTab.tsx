@@ -136,7 +136,7 @@ export function ServicesTab() {
 
             {/* Filters Panel */}
             {showFilters && (
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4 bg-muted/50 rounded-lg">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4 bg-white border border-gray-200 rounded-lg">
                 <Select 
                   value={filters.type || ''} 
                   onValueChange={(value) => setFilters(prev => ({ ...prev, type: value || undefined }))}

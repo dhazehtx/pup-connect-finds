@@ -116,7 +116,7 @@ const PupBoxSubscription = () => {
       </div>
 
       <div className="text-center mb-8">
-        <p className="text-sm text-gray-600 bg-purple-50 inline-block px-4 py-2 rounded-full">
+        <p className="text-sm text-gray-600 bg-white border border-purple-200 inline-block px-4 py-2 rounded-full">
           💡 Prefer a one-time box? Try it out before subscribing!
         </p>
       </div>
@@ -153,7 +153,7 @@ const PupBoxSubscription = () => {
               <CardContent className="space-y-4">
                 <p className="text-gray-600 text-center">{plan.description}</p>
                 
-                <div className="p-4 bg-gray-50 rounded-xl shadow-sm">
+                <div className="p-4 bg-white border border-gray-200 rounded-xl shadow-sm">
                   <div className="flex items-center justify-center space-x-4 mb-3">
                     <span className={`text-sm font-semibold transition-colors ${
                       currentPurchaseType === 'one-time' ? 'text-gray-900' : 'text-gray-500'
@@ -186,7 +186,7 @@ const PupBoxSubscription = () => {
                   </div>
                 </div>
                 
-                <div className="bg-gray-50 p-3 rounded-lg">
+                <div className="bg-white border border-gray-200 p-3 rounded-lg">
                   <div className="text-sm font-medium text-gray-700 mb-1">What's included:</div>
                   <div className="text-sm text-gray-600">{plan.items}</div>
                 </div>
