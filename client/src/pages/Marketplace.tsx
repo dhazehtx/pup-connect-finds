@@ -28,24 +28,24 @@ const Marketplace = () => {
 
       <div className="container mx-auto px-4 pb-8">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="marketplace space-y-6">
-          <TabsList className="inline-flex rounded-full border-2 border-gray-300 bg-[#E5EEFF] p-1 max-w-lg mx-auto">
+          <TabsList className="inline-flex rounded-full border-2 border-primary/20 bg-primary/5 p-1 max-w-lg mx-auto">
             <TabsTrigger 
               value="services" 
-              className="px-4 py-2 flex items-center gap-2 text-sm font-medium rounded-full transition-all duration-200 text-primary-600 data-[state=active]:text-white data-[state=active]:bg-primary-600 focus-visible:!ring-0 focus-visible:!ring-offset-0"
+              className="px-4 py-2 flex items-center gap-2 text-sm font-medium rounded-full transition-all duration-200 text-primary data-[state=active]:text-primary-foreground data-[state=active]:bg-primary focus-visible:!ring-0 focus-visible:!ring-offset-0"
             >
               <Briefcase className="w-4 h-4" />
               <span className="whitespace-nowrap">Pet Services</span>
             </TabsTrigger>
             <TabsTrigger 
               value="pupbox" 
-              className="not-first:ml-1 px-4 py-2 flex items-center gap-2 text-sm font-medium rounded-full transition-all duration-200 text-primary-600 data-[state=active]:text-white data-[state=active]:bg-primary-600 focus-visible:!ring-0 focus-visible:!ring-offset-0"
+              className="not-first:ml-1 px-4 py-2 flex items-center gap-2 text-sm font-medium rounded-full transition-all duration-200 text-primary data-[state=active]:text-primary-foreground data-[state=active]:bg-primary focus-visible:!ring-0 focus-visible:!ring-offset-0"
             >
               <Gift className="w-4 h-4" />
               <span className="whitespace-nowrap">Pup Box</span>
             </TabsTrigger>
             <TabsTrigger 
               value="store" 
-              className="not-first:ml-1 px-4 py-2 flex items-center gap-2 text-sm font-medium rounded-full transition-all duration-200 text-primary-600 data-[state=active]:text-white data-[state=active]:bg-primary-600 focus-visible:!ring-0 focus-visible:!ring-offset-0"
+              className="not-first:ml-1 px-4 py-2 flex items-center gap-2 text-sm font-medium rounded-full transition-all duration-200 text-primary data-[state=active]:text-primary-foreground data-[state=active]:bg-primary focus-visible:!ring-0 focus-visible:!ring-offset-0"
             >
               <Store className="w-4 h-4" />
               <span className="whitespace-nowrap">Store</span>

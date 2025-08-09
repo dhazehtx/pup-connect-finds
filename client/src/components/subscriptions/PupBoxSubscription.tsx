@@ -222,7 +222,7 @@ const PupBoxSubscription = () => {
                 <div className="flex items-center justify-between mb-2">
                   <h4 className="font-medium">Order Summary</h4>
                   <div className="flex items-center">
-                    <Star className="w-4 h-4 text-yellow-400 fill-current mr-1" />
+                    <Star className="w-4 h-4 text-amber-400 fill-current mr-1" />
                     <span className="text-sm">30-day money-back guarantee</span>
                   </div>
                 </div>

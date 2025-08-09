@@ -1,0 +1,176 @@
+Prompt for Replit (fix auth + purge yellow + collapsed filters by default)
+Context: Next.js + Supabase + Tailwind + Theme tokens. Mobile UI must match desktop (blue/white only). Explore filters should be collapsed by default with a toggle.
+
+1) Fix first-attempt login failure (Supabase session race)
+In lib/supabase/browserClient.ts (or equivalent), ensure a single browser client with persistence:
+
+ts
+Copy
+// lib/supabase/browserClient.ts
+import { createBrowserClient } from '@supabase/ssr';
+
+let _client: ReturnType<typeof createBrowserClient> | null = null;
+export const sb = () => {
+  if (_client) return _client;
+  _client = createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true } }
+  );
+  return _client;
+};
+In the SignIn form component:
+
+Prevent double submit.
+
+Await session before redirect.
+
+Don’t redirect in a useEffect that might run before the session cookie is written.
+
+tsx
+Copy
+const onSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+  setLoading(true);
+  const emailTrim = email.trim();
+  const passwordTrim = password.trim();
+
+  const { error } = await sb().auth.signInWithPassword({
+    email: emailTrim,
+    password: passwordTrim,
+  });
+  if (error) { setLoading(false); setError(error.message); return; }
+
+  // Wait until Supabase reports a non-null session
+  let tries = 0, session = null;
+  while (!session && tries < 10) {
+    const res = await sb().auth.getSession();
+    session = res.data.session;
+    if (!session) await new Promise(r => setTimeout(r, 100));
+    tries++;
+  }
+
+  // Now redirect; middleware will see the cookie
+  router.replace('/home'); // or the intended return path
+};
+If we use middleware or a route guard that checks getUser()/cookies, ensure we’re not bouncing back to /auth before the cookie lands. Add a 100–200ms soft delay or use onAuthStateChange to navigate after SIGNED_IN.
+
+Confirm NEXT_PUBLIC_SUPABASE_URL and ANON_KEY are correct and no second client is created in another file.
+
+2) Collapse Explore filters by default + toggle
+In app/explore/_components/FiltersPanel.tsx:
+
+Default state = collapsed.
+
+Provide a sticky “Advanced Filters” pill to open/close.
+
+Persist last state in localStorage.
+
+tsx
+Copy
+const KEY = 'exploreFiltersOpen';
+const [open, setOpen] = useState<boolean>(() => {
+  if (typeof window === 'undefined') return false;
+  return localStorage.getItem(KEY) === '1' ? true : false;
+});
+useEffect(() => { localStorage.setItem(KEY, open ? '1' : '0'); }, [open]);
+Render:
+
+tsx
+Copy
+<button
+  className="fixed bottom-20 right-4 z-30 rounded-full border border-primary/20 bg-white px-4 py-2 text-sm font-medium text-primary shadow-md"
+  onClick={() => setOpen(v => !v)}
+  aria-expanded={open}
+>
+  {open ? 'Hide Filters' : 'Show Filters'}
+</button>
+
+{open && (
+  <section className="mt-3 rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+    {/* all the filter controls */}
+  </section>
+)}
+Also ensure the initial page render shows listings content above the fold with filters closed.
+
+3) Purge all yellow from mobile (and everywhere)
+Goal: No yellow backgrounds, borders, chips, tabs, cards, headers, session screens, or input focus rings.
+
+Actions
+
+Global tokens (blue as default). In styles/globals.css:
+
+css
+Copy
+:root{
+  --color-primary:#1f6feb;
+  --color-primary-foreground:#ffffff;
+  --color-accent:#1f6feb;
+  --ring:#1f6feb;
+  --card-bg:#ffffff;
+  --surface:#ffffff;
+}
+Replace any bg-yellow-*, text-yellow-*, border-yellow-*, inline style={{background:'#ffff00'}} and #ff0/#ffff00 literals with tokened classes. Grep and replace:
+
+Search for: bg-yellow, text-yellow, border-yellow, #ffff00, #ff0, var(--yellow, data-theme="yellow", session-expired, ProfileHeader, ListingCard, FeaturedBadge.
+
+Tailwind safelist: remove yellow utilities from tailwind.config.js safelist.
+
+Specific components to fix (from screenshots)
+
+Session Expired page (/explore redirect screen): background must be bg-white (or bg-slate-50), title text-slate-900, CTA buttons use btn-primary and btn-outline.
+
+Explore listing cards: remove yellow strip; use white card with subtle border and blue price text only:
+
+tsx
+Copy
+<div className="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+  <img /* ... */ />
+  <div className="p-4">
+    <h3 className="text-lg font-semibold text-slate-900">Labrador Puppy</h3>
+    <div className="mt-1 text-slate-600">Labrador Retriever • 10 weeks</div>
+    <div className="mt-2 flex items-center justify-between">
+      <span className="text-slate-500">Los Angeles, CA</span>
+      <span className="font-bold text-primary">$1,000</span>
+    </div>
+  </div>
+</div>
+Profile header block: remove yellow hero background; use white with light border OR a muted gradient:
+
+tsx
+Copy
+<section className="rounded-2xl border border-slate-200 bg-white p-4">
+“Clear All” filter chip: swap bg-yellow-300 to bg-primary/10 text-primary hover:bg-primary/15.
+
+Price slider thumb: set accent-primary.
+
+Auth inputs: remove yellow focus ring → set Tailwind focus classes
+
+tsx
+Copy
+<input className="... focus:ring-2 focus:ring-primary focus:border-primary" />
+4) Prevent first-paint yellow (FOUC)
+Ensure html has no data-theme="yellow".
+
+If you still theme with a provider, compute initial theme synchronously:
+
+tsx
+Copy
+const initial = typeof document === 'undefined' ? 'blue' : (localStorage.getItem('theme') ?? 'blue');
+const [theme, setTheme] = useState(initial);
+useEffect(() => { document.documentElement.dataset.theme = theme; }, [theme]);
+Make sure any “legacy marketplace” or “v1” component isn’t mounted while data loads. Use a blue skeleton instead.
+
+5) QA checklist (definition of done)
+Hard-refresh on iPhone: no yellow flash anywhere.
+
+Session-expired page: white background.
+
+Profile header: white.
+
+Explore listing cards: white with blue accents only.
+
+Explore page opens with filters collapsed, tapping the floating pill opens/closes instantly and state persists across navigations.
+
+Sign-in: first attempt succeeds (no second try required); redirect occurs only after session exists.
+

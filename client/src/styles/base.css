@@ -11,7 +11,7 @@
     --brand: #2563eb;         /* exact desktop brand token */
     --accent: #f59e0b;        /* warning/accent only - never as page bg */
     
-    /* Standard theme variables */
+    /* Standard theme variables - Blue theme as default to prevent flashing */
     --background: 255 255 255; /* Pure white background */
     --foreground: 30 30 30; /* Dark text for readability */
 
@@ -21,7 +21,7 @@
     --popover: 255 255 255; /* Pure white */
     --popover-foreground: 30 30 30; /* Dark text */
 
-    --primary: 37 99 235; /* Blue-600 #2563EB */
+    --primary: 37 99 235; /* Blue-600 #2563EB - Marketplace theme */
     --primary-foreground: 255 255 255; /* White text on blue */
 
     --secondary: 248 250 252; /* Slate-50 */
