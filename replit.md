@@ -59,3 +59,16 @@ The application employs a full-stack architecture with a clear separation of con
 - **SendGrid**: Email service.
 - **Google Analytics 4**: Analytics tracking.
 - **OpenAI API**: AI-powered content moderation.
+
+## Recent Changes
+
+### Mobile-Desktop Theme Alignment Complete (August 9, 2025)
+- Eliminated all background color inconsistencies between mobile and desktop designs
+- Updated all page backgrounds from gray-50 to white across ExploreAdvanced, ExploreRouter, ExploreClean, and Marketplace pages
+- Systematically removed all yellow/amber color references from CSS system (components.css, utilities.css)
+- Fixed TypeScript issues in ExploreClean.tsx for location field nullability handling
+- Enhanced utility functions and constants to use white backgrounds consistently
+- Updated mobile CSS overrides to force white backgrounds for all gray variants (bg-gray-50, bg-slate-50, bg-neutral-50)
+- Ensured dropdown/select components maintain desktop theme consistency with proper blue focus states
+- Confirmed consistent use of desktop color scheme: white backgrounds, blue primary (#2363FF), and light blue accents (#E5EEFF)
+- SessionExpiredModal TypeScript issue resolved with proper hideCloseButton prop handling

@@ -1,0 +1,94 @@
+Scan and fix the Marketplace page color flash on mobile (yellow → blue).
+Tech: Next.js + Tailwind + ThemeProvider.
+Goal: Marketplace should render blue theme immediately (no yellow at any point).
+
+Tasks
+
+Search & remove legacy yellow styles
+
+Grep the repo for: bg-yellow, text-yellow, --yellow, #ffff00, Featured Services, Veterinary Care buttons, and any marketplace-legacy or v1 components.
+
+Replace with the standard design tokens:
+
+Buttons: btn variants (btn-solid, btn-outline) using primary (blue) from our token system.
+
+Tabs/pills: rounded-full border-primary text-primary with data-active styles using bg-primary/10.
+
+Ensure no inline styles set to yellow on Marketplace or its children.
+
+Set blue as the SSR default
+
+In app/layout.tsx (or _app.tsx) and globals.css/:root, set theme vars for blue as the default:
+
+css
+Copy
+:root {
+  --color-primary: #1f6feb; /* blue */
+  --color-primary-foreground: #ffffff;
+  --color-ring: #1f6feb;
+}
+[data-theme="blue"] { /* same values as :root */ }
+Remove any default data-theme="yellow" on html/body.
+
+Hydration-safe ThemeProvider
+
+In ThemeProvider (or wherever theme is resolved), initialize blue immediately on first render (not after useEffect):
+
+tsx
+Copy
+const initial = typeof document === 'undefined'
+  ? 'blue'
+  : (localStorage.getItem('theme') ?? 'blue');
+const [theme, setTheme] = useState(initial);
+useEffect(() => {
+  document.documentElement.dataset.theme = theme;
+}, [theme]);
+Avoid a transient undefined theme.
+
+Ensure Marketplace doesn’t mount a legacy variant
+
+In pages/app/marketplace (or app/marketplace/page.tsx), confirm we render the new component only.
+If there’s a conditional like loading ? <LegacyMarketplace /> : <Marketplace />, delete the legacy import and use a lightweight skeleton that already uses the blue tokens.
+
+CSS order & purge
+
+Verify globals.css imports before component CSS so tokens apply first.
+
+If using Tailwind, confirm safelist includes our blue utility classes and that no yellow utilities are safelisted.
+
+QA checklist
+
+Hard refresh on mobile preview: the page must open blue instantly with no color change within 5 seconds.
+
+Tap between “Featured Services / All Services” and category chips → all states use blue variants, no yellow backgrounds.
+
+Files to touch
+
+app/layout.tsx or _app.tsx
+
+styles/globals.css
+
+components/ui/ThemeProvider.tsx
+
+app/marketplace/page.tsx (and any Marketplace* subcomponents)
+
+Any marketplace.css/legacy stylesheets
+
+Definition of done
+
+No occurrence of yellow styles anywhere in Marketplace (grep check passes).
+
+First paint and hydrated UI are visually identical (no flash).
+
+Buttons, chips, and tabs match desktop blue theme 1:1.
+
+Want me to generate a quick grep list of all “yellow” hits from your repo so you can nuke them fast?
+
+
+
+
+
+
+
+
+Ask ChatGPT

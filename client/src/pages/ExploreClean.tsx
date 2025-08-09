@@ -353,9 +353,9 @@ interface Listing {
   breed: string;
   age: number;
   price: number;
-  location: string;
-  description?: string;
-  image_url?: string;
+  location: string | null;
+  description?: string | null;
+  image_url?: string | null;
 }
 
 const ListingGrid: React.FC<{ listings: Listing[]; loading: boolean }> = ({ listings, loading }) => {
@@ -423,7 +423,7 @@ const ListingGrid: React.FC<{ listings: Listing[]; loading: boolean }> = ({ list
             <p className="text-sm text-gray-600 mb-1">{listing.age} weeks old</p>
             <div className="flex items-center text-sm text-gray-600">
               <MapPin className="w-3 h-3 mr-1" />
-              {listing.location}
+              {listing.location || 'Location not specified'}
             </div>
             {listing.description && (
               <p className="text-sm text-gray-500 mt-2 line-clamp-2">{listing.description}</p>
@@ -532,7 +532,7 @@ const Explore = () => {
   // Show loading while auth is resolving
   if (authLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-white flex items-center justify-center">
         <div className="text-center">
           <LoadingSpinner />
           <p className="text-gray-600 mt-4">Loading explore page...</p>
@@ -542,7 +542,7 @@ const Explore = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-white">
       <div className="max-w-7xl mx-auto px-4 py-6">
         {/* Header */}
         <div className="mb-6">

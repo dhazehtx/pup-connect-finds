@@ -71,8 +71,13 @@
       background-color: #FFFFFF !important;
     }
 
-    /* Mobile page backgrounds */
+    /* Mobile page backgrounds - Force white background */
     body, .min-h-screen, .bg-gray-50, .bg-gray-100 {
+      background-color: #FFFFFF !important;
+    }
+    
+    /* Additional mobile background overrides */
+    .bg-blue-50, .bg-slate-50, .bg-neutral-50 {
       background-color: #FFFFFF !important;
     }
 

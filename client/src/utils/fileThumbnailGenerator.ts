@@ -21,10 +21,10 @@ export const generateFileThumbnail = (file: File) => {
   }
   
   if (type.includes('zip') || type.includes('rar') || type.includes('archive')) {
-    return { icon: Archive, color: 'text-gray-500', bgColor: 'bg-gray-50' };
+    return { icon: Archive, color: 'text-gray-500', bgColor: 'bg-white' };
   }
   
-  return { icon: File, color: 'text-gray-500', bgColor: 'bg-gray-50' };
+  return { icon: File, color: 'text-gray-500', bgColor: 'bg-white' };
 };
 
 export const generateImageThumbnail = (file: File): Promise<string> => {

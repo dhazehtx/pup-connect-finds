@@ -44,8 +44,8 @@ export const COMPONENTS = {
   // Buttons
   BTN_PRIMARY: 'bg-primary-600 hover:bg-primary-700 text-white font-medium px-4 py-2 rounded-lg transition-colors duration-200',
   BTN_SECONDARY: 'bg-gray-100 hover:bg-gray-200 text-gray-900 font-medium px-4 py-2 rounded-lg transition-colors duration-200',
-  BTN_OUTLINE: 'border border-gray-300 hover:bg-gray-50 text-gray-700 font-medium px-4 py-2 rounded-lg transition-colors duration-200',
-  BTN_GHOST: 'hover:bg-gray-100 text-gray-600 font-medium px-4 py-2 rounded-lg transition-colors duration-200',
+  BTN_OUTLINE: 'border border-gray-300 hover:bg-white text-gray-700 font-medium px-4 py-2 rounded-lg transition-colors duration-200',
+  BTN_GHOST: 'hover:bg-white text-gray-600 font-medium px-4 py-2 rounded-lg transition-colors duration-200',
   BTN_DANGER: 'bg-red-600 hover:bg-red-700 text-white font-medium px-4 py-2 rounded-lg transition-colors duration-200',
   
   // Form Elements
