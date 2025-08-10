@@ -277,13 +277,13 @@ const StoreTab = () => {
                     )}
                   </div>
 
-                  {/* Action Buttons - Fixed alignment and consistent height */}
-                  <div className="grid grid-cols-2 gap-2 mt-auto pt-3">
-                    <Button
+                  {/* Action Buttons - Fixed accessibility and contrast */}
+                  <div className="grid grid-cols-2 gap-3 mt-auto pt-3">
+                    <button
+                      type="button"
                       onClick={() => handleAddToCart(product)}
                       disabled={addedItems.has(product.id)}
-                      variant="outline"
-                      className="h-10 px-3 border-primary text-primary hover:bg-primary/5 flex items-center justify-center text-sm font-medium min-w-0"
+                      className="h-10 rounded-xl px-4 text-sm font-medium transition focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed bg-white text-slate-800 border border-slate-300 hover:bg-slate-50 hover:border-slate-400 active:bg-slate-100 flex items-center justify-center min-w-0"
                     >
                       {addedItems.has(product.id) ? (
                         <>
@@ -298,14 +298,15 @@ const StoreTab = () => {
                       ) : (
                         <>
                           <ShoppingCart className="w-4 h-4 mr-1.5 flex-shrink-0" />
-                          <span className="truncate">Add</span>
+                          <span className="truncate">Add to Cart</span>
                         </>
                       )}
-                    </Button>
-                    <Button
+                    </button>
+                    <button
+                      type="button"
                       onClick={() => checkoutMutation.mutate(product.id)}
                       disabled={checkoutMutation.isPending}
-                      className="h-10 px-3 bg-primary hover:bg-primary/90 text-primary-foreground flex items-center justify-center text-sm font-medium min-w-0"
+                      className="h-10 rounded-xl px-4 text-sm font-medium transition focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed bg-primary text-primary-foreground shadow-sm hover:bg-primary/90 active:bg-primary/95 flex items-center justify-center min-w-0"
                     >
                       {checkoutMutation.isPending ? (
                         <>
@@ -318,7 +319,7 @@ const StoreTab = () => {
                           <span className="truncate">Buy Now</span>
                         </>
                       )}
-                    </Button>
+                    </button>
                   </div>
                 </div>
               </div>
