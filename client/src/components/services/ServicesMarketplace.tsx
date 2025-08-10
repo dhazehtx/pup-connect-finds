@@ -11,12 +11,12 @@ interface ServiceProvider {
   id: string;
   business_name: string;
   service_types: string[];
-  description: string;
+  description: string | null;
   location: string;
   pricing: any;
-  rating: number;
-  total_bookings: number;
-  verified: boolean;
+  rating: number | null;
+  total_bookings: number | null;
+  verified: boolean | null;
   user_id: string;
 }
 

@@ -318,7 +318,7 @@ const SupabaseLogViewer = () => {
                             </Badge>
                           )}
                           {log.action.includes('Filter') && (
-                            <Badge className="text-xs bg-yellow-100 text-yellow-800">
+                            <Badge className="text-xs bg-amber-100 text-amber-800">
                               Filter
                             </Badge>
                           )}

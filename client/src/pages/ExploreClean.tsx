@@ -450,6 +450,19 @@ const Explore = () => {
   const [priceRange, setPriceRange] = useState([0, 10000]);
   const [verifiedOnly, setVerifiedOnly] = useState(false);
   
+  // Filters panel collapsed state with localStorage persistence
+  const [filtersOpen, setFiltersOpen] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    return localStorage.getItem('exploreFiltersOpen') === '1';
+  });
+
+  // Save filters state to localStorage
+  useEffect(() => {
+    localStorage.setItem('exploreFiltersOpen', filtersOpen ? '1' : '0');
+  }, [filtersOpen]);
+
+  // Remove inline import - icons should be imported at module level
+  
   // Breeds data for popular breeds component
   const [breeds, setBreeds] = useState<Breed[]>([]);
 
@@ -550,24 +563,6 @@ const Explore = () => {
           <p className="text-gray-600">Find your perfect furry companion</p>
         </div>
 
-        {/* Supabase-Powered Filter Bar */}
-        <FilterBarWithSupabase
-          searchTerm={searchTerm}
-          onSearchChange={setSearchTerm}
-          selectedBreed={selectedBreed}
-          onBreedChange={setSelectedBreed}
-          selectedColor={selectedColor}
-          onColorChange={setSelectedColor}
-          ageRange={ageRange}
-          onAgeChange={setAgeRange}
-          selectedGender={selectedGender}
-          onGenderChange={setSelectedGender}
-          priceRange={priceRange}
-          onPriceChange={setPriceRange}
-          verifiedOnly={verifiedOnly}
-          onVerifiedChange={setVerifiedOnly}
-        />
-
         {/* Color-coded Popular Breeds Bar */}
         <PopularBreedsComponent 
           onBreedSelect={(breed, color) => {
@@ -595,6 +590,51 @@ const Explore = () => {
           }} 
           breeds={breeds || []}
         />
+
+        {/* Basic Search Bar (always visible) */}
+        <div className="mb-6 bg-white rounded-lg p-4 shadow-sm border border-gray-200">
+          <div className="relative max-w-2xl mx-auto">
+            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+            <Input
+              placeholder="Search by breed, name, or location..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-12 py-3 text-base rounded-lg shadow-sm border focus:ring-2 focus:ring-primary focus:border-primary"
+            />
+          </div>
+        </div>
+
+        {/* Floating Filter Toggle Button */}
+        <button
+          className="fixed bottom-20 right-4 z-30 rounded-full border border-primary/20 bg-white px-4 py-2 text-sm font-medium text-primary shadow-md hover:shadow-lg transition-all"
+          onClick={() => setFiltersOpen(v => !v)}
+          aria-expanded={filtersOpen}
+        >
+          <Filter className="w-4 h-4 inline mr-2" />
+          {filtersOpen ? 'Hide Filters' : 'Show Filters'}
+        </button>
+        
+        {/* Advanced Filters Panel (collapsible) */}
+        {filtersOpen && (
+          <div className="mb-6 rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+            <FilterBarWithSupabase
+              searchTerm={searchTerm}
+              onSearchChange={setSearchTerm}
+              selectedBreed={selectedBreed}
+              onBreedChange={setSelectedBreed}
+              selectedColor={selectedColor}
+              onColorChange={setSelectedColor}
+              ageRange={ageRange}
+              onAgeChange={setAgeRange}
+              selectedGender={selectedGender}
+              onGenderChange={setSelectedGender}
+              priceRange={priceRange}
+              onPriceChange={setPriceRange}
+              verifiedOnly={verifiedOnly}
+              onVerifiedChange={setVerifiedOnly}
+            />
+          </div>
+        )}
 
         {/* Results Count */}
         <div className="mb-6">

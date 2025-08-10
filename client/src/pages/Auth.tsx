@@ -19,6 +19,8 @@ const Auth = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<{[key: string]: string}>({});
   const { user, continueAsGuest, signIn, signUp, loading } = useAuth();
+  // Import enhanced auth utilities
+  const { signInWithRetry } = require('@/lib/authUtils');
   const { toast } = useToast();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();

@@ -77,7 +77,7 @@ const CustomerReviews = () => {
                       <Star
                         key={i}
                         className={`h-5 w-5 ${
-                          i < review.rating ? 'text-yellow-400 fill-current' : 'text-gray-300'
+                          i < review.rating ? 'text-amber-400 fill-current' : 'text-gray-300'
                         }`}
                       />
                     ))}

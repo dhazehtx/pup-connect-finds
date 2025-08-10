@@ -277,13 +277,13 @@ const StoreTab = () => {
                     )}
                   </div>
 
-                  {/* Action Buttons */}
-                  <div className="grid grid-cols-2 gap-2 mt-4 pt-2">
+                  {/* Action Buttons - Fixed alignment and consistent height */}
+                  <div className="grid grid-cols-2 gap-2 mt-auto pt-3">
                     <Button
                       onClick={() => handleAddToCart(product)}
                       disabled={addedItems.has(product.id)}
                       variant="outline"
-                      className="h-10 px-3 border-primary-600 text-primary-600 hover:bg-primary-50 flex items-center justify-center text-sm font-medium"
+                      className="h-10 px-3 border-primary text-primary hover:bg-primary/5 flex items-center justify-center text-sm font-medium min-w-0"
                     >
                       {addedItems.has(product.id) ? (
                         <>
@@ -305,7 +305,7 @@ const StoreTab = () => {
                     <Button
                       onClick={() => checkoutMutation.mutate(product.id)}
                       disabled={checkoutMutation.isPending}
-                      className="h-10 px-3 bg-primary-600 hover:bg-primary-700 text-white flex items-center justify-center text-sm font-medium"
+                      className="h-10 px-3 bg-primary hover:bg-primary/90 text-primary-foreground flex items-center justify-center text-sm font-medium min-w-0"
                     >
                       {checkoutMutation.isPending ? (
                         <>
