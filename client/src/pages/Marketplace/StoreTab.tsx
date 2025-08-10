@@ -51,18 +51,35 @@ const StoreTab = () => {
     maxPrice: 100
   });
 
-  // Fetch products from API with tag filtering
+  // Fetch products from API with enhanced error handling
   const { data: productsResponse, isLoading, error } = useQuery({
     queryKey: ['/api/products', { tag: selectedTag }],
     queryFn: async () => {
-      // Don't pass any query parameters to get all products
-      const url = selectedTag ? `/api/products?tag=${encodeURIComponent(selectedTag)}` : '/api/products';
-      const response = await fetch(url);
-      if (!response.ok) {
-        throw new Error('Failed to fetch products');
+      try {
+        const url = selectedTag ? `/api/products?tag=${encodeURIComponent(selectedTag)}` : '/api/products';
+        const response = await fetch(url, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          cache: 'no-store'
+        });
+        
+        if (!response.ok) {
+          console.error('Products fetch failed:', response.status, response.statusText);
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        
+        const data = await response.json();
+        console.log('Products loaded successfully:', data);
+        return data;
+      } catch (err) {
+        console.error('Products API error:', err);
+        throw err;
       }
-      return response.json();
     },
+    retry: 3,
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
   });
 
   const products = productsResponse?.data || [];
@@ -225,20 +242,40 @@ const StoreTab = () => {
 
         {/* Error state */}
         {error && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-center">
-            <p className="text-red-600">Failed to load products. Please try again.</p>
+          <div className="m-4 rounded-xl border border-red-200 bg-red-50 p-4">
+            <div className="text-red-800 font-medium">Unable to load products</div>
+            <div className="text-red-600 text-sm mt-1">
+              {error.message || 'Please try again in a moment.'}
+            </div>
+            <button 
+              onClick={() => window.location.reload()} 
+              className="mt-3 btn btn-outline text-sm"
+            >
+              Try Again
+            </button>
           </div>
         )}
 
-        {/* Results count */}
+        {/* Results count and empty state */}
         {!isLoading && !error && (
-          <div className="text-sm text-gray-600">
-            Showing {filteredAndSortedProducts.length} products
-          </div>
+          <>
+            {filteredAndSortedProducts.length > 0 ? (
+              <div className="text-sm text-gray-600">
+                Showing {filteredAndSortedProducts.length} products
+              </div>
+            ) : (
+              <div className="m-6 rounded-2xl border border-slate-200 bg-white p-8 text-center">
+                <div className="text-slate-700 font-medium">No products available</div>
+                <div className="mt-1 text-slate-500 text-sm">
+                  Products will appear here once they're added to the store.
+                </div>
+              </div>
+            )}
+          </>
         )}
 
         {/* Products Grid */}
-        {!isLoading && !error && (
+        {!isLoading && !error && filteredAndSortedProducts.length > 0 && (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {filteredAndSortedProducts.map((product) => (
               <div key={product.id} className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow flex flex-col h-full">
