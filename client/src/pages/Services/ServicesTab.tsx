@@ -10,6 +10,7 @@ import { Search, MapPin, Clock, Star, Shield, Filter } from 'lucide-react';
 import { ServiceProviderCard } from '@/components/ServiceProviderCard';
 import { BecomeProviderModal } from '@/components/BecomeProviderModal';
 import { BookServiceModal } from '@/components/BookServiceModal';
+import { FilterPill } from '@/components/FilterPill';
 import type { PetServiceProvider } from '@shared/schema';
 
 interface ServicesFilters {
@@ -102,10 +103,11 @@ export function ServicesTab() {
           <Button 
             onClick={() => setShowProviderModal(true)}
             size="lg"
-            className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-semibold"
+            variant="gradient"
+            className="gap-2"
           >
-            <Shield className="mr-2 h-5 w-5" />
-            Become a Service Provider
+            <Shield className="h-5 w-5" />
+            <span className="text-white">Become a Service Provider</span>
           </Button>
         </div>
       </div>
@@ -193,24 +195,20 @@ export function ServicesTab() {
       </Card>
 
       {/* Service Types Quick Filter */}
-      <div className="flex flex-wrap gap-2 justify-center">
-        <Button
-          variant={!filters.type ? "default" : "outline"}
+      <div className="flex flex-wrap gap-3 justify-center">
+        <FilterPill
+          label="All Services"
+          selected={!filters.type}
           onClick={() => setFilters(prev => ({ ...prev, type: undefined }))}
-          className="flex items-center gap-2"
-        >
-          All Services
-        </Button>
+        />
         {serviceTypes.map(type => (
-          <Button
+          <FilterPill
             key={type.value}
-            variant={filters.type === type.value ? "default" : "outline"}
+            label={type.label}
+            icon={<span>{type.icon}</span>}
+            selected={filters.type === type.value}
             onClick={() => setFilters(prev => ({ ...prev, type: type.value }))}
-            className="flex items-center gap-2"
-          >
-            <span>{type.icon}</span>
-            {type.label}
-          </Button>
+          />
         ))}
       </div>
 

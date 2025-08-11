@@ -110,7 +110,7 @@ export function ServiceProviderCard({ provider, onBook }: ServiceProviderCardPro
         <div className="flex gap-2 pt-2">
           <Button 
             onClick={onBook}
-            className="flex-1 bg-blue-600 text-white font-medium hover:bg-blue-700"
+            className="flex-1 bg-blue-600 hover:bg-blue-700 !text-white font-medium"
             size="sm"
           >
             Book Service
