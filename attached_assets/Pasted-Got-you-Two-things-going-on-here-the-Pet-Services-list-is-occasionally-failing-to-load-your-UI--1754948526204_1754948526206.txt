@@ -1,0 +1,203 @@
+Got you. Two things going on here:
+
+the Pet Services list is occasionally failing to load → your UI shows “Failed to load services. Please try again.”
+
+the hero/intro line above the button is too faint (very low contrast).
+
+Here’s a tight fix plan plus a ready-to-paste Replit prompt.
+
+What’s likely causing the load error
+A brittle fetch in the Pet Services tab (e.g., treating an empty array as an error, race on tab switch, or a timeout without retry).
+
+API route for services intermittently returning non-200 (RLS/policy or null filter), then succeeding on the next call.
+
+Missing defensive UI states.
+
+What to do (summary)
+Add a resilient fetch with timeout + retry and never treat an empty list as an error.
+
+Log and surface the real error text so we can see if it’s an API 401/403/500 or a client parse error.
+
+Verify the API directly (curl) to confirm it returns 200 + JSON.
+
+Fix the hero text classes (remove opacity/selection styling, bump contrast).
+
+Prompt for Replit (paste this verbatim)
+Goal: Fix intermittent “Failed to load services” on /marketplace → Pet Services tab, add robust loading/error handling, and increase hero text contrast.
+
+Do this:
+
+Identify files
+
+Open client/src/pages/Marketplace/ServicesTab.tsx (or the component rendering the Pet Services list; if not found, search for "Failed to load services" to locate it).
+
+Open the API handler used to fetch services (likely server/src/routes/services.ts or server/index.ts where /api/services is defined).
+
+If we use Supabase directly from the client, open the fetch hook (search useServices, fetchServices, or supabase.from('service_providers')).
+
+Client: harden fetching
+
+Replace the current fetch with a helper that includes a 8s timeout, 2 retries (exponential backoff), and does not treat [] as an error.
+
+Always show three states distinctly: loading, empty, and error.
+
+Log the actual error message to the console and show a small error code/message in the UI.
+
+Patch in ServicesTab.tsx (or its hook):
+
+tsx
+Copy
+Edit
+// create in client/src/lib/fetchWithRetry.ts
+export async function fetchWithRetry(
+  url: string,
+  opts: RequestInit = {},
+  { retries = 2, timeoutMs = 8000 } = {}
+) {
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    const ctrl = new AbortController();
+    const t = setTimeout(() => ctrl.abort(), timeoutMs);
+    try {
+      const res = await fetch(url, { ...opts, signal: ctrl.signal });
+      clearTimeout(t);
+      if (!res.ok) {
+        const text = await res.text().catch(() => "");
+        throw new Error(`HTTP ${res.status}: ${text || res.statusText}`);
+      }
+      return await res.json();
+    } catch (err) {
+      clearTimeout(t);
+      if (attempt === retries) throw err;
+      await new Promise(r => setTimeout(r, 500 * 2 ** attempt));
+    }
+  }
+}
+tsx
+Copy
+Edit
+// in ServicesTab.tsx (or useServices hook)
+import { useEffect, useState } from "react";
+import { fetchWithRetry } from "@/lib/fetchWithRetry";
+
+type Service = {
+  id: string;
+  name: string;
+  type: string;
+  location?: string;
+  is_active?: boolean;
+};
+
+export default function ServicesTab() {
+  const [data, setData] = useState<Service[] | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  async function load() {
+    setLoading(true);
+    setError(null);
+    try {
+      const json = await fetchWithRetry("/api/services?limit=24");
+      // Accept empty array as a valid state
+      if (Array.isArray(json)) setData(json);
+      else if (Array.isArray(json?.data)) setData(json.data);
+      else setData([]);
+    } catch (e: any) {
+      console.error("Services load failed:", e);
+      setError(e?.message || "Unknown error");
+      setData([]);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => { load(); }, []);
+
+  if (loading) return <div className="p-6 text-slate-600">Loading services…</div>;
+  if (error) {
+    return (
+      <div className="p-6 text-center">
+        <p className="mb-3 text-red-600">Failed to load services.</p>
+        <p className="mb-4 text-xs text-slate-500">Details: {error}</p>
+        <button onClick={load} className="px-4 py-2 rounded-xl bg-blue-600 text-white">Retry</button>
+      </div>
+    );
+  }
+  if (!data || data.length === 0) {
+    return <div className="p-6 text-slate-600">No services yet. Try adjusting filters.</div>;
+  }
+
+  // …existing list/grid render
+}
+Server/API verification
+
+In the Shell, run:
+
+bash
+Copy
+Edit
+curl -i http://localhost:5000/api/services
+Ensure it returns 200 and valid JSON array.
+
+If using Supabase on the server, confirm the query filters only is_active = true and never throws when zero rows are returned.
+
+If using Supabase from the client, verify RLS policy:
+
+Table: service_providers
+
+Add/select policy (if missing):
+
+sql
+Copy
+Edit
+create policy "public read active services"
+on service_providers for select
+to anon, authenticated
+using (is_active = true);
+If is_active doesn’t exist, either add it default true or adjust the policy to true.
+
+Make the API consistently return:
+
+ts
+Copy
+Edit
+res.status(200).json(rows); // [] allowed
+Never 404 for empty.
+
+Improve hero text contrast (faint text)
+
+Find the hero/intro line above the “Become a Service Provider” button in client/src/pages/Marketplace/index.tsx (or the Pet Services section).
+
+Remove any opacity utilities like text-white/40, opacity-50, or gradient overlay covering it.
+
+Use accessible contrast:
+
+jsx
+Copy
+Edit
+<p className="mt-2 text-slate-600 md:text-slate-700">
+  Find trusted pet service providers in your area. From grooming to training, our verified professionals are here to help care for your furry friends.
+</p>
+If you customized selection colors, ensure they’re readable or remove them:
+
+css
+Copy
+Edit
+/* tailwind.css or globals.css */
+::selection { background: #bfdbfe; color: #111827; } /* optional */
+QA
+
+Reload /marketplace 10x; confirm no error flicker.
+
+Toggle tabs (Pet Services ↔ Pup Box ↔ Store) quickly; ensure state isolation (no cross-tab unmount bug).
+
+Temporarily force the API to return [] and verify we see the “No services yet” empty state, not the red error.
+
+Acceptance criteria:
+
+No intermittent “Failed to load services” on normal loads.
+
+If the API truly fails, the error shows with details and Retry works.
+
+An empty dataset shows a proper empty state.
+
+The hero text meets contrast (WCAG AA-ish) and is clearly readable.

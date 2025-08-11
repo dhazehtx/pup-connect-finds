@@ -315,6 +315,8 @@ export type InsertCommission = z.infer<typeof insertCommissionSchema>;
 export type CommissionSettings = typeof commissionSettings.$inferSelect;
 export type InsertCommissionSettings = z.infer<typeof insertCommissionSettingsSchema>;
 
+
+
 // Legacy user table for backward compatibility (can be removed later)
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
@@ -961,11 +963,12 @@ export const petServiceProviders = pgTable("pet_service_providers", {
   id: uuid("id").defaultRandom().primaryKey(),
   user_id: uuid("user_id").notNull().references(() => profiles.id, { onDelete: "cascade" }),
   service_type: text("service_type").notNull(), // grooming, walking, sitting, training, etc.
-  bio: text("bio").notNull(),
-  price: decimal("price", { precision: 10, scale: 2 }).notNull(),
+  bio: text("bio"),
+  price: decimal("price", { precision: 10, scale: 2 }),
   availability: text("availability"), // JSON string or text description
   location: text("location"),
   is_verified: boolean("is_verified").default(false),
+  is_active: boolean("is_active").default(true),
   verification_status: text("verification_status").default("pending"), // pending, verified, rejected
   created_at: timestamp("created_at").defaultNow(),
   updated_at: timestamp("updated_at").defaultNow(),

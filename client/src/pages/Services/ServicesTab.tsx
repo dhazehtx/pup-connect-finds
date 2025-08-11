@@ -29,17 +29,25 @@ export function ServicesTab() {
   const { data: services = [], isLoading, error } = useQuery({
     queryKey: ['/api/services/search', filters],
     queryFn: async () => {
-      const params = new URLSearchParams();
-      Object.entries(filters).forEach(([key, value]) => {
-        if (value) params.append(key, value);
-      });
-      
-      const response = await fetch(`/api/services/search?${params}`);
-      if (!response.ok) throw new Error('Failed to fetch services');
-      
-      const result = await response.json();
-      return result.data || [];
+      try {
+        const { fetchWithRetry } = await import('@/lib/fetchWithRetry');
+        const params = new URLSearchParams();
+        Object.entries(filters).forEach(([key, value]) => {
+          if (value) params.append(key, value);
+        });
+        
+        const result = await fetchWithRetry(`/api/services/search?${params}`);
+        // Accept empty array as valid state
+        if (Array.isArray(result)) return result;
+        if (Array.isArray(result?.data)) return result.data;
+        return [];
+      } catch (err: any) {
+        console.error('Services load failed:', err);
+        throw new Error(err?.message || 'Failed to load services');
+      }
     },
+    retry: 3,
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
   });
 
   const serviceTypes = [
@@ -63,14 +71,19 @@ export function ServicesTab() {
 
   if (error) {
     return (
-      <div className="text-center py-8">
-        <p className="text-red-500">Failed to load services. Please try again.</p>
-        <Button 
-          onClick={() => window.location.reload()} 
-          className="mt-4"
-        >
-          Retry
-        </Button>
+      <div className="p-6 text-center">
+        <div className="m-4 rounded-xl border border-red-200 bg-red-50 p-4">
+          <div className="text-red-800 font-medium">Unable to load services</div>
+          <div className="text-red-600 text-sm mt-1">
+            {error.message || 'Please try again in a moment.'}
+          </div>
+          <button 
+            onClick={() => window.location.reload()} 
+            className="mt-3 btn btn-outline text-sm"
+          >
+            Try Again
+          </button>
+        </div>
       </div>
     );
   }
@@ -80,7 +93,7 @@ export function ServicesTab() {
       {/* Header */}
       <div className="text-center space-y-4">
         <h1 className="text-3xl font-bold">Pet Services Marketplace</h1>
-        <p className="text-muted-foreground max-w-2xl mx-auto">
+        <p className="text-slate-600 md:text-slate-700 max-w-2xl mx-auto">
           Find trusted pet service providers in your area. From grooming to training, 
           our verified professionals are here to help care for your furry friends.
         </p>

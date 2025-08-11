@@ -98,29 +98,28 @@ router.get("/search", async (req, res) => {
     // Apply filters
     let filteredQuery = query;
     
+    // Build where conditions
+    const conditions = [eq(petServiceProviders.is_verified, true)];
+    
     if (type) {
-      filteredQuery = filteredQuery.where(eq(petServiceProviders.service_type, type as string));
+      conditions.push(eq(petServiceProviders.service_type, type as string));
     }
 
     if (location) {
-      filteredQuery = filteredQuery.where(
-        sql`${petServiceProviders.location} ILIKE ${`%${location}%`}`
-      );
+      conditions.push(sql`${petServiceProviders.location} ILIKE ${`%${location}%`}`);
     }
 
     if (min_price) {
-      filteredQuery = filteredQuery.where(
-        sql`${petServiceProviders.price}::numeric >= ${parseFloat(min_price as string)}`
-      );
+      conditions.push(sql`${petServiceProviders.price}::numeric >= ${parseFloat(min_price as string)}`);
     }
 
     if (max_price) {
-      filteredQuery = filteredQuery.where(
-        sql`${petServiceProviders.price}::numeric <= ${parseFloat(max_price as string)}`
-      );
+      conditions.push(sql`${petServiceProviders.price}::numeric <= ${parseFloat(max_price as string)}`);
     }
 
-    const providers = await filteredQuery.orderBy(petServiceProviders.created_at);
+    const providers = await filteredQuery
+      .where(and(...conditions))
+      .orderBy(petServiceProviders.created_at);
 
     res.json({
       success: true,
