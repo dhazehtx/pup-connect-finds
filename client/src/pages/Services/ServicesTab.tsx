@@ -93,7 +93,7 @@ export function ServicesTab() {
       {/* Header */}
       <div className="text-center space-y-4">
         <h1 className="text-3xl font-bold">Pet Services Marketplace</h1>
-        <p className="text-slate-600 md:text-slate-700 max-w-2xl mx-auto">
+        <p className="text-slate-700 max-w-2xl mx-auto">
           Find trusted pet service providers in your area. From grooming to training, 
           our verified professionals are here to help care for your furry friends.
         </p>
@@ -102,7 +102,7 @@ export function ServicesTab() {
           <Button 
             onClick={() => setShowProviderModal(true)}
             size="lg"
-            className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700"
+            className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-semibold"
           >
             <Shield className="mr-2 h-5 w-5" />
             Become a Service Provider
@@ -224,7 +224,7 @@ export function ServicesTab() {
         <TabsContent value="featured" className="space-y-4">
           <div className="text-center">
             <h2 className="text-2xl font-semibold mb-2">Featured Service Providers</h2>
-            <p className="text-muted-foreground">
+            <p className="text-slate-600">
               Top-rated and verified professionals in your area
             </p>
           </div>
@@ -255,7 +255,7 @@ export function ServicesTab() {
             <div className="text-center py-12">
               <div className="text-6xl mb-4">🔍</div>
               <h3 className="text-xl font-semibold mb-2">No Services Found</h3>
-              <p className="text-muted-foreground">
+              <p className="text-slate-600">
                 Try adjusting your search criteria or check back later for new providers.
               </p>
             </div>
@@ -295,7 +295,7 @@ export function ServicesTab() {
             <div className="text-center py-12">
               <div className="text-6xl mb-4">🐕</div>
               <h3 className="text-xl font-semibold mb-2">No Service Providers Yet</h3>
-              <p className="text-muted-foreground mb-4">
+              <p className="text-slate-600 mb-4">
                 Be the first to offer pet services in your area!
               </p>
               <Button onClick={() => setShowProviderModal(true)}>

@@ -139,4 +139,15 @@
       --mobile-border: #E5E7EB;
     }
   }
+
+  /* Enhanced text contrast for better readability */
+  .text-muted-foreground {
+    @apply text-slate-600 !important;
+  }
+
+  /* Service card text improvements */
+  .service-card .text-muted-foreground,
+  .marketplace .text-muted-foreground {
+    @apply text-slate-600 !important;
+  }
 }

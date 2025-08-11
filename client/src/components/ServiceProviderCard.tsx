@@ -70,7 +70,7 @@ export function ServiceProviderCard({ provider, onBook }: ServiceProviderCardPro
               )}
             </div>
             
-            <div className="flex items-center gap-1 text-sm text-muted-foreground">
+            <div className="flex items-center gap-1 text-sm text-slate-600">
               <span>{serviceTypeIcons[provider.service_type] || '🐕'}</span>
               <span>{serviceTypeLabels[provider.service_type] || provider.service_type}</span>
             </div>
@@ -80,14 +80,14 @@ export function ServiceProviderCard({ provider, onBook }: ServiceProviderCardPro
 
       <CardContent className="space-y-4">
         {/* Bio */}
-        <p className="text-sm text-muted-foreground line-clamp-3">
+        <p className="text-sm text-slate-600 line-clamp-3">
           {provider.bio}
         </p>
 
         {/* Details */}
         <div className="space-y-2">
           {provider.location && (
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <div className="flex items-center gap-2 text-sm text-slate-600">
               <MapPin className="h-4 w-4" />
               <span>{provider.location}</span>
             </div>
@@ -99,7 +99,7 @@ export function ServiceProviderCard({ provider, onBook }: ServiceProviderCardPro
           </div>
 
           {provider.availability && (
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <div className="flex items-center gap-2 text-sm text-slate-600">
               <Clock className="h-4 w-4" />
               <span className="line-clamp-1">{provider.availability}</span>
             </div>
@@ -110,7 +110,7 @@ export function ServiceProviderCard({ provider, onBook }: ServiceProviderCardPro
         <div className="flex gap-2 pt-2">
           <Button 
             onClick={onBook}
-            className="flex-1"
+            className="flex-1 bg-blue-600 text-white font-medium hover:bg-blue-700"
             size="sm"
           >
             Book Service
@@ -119,6 +119,7 @@ export function ServiceProviderCard({ provider, onBook }: ServiceProviderCardPro
           <Button 
             variant="outline" 
             size="sm"
+            className="text-slate-700 font-medium border-slate-300 hover:bg-slate-50"
             onClick={() => {
               // Navigate to provider profile
               window.open(`/profile/${provider.user?.id}`, '_blank');
@@ -129,7 +130,7 @@ export function ServiceProviderCard({ provider, onBook }: ServiceProviderCardPro
         </div>
 
         {/* Member Since */}
-        <div className="text-xs text-muted-foreground border-t pt-2">
+        <div className="text-xs text-slate-500 border-t pt-2">
           Provider since {provider.created_at ? new Date(provider.created_at).toLocaleDateString() : 'N/A'}
         </div>
       </CardContent>
