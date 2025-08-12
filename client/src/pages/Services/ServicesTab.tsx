@@ -10,7 +10,7 @@ import { Search, MapPin, Clock, Star, Shield, Filter } from 'lucide-react';
 import { ServiceProviderCard } from '@/components/ServiceProviderCard';
 import { BecomeProviderModal } from '@/components/BecomeProviderModal';
 import { BookServiceModal } from '@/components/BookServiceModal';
-import { Pill } from '@/components/Pill';
+import { FilterPill } from '@/components/FilterPill';
 import type { PetServiceProvider } from '@shared/schema';
 
 interface ServicesFilters {
@@ -228,23 +228,21 @@ export function ServicesTab() {
         </Card>
 
         {/* Service Types Quick Filter */}
-        <div className="-mx-2 px-2 overflow-x-auto">
-          <div className="flex gap-3 py-1 justify-center">
-            <Pill
-              label="All Services"
-              selected={!filters.type}
-              onClick={() => setFilters(prev => ({ ...prev, type: undefined }))}
+        <div className="flex flex-wrap gap-3 justify-center">
+          <FilterPill
+            label="All Services"
+            selected={!filters.type}
+            onClick={() => setFilters(prev => ({ ...prev, type: undefined }))}
+          />
+          {serviceTypes.map(type => (
+            <FilterPill
+              key={type.value}
+              label={type.label}
+              icon={<span>{type.icon}</span>}
+              selected={filters.type === type.value}
+              onClick={() => setFilters(prev => ({ ...prev, type: type.value }))}
             />
-            {serviceTypes.map(type => (
-              <Pill
-                key={type.value}
-                label={type.label}
-                icon={<span>{type.icon}</span>}
-                selected={filters.type === type.value}
-                onClick={() => setFilters(prev => ({ ...prev, type: type.value }))}
-              />
-            ))}
-          </div>
+          ))}
         </div>
       </section>
 
@@ -337,23 +335,21 @@ export function ServicesTab() {
         </Card>
 
         {/* Service Categories Pill Row */}
-        <div className="-mx-2 px-2 overflow-x-auto">
-          <div className="flex gap-3 py-1 justify-center">
-            <Pill
-              label="All Services"
-              selected={!filters.type}
-              onClick={() => setFilters(prev => ({ ...prev, type: undefined }))}
+        <div className="flex flex-wrap gap-3 justify-center px-4">
+          <FilterPill
+            label="All Services"
+            selected={!filters.type}
+            onClick={() => setFilters(prev => ({ ...prev, type: undefined }))}
+          />
+          {serviceTypes.map(type => (
+            <FilterPill
+              key={type.value}
+              label={type.label}
+              icon={<span>{type.icon}</span>}
+              selected={filters.type === type.value}
+              onClick={() => setFilters(prev => ({ ...prev, type: type.value }))}
             />
-            {serviceTypes.map(type => (
-              <Pill
-                key={type.value}
-                label={type.label}
-                icon={<span>{type.icon}</span>}
-                selected={filters.type === type.value}
-                onClick={() => setFilters(prev => ({ ...prev, type: type.value }))}
-              />
-            ))}
-          </div>
+          ))}
         </div>
       </section>
 
