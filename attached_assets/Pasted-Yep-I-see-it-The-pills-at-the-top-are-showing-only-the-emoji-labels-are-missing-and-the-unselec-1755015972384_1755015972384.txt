@@ -1,0 +1,96 @@
+Yep, I see it. The pills at the top are showing only the emoji (labels are missing), and the unselected style doesn’t match the finished design from your 3rd screenshot. That means two things:
+
+The label text isn’t being rendered/passed (or it’s being hidden) for most pills.
+
+The unselected style should be white bg + blue outline + blue text (not the light-blue fill).
+
+Here’s a tight fix you can paste to Replit.
+
+Prompt (paste verbatim)
+Goal: Make the Services filter pills match the finished design (screenshot #3) and always show labels.
+
+Update the pill component
+
+tsx
+Copy
+Edit
+// client/src/components/FilterPill.tsx
+import * as React from "react";
+
+type Props = {
+  label: string;                // REQUIRED
+  selected?: boolean;
+  onClick?: () => void;
+  icon?: React.ReactNode;
+  className?: string;
+};
+
+export function FilterPill({ label, selected, onClick, icon, className }: Props) {
+  const base =
+    "inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium " +
+    "whitespace-nowrap transition-colors select-none border " +
+    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 " +
+    "focus-visible:ring-offset-2 focus-visible:ring-offset-white";
+
+  const unselected = "bg-white text-blue-700 border-blue-500 hover:bg-blue-50";
+  const selectedCls = "bg-blue-600 text-white border-blue-600 hover:bg-blue-700";
+
+  return (
+    <button
+      type="button"
+      aria-pressed={selected}
+      onClick={onClick}
+      className={`${base} ${selected ? selectedCls : unselected} ${className || ""}`}
+    >
+      {icon ? <span aria-hidden="true" className="leading-none">{icon}</span> : null}
+      <span className="leading-none">{label}</span>
+    </button>
+  );
+}
+Make sure labels are passed (no “icon-only” pills)
+
+tsx
+Copy
+Edit
+// client/src/pages/Marketplace/ServicesTab.tsx (or the file that renders the pills)
+import { FilterPill } from "@/components/FilterPill";
+
+const SERVICE_FILTERS = [
+  { key: "all",       label: "All Services" },
+  { key: "grooming",  label: "Grooming",    icon: "✂️" },
+  { key: "sitting",   label: "Dog Sitting", icon: "🏠" },
+  { key: "training",  label: "Training",    icon: "🎓" },
+  { key: "walking",   label: "Dog Walking", icon: "🚶" },
+  { key: "boarding",  label: "Boarding",    icon: "🧳" },
+];
+
+<div className="mt-4 flex flex-wrap gap-3">
+  {SERVICE_FILTERS.map(f => (
+    <FilterPill
+      key={f.key}
+      label={f.label}
+      icon={f.icon}
+      selected={filter === f.key}
+      onClick={() => setFilter(f.key)}
+    />
+  ))}
+</div>
+Remove any CSS that hides labels when not selected
+
+Search and delete/adjust any of these patterns in pill markup or global CSS:
+
+sr-only, hidden, opacity-0, text-transparent
+
+group/aria rules like group-[aria-pressed=false]:text-transparent
+
+inner <span> with its own border/bg/rounded (no nested borders)
+
+Hard refresh (Cmd+Shift+R).
+
+Acceptance:
+
+Unselected pills: white bg, blue outline, blue text (labels visible).
+
+Selected pill: solid blue bg, white text.
+
+Every pill shows both emoji (optional) and its label.
