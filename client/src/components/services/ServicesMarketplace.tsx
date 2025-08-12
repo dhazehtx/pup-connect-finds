@@ -1,11 +1,14 @@
 
-import React, { useState, useEffect } from 'react';
+import * as React from "react";
+import { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Search } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import CreateServiceDialog from './CreateServiceDialog';
+import { DEMO_PROVIDERS, ServiceProvider } from "@/data/demoProviders";
+import { useAuthState } from '@/hooks/useAuthState';
 
 // Pill styles (keep these exactly)
 const PILL_BASE =
@@ -19,7 +22,7 @@ const PILL_INACTIVE =
 const PILL_ACTIVE =
   "!bg-[#2363FF] !text-white !border-[#2363FF] hover:!bg-[#1E55D6]";
 
-interface ServiceProvider {
+interface SupabaseServiceProvider {
   id: string;
   business_name: string;
   service_types: string[];
@@ -32,7 +35,29 @@ interface ServiceProvider {
   user_id: string;
 }
 
+// Jump to the hero if guest clicks anything "gated"
+function useGuestRedirect(isSignedIn: boolean) {
+  return React.useCallback((e?: React.MouseEvent) => {
+    if (isSignedIn) return false; // allow normal flow
+    e?.preventDefault();
+    // if we're already on /marketplace, just jump; otherwise navigate then jump
+    try {
+      const el = document.getElementById("marketplace-hero");
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth" });
+      } else {
+        window.location.hash = "marketplace-hero";
+      }
+    } catch {}
+    return true; // handled
+  }, [isSignedIn]);
+}
+
 const ServicesMarketplace = () => {
+  const { user } = useAuthState();
+  const isSignedIn = !!user;
+  const guestRedirect = useGuestRedirect(isSignedIn);
+  
   const [providers, setProviders] = useState<ServiceProvider[]>([]);
   const [showCreateService, setShowCreateService] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -40,24 +65,42 @@ const ServicesMarketplace = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    loadProviders();
-  }, []);
+    let cancelled = false;
+    async function load() {
+      setLoading(true);
+      try {
+        if (isSignedIn) {
+          // fetch your live providers
+          const { data, error } = await supabase
+            .from('service_providers')
+            .select('*')
+            .order('rating', { ascending: false });
 
-  const loadProviders = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('service_providers')
-        .select('*')
-        .order('rating', { ascending: false });
-
-      if (error) throw error;
-      setProviders(data || []);
-    } catch (error) {
-      console.error('Error loading providers:', error);
-    } finally {
-      setLoading(false);
+          if (error) throw error;
+          
+          // Convert Supabase providers to ServiceProvider format
+          const convertedProviders: ServiceProvider[] = (data || []).map((p: SupabaseServiceProvider) => ({
+            id: p.id,
+            name: p.business_name,
+            headline: p.description || `Professional ${p.service_types.join(', ')} services`,
+            since: `Provider since ${new Date().toLocaleDateString()}`,
+            tags: p.service_types
+          }));
+          
+          if (!cancelled) setProviders(convertedProviders);
+        } else {
+          if (!cancelled) setProviders(DEMO_PROVIDERS);
+        }
+      } catch (error) {
+        console.error('Error loading providers:', error);
+        if (!cancelled) setProviders(isSignedIn ? [] : DEMO_PROVIDERS);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
     }
-  };
+    load();
+    return () => { cancelled = true; };
+  }, [isSignedIn]);
 
   const serviceFilters = [
     'All Services',
@@ -69,9 +112,10 @@ const ServicesMarketplace = () => {
   ];
 
   const filteredProviders = providers.filter(provider => {
-    const matchesSearch = provider.business_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         provider.description?.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesFilter = activeFilter === 'All Services' || provider.service_types.includes(activeFilter.toLowerCase().replace(' ', ''));
+    const matchesSearch = provider.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         provider.headline?.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesFilter = activeFilter === 'All Services' || 
+                         provider.tags?.some(tag => tag.toLowerCase().includes(activeFilter.toLowerCase().replace(' ', '')));
     
     return matchesSearch && matchesFilter;
   });
@@ -79,14 +123,22 @@ const ServicesMarketplace = () => {
   return (
     <div className="min-h-screen bg-white">
       {/* Header with Gradient */}
-      <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white py-16">
+      <section id="marketplace-hero" className="bg-gradient-to-r from-blue-600 to-purple-600 text-white py-16">
         <div className="container mx-auto px-4 text-center">
           <h1 className="text-4xl font-bold text-white mb-4">Pet Services Marketplace</h1>
           <p className="text-lg text-blue-100 max-w-2xl mx-auto">
             Find trusted professionals for grooming, training, sitting, and more
           </p>
+          <div className="mt-8">
+            <Button
+              className="bg-white text-blue-600 hover:bg-gray-100 px-8 py-3 text-lg font-semibold rounded-full"
+              onClick={() => setShowCreateService(true)}
+            >
+              Become a Service Provider
+            </Button>
+          </div>
         </div>
-      </div>
+      </section>
 
       <div className="container mx-auto px-4 py-8 max-w-6xl">
         {/* Search Bar */}
@@ -169,6 +221,47 @@ const ServicesMarketplace = () => {
           </div>
         )}
 
+        {/* Providers Grid */}
+        {!loading && filteredProviders.length > 0 && (
+          <div className="mt-8 grid gap-6 md:grid-cols-2">
+            {filteredProviders.map((provider) => (
+              <article key={provider.id} className="rounded-2xl border p-5 shadow-sm bg-white">
+                <h3 className="text-lg font-semibold text-gray-900">{provider.name}</h3>
+                <p className="mt-1 text-slate-600">{provider.headline}</p>
+                <p className="mt-1 text-slate-400 text-sm">{provider.since}</p>
+                {provider.tags && provider.tags.length > 0 && (
+                  <div className="mt-2 flex flex-wrap gap-1">
+                    {provider.tags.map((tag, index) => (
+                      <span 
+                        key={index} 
+                        className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-50 text-blue-700"
+                      >
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                )}
+
+                <div className="mt-4 flex gap-3">
+                  <button
+                    className="rounded-full bg-[#2363FF] px-5 py-2 text-white hover:bg-[#1E55D6] transition-colors font-medium"
+                    onClick={(e) => guestRedirect(e) || console.log("book", provider.id)}
+                  >
+                    {isSignedIn ? "Book Service" : "Preview Service"}
+                  </button>
+
+                  <button
+                    className="rounded-full border border-slate-300 px-5 py-2 text-slate-700 hover:bg-slate-50 transition-colors font-medium"
+                    onClick={(e) => guestRedirect(e) || console.log("view", provider.id)}
+                  >
+                    View Profile
+                  </button>
+                </div>
+              </article>
+            ))}
+          </div>
+        )}
+
         {/* Become a Service Provider Banner */}
         <div className="mt-16">
           <Card className="bg-gradient-to-r from-purple-500 to-pink-500 border-0 overflow-hidden">
@@ -201,7 +294,13 @@ const ServicesMarketplace = () => {
       <CreateServiceDialog
         isOpen={showCreateService}
         onOpenChange={setShowCreateService}
-        onServiceCreated={loadProviders}
+        onServiceCreated={() => {
+          // Reload providers after creating a new service
+          if (isSignedIn) {
+            // Trigger a re-render by updating the dependency
+            setLoading(true);
+          }
+        }}
       />
     </div>
   );

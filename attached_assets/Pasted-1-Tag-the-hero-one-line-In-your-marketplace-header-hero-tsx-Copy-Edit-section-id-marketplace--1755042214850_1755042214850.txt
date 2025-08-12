@@ -1,0 +1,172 @@
+1) Tag the hero (one line)
+In your marketplace header/hero:
+
+tsx
+Copy
+Edit
+<section id="marketplace-hero" className="...">
+  {/* Pet Services Marketplace … */}
+</section>
+2) Tiny demo dataset (new file)
+client/src/data/demoProviders.ts
+
+ts
+Copy
+Edit
+// client/src/data/demoProviders.ts
+export type ServiceProvider = {
+  id: string;
+  name: string;
+  headline: string;
+  since: string;      // e.g., "Provider since 8/11/2025"
+  tags?: string[];    // Grooming, Walking, etc.
+};
+
+export const DEMO_PROVIDERS: ServiceProvider[] = [
+  {
+    id: "demo-1",
+    name: "Austin Reyes",
+    headline: "Professional grooming services with 10+ years experience",
+    since: "Provider since 8/11/2025",
+    tags: ["Grooming"],
+  },
+  {
+    id: "demo-2",
+    name: "Austin Reyes",
+    headline: "Reliable dog walking service for busy pet owners",
+    since: "Provider since 8/11/2025",
+    tags: ["Dog Walking"],
+  },
+  {
+    id: "demo-3",
+    name: "Austin Reyes",
+    headline: "In-home pet care while you are away",
+    since: "Provider since 8/11/2025",
+    tags: ["Dog Sitting"],
+  },
+];
+3) Marketplace logic (edit ServicesMarketplace.tsx)
+Paste the bits below near the top of the file (after imports), then wire the click handlers where you render cards/buttons.
+
+tsx
+Copy
+Edit
+// ---- ADD NEAR TOP: helpers & state ----
+import * as React from "react";
+import { DEMO_PROVIDERS, ServiceProvider } from "@/data/demoProviders";
+
+// TODO: replace this with your real auth hook
+// Examples:
+//  - NextAuth:  const { status } = useSession(); const isSignedIn = status === "authenticated";
+//  - Clerk:     const { isSignedIn } = useUser();
+//  - Firebase:  const [u] = useAuthState(auth); const isSignedIn = !!u;
+const useIsSignedIn = () => {
+  // TEMP stub so this compiles. Replace with your real auth.
+  return false;
+};
+
+// Jump to the hero if guest clicks anything “gated”
+function useGuestRedirect(isSignedIn: boolean) {
+  return React.useCallback((e?: React.MouseEvent) => {
+    if (isSignedIn) return false; // allow normal flow
+    e?.preventDefault();
+    // if we’re already on /marketplace, just jump; otherwise navigate then jump
+    try {
+      const el = document.getElementById("marketplace-hero");
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth" });
+      } else {
+        window.location.hash = "marketplace-hero";
+      }
+    } catch {}
+    return true; // handled
+  }, [isSignedIn]);
+}
+Now, inside your component:
+
+tsx
+Copy
+Edit
+export default function ServicesMarketplace() {
+  const isSignedIn = useIsSignedIn();
+  const guestRedirect = useGuestRedirect(isSignedIn);
+
+  const [providers, setProviders] = React.useState<ServiceProvider[]>([]);
+  const [loading, setLoading] = React.useState(true);
+
+  React.useEffect(() => {
+    let cancelled = false;
+    async function load() {
+      setLoading(true);
+      try {
+        if (isSignedIn) {
+          // fetch your live providers
+          const res = await fetch("/api/providers", { credentials: "include" });
+          const data = res.ok ? await res.json() : [];
+          if (!cancelled) setProviders(Array.isArray(data) ? data : []);
+        } else {
+          if (!cancelled) setProviders(DEMO_PROVIDERS);
+        }
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+    load();
+    return () => { cancelled = true; };
+  }, [isSignedIn]);
+
+  // ...keep your pills and other UI...
+
+  return (
+    <>
+      {/* your hero already has id="marketplace-hero" */}
+
+      {/* providers grid */}
+      <div className="mt-8 grid gap-6 md:grid-cols-2">
+        {loading && <div className="text-center text-slate-500">Loading…</div>}
+
+        {!loading && providers.length === 0 && (
+          <div className="text-center text-slate-500">No services found</div>
+        )}
+
+        {providers.map((p) => (
+          <article key={p.id} className="rounded-2xl border p-5 shadow-sm">
+            <h3 className="text-lg font-semibold">{p.name}</h3>
+            <p className="mt-1 text-slate-600">{p.headline}</p>
+            <p className="mt-1 text-slate-400 text-sm">{p.since}</p>
+
+            <div className="mt-4 flex gap-3">
+              <button
+                className="rounded-full bg-[#2363FF] px-5 py-2 text-white hover:bg-[#1E55D6]"
+                onClick={(e) => guestRedirect(e) || /* real book flow */ console.log("book", p.id)}
+              >
+                {isSignedIn ? "Book Service" : "Preview Service"}
+              </button>
+
+              <button
+                className="rounded-full border border-slate-300 px-5 py-2 text-slate-700 hover:bg-slate-50"
+                onClick={(e) => guestRedirect(e) || /* real profile flow */ console.log("view", p.id)}
+              >
+                View Profile
+              </button>
+            </div>
+          </article>
+        ))}
+      </div>
+    </>
+  );
+}
+4) What to expect
+Guest (signed out)
+You’ll see the three demo providers. Clicking any card/button smoothly jumps to the hero instead of opening booking/profile.
+
+Signed in
+The page fetches your real providers. Buttons go to the real flows.
+
+5) Where things commonly go wrong
+The hero is missing the id="marketplace-hero" → nothing to scroll to.
+
+Two auth sources fighting each other → make sure isSignedIn comes from one place.
+
+Old handlers still navigating → ensure every “Book / View / Card” onClick uses
+onClick={(e) => guestRedirect(e) || realAction()}
