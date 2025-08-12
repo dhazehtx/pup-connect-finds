@@ -21,6 +21,9 @@ interface ServicesFilters {
 }
 
 export function ServicesTab() {
+  // at top of the component
+  const showServicesV2 = true; // keep the finished design visible
+  
   const [filters, setFilters] = useState<ServicesFilters>({});
   const [searchTerm, setSearchTerm] = useState('');
   const [showProviderModal, setShowProviderModal] = useState(false);
@@ -91,126 +94,264 @@ export function ServicesTab() {
 
   return (
     <div className="space-y-6 p-4">
-      {/* Header */}
-      <div className="text-center space-y-4">
-        <h1 className="text-3xl font-bold">Pet Services Marketplace</h1>
-        <p className="text-slate-700 max-w-2xl mx-auto">
-          Find trusted pet service providers in your area. From grooming to training, 
-          our verified professionals are here to help care for your furry friends.
-        </p>
-        
-        <div className="flex flex-col sm:flex-row gap-3 justify-center">
-          <Button 
-            onClick={() => setShowProviderModal(true)}
-            size="lg"
-            variant="gradient"
-            className="gap-2"
-          >
-            <Shield className="h-5 w-5" />
-            <span className="text-white">Become a Service Provider</span>
-          </Button>
+      {/* OLD (v1) section wrapper */}
+      <section data-section="services-v1" className={showServicesV2 ? "hidden" : ""}>
+        {/* Header */}
+        <div className="text-center space-y-4">
+          <h1 className="text-3xl font-bold">Pet Services Marketplace</h1>
+          <p className="text-slate-700 max-w-2xl mx-auto">
+            Find trusted pet service providers in your area. From grooming to training, 
+            our verified professionals are here to help care for your furry friends.
+          </p>
+          
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <Button 
+              onClick={() => setShowProviderModal(true)}
+              size="lg"
+              variant="gradient"
+              className="gap-2"
+            >
+              <Shield className="h-5 w-5" />
+              <span className="text-white">Become a Service Provider</span>
+            </Button>
+          </div>
         </div>
-      </div>
+      </section>
 
-      {/* Search and Filters */}
-      <Card>
-        <CardContent className="p-4">
-          <div className="space-y-4">
-            {/* Search Bar */}
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search by provider name, service type, or location..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
-              />
-            </div>
+      {/* NEW (v2) section wrapper */}
+      <section data-section="services-v2" className={showServicesV2 ? "" : "hidden"}>
+        {/* Pet Services Marketplace gradient hero */}
+        <div className="text-center space-y-6 mb-8">
+          <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-2xl p-8">
+            <h1 className="text-4xl font-bold mb-4">Pet Services Marketplace</h1>
+            <p className="text-blue-100 text-lg max-w-3xl mx-auto">
+              Connect with trusted professionals for grooming, training, sitting, and more
+            </p>
+          </div>
+          
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <Button 
+              onClick={() => setShowProviderModal(true)}
+              size="lg"
+              variant="gradient"
+              className="gap-2"
+            >
+              <Shield className="h-5 w-5" />
+              <span className="text-white">Become a Service Provider</span>
+            </Button>
+          </div>
+        </div>
+      </section>
 
-            {/* Filter Toggle */}
-            <div className="flex justify-between items-center">
-              <Button
-                variant="outline"
-                onClick={() => setShowFilters(!showFilters)}
-                className="flex items-center gap-2"
-              >
-                <Filter className="h-4 w-4" />
-                Filters
-              </Button>
-              
-              {Object.values(filters).some(Boolean) && (
-                <Button
-                  variant="ghost"
-                  onClick={() => setFilters({})}
-                  size="sm"
-                >
-                  Clear Filters
-                </Button>
-              )}
-            </div>
-
-            {/* Filters Panel */}
-            {showFilters && (
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4 bg-white border border-gray-200 rounded-lg">
-                <Select 
-                  value={filters.type || ''} 
-                  onValueChange={(value) => setFilters(prev => ({ ...prev, type: value || undefined }))}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Service Type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="">All Services</SelectItem>
-                    {serviceTypes.map(type => (
-                      <SelectItem key={type.value} value={type.value}>
-                        {type.icon} {type.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-
+      {/* V1 Search and Filters */}
+      <section data-section="services-v1-content" className={showServicesV2 ? "hidden" : ""}>
+        {/* Search and Filters */}
+        <Card>
+          <CardContent className="p-4">
+            <div className="space-y-4">
+              {/* Search Bar */}
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder="Location"
-                  value={filters.location || ''}
-                  onChange={(e) => setFilters(prev => ({ ...prev, location: e.target.value || undefined }))}
-                />
-
-                <Input
-                  type="number"
-                  placeholder="Min Price ($)"
-                  value={filters.min_price || ''}
-                  onChange={(e) => setFilters(prev => ({ ...prev, min_price: e.target.value || undefined }))}
-                />
-
-                <Input
-                  type="number"
-                  placeholder="Max Price ($)"
-                  value={filters.max_price || ''}
-                  onChange={(e) => setFilters(prev => ({ ...prev, max_price: e.target.value || undefined }))}
+                  placeholder="Search by provider name, service type, or location..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10"
                 />
               </div>
-            )}
-          </div>
-        </CardContent>
-      </Card>
 
-      {/* Service Types Quick Filter */}
-      <div className="flex flex-wrap gap-3 justify-center">
-        <FilterPill
-          label="All Services"
-          selected={!filters.type}
-          onClick={() => setFilters(prev => ({ ...prev, type: undefined }))}
-        />
-        {serviceTypes.map(type => (
+              {/* Filter Toggle */}
+              <div className="flex justify-between items-center">
+                <Button
+                  variant="outline"
+                  onClick={() => setShowFilters(!showFilters)}
+                  className="flex items-center gap-2"
+                >
+                  <Filter className="h-4 w-4" />
+                  Filters
+                </Button>
+                
+                {Object.values(filters).some(Boolean) && (
+                  <Button
+                    variant="ghost"
+                    onClick={() => setFilters({})}
+                    size="sm"
+                  >
+                    Clear Filters
+                  </Button>
+                )}
+              </div>
+
+              {/* Filters Panel */}
+              {showFilters && (
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4 bg-white border border-gray-200 rounded-lg">
+                  <Select 
+                    value={filters.type || ''} 
+                    onValueChange={(value) => setFilters(prev => ({ ...prev, type: value || undefined }))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Service Type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="">All Services</SelectItem>
+                      {serviceTypes.map(type => (
+                        <SelectItem key={type.value} value={type.value}>
+                          {type.icon} {type.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+
+                  <Input
+                    placeholder="Location"
+                    value={filters.location || ''}
+                    onChange={(e) => setFilters(prev => ({ ...prev, location: e.target.value || undefined }))}
+                  />
+
+                  <Input
+                    type="number"
+                    placeholder="Min Price ($)"
+                    value={filters.min_price || ''}
+                    onChange={(e) => setFilters(prev => ({ ...prev, min_price: e.target.value || undefined }))}
+                  />
+
+                  <Input
+                    type="number"
+                    placeholder="Max Price ($)"
+                    value={filters.max_price || ''}
+                    onChange={(e) => setFilters(prev => ({ ...prev, max_price: e.target.value || undefined }))}
+                  />
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Service Types Quick Filter */}
+        <div className="flex flex-wrap gap-3 justify-center">
           <FilterPill
-            key={type.value}
-            label={type.label}
-            icon={<span>{type.icon}</span>}
-            selected={filters.type === type.value}
-            onClick={() => setFilters(prev => ({ ...prev, type: type.value }))}
+            label="All Services"
+            selected={!filters.type}
+            onClick={() => setFilters(prev => ({ ...prev, type: undefined }))}
           />
-        ))}
-      </div>
+          {serviceTypes.map(type => (
+            <FilterPill
+              key={type.value}
+              label={type.label}
+              icon={<span>{type.icon}</span>}
+              selected={filters.type === type.value}
+              onClick={() => setFilters(prev => ({ ...prev, type: type.value }))}
+            />
+          ))}
+        </div>
+      </section>
+
+      {/* V2 Search card + pill row */}
+      <section data-section="services-v2-content" className={showServicesV2 ? "" : "hidden"}>
+        {/* Search Card */}
+        <Card className="shadow-lg border-0 bg-white">
+          <CardContent className="p-6">
+            <div className="space-y-4">
+              {/* Search Bar */}
+              <div className="relative">
+                <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                <Input
+                  placeholder="Search services, providers, or locations..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-12 h-12 text-base border-2 border-gray-200 focus:border-blue-500 rounded-xl"
+                />
+              </div>
+
+              {/* Quick Actions */}
+              <div className="flex justify-between items-center">
+                <Button
+                  variant="outline"
+                  onClick={() => setShowFilters(!showFilters)}
+                  className="flex items-center gap-2 rounded-lg border-2"
+                >
+                  <Filter className="h-4 w-4" />
+                  Advanced Filters
+                </Button>
+                
+                {Object.values(filters).some(Boolean) && (
+                  <Button
+                    variant="ghost"
+                    onClick={() => setFilters({})}
+                    size="sm"
+                    className="text-blue-600 hover:text-blue-700"
+                  >
+                    Clear All
+                  </Button>
+                )}
+              </div>
+
+              {/* Advanced Filters Panel */}
+              {showFilters && (
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-6 bg-gray-50 border border-gray-200 rounded-xl mt-4">
+                  <Select 
+                    value={filters.type || ''} 
+                    onValueChange={(value) => setFilters(prev => ({ ...prev, type: value || undefined }))}
+                  >
+                    <SelectTrigger className="border-2">
+                      <SelectValue placeholder="Service Type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="">All Services</SelectItem>
+                      {serviceTypes.map(type => (
+                        <SelectItem key={type.value} value={type.value}>
+                          {type.icon} {type.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+
+                  <Input
+                    placeholder="Location"
+                    value={filters.location || ''}
+                    onChange={(e) => setFilters(prev => ({ ...prev, location: e.target.value || undefined }))}
+                    className="border-2"
+                  />
+
+                  <Input
+                    type="number"
+                    placeholder="Min Price ($)"
+                    value={filters.min_price || ''}
+                    onChange={(e) => setFilters(prev => ({ ...prev, min_price: e.target.value || undefined }))}
+                    className="border-2"
+                  />
+
+                  <Input
+                    type="number"
+                    placeholder="Max Price ($)"
+                    value={filters.max_price || ''}
+                    onChange={(e) => setFilters(prev => ({ ...prev, max_price: e.target.value || undefined }))}
+                    className="border-2"
+                  />
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Service Categories Pill Row */}
+        <div className="flex flex-wrap gap-3 justify-center px-4">
+          <FilterPill
+            label="All Services"
+            selected={!filters.type}
+            onClick={() => setFilters(prev => ({ ...prev, type: undefined }))}
+          />
+          {serviceTypes.map(type => (
+            <FilterPill
+              key={type.value}
+              label={type.label}
+              icon={<span>{type.icon}</span>}
+              selected={filters.type === type.value}
+              onClick={() => setFilters(prev => ({ ...prev, type: type.value }))}
+            />
+          ))}
+        </div>
+      </section>
 
       {/* Services Content */}
       <Tabs defaultValue="featured" className="w-full">
