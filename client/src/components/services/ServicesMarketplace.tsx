@@ -7,18 +7,6 @@ import { Search } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import CreateServiceDialog from './CreateServiceDialog';
 
-// Pill styles (keep these exactly)
-const PILL_BASE =
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm " +
-  "h-10 rounded-full px-6 py-2 font-medium transition-all duration-200 border-2 " +
-  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2";
-
-const PILL_INACTIVE =
-  "bg-white text-blue-700 border-blue-600 hover:bg-blue-50";
-
-const PILL_ACTIVE =
-  "bg-blue-600 text-white border-blue-600 hover:bg-blue-700";
-
 interface ServiceProvider {
   id: string;
   business_name: string;
@@ -108,8 +96,14 @@ const ServicesMarketplace = () => {
           {serviceFilters.map((filter) => (
             <Button
               key={filter}
-              className={`${PILL_BASE} ${activeFilter === filter ? PILL_ACTIVE : PILL_INACTIVE}`}
+              variant={activeFilter === filter ? "default" : "outline"}
               onClick={() => setActiveFilter(filter)}
+              className={`rounded-full px-6 py-2 font-medium transition-all duration-200 ${
+                activeFilter === filter
+                  ? 'bg-[#2363FF] text-white border-[#2363FF] !text-white'
+                  : 'bg-[#E5EEFF] text-primary-600 border-primary-600 hover:opacity-80 !text-primary-600'
+              }`}
+              style={{ border: '2px solid' }}
             >
               {filter}
             </Button>
