@@ -20,10 +20,10 @@ const PILL_BASE =
   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2";
 
 const PILL_INACTIVE =
-  "bg-white text-[#2363FF] border-[#2363FF] hover:bg-[#E5EEFF]";
+  "!bg-blue-50 !text-blue-700 !border-blue-600 hover:!bg-blue-100";
 
 const PILL_ACTIVE =
-  "bg-[#2363FF] text-white border-[#2363FF] hover:bg-[#1E55D6]";
+  "!bg-[#2363FF] !text-white !border-[#2363FF] hover:!bg-[#1E55D6]";
 
 interface ServicesFilters {
   type?: string;
