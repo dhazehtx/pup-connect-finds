@@ -1,0 +1,99 @@
+Do this in client/src/components/services/ServicesMarketplace.tsx
+1) Define pill classes (put near the top of the file)
+tsx
+Copy
+Edit
+const PILL_BASE =
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm " +
+  "h-10 rounded-full px-6 py-2 font-medium border-2 transition-colors " +
+  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2";
+
+const PILL_INACTIVE =
+  "!bg-blue-50 !text-blue-700 !border-blue-600 hover:!bg-blue-100";
+
+const PILL_ACTIVE =
+  "!bg-[#2363FF] !text-white !border-[#2363FF] hover:!bg-[#1E55D6]";
+! ensures nothing (old variants/tokens) can override.
+
+Unselected is light blue bg + blue text + blue outline.
+
+Selected matches your top design: solid brand blue with white text.
+
+2) Use them on the six buttons (no variant prop)
+tsx
+Copy
+Edit
+<Button
+  className={`${PILL_BASE} ${activeFilter === "all" ? PILL_ACTIVE : PILL_INACTIVE}`}
+  onClick={() => setActiveFilter("all")}
+>
+  All Services
+</Button>
+
+<Button
+  className={`${PILL_BASE} ${activeFilter === "grooming" ? PILL_ACTIVE : PILL_INACTIVE}`}
+  onClick={() => setActiveFilter("grooming")}
+>
+  Grooming
+</Button>
+
+<Button
+  className={`${PILL_BASE} ${activeFilter === "sitting" ? PILL_ACTIVE : PILL_INACTIVE}`}
+  onClick={() => setActiveFilter("sitting")}
+>
+  Dog Sitting
+</Button>
+
+<Button
+  className={`${PILL_BASE} ${activeFilter === "training" ? PILL_ACTIVE : PILL_INACTIVE}`}
+  onClick={() => setActiveFilter("training")}
+>
+  Training
+</Button>
+
+<Button
+  className={`${PILL_BASE} ${activeFilter === "walking" ? PILL_ACTIVE : PILL_INACTIVE}`}
+  onClick={() => setActiveFilter("walking")}
+>
+  Dog Walking
+</Button>
+
+<Button
+  className={`${PILL_BASE} ${activeFilter === "boarding" ? PILL_ACTIVE : PILL_INACTIVE}`}
+  onClick={() => setActiveFilter("boarding")}
+>
+  Boarding
+</Button>
+3) Make sure these are gone from those buttons
+hover:bg-accent, hover:text-accent-foreground
+
+text-primary-600, border-primary-600
+
+bg-[#E5EEFF], !text-primary-600
+
+4) Hard refresh and verify
+Inspect a pill → outerHTML should include either:
+
+!bg-blue-50 !text-blue-700 !border-blue-600 (unselected), or
+
+!bg-[#2363FF] !text-white !border-[#2363FF] (selected)
+
+Computed styles:
+
+Unselected background-color: rgb(239, 246, 255) (blue-50)
+
+Unselected color: rgb(29, 78, 216) (blue-700)
+
+Selected color: rgb(255, 255, 255)
+
+If anything still looks brown or white, it means a leftover class is sneaking in. Paste the outerHTML of one unselected pill again and I’ll point to the exact class to remove.
+
+
+
+
+
+
+
+
+
+Ask ChatGPT
