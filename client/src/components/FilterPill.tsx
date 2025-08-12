@@ -10,22 +10,22 @@ type Props = {
 
 export function FilterPill({ label, selected, onClick, icon, className }: Props) {
   const base =
-    "inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium " +
-    "whitespace-nowrap transition-colors select-none border " +
+    "inline-flex shrink-0 items-center gap-2 rounded-full px-4 py-2 text-sm font-medium " +
+    "transition-colors select-none border whitespace-nowrap " +
     "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 " +
     "focus-visible:ring-offset-2 focus-visible:ring-offset-white";
-
   const unselected = "bg-white text-blue-700 border-blue-500 hover:bg-blue-50";
   const selectedCls = "bg-blue-600 text-white border-blue-600 hover:bg-blue-700";
 
   return (
     <button
       type="button"
+      data-filter-pill
       aria-pressed={selected}
       onClick={onClick}
       className={`${base} ${selected ? selectedCls : unselected} ${className || ""}`}
     >
-      {icon ? <span aria-hidden="true" className="leading-none">{icon}</span> : null}
+      {icon ? <span className="leading-none" aria-hidden="true">{icon}</span> : null}
       <span className="leading-none">{label}</span>
     </button>
   );

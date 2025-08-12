@@ -1,0 +1,90 @@
+One-shot fix (paste to Replit)
+Goal: single pill component, labels always visible, unselected = white bg + blue outline + blue text; selected = solid blue + white text. Horizontal scroll instead of hiding labels.
+
+Replace the pill component with this (and use it everywhere):
+
+tsx
+Copy
+Edit
+// client/src/components/FilterPill.tsx
+import * as React from "react";
+
+type Props = {
+  label: string;
+  selected?: boolean;
+  onClick?: () => void;
+  icon?: React.ReactNode;
+  className?: string;
+};
+
+export function FilterPill({ label, selected, onClick, icon, className }: Props) {
+  const base =
+    "inline-flex shrink-0 items-center gap-2 rounded-full px-4 py-2 text-sm font-medium " +
+    "transition-colors select-none border whitespace-nowrap " +
+    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 " +
+    "focus-visible:ring-offset-2 focus-visible:ring-offset-white";
+  const unselected = "bg-white text-blue-700 border-blue-500 hover:bg-blue-50";
+  const selectedCls = "bg-blue-600 text-white border-blue-600 hover:bg-blue-700";
+
+  return (
+    <button
+      type="button"
+      data-filter-pill
+      aria-pressed={selected}
+      onClick={onClick}
+      className={`${base} ${selected ? selectedCls : unselected} ${className || ""}`}
+    >
+      {icon ? <span className="leading-none" aria-hidden="true">{icon}</span> : null}
+      <span className="leading-none">{label}</span>
+    </button>
+  );
+}
+Wrap the row so labels never need to be hidden; let it scroll horizontally instead of clipping:
+
+tsx
+Copy
+Edit
+// in ServicesTab (under the search card)
+<div className="-mx-2 px-2 overflow-x-auto">
+  <div className="flex gap-3 py-1">
+    {SERVICE_FILTERS.map(f => (
+      <FilterPill
+        key={f.key}
+        label={f.label}
+        icon={f.icon}
+        selected={filter === f.key}
+        onClick={() => setFilter(f.key)}
+      />
+    ))}
+  </div>
+</div>
+Remove any label-hiding rules:
+
+Search the codebase for: sr-only, text-transparent, opacity-0, hidden, max-*:hidden, group-[aria-pressed=false].
+
+If any of those target the pill label, delete them.
+
+Ensure pills aren’t using the shadcn <Button> variant anywhere. If you find pills using <Button>, replace with <FilterPill> so we have one source of truth.
+
+Hard refresh (Cmd+Shift+R) after saving.
+
+Quick self-check (takes 20 seconds)
+Open DevTools → Console:
+
+js
+Copy
+Edit
+document.querySelectorAll('[data-filter-pill]').length
+You should see exactly the number of visible pills (no duplicates elsewhere on the page).
+
+Once this is in, the pills will look exactly like your “finished” screenshot every time:
+
+Unselected: white bg + blue outline + blue text
+
+Selected: solid blue + white text
+
+Labels always visible (icons optional)
+
+No more random style flips across the page
+
+If you want, tell me the exact file where the pills are still rendering wrong and I’ll write the tiny diff to swap them to FilterPill in that file.
