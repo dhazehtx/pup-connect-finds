@@ -91,20 +91,15 @@ export function ServicesTab() {
 
   return (
     <div className="space-y-6 p-4">
-      {/* Header */}
-      <div className="text-center space-y-4">
-        <h1 className="text-3xl font-bold">Pet Services Marketplace</h1>
-        <p className="text-slate-700 max-w-2xl mx-auto">
-          Find trusted pet service providers in your area. From grooming to training, 
-          our verified professionals are here to help care for your furry friends.
-        </p>
-        
+      {/* Gradient Hero */}
+      <div className="relative rounded-xl bg-gradient-to-r from-blue-500 to-purple-600 text-white p-8 text-center space-y-4">
+        <h1 className="text-3xl font-bold">Find trusted professionals for grooming, training, sitting, and more</h1>
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
           <Button 
             onClick={() => setShowProviderModal(true)}
             size="lg"
             variant="gradient"
-            className="gap-2"
+            className="gap-2 bg-white/20 hover:bg-white/30 border-white/50"
           >
             <Shield className="h-5 w-5" />
             <span className="text-white">Become a Service Provider</span>
@@ -201,15 +196,36 @@ export function ServicesTab() {
           selected={!filters.type}
           onClick={() => setFilters(prev => ({ ...prev, type: undefined }))}
         />
-        {serviceTypes.map(type => (
-          <FilterPill
-            key={type.value}
-            label={type.label}
-            icon={<span>{type.icon}</span>}
-            selected={filters.type === type.value}
-            onClick={() => setFilters(prev => ({ ...prev, type: type.value }))}
-          />
-        ))}
+        <FilterPill
+          label="Grooming"
+          icon={<span>✂️</span>}
+          selected={filters.type === 'grooming'}
+          onClick={() => setFilters(prev => ({ ...prev, type: 'grooming' }))}
+        />
+        <FilterPill
+          label="Dog Sitting"
+          icon={<span>🏠</span>}
+          selected={filters.type === 'sitting'}
+          onClick={() => setFilters(prev => ({ ...prev, type: 'sitting' }))}
+        />
+        <FilterPill
+          label="Training"
+          icon={<span>🎓</span>}
+          selected={filters.type === 'training'}
+          onClick={() => setFilters(prev => ({ ...prev, type: 'training' }))}
+        />
+        <FilterPill
+          label="Dog Walking"
+          icon={<span>🚶</span>}
+          selected={filters.type === 'walking'}
+          onClick={() => setFilters(prev => ({ ...prev, type: 'walking' }))}
+        />
+        <FilterPill
+          label="Boarding"
+          icon={<span>🏨</span>}
+          selected={filters.type === 'boarding'}
+          onClick={() => setFilters(prev => ({ ...prev, type: 'boarding' }))}
+        />
       </div>
 
       {/* Services Content */}
