@@ -10,17 +10,13 @@ import CreateServiceDialog from './CreateServiceDialog';
 import { DEMO_PROVIDERS, ServiceProvider } from "@/data/demoProviders";
 import { useAuthState } from '@/hooks/useAuthState';
 
-// Pill styles (keep these exactly)
-const PILL_BASE =
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm " +
-  "h-10 rounded-full px-6 py-2 font-medium border-2 transition-colors " +
-  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2";
-
-const PILL_INACTIVE =
-  "!bg-blue-50 !text-blue-700 !border-blue-600 hover:!bg-blue-100";
-
-const PILL_ACTIVE =
-  "!bg-[#2363FF] !text-white !border-[#2363FF] hover:!bg-[#1E55D6]";
+// Pill styles (centralized source of truth)
+export const PILL_BASE =
+  "inline-flex items-center justify-center whitespace-nowrap h-10 px-6 py-2 rounded-full text-sm font-medium border-2 transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2";
+export const PILL_INACTIVE =
+  "bg-blue-50 text-blue-700 border-blue-600 hover:bg-[#E5EEFF]";
+export const PILL_ACTIVE =
+  "bg-[#2363FF] text-white border-[#2363FF] hover:bg-[#1E55D6]";
 
 interface SupabaseServiceProvider {
   id: string;
@@ -159,36 +155,42 @@ const ServicesMarketplace = () => {
         <div className="flex flex-wrap justify-center gap-3 mb-12">
           <Button
             className={`${PILL_BASE} ${activeFilter === "All Services" ? PILL_ACTIVE : PILL_INACTIVE}`}
+            style={{border:"2px solid"}}
             onClick={() => setActiveFilter("All Services")}
           >
             All Services
           </Button>
           <Button
             className={`${PILL_BASE} ${activeFilter === "Grooming" ? PILL_ACTIVE : PILL_INACTIVE}`}
+            style={{border:"2px solid"}}
             onClick={() => setActiveFilter("Grooming")}
           >
             Grooming
           </Button>
           <Button
             className={`${PILL_BASE} ${activeFilter === "Dog Sitting" ? PILL_ACTIVE : PILL_INACTIVE}`}
+            style={{border:"2px solid"}}
             onClick={() => setActiveFilter("Dog Sitting")}
           >
             Dog Sitting
           </Button>
           <Button
             className={`${PILL_BASE} ${activeFilter === "Training" ? PILL_ACTIVE : PILL_INACTIVE}`}
+            style={{border:"2px solid"}}
             onClick={() => setActiveFilter("Training")}
           >
             Training
           </Button>
           <Button
             className={`${PILL_BASE} ${activeFilter === "Dog Walking" ? PILL_ACTIVE : PILL_INACTIVE}`}
+            style={{border:"2px solid"}}
             onClick={() => setActiveFilter("Dog Walking")}
           >
             Dog Walking
           </Button>
           <Button
             className={`${PILL_BASE} ${activeFilter === "Boarding" ? PILL_ACTIVE : PILL_INACTIVE}`}
+            style={{border:"2px solid"}}
             onClick={() => setActiveFilter("Boarding")}
           >
             Boarding
