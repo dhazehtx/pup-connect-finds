@@ -1,0 +1,85 @@
+Keep the current buttons exactly as they are, kill the duplicate layout, and swap the greeting/hero to the finished one (the big gradient “Pet Services Marketplace” with the subtitle + CTA). Here’s a clean, one-paste prompt to do just that—no pill/button rework.
+
+Replit prompt (paste verbatim)
+Goal: On /marketplace → Pet Services tab, keep the existing tabs + filter buttons exactly as they render now, remove the duplicate section, and replace the small “Find trusted…” hero with the gradient hero that reads “Pet Services Marketplace” and “Connect with trusted professionals…”, with a centered “Become a Service Provider” CTA.
+
+Steps
+
+Open the Pet Services page file (likely one of):
+
+client/src/pages/Marketplace/index.tsx
+
+or client/src/pages/Marketplace/ServicesTab.tsx
+
+or a ServicesMarketplace.tsx component
+
+Find both hero blocks:
+
+Search for: "Find trusted pet service providers" (old hero)
+
+Search for: "Pet Services Marketplace" (gradient hero)
+
+Create a single hero component and use it once at the top:
+
+tsx
+Copy
+Edit
+// Add near the top of the file or in components/ServicesHero.tsx
+function ServicesHero() {
+  return (
+    <section className="rounded-3xl bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-8 md:px-10 md:py-12">
+      <h1 className="text-3xl md:text-4xl font-bold">Pet Services Marketplace</h1>
+      <p className="mt-2 text-white/90">
+        Connect with trusted professionals for grooming, training, sitting, and more
+      </p>
+      <button
+        type="button"
+        className="mt-4 inline-flex items-center gap-2 rounded-xl px-5 py-2.5
+                   bg-white/10 hover:bg-white/15 text-white font-semibold
+                   ring-1 ring-white/30"
+      >
+        <span aria-hidden>🛡️</span>
+        <span>Become a Service Provider</span>
+      </button>
+    </section>
+  );
+}
+Replace the hero(s) with one:
+
+Remove (delete) the entire old hero block that contains the “Find trusted…” copy.
+
+Keep exactly one <ServicesHero /> at the top of the Pet Services layout (above the search card).
+
+Ensure there is one search card and one filter row beneath it.
+
+Example structure:
+
+tsx
+Copy
+Edit
+{/* Tabs (Pet Services / Pup Box / Store) stay as-is */}
+<ServicesHero />
+
+{/* Search card (keep your existing one) */}
+{/* Filter buttons (keep exactly as they currently render) */}
+Remove any other duplicate sections on this page:
+
+Extra hero/promo at the bottom that looks like a second hero → delete.
+
+If you keep a small bottom promo, ensure it’s not styled as a second hero.
+
+Guard by tab (optional, if needed)
+If the file renders multiple tabs in one component:
+
+tsx
+Copy
+Edit
+if (activeTab !== "services") return null;
+QA
+
+Scroll the page: you should see one gradient hero with the “Connect with trusted professionals…” subtitle and the CTA button.
+
+Your existing tabs and filter pills remain exactly as they are now (no style changes).
+
+Exactly one search bar and one pill row.
+
