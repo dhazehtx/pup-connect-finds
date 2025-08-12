@@ -1,0 +1,75 @@
+1) Add a tiny Pill component (pure <button>, no shadcn)
+Create client/src/components/Pill.tsx:
+
+tsx
+Copy
+Edit
+import * as React from "react";
+
+type PillProps = {
+  label: string;
+  selected?: boolean;
+  onClick?: () => void;
+  icon?: React.ReactNode;
+  className?: string;
+};
+
+export default function Pill({
+  label,
+  selected,
+  onClick,
+  icon,
+  className = "",
+}: PillProps) {
+  const base =
+    "inline-flex shrink-0 items-center justify-center gap-2 whitespace-nowrap " +
+    "h-10 rounded-full px-6 py-2 text-sm font-medium border-2 transition-colors " +
+    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2";
+
+  const unselected = "bg-white text-blue-700 border-blue-600 hover:bg-blue-50";
+  const active = "bg-blue-600 text-white border-blue-600 hover:bg-blue-700";
+
+  return (
+    <button
+      type="button"
+      data-pill
+      onClick={onClick}
+      className={`${base} ${selected ? active : unselected} ${className}`}
+    >
+      {icon ? <span aria-hidden className="leading-none">{icon}</span> : null}
+      <span className="leading-none">{label}</span>
+    </button>
+  );
+}
+2) Use it where the filter buttons render
+Open client/src/components/services/ServicesMarketplace.tsx.
+Find the map that renders All Services / Grooming / Dog Sitting / Training / Dog Walking / Boarding.
+
+Replace each shadcn <Button> pill with our new <Pill>:
+
+tsx
+Copy
+Edit
+import Pill from "@/components/Pill";
+
+// example list (use your existing data/state if it already exists)
+const FILTERS = [
+  { key: "all", label: "All Services" },
+  { key: "grooming", label: "Grooming" },
+  { key: "sitting", label: "Dog Sitting" },
+  { key: "training", label: "Training" },
+  { key: "walking", label: "Dog Walking" },
+  { key: "boarding", label: "Boarding" },
+];
+
+<div className="flex flex-wrap gap-3">
+  {FILTERS.map(f => (
+    <Pill
+      key={f.key}
+      label={f.label}
+      selected={activeFilter === f.key}     // <-- your real selected state
+      onClick={() => setActiveFilter(f.key)}// <-- your real handler
+    />
+  ))}
+</div>
+Important: remove the old <Button …> pills entirely in this file. We’re not using variant or any theme tokens anymore—so nothing can override your colors.

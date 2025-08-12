@@ -10,7 +10,7 @@ import { Search, MapPin, Clock, Star, Shield, Filter } from 'lucide-react';
 import { ServiceProviderCard } from '@/components/ServiceProviderCard';
 import { BecomeProviderModal } from '@/components/BecomeProviderModal';
 import { BookServiceModal } from '@/components/BookServiceModal';
-import { FilterPill } from '@/components/FilterPill';
+import Pill from '@/components/Pill';
 import type { PetServiceProvider } from '@shared/schema';
 
 interface ServicesFilters {
@@ -202,13 +202,13 @@ export function ServicesTab() {
 
       {/* Service Categories Pill Row */}
       <div className="flex flex-wrap gap-3 justify-center px-4">
-        <FilterPill
+        <Pill
           label="All Services"
           selected={!filters.type}
           onClick={() => setFilters(prev => ({ ...prev, type: undefined }))}
         />
         {serviceTypes.map(type => (
-          <FilterPill
+          <Pill
             key={type.value}
             label={type.label}
             icon={<span>{type.icon}</span>}
