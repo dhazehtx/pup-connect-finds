@@ -13,6 +13,18 @@ import { BookServiceModal } from '@/components/BookServiceModal';
 import Pill from '@/components/Pill';
 import type { PetServiceProvider } from '@shared/schema';
 
+// Pill styles (keep these exactly)
+const PILL_BASE =
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm " +
+  "h-10 rounded-full px-6 py-2 font-medium border-2 transition-colors " +
+  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2";
+
+const PILL_INACTIVE =
+  "bg-white text-[#2363FF] border-[#2363FF] hover:bg-[#E5EEFF]";
+
+const PILL_ACTIVE =
+  "bg-[#2363FF] text-white border-[#2363FF] hover:bg-[#1E55D6]";
+
 interface ServicesFilters {
   type?: string;
   location?: string;
@@ -202,20 +214,42 @@ export function ServicesTab() {
 
       {/* Service Categories Pill Row */}
       <div className="flex flex-wrap gap-3 justify-center px-4">
-        <Pill
-          label="All Services"
-          selected={!filters.type}
+        <Button
+          className={`${PILL_BASE} ${!filters.type ? PILL_ACTIVE : PILL_INACTIVE}`}
           onClick={() => setFilters(prev => ({ ...prev, type: undefined }))}
-        />
-        {serviceTypes.map(type => (
-          <Pill
-            key={type.value}
-            label={type.label}
-            icon={<span>{type.icon}</span>}
-            selected={filters.type === type.value}
-            onClick={() => setFilters(prev => ({ ...prev, type: type.value }))}
-          />
-        ))}
+        >
+          All Services
+        </Button>
+        <Button
+          className={`${PILL_BASE} ${filters.type === "grooming" ? PILL_ACTIVE : PILL_INACTIVE}`}
+          onClick={() => setFilters(prev => ({ ...prev, type: "grooming" }))}
+        >
+          🧼 Grooming
+        </Button>
+        <Button
+          className={`${PILL_BASE} ${filters.type === "sitting" ? PILL_ACTIVE : PILL_INACTIVE}`}
+          onClick={() => setFilters(prev => ({ ...prev, type: "sitting" }))}
+        >
+          🏠 Dog Sitting
+        </Button>
+        <Button
+          className={`${PILL_BASE} ${filters.type === "training" ? PILL_ACTIVE : PILL_INACTIVE}`}
+          onClick={() => setFilters(prev => ({ ...prev, type: "training" }))}
+        >
+          🎯 Training
+        </Button>
+        <Button
+          className={`${PILL_BASE} ${filters.type === "walking" ? PILL_ACTIVE : PILL_INACTIVE}`}
+          onClick={() => setFilters(prev => ({ ...prev, type: "walking" }))}
+        >
+          🚶 Dog Walking
+        </Button>
+        <Button
+          className={`${PILL_BASE} ${filters.type === "boarding" ? PILL_ACTIVE : PILL_INACTIVE}`}
+          onClick={() => setFilters(prev => ({ ...prev, type: "boarding" }))}
+        >
+          🏨 Boarding
+        </Button>
       </div>
 
       {/* Services Content */}
