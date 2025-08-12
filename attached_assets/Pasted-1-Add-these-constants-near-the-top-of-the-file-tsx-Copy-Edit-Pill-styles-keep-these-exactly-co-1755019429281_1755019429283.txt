@@ -1,0 +1,57 @@
+1) Add these constants near the top of the file
+tsx
+Copy
+Edit
+// Pill styles (keep these exactly)
+const PILL_BASE =
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm " +
+  "h-10 rounded-full px-6 py-2 font-medium transition-all duration-200 border-2 " +
+  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2";
+
+const PILL_INACTIVE =
+  "bg-[#E5EEFF] text-primary-600 border-primary-600 hover:opacity-80";
+
+const PILL_ACTIVE =
+  "bg-primary-600 text-white border-primary-600 hover:bg-primary-700";
+2) Render the pills with those classes (no variant)
+If your code already maps over filters, replace the button class with this pattern. If not, here’s a complete example you can adapt:
+
+tsx
+Copy
+Edit
+// Example data + state (rename to your real state/handlers if different)
+const FILTERS = [
+  { key: "all", label: "All Services" },
+  { key: "grooming", label: "Grooming" },
+  { key: "sitting", label: "Dog Sitting" },
+  { key: "training", label: "Training" },
+  { key: "walking", label: "Dog Walking" },
+  { key: "boarding", label: "Boarding" },
+];
+
+// activeFilter + setActiveFilter should already exist in your file;
+// if yours are named differently, just swap them below.
+<div className="flex flex-wrap gap-3">
+  {FILTERS.map(f => {
+    const isActive = activeFilter === f.key; // <-- your real selected check
+    return (
+      <Button
+        key={f.key}
+        className={`${PILL_BASE} ${isActive ? PILL_ACTIVE : PILL_INACTIVE}`}
+        style={{ border: "2px solid" }}
+        onClick={() => setActiveFilter(f.key)} // <-- your real handler
+      >
+        {f.label}
+      </Button>
+    );
+  })}
+</div>
+Important notes
+Do not pass a variant prop to <Button> for these pills. Variants re-inject accent/primary hover styles that fight your classes.
+
+If some old hover colors still appear, you can force it (only if needed) by adding !:
+
+Inactive: !bg-[#E5EEFF] !text-primary-600 !border-primary-600
+
+Active: !bg-primary-600 !text-white !border-primary-600
+
