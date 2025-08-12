@@ -1,0 +1,52 @@
+Quick patch in place (fastest)
+In ServicesMarketplace.tsx where you render the pills, replace the class string on each pill with these exact classes (and remove hover:bg-accent hover:text-accent-foreground, text-primary-600, border-primary-600, the hex bg, and the !text-… override):
+
+Unselected pill
+
+jsx
+Copy
+Edit
+<Button
+  className="inline-flex items-center justify-center gap-2 h-10 rounded-full px-6 py-2
+             text-sm font-medium border-2 transition-colors
+             bg-blue-50 text-blue-700 border-blue-600
+             hover:bg-blue-100 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2">
+  Grooming
+</Button>
+Selected pill
+
+jsx
+Copy
+Edit
+<Button
+  className="inline-flex items-center justify-center gap-2 h-10 rounded-full px-6 py-2
+             text-sm font-medium border-2 transition-colors
+             bg-blue-600 text-white border-blue-600
+             hover:bg-blue-700 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2">
+  All Services
+</Button>
+Wire it like:
+
+tsx
+Copy
+Edit
+<Button className={isActive ? ACTIVE_CLASSES : INACTIVE_CLASSES}>Grooming</Button>
+Key changes: use Tailwind blues (bg-blue-50 / 600, text-blue-700, border-blue-600) and delete hover:bg-accent hover:text-accent-foreground, text-primary-600, border-primary-600, and the hex bg-[#E5EEFF]. Also remove the !text-…—you won’t need it once tokens are gone.
+
+Option B — Proper fix with a Button variant (best long term)
+Edit components/ui/button.tsx and add two variants to your buttonVariants (CVA):
+
+ts
+Copy
+Edit
+pill: "rounded-full border-2 bg-blue-50 text-blue-700 border-blue-600 hover:bg-blue-100",
+pillActive: "rounded-full border-2 bg-blue-600 text-white border-blue-600 hover:bg-blue-700",
+Also remove hover:bg-accent hover:text-accent-foreground from the base if you can, or scope it to variants that need it.
+
+Then in ServicesMarketplace.tsx:
+
+tsx
+Copy
+Edit
+<Button variant={filter === "grooming" ? "pillActive" : "pill"}>Grooming</Button>
+Do the same for every pill (filters + top tabs) so everything looks identical.
