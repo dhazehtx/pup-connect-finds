@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent } from '@/components/ui/card';
 import { Gift, Users, Briefcase, Store } from 'lucide-react';
-
+import ServicesMarketplace from '@/components/services/ServicesMarketplace';
 import PupBoxSubscription from '@/components/subscriptions/PupBoxSubscription';
 import StoreTab from './Marketplace/StoreTab';
 import { ServicesTab } from './Services/ServicesTab';
@@ -58,6 +58,8 @@ const Marketplace = () => {
               <AdBanner targetPage="marketplace" format="sponsored" />
               <AdBanner targetPage="marketplace" format="sponsored" />
             </div>
+            
+            <ServicesMarketplace />
           </TabsContent>
 
           <TabsContent value="pupbox" className="space-y-6">
