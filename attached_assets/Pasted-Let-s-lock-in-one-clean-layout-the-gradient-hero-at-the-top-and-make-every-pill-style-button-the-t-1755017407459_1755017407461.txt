@@ -1,0 +1,156 @@
+Let’s lock in one clean layout (the gradient hero at the top) and make every pill-style button—the top tabs and the service filters—use the exact same visual rules:
+
+Unselected: bg-blue-50 text-blue-700 border-blue-600
+
+Selected: bg-blue-600 text-white border-blue-600
+
+Below is a single, copy-paste Replit prompt that will do it without more back-and-forth.
+
+Replit prompt (paste verbatim)
+Goal: Keep the gradient “Pet Services Marketplace” hero + subtitle + Become a Service Provider CTA. Make the top tabs and the filter pills share the same component/styles:
+
+Unselected = light blue bg, dark blue border/text.
+
+Selected = solid blue bg, white text.
+
+Steps
+
+Create a unified pill component
+client/src/components/Pill.tsx
+
+tsx
+Copy
+Edit
+import * as React from "react";
+
+type PillProps = {
+  label: string;
+  selected?: boolean;
+  onClick?: () => void;
+  icon?: React.ReactNode;
+  className?: string;
+  as?: "button" | "a";
+  href?: string;
+};
+
+export function Pill({
+  label,
+  selected,
+  onClick,
+  icon,
+  className,
+  as = "button",
+  href
+}: PillProps) {
+  const Base = (as === "a" ? "a" : "button") as any;
+
+  const base =
+    "inline-flex shrink-0 items-center gap-2 rounded-full px-4 py-2 text-sm font-medium " +
+    "whitespace-nowrap select-none border transition-colors " +
+    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 " +
+    "focus-visible:ring-offset-2 focus-visible:ring-offset-white";
+
+  const unselected = "bg-blue-50 text-blue-700 border-blue-600 hover:bg-blue-100";
+  const selectedCls = "bg-blue-600 text-white border-blue-600 hover:bg-blue-700";
+
+  return (
+    <Base
+      data-pill
+      href={href}
+      aria-pressed={as === "button" ? selected : undefined}
+      onClick={onClick}
+      className={`${base} ${selected ? selectedCls : unselected} ${className || ""}`}
+    >
+      {icon ? <span aria-hidden className="leading-none">{icon}</span> : null}
+      <span className="leading-none">{label}</span>
+    </Base>
+  );
+}
+Use it for the top tabs (replace any custom tab buttons)
+client/src/pages/Marketplace/index.tsx (or wherever the tabs render)
+
+tsx
+Copy
+Edit
+import { Pill } from "@/components/Pill";
+
+const TABS = [
+  { key: "services", label: "Pet Services", icon: "💼" },
+  { key: "pupbox",   label: "Pup Box",     icon: "🎁" },
+  { key: "store",    label: "Store",       icon: "🛍️" },
+];
+
+<div className="flex gap-3">
+  {TABS.map(t => (
+    <Pill
+      key={t.key}
+      label={t.label}
+      icon={t.icon}
+      selected={activeTab === t.key}
+      onClick={() => setActiveTab(t.key)}
+    />
+  ))}
+</div>
+Use the same Pill for the service filters
+(Under the search card on the Services page)
+
+tsx
+Copy
+Edit
+import { Pill } from "@/components/Pill";
+
+const FILTERS = [
+  { key: "all",      label: "All Services" },
+  { key: "grooming", label: "Grooming",     icon: "✂️" },
+  { key: "sitting",  label: "Dog Sitting",  icon: "🏠" },
+  { key: "training", label: "Training",     icon: "🎓" },
+  { key: "walking",  label: "Dog Walking",  icon: "🚶" },
+  { key: "boarding", label: "Boarding",     icon: "🧳" },
+];
+
+<div className="-mx-2 px-2 overflow-x-auto">
+  <div className="flex gap-3 py-1">
+    {FILTERS.map(f => (
+      <Pill
+        key={f.key}
+        label={f.label}
+        icon={f.icon}
+        selected={filter === f.key}
+        onClick={() => setFilter(f.key)}
+      />
+    ))}
+  </div>
+</div>
+Hero + CTA (keep this single hero at the top)
+
+tsx
+Copy
+Edit
+<section className="rounded-3xl bg-gradient-to-r from-blue-600 to-purple-600 text-white p-8 md:p-10">
+  <h1 className="text-3xl md:text-4xl font-bold">Pet Services Marketplace</h1>
+  <p className="mt-2 text-white/90">
+    Connect with trusted professionals for grooming, training, sitting, and more
+  </p>
+  <button className="mt-4 inline-flex items-center gap-2 rounded-xl px-5 py-2.5
+                     bg-white/10 hover:bg-white/15 text-white font-semibold
+                     ring-1 ring-white/30">
+    <span>🛡️</span>
+    <span>Become a Service Provider</span>
+  </button>
+</section>
+Remove duplicates / conflicting styles
+
+Delete or hide any other hero, search, or pill rows left in the file.
+
+Search the repo and remove pill lookalikes that use <Button> variants or custom classes. Every pill should be <Pill> now.
+
+Remove any label-hiding rules (sr-only, text-transparent, opacity-0, max-*:hidden) applied to pill text.
+
+QA (30 seconds)
+
+You should see one gradient hero with the subtitle and CTA.
+
+Top tabs and filter pills use exactly the same unselected/selected visuals.
+
+Switch tabs and filters; the selected pill turns solid blue with white text.
+
