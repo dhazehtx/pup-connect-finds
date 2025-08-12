@@ -186,14 +186,14 @@ export function ServicesTab() {
               {showFilters && (
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4 bg-white border border-gray-200 rounded-lg">
                   <Select 
-                    value={filters.type || ''} 
-                    onValueChange={(value) => setFilters(prev => ({ ...prev, type: value || undefined }))}
+                    value={filters.type || 'all'} 
+                    onValueChange={(value) => setFilters(prev => ({ ...prev, type: value === 'all' ? undefined : value }))}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Service Type" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">All Services</SelectItem>
+                      <SelectItem value="all">All Services</SelectItem>
                       {serviceTypes.map(type => (
                         <SelectItem key={type.value} value={type.value}>
                           {type.icon} {type.label}
@@ -290,14 +290,14 @@ export function ServicesTab() {
               {showFilters && (
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-6 bg-gray-50 border border-gray-200 rounded-xl mt-4">
                   <Select 
-                    value={filters.type || ''} 
-                    onValueChange={(value) => setFilters(prev => ({ ...prev, type: value || undefined }))}
+                    value={filters.type || 'all'} 
+                    onValueChange={(value) => setFilters(prev => ({ ...prev, type: value === 'all' ? undefined : value }))}
                   >
                     <SelectTrigger className="border-2">
                       <SelectValue placeholder="Service Type" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">All Services</SelectItem>
+                      <SelectItem value="all">All Services</SelectItem>
                       {serviceTypes.map(type => (
                         <SelectItem key={type.value} value={type.value}>
                           {type.icon} {type.label}

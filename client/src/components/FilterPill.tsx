@@ -15,7 +15,7 @@ export function FilterPill({ label, selected, onClick, icon, className }: Props)
     "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white";
 
   const unselected =
-    "bg-white text-blue-600 border-blue-300 hover:bg-blue-50 active:bg-blue-100";
+    "bg-blue-50 text-blue-700 border-blue-600 hover:bg-blue-100 active:bg-blue-200";
 
   const selectedCls =
     "bg-blue-600 text-white border-blue-600 hover:bg-blue-700 active:bg-blue-800";
