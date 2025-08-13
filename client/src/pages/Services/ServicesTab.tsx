@@ -264,7 +264,7 @@ export function ServicesTab() {
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="featured" className="space-y-4">
+        <TabsContent value="featured" className="bg-white rounded-2xl border border-border shadow-sm p-0 focus-visible:outline-none ring-0 ring-offset-0 overflow-visible space-y-4">
           <div className="text-center py-4 md:py-6 bg-white rounded-xl">
             <div className="max-w-6xl mx-auto px-4 md:px-6">
               <h2 className="text-2xl font-semibold mb-2">Featured Service Providers</h2>
@@ -314,7 +314,7 @@ export function ServicesTab() {
           )}
         </TabsContent>
 
-        <TabsContent value="all" className="space-y-4">
+        <TabsContent value="all" className="bg-white rounded-2xl border border-border shadow-sm p-0 focus-visible:outline-none ring-0 ring-offset-0 overflow-visible space-y-4">
           <div className="text-center py-4 md:py-6 bg-white rounded-xl">
             <div className="max-w-6xl mx-auto px-4 md:px-6">
               <h2 className="text-2xl font-semibold mb-2">

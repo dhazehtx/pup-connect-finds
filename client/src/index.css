@@ -105,6 +105,42 @@ button[class*="bg-gradient-to-r"]:hover {
   box-shadow: none !important;
 }
 
+/* Remove blue artifacts from Tabs.Content panels */
+.services-tabs [data-state="active"],
+.services-tabs [data-state="inactive"] {
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+  ring: none !important;
+  --tw-ring-width: 0px !important;
+  --tw-ring-color: transparent !important;
+  --tw-ring-offset-width: 0px !important;
+}
+
+/* Remove pseudo-elements that create blue stripes/corners */
+.services-tabs [data-state="active"]::before,
+.services-tabs [data-state="active"]::after,
+.services-tabs [data-state="inactive"]::before,
+.services-tabs [data-state="inactive"]::after {
+  content: none !important;
+  display: none !important;
+}
+
+/* Override any Radix UI default styling on content panels */
+[data-radix-tabs-content] {
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+  background: white !important;
+}
+
+/* Force clean panel backgrounds */
+.services-tabs [role="tabpanel"] {
+  background: white !important;
+  border: 1px solid #e5e7eb !important;
+  border-radius: 1rem !important;
+}
+
 /* Force white text on active marketplace tabs only */
 .marketplace [data-state="active"] {
   color: white !important;

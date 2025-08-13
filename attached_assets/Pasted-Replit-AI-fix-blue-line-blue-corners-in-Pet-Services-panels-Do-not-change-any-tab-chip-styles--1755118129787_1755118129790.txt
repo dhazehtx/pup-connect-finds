@@ -1,0 +1,85 @@
+Replit AI — fix blue line & blue corners in Pet Services panels
+
+Do not change any tab/chip styles. Only fix the content panel visuals.
+
+Where
+In the Pet Services tabs component (the file that renders:
+
+tsx
+Copy
+Edit
+<Tabs.Root>
+  <Tabs.List> ... </Tabs.List>
+  <Tabs.Content value="featured"> ... </Tabs.Content>
+  <Tabs.Content value="all"> ... </Tabs.Content>
+</Tabs.Root>
+)
+
+What to change
+Clean the Tabs.Content wrapper styles (both featured and all):
+
+Remove any of these if present on the panel wrapper:
+
+ring-*, ring-offset-*, focus-visible:ring-*, outline-*
+
+border-primary, divide-primary, border-t-primary, border-y-primary
+
+any bg-primary / bg-blue-*
+
+Replace with a neutral, light card look:
+
+tsx
+Copy
+Edit
+className="bg-white rounded-2xl border border-border shadow-sm p-0 focus-visible:outline-none ring-0 ring-offset-0 overflow-visible"
+(Use your app’s neutral border token if different.)
+
+Disable decorative pseudo-elements on the panel that create the stripe/corners:
+
+If the panel or a parent has custom CSS like:
+
+css
+Copy
+Edit
+.services-panel::before { ... background: var(--primary) ... }
+.services-panel::after  { ... }
+remove those rules or override them:
+
+css
+Copy
+Edit
+.services-panel::before,
+.services-panel::after {
+  content: none !important;
+}
+If styles are applied via a utility like before:*/after:* classes on the wrapper, remove those classes.
+
+Ensure the parent container behind the panel is transparent/light:
+
+The immediate parent around Tabs.Content must not have bg-primary or a gradient. Use bg-transparent or bg-white.
+
+Remove any border-t-4 / divide-y using primary.
+
+Quick code example (for both panels)
+tsx
+Copy
+Edit
+<Tabs.Content
+  value="featured"
+  className="services-panel bg-white rounded-2xl border border-border shadow-sm p-0 focus-visible:outline-none ring-0 ring-offset-0 overflow-visible"
+/>
+<Tabs.Content
+  value="all"
+  className="services-panel bg-white rounded-2xl border border-border shadow-sm p-0 focus-visible:outline-none ring-0 ring-offset-0 overflow-visible"
+/>
+Sanity checks (must pass)
+The blue horizontal line across the rectangle is gone.
+
+The blue corner blobs in the top/bottom corners are gone.
+
+Background of the content area is white/light and clean.
+
+Tabs/chips look exactly the same as before (no changes there).
+
+Works for Featured and All Services panels on desktop + mobile.
+
