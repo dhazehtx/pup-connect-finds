@@ -5,11 +5,11 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Search, MapPin, Clock, Star, Shield, Filter } from 'lucide-react';
 import { ServiceProviderCard } from '@/components/ServiceProviderCard';
 import { BecomeProviderModal } from '@/components/BecomeProviderModal';
 import { BookServiceModal } from '@/components/BookServiceModal';
-import { SegmentedTab } from '@/components/ui/segmented-tab';
 import Pill from '@/components/Pill';
 import type { PetServiceProvider } from '@shared/schema';
 
@@ -39,7 +39,6 @@ export function ServicesTab() {
   const [showProviderModal, setShowProviderModal] = useState(false);
   const [selectedProvider, setSelectedProvider] = useState<PetServiceProvider | null>(null);
   const [showFilters, setShowFilters] = useState(false);
-  const [activeSubTab, setActiveSubTab] = useState<'featured' | 'all'>('featured');
 
   const { data: services = [], isLoading, error } = useQuery({
     queryKey: ['/api/services/search', filters],
@@ -253,25 +252,24 @@ export function ServicesTab() {
         </Button>
       </div>
 
-      {/* Services Sub-Tabs - Using SegmentedTab */}
-      <div className="flex justify-center gap-2 mb-6">
-        <SegmentedTab 
-          active={activeSubTab === 'featured'} 
-          onClick={() => setActiveSubTab('featured')}
-        >
-          Featured Services
-        </SegmentedTab>
-        <SegmentedTab 
-          active={activeSubTab === 'all'} 
-          onClick={() => setActiveSubTab('all')}
-        >
-          All Services
-        </SegmentedTab>
-      </div>
+      {/* Services Content - Blue Pill Style Tabs */}
+      <Tabs defaultValue="featured" className="w-full services-tabs">
+        <TabsList className="inline-flex rounded-full border-2 border-blue-600 bg-blue-50 p-1 w-auto mx-auto">
+          <TabsTrigger 
+            value="featured" 
+            className="px-6 py-2 rounded-full font-medium transition-all duration-200 data-[state=active]:bg-[#2363FF] data-[state=active]:text-white data-[state=active]:border-[#2363FF] data-[state=inactive]:bg-transparent data-[state=inactive]:text-blue-700 data-[state=inactive]:border-transparent"
+          >
+            Featured Services
+          </TabsTrigger>
+          <TabsTrigger 
+            value="all" 
+            className="px-6 py-2 rounded-full font-medium transition-all duration-200 data-[state=active]:bg-[#2363FF] data-[state=active]:text-white data-[state=active]:border-[#2363FF] data-[state=inactive]:bg-transparent data-[state=inactive]:text-blue-700 data-[state=inactive]:border-transparent"
+          >
+            All Services
+          </TabsTrigger>
+        </TabsList>
 
-      {/* Tab Content */}
-      {activeSubTab === 'featured' && (
-        <div className="space-y-4">
+        <TabsContent value="featured" className="space-y-4">
           <div className="text-center">
             <h2 className="text-2xl font-semibold mb-2">Featured Service Providers</h2>
             <p className="text-slate-600">
@@ -291,9 +289,9 @@ export function ServicesTab() {
                 </Card>
               ))}
             </div>
-          ) : services.filter((s: any) => s.featured).length > 0 ? (
+          ) : featuredServices.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {services.filter((s: any) => s.featured).map((service: any) => (
+              {featuredServices.map((service: any) => (
                 <ServiceProviderCard
                   key={service.id}
                   provider={service}
@@ -305,22 +303,17 @@ export function ServicesTab() {
             <div className="text-center py-12">
               <div className="text-6xl mb-4">🔍</div>
               <h3 className="text-xl font-semibold mb-2">No Services Found</h3>
-              <p className="text-slate-600 mb-4">
-                Be the first to offer featured services in your area!
+              <p className="text-slate-600">
+                Try adjusting your search criteria or check back later for new providers.
               </p>
-              <Button onClick={() => setShowProviderModal(true)}>
-                Become a Provider
-              </Button>
             </div>
           )}
-        </div>
-      )}
+        </TabsContent>
 
-      {activeSubTab === 'all' && (
-        <div className="space-y-4">
+        <TabsContent value="all" className="space-y-4">
           <div className="flex justify-between items-center">
             <h2 className="text-2xl font-semibold">
-              All Services {services.length > 0 && `(${services.length})`}
+              All Services {allServices.length > 0 && `(${allServices.length})`}
             </h2>
           </div>
 
@@ -336,9 +329,9 @@ export function ServicesTab() {
                 </Card>
               ))}
             </div>
-          ) : services.length > 0 ? (
+          ) : allServices.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {services.map((service: any) => (
+              {allServices.map((service: any) => (
                 <ServiceProviderCard
                   key={service.id}
                   provider={service}
@@ -358,8 +351,8 @@ export function ServicesTab() {
               </Button>
             </div>
           )}
-        </div>
-      )}
+        </TabsContent>
+      </Tabs>
 
       {/* Modals */}
       <BecomeProviderModal 
