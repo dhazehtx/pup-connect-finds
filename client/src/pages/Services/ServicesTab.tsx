@@ -12,6 +12,8 @@ import { BecomeProviderModal } from '@/components/BecomeProviderModal';
 import { BookServiceModal } from '@/components/BookServiceModal';
 import Pill from '@/components/Pill';
 import type { PetServiceProvider } from '@shared/schema';
+import { useProviders } from '@/hooks/useProviders';
+import { useSignedIn } from '@/hooks/useSignedIn';
 
 // Pill styles (keep these exactly)
 const PILL_BASE =
@@ -39,30 +41,10 @@ export function ServicesTab() {
   const [showProviderModal, setShowProviderModal] = useState(false);
   const [selectedProvider, setSelectedProvider] = useState<PetServiceProvider | null>(null);
   const [showFilters, setShowFilters] = useState(false);
+  const isSignedIn = useSignedIn();
 
-  const { data: services = [], isLoading, error } = useQuery({
-    queryKey: ['/api/services/search', filters],
-    queryFn: async () => {
-      try {
-        const { fetchWithRetry } = await import('@/lib/fetchWithRetry');
-        const params = new URLSearchParams();
-        Object.entries(filters).forEach(([key, value]) => {
-          if (value) params.append(key, value);
-        });
-        
-        const result = await fetchWithRetry(`/api/services/search?${params}`);
-        // Accept empty array as valid state
-        if (Array.isArray(result)) return result;
-        if (Array.isArray(result?.data)) return result.data;
-        return [];
-      } catch (err: any) {
-        console.error('Services load failed:', err);
-        throw new Error(err?.message || 'Failed to load services');
-      }
-    },
-    retry: 3,
-    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
-  });
+  // Use the proper providers hook that handles auth-aware demo data correctly
+  const { providers: services = [], isLoading, isError: error, isDemo } = useProviders();
 
   const serviceTypes = [
     { value: 'grooming', label: 'Dog Grooming', icon: '✂️' },
@@ -89,7 +71,7 @@ export function ServicesTab() {
         <div className="m-4 rounded-xl border border-red-200 bg-red-50 p-4">
           <div className="text-red-800 font-medium">Unable to load services</div>
           <div className="text-red-600 text-sm mt-1">
-            {error.message || 'Please try again in a moment.'}
+            Please try again in a moment.
           </div>
           <button 
             onClick={() => window.location.reload()} 
@@ -104,113 +86,119 @@ export function ServicesTab() {
 
   return (
     <div className="space-y-6 p-4">
-      {/* Pet Services Marketplace header */}
-      <div className="text-center space-y-6 mb-8 py-4 md:py-6">
-        <div className="max-w-6xl mx-auto px-4 md:px-6">
-          <h1 className="text-2xl font-semibold mb-2">Pet Services Marketplace</h1>
-          <p className="text-muted-foreground text-lg max-w-3xl mx-auto">
-            Connect with trusted professionals for grooming, training, sitting, and more
+      {/* Pet Services Marketplace Hero Section */}
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-blue-600 via-blue-700 to-purple-700 text-white shadow-2xl">
+        <div className="absolute inset-0 bg-gradient-to-br from-blue-600/90 to-purple-700/90"></div>
+        <div className="relative px-6 py-12 md:px-12 md:py-16 text-center">
+          <h1 className="text-4xl md:text-5xl font-bold mb-4 tracking-tight">
+            Pet Services
+          </h1>
+          <h2 className="text-4xl md:text-5xl font-bold mb-6 tracking-tight">
+            Marketplace
+          </h2>
+          <p className="text-xl md:text-2xl opacity-90 mb-8 max-w-2xl mx-auto leading-relaxed">
+            Find trusted professionals for grooming, training, sitting, and more
           </p>
-        </div>
-        
-        <div className="flex flex-col sm:flex-row gap-3 justify-center">
+          
+          {/* Search Bar in Hero */}
+          <div className="max-w-lg mx-auto mb-6">
+            <div className="relative">
+              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+              <Input
+                type="text"
+                placeholder="Search services, providers, or locations..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-12 pr-4 py-4 text-black bg-white/95 backdrop-blur border-0 shadow-lg rounded-xl text-lg"
+                data-testid="input-search-services"
+              />
+            </div>
+          </div>
+          
           <Button 
             onClick={() => setShowProviderModal(true)}
             size="lg"
-            variant="gradient"
-            className="gap-2"
+            className="bg-white text-blue-700 hover:bg-gray-50 font-semibold px-8 py-3 rounded-xl shadow-lg"
           >
-            <Shield className="h-5 w-5" />
-            <span className="text-white">Become a Service Provider</span>
+            <Shield className="h-5 w-5 mr-2" />
+            Become a Service Provider
           </Button>
         </div>
       </div>
 
-      {/* Search Card */}
-      <Card className="shadow-lg border-0 bg-white">
-        <CardContent className="p-6">
-          <div className="space-y-4">
-            {/* Search Bar */}
-            <div className="relative">
-              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+      {/* Advanced Filters Panel */}
+      {showFilters && (
+        <Card className="shadow-lg border-0 bg-white">
+          <CardContent className="p-6">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <Select 
+                value={filters.type || 'all'} 
+                onValueChange={(value) => setFilters(prev => ({ ...prev, type: value === 'all' ? undefined : value }))}
+              >
+                <SelectTrigger className="border-2">
+                  <SelectValue placeholder="Service Type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Services</SelectItem>
+                  {serviceTypes.map(type => (
+                    <SelectItem key={type.value} value={type.value}>
+                      {type.icon} {type.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
               <Input
-                placeholder="Search services, providers, or locations..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-12 h-12 text-base border-2 border-gray-200 focus:border-blue-500 rounded-xl"
+                placeholder="Location"
+                value={filters.location || ''}
+                onChange={(e) => setFilters(prev => ({ ...prev, location: e.target.value || undefined }))}
+                className="border-2"
+              />
+
+              <Input
+                type="number"
+                placeholder="Min Price ($)"
+                value={filters.min_price || ''}
+                onChange={(e) => setFilters(prev => ({ ...prev, min_price: e.target.value || undefined }))}
+                className="border-2"
+              />
+
+              <Input
+                type="number"
+                placeholder="Max Price ($)"
+                value={filters.max_price || ''}
+                onChange={(e) => setFilters(prev => ({ ...prev, max_price: e.target.value || undefined }))}
+                className="border-2"
               />
             </div>
-
-            {/* Quick Actions */}
-            <div className="flex justify-between items-center">
-              <Button
-                variant="outline"
-                onClick={() => setShowFilters(!showFilters)}
-                className="flex items-center gap-2 rounded-lg border-2"
-              >
-                <Filter className="h-4 w-4" />
-                Advanced Filters
-              </Button>
-              
-              {Object.values(filters).some(Boolean) && (
+            
+            {Object.values(filters).some(Boolean) && (
+              <div className="flex justify-end mt-4">
                 <Button
                   variant="ghost"
                   onClick={() => setFilters({})}
                   size="sm"
                   className="text-blue-600 hover:text-blue-700"
                 >
-                  Clear All
+                  Clear All Filters
                 </Button>
-              )}
-            </div>
-
-            {/* Advanced Filters Panel */}
-            {showFilters && (
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-6 bg-gray-50 border border-gray-200 rounded-xl mt-4">
-                <Select 
-                  value={filters.type || 'all'} 
-                  onValueChange={(value) => setFilters(prev => ({ ...prev, type: value === 'all' ? undefined : value }))}
-                >
-                  <SelectTrigger className="border-2">
-                    <SelectValue placeholder="Service Type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Services</SelectItem>
-                    {serviceTypes.map(type => (
-                      <SelectItem key={type.value} value={type.value}>
-                        {type.icon} {type.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-
-                <Input
-                  placeholder="Location"
-                  value={filters.location || ''}
-                  onChange={(e) => setFilters(prev => ({ ...prev, location: e.target.value || undefined }))}
-                  className="border-2"
-                />
-
-                <Input
-                  type="number"
-                  placeholder="Min Price ($)"
-                  value={filters.min_price || ''}
-                  onChange={(e) => setFilters(prev => ({ ...prev, min_price: e.target.value || undefined }))}
-                  className="border-2"
-                />
-
-                <Input
-                  type="number"
-                  placeholder="Max Price ($)"
-                  value={filters.max_price || ''}
-                  onChange={(e) => setFilters(prev => ({ ...prev, max_price: e.target.value || undefined }))}
-                  className="border-2"
-                />
               </div>
             )}
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Quick Filter Toggle */}
+      <div className="flex justify-center">
+        <Button
+          variant="outline"
+          onClick={() => setShowFilters(!showFilters)}
+          className="flex items-center gap-2 rounded-xl border-2 px-6 py-3"
+        >
+          <Filter className="h-4 w-4" />
+          {showFilters ? 'Hide Filters' : 'Show Advanced Filters'}
+        </Button>
+      </div>
 
       {/* Service Categories Pill Row */}
       <div className="flex flex-wrap gap-3 justify-center px-4">
@@ -269,12 +257,14 @@ export function ServicesTab() {
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="featured" className="space-y-4">
-          <div className="text-center">
-            <h2 className="text-2xl font-semibold mb-2">Featured Service Providers</h2>
-            <p className="text-slate-600">
-              Top-rated and verified professionals in your area
-            </p>
+        <TabsContent value="featured" className="space-y-4 bg-white">
+          <div className="text-center py-4 md:py-6">
+            <div className="max-w-6xl mx-auto px-4 md:px-6">
+              <h2 className="text-2xl font-semibold mb-2">Featured Service Providers</h2>
+              <p className="text-muted-foreground">
+                Top-rated and verified professionals in your area
+              </p>
+            </div>
           </div>
 
           {isLoading ? (
@@ -301,11 +291,14 @@ export function ServicesTab() {
             </div>
           ) : (
             <div className="text-center py-12">
-              <div className="text-6xl mb-4">🔍</div>
-              <h3 className="text-xl font-semibold mb-2">No Services Found</h3>
-              <p className="text-slate-600">
-                Try adjusting your search criteria or check back later for new providers.
+              <div className="text-6xl mb-4">🐕</div>
+              <h3 className="text-xl font-semibold mb-2">No Service Providers Yet</h3>
+              <p className="text-muted-foreground mb-4">
+                Be the first to offer featured services in your area!
               </p>
+              <Button onClick={() => setShowProviderModal(true)}>
+                Become a Provider
+              </Button>
             </div>
           )}
         </TabsContent>
