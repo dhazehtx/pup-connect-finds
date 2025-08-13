@@ -6,6 +6,10 @@ export type ServiceProvider = {
   since: string;      // e.g., "Provider since 8/11/2025"
   tags?: string[];    // Grooming, Walking, etc.
   isDemo?: boolean;   // Flag to identify demo providers
+  service_type?: string;
+  location?: string;
+  price?: number;
+  is_verified?: boolean;
 };
 
 export const DEMO_PROVIDERS: ServiceProvider[] = [

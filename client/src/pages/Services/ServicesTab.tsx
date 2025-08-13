@@ -43,7 +43,7 @@ export function ServicesTab() {
   const [showFilters, setShowFilters] = useState(false);
   const isSignedIn = useSignedIn();
 
-  // Use the proper providers hook that handles auth-aware demo data correctly
+  // Fetch real data only - no demo fallback for signed-in users
   const { providers: services = [], isLoading, isError: error, isDemo } = useProviders();
 
   const serviceTypes = [
@@ -55,12 +55,19 @@ export function ServicesTab() {
     { value: 'veterinary', label: 'Veterinary Care', icon: '🏥' },
   ];
 
-  const filteredServices = services.filter((service: any) =>
-    !searchTerm || 
-    service.user?.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    service.service_type.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    service.location?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Filter real services only (never demo data for signed-in users)
+  const realServices = isSignedIn ? services.filter(service => !service.isDemo) : services;
+  
+  const filteredServices = realServices.filter((service: any) => {
+    const matchesSearch = !searchTerm || 
+      service.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      service.service_type?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      service.location?.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const matchesType = !filters.type || service.service_type === filters.type;
+    
+    return matchesSearch && matchesType;
+  });
 
   const featuredServices = filteredServices.slice(0, 6);
   const allServices = filteredServices;
@@ -290,13 +297,16 @@ export function ServicesTab() {
               ))}
             </div>
           ) : (
-            <div className="text-center py-12">
+            <div className="text-center py-12 bg-white rounded-xl">
               <div className="text-6xl mb-4">🐕</div>
-              <h3 className="text-xl font-semibold mb-2">No Service Providers Yet</h3>
+              <h3 className="text-xl font-semibold mb-2">No Services Found</h3>
               <p className="text-muted-foreground mb-4">
-                Be the first to offer featured services in your area!
+                Be the first to offer services in your area!
               </p>
-              <Button onClick={() => setShowProviderModal(true)}>
+              <Button 
+                onClick={() => setShowProviderModal(true)}
+                className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white"
+              >
                 Become a Provider
               </Button>
             </div>
@@ -338,13 +348,16 @@ export function ServicesTab() {
               ))}
             </div>
           ) : (
-            <div className="text-center py-12">
+            <div className="text-center py-12 bg-white rounded-xl">
               <div className="text-6xl mb-4">🐕</div>
-              <h3 className="text-xl font-semibold mb-2">No Service Providers Yet</h3>
-              <p className="text-slate-600 mb-4">
-                Be the first to offer pet services in your area!
+              <h3 className="text-xl font-semibold mb-2">No Services Found</h3>
+              <p className="text-muted-foreground mb-4">
+                Be the first to offer services in your area!
               </p>
-              <Button onClick={() => setShowProviderModal(true)}>
+              <Button 
+                onClick={() => setShowProviderModal(true)}
+                className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white"
+              >
                 Become a Provider
               </Button>
             </div>

@@ -88,58 +88,8 @@ export const useConversationsManager = () => {
         })
       );
 
-      // If no real conversations exist, show mock conversations for demo
-      if (conversationsWithProfiles.length === 0) {
-        const mockConversations = [
-          {
-            id: 'mock_conv_1',
-            listing_id: 'mock_listing_1',
-            buyer_id: user.id,
-            seller_id: '101',
-            created_at: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-            updated_at: new Date(Date.now() - 30 * 60 * 1000).toISOString(),
-            last_message_at: new Date(Date.now() - 30 * 60 * 1000).toISOString(),
-            listing: {
-              dog_name: 'Buddy',
-              breed: 'Golden Retriever',
-              image_url: 'https://placedog.com/300/300',
-              price: 1200
-            },
-            other_user: {
-              id: '101',
-              full_name: 'Austin Reyes',
-              username: 'goldenbreeder',
-              avatar_url: 'https://i.pravatar.cc/150?img=1'
-            },
-            unread_count: 2
-          },
-          {
-            id: 'mock_conv_2',
-            listing_id: 'mock_listing_2',
-            buyer_id: user.id,
-            seller_id: '102',
-            created_at: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
-            updated_at: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(),
-            last_message_at: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(),
-            listing: {
-              dog_name: 'Luna',
-              breed: 'Labrador',
-              image_url: 'https://placedog.com/300/301',
-              price: 800
-            },
-            other_user: {
-              id: '102',
-              full_name: 'Jennifer Martinez',
-              username: 'labsofca',
-              avatar_url: 'https://i.pravatar.cc/150?img=2'
-            },
-            unread_count: 0
-          }
-        ];
-        setConversations(mockConversations);
-      } else {
-        setConversations(conversationsWithProfiles);
-      }
+      // For signed-in users: only show real conversations, no demo data
+      setConversations(conversationsWithProfiles);
     } catch (error) {
       console.error('Error fetching conversations:', error);
       toast({
@@ -148,32 +98,8 @@ export const useConversationsManager = () => {
         variant: "destructive",
       });
       
-      // Show mock conversations even on error for demo purposes
-      const mockConversations = [
-        {
-          id: 'mock_conv_1',
-          listing_id: 'mock_listing_1',
-          buyer_id: user?.id || 'current_user',
-          seller_id: '101',
-          created_at: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-          updated_at: new Date(Date.now() - 30 * 60 * 1000).toISOString(),
-          last_message_at: new Date(Date.now() - 30 * 60 * 1000).toISOString(),
-          listing: {
-            dog_name: 'Buddy',
-            breed: 'Golden Retriever',
-            image_url: 'https://placedog.com/300/300',
-            price: 1200
-          },
-          other_user: {
-            id: '101',
-            full_name: 'Austin Reyes',
-            username: 'goldenbreeder',
-            avatar_url: 'https://i.pravatar.cc/150?img=1'
-          },
-          unread_count: 2
-        }
-      ];
-      setConversations(mockConversations);
+      // For signed-in users: show empty state, no demo data on error
+      setConversations([]);
     } finally {
       setLoading(false);
     }
