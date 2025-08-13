@@ -65,19 +65,6 @@ const ServicesMarketplace = () => {
 
   return (
     <div>
-      {/* Hero - clean single design */}
-      <section id="marketplace-hero" className="mx-auto mb-6 rounded-2xl bg-gradient-to-r from-[#2363FF] to-[#8A2BE2] px-6 py-10 text-white">
-        <h1 className="text-3xl font-bold">Pet Services Marketplace</h1>
-        <p className="mt-2 opacity-90">Find trusted professionals for grooming, training, sitting, and more</p>
-        <div className="mt-4">
-          <button 
-            className="rounded-full bg-white/10 px-5 py-2 text-white ring-1 ring-white/30 hover:bg-white/20"
-            onClick={() => setShowCreateService(true)}
-          >
-            Become a Service Provider
-          </button>
-        </div>
-      </section>
 
       {/* Search + pills (single row) */}
       <div className="mb-3 rounded-xl border bg-white/80 p-4 shadow-sm">
