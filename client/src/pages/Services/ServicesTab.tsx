@@ -305,7 +305,8 @@ export function ServicesTab() {
               </p>
               <Button 
                 onClick={() => setShowProviderModal(true)}
-                className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white"
+                className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 !text-white border-0 outline-none focus:ring-0"
+                style={{ color: 'white !important' }}
               >
                 Become a Provider
               </Button>
@@ -356,7 +357,8 @@ export function ServicesTab() {
               </p>
               <Button 
                 onClick={() => setShowProviderModal(true)}
-                className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white"
+                className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 !text-white border-0 outline-none focus:ring-0"
+                style={{ color: 'white !important' }}
               >
                 Become a Provider
               </Button>

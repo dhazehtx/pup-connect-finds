@@ -73,6 +73,38 @@ button.btn-primary * {
   color: white !important;
 }
 
+/* Remove blue borders and ensure white text on gradient buttons */
+.bg-gradient-to-r {
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+  color: white !important;
+}
+
+/* Become a Provider button styling */
+button[class*="bg-gradient-to-r"] {
+  color: white !important;
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+button[class*="bg-gradient-to-r"]:focus,
+button[class*="bg-gradient-to-r"]:active,
+button[class*="bg-gradient-to-r"]:hover {
+  color: white !important;
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+  ring: none !important;
+}
+
+/* Remove Tailwind focus ring styles */
+.focus\:ring-0:focus {
+  --tw-ring-width: 0px !important;
+  box-shadow: none !important;
+}
+
 /* Force white text on active marketplace tabs only */
 .marketplace [data-state="active"] {
   color: white !important;
