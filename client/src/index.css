@@ -105,9 +105,15 @@ button[class*="bg-gradient-to-r"]:hover {
   box-shadow: none !important;
 }
 
-/* Remove blue artifacts from Tabs.Content panels */
+/* COMPREHENSIVE RADIX TABS BLUE ARTIFACT REMOVAL */
+
+/* Remove all blue artifacts from Tabs.Content panels - multiple selectors for full coverage */
 .services-tabs [data-state="active"],
-.services-tabs [data-state="inactive"] {
+.services-tabs [data-state="inactive"],
+.services-tabs [role="tabpanel"],
+[data-radix-tabs-content],
+.services-tabs div[data-state],
+.services-tabs > div[data-state] {
   border: none !important;
   outline: none !important;
   box-shadow: none !important;
@@ -115,30 +121,69 @@ button[class*="bg-gradient-to-r"]:hover {
   --tw-ring-width: 0px !important;
   --tw-ring-color: transparent !important;
   --tw-ring-offset-width: 0px !important;
+  --tw-ring-shadow: none !important;
+  background: white !important;
+  border-radius: 1rem !important;
 }
 
-/* Remove pseudo-elements that create blue stripes/corners */
+/* Remove ALL pseudo-elements that create blue stripes/corners */
 .services-tabs [data-state="active"]::before,
 .services-tabs [data-state="active"]::after,
 .services-tabs [data-state="inactive"]::before,
-.services-tabs [data-state="inactive"]::after {
+.services-tabs [data-state="inactive"]::after,
+.services-tabs [role="tabpanel"]::before,
+.services-tabs [role="tabpanel"]::after,
+[data-radix-tabs-content]::before,
+[data-radix-tabs-content]::after {
   content: none !important;
   display: none !important;
+  background: none !important;
+  border: none !important;
 }
 
-/* Override any Radix UI default styling on content panels */
+/* Override specific Radix UI focus-visible and active states */
+.services-tabs [data-state="active"]:focus-visible,
+.services-tabs [data-state="inactive"]:focus-visible {
+  outline: none !important;
+  ring: none !important;
+  box-shadow: none !important;
+}
+
+/* Force override any remaining blue styling */
+.services-tabs * {
+  --tw-ring-color: transparent !important;
+}
+
+/* Remove any border-t or top border artifacts */
+.services-tabs [role="tabpanel"] {
+  border-top: none !important;
+  border-bottom: none !important;
+  border-left: none !important;
+  border-right: none !important;
+}
+
+/* Nuclear option: Remove ALL possible blue styling artifacts */
+.services-tabs * {
+  border-color: transparent !important;
+  --tw-border-opacity: 0 !important;
+}
+
+/* Target the specific data-radix-tabs-content element that creates the blue line */
 [data-radix-tabs-content] {
   border: none !important;
   outline: none !important;
   box-shadow: none !important;
-  background: white !important;
+  background: transparent !important;
+  --tw-ring-width: 0px !important;
+  --tw-ring-color: transparent !important;
+  --tw-ring-offset-width: 0px !important;
 }
 
-/* Force clean panel backgrounds */
-.services-tabs [role="tabpanel"] {
-  background: white !important;
-  border: 1px solid #e5e7eb !important;
-  border-radius: 1rem !important;
+/* Remove focus-visible outline that creates blue artifacts */
+[data-radix-tabs-content]:focus-visible {
+  outline: none !important;
+  border: none !important;
+  box-shadow: none !important;
 }
 
 /* Force white text on active marketplace tabs only */
