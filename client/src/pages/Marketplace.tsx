@@ -58,8 +58,6 @@ const Marketplace = () => {
               <AdBanner targetPage="marketplace" format="sponsored" />
               <AdBanner targetPage="marketplace" format="sponsored" />
             </div>
-            
-            <ServicesMarketplace />
           </TabsContent>
 
           <TabsContent value="pupbox" className="space-y-6">

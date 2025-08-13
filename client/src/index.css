@@ -105,3 +105,14 @@ button.btn-primary * {
 }
 
 /* Remove previous tab spacing rules - now using pill design */
+
+/* Auth page - ensure Sign In / Sign Up tabs have white text when active */
+.auth-tab-active {
+  color: #FFFFFF !important;
+  background-color: #2363FF !important;
+}
+
+.auth-tab-inactive {
+  color: #000000 !important;
+  background-color: #E5EEFF !important;
+}

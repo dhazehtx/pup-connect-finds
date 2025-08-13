@@ -161,14 +161,8 @@ const Auth = () => {
                 type="button"
                 onClick={() => setActiveTab('signin')}
                 className={`flex-1 py-3 px-4 text-center font-medium transition-all duration-200 ${
-                  activeTab === 'signin'
-                    ? 'text-white'
-                    : 'text-black hover:opacity-80'
+                  activeTab === 'signin' ? 'auth-tab-active' : 'auth-tab-inactive'
                 }`}
-                style={{
-                  backgroundColor: activeTab === 'signin' ? '#2363FF' : '#E5EEFF',
-                  color: activeTab === 'signin' ? '#FFFFFF' : '#000000'
-                }}
               >
                 Sign In
               </button>
@@ -176,14 +170,8 @@ const Auth = () => {
                 type="button"
                 onClick={() => setActiveTab('signup')}
                 className={`flex-1 py-3 px-4 text-center font-medium transition-all duration-200 ${
-                  activeTab === 'signup'
-                    ? 'text-white'
-                    : 'text-black hover:opacity-80'
+                  activeTab === 'signup' ? 'auth-tab-active' : 'auth-tab-inactive'
                 }`}
-                style={{
-                  backgroundColor: activeTab === 'signup' ? '#2363FF' : '#E5EEFF',
-                  color: activeTab === 'signup' ? '#FFFFFF' : '#000000'
-                }}
               >
                 Sign Up
               </button>
