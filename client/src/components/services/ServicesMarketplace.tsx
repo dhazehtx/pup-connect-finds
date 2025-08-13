@@ -52,41 +52,7 @@ const ServicesMarketplace = () => {
   const [activeFilter, setActiveFilter] = useState('All Services');
 
   // Use centralized providers hook - no demo/live merging, proper auth-aware caching
-  const { providers, source, isLoading, isError } = useProviders();
-
-  // Show empty state for any scenario with no providers
-  if (!isLoading && !isError && providers.length === 0) {
-    return <EmptyServices />;
-  }
-
-  if (isLoading) {
-    return (
-      <div className="animate-pulse space-y-4">
-        {[...Array(6)].map((_, i) => (
-          <Card key={i} className="border">
-            <CardContent className="p-6">
-              <div className="h-4 rounded w-1/4 mb-2 bg-gray-200"></div>
-              <div className="h-3 rounded w-3/4 mb-4 bg-gray-200"></div>
-              <div className="h-3 rounded w-1/2 bg-gray-200"></div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-    );
-  }
-
-  if (isError) {
-    return (
-      <div className="text-center p-6">
-        <p className="text-red-600 mb-4">Failed to load services</p>
-        <Button onClick={() => queryClient.invalidateQueries({ queryKey: ["providers"] })} variant="outline">
-          Try Again
-        </Button>
-      </div>
-    );
-  }
-
-  const isDemo = source === "demo";
+  const { providers, isDemo, isLoading, isError } = useProviders();
 
   const filteredProviders = providers.filter(provider => {
     const matchesSearch = provider.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -144,7 +110,26 @@ const ServicesMarketplace = () => {
 
       {/* Providers grid */}
       <section className="grid gap-6 md:grid-cols-2">
-        {filteredProviders.length === 0 ? (
+        {isLoading ? (
+          // Loading state
+          [...Array(6)].map((_, i) => (
+            <div key={i} className="animate-pulse">
+              <Card className="border">
+                <CardContent className="p-6">
+                  <div className="h-4 rounded w-1/4 mb-2 bg-gray-200"></div>
+                  <div className="h-3 rounded w-3/4 mb-4 bg-gray-200"></div>
+                  <div className="h-3 rounded w-1/2 bg-gray-200"></div>
+                </CardContent>
+              </Card>
+            </div>
+          ))
+        ) : isError ? (
+          // Error state: show empty, not demo
+          <div className="col-span-full">
+            <EmptyServices />
+          </div>
+        ) : filteredProviders.length === 0 ? (
+          // No results state
           <div className="col-span-full">
             <EmptyServices />
           </div>

@@ -1,0 +1,172 @@
+1) Mark demo items and keep them out of live views
+client/src/data/demoProviders.ts
+Add an isDemo: true flag. (If this file already exists, just add the flag.)
+
+ts
+Copy
+Edit
+export type ServiceProvider = {
+  id: string;
+  name: string;
+  headline: string;
+  since: string;
+  tags?: string[];
+  isDemo?: boolean; // <-- add
+};
+
+export const DEMO_PROVIDERS: ServiceProvider[] = [
+  {
+    id: "demo-1",
+    name: "Austin Reyes",
+    headline: "Professional grooming services with 10+ years experience",
+    since: "Provider since 8/11/2025",
+    tags: ["Grooming"],
+    isDemo: true, // <-- critical
+  },
+  {
+    id: "demo-2",
+    name: "Austin Reyes",
+    headline: "Reliable dog walking service for busy pet owners",
+    since: "Provider since 8/11/2025",
+    tags: ["Walking"],
+    isDemo: true, // <-- critical
+  },
+];
+2) Centralize provider selection (guest vs live) in one hook
+Create (or replace) the hook below. It never returns demo items when signed-in, and its React-Query key ensures the cache flips when auth changes.
+
+client/src/hooks/useProviders.ts
+ts
+Copy
+Edit
+import { useEffect } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { DEMO_PROVIDERS, ServiceProvider } from "@/data/demoProviders";
+
+// Replace this with your real auth signal (Clerk, NextAuth, Supabase, etc.)
+import { useAuthStatus } from "@/lib/authStatus"; 
+// ^ should return { isSignedIn: boolean }. If you don't have it,
+// temporarily implement a stub that returns your real flag.
+
+type UseProvidersResult = {
+  providers: ServiceProvider[];
+  isDemo: boolean;
+  isLoading: boolean;
+  isError: boolean;
+};
+
+export function useProviders(): UseProvidersResult {
+  const { isSignedIn } = useAuthStatus(); // <- your real auth
+  const queryClient = useQueryClient();
+
+  // Flip cache when auth status changes so we don’t “reuse” demo results
+  useEffect(() => {
+    queryClient.invalidateQueries({ queryKey: ["providers"] });
+  }, [isSignedIn, queryClient]);
+
+  const { data, isLoading, isError } = useQuery({
+    queryKey: ["providers", isSignedIn ? "live" : "guest"], // <- cache split
+    queryFn: async () => {
+      if (!isSignedIn) {
+        // Guests see demo only
+        return DEMO_PROVIDERS;
+      }
+      // Signed-in: fetch live only — NO fallback to demo
+      const res = await fetch("/api/services/providers", {
+        credentials: "include",
+      });
+      if (!res.ok) {
+        // Live failed: show "Empty" state, not demo
+        return [] as ServiceProvider[];
+      }
+      const json = (await res.json()) as ServiceProvider[];
+      // Extra guard: if someone left demo in the DB by mistake, remove it
+      return json.filter((p) => !p.isDemo);
+    },
+    staleTime: 0,
+    gcTime: 0,
+    refetchOnWindowFocus: true,
+    refetchOnMount: true,
+    retry: 0,
+  });
+
+  const providers = (data ?? []).filter((p) => !isSignedIn ? true : !p.isDemo);
+  return {
+    providers,
+    isDemo: !isSignedIn,
+    isLoading,
+    isError,
+  };
+}
+If you don’t have useAuthStatus, wire it to whatever you already use (Clerk’s useAuth(), NextAuth’s useSession(), etc.), returning a simple { isSignedIn: boolean }.
+
+3) Use the hook in the marketplace and remove any demo fallbacks
+client/src/components/services/ServicesMarketplace.tsx
+Replace your current provider fetching/rendering block with this pattern:
+
+tsx
+Copy
+Edit
+import { useProviders } from "@/hooks/useProviders";
+import { ServiceProviderCard } from "@/components/services/ServiceProviderCard";
+import { EmptyServices } from "@/components/services/EmptyServices"; // your empty state
+
+export default function ServicesMarketplace() {
+  const { providers, isDemo, isLoading, isError } = useProviders();
+
+  // …your header / pills / search…
+
+  if (isLoading) {
+    return (
+      // show your spinner/loader
+      <div className="py-16 text-center text-slate-500">Loading…</div>
+    );
+  }
+
+  if (isError) {
+    // Live failed or guest fetch issue: show empty, not demo
+    return <EmptyServices />;
+  }
+
+  if (providers.length === 0) {
+    return <EmptyServices />;
+  }
+
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
+      {providers.map((p) => (
+        <ServiceProviderCard key={p.id} provider={p} />
+      ))}
+    </div>
+  );
+}
+Important sweep inside this file:
+
+Delete any secondary grid that still maps DEMO_PROVIDERS (or hard-coded “Austin Reyes”).
+
+Delete expressions like const list = data ?? DEMO_PROVIDERS or [...(data||[]), ...DEMO_PROVIDERS].
+
+Ensure you’re not rendering both providers and DEMO_PROVIDERS in different sections.
+
+4) One-line safety net (works even if something else lingers)
+If you must keep some legacy code temporarily, add this hard guard anywhere you derive your final array:
+
+ts
+Copy
+Edit
+const visibleProviders = isSignedIn
+  ? providers.filter(p => !p.isDemo)
+  : providers;
+…and render visibleProviders instead of providers.
+
+5) Quick project-wide sweeps (takes 30 seconds)
+Use the search in Replit:
+
+Search for Austin Reyes and delete any stray hard-coded cards or demo arrays.
+
+Search for DEMO_PROVIDERS and ensure it’s only used by the new useProviders hook.
+
+Search for ?? DEMO_ and replace any fallback-to-demo with an empty array + EmptyState.
+
+Search for providers.concat( and remove any concatenation with demo.
+

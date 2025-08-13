@@ -17,20 +17,39 @@ interface SupabaseServiceProvider {
   user_id: string;
 }
 
-export function useProviders() {
-  const isSignedIn = useSignedIn();
-  const qc = useQueryClient();
+type UseProvidersResult = {
+  providers: ServiceProvider[];
+  isDemo: boolean;
+  isLoading: boolean;
+  isError: boolean;
+};
 
-  // Keep auth state in the key so cache never leaks across guest/signed-in
-  const { data: liveProviders, isLoading, isError } = useQuery({
-    queryKey: ["providers", { authed: isSignedIn }],
+export function useProviders(): UseProvidersResult {
+  const isSignedIn = useSignedIn();
+  const queryClient = useQueryClient();
+
+  // Flip cache when auth status changes so we don't "reuse" demo results
+  useEffect(() => {
+    queryClient.invalidateQueries({ queryKey: ["providers"] });
+  }, [isSignedIn, queryClient]);
+
+  const { data, isLoading, isError } = useQuery({
+    queryKey: ["providers", isSignedIn ? "live" : "guest"], // cache split
     queryFn: async () => {
+      if (!isSignedIn) {
+        // Guests see demo only
+        return DEMO_PROVIDERS;
+      }
+      // Signed-in: fetch live only — NO fallback to demo
       const { data, error } = await supabase
         .from('service_providers')
         .select('*')
         .order('rating', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        // Live failed: show "Empty" state, not demo
+        return [] as ServiceProvider[];
+      }
       
       // Convert Supabase providers to ServiceProvider format
       const convertedProviders: ServiceProvider[] = (data || []).map((p: SupabaseServiceProvider) => ({
@@ -38,28 +57,26 @@ export function useProviders() {
         name: p.business_name,
         headline: p.description || `Professional ${p.service_types.join(', ')} services`,
         since: `Provider since ${new Date().toLocaleDateString()}`,
-        tags: p.service_types
+        tags: p.service_types,
+        isDemo: false, // Explicitly mark live data as non-demo
       }));
       
-      return convertedProviders;
+      // Extra guard: if someone left demo in the DB by mistake, remove it
+      return convertedProviders.filter((p) => !p.isDemo);
     },
-    enabled: isSignedIn,          // don't fetch live when guest
-    staleTime: 0, // Always refetch to ensure fresh data
+    staleTime: 0,
+    gcTime: 0,
+    refetchOnWindowFocus: true,
+    refetchOnMount: true,
+    retry: 0,
   });
 
-  // If auth status flips, make sure stale guest/live caches don't linger
-  useEffect(() => {
-    qc.invalidateQueries({ queryKey: ["providers"] });
-  }, [isSignedIn, qc]);
-
-  if (!isSignedIn) {
-    return { providers: DEMO_PROVIDERS, source: "demo" as const, isLoading: false, isError: false };
-  }
-
-  // Signed in: show ONLY live data. If none, show empty state (not demo).
+  // Final safety filter: ensure demo never shows for signed-in users
+  const providers = (data ?? []).filter((p) => !isSignedIn ? true : !p.isDemo);
+  
   return {
-    providers: liveProviders ?? [],
-    source: "live" as const,
+    providers,
+    isDemo: !isSignedIn,
     isLoading,
     isError,
   };

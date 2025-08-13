@@ -5,6 +5,7 @@ export type ServiceProvider = {
   headline: string;
   since: string;      // e.g., "Provider since 8/11/2025"
   tags?: string[];    // Grooming, Walking, etc.
+  isDemo?: boolean;   // Flag to identify demo providers
 };
 
 export const DEMO_PROVIDERS: ServiceProvider[] = [
@@ -14,6 +15,7 @@ export const DEMO_PROVIDERS: ServiceProvider[] = [
     headline: "Professional grooming services with 10+ years experience",
     since: "Provider since 8/11/2025",
     tags: ["Grooming"],
+    isDemo: true, // Critical: marks this as demo data
   },
   {
     id: "demo-2",
@@ -21,6 +23,7 @@ export const DEMO_PROVIDERS: ServiceProvider[] = [
     headline: "Reliable dog walking service for busy pet owners",
     since: "Provider since 8/11/2025",
     tags: ["Dog Walking"],
+    isDemo: true, // Critical: marks this as demo data
   },
   {
     id: "demo-3",
@@ -28,5 +31,6 @@ export const DEMO_PROVIDERS: ServiceProvider[] = [
     headline: "In-home pet care while you are away",
     since: "Provider since 8/11/2025",
     tags: ["Dog Sitting"],
+    isDemo: true, // Critical: marks this as demo data
   },
 ];
