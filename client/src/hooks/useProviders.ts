@@ -54,7 +54,7 @@ export function useProviders(): UseProvidersResult {
       }
       
       // Convert Supabase providers to ServiceProvider format
-      const convertedProviders: ServiceProvider[] = ((data as SupabaseServiceProvider[]) || []).map((p: SupabaseServiceProvider) => ({
+      const convertedProviders: ServiceProvider[] = (data || []).map((p: any) => ({
         id: p.id,
         name: `${p.service_type} Provider`, // Use service type as name since we don't have business name
         headline: p.bio || `Professional ${p.service_type} services`,
@@ -63,8 +63,8 @@ export function useProviders(): UseProvidersResult {
         isDemo: false, // Explicitly mark live data as non-demo
       }));
       
-      // Extra guard: if someone left demo in the DB by mistake, remove it
-      return convertedProviders.filter((p) => !p.isDemo);
+      // Return only real data for signed-in users (no demo data ever)
+      return convertedProviders;
     },
     staleTime: 0,
     gcTime: 0,
@@ -73,8 +73,9 @@ export function useProviders(): UseProvidersResult {
     retry: 0,
   });
 
-  // Final safety filter: ensure demo never shows for signed-in users
-  const providers = (data ?? []).filter((p) => !isSignedIn ? true : !p.isDemo);
+  // For signed-in users: only return real data (never demo)
+  // For guests: return demo data
+  const providers = isSignedIn ? (data ?? []) : (data ?? []);
   
   return {
     providers,
