@@ -193,8 +193,8 @@ export interface IStorage {
   updateProductRating(productId: string): Promise<void>;
   
   // Enhanced order methods
-  getUserOrdersWithItems(userId: string): Promise<Array<Order & { items: Array<OrderItem & { product: Product }> }>>;
-  getOrderWithItems(orderId: string): Promise<(Order & { items: Array<OrderItem & { product: Product }> }) | undefined>;
+  getUserOrdersWithItems(userId: string): Promise<Array<Order & { items: Array<OrderItem & { product: Product | null }> }>>;
+  getOrderWithItems(orderId: string): Promise<(Order & { items: Array<OrderItem & { product: Product | null }> }) | undefined>;
   updateOrder(id: string, order: Partial<InsertOrder>): Promise<Order | undefined>;
 
   // Breed methods
@@ -262,7 +262,6 @@ export class DatabaseStorage implements IStorage {
     healthTested?: boolean;
     vaccinated?: boolean;
   }): Promise<DogListing[]> {
-    let query = db.select().from(dogListings);
     const conditions = [];
 
     if (filters?.breed) {
@@ -304,11 +303,15 @@ export class DatabaseStorage implements IStorage {
       conditions.push(eq(dogListings.vaccinated, true));
     }
 
+    const baseQuery = db.select().from(dogListings);
+    
     if (conditions.length > 0) {
-      query = query.where(and(...conditions));
+      return await baseQuery
+        .where(and(...conditions))
+        .orderBy(desc(dogListings.created_at));
     }
 
-    return await query.orderBy(desc(dogListings.created_at));
+    return await baseQuery.orderBy(desc(dogListings.created_at));
   }
 
   async createDogListing(listing: InsertDogListing): Promise<DogListing> {
@@ -426,11 +429,11 @@ export class DatabaseStorage implements IStorage {
 
   // Post methods
   async getPosts(category?: string): Promise<Post[]> {
-    let query = db.select().from(posts);
+    const baseQuery = db.select().from(posts);
     if (category) {
-      query = query.where(eq(posts.category, category));
+      return await baseQuery.where(eq(posts.category, category)).orderBy(desc(posts.created_at));
     }
-    return await query.orderBy(desc(posts.created_at));
+    return await baseQuery.orderBy(desc(posts.created_at));
   }
 
   async getPost(id: string): Promise<Post | undefined> {
@@ -504,15 +507,15 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getUserTransactions(userId: string, type?: string): Promise<Transaction[]> {
-    let query = db.select().from(transactions);
     const conditions = [eq(transactions.user_id, userId)];
     
     if (type) {
       conditions.push(eq(transactions.type, type));
     }
     
-    query = query.where(and(...conditions));
-    return await query.orderBy(desc(transactions.created_at));
+    return await db.select().from(transactions)
+      .where(and(...conditions))
+      .orderBy(desc(transactions.created_at));
   }
 
   async updateTransaction(id: string, transaction: Partial<InsertTransaction>): Promise<Transaction | undefined> {
@@ -587,7 +590,6 @@ export class DatabaseStorage implements IStorage {
   // Store/Ecommerce methods
   async getProducts(filters?: { isActive?: boolean; isSubscription?: boolean; featured?: boolean; tag?: string }): Promise<Product[]> {
     console.log("Storage getProducts - Received filters:", filters);
-    let query = db.select().from(products);
     
     const conditions = [];
     
@@ -610,12 +612,18 @@ export class DatabaseStorage implements IStorage {
       conditions.push(sql`${products.tags} @> ARRAY[${filters.tag}]`);
     }
     
+    console.log("Storage getProducts - Executing query with", conditions.length, "conditions");
+    
+    const baseQuery = db.select().from(products);
     if (conditions.length > 0) {
-      query = query.where(and(...conditions));
+      const result = await baseQuery
+        .where(and(...conditions))
+        .orderBy(desc(products.created_at));
+      console.log("Storage getProducts - Found", result.length, "products");
+      return result;
     }
     
-    console.log("Storage getProducts - Executing query with", conditions.length, "conditions");
-    const result = await query.orderBy(desc(products.created_at));
+    const result = await baseQuery.orderBy(desc(products.created_at));
     console.log("Storage getProducts - Found", result.length, "products");
     return result;
   }
@@ -838,7 +846,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Enhanced order methods implementation
-  async getUserOrdersWithItems(userId: string): Promise<Array<Order & { items: Array<OrderItem & { product: Product }> }>> {
+  async getUserOrdersWithItems(userId: string): Promise<Array<Order & { items: Array<OrderItem & { product: Product | null }> }>> {
     const userOrders = await db.select().from(orders)
       .where(eq(orders.user_id, userId))
       .orderBy(desc(orders.created_at));
@@ -864,7 +872,7 @@ export class DatabaseStorage implements IStorage {
     return ordersWithItems;
   }
 
-  async getOrderWithItems(orderId: string): Promise<(Order & { items: Array<OrderItem & { product: Product }> }) | undefined> {
+  async getOrderWithItems(orderId: string): Promise<(Order & { items: Array<OrderItem & { product: Product | null }> }) | undefined> {
     const order = await db.select().from(orders)
       .where(eq(orders.id, orderId))
       .limit(1);
@@ -927,8 +935,6 @@ export class DatabaseStorage implements IStorage {
     minPrice?: number;
     maxPrice?: number;
   }): Promise<PetServiceProvider[]> {
-    let query = db.select().from(petServiceProviders);
-    
     const conditions = [];
     if (filters?.isVerified !== undefined) {
       conditions.push(eq(petServiceProviders.is_verified, filters.isVerified));
@@ -946,11 +952,15 @@ export class DatabaseStorage implements IStorage {
       conditions.push(sql`${petServiceProviders.price}::numeric <= ${filters.maxPrice}`);
     }
     
+    const baseQuery = db.select().from(petServiceProviders);
+    
     if (conditions.length > 0) {
-      query = query.where(and(...conditions));
+      return await baseQuery
+        .where(and(...conditions))
+        .orderBy(desc(petServiceProviders.created_at));
     }
     
-    return await query.orderBy(desc(petServiceProviders.created_at));
+    return await baseQuery.orderBy(desc(petServiceProviders.created_at));
   }
 
   async getServiceProviderById(id: string): Promise<PetServiceProvider | null> {
