@@ -6,15 +6,16 @@ import { useSignedIn } from '@/hooks/useSignedIn';
 
 interface SupabaseServiceProvider {
   id: string;
-  business_name: string;
-  service_types: string[];
-  description: string | null;
-  location: string;
-  pricing: any;
-  rating: number | null;
-  total_bookings: number | null;
-  verified: boolean | null;
   user_id: string;
+  service_type: string;
+  bio: string | null;
+  price: number | null;
+  availability: string | null;
+  location: string | null;
+  is_verified: boolean | null;
+  is_active: boolean | null;
+  created_at: string;
+  updated_at: string;
 }
 
 type UseProvidersResult = {
@@ -42,9 +43,10 @@ export function useProviders(): UseProvidersResult {
       }
       // Signed-in: fetch live only — NO fallback to demo
       const { data, error } = await supabase
-        .from('service_providers')
+        .from('pet_service_providers' as any)
         .select('*')
-        .order('rating', { ascending: false });
+        .eq('is_active', true)
+        .order('created_at', { ascending: false });
 
       if (error) {
         // Live failed: show "Empty" state, not demo
@@ -52,12 +54,12 @@ export function useProviders(): UseProvidersResult {
       }
       
       // Convert Supabase providers to ServiceProvider format
-      const convertedProviders: ServiceProvider[] = (data || []).map((p: SupabaseServiceProvider) => ({
+      const convertedProviders: ServiceProvider[] = ((data as SupabaseServiceProvider[]) || []).map((p: SupabaseServiceProvider) => ({
         id: p.id,
-        name: p.business_name,
-        headline: p.description || `Professional ${p.service_types.join(', ')} services`,
-        since: `Provider since ${new Date().toLocaleDateString()}`,
-        tags: p.service_types,
+        name: `${p.service_type} Provider`, // Use service type as name since we don't have business name
+        headline: p.bio || `Professional ${p.service_type} services`,
+        since: `Provider since ${new Date(p.created_at).toLocaleDateString()}`,
+        tags: [p.service_type],
         isDemo: false, // Explicitly mark live data as non-demo
       }));
       
