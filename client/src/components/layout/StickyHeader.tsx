@@ -57,14 +57,15 @@ const StickyHeader = () => {
 
   // Only show social post button on home and profile pages
   const isHomeOrProfilePage = location.pathname === '/home' || location.pathname.startsWith('/profile');
-  const isMarketplacePage = location.pathname === '/marketplace' || location.pathname === '/explore';
+  const isExplorePage = location.pathname === '/explore';
+  const isMarketplacePage = location.pathname === '/marketplace';
   
   // Hide search on auth pages
   const showSearch = !location.pathname.startsWith('/auth');
 
   // Determine button text and behavior
   const getPostButtonText = () => {
-    if (isMarketplacePage) {
+    if (isExplorePage) {
       return "List Puppy";
     }
     return "Post";
@@ -90,13 +91,13 @@ const StickyHeader = () => {
                 />
                 
                 <div className="flex items-center space-x-3">
-                  {/* Dynamic Post Button */}
-                  {(isHomeOrProfilePage || isMarketplacePage) && (
+                  {/* Dynamic Post Button - Hide on marketplace page */}
+                  {(isHomeOrProfilePage || isExplorePage) && (
                     <Button
                       onClick={handleCreatePost}
                       size="sm"
                       className={`${
-                        isMarketplacePage 
+                        isExplorePage 
                           ? 'bg-green-600 hover:bg-green-700' 
                           : ''
                       } rounded-full px-4 py-2 flex items-center gap-2 flex-shrink-0 btn-primary`}
