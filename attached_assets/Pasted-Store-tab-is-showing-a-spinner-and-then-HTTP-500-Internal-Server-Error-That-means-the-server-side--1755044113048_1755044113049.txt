@@ -1,0 +1,118 @@
+Store tab is showing a spinner and then HTTP 500: Internal Server Error. That means the server-side products API is throwing, not a browser/CORS issue. Here’s a focused triage + drop-in fixes so you can get it green again fast.
+
+What to check first (2 quick peeks)
+Browser → Network tab
+
+Click the Store tab, open DevTools → Network, click the failing request (likely /api/store/products or similar).
+
+In Response, you’ll usually see a message (even if it’s 500). Copy it to confirm root cause.
+
+Server logs
+
+Open your Replit Console. When you reload the Store tab, a stack trace should print (route file and line number).
+
+Typical offenders I see in setups like yours:
+
+Missing/invalid DATABASE_URL (or other env) on Replit.
+
+Prisma/Drizzle error because migrations weren’t applied.
+
+Returning BigInt fields (e.g., price) straight to JSON → “Do not know how to serialize a BigInt” → 500.
+
+Upstream (Stripe/Shopify/Supabase) auth key missing/invalid.
+
+Drop-in hardening (server)
+Do this in your products API route (e.g., app/api/store/products/route.ts or your server route that lists products).
+
+ts
+Copy
+Edit
+// app/api/store/products/route.ts
+import { NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma"; // or your db client
+
+// Optional: helper to make DB rows JSON-safe (BigInt etc.)
+const toJSONSafe = <T extends Record<string, any>>(row: T) =>
+  JSON.parse(
+    JSON.stringify(
+      row,
+      (_, v) => (typeof v === "bigint" ? Number(v) : v) // BigInt -> number
+    )
+  );
+
+export async function GET() {
+  try {
+    // Guard missing env early (avoids vague 500s)
+    if (!process.env.DATABASE_URL) {
+      return NextResponse.json(
+        { error: "DATABASE_URL is missing on the server." },
+        { status: 500 }
+      );
+    }
+
+    // Fetch only active products; order as you like
+    const items = await prisma.product.findMany({
+      where: { active: true },
+      orderBy: { createdAt: "desc" },
+    });
+
+    // Make response JSON-safe (BigInt!)
+    const safe = items.map(toJSONSafe);
+
+    return NextResponse.json({ items: safe });
+  } catch (err: any) {
+    console.error("GET /api/store/products failed:", err);
+    // Return a meaningful error body to the client for debugging
+    return NextResponse.json(
+      { error: err?.message ?? "Internal Server Error" },
+      { status: 500 }
+    );
+  }
+}
+If you’re not on Prisma, the idea’s the same: wrap in try/catch, ensure no BigInt leaks, and return a clear error JSON.
+
+Client fetch: show real error & retry gracefully
+In your Store page/component where you fetch products:
+
+ts
+Copy
+Edit
+async function fetchProducts(signal?: AbortSignal) {
+  const res = await fetch("/api/store/products", { signal, headers: { accept: "application/json" } });
+  const txt = await res.text();
+  if (!res.ok) {
+    // Surface server’s message (from the API catch above)
+    let msg = "Unable to load products.";
+    try { msg = (JSON.parse(txt)?.error) || msg; } catch {}
+    throw new Error(`${res.status} ${msg}`);
+  }
+  return JSON.parse(txt) as { items: any[] };
+}
+Then wire your “Try Again” button to call fetchProducts() again and render either:
+
+the grid (on success),
+
+or your “Unable to load products” card with the message you get back (much easier to debug next time).
+
+Common root causes & one-liners to fix
+BigInt in JSON: handled above with the toJSONSafe mapper.
+
+Missing env (DB/API keys): Add them in Replit Secrets panel and restart.
+
+Migrations not applied:
+
+Prisma: add a postinstall or boot step that runs
+prisma generate && prisma migrate deploy
+(or prisma db push for non-prod).
+
+Upstream keys (Stripe/Shopify/Supabase): verify the secret actually exists server-side (client keys won’t work).
+
+Optional: nicer empty states (Store + Services)
+Since you already have a polished “No services found” and a “Filter” pill style you like, reuse the same pattern for Store empty/error states so the UI feels consistent:
+
+Loading: skeleton cards or centered spinner + “Loading products…”
+
+Empty: illustration + “No products yet” + “Be the first to list a product!” (or CTA you prefer)
+
+Error: red callout with server message + “Try Again”
+

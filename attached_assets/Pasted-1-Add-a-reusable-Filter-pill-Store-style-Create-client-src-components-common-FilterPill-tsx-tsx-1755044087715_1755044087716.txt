@@ -1,0 +1,101 @@
+1) Add a reusable Filter pill (Store-style)
+Create: client/src/components/common/FilterPill.tsx
+
+tsx
+Copy
+Edit
+import { Funnel } from "lucide-react";
+
+type Props = {
+  onClick?: () => void;
+  active?: boolean;
+  count?: number;
+  className?: string;
+};
+
+export default function FilterPill({ onClick, active, count, className }: Props) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={[
+        // base pill
+        "inline-flex items-center gap-2 rounded-full border px-5 py-2",
+        "text-sm font-medium shadow-sm transition-colors",
+        // inactive = Store look
+        !active
+          ? "bg-white text-slate-700 border-slate-300 hover:bg-slate-50"
+          // active = brand filled
+          : "bg-[#2363FF] text-white border-[#2363FF] hover:bg-[#1E55D6]",
+        className || ""
+      ].join(" ")}
+    >
+      <Funnel className={active ? "h-4 w-4 opacity-90" : "h-4 w-4 text-slate-500"} />
+      <span>Filter{count ? ` (${count})` : ""}</span>
+    </button>
+  );
+}
+2) Add a clean empty-state (same vibe as other pages)
+Create: client/src/components/common/EmptyServices.tsx
+
+tsx
+Copy
+Edit
+import { Search } from "lucide-react";
+
+export default function EmptyServices() {
+  return (
+    <div className="text-center py-16">
+      <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-slate-100">
+        <Search className="h-10 w-10 text-slate-400" />
+      </div>
+      <h3 className="text-xl font-semibold text-slate-800">No services found</h3>
+      <p className="mt-1 text-slate-500">Be the first to list a service!</p>
+    </div>
+  );
+}
+3) Wire both into the Services page
+Edit: client/src/components/services/ServicesMarketplace.tsx (or ServicesTab.tsx if that’s where the list renders)
+
+Import the new components near the top:
+
+tsx
+Copy
+Edit
+import FilterPill from "@/components/common/FilterPill";
+import EmptyServices from "@/components/common/EmptyServices";
+Replace your existing filter button markup with the new pill (keep your handler/state):
+
+tsx
+Copy
+Edit
+<section className="mx-auto w-full">
+  {/* Filter control row, under search box */}
+  <div className="flex items-center gap-3">
+    <FilterPill
+      onClick={() => setFiltersOpen(true)}
+      active={hasAnyFilter}        // boolean from your state
+      count={activeFilterCount}    // optional: number of active filters
+    />
+    {/* keep the rest of your category pills just below this */}
+  </div>
+</section>
+Swap your empty list placeholder with the shared one:
+
+tsx
+Copy
+Edit
+{/* providersAfterFilters = your filtered array */}
+{providersAfterFilters.length === 0 ? (
+  <EmptyServices />
+) : (
+  <ProvidersGrid providers={providersAfterFilters} />
+)}
+That’s it—this gives you:
+
+A Filter pill that looks like the Store tab (white background, grey outline, icon on the left), and turns solid brand blue with white text when active.
+
+A consistent empty state (magnifying glass + “No services found / Be the first to list a service!”).
+
+If you still see brown text or unexpected colors, it’s almost always a cascade clash from theme tokens or a legacy .btn/variant prop. In that case, remove the old variant on the filter button (use the FilterPill directly), and make sure you’re not wrapping it in a parent with text-* utilities that bleed down.
+
