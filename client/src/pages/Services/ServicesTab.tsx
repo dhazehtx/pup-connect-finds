@@ -269,7 +269,7 @@ export function ServicesTab() {
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="featured" className="space-y-4">
+        <TabsContent value="featured" className="space-y-4 bg-transparent">
           <div className="text-center">
             <h2 className="text-2xl font-semibold mb-2">Featured Service Providers</h2>
             <p className="text-slate-600">
@@ -310,7 +310,7 @@ export function ServicesTab() {
           )}
         </TabsContent>
 
-        <TabsContent value="all" className="space-y-4">
+        <TabsContent value="all" className="space-y-4 bg-transparent">
           <div className="flex justify-between items-center">
             <h2 className="text-2xl font-semibold">
               All Services {allServices.length > 0 && `(${allServices.length})`}

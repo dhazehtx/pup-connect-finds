@@ -129,3 +129,39 @@ button.btn-primary * {
   color: #1D4ED8 !important;
   border-color: transparent !important;
 }
+
+/* Remove blue background from Pet Services content area */
+.services-tabs [data-orientation="horizontal"][data-state="active"] {
+  background-color: transparent !important;
+}
+
+.services-tabs [role="tabpanel"] {
+  background-color: white !important;
+  background: white !important;
+}
+
+/* Force tab content to have white background */
+.services-tabs [data-state="active"][role="tabpanel"] {
+  background-color: white !important;
+  background: white !important;
+}
+
+/* Override any inherited blue backgrounds - be very specific */
+.services-tabs [role="tabpanel"] * {
+  background-color: transparent !important;
+}
+
+.services-tabs .space-y-4 {
+  background-color: white !important;
+}
+
+/* Target Radix UI Tabs root and content specifically */
+[data-radix-collection-item] {
+  background-color: transparent !important;
+}
+
+/* Override default Tabs background completely */
+.services-tabs > [role="tabpanel"]:not([hidden]) {
+  background-color: #FFFFFF !important;
+  background: #FFFFFF !important;
+}
