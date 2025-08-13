@@ -39,8 +39,8 @@ const NotificationButton: React.FC<NotificationButtonProps> = ({ className = '' 
   const { data: notifications, isLoading } = useQuery({
     queryKey: ['notifications'],
     queryFn: async () => {
-      const response = await apiRequest('GET', '/api/notifications');
-      return response.json();
+      const response = await apiRequest('/api/notifications');
+      return response;
     },
     enabled: !!user,
     refetchInterval: 30000, // Refetch every 30 seconds for real-time feel

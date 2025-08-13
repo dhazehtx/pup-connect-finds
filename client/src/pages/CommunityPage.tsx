@@ -73,8 +73,8 @@ const CommunityPage: React.FC = () => {
       params.append('sort', sortBy);
       params.append('limit', '20');
 
-      const response = await apiRequest('GET', `/api/community?${params.toString()}`);
-      return response.json();
+      const response = await apiRequest(`/api/community?${params.toString()}`);
+      return response;
     },
     enabled: activeTab === 'discover',
   });
@@ -83,8 +83,8 @@ const CommunityPage: React.FC = () => {
   const { data: joinedGroups, isLoading: joinedLoading } = useQuery({
     queryKey: ['user-joined-groups'],
     queryFn: async () => {
-      const response = await apiRequest('GET', '/api/community/user/joined');
-      return response.json();
+      const response = await apiRequest('/api/community/user/joined');
+      return response;
     },
     enabled: activeTab === 'joined' && !!user,
   });

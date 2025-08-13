@@ -8,7 +8,9 @@ import { Search } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import CreateServiceDialog from './CreateServiceDialog';
 import { DEMO_PROVIDERS, ServiceProvider } from "@/data/demoProviders";
-import { useAuthState } from '@/hooks/useAuthState';
+import { useSignedIn } from '@/hooks/useSignedIn';
+import FilterPill from '@/components/common/FilterPill';
+import EmptyServices from '@/components/common/EmptyServices';
 
 // Pill styles (centralized source of truth)
 export const PILL_BASE =
@@ -50,8 +52,7 @@ function useGuestRedirect(isSignedIn: boolean) {
 }
 
 const ServicesMarketplace = () => {
-  const { user } = useAuthState();
-  const isSignedIn = !!user;
+  const isSignedIn = useSignedIn();
   const guestRedirect = useGuestRedirect(isSignedIn);
   
   const [providers, setProviders] = useState<ServiceProvider[]>([]);
@@ -85,6 +86,7 @@ const ServicesMarketplace = () => {
           
           if (!cancelled) setProviders(convertedProviders);
         } else {
+          // HARD switch: never mix demo with live
           if (!cancelled) setProviders(DEMO_PROVIDERS);
         }
       } catch (error) {
@@ -117,180 +119,95 @@ const ServicesMarketplace = () => {
   });
 
   return (
-    <div className="min-h-screen bg-white">
-      {/* Header with Gradient */}
-      <section id="marketplace-hero" className="bg-gradient-to-r from-blue-600 to-purple-600 text-white py-16">
-        <div className="container mx-auto px-4 text-center">
-          <h1 className="text-4xl font-bold text-white mb-4">Pet Services Marketplace</h1>
-          <p className="text-lg text-blue-100 max-w-2xl mx-auto">
-            Find trusted professionals for grooming, training, sitting, and more
-          </p>
-          <div className="mt-8">
-            <Button
-              className="bg-white text-blue-600 hover:bg-gray-100 px-8 py-3 text-lg font-semibold rounded-full"
-              onClick={() => setShowCreateService(true)}
-            >
-              Become a Service Provider
-            </Button>
-          </div>
+    <div>
+      {/* Hero - clean single design */}
+      <section id="marketplace-hero" className="mx-auto mb-6 rounded-2xl bg-gradient-to-r from-[#2363FF] to-[#8A2BE2] px-6 py-10 text-white">
+        <h1 className="text-3xl font-bold">Pet Services Marketplace</h1>
+        <p className="mt-2 opacity-90">Find trusted professionals for grooming, training, sitting, and more</p>
+        <div className="mt-4">
+          <button 
+            className="rounded-full bg-white/10 px-5 py-2 text-white ring-1 ring-white/30 hover:bg-white/20"
+            onClick={() => setShowCreateService(true)}
+          >
+            Become a Service Provider
+          </button>
         </div>
       </section>
 
-      <div className="container mx-auto px-4 py-8 max-w-6xl">
-        {/* Search Bar */}
-        <div className="mb-8 bg-white rounded-lg p-6 shadow-sm border border-gray-200">
-          <div className="relative max-w-4xl mx-auto">
-            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-            <Input
-              placeholder="Search services, providers, or locations..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-12 py-4 text-lg rounded-lg shadow-sm border-2 bg-white"
-              style={{ borderColor: '#CBD5E1' }}
-            />
-          </div>
+      {/* Search + pills (single row) */}
+      <div className="mb-3 rounded-xl border bg-white/80 p-4 shadow-sm">
+        <div className="relative">
+          <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+          <Input
+            placeholder="Search services, providers, or locations..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-12 py-3 text-base rounded-lg shadow-sm border-2 bg-white"
+          />
         </div>
+      </div>
 
-        {/* Service Filter Tags */}
-        <div className="flex flex-wrap justify-center gap-3 mb-12">
-          <Button
-            className={`${PILL_BASE} ${activeFilter === "All Services" ? PILL_ACTIVE : PILL_INACTIVE}`}
-            style={{border:"2px solid"}}
-            onClick={() => setActiveFilter("All Services")}
-          >
-            All Services
-          </Button>
-          <Button
-            className={`${PILL_BASE} ${activeFilter === "Grooming" ? PILL_ACTIVE : PILL_INACTIVE}`}
-            style={{border:"2px solid"}}
-            onClick={() => setActiveFilter("Grooming")}
-          >
-            Grooming
-          </Button>
-          <Button
-            className={`${PILL_BASE} ${activeFilter === "Dog Sitting" ? PILL_ACTIVE : PILL_INACTIVE}`}
-            style={{border:"2px solid"}}
-            onClick={() => setActiveFilter("Dog Sitting")}
-          >
-            Dog Sitting
-          </Button>
-          <Button
-            className={`${PILL_BASE} ${activeFilter === "Training" ? PILL_ACTIVE : PILL_INACTIVE}`}
-            style={{border:"2px solid"}}
-            onClick={() => setActiveFilter("Training")}
-          >
-            Training
-          </Button>
-          <Button
-            className={`${PILL_BASE} ${activeFilter === "Dog Walking" ? PILL_ACTIVE : PILL_INACTIVE}`}
-            style={{border:"2px solid"}}
-            onClick={() => setActiveFilter("Dog Walking")}
-          >
-            Dog Walking
-          </Button>
-          <Button
-            className={`${PILL_BASE} ${activeFilter === "Boarding" ? PILL_ACTIVE : PILL_INACTIVE}`}
-            style={{border:"2px solid"}}
-            onClick={() => setActiveFilter("Boarding")}
-          >
-            Boarding
-          </Button>
-        </div>
+      <div className="mb-8 flex flex-wrap justify-center gap-3">
+        {["All Services","Grooming","Dog Sitting","Training","Dog Walking","Boarding"].map(label => {
+          const isActive = activeFilter === label;
+          return (
+            <button
+              key={label}
+              className={`${PILL_BASE} ${isActive ? PILL_ACTIVE : PILL_INACTIVE}`}
+              style={{ border: "2px solid" }}
+              onClick={() => setActiveFilter(label)}
+            >
+              {label}
+            </button>
+          );
+        })}
+      </div>
 
-        {/* Empty State */}
-        {!loading && filteredProviders.length === 0 && (
-          <div className="text-center py-16">
-            <div className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6" style={{ backgroundColor: '#E5EEFF' }}>
-              <Search className="w-10 h-10" style={{ color: '#2363FF' }} />
-            </div>
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">No services found</h3>
-            <p className="text-gray-600 mb-8">Be the first to list a service!</p>
-          </div>
-        )}
+      {/* Providers grid */}
+      <section className="grid gap-6 md:grid-cols-2">
+        {filteredProviders.length === 0 && !loading ? (
+          <EmptyServices />
+        ) : null}
 
-        {/* Loading State */}
         {loading && (
-          <div className="animate-pulse space-y-4">
+          <div className="animate-pulse space-y-4 col-span-full">
             {[...Array(6)].map((_, i) => (
-              <Card key={i} className="border" style={{ borderColor: '#CBD5E1' }}>
+              <Card key={i} className="border">
                 <CardContent className="p-6">
-                  <div className="h-4 rounded w-1/4 mb-2" style={{ backgroundColor: '#E5EEFF' }}></div>
-                  <div className="h-3 rounded w-3/4 mb-4" style={{ backgroundColor: '#E5EEFF' }}></div>
-                  <div className="h-3 rounded w-1/2" style={{ backgroundColor: '#E5EEFF' }}></div>
+                  <div className="h-4 rounded w-1/4 mb-2 bg-gray-200"></div>
+                  <div className="h-3 rounded w-3/4 mb-4 bg-gray-200"></div>
+                  <div className="h-3 rounded w-1/2 bg-gray-200"></div>
                 </CardContent>
               </Card>
             ))}
           </div>
         )}
 
-        {/* Providers Grid */}
-        {!loading && filteredProviders.length > 0 && (
-          <div className="mt-8 grid gap-6 md:grid-cols-2">
-            {filteredProviders.map((provider) => (
-              <article key={provider.id} className="rounded-2xl border p-5 shadow-sm bg-white">
-                <h3 className="text-lg font-semibold text-gray-900">{provider.name}</h3>
-                <p className="mt-1 text-slate-600">{provider.headline}</p>
-                <p className="mt-1 text-slate-400 text-sm">{provider.since}</p>
-                {provider.tags && provider.tags.length > 0 && (
-                  <div className="mt-2 flex flex-wrap gap-1">
-                    {provider.tags.map((tag, index) => (
-                      <span 
-                        key={index} 
-                        className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-50 text-blue-700"
-                      >
-                        {tag}
-                      </span>
-                    ))}
-                  </div>
-                )}
+        {!loading && filteredProviders.map(provider => (
+          <article key={provider.id} className="rounded-xl border p-5 shadow-sm">
+            <h3 className="text-lg font-semibold">{provider.name}</h3>
+            <p className="mt-1 text-slate-600">{provider.headline}</p>
+            <p className="mt-2 text-xs text-slate-400">{provider.since}</p>
 
-                <div className="mt-4 flex gap-3">
-                  <button
-                    className="rounded-full bg-[#2363FF] px-5 py-2 text-white hover:bg-[#1E55D6] transition-colors font-medium"
-                    onClick={(e) => guestRedirect(e) || console.log("book", provider.id)}
-                  >
-                    {isSignedIn ? "Book Service" : "Preview Service"}
-                  </button>
+            <div className="mt-4 flex gap-3">
+              {/* If guest, bounce actions to hero */}
+              {isSignedIn ? (
+                <>
+                  <button className="rounded-full bg-[#2363FF] px-4 py-2 text-white">Book Service</button>
+                  <button className="rounded-full border-2 border-slate-300 px-4 py-2 text-slate-700">View Profile</button>
+                </>
+              ) : (
+                <>
+                  <a href="#marketplace-hero" className="rounded-full bg-[#2363FF] px-4 py-2 text-white">Book Service</a>
+                  <a href="#marketplace-hero" className="rounded-full border-2 border-slate-300 px-4 py-2 text-slate-700">View Profile</a>
+                </>
+              )}
+            </div>
+          </article>
+        ))}
+      </section>
 
-                  <button
-                    className="rounded-full border border-slate-300 px-5 py-2 text-slate-700 hover:bg-slate-50 transition-colors font-medium"
-                    onClick={(e) => guestRedirect(e) || console.log("view", provider.id)}
-                  >
-                    View Profile
-                  </button>
-                </div>
-              </article>
-            ))}
-          </div>
-        )}
 
-        {/* Become a Service Provider Banner */}
-        <div className="mt-16">
-          <Card className="bg-gradient-to-r from-purple-500 to-pink-500 border-0 overflow-hidden">
-            <CardContent className="py-12 px-8 text-center text-white relative">
-              <h2 className="text-3xl font-bold mb-4">Become a Service Provider</h2>
-              <Button 
-                onClick={() => setShowCreateService(true)}
-                className="bg-white font-semibold px-8 py-3 rounded-lg transition-all duration-200"
-                style={{ color: '#2363FF', border: 'none' }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = '#F8F9FA';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = 'white';
-                }}
-              >
-                Get Started
-              </Button>
-              
-              {/* Mobile Device Mockup */}
-              <div className="absolute right-8 bottom-4 hidden lg:block">
-                <div className="w-16 h-20 bg-white/20 rounded-lg border border-white/30"></div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
 
       {/* Create Service Dialog */}
       <CreateServiceDialog

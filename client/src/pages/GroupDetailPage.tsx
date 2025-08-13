@@ -51,8 +51,8 @@ const GroupDetailPage: React.FC = () => {
   const { data: groupData, isLoading: groupLoading } = useQuery({
     queryKey: ['group-detail', groupId],
     queryFn: async () => {
-      const response = await apiRequest('GET', `/api/community/${groupId}`);
-      return response.json();
+      const response = await apiRequest(`/api/community/${groupId}`);
+      return response;
     },
     enabled: !!groupId,
   });
@@ -61,8 +61,8 @@ const GroupDetailPage: React.FC = () => {
   const { data: postsData, isLoading: postsLoading } = useQuery({
     queryKey: ['group-posts', groupId],
     queryFn: async () => {
-      const response = await apiRequest('GET', `/api/groups/${groupId}/posts`);
-      return response.json();
+      const response = await apiRequest(`/api/groups/${groupId}/posts`);
+      return response;
     },
     enabled: !!groupId && activeTab === 'posts',
   });

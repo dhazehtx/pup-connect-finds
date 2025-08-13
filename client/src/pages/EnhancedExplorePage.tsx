@@ -51,8 +51,8 @@ const EnhancedExplorePage: React.FC = () => {
       if (filters.ageRange?.[0] > 0) params.append('min_age', filters.ageRange[0].toString());
       if (filters.ageRange?.[1] < 10) params.append('max_age', filters.ageRange[1].toString());
 
-      const response = await apiRequest('GET', `/api/dog-listings/search?${params.toString()}`);
-      return response.json();
+      const response = await apiRequest(`/api/dog-listings/search?${params.toString()}`);
+      return response;
     },
     enabled: activeTab === 'listings',
   });
@@ -71,8 +71,8 @@ const EnhancedExplorePage: React.FC = () => {
         params.append('sort', filters.sortBy);
       }
 
-      const response = await apiRequest('GET', `/api/posts/search?${params.toString()}`);
-      return response.json();
+      const response = await apiRequest(`/api/posts/search?${params.toString()}`);
+      return response;
     },
     enabled: activeTab === 'posts',
   });

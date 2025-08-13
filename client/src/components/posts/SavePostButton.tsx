@@ -29,8 +29,8 @@ export const SavePostButton: React.FC<SavePostButtonProps> = ({
     queryKey: ['saved-post', postId],
     queryFn: async () => {
       if (!user) return false;
-      const response = await apiRequest('GET', `/api/saved-posts/check/${postId}`);
-      return response.json();
+      const response = await apiRequest(`/api/saved-posts/check/${postId}`);
+      return response;
     },
     enabled: !!user,
   });
