@@ -1,0 +1,75 @@
+✅ Keep the current tab design exactly as-is (don’t restyle any tabs).
+
+🧹 Remove only the big blue background section behind “Featured Service Providers.”
+
+🚫 Kill the demo “Austin Reyes” cards and show the single empty state/CTA until real providers exist.
+
+Here’s a single prompt you can paste into Replit AI to do exactly that—no tab changes:
+
+#️⃣ Replit AI Prompt (paste as one message)
+
+Do not change any tab styles. Keep the visual design of:
+
+Marketplace top tabs (Pet Services | Pup Box | Store)
+
+Category pills (Grooming, Dog Sitting, etc.)
+
+Sub-tabs (Featured Services | All Services)
+
+Task A — Remove only the blue background behind listings
+In the Pet Services page (Marketplace → Pet Services tab), find the wrapper that creates the solid blue section behind the “Featured Service Providers” header and the cards. It likely has classes such as bg-primary, bg-blue-*, or an inline style setting a blue background.
+
+Replace that background with the light app background: use bg-white (or bg-background) and do not add any other color blocks.
+
+Keep the header text (“Featured Service Providers” + subline) and spacing. After removing the blue block, ensure tidy spacing:
+
+Parent section: py-4 md:py-6
+
+Title: text-2xl font-semibold
+
+Subline: text-muted-foreground
+
+Container: max-w-6xl mx-auto px-4 md:px-6
+
+Important: Do not edit any tab/pill components or their classes.
+
+Task B — Remove demo cards and enforce empty state only
+Remove any imports/usages of demo data such as demoProviders, AustinReyes*, DemoServiceCards, or “FeaturedServiceDemo”.
+
+Render only real data from Supabase. If none exist, render the single empty state (with “Become a Provider” CTA). Never fall back to demo cards.
+
+Example guard (TypeScript/React):
+
+tsx
+Copy
+Edit
+const { data: providers, error } = await supabase
+  .from('pet_service_providers') // confirm actual table
+  .select('*')
+// .eq('is_active', true) // include if this column exists
+
+const hasLive = Array.isArray(providers) && providers.length > 0;
+
+return (
+  <>
+    <HeaderWithSearchAndAdvancedFilters />
+    {hasLive ? (
+      <ProvidersGrid providers={providers} />
+    ) : (
+      <EmptyState
+        title="No Services Found"
+        subtitle="Be the first to offer featured services in your area!"
+        ctaLabel="Become a Provider"
+        onCtaClick={() => router.push('/marketplace/providers/new')} // correct route if different
+      />
+    )}
+  </>
+);
+Ensure there’s no second/duplicate list section below (remove any legacy section entirely).
+
+Acceptance (must match)
+Tabs and pills look exactly the same as before (no visual/regression changes).
+
+The large blue block behind listings is gone; the section sits on the normal light background with clean spacing.
+
+With no real providers, you see only the single empty state + CTA (no “Austin Reyes” anywhere), for both guest and signed-in views.
