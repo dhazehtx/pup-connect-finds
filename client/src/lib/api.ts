@@ -17,8 +17,11 @@ export async function apiRequest(
   } = await supabase.auth.getSession();
   const token = session?.access_token || '';
 
-  const url = path.startsWith('/') ? path : `/${path}`;
-  const fetchUrl = `${BACKEND_PREFIX}${url}`; // e.g. /api/posts/home-feed
+  // Handle paths that already start with /api or just ensure leading slash
+  const url = path.startsWith('/api') ? path : 
+               path.startsWith('/') ? `${BACKEND_PREFIX}${path}` : 
+               `${BACKEND_PREFIX}/${path}`;
+  const fetchUrl = url; // e.g. /api/posts/home-feed
 
   // timeout fallback
   const controller = new AbortController();
