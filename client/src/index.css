@@ -116,3 +116,16 @@ button.btn-primary * {
   color: #000000 !important;
   background-color: #E5EEFF !important;
 }
+
+/* Featured/All Services tabs - ensure proper blue pill styling */
+.services-tabs [data-state="active"] {
+  background-color: #2363FF !important;
+  color: #FFFFFF !important;
+  border-color: #2363FF !important;
+}
+
+.services-tabs [data-state="inactive"] {
+  background-color: transparent !important;
+  color: #1D4ED8 !important;
+  border-color: transparent !important;
+}

@@ -1,0 +1,103 @@
+Goals
+
+Explore page: Advanced Filters should be collapsed by default, with a toggle to expand/collapse.
+
+Marketplace → Pet Services: Remove all demo “Austin Reyes” listings and show the single “No services found” empty state when there’s no real data. Applies to guest and signed-in views.
+
+Featured / All Services buttons (Pet Services): make their visual style match other blue pills — blue background + white text when selected, visible outline/blue text when unselected.
+
+A) Explore page – collapse Advanced Filters by default
+Open the Explore page component (e.g., pages/explore.tsx or components/explore/AdvancedFilters.tsx).
+
+If we’re using an accordion/collapsible, set default to collapsed:
+
+For Radix/Headless UI: set defaultOpen={false} (or remove open).
+
+If custom state:
+
+tsx
+Copy
+Edit
+const [isOpen, setIsOpen] = useState(false); // default collapsed
+// Toggle button
+<button onClick={() => setIsOpen(v => !v)} className="btn btn-outline">
+  {isOpen ? 'Hide Filters' : 'Show Filters'}
+</button>
+{isOpen && <AdvancedFiltersContent />}
+Remove any useEffect or props that auto-expand on load.
+
+Acceptance: Navigating to /explore shows filters collapsed; clicking Show Filters expands; clicking again collapses.
+
+B) Pet Services – remove demo listings & enforce empty state
+Open the Pet Services tab (e.g., pages/marketplace/index.tsx + components/marketplace/PetServices.tsx).
+
+Remove any hardcoded/demo arrays like demoProviders, austinReyes*, etc.
+
+Only render from real query results, e.g. providers from Supabase:
+
+tsx
+Copy
+Edit
+// Example guards
+const hasLive = Array.isArray(providers) && providers.length > 0;
+
+return (
+  <>
+    <TopHeaderWithAdvancedFilters />
+    {hasLive ? (
+      <ProvidersGrid providers={providers} />
+    ) : (
+      <EmptyState
+        title="No services found"
+        subtitle="Be the first to list a service!"
+      />
+    )}
+  </>
+);
+Make sure both guest and signed-in code paths use the same renderer above. There should be no second/legacy list below (no duplicate section).
+
+If we previously filtered by status/is_active, keep it; otherwise add it:
+
+ts
+Copy
+Edit
+// Supabase example
+const { data: providers } = await supabase
+  .from('pet_service_providers')
+  .select('*')
+  .eq('is_active', true);
+Acceptance: No “Austin Reyes” cards ever render. With no data, you see one empty state only.
+
+C) Style Featured / All Services buttons to match blue pills
+Locate the “Featured Services” and “All Services” buttons (same file as Pet Services tab).
+
+Match the app’s pill design:
+
+tsx
+Copy
+Edit
+const Pill = ({ active, children, ...props }) => (
+  <button
+    {...props}
+    className={clsx(
+      'px-4 py-2 rounded-full border transition',
+      active
+        ? 'bg-primary text-white border-primary shadow'
+        : 'bg-white text-primary border-primary hover:bg-primary/10'
+    )}
+  >
+    {children}
+  </button>
+);
+Replace current featured/all buttons to use this Pill (or equivalent classes).
+
+Ensure the active one is blue background + white text; inactive has white background + blue text + visible border.
+
+Remove any conflicting text-brown, bg-white text-white, or inline color overrides.
+
+Acceptance:
+
+“Featured” and “All Services” pills look exactly like other blue pills.
+
+Active = blue bg / white text. Inactive = white bg / blue text / visible blue outline.
+

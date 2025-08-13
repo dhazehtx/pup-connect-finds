@@ -252,11 +252,21 @@ export function ServicesTab() {
         </Button>
       </div>
 
-      {/* Services Content */}
-      <Tabs defaultValue="featured" className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="featured">Featured Services</TabsTrigger>
-          <TabsTrigger value="all">All Services</TabsTrigger>
+      {/* Services Content - Blue Pill Style Tabs */}
+      <Tabs defaultValue="featured" className="w-full services-tabs">
+        <TabsList className="inline-flex rounded-full border-2 border-blue-600 bg-blue-50 p-1 w-auto mx-auto">
+          <TabsTrigger 
+            value="featured" 
+            className="px-6 py-2 rounded-full font-medium transition-all duration-200 data-[state=active]:bg-[#2363FF] data-[state=active]:text-white data-[state=active]:border-[#2363FF] data-[state=inactive]:bg-transparent data-[state=inactive]:text-blue-700 data-[state=inactive]:border-transparent"
+          >
+            Featured Services
+          </TabsTrigger>
+          <TabsTrigger 
+            value="all" 
+            className="px-6 py-2 rounded-full font-medium transition-all duration-200 data-[state=active]:bg-[#2363FF] data-[state=active]:text-white data-[state=active]:border-[#2363FF] data-[state=inactive]:bg-transparent data-[state=inactive]:text-blue-700 data-[state=inactive]:border-transparent"
+          >
+            All Services
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="featured" className="space-y-4">

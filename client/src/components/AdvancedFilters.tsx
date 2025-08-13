@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ChevronDownIcon } from 'lucide-react';
+import { ChevronDownIcon, ChevronUpIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
@@ -10,6 +10,7 @@ import { useBreeds, useColorsByBreed } from '@/hooks/useBreedColorOptions';
 import { useExploreFilters } from '@/context/ExploreFiltersContext';
 
 export default function AdvancedFilters() {
+  const [isExpanded, setIsExpanded] = useState(false);
   const { filters, setFilters } = useExploreFilters();
   const { data: breeds } = useBreeds();
   const { data: colors } = useColorsByBreed(filters.breedId);
@@ -54,11 +55,31 @@ export default function AdvancedFilters() {
   return (
     <div className="bg-white border border-gray-200 rounded-lg p-6 mb-6">
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-lg font-semibold text-gray-900">Advanced Filters</h2>
-        <Button variant="outline" onClick={clearAllFilters} className="text-sm">
-          Clear All
-        </Button>
+        <div className="flex items-center gap-3">
+          <h2 className="text-lg font-semibold text-gray-900">Advanced Filters</h2>
+          <Button
+            variant="ghost"
+            onClick={() => setIsExpanded(!isExpanded)}
+            className="p-1 h-8 w-8 text-gray-500 hover:text-gray-700"
+          >
+            {isExpanded ? <ChevronUpIcon className="h-4 w-4" /> : <ChevronDownIcon className="h-4 w-4" />}
+          </Button>
+        </div>
+        {isExpanded && (
+          <Button variant="outline" onClick={clearAllFilters} className="text-sm">
+            Clear All
+          </Button>
+        )}
       </div>
+
+      {!isExpanded && (
+        <p className="text-gray-500 text-sm">
+          Click to expand advanced search options
+        </p>
+      )}
+
+      {isExpanded && (
+        <div>
 
       {/* Sort By */}
       <div className="mb-6">
@@ -463,6 +484,8 @@ export default function AdvancedFilters() {
           </Label>
         </div>
       </div>
+        </div>
+      )}
     </div>
   );
 }
