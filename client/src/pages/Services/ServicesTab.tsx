@@ -85,7 +85,7 @@ export function ServicesTab() {
   }
 
   return (
-    <div className="space-y-6 p-4">
+    <div className="space-y-6 p-4 bg-gray-50 min-h-screen">
       {/* Pet Services Marketplace Hero Section */}
       <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-blue-600 via-blue-700 to-purple-700 text-white shadow-2xl">
         <div className="absolute inset-0 bg-gradient-to-br from-blue-600/90 to-purple-700/90"></div>
@@ -118,7 +118,7 @@ export function ServicesTab() {
           <Button 
             onClick={() => setShowProviderModal(true)}
             size="lg"
-            className="bg-white text-blue-700 hover:bg-gray-50 font-semibold px-8 py-3 rounded-xl shadow-lg"
+            className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-semibold px-8 py-3 rounded-xl shadow-lg transition-all duration-200 transform hover:scale-105"
           >
             <Shield className="h-5 w-5 mr-2" />
             Become a Service Provider
@@ -257,8 +257,8 @@ export function ServicesTab() {
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="featured" className="space-y-4 bg-white">
-          <div className="text-center py-4 md:py-6">
+        <TabsContent value="featured" className="space-y-4">
+          <div className="text-center py-4 md:py-6 bg-white rounded-xl">
             <div className="max-w-6xl mx-auto px-4 md:px-6">
               <h2 className="text-2xl font-semibold mb-2">Featured Service Providers</h2>
               <p className="text-muted-foreground">
@@ -304,10 +304,15 @@ export function ServicesTab() {
         </TabsContent>
 
         <TabsContent value="all" className="space-y-4">
-          <div className="flex justify-between items-center">
-            <h2 className="text-2xl font-semibold">
-              All Services {allServices.length > 0 && `(${allServices.length})`}
-            </h2>
+          <div className="text-center py-4 md:py-6 bg-white rounded-xl">
+            <div className="max-w-6xl mx-auto px-4 md:px-6">
+              <h2 className="text-2xl font-semibold mb-2">
+                All Services {allServices.length > 0 && `(${allServices.length})`}
+              </h2>
+              <p className="text-muted-foreground">
+                Top-rated and verified professionals in your area
+              </p>
+            </div>
           </div>
 
           {isLoading ? (
