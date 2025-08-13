@@ -5,6 +5,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Search } from 'lucide-react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import CreateServiceDialog from './CreateServiceDialog';
 import { DEMO_PROVIDERS, ServiceProvider } from "@/data/demoProviders";
@@ -51,63 +52,86 @@ function useGuestRedirect(isSignedIn: boolean) {
   }, [isSignedIn]);
 }
 
+
+
 const ServicesMarketplace = () => {
   const isSignedIn = useSignedIn();
   const guestRedirect = useGuestRedirect(isSignedIn);
+  const queryClient = useQueryClient();
   
-  const [providers, setProviders] = useState<ServiceProvider[]>([]);
   const [showCreateService, setShowCreateService] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [activeFilter, setActiveFilter] = useState('All Services');
-  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    let cancelled = false;
-    async function load() {
-      setLoading(true);
-      try {
-        if (isSignedIn) {
-          // fetch your live providers
-          const { data, error } = await supabase
-            .from('service_providers')
-            .select('*')
-            .order('rating', { ascending: false });
-
-          if (error) throw error;
-          
-          // Convert Supabase providers to ServiceProvider format
-          const convertedProviders: ServiceProvider[] = (data || []).map((p: SupabaseServiceProvider) => ({
-            id: p.id,
-            name: p.business_name,
-            headline: p.description || `Professional ${p.service_types.join(', ')} services`,
-            since: `Provider since ${new Date().toLocaleDateString()}`,
-            tags: p.service_types
-          }));
-          
-          if (!cancelled) setProviders(convertedProviders);
-        } else {
-          // HARD switch: never mix demo with live
-          if (!cancelled) setProviders(DEMO_PROVIDERS);
-        }
-      } catch (error) {
-        console.error('Error loading providers:', error);
-        if (!cancelled) setProviders(isSignedIn ? [] : DEMO_PROVIDERS);
-      } finally {
-        if (!cancelled) setLoading(false);
+  // Get providers using the auth-aware query
+  const { data, isLoading, isError, refetch } = useQuery({
+    queryKey: ["providers", isSignedIn], // Key by auth state
+    queryFn: async () => {
+      if (!isSignedIn) {
+        return { providers: DEMO_PROVIDERS, source: "demo" as const };
       }
-    }
-    load();
-    return () => { cancelled = true; };
-  }, [isSignedIn]);
+      
+      // Fetch live providers for signed-in users
+      const { data, error } = await supabase
+        .from('service_providers')
+        .select('*')
+        .order('rating', { ascending: false });
 
-  const serviceFilters = [
-    'All Services',
-    'Grooming', 
-    'Dog Sitting',
-    'Training',
-    'Dog Walking',
-    'Boarding'
-  ];
+      if (error) throw error;
+      
+      // Convert Supabase providers to ServiceProvider format
+      const convertedProviders: ServiceProvider[] = (data || []).map((p: SupabaseServiceProvider) => ({
+        id: p.id,
+        name: p.business_name,
+        headline: p.description || `Professional ${p.service_types.join(', ')} services`,
+        since: `Provider since ${new Date().toLocaleDateString()}`,
+        tags: p.service_types
+      }));
+      
+      return { providers: Array.isArray(convertedProviders) ? convertedProviders : [], source: "live" as const };
+    },
+    staleTime: 0, // Always refetch to ensure fresh data
+  });
+
+  // Invalidate cache whenever auth state changes
+  useEffect(() => {
+    queryClient.invalidateQueries({ queryKey: ["providers"] });
+  }, [isSignedIn, queryClient]);
+
+  const providers = data?.providers ?? [];
+  const isDemo = data?.source === "demo";
+
+  // Show empty state only for signed-in users with no live data
+  if (!isDemo && providers.length === 0 && !isLoading) {
+    return <EmptyServices />;
+  }
+
+  if (isLoading) {
+    return (
+      <div className="animate-pulse space-y-4">
+        {[...Array(6)].map((_, i) => (
+          <Card key={i} className="border">
+            <CardContent className="p-6">
+              <div className="h-4 rounded w-1/4 mb-2 bg-gray-200"></div>
+              <div className="h-3 rounded w-3/4 mb-4 bg-gray-200"></div>
+              <div className="h-3 rounded w-1/2 bg-gray-200"></div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className="text-center p-6">
+        <p className="text-red-600 mb-4">Failed to load services</p>
+        <Button onClick={() => refetch()} variant="outline">
+          Try Again
+        </Button>
+      </div>
+    );
+  }
 
   const filteredProviders = providers.filter(provider => {
     const matchesSearch = provider.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -165,60 +189,65 @@ const ServicesMarketplace = () => {
 
       {/* Providers grid */}
       <section className="grid gap-6 md:grid-cols-2">
-        {filteredProviders.length === 0 && !loading ? (
-          <EmptyServices />
-        ) : null}
-
-        {loading && (
-          <div className="animate-pulse space-y-4 col-span-full">
-            {[...Array(6)].map((_, i) => (
-              <Card key={i} className="border">
-                <CardContent className="p-6">
-                  <div className="h-4 rounded w-1/4 mb-2 bg-gray-200"></div>
-                  <div className="h-3 rounded w-3/4 mb-4 bg-gray-200"></div>
-                  <div className="h-3 rounded w-1/2 bg-gray-200"></div>
-                </CardContent>
-              </Card>
-            ))}
+        {filteredProviders.length === 0 ? (
+          <div className="col-span-full">
+            <EmptyServices />
           </div>
+        ) : (
+          filteredProviders.map(provider => (
+            <article key={provider.id} className="rounded-xl border p-5 shadow-sm">
+              <h3 className="text-lg font-semibold">{provider.name}</h3>
+              <p className="mt-1 text-slate-600">{provider.headline}</p>
+              <p className="mt-2 text-xs text-slate-400">{provider.since}</p>
+
+              <div className="mt-4 flex gap-3">
+                {/* Proper button behavior based on auth and demo status */}
+                {isSignedIn && !isDemo ? (
+                  <>
+                    <button 
+                      className="rounded-full bg-[#2363FF] px-4 py-2 text-white hover:bg-[#1E55D6]"
+                      data-testid={`button-book-${provider.id}`}
+                    >
+                      Book Service
+                    </button>
+                    <button 
+                      className="rounded-full border-2 border-slate-300 px-4 py-2 text-slate-700 hover:bg-slate-50"
+                      data-testid={`button-profile-${provider.id}`}
+                    >
+                      View Profile
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <button 
+                      className="rounded-full bg-[#2363FF] px-4 py-2 text-white hover:bg-[#1E55D6]"
+                      onClick={guestRedirect}
+                      data-testid={`button-book-demo-${provider.id}`}
+                    >
+                      Book Service
+                    </button>
+                    <button 
+                      className="rounded-full border-2 border-slate-300 px-4 py-2 text-slate-700 hover:bg-slate-50"
+                      onClick={guestRedirect}
+                      data-testid={`button-profile-demo-${provider.id}`}
+                    >
+                      View Profile
+                    </button>
+                  </>
+                )}
+              </div>
+            </article>
+          ))
         )}
-
-        {!loading && filteredProviders.map(provider => (
-          <article key={provider.id} className="rounded-xl border p-5 shadow-sm">
-            <h3 className="text-lg font-semibold">{provider.name}</h3>
-            <p className="mt-1 text-slate-600">{provider.headline}</p>
-            <p className="mt-2 text-xs text-slate-400">{provider.since}</p>
-
-            <div className="mt-4 flex gap-3">
-              {/* If guest, bounce actions to hero */}
-              {isSignedIn ? (
-                <>
-                  <button className="rounded-full bg-[#2363FF] px-4 py-2 text-white">Book Service</button>
-                  <button className="rounded-full border-2 border-slate-300 px-4 py-2 text-slate-700">View Profile</button>
-                </>
-              ) : (
-                <>
-                  <a href="#marketplace-hero" className="rounded-full bg-[#2363FF] px-4 py-2 text-white">Book Service</a>
-                  <a href="#marketplace-hero" className="rounded-full border-2 border-slate-300 px-4 py-2 text-slate-700">View Profile</a>
-                </>
-              )}
-            </div>
-          </article>
-        ))}
       </section>
-
-
 
       {/* Create Service Dialog */}
       <CreateServiceDialog
         isOpen={showCreateService}
         onOpenChange={setShowCreateService}
         onServiceCreated={() => {
-          // Reload providers after creating a new service
-          if (isSignedIn) {
-            // Trigger a re-render by updating the dependency
-            setLoading(true);
-          }
+          // Invalidate cache to refresh providers
+          queryClient.invalidateQueries({ queryKey: ["providers"] });
         }}
       />
     </div>
