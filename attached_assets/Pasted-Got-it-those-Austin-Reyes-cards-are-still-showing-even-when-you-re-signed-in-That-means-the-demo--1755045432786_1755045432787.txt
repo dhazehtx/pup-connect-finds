@@ -1,0 +1,130 @@
+Got it—those “Austin Reyes” cards are still showing even when you’re signed in. That means the demo list is leaking into the signed-in path. The two most common reasons:
+
+Auth-agnostic cache/state — your providers request (or local state) isn’t keyed by auth, so the demo list from the guest render sticks around after login.
+
+Fallback logic too broad — code like const list = live?.length ? live : DEMO_PROVIDERS; runs even when you’re signed in (so you never see the empty state).
+
+Below is a drop-in pattern that fixes both. It shows:
+
+Guest → demo cards + CTA.
+
+Signed-in → live only; if none, show the “No services found” empty state.
+
+Cache is keyed by auth and invalidated on auth change, so you won’t get stale demo data after logging in.
+
+1) One source of truth for providers
+Create (or replace) the providers section that renders the cards in ServicesMarketplace.tsx (or wherever you list providers).
+
+If you use Clerk
+tsx
+Copy
+Edit
+"use client";
+import { useEffect } from "react";
+import { useUser } from "@clerk/nextjs";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { DEMO_PROVIDERS } from "@/data/demoProviders";         // your demo data
+import { fetchProviders } from "@/lib/api";                     // your live fetcher
+import EmptyServices from "@/components/services/EmptyServices";// shows “No services found…”
+import ProvidersGrid from "@/components/services/ProvidersGrid";// grid of cards
+
+export default function ProvidersSection() {
+  const { isLoaded, isSignedIn } = useUser();
+  const qc = useQueryClient();
+
+  // make cache flip whenever auth flips
+  useEffect(() => {
+    if (isLoaded) qc.invalidateQueries({ queryKey: ["providers"] });
+  }, [isLoaded, isSignedIn, qc]);
+
+  const { data, isLoading, isError, refetch } = useQuery({
+    queryKey: ["providers", isSignedIn],           // <-- key by auth
+    queryFn: async () => {
+      if (!isSignedIn) {
+        return { providers: DEMO_PROVIDERS, source: "demo" as const };
+      }
+      const live = await fetchProviders();         // must return []
+      return { providers: Array.isArray(live) ? live : [], source: "live" as const };
+    },
+    staleTime: 0,
+  });
+
+  if (!isLoaded || isLoading) return <ProvidersGrid.Skeleton />;
+  if (isError) return <ProvidersGrid.Error onRetry={() => refetch()} />;
+
+  const providers = data?.providers ?? [];
+  const isDemo = data?.source === "demo";
+
+  // Signed-in & no data -> empty state (no demo here)
+  if (!isDemo && providers.length === 0) return <EmptyServices />;
+
+  return <ProvidersGrid providers={providers} isDemo={isDemo} />;
+}
+If you use NextAuth (instead of Clerk)
+tsx
+Copy
+Edit
+import { useSession } from "next-auth/react";
+// ...
+const { status } = useSession();
+const isSignedIn = status === "authenticated";
+Keep the rest identical (include ["providers", isSignedIn] key + invalidation when status changes).
+
+If you use Firebase
+Subscribe to onAuthStateChanged and derive isSignedIn from that; keep the same query key & logic.
+
+2) Kill the too-broad fallback
+Search your repo for these and remove/adjust:
+
+DEMO_PROVIDERS being used outside the guest branch.
+
+Any merge like const list = live?.length ? live : DEMO_PROVIDERS; in signed-in code.
+
+Any SSR render that injects demo on the server and never re-hydrates (make the providers list a client component or pass the session server-side).
+
+Quick grep targets to clean up:
+
+"Austin Reyes" (hardcoded card)
+
+DEMO_PROVIDERS
+
+|| DEMO_PROVIDERS
+
+?? DEMO_PROVIDERS
+
+3) Button behavior for demo vs live
+Inside your card/grid component:
+
+tsx
+Copy
+Edit
+function ProviderCard({ provider, isDemo }: { provider: Provider; isDemo: boolean }) {
+  const onBook = () => {
+    if (isDemo) {
+      // guest preview -> bounce to hero or sign-in
+      document.getElementById("marketplace-hero")?.scrollIntoView({ behavior: "smooth" });
+      // or router.push("/sign-in");
+      return;
+    }
+    // normal book flow
+    // router.push(`/providers/${provider.id}`);
+  };
+
+  return (
+    <Card /* … */>
+      {/* … */}
+      <Button onClick={onBook}>Book Service</Button>
+    </Card>
+  );
+}
+4) Show the empty state when signed-in & truly empty
+You already have the “No services found / Be the first to list a service!” component. The key is to return it only when isSignedIn && providers.length === 0 (as in the code above).
+
+5) Why you kept seeing demo after login (root cause)
+The list was likely rendered once in guest mode, then cached (React Query/SWR/redux/zustand) with a key that didn’t include auth. After login, the component reused that cached array.
+
+Or a “fallback to demo” ran even in the signed-in branch.
+
+Or it SSR’d as guest (no session) and the client never re-rendered the list with signed-in data.
+
+The pattern above fixes all three.
