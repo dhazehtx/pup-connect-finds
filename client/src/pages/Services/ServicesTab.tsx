@@ -104,6 +104,27 @@ export function ServicesTab() {
 
   return (
     <div className="space-y-6 p-4">
+      {/* Pet Services Marketplace gradient hero */}
+      <div className="text-center space-y-6 mb-8">
+        <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-2xl p-8">
+          <h1 className="text-4xl font-bold mb-4">Pet Services Marketplace</h1>
+          <p className="text-blue-100 text-lg max-w-3xl mx-auto">
+            Connect with trusted professionals for grooming, training, sitting, and more
+          </p>
+        </div>
+        
+        <div className="flex flex-col sm:flex-row gap-3 justify-center">
+          <Button 
+            onClick={() => setShowProviderModal(true)}
+            size="lg"
+            variant="gradient"
+            className="gap-2"
+          >
+            <Shield className="h-5 w-5" />
+            <span className="text-white">Become a Service Provider</span>
+          </Button>
+        </div>
+      </div>
 
       {/* Search Card */}
       <Card className="shadow-lg border-0 bg-white">
