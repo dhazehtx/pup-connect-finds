@@ -51,7 +51,9 @@ export function useProviders(): UseProvidersResult {
 
       if (error) {
         console.error('Error fetching service providers:', error);
-        throw error;
+        // Return empty array for signed-in users when there's a database error
+        // This will show the proper empty state instead of demo data
+        return [];
       }
       
       // Convert Supabase providers to ServiceProvider format

@@ -1,9 +1,11 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { MapPin, Clock, Star, Shield, DollarSign } from 'lucide-react';
+import { useSignedIn } from '@/hooks/useSignedIn';
 import type { PetServiceProvider } from '@shared/schema';
 
 interface ServiceProviderCardProps {
@@ -20,6 +22,27 @@ interface ServiceProviderCardProps {
 }
 
 export function ServiceProviderCard({ provider, onBook }: ServiceProviderCardProps) {
+  const navigate = useNavigate();
+  const isSignedIn = useSignedIn();
+  
+  const handleBookClick = () => {
+    // If user is not signed in and this is a demo provider, redirect to auth
+    if (!isSignedIn && (provider as any)?.isDemo) {
+      navigate('/auth/sign-up');
+      return;
+    }
+    onBook();
+  };
+
+  const handleViewProfile = () => {
+    // If user is not signed in and this is a demo provider, redirect to auth
+    if (!isSignedIn && (provider as any)?.isDemo) {
+      navigate('/auth/sign-up');
+      return;
+    }
+    window.open(`/profile/${provider.user?.id}`, '_blank');
+  };
+
   const serviceTypeIcons: Record<string, string> = {
     grooming: '✂️',
     walking: '🚶',
@@ -109,7 +132,7 @@ export function ServiceProviderCard({ provider, onBook }: ServiceProviderCardPro
         {/* Action Buttons */}
         <div className="flex gap-2 pt-2">
           <Button 
-            onClick={onBook}
+            onClick={handleBookClick}
             className="flex-1 bg-blue-600 hover:bg-blue-700 !text-white font-medium"
             size="sm"
           >
@@ -120,10 +143,7 @@ export function ServiceProviderCard({ provider, onBook }: ServiceProviderCardPro
             variant="outline" 
             size="sm"
             className="text-slate-700 font-medium border-slate-300 hover:bg-slate-50"
-            onClick={() => {
-              // Navigate to provider profile
-              window.open(`/profile/${provider.user?.id}`, '_blank');
-            }}
+            onClick={handleViewProfile}
           >
             View Profile
           </Button>

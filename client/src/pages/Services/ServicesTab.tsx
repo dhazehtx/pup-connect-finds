@@ -72,7 +72,7 @@ export function ServicesTab() {
   const featuredServices = filteredServices.slice(0, 6);
   const allServices = filteredServices;
 
-  if (error) {
+  if (error && isSignedIn) {
     return (
       <div className="p-6 text-center">
         <div className="m-4 rounded-xl border border-red-200 bg-red-50 p-4">
@@ -298,10 +298,10 @@ export function ServicesTab() {
             </div>
           ) : (
             <div className="text-center py-12 bg-white rounded-xl">
-              <div className="text-6xl mb-4">🐕</div>
+              <div className="text-6xl mb-4">🔍</div>
               <h3 className="text-xl font-semibold mb-2">No Services Found</h3>
               <p className="text-muted-foreground mb-4">
-                Be the first to offer services in your area!
+                Be the first to offer featured services in your area!
               </p>
               <Button 
                 onClick={() => setShowProviderModal(true)}
@@ -349,10 +349,10 @@ export function ServicesTab() {
             </div>
           ) : (
             <div className="text-center py-12 bg-white rounded-xl">
-              <div className="text-6xl mb-4">🐕</div>
+              <div className="text-6xl mb-4">🔍</div>
               <h3 className="text-xl font-semibold mb-2">No Services Found</h3>
               <p className="text-muted-foreground mb-4">
-                Be the first to offer services in your area!
+                Be the first to offer featured services in your area!
               </p>
               <Button 
                 onClick={() => setShowProviderModal(true)}
