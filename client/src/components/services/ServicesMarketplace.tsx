@@ -1,14 +1,13 @@
 
 import * as React from "react";
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Search } from 'lucide-react';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { useQueryClient } from '@tanstack/react-query';
 import CreateServiceDialog from './CreateServiceDialog';
-import { DEMO_PROVIDERS, ServiceProvider } from "@/data/demoProviders";
+import { useProviders } from '@/hooks/useProviders';
 import { useSignedIn } from '@/hooks/useSignedIn';
 import FilterPill from '@/components/common/FilterPill';
 import EmptyServices from '@/components/common/EmptyServices';
@@ -21,18 +20,7 @@ export const PILL_INACTIVE =
 export const PILL_ACTIVE =
   "bg-[#2363FF] text-white border-[#2363FF] hover:bg-[#1E55D6]";
 
-interface SupabaseServiceProvider {
-  id: string;
-  business_name: string;
-  service_types: string[];
-  description: string | null;
-  location: string;
-  pricing: any;
-  rating: number | null;
-  total_bookings: number | null;
-  verified: boolean | null;
-  user_id: string;
-}
+
 
 // Jump to the hero if guest clicks anything "gated"
 function useGuestRedirect(isSignedIn: boolean) {
@@ -63,46 +51,11 @@ const ServicesMarketplace = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [activeFilter, setActiveFilter] = useState('All Services');
 
-  // Get providers using the auth-aware query
-  const { data, isLoading, isError, refetch } = useQuery({
-    queryKey: ["providers", isSignedIn], // Key by auth state
-    queryFn: async () => {
-      if (!isSignedIn) {
-        return { providers: DEMO_PROVIDERS, source: "demo" as const };
-      }
-      
-      // Fetch live providers for signed-in users
-      const { data, error } = await supabase
-        .from('service_providers')
-        .select('*')
-        .order('rating', { ascending: false });
+  // Use centralized providers hook - no demo/live merging, proper auth-aware caching
+  const { providers, source, isLoading, isError } = useProviders();
 
-      if (error) throw error;
-      
-      // Convert Supabase providers to ServiceProvider format
-      const convertedProviders: ServiceProvider[] = (data || []).map((p: SupabaseServiceProvider) => ({
-        id: p.id,
-        name: p.business_name,
-        headline: p.description || `Professional ${p.service_types.join(', ')} services`,
-        since: `Provider since ${new Date().toLocaleDateString()}`,
-        tags: p.service_types
-      }));
-      
-      return { providers: Array.isArray(convertedProviders) ? convertedProviders : [], source: "live" as const };
-    },
-    staleTime: 0, // Always refetch to ensure fresh data
-  });
-
-  // Invalidate cache whenever auth state changes
-  useEffect(() => {
-    queryClient.invalidateQueries({ queryKey: ["providers"] });
-  }, [isSignedIn, queryClient]);
-
-  const providers = data?.providers ?? [];
-  const isDemo = data?.source === "demo";
-
-  // Show empty state only for signed-in users with no live data
-  if (!isDemo && providers.length === 0 && !isLoading) {
+  // Show empty state for any scenario with no providers
+  if (!isLoading && !isError && providers.length === 0) {
     return <EmptyServices />;
   }
 
@@ -126,12 +79,14 @@ const ServicesMarketplace = () => {
     return (
       <div className="text-center p-6">
         <p className="text-red-600 mb-4">Failed to load services</p>
-        <Button onClick={() => refetch()} variant="outline">
+        <Button onClick={() => queryClient.invalidateQueries({ queryKey: ["providers"] })} variant="outline">
           Try Again
         </Button>
       </div>
     );
   }
+
+  const isDemo = source === "demo";
 
   const filteredProviders = providers.filter(provider => {
     const matchesSearch = provider.name.toLowerCase().includes(searchTerm.toLowerCase()) ||

@@ -1,0 +1,118 @@
+1) Centralize “guest vs live” in one place
+Create (or update) a tiny hook so every component gets providers from the same source.
+
+client/src/hooks/useProviders.ts
+
+tsx
+Copy
+Edit
+import { useEffect } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { DEMO_PROVIDERS } from "@/data/demoProviders";
+
+// --- Pick your auth adapter ---
+// NextAuth:
+// import { useSession } from "next-auth/react";
+// const useAuthState = () => ({ isGuest: !useSession().data?.user });
+
+// Clerk:
+// import { useUser } from "@clerk/nextjs";
+// const useAuthState = () => ({ isGuest: !useUser().isSignedIn });
+
+// Firebase (example):
+// import { useAuthState as useFbAuth } from "react-firebase-hooks/auth";
+// import { auth } from "@/lib/firebase";
+// const useAuthState = () => { const [user] = useFbAuth(auth); return { isGuest: !user }; };
+
+// ---- Choose one of the above and delete the others ----
+const useAuthState = () => ({ isGuest: true }); // <— TEMP: replace with your real one
+
+export function useProviders() {
+  const { isGuest } = useAuthState();
+  const qc = useQueryClient();
+
+  // Keep auth state in the key so cache never leaks across guest/signed-in
+  const { data: liveProviders, isLoading, isError } = useQuery({
+    queryKey: ["providers", { authed: !isGuest }],
+    queryFn: async () => {
+      const res = await fetch("/api/providers"); // your live endpoint
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      return (await res.json()) as any[];
+    },
+    enabled: !isGuest,          // don’t fetch live when guest
+    staleTime: 30_000,
+  });
+
+  // If auth status flips, make sure stale guest/live caches don’t linger
+  useEffect(() => {
+    qc.invalidateQueries({ queryKey: ["providers"] });
+  }, [isGuest, qc]);
+
+  if (isGuest) {
+    return { providers: DEMO_PROVIDERS, source: "demo", isLoading: false, isError: false };
+  }
+
+  // Signed in: show ONLY live data. If none, show empty state (not demo).
+  return {
+    providers: liveProviders ?? [],
+    source: "live",
+    isLoading,
+    isError,
+  };
+}
+Replace the useAuthState stub with your real auth (NextAuth/Clerk/Firebase).
+Delete the two adapters you’re not using.
+
+2) Use the hook in the marketplace (no merges, no fallbacks)
+In ServicesMarketplace.tsx (or wherever you render the grid/list):
+
+tsx
+Copy
+Edit
+import { useProviders } from "@/hooks/useProviders";
+import { EmptyServices } from "@/components/services/EmptyServices";
+import { ProviderCard } from "@/components/services/ProviderCard";
+
+export default function ServicesMarketplace() {
+  const { providers, source, isLoading, isError } = useProviders();
+
+  if (isLoading) return <EmptyServices state="loading" />;
+  if (isError)   return <EmptyServices state="error" />;
+
+  if (!providers.length) {
+    // Signed-in with 0 -> show empty; Guest with 0 demo -> also empty (rare)
+    return <EmptyServices state="empty" />;
+  }
+
+  return (
+    <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
+      {providers.map((p) => (
+        <ProviderCard key={p.id} provider={p} />
+      ))}
+    </div>
+  );
+}
+Important: Do not concatenate demo + live ([...DEMO_PROVIDERS, ...live]) anywhere. We only ever use the providers returned by the hook.
+
+3) Remove any hardcoded demo cards
+Quick repo sweep (do this in Replit’s search):
+
+Search: Austin Reyes → delete any JSX like <ProviderCard name="Austin Reyes" ... />.
+
+Search: DEMO_PROVIDERS → ensure it’s only imported inside the hook above.
+If any component imports it directly, replace usage with useProviders().
+
+4) Make sure empty state shows for signed-in users with no data
+Your EmptyServices already renders the “No services found — Be the first to list a service!” block. We now route all “no data” signed-in cases to that component (see step 2).
+
+5) Why the demo leaked before (so it won’t again)
+The app likely merged demo + live or fell back to demo on any fetch miss, regardless of auth.
+
+React Query cache probably reused the same key for guest and authed, so a guest visit populated the cache and the authed view reused it.
+
+We fix both by:
+
+Never merging or falling back to demo when authed.
+
+Putting { authed: !isGuest } in the query key (and invalidating on auth change).
+
