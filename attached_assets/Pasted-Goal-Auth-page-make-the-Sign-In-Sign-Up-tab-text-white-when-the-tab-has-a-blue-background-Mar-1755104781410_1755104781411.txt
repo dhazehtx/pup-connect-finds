@@ -1,0 +1,76 @@
+Goal:
+
+Auth page: make the Sign In / Sign Up tab text white when the tab has a blue background.
+
+Marketplace → Pet Services tab: remove the duplicate section at the bottom (old search bar, brown category buttons, and demo cards). Keep only the top header + advanced filter search section. Apply for both guest and signed-in views.
+
+Implementation details:
+
+A. Auth / Sign In–Sign Up tabs
+
+Find the auth page/components (likely pages/auth.tsx or components/auth/AuthTabs.tsx).
+
+For the tab/button that renders the active “Sign In” / “Sign Up” state (blue background), ensure the text uses text-white and does not inherit any brown theme color.
+
+If you see hardcoded brown like text-[#6B4F1D] or a text-brown class on the tab labels, remove it from the active state.
+
+Example (Tailwind-style):
+
+tsx
+Copy
+Edit
+<button
+  className={clsx(
+    'px-4 py-2 rounded-lg transition',
+    isActive
+      ? 'bg-primary text-white shadow'     // <- ensure text-white here
+      : 'bg-muted text-foreground hover:bg-muted/80'
+  )}
+>
+  Sign In
+</button>
+If we’re using a segmented control, add an explicit text-white on the selected segment and text-foreground on unselected.
+
+B. Marketplace → Pet Services duplicate removal
+
+Open the Pet Services tab component (e.g., pages/marketplace/index.tsx + components/marketplace/PetServices.tsx or similar).
+
+There are two stacks rendering search/filters:
+
+Keep: the top header with the big search field and advanced filter bar.
+
+Remove: the lower/legacy section that shows a second search input, brown “All Services / Grooming / …” pill buttons, and the old demo cards.
+
+Delete the legacy block or wrap it with a feature flag and set it false. Remove any demo listings like “Austin Reyes…” entirely for both guest and signed-in states.
+
+Ensure only one list renderer remains (the one tied to real data + “No services found” empty state).
+
+Guard the list with:
+
+tsx
+Copy
+Edit
+const showList = providers && providers.length > 0;
+return (
+  <>
+    <HeaderWithAdvancedFilters />   {/* keep */}
+    {showList ? <ProvidersGrid data={providers}/> : <EmptyState message="No services found" cta="Be the first to list a service!" />}
+  </>
+);
+Remove / stop importing any legacy components such as LegacySearchBar, LegacyCategoryPills, DemoServiceCards, MarketplaceGreetingDuplicate, etc.
+
+Confirm the guest view uses the same top header + advanced filters, and never shows the legacy demo block.
+
+C. Quick checks
+
+Auth page: the selected Sign In and Sign Up tabs display white text on blue.
+
+Marketplace → Pet Services (guest and signed-in):
+
+Only one search/filters section at the top.
+
+No second search bar, no brown pill buttons, no demo cards at the bottom.
+
+If there are zero live providers, show the single “No services found” empty state (the one in the last screenshot).
+
+Do not change layout spacing or desktop styles. Only the items above.
