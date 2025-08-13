@@ -105,6 +105,82 @@ button[class*="bg-gradient-to-r"]:hover {
   box-shadow: none !important;
 }
 
+/* Remove all blue borders, outlines, and decorative elements from TabsContent and containers */
+[role="tabpanel"],
+.services-container,
+div[class*="space-y"],
+div[class*="bg-white"],
+div[class*="rounded"] {
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* Specifically target the Featured Services and All Services tabs content */
+[data-state="active"] + div,
+[data-orientation="horizontal"] [role="tabpanel"] {
+  border: none !important;
+  border-top: none !important;
+  border-left: none !important;
+  border-right: none !important;
+  border-bottom: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* Remove any blue decorative lines or borders from the entire services section */
+.services-tab-content *,
+[role="tabpanel"] *,
+div[class*="text-center"] {
+  border-color: transparent !important;
+  border: none !important;
+  outline: none !important;
+}
+
+/* Force remove all blue borders and styling from services tabs */
+.services-tabs [role="tablist"],
+.services-tabs [role="tablist"] * {
+  border: none !important;
+  border-color: transparent !important;
+  background-color: rgba(249, 250, 251, 1) !important; /* bg-gray-50 */
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* Override any blue styling in the services section */
+[class*="border-blue"],
+[class*="bg-blue"] {
+  border-color: transparent !important;
+  background-color: rgba(249, 250, 251, 1) !important;
+}
+
+/* Nuclear option: Remove all blue from the services tabs area */
+.services-tabs *,
+.services-tabs *::before,
+.services-tabs *::after {
+  border: none !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+  outline: none !important;
+}
+
+/* Target the specific blue corner artifacts */
+.services-tabs [role="tabpanel"]::before,
+.services-tabs [role="tabpanel"]::after,
+.services-tabs [role="tablist"]::before,
+.services-tabs [role="tablist"]::after {
+  content: none !important;
+  display: none !important;
+  border: none !important;
+  background: none !important;
+}
+
+/* Remove any pseudo-elements that might be creating blue decorations */
+*::before,
+*::after {
+  border-color: transparent !important;
+}
+
 /* Force white text on active marketplace tabs only */
 .marketplace [data-state="active"] {
   color: white !important;
