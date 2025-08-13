@@ -103,256 +103,266 @@ export function ServicesTab() {
   }
 
   return (
-    <div className="space-y-6 p-4">
-      {/* Pet Services Marketplace header */}
-      <div className="text-center space-y-6 mb-8 py-4 md:py-6">
-        <div className="max-w-6xl mx-auto px-4 md:px-6">
-          <h1 className="text-2xl font-semibold mb-2">Pet Services Marketplace</h1>
-          <p className="text-muted-foreground text-lg max-w-3xl mx-auto">
-            Connect with trusted professionals for grooming, training, sitting, and more
-          </p>
-        </div>
-        
-        <div className="flex flex-col sm:flex-row gap-3 justify-center">
-          <Button 
-            onClick={() => setShowProviderModal(true)}
-            size="lg"
-            variant="gradient"
-            className="gap-2"
-          >
-            <Shield className="h-5 w-5" />
-            <span className="text-white">Become a Service Provider</span>
-          </Button>
-        </div>
-      </div>
-
-      {/* Search Card */}
-      <Card className="shadow-lg border-0 bg-white">
-        <CardContent className="p-6">
-          <div className="space-y-4">
-            {/* Search Bar */}
-            <div className="relative">
+    <div className="space-y-6">
+      {/* Pet Services Hero - Gradient Section */}
+      <section className="mx-auto max-w-6xl px-4 md:px-6">
+        <div className="rounded-2xl p-6 md:p-8 text-white"
+             style={{background: 'linear-gradient(90deg, #2563EB 0%, #7C3AED 100%)'}}>
+          <h1 className="text-2xl md:text-3xl font-semibold">Pet Services Marketplace</h1>
+          <p className="mt-2 opacity-90">Find trusted professionals for grooming, training, sitting, and more</p>
+          
+          {/* Hero Search Input */}
+          <div className="mt-6">
+            <div className="relative max-w-2xl">
               <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
               <Input
                 placeholder="Search services, providers, or locations..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-12 h-12 text-base border-2 border-gray-200 focus:border-blue-500 rounded-xl"
+                className="pl-12 h-12 text-base border-2 border-white/20 focus:border-white rounded-xl bg-white/10 backdrop-blur-sm text-white placeholder:text-white/70"
               />
             </div>
+          </div>
 
-            {/* Quick Actions */}
-            <div className="flex justify-between items-center">
-              <Button
-                variant="outline"
-                onClick={() => setShowFilters(!showFilters)}
-                className="flex items-center gap-2 rounded-lg border-2"
-              >
-                <Filter className="h-4 w-4" />
-                Advanced Filters
-              </Button>
-              
-              {Object.values(filters).some(Boolean) && (
+          {/* Become Provider Button */}
+          <div className="mt-6">
+            <Button 
+              onClick={() => setShowProviderModal(true)}
+              size="lg"
+              className="bg-white text-blue-600 hover:bg-white/90 gap-2"
+            >
+              <Shield className="h-5 w-5" />
+              <span>Become a Service Provider</span>
+            </Button>
+          </div>
+        </div>
+      </section>
+
+      {/* Advanced Filters Section */}
+      <div className="max-w-6xl mx-auto px-4 md:px-6">
+        <Card className="bg-white border-0 shadow-sm">
+          <CardContent className="p-6">
+            <div className="space-y-4">
+              {/* Quick Actions */}
+              <div className="flex justify-between items-center">
                 <Button
-                  variant="ghost"
-                  onClick={() => setFilters({})}
-                  size="sm"
-                  className="text-blue-600 hover:text-blue-700"
+                  variant="outline"
+                  onClick={() => setShowFilters(!showFilters)}
+                  className="flex items-center gap-2 rounded-lg border-2"
                 >
-                  Clear All
+                  <Filter className="h-4 w-4" />
+                  Advanced Filters
                 </Button>
+                
+                {Object.values(filters).some(Boolean) && (
+                  <Button
+                    variant="ghost"
+                    onClick={() => setFilters({})}
+                    size="sm"
+                    className="text-blue-600 hover:text-blue-700"
+                  >
+                    Clear All
+                  </Button>
+                )}
+              </div>
+
+              {/* Advanced Filters Panel */}
+              {showFilters && (
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-6 bg-gray-50 border border-gray-200 rounded-xl mt-4">
+                  <Select 
+                    value={filters.type || 'all'} 
+                    onValueChange={(value) => setFilters(prev => ({ ...prev, type: value === 'all' ? undefined : value }))}
+                  >
+                    <SelectTrigger className="border-2">
+                      <SelectValue placeholder="Service Type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Services</SelectItem>
+                      {serviceTypes.map(type => (
+                        <SelectItem key={type.value} value={type.value}>
+                          {type.icon} {type.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+
+                  <Input
+                    placeholder="Location"
+                    value={filters.location || ''}
+                    onChange={(e) => setFilters(prev => ({ ...prev, location: e.target.value || undefined }))}
+                    className="border-2"
+                  />
+
+                  <Input
+                    type="number"
+                    placeholder="Min Price ($)"
+                    value={filters.min_price || ''}
+                    onChange={(e) => setFilters(prev => ({ ...prev, min_price: e.target.value || undefined }))}
+                    className="border-2"
+                  />
+
+                  <Input
+                    type="number"
+                    placeholder="Max Price ($)"
+                    value={filters.max_price || ''}
+                    onChange={(e) => setFilters(prev => ({ ...prev, max_price: e.target.value || undefined }))}
+                    className="border-2"
+                  />
+                </div>
               )}
             </div>
-
-            {/* Advanced Filters Panel */}
-            {showFilters && (
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-6 bg-gray-50 border border-gray-200 rounded-xl mt-4">
-                <Select 
-                  value={filters.type || 'all'} 
-                  onValueChange={(value) => setFilters(prev => ({ ...prev, type: value === 'all' ? undefined : value }))}
-                >
-                  <SelectTrigger className="border-2">
-                    <SelectValue placeholder="Service Type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Services</SelectItem>
-                    {serviceTypes.map(type => (
-                      <SelectItem key={type.value} value={type.value}>
-                        {type.icon} {type.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-
-                <Input
-                  placeholder="Location"
-                  value={filters.location || ''}
-                  onChange={(e) => setFilters(prev => ({ ...prev, location: e.target.value || undefined }))}
-                  className="border-2"
-                />
-
-                <Input
-                  type="number"
-                  placeholder="Min Price ($)"
-                  value={filters.min_price || ''}
-                  onChange={(e) => setFilters(prev => ({ ...prev, min_price: e.target.value || undefined }))}
-                  className="border-2"
-                />
-
-                <Input
-                  type="number"
-                  placeholder="Max Price ($)"
-                  value={filters.max_price || ''}
-                  onChange={(e) => setFilters(prev => ({ ...prev, max_price: e.target.value || undefined }))}
-                  className="border-2"
-                />
-              </div>
-            )}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Service Categories Pill Row */}
-      <div className="flex flex-wrap gap-3 justify-center px-4">
-        <Button
-          className={`${PILL_BASE} ${!filters.type ? PILL_ACTIVE : PILL_INACTIVE}`}
-          onClick={() => setFilters(prev => ({ ...prev, type: undefined }))}
-        >
-          All Services
-        </Button>
-        <Button
-          className={`${PILL_BASE} ${filters.type === "grooming" ? PILL_ACTIVE : PILL_INACTIVE}`}
-          onClick={() => setFilters(prev => ({ ...prev, type: "grooming" }))}
-        >
-          🧼 Grooming
-        </Button>
-        <Button
-          className={`${PILL_BASE} ${filters.type === "sitting" ? PILL_ACTIVE : PILL_INACTIVE}`}
-          onClick={() => setFilters(prev => ({ ...prev, type: "sitting" }))}
-        >
-          🏠 Dog Sitting
-        </Button>
-        <Button
-          className={`${PILL_BASE} ${filters.type === "training" ? PILL_ACTIVE : PILL_INACTIVE}`}
-          onClick={() => setFilters(prev => ({ ...prev, type: "training" }))}
-        >
-          🎯 Training
-        </Button>
-        <Button
-          className={`${PILL_BASE} ${filters.type === "walking" ? PILL_ACTIVE : PILL_INACTIVE}`}
-          onClick={() => setFilters(prev => ({ ...prev, type: "walking" }))}
-        >
-          🚶 Dog Walking
-        </Button>
-        <Button
-          className={`${PILL_BASE} ${filters.type === "boarding" ? PILL_ACTIVE : PILL_INACTIVE}`}
-          onClick={() => setFilters(prev => ({ ...prev, type: "boarding" }))}
-        >
-          🏨 Boarding
-        </Button>
+          </CardContent>
+        </Card>
       </div>
 
-      {/* Services Content - Blue Pill Style Tabs */}
-      <Tabs defaultValue="featured" className="w-full services-tabs">
-        <TabsList className="inline-flex rounded-full border-2 border-blue-600 bg-blue-50 p-1 w-auto mx-auto">
-          <TabsTrigger 
-            value="featured" 
-            className="px-6 py-2 rounded-full font-medium transition-all duration-200 data-[state=active]:bg-[#2363FF] data-[state=active]:text-white data-[state=active]:border-[#2363FF] data-[state=inactive]:bg-transparent data-[state=inactive]:text-blue-700 data-[state=inactive]:border-transparent"
-          >
-            Featured Services
-          </TabsTrigger>
-          <TabsTrigger 
-            value="all" 
-            className="px-6 py-2 rounded-full font-medium transition-all duration-200 data-[state=active]:bg-[#2363FF] data-[state=active]:text-white data-[state=active]:border-[#2363FF] data-[state=inactive]:bg-transparent data-[state=inactive]:text-blue-700 data-[state=inactive]:border-transparent"
+      {/* Service Categories Pill Row */}
+      <div className="max-w-6xl mx-auto px-4 md:px-6">
+        <div className="flex flex-wrap gap-3 justify-center">
+          <Button
+            className={`${PILL_BASE} ${!filters.type ? PILL_ACTIVE : PILL_INACTIVE}`}
+            onClick={() => setFilters(prev => ({ ...prev, type: undefined }))}
           >
             All Services
-          </TabsTrigger>
-        </TabsList>
+          </Button>
+          <Button
+            className={`${PILL_BASE} ${filters.type === "grooming" ? PILL_ACTIVE : PILL_INACTIVE}`}
+            onClick={() => setFilters(prev => ({ ...prev, type: "grooming" }))}
+          >
+            🧼 Grooming
+          </Button>
+          <Button
+            className={`${PILL_BASE} ${filters.type === "sitting" ? PILL_ACTIVE : PILL_INACTIVE}`}
+            onClick={() => setFilters(prev => ({ ...prev, type: "sitting" }))}
+          >
+            🏠 Dog Sitting
+          </Button>
+          <Button
+            className={`${PILL_BASE} ${filters.type === "training" ? PILL_ACTIVE : PILL_INACTIVE}`}
+            onClick={() => setFilters(prev => ({ ...prev, type: "training" }))}
+          >
+            🎯 Training
+          </Button>
+          <Button
+            className={`${PILL_BASE} ${filters.type === "walking" ? PILL_ACTIVE : PILL_INACTIVE}`}
+            onClick={() => setFilters(prev => ({ ...prev, type: "walking" }))}
+          >
+            🚶 Dog Walking
+          </Button>
+          <Button
+            className={`${PILL_BASE} ${filters.type === "boarding" ? PILL_ACTIVE : PILL_INACTIVE}`}
+            onClick={() => setFilters(prev => ({ ...prev, type: "boarding" }))}
+          >
+            🏨 Boarding
+          </Button>
+        </div>
+      </div>
 
-        <TabsContent value="featured" className="space-y-4">
-          <div className="text-center">
-            <h2 className="text-2xl font-semibold mb-2">Featured Service Providers</h2>
-            <p className="text-slate-600">
-              Top-rated and verified professionals in your area
-            </p>
-          </div>
+      {/* Services Content - Clean Background */}
+      <div className="max-w-6xl mx-auto px-4 md:px-6 py-6">
+        <Tabs defaultValue="featured" className="w-full services-tabs">
+          <TabsList className="inline-flex rounded-full border-2 border-blue-600 bg-blue-50 p-1 w-auto mx-auto">
+            <TabsTrigger 
+              value="featured" 
+              className="px-6 py-2 rounded-full font-medium transition-all duration-200 data-[state=active]:bg-[#2363FF] data-[state=active]:text-white data-[state=active]:border-[#2363FF] data-[state=inactive]:bg-transparent data-[state=inactive]:text-blue-700 data-[state=inactive]:border-transparent"
+            >
+              Featured Services
+            </TabsTrigger>
+            <TabsTrigger 
+              value="all" 
+              className="px-6 py-2 rounded-full font-medium transition-all duration-200 data-[state=active]:bg-[#2363FF] data-[state=active]:text-white data-[state=active]:border-[#2363FF] data-[state=inactive]:bg-transparent data-[state=inactive]:text-blue-700 data-[state=inactive]:border-transparent"
+            >
+              All Services
+            </TabsTrigger>
+          </TabsList>
 
-          {isLoading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {[...Array(6)].map((_, i) => (
-                <Card key={i} className="animate-pulse">
-                  <CardContent className="p-6">
-                    <div className="h-16 bg-muted rounded mb-4"></div>
-                    <div className="h-4 bg-muted rounded mb-2"></div>
-                    <div className="h-4 bg-muted rounded w-2/3"></div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          ) : featuredServices.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {featuredServices.map((service: any) => (
-                <ServiceProviderCard
-                  key={service.id}
-                  provider={service}
-                  onBook={() => setSelectedProvider(service)}
-                />
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-12">
-              <div className="text-6xl mb-4">🔍</div>
-              <h3 className="text-xl font-semibold mb-2">No Services Found</h3>
-              <p className="text-slate-600">
-                Try adjusting your search criteria or check back later for new providers.
+          <TabsContent value="featured" className="space-y-4 mt-6">
+            <div className="text-center">
+              <h2 className="text-2xl font-semibold mb-2">Featured Service Providers</h2>
+              <p className="text-muted-foreground">
+                Top-rated and verified professionals in your area
               </p>
             </div>
-          )}
-        </TabsContent>
 
-        <TabsContent value="all" className="space-y-4">
-          <div className="flex justify-between items-center">
-            <h2 className="text-2xl font-semibold">
-              All Services {allServices.length > 0 && `(${allServices.length})`}
-            </h2>
-          </div>
+            {isLoading ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {[...Array(6)].map((_, i) => (
+                  <Card key={i} className="animate-pulse">
+                    <CardContent className="p-6">
+                      <div className="h-16 bg-muted rounded mb-4"></div>
+                      <div className="h-4 bg-muted rounded mb-2"></div>
+                      <div className="h-4 bg-muted rounded w-2/3"></div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            ) : featuredServices.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {featuredServices.map((service: any) => (
+                  <ServiceProviderCard
+                    key={service.id}
+                    provider={service}
+                    onBook={() => setSelectedProvider(service)}
+                  />
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-12">
+                <div className="text-6xl mb-4">🐕</div>
+                <h3 className="text-xl font-semibold mb-2">No Services Found</h3>
+                <p className="text-muted-foreground mb-4">
+                  Be the first to offer featured services in your area!
+                </p>
+                <Button onClick={() => setShowProviderModal(true)}>
+                  Become a Provider
+                </Button>
+              </div>
+            )}
+          </TabsContent>
 
-          {isLoading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {[...Array(9)].map((_, i) => (
-                <Card key={i} className="animate-pulse">
-                  <CardContent className="p-6">
-                    <div className="h-16 bg-muted rounded mb-4"></div>
-                    <div className="h-4 bg-muted rounded mb-2"></div>
-                    <div className="h-4 bg-muted rounded w-2/3"></div>
-                  </CardContent>
-                </Card>
-              ))}
+          <TabsContent value="all" className="space-y-4 mt-6">
+            <div className="flex justify-between items-center">
+              <h2 className="text-2xl font-semibold">
+                All Services {allServices.length > 0 && `(${allServices.length})`}
+              </h2>
             </div>
-          ) : allServices.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {allServices.map((service: any) => (
-                <ServiceProviderCard
-                  key={service.id}
-                  provider={service}
-                  onBook={() => setSelectedProvider(service)}
-                />
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-12">
-              <div className="text-6xl mb-4">🐕</div>
-              <h3 className="text-xl font-semibold mb-2">No Service Providers Yet</h3>
-              <p className="text-slate-600 mb-4">
-                Be the first to offer pet services in your area!
-              </p>
-              <Button onClick={() => setShowProviderModal(true)}>
-                Become a Provider
-              </Button>
-            </div>
-          )}
-        </TabsContent>
-      </Tabs>
+
+            {isLoading ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {[...Array(9)].map((_, i) => (
+                  <Card key={i} className="animate-pulse">
+                    <CardContent className="p-6">
+                      <div className="h-16 bg-muted rounded mb-4"></div>
+                      <div className="h-4 bg-muted rounded mb-2"></div>
+                      <div className="h-4 bg-muted rounded w-2/3"></div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            ) : allServices.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {allServices.map((service: any) => (
+                  <ServiceProviderCard
+                    key={service.id}
+                    provider={service}
+                    onBook={() => setSelectedProvider(service)}
+                  />
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-12">
+                <div className="text-6xl mb-4">🐕</div>
+                <h3 className="text-xl font-semibold mb-2">No Service Providers Yet</h3>
+                <p className="text-muted-foreground mb-4">
+                  Be the first to offer pet services in your area!
+                </p>
+                <Button onClick={() => setShowProviderModal(true)}>
+                  Become a Provider
+                </Button>
+              </div>
+            )}
+          </TabsContent>
+        </Tabs>
+      </div>
 
       {/* Modals */}
       <BecomeProviderModal 

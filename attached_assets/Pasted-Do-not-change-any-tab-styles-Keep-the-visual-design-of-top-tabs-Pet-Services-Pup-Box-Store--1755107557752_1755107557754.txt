@@ -1,0 +1,74 @@
+Do not change any tab styles.
+Keep the visual design of: top tabs (Pet Services | Pup Box | Store), category chips, and sub-tabs (Featured / All Services).
+
+Goals
+Restore the hero greeting at the top of Pet Services (gradient card with:
+“Pet Services Marketplace” + “Find trusted professionals for grooming, training, sitting, and more” + the big search input).
+
+Remove the solid blue background behind the listings area (content should sit on the normal light/white page bg).
+
+Remove all demo provider cards (Austin Reyes, etc.) so, with no real providers, it shows the single empty state with the Become a Provider CTA. Applies to guest and signed-in.
+
+A) Restore the hero greeting (top of Pet Services)
+Re-enable or rebuild the hero section component (e.g. PetServicesHero or similar) and place it above Advanced Filters.
+
+Use the gradient like the reference (blue → purple), inside the hero only (not the page background).
+Suggested wrapper classes:
+
+php-template
+Copy
+Edit
+<section className="mx-auto max-w-6xl px-4 md:px-6">
+  <div className="rounded-2xl p-6 md:p-8 text-white"
+       style={{background: 'linear-gradient(90deg, #2563EB 0%, #7C3AED 100%)'}}>
+    <h1 className="text-2xl md:text-3xl font-semibold">Pet Services Marketplace</h1>
+    <p className="mt-2 opacity-90">Find trusted professionals for grooming, training, sitting, and more</p>
+    <div className="mt-4">{/* big search input */}</div>
+  </div>
+</section>
+Keep the rest of the page background light/white.
+
+B) Remove the blue page background behind listings
+In the Pet Services content/list wrapper, remove any bg-primary, bg-blue-*, or inline blue background.
+Replace with bg-white (or app bg-background).
+
+Do not wrap the listings section in any colored block.
+
+Keep spacing tidy: parent section py-6, container max-w-6xl mx-auto px-4 md:px-6.
+
+C) Eliminate demo data and enforce empty state
+Delete/disable any demo imports/usages:
+
+Names/markers to search: Austin Reyes, demoProviders, DemoServiceCards, FeaturedServiceDemo, Legacy*Service*.
+
+Fetch only real data from Supabase (adjust table name if needed):
+
+ts
+Copy
+Edit
+const { data: providers, error } = await supabase
+  .from('pet_service_providers')   // confirm actual table
+  .select('*');                    // include .eq('is_active', true) if column exists
+
+const hasLive = Array.isArray(providers) && providers.length > 0;
+Render:
+
+tsx
+Copy
+Edit
+<HeaderAndFilters />  {/* hero + advanced filters + chips */}
+{hasLive ? (
+  <ProvidersGrid providers={providers} />
+) : (
+  <EmptyState
+    title="No Services Found"
+    subtitle="Be the first to offer services in your area!"
+    ctaLabel="Become a Provider"
+    onCtaClick={() => router.push('/marketplace/providers/new')} // correct route if different
+  />
+)}
+Ensure both sub-tabs (Featured / All Services) use this same data path and never fall back to demo.
+
+Remove any second/legacy section that might still render below (no duplicates).
+
+QA (must pass)
