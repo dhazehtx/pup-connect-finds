@@ -29,7 +29,7 @@ export const authMiddleware = async (req: Request, res: Response, next: NextFunc
   try {
     // Get token from Authorization header
     const authHeader = req.headers.authorization;
-    const token = authHeader?.startsWith('Bearer ') ? authHeader.substring(7) : null;
+    let token = authHeader?.startsWith('Bearer ') ? authHeader.substring(7) : null;
 
     if (!token) {
       // Add isAuthenticated method that returns false
@@ -37,6 +37,44 @@ export const authMiddleware = async (req: Request, res: Response, next: NextFunc
       return next();
     }
 
+    // Handle token encoding issues that cause ByteString errors
+    try {
+      // First, handle any encoding issues by properly parsing the header value
+      let cleanedToken = token.trim();
+      
+      // For UTF-8 encoded tokens, convert to proper string
+      if (token.includes('\u2026') || token.includes('…')) {
+        console.log('Detected truncated or malformed token with ellipsis');
+        req.isAuthenticated = () => false;
+        return next();
+      }
+      
+      // Remove any non-printable ASCII characters
+      cleanedToken = cleanedToken.replace(/[^\x21-\x7E]/g, '');
+      
+      // Validate JWT structure
+      const parts = cleanedToken.split('.');
+      if (parts.length !== 3) {
+        console.log('Token validation failed: JWT must have 3 parts, got', parts.length);
+        req.isAuthenticated = () => false;
+        return next();
+      }
+      
+      // Ensure each part contains only valid base64url characters
+      const base64UrlRegex = /^[A-Za-z0-9_-]+$/;
+      if (!parts.every(part => base64UrlRegex.test(part))) {
+        console.log('Token validation failed: Invalid base64url characters');
+        req.isAuthenticated = () => false;
+        return next();
+      }
+      
+      token = cleanedToken;
+    } catch (tokenError) {
+      console.error('Token validation error:', tokenError);
+      req.isAuthenticated = () => false;
+      return next();
+    }
+    
     // Verify the JWT token with Supabase
     const { data: { user }, error } = await supabase.auth.getUser(token);
 

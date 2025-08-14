@@ -20,7 +20,7 @@ router.get('/', async (req, res) => {
     const offset = (pageNum - 1) * limitNum;
 
     // Build filters
-    const filters = [eq(notifications.user_id, req.user.id)];
+    const filters = [eq(notifications.user_id, req.user!.id)];
     
     if (unread_only === 'true') {
       filters.push(eq(notifications.read, false));
@@ -60,7 +60,7 @@ router.get('/', async (req, res) => {
       .select({ count: count() })
       .from(notifications)
       .where(and(
-        eq(notifications.user_id, req.user.id),
+        eq(notifications.user_id, req.user!.id),
         eq(notifications.read, false)
       ));
 
@@ -112,7 +112,7 @@ router.post('/', async (req, res) => {
       const [updatedNotification] = await db
         .update(notifications)
         .set({
-          grouped_count: existingNotification.grouped_count + 1,
+          grouped_count: (existingNotification.grouped_count || 0) + 1,
           actor_id: actor_id, // Update to most recent actor
           created_at: new Date(), // Update timestamp
           read: false // Mark as unread again
@@ -165,7 +165,7 @@ router.post('/:notificationId/read', async (req, res) => {
       .set({ read: true })
       .where(and(
         eq(notifications.id, notificationId),
-        eq(notifications.user_id, req.user.id)
+        eq(notifications.user_id, req.user!.id)
       ))
       .returning();
 
@@ -195,7 +195,7 @@ router.post('/mark-all-read', async (req, res) => {
       .update(notifications)
       .set({ read: true })
       .where(and(
-        eq(notifications.user_id, req.user.id),
+        eq(notifications.user_id, req.user!.id),
         eq(notifications.read, false)
       ));
 
@@ -216,7 +216,7 @@ router.delete('/clear', async (req, res) => {
   try {
     await db
       .delete(notifications)
-      .where(eq(notifications.user_id, req.user.id));
+      .where(eq(notifications.user_id, req.user!.id));
 
     res.json({ message: 'All notifications cleared' });
 
@@ -257,7 +257,7 @@ export const createNotification = async (
       await db
         .update(notifications)
         .set({
-          grouped_count: existingNotification.grouped_count + 1,
+          grouped_count: (existingNotification.grouped_count || 0) + 1,
           actor_id: actor_id,
           created_at: new Date(),
           read: false

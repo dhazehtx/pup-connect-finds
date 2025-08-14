@@ -23,7 +23,7 @@ router.get('/tickets', async (req, res) => {
     const limitNum = parseInt(limit as string);
     const offset = (pageNum - 1) * limitNum;
 
-    let whereConditions = [eq(supportTickets.user_id, req.user.id)];
+    let whereConditions = [eq(supportTickets.user_id, req.user!.id)];
     
     if (status && status !== 'all') {
       whereConditions.push(eq(supportTickets.status, status as string));
@@ -100,7 +100,7 @@ router.post('/tickets', async (req, res) => {
     const [newTicket] = await db
       .insert(supportTickets)
       .values({
-        user_id: req.user.id,
+        user_id: req.user!.id,
         category,
         subject,
         description,
@@ -136,7 +136,7 @@ router.get('/tickets/:ticketId/replies', async (req, res) => {
       .where(eq(supportTickets.id, ticketId))
       .limit(1);
 
-    if (!ticket || ticket.user_id !== req.user.id) {
+    if (!ticket || ticket.user_id !== req.user!.id) {
       return res.status(403).json({ message: 'Access denied' });
     }
 
@@ -184,7 +184,7 @@ router.post('/tickets/:ticketId/replies', async (req, res) => {
       .where(eq(supportTickets.id, ticketId))
       .limit(1);
 
-    if (!ticket || ticket.user_id !== req.user.id) {
+    if (!ticket || ticket.user_id !== req.user!.id) {
       return res.status(403).json({ message: 'Access denied' });
     }
 
@@ -197,7 +197,7 @@ router.post('/tickets/:ticketId/replies', async (req, res) => {
       .insert(supportTicketReplies)
       .values({
         ticket_id: ticketId,
-        author_id: req.user.id,
+        author_id: req.user!.id,
         message,
         attachment_url,
         is_admin_reply: false
@@ -228,7 +228,7 @@ router.post('/tickets/:ticketId/replies', async (req, res) => {
 
 // Get all support tickets (admin only)
 router.get('/admin/tickets', async (req, res) => {
-  if (!req.isAuthenticated() || !req.user.is_admin) {
+  if (!req.isAuthenticated() || !req.user!.is_admin) {
     return res.status(403).json({ message: 'Admin access required' });
   }
 
@@ -262,7 +262,7 @@ router.get('/admin/tickets', async (req, res) => {
     }
 
     if (assigned === 'me') {
-      whereConditions.push(eq(supportTickets.assigned_admin_id, req.user.id));
+      whereConditions.push(eq(supportTickets.assigned_admin_id, req.user!.id));
     } else if (assigned === 'unassigned') {
       whereConditions.push(sql`${supportTickets.assigned_admin_id} IS NULL`);
     }
@@ -355,7 +355,7 @@ router.get('/admin/tickets', async (req, res) => {
 
 // Update ticket status/assignment (admin only)
 router.patch('/admin/tickets/:ticketId', async (req, res) => {
-  if (!req.isAuthenticated() || !req.user.is_admin) {
+  if (!req.isAuthenticated() || !req.user!.is_admin) {
     return res.status(403).json({ message: 'Admin access required' });
   }
 
@@ -406,7 +406,7 @@ router.patch('/admin/tickets/:ticketId', async (req, res) => {
 
 // Admin reply to ticket
 router.post('/admin/tickets/:ticketId/replies', async (req, res) => {
-  if (!req.isAuthenticated() || !req.user.is_admin) {
+  if (!req.isAuthenticated() || !req.user!.is_admin) {
     return res.status(403).json({ message: 'Admin access required' });
   }
 
@@ -434,7 +434,7 @@ router.post('/admin/tickets/:ticketId/replies', async (req, res) => {
       .insert(supportTicketReplies)
       .values({
         ticket_id: ticketId,
-        author_id: req.user.id,
+        author_id: req.user!.id,
         message,
         attachment_url,
         is_admin_reply: true
@@ -447,7 +447,7 @@ router.post('/admin/tickets/:ticketId/replies', async (req, res) => {
         .update(supportTickets)
         .set({ 
           status: updateStatus,
-          assigned_admin_id: req.user.id,
+          assigned_admin_id: req.user!.id,
           updated_at: new Date(),
           ...(updateStatus === 'resolved' || updateStatus === 'closed' ? { resolved_at: new Date() } : {})
         })
@@ -475,7 +475,7 @@ router.get('/preferences', async (req, res) => {
     const [preferences] = await db
       .select()
       .from(userPreferences)
-      .where(eq(userPreferences.user_id, req.user.id))
+      .where(eq(userPreferences.user_id, req.user!.id))
       .limit(1);
 
     if (!preferences) {
@@ -483,8 +483,7 @@ router.get('/preferences', async (req, res) => {
       const [newPreferences] = await db
         .insert(userPreferences)
         .values({
-          user_id: req.user.id,
-          theme: 'light'
+          user_id: req.user!.id
         })
         .returning();
       
@@ -515,7 +514,7 @@ router.patch('/preferences', async (req, res) => {
     const [updatedPreferences] = await db
       .update(userPreferences)
       .set(updateData)
-      .where(eq(userPreferences.user_id, req.user.id))
+      .where(eq(userPreferences.user_id, req.user!.id))
       .returning();
 
     if (!updatedPreferences) {
@@ -523,7 +522,7 @@ router.patch('/preferences', async (req, res) => {
       const [newPreferences] = await db
         .insert(userPreferences)
         .values({
-          user_id: req.user.id,
+          user_id: req.user!.id,
           ...updateData
         })
         .returning();
