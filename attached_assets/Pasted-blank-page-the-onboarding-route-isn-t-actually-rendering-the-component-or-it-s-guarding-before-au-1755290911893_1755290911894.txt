@@ -1,0 +1,27 @@
+blank page = the onboarding route isn’t actually rendering the component (or it’s guarding before auth loads). Let’s fix it cleanly. Create (or fix) the Services Onboarding route so it ALWAYS renders <ProviderOnboard /> when signed in, and redirects to auth when not.
+
+Requirements:
+- Detect whether the project uses Next.js App Router (`/app`) or Pages Router (`/pages`), and implement in the correct place:
+  - If App Router: create `app/services/onboarding/page.tsx`
+  - If Pages Router: create `pages/services/onboarding.tsx`
+- Import and render the existing `ProviderOnboard` component from `app/services/onboarding/ProviderOnboard` (adjust the import path if different).
+- Add an auth guard:
+  - While auth status is loading, render a tiny “Loading…” placeholder (no theme changes).
+  - If NOT signed in, client-side redirect to `/auth?next=/services/onboarding` (or the project’s actual signup path used elsewhere).
+  - If signed in, render `<ProviderOnboard />`.
+- Use the project’s existing auth hook/context (e.g., `useUser()` / `useSession()` / Supabase auth) — do NOT invent a new one.
+- Use the project’s router util (Next.js `useRouter` / `redirect`).
+- Keep layout/styles unchanged; return only the new/edited file(s).
+
+Edge-case fixes:
+- Do NOT return `null` before the redirect fires — show the loading placeholder until the redirect happens.
+- Ensure the file has a default export and no stray early returns.
+- Add a `<title>Provider Onboarding · My Pup</title>` via the project’s head/metadata pattern.
+
+Return only the diff for the created/updated route file.
+Quick test after it runs
+Logged out: go to /services/onboarding → should bounce to /auth?...next=/services/onboarding.
+
+Logged in: go to /services/onboarding → you should see the stepper shell (Welcome → Basics → …).
+
+If still blank, open dev tools console. If you see “auth undefined” or hydration warnings, the guard is likely returning before auth loads — re-run the prompt asking it to gate on an explicit isLoading flag from your auth hook before deciding.

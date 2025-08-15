@@ -182,6 +182,7 @@ function App() {
                       <LazyServices />
                     </Suspense>
                   } />
+                  <Route path="/services/onboarding" element={<RequireAuth><ProviderOnboardingPage /></RequireAuth>} />
                   <Route path="/provider-onboarding" element={<RequireAuth><ProviderOnboardingPage /></RequireAuth>} />
                   <Route path="/legal" element={<LegalGuide />} />
                   <Route path="/account-settings" element={<RequireAuth><AccountSettingsPage /></RequireAuth>} />
