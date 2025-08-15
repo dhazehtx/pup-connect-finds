@@ -4,6 +4,7 @@ import { handleIdVerificationWebhook } from './id/webhook';
 import { startBackgroundCheck } from './checks/start';
 import { connectStripePayout, checkStripeAccountStatus } from './payouts/connect';
 import { saveProviderDetails } from './save';
+import { advanceProviderStatus } from './status/advance';
 // Background check webhook will be imported when file is created
 import { getProviderWithVerificationStatus } from '../../lib/supabase/providers';
 
@@ -23,6 +24,9 @@ router.get('/payouts/status/:providerId', checkStripeAccountStatus);
 
 // Provider details
 router.post('/save', saveProviderDetails);
+
+// Status management
+router.post('/status/advance', advanceProviderStatus);
 
 // Verification status check
 router.get('/verification-status/:providerId', async (req, res) => {

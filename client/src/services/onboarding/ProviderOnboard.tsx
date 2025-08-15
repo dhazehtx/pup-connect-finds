@@ -43,6 +43,11 @@ const ProviderOnboard: React.FC = () => {
     serviceTypes: [] as string[],
     radiusKm: 10,
   });
+  const [termsAccepted, setTermsAccepted] = useState({
+    terms: false,
+    providerAgreement: false,
+  });
+  const [providerStatus, setProviderStatus] = useState<'pending' | 'verified' | 'loading'>('pending');
   const { toast } = useToast();
   
   const steps: Step[] = [
@@ -384,6 +389,53 @@ const ProviderOnboard: React.FC = () => {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
       toast({
         title: "Save Failed",
+        description: errorMessage,
+        variant: "destructive",
+      });
+      return false;
+    }
+  };
+
+  const advanceProviderStatus = async () => {
+    if (!termsAccepted.terms || !termsAccepted.providerAgreement) {
+      toast({
+        title: "Terms Required",
+        description: "Please accept both terms and provider agreement to continue.",
+        variant: "destructive",
+      });
+      return false;
+    }
+
+    setProviderStatus('loading');
+
+    try {
+      const response = await fetch('/api/providers/status/advance', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to advance provider status');
+      }
+
+      setProviderStatus('verified');
+      toast({
+        title: "Congratulations!",
+        description: "You're now a verified provider. You can start accepting bookings!",
+      });
+
+      // Advance to final step
+      setCurrentStep(7);
+      return true;
+
+    } catch (error) {
+      console.error('Advance status error:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      setProviderStatus('pending');
+      toast({
+        title: "Status Update Failed",
         description: errorMessage,
         variant: "destructive",
       });
@@ -835,35 +887,88 @@ const ProviderOnboard: React.FC = () => {
             <h2 className="text-xl font-semibold">Terms & Conditions</h2>
             <div className="border rounded-lg p-4 max-h-48 overflow-y-auto">
               <p className="text-sm text-gray-700">
-                By becoming a service provider, you agree to our terms and conditions...
-                [Terms content would be displayed here]
+                <strong>Service Provider Terms & Conditions</strong><br/><br/>
+                By becoming a service provider on our platform, you agree to:
+                <br/>• Provide accurate and honest service descriptions
+                <br/>• Maintain professional standards when interacting with pet owners
+                <br/>• Complete all booked services as agreed
+                <br/>• Follow safety protocols and guidelines
+                <br/>• Maintain valid insurance and certifications as required
+                <br/>• Comply with local laws and regulations
+                <br/><br/>
+                <strong>Provider Agreement</strong><br/><br/>
+                • Commission of 15% will be deducted from each completed booking
+                <br/>• Payments will be processed within 2-3 business days
+                <br/>• You are responsible for your own taxes and business expenses
+                <br/>• Platform reserves the right to suspend accounts for policy violations
               </p>
             </div>
             <div className="space-y-2">
               <label className="flex items-center space-x-2">
-                <input type="checkbox" className="rounded" />
+                <input 
+                  type="checkbox" 
+                  className="rounded"
+                  checked={termsAccepted.terms}
+                  onChange={(e) => setTermsAccepted(prev => ({ ...prev, terms: e.target.checked }))}
+                  data-testid="checkbox-terms-conditions"
+                />
                 <span className="text-sm">I agree to the Terms & Conditions</span>
               </label>
               <label className="flex items-center space-x-2">
-                <input type="checkbox" className="rounded" />
+                <input 
+                  type="checkbox" 
+                  className="rounded"
+                  checked={termsAccepted.providerAgreement}
+                  onChange={(e) => setTermsAccepted(prev => ({ ...prev, providerAgreement: e.target.checked }))}
+                  data-testid="checkbox-provider-agreement"
+                />
                 <span className="text-sm">I agree to the Provider Agreement</span>
               </label>
             </div>
+            {termsAccepted.terms && termsAccepted.providerAgreement && (
+              <div className="pt-4">
+                <Button 
+                  onClick={advanceProviderStatus}
+                  className="w-full"
+                  disabled={providerStatus === 'loading'}
+                  data-testid="button-complete-onboarding"
+                >
+                  {providerStatus === 'loading' ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                      Completing Setup...
+                    </>
+                  ) : (
+                    'Complete Provider Setup'
+                  )}
+                </Button>
+              </div>
+            )}
           </div>
         );
 
       case 7: // Review
         return (
           <div className="space-y-4">
-            <h2 className="text-xl font-semibold">Review & Complete</h2>
-            <div className="bg-green-50 p-4 rounded-lg text-center">
-              <CheckCircle className="h-12 w-12 text-green-500 mx-auto mb-2" />
-              <h3 className="font-semibold text-green-800">Congratulations!</h3>
-              <p className="text-sm text-green-700">
+            <h2 className="text-xl font-semibold">Welcome to the Platform!</h2>
+            <div className="bg-green-50 p-6 rounded-lg text-center">
+              <CheckCircle className="h-16 w-16 text-green-500 mx-auto mb-4" />
+              <h3 className="text-xl font-semibold text-green-800 mb-2">Congratulations!</h3>
+              <p className="text-green-700 mb-4">
                 You're now a verified provider on our platform.
               </p>
+              <div className="bg-white p-4 rounded-lg mb-4">
+                <p className="text-sm text-gray-700 mb-2">
+                  <strong>Provider Status:</strong> <span className="text-green-600 font-semibold">Verified</span>
+                </p>
+                <p className="text-sm text-gray-700">
+                  You can now start accepting bookings and providing services to pet owners in your area.
+                </p>
+              </div>
             </div>
-            <div className="space-y-2">
+            
+            <div className="space-y-3 bg-gray-50 p-4 rounded-lg">
+              <h4 className="font-medium text-gray-800">Verification Complete:</h4>
               <div className="flex justify-between text-sm">
                 <span>Identity Verified</span>
                 <CheckCircle className="h-4 w-4 text-green-500" />
@@ -876,6 +981,22 @@ const ProviderOnboard: React.FC = () => {
                 <span>Payout Setup</span>
                 <CheckCircle className="h-4 w-4 text-green-500" />
               </div>
+              <div className="flex justify-between text-sm">
+                <span>Terms Accepted</span>
+                <CheckCircle className="h-4 w-4 text-green-500" />
+              </div>
+            </div>
+
+            <div className="pt-4">
+              <Button 
+                className="w-full bg-green-600 hover:bg-green-700"
+                data-testid="button-start-accepting-bookings"
+              >
+                Start Accepting Bookings
+              </Button>
+              <p className="text-xs text-gray-500 mt-2 text-center">
+                You can update your profile and services anytime in your dashboard
+              </p>
             </div>
           </div>
         );
