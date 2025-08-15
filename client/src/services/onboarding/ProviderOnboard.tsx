@@ -23,11 +23,19 @@ interface BackgroundCheckState {
   message?: string;
 }
 
+interface PayoutSetupState {
+  status: 'idle' | 'connecting' | 'connected' | 'failed' | 'loading';
+  accountId?: string;
+  message?: string;
+}
+
 const ProviderOnboard: React.FC = () => {
   const [currentStep, setCurrentStep] = useState(0);
   const [providerId, setProviderId] = useState<string | null>(null);
   const [idVerification, setIdVerification] = useState<IDVerificationState>({ status: 'idle' });
   const [backgroundCheck, setBackgroundCheck] = useState<BackgroundCheckState>({ status: 'idle' });
+  const [payoutSetup, setPayoutSetup] = useState<PayoutSetupState>({ status: 'idle' });
+  const [accountType, setAccountType] = useState<'individual' | 'business'>('individual');
   const { toast } = useToast();
   
   const steps: Step[] = [
@@ -56,6 +64,15 @@ const ProviderOnboard: React.FC = () => {
       toast({
         title: "Background Check Required",
         description: "Please wait for background check to complete before proceeding.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (currentStep === 4 && payoutSetup.status !== 'connected') {
+      toast({
+        title: "Payout Setup Required",
+        description: "Please complete Stripe Connect setup before proceeding.",
         variant: "destructive",
       });
       return;
@@ -242,6 +259,100 @@ const ProviderOnboard: React.FC = () => {
     // Stop polling after 5 minutes
     setTimeout(() => clearInterval(pollInterval), 300000);
   };
+
+  const handleStripeConnect = async () => {
+    if (!providerId) {
+      toast({
+        title: "Error",
+        description: "Provider ID not found. Please start from the beginning.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setPayoutSetup({ status: 'loading' });
+
+    try {
+      const response = await fetch('/api/providers/payouts/connect', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          providerId,
+          accountType,
+          returnUrl: `${window.location.origin}/provider-onboarding?step=4&connected=true`,
+          refreshUrl: `${window.location.origin}/provider-onboarding?step=4&refresh=true`,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to create Stripe Connect account');
+      }
+
+      setPayoutSetup({ 
+        status: 'connecting',
+        accountId: data.accountId,
+        message: data.message 
+      });
+
+      // Open Stripe Connect onboarding in new window
+      window.open(data.accountLinkUrl, '_blank', 'width=600,height=800');
+
+      toast({
+        title: "Stripe Connect Opened",
+        description: "Complete your setup in the new window.",
+      });
+
+    } catch (error) {
+      console.error('Stripe Connect error:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      setPayoutSetup({ status: 'failed', message: errorMessage });
+      toast({
+        title: "Setup Failed", 
+        description: errorMessage,
+        variant: "destructive",
+      });
+    }
+  };
+
+  const checkPayoutStatus = async () => {
+    if (!providerId) return;
+
+    try {
+      const response = await fetch(`/api/providers/payouts/status/${providerId}`);
+      const data = await response.json();
+
+      if (data.status === 'connected' && data.chargesEnabled) {
+        setPayoutSetup({ status: 'connected', accountId: data.accountId });
+        toast({
+          title: "Payout Setup Complete",
+          description: "Your Stripe account is connected and ready!",
+        });
+      } else {
+        toast({
+          title: "Setup In Progress",
+          description: "Please complete your Stripe setup and try again.",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error('Payout status check error:', error);
+      toast({
+        title: "Status Check Failed",
+        description: "Unable to verify payout setup status.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Check URL parameters for Stripe Connect return
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('connected') === 'true' && currentStep === 4) {
+      checkPayoutStatus();
+    }
+  }, [currentStep]);
 
   // Initialize provider ID (mock for now)
   useEffect(() => {
@@ -471,19 +582,107 @@ const ProviderOnboard: React.FC = () => {
           <div className="space-y-4">
             <h2 className="text-xl font-semibold">Payout Setup</h2>
             <p className="text-gray-600">Connect your bank account to receive payments</p>
-            <div className="space-y-4">
-              <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+            
+            {payoutSetup.status === 'idle' && (
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium mb-2">Account Type</label>
+                  <select 
+                    className="w-full border rounded-lg px-3 py-2"
+                    value={accountType}
+                    onChange={(e) => setAccountType(e.target.value as 'individual' | 'business')}
+                    data-testid="select-account-type"
+                  >
+                    <option value="individual">Individual</option>
+                    <option value="business">Business</option>
+                  </select>
+                  {accountType === 'business' && (
+                    <div className="mt-3">
+                      <label className="block text-sm font-medium mb-2">Business EIN</label>
+                      <Input 
+                        type="text" 
+                        placeholder="XX-XXXXXXX"
+                        data-testid="input-business-ein"
+                      />
+                    </div>
+                  )}
+                </div>
+                
                 <Button 
+                  onClick={handleStripeConnect}
                   className="w-full"
                   data-testid="button-connect-stripe"
                 >
                   Connect with Stripe
                 </Button>
-                <p className="text-xs text-gray-500 mt-2">
-                  Secure payment processing powered by Stripe
-                </p>
+                
+                <div className="bg-green-50 p-4 rounded-lg">
+                  <p className="text-sm text-green-800">
+                    We use Stripe Connect for secure payment processing.
+                    Your financial information is encrypted and secure.
+                  </p>
+                </div>
               </div>
-            </div>
+            )}
+
+            {payoutSetup.status === 'loading' && (
+              <div className="text-center space-y-4">
+                <Loader2 className="h-8 w-8 animate-spin mx-auto text-blue-500" />
+                <p className="text-sm text-gray-600">Setting up your payout account...</p>
+              </div>
+            )}
+
+            {payoutSetup.status === 'connecting' && (
+              <div className="space-y-4">
+                <div className="bg-blue-50 p-4 rounded-lg flex items-center space-x-3">
+                  <Loader2 className="h-5 w-5 animate-spin text-blue-600" />
+                  <div>
+                    <p className="text-sm font-medium text-blue-800">Complete Setup in New Window</p>
+                    <p className="text-sm text-blue-700">Finish your Stripe Connect setup in the opened window.</p>
+                  </div>
+                </div>
+                <Button 
+                  onClick={checkPayoutStatus}
+                  variant="outline"
+                  className="w-full"
+                  data-testid="button-check-payout-status"
+                >
+                  I've Completed Setup
+                </Button>
+              </div>
+            )}
+
+            {payoutSetup.status === 'connected' && (
+              <div className="bg-green-50 p-4 rounded-lg flex items-center space-x-3">
+                <CheckCircle className="h-5 w-5 text-green-600" />
+                <div>
+                  <p className="text-sm font-medium text-green-800">Payout Account Connected</p>
+                  <p className="text-sm text-green-700">You're ready to receive payments!</p>
+                </div>
+              </div>
+            )}
+
+            {payoutSetup.status === 'failed' && (
+              <div className="space-y-4">
+                <div className="bg-red-50 p-4 rounded-lg flex items-center space-x-3">
+                  <AlertCircle className="h-5 w-5 text-red-600" />
+                  <div>
+                    <p className="text-sm font-medium text-red-800">Setup Failed</p>
+                    <p className="text-sm text-red-700">
+                      {payoutSetup.message || 'Please try again or contact support.'}
+                    </p>
+                  </div>
+                </div>
+                <Button 
+                  onClick={() => setPayoutSetup({ status: 'idle' })}
+                  variant="outline"
+                  className="w-full"
+                  data-testid="button-retry-payout-setup"
+                >
+                  Try Again
+                </Button>
+              </div>
+            )}
           </div>
         );
 

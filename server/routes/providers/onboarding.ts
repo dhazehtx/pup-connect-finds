@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { startIdVerification } from './id/start';
 import { handleIdVerificationWebhook } from './id/webhook';
 import { startBackgroundCheck } from './checks/start';
+import { connectStripePayout, checkStripeAccountStatus } from './payouts/connect';
 // Background check webhook will be imported when file is created
 import { getProviderWithVerificationStatus } from '../../lib/supabase/providers';
 
@@ -14,6 +15,10 @@ router.post('/id/webhook', handleIdVerificationWebhook);
 // Background Check routes  
 router.post('/checks/start', startBackgroundCheck);
 // Background check webhook route will be added when function is available
+
+// Payout routes
+router.post('/payouts/connect', connectStripePayout);
+router.get('/payouts/status/:providerId', checkStripeAccountStatus);
 
 // Verification status check
 router.get('/verification-status/:providerId', async (req, res) => {
