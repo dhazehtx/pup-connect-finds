@@ -145,6 +145,25 @@ export async function getProviderPayout(providerId: string) {
   return payout;
 }
 
+// Update provider details
+export async function updateProviderDetails(providerId: string, updates: {
+  description?: string;
+  pricePerService?: number;
+  availability?: string;
+  serviceTypes?: string[];
+  radiusKm?: number;
+}) {
+  const [provider] = await db
+    .update(providers)
+    .set({ 
+      ...updates,
+      updated_at: new Date(),
+    })
+    .where(eq(providers.id, providerId))
+    .returning();
+  return provider;
+}
+
 // Combined provider data fetching
 export async function getProviderWithVerificationStatus(userId: string) {
   const provider = await getProviderByUserId(userId);

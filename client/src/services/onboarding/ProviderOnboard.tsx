@@ -36,6 +36,13 @@ const ProviderOnboard: React.FC = () => {
   const [backgroundCheck, setBackgroundCheck] = useState<BackgroundCheckState>({ status: 'idle' });
   const [payoutSetup, setPayoutSetup] = useState<PayoutSetupState>({ status: 'idle' });
   const [accountType, setAccountType] = useState<'individual' | 'business'>('individual');
+  const [serviceDetails, setServiceDetails] = useState({
+    description: '',
+    pricePerService: '',
+    availability: 'weekdays',
+    serviceTypes: [] as string[],
+    radiusKm: 10,
+  });
   const { toast } = useToast();
   
   const steps: Step[] = [
@@ -343,6 +350,44 @@ const ProviderOnboard: React.FC = () => {
         description: "Unable to verify payout setup status.",
         variant: "destructive",
       });
+    }
+  };
+
+  const saveServiceDetails = async () => {
+    try {
+      const response = await fetch('/api/providers/save', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          description: serviceDetails.description,
+          pricePerService: parseFloat(serviceDetails.pricePerService) || undefined,
+          availability: serviceDetails.availability,
+          serviceTypes: serviceDetails.serviceTypes,
+          radiusKm: serviceDetails.radiusKm,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to save service details');
+      }
+
+      toast({
+        title: "Details Saved",
+        description: "Your service details have been saved successfully.",
+      });
+
+      return true;
+    } catch (error) {
+      console.error('Save service details error:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      toast({
+        title: "Save Failed",
+        description: errorMessage,
+        variant: "destructive",
+      });
+      return false;
     }
   };
 
@@ -692,25 +737,93 @@ const ProviderOnboard: React.FC = () => {
             <h2 className="text-xl font-semibold">Service Details</h2>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium mb-2">Service Types</label>
-                <div className="space-y-2">
-                  <label className="flex items-center space-x-2">
-                    <input type="checkbox" className="rounded" />
-                    <span className="text-sm">Dog Walking</span>
-                  </label>
-                  <label className="flex items-center space-x-2">
-                    <input type="checkbox" className="rounded" />
-                    <span className="text-sm">Pet Sitting</span>
-                  </label>
-                  <label className="flex items-center space-x-2">
-                    <input type="checkbox" className="rounded" />
-                    <span className="text-sm">Dog Training</span>
-                  </label>
+                <label className="block text-sm font-medium mb-2">Service Description</label>
+                <textarea 
+                  className="w-full border rounded-lg px-3 py-2 h-24"
+                  placeholder="Describe your services..."
+                  value={serviceDetails.description}
+                  onChange={(e) => setServiceDetails(prev => ({ ...prev, description: e.target.value }))}
+                  data-testid="textarea-service-description"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium mb-2">Starting Price ($)</label>
+                  <Input 
+                    type="number" 
+                    placeholder="50"
+                    value={serviceDetails.pricePerService}
+                    onChange={(e) => setServiceDetails(prev => ({ ...prev, pricePerService: e.target.value }))}
+                    data-testid="input-price-per-service"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2">Availability</label>
+                  <select 
+                    className="w-full border rounded-lg px-3 py-2"
+                    value={serviceDetails.availability}
+                    onChange={(e) => setServiceDetails(prev => ({ ...prev, availability: e.target.value }))}
+                    data-testid="select-availability"
+                  >
+                    <option value="weekdays">Weekdays</option>
+                    <option value="weekends">Weekends</option>
+                    <option value="anytime">Anytime</option>
+                  </select>
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-2">Services Offered</label>
+                <div className="grid grid-cols-2 gap-2">
+                  {['Dog Walking', 'Pet Sitting', 'Grooming', 'Dog Training'].map((service) => (
+                    <label key={service} className="flex items-center space-x-2">
+                      <input 
+                        type="checkbox" 
+                        className="rounded"
+                        checked={serviceDetails.serviceTypes.includes(service)}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setServiceDetails(prev => ({ 
+                              ...prev, 
+                              serviceTypes: [...prev.serviceTypes, service] 
+                            }));
+                          } else {
+                            setServiceDetails(prev => ({ 
+                              ...prev, 
+                              serviceTypes: prev.serviceTypes.filter(s => s !== service) 
+                            }));
+                          }
+                        }}
+                        data-testid={`checkbox-service-${service.toLowerCase().replace(' ', '-')}`}
+                      />
+                      <span className="text-sm">{service}</span>
+                    </label>
+                  ))}
                 </div>
               </div>
               <div>
                 <label className="block text-sm font-medium mb-2">Service Radius (km)</label>
-                <Input type="number" placeholder="10" min="1" max="50" />
+                <Input 
+                  type="number" 
+                  placeholder="10" 
+                  min="1" 
+                  max="50"
+                  value={serviceDetails.radiusKm}
+                  onChange={(e) => setServiceDetails(prev => ({ ...prev, radiusKm: parseInt(e.target.value) || 10 }))}
+                  data-testid="input-service-radius"
+                />
+              </div>
+              <div className="pt-4">
+                <Button 
+                  onClick={saveServiceDetails}
+                  variant="outline"
+                  className="w-full"
+                  data-testid="button-save-service-details"
+                >
+                  Save Service Details
+                </Button>
+                <p className="text-xs text-gray-500 mt-2 text-center">
+                  Details are saved as draft and can be updated later
+                </p>
               </div>
             </div>
           </div>
