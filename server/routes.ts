@@ -114,6 +114,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Add authentication middleware for all other API routes
   app.use('/api', authMiddleware);
 
+  // Provider onboarding routes (protected by auth middleware)
+  const { default: providersRouter } = await import('./routes/providers/onboarding.js');
+  app.use('/api/providers', providersRouter);
+
   // Register GDPR compliance routes
   registerGDPRRoutes(app);
 

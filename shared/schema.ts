@@ -283,6 +283,53 @@ export const commissionSettings = pgTable("commission_settings", {
 export const insertCommissionSchema = createInsertSchema(commissions).omit({ id: true, created_at: true, updated_at: true });
 export const insertCommissionSettingsSchema = createInsertSchema(commissionSettings).omit({ id: true, created_at: true, updated_at: true });
 
+// Provider onboarding tables
+export const providers = pgTable("providers", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  user_id: uuid("user_id").references(() => profiles.id, { onDelete: "cascade" }),
+  legal_name: text("legal_name").notNull(),
+  phone: text("phone").notNull(),
+  photo_url: text("photo_url"),
+  service_types: text("service_types").array().default([]),
+  radius_km: integer("radius_km").default(10),
+  status: text("status").default("pending"), // pending, verified, pro, rejected
+  created_at: timestamp("created_at").defaultNow(),
+  updated_at: timestamp("updated_at").defaultNow(),
+});
+
+export const providerVerifications = pgTable("provider_verifications", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  provider_id: uuid("provider_id").references(() => providers.id, { onDelete: "cascade" }),
+  vendor: text("vendor").default("internal"),
+  id_status: text("id_status").default("pending"), // pending, passed, failed
+  liveness_passed: boolean("liveness_passed").default(false),
+  created_at: timestamp("created_at").defaultNow(),
+  updated_at: timestamp("updated_at").defaultNow(),
+});
+
+export const providerChecks = pgTable("provider_checks", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  provider_id: uuid("provider_id").references(() => providers.id, { onDelete: "cascade" }),
+  check_status: text("check_status").default("pending"), // pending, passed, failed
+  created_at: timestamp("created_at").defaultNow(),
+  updated_at: timestamp("updated_at").defaultNow(),
+});
+
+export const providerPayouts = pgTable("provider_payouts", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  provider_id: uuid("provider_id").references(() => providers.id, { onDelete: "cascade" }),
+  stripe_account_id: text("stripe_account_id").unique(),
+  account_type: text("account_type").default("individual"), // individual, business
+  created_at: timestamp("created_at").defaultNow(),
+  updated_at: timestamp("updated_at").defaultNow(),
+});
+
+// Provider schemas
+export const insertProviderSchema = createInsertSchema(providers).omit({ id: true, created_at: true, updated_at: true });
+export const insertProviderVerificationSchema = createInsertSchema(providerVerifications).omit({ id: true, created_at: true, updated_at: true });
+export const insertProviderCheckSchema = createInsertSchema(providerChecks).omit({ id: true, created_at: true, updated_at: true });
+export const insertProviderPayoutSchema = createInsertSchema(providerPayouts).omit({ id: true, created_at: true, updated_at: true });
+
 // Infer types
 export type Profile = typeof profiles.$inferSelect;
 export type InsertProfile = z.infer<typeof insertProfileSchema>;
@@ -314,6 +361,14 @@ export type Commission = typeof commissions.$inferSelect;
 export type InsertCommission = z.infer<typeof insertCommissionSchema>;
 export type CommissionSettings = typeof commissionSettings.$inferSelect;
 export type InsertCommissionSettings = z.infer<typeof insertCommissionSettingsSchema>;
+export type Provider = typeof providers.$inferSelect;
+export type InsertProvider = z.infer<typeof insertProviderSchema>;
+export type ProviderVerification = typeof providerVerifications.$inferSelect;
+export type InsertProviderVerification = z.infer<typeof insertProviderVerificationSchema>;
+export type ProviderCheck = typeof providerChecks.$inferSelect;
+export type InsertProviderCheck = z.infer<typeof insertProviderCheckSchema>;
+export type ProviderPayout = typeof providerPayouts.$inferSelect;
+export type InsertProviderPayout = z.infer<typeof insertProviderPayoutSchema>;
 
 
 

@@ -1,0 +1,835 @@
+FEATURE NAME: Provider Onboarding (Uber-style)
+
+USER STORY:
+As a new pet service provider, I want to sign up, verify my identity, pass a background check, set up payouts, add service details, accept terms, and get a “Verified” badge so I can accept bookings.
+
+SCOPE (MVP):
+Screens: Welcome, Basics, ID Verify, Background Check, Payout (Stripe Connect), Service Details, Terms, Review/Badge.
+No redesign/theme edits.
+
+FILES ALLOWED TO CHANGE:
+- app/services/onboarding/*
+- components/providers/*
+- lib/supabase/*
+- lib/stripe/*
+- pages/api/providers/*
+- db/migrations/*
+
+FILES NOT ALLOWED TO CHANGE:
+- Global theme/colors
+- Explore page, Marketplace store, Messaging, existing auth
+
+DATA MODEL (Supabase):
+tables:
+- providers (id pk, user_id fk, legal_name, phone, photo_url, service_types text[], radius_km int, status text check in ('pending','verified','pro','rejected'), created_at)
+- provider_verifications (id pk, provider_id fk, vendor text, id_status text check in ('pending','passed','failed'), liveness_passed bool, created_at)
+- provider_checks (id pk, provider_id fk, check_status text check in ('pending','passed','failed'), created_at)
+- provider_payouts (id pk, provider_id fk, stripe_account_id text, account_type text check in ('individual','business'), created_at)
+
+ACCEPTANCE CRITERIA:
+- Cannot advance past ID until liveness+match passes.
+- Must pass background check to reach Payout.
+- Stripe Connect returns account id → store in provider_payouts.
+- Auto-advance providers.status to 'verified' when ID+check pass (Pro is future).
+
+OUT OF SCOPE (for now):
+- Credential/insurance upload, Pro badge workflow, admin manual review UI.
+
+INSTRUCTIONS TO AI:
+Do NOT write code yet. Propose a minimal plan that includes:
+1) exact files to create/edit,
+2) component/function names,
+3) 6–8 tiny commits,
+4) migration filename(s).
+Keep it tightly scoped. No theme changes or unrelated refactors.
+Approve the AI’s file list and order. Then proceed below.
+
+1) UI Shell (one file, no APIs yet)
+Create/Edit: app/services/onboarding/ProviderOnboard.tsx
+Paste exactly this (replace file contents or insert between markers):
+
+tsx
+Copy
+Edit
+// SOL:START ProviderOnboard
+import React, { useMemo, useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+// If you have your own UI primitives, adjust imports accordingly.
+
+type StepKey = "WELCOME" | "BASICS" | "ID" | "CHECK" | "PAYOUT" | "DETAILS" | "TERMS" | "REVIEW";
+
+const STEPS: StepKey[] = ["WELCOME","BASICS","ID","CHECK","PAYOUT","DETAILS","TERMS","REVIEW"];
+
+export default function ProviderOnboard() {
+  const [stepIndex, setStepIndex] = useState(0);
+  const step = STEPS[stepIndex];
+
+  // global draft state kept locally for MVP; wire to API in later steps
+  const [draft, setDraft] = useState({
+    legalName: "",
+    phone: "",
+    photoUrl: "",
+    serviceTypes: [] as string[],
+    radiusKm: 10,
+    idStatus: "pending" as "pending" | "passed" | "failed",
+    livenessPassed: false,
+    checkStatus: "pending" as "pending" | "passed" | "failed",
+    payoutConnected: false,
+    stripeAccountId: "",
+    description: "",
+    pricing: "",
+    availability: "",
+    termsAccepted: false,
+  });
+
+  const canNext = useMemo(() => {
+    switch (step) {
+      case "BASICS":
+        return draft.legalName.trim().length > 1 && draft.phone.trim().length > 6;
+      case "ID":
+        return draft.idStatus === "passed" && draft.livenessPassed;
+      case "CHECK":
+        return draft.checkStatus === "passed";
+      case "PAYOUT":
+        return !!draft.payoutConnected && !!draft.stripeAccountId;
+      case "DETAILS":
+        return draft.description.trim().length > 10 && draft.pricing.trim().length > 0;
+      case "TERMS":
+        return draft.termsAccepted;
+      default:
+        return true;
+    }
+  }, [step, draft]);
+
+  const onBack = () => setStepIndex((i) => Math.max(0, i - 1));
+  const onNext = () => setStepIndex((i) => Math.min(STEPS.length - 1, i + 1));
+
+  return (
+    <div className="mx-auto max-w-xl space-y-6 p-4">
+      <ProgressBar current={stepIndex} total={STEPS.length} />
+      <StepTitle step={step} />
+
+      {step === "WELCOME" && <Welcome onNext={onNext} />}
+      {step === "BASICS" && (
+        <Basics
+          draft={draft}
+          setDraft={setDraft}
+        />
+      )}
+      {step === "ID" && (
+        <IdVerify
+          draft={draft}
+          setDraft={setDraft}
+        />
+      )}
+      {step === "CHECK" && (
+        <BackgroundCheck
+          draft={draft}
+          setDraft={setDraft}
+        />
+      )}
+      {step === "PAYOUT" && (
+        <Payout
+          draft={draft}
+          setDraft={setDraft}
+        />
+      )}
+      {step === "DETAILS" && (
+        <Details
+          draft={draft}
+          setDraft={setDraft}
+        />
+      )}
+      {step === "TERMS" && (
+        <Terms
+          draft={draft}
+          setDraft={setDraft}
+        />
+      )}
+      {step === "REVIEW" && (
+        <Review draft={draft} />
+      )}
+
+      <div className="flex items-center justify-between pt-4">
+        <Button variant="secondary" onClick={onBack} disabled={stepIndex === 0}>
+          Back
+        </Button>
+        <Button onClick={onNext} disabled={!canNext || stepIndex === STEPS.length - 1}>
+          {stepIndex === STEPS.length - 2 ? "Finish" : "Next"}
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+function ProgressBar({ current, total }: { current: number; total: number }) {
+  const pct = Math.round(((current + 1) / total) * 100);
+  return (
+    <div className="w-full">
+      <div className="h-2 w-full rounded bg-gray-200">
+        <div className="h-2 rounded bg-blue-500" style={{ width: `${pct}%` }} />
+      </div>
+      <div className="mt-1 text-right text-xs text-gray-500">{pct}%</div>
+    </div>
+  );
+}
+
+function StepTitle({ step }: { step: StepKey }) {
+  const label = {
+    WELCOME: "Welcome",
+    BASICS: "Profile Basics",
+    ID: "Identity Verification",
+    CHECK: "Background Check",
+    PAYOUT: "Payout Setup",
+    DETAILS: "Service Details",
+    TERMS: "Terms & Safety",
+    REVIEW: "Review & Badge",
+  }[step];
+  return <h1 className="text-2xl font-semibold">{label}</h1>;
+}
+
+// --- Step Components (simple shells for MVP) ---
+
+function Welcome({ onNext }: { onNext: () => void }) {
+  return (
+    <div className="space-y-3">
+      <p>Earn money offering trusted pet services in your area.</p>
+      <Button onClick={onNext}>Get started</Button>
+    </div>
+  );
+}
+
+function Basics({ draft, setDraft }: any) {
+  return (
+    <div className="space-y-3">
+      <Input
+        placeholder="Legal name"
+        value={draft.legalName}
+        onChange={(e) => setDraft((d: any) => ({ ...d, legalName: e.target.value }))}
+      />
+      <Input
+        placeholder="Phone"
+        value={draft.phone}
+        onChange={(e) => setDraft((d: any) => ({ ...d, phone: e.target.value }))}
+      />
+      <Input
+        placeholder="Photo URL (optional)"
+        value={draft.photoUrl}
+        onChange={(e) => setDraft((d: any) => ({ ...d, photoUrl: e.target.value }))}
+      />
+      <Input
+        placeholder="Service types (comma-separated)"
+        onChange={(e) =>
+          setDraft((d: any) => ({ ...d, serviceTypes: e.target.value.split(",").map((s) => s.trim()) }))
+        }
+      />
+      <Input
+        placeholder="Service radius (km)"
+        type="number"
+        value={draft.radiusKm}
+        onChange={(e) => setDraft((d: any) => ({ ...d, radiusKm: Number(e.target.value || 0) }))}
+      />
+    </div>
+  );
+}
+
+function IdVerify({ draft, setDraft }: any) {
+  // Stub buttons to simulate vendor flow; wired in Step 3/4
+  return (
+    <div className="space-y-3">
+      <p>We verify all providers to protect pets and owners.</p>
+      <div className="flex gap-2">
+        <Button onClick={() => setDraft((d: any) => ({ ...d, idStatus: "pending", livenessPassed: false }))}>
+          Start ID
+        </Button>
+        <Button onClick={() => setDraft((d: any) => ({ ...d, idStatus: "passed", livenessPassed: true }))}>
+          Simulate Passed
+        </Button>
+        <Button variant="destructive" onClick={() => setDraft((d: any) => ({ ...d, idStatus: "failed" }))}>
+          Simulate Failed
+        </Button>
+      </div>
+      <StatusBadge label="ID" status={draft.idStatus} />
+      <StatusBadge label="Liveness" status={draft.livenessPassed ? "passed" : "pending"} />
+    </div>
+  );
+}
+
+function BackgroundCheck({ draft, setDraft }: any) {
+  return (
+    <div className="space-y-3">
+      <p>Quick background screening for safety.</p>
+      <div className="flex gap-2">
+        <Button onClick={() => setDraft((d: any) => ({ ...d, checkStatus: "pending" }))}>Start Check</Button>
+        <Button onClick={() => setDraft((d: any) => ({ ...d, checkStatus: "passed" }))}>Simulate Passed</Button>
+        <Button variant="destructive" onClick={() => setDraft((d: any) => ({ ...d, checkStatus: "failed" }))}>
+          Simulate Failed
+        </Button>
+      </div>
+      <StatusBadge label="Background" status={draft.checkStatus} />
+    </div>
+  );
+}
+
+function Payout({ draft, setDraft }: any) {
+  return (
+    <div className="space-y-3">
+      <p>Connect your bank via Stripe to receive payouts.</p>
+      <div className="flex gap-2">
+        <Button
+          onClick={() =>
+            setDraft((d: any) => ({ ...d, payoutConnected: true, stripeAccountId: "acct_1234_example" }))
+          }
+        >
+          Simulate Connect
+        </Button>
+        <Button variant="secondary" onClick={() => setDraft((d: any) => ({ ...d, payoutConnected: false, stripeAccountId: "" }))}>
+          Disconnect
+        </Button>
+      </div>
+      <StatusBadge label="Payout" status={draft.payoutConnected ? "passed" : "pending"} />
+      {draft.stripeAccountId && <p className="text-sm text-gray-500">Stripe Account: {draft.stripeAccountId}</p>}
+    </div>
+  );
+}
+
+function Details({ draft, setDraft }: any) {
+  return (
+    <div className="space-y-3">
+      <Input
+        placeholder="Describe your services (min 10 chars)"
+        value={draft.description}
+        onChange={(e) => setDraft((d: any) => ({ ...d, description: e.target.value }))}
+      />
+      <Input
+        placeholder="Pricing (e.g., $30 per walk)"
+        value={draft.pricing}
+        onChange={(e) => setDraft((d: any) => ({ ...d, pricing: e.target.value }))}
+      />
+      <Input
+        placeholder="Availability (e.g., Weekdays 9–5)"
+        value={draft.availability}
+        onChange={(e) => setDraft((d: any) => ({ ...d, availability: e.target.value }))}
+      />
+    </div>
+  );
+}
+
+function Terms({ draft, setDraft }: any) {
+  return (
+    <div className="space-y-3">
+      <p>Agree to our Safety & Animal Welfare, Code of Conduct, and Cancellation policies.</p>
+      <label className="flex items-center gap-2">
+        <input
+          type="checkbox"
+          checked={draft.termsAccepted}
+          onChange={(e) => setDraft((d: any) => ({ ...d, termsAccepted: e.target.checked }))}
+        />
+        <span>I understand & agree.</span>
+      </label>
+    </div>
+  );
+}
+
+function Review({ draft }: any) {
+  const ready =
+    draft.idStatus === "passed" &&
+    draft.livenessPassed &&
+    draft.checkStatus === "passed" &&
+    draft.payoutConnected &&
+    draft.termsAccepted;
+  return (
+    <div className="space-y-3">
+      <p>Review your info and finish.</p>
+      <ul className="list-disc pl-6 text-sm text-gray-700">
+        <li>ID: {draft.idStatus}</li>
+        <li>Liveness: {draft.livenessPassed ? "passed" : "pending"}</li>
+        <li>Background: {draft.checkStatus}</li>
+        <li>Payout: {draft.payoutConnected ? "connected" : "pending"}</li>
+        <li>Stripe ID: {draft.stripeAccountId || "-"}</li>
+        <li>Terms: {draft.termsAccepted ? "accepted" : "pending"}</li>
+      </ul>
+      <div className="text-lg font-medium">{ready ? "You’re Verified! 🎉" : "Almost there…"}</div>
+    </div>
+  );
+}
+
+function StatusBadge({ label, status }: { label: string; status: "pending" | "passed" | "failed" | string }) {
+  const text =
+    status === "passed" ? "Passed" : status === "failed" ? "Failed" : "Pending";
+  return (
+    <div className="inline-flex items-center gap-2 rounded-full border px-3 py-1 text-sm">
+      <span className="font-medium">{label}</span>
+      <span className={status === "passed" ? "text-green-600" : status === "failed" ? "text-red-600" : "text-gray-600"}>
+        {text}
+      </span>
+    </div>
+  );
+}
+// SOL:END ProviderOnboard
+Commit and visually confirm the stepper works.
+
+2) Database Migration (one SQL file)
+Create: db/migrations/20250815_provider_onboarding.sql
+
+sql
+Copy
+Edit
+-- SOL:START 20250815_provider_onboarding
+create table if not exists providers (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null,
+  legal_name text not null,
+  phone text not null,
+  photo_url text,
+  service_types text[] not null default '{}',
+  radius_km int not null default 10,
+  status text not null default 'pending' check (status in ('pending','verified','pro','rejected')),
+  created_at timestamptz not null default now()
+);
+
+create index if not exists idx_providers_user on providers(user_id);
+create index if not exists idx_providers_created on providers(created_at);
+
+create table if not exists provider_verifications (
+  id uuid primary key default gen_random_uuid(),
+  provider_id uuid not null references providers(id) on delete cascade,
+  vendor text not null,
+  id_status text not null default 'pending' check (id_status in ('pending','passed','failed')),
+  liveness_passed boolean not null default false,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists idx_pv_provider on provider_verifications(provider_id);
+create index if not exists idx_pv_created on provider_verifications(created_at);
+
+create table if not exists provider_checks (
+  id uuid primary key default gen_random_uuid(),
+  provider_id uuid not null references providers(id) on delete cascade,
+  check_status text not null default 'pending' check (check_status in ('pending','passed','failed')),
+  created_at timestamptz not null default now()
+);
+
+create index if not exists idx_pc_provider on provider_checks(provider_id);
+create index if not exists idx_pc_created on provider_checks(created_at);
+
+create table if not exists provider_payouts (
+  id uuid primary key default gen_random_uuid(),
+  provider_id uuid not null references providers(id) on delete cascade,
+  stripe_account_id text,
+  account_type text not null default 'individual' check (account_type in ('individual','business')),
+  created_at timestamptz not null default now()
+);
+
+create index if not exists idx_pp_provider on provider_payouts(provider_id);
+create index if not exists idx_pp_created on provider_payouts(created_at);
+-- SOL:END 20250815_provider_onboarding
+Run migration and verify tables.
+
+3) Supabase helpers (centralized writes)
+Create/Edit: lib/supabase/providers.ts
+
+ts
+Copy
+Edit
+// SOL:START lib/supabase/providers
+import { createClient } from "@supabase/supabase-js";
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const supabaseAnon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+export const supabase = createClient(supabaseUrl, supabaseAnon);
+
+export async function saveProviderBasics(userId: string, data: {
+  legal_name: string; phone: string; photo_url?: string;
+  service_types?: string[]; radius_km?: number;
+}) {
+  const { data: existing, error: e1 } = await supabase
+    .from("providers")
+    .select("id")
+    .eq("user_id", userId)
+    .maybeSingle();
+  if (e1) throw e1;
+
+  if (existing) {
+    const { error } = await supabase.from("providers").update({
+      legal_name: data.legal_name,
+      phone: data.phone,
+      photo_url: data.photo_url ?? null,
+      service_types: data.service_types ?? [],
+      radius_km: data.radius_km ?? 10
+    }).eq("id", existing.id);
+    if (error) throw error;
+    return existing.id;
+  } else {
+    const { data: ins, error } = await supabase.from("providers").insert({
+      user_id: userId,
+      legal_name: data.legal_name,
+      phone: data.phone,
+      photo_url: data.photo_url ?? null,
+      service_types: data.service_types ?? [],
+      radius_km: data.radius_km ?? 10
+    }).select("id").single();
+    if (error) throw error;
+    return ins.id;
+  }
+}
+
+export async function setIdStatus(providerId: string, vendor: string, status: "pending"|"passed"|"failed", livenessPassed: boolean) {
+  const { error } = await supabase.from("provider_verifications").insert({
+    provider_id: providerId, vendor, id_status: status, liveness_passed: livenessPassed
+  });
+  if (error) throw error;
+}
+
+export async function setCheckStatus(providerId: string, status: "pending"|"passed"|"failed") {
+  const { error } = await supabase.from("provider_checks").insert({
+    provider_id: providerId, check_status: status
+  });
+  if (error) throw error;
+}
+
+export async function saveStripeAccount(providerId: string, accountId: string, accountType: "individual"|"business") {
+  const { error } = await supabase.from("provider_payouts").insert({
+    provider_id: providerId, stripe_account_id: accountId, account_type: accountType
+  });
+  if (error) throw error;
+}
+
+export async function attemptAutoVerify(providerId: string) {
+  // If latest ID = passed & liveness=true, and latest check = passed → providers.status='verified'
+  const { data: idRows, error: e1 } = await supabase
+    .from("provider_verifications")
+    .select("id_status,liveness_passed,created_at")
+    .eq("provider_id", providerId)
+    .order("created_at", { ascending: false })
+    .limit(1);
+  if (e1) throw e1;
+
+  const { data: chkRows, error: e2 } = await supabase
+    .from("provider_checks")
+    .select("check_status,created_at")
+    .eq("provider_id", providerId)
+    .order("created_at", { ascending: false })
+    .limit(1);
+  if (e2) throw e2;
+
+  const idOk = idRows?.[0]?.id_status === "passed" && !!idRows?.[0]?.liveness_passed;
+  const chkOk = chkRows?.[0]?.check_status === "passed";
+  if (idOk && chkOk) {
+    const { error } = await supabase
+      .from("providers")
+      .update({ status: "verified" })
+      .eq("id", providerId);
+    if (error) throw error;
+    return "verified";
+  }
+  return "pending";
+}
+// SOL:END lib/supabase/providers
+Commit.
+
+4) API Stubs (simulate vendors now; swap to real later)
+4A) Save Basics
+Create: pages/api/providers/save.ts
+
+ts
+Copy
+Edit
+// SOL:START api/providers/save
+import type { NextApiRequest, NextApiResponse } from "next";
+import { saveProviderBasics } from "@/lib/supabase/providers";
+
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  if (req.method !== "POST") return res.status(405).end();
+  try {
+    const { userId, basics } = req.body;
+    if (!userId || !basics?.legal_name || !basics?.phone) return res.status(400).json({ error: "missing fields" });
+    const providerId = await saveProviderBasics(userId, {
+      legal_name: basics.legal_name,
+      phone: basics.phone,
+      photo_url: basics.photo_url,
+      service_types: basics.service_types ?? [],
+      radius_km: basics.radius_km ?? 10
+    });
+    res.json({ providerId });
+  } catch (e: any) {
+    res.status(500).json({ error: e?.message || "server error" });
+  }
+}
+// SOL:END api/providers/save
+4B) ID Verification (mock vendor)
+Create: pages/api/providers/id/start.ts
+
+ts
+Copy
+Edit
+// SOL:START api/providers/id/start
+import type { NextApiRequest, NextApiResponse } from "next";
+
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  if (req.method !== "POST") return res.status(405).end();
+  // In real world, create vendor session (Stripe Identity/Persona/Veriff)
+  // For MVP mock, return a fake URL
+  return res.json({ redirectUrl: "https://vendor.example/identity/session/mock" });
+}
+// SOL:END api/providers/id/start
+Create: pages/api/providers/id/webhook.ts
+
+ts
+Copy
+Edit
+// SOL:START api/providers/id/webhook
+import type { NextApiRequest, NextApiResponse } from "next";
+import { setIdStatus, attemptAutoVerify } from "@/lib/supabase/providers";
+
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  if (req.method !== "POST") return res.status(405).end();
+  try {
+    const { providerId, vendor = "mockVendor", status, livenessPassed } = req.body;
+    if (!providerId || !status) return res.status(400).json({ error: "missing fields" });
+    await setIdStatus(providerId, vendor, status, !!livenessPassed);
+    const overall = await attemptAutoVerify(providerId);
+    res.json({ ok: true, overall });
+  } catch (e: any) {
+    res.status(500).json({ error: e?.message || "server error" });
+  }
+}
+// SOL:END api/providers/id/webhook
+4C) Background Check (mock)
+Create: pages/api/providers/checks/start.ts
+
+ts
+Copy
+Edit
+// SOL:START api/providers/checks/start
+import type { NextApiRequest, NextApiResponse } from "next";
+import { setCheckStatus } from "@/lib/supabase/providers";
+
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  if (req.method !== "POST") return res.status(405).end();
+  const { providerId } = req.body;
+  if (!providerId) return res.status(400).json({ error: "missing providerId" });
+  await setCheckStatus(providerId, "pending");
+  // In real world, enqueue check with vendor; MVP returns immediately
+  return res.json({ ok: true });
+}
+// SOL:END api/providers/checks/start
+Create: pages/api/providers/checks/webhook.ts
+
+ts
+Copy
+Edit
+// SOL:START api/providers/checks/webhook
+import type { NextApiRequest, NextApiResponse } from "next";
+import { setCheckStatus, attemptAutoVerify } from "@/lib/supabase/providers";
+
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  if (req.method !== "POST") return res.status(405).end();
+  const { providerId, status } = req.body;
+  if (!providerId || !status) return res.status(400).json({ error: "missing fields" });
+  await setCheckStatus(providerId, status);
+  const overall = await attemptAutoVerify(providerId);
+  return res.json({ ok: true, overall });
+}
+// SOL:END api/providers/checks/webhook
+4D) Stripe Connect (mock helper + api)
+Create: lib/stripe/connect.ts
+
+ts
+Copy
+Edit
+// SOL:START lib/stripe/connect
+export async function createAccountLink(_opts: { userId: string; accountType: "individual"|"business" }) {
+  // Real world: use Stripe SDK server-side to create account + account link
+  // MVP mock:
+  return {
+    accountId: "acct_mock_123",
+    accountLinkUrl: "https://connect.stripe.com/setup/s/mock",
+  };
+}
+// SOL:END lib/stripe/connect
+Create: pages/api/providers/payouts/connect.ts
+
+ts
+Copy
+Edit
+// SOL:START api/providers/payouts/connect
+import type { NextApiRequest, NextApiResponse } from "next";
+import { createAccountLink } from "@/lib/stripe/connect";
+import { saveStripeAccount } from "@/lib/supabase/providers";
+
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  if (req.method !== "POST") return res.status(405).end();
+  const { providerId, userId, accountType = "individual" } = req.body;
+  if (!providerId || !userId) return res.status(400).json({ error: "missing fields" });
+  const { accountId, accountLinkUrl } = await createAccountLink({ userId, accountType });
+  // Save immediately in MVP; in real-world, confirm via webhook
+  await saveStripeAccount(providerId, accountId, accountType);
+  return res.json({ accountId, accountLinkUrl });
+}
+// SOL:END api/providers/payouts/connect
+4E) Advance Status (finalize)
+Create: pages/api/providers/status/advance.ts
+
+ts
+Copy
+Edit
+// SOL:START api/providers/status/advance
+import type { NextApiRequest, NextApiResponse } from "next";
+import { attemptAutoVerify } from "@/lib/supabase/providers";
+
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  if (req.method !== "POST") return res.status(405).end();
+  const { providerId } = req.body;
+  if (!providerId) return res.status(400).json({ error: "missing providerId" });
+  const status = await attemptAutoVerify(providerId);
+  return res.json({ status });
+}
+// SOL:END api/providers/status/advance
+Commit.
+
+5) Wire the UI shell to the APIs (tiny edits only)
+Edit: app/services/onboarding/ProviderOnboard.tsx
+Add minimal fetch calls inside the step components where we simulated actions:
+
+In Basics: call /api/providers/save when moving Next (or add a “Save basics” button) and store returned providerId in state.
+
+In IdVerify “Start ID”: POST to /api/providers/id/start, then (for MVP) let user click “Simulate Passed,” which POSTs to /api/providers/id/webhook with { providerId, status:'passed', livenessPassed:true }.
+
+In BackgroundCheck “Start Check”: POST to /api/providers/checks/start, then “Simulate Passed” → /api/providers/checks/webhook.
+
+In Payout “Connect”: POST to /api/providers/payouts/connect; store stripeAccountId and set payoutConnected.
+
+In Review (or after Terms on “Next”): POST to /api/providers/status/advance and, if response is verified, show success.
+
+Here’s a minimal patch you can add to the top-level component for holding providerId and a small helper:
+
+tsx
+Copy
+Edit
+// SOL:START ProviderOnboard_patch_state
+// place near other useState calls
+const [providerId, setProviderId] = useState<string>("");
+
+// simple POST helper
+async function postJSON(url: string, body: any) {
+  const res = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+  if (!res.ok) throw new Error(await res.text());
+  return res.json();
+}
+// SOL:END ProviderOnboard_patch_state
+Then, for each step, add small handlers:
+
+Basics (add a “Save” button below inputs):
+
+tsx
+Copy
+Edit
+// SOL:START Basics_save_button
+<Button
+  onClick={async () => {
+    // You’ll need the current userId from your auth (replace placeholder)
+    const userId = (window as any).__USER_ID__ || "mock-user-uuid";
+    const resp = await postJSON("/api/providers/save", {
+      userId,
+      basics: {
+        legal_name: draft.legalName,
+        phone: draft.phone,
+        photo_url: draft.photoUrl,
+        service_types: draft.serviceTypes,
+        radius_km: draft.radiusKm
+      }
+    });
+    setProviderId(resp.providerId);
+    alert("Basics saved");
+  }}
+>
+  Save Basics
+</Button>
+// SOL:END Basics_save_button
+ID:
+
+tsx
+Copy
+Edit
+// SOL:START ID_handlers
+<Button
+  onClick={async () => {
+    if (!providerId) return alert("Save basics first");
+    await postJSON("/api/providers/id/start", { providerId });
+    setDraft((d:any) => ({ ...d, idStatus: "pending", livenessPassed: false }));
+    alert("ID session started (mock)");
+  })}
+>
+  Start ID
+</Button>
+<Button
+  onClick={async () => {
+    if (!providerId) return alert("Save basics first");
+    await postJSON("/api/providers/id/webhook", { providerId, status: "passed", livenessPassed: true });
+    setDraft((d:any) => ({ ...d, idStatus: "passed", livenessPassed: true }));
+  }}
+>
+  Simulate Passed
+</Button>
+// SOL:END ID_handlers
+Background Check:
+
+tsx
+Copy
+Edit
+// SOL:START CHECK_handlers
+<Button
+  onClick={async () => {
+    if (!providerId) return alert("Save basics first");
+    await postJSON("/api/providers/checks/start", { providerId });
+    setDraft((d:any) => ({ ...d, checkStatus: "pending" }));
+  }}
+>
+  Start Check
+</Button>
+<Button
+  onClick={async () => {
+    if (!providerId) return alert("Save basics first");
+    await postJSON("/api/providers/checks/webhook", { providerId, status: "passed" });
+    setDraft((d:any) => ({ ...d, checkStatus: "passed" }));
+  }}
+>
+  Simulate Passed
+</Button>
+// SOL:END CHECK_handlers
+Payout:
+
+tsx
+Copy
+Edit
+// SOL:START Payout_handlers
+<Button
+  onClick={async () => {
+    if (!providerId) return alert("Save basics first");
+    const userId = (window as any).__USER_ID__ || "mock-user-uuid";
+    const resp = await postJSON("/api/providers/payouts/connect", { providerId, userId, accountType: "individual" });
+    setDraft((d:any) => ({ ...d, payoutConnected: true, stripeAccountId: resp.accountId }));
+    alert("Stripe connected (mock)");
+  }}
+>
+  Connect (Mock)
+</Button>
+// SOL:END Payout_handlers
+Review (or right after Terms → Next):
+
+tsx
+Copy
+Edit
+// SOL:START Review_finalize
+<Button
+  onClick={async () => {
+    if (!providerId) return alert("Save basics first");
+    const resp = await postJSON("/api/providers/status/advance", { providerId });
+    alert(`Status: ${resp.status}`);
+  }}
+>
+  Finalize Verification
+</Button>
+// SOL:END Review_finalize

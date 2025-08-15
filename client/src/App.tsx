@@ -27,6 +27,7 @@ import ListingDetail from './pages/ListingDetail';
 import Post from './pages/Post';
 import MessageThread from './components/messaging/MessageThread';
 import { LoadingPage } from './components/ui/loading';
+import ProviderOnboardingPage from './pages/ProviderOnboarding';
 
 // Lazy load heavy components for performance
 const LazyExplore = lazy(() => import('./pages/ExploreRouter'));
@@ -181,6 +182,7 @@ function App() {
                       <LazyServices />
                     </Suspense>
                   } />
+                  <Route path="/provider-onboarding" element={<RequireAuth><ProviderOnboardingPage /></RequireAuth>} />
                   <Route path="/legal" element={<LegalGuide />} />
                   <Route path="/account-settings" element={<RequireAuth><AccountSettingsPage /></RequireAuth>} />
                   <Route path="/fraud-demo" element={<RequireAuth><FraudDetectionDemo /></RequireAuth>} />
