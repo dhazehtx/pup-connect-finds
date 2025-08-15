@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { CheckCircle, Circle, AlertCircle, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
 
 // SOL:START ProviderOnboard
 interface Step {
@@ -49,6 +51,29 @@ const ProviderOnboard: React.FC = () => {
   });
   const [providerStatus, setProviderStatus] = useState<'pending' | 'verified' | 'loading'>('pending');
   const { toast } = useToast();
+  const navigate = useNavigate();
+  const { user, loading } = useAuth();
+
+  // Auth guard - redirect to auth if not signed in
+  useEffect(() => {
+    if (!loading && !user) {
+      navigate('/auth?next=/services/onboarding');
+    }
+  }, [user, loading, navigate]);
+
+  // Show loading while auth is being determined
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+
+  // Show nothing if user is not authenticated (redirect is happening)
+  if (!user) {
+    return null;
+  }
   
   const steps: Step[] = [
     { id: 0, title: 'Welcome', status: currentStep === 0 ? 'current' : currentStep > 0 ? 'completed' : 'pending' },

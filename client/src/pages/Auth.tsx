@@ -32,8 +32,11 @@ const Auth = () => {
     }
 
     if (user) {
-      const from = location.state?.from?.pathname || '/explore';
-      navigate(from, { replace: true });
+      // Check for return URL in query params or location state
+      const next = searchParams.get('next');
+      const from = location.state?.from?.pathname;
+      const redirectTo = next || from || '/explore';
+      navigate(redirectTo, { replace: true });
     }
   }, [user, navigate, searchParams, location]);
 
@@ -77,8 +80,11 @@ const Auth = () => {
       } else {
         await signIn(email, password);
         console.log('Sign in successful');
-        const from = location.state?.from?.pathname || '/explore';
-        navigate(from, { replace: true });
+        // Handle return URL after sign in
+        const next = searchParams.get('next');
+        const from = location.state?.from?.pathname;
+        const redirectTo = next || from || '/explore';
+        navigate(redirectTo, { replace: true });
       }
     } catch (error) {
       console.error('Auth error:', error);

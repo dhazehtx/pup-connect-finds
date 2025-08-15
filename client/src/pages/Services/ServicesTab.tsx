@@ -49,7 +49,7 @@ export function ServicesTab() {
     if (isSignedIn) {
       navigate('/services/onboarding');
     } else {
-      navigate('/auth');
+      navigate('/auth?next=/services/onboarding');
     }
   };
 
