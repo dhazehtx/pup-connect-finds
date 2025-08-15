@@ -34,6 +34,11 @@ interface PayoutSetupState {
 const ProviderOnboard: React.FC = () => {
   const [currentStep, setCurrentStep] = useState(0);
   const [providerId, setProviderId] = useState<string | null>(null);
+  const [basicsData, setBasicsData] = useState({
+    legalName: '',
+    phone: ''
+  });
+  const [isSavingBasics, setIsSavingBasics] = useState(false);
   const [idVerification, setIdVerification] = useState<IDVerificationState>({ status: 'idle' });
   const [backgroundCheck, setBackgroundCheck] = useState<BackgroundCheckState>({ status: 'idle' });
   const [payoutSetup, setPayoutSetup] = useState<PayoutSetupState>({ status: 'idle' });
@@ -88,6 +93,15 @@ const ProviderOnboard: React.FC = () => {
 
   const handleNext = () => {
     // Check if current step requirements are met
+    if (currentStep === 1 && !providerId) {
+      toast({
+        title: "Basics Required",
+        description: "Please save your basic information before proceeding.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     if (currentStep === 2 && idVerification.status !== 'passed') {
       toast({
         title: "Verification Required",
@@ -476,12 +490,84 @@ const ProviderOnboard: React.FC = () => {
     }
   }, [currentStep]);
 
-  // Initialize provider ID (mock for now)
+  // Initialize provider ID from localStorage on mount
   useEffect(() => {
-    if (!providerId) {
-      setProviderId('mock-provider-id-' + Date.now());
+    const storedProviderId = localStorage.getItem('providerId');
+    if (storedProviderId) {
+      setProviderId(storedProviderId);
     }
   }, []);
+
+  // Save provider basics
+  const saveBasics = async () => {
+    if (!user?.id) {
+      toast({
+        title: "Error",
+        description: "User not authenticated",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validation
+    if (basicsData.legalName.length < 2) {
+      toast({
+        title: "Validation Error",
+        description: "Legal name must be at least 2 characters long",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (basicsData.phone.length < 7) {
+      toast({
+        title: "Validation Error", 
+        description: "Phone number must be at least 7 characters long",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsSavingBasics(true);
+
+    try {
+      const response = await fetch('/api/providers/save', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: user.id,
+          legalName: basicsData.legalName,
+          phone: basicsData.phone,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to save basics');
+      }
+
+      // Store provider ID
+      setProviderId(data.providerId);
+      localStorage.setItem('providerId', data.providerId);
+
+      toast({
+        title: "Basics Saved",
+        description: "Your basic information has been saved successfully.",
+      });
+
+    } catch (error) {
+      console.error('Save basics error:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      toast({
+        title: "Save Failed",
+        description: errorMessage,
+        variant: "destructive",
+      });
+    } finally {
+      setIsSavingBasics(false);
+    }
+  };
 
   const renderStepContent = () => {
     switch (currentStep) {
@@ -511,16 +597,44 @@ const ProviderOnboard: React.FC = () => {
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium mb-2">Legal Name</label>
-                <Input placeholder="Enter your full legal name" />
+                <Input 
+                  placeholder="Enter your full legal name" 
+                  value={basicsData.legalName}
+                  onChange={(e) => setBasicsData(prev => ({ ...prev, legalName: e.target.value }))}
+                />
               </div>
               <div>
                 <label className="block text-sm font-medium mb-2">Phone Number</label>
-                <Input placeholder="Enter your phone number" />
+                <Input 
+                  placeholder="Enter your phone number" 
+                  value={basicsData.phone}
+                  onChange={(e) => setBasicsData(prev => ({ ...prev, phone: e.target.value }))}
+                />
               </div>
               <div>
                 <label className="block text-sm font-medium mb-2">Profile Photo</label>
                 <Input type="file" accept="image/*" />
               </div>
+              <Button 
+                onClick={saveBasics}
+                disabled={isSavingBasics}
+                className="w-full"
+                data-testid="button-save-basics"
+              >
+                {isSavingBasics ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                    Saving...
+                  </>
+                ) : (
+                  'Save Basics'
+                )}
+              </Button>
+              {providerId && (
+                <div className="text-sm text-green-600 text-center">
+                  ✓ Basic information saved
+                </div>
+              )}
             </div>
           </div>
         );
