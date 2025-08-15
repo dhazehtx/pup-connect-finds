@@ -319,6 +319,36 @@ const ProviderOnboard: React.FC = () => {
       // Start polling for background check status
       pollBackgroundCheckStatus();
 
+      // Simulate successful background check after delay
+      setTimeout(async () => {
+        try {
+          const webhookResponse = await fetch('/api/providers/checks/webhook', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+              providerId, 
+              status: 'passed',
+              checkData: {
+                criminal: true,
+                identity: true,
+                eligibility: true,
+                overall_score: 95
+              }
+            }),
+          });
+
+          if (webhookResponse.ok) {
+            setBackgroundCheck({ status: 'passed' });
+            toast({
+              title: "Background Check Complete",
+              description: "Your background check has passed successfully!",
+            });
+          }
+        } catch (webhookError) {
+          console.error('Background check webhook error:', webhookError);
+        }
+      }, 3000); // 3 second delay for demo
+
       toast({
         title: "Background Check Started",
         description: "Background check has been initiated.",
@@ -849,10 +879,13 @@ const ProviderOnboard: React.FC = () => {
               <div className="space-y-4">
                 <Button 
                   onClick={handleStartBackgroundCheck}
+                  disabled={backgroundCheck.status === 'loading' || backgroundCheck.status === 'passed'}
                   className="w-full"
                   data-testid="button-start-background-check"
                 >
-                  Start Background Check
+                  {backgroundCheck.status === 'loading' ? 'Processing...' : 
+                   backgroundCheck.status === 'passed' ? '✓ Background Check Complete' : 
+                   'Start Background Check'}
                 </Button>
                 <div className="bg-blue-50 p-4 rounded-lg">
                   <p className="text-sm text-blue-800">

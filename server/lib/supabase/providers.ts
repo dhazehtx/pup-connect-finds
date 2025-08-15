@@ -119,6 +119,25 @@ export async function setCheckStatus(
   return check;
 }
 
+export async function updateProviderCheck(providerId: string, updates: {
+  check_status?: 'passed' | 'failed' | 'pending';
+  check_data?: any;
+  completed_at?: Date | null;
+}) {
+  const updateData: any = { updated_at: new Date() };
+  
+  if (updates.check_status) updateData.check_status = updates.check_status;
+  if (updates.check_data !== undefined) updateData.check_data = updates.check_data;
+  if (updates.completed_at !== undefined) updateData.completed_at = updates.completed_at;
+  
+  const [check] = await db
+    .update(providerChecks)
+    .set(updateData)
+    .where(eq(providerChecks.provider_id, providerId))
+    .returning();
+  return check;
+}
+
 // Provider payout operations
 export async function createProviderPayout(data: {
   provider_id: string;

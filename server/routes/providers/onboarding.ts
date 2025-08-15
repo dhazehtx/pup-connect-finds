@@ -4,6 +4,7 @@ import { handleIdVerificationWebhook } from './id/webhook';
 import { uploadIdImages, handleIdUpload } from './id/upload';
 import { linkVerificationMedia } from './id/link-media';
 import { startBackgroundCheck } from './checks/start';
+import { handleBackgroundCheckWebhook } from './checks/webhook';
 import { connectStripePayout, checkStripeAccountStatus } from './payouts/connect';
 import { saveProviderDetails } from './save';
 import { advanceProviderStatus } from './status/advance';
@@ -20,7 +21,7 @@ router.post('/id/link-media', linkVerificationMedia);
 
 // Background Check routes  
 router.post('/checks/start', startBackgroundCheck);
-// Background check webhook route will be added when function is available
+router.post('/checks/webhook', handleBackgroundCheckWebhook);
 
 // Payout routes
 router.post('/payouts/connect', connectStripePayout);
