@@ -9,7 +9,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Search, MapPin, Clock, Star, Shield, Filter } from 'lucide-react';
 import { ServiceProviderCard } from '@/components/ServiceProviderCard';
-import { BecomeProviderModal } from '@/components/BecomeProviderModal';
 import { BookServiceModal } from '@/components/BookServiceModal';
 import Pill from '@/components/Pill';
 import type { PetServiceProvider } from '@shared/schema';
@@ -39,7 +38,6 @@ export function ServicesTab() {
   
   const [filters, setFilters] = useState<ServicesFilters>({});
   const [searchTerm, setSearchTerm] = useState('');
-  const [showProviderModal, setShowProviderModal] = useState(false);
   const [selectedProvider, setSelectedProvider] = useState<PetServiceProvider | null>(null);
   const [showFilters, setShowFilters] = useState(false);
   const isSignedIn = useSignedIn();
@@ -133,7 +131,7 @@ export function ServicesTab() {
           </div>
           
           <Button 
-            onClick={() => setShowProviderModal(true)}
+            onClick={handleBecomeProvider}
             size="lg"
             className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-semibold px-8 py-3 rounded-xl shadow-lg transition-all duration-200 transform hover:scale-105"
           >
@@ -377,11 +375,7 @@ export function ServicesTab() {
         </TabsContent>
       </Tabs>
 
-      {/* Modals */}
-      <BecomeProviderModal 
-        open={showProviderModal} 
-        onClose={() => setShowProviderModal(false)} 
-      />
+      {/* Modals - Provider modal removed, using direct navigation */}
       
       {selectedProvider && (
         <BookServiceModal 
