@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { startIdVerification } from './id/start';
 import { handleIdVerificationWebhook } from './id/webhook';
+import { uploadIdImages, handleIdUpload } from './id/upload';
 import { startBackgroundCheck } from './checks/start';
 import { connectStripePayout, checkStripeAccountStatus } from './payouts/connect';
 import { saveProviderDetails } from './save';
@@ -13,6 +14,7 @@ const router = Router();
 // ID Verification routes
 router.post('/id/start', startIdVerification);
 router.post('/id/webhook', handleIdVerificationWebhook);
+router.post('/id/upload', uploadIdImages, handleIdUpload);
 
 // Background Check routes  
 router.post('/checks/start', startBackgroundCheck);

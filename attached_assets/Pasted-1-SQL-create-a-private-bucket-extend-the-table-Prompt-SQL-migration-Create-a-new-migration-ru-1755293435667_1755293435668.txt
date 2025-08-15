@@ -1,0 +1,132 @@
+1) SQL: create a private bucket + extend the table
+Prompt (SQL migration)
+Create a new migration; run this in Supabase SQL editor or as a migration file.
+
+sql
+Copy
+Edit
+-- Create a private bucket for provider ID images
+select storage.create_bucket('provider-id', public => false);
+
+-- Add storage path columns to the verification table
+alter table provider_verifications
+  add column if not exists id_front_path text,
+  add column if not exists id_back_path  text;
+
+-- Tight storage policies (RLS)
+-- Only authenticated users can upload into their own userId/… namespace.
+-- Replace 'provider-id' if your bucket name differs.
+drop policy if exists "providers can upload their own id images" on storage.objects;
+create policy "providers can upload their own id images"
+on storage.objects for insert
+to authenticated
+with check (
+  bucket_id = 'provider-id'
+  and ( position( auth.uid()::text || '/' in name ) = 1 )
+);
+
+drop policy if exists "providers can read their own id images" on storage.objects;
+create policy "providers can read their own id images"
+on storage.objects for select
+to authenticated
+using (
+  bucket_id = 'provider-id'
+  and ( position( auth.uid()::text || '/' in name ) = 1 )
+);
+
+-- Block deletes/updates by default (admins can do it with service role).
+Path convention we’ll use: userId/providerId/id-front-<timestamp>.jpg and …/id-back-…
+
+2) Helpers: upload files + link paths to verification
+Prompt (new helper file)
+Create lib/supabase/storage.ts
+
+ts
+Copy
+Edit
+// SOL:START lib/supabase/storage
+import { createClient } from "@supabase/supabase-js";
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const supabaseAnon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+export const supabaseClient = createClient(supabaseUrl, supabaseAnon);
+
+export async function uploadIdImage(opts: {
+  userId: string;
+  providerId: string;
+  side: "front" | "back";
+  file: File | Blob;
+  contentType?: string;
+}) {
+  const ts = Date.now();
+  const ext = (opts.contentType?.split("/")?.[1]) || "jpg";
+  const path = `${opts.userId}/${opts.providerId}/id-${opts.side}-${ts}.${ext}`;
+  const { error } = await supabaseClient
+    .storage
+    .from("provider-id")
+    .upload(path, opts.file, { upsert: true, contentType: opts.contentType || "image/jpeg" });
+  if (error) throw error;
+  return path; // private path, not public URL
+}
+// SOL:END lib/supabase/storage
+Prompt (extend existing providers supabase helpers)
+Edit lib/supabase/providers.ts (add two functions at the end)
+
+ts
+Copy
+Edit
+// SOL:START lib/supabase/providers_link_media
+export async function linkVerificationMedia(providerId: string, paths: { front?: string; back?: string }) {
+  // Update the most recent provider_verifications row for this provider
+  const { data: latest, error: selErr } = await supabase
+    .from("provider_verifications")
+    .select("id")
+    .eq("provider_id", providerId)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (selErr) throw selErr;
+  if (!latest) throw new Error("No verification session found for provider.");
+
+  const { error: updErr } = await supabase
+    .from("provider_verifications")
+    .update({
+      id_front_path: paths.front ?? undefined,
+      id_back_path:  paths.back  ?? undefined
+    })
+    .eq("id", latest.id);
+  if (updErr) throw updErr;
+}
+
+export async function getCurrentUserId(): Promise<string> {
+  // On client this returns the current session’s user id
+  const { data, error } = await supabase.auth.getUser();
+  if (error || !data?.user?.id) throw new Error("Not authenticated");
+  return data.user.id;
+}
+// SOL:END lib/supabase/providers_link_media
+3) API: link media paths to latest verification row
+Prompt (new API route)
+Create pages/api/providers/id/link-media.ts
+
+ts
+Copy
+Edit
+// SOL:START api/providers/id/link-media
+import type { NextApiRequest, NextApiResponse } from "next";
+import { linkVerificationMedia } from "@/lib/supabase/providers";
+
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  if (req.method !== "POST") return res.status(405).end();
+  const { providerId, frontPath, backPath } = req.body;
+  if (!providerId || (!frontPath && !backPath)) {
+    return res.status(400).json({ error: "missing fields" });
+  }
+  try {
+    await linkVerificationMedia(providerId, { front: frontPath, back: backPath });
+    res.json({ ok: true });
+  } catch (e: any) {
+    res.status(500).json({ error: e?.message || "server error" });
+  }
+}
+// SOL:END api/providers/id/link-media

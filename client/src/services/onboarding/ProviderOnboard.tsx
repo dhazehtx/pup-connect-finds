@@ -179,11 +179,26 @@ const ProviderOnboard: React.FC = () => {
         throw new Error(data.error || 'Failed to start verification');
       }
 
-      // Mock upload of both images (log them for now)
-      console.log('Uploading front ID image:', idImages.front);
-      console.log('Uploading back ID image:', idImages.back);
+      // Upload both images to server
+      const formData = new FormData();
+      formData.append('providerId', providerId);
+      formData.append('front', idImages.front);
+      formData.append('back', idImages.back);
 
-      // Simulate successful upload and verification
+      const uploadResponse = await fetch('/api/providers/id/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!uploadResponse.ok) {
+        const uploadError = await uploadResponse.json();
+        throw new Error(uploadError.error || 'Failed to upload images');
+      }
+
+      const uploadResult = await uploadResponse.json();
+      console.log('Images uploaded successfully:', uploadResult.paths);
+
+      // Simulate successful verification after upload
       setTimeout(async () => {
         try {
           const webhookResponse = await fetch('/api/providers/id/webhook', {
@@ -207,7 +222,7 @@ const ProviderOnboard: React.FC = () => {
           console.error('Webhook error:', webhookError);
           setIdVerification({ status: 'failed', message: 'Verification webhook failed' });
         }
-      }, 2000);
+      }, 1500);
 
       setIdVerification({ 
         status: 'pending', 
