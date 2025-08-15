@@ -1,0 +1,55 @@
+Prompt A — Fix the button to redirect unauth users (with return URL)
+markdown
+Copy
+Edit
+In the Services tab component file that renders the "Become a Service Provider" button:
+
+- Use the app’s existing auth hook/context to read the current user (e.g., useAuth() or supabase.auth.getUser()).
+- On click:
+  - If NOT signed in, push to `/auth/signup?next=/services/onboarding` (use your actual auth route if different).
+  - If signed in, push to `/services/onboarding`.
+
+Implementation details:
+- Keep all existing styles/markup.
+- Ensure there is no onClick handler elsewhere swallowing navigation (e.g., a parent <a> or preventDefault).
+- Use the project’s router (e.g., Next.js useRouter or your nav helper).
+- Return only the diff for this file.
+Tip: If your auth route is /auth (not /auth/signup), use /auth?next=/services/onboarding.
+
+Prompt B — Guard the onboarding page (no bypass via URL)
+markdown
+Copy
+Edit
+In the page that renders <ProviderOnboard /> (the `/services/onboarding` route):
+
+- Add an auth guard:
+  - On mount, check auth state.
+  - If NOT signed in, immediately redirect to `/auth/signup?next=/services/onboarding`.
+  - If signed in, render as normal.
+
+Implementation details:
+- Use existing auth hook/context.
+- Use the project router to redirect (client-side).
+- Do not change layout, theme, or unrelated files.
+- Return only the diff for this file.
+Common gotchas to check (quick):
+Wrong path: Your app may use /auth or /signup—match the real route.
+
+Shadowed handler: Make sure no wrapper <a> or onClick is preventing router navigation.
+
+Async auth: If auth loads async, the guard should render nothing (or a tiny spinner) until auth finishes, then redirect.
+
+Return URL support: Confirm your auth page reads ?next= and redirects back after signup. If not, I can give you a tiny handler to add.
+
+Optional (nice UX) — add return-after-signup support
+If your auth page doesn’t already handle next, use this prompt later:
+
+vbnet
+Copy
+Edit
+Update the auth/signup page logic to:
+- Read a "next" query param (e.g., /auth/signup?next=/services/onboarding).
+- After successful signup/signin, router.push(next || "/").
+- Do not alter styles or unrelated code.
+Return only the diff for the auth page.
+Run Prompt A, test the button while logged out; then run Prompt B and test typing the URL directly. Tell me the exact auth route your app uses if it’s not /auth/signup, and I’ll tailor the paths.
