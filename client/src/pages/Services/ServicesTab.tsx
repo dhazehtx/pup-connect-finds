@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -42,6 +43,15 @@ export function ServicesTab() {
   const [selectedProvider, setSelectedProvider] = useState<PetServiceProvider | null>(null);
   const [showFilters, setShowFilters] = useState(false);
   const isSignedIn = useSignedIn();
+  const navigate = useNavigate();
+
+  const handleBecomeProvider = () => {
+    if (isSignedIn) {
+      navigate('/services/onboarding');
+    } else {
+      navigate('/auth');
+    }
+  };
 
   // Fetch real data only - no demo fallback for signed-in users
   const { providers: services = [], isLoading, isError: error, isDemo } = useProviders();
@@ -304,7 +314,7 @@ export function ServicesTab() {
                 Be the first to offer featured services in your area!
               </p>
               <Button 
-                onClick={() => setShowProviderModal(true)}
+                onClick={handleBecomeProvider}
                 className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 !text-white border-0 outline-none focus:ring-0"
                 style={{ color: 'white !important' }}
               >
@@ -356,7 +366,7 @@ export function ServicesTab() {
                 Be the first to offer featured services in your area!
               </p>
               <Button 
-                onClick={() => setShowProviderModal(true)}
+                onClick={handleBecomeProvider}
                 className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 !text-white border-0 outline-none focus:ring-0"
                 style={{ color: 'white !important' }}
               >
