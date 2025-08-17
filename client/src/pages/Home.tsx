@@ -90,9 +90,9 @@ const Home = () => {
   }
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-gray-50">
       {/* Hero Section */}
-      <section className="relative bg-gradient-to-br from-blue-50 to-blue-100 py-16 md:py-24">
+      <section className="relative bg-gray-50 py-16 md:py-24">
         <div className="max-w-7xl mx-auto px-4 text-center">
           <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6">
             Find Your Perfect
