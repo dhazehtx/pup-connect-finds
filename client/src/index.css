@@ -395,15 +395,38 @@ button:contains("Continue with"), .social-auth-button {
   background-color: #ffffff !important;
 }
 
-/* Preserve tab functionality but fix colors */
-.marketplace [data-state="active"] {
+/* Fix marketplace tab colors with higher specificity */
+.marketplace .marketplace [data-state="active"],
+.marketplace [role="tablist"] [data-state="active"],
+.marketplace [role="tablist"] [data-state="active"] span,
+.marketplace [role="tablist"] [data-state="active"] svg,
+.marketplace button[data-state="active"],
+.marketplace button[data-state="active"] span,
+.marketplace button[data-state="active"] svg {
   color: #ffffff !important;
   background-color: #2563eb !important;
+  fill: #ffffff !important;
 }
 
-.marketplace [data-state="inactive"] {
+.marketplace [role="tablist"] [data-state="inactive"],
+.marketplace [role="tablist"] [data-state="inactive"] span,
+.marketplace [role="tablist"] [data-state="inactive"] svg,
+.marketplace button[data-state="inactive"],
+.marketplace button[data-state="inactive"] span,
+.marketplace button[data-state="inactive"] svg {
   color: #2563eb !important;
   background-color: transparent !important;
+  fill: #2563eb !important;
+}
+
+/* Override any conflicting Tailwind classes */
+.marketplace .text-primary {
+  color: #2563eb !important;
+}
+
+.marketplace [data-state="active"].text-primary,
+.marketplace [data-state="active"] .text-primary {
+  color: #ffffff !important;
 }
 
 /* Remove ALL pseudo-elements that create blue stripes/corners */
