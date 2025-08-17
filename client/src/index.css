@@ -314,6 +314,20 @@ main::before, main::after {
   color: #ffffff !important;
 }
 
+/* Fix tab text visibility - ensure active tabs have white text */
+button[data-state="active"], 
+button[data-state="active"] span,
+.tab-active,
+.tab-active span {
+  color: #ffffff !important;
+}
+
+/* Fix inactive tab text - ensure they have dark text */
+button[data-state="inactive"],
+button[data-state="inactive"] span {
+  color: #374151 !important;
+}
+
 [data-state="inactive"], .tab-inactive, .tabs [data-state="inactive"] {
   border: 1px solid #e5e7eb !important;
   background-color: #ffffff !important;
@@ -329,7 +343,17 @@ main::before, main::after {
 /* CONVERSATION LIST YELLOW BORDER FIX */
 .conversation-list .card,
 [data-conversation-card],
-.messages-page .card {
+.messages-page .card,
+.card {
+  border: 1px solid #e5e7eb !important;
+  background-color: #ffffff !important;
+}
+
+/* NUCLEAR CONVERSATION CARD BORDER FIX */
+/* Target any card that might have yellow border */
+*[class*="card"], 
+*[class*="Card"],
+div[class*="cursor-pointer"] {
   border: 1px solid #e5e7eb !important;
   background-color: #ffffff !important;
 }
