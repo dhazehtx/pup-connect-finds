@@ -28,44 +28,24 @@ const Marketplace = () => {
 
       <div className="container mx-auto px-4 pb-8">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="marketplace space-y-6">
-          <TabsList className="inline-flex rounded-full border-2 bg-white p-1 max-w-lg mx-auto" style={{ borderColor: 'var(--mp-border)' }}>
+          <TabsList className="inline-flex rounded-full border-2 border-primary/20 bg-primary/5 p-1 max-w-lg mx-auto">
             <TabsTrigger 
               value="services" 
-              className="tab px-4 py-2 flex items-center gap-2 text-sm font-medium rounded-full transition-all duration-200 focus-visible:!ring-0 focus-visible:!ring-offset-0"
-              style={{ 
-                color: 'var(--mp-accent)', 
-                background: 'var(--mp-bg)',
-                border: '1px solid var(--mp-border)'
-              }}
-              data-active-style={{
-                background: 'linear-gradient(0deg, rgba(79, 139, 253, 0.12), rgba(79, 139, 253, 0.12))',
-                borderColor: 'rgba(79, 139, 253, 0.35)',
-                color: 'var(--mp-accent)'
-              }}
+              className="px-4 py-2 flex items-center gap-2 text-sm font-medium rounded-full transition-all duration-200 text-primary data-[state=active]:!text-white data-[state=active]:bg-primary focus-visible:!ring-0 focus-visible:!ring-offset-0"
             >
               <Briefcase className="w-4 h-4" />
               <span className="whitespace-nowrap">Pet Services</span>
             </TabsTrigger>
             <TabsTrigger 
               value="pupbox" 
-              className="tab not-first:ml-1 px-4 py-2 flex items-center gap-2 text-sm font-medium rounded-full transition-all duration-200 focus-visible:!ring-0 focus-visible:!ring-offset-0"
-              style={{ 
-                color: 'var(--mp-accent)', 
-                background: 'var(--mp-bg)',
-                border: '1px solid var(--mp-border)'
-              }}
+              className="not-first:ml-1 px-4 py-2 flex items-center gap-2 text-sm font-medium rounded-full transition-all duration-200 text-primary data-[state=active]:!text-white data-[state=active]:bg-primary focus-visible:!ring-0 focus-visible:!ring-offset-0"
             >
               <Gift className="w-4 h-4" />
               <span className="whitespace-nowrap">Pup Box</span>
             </TabsTrigger>
             <TabsTrigger 
               value="store" 
-              className="tab not-first:ml-1 px-4 py-2 flex items-center gap-2 text-sm font-medium rounded-full transition-all duration-200 focus-visible:!ring-0 focus-visible:!ring-offset-0"
-              style={{ 
-                color: 'var(--mp-accent)', 
-                background: 'var(--mp-bg)',
-                border: '1px solid var(--mp-border)'
-              }}
+              className="not-first:ml-1 px-4 py-2 flex items-center gap-2 text-sm font-medium rounded-full transition-all duration-200 text-primary data-[state=active]:!text-white data-[state=active]:bg-primary focus-visible:!ring-0 focus-visible:!ring-offset-0"
             >
               <Store className="w-4 h-4" />
               <span className="whitespace-nowrap">Store</span>

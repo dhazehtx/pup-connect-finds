@@ -72,9 +72,8 @@ export default function BuyButton({
     <Button 
       onClick={handleBuyNow}
       disabled={isLoading}
-      className={`btn--primary ${className}`}
+      className={className}
       size="sm"
-      data-testid="button-buy-now"
     >
       {isLoading ? (
         <>
