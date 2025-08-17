@@ -100,7 +100,7 @@ const CookieConsentBanner: React.FC = () => {
                   variant="outline"
                   size="sm"
                   onClick={() => setShowSettings(true)}
-                  className="gap-2"
+                  className="gap-2 bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
                 >
                   <Shield className="w-4 h-4" />
                   Manage Preferences
@@ -109,14 +109,14 @@ const CookieConsentBanner: React.FC = () => {
                   variant="outline"
                   size="sm"
                   onClick={rejectNonEssential}
-                  className="text-gray-600"
+                  className="bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
                 >
                   Reject Non-Essential
                 </Button>
                 <Button
                   size="sm"
                   onClick={acceptAll}
-                  className="bg-blue-600 hover:bg-blue-700"
+                  className="bg-blue-600 hover:bg-blue-700 text-white"
                 >
                   Accept All
                 </Button>
@@ -227,14 +227,14 @@ const CookieConsentBanner: React.FC = () => {
                   variant="outline"
                   size="sm"
                   onClick={rejectNonEssential}
-                  className="text-gray-600"
+                  className="bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
                 >
                   Reject All
                 </Button>
                 <Button
                   size="sm"
                   onClick={acceptSelected}
-                  className="bg-blue-600 hover:bg-blue-700"
+                  className="bg-blue-600 hover:bg-blue-700 text-white"
                 >
                   Save Preferences
                 </Button>

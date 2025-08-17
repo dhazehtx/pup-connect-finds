@@ -383,11 +383,27 @@ button:contains("Continue with"), .social-auth-button {
   background-color: #ffffff !important;
 }
 
-/* Comprehensive nuclear CSS to eliminate ALL yellow traces */
-*[class*="yellow"], *[class*="amber"] {
+/* Target specific elements instead of nuclear approach - preserve tab functionality */
+.text-yellow-500, .text-yellow-400, .text-yellow-600,
+.text-amber-500, .text-amber-400, .text-amber-600,
+.bg-yellow-500, .bg-yellow-400, .bg-yellow-600,
+.bg-amber-500, .bg-amber-400, .bg-amber-600,
+.border-yellow-500, .border-yellow-400, .border-yellow-600,
+.border-amber-500, .border-amber-400, .border-amber-600 {
   color: #374151 !important;
   border-color: #e5e7eb !important;
   background-color: #ffffff !important;
+}
+
+/* Preserve tab functionality but fix colors */
+.marketplace [data-state="active"] {
+  color: #ffffff !important;
+  background-color: #2563eb !important;
+}
+
+.marketplace [data-state="inactive"] {
+  color: #2563eb !important;
+  background-color: transparent !important;
 }
 
 /* Remove ALL pseudo-elements that create blue stripes/corners */
