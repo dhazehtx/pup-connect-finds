@@ -307,38 +307,17 @@ main::before, main::after {
   background-image: none !important;
 }
 
-/* Fix marketplace tabs yellow outline - background only */
+/* Fix marketplace tabs yellow outline */
 [data-state="active"], .tab-active, .tabs [data-state="active"] {
   border: 2px solid #2563eb !important;
   background-color: #2563eb !important;
-}
-
-/* Fix marketplace tab text visibility - active tabs have white text, inactive have blue text */
-.marketplace button[data-state="active"], 
-.marketplace button[data-state="active"] span,
-.marketplace button[data-state="active"] svg,
-.marketplace .tab-active,
-.marketplace .tab-active span,
-/* Nuclear targeting for marketplace tabs text only */
-.marketplace [role="tablist"] button[data-state="active"],
-.marketplace [role="tablist"] button[data-state="active"] span,
-.marketplace [role="tablist"] button[data-state="active"] svg,
-.marketplace [data-state="active"],
-.marketplace [data-state="active"] span,
-.marketplace [data-state="active"] svg {
   color: #ffffff !important;
-}
-
-/* Fix inactive tab text - ensure they have blue text like active marketplace tabs */
-button[data-state="inactive"],
-button[data-state="inactive"] span {
-  color: #2563eb !important;
 }
 
 [data-state="inactive"], .tab-inactive, .tabs [data-state="inactive"] {
   border: 1px solid #e5e7eb !important;
   background-color: #ffffff !important;
-  color: #2563eb !important;
+  color: #374151 !important;
 }
 
 /* Remove yellow from tab containers */
@@ -350,30 +329,9 @@ button[data-state="inactive"] span {
 /* CONVERSATION LIST YELLOW BORDER FIX */
 .conversation-list .card,
 [data-conversation-card],
-.messages-page .card,
-.card {
+.messages-page .card {
   border: 1px solid #e5e7eb !important;
   background-color: #ffffff !important;
-}
-
-/* NUCLEAR CONVERSATION CARD BORDER FIX */
-/* Target any card that might have yellow border */
-*[class*="card"], 
-*[class*="Card"],
-div[class*="cursor-pointer"] {
-  border: 1px solid #e5e7eb !important;
-  background-color: #ffffff !important;
-}
-
-/* Ensure all services buttons have consistent colors */
-.services-tabs button[data-state="active"] {
-  background-color: #2563eb !important;
-  color: #ffffff !important;
-}
-
-.services-tabs button[data-state="inactive"] {
-  background-color: transparent !important;
-  color: #2563eb !important;
 }
 
 .conversation-list .card:hover,
