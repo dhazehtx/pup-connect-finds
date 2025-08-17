@@ -133,7 +133,7 @@ const EnhancedVerificationManager = ({ isVerified, verificationRequests: initial
       case 'rejected':
         return <X size={16} className="text-red-500" />;
       default:
-        return <Clock size={16} className="text-yellow-500" />;
+        return <Clock size={16} className="text-blue-500" />;
     }
   };
 
@@ -144,7 +144,7 @@ const EnhancedVerificationManager = ({ isVerified, verificationRequests: initial
       case 'rejected':
         return 'bg-red-100 text-red-800';
       default:
-        return 'bg-yellow-100 text-yellow-800';
+        return 'bg-blue-100 text-blue-800';
     }
   };
 
@@ -303,12 +303,12 @@ const EnhancedVerificationManager = ({ isVerified, verificationRequests: initial
             )}
 
             {hasPendingRequest && (
-              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                <div className="flex items-center gap-2 text-yellow-800">
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <div className="flex items-center gap-2 text-blue-800">
                   <Clock size={16} />
                   <span className="font-medium">Verification Under Review</span>
                 </div>
-                <p className="text-sm text-yellow-700 mt-1">
+                <p className="text-sm text-blue-700 mt-1">
                   Your verification request is being reviewed. We'll notify you once complete.
                 </p>
               </div>

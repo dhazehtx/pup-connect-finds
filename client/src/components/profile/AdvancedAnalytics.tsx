@@ -235,7 +235,7 @@ const AdvancedAnalytics = ({ profile }: AdvancedAnalyticsProps) => {
                     </div>
                   </div>
                   <div className="flex items-start gap-3">
-                    <div className="w-2 h-2 rounded-full bg-yellow-500 mt-2" />
+                    <div className="w-2 h-2 rounded-full bg-blue-500 mt-2" />
                     <div>
                       <p className="font-medium">Update availability status</p>
                       <p className="text-sm text-gray-600">Keep your listing status current for better visibility</p>

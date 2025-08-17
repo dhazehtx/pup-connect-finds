@@ -22,7 +22,7 @@ const ProfileWithFreemium = () => {
     <div className="min-h-screen bg-gray-50">
       {/* Premium Upgrade Section for Current User */}
       {user && !isPremium && (
-        <div className="bg-gradient-to-r from-yellow-400 to-orange-500 text-white">
+        <div className="bg-gradient-to-r from-blue-400 to-blue-500 text-white">
           <div className="container mx-auto px-4 py-6">
             <Card className="bg-white/10 backdrop-blur border-white/20">
               <CardContent className="p-6 text-center">
@@ -62,7 +62,7 @@ const ProfileWithFreemium = () => {
 
       {/* Premium Badge for Premium Users */}
       {isPremium && (
-        <div className="bg-gradient-to-r from-yellow-400 to-orange-500 text-white">
+        <div className="bg-gradient-to-r from-blue-400 to-blue-500 text-white">
           <div className="container mx-auto px-4 py-3">
             <div className="flex items-center justify-center">
               <Crown className="w-5 h-5 mr-2" />

@@ -79,8 +79,8 @@ const ProfileBadgeSystem = ({
         name: 'Pro Member',
         description: 'Pro account with enhanced features and analytics',
         icon: Star,
-        color: 'text-yellow-800',
-        bgColor: 'bg-yellow-100',
+        color: 'text-blue-800',
+        bgColor: 'bg-blue-100',
         earned_at: new Date().toISOString()
       });
     }

@@ -99,7 +99,7 @@ const SimpleProfileContent = ({
                 </div>
                 {profile.rating > 0 && (
                   <div className="flex items-center space-x-1">
-                    <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                    <Star className="h-4 w-4 fill-yellow-400 text-blue-400" />
                     <span>{profile.rating}/5 ({profile.total_reviews} reviews)</span>
                   </div>
                 )}

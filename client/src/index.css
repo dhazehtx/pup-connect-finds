@@ -123,6 +123,58 @@ button[class*="bg-gradient-to-r"]:hover {
   --tw-ring-offset-width: 0px !important;
   --tw-ring-shadow: none !important;
   background: white !important;
+}
+
+/* COMPREHENSIVE YELLOW BACKGROUND ELIMINATION */
+
+/* Force white backgrounds and suppress ALL yellow colors globally */
+* {
+  --tw-bg-yellow-50: #ffffff !important;
+  --tw-bg-yellow-100: #ffffff !important;
+  --tw-bg-yellow-200: #ffffff !important;
+  --tw-bg-yellow-300: #ffffff !important;
+  --tw-bg-yellow-400: #ffffff !important;
+  --tw-bg-yellow-500: #ffffff !important;
+  --tw-bg-yellow-600: #ffffff !important;
+  --tw-bg-yellow-700: #ffffff !important;
+  --tw-bg-yellow-800: #ffffff !important;
+  --tw-bg-yellow-900: #ffffff !important;
+}
+
+/* Override any yellow background classes */
+.bg-yellow-50, .bg-yellow-100, .bg-yellow-200, .bg-yellow-300, .bg-yellow-400,
+.bg-yellow-500, .bg-yellow-600, .bg-yellow-700, .bg-yellow-800, .bg-yellow-900,
+.bg-amber-50, .bg-amber-100, .bg-amber-200, .bg-amber-300, .bg-amber-400,
+.bg-amber-500, .bg-amber-600, .bg-amber-700, .bg-amber-800, .bg-amber-900,
+.bg-orange-50, .bg-orange-100, .bg-orange-200, .bg-orange-300, .bg-orange-400,
+.bg-orange-500, .bg-orange-600, .bg-orange-700, .bg-orange-800, .bg-orange-900 {
+  background-color: #ffffff !important;
+  border-color: #e5e7eb !important;
+}
+
+/* Main page background enforcement */
+body, #root, main, .min-h-screen {
+  background-color: #ffffff !important;
+}
+
+/* Page section background enforcement */
+.max-w-4xl, .container, .px-4, .py-6, .p-6, .space-y-6 {
+  background-color: #ffffff !important;
+}
+
+/* Profile page specific overrides */
+.profile-header, .profile-section, .profile-content {
+  background-color: #ffffff !important;
+}
+
+/* Messages page specific overrides */
+.messages-header, .messages-content, .messages-section {
+  background-color: #ffffff !important;
+}
+
+/* Explore page specific overrides */
+.explore-header, .explore-content, .explore-section {
+  background-color: #ffffff !important;
   border-radius: 1rem !important;
 }
 

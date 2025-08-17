@@ -94,7 +94,7 @@ const FollowRequestButton = ({
           icon: <Clock size={16} />,
           text: 'Requested',
           variant: 'outline' as const,
-          className: 'border-yellow-500 text-yellow-600 hover:bg-yellow-50'
+          className: 'border-blue-500 text-blue-600 hover:bg-blue-50'
         };
         
       case 'blocked':

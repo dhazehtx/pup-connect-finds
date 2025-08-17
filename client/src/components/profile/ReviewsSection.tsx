@@ -39,7 +39,7 @@ const ReviewsSection = ({ reviews, userType }: ReviewsSectionProps) => {
       <Star
         key={i}
         size={12}
-        className={i < rating ? 'text-yellow-500 fill-current' : 'text-gray-300'}
+        className={i < rating ? 'text-blue-500 fill-current' : 'text-gray-300'}
       />
     ));
   };
@@ -74,10 +74,10 @@ const ReviewsSection = ({ reviews, userType }: ReviewsSectionProps) => {
             return (
               <div key={stars} className="flex items-center gap-2 text-sm">
                 <span className="w-2">{stars}</span>
-                <Star size={10} className="text-yellow-500 fill-current" />
+                <Star size={10} className="text-blue-500 fill-current" />
                 <div className="flex-1 bg-gray-200 rounded-full h-2">
                   <div 
-                    className="bg-yellow-500 h-2 rounded-full" 
+                    className="bg-blue-500 h-2 rounded-full" 
                     style={{ width: `${percentage}%` }}
                   />
                 </div>
