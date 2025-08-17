@@ -112,7 +112,7 @@ const ExploreGuest = () => {
   }, []);
 
   return (
-    <div className="px-4 py-6 pb-20">
+    <div className="px-4 py-6">
       <h1 className="text-2xl font-bold mb-4">Explore Puppies</h1>
       <p className="mb-6">Find your perfect puppy companion from verified breeders</p>
       <SearchInput placeholder="Search puppies, breeds, or breeders..." />

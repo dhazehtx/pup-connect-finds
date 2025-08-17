@@ -4,61 +4,18 @@
 @import './styles/utilities.css';
 @import './styles/accessibility.css';
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
-/* MP Theme System CSS Variables */
-:root {
-  --mp-bg: #ffffff;
-  --mp-surface: #ffffff;
-  --mp-baby: #eef4ff;
-  --mp-blue: #2563eb;
-  --mp-blue-600: #1d4ed8;
-  --mp-accent: #4f8bfd;
-  --mp-text: #0f172a;
-  --mp-muted: #475569;
-  --mp-border: #e2e8f0;
+/* Bottom Navigation & Button Styling - White Text/Icons */
+.bottom-nav a, 
+.bottom-nav svg {
+  color: white !important;
 }
 
-/* Apply baby-blue page background to all pages */
-body, .page, .main-content {
-  background: var(--mp-baby) !important;
-}
-
-/* Add bottom padding to prevent content overlap with fixed navbar */
-.page, main, .container {
-  padding-bottom: 80px;
-}
-
-/* Bottom Navigation Styling - MP Theme */
-.navbar {
-  position: fixed; 
-  bottom: 0; 
-  left: 0; 
-  right: 0;
-  z-index: 50; 
-  height: 64px;
-  background: var(--mp-blue);
-  color: #fff; 
-  border-top: 1px solid var(--mp-border);
-  display: flex; 
-  align-items: center; 
-  justify-content: space-around;
-}
-
-.navbar a, 
-.navbar button, 
-.navbar svg { 
-  color: rgba(255,255,255,.9) !important; 
-  stroke: currentColor;
-}
-
-.navbar a.active, 
-.navbar button.active { 
-  color: #fff !important; 
-  background: rgba(255,255,255,.12) !important; 
-  border-radius: 12px; 
+.btn-list-puppy, 
+.btn-list-puppy *, 
+.greeting-page button, 
+.greeting-page button *,
+.marketplace .tabs button {
+  color: white !important;
 }
 
 /* Force white text on all .btn-primary buttons */
@@ -66,6 +23,23 @@ body, .page, .main-content {
 .btn-primary *,
 button.btn-primary,
 button.btn-primary * {
+  color: white !important;
+}
+
+/* Additional marketplace tab styling */
+.marketplace .tabs-list button {
+  color: white !important;
+}
+
+/* Bottom navigation container styling */
+.bottom-nav {
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+}
+
+/* Ensure icons and text remain white in all states */
+.bottom-nav button,
+.bottom-nav button svg,
+.bottom-nav button span {
   color: white !important;
 }
 
@@ -131,60 +105,24 @@ button[class*="bg-gradient-to-r"]:hover {
   box-shadow: none !important;
 }
 
-/* MP THEME: Remove Marketplace blue debug border */
-.marketplace .hero-container,
-.marketplace [class*="border-blue"],
-.marketplace [class*="outline-blue"],
-.marketplace [class*="ring-blue"] {
-  border: 1px solid var(--mp-border) !important;
+/* COMPREHENSIVE RADIX TABS BLUE ARTIFACT REMOVAL */
+
+/* Remove all blue artifacts from Tabs.Content panels - multiple selectors for full coverage */
+.services-tabs [data-state="active"],
+.services-tabs [data-state="inactive"],
+.services-tabs [role="tabpanel"],
+[data-radix-tabs-content],
+.services-tabs div[data-state],
+.services-tabs > div[data-state] {
+  border: none !important;
   outline: none !important;
   box-shadow: none !important;
-}
-
-/* Marketplace tab text visibility - ensure active tabs have white text */
-.marketplace button[data-state="active"], 
-.marketplace button[data-state="active"] span,
-.marketplace button[data-state="active"] svg,
-.marketplace .tab-active,
-.marketplace .tab-active span,
-/* Nuclear targeting for marketplace tabs text only */
-.marketplace [role="tablist"] button[data-state="active"],
-.marketplace [role="tablist"] button[data-state="active"] span,
-.marketplace [role="tablist"] button[data-state="active"] svg,
-.marketplace [data-state="active"],
-.marketplace [data-state="active"] span,
-.marketplace [data-state="active"] svg {
-  color: #ffffff !important;
-}
-
-/* MP THEME: Primary buttons - blue bg + white text */
-.btn-primary, 
-button[class*="bg-mp-blue"],
-.marketplace .provider-cta {
-  background: var(--mp-blue) !important;
-  color: #ffffff !important;
-  border-color: var(--mp-blue) !important;
-}
-
-.btn-primary:hover,
-button[class*="bg-mp-blue"]:hover {
-  background: var(--mp-blue-600) !important;
-}
-
-/* MP THEME: Ghost/outline buttons on white - dark text */
-.btn-ghost,
-button[class*="bg-white"] {
-  background: #fff !important;
-  color: var(--mp-text) !important;
-  border: 1px solid var(--mp-border) !important;
-}
-
-/* MP THEME: Filter chips - white bg + dark text/icon */
-.filter-chip,
-.chip {
-  background: var(--mp-bg) !important;
-  color: var(--mp-text) !important;
-  border: 1px solid var(--mp-border) !important;
+  ring: none !important;
+  --tw-ring-width: 0px !important;
+  --tw-ring-color: transparent !important;
+  --tw-ring-offset-width: 0px !important;
+  --tw-ring-shadow: none !important;
+  background: white !important;
 }
 
 /* COMPREHENSIVE YELLOW BACKGROUND ELIMINATION */
@@ -369,38 +307,17 @@ main::before, main::after {
   background-image: none !important;
 }
 
-/* Fix marketplace tabs yellow outline - background only */
+/* Fix marketplace tabs yellow outline */
 [data-state="active"], .tab-active, .tabs [data-state="active"] {
   border: 2px solid #2563eb !important;
   background-color: #2563eb !important;
-}
-
-/* Fix marketplace tab text visibility - active tabs have white text, inactive have blue text */
-.marketplace button[data-state="active"], 
-.marketplace button[data-state="active"] span,
-.marketplace button[data-state="active"] svg,
-.marketplace .tab-active,
-.marketplace .tab-active span,
-/* Nuclear targeting for marketplace tabs text only */
-.marketplace [role="tablist"] button[data-state="active"],
-.marketplace [role="tablist"] button[data-state="active"] span,
-.marketplace [role="tablist"] button[data-state="active"] svg,
-.marketplace [data-state="active"],
-.marketplace [data-state="active"] span,
-.marketplace [data-state="active"] svg {
   color: #ffffff !important;
-}
-
-/* Fix inactive tab text - ensure they have blue text like active marketplace tabs */
-button[data-state="inactive"],
-button[data-state="inactive"] span {
-  color: #2563eb !important;
 }
 
 [data-state="inactive"], .tab-inactive, .tabs [data-state="inactive"] {
   border: 1px solid #e5e7eb !important;
   background-color: #ffffff !important;
-  color: #2563eb !important;
+  color: #374151 !important;
 }
 
 /* Remove yellow from tab containers */
@@ -412,30 +329,9 @@ button[data-state="inactive"] span {
 /* CONVERSATION LIST YELLOW BORDER FIX */
 .conversation-list .card,
 [data-conversation-card],
-.messages-page .card,
-.card {
+.messages-page .card {
   border: 1px solid #e5e7eb !important;
   background-color: #ffffff !important;
-}
-
-/* NUCLEAR CONVERSATION CARD BORDER FIX */
-/* Target any card that might have yellow border */
-*[class*="card"], 
-*[class*="Card"],
-div[class*="cursor-pointer"] {
-  border: 1px solid #e5e7eb !important;
-  background-color: #ffffff !important;
-}
-
-/* Ensure all services buttons have consistent colors */
-.services-tabs button[data-state="active"] {
-  background-color: #2563eb !important;
-  color: #ffffff !important;
-}
-
-.services-tabs button[data-state="inactive"] {
-  background-color: transparent !important;
-  color: #2563eb !important;
 }
 
 .conversation-list .card:hover,

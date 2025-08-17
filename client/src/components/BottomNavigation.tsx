@@ -137,7 +137,8 @@ const BottomNavigation = () => {
 
   return (
     <>
-      <nav className="fixed bottom-0 left-0 right-0 z-50 h-16 bg-mp-blue text-white border-t border-mp-border flex items-center justify-around navbar">
+      <nav className="fixed bottom-0 left-0 right-0 bottom-nav border-t border-gray-200 dark:border-gray-700 z-40 shadow-sm">
+        <div className="grid grid-cols-5 h-16">
           {navItems.map((item, index) => {
             const Icon = item.icon;
             const active = isActive(item.path);
@@ -150,24 +151,25 @@ const BottomNavigation = () => {
                   e.stopPropagation();
                   item.onClick();
                 }}
-                className={`flex flex-col items-center justify-center p-2 transition-colors relative text-white/80 ${
+                className={`flex flex-col items-center justify-center p-2 transition-colors relative text-white ${
                   active 
-                    ? 'text-white bg-white/12 rounded-xl' 
-                    : 'hover:text-white hover:bg-white/10 rounded-xl'
+                    ? 'bg-white/20' 
+                    : 'text-white/80 hover:text-white hover:bg-white/10'
                 }`}
                 type="button"
                 aria-label={item.label}
               >
                 <div className="relative">
-                  <Icon size={20} className="flex-shrink-0" stroke="currentColor" />
+                  <Icon size={20} className="flex-shrink-0" />
                 </div>
-                <span className="text-xs mt-1 font-medium">{item.label}</span>
+                <span className="text-xs mt-1 font-medium text-inherit">{item.label}</span>
                 {item.protected && !user && !isGuest && (
-                  <div className="absolute top-1 right-1 w-2 h-2 bg-blue-400 rounded-full"></div>
+                  <div className="absolute top-1 right-1 w-2 h-2 bg-blue-500 rounded-full"></div>
                 )}
               </button>
             );
           })}
+        </div>
       </nav>
 
       {showGuestPrompt && (
