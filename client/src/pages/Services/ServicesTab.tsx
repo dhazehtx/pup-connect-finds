@@ -253,14 +253,16 @@ export function ServicesTab() {
 
       {/* Services Content - Blue Pill Style Tabs */}
       <Tabs defaultValue="featured" className="w-full services-tabs">
-        <TabsList className="border-0 gap-2 bg-transparent">
-          <TabsTrigger value="featured" className="tab-pill">
-            Featured Services
-          </TabsTrigger>
-          <TabsTrigger value="all" className="tab-pill">
-            All Services
-          </TabsTrigger>
-        </TabsList>
+        <div className="inline-flex items-center gap-2 rounded-full bg-secondary p-1 mx-auto">
+          <TabsList className="tab-list border-0 bg-transparent p-0">
+            <TabsTrigger value="featured" className="tab-pill">
+              Featured Services
+            </TabsTrigger>
+            <TabsTrigger value="all" className="tab-pill">
+              All Services
+            </TabsTrigger>
+          </TabsList>
+        </div>
 
         <TabsContent value="featured" className="bg-white rounded-lg border border-border shadow-sm p-0 focus-visible:outline-none space-y-4">
           <div className="text-center py-4 md:py-6 bg-white rounded-lg">

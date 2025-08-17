@@ -527,13 +527,20 @@ button:contains("Become a Service Provider") {
 
 /* PILL BUTTON UTILITIES - White Text on Active State */
 
-/* Pill-style tabs/buttons (filled blue, white text when active) */
+/* Pill tabs: outline by default, blue pill + white text when active */
 .tab-pill {
-  @apply rounded-full px-4 py-2 border border-primary text-primary bg-transparent;
+  @apply rounded-full px-4 py-2 text-sm font-medium
+         border border-primary text-primary bg-transparent
+         transition-colors;
 }
 .tab-pill[data-state="active"],
 .tab-pill.is-active {
-  @apply bg-primary text-primary-foreground;
+  @apply bg-primary text-primary-foreground shadow;
+}
+
+/* Optional: tab list spacing */
+.tab-list {
+  @apply flex flex-wrap gap-2;
 }
 
 /* Primary buttons always white text on brand */
