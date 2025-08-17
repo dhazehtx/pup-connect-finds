@@ -325,6 +325,71 @@ button.bg-primary, .bg-primary button {
   color: #ffffff !important;
 }
 
+/* Remove ALL yellow borders and styling from inputs, tabs, cards */
+input:focus, textarea:focus, [role="textbox"]:focus {
+  border-color: #2563eb !important;
+  outline-color: #2563eb !important;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1) !important;
+}
+
+/* Fix yellow borders around any container elements */
+.border-yellow-400, .border-yellow-500, .border-yellow-300,
+.border-amber-400, .border-amber-500, .border-amber-300,
+[style*="border-color: yellow"], [style*="border-color: amber"] {
+  border-color: #e5e7eb !important;
+}
+
+/* Fix conversation cards and tab containers */
+.conversation-card, .tab-container, .message-card,
+[class*="conversation"], [class*="message"], .card {
+  border-color: #e5e7eb !important;
+}
+
+/* Fix auth buttons - ensure readable text */
+.auth-form button, .sign-in-form button, .auth-button,
+button[type="submit"], .login-button, .signin-button {
+  color: #000000 !important;
+  background-color: #ffffff !important;
+  border-color: #d1d5db !important;
+}
+
+/* Specific targeting for sign-in buttons */
+button:contains("Sign In"), button:contains("Sign Up"),
+button:contains("Continue with"), .social-auth-button {
+  color: #000000 !important;
+  background-color: #ffffff !important;
+}
+
+/* Remove ALL yellow colors from border, background, and text everywhere */
+[style*="border-color:#fbbf24"], [style*="border-color:#f59e0b"], 
+[style*="border-color:#d97706"], [style*="border-color:#92400e"],
+[style*="border-color:rgb(251,191,36)"], [style*="border-color:rgb(245,158,11)"],
+[style*="background-color:#fbbf24"], [style*="background-color:#f59e0b"],
+[style*="background-color:#d97706"], [style*="background-color:#92400e"],
+[style*="background-color:rgb(251,191,36)"], [style*="background-color:rgb(245,158,11)"] {
+  border-color: #e5e7eb !important;
+  background-color: #ffffff !important;
+}
+
+/* Force all Tailwind yellow variants to neutral */
+.text-yellow-500, .text-yellow-400, .text-yellow-600,
+.text-amber-500, .text-amber-400, .text-amber-600,
+.border-yellow-500, .border-yellow-400, .border-yellow-600,
+.border-amber-500, .border-amber-400, .border-amber-600,
+.bg-yellow-50, .bg-yellow-100, .bg-yellow-200,
+.bg-amber-50, .bg-amber-100, .bg-amber-200 {
+  color: #374151 !important;
+  border-color: #e5e7eb !important;  
+  background-color: #ffffff !important;
+}
+
+/* Comprehensive nuclear CSS to eliminate ALL yellow traces */
+*[class*="yellow"], *[class*="amber"] {
+  color: #374151 !important;
+  border-color: #e5e7eb !important;
+  background-color: #ffffff !important;
+}
+
 /* Remove ALL pseudo-elements that create blue stripes/corners */
 .services-tabs [data-state="active"]::before,
 .services-tabs [data-state="active"]::after,

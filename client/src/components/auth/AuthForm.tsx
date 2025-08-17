@@ -175,7 +175,7 @@ const AuthForm = () => {
                 </div>
                 <Button 
                   type="submit" 
-                  className="w-full bg-blue-600 hover:bg-blue-700" 
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white" 
                   disabled={isLoading}
                 >
                   {isLoading ? (
@@ -272,7 +272,7 @@ const AuthForm = () => {
                 </div>
                 <Button 
                   type="submit" 
-                  className="w-full bg-blue-600 hover:bg-blue-700" 
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white" 
                   disabled={isLoading}
                 >
                   {isLoading ? (
@@ -293,7 +293,7 @@ const AuthForm = () => {
             <Button 
               variant="outline" 
               onClick={handleGuestAccess}
-              className="w-full border-blue-600 text-blue-600 hover:bg-blue-50"
+              className="w-full border-blue-600 text-blue-600 hover:bg-blue-50 bg-white"
             >
               Continue as Guest
             </Button>
