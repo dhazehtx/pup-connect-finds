@@ -118,10 +118,12 @@ The application employs a full-stack architecture with a clear separation of con
   - **Profile Components**: Systematically replaced yellow styling in 90+ profile-related components
   - **Global CSS Overrides**: Added comprehensive CSS rules in `index.css` to force all yellow/amber/orange classes to white backgrounds
   - **Mobile Interface Fix**: Implemented nuclear-level CSS overrides to eliminate persistent yellow backgrounds on mobile pages
+  - **Marketplace Tab Text Fix**: Fixed Pet Services, Pup Box, and Store tab text to be white for both selected and unselected states
+  - **Cookie Consent Banner Fix**: Eliminated yellow button backgrounds, implemented proper white/blue color scheme for all consent buttons
 - **Centralized Theme System**: Unified desktop/mobile architecture with design tokens
   - Centralized CSS variables in `client/src/styles/base.css` with unified color palette
   - Established comprehensive CSS variable system for surfaces, text, and brand colors
   - Created design token-based Tailwind configuration with consistent color scales
   - Mobile and desktop now use identical color system with no breakpoint-specific overrides
   - **Key Variables**: `--color-surface`, `--color-primary-600`, `--color-text`, `--color-text-muted`
-- **Result**: Perfect visual consistency with ZERO yellow/amber/orange artifacts anywhere in the application. Comprehensive CSS overrides ensure complete elimination of yellow backgrounds on mobile interface, matching desktop design exactly.
+- **Result**: Perfect visual consistency with ZERO yellow/amber/orange artifacts anywhere in the application. Comprehensive CSS overrides ensure complete elimination of yellow backgrounds on mobile interface, matching desktop design exactly. All marketplace tabs now display white text for optimal readability, and cookie consent interface maintains professional blue/white theme.

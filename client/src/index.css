@@ -395,15 +395,17 @@ button:contains("Continue with"), .social-auth-button {
   background-color: #ffffff !important;
 }
 
-/* Preserve tab functionality but fix colors */
-.marketplace [data-state="active"] {
+/* Ensure marketplace tab text is always white, both selected and unselected */
+[data-testid="tab-pet-services"],
+[data-testid="tab-pup-box"], 
+[data-testid="tab-store"] {
   color: #ffffff !important;
-  background-color: #2563eb !important;
 }
 
-.marketplace [data-state="inactive"] {
-  color: #2563eb !important;
-  background-color: transparent !important;
+[data-testid="tab-pet-services"] *,
+[data-testid="tab-pup-box"] *, 
+[data-testid="tab-store"] * {
+  color: #ffffff !important;
 }
 
 /* Remove ALL pseudo-elements that create blue stripes/corners */
