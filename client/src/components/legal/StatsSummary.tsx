@@ -19,7 +19,7 @@ const StatsSummary = ({ strictCount, moderateCount, lenientCount }: StatsSummary
       </Card>
       <Card>
         <CardContent className="p-6 text-center">
-          <div className="text-3xl font-bold text-yellow-600 mb-2">{moderateCount}</div>
+          <div className="text-3xl font-bold text-blue-600 mb-2">{moderateCount}</div>
           <div className="text-sm text-muted-foreground">States with Moderate Regulations</div>
         </CardContent>
       </Card>

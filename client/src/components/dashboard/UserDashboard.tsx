@@ -55,7 +55,7 @@ const UserDashboard = () => {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'pending_payment': return 'bg-yellow-500';
+      case 'pending_payment': return 'bg-blue-500';
       case 'meeting_scheduled': return 'bg-blue-500';
       case 'completed': return 'bg-green-500';
       default: return 'bg-gray-500';

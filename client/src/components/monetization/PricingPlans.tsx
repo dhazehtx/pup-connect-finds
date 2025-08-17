@@ -29,9 +29,9 @@ const PricingPlans = () => {
     {
       name: 'Pro',
       icon: Crown,
-      color: 'text-yellow-600',
-      bgColor: 'bg-yellow-50',
-      borderColor: 'border-yellow-200',
+      color: 'text-blue-600',
+      bgColor: 'bg-blue-50',
+      borderColor: 'border-blue-200',
       popular: true,
       monthlyPrice: PRICING_CONFIG.subscriptions.pro.monthly,
       yearlyPrice: PRICING_CONFIG.subscriptions.pro.yearly,
@@ -120,7 +120,7 @@ const PricingPlans = () => {
             >
               {plan.popular && !isCurrentlySubscribed && (
                 <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-                  <Badge className="bg-yellow-500 text-white">Most Popular</Badge>
+                  <Badge className="bg-blue-500 text-white">Most Popular</Badge>
                 </div>
               )}
               
@@ -163,7 +163,7 @@ const PricingPlans = () => {
                     isCurrentlySubscribed 
                       ? 'bg-green-500 hover:bg-green-600' 
                       : plan.popular 
-                        ? 'bg-yellow-500 hover:bg-yellow-600' 
+                        ? 'bg-blue-500 hover:bg-yellow-600' 
                         : 'bg-blue-500 hover:bg-blue-600'
                   } text-white`}
                 >

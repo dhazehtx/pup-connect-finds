@@ -54,8 +54,8 @@ const SessionWarningModal = ({
       <DialogContent className="sm:max-w-md" onPointerDownOutside={(e) => e.preventDefault()}>
         <DialogHeader>
           <div className="flex items-center gap-3 mb-2">
-            <div className="p-2 bg-yellow-100 rounded-full">
-              <Clock className="h-5 w-5 text-yellow-600" />
+            <div className="p-2 bg-blue-100 rounded-full">
+              <Clock className="h-5 w-5 text-blue-600" />
             </div>
             <DialogTitle className="text-lg font-semibold">Session Expiring Soon</DialogTitle>
           </div>

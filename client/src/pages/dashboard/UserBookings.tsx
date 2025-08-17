@@ -66,7 +66,7 @@ function UserBookings() {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'pending': return 'bg-yellow-100 text-yellow-800 border-yellow-300';
+      case 'pending': return 'bg-blue-100 text-blue-800 border-yellow-300';
       case 'accepted': return 'bg-green-100 text-green-800 border-green-300';
       case 'rejected': return 'bg-red-100 text-red-800 border-red-300';
       case 'completed': return 'bg-blue-100 text-blue-800 border-blue-300';
@@ -231,7 +231,7 @@ function UserBookings() {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
         <Card>
           <CardContent className="p-4 text-center">
-            <div className="text-2xl font-bold text-yellow-600">{pendingBookings.length}</div>
+            <div className="text-2xl font-bold text-blue-600">{pendingBookings.length}</div>
             <div className="text-sm text-muted-foreground">Pending</div>
           </CardContent>
         </Card>

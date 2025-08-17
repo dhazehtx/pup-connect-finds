@@ -87,8 +87,8 @@ Description: ${formData.businessDescription}`
       <Card>
         <CardContent className="p-6">
           <div className="text-center">
-            <Clock className="w-16 h-16 text-yellow-600 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold text-yellow-800 mb-2">
+            <Clock className="w-16 h-16 text-blue-600 mx-auto mb-4" />
+            <h3 className="text-xl font-semibold text-blue-800 mb-2">
               Under Review
             </h3>
             <p className="text-gray-600">

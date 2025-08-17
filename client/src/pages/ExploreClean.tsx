@@ -333,7 +333,7 @@ const PopularBreedsComponent: React.FC<{
               className="cursor-pointer hover:opacity-80 px-3 py-1 border-none text-white font-medium whitespace-nowrap"
               style={{ 
                 backgroundColor: breed.color || '#6B7280',
-                color: breed.color === '#FDFEFE' || breed.color === '#F4D03F' ? '#000000' : '#FFFFFF'
+                color: breed.color === '#FDFEFE' || breed.color === '#E5E7EB' ? '#000000' : '#FFFFFF'
               }}
               onClick={() => onBreedSelect(breed.name, breed.color)}
             >

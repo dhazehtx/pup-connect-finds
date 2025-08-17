@@ -161,7 +161,7 @@ const RescueDonationCenter = () => {
     switch (urgency) {
       case 'critical': return 'bg-red-500';
       case 'high': return 'bg-orange-500';
-      case 'medium': return 'bg-yellow-500';
+      case 'medium': return 'bg-blue-500';
       default: return 'bg-blue-500';
     }
   };

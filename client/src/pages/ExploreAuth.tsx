@@ -332,7 +332,7 @@ const ExploreAuth: React.FC = () => {
             {showTimeoutFallback && activeTab === 'listings' ? (
               <div className="flex flex-col items-center justify-center py-12">
                 <div className="text-center">
-                  <div className="text-yellow-600 mb-2 text-2xl">⚠️</div>
+                  <div className="text-blue-600 mb-2 text-2xl">⚠️</div>
                   <h3 className="text-lg font-medium text-gray-900 mb-2">Listings Loading Delayed</h3>
                   <p className="text-gray-600 mb-4">Listings are taking longer than expected to load.</p>
                   <div className="flex flex-col sm:flex-row gap-2">
@@ -399,7 +399,7 @@ const ExploreAuth: React.FC = () => {
             {showTimeoutFallback && activeTab === 'posts' ? (
               <div className="flex flex-col items-center justify-center py-12">
                 <div className="text-center">
-                  <div className="text-yellow-600 mb-2 text-2xl">⚠️</div>
+                  <div className="text-blue-600 mb-2 text-2xl">⚠️</div>
                   <h3 className="text-lg font-medium text-gray-900 mb-2">Posts Loading Delayed</h3>
                   <p className="text-gray-600 mb-4">Posts are taking longer than expected to load.</p>
                   <div className="flex flex-col sm:flex-row gap-2">

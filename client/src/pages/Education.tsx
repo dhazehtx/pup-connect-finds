@@ -363,7 +363,7 @@ const Education = () => {
               <div className="flex items-center justify-between text-xs text-gray-500">
                 <span>{article.readTime}</span>
                 <div className="flex items-center gap-1">
-                  <Star className="w-3 h-3 text-yellow-400 fill-current" />
+                  <Star className="w-3 h-3 text-blue-400 fill-current" />
                   <span>{article.rating}</span>
                 </div>
               </div>

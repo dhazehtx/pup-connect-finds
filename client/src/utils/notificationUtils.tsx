@@ -37,7 +37,7 @@ export const getNotificationIcon = (type: string, className: string = 'w-4 h-4')
     case 'follow':
       return <User className={`${className} text-mint-green`} />;
     case 'review':
-      return <Star className={`${className} text-yellow-500`} />;
+      return <Star className={`${className} text-blue-500`} />;
     default:
       return <Bell className={`${className} text-deep-navy`} />;
   }

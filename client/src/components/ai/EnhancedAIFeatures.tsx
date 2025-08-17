@@ -259,7 +259,7 @@ const EnhancedAIFeatures = () => {
               <CardContent>
                 <div className="space-y-3">
                   <div className="flex items-start gap-3">
-                    <div className="w-2 h-2 rounded-full bg-yellow-500 mt-2" />
+                    <div className="w-2 h-2 rounded-full bg-blue-500 mt-2" />
                     <div>
                       <p className="text-sm font-medium">Add more photos</p>
                       <p className="text-xs text-gray-600">Listings with 5+ photos get 40% more views</p>

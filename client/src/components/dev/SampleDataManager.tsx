@@ -88,7 +88,7 @@ const SampleDataManager = () => {
             <div className="text-xs text-muted-foreground">Dog Listings</div>
           </div>
           <div className="space-y-2">
-            <Star className="w-8 h-8 mx-auto text-yellow-500" />
+            <Star className="w-8 h-8 mx-auto text-blue-500" />
             <div className="text-sm font-medium">4 Reviews</div>
             <div className="text-xs text-muted-foreground">User Reviews</div>
           </div>

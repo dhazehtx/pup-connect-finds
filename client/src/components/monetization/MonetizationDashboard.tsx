@@ -28,7 +28,7 @@ const MonetizationDashboard = () => {
       amount: '$1,890',
       growth: '+25%',
       icon: Star,
-      color: 'text-yellow-600'
+      color: 'text-blue-600'
     },
     {
       title: 'Subscriptions',
@@ -87,7 +87,7 @@ const MonetizationDashboard = () => {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Crown size={20} className="text-yellow-600" />
+              <Crown size={20} className="text-blue-600" />
               Top Revenue Sources
             </CardTitle>
           </CardHeader>

@@ -121,7 +121,7 @@ const StripeCheckout = ({ isOpen, onClose, productType, planDetails }: StripeChe
           <div className="flex items-center justify-between">
             <DialogTitle className="flex items-center gap-2">
               {productType === 'premium' ? (
-                <Crown className="w-5 h-5 text-yellow-600" />
+                <Crown className="w-5 h-5 text-blue-600" />
               ) : (
                 <Star className="w-5 h-5 text-blue-600" />
               )}

@@ -194,7 +194,7 @@ const AnalyticsDashboard = () => {
                 <p className="text-sm font-medium text-gray-600">Total Revenue</p>
                 <p className="text-2xl font-bold">{formatCurrency(data.overview.totalRevenue)}</p>
               </div>
-              <DollarSign className="w-8 h-8 text-yellow-600" />
+              <DollarSign className="w-8 h-8 text-blue-600" />
             </div>
             <div className="mt-4 flex items-center">
               <TrendingUp className="w-4 h-4 text-green-600 mr-1" />

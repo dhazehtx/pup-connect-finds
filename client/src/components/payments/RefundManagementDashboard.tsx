@@ -66,7 +66,7 @@ const RefundManagementDashboard = () => {
 
   const getStatusBadge = (status: string) => {
     const variants = {
-      pending: { variant: 'outline' as const, icon: Clock, color: 'text-yellow-600' },
+      pending: { variant: 'outline' as const, icon: Clock, color: 'text-blue-600' },
       approved: { variant: 'secondary' as const, icon: CheckCircle, color: 'text-green-600' },
       rejected: { variant: 'destructive' as const, icon: AlertTriangle, color: 'text-red-600' },
       processed: { variant: 'default' as const, icon: CheckCircle, color: 'text-green-600' }
@@ -91,7 +91,7 @@ const RefundManagementDashboard = () => {
         Medium Risk ({(riskScore * 100).toFixed(0)}%)
       </Badge>;
     } else if (riskScore >= 0.3) {
-      return <Badge variant="outline" className="border-yellow-500 text-yellow-600">
+      return <Badge variant="outline" className="border-yellow-500 text-blue-600">
         Low Risk ({(riskScore * 100).toFixed(0)}%)
       </Badge>;
     }

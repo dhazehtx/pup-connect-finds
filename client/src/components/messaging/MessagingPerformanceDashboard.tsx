@@ -215,13 +215,13 @@ const MessagingPerformanceDashboard = () => {
             </div>
             <div className="space-y-1">
               <div className={`w-3 h-3 rounded-full mx-auto ${
-                realTimeMetrics.memoryUsage < 100 ? 'bg-green-500' : 'bg-yellow-500'
+                realTimeMetrics.memoryUsage < 100 ? 'bg-green-500' : 'bg-blue-500'
               }`}></div>
               <span className="text-xs text-muted-foreground">Memory</span>
             </div>
             <div className="space-y-1">
               <div className={`w-3 h-3 rounded-full mx-auto ${
-                realTimeMetrics.activeConnections < 10 ? 'bg-green-500' : 'bg-yellow-500'
+                realTimeMetrics.activeConnections < 10 ? 'bg-green-500' : 'bg-blue-500'
               }`}></div>
               <span className="text-xs text-muted-foreground">Connections</span>
             </div>

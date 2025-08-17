@@ -145,7 +145,7 @@ const PerformanceMonitor = () => {
   const getStatusBadge = (status: PerformanceMetric['status']) => {
     switch (status) {
       case 'good': return <Badge className="bg-green-500">Good</Badge>;
-      case 'warning': return <Badge variant="secondary" className="bg-yellow-500">Warning</Badge>;
+      case 'warning': return <Badge variant="secondary" className="bg-blue-500">Warning</Badge>;
       case 'critical': return <Badge variant="destructive">Critical</Badge>;
       default: return <Badge variant="outline">Unknown</Badge>;
     }

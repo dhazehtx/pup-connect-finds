@@ -265,8 +265,8 @@ const NotificationTestPage: React.FC = () => {
                 </div>
               </div>
 
-              <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-                <p className="text-sm text-yellow-800">
+              <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                <p className="text-sm text-blue-800">
                   📱 <strong>Mobile Bonus:</strong> On mobile devices, you'll see a native share button that works with all installed apps!
                 </p>
               </div>

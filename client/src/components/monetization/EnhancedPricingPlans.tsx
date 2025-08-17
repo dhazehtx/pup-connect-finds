@@ -158,7 +158,7 @@ const EnhancedPricingPlans = () => {
             >
               {plan.popular && (
                 <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-                  <Badge className="bg-yellow-500 text-white">Most Popular</Badge>
+                  <Badge className="bg-blue-500 text-white">Most Popular</Badge>
                 </div>
               )}
               
@@ -199,7 +199,7 @@ const EnhancedPricingPlans = () => {
                   disabled={!user && plan.monthlyPrice > 0}
                   className={`w-full ${
                     plan.popular 
-                      ? 'bg-yellow-500 hover:bg-yellow-600' 
+                      ? 'bg-blue-500 hover:bg-yellow-600' 
                       : plan.monthlyPrice === 0
                         ? 'bg-gray-500 hover:bg-gray-600'
                         : 'bg-blue-500 hover:bg-blue-600'

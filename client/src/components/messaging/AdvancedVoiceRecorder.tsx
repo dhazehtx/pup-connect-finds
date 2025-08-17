@@ -170,7 +170,7 @@ const AdvancedVoiceRecorder = ({ onSendVoiceMessage, onCancel }: AdvancedVoiceRe
 
           {(isRecording || isPaused) && (
             <div className="flex items-center justify-center gap-2">
-              <div className={`w-3 h-3 rounded-full ${isRecording ? 'bg-red-500 animate-pulse' : 'bg-yellow-500'}`} />
+              <div className={`w-3 h-3 rounded-full ${isRecording ? 'bg-red-500 animate-pulse' : 'bg-blue-500'}`} />
               <span className="text-sm">
                 {isRecording ? 'Recording...' : 'Paused'}
               </span>

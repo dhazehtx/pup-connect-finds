@@ -45,8 +45,8 @@ const PremiumAnalyticsDashboard = () => {
       value: '$24,850',
       change: '+31.4%',
       icon: DollarSign,
-      color: 'text-yellow-600',
-      bgColor: 'bg-yellow-50'
+      color: 'text-blue-600',
+      bgColor: 'bg-blue-50'
     },
     {
       title: 'Conversion Rate',
@@ -99,7 +99,7 @@ const PremiumAnalyticsDashboard = () => {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h2 className="text-2xl font-bold flex items-center gap-2">
-            <Crown className="h-6 w-6 text-yellow-500" />
+            <Crown className="h-6 w-6 text-blue-500" />
             Premium Analytics
           </h2>
           <p className="text-gray-600">Advanced insights for your listings and business</p>

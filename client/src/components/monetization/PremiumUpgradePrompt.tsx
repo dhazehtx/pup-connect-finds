@@ -107,14 +107,14 @@ const PremiumUpgradePrompt = ({ isOpen, onClose, trigger }: PremiumUpgradePrompt
               <div 
                 key={index}
                 className={`flex items-center space-x-3 p-2 rounded-lg ${
-                  feature.highlight ? 'bg-yellow-50 border border-yellow-200' : ''
+                  feature.highlight ? 'bg-blue-50 border border-blue-200' : ''
                 }`}
               >
                 <feature.icon className={`w-5 h-5 ${
-                  feature.highlight ? 'text-yellow-600' : 'text-gray-500'
+                  feature.highlight ? 'text-blue-600' : 'text-gray-500'
                 }`} />
                 <span className={`text-sm ${
-                  feature.highlight ? 'text-yellow-800 font-medium' : 'text-gray-700'
+                  feature.highlight ? 'text-blue-800 font-medium' : 'text-gray-700'
                 }`}>
                   {feature.text}
                 </span>

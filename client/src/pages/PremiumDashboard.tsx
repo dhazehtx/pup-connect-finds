@@ -18,7 +18,7 @@ const PremiumDashboard = () => {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold flex items-center gap-3">
-            <Crown className="h-8 w-8 text-yellow-500" />
+            <Crown className="h-8 w-8 text-blue-500" />
             Premium Dashboard
           </h1>
           <p className="text-gray-600 mt-2">Advanced tools and insights for premium users</p>
@@ -54,10 +54,10 @@ const PremiumDashboard = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">Featured Listings</p>
-                <p className="text-2xl font-bold text-yellow-600">15</p>
+                <p className="text-2xl font-bold text-blue-600">15</p>
               </div>
-              <div className="w-12 h-12 bg-yellow-50 rounded-lg flex items-center justify-center">
-                <Star className="h-6 w-6 text-yellow-600" />
+              <div className="w-12 h-12 bg-blue-50 rounded-lg flex items-center justify-center">
+                <Star className="h-6 w-6 text-blue-600" />
               </div>
             </div>
           </CardContent>

@@ -64,7 +64,7 @@ const OrderHistory: React.FC = () => {
       case 'paid':
         return <Badge className="bg-blue-100 text-blue-800">Paid</Badge>;
       case 'pending':
-        return <Badge className="bg-yellow-100 text-yellow-800">Pending</Badge>;
+        return <Badge className="bg-blue-100 text-blue-800">Pending</Badge>;
       case 'cancelled':
         return <Badge className="bg-red-100 text-red-800">Cancelled</Badge>;
       default:
@@ -79,7 +79,7 @@ const OrderHistory: React.FC = () => {
       case 'paid':
         return <CheckCircle className="w-5 h-5 text-blue-600" />;
       case 'pending':
-        return <Clock className="w-5 h-5 text-yellow-600" />;
+        return <Clock className="w-5 h-5 text-blue-600" />;
       default:
         return <Package className="w-5 h-5 text-gray-600" />;
     }

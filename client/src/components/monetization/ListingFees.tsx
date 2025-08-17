@@ -99,7 +99,7 @@ const ListingFees = () => {
             >
               {plan.popular && (
                 <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-                  <Badge className="bg-yellow-500 text-white">Most Popular</Badge>
+                  <Badge className="bg-blue-500 text-white">Most Popular</Badge>
                 </div>
               )}
               

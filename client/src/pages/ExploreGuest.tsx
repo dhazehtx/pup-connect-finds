@@ -92,7 +92,7 @@ const PuppyGrid = () => {
             </div>
             <div className="flex items-center justify-between">
               <div className="flex items-center">
-                <Star className="h-4 w-4 text-yellow-400 mr-1" />
+                <Star className="h-4 w-4 text-blue-400 mr-1" />
                 <span className="text-sm font-medium">{puppy.rating}</span>
               </div>
               <span className="text-sm text-gray-500">{puppy.breeder}</span>

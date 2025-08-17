@@ -405,9 +405,9 @@ const AdminReportsPanel = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-600">Pending</p>
-                  <p className="text-2xl font-bold text-yellow-600">{stats.pendingReports}</p>
+                  <p className="text-2xl font-bold text-blue-600">{stats.pendingReports}</p>
                 </div>
-                <Calendar className="w-8 h-8 text-yellow-600" />
+                <Calendar className="w-8 h-8 text-blue-600" />
               </div>
             </CardContent>
           </Card>

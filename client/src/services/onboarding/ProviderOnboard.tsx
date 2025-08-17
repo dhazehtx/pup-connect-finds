@@ -817,11 +817,11 @@ const ProviderOnboard: React.FC = () => {
 
             {idVerification.status === 'pending' && (
               <div className="space-y-4">
-                <div className="bg-yellow-50 p-4 rounded-lg flex items-center space-x-3">
-                  <Loader2 className="h-5 w-5 animate-spin text-yellow-600" />
+                <div className="bg-blue-50 p-4 rounded-lg flex items-center space-x-3">
+                  <Loader2 className="h-5 w-5 animate-spin text-blue-600" />
                   <div>
-                    <p className="text-sm font-medium text-yellow-800">Verification in Progress</p>
-                    <p className="text-sm text-yellow-700">Please wait while we verify your identity...</p>
+                    <p className="text-sm font-medium text-blue-800">Verification in Progress</p>
+                    <p className="text-sm text-blue-700">Please wait while we verify your identity...</p>
                   </div>
                 </div>
                 <Button 
@@ -905,11 +905,11 @@ const ProviderOnboard: React.FC = () => {
 
             {backgroundCheck.status === 'pending' && (
               <div className="space-y-4">
-                <div className="bg-yellow-50 p-4 rounded-lg flex items-center space-x-3">
-                  <Loader2 className="h-5 w-5 animate-spin text-yellow-600" />
+                <div className="bg-blue-50 p-4 rounded-lg flex items-center space-x-3">
+                  <Loader2 className="h-5 w-5 animate-spin text-blue-600" />
                   <div>
-                    <p className="text-sm font-medium text-yellow-800">Background Check in Progress</p>
-                    <p className="text-sm text-yellow-700">Please wait while we verify your background...</p>
+                    <p className="text-sm font-medium text-blue-800">Background Check in Progress</p>
+                    <p className="text-sm text-blue-700">Please wait while we verify your background...</p>
                   </div>
                 </div>
                 <Button 

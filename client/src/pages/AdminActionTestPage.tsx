@@ -177,7 +177,7 @@ const AdminActionTestPage = () => {
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="flex items-center gap-2 text-lg">
-              <Filter className="w-5 h-5 text-yellow-600" />
+              <Filter className="w-5 h-5 text-blue-600" />
               Filter Actions
             </CardTitle>
           </CardHeader>
