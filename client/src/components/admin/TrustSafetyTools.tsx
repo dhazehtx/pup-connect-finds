@@ -83,8 +83,8 @@ const TrustSafetyTools = () => {
   const getSeverityColor = (severity: string) => {
     switch (severity) {
       case 'high': return 'text-red-600 bg-red-100';
-      case 'medium': return 'text-orange-600 bg-orange-100';
-      case 'low': return 'text-orange-600 bg-orange-100';
+      case 'medium': return 'text-blue-600 bg-blue-100';
+      case 'low': return 'text-blue-600 bg-blue-100';
       default: return 'text-gray-600 bg-gray-100';
     }
   };
@@ -93,14 +93,14 @@ const TrustSafetyTools = () => {
     switch (status) {
       case 'resolved': return 'text-green-600 bg-green-100';
       case 'investigating': return 'text-blue-600 bg-blue-100';
-      case 'pending': return 'text-orange-600 bg-orange-100';
+      case 'pending': return 'text-blue-600 bg-blue-100';
       default: return 'text-gray-600 bg-gray-100';
     }
   };
 
   const getRiskColor = (score: number) => {
     if (score >= 80) return 'text-red-600 bg-red-100';
-    if (score >= 60) return 'text-orange-600 bg-orange-100';
+    if (score >= 60) return 'text-blue-600 bg-blue-100';
     return 'text-green-600 bg-green-100';
   };
 

@@ -96,7 +96,7 @@ const AnalyticsDashboard = () => {
     return new Intl.NumberFormat('en-US').format(value);
   };
 
-  const COLORS = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6'];
+  const COLORS = ['#3B82F6', '#10B981', '#2563EB', '#EF4444', '#8B5CF6'];
 
   if (loading) {
     return (

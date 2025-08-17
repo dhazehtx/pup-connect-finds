@@ -103,8 +103,8 @@ const MessagingOversight = () => {
   const getSeverityColor = (severity: string) => {
     switch (severity) {
       case 'high': return 'text-red-600 bg-red-100';
-      case 'medium': return 'text-orange-600 bg-orange-100';
-      case 'low': return 'text-orange-600 bg-orange-100';
+      case 'medium': return 'text-blue-600 bg-blue-100';
+      case 'low': return 'text-blue-600 bg-blue-100';
       default: return 'text-gray-600 bg-gray-100';
     }
   };
@@ -114,7 +114,7 @@ const MessagingOversight = () => {
       case 'resolved': return 'text-green-600 bg-green-100';
       case 'investigating': return 'text-blue-600 bg-blue-100';
       case 'reviewing': return 'text-purple-600 bg-purple-100';
-      case 'pending': return 'text-orange-600 bg-orange-100';
+      case 'pending': return 'text-blue-600 bg-blue-100';
       default: return 'text-gray-600 bg-gray-100';
     }
   };

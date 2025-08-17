@@ -81,7 +81,7 @@ const AdminDashboard = () => {
       description: 'View platform statistics, user metrics, and performance insights',
       icon: <BarChart3 className="w-8 h-8 text-orange-600" />,
       path: '/admin/analytics',
-      color: 'border-orange-200 hover:border-orange-400 bg-orange-50 hover:bg-orange-100'
+      color: 'border-blue-200 hover:border-blue-400 bg-blue-50 hover:bg-blue-100'
     },
     {
       title: 'Store Management',

@@ -158,14 +158,14 @@ const SubscriptionAnalytics: React.FC = () => {
     return Object.entries(tierData).map(([tier, count]) => ({
       name: tier,
       value: count,
-      fill: tier === 'Basic' ? '#3B82F6' : tier === 'Pro' ? '#F59E0B' : '#8B5CF6'
+      fill: tier === 'Basic' ? '#3B82F6' : tier === 'Pro' ? '#2563EB' : '#8B5CF6'
     }));
   };
 
   const metrics = calculateMetrics();
   const tierData = getTierBreakdownData();
 
-  const COLORS = ['#3B82F6', '#F59E0B', '#8B5CF6'];
+  const COLORS = ['#3B82F6', '#2563EB', '#8B5CF6'];
 
   if (loading) {
     return (
@@ -248,7 +248,7 @@ const SubscriptionAnalytics: React.FC = () => {
                   <Tooltip formatter={(value) => [`$${value}`, 'Revenue']} />
                   <Legend />
                   <Line type="monotone" dataKey="total_revenue" stroke="#3B82F6" strokeWidth={2} />
-                  <Line type="monotone" dataKey="mrr" stroke="#F59E0B" strokeWidth={2} />
+                  <Line type="monotone" dataKey="mrr" stroke="#2563EB" strokeWidth={2} />
                 </LineChart>
               </ResponsiveContainer>
             </CardContent>
@@ -271,7 +271,7 @@ const SubscriptionAnalytics: React.FC = () => {
                   <Bar dataKey="new_subscriptions" fill="#10B981" name="New Subscriptions" />
                   <Bar dataKey="cancelled_subscriptions" fill="#EF4444" name="Cancellations" />
                   <Bar dataKey="upgrades" fill="#3B82F6" name="Upgrades" />
-                  <Bar dataKey="downgrades" fill="#F59E0B" name="Downgrades" />
+                  <Bar dataKey="downgrades" fill="#2563EB" name="Downgrades" />
                 </BarChart>
               </ResponsiveContainer>
             </CardContent>

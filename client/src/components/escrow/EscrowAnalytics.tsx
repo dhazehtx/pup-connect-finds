@@ -21,7 +21,7 @@ const EscrowAnalytics = () => {
 
   const statusData = [
     { name: 'Completed', value: transactions.filter(t => t.status === 'completed').length, color: '#10b981' },
-    { name: 'Pending', value: transactions.filter(t => t.status === 'pending' || t.status === 'funds_held').length, color: '#f59e0b' },
+    { name: 'Pending', value: transactions.filter(t => t.status === 'pending' || t.status === 'funds_held').length, color: '#2563eb' },
     { name: 'Disputed', value: transactions.filter(t => t.status === 'disputed').length, color: '#ef4444' },
   ];
 

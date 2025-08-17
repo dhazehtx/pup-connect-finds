@@ -1,0 +1,144 @@
+One-Shot Replit Prompt — “Purge Remaining Yellow & Lock Desktop Palette on Mobile”
+
+Goal: Remove all remaining yellow backgrounds/highlights on Messages, Profile, Marketplace → Services (Advanced Filters button), Explore listing cards (yellow strip), and any stragglers (cookie/toast/badges). Mobile must inherit the exact desktop palette. Do not change layout, spacing, or component structure.
+
+1) Confirm centralized theme (use desktop palette)
+
+Ensure we use the same tokens everywhere:
+
+bg-surface / bg-surface-alt / bg-surface-card
+
+text-text / text-text-muted / text-text-inverse
+
+bg-primary-500 text-text-inverse hover:bg-primary-600
+
+If not present, create them (via CSS variables + Tailwind mapping) and apply globally.
+
+2) Global purge of yellow (search & replace)
+
+Replace every instance of these with neutral/primary tokens:
+
+Classes: bg-yellow-*, text-yellow-*, from-yellow-*, to-yellow-*, border-yellow-*, ring-yellow-*
+
+Hex/inline: #ff0, #ffff00, #ffeb3b, #fde047, #facc15, #f59e0b, #ffd700
+
+Aliases: bg-warning, text-warning, variant="warning", color="warning"
+
+Inline styles: style={{ background:*yellow* }} or style={{ backgroundColor:*yellow* }}
+
+Remove any mobile-only CSS that sets yellow (e.g., @media (max-…){ background: …yellow… }).
+
+Ensure no .mobile or page wrapper overrides color variables.
+
+3) Component-specific fixes (exact edits)
+A) Messages page (chat bubbles, system rows, unread badge)
+
+Chat bubbles:
+
+Sender/receiver bubbles: use bg-surface-card text-text with a thin border border-slate-200, or if one bubble is accented, use bg-primary-50 text-text.
+
+No filled yellow backgrounds anywhere.
+
+System/info rows (e.g., “new messages”, “notice”):
+
+Use bg-surface-alt text-text-muted border border-slate-200.
+
+Unread/message count badges:
+
+Replace yellow with primary outline or solid primary:
+
+Outline: bg-surface text-primary-600 border border-primary-200
+
+Solid: bg-primary-500 text-text-inverse
+
+B) Profile page (yellow header/cover or card)
+
+Profile header/intro card must be bg-surface-card text-text with optional subtle gradient from desktop (blue tint) only if used on desktop.
+
+Remove any leftover bg-yellow-* on avatar wrapper, stats row, or bio container.
+
+Buttons: bg-primary-500 text-text-inverse hover:bg-primary-600.
+
+C) Marketplace → Services tab (Advanced Filters button is yellow)
+
+Standardize this button to match desktop:
+
+Neutral secondary: bg-surface text-text border border-slate-300 hover:bg-surface-alt
+
+OR Primary CTA (if desktop uses it): bg-primary-500 text-text-inverse hover:bg-primary-600
+
+Chips/pills beneath (category/tag chips): no yellow fills. Use:
+
+Active: bg-primary-500 text-text-inverse
+
+Inactive: bg-surface text-text border border-slate-300
+
+D) Explore listing cards (yellow footer/price strip)
+
+Remove the yellow strip entirely. Listing cards should be:
+
+Card: bg-surface-card
+
+Title: text-text
+
+Price: text-primary-600 font-semibold (no colored bar)
+
+Meta row: text-text-muted
+
+Any “highlight” backgrounds on cards → change to subtle border or shadow (not yellow).
+
+E) Cookie banner / toasts / 3rd-party
+
+Cookie/consent banner container: bg-surface-card text-text shadow-md rounded-card
+
+Primary action: bg-primary-500 text-text-inverse hover:bg-primary-600
+
+Secondary action: bg-surface border border-slate-300 text-text
+
+Toasts/banners: replace variant="warning" with variant="neutral" or variant="info" mapped to neutral/primary.
+
+4) Enforce inheritance
+
+Ensure no breakpoint (sm, md, etc.) switches color tokens. Colors stay identical across mobile/desktop.
+
+Only responsive adjustments allowed: spacing, font-size, grid/flex.
+
+5) Verification checklist (screenshots to provide)
+
+/messages: no yellow in bubbles, system rows, or badges.
+
+/profile: header/card neutral; no yellow anywhere.
+
+/marketplace (services): “Advanced Filters” not yellow; chips consistent with desktop.
+
+/explore: listing cards have neutral background; price is blue text only.
+
+/greeting (cookie): neutral card + blue primary button; no yellow.
+
+Navigate across pages on iPhone/Android widths (375–430px): no yellow flashes.
+
+6) Code actions (do these concretely)
+
+Run a project-wide replace for the tokens above (classes + hexes + inline).
+
+In components:
+
+Messages*.*: replace bubble/background classes per (A).
+
+Profile*.*: remove any yellow bg on header/card containers.
+
+Marketplace*Services*.* (or services filter component): change the Advanced Filters button variant to neutral or primary tokens; remove any warning variant mapping.
+
+ListingCard*.* or Explore*.*: remove colored footer strip; move emphasis to text-primary-600 for price.
+
+Cookie*.* / Consent*.* / Toast*.*: switch to neutral/primary tokens.
+
+Remove any custom --color-warning or “amber/yellow” variable if it’s being used as a base background (keep only for tiny icons if needed).
+
+7) Output
+
+Commit: fix(theme): purge remaining yellow; lock mobile to desktop palette
+
+Provide fresh screenshots for Messages, Profile, Marketplace→Services (filters), Explore (listings), Greeting (cookie) at 390–430px width.
+
+Note: Do not alter navigation, spacing, or grid. This is strictly a color/theme cleanup to match desktop.

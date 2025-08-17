@@ -28,7 +28,7 @@ const AdvancedAnalytics = ({ profile }: AdvancedAnalyticsProps) => {
   const engagementData = [
     { name: 'Profile Views', value: 1240, color: '#3b82f6' },
     { name: 'Contact Clicks', value: 98, color: '#10b981' },
-    { name: 'Share Actions', value: 45, color: '#f59e0b' },
+    { name: 'Share Actions', value: 45, color: '#2563eb' },
     { name: 'Favorite Adds', value: 67, color: '#ef4444' }
   ];
 

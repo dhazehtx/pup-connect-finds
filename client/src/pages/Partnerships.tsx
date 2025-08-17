@@ -177,7 +177,7 @@ const Partnerships = () => {
                       <p className="text-sm text-gray-600">{partner.location}</p>
                     </div>
                     <div className="flex items-center gap-1">
-                      <Star className="w-4 h-4 text-amber-500 fill-amber-500" />
+                      <Star className="w-4 h-4 text-blue-500 fill-blue-500" />
                       <span className="text-sm font-medium">{partner.rating}</span>
                     </div>
                   </div>
