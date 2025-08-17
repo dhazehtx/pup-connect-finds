@@ -1,6 +1,107 @@
 
 @tailwind components;
 
+/* MY PUP Mobile UI Component Fixes */
+
+/* Tabs for Pet Services / Pup Box / Store */
+.tabs {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.tab {
+  background: var(--mp-bg);
+  color: var(--mp-accent);
+  border: 1px solid var(--mp-border);
+  padding: 0.5rem 0.9rem;
+  border-radius: 9999px;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.tab--active {
+  background: linear-gradient(0deg, rgba(79, 139, 253, 0.12), rgba(79, 139, 253, 0.12));
+  color: var(--mp-accent);
+  border-color: rgba(79, 139, 253, 0.35);
+}
+
+/* Filter row styling */
+.filter-row {
+  display: flex;
+  gap: 0.6rem;
+  align-items: center;
+}
+
+.filter-chip {
+  background: var(--mp-bg);
+  color: var(--mp-text);
+  border: 1px solid var(--mp-border);
+  padding: 0.5rem 0.9rem;
+  border-radius: 12px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.filter-chip:hover {
+  background: var(--mp-blue-50);
+}
+
+.filter-select {
+  background: var(--mp-bg);
+  color: var(--mp-text);
+  border: 1px solid var(--mp-border);
+}
+
+/* Product/service cards: spacing & alignment */
+.card {
+  background: var(--mp-surface);
+  border: 1px solid var(--mp-border);
+  border-radius: 16px;
+  padding: 14px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+}
+
+.card img {
+  border-radius: 12px;
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.card .title {
+  color: var(--mp-text);
+  font-weight: 700;
+  margin: 0.5rem 0 0.25rem;
+}
+
+.card .subtitle {
+  color: var(--mp-text-muted);
+}
+
+.grid {
+  display: grid;
+  gap: 14px;
+}
+
+@media (min-width: 480px) {
+  .grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+/* Search input fixes */
+.search-input {
+  background: var(--mp-bg);
+  color: var(--mp-text);
+  border: 1px solid var(--mp-border);
+  border-radius: 12px;
+  padding: 0.75rem 1rem;
+}
+
+.search-input::placeholder {
+  color: var(--mp-text-muted);
+}
+
 /* Notification animations */
 @keyframes notification-pulse {
   0%, 100% { transform: scale(1); }

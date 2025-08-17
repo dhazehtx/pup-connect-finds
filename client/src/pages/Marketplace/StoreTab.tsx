@@ -217,9 +217,9 @@ const StoreTab = () => {
   const hasActiveFilters = filters.categories.length > 0 || filters.minPrice > 0 || filters.maxPrice < 100;
 
   return (
-    <div className="bg-white min-h-screen pb-24">
+    <div className="min-h-screen pb-24" style={{ backgroundColor: 'var(--mp-bg)' }}>
       {/* Subtle blue accent divider */}
-      <div className="h-2 w-full bg-primary-200 rounded-b-3xl"></div>
+      <div className="h-2 w-full rounded-b-3xl" style={{ backgroundColor: 'var(--mp-blue-100)' }}></div>
       
       <div className="p-4 space-y-6">
         {/* Filter and Sort Section */}
@@ -235,8 +235,8 @@ const StoreTab = () => {
         {/* Loading state */}
         {isLoading && (
           <div className="text-center py-8">
-            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
-            <p className="mt-2 text-gray-600">Loading products...</p>
+            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2" style={{ borderBottomColor: 'var(--mp-blue-500)' }}></div>
+            <p className="mt-2" style={{ color: 'var(--mp-text-muted)' }}>Loading products...</p>
           </div>
         )}
 
@@ -296,20 +296,20 @@ const StoreTab = () => {
 
                 {/* Product Info */}
                 <div className="flex flex-col flex-grow space-y-2">
-                  <h3 className="font-medium text-gray-900 line-clamp-2">{product.name}</h3>
+                  <h3 className="font-medium line-clamp-2" style={{ color: 'var(--mp-text)' }}>{product.name}</h3>
                   {product.description && (
-                    <p className="text-sm text-gray-600 line-clamp-2">{product.description}</p>
+                    <p className="text-sm line-clamp-2" style={{ color: 'var(--mp-text-muted)' }}>{product.description}</p>
                   )}
                   
                   {/* Price and Rating */}
                   <div className="flex items-center justify-between mb-auto">
-                    <span className="text-lg font-semibold text-primary-600">
+                    <span className="text-lg font-semibold price-text">
                       ${parseFloat(product.unit_price).toFixed(2)}
                     </span>
                     {product.rating && (
                       <div className="flex items-center gap-1">
-                        <Star className="w-4 h-4 fill-amber-400 text-amber-400" />
-                        <span className="text-sm text-gray-600">{product.rating}</span>
+                        <Star className="w-4 h-4 fill-current" style={{ color: 'var(--mp-blue-500)' }} />
+                        <span className="text-sm" style={{ color: 'var(--mp-text-muted)' }}>{product.rating}</span>
                       </div>
                     )}
                   </div>
@@ -320,7 +320,8 @@ const StoreTab = () => {
                       type="button"
                       onClick={() => handleAddToCart(product)}
                       disabled={addedItems.has(product.id)}
-                      className="h-10 rounded-xl px-4 text-sm font-medium transition focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed bg-white text-slate-800 border border-slate-300 hover:bg-slate-50 hover:border-slate-400 active:bg-slate-100 flex items-center justify-center min-w-0"
+                      className="btn--secondary h-10 rounded-xl px-4 text-sm font-medium transition focus:outline-none focus:ring-2 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center min-w-0"
+                      data-testid="button-add-to-cart-store"
                     >
                       {addedItems.has(product.id) ? (
                         <>
@@ -343,7 +344,8 @@ const StoreTab = () => {
                       type="button"
                       onClick={() => checkoutMutation.mutate(product.id)}
                       disabled={checkoutMutation.isPending}
-                      className="h-10 rounded-xl px-4 text-sm font-medium transition focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed bg-primary text-primary-foreground shadow-sm hover:bg-primary/90 active:bg-primary/95 flex items-center justify-center min-w-0"
+                      className="btn--primary h-10 rounded-xl px-4 text-sm font-medium transition focus:outline-none focus:ring-2 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center min-w-0"
+                      data-testid="button-buy-now-store"
                     >
                       {checkoutMutation.isPending ? (
                         <>

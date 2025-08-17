@@ -111,27 +111,28 @@ const PupStore = () => {
     ];
   })();
 
-  const filteredProducts = products.filter(product => {
+  const filteredProducts = products.filter((product: Product) => {
     const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = selectedCategory === 'All' || product.category === selectedCategory;
     return matchesSearch && matchesCategory;
   });
 
   return (
-    <div className="bg-white min-h-screen pb-24">
+    <div className="min-h-screen pb-24" style={{ backgroundColor: 'var(--mp-bg)' }}>
       <div className="p-4 space-y-6">
         {/* Category Filter Pills */}
         <div className="flex items-center justify-center pt-4">
           <div className="flex flex-wrap justify-center gap-3">
             {categories.map(category => (
-              <FilterPill
+              <button
                 key={category}
-                active={selectedCategory === category}
+                type="button"
                 onClick={() => setSelectedCategory(category)}
-                className="text-sm"
+                className={`pill ${selectedCategory === category ? 'btn--primary' : ''} text-sm`}
+                data-testid={`filter-category-${category}`}
               >
                 {category}
-              </FilterPill>
+              </button>
             ))}
           </div>
         </div>
@@ -148,16 +149,16 @@ const PupStore = () => {
         {/* Loading state */}
         {isLoading && (
           <div className="text-center py-8">
-            <div className="animate-spin w-8 h-8 border-4 border-[#2363FF] border-t-transparent rounded-full mx-auto mb-3"></div>
-            <p className="text-gray-600">Loading products...</p>
+            <div className="animate-spin w-8 h-8 border-4 border-t-transparent rounded-full mx-auto mb-3" style={{ borderColor: 'var(--mp-blue-500)', borderTopColor: 'transparent' }}></div>
+            <p style={{ color: 'var(--mp-text-muted)' }}>Loading products...</p>
           </div>
         )}
 
         {/* Products Grid */}
         {!isLoading && !error && (
-          <div className="grid grid-cols-2 gap-4">
-            {filteredProducts.map((product) => (
-              <div key={product.id} className="bg-white rounded-3xl border border-gray-200 shadow-sm p-4">
+          <div className="product-grid grid grid-cols-2 gap-4">
+            {filteredProducts.map((product: Product) => (
+              <div key={product.id} className="product-card card">
                 <div className="relative mb-3">
                   <img
                     src={product.image}
@@ -170,14 +171,15 @@ const PupStore = () => {
                 </div>
                 
                 <div className="space-y-2">
-                  <h3 className="font-semibold text-[#2363FF] text-base">{product.name}</h3>
+                  <h3 className="title font-semibold text-base" style={{ color: 'var(--mp-text)' }}>{product.name}</h3>
                   
                   {product.rating && (
                     <div className="flex items-center gap-1">
                       {[...Array(5)].map((_, i) => (
                         <Star 
                           key={i} 
-                          className={`h-3 w-3 ${i < Math.floor(product.rating || 0) ? 'text-orange-400 fill-current' : 'text-gray-300'}`} 
+                          className={`h-3 w-3 ${i < Math.floor(product.rating || 0) ? 'fill-current' : 'text-gray-300'}`}
+                          style={{ color: i < Math.floor(product.rating || 0) ? 'var(--mp-blue-500)' : undefined }}
                         />
                       ))}
                       <span className="text-xs text-gray-600 ml-1">{product.rating}</span>
@@ -185,12 +187,13 @@ const PupStore = () => {
                   )}
 
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-lg font-bold text-[#2363FF]">${product.price}</span>
+                    <span className="price-text text-lg font-bold">${product.price}</span>
                   </div>
                   
                   <Button 
                     disabled={!product.inStock}
-                    className="w-full py-2 bg-[#2363FF] hover:bg-[#1E55D6] text-white font-medium rounded-lg"
+                    className="add-to-cart btn--primary w-full py-2 font-medium rounded-lg"
+                    data-testid="button-add-to-cart"
                   >
                     {isSignedIn ? "Add to Cart" : "Preview Item"}
                   </Button>

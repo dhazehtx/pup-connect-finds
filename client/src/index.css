@@ -73,6 +73,144 @@ button.btn-primary * {
   color: white !important;
 }
 
+/* MY PUP Mobile UI Fixes - Comprehensive Yellow Removal & Button Fixes */
+
+/* REMOVE ALL YELLOW across mobile - replace with MP theme tokens */
+.bg-yellow-50,
+.bg-yellow-100,
+.bg-yellow-200,
+.bg-yellow-300,
+.bg-yellow-400,
+.bg-yellow-500,
+.bg-yellow-600,
+.bg-yellow-700,
+.bg-yellow-800,
+.bg-yellow-900,
+.bg-amber-50,
+.bg-amber-100,
+.bg-amber-200,
+.bg-amber-300,
+.bg-amber-400,
+.bg-amber-500,
+.bg-amber-600,
+.bg-amber-700,
+.bg-amber-800,
+.bg-amber-900 {
+  background-color: var(--mp-bg) !important;
+  color: var(--mp-text) !important;
+}
+
+/* Yellow text colors → blue primary */
+.text-yellow-400,
+.text-yellow-500,
+.text-yellow-600,
+.text-amber-400,
+.text-amber-500,
+.text-amber-600 {
+  color: var(--mp-blue-500) !important;
+}
+
+/* Switch/toggle fixes - no more yellow */
+.switch {
+  --track: var(--mp-border);
+  --knob: #fff;
+  --on: var(--mp-blue-500);
+}
+
+.switch[data-state="on"] {
+  background: var(--on) !important;
+}
+
+/* Filter chip and button contrast fixes */
+.filter-chip,
+.chip,
+.pill-button {
+  background: var(--mp-bg) !important;
+  color: var(--mp-text) !important;
+  border: 1px solid var(--mp-border) !important;
+}
+
+.filter-chip:hover,
+.chip:hover {
+  background: var(--mp-blue-50) !important;
+}
+
+/* Tab fixes - light blue accent with proper backgrounds */
+.tabs [data-state="active"],
+.tab-active {
+  background: linear-gradient(0deg, rgba(79, 139, 253, 0.12), rgba(79, 139, 253, 0.12)) !important;
+  color: var(--mp-accent) !important;
+  border-color: rgba(79, 139, 253, 0.35) !important;
+}
+
+.tabs [data-state="inactive"],
+.tab-inactive {
+  background: var(--mp-bg) !important;
+  color: var(--mp-accent) !important;
+  border: 1px solid var(--mp-border) !important;
+}
+
+/* Product card button fixes */
+.add-to-cart,
+.btn-primary,
+.primary-button {
+  background: var(--mp-blue-500) !important;
+  color: white !important;
+  border-color: var(--mp-blue-500) !important;
+}
+
+.btn-secondary,
+.secondary-button {
+  background: var(--mp-bg) !important;
+  color: var(--mp-text) !important;
+  border: 1px solid var(--mp-border) !important;
+}
+
+/* Search input consistency */
+input[type="search"],
+input[type="text"],
+.search-bar input {
+  background: var(--mp-bg) !important;
+  color: var(--mp-text) !important;
+  border: 1px solid var(--mp-border) !important;
+}
+
+/* Icon fills - ensure proper contrast */
+.icon svg,
+.filter-icon svg {
+  stroke: currentColor !important;
+  fill: none !important;
+}
+
+/* Product card alignment fixes */
+.product-card,
+.service-card,
+.marketplace-card {
+  background: var(--mp-surface) !important;
+  border: 1px solid var(--mp-border) !important;
+  border-radius: 16px !important;
+  padding: 14px !important;
+}
+
+.product-card img,
+.service-card img {
+  border-radius: 12px !important;
+}
+
+/* Grid spacing consistency */
+.product-grid,
+.service-grid {
+  display: grid !important;
+  gap: 14px !important;
+}
+
+@media (min-width: 480px) {
+  .product-grid,
+  .service-grid {
+    grid-template-columns: 1fr 1fr !important;
+  }
+}
+
 /* Remove blue borders and ensure white text on gradient buttons */
 .bg-gradient-to-r {
   border: none !important;

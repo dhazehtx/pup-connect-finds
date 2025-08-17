@@ -1,8 +1,72 @@
 
 @tailwind utilities;
 
-/* Color consistency - Royal Blue theme */
+/* MY PUP Mobile UI Fixes - Centralized Button & Chip Styles */
 @layer utilities {
+  
+  /* Base button styles - NO white-on-white */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    border-radius: 12px;
+    border: 1px solid var(--mp-border);
+    padding: 0.6rem 0.9rem;
+    font-weight: 600;
+    transition: 0.2s ease;
+    font-family: inherit;
+  }
+
+  /* Solid primary (blue bg, white text) */
+  .btn--primary {
+    background: var(--mp-blue-500);
+    color: #fff;
+    border-color: var(--mp-blue-500);
+  }
+  .btn--primary:active {
+    background: var(--mp-blue-600);
+  }
+
+  /* Light/ghost (white bg MUST have dark text) */
+  .btn--ghost,
+  .chip,
+  .filter-chip,
+  .pill {
+    background: var(--mp-bg);
+    color: var(--mp-text);
+    border: 1px solid var(--mp-border);
+  }
+  .btn--ghost:hover,
+  .chip:hover,
+  .filter-chip:hover {
+    background: var(--mp-blue-50);
+  }
+
+  /* Outline (blue border, dark text) */
+  .btn--outline {
+    background: transparent;
+    color: var(--mp-blue-600);
+    border: 1.5px solid var(--mp-blue-500);
+  }
+
+  /* Icon-only chips (e.g., Filter) */
+  .icon-chip {
+    background: var(--mp-bg);
+    color: var(--mp-text);
+    border: 1px solid var(--mp-border);
+    width: 40px;
+    height: 40px;
+    border-radius: 20px;
+    display: inline-grid;
+    place-items: center;
+  }
+  .icon-chip svg {
+    stroke: var(--mp-text);
+    fill: none;
+  }
+
+  /* Legacy button compatibility */
   button, .btn {
     @apply font-medium transition-colors duration-200;
     color: hsl(var(--foreground)) !important;

@@ -17,11 +17,11 @@ export default function Pill({
 }: PillProps) {
   const base =
     "inline-flex shrink-0 items-center justify-center gap-2 whitespace-nowrap " +
-    "h-10 rounded-full px-6 py-2 text-sm font-medium border-2 transition-colors " +
+    "h-10 rounded-full px-6 py-2 text-sm font-medium transition-colors " +
     "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2";
 
-  const unselected = "bg-white text-blue-700 border-blue-600 hover:bg-blue-50";
-  const active = "bg-blue-600 text-white border-blue-600 hover:bg-blue-700";
+  const unselected = "pill"; // Uses CSS class from utilities.css with MP theme tokens  
+  const active = "btn--primary"; // Uses CSS class from utilities.css with MP theme tokens
 
   return (
     <button
