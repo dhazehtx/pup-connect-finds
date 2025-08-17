@@ -106,29 +106,29 @@ const Home = () => {
           {/* Main 4 Buttons */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
             <Link to="/auth">
-              <Button size="lg" className="bg-white border-2 border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white px-8 py-4 text-lg font-semibold transition-colors">
+              <Button size="lg" className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 text-lg font-semibold rounded-xl shadow-lg">
                 <UserPlus className="w-5 h-5 mr-2" />
-                <span>Sign Up</span>
+                Sign Up
               </Button>
             </Link>
             <Link to="/auth">
-              <Button size="lg" className="bg-white border-2 border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white px-8 py-4 text-lg font-semibold transition-colors">
+              <Button size="lg" className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 text-lg font-semibold rounded-xl shadow-lg">
                 <LogIn className="w-5 h-5 mr-2" />
-                <span>Sign In</span>
+                Sign In
               </Button>
             </Link>
             <Button 
               size="lg" 
               onClick={handleGuestAccess}
-              className="bg-white border-2 border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white px-8 py-4 text-lg font-semibold transition-colors"
+              className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 text-lg font-semibold rounded-xl shadow-lg"
             >
               <Eye className="w-5 h-5 mr-2" />
-              <span>Browse as Guest</span>
+              Browse as Guest
             </Button>
             <Link to="/explore">
-              <Button size="lg" className="bg-white border-2 border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white px-8 py-4 text-lg font-semibold transition-colors">
+              <Button size="lg" className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 text-lg font-semibold rounded-xl shadow-lg">
                 <Search className="w-5 h-5 mr-2" />
-                <span>Explore Puppies</span>
+                Explore Puppies
               </Button>
             </Link>
           </div>
