@@ -11,9 +11,7 @@
 }
 
 .btn-list-puppy, 
-.btn-list-puppy *, 
-.greeting-page button, 
-.greeting-page button *,
+.btn-list-puppy *,
 .marketplace .tabs button {
   color: white !important;
 }
@@ -49,11 +47,7 @@ button.btn-primary * {
   color: white !important;
 }
 
-/* Greeting page button styling */
-.greeting-page svg,
-.greeting-page span {
-  color: white !important;
-}
+/* Greeting page styling removed - let component control colors */
 
 /* Remove global white text on active tabs - let component styling control this */
 
