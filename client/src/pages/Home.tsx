@@ -106,29 +106,29 @@ const Home = () => {
           {/* Main 4 Buttons */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
             <Link to="/auth">
-              <Button size="lg" className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 text-lg font-semibold greeting-page">
-                <UserPlus className="w-5 h-5 mr-2 text-white" />
-                <span className="text-white">Sign Up</span>
+              <Button size="lg" className="bg-white border-2 border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white px-8 py-4 text-lg font-semibold transition-colors">
+                <UserPlus className="w-5 h-5 mr-2" />
+                <span>Sign Up</span>
               </Button>
             </Link>
             <Link to="/auth">
-              <Button size="lg" className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 text-lg font-semibold greeting-page">
-                <LogIn className="w-5 h-5 mr-2 text-white" />
-                <span className="text-white">Sign In</span>
+              <Button size="lg" className="bg-white border-2 border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white px-8 py-4 text-lg font-semibold transition-colors">
+                <LogIn className="w-5 h-5 mr-2" />
+                <span>Sign In</span>
               </Button>
             </Link>
             <Button 
               size="lg" 
               onClick={handleGuestAccess}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 text-lg font-semibold greeting-page"
+              className="bg-white border-2 border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white px-8 py-4 text-lg font-semibold transition-colors"
             >
-              <Eye className="w-5 h-5 mr-2 text-white" />
-              <span className="text-white">Browse as Guest</span>
+              <Eye className="w-5 h-5 mr-2" />
+              <span>Browse as Guest</span>
             </Button>
             <Link to="/explore">
-              <Button size="lg" className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 text-lg font-semibold greeting-page">
-                <Search className="w-5 h-5 mr-2 text-white" />
-                <span className="text-white">Explore Puppies</span>
+              <Button size="lg" className="bg-white border-2 border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white px-8 py-4 text-lg font-semibold transition-colors">
+                <Search className="w-5 h-5 mr-2" />
+                <span>Explore Puppies</span>
               </Button>
             </Link>
           </div>
