@@ -100,7 +100,7 @@ export function ServicesTab() {
   }
 
   return (
-    <div className="space-y-6 p-4 bg-mp-baby min-h-screen">
+    <div className="space-y-6 p-4 bg-gray-50 min-h-screen">
       {/* Pet Services Marketplace Hero Section */}
       <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-blue-600 via-blue-700 to-purple-700 text-white shadow-2xl">
         <div className="absolute inset-0 bg-gradient-to-br from-blue-600/90 to-purple-700/90"></div>
@@ -133,7 +133,7 @@ export function ServicesTab() {
           <Button 
             onClick={handleBecomeProvider}
             size="lg"
-            className="bg-mp-blue text-white font-semibold px-4 py-2 rounded-xl shadow-md hover:bg-mp-blue/90"
+            className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-semibold px-8 py-3 rounded-xl shadow-lg transition-all duration-200 transform hover:scale-105"
           >
             <Shield className="h-5 w-5 mr-2" />
             Become a Service Provider
@@ -218,37 +218,37 @@ export function ServicesTab() {
       {/* Service Categories Pill Row */}
       <div className="flex flex-wrap gap-3 justify-center px-4">
         <Button
-          className={`px-3 py-1 rounded-full border border-mp-lightblue text-mp-lightblue hover:bg-mp-lightblue/10 active:bg-mp-lightblue/20 ${!filters.type ? 'bg-mp-lightblue/15 text-white' : ''}`}
+          className={`${PILL_BASE} ${!filters.type ? PILL_ACTIVE : PILL_INACTIVE}`}
           onClick={() => setFilters(prev => ({ ...prev, type: undefined }))}
         >
           All Services
         </Button>
         <Button
-          className={`px-3 py-1 rounded-full border border-mp-lightblue text-mp-lightblue hover:bg-mp-lightblue/10 active:bg-mp-lightblue/20 ${filters.type === "grooming" ? 'bg-mp-lightblue/15 text-white' : ''}`}
+          className={`${PILL_BASE} ${filters.type === "grooming" ? PILL_ACTIVE : PILL_INACTIVE}`}
           onClick={() => setFilters(prev => ({ ...prev, type: "grooming" }))}
         >
           🧼 Grooming
         </Button>
         <Button
-          className={`px-3 py-1 rounded-full border border-mp-lightblue text-mp-lightblue hover:bg-mp-lightblue/10 active:bg-mp-lightblue/20 ${filters.type === "sitting" ? 'bg-mp-lightblue/15 text-white' : ''}`}
+          className={`${PILL_BASE} ${filters.type === "sitting" ? PILL_ACTIVE : PILL_INACTIVE}`}
           onClick={() => setFilters(prev => ({ ...prev, type: "sitting" }))}
         >
           🏠 Dog Sitting
         </Button>
         <Button
-          className={`px-3 py-1 rounded-full border border-mp-lightblue text-mp-lightblue hover:bg-mp-lightblue/10 active:bg-mp-lightblue/20 ${filters.type === "training" ? 'bg-mp-lightblue/15 text-white' : ''}`}
+          className={`${PILL_BASE} ${filters.type === "training" ? PILL_ACTIVE : PILL_INACTIVE}`}
           onClick={() => setFilters(prev => ({ ...prev, type: "training" }))}
         >
           🎯 Training
         </Button>
         <Button
-          className={`px-3 py-1 rounded-full border border-mp-lightblue text-mp-lightblue hover:bg-mp-lightblue/10 active:bg-mp-lightblue/20 ${filters.type === "walking" ? 'bg-mp-lightblue/15 text-white' : ''}`}
+          className={`${PILL_BASE} ${filters.type === "walking" ? PILL_ACTIVE : PILL_INACTIVE}`}
           onClick={() => setFilters(prev => ({ ...prev, type: "walking" }))}
         >
           🚶 Dog Walking
         </Button>
         <Button
-          className={`px-3 py-1 rounded-full border border-mp-lightblue text-mp-lightblue hover:bg-mp-lightblue/10 active:bg-mp-lightblue/20 ${filters.type === "boarding" ? 'bg-mp-lightblue/15 text-white' : ''}`}
+          className={`${PILL_BASE} ${filters.type === "boarding" ? PILL_ACTIVE : PILL_INACTIVE}`}
           onClick={() => setFilters(prev => ({ ...prev, type: "boarding" }))}
         >
           🏨 Boarding
@@ -257,22 +257,22 @@ export function ServicesTab() {
 
       {/* Services Content - Blue Pill Style Tabs */}
       <Tabs defaultValue="featured" className="w-full services-tabs">
-        <TabsList className="inline-flex rounded-full border-2 border-mp-lightblue bg-white p-1 w-auto mx-auto">
+        <TabsList className="inline-flex rounded-full border-2 border-blue-600 bg-blue-50 p-1 w-auto mx-auto">
           <TabsTrigger 
             value="featured" 
-            className="px-6 py-2 rounded-full font-medium transition-all duration-200 text-mp-lightblue data-[state=active]:bg-mp-lightblue/15 data-[state=active]:text-mp-lightblue data-[state=active]:font-medium data-[state=inactive]:bg-transparent data-[state=inactive]:text-mp-lightblue"
+            className="px-6 py-2 rounded-full font-medium transition-all duration-200 data-[state=active]:bg-[#2363FF] data-[state=active]:text-white data-[state=active]:border-[#2363FF] data-[state=inactive]:bg-transparent data-[state=inactive]:text-blue-700 data-[state=inactive]:border-transparent"
           >
             Featured Services
           </TabsTrigger>
           <TabsTrigger 
             value="all" 
-            className="px-6 py-2 rounded-full font-medium transition-all duration-200 text-mp-lightblue data-[state=active]:bg-mp-lightblue/15 data-[state=active]:text-mp-lightblue data-[state=active]:font-medium data-[state=inactive]:bg-transparent data-[state=inactive]:text-mp-lightblue"
+            className="px-6 py-2 rounded-full font-medium transition-all duration-200 data-[state=active]:bg-[#2363FF] data-[state=active]:text-white data-[state=active]:border-[#2363FF] data-[state=inactive]:bg-transparent data-[state=inactive]:text-blue-700 data-[state=inactive]:border-transparent"
           >
             All Services
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="featured" className="bg-white rounded-2xl shadow-sm p-0 focus-visible:outline-none ring-0 ring-offset-0 overflow-visible space-y-4">
+        <TabsContent value="featured" className="bg-white rounded-2xl border border-border shadow-sm p-0 focus-visible:outline-none ring-0 ring-offset-0 overflow-visible space-y-4">
           <div className="text-center py-4 md:py-6 bg-white rounded-xl">
             <div className="max-w-6xl mx-auto px-4 md:px-6">
               <h2 className="text-2xl font-semibold mb-2">Featured Service Providers</h2>
@@ -322,7 +322,7 @@ export function ServicesTab() {
           )}
         </TabsContent>
 
-        <TabsContent value="all" className="bg-white rounded-2xl shadow-sm p-0 focus-visible:outline-none ring-0 ring-offset-0 overflow-visible space-y-4">
+        <TabsContent value="all" className="bg-white rounded-2xl border border-border shadow-sm p-0 focus-visible:outline-none ring-0 ring-offset-0 overflow-visible space-y-4">
           <div className="text-center py-4 md:py-6 bg-white rounded-xl">
             <div className="max-w-6xl mx-auto px-4 md:px-6">
               <h2 className="text-2xl font-semibold mb-2">

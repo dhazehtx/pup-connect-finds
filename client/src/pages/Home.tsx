@@ -90,9 +90,9 @@ const Home = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-white">
       {/* Hero Section */}
-      <section className="relative bg-gray-50 py-16 md:py-24">
+      <section className="relative bg-gradient-to-br from-blue-50 to-blue-100 py-16 md:py-24">
         <div className="max-w-7xl mx-auto px-4 text-center">
           <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6">
             Find Your Perfect
@@ -106,29 +106,29 @@ const Home = () => {
           {/* Main 4 Buttons */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
             <Link to="/auth">
-              <Button size="lg" className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 text-lg font-semibold rounded-xl shadow-lg">
-                <UserPlus className="w-5 h-5 mr-2" />
-                Sign Up
+              <Button size="lg" className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 text-lg font-semibold greeting-page">
+                <UserPlus className="w-5 h-5 mr-2 text-white" />
+                <span className="text-white">Sign Up</span>
               </Button>
             </Link>
             <Link to="/auth">
-              <Button size="lg" className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 text-lg font-semibold rounded-xl shadow-lg">
-                <LogIn className="w-5 h-5 mr-2" />
-                Sign In
+              <Button size="lg" className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 text-lg font-semibold greeting-page">
+                <LogIn className="w-5 h-5 mr-2 text-white" />
+                <span className="text-white">Sign In</span>
               </Button>
             </Link>
             <Button 
               size="lg" 
               onClick={handleGuestAccess}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 text-lg font-semibold rounded-xl shadow-lg"
+              className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 text-lg font-semibold greeting-page"
             >
-              <Eye className="w-5 h-5 mr-2" />
-              Browse as Guest
+              <Eye className="w-5 h-5 mr-2 text-white" />
+              <span className="text-white">Browse as Guest</span>
             </Button>
             <Link to="/explore">
-              <Button size="lg" className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 text-lg font-semibold rounded-xl shadow-lg">
-                <Search className="w-5 h-5 mr-2" />
-                Explore Puppies
+              <Button size="lg" className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 text-lg font-semibold greeting-page">
+                <Search className="w-5 h-5 mr-2 text-white" />
+                <span className="text-white">Explore Puppies</span>
               </Button>
             </Link>
           </div>

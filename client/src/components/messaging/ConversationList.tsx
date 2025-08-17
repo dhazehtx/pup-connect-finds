@@ -57,7 +57,7 @@ const ConversationList = ({
         {conversations.map((conversation) => (
           <Card
             key={conversation.id}
-            className={`cursor-pointer transition-colors hover:bg-muted/50 border-gray-200 bg-white ${
+            className={`cursor-pointer transition-colors hover:bg-muted/50 ${
               selectedConversationId === conversation.id ? 'bg-muted' : ''
             }`}
             onClick={() => onSelectConversation(conversation.id)}

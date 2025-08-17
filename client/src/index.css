@@ -11,7 +11,9 @@
 }
 
 .btn-list-puppy, 
-.btn-list-puppy *,
+.btn-list-puppy *, 
+.greeting-page button, 
+.greeting-page button *,
 .marketplace .tabs button {
   color: white !important;
 }
@@ -47,9 +49,24 @@ button.btn-primary * {
   color: white !important;
 }
 
-/* Greeting page styling removed - let component control colors */
+/* Greeting page button styling */
+.greeting-page svg,
+.greeting-page span {
+  color: white !important;
+}
 
-/* Remove global white text on active tabs - let component styling control this */
+/* Force white text on active Radix tabs */
+[data-state="active"] {
+  color: white !important;
+}
+
+[data-state="active"] span {
+  color: white !important;
+}
+
+[data-state="active"] svg {
+  color: white !important;
+}
 
 /* Force white text on marketplace filter buttons when active */
 .bg-\[#2363FF\] {
@@ -198,156 +215,6 @@ body, #root, main, .min-h-screen {
   border-color: #e5e7eb !important;
 }
 
-/* TARGETED FIXES FOR SPECIFIC YELLOW ELEMENTS */
-
-/* Fix conversation list yellow border */
-.conversation-item, .message-item, [class*="conversation"]:hover {
-  border: 1px solid #e5e7eb !important;
-  background-color: #ffffff !important;
-}
-
-/* Fix profile page yellow buttons */
-button[class*="outline"]:contains("Report a Bug"), 
-button[class*="outline"]:contains("Privacy") {
-  background-color: #ffffff !important;
-  border-color: #d1d5db !important;
-  color: #374151 !important;
-}
-
-/* Fix onboarding Back button */
-button:contains("Back") {
-  background-color: #ffffff !important;
-  border-color: #d1d5db !important;
-  color: #374151 !important;
-}
-
-/* Fix yellow background stripes */
-.bg-yellow-100, .bg-yellow-200, .bg-yellow-300 {
-  background-color: #ffffff !important;
-}
-
-/* Fix yellow borders */
-.border-yellow-100, .border-yellow-200, .border-yellow-300, .border-yellow-400 {
-  border-color: #e5e7eb !important;
-}
-
-/* NUCLEAR YELLOW ELIMINATION - Final comprehensive fix */
-/* Fix any element that might get yellow styling */
-*[class*="yellow"], *[style*="yellow"], *[style*="amber"] {
-  background-color: #ffffff !important;
-  border-color: #e5e7eb !important;
-  color: #374151 !important;
-}
-
-/* Fix outline buttons that might appear yellow */
-button[class*="outline"], .btn-outline {
-  background-color: #ffffff !important;
-  border-color: #d1d5db !important;
-  color: #374151 !important;
-}
-
-button[class*="outline"]:hover, .btn-outline:hover {
-  background-color: #f9fafb !important;
-  border-color: #9ca3af !important;
-}
-
-/* Specifically target the conversation items with yellow border */
-.conversation-card, .message-card, [data-conversation], [data-message] {
-  border: 1px solid #e5e7eb !important;
-  background-color: #ffffff !important;
-}
-
-/* Fix any remaining yellow text or elements */
-.text-yellow-400, .text-yellow-500, .text-yellow-600, .text-yellow-700, .text-yellow-800 {
-  color: #374151 !important;
-}
-
-/* Fix any remaining yellow backgrounds */
-.bg-yellow-50, .bg-yellow-100, .bg-yellow-200, .bg-yellow-300, .bg-yellow-400, .bg-yellow-500 {
-  background-color: #ffffff !important;
-}
-
-/* ULTIMATE YELLOW STRIPING ELIMINATION */
-/* Fix yellow background stripes across entire page */
-body::before, body::after,
-html::before, html::after,
-#root::before, #root::after,
-main::before, main::after {
-  display: none !important;
-  content: none !important;
-  background: none !important;
-}
-
-/* Remove any yellow pseudo-elements that create stripes */
-*::before, *::after {
-  background-image: none !important;
-  background-color: transparent !important;
-}
-
-*[style*="background: linear-gradient"],
-*[style*="background-image"] {
-  background: #ffffff !important;
-  background-image: none !important;
-}
-
-/* Fix marketplace tabs yellow outline */
-[data-state="active"], .tab-active, .tabs [data-state="active"] {
-  border: 2px solid #2563eb !important;
-  background-color: #2563eb !important;
-  color: #ffffff !important;
-}
-
-[data-state="inactive"], .tab-inactive, .tabs [data-state="inactive"] {
-  border: 1px solid #e5e7eb !important;
-  background-color: #ffffff !important;
-  color: #374151 !important;
-}
-
-/* Remove yellow from tab containers */
-.tabs-container, [role="tablist"], .marketplace-tabs {
-  border: 1px solid #e5e7eb !important;
-  background-color: #ffffff !important;
-}
-
-/* CONVERSATION LIST YELLOW BORDER FIX */
-.conversation-list .card,
-[data-conversation-card],
-.messages-page .card {
-  border: 1px solid #e5e7eb !important;
-  background-color: #ffffff !important;
-}
-
-.conversation-list .card:hover,
-[data-conversation-card]:hover,
-.messages-page .card:hover {
-  border: 1px solid #d1d5db !important;
-  background-color: #f9fafb !important;
-}
-
-/* ELIMINATE ALL REMAINING YELLOW ELEMENTS */
-/* Target any remaining yellow borders, backgrounds, or text */
-*[class*=yellow],
-*[style*=yellow],
-*[style*="#FFFF"],
-*[style*="#ffff"],
-*[style*="rgb(255, 255"],
-*[data-yellow] {
-  background-color: #ffffff !important;
-  border-color: #e5e7eb !important;
-  color: #374151 !important;
-}
-
-/* Fix profile page yellow stripes */
-.profile-page,
-.profile-page::before,
-.profile-page::after,
-.profile-header,
-.profile-content {
-  background: #ffffff !important;
-  background-color: #ffffff !important;
-  background-image: none !important;
-}
-
 /* Remove ALL pseudo-elements that create blue stripes/corners */
 .services-tabs [data-state="active"]::before,
 .services-tabs [data-state="active"]::after,
@@ -408,7 +275,31 @@ main::before, main::after {
   box-shadow: none !important;
 }
 
-/* Let component-level styling control tab colors */
+/* Force white text on active marketplace tabs only */
+.marketplace [data-state="active"] {
+  color: white !important;
+}
+
+.marketplace [data-state="active"] span {
+  color: white !important;
+}
+
+.marketplace [data-state="active"] svg {
+  color: white !important;
+}
+
+/* Ensure inactive marketplace tabs have blue text */
+.marketplace [data-state="inactive"] {
+  color: #2563eb !important;
+}
+
+.marketplace [data-state="inactive"] span {
+  color: #2563eb !important;
+}
+
+.marketplace [data-state="inactive"] svg {
+  color: #2563eb !important;
+}
 
 /* Force service filter buttons to match tab color */
 .text-primary-600 {
@@ -428,4 +319,15 @@ main::before, main::after {
   background-color: #E5EEFF !important;
 }
 
-/* Let component-level styling control services tab colors */
+/* Featured/All Services tabs - ensure proper blue pill styling */
+.services-tabs [data-state="active"] {
+  background-color: #2363FF !important;
+  color: #FFFFFF !important;
+  border-color: #2363FF !important;
+}
+
+.services-tabs [data-state="inactive"] {
+  background-color: transparent !important;
+  color: #1D4ED8 !important;
+  border-color: transparent !important;
+}

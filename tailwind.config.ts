@@ -109,11 +109,6 @@ export default {
           900: "#111827",
         },
         
-        // MY PUP Custom Colors (MP)
-        'mp-lightblue': "#3b82f6", // text-mp-lightblue for tabs
-        'mp-blue': "#2563eb",      // bg-mp-blue for CTA button
-        'mp-baby': "#f0f8ff",      // bg-mp-baby for page backgrounds
-        
         // shadcn/ui compatibility
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
