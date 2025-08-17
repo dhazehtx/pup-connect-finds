@@ -314,12 +314,12 @@ main::before, main::after {
   color: #ffffff !important;
 }
 
-/* Fix tab text visibility - ensure active tabs have white text */
+/* Fix tab text visibility - ensure active tabs have black text */
 button[data-state="active"], 
 button[data-state="active"] span,
 .tab-active,
 .tab-active span {
-  color: #ffffff !important;
+  color: #000000 !important;
 }
 
 /* Fix inactive tab text - ensure they have dark text */
