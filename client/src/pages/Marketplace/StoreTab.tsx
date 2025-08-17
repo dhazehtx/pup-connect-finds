@@ -296,9 +296,9 @@ const StoreTab = () => {
 
                 {/* Product Info */}
                 <div className="flex flex-col flex-grow space-y-2">
-                  <h3 className="font-medium text-gray-900 line-clamp-2">{product.name}</h3>
+                  <h3 className="font-medium text-foreground line-clamp-2">{product.name}</h3>
                   {product.description && (
-                    <p className="text-sm text-gray-600 line-clamp-2">{product.description}</p>
+                    <p className="text-sm text-muted-foreground line-clamp-2">{product.description}</p>
                   )}
                   
                   {/* Price and Rating */}
@@ -320,7 +320,7 @@ const StoreTab = () => {
                       type="button"
                       onClick={() => handleAddToCart(product)}
                       disabled={addedItems.has(product.id)}
-                      className="h-10 rounded-xl px-4 text-sm font-medium transition focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed bg-white text-slate-800 border border-slate-300 hover:bg-slate-50 hover:border-slate-400 active:bg-slate-100 flex items-center justify-center min-w-0"
+                      className="h-10 rounded-xl px-4 text-sm font-medium transition focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed bg-primary text-primary-foreground hover:bg-primary/90 flex items-center justify-center min-w-0"
                     >
                       {addedItems.has(product.id) ? (
                         <>

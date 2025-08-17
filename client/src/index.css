@@ -457,6 +457,74 @@ button:contains("Privacy"):hover {
   border-color: #d1d5db !important;
 }
 
+/* CENTRALIZED THEME SYSTEM - Remove ALL Blue Decorations & Apply Theme Variables */
+
+/* Remove blue decorations from Featured/All Services cards */
+[data-radix-tabs-content] {
+  border: 1px solid hsl(var(--border)) !important;
+  border-radius: 0.5rem !important;
+  background: white !important;
+}
+
+/* Remove any ring effects or blue outlines */
+[data-radix-tabs-content]:focus-visible {
+  outline: none !important;
+  ring: none !important;
+  ring-offset: none !important;
+}
+
+/* Ensure all buttons use bg-primary text-primary-foreground */
+.marketplace button[type="button"],
+.services-tab button[type="button"],
+.store-tab button[type="button"],
+button:contains("Add to Cart"),
+button:contains("Buy Now"),
+button:contains("Become a Service Provider") {
+  background-color: hsl(var(--primary)) !important;
+  color: hsl(var(--primary-foreground)) !important;
+  border: 1px solid hsl(var(--primary)) !important;
+}
+
+/* Button hover states */
+.marketplace button[type="button"]:hover,
+.services-tab button[type="button"]:hover,
+.store-tab button[type="button"]:hover {
+  background-color: hsl(var(--primary)/0.9) !important;
+}
+
+/* Tab text styling - all tabs use data-[state=active]:text-foreground */
+[data-radix-tabs-trigger][data-state="active"] {
+  color: hsl(var(--foreground)) !important;
+}
+
+/* Store tab product titles/descriptions use text-foreground and text-muted-foreground */
+.store-tab h3,
+.store-tab .product-title {
+  color: hsl(var(--foreground)) !important;
+}
+
+.store-tab p,
+.store-tab .product-description {
+  color: hsl(var(--muted-foreground)) !important;
+}
+
+/* Remove any hardcoded blue colors in components */
+.text-blue-700,
+.text-blue-600,
+.border-blue-600,
+.border-blue-200,
+.bg-blue-50,
+.hover\\:bg-blue-50,
+.hover\\:bg-blue-100 {
+  color: hsl(var(--foreground)) !important;
+  border-color: hsl(var(--border)) !important;
+  background-color: hsl(var(--background)) !important;
+}
+
+.hover\\:text-blue-700:hover {
+  color: hsl(var(--foreground)) !important;
+}
+
 /* Remove ALL pseudo-elements that create blue stripes/corners */
 .services-tabs [data-state="active"]::before,
 .services-tabs [data-state="active"]::after,

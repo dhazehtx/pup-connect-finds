@@ -141,3 +141,14 @@ The application employs a full-stack architecture with a clear separation of con
   - Applied gray border defaults with blue focus/hover states for messaging elements
   - Covered conversation items, message bubbles, chat interfaces, and all related containers
   - Ensured consistent blue ring colors for all messaging component interactions
+
+### Centralized Theme System Implementation (August 17, 2025)
+- **COMPLETED**: Applied unified theme variables across Marketplace, Messages, Profile, and Store tabs
+  - **Tab Styling**: All tabs now use `data-[state=active]:text-foreground` for consistent active states
+  - **Button Theming**: All buttons use `bg-primary text-primary-foreground` including "Add to Cart" and "Become a Service Provider"
+  - **Store Tab Content**: Product titles use `text-foreground`, descriptions use `text-muted-foreground`
+  - **Blue Decoration Removal**: Eliminated all blue lines/corner decorations from Featured/All Services cards
+  - **CSS Overrides**: Added comprehensive CSS rules in `index.css` to override hardcoded colors with theme variables
+  - **Component Updates**: Updated StoreTab.tsx and ServicesTab.tsx to use theme variables instead of hardcoded colors
+  - **Maintained Layout**: Preserved existing navigation structure and component visibility without modifications
+  - **Theme Variables**: Leveraged existing CSS custom properties (--primary, --foreground, --muted-foreground) for consistency
