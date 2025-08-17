@@ -260,13 +260,69 @@ body, #root, main, .min-h-screen {
   border-color: #e5e7eb !important;
 }
 
-/* Force tab highlighting with blue theme */
+/* Force tab highlighting with blue theme - fix selected tab text color */
 .marketplace-tabs [data-state="active"],
 [role="tab"][aria-selected="true"],
-.tab-button[data-active="true"] {
-  color: #2563eb !important;
+.tab-button[data-active="true"],
+[data-state="active"].text-primary-foreground,
+.marketplace [data-state="active"] {
+  color: #1f2937 !important;
   background-color: #ffffff !important;
   border-bottom-color: #2563eb !important;
+}
+
+/* Specific fix for marketplace tab triggers */
+.marketplace .TabsTrigger[data-state="active"],
+.marketplace button[data-state="active"] {
+  color: #1f2937 !important;
+}
+
+/* Fix filter symbol color to black */
+.filter-symbol, .filter-icon, button .filter-icon,
+[class*="filter"] svg, [class*="filter"] .lucide {
+  color: #000000 !important;
+  fill: #000000 !important;
+}
+
+/* Fix store button text colors - force black text on white buttons */
+.store-product-card button, .product-card button,
+[class*="add-to-cart"], [class*="buy-now"], 
+button[class*="cart"], button[class*="buy"] {
+  color: #000000 !important;
+  background-color: #ffffff !important;
+  border-color: #d1d5db !important;
+}
+
+/* Specific targeting for store tab buttons - more comprehensive selectors */
+.store-tab button, .marketplace button,
+button:contains("Add to Cart"), button:contains("Buy Now"),
+.product-actions button, .store-product button,
+[data-testid*="button-add"], [data-testid*="button-buy"],
+.btn-primary, .btn-secondary {
+  color: #000000 !important;
+  background-color: #ffffff !important;
+  border: 1px solid #d1d5db !important;
+}
+
+/* Force black text on all button variants in store/marketplace */
+.marketplace .btn, .store .btn, 
+.product-card .btn, .store-card .btn {
+  color: #000000 !important;
+}
+
+/* Fix specific button styling issues in store */
+.text-primary-foreground, [class*="primary-foreground"] {
+  color: #000000 !important;
+}
+
+.bg-primary, [class*="bg-primary"] {
+  background-color: #2563eb !important;
+  color: #ffffff !important;
+}
+
+/* Override any conflicting primary button styles */
+button.bg-primary, .bg-primary button {
+  color: #ffffff !important;
 }
 
 /* Remove ALL pseudo-elements that create blue stripes/corners */

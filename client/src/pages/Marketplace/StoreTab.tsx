@@ -289,7 +289,7 @@ const StoreTab = () => {
                     />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center text-gray-400">
-                      <Filter className="w-8 h-8" />
+                      <Filter className="w-8 h-8 text-gray-400" />
                     </div>
                   )}
                 </div>
@@ -308,7 +308,7 @@ const StoreTab = () => {
                     </span>
                     {product.rating && (
                       <div className="flex items-center gap-1">
-                        <Star className="w-4 h-4 fill-amber-400 text-amber-400" />
+                        <Star className="w-4 h-4 fill-blue-400 text-blue-400" />
                         <span className="text-sm text-gray-600">{product.rating}</span>
                       </div>
                     )}
