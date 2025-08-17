@@ -131,7 +131,7 @@ export function ServiceProviderCard({ provider, onBook }: ServiceProviderCardPro
 
         {/* Action Buttons */}
         <div className="flex gap-2 pt-2">
-          <button onClick={handleBookClick} className="btn btn-primary flex-1 text-sm">
+          <button onClick={handleBookClick} className="btn-primary flex-1 text-sm">
             Book Service
           </button>
           

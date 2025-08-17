@@ -1,29 +1,35 @@
-import React from 'react';
-import { NavLink } from 'react-router-dom';
-import { Briefcase, Gift, Store } from 'lucide-react';
+import { Briefcase, Gift, Store } from "lucide-react";
+
+interface MarketplaceTabsProps {
+  activeTab: string;
+  onTabChange: (tab: string) => void;
+}
 
 const tabs = [
-  { label: "Pet Services", to: "/marketplace", icon: Briefcase },
-  { label: "Pup Box", to: "/marketplace/pupbox", icon: Gift },
-  { label: "Store", to: "/marketplace/store", icon: Store },
+  { key: "services", label: "Pet Services", icon: Briefcase },
+  { key: "pupbox", label: "Pup Box", icon: Gift },
+  { key: "store", label: "Store", icon: Store },
 ];
 
-export default function MarketplaceTabs() {
+export default function MarketplaceTabs({ activeTab, onTabChange }: MarketplaceTabsProps) {
   return (
     <nav className="w-full flex justify-center mt-6">
-      <div className="tab-group">
-        {tabs.map(t => (
-          <NavLink 
-            key={t.to} 
-            to={t.to}
-            className={({isActive}) => `tab-pill ${isActive ? "is-active" : ""}`}
-            data-testid={`tab-${t.label.toLowerCase().replace(' ', '-')}`}
-          >
-            <t.icon className="w-4 h-4" />
-            <span className="hidden sm:inline">{t.label}</span>
-            <span className="sm:hidden">{t.label.split(' ')[0]}</span>
-          </NavLink>
-        ))}
+      <div className="inline-flex items-center gap-2 rounded-full bg-secondary p-1 shadow-sm">
+        {tabs.map(t => {
+          const IconComponent = t.icon;
+          return (
+            <button
+              key={t.key}
+              onClick={() => onTabChange(t.key)}
+              className={`tab-pill ${activeTab === t.key ? "is-active" : ""}`}
+              data-testid={`tab-${t.key}`}
+            >
+              <IconComponent className="w-4 h-4" />
+              <span className="hidden sm:inline">{t.label}</span>
+              <span className="sm:hidden">{t.label.split(' ')[0]}</span>
+            </button>
+          );
+        })}
       </div>
     </nav>
   );

@@ -525,64 +525,33 @@ button:contains("Become a Service Provider") {
   color: hsl(var(--foreground)) !important;
 }
 
-/* COMPREHENSIVE BUTTON & TAB SYSTEM - Single Source of Truth */
+/* PILL BUTTON UTILITIES - White Text on Active State */
 
-/* --- Buttons --- */
-.btn { 
-  @apply inline-flex items-center justify-center rounded-xl px-4 py-2 font-medium transition-colors focus-visible:outline-none focus-visible:ring-2; 
-}
-.btn-primary { 
-  @apply bg-primary text-primary-foreground focus-visible:ring-primary hover:opacity-90; 
-}
-.btn-outline { 
-  @apply border border-primary text-primary bg-transparent hover:bg-secondary; 
-}
-.btn-ghost { 
-  @apply text-primary hover:bg-secondary; 
-}
-
-/* Icons inside buttons inherit color and stay visible */
-.btn svg { 
-  width: 1rem; 
-  height: 1rem; 
-  margin-right: 0.375rem; 
-  fill: none; 
-  stroke: currentColor; 
-  stroke-width: 2; 
-}
-
-/* --- Pill Tabs (chips) --- */
-.tab-list { 
-  @apply flex flex-wrap gap-2; 
-}
-.tab-group { 
-  @apply inline-flex items-center gap-2 rounded-full bg-secondary p-1 shadow-sm; 
-}
-
-.tab-pill { 
-  @apply rounded-full px-4 py-2 text-sm font-medium border border-primary text-primary bg-transparent transition-colors; 
+/* Pill tabs: outline by default, blue pill + white text when active */
+.tab-pill {
+  @apply rounded-full px-4 py-2 text-sm font-medium
+         border border-primary text-primary bg-transparent
+         transition-colors;
 }
 .tab-pill.is-active,
-.tab-pill[data-state="active"] { 
-  @apply bg-primary text-primary-foreground shadow; 
+.tab-pill[data-state="active"] {
+  @apply bg-primary text-primary-foreground shadow;
 }
 
-/* Cards / text base */
-.card { 
-  @apply bg-white border border-border rounded-2xl shadow-sm; 
-}
-.card h3 { 
-  @apply text-foreground; 
-}
-.card p { 
-  @apply text-muted-foreground; 
+/* Make any icons inside pills inherit and be visible */
+.tab-pill svg {
+  width: 1rem; height: 1rem; margin-right: 0.375rem;
+  fill: none; stroke: currentColor; stroke-width: 2;
 }
 
-/* Buy Now icon visibility */
-.buy-now-icon svg { 
-  fill: none !important; 
-  stroke: currentColor !important; 
-  stroke-width: 2; 
+/* Optional: tab list spacing */
+.tab-list {
+  @apply flex flex-wrap gap-2;
+}
+
+/* Primary buttons always white text on brand */
+.btn-primary {
+  @apply inline-flex items-center justify-center rounded-xl px-4 py-2 font-medium bg-primary text-primary-foreground hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary;
 }
 
 /* Make the Buy Now icon outlined so it shows on blue */
