@@ -215,6 +215,60 @@ body, #root, main, .min-h-screen {
   border-color: #e5e7eb !important;
 }
 
+/* Force blue theme for Report a Bug and Privacy buttons */
+.profile-action-button, button[class*="report"], button[class*="privacy"], 
+[class*="bug-report"], [class*="report-bug"] {
+  background-color: #ffffff !important;
+  color: #2563eb !important;
+  border-color: #2563eb !important;
+}
+
+/* Force blue styling for selected tabs */
+[data-state="active"], .tab-active, [aria-selected="true"] {
+  color: #2563eb !important;
+  background-color: #ffffff !important;
+}
+
+/* Fix for yellow toggle switches */
+.toggle, .switch, [role="switch"] {
+  background-color: #2563eb !important;
+}
+
+/* Force white text for store product cards */
+.store-card .product-title, .store-card .product-description, 
+.product-card h3, .product-card p {
+  color: #1f2937 !important;
+}
+
+/* Ultimate override for all remaining yellow/amber styling */
+.bg-yellow-50, .bg-yellow-100, .bg-yellow-200, .bg-yellow-300, .bg-yellow-400, .bg-yellow-500,
+.bg-amber-50, .bg-amber-100, .bg-amber-200, .bg-amber-300, .bg-amber-400, .bg-amber-500 {
+  background-color: #ffffff !important;
+}
+
+.text-yellow-50, .text-yellow-100, .text-yellow-200, .text-yellow-300, .text-yellow-400, .text-yellow-500,
+.text-yellow-600, .text-yellow-700, .text-yellow-800, .text-yellow-900,
+.text-amber-50, .text-amber-100, .text-amber-200, .text-amber-300, .text-amber-400, .text-amber-500,
+.text-amber-600, .text-amber-700, .text-amber-800, .text-amber-900 {
+  color: #2563eb !important;
+}
+
+.border-yellow-50, .border-yellow-100, .border-yellow-200, .border-yellow-300, .border-yellow-400, .border-yellow-500,
+.border-yellow-600, .border-yellow-700, .border-yellow-800, .border-yellow-900,
+.border-amber-50, .border-amber-100, .border-amber-200, .border-amber-300, .border-amber-400, .border-amber-500,
+.border-amber-600, .border-amber-700, .border-amber-800, .border-amber-900 {
+  border-color: #e5e7eb !important;
+}
+
+/* Force tab highlighting with blue theme */
+.marketplace-tabs [data-state="active"],
+[role="tab"][aria-selected="true"],
+.tab-button[data-active="true"] {
+  color: #2563eb !important;
+  background-color: #ffffff !important;
+  border-bottom-color: #2563eb !important;
+}
+
 /* Remove ALL pseudo-elements that create blue stripes/corners */
 .services-tabs [data-state="active"]::before,
 .services-tabs [data-state="active"]::after,

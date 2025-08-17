@@ -122,7 +122,7 @@ const ListingQualityChecker = ({ listing }: { listing: any }) => {
 
   const getScoreBadge = (score: number) => {
     if (score >= 80) return <Badge className="bg-green-100 text-green-800">Excellent</Badge>;
-    if (score >= 60) return <Badge className="bg-yellow-100 text-yellow-800">Good</Badge>;
+    if (score >= 60) return <Badge className="bg-blue-100 text-blue-800">Good</Badge>;
     return <Badge className="bg-red-100 text-red-800">Needs Improvement</Badge>;
   };
 

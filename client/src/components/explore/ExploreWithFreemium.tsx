@@ -158,7 +158,7 @@ const ExploreWithFreemium = () => {
                 <CardContent className="p-6 text-center">
                   <div className="flex items-center justify-center mb-4">
                     <Crown className="w-8 h-8 text-blue-600 mr-2" />
-                    <Star className="w-6 h-6 text-yellow-500" />
+                    <Star className="w-6 h-6 text-blue-600" />
                   </div>
                   <h3 className="text-xl font-bold text-gray-900 mb-2">
                     See All {listings.length - maxResults}+ More Puppies

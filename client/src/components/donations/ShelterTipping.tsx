@@ -191,7 +191,7 @@ const ShelterTipping = () => {
                 <div className="flex items-center justify-between mb-2">
                   <h4 className="font-semibold text-lg">{shelter.name}</h4>
                   <div className="flex items-center gap-1">
-                    <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                    <Star className="w-4 h-4 fill-yellow-400 text-blue-600" />
                     <span className="text-sm">{shelter.rating}</span>
                   </div>
                 </div>

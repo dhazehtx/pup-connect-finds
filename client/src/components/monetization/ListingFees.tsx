@@ -193,7 +193,7 @@ const ListingFees = () => {
 
       <Card>
         <CardContent className="p-6 text-center">
-          <Zap size={24} className="text-yellow-500 mx-auto mb-2" />
+          <Zap size={24} className="text-blue-500 mx-auto mb-2" />
           <h3 className="font-semibold mb-2">Need more exposure?</h3>
           <p className="text-gray-600 text-sm mb-4">
             Upgrade to a subscription plan for unlimited featured listings and advanced tools.
