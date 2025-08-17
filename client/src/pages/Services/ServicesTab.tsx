@@ -208,7 +208,7 @@ export function ServicesTab() {
         <Button
           variant="outline"
           onClick={() => setShowFilters(!showFilters)}
-          className="flex items-center gap-2 rounded-xl border-2 px-6 py-3"
+          className="flex items-center gap-2 rounded-xl border-2 px-6 py-3 bg-white hover:bg-blue-50 border-blue-200 text-blue-700"
         >
           <Filter className="h-4 w-4" />
           {showFilters ? 'Hide Filters' : 'Show Advanced Filters'}

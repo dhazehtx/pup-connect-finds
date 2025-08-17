@@ -199,8 +199,8 @@ const ReportListingModal: React.FC<ReportListingModalProps> = ({
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
-            <p className="text-sm text-yellow-800">
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+            <p className="text-sm text-blue-800">
               <strong>Important:</strong> False reports may result in account restrictions. 
               Only submit reports for genuine policy violations.
             </p>

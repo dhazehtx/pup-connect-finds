@@ -178,6 +178,43 @@ body, #root, main, .min-h-screen {
   border-radius: 1rem !important;
 }
 
+/* Fix for conversation/message borders - eliminate yellow borders */
+.conversation-item, .message-border, [class*="conversation"] {
+  border-color: #e5e7eb !important;
+  background-color: #ffffff !important;
+}
+
+/* Fix for marketplace tabs border - eliminate yellow outlines */
+[class*="marketplace"] [class*="tab"], .marketplace-tabs {
+  border-color: #e5e7eb !important;
+  background-color: #ffffff !important;
+}
+
+/* Force white backgrounds on all cards and panels */
+.card, .panel, [class*="card"], [class*="panel"] {
+  background-color: #ffffff !important;
+}
+
+/* ULTIMATE YELLOW ELIMINATION - Override any possible yellow styling */
+* {
+  --yellow-50: #ffffff !important;
+  --yellow-100: #ffffff !important;
+  --yellow-200: #e5e7eb !important;
+  --yellow-300: #e5e7eb !important;
+  --yellow-400: #e5e7eb !important;
+  --yellow-500: #e5e7eb !important;
+  --yellow-600: #374151 !important;
+  --yellow-700: #374151 !important;
+  --yellow-800: #374151 !important;
+  --yellow-900: #1f2937 !important;
+}
+
+/* Override any dynamic yellow borders or backgrounds */
+[style*="yellow"], [style*="amber"], [style*="#FFFF"], [style*="#ffff"] {
+  background-color: #ffffff !important;
+  border-color: #e5e7eb !important;
+}
+
 /* Remove ALL pseudo-elements that create blue stripes/corners */
 .services-tabs [data-state="active"]::before,
 .services-tabs [data-state="active"]::after,

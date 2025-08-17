@@ -66,9 +66,9 @@ const EnhancedPricingPlans = () => {
     {
       name: 'Pup Pro',
       icon: Crown,
-      color: 'text-yellow-600',
-      bgColor: 'bg-yellow-50',
-      borderColor: 'border-yellow-200',
+      color: 'text-blue-600',
+      bgColor: 'bg-blue-50',
+      borderColor: 'border-blue-200',
       popular: true,
       monthlyPrice: 14.99,
       yearlyPrice: 149.99,

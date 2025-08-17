@@ -41,8 +41,8 @@ const ListingFees = () => {
       name: 'Featured Listing',
       price: PRICING_CONFIG.listingFees.featured,
       icon: Star,
-      color: 'text-yellow-600',
-      bgColor: 'bg-yellow-50',
+      color: 'text-blue-600',
+      bgColor: 'bg-blue-50',
       popular: true,
       features: [
         'Priority placement in search',
@@ -94,7 +94,7 @@ const ListingFees = () => {
               key={plan.id} 
               className={`cursor-pointer transition-all ${
                 isSelected ? 'ring-2 ring-blue-500 shadow-lg' : 'hover:shadow-md'
-              } ${plan.popular ? 'border-yellow-400' : ''}`}
+              } ${plan.popular ? 'border-blue-400' : ''}`}
               onClick={() => setSelectedPlan(plan.id)}
             >
               {plan.popular && (
