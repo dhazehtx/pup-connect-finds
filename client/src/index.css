@@ -26,18 +26,39 @@ body, .page, .main-content {
   background: var(--mp-baby) !important;
 }
 
-/* Bottom Navigation & Button Styling - White Text/Icons */
-.bottom-nav a, 
-.bottom-nav svg {
-  color: white !important;
+/* Add bottom padding to prevent content overlap with fixed navbar */
+.page, main, .container {
+  padding-bottom: 80px;
 }
 
-.btn-list-puppy, 
-.btn-list-puppy *, 
-.greeting-page button, 
-.greeting-page button *,
-.marketplace .tabs button {
-  color: white !important;
+/* Bottom Navigation Styling - MP Theme */
+.navbar {
+  position: fixed; 
+  bottom: 0; 
+  left: 0; 
+  right: 0;
+  z-index: 50; 
+  height: 64px;
+  background: var(--mp-blue);
+  color: #fff; 
+  border-top: 1px solid var(--mp-border);
+  display: flex; 
+  align-items: center; 
+  justify-content: space-around;
+}
+
+.navbar a, 
+.navbar button, 
+.navbar svg { 
+  color: rgba(255,255,255,.9) !important; 
+  stroke: currentColor;
+}
+
+.navbar a.active, 
+.navbar button.active { 
+  color: #fff !important; 
+  background: rgba(255,255,255,.12) !important; 
+  border-radius: 12px; 
 }
 
 /* Force white text on all .btn-primary buttons */
@@ -45,23 +66,6 @@ body, .page, .main-content {
 .btn-primary *,
 button.btn-primary,
 button.btn-primary * {
-  color: white !important;
-}
-
-/* Additional marketplace tab styling */
-.marketplace .tabs-list button {
-  color: white !important;
-}
-
-/* Bottom navigation container styling */
-.bottom-nav {
-  background: linear-gradient(135deg, #2563eb, #1d4ed8);
-}
-
-/* Ensure icons and text remain white in all states */
-.bottom-nav button,
-.bottom-nav button svg,
-.bottom-nav button span {
   color: white !important;
 }
 
