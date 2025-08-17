@@ -127,3 +127,17 @@ The application employs a full-stack architecture with a clear separation of con
   - Mobile and desktop now use identical color system with no breakpoint-specific overrides
   - **Key Variables**: `--color-surface`, `--color-primary-600`, `--color-text`, `--color-text-muted`
 - **Result**: Perfect visual consistency with ZERO yellow/amber/orange artifacts anywhere in the application. Comprehensive CSS overrides ensure complete elimination of yellow backgrounds on mobile interface, matching desktop design exactly. All marketplace tabs now display white text for optimal readability, and cookie consent interface maintains professional blue/white theme.
+
+### Profile Page Button Fix (August 17, 2025)
+- **COMPLETED**: Fixed yellow "Report a Bug" and "Privacy" buttons on profile page mobile version
+  - Applied white background with blue text and border styling to match app's theme
+  - Added hover states with light blue background for consistent interaction feedback
+  - Updated UnifiedProfileView component with proper blue/white color classes
+  - Added CSS overrides to prevent any remaining yellow button styling
+
+### Messaging Interface Yellow Border Fix (August 17, 2025)
+- **COMPLETED**: Eliminated yellow borders from conversations on messages page
+  - Added comprehensive CSS overrides targeting all messaging component classes
+  - Applied gray border defaults with blue focus/hover states for messaging elements
+  - Covered conversation items, message bubbles, chat interfaces, and all related containers
+  - Ensured consistent blue ring colors for all messaging component interactions

@@ -424,6 +424,34 @@ button:contains("Privacy"):hover {
   color: #2563eb !important;
 }
 
+/* Messaging and Conversation Components - Remove ALL yellow borders */
+.conversation-item, .message-bubble, .chat-interface, .messaging-interface,
+[class*="conversation"], [class*="message"], [class*="chat"],
+.conversation-list, .message-list, .conversation-view,
+.messaging-wrapper, .chat-wrapper, .conversation-wrapper {
+  border-color: #e5e7eb !important;
+}
+
+/* Target all messaging borders specifically */
+.conversation-item:focus, .conversation-item:hover,
+.message-bubble:focus, .message-bubble:hover,
+[class*="conversation"]:focus, [class*="conversation"]:hover,
+[class*="message"]:focus, [class*="message"]:hover {
+  border-color: #2563eb !important;
+  outline-color: #2563eb !important;
+}
+
+/* Override any ring colors on messaging components */
+.conversation-item, [class*="conversation"], [class*="message"], [class*="chat"] {
+  --tw-ring-color: #2563eb !important;
+}
+
+/* Force gray borders for all messaging containers */
+.messaging-container, .chat-container, .conversations-container,
+[data-testid*="conversation"], [data-testid*="message"], [data-testid*="chat"] {
+  border-color: #d1d5db !important;
+}
+
 /* Remove ALL pseudo-elements that create blue stripes/corners */
 .services-tabs [data-state="active"]::before,
 .services-tabs [data-state="active"]::after,
