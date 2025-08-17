@@ -137,21 +137,20 @@ button[class*="bg-gradient-to-r"]:hover {
   box-shadow: none !important;
 }
 
-/* MP THEME: Tab system - light blue text for all tabs, soft highlight for active */
-.marketplace [role="tablist"] button,
-.marketplace .tab {
-  background: var(--mp-bg) !important;
-  color: var(--mp-accent) !important;
-  border: 1px solid var(--mp-border) !important;
-  border-radius: 9999px !important;
-  font-weight: 600 !important;
-}
-
+/* Marketplace tab text visibility - ensure active tabs have white text */
+.marketplace button[data-state="active"], 
+.marketplace button[data-state="active"] span,
+.marketplace button[data-state="active"] svg,
+.marketplace .tab-active,
+.marketplace .tab-active span,
+/* Nuclear targeting for marketplace tabs text only */
 .marketplace [role="tablist"] button[data-state="active"],
-.marketplace .tab--active {
-  background: rgba(79, 139, 253, 0.12) !important;
-  color: var(--mp-accent) !important;
-  border-color: rgba(79, 139, 253, 0.35) !important;
+.marketplace [role="tablist"] button[data-state="active"] span,
+.marketplace [role="tablist"] button[data-state="active"] svg,
+.marketplace [data-state="active"],
+.marketplace [data-state="active"] span,
+.marketplace [data-state="active"] svg {
+  color: #ffffff !important;
 }
 
 /* MP THEME: Primary buttons - blue bg + white text */
