@@ -130,8 +130,8 @@ export function ServicesTab() {
             </div>
           </div>
           
-          <button onClick={handleBecomeProvider} className="btn-primary text-lg px-8 py-3 shadow-lg">
-            <Shield className="h-5 w-5 mr-2" />
+          <button onClick={handleBecomeProvider} className="btn btn-primary text-lg px-8 py-3 shadow-lg">
+            <Shield className="h-5 w-5" />
             Become a Service Provider
           </button>
         </div>
@@ -303,7 +303,7 @@ export function ServicesTab() {
               <p className="text-muted-foreground mb-4">
                 Be the first to offer featured services in your area!
               </p>
-              <button onClick={handleBecomeProvider} className="btn-primary">
+              <button onClick={handleBecomeProvider} className="btn btn-primary">
                 Become a Service Provider
               </button>
             </div>
@@ -351,7 +351,7 @@ export function ServicesTab() {
               <p className="text-muted-foreground mb-4">
                 Be the first to offer featured services in your area!
               </p>
-              <button onClick={handleBecomeProvider} className="btn-primary">
+              <button onClick={handleBecomeProvider} className="btn btn-primary">
                 Become a Service Provider
               </button>
             </div>

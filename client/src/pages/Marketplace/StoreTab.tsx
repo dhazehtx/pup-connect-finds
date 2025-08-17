@@ -320,7 +320,7 @@ const StoreTab = () => {
                       type="button"
                       onClick={() => handleAddToCart(product)}
                       disabled={addedItems.has(product.id)}
-                      className="h-10 rounded-xl px-4 text-sm font-medium transition focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed bg-primary text-primary-foreground hover:bg-primary/90 flex items-center justify-center min-w-0"
+                      className="btn btn-primary h-10 text-sm disabled:opacity-50 disabled:cursor-not-allowed flex-1 min-w-0"
                     >
                       {addedItems.has(product.id) ? (
                         <>
@@ -343,7 +343,7 @@ const StoreTab = () => {
                       type="button"
                       onClick={() => checkoutMutation.mutate(product.id)}
                       disabled={checkoutMutation.isPending}
-                      className="h-10 rounded-xl px-4 text-sm font-medium transition focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed bg-primary text-primary-foreground shadow-sm hover:bg-primary/90 active:bg-primary/95 flex items-center justify-center min-w-0"
+                      className="btn btn-primary h-10 text-sm shadow-sm disabled:opacity-50 disabled:cursor-not-allowed flex-1 min-w-0"
                     >
                       {checkoutMutation.isPending ? (
                         <>
