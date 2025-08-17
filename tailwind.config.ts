@@ -14,8 +14,20 @@ export default {
       },
     },
     extend: {
-      // Core Brand Colors - Platform Design System
+      // Core Brand Colors - Unified Desktop/Mobile Design System
       colors: {
+        // Centralized Surface & Text Colors
+        surface: {
+          DEFAULT: 'var(--color-surface)',      // #ffffff - main page background
+          alt: 'var(--color-surface-alt)',      // #f5f7fb - light section background
+          card: 'var(--color-surface-card)',    // #ffffff - cards and panels
+        },
+        text: {
+          DEFAULT: 'var(--color-text)',         // #0f172a - primary text
+          muted: 'var(--color-text-muted)',     // #64748b - secondary text
+          inverse: 'var(--color-text-inverse)', // #ffffff - text on blue
+        },
+        
         // Centralized Brand Theme
         brand: {
           50: "#eff6ff",    // lightest blue
@@ -31,20 +43,20 @@ export default {
           DEFAULT: "#2563eb",
         },
         
-        // Platform Primary (Blue)
+        // Platform Primary (Blue) - Using CSS Variables
         primary: {
-          50: "#eff6ff",
-          100: "#dbeafe", 
-          200: "#bfdbfe",
-          300: "#93c5fd",
-          400: "#60a5fa",
-          500: "#3b82f6",
-          600: "#2563eb", // Main brand blue
-          700: "#1d4ed8",
-          800: "#1e40af",
-          900: "#1e3a8a",
-          DEFAULT: "#2563eb",
-          foreground: "#ffffff",
+          50: 'var(--color-primary-50)',
+          100: 'var(--color-primary-100)',
+          200: 'var(--color-primary-200)',
+          300: 'var(--color-primary-300)',
+          400: 'var(--color-primary-400)',
+          500: 'var(--color-primary-500)',  // desktop blue
+          600: 'var(--color-primary-600)', // Main brand blue
+          700: 'var(--color-primary-700)',
+          800: 'var(--color-primary-800)',
+          900: 'var(--color-primary-900)',
+          DEFAULT: 'var(--color-primary-600)',
+          foreground: 'var(--color-text-inverse)',
         },
         
         // Platform Secondary (Warm Orange)
@@ -176,6 +188,7 @@ export default {
         'xl': '1rem',
         '2xl': '1.5rem',
         '3xl': '2rem',
+        'card': '14px',       // consistent card radius
         'full': '9999px',
       },
 

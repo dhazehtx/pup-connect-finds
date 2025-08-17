@@ -3,35 +3,51 @@
 
 @layer base {
   :root {
-    /* Clean blue and white theme - consistent with desktop */
-    --bg: #fff;               /* page background */
-    --surface: #f5f7fb;       /* card/panel background used on desktop */
-    --text: #0f172a;
-    --muted: #6b7280;
-    --brand: #2563eb;         /* exact desktop brand token */
-    --accent: #f59e0b;        /* warning/accent only - never as page bg */
+    /* Unified Desktop/Mobile Color System - No Yellow Anywhere */
     
-    /* Standard theme variables - Blue theme as default to prevent flashing */
+    /* Primary Colors - Desktop Blue Theme */
+    --color-primary-50:  #eff6ff;
+    --color-primary-100: #dbeafe;
+    --color-primary-200: #bfdbfe;
+    --color-primary-300: #93c5fd;
+    --color-primary-400: #60a5fa;
+    --color-primary-500: #3b82f6;
+    --color-primary-600: #2563eb;  /* Main brand blue - matches desktop */
+    --color-primary-700: #1d4ed8;
+    --color-primary-800: #1e40af;
+    --color-primary-900: #1e3a8a;
+
+    /* Surface Colors - Clean Neutral Backgrounds */
+    --color-surface:      #ffffff;  /* Main app/page background */
+    --color-surface-alt:  #f5f7fb;  /* Light section backgrounds */
+    --color-surface-card: #ffffff;  /* Cards, panels, banners */
+
+    /* Text Colors - High Contrast */
+    --color-text:         #0f172a;  /* Primary text - slate-900 */
+    --color-text-muted:   #64748b;  /* Secondary text - slate-500 */
+    --color-text-inverse: #ffffff;  /* Text on blue buttons */
+    
+    /* Legacy CSS Custom Properties for shadcn/ui compatibility */
     --background: 255 255 255; /* Pure white background */
-    --foreground: 30 30 30; /* Dark text for readability */
+    --foreground: 15 23 42; /* Slate-900 for text readability */
 
     --card: 255 255 255; /* Pure white cards */
-    --card-foreground: 30 30 30; /* Dark text on cards */
+    --card-foreground: 15 23 42; /* Dark text on cards */
 
     --popover: 255 255 255; /* Pure white */
-    --popover-foreground: 30 30 30; /* Dark text */
+    --popover-foreground: 15 23 42; /* Dark text */
 
-    --primary: 37 99 235; /* Blue-600 #2563EB - Marketplace theme */
+    --primary: 37 99 235; /* Blue-600 #2563EB */
     --primary-foreground: 255 255 255; /* White text on blue */
 
-    --secondary: 248 250 252; /* Slate-50 */
-    --secondary-foreground: 30 30 30; /* Dark text */
+    --secondary: 248 250 252; /* Slate-50 - light surface */
+    --secondary-foreground: 15 23 42; /* Dark text */
 
-    --muted: 248 250 252; /* Slate-50 */
+    --muted: 248 250 252; /* Slate-50 - neutral backgrounds */
     --muted-foreground: 100 116 139; /* Slate-500 text */
 
-    --accent: 241 245 249; /* Slate-100 for accents */
-    --accent-foreground: 30 30 30; /* Dark text */
+    --accent: 241 245 249; /* Slate-100 for subtle accents */
+    --accent-foreground: 15 23 42; /* Dark text */
 
     --destructive: 239 68 68; /* Red for destructive actions */
     --destructive-foreground: 255 255 255; /* White text */
@@ -44,37 +60,41 @@
   }
 
   [data-theme="light"] { 
-    /* ensure light theme matches desktop */
-    --bg: #fff;
-    --surface: #f5f7fb;
-    --text: #0f172a;
-    --muted: #6b7280;
-    --brand: #2563eb;
-    --accent: #f59e0b;
+    /* Ensure light theme inherits unified palette */
+    --color-surface:      #ffffff;
+    --color-surface-alt:  #f5f7fb;
+    --color-surface-card: #ffffff;
+    --color-text:         #0f172a;
+    --color-text-muted:   #64748b;
+    --color-text-inverse: #ffffff;
+    --color-primary-600:  #2563eb;
   }
   
   .dark {
-    --bg: #fff;
-    --surface: #f5f7fb;
-    --text: #0f172a;
-    --muted: #6b7280;
-    --brand: #2563eb;
-    --accent: #f59e0b;
+    /* Force light theme on dark mode to maintain consistency */
+    --color-surface:      #ffffff;
+    --color-surface-alt:  #f5f7fb;
+    --color-surface-card: #ffffff;
+    --color-text:         #0f172a;
+    --color-text-muted:   #64748b;
+    --color-text-inverse: #ffffff;
+    --color-primary-600:  #2563eb;
     
+    /* Legacy variables */
     --background: 255 255 255;
-    --foreground: 30 30 30;
+    --foreground: 15 23 42;
     --card: 255 255 255;
-    --card-foreground: 30 30 30;
+    --card-foreground: 15 23 42;
     --popover: 255 255 255;
-    --popover-foreground: 30 30 30;
+    --popover-foreground: 15 23 42;
     --primary: 37 99 235;
     --primary-foreground: 255 255 255;
     --secondary: 248 250 252;
-    --secondary-foreground: 30 30 30;
+    --secondary-foreground: 15 23 42;
     --muted: 248 250 252;
     --muted-foreground: 100 116 139;
     --accent: 241 245 249;
-    --accent-foreground: 30 30 30;
+    --accent-foreground: 15 23 42;
     --destructive: 239 68 68;
     --destructive-foreground: 255 255 255;
     --border: 226 232 240;
@@ -88,13 +108,26 @@
     @apply border-border;
   }
 
-  body {
-    @apply bg-white text-gray-900;
+  html, body, #root {
+    background-color: var(--color-surface);
+    color: var(--color-text);
     font-feature-settings: "rlig" 1, "calt" 1;
   }
   
-  /* Brand theme enforcement */
-  .brand-primary { @apply bg-blue-600 text-white; }
-  .brand-secondary { @apply bg-blue-50 text-blue-900; }
-  .brand-accent { @apply bg-blue-100 text-blue-800; }
+  /* Force unified theme on all page elements */
+  body {
+    @apply bg-surface text-text;
+  }
+  
+  /* Brand theme utilities using design tokens */
+  .surface-main { background-color: var(--color-surface); }
+  .surface-alt { background-color: var(--color-surface-alt); }
+  .surface-card { background-color: var(--color-surface-card); }
+  .text-main { color: var(--color-text); }
+  .text-muted { color: var(--color-text-muted); }
+  .text-inverse { color: var(--color-text-inverse); }
+  .primary-button { 
+    background-color: var(--color-primary-600); 
+    color: var(--color-text-inverse); 
+  }
 }

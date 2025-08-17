@@ -25,7 +25,7 @@
   }
 
   .btn-primary {
-    @apply bg-primary text-primary-foreground shadow-sm hover:bg-primary/90 active:bg-primary/95;
+    @apply bg-primary text-primary-foreground shadow-sm hover:bg-blue-700 active:bg-blue-800;
   }
 
   .btn-outline {
@@ -45,8 +45,8 @@
 
   .unified-button {
     @apply bg-primary text-primary-foreground border-primary;
-    @apply hover:bg-primary/90 active:bg-primary/80;
-    @apply shadow-lg shadow-primary/20;
+    @apply hover:bg-blue-700 active:bg-blue-800;
+    @apply shadow-lg;
     color: hsl(var(--primary-foreground)) !important;
   }
 
@@ -61,83 +61,102 @@
     color: hsl(var(--foreground)) !important;
   }
 
-  /* Remove any brown/yellow overrides - Complete elimination */
+  /* COMPREHENSIVE YELLOW PURGE - No Yellow Anywhere on Mobile/Desktop */
+  
+  /* Replace all yellow/amber text with primary blue */
   .text-amber-100, .text-amber-200, .text-amber-300, .text-amber-400, .text-amber-500,
   .text-amber-600, .text-amber-700, .text-amber-800, .text-amber-900,
   .text-yellow-100, .text-yellow-200, .text-yellow-300, .text-yellow-400, .text-yellow-500,
   .text-yellow-600, .text-yellow-700, .text-yellow-800, .text-yellow-900 {
-    color: hsl(var(--primary)) !important;
+    color: var(--color-primary-600) !important;
   }
 
+  /* Replace all yellow/amber backgrounds with unified surface colors */
   .bg-amber-50, .bg-amber-100, .bg-amber-200, .bg-amber-300, .bg-amber-400, .bg-amber-500,
   .bg-amber-600, .bg-amber-700, .bg-amber-800, .bg-amber-900,
   .bg-yellow-50, .bg-yellow-100, .bg-yellow-200, .bg-yellow-300, .bg-yellow-400, .bg-yellow-500,
-  .bg-yellow-600, .bg-yellow-700, .bg-yellow-800, .bg-yellow-900,
-  .bg-purple-50, .bg-purple-100, .bg-muted, .bg-muted\/50 {
-    background-color: #FFFFFF !important;
+  .bg-yellow-600, .bg-yellow-700, .bg-yellow-800, .bg-yellow-900 {
+    background-color: var(--color-surface-card) !important;
   }
 
-  /* Mobile-specific color overrides - Complete theme alignment */
-  @media (max-width: 768px) {
-    /* Force removal of ALL yellow/amber backgrounds on mobile */
-    .bg-yellow-50, .bg-yellow-100, .bg-yellow-200, .bg-yellow-300, .bg-yellow-400, .bg-yellow-500,
-    .bg-amber-50, .bg-amber-100, .bg-amber-200, .bg-amber-300, .bg-amber-400, .bg-amber-500,
-    .bg-yellow-600, .bg-yellow-700, .bg-yellow-800, .bg-yellow-900,
-    .bg-amber-600, .bg-amber-700, .bg-amber-800, .bg-amber-900 {
-      background-color: #FFFFFF !important;
-    }
+  /* Force neutral backgrounds on previously problematic elements */
+  .bg-purple-50, .bg-purple-100, .bg-muted, .bg-muted\/50 {
+    background-color: var(--color-surface-card) !important;
+  }
 
-    /* Mobile page backgrounds - Force white background */
-    body, .min-h-screen, .bg-gray-50, .bg-gray-100 {
-      background-color: #FFFFFF !important;
-    }
-    
-    /* Additional mobile background overrides */
-    .bg-blue-50, .bg-slate-50, .bg-neutral-50, .bg-purple-50, .bg-muted, .bg-muted\/50 {
-      background-color: #FFFFFF !important;
-    }
+  /* Remove warning/caution yellow gradients */
+  .from-yellow-400, .via-yellow-500, .to-yellow-600,
+  .from-amber-400, .via-amber-500, .to-amber-600 {
+    background: var(--color-surface-alt) !important;
+  }
 
-    /* Force marketplace tabs to use blue theme immediately */
-    .marketplace [data-state="active"] {
-      background-color: hsl(var(--primary)) !important;
-      color: hsl(var(--primary-foreground)) !important;
-    }
+  /* Inline yellow hex colors - Nuclear removal */
+  [style*="#FF0"], [style*="#FFFF00"], [style*="#FFD700"], 
+  [style*="#FFEB3B"], [style*="#FDE047"], [style*="#FACC15"], [style*="#F59E0B"] {
+    background-color: var(--color-surface-card) !important;
+    color: var(--color-text) !important;
+  }
 
-    .marketplace .tabs-list {
-      background-color: hsl(var(--primary) / 0.05) !important;
-      border-color: hsl(var(--primary) / 0.2) !important;
-    }
+  /* Universal Mobile/Desktop Color Inheritance - No Breakpoint Overrides */
+  
+  /* Ensure ALL breakpoints use the same unified palette */
+  .unified-surface { background-color: var(--color-surface) !important; }
+  .unified-surface-alt { background-color: var(--color-surface-alt) !important; }  
+  .unified-surface-card { background-color: var(--color-surface-card) !important; }
+  .unified-text { color: var(--color-text) !important; }
+  .unified-text-muted { color: var(--color-text-muted) !important; }
+  .unified-primary { 
+    background-color: var(--color-primary-600) !important; 
+    color: var(--color-text-inverse) !important;
+  }
 
-    /* Mobile input and search containers */
-    .search-container, .input-container, input[type="search"], input[type="text"] {
-      background-color: #F5F7FB !important;
-      border-color: #E5E7EB !important;
-    }
+  /* Component-specific unified styling */
+  .card, .product-card, .service-card, .marketplace-card, 
+  [class*="Card"], .panel, .banner {
+    background-color: var(--color-surface-card) !important;
+    border-color: hsl(var(--border)) !important;
+  }
 
-    /* Mobile cards and panels */
-    .card, .product-card, .service-card, .marketplace-card, [class*="Card"] {
-      background-color: #FFFFFF !important;
-      border-color: #E5E7EB !important;
-    }
+  /* Input and search containers */
+  .search-container, .input-container, 
+  input[type="search"], input[type="text"], input[type="email"] {
+    background-color: var(--color-surface-alt) !important;
+    border-color: hsl(var(--border)) !important;
+  }
 
-    /* Mobile filter panels */
-    .filter-panel, .search-panel, .service-filter {
-      background-color: #F5F7FB !important;
-    }
+  /* Filter and navigation elements */
+  .filter-panel, .search-panel, .service-filter {
+    background-color: var(--color-surface-alt) !important;
+  }
 
-    /* Mobile marketplace components */
-    .pup-box-card, .pet-service-card, .store-product-card {
-      background-color: #FFFFFF !important;
-      border: 1px solid #E5E7EB !important;
-    }
+  /* Price text consistency - always blue primary */
+  .price-text, .pricing, [class*="price"] {
+    color: var(--color-primary-600) !important;
+    font-weight: 600;
+  }
 
-    /* Ensure consistent mobile theme */
-    * {
-      --mobile-card-bg: #FFFFFF;
-      --mobile-panel-bg: #F5F7FB;
-      --mobile-text: #0F172A;
-      --mobile-border: #E5E7EB;
-    }
+  /* Cookie consent and banners */
+  .cookie-banner, .consent-banner, .notification-banner {
+    background-color: var(--color-surface-card) !important;
+    border-color: hsl(var(--border)) !important;
+    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.07), 0 2px 4px -1px rgb(0 0 0 / 0.03);
+  }
+
+  /* Advanced filter buttons */
+  .filter-toggle, .advanced-filters-toggle, [class*="filter-button"] {
+    background-color: var(--color-surface-card) !important;
+    color: var(--color-text) !important;
+    border-color: hsl(var(--border)) !important;
+  }
+
+  .filter-toggle:hover, .advanced-filters-toggle:hover {
+    background-color: var(--color-surface-alt) !important;
+  }
+
+  /* Mobile marketplace components - unified styling */
+  .pup-box-card, .pet-service-card, .store-product-card {
+    background-color: var(--color-surface-card) !important;
+    border: 1px solid hsl(var(--border)) !important;
   }
 
   /* Enhanced text contrast for better readability */

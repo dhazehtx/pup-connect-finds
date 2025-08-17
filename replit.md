@@ -103,3 +103,16 @@ The application employs a full-stack architecture with a clear separation of con
   - Applied clean white backgrounds with neutral border styling
   - Preserved all tab/chip styles exactly as designed (blue pill styling intact)
   - Design now locked with clean content panels and no visual artifacts
+
+### Centralized Theme System Implementation (August 17, 2025)
+- **COMPLETED**: Unified desktop/mobile theme architecture with comprehensive design token system
+  - Centralized CSS variables in `client/src/styles/base.css` with unified color palette
+  - Eliminated ALL yellow/amber backgrounds across desktop and mobile interfaces
+  - Established comprehensive CSS variable system for surfaces, text, and brand colors
+  - Created design token-based Tailwind configuration with consistent color scales
+  - Implemented comprehensive yellow purge utilities to prevent color inconsistencies
+  - Added unified component styling classes for cards, inputs, filters, and navigation
+  - Mobile and desktop now use identical color system with no breakpoint-specific overrides
+  - Theme system now resilient to future changes with centralized token management
+  - **Key Variables**: `--color-surface`, `--color-primary-600`, `--color-text`, `--color-text-muted`
+  - **Result**: Perfect visual consistency between mobile and desktop with zero yellow artifacts
