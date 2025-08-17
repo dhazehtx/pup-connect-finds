@@ -1,0 +1,67 @@
+1) Make those pill buttons white text
+
+This covers Featured Services, All Services, and every Book Service button.
+
+Add these utilities (where you keep shared CSS, e.g. src/styles/theme.css or components.css you already import):
+
+/* Pill-style tabs/buttons (filled blue, white text when active) */
+.tab-pill {
+  @apply rounded-full px-4 py-2 border border-primary text-primary bg-transparent;
+}
+.tab-pill[data-state="active"],
+.tab-pill.is-active {
+  @apply bg-primary text-primary-foreground;
+}
+
+/* Primary buttons always white text on brand */
+.btn-primary {
+  @apply inline-flex items-center justify-center rounded-xl px-4 py-2 font-medium bg-primary text-primary-foreground hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary;
+}
+
+
+Use them:
+
+{/* If these are shadcn Tabs */}
+<TabsList className="border-0 gap-2">
+  <TabsTrigger value="featured" className="tab-pill">Featured Services</TabsTrigger>
+  <TabsTrigger value="all" className="tab-pill">All Services</TabsTrigger>
+</TabsList>
+
+{/* Book Service button */}
+<button className="btn-primary">Book Service</button>
+
+
+If your pills aren’t Tabs (just <button>s), add className="tab-pill is-active" to the selected one, and className="tab-pill" to the others.
+
+2) Fix the Buy Now icon (outline not visible)
+
+Your icon is likely using a filled SVG on a blue button, so it disappears. Force stroke-only + inherit currentColor:
+
+/* Make the Buy Now icon outlined so it shows on blue */
+.buy-now-icon svg {
+  fill: none !important;
+  stroke: currentColor !important;
+  stroke-width: 2;
+}
+
+
+And in the button:
+
+<button className="btn-primary">
+  <span className="buy-now-icon mr-2 inline-flex">
+    {/* Lucide/outline SVG recommended */}
+    {/* Example with Lucide */}
+    <CreditCard className="h-4 w-4" />
+    {/* OR a raw SVG */}
+    {/* 
+    <svg viewBox="0 0 24 24" className="h-4 w-4">
+      <rect x="2" y="5" width="20" height="14" rx="2"></rect>
+      <path d="M2 10h20"></path>
+    </svg>
+    */}
+  </span>
+  Buy Now
+</button>
+
+
+If you’re using a solid icon pack (e.g., fa-solid), switch to its outline/regular variant (e.g., fa-regular) for this button or wrap it with the .buy-now-icon class above.

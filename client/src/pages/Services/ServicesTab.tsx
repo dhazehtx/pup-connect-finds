@@ -130,14 +130,10 @@ export function ServicesTab() {
             </div>
           </div>
           
-          <Button 
-            onClick={handleBecomeProvider}
-            size="lg"
-            className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-semibold px-8 py-3 rounded-xl shadow-lg transition-all duration-200 transform hover:scale-105"
-          >
+          <button onClick={handleBecomeProvider} className="btn-primary text-lg px-8 py-3 shadow-lg">
             <Shield className="h-5 w-5 mr-2" />
             Become a Service Provider
-          </Button>
+          </button>
         </div>
       </div>
 
@@ -257,17 +253,11 @@ export function ServicesTab() {
 
       {/* Services Content - Blue Pill Style Tabs */}
       <Tabs defaultValue="featured" className="w-full services-tabs">
-        <TabsList className="inline-flex rounded-lg bg-muted p-1 w-auto mx-auto">
-          <TabsTrigger 
-            value="featured" 
-            className="px-6 py-2 rounded-md font-medium transition-all duration-200 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
-          >
+        <TabsList className="border-0 gap-2 bg-transparent">
+          <TabsTrigger value="featured" className="tab-pill">
             Featured Services
           </TabsTrigger>
-          <TabsTrigger 
-            value="all" 
-            className="px-6 py-2 rounded-md font-medium transition-all duration-200 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
-          >
+          <TabsTrigger value="all" className="tab-pill">
             All Services
           </TabsTrigger>
         </TabsList>
@@ -311,12 +301,9 @@ export function ServicesTab() {
               <p className="text-muted-foreground mb-4">
                 Be the first to offer featured services in your area!
               </p>
-              <Button 
-                onClick={handleBecomeProvider}
-                className="bg-primary text-primary-foreground hover:bg-primary/90"
-              >
+              <button onClick={handleBecomeProvider} className="btn-primary">
                 Become a Service Provider
-              </Button>
+              </button>
             </div>
           )}
         </TabsContent>
@@ -362,12 +349,9 @@ export function ServicesTab() {
               <p className="text-muted-foreground mb-4">
                 Be the first to offer featured services in your area!
               </p>
-              <Button 
-                onClick={handleBecomeProvider}
-                className="bg-primary text-primary-foreground hover:bg-primary/90"
-              >
+              <button onClick={handleBecomeProvider} className="btn-primary">
                 Become a Service Provider
-              </Button>
+              </button>
             </div>
           )}
         </TabsContent>

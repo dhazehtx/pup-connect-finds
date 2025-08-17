@@ -71,7 +71,7 @@ export function BookServiceModal({ provider, open, onClose }: BookServiceModalPr
   };
 
   const calculateTotal = () => {
-    const hourlyRate = parseFloat(provider.price);
+    const hourlyRate = parseFloat(provider.price || '0');
     return (hourlyRate * formData.duration_hours).toFixed(2);
   };
 

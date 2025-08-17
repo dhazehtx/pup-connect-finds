@@ -525,6 +525,29 @@ button:contains("Become a Service Provider") {
   color: hsl(var(--foreground)) !important;
 }
 
+/* PILL BUTTON UTILITIES - White Text on Active State */
+
+/* Pill-style tabs/buttons (filled blue, white text when active) */
+.tab-pill {
+  @apply rounded-full px-4 py-2 border border-primary text-primary bg-transparent;
+}
+.tab-pill[data-state="active"],
+.tab-pill.is-active {
+  @apply bg-primary text-primary-foreground;
+}
+
+/* Primary buttons always white text on brand */
+.btn-primary {
+  @apply inline-flex items-center justify-center rounded-xl px-4 py-2 font-medium bg-primary text-primary-foreground hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary;
+}
+
+/* Make the Buy Now icon outlined so it shows on blue */
+.buy-now-icon svg {
+  fill: none !important;
+  stroke: currentColor !important;
+  stroke-width: 2;
+}
+
 /* Remove ALL pseudo-elements that create blue stripes/corners */
 .services-tabs [data-state="active"]::before,
 .services-tabs [data-state="active"]::after,

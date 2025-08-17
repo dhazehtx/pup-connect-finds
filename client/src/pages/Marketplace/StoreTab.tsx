@@ -352,7 +352,9 @@ const StoreTab = () => {
                         </>
                       ) : (
                         <>
-                          <CreditCard className="w-4 h-4 mr-1.5 flex-shrink-0" />
+                          <span className="buy-now-icon mr-1.5 inline-flex">
+                            <CreditCard className="w-4 h-4 flex-shrink-0" />
+                          </span>
                           <span className="truncate">Buy Now</span>
                         </>
                       )}
