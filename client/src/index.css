@@ -408,6 +408,22 @@ button:contains("Continue with"), .social-auth-button {
   color: #ffffff !important;
 }
 
+/* Fix profile page buttons - Report a Bug and Privacy */
+.profile-page button[class*="bg-yellow"],
+.profile-page button[class*="bg-amber"],
+button:contains("Report a Bug"),
+button:contains("Privacy") {
+  background-color: #ffffff !important;
+  color: #2563eb !important;
+  border-color: #93c5fd !important;
+}
+
+button:contains("Report a Bug"):hover,
+button:contains("Privacy"):hover {
+  background-color: #eff6ff !important;
+  color: #2563eb !important;
+}
+
 /* Remove ALL pseudo-elements that create blue stripes/corners */
 .services-tabs [data-state="active"]::before,
 .services-tabs [data-state="active"]::after,
