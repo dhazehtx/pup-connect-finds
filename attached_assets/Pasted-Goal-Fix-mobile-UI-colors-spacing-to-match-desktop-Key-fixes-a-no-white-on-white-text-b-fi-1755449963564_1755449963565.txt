@@ -1,0 +1,159 @@
+Goal: Fix mobile UI colors & spacing to match desktop.
+Key fixes: (a) no white-on-white text, (b) filter chip contrast, (c) tab color states, (d) remove yellow leftovers, (e) tidy padding/margins & card alignment.
+
+1) Centralize theme tokens
+
+Create / update a theme file (e.g., src/styles/theme.css or your global CSS) with variables:
+
+:root {
+  --mp-blue-50:#eef4ff;
+  --mp-blue-100:#dbe7ff;
+  --mp-blue-500:#2563eb;   /* primary desktop blue */
+  --mp-blue-600:#1d4ed8;
+  --mp-accent:#4f8bfd;     /* “light blue” used on tabs */
+  --mp-text:#0f172a;       /* slate-900 */
+  --mp-text-muted:#475569; /* slate-600 */
+  --mp-bg:#ffffff;
+  --mp-surface:#ffffff;
+  --mp-border:#e2e8f0;
+  --mp-success:#22c55e;
+  --mp-danger:#ef4444;
+}
+
+2) Global button & chip styles (no white-on-white)
+
+In your global stylesheet (or module that touches buttons/inputs/chips), add/replace:
+
+/* Base button */
+.btn {
+  display:inline-flex; align-items:center; justify-content:center;
+  gap:.5rem; border-radius:12px; border:1px solid var(--mp-border);
+  padding:.6rem .9rem; font-weight:600; transition:.2s ease;
+}
+
+/* Solid primary (blue bg, white text) */
+.btn--primary {
+  background:var(--mp-blue-500); color:#fff; border-color:var(--mp-blue-500);
+}
+.btn--primary:active { background:var(--mp-blue-600); }
+
+/* Light/ghost (white bg MUST have dark text) */
+.btn--ghost, .chip, .filter-chip, .pill {
+  background:var(--mp-bg); color:var(--mp-text); border:1px solid var(--mp-border);
+}
+.btn--ghost:hover, .chip:hover, .filter-chip:hover { background:var(--mp-blue-50); }
+
+/* Outline (blue border, dark text) */
+.btn--outline {
+  background:transparent; color:var(--mp-blue-600); border:1.5px solid var(--mp-blue-500);
+}
+
+/* Icon-only chips (e.g., Filter) */
+.icon-chip {
+  background:var(--mp-bg); color:var(--mp-text); border:1px solid var(--mp-border);
+  width:40px; height:40px; border-radius:20px; display:inline-grid; place-items:center;
+}
+.icon-chip svg { stroke:var(--mp-text); fill:none; }
+
+
+Apply these classes to your button components. Any white-background element must use color: var(--mp-text) (dark), not white.
+
+3) Tabs for Pet Services / Pup Box / Store
+
+Keep all tabs with light-blue text (accent) in default and selected states, but give the selected one a soft background ring so it reads as active:
+
+.tabs { display:flex; gap:.5rem; }
+.tab {
+  background:var(--mp-bg); color:var(--mp-accent); border:1px solid var(--mp-border);
+  padding:.5rem .9rem; border-radius:9999px; font-weight:600;
+}
+.tab--active {
+  background:linear-gradient(0deg, rgba(79,139,253,.12), rgba(79,139,253,.12));
+  color:var(--mp-accent); border-color:rgba(79,139,253,.35);
+}
+
+
+Ensure your tab component toggles .tab--active instead of flipping text to white.
+
+4) Filter row styling
+
+Convert “Filter” button + chevron to readable chip:
+
+.filter-row { display:flex; gap:.6rem; align-items:center; }
+.filter-chip { composes: chip; } /* or copy styles from step 2 */
+.filter-select { background:var(--mp-bg); color:var(--mp-text); border:1px solid var(--mp-border); }
+
+
+If you render a filter icon, wrap it with .icon-chip so it’s white bg + dark icon (no more white-on-white).
+
+5) Product/service cards: spacing & alignment
+.card {
+  background:var(--mp-surface); border:1px solid var(--mp-border); border-radius:16px;
+  padding:14px; box-shadow:0 1px 2px rgba(0,0,0,.03);
+}
+.card img { border-radius:12px; width:100%; height:auto; display:block; }
+.card .title { color:var(--mp-text); font-weight:700; margin:.5rem 0 .25rem; }
+.card .subtitle { color:var(--mp-text-muted); }
+.grid { display:grid; gap:14px; }
+@media (min-width:480px){ .grid{ grid-template-columns:1fr 1fr; } }
+
+
+Remove any floating gear/icon styles that overlap the card; anchor them inside the card footer.
+
+6) REMOVE YELLOW across mobile
+
+Search & replace any of these across the codebase (CSS, Tailwind classes, inline styles) with the tokens above:
+
+Hexes like #ffd700, #ffea00, #facc15, #fde047, #fef08a
+
+Tailwind classes like bg-yellow-*, text-yellow-*, from-yellow-*, to-yellow-*
+
+Replace with var(--mp-blue-500) for primary, or var(--mp-accent) for accents.
+
+For toggles/switches currently yellow, use:
+
+.switch { --track:#e2e8f0; --knob:#fff; --on: var(--mp-blue-500); }
+.switch[data-state="on"] { background:var(--on); }
+
+7) Tailwind projects (if applicable)
+
+In tailwind.config.js, set your theme so components use the same tokens:
+
+theme:{
+  extend:{
+    colors:{
+      mp:{
+        blue:{50:'#eef4ff',100:'#dbe7ff',500:'#2563eb',600:'#1d4ed8'},
+        accent:'#4f8bfd',
+        text:'#0f172a',
+        muted:'#475569',
+        border:'#e2e8f0',
+        bg:'#ffffff'
+      }
+    },
+    borderRadius:{ 'xl':'16px' }
+  }
+}
+
+
+Then refactor classes, e.g. bg-mp-blue-500 text-white for primary, and bg-white text-mp-text for chips.
+
+8) Quick component touches
+
+Buttons on product cards: ensure add-to-cart is .btn--primary (blue bg, white text) and any secondary controls are .btn--ghost (white bg, dark text).
+
+Search input: background: var(--mp-bg); color: var(--mp-text); border:1px solid var(--mp-border);
+
+Icon fills: set stroke: currentColor and ensure parent color isn’t white on white.
+
+9) Regression checklist (QA on phone)
+
+Marketplace → Filter chip readable (white bg, dark text).
+
+Services/Pup Box/Store tabs → light-blue text on all states, selected has soft blue background ring.
+
+No yellow toggles/buttons anywhere.
+
+Product cards have even padding; images have rounded corners; nothing “floats” awkwardly.
+
+Add-to-cart / CTA readable in sunlight.
