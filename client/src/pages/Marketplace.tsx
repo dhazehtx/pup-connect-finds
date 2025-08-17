@@ -27,35 +27,39 @@ const Marketplace = () => {
       </div>
 
       <div className="container mx-auto px-4 pb-8">
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="marketplace space-y-6">
-          <TabsList className="inline-flex rounded-full border-2 border-primary/20 bg-primary/5 p-1 max-w-lg mx-auto">
-            <TabsTrigger 
-              value="services"
-              data-testid="tab-pet-services"
-              className="px-4 py-2 flex items-center gap-2 text-sm font-medium rounded-full transition-all duration-200 text-white data-[state=active]:text-white data-[state=active]:bg-primary focus-visible:!ring-0 focus-visible:!ring-offset-0"
-            >
-              <Briefcase className="w-4 h-4" />
-              <span className="whitespace-nowrap">Pet Services</span>
-            </TabsTrigger>
-            <TabsTrigger 
-              value="pupbox"
-              data-testid="tab-pup-box"
-              className="not-first:ml-1 px-4 py-2 flex items-center gap-2 text-sm font-medium rounded-full transition-all duration-200 text-white data-[state=active]:text-white data-[state=active]:bg-primary focus-visible:!ring-0 focus-visible:!ring-offset-0"
-            >
-              <Gift className="w-4 h-4" />
-              <span className="whitespace-nowrap">Pup Box</span>
-            </TabsTrigger>
-            <TabsTrigger 
-              value="store"
-              data-testid="tab-store"
-              className="not-first:ml-1 px-4 py-2 flex items-center gap-2 text-sm font-medium rounded-full transition-all duration-200 text-white data-[state=active]:text-white data-[state=active]:bg-primary focus-visible:!ring-0 focus-visible:!ring-offset-0"
-            >
-              <Store className="w-4 h-4" />
-              <span className="whitespace-nowrap">Store</span>
-            </TabsTrigger>
-          </TabsList>
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="marketplace space-y-8">
+          <div className="flex justify-center">
+            <TabsList className="inline-flex h-12 items-center justify-center rounded-lg bg-muted p-1 text-muted-foreground grid w-full max-w-md grid-cols-3">
+              <TabsTrigger 
+                value="services"
+                data-testid="tab-pet-services"
+                className="inline-flex items-center justify-center whitespace-nowrap rounded-md px-3 py-2 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow gap-2"
+              >
+                <Briefcase className="w-4 h-4" />
+                <span className="hidden sm:inline">Pet Services</span>
+                <span className="sm:hidden">Services</span>
+              </TabsTrigger>
+              <TabsTrigger 
+                value="pupbox"
+                data-testid="tab-pup-box"
+                className="inline-flex items-center justify-center whitespace-nowrap rounded-md px-3 py-2 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow gap-2"
+              >
+                <Gift className="w-4 h-4" />
+                <span className="hidden sm:inline">Pup Box</span>
+                <span className="sm:hidden">Box</span>
+              </TabsTrigger>
+              <TabsTrigger 
+                value="store"
+                data-testid="tab-store"
+                className="inline-flex items-center justify-center whitespace-nowrap rounded-md px-3 py-2 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow gap-2"
+              >
+                <Store className="w-4 h-4" />
+                <span>Store</span>
+              </TabsTrigger>
+            </TabsList>
+          </div>
 
-          <TabsContent value="services" className="space-y-6">
+          <TabsContent value="services" className="mt-8 space-y-6 focus-visible:outline-none">
             <ServicesTab />
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
               <AdBanner targetPage="marketplace" format="sponsored" />
@@ -63,11 +67,11 @@ const Marketplace = () => {
             </div>
           </TabsContent>
 
-          <TabsContent value="pupbox" className="space-y-6">
+          <TabsContent value="pupbox" className="mt-8 space-y-6 focus-visible:outline-none">
             <PupBoxSubscription />
           </TabsContent>
 
-          <TabsContent value="store" className="space-y-6">
+          <TabsContent value="store" className="mt-8 space-y-6 focus-visible:outline-none">
             <StoreTab />
           </TabsContent>
         </Tabs>

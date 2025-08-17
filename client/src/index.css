@@ -396,16 +396,21 @@ button:contains("Continue with"), .social-auth-button {
 }
 
 /* Ensure marketplace tab text is always white, both selected and unselected */
-[data-testid="tab-pet-services"],
-[data-testid="tab-pup-box"], 
-[data-testid="tab-store"] {
-  color: #ffffff !important;
+/* Clean marketplace tabs styling */
+.marketplace .TabsList {
+  background-color: #f8fafc !important;
+  border: 1px solid #e2e8f0 !important;
 }
 
-[data-testid="tab-pet-services"] *,
-[data-testid="tab-pup-box"] *, 
-[data-testid="tab-store"] * {
-  color: #ffffff !important;
+.marketplace .TabsTrigger {
+  color: #64748b !important;
+  background-color: transparent !important;
+}
+
+.marketplace .TabsTrigger[data-state="active"] {
+  background-color: #ffffff !important;
+  color: #1e293b !important;
+  box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1) !important;
 }
 
 /* Fix profile page buttons - Report a Bug and Privacy */
