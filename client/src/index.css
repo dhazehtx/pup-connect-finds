@@ -4,6 +4,28 @@
 @import './styles/utilities.css';
 @import './styles/accessibility.css';
 
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* MP Theme System CSS Variables */
+:root {
+  --mp-bg: #ffffff;
+  --mp-surface: #ffffff;
+  --mp-baby: #eef4ff;
+  --mp-blue: #2563eb;
+  --mp-blue-600: #1d4ed8;
+  --mp-accent: #4f8bfd;
+  --mp-text: #0f172a;
+  --mp-muted: #475569;
+  --mp-border: #e2e8f0;
+}
+
+/* Apply baby-blue page background to all pages */
+body, .page, .main-content {
+  background: var(--mp-baby) !important;
+}
+
 /* Bottom Navigation & Button Styling - White Text/Icons */
 .bottom-nav a, 
 .bottom-nav svg {
@@ -105,24 +127,61 @@ button[class*="bg-gradient-to-r"]:hover {
   box-shadow: none !important;
 }
 
-/* COMPREHENSIVE RADIX TABS BLUE ARTIFACT REMOVAL */
-
-/* Remove all blue artifacts from Tabs.Content panels - multiple selectors for full coverage */
-.services-tabs [data-state="active"],
-.services-tabs [data-state="inactive"],
-.services-tabs [role="tabpanel"],
-[data-radix-tabs-content],
-.services-tabs div[data-state],
-.services-tabs > div[data-state] {
-  border: none !important;
+/* MP THEME: Remove Marketplace blue debug border */
+.marketplace .hero-container,
+.marketplace [class*="border-blue"],
+.marketplace [class*="outline-blue"],
+.marketplace [class*="ring-blue"] {
+  border: 1px solid var(--mp-border) !important;
   outline: none !important;
   box-shadow: none !important;
-  ring: none !important;
-  --tw-ring-width: 0px !important;
-  --tw-ring-color: transparent !important;
-  --tw-ring-offset-width: 0px !important;
-  --tw-ring-shadow: none !important;
-  background: white !important;
+}
+
+/* MP THEME: Tab system - light blue text for all tabs, soft highlight for active */
+.marketplace [role="tablist"] button,
+.marketplace .tab {
+  background: var(--mp-bg) !important;
+  color: var(--mp-accent) !important;
+  border: 1px solid var(--mp-border) !important;
+  border-radius: 9999px !important;
+  font-weight: 600 !important;
+}
+
+.marketplace [role="tablist"] button[data-state="active"],
+.marketplace .tab--active {
+  background: rgba(79, 139, 253, 0.12) !important;
+  color: var(--mp-accent) !important;
+  border-color: rgba(79, 139, 253, 0.35) !important;
+}
+
+/* MP THEME: Primary buttons - blue bg + white text */
+.btn-primary, 
+button[class*="bg-mp-blue"],
+.marketplace .provider-cta {
+  background: var(--mp-blue) !important;
+  color: #ffffff !important;
+  border-color: var(--mp-blue) !important;
+}
+
+.btn-primary:hover,
+button[class*="bg-mp-blue"]:hover {
+  background: var(--mp-blue-600) !important;
+}
+
+/* MP THEME: Ghost/outline buttons on white - dark text */
+.btn-ghost,
+button[class*="bg-white"] {
+  background: #fff !important;
+  color: var(--mp-text) !important;
+  border: 1px solid var(--mp-border) !important;
+}
+
+/* MP THEME: Filter chips - white bg + dark text/icon */
+.filter-chip,
+.chip {
+  background: var(--mp-bg) !important;
+  color: var(--mp-text) !important;
+  border: 1px solid var(--mp-border) !important;
 }
 
 /* COMPREHENSIVE YELLOW BACKGROUND ELIMINATION */

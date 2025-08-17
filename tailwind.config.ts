@@ -14,8 +14,20 @@ export default {
       },
     },
     extend: {
-      // Core Brand Colors - Unified Desktop/Mobile Design System
+      // MP Theme System - Mobile/Desktop Unified
       colors: {
+        // MP Theme Tokens
+        mp: {
+          bg: '#ffffff',          // --mp-bg: main background
+          surface: '#ffffff',     // --mp-surface: surface color  
+          baby: '#eef4ff',        // --mp-baby: soft baby-blue page background
+          blue: '#2563eb',        // --mp-blue: primary blue
+          'blue-600': '#1d4ed8',  // --mp-blue-600: darker blue
+          accent: '#4f8bfd',      // --mp-accent: light blue tab text color
+          text: '#0f172a',        // --mp-text: dark text
+          muted: '#475569',       // --mp-muted: muted text
+          border: '#e2e8f0',      // --mp-border: border color
+        },
         // Centralized Surface & Text Colors
         surface: {
           DEFAULT: 'var(--color-surface)',      // #ffffff - main page background

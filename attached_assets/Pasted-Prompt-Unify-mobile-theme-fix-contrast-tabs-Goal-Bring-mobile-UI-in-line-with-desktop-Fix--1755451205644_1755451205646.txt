@@ -1,0 +1,143 @@
+Prompt: “Unify mobile theme + fix contrast & tabs”
+
+Goal:
+Bring mobile UI in line with desktop. Fix invisible buttons, remove the blue debug border on Marketplace, make selected tabs keep light-blue text (not white), ensure Become a Service Provider button text is white, add borders to “Featured Services / All Services,” and apply the soft baby-blue background across pages (like the auth screenshot).
+
+Do this exactly:
+
+Add/update theme tokens (CSS or Tailwind):
+
+Colors:
+
+--mp-bg:#ffffff;
+
+--mp-surface:#ffffff;
+
+--mp-baby:#eef4ff; (page background)
+
+--mp-blue:#2563eb; (primary)
+
+--mp-blue-600:#1d4ed8;
+
+--mp-accent:#4f8bfd; (light blue tab text color)
+
+--mp-text:#0f172a; (dark text)
+
+--mp-muted:#475569;
+
+--mp-border:#e2e8f0;
+
+If Tailwind, extend in tailwind.config.js and map tokens (mp.baby, mp.accent, etc.).
+
+Greeting page – invisible buttons
+
+On /greeting (hero buttons / CTA chips), ensure:
+
+Primary button (e.g., Sign In / Get Started) uses blue background + white text:
+
+Tailwind: bg-mp-blue text-white hover:bg-mp-blue-600
+
+CSS: .btn--primary{background:var(--mp-blue);color:#fff;border-color:var(--mp-blue)}
+
+Any ghost/outline button on white background must use dark text:
+
+Tailwind: bg-white text-mp-text border border-mp-border
+
+CSS: .btn--ghost{background:#fff;color:var(--mp-text);border:1px solid var(--mp-border)}
+
+Marketplace – remove blue border box
+
+Locate the hero/card container that has the blue outline (likely a debug class or outline/ ring).
+
+Remove classes like border-blue-*, ring-*, outline-*, or inline styles adding that border.
+
+Set container to:
+
+Tailwind: border border-mp-border rounded-2xl only if a subtle card border is intended.
+
+Or no border at all if this is a pure hero section.
+
+Tab selector (Pet Services / Pup Box / Store)
+
+Selected tab must keep light-blue text (not switch to white):
+
+Base tab: bg-white text-mp-accent border border-mp-border rounded-full font-semibold
+
+Active tab: keep text-mp-accent, add soft highlight bg:
+
+Tailwind: bg-[rgba(79,139,253,0.12)] border-[rgba(79,139,253,0.35)]
+
+CSS:
+
+.tab{background:#fff;color:var(--mp-accent);border:1px solid var(--mp-border);border-radius:9999px;font-weight:600}
+.tab--active{background:rgba(79,139,253,.12);color:var(--mp-accent);border-color:rgba(79,139,253,.35)}
+
+
+Remove any logic that flips the text to white on active.
+
+Filter button/icon – no white on white
+
+Filter chip (and any icon-only chip) should be white bg + dark text/icon:
+
+Tailwind: bg-white text-mp-text border border-mp-border
+
+Ensure SVGs use stroke="currentColor" and inherit the dark color.
+
+If there is a separate icon chip, apply same style or wrap the icon in a chip container.
+
+“Become a Service Provider” button
+
+Ensure white text on blue background:
+
+Tailwind: bg-mp-blue text-white hover:bg-mp-blue-600
+
+Remove any text-white suppression or conflicting text-* utilities.
+
+“Featured Services” / “All Services” chips – add border
+
+Both chips need consistent pill style with border:
+
+Base (unselected): bg-white text-mp-text border border-mp-border rounded-full
+
+Selected: keep text readable; if using blue fill:
+
+Option A (solid): bg-mp-blue text-white border-transparent
+
+Option B (soft): bg-[rgba(79,139,253,0.12)] text-mp-accent border-[rgba(79,139,253,0.35)]
+
+Make the two chips visually identical in style system; only state changes differ.
+
+Apply light baby-blue page background
+
+For all main pages (greeting, marketplace, explore, messages, auth), set the outer page wrapper to:
+
+Tailwind: bg-mp-baby
+
+CSS: body,.page{background:var(--mp-baby)}
+
+Keep cards/sections on white so content sits cleanly on the baby-blue canvas.
+
+Contrast sweep – remove any remaining white-on-white
+
+Grep the codebase for text-white on elements that also have bg-white (or no bg on a white parent). Replace with text-mp-text.
+
+Grep for bg-yellow-*, text-yellow-*, from-yellow-*, inline #ffd/#fac variants → replace with the blue/accent tokens above.
+
+QA checklist (verify on device)
+
+Greeting CTAs clearly visible.
+
+Marketplace hero has no blue debug border.
+
+Tabs (Services / Pup Box / Store) show light-blue text in all states; selected tab has soft blue background—not white text.
+
+“Become a Service Provider” button = blue bg + white text.
+
+“Featured Services / All Services” chips have borders and clear selected state.
+
+Every page uses baby-blue background with white cards on top.
+
+Filter chip/icon = white bg + dark text/icon (readable in sunlight).
+
+Commit message:
+fix(ui): mobile contrast, tabs, provider CTA, chip borders, remove debug border, apply baby-blue page bg

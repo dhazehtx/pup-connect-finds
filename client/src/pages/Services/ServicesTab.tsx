@@ -100,7 +100,7 @@ export function ServicesTab() {
   }
 
   return (
-    <div className="space-y-6 p-4 bg-gray-50 min-h-screen">
+    <div className="space-y-6 p-4 bg-mp-baby min-h-screen">
       {/* Pet Services Marketplace Hero Section */}
       <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-blue-600 via-blue-700 to-purple-700 text-white shadow-2xl">
         <div className="absolute inset-0 bg-gradient-to-br from-blue-600/90 to-purple-700/90"></div>
@@ -133,7 +133,7 @@ export function ServicesTab() {
           <Button 
             onClick={handleBecomeProvider}
             size="lg"
-            className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-semibold px-8 py-3 rounded-xl shadow-lg transition-all duration-200 transform hover:scale-105"
+            className="bg-mp-blue hover:bg-mp-blue-600 text-white font-semibold px-8 py-3 rounded-xl shadow-lg transition-all duration-200 transform hover:scale-105 provider-cta"
           >
             <Shield className="h-5 w-5 mr-2" />
             Become a Service Provider
@@ -257,16 +257,16 @@ export function ServicesTab() {
 
       {/* Services Content - Blue Pill Style Tabs */}
       <Tabs defaultValue="featured" className="w-full services-tabs">
-        <TabsList className="inline-flex rounded-full border-2 border-blue-600 bg-blue-50 p-1 w-auto mx-auto">
+        <TabsList className="inline-flex rounded-full border border-mp-border bg-white p-1 w-auto mx-auto">
           <TabsTrigger 
             value="featured" 
-            className="px-6 py-2 rounded-full font-medium transition-all duration-200 data-[state=active]:bg-[#2363FF] data-[state=active]:text-white data-[state=active]:border-[#2363FF] data-[state=inactive]:bg-transparent data-[state=inactive]:text-blue-700 data-[state=inactive]:border-transparent"
+            className="px-6 py-2 rounded-full font-semibold transition-all duration-200 bg-white text-mp-text border border-mp-border data-[state=active]:bg-mp-blue data-[state=active]:text-white data-[state=active]:border-transparent"
           >
             Featured Services
           </TabsTrigger>
           <TabsTrigger 
             value="all" 
-            className="px-6 py-2 rounded-full font-medium transition-all duration-200 data-[state=active]:bg-[#2363FF] data-[state=active]:text-white data-[state=active]:border-[#2363FF] data-[state=inactive]:bg-transparent data-[state=inactive]:text-blue-700 data-[state=inactive]:border-transparent"
+            className="px-6 py-2 rounded-full font-semibold transition-all duration-200 bg-white text-mp-text border border-mp-border data-[state=active]:bg-mp-blue data-[state=active]:text-white data-[state=active]:border-transparent"
           >
             All Services
           </TabsTrigger>
@@ -313,10 +313,9 @@ export function ServicesTab() {
               </p>
               <Button 
                 onClick={handleBecomeProvider}
-                className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 !text-white border-0 outline-none focus:ring-0"
-                style={{ color: 'white !important' }}
+                className="bg-mp-blue text-white hover:bg-mp-blue-600 border-0 outline-none focus:ring-0 provider-cta"
               >
-                Become a Provider
+                Become a Service Provider
               </Button>
             </div>
           )}
@@ -365,10 +364,9 @@ export function ServicesTab() {
               </p>
               <Button 
                 onClick={handleBecomeProvider}
-                className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 !text-white border-0 outline-none focus:ring-0"
-                style={{ color: 'white !important' }}
+                className="bg-mp-blue text-white hover:bg-mp-blue-600 border-0 outline-none focus:ring-0 provider-cta"
               >
-                Become a Provider
+                Become a Service Provider
               </Button>
             </div>
           )}
