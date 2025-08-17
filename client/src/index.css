@@ -307,11 +307,10 @@ main::before, main::after {
   background-image: none !important;
 }
 
-/* Fix marketplace tabs yellow outline */
+/* Fix marketplace tabs yellow outline - background only */
 [data-state="active"], .tab-active, .tabs [data-state="active"] {
   border: 2px solid #2563eb !important;
   background-color: #2563eb !important;
-  color: #ffffff !important;
 }
 
 /* Fix marketplace tab text visibility - ensure active tabs have black text */
@@ -320,10 +319,13 @@ main::before, main::after {
 .marketplace button[data-state="active"] svg,
 .marketplace .tab-active,
 .marketplace .tab-active span,
-/* Nuclear targeting for marketplace tabs */
+/* Nuclear targeting for marketplace tabs text only */
 .marketplace [role="tablist"] button[data-state="active"],
-.marketplace [role="tablist"] button[data-state="active"] *,
-.marketplace [data-state="active"] {
+.marketplace [role="tablist"] button[data-state="active"] span,
+.marketplace [role="tablist"] button[data-state="active"] svg,
+.marketplace [data-state="active"],
+.marketplace [data-state="active"] span,
+.marketplace [data-state="active"] svg {
   color: #000000 !important;
 }
 
