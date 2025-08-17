@@ -320,7 +320,7 @@ const StoreTab = () => {
                       type="button"
                       onClick={() => handleAddToCart(product)}
                       disabled={addedItems.has(product.id)}
-                      className="h-10 rounded-xl px-4 text-sm font-medium transition focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed bg-primary text-primary-foreground shadow-sm hover:bg-primary/90 active:bg-primary/95 flex items-center justify-center min-w-0"
+                      className="h-10 rounded-xl px-4 text-sm font-medium transition focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed bg-white text-slate-800 border border-slate-300 hover:bg-slate-50 hover:border-slate-400 active:bg-slate-100 flex items-center justify-center min-w-0"
                     >
                       {addedItems.has(product.id) ? (
                         <>
