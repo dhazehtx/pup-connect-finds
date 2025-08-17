@@ -253,15 +253,17 @@ export function ServicesTab() {
 
       {/* Services Content - Blue Pill Style Tabs */}
       <Tabs defaultValue="featured" className="w-full services-tabs">
-        <div className="inline-flex items-center gap-2 rounded-full bg-secondary p-1 mx-auto">
-          <TabsList className="tab-list border-0 bg-transparent p-0">
-            <TabsTrigger value="featured" className="tab-pill">
-              Featured Services
-            </TabsTrigger>
-            <TabsTrigger value="all" className="tab-pill">
-              All Services
-            </TabsTrigger>
-          </TabsList>
+        <div className="flex justify-center">
+          <div className="inline-flex items-center gap-2 rounded-full bg-secondary p-1 shadow-sm">
+            <TabsList className="tab-list border-0 bg-transparent p-0">
+              <TabsTrigger value="featured" className="tab-pill">
+                Featured Services
+              </TabsTrigger>
+              <TabsTrigger value="all" className="tab-pill">
+                All Services
+              </TabsTrigger>
+            </TabsList>
+          </div>
         </div>
 
         <TabsContent value="featured" className="bg-white rounded-lg border border-border shadow-sm p-0 focus-visible:outline-none space-y-4">

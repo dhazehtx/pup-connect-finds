@@ -1,0 +1,81 @@
+The segmented tab container (that rounded white pill bar above the hero) is rendering empty, while the actual links (“Pet Services / Pup Box / Store”) sit outside of it.
+
+Only Pet Services is styled as a pill; Pup Box and Store are plain links. They’re not getting the .tab-pill styling or the active/outline states.
+
+Here’s a clean, drop-in fix that unifies those three into one pill tab group and removes the ghost/empty container.
+
+1) Reusable top-tabs component (route aware)
+
+Create src/components/MarketplaceTabs.tsx:
+
+import { NavLink } from "react-router-dom";
+
+const tabs = [
+  { key: "services", label: "Pet Services", to: "/marketplace" },
+  { key: "pupbox",  label: "Pup Box",      to: "/marketplace/pupbox" },
+  { key: "store",   label: "Store",        to: "/marketplace/store" },
+];
+
+export default function MarketplaceTabs() {
+  return (
+    <nav className="w-full flex justify-center mt-6">
+      <div className="inline-flex items-center gap-2 rounded-full bg-secondary p-1 shadow-sm">
+        {tabs.map(t => (
+          <NavLink
+            key={t.key}
+            to={t.to}
+            className={({ isActive }) =>
+              `tab-pill ${isActive ? "is-active" : ""}`
+            }
+          >
+            {t.label}
+          </NavLink>
+        ))}
+      </div>
+    </nav>
+  );
+}
+
+
+Mount it where that empty segmented control currently is (e.g., in your Marketplace page/hero):
+
+import MarketplaceTabs from "@/components/MarketplaceTabs";
+
+export default function MarketplacePage() {
+  return (
+    <>
+      <MarketplaceTabs />
+      {/* hero + rest of page */}
+    </>
+  );
+}
+
+2) Ensure the pill styles are applied to all three
+
+(If you don’t already have these from earlier, add them to your shared CSS.)
+
+/* Pill tabs: outline by default, blue pill + white text when active */
+.tab-pill {
+  @apply rounded-full px-4 py-2 text-sm font-medium
+         border border-primary text-primary bg-transparent
+         transition-colors;
+}
+.tab-pill.is-active,
+.tab-pill[data-state="active"] {
+  @apply bg-primary text-primary-foreground shadow;
+}
+
+/* Make any icons inside pills inherit and be visible */
+.tab-pill svg {
+  width: 1rem; height: 1rem; margin-right: 0.375rem;
+  fill: none; stroke: currentColor; stroke-width: 2;
+}
+
+3) Remove the ghost container
+
+Find and delete the old wrapper that renders the empty rounded bar (likely something like):
+
+<div className="inline-flex items-center gap-2 rounded-full bg-secondary p-1" />
+
+
+(or replace it with <MarketplaceTabs /> above).
