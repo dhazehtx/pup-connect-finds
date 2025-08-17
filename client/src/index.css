@@ -314,11 +314,16 @@ main::before, main::after {
   color: #ffffff !important;
 }
 
-/* Fix tab text visibility - ensure active tabs have black text */
-button[data-state="active"], 
-button[data-state="active"] span,
-.tab-active,
-.tab-active span {
+/* Fix marketplace tab text visibility - ensure active tabs have black text */
+.marketplace button[data-state="active"], 
+.marketplace button[data-state="active"] span,
+.marketplace button[data-state="active"] svg,
+.marketplace .tab-active,
+.marketplace .tab-active span,
+/* Nuclear targeting for marketplace tabs */
+.marketplace [role="tablist"] button[data-state="active"],
+.marketplace [role="tablist"] button[data-state="active"] *,
+.marketplace [data-state="active"] {
   color: #000000 !important;
 }
 
