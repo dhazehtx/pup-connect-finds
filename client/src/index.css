@@ -284,6 +284,87 @@ button[class*="outline"]:hover, .btn-outline:hover {
   background-color: #ffffff !important;
 }
 
+/* ULTIMATE YELLOW STRIPING ELIMINATION */
+/* Fix yellow background stripes across entire page */
+body::before, body::after,
+html::before, html::after,
+#root::before, #root::after,
+main::before, main::after {
+  display: none !important;
+  content: none !important;
+  background: none !important;
+}
+
+/* Remove any yellow pseudo-elements that create stripes */
+*::before, *::after {
+  background-image: none !important;
+  background-color: transparent !important;
+}
+
+*[style*="background: linear-gradient"],
+*[style*="background-image"] {
+  background: #ffffff !important;
+  background-image: none !important;
+}
+
+/* Fix marketplace tabs yellow outline */
+[data-state="active"], .tab-active, .tabs [data-state="active"] {
+  border: 2px solid #2563eb !important;
+  background-color: #2563eb !important;
+  color: #ffffff !important;
+}
+
+[data-state="inactive"], .tab-inactive, .tabs [data-state="inactive"] {
+  border: 1px solid #e5e7eb !important;
+  background-color: #ffffff !important;
+  color: #374151 !important;
+}
+
+/* Remove yellow from tab containers */
+.tabs-container, [role="tablist"], .marketplace-tabs {
+  border: 1px solid #e5e7eb !important;
+  background-color: #ffffff !important;
+}
+
+/* CONVERSATION LIST YELLOW BORDER FIX */
+.conversation-list .card,
+[data-conversation-card],
+.messages-page .card {
+  border: 1px solid #e5e7eb !important;
+  background-color: #ffffff !important;
+}
+
+.conversation-list .card:hover,
+[data-conversation-card]:hover,
+.messages-page .card:hover {
+  border: 1px solid #d1d5db !important;
+  background-color: #f9fafb !important;
+}
+
+/* ELIMINATE ALL REMAINING YELLOW ELEMENTS */
+/* Target any remaining yellow borders, backgrounds, or text */
+*[class*=yellow],
+*[style*=yellow],
+*[style*="#FFFF"],
+*[style*="#ffff"],
+*[style*="rgb(255, 255"],
+*[data-yellow] {
+  background-color: #ffffff !important;
+  border-color: #e5e7eb !important;
+  color: #374151 !important;
+}
+
+/* Fix profile page yellow stripes */
+.profile-page,
+.profile-page::before,
+.profile-page::after,
+.profile-header,
+.profile-content {
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  background-image: none !important;
+}
+
 /* Remove ALL pseudo-elements that create blue stripes/corners */
 .services-tabs [data-state="active"]::before,
 .services-tabs [data-state="active"]::after,
