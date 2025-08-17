@@ -215,6 +215,75 @@ body, #root, main, .min-h-screen {
   border-color: #e5e7eb !important;
 }
 
+/* TARGETED FIXES FOR SPECIFIC YELLOW ELEMENTS */
+
+/* Fix conversation list yellow border */
+.conversation-item, .message-item, [class*="conversation"]:hover {
+  border: 1px solid #e5e7eb !important;
+  background-color: #ffffff !important;
+}
+
+/* Fix profile page yellow buttons */
+button[class*="outline"]:contains("Report a Bug"), 
+button[class*="outline"]:contains("Privacy") {
+  background-color: #ffffff !important;
+  border-color: #d1d5db !important;
+  color: #374151 !important;
+}
+
+/* Fix onboarding Back button */
+button:contains("Back") {
+  background-color: #ffffff !important;
+  border-color: #d1d5db !important;
+  color: #374151 !important;
+}
+
+/* Fix yellow background stripes */
+.bg-yellow-100, .bg-yellow-200, .bg-yellow-300 {
+  background-color: #ffffff !important;
+}
+
+/* Fix yellow borders */
+.border-yellow-100, .border-yellow-200, .border-yellow-300, .border-yellow-400 {
+  border-color: #e5e7eb !important;
+}
+
+/* NUCLEAR YELLOW ELIMINATION - Final comprehensive fix */
+/* Fix any element that might get yellow styling */
+*[class*="yellow"], *[style*="yellow"], *[style*="amber"] {
+  background-color: #ffffff !important;
+  border-color: #e5e7eb !important;
+  color: #374151 !important;
+}
+
+/* Fix outline buttons that might appear yellow */
+button[class*="outline"], .btn-outline {
+  background-color: #ffffff !important;
+  border-color: #d1d5db !important;
+  color: #374151 !important;
+}
+
+button[class*="outline"]:hover, .btn-outline:hover {
+  background-color: #f9fafb !important;
+  border-color: #9ca3af !important;
+}
+
+/* Specifically target the conversation items with yellow border */
+.conversation-card, .message-card, [data-conversation], [data-message] {
+  border: 1px solid #e5e7eb !important;
+  background-color: #ffffff !important;
+}
+
+/* Fix any remaining yellow text or elements */
+.text-yellow-400, .text-yellow-500, .text-yellow-600, .text-yellow-700, .text-yellow-800 {
+  color: #374151 !important;
+}
+
+/* Fix any remaining yellow backgrounds */
+.bg-yellow-50, .bg-yellow-100, .bg-yellow-200, .bg-yellow-300, .bg-yellow-400, .bg-yellow-500 {
+  background-color: #ffffff !important;
+}
+
 /* Remove ALL pseudo-elements that create blue stripes/corners */
 .services-tabs [data-state="active"]::before,
 .services-tabs [data-state="active"]::after,
