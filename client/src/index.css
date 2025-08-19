@@ -56,7 +56,6 @@ button.btn-primary * {
 }
 
 /* Greeting page section styling - remove all borders and ensure pure white background */
-.greeting-page,
 .greeting-page section,
 .greeting-page .relative {
   background-color: #ffffff !important;
