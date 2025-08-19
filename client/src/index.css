@@ -4,6 +4,12 @@
 @import './styles/utilities.css';
 @import './styles/accessibility.css';
 
+/* Brand variables for consistent styling */
+:root { 
+  --brand-blue: #2563eb; 
+  --btn-radius: 12px; 
+}
+
 /* Bottom Navigation & Button Styling - White Text/Icons */
 .bottom-nav a, 
 .bottom-nav svg {
@@ -97,6 +103,55 @@ div[class*="justify-center"] {
   border-top: none !important;
   border-bottom: none !important;
   box-shadow: none !important;
+}
+
+/* Nuke yellow outlines on inputs (Email/Password/etc.) */
+/* Base input look */
+input, select, textarea, .form-input, .form-control {
+  border: 1px solid #d1d5db !important;              /* neutral gray border */
+  outline: none !important;
+  box-shadow: none !important;
+  background: #fff !important;
+  border-radius: 12px !important;
+}
+
+/* Focus ring + border (accessible blue) */
+input:focus, select:focus, textarea:focus,
+.form-input:focus, .form-control:focus {
+  border-color: #2563eb !important;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, .25) !important; /* soft blue ring */
+}
+
+/* Error state (optional—use this class only when there's a real error) */
+.input-error, .form-control.error {
+  border-color: #ef4444 !important;         /* red-500 */
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, .2) !important;
+}
+
+/* iOS/Safari autofill wipes out yellow background */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0px 1000px #fff inset !important;
+  -webkit-text-fill-color: #111827 !important; /* gray-900 */
+  caret-color: #111827 !important;
+  border-color: #2563eb !important;           /* keep blue border when focused */
+}
+
+/* Complete yellow elimination - override any yellow border/ring classes */
+.border-yellow-50, .border-yellow-100, .border-yellow-200, .border-yellow-300, .border-yellow-400,
+.border-yellow-500, .border-yellow-600, .border-yellow-700, .border-yellow-800, .border-yellow-900,
+.ring-yellow-50, .ring-yellow-100, .ring-yellow-200, .ring-yellow-300, .ring-yellow-400,
+.ring-yellow-500, .ring-yellow-600, .ring-yellow-700, .ring-yellow-800, .ring-yellow-900,
+.outline-yellow-50, .outline-yellow-100, .outline-yellow-200, .outline-yellow-300, .outline-yellow-400,
+.outline-yellow-500, .outline-yellow-600, .outline-yellow-700, .outline-yellow-800, .outline-yellow-900,
+.focus\:border-yellow-50:focus, .focus\:border-yellow-100:focus, .focus\:border-yellow-200:focus,
+.focus\:border-yellow-300:focus, .focus\:border-yellow-400:focus, .focus\:border-yellow-500:focus,
+.focus\:ring-yellow-50:focus, .focus\:ring-yellow-100:focus, .focus\:ring-yellow-200:focus,
+.focus\:ring-yellow-300:focus, .focus\:ring-yellow-400:focus, .focus\:ring-yellow-500:focus {
+  border-color: #d1d5db !important; /* Default gray border */
+  outline-color: #2563eb !important; /* Blue outline */
+  --tw-ring-color: rgba(37, 99, 235, 0.25) !important; /* Blue ring */
 }
 
 /* Force white text on active Radix tabs */
