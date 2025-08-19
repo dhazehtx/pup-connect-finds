@@ -91,6 +91,14 @@ div[class*="justify-center"] {
   background: none !important;
 }
 
+/* Fix background and remove unwanted lines */
+.auth-section-container {
+  background-color: #ffffff !important;
+  border-top: none !important;
+  border-bottom: none !important;
+  box-shadow: none !important;
+}
+
 /* Force white text on active Radix tabs */
 [data-state="active"] {
   color: white !important;

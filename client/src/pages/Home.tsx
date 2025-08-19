@@ -104,7 +104,7 @@ const Home = () => {
           </p>
           
           {/* Main 4 Buttons */}
-          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8 greeting-page" style={{backgroundColor: '#ffffff', border: 'none', boxShadow: 'none', backgroundImage: 'none'}}>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8 greeting-page auth-section-container" style={{backgroundColor: '#ffffff', border: 'none', boxShadow: 'none', backgroundImage: 'none'}}>
             <Link to="/auth">
               <Button size="lg" className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 text-lg font-semibold greeting-page">
                 <UserPlus className="w-5 h-5 mr-2 text-white" />
