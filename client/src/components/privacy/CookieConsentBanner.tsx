@@ -97,19 +97,17 @@ const CookieConsentBanner: React.FC = () => {
 
               <div className="flex flex-col sm:flex-row gap-3 sm:justify-end">
                 <Button
-                  variant="outline"
                   size="sm"
                   onClick={() => setShowSettings(true)}
-                  className="gap-2 bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
+                  className="gap-2 bg-blue-600 hover:bg-blue-700 text-white"
                 >
                   <Shield className="w-4 h-4" />
                   Manage Preferences
                 </Button>
                 <Button
-                  variant="outline"
                   size="sm"
                   onClick={rejectNonEssential}
-                  className="bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
+                  className="bg-blue-600 hover:bg-blue-700 text-white"
                 >
                   Reject Non-Essential
                 </Button>
@@ -224,10 +222,9 @@ const CookieConsentBanner: React.FC = () => {
 
               <div className="flex flex-col sm:flex-row gap-3 sm:justify-end">
                 <Button
-                  variant="outline"
                   size="sm"
                   onClick={rejectNonEssential}
-                  className="bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
+                  className="bg-blue-600 hover:bg-blue-700 text-white"
                 >
                   Reject All
                 </Button>
