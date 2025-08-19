@@ -55,6 +55,19 @@ button.btn-primary * {
   color: white !important;
 }
 
+/* Greeting page section styling - remove all borders and ensure pure white background */
+.greeting-page,
+.greeting-page section,
+.greeting-page .relative {
+  background-color: #ffffff !important;
+  border: none !important;
+  border-top: none !important;
+  border-bottom: none !important;
+  box-shadow: none !important;
+  outline: none !important;
+  background-image: none !important;
+}
+
 /* Force white text on active Radix tabs */
 [data-state="active"] {
   color: white !important;
