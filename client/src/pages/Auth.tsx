@@ -256,7 +256,7 @@ const Auth = () => {
               <Button
                 type="submit"
                 disabled={loading || isSubmitting}
-                className="w-full h-12 shadow-lg btn-primary"
+                className="w-full h-12 shadow-lg !bg-blue-600 hover:!bg-blue-700 !text-white !border-blue-600 hover:!border-blue-700"
               >
                 {loading || isSubmitting ? (
                   <>
@@ -298,10 +298,10 @@ const Auth = () => {
                     description: "Google sign-in will be available soon.",
                   });
                 }}
-                className="w-full h-12 btn-primary"
+                className="w-full h-12 !bg-blue-600 hover:!bg-blue-700 !text-white !border-blue-600 hover:!border-blue-700"
                 disabled={loading || isSubmitting}
               >
-                <Mail size={18} className="mr-3" />
+                <Mail size={18} className="mr-3 !text-white" />
                 Sign in with Google
               </Button>
               
@@ -313,10 +313,10 @@ const Auth = () => {
                     description: "Facebook sign-in will be available soon.",
                   });
                 }}
-                className="w-full h-12 btn-primary"
+                className="w-full h-12 !bg-blue-600 hover:!bg-blue-700 !text-white !border-blue-600 hover:!border-blue-700"
                 disabled={loading || isSubmitting}
               >
-                <User size={18} className="mr-3" />
+                <User size={18} className="mr-3 !text-white" />
                 Sign in with Facebook
               </Button>
             </div>
@@ -339,7 +339,7 @@ const Auth = () => {
           <Button 
             type="button"
             onClick={handleGuestAccess}
-            className="w-full mt-4 h-12 btn-primary"
+            className="w-full mt-4 h-12 !bg-blue-600 hover:!bg-blue-700 !text-white !border-blue-600 hover:!border-blue-700"
             disabled={loading || isSubmitting}
           >
             Continue as Guest
