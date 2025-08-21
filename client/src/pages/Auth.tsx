@@ -257,6 +257,11 @@ const Auth = () => {
                 type="submit"
                 disabled={loading || isSubmitting}
                 className="w-full h-12 shadow-lg !bg-blue-600 hover:!bg-blue-700 !text-white !border-blue-600 hover:!border-blue-700"
+                style={{
+                  backgroundColor: '#2563eb',
+                  color: '#ffffff',
+                  borderColor: '#2563eb'
+                }}
               >
                 {loading || isSubmitting ? (
                   <>
@@ -299,9 +304,14 @@ const Auth = () => {
                   });
                 }}
                 className="w-full h-12 !bg-blue-600 hover:!bg-blue-700 !text-white !border-blue-600 hover:!border-blue-700"
+                style={{
+                  backgroundColor: '#2563eb',
+                  color: '#ffffff',
+                  borderColor: '#2563eb'
+                }}
                 disabled={loading || isSubmitting}
               >
-                <Mail size={18} className="mr-3 !text-white" />
+                <Mail size={18} className="mr-3 !text-white" style={{ color: '#ffffff' }} />
                 Sign in with Google
               </Button>
               
@@ -314,9 +324,14 @@ const Auth = () => {
                   });
                 }}
                 className="w-full h-12 !bg-blue-600 hover:!bg-blue-700 !text-white !border-blue-600 hover:!border-blue-700"
+                style={{
+                  backgroundColor: '#2563eb',
+                  color: '#ffffff',
+                  borderColor: '#2563eb'
+                }}
                 disabled={loading || isSubmitting}
               >
-                <User size={18} className="mr-3 !text-white" />
+                <User size={18} className="mr-3 !text-white" style={{ color: '#ffffff' }} />
                 Sign in with Facebook
               </Button>
             </div>
@@ -340,6 +355,11 @@ const Auth = () => {
             type="button"
             onClick={handleGuestAccess}
             className="w-full mt-4 h-12 !bg-blue-600 hover:!bg-blue-700 !text-white !border-blue-600 hover:!border-blue-700"
+            style={{
+              backgroundColor: '#2563eb',
+              color: '#ffffff',
+              borderColor: '#2563eb'
+            }}
             disabled={loading || isSubmitting}
           >
             Continue as Guest
