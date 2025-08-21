@@ -555,20 +555,23 @@ button:contains("Become a Service Provider") {
 /* Marketplace tabs - match screenshot design exactly */
 .marketplace-tab-pill {
   @apply rounded-full px-4 py-2 text-sm font-medium
-         bg-blue-600 text-white border-0
+         bg-blue-600 border-0
          transition-colors hover:bg-blue-700;
   gap: 0.5rem;
   display: inline-flex;
   align-items: center;
   min-height: 36px;
+  color: white !important;
 }
 
 .marketplace-tab-pill.is-active {
-  @apply bg-blue-600 text-white shadow-sm;
+  @apply bg-blue-600 shadow-sm;
+  color: white !important;
 }
 
-/* Ensure icons in marketplace tabs are always white */
-.marketplace-tab-pill svg {
+/* Ensure icons and text in marketplace tabs are always white */
+.marketplace-tab-pill svg,
+.marketplace-tab-pill span {
   color: white !important;
   width: 1rem; 
   height: 1rem; 
@@ -589,13 +592,24 @@ button:contains("Become a Service Provider") {
 }
 .tab-pill.is-active,
 .tab-pill[data-state="active"] {
-  @apply bg-blue-600 text-white border-blue-600 shadow;
+  @apply bg-blue-600 border-blue-600 shadow;
+  color: white !important;
 }
 
-/* Ensure icons in active tabs are white */
+/* Ensure icons and text in active tabs are white */
 .tab-pill.is-active svg,
-.tab-pill[data-state="active"] svg {
+.tab-pill[data-state="active"] svg,
+.tab-pill.is-active span,
+.tab-pill[data-state="active"] span {
   color: white !important;
+}
+
+/* Services tabs specific styling - ensure white text on active state */
+.services-tabs .tab-pill[data-state="active"],
+.services-tabs .tab-pill.is-active {
+  background-color: #2563eb !important;
+  color: white !important;
+  border-color: #2563eb !important;
 }
 
 /* Make any icons inside pills inherit and be visible */
