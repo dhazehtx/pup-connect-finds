@@ -26,6 +26,19 @@ button.btn-primary * {
   color: white !important;
 }
 
+/* Auth page button styling - force blue background and white text */
+button[type="submit"]:not(:disabled),
+button[type="submit"]:not(:disabled) * {
+  background-color: #2563eb !important;
+  color: #ffffff !important;
+  border-color: #2563eb !important;
+}
+
+button[type="submit"]:not(:disabled):hover {
+  background-color: #1d4ed8 !important;
+  border-color: #1d4ed8 !important;
+}
+
 /* Additional marketplace tab styling */
 .marketplace .tabs-list button {
   color: white !important;

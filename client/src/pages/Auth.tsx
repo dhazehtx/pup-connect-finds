@@ -256,11 +256,21 @@ const Auth = () => {
               <Button
                 type="submit"
                 disabled={loading || isSubmitting}
-                className="w-full h-12 shadow-lg !bg-blue-600 hover:!bg-blue-700 !text-white !border-blue-600 hover:!border-blue-700"
+                className="w-full h-12 shadow-lg"
                 style={{
-                  backgroundColor: '#2563eb',
-                  color: '#ffffff',
-                  borderColor: '#2563eb'
+                  backgroundColor: '#2563eb !important',
+                  color: '#ffffff !important',
+                  borderColor: '#2563eb !important',
+                  border: '1px solid #2563eb',
+                  outline: 'none'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = '#1d4ed8';
+                  e.currentTarget.style.borderColor = '#1d4ed8';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = '#2563eb';
+                  e.currentTarget.style.borderColor = '#2563eb';
                 }}
               >
                 {loading || isSubmitting ? (
