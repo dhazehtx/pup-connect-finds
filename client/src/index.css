@@ -57,8 +57,7 @@ button.btn-primary * {
 
 /* Greeting page section styling - remove all borders and ensure pure white background */
 .greeting-page section,
-.greeting-page .relative,
-.auth-section-container {
+.greeting-page .relative {
   background-color: #ffffff !important;
   border: none !important;
   border-top: none !important;
@@ -66,89 +65,6 @@ button.btn-primary * {
   box-shadow: none !important;
   outline: none !important;
   background-image: none !important;
-}
-
-/* Auth page styling - ensure pure white backgrounds and no borders */
-.min-h-screen.bg-white,
-.min-h-screen.bg-white * {
-  background-color: #ffffff !important;
-}
-
-/* Auth card styling - remove any unwanted borders or shadows on tab section */
-.auth-card .flex.mb-6,
-.auth-card .rounded-lg.overflow-hidden {
-  border: none !important;
-  border-top: none !important;
-  border-bottom: none !important;
-  box-shadow: none !important;
-  background-color: transparent !important;
-}
-
-/* Remove yellow outlines and fix input styling */
-input, select, textarea, .form-input, .form-control {
-  border: 1px solid #d1d5db !important;
-  outline: none !important;
-  box-shadow: none !important;
-  background: #fff !important;
-  border-radius: 12px !important;
-}
-
-/* Focus ring + border (accessible blue) */
-input:focus, select:focus, textarea:focus,
-.form-input:focus, .form-control:focus {
-  border-color: #2563eb !important;
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, .25) !important;
-  outline: none !important;
-}
-
-/* Error state */
-.input-error, .form-control.error {
-  border-color: #ef4444 !important;
-  box-shadow: 0 0 0 3px rgba(239, 68, 68, .2) !important;
-}
-
-/* iOS/Safari autofill - remove yellow background */
-input:-webkit-autofill,
-input:-webkit-autofill:hover,
-input:-webkit-autofill:focus {
-  -webkit-box-shadow: 0 0 0px 1000px #fff inset !important;
-  -webkit-text-fill-color: #111827 !important;
-  caret-color: #111827 !important;
-  border-color: #2563eb !important;
-}
-
-/* Remove any yellow/amber focus states globally */
-*:focus {
-  outline: none !important;
-}
-
-input:focus,
-textarea:focus,
-select:focus,
-button:focus {
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, .25) !important;
-  border-color: #2563eb !important;
-  outline: none !important;
-}
-
-/* Override any remaining yellow focus rings */
-.ring-yellow-50, .ring-yellow-100, .ring-yellow-200, .ring-yellow-300, .ring-yellow-400, .ring-yellow-500,
-.ring-yellow-600, .ring-yellow-700, .ring-yellow-800, .ring-yellow-900,
-.ring-amber-50, .ring-amber-100, .ring-amber-200, .ring-amber-300, .ring-amber-400, .ring-amber-500,
-.ring-amber-600, .ring-amber-700, .ring-amber-800, .ring-amber-900,
-.focus\:ring-yellow-50:focus, .focus\:ring-yellow-100:focus, .focus\:ring-yellow-200:focus,
-.focus\:ring-yellow-300:focus, .focus\:ring-yellow-400:focus, .focus\:ring-yellow-500:focus,
-.focus\:ring-amber-50:focus, .focus\:ring-amber-100:focus, .focus\:ring-amber-200:focus,
-.focus\:ring-amber-300:focus, .focus\:ring-amber-400:focus, .focus\:ring-amber-500:focus {
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, .25) !important;
-}
-
-/* Override yellow borders on focus */
-.focus\:border-yellow-50:focus, .focus\:border-yellow-100:focus, .focus\:border-yellow-200:focus,
-.focus\:border-yellow-300:focus, .focus\:border-yellow-400:focus, .focus\:border-yellow-500:focus,
-.focus\:border-amber-50:focus, .focus\:border-amber-100:focus, .focus\:border-amber-200:focus,
-.focus\:border-amber-300:focus, .focus\:border-amber-400:focus, .focus\:border-amber-500:focus {
-  border-color: #2563eb !important;
 }
 
 /* Force white text on active Radix tabs */
@@ -772,19 +688,4 @@ button:contains("Become a Service Provider") {
   background-color: transparent !important;
   color: #1D4ED8 !important;
   border-color: transparent !important;
-}
-
-/* Cookie consent toast buttons */
-.cookie-toast button,
-.cookie-toast .btn {
-  background: #2563eb !important;
-  color: #fff !important;
-  border: none !important;
-  border-radius: 12px !important;
-  font-weight: 600 !important;
-}
-
-.cookie-toast button:hover,
-.cookie-toast .btn:hover {
-  filter: brightness(0.95) !important;
 }
