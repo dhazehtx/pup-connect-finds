@@ -57,7 +57,8 @@ button.btn-primary * {
 
 /* Greeting page section styling - remove all borders and ensure pure white background */
 .greeting-page section,
-.greeting-page .relative {
+.greeting-page .relative,
+.auth-section-container {
   background-color: #ffffff !important;
   border: none !important;
   border-top: none !important;
@@ -65,6 +66,22 @@ button.btn-primary * {
   box-shadow: none !important;
   outline: none !important;
   background-image: none !important;
+}
+
+/* Auth page styling - ensure pure white backgrounds and no borders */
+.min-h-screen.bg-white,
+.min-h-screen.bg-white * {
+  background-color: #ffffff !important;
+}
+
+/* Auth card styling - remove any unwanted borders or shadows on tab section */
+.auth-card .flex.mb-6,
+.auth-card .rounded-lg.overflow-hidden {
+  border: none !important;
+  border-top: none !important;
+  border-bottom: none !important;
+  box-shadow: none !important;
+  background-color: transparent !important;
 }
 
 /* Force white text on active Radix tabs */

@@ -141,7 +141,7 @@ const Auth = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-blue-100 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-white flex items-center justify-center p-4">
       <div className="w-full max-w-md mx-auto">
         {/* Logo and Title */}
         <div className="text-center mb-8">
@@ -159,7 +159,7 @@ const Auth = () => {
         </div>
 
         {/* Main Auth Card */}
-        <Card className="bg-white shadow-2xl">
+        <Card className="bg-white shadow-2xl auth-card">
           <CardContent className="p-8">
             {/* Tab Toggle */}
             <div className="flex mb-6 rounded-lg overflow-hidden">
