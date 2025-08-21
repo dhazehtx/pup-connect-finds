@@ -1,0 +1,127 @@
+Goal: Remove all yellow accents from Explore/Marketplace, make filter text black, and restore the blue/white segmented tabs.
+Apply these style updates:
+
+Explore → Advanced Filters
+
+The “Clear All” button: use blue background #2563eb, white text, no yellow border.
+
+The “Advanced Filters” toggle (the pill with the caret): remove any yellow background/border. Use white background, blue icon/text, 1px gray border #e5e7eb, rounded-xl.
+
+All filter inputs/selects (Sort By, Breed, Source, etc.): set text color to black (#111827), placeholders #6b7280, no yellow outlines on focus. Focus state = blue border #2563eb + soft blue focus ring.
+
+Marketplace → Top tabs (Pet Services / Pup Box / Store)
+4) Replace any orange backgrounds/borders with the previous segmented look:
+
+Segmented container: white background, subtle 1px border #e5e7eb, rounded-full.
+
+Active tab: blue background #2563eb, white text.
+
+Inactive tabs: white background, blue text #2563eb, 1px gray border #e5e7eb.
+
+Remove any drop shadows or orange outlines.
+
+Marketplace → “Featured Services / All Services” switch
+5) Remove orange outline. Match segmented style above: active = blue bg + white text; inactive = white bg + blue text, 1px gray border.
+
+Global clean-up
+6) Remove classes/tokens like border-yellow, ring-yellow, outline-yellow, focus:border-yellow, focus:ring-yellow, or any custom --brand-yellow.
+7) Ensure all buttons stay blue bg #2563eb + white text, unless explicitly marked as “secondary” (white bg + blue text + gray border).
+
+Implement with Tailwind utility classes or CSS overrides below.
+
+CSS you can drop in (safe overrides)
+:root {
+  --blue:#2563eb;
+  --text-black:#111827;
+  --text-muted:#6b7280;
+  --border:#e5e7eb;
+}
+
+/* Explore – Advanced Filters header & Clear All */
+.filters-card .filters-toggle,
+.filters-card .filters-toggle .icon {
+  background:#fff !important;
+  color:var(--blue) !important;
+  border:1px solid var(--border) !important;
+  border-radius:12px !important;
+}
+
+.filters-card .btn-clear,
+.btn-clear-all {
+  background:var(--blue) !important;
+  color:#fff !important;
+  border:none !important;
+  border-radius:12px !important;
+}
+
+/* Inputs/selects inside filters */
+.filters-card input,
+.filters-card select,
+.filters-card .form-input {
+  color:var(--text-black) !important;
+  border:1px solid var(--border) !important;
+  background:#fff !important;
+  border-radius:12px !important;
+  outline:none !important;
+  box-shadow:none !important;
+}
+.filters-card input::placeholder,
+.filters-card .placeholder { color:var(--text-muted) !important; }
+
+.filters-card input:focus,
+.filters-card select:focus,
+.filters-card .form-input:focus {
+  border-color:var(--blue) !important;
+  box-shadow:0 0 0 3px rgba(37,99,235,.25) !important;
+}
+
+/* Nuke any yellow leftovers globally */
+[class*="yellow"], .border-yellow, .ring-yellow, .outline-yellow { border-color:transparent !important; }
+.focus\:border-yellow:focus { border-color:var(--blue) !important; }
+.focus\:ring-yellow:focus { box-shadow:0 0 0 3px rgba(37,99,235,.25) !important; }
+
+/* Segmented control (Marketplace tabs & Featured/All) */
+.segmented,
+.tabs-segmented {
+  background:#fff !important;
+  border:1px solid var(--border) !important;
+  border-radius:9999px !important;
+  padding:4px !important;
+}
+.segmented .tab,
+.tabs-segmented .tab {
+  background:#fff !important;
+  color:var(--blue) !important;
+  border:1px solid var(--border) !important;
+  border-radius:9999px !important;
+  font-weight:600;
+}
+.segmented .tab.is-active,
+.tabs-segmented .tab.is-active {
+  background:var(--blue) !important;
+  color:#fff !important;
+  border-color:var(--blue) !important;
+}
+
+/* Kill any orange accents on these components */
+.segmented, .tabs-segmented, .tab, .pill, .chip {
+  box-shadow:none !important;
+}
+.orange, .bg-orange, .border-orange, .ring-orange { 
+  background:none !important; border-color:var(--border) !important;
+}
+
+Tailwind class hints (if you prefer utilities)
+
+Clear All: class="bg-blue-600 text-white rounded-xl border-0 hover:brightness-95"
+
+Filters toggle pill: class="bg-white text-blue-600 border border-gray-200 rounded-xl"
+
+Filter selects/inputs:
+class="text-gray-900 placeholder-gray-400 bg-white border border-gray-200 rounded-xl focus:outline-none focus:border-blue-600 focus:ring-4 focus:ring-blue-600/25"
+
+Segmented container: class="bg-white border border-gray-200 rounded-full p-1"
+
+Tab (inactive): class="bg-white text-blue-600 border border-gray-200 rounded-full px-4 py-2 font-semibold"
+
+Tab (active): class="bg-blue-600 text-white border border-blue-600 rounded-full px-4 py-2 font-semibold"

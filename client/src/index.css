@@ -788,3 +788,234 @@ button:contains("Become a Service Provider") {
 .cookie-toast .btn:hover {
   filter: brightness(0.95) !important;
 }
+
+/* Advanced Filters - Remove yellow toggle button */
+.filters-card .filters-toggle,
+.filters-card .filters-toggle .icon,
+button[class*="filters"],
+button[class*="Filters"] {
+  background: #fff !important;
+  color: #2563eb !important;
+  border: 1px solid #e5e7eb !important;
+  border-radius: 12px !important;
+}
+
+/* Clear All button in filters */
+.filters-card .btn-clear,
+.btn-clear-all,
+button:contains("Clear All") {
+  background: #2563eb !important;
+  color: #fff !important;
+  border: none !important;
+  border-radius: 12px !important;
+}
+
+/* Filter inputs and selects - black text, no yellow outlines */
+.filters-card input,
+.filters-card select,
+.filters-card .form-input,
+[data-testid*="filter"] input,
+[data-testid*="filter"] select {
+  color: #111827 !important;
+  border: 1px solid #e5e7eb !important;
+  background: #fff !important;
+  border-radius: 12px !important;
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+.filters-card input::placeholder,
+.filters-card .placeholder {
+  color: #6b7280 !important;
+}
+
+.filters-card input:focus,
+.filters-card select:focus,
+.filters-card .form-input:focus,
+[data-testid*="filter"] input:focus,
+[data-testid*="filter"] select:focus {
+  border-color: #2563eb !important;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, .25) !important;
+}
+
+/* Marketplace tabs - remove orange, restore blue segmented style */
+.tab-pill {
+  background: #fff !important;
+  color: #2563eb !important;
+  border: 1px solid #e5e7eb !important;
+  border-radius: 9999px !important;
+  padding: 8px 16px !important;
+  font-weight: 600 !important;
+  transition: all 0.2s ease !important;
+}
+
+.tab-pill.is-active {
+  background: #2563eb !important;
+  color: #fff !important;
+  border-color: #2563eb !important;
+}
+
+/* Segmented container for marketplace tabs */
+.bg-secondary {
+  background: #fff !important;
+  border: 1px solid #e5e7eb !important;
+  border-radius: 9999px !important;
+  padding: 4px !important;
+}
+
+/* Featured Services / All Services segmented toggle */
+.segmented,
+.tabs-segmented,
+.services-tabs {
+  background: #fff !important;
+  border: 1px solid #e5e7eb !important;
+  border-radius: 9999px !important;
+  padding: 4px !important;
+}
+
+.segmented .tab,
+.tabs-segmented .tab,
+.services-tabs .tab {
+  background: #fff !important;
+  color: #2563eb !important;
+  border: 1px solid #e5e7eb !important;
+  border-radius: 9999px !important;
+  font-weight: 600 !important;
+}
+
+.segmented .tab.is-active,
+.tabs-segmented .tab.is-active,
+.services-tabs .tab.is-active {
+  background: #2563eb !important;
+  color: #fff !important;
+  border-color: #2563eb !important;
+}
+
+/* Remove all orange/yellow styling globally */
+.orange, .bg-orange, .border-orange, .ring-orange,
+.text-orange, .shadow-orange {
+  background: none !important;
+  border-color: #e5e7eb !important;
+  color: #2563eb !important;
+  box-shadow: none !important;
+}
+
+/* Target the specific Advanced Filters button with yellow background */
+button[class*="bg-yellow"],
+button[class*="yellow"],
+.bg-yellow-400,
+.bg-yellow-500 {
+  background: #fff !important;
+  color: #2563eb !important;
+  border: 1px solid #e5e7eb !important;
+}
+
+/* Services marketplace pill buttons */
+.pill-active,
+.pill-inactive,
+button[class*="pill"] {
+  border-radius: 9999px !important;
+  font-weight: 600 !important;
+  padding: 8px 16px !important;
+}
+
+.pill-active {
+  background: #2563eb !important;
+  color: #fff !important;
+  border: 1px solid #2563eb !important;
+}
+
+.pill-inactive {
+  background: #fff !important;
+  color: #2563eb !important;
+  border: 1px solid #e5e7eb !important;
+}
+
+/* Override any remaining yellow in filter toggles */
+button:has(svg[data-lucide="filter"]),
+button:has(.lucide-filter),
+[data-testid*="filter"] button,
+button[class*="variant-outline"] {
+  background: #fff !important;
+  color: #2563eb !important;
+  border: 1px solid #e5e7eb !important;
+  border-radius: 12px !important;
+}
+
+/* Target specific pill classes used in ServicesMarketplace */
+.bg-blue-50.text-blue-700.border-blue-600 {
+  background: #fff !important;
+  color: #2563eb !important;
+  border: 1px solid #e5e7eb !important;
+}
+
+.bg-\[#2363FF\].text-white.border-\[#2363FF\] {
+  background: #2563eb !important;
+  color: #fff !important;
+  border: 1px solid #2563eb !important;
+}
+
+/* Featured Services / All Services tabs specific fix */
+button[class*="bg-blue-50"],
+button[class*="text-blue-700"] {
+  background: #fff !important;
+  color: #2563eb !important;
+  border: 1px solid #e5e7eb !important;
+}
+
+button[class*="bg-[#2363FF]"],
+button[class*="text-white"] {
+  background: #2563eb !important;
+  color: #fff !important;
+  border: 1px solid #2563eb !important;
+}
+
+/* Comprehensive yellow/orange elimination - all possible classes */
+.bg-yellow-50, .bg-yellow-100, .bg-yellow-200, .bg-yellow-300, .bg-yellow-400, .bg-yellow-500,
+.bg-yellow-600, .bg-yellow-700, .bg-yellow-800, .bg-yellow-900,
+.bg-amber-50, .bg-amber-100, .bg-amber-200, .bg-amber-300, .bg-amber-400, .bg-amber-500,
+.bg-amber-600, .bg-amber-700, .bg-amber-800, .bg-amber-900,
+.bg-orange-50, .bg-orange-100, .bg-orange-200, .bg-orange-300, .bg-orange-400, .bg-orange-500,
+.bg-orange-600, .bg-orange-700, .bg-orange-800, .bg-orange-900 {
+  background-color: #ffffff !important;
+}
+
+.text-yellow-50, .text-yellow-100, .text-yellow-200, .text-yellow-300, .text-yellow-400, .text-yellow-500,
+.text-yellow-600, .text-yellow-700, .text-yellow-800, .text-yellow-900,
+.text-amber-50, .text-amber-100, .text-amber-200, .text-amber-300, .text-amber-400, .text-amber-500,
+.text-amber-600, .text-amber-700, .text-amber-800, .text-amber-900,
+.text-orange-50, .text-orange-100, .text-orange-200, .text-orange-300, .text-orange-400, .text-orange-500,
+.text-orange-600, .text-orange-700, .text-orange-800, .text-orange-900 {
+  color: #2563eb !important;
+}
+
+.border-yellow-50, .border-yellow-100, .border-yellow-200, .border-yellow-300, .border-yellow-400, .border-yellow-500,
+.border-yellow-600, .border-yellow-700, .border-yellow-800, .border-yellow-900,
+.border-amber-50, .border-amber-100, .border-amber-200, .border-amber-300, .border-amber-400, .border-amber-500,
+.border-amber-600, .border-amber-700, .border-amber-800, .border-amber-900,
+.border-orange-50, .border-orange-100, .border-orange-200, .border-orange-300, .border-orange-400, .border-orange-500,
+.border-orange-600, .border-orange-700, .border-orange-800, .border-orange-900 {
+  border-color: #e5e7eb !important;
+}
+
+/* Ring/outline colors */
+.ring-yellow-50, .ring-yellow-100, .ring-yellow-200, .ring-yellow-300, .ring-yellow-400, .ring-yellow-500,
+.ring-yellow-600, .ring-yellow-700, .ring-yellow-800, .ring-yellow-900,
+.ring-amber-50, .ring-amber-100, .ring-amber-200, .ring-amber-300, .ring-amber-400, .ring-amber-500,
+.ring-amber-600, .ring-amber-700, .ring-amber-800, .ring-amber-900,
+.ring-orange-50, .ring-orange-100, .ring-orange-200, .ring-orange-300, .ring-orange-400, .ring-orange-500,
+.ring-orange-600, .ring-orange-700, .ring-orange-800, .ring-orange-900 {
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, .25) !important;
+}
+
+/* Any button with yellow, amber, or orange in its classes */
+button[class*="yellow"], 
+button[class*="amber"], 
+button[class*="orange"],
+[class*="bg-yellow"],
+[class*="bg-amber"], 
+[class*="bg-orange"] {
+  background: #fff !important;
+  color: #2563eb !important;
+  border: 1px solid #e5e7eb !important;
+}
