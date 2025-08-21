@@ -99,22 +99,22 @@ const CookieConsentBanner: React.FC = () => {
                 <Button
                   size="sm"
                   onClick={() => setShowSettings(true)}
-                  className="gap-2 bg-blue-600 hover:bg-blue-700 text-white"
+                  className="gap-2 !bg-blue-600 hover:!bg-blue-700 !text-white !border-blue-600 hover:!border-blue-700"
                 >
-                  <Shield className="w-4 h-4" />
+                  <Shield className="w-4 h-4 !text-white" />
                   Manage Preferences
                 </Button>
                 <Button
                   size="sm"
                   onClick={rejectNonEssential}
-                  className="bg-blue-600 hover:bg-blue-700 text-white"
+                  className="!bg-blue-600 hover:!bg-blue-700 !text-white !border-blue-600 hover:!border-blue-700"
                 >
                   Reject Non-Essential
                 </Button>
                 <Button
                   size="sm"
                   onClick={acceptAll}
-                  className="bg-blue-600 hover:bg-blue-700 text-white"
+                  className="!bg-blue-600 hover:!bg-blue-700 !text-white !border-blue-600 hover:!border-blue-700"
                 >
                   Accept All
                 </Button>
@@ -224,14 +224,14 @@ const CookieConsentBanner: React.FC = () => {
                 <Button
                   size="sm"
                   onClick={rejectNonEssential}
-                  className="bg-blue-600 hover:bg-blue-700 text-white"
+                  className="!bg-blue-600 hover:!bg-blue-700 !text-white !border-blue-600 hover:!border-blue-700"
                 >
                   Reject All
                 </Button>
                 <Button
                   size="sm"
                   onClick={acceptSelected}
-                  className="bg-blue-600 hover:bg-blue-700 text-white"
+                  className="!bg-blue-600 hover:!bg-blue-700 !text-white !border-blue-600 hover:!border-blue-700"
                 >
                   Save Preferences
                 </Button>
