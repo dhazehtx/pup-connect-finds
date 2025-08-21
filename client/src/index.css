@@ -555,12 +555,21 @@ button:contains("Become a Service Provider") {
 /* Pill tabs: outline by default, blue pill + white text when active */
 .tab-pill {
   @apply rounded-full px-4 py-2 text-sm font-medium
-         border border-primary text-primary bg-transparent
-         transition-colors;
+         border border-blue-200 text-gray-600 bg-white
+         transition-colors hover:bg-gray-50;
+  gap: 0.5rem;
+  display: inline-flex;
+  align-items: center;
 }
 .tab-pill.is-active,
 .tab-pill[data-state="active"] {
-  @apply bg-primary text-primary-foreground shadow;
+  @apply bg-blue-600 text-white border-blue-600 shadow;
+}
+
+/* Ensure icons in active tabs are white */
+.tab-pill.is-active svg,
+.tab-pill[data-state="active"] svg {
+  color: white !important;
 }
 
 /* Make any icons inside pills inherit and be visible */
