@@ -14,14 +14,15 @@ const tabs = [
 export default function MarketplaceTabs({ activeTab, onTabChange }: MarketplaceTabsProps) {
   return (
     <nav className="w-full flex justify-center mt-6">
-      <div className="inline-flex items-center gap-2 rounded-full bg-secondary p-1 shadow-sm">
+      <div className="inline-flex items-center gap-1 rounded-full bg-white p-1 shadow-sm border border-gray-200">
         {tabs.map(t => {
           const IconComponent = t.icon;
+          const isActive = activeTab === t.key;
           return (
             <button
               key={t.key}
               onClick={() => onTabChange(t.key)}
-              className={`tab-pill ${activeTab === t.key ? "is-active" : ""}`}
+              className={`marketplace-tab-pill ${isActive ? "is-active" : ""}`}
               data-testid={`tab-${t.key}`}
             >
               <IconComponent className="w-4 h-4" />
