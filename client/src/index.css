@@ -533,6 +533,14 @@ button:contains("Become a Service Provider") {
   color: hsl(var(--muted-foreground)) !important;
 }
 
+/* Store product prices should be black/dark text */
+.store-tab .product-price,
+.store-tab [class*="price"],
+.store-tab .text-lg,
+.store-tab .font-bold {
+  color: #000000 !important;
+}
+
 /* Remove any hardcoded blue colors in components */
 .text-blue-700,
 .text-blue-600,
@@ -552,34 +560,7 @@ button:contains("Become a Service Provider") {
 
 /* PILL BUTTON UTILITIES - White Text on Active State */
 
-/* Marketplace tabs - match screenshot design exactly */
-.marketplace-tab-pill {
-  @apply rounded-full px-4 py-2 text-sm font-medium
-         bg-blue-500 border-0
-         transition-colors hover:bg-blue-600;
-  gap: 0.5rem;
-  display: inline-flex;
-  align-items: center;
-  min-height: 36px;
-  color: white !important;
-}
-
-.marketplace-tab-pill.is-active {
-  @apply bg-blue-500 shadow-sm;
-  color: white !important;
-}
-
-/* Ensure icons and text in marketplace tabs are always white */
-.marketplace-tab-pill svg,
-.marketplace-tab-pill span {
-  color: white !important;
-  width: 1rem; 
-  height: 1rem; 
-  margin-right: 0.375rem;
-  fill: none; 
-  stroke: currentColor; 
-  stroke-width: 2;
-}
+/* Marketplace tabs now use inline classes - no custom CSS needed */
 
 /* Legacy pill tabs: outline by default, blue pill + white text when active */
 .tab-pill {

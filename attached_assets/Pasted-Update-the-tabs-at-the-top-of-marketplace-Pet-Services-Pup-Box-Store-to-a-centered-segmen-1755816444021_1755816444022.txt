@@ -1,0 +1,71 @@
+Update the tabs at the top of /marketplace (“Pet Services”, “Pup Box”, “Store”) to a centered segmented control that matches the second screenshot.
+
+Exact requirements
+
+Container (segmented group)
+
+Centered under the header, max-width ~680px on desktop, full-width minus 24px padding on mobile.
+
+Background: white; Border: 1px solid #e5e7eb; Radius: 9999px; Padding: 4px; No drop shadow.
+
+Tabs
+
+Three tabs in order: Pet Services, Pup Box, Store. Each includes its icon at the left.
+
+Inactive tab: background white, text/icon #2563eb, border 1px solid #e5e7eb, radius 9999px, padding 8px 14px, font-weight 600.
+
+Active tab: background #2563eb, text/icon white, border 1px solid #2563eb, radius 9999px, padding 8px 14px, font-weight 600.
+
+Icons: 16–18px; 8px gap to label.
+
+Hover: no color change; focus state uses a soft ring 0 0 0 3px rgba(37,99,235,.20) (no yellow/orange anywhere).
+
+Behavior
+
+Clicking a tab switches the active style immediately and updates the route/content:
+
+Pet Services → /marketplace?tab=services (or /marketplace/services)
+
+Pup Box → /marketplace?tab=box (or /marketplace/box)
+
+Store → /marketplace?tab=store (or /marketplace/store)
+
+Preserve query params like search if present.
+
+On initial load, default to Pet Services active.
+
+Spacing & placement
+
+Keep the segmented control visually above the purple hero card and centered horizontally with 16px margin below.
+
+Ensure it does not overlap the hero; no absolute positioning tricks.
+
+Accessibility
+
+Tabs are buttons with role="tab" inside a role="tablist".
+
+aria-selected="true" on the active tab, keyboard navigation with arrow keys.
+
+Cleanup
+
+Remove any previous orange/yellow backgrounds or outlines on these tabs.
+
+Do not use gradients here.
+
+(If using Tailwind, suggested classes)
+
+Container: mx-auto w-full max-w-[680px] bg-white border border-gray-200 rounded-full p-1 flex items-center justify-center gap-2
+
+Tab (inactive): bg-white text-blue-600 border border-gray-200 rounded-full px-4 py-2 font-semibold inline-flex items-center gap-2 focus:outline-none focus:ring-4 focus:ring-blue-600/20
+
+Tab (active): bg-blue-600 text-white border border-blue-600 rounded-full px-4 py-2 font-semibold inline-flex items-center gap-2 focus:outline-none focus:ring-4 focus:ring-blue-600/20
+
+Acceptance checklist
+
+Tabs are centered, white segmented container, no shadows.
+
+Active tab = blue pill with white text; inactive tabs = white pills with blue text and gray borders.
+
+No orange/yellow visible anywhere on the control.
+
+Keyboard and screen-reader behavior works.
