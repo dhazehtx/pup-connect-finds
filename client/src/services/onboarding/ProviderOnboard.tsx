@@ -104,13 +104,46 @@ const ProviderOnboard: React.FC = () => {
       return;
     }
 
-    if (currentStep === 2 && idVerification.status !== 'passed') {
-      toast({
-        title: "Verification Required",
-        description: "Please complete ID verification before proceeding.",
-        variant: "destructive",
-      });
-      return;
+    if (currentStep === 2) {
+      // If both images are uploaded but verification hasn't started, start it automatically
+      if (idFrontFile && idBackFile && idVerification.status === 'idle') {
+        toast({
+          title: "Starting Verification",
+          description: "Please wait while we verify your ID documents...",
+        });
+        handleStartIDVerification();
+        return;
+      }
+      
+      // If verification is in progress, inform user to wait
+      if (idVerification.status === 'loading' || idVerification.status === 'pending') {
+        toast({
+          title: "Verification in Progress",
+          description: "Please wait for ID verification to complete before proceeding.",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      // If verification failed, inform user
+      if (idVerification.status === 'failed') {
+        toast({
+          title: "Verification Failed",
+          description: "Please retry ID verification before proceeding.",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      // Only allow next if verification passed
+      if (idVerification.status !== 'passed') {
+        toast({
+          title: "Verification Required",
+          description: "Please upload both front and back of your ID.",
+          variant: "destructive",
+        });
+        return;
+      }
     }
 
     if (currentStep === 3 && backgroundCheck.status !== 'passed') {
@@ -791,13 +824,26 @@ const ProviderOnboard: React.FC = () => {
                   )}
                 </div>
 
+                {/* Show auto-start message when both images are uploaded */}
+                {idFrontFile && idBackFile && (
+                  <div className="bg-green-50 p-4 rounded-lg">
+                    <p className="text-sm text-green-800 font-medium">
+                      ✓ Both images uploaded successfully! 
+                    </p>
+                    <p className="text-sm text-green-700 mt-1">
+                      Click "Next" to automatically start verification, or use the button below.
+                    </p>
+                  </div>
+                )}
+                
                 <Button 
                   onClick={handleStartIDVerification}
                   disabled={!idFrontFile || !idBackFile || idVerification.status === 'loading'}
                   className="w-full"
+                  variant={idFrontFile && idBackFile ? "outline" : "default"}
                   data-testid="button-start-id-verification"
                 >
-{idVerification.status === 'loading' ? 'Processing...' : 'Start ID Verification'}
+                  {idVerification.status === 'loading' ? 'Processing...' : 'Start ID Verification'}
                 </Button>
                 <div className="bg-blue-50 p-4 rounded-lg">
                   <p className="text-sm text-blue-800">
@@ -1350,8 +1396,13 @@ const ProviderOnboard: React.FC = () => {
         <Button
           onClick={handleNext}
           disabled={currentStep === steps.length - 1}
+          className={currentStep === 2 && idFrontFile && idBackFile && idVerification.status === 'idle' ? 'bg-green-600 hover:bg-green-700' : ''}
         >
-          {currentStep === steps.length - 1 ? 'Complete' : 'Next'}
+          {currentStep === steps.length - 1 ? 'Complete' : 
+           currentStep === 2 && idFrontFile && idBackFile && idVerification.status === 'idle' ? 'Next (Start Verification)' :
+           currentStep === 2 && idVerification.status === 'loading' ? 'Verifying...' :
+           currentStep === 2 && idVerification.status === 'pending' ? 'Verification in Progress...' :
+           'Next'}
         </Button>
       </div>
     </div>
