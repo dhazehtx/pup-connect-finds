@@ -565,10 +565,18 @@ button:contains("Become a Service Provider") {
 /* Global price override for store products */
 .store-tab .text-2xl.font-bold,
 .store-tab .text-primary,
+.store-tab .text-primary-600,
 .store-tab [class*="text-primary"],
-.store-tab [class*="font-bold"][class*="text-2xl"] {
+.store-tab [class*="font-bold"][class*="text-2xl"],
+.store-tab .text-lg.font-semibold.text-primary-600 {
   color: #000000 !important;
   --text-primary: #000000 !important;
+}
+
+/* Specific override for the price spans */
+.store-tab span.text-lg.font-semibold.text-primary-600,
+.store-tab .text-primary-600 {
+  color: #000000 !important;
 }
 
 /* Remove any hardcoded blue colors in components */
