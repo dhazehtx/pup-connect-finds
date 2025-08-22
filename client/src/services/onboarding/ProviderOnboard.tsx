@@ -626,6 +626,7 @@ const ProviderOnboard: React.FC = () => {
 
   // Save provider basics
   const saveBasics = async () => {
+    console.log('[ONBOARDING] saveBasics function START');
     console.log('[ONBOARDING] saveBasics called:', { user: !!user?.id, basicsData });
     
     if (!user?.id) {
@@ -746,7 +747,10 @@ const ProviderOnboard: React.FC = () => {
               </div>
 
               <Button 
-                onClick={saveBasics}
+                onClick={() => {
+                  console.log('[ONBOARDING] Save button clicked!');
+                  saveBasics();
+                }}
                 disabled={isSavingBasics}
                 className="w-full"
                 data-testid="button-save-basics"
