@@ -694,6 +694,20 @@ button:contains("Become a Service Provider") {
   box-shadow: none !important;
 }
 
+/* Target the specific container with bg-secondary */
+.services-tabs div.inline-flex.items-center.gap-2.rounded-full.bg-secondary.p-1.shadow-sm {
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+  background-color: #f8fafc !important; /* Light gray instead of secondary */
+}
+
+/* Override any orange/amber background colors */
+.services-tabs .bg-secondary {
+  background-color: #f8fafc !important;
+  border: none !important;
+}
+
 /* Ensure no orange border on any element in services tabs */
 .services-tabs * {
   border-color: transparent !important;
