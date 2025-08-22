@@ -665,23 +665,19 @@ const ProviderOnboard: React.FC = () => {
         phone: basicsData.phone
       });
 
-      const response = await fetch('/api/providers/save', {
+      // Import apiRequest dynamically to avoid circular dependency
+      const { apiRequest } = await import('@/lib/queryClient');
+      
+      const data = await apiRequest('/api/providers/save', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+        body: {
           userId: user.id,
           legalName: basicsData.legalName,
           phone: basicsData.phone,
-        }),
+        },
       });
 
-      console.log('[ONBOARDING] Response status:', response.status);
-      const data = await response.json();
       console.log('[ONBOARDING] Response data:', data);
-
-      if (!response.ok) {
-        throw new Error(data.error || `Failed to save basics (${response.status})`);
-      }
 
       // Store provider ID
       console.log('[ONBOARDING] Setting providerId:', data.providerId);
