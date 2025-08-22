@@ -659,6 +659,12 @@ const ProviderOnboard: React.FC = () => {
     setIsSavingBasics(true);
 
     try {
+      console.log('[ONBOARDING] Making save request with:', {
+        userId: user.id,
+        legalName: basicsData.legalName,
+        phone: basicsData.phone
+      });
+
       const response = await fetch('/api/providers/save', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -669,10 +675,12 @@ const ProviderOnboard: React.FC = () => {
         }),
       });
 
+      console.log('[ONBOARDING] Response status:', response.status);
       const data = await response.json();
+      console.log('[ONBOARDING] Response data:', data);
 
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to save basics');
+        throw new Error(data.error || `Failed to save basics (${response.status})`);
       }
 
       // Store provider ID
