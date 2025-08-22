@@ -631,6 +631,25 @@ button:contains("Become a Service Provider") {
   border-color: #2563eb !important;
 }
 
+/* Remove orange borders from services tabs */
+.services-tabs .tab-pill,
+.services-tabs .TabsTrigger,
+.services-tabs [data-radix-tabs-trigger],
+.services-tabs .tab-pill[data-state="inactive"] {
+  border-color: #e5e7eb !important;  /* Gray border */
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* Override any orange/amber borders */
+.services-tabs *[class*="border-orange"],
+.services-tabs *[class*="border-amber"],
+.services-tabs *[class*="ring-orange"],
+.services-tabs *[class*="ring-amber"] {
+  border-color: #e5e7eb !important;
+  ring-color: #e5e7eb !important;
+}
+
 /* Make any icons inside pills inherit and be visible */
 .tab-pill svg {
   width: 1rem; height: 1rem; margin-right: 0.375rem;
