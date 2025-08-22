@@ -39,6 +39,39 @@ button[type="submit"]:not(:disabled):hover {
   border-color: #1d4ed8 !important;
 }
 
+/* Remove yellow/amber borders from all input fields */
+input[type="email"],
+input[type="password"],
+input[type="text"],
+textarea,
+.auth-page input,
+.auth-form input {
+  border-color: #d1d5db !important;  /* Gray border */
+  outline-color: #2563eb !important; /* Blue focus outline */
+}
+
+/* Remove yellow/amber focus states */
+input[type="email"]:focus,
+input[type="password"]:focus,
+input[type="text"]:focus,
+textarea:focus,
+.auth-page input:focus,
+.auth-form input:focus {
+  border-color: #2563eb !important;  /* Blue focus border */
+  outline-color: #2563eb !important;
+  ring-color: #2563eb !important;
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2) !important;
+}
+
+/* Override any yellow/amber ring colors on inputs */
+input[class*="ring-yellow"],
+input[class*="ring-amber"],
+input[class*="border-yellow"],
+input[class*="border-amber"] {
+  border-color: #d1d5db !important;
+  ring-color: #2563eb !important;
+}
+
 /* Additional marketplace tab styling */
 .marketplace .tabs-list button {
   color: white !important;
