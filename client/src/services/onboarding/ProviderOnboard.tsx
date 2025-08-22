@@ -734,10 +734,7 @@ const ProviderOnboard: React.FC = () => {
                   onChange={(e) => setBasicsData(prev => ({ ...prev, phone: e.target.value }))}
                 />
               </div>
-              <div>
-                <label className="block text-sm font-medium mb-2">Profile Photo</label>
-                <Input type="file" accept="image/*" />
-              </div>
+
               <Button 
                 onClick={saveBasics}
                 disabled={isSavingBasics}
