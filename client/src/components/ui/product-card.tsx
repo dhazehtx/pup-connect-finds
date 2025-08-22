@@ -108,10 +108,7 @@ export function ProductCard({ product, onQuickView }: ProductCardProps) {
               In Cart
             </>
           ) : (
-            <>
-              <ShoppingCart className="mr-2 h-4 w-4" />
-              {inStock ? "Add to Cart" : "Out of Stock"}
-            </>
+            inStock ? "Add to Cart" : "Out of Stock"
           )}
         </Button>
       </CardFooter>
