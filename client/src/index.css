@@ -547,8 +547,28 @@ button:contains("Become a Service Provider") {
 .product-card .text-primary,
 .product-card .text-2xl.font-bold,
 [data-testid*="product"] .text-primary,
-[data-testid*="product"] .text-2xl {
+[data-testid*="product"] .text-2xl,
+.store-tab .text-primary,
+.store-tab .font-bold,
+.store-tab .text-2xl.font-bold.text-primary {
   color: #000000 !important;
+}
+
+/* Target all price elements in store tab */
+.store-tab div:contains('$'),
+.store-tab *[class*="price"],
+.store-tab .text-2xl,
+.store-tab .font-bold {
+  color: #000000 !important;
+}
+
+/* Global price override for store products */
+.store-tab .text-2xl.font-bold,
+.store-tab .text-primary,
+.store-tab [class*="text-primary"],
+.store-tab [class*="font-bold"][class*="text-2xl"] {
+  color: #000000 !important;
+  --text-primary: #000000 !important;
 }
 
 /* Remove any hardcoded blue colors in components */
