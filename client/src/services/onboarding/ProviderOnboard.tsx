@@ -94,8 +94,11 @@ const ProviderOnboard: React.FC = () => {
   ];
 
   const handleNext = () => {
+    console.log('[ONBOARDING] handleNext called:', { currentStep, providerId, hasProviderId: !!providerId });
+    
     // Check if current step requirements are met
     if (currentStep === 1 && !providerId) {
+      console.log('[ONBOARDING] Blocking step 1 - no providerId');
       toast({
         title: "Basics Required",
         description: "Please save your basic information before proceeding.",
@@ -623,6 +626,8 @@ const ProviderOnboard: React.FC = () => {
 
   // Save provider basics
   const saveBasics = async () => {
+    console.log('[ONBOARDING] saveBasics called:', { user: !!user?.id, basicsData });
+    
     if (!user?.id) {
       toast({
         title: "Error",
@@ -671,6 +676,7 @@ const ProviderOnboard: React.FC = () => {
       }
 
       // Store provider ID
+      console.log('[ONBOARDING] Setting providerId:', data.providerId);
       setProviderId(data.providerId);
       localStorage.setItem('providerId', data.providerId);
 
