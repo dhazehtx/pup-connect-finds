@@ -1,0 +1,90 @@
+// client/src/components/MarketplaceTabs.tsx
+"use client";
+
+import { useRouter, useSearchParams } from "next/navigation";
+import { Briefcase, Gift, Store as StoreIcon } from "lucide-react";
+import { useMemo } from "react";
+
+type TabKey = "services" | "box" | "store";
+
+const TABS: { key: TabKey; label: string; short: string; Icon: any }[] = [
+  { key: "services", label: "Pet Services", short: "Pet", Icon: Briefcase },
+  { key: "box",       label: "Pup Box",     short: "Pup", Icon: Gift },
+  { key: "store",     label: "Store",       short: "Store", Icon: StoreIcon },
+];
+
+export default function MarketplaceTabs() {
+  const router = useRouter();
+  const params = useSearchParams();
+
+  const active: TabKey = useMemo(() => {
+    const q = (params.get("tab") || "").toLowerCase();
+    return (["services", "box", "store"] as TabKey[]).includes(q as TabKey)
+      ? (q as TabKey)
+      : "services";
+  }, [params]);
+
+  const go = (key: TabKey) => {
+    const search = new URLSearchParams(params.toString());
+    search.set("tab", key);
+    router.push(`/marketplace?${search.toString()}`);
+  };
+
+  return (
+    <div
+      role="tablist"
+      aria-label="Marketplace sections"
+      className="
+        mx-auto w-full max-w-[680px]
+        bg-white border border-gray-200 rounded-full
+        p-1 flex items-center justify-center gap-2
+      "
+    >
+      {TABS.map(({ key, label, short, Icon }) => {
+        const isActive = key === active;
+        return (
+          <button
+            key={key}
+            role="tab"
+            aria-selected={isActive}
+            data-testid={`tab-${key}`}
+            onClick={() => go(key)}
+            className={[
+              // shared
+              "rounded-full px-4 py-2 font-semibold inline-flex items-center gap-2",
+              "focus:outline-none focus:ring-4 focus:ring-blue-600/20 transition-all",
+              // states
+              isActive
+                ? "bg-blue-600 text-white border border-blue-600"
+                : "bg-white text-blue-600 border border-gray-200",
+            ].join(" ")}
+          >
+            <Icon className="w-4 h-4" />
+            <span className="hidden sm:inline">{label}</span>
+            <span className="sm:hidden">{short}</span>
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+What this changes (vs. your current snippet)
+Container: bg-white border border-gray-200 rounded-full p-1 (removes the gray pill background).
+
+Active tab: bg-blue-600 text-white border-blue-600.
+
+Inactive tab: bg-white text-blue-600 border-gray-200.
+
+Kept the icons at 16px and the responsive short labels.
+
+Proper ARIA (role="tablist", role="tab", aria-selected).
+
+Routing preserves other query params and just updates tab.
+
+If you also want these centered under the header with a little breathing room above the hero, add a wrapper margin where you render the component:
+
+tsx
+Copy
+Edit
+<MarketplaceTabs />
+<div className="mt-4" />
