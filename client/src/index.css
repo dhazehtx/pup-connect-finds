@@ -537,7 +537,17 @@ button:contains("Become a Service Provider") {
 .store-tab .product-price,
 .store-tab [class*="price"],
 .store-tab .text-lg,
-.store-tab .font-bold {
+.store-tab .font-bold,
+.store-tab .text-primary,
+.store-tab .text-2xl {
+  color: #000000 !important;
+}
+
+/* Ensure all product card prices are black */
+.product-card .text-primary,
+.product-card .text-2xl.font-bold,
+[data-testid*="product"] .text-primary,
+[data-testid*="product"] .text-2xl {
   color: #000000 !important;
 }
 

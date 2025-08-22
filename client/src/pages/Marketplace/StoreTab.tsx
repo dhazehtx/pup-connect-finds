@@ -217,7 +217,7 @@ const StoreTab = () => {
   const hasActiveFilters = filters.categories.length > 0 || filters.minPrice > 0 || filters.maxPrice < 100;
 
   return (
-    <div className="bg-white min-h-screen pb-24">
+    <div className="store-tab bg-white min-h-screen pb-24">
       {/* Subtle blue accent divider */}
       <div className="h-2 w-full bg-primary-200 rounded-b-3xl"></div>
       
