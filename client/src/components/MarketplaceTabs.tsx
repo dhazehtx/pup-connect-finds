@@ -14,7 +14,7 @@ const tabs = [
 export default function MarketplaceTabs({ activeTab, onTabChange }: MarketplaceTabsProps) {
   return (
     <nav className="w-full flex justify-center mt-6 mb-4" role="tablist">
-      <div className="mx-auto w-full max-w-[680px] bg-white border border-gray-200 rounded-full p-1 flex items-center justify-center gap-2">
+      <div className="mx-auto w-full max-w-[680px] bg-gray-100 border border-gray-200 rounded-full p-1 flex items-center justify-center gap-1">
         {tabs.map(t => {
           const IconComponent = t.icon;
           const isActive = activeTab === t.key;
@@ -22,7 +22,10 @@ export default function MarketplaceTabs({ activeTab, onTabChange }: MarketplaceT
             <button
               key={t.key}
               onClick={() => onTabChange(t.key)}
-              className="bg-blue-600 text-white border border-blue-600 rounded-full px-4 py-2 font-semibold inline-flex items-center gap-2 focus:outline-none focus:ring-4 focus:ring-blue-600/20 transition-colors hover:bg-blue-700"
+              className={`${isActive ? 
+                'bg-blue-600 text-white shadow-sm' : 
+                'bg-transparent text-blue-600 hover:bg-white/50'
+              } rounded-full px-4 py-2 font-semibold inline-flex items-center gap-2 focus:outline-none focus:ring-2 focus:ring-blue-600/20 transition-all duration-200`}
               role="tab"
               aria-selected={isActive}
               data-testid={`tab-${t.key}`}
