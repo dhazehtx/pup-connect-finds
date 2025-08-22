@@ -16,7 +16,7 @@ const Marketplace = () => {
 
   const tabs = [
     { key: 'services', label: 'Pet Services', component: <ServicesTab /> },
-    { key: 'pupbox', label: 'Pup Box', component: <PupBoxSubscription /> },
+    { key: 'box', label: 'Pup Box', component: <PupBoxSubscription /> },
     { key: 'store', label: 'Store', component: <StoreTab /> },
   ];
 
@@ -41,7 +41,7 @@ const Marketplace = () => {
             </div>
           </TabsContent>
 
-          <TabsContent value="pupbox" className="mt-8 space-y-6 focus-visible:outline-none">
+          <TabsContent value="box" className="mt-8 space-y-6 focus-visible:outline-none">
             <PupBoxSubscription />
           </TabsContent>
 

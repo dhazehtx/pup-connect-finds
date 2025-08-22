@@ -7,7 +7,7 @@ interface MarketplaceTabsProps {
 
 const tabs = [
   { key: "services", label: "Pet Services", short: "Pet", icon: Briefcase },
-  { key: "pupbox", label: "Pup Box", short: "Pup", icon: Gift },
+  { key: "box", label: "Pup Box", short: "Pup", icon: Gift },
   { key: "store", label: "Store", short: "Store", icon: Store },
 ];
 

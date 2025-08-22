@@ -1,0 +1,83 @@
+Update the tabs at the top of /marketplace (“Pet Services”, “Pup Box”, “Store”) to the pill style shown in the first screenshot.
+
+Design spec
+
+Segmented container
+
+Centered below the header.
+
+background: #fff
+
+border: 1px solid #e5e7eb
+
+border-radius: 9999px
+
+padding: 4px
+
+gap: 8px
+
+No drop shadow.
+
+Tabs
+
+Each tab is a pill with icon + label.
+
+Active tab:
+background: #2563eb (solid), color: #fff, border: 1px solid #2563eb, font-weight: 600, padding: 8px 14px, border-radius: 9999px.
+
+Inactive tab:
+background: #fff, color: #2563eb, border: 1px solid #e5e7eb, font-weight: 600, padding: 8px 14px, border-radius: 9999px.
+
+Icon size 16–18px; 8px gap to the text.
+
+No orange/yellow; no gradient.
+
+Behavior
+
+Clicking a tab switches the active style immediately and updates the route while preserving other query params:
+
+Pet Services → tab=services
+
+Pup Box → tab=box
+
+Store → tab=store
+
+Default to Pet Services active on first load.
+
+Accessibility
+
+Wrap in role="tablist".
+
+Each button role="tab" with aria-selected="true|false".
+
+Keyboard arrows move focus between tabs.
+
+Cleanup
+
+Remove the current “outline-only” look (no ghost/transparent buttons).
+
+Ensure the container uses white (not gray) background and visible light gray border.
+
+Keep tabs horizontally centered with 16px margin below the group.
+
+Tailwind utility targets (if helpful)
+
+Container: mx-auto w-full max-w-[680px] bg-white border border-gray-200 rounded-full p-1 flex items-center justify-center gap-2
+
+Tab (active): bg-blue-600 text-white border border-blue-600 rounded-full px-4 py-2 font-semibold inline-flex items-center gap-2
+
+Tab (inactive): bg-white text-blue-600 border border-gray-200 rounded-full px-4 py-2 font-semibold inline-flex items-center gap-2
+
+Focus ring for both: focus:outline-none focus:ring-4 focus:ring-blue-600/20
+
+Acceptance checklist
+
+Active tab is a solid blue pill with white text.
+
+Inactive tabs are white pills with blue text and a light gray border.
+
+Group sits centered, white background, light gray border, no shadows.
+
+No orange/yellow anywhere on the tabs.
+
+ChatGPT can make mistakes. Check important info.
