@@ -1,0 +1,280 @@
+Implement Notifications v1 (Instagram-style) across the app with:
+
+In-app feed (bell icon) + unread badge
+
+Real-time updates via Supabase Realtime
+
+Toasts for new events while user is active
+
+Admin is notified when Provider Application is submitted
+
+Scaffolding for Web Push (behind feature flag) to enable later
+
+0) Tech choices
+
+DB: Supabase (tables below)
+
+Realtime: Supabase channel on notifications
+
+UI: Shadcn list + bell badge
+
+Optional Push (later): Firebase Cloud Messaging (FCM) placeholders, feature flag PUSH_ENABLED=false
+
+1) Database (SQL)
+
+Create normalized tables and a lightweight enum for types.
+
+-- who gets notified, for what
+create type notification_type as enum (
+  'like','comment','follow','message',
+  'order_paid','order_refund',
+  'provider_app_submitted','provider_app_approved','provider_app_rejected'
+);
+
+create table if not exists notifications (
+  id uuid primary key default gen_random_uuid(),
+  recipient_id uuid not null,                 -- user who receives it (profiles.id)
+  actor_id uuid,                              -- user who caused it (optional)
+  type notification_type not null,
+  entity_table text,                          -- e.g., 'posts','comments','orders','provider_applications'
+  entity_id uuid,                             -- the row id in that table
+  message text,                               -- human-readable summary
+  meta jsonb default '{}'::jsonb,             -- extra data (links, thumbnails, amounts)
+  is_read boolean not null default false,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists idx_notifications_recipient_created
+  on notifications(recipient_id, created_at desc);
+
+-- per-user preferences (future-proof; all on by default)
+create table if not exists notification_preferences (
+  user_id uuid primary key,
+  likes boolean default true,
+  comments boolean default true,
+  follows boolean default true,
+  messages boolean default true,
+  order_updates boolean default true,
+  provider_app boolean default true
+);
+
+-- device tokens for future web push (FCM)
+create table if not exists device_tokens (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null,
+  fcm_token text not null,
+  platform text,              -- 'web','ios','android'
+  created_at timestamptz not null default now()
+);
+
+
+RLS:
+
+notifications: recipient can select their own rows; only system/service role inserts/updates.
+
+notification_preferences: owner can read/update their row.
+
+device_tokens: owner can insert/select/delete their tokens.
+
+2) Event emitters (server)
+
+Create a small helper to insert notifications. Call it from existing actions (like, comment, follow, message send, order paid) and from provider application submission.
+
+// lib/notify.ts
+import { supabaseAdmin } from "@/lib/supabaseAdmin"; // service role key
+
+type NotifyArgs = {
+  recipientId: string;
+  actorId?: string;
+  type:
+    | 'like' | 'comment' | 'follow' | 'message'
+    | 'order_paid' | 'order_refund'
+    | 'provider_app_submitted' | 'provider_app_approved' | 'provider_app_rejected';
+  entityTable?: string;
+  entityId?: string;
+  message: string;
+  meta?: Record<string, any>;
+};
+
+export async function createNotification(n: NotifyArgs) {
+  return supabaseAdmin.from('notifications').insert({
+    recipient_id: n.recipientId,
+    actor_id: n.actorId ?? null,
+    type: n.type as any,
+    entity_table: n.entityTable ?? null,
+    entity_id: n.entityId ?? null,
+    message: n.message,
+    meta: n.meta ?? {}
+  });
+}
+
+
+Wire up emitters (examples):
+
+After a like: createNotification({ recipientId: post.ownerId, actorId: me, type:'like', entityTable:'posts', entityId: post.id, message: '${meName} liked your post' })
+
+After a comment: similar with type:'comment'
+
+After follow: type:'follow'
+
+After message send: type:'message' to the other user
+
+After order paid: notify buyer order_paid, admin optional
+
+Provider Application Submitted (admin): when user finishes Step 7, do:
+
+await createNotification({
+  recipientId: ADMIN_USER_ID, // load from config/env
+  actorId: currentUser.id,
+  type: 'provider_app_submitted',
+  entityTable: 'provider_applications',
+  entityId: app.id,
+  message: `${currentUser.name || 'A user'} submitted a provider application.`,
+  meta: { providerId: provider.id }
+});
+
+
+When admin approves/rejects:
+
+await createNotification({
+  recipientId: applicantUserId,
+  actorId: admin.id,
+  type: 'provider_app_approved', // or 'provider_app_rejected'
+  entityTable: 'provider_applications',
+  entityId: app.id,
+  message: app.status === 'approved'
+    ? 'Your provider application was approved.'
+    : 'Your provider application was reviewed.',
+  meta: { status: app.status, notes: app.review_notes }
+});
+
+3) Realtime subscription (client)
+
+Subscribe the logged-in user to their notifications channel.
+
+// hooks/useNotifications.ts
+import { useEffect, useState } from 'react';
+import { supabase } from '@/lib/supabase';
+
+export function useNotifications(userId?: string) {
+  const [items, setItems] = useState<any[]>([]);
+  const [unread, setUnread] = useState(0);
+
+  useEffect(() => {
+    if (!userId) return;
+
+    // initial fetch
+    supabase
+      .from('notifications')
+      .select('*')
+      .eq('recipient_id', userId)
+      .order('created_at', { ascending: false })
+      .limit(50)
+      .then(({ data }) => {
+        setItems(data ?? []);
+        setUnread((data ?? []).filter(n => !n.is_read).length);
+      });
+
+    // realtime
+    const channel = supabase
+      .channel(`notifications:${userId}`)
+      .on('postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'notifications', filter: `recipient_id=eq.${userId}` },
+        payload => {
+          setItems(prev => [payload.new, ...prev]);
+          setUnread(prev => prev + 1);
+          window.dispatchEvent(new CustomEvent('notify:toast', { detail: payload.new }));
+        }
+      ).subscribe();
+
+    return () => { supabase.removeChannel(channel); };
+  }, [userId]);
+
+  const markAllRead = async () => {
+    await supabase.from('notifications').update({ is_read: true }).eq('recipient_id', userId);
+    setUnread(0);
+    setItems(prev => prev.map(n => ({ ...n, is_read: true })));
+  };
+
+  return { items, unread, markAllRead };
+}
+
+4) UI components
+
+Bell icon with badge in header; shows unread count from hook.
+
+Notifications Drawer/Page (/notifications) listing rows:
+
+avatar (actor), message, relative time, unread dot
+
+click navigates based on type & meta (post/comment/chat/order)
+
+Toast listener:
+
+// components/RealTimeToast.tsx
+import { useEffect } from 'react';
+import { toast } from 'sonner'; // or radix/your choice
+
+export default function RealTimeToast() {
+  useEffect(() => {
+    const handler = (e: any) => {
+      const n = e.detail;
+      toast(n.message);
+    };
+    window.addEventListener('notify:toast', handler);
+    return () => window.removeEventListener('notify:toast', handler);
+  }, []);
+  return null;
+}
+
+
+Render <RealTimeToast /> once at app root.
+
+5) Optional web push (scaffold only, behind flag)
+
+Add .env:
+
+PUSH_ENABLED=false
+FIREBASE_API_KEY=...
+FIREBASE_MESSAGING_SENDER_ID=...
+FIREBASE_APP_ID=...
+FIREBASE_PROJECT_ID=...
+
+
+Add service worker firebase-messaging-sw.js and client registration module.
+
+If PUSH_ENABLED === 'true' and permission granted, obtain FCM token, POST to /api/device-tokens to save in device_tokens.
+
+Do not block MVP on this; keep disabled by default.
+
+6) Admin: application alerts & inbox badge
+
+Reuse the same bell/badge for admin.
+
+When type='provider_app_submitted' for the admin, clicking the item routes to /admin/inbox?app={id}.
+
+On /admin/inbox, show a small badge with count of status='pending' applications (query provider_applications table).
+
+Approve/Reject should also emit notifications to the applicant as shown above.
+
+7) Seeding + Backfill (optional)
+
+Create a small script to backfill notifications for recent likes/comments/messages to validate UI.
+
+8) Acceptance Criteria
+
+Bell badge increments in real-time when another user likes/comments/follows or sends a message.
+
+Opening the notifications page marks all as read (button) and clears badge.
+
+Submitting a Provider Application creates a notification for admin instantly; approving/rejecting notifies the applicant.
+
+No page refresh required for new items; toast appears on new notification.
+
+Feature flag allows enabling web push later without code refactor.
+
+9) Out of scope (for this PR)
+
+Email/SMS delivery (SendGrid/Twilio) — separate PR.
+
+Native iOS/Android push; this PR only scaffolds web push.

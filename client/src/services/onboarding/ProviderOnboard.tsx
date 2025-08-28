@@ -39,6 +39,7 @@ const ProviderOnboard: React.FC = () => {
     phone: ''
   });
   const [isSavingBasics, setIsSavingBasics] = useState(false);
+  const [isSubmittingApplication, setIsSubmittingApplication] = useState(false);
   const [idFrontFile, setIdFrontFile] = useState<File | null>(null);
   const [idBackFile, setIdBackFile] = useState<File | null>(null);
   const [idVerification, setIdVerification] = useState<IDVerificationState>({ status: 'idle' });
@@ -692,6 +693,55 @@ const ProviderOnboard: React.FC = () => {
     }
   };
 
+  const submitProviderApplication = async () => {
+    if (!providerId) {
+      toast({
+        title: "Error",
+        description: "Provider ID not found. Please complete all previous steps.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsSubmittingApplication(true);
+
+    try {
+      const response = await fetch('/api/provider-applications/submit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          providerId,
+          userId: user?.id 
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to submit application');
+      }
+
+      toast({
+        title: "Application Submitted!",
+        description: "Your provider application has been submitted for review. You'll receive an email confirmation and updates on the status.",
+      });
+
+      // Optionally advance to a confirmation step or redirect
+      // setCurrentStep(8); // Could add a confirmation step
+      
+    } catch (error) {
+      console.error('Submit application error:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      toast({
+        title: "Submission Failed",
+        description: errorMessage,
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmittingApplication(false);
+    }
+  };
+
   const renderStepContent = () => {
     switch (currentStep) {
       case 0: // Welcome
@@ -1318,13 +1368,15 @@ const ProviderOnboard: React.FC = () => {
 
             <div className="pt-4">
               <Button 
+                onClick={submitProviderApplication}
+                disabled={isSubmittingApplication}
                 className="w-full bg-green-600 hover:bg-green-700"
-                data-testid="button-start-accepting-bookings"
+                data-testid="button-submit-application"
               >
-                Start Accepting Bookings
+                {isSubmittingApplication ? "Submitting Application..." : "Submit Provider Application"}
               </Button>
               <p className="text-xs text-gray-500 mt-2 text-center">
-                You can update your profile and services anytime in your dashboard
+                Your application will be reviewed by our team within 24-48 hours
               </p>
             </div>
           </div>

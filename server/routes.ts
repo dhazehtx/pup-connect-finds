@@ -20,6 +20,7 @@ import reviewsRouter from './routes/reviews';
 import servicesRouter from './routes/services';
 import qaRouter from './routes/qa';
 import monetizationRouter from './routes/monetization';
+import providerApplicationsRouter from './routes/providerApplications';
 import { registerHealthRoutes } from './routes/health';
 import { storage } from "./storage";
 import { 
@@ -117,6 +118,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Provider onboarding routes (protected by auth middleware)
   const { default: providersRouter } = await import('./routes/providers/onboarding.js');
   app.use('/api/providers', providersRouter);
+  
+  // Provider applications routes (protected by auth middleware)
+  app.use('/api/provider-applications', providerApplicationsRouter);
+  
+  // Notifications routes (protected by auth middleware)
+  app.use('/api/notifications', notificationsRouter);
 
   // Register GDPR compliance routes
   registerGDPRRoutes(app);

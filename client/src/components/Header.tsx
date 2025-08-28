@@ -5,7 +5,7 @@ import { Heart, Menu, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
-import NotificationBadge from '@/components/notifications/NotificationBadge';
+import NotificationBell from '@/components/NotificationBell';
 import NotificationCenter from '@/components/notifications/NotificationCenter';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
 import { logNav } from '@/lib/adminLog';
@@ -67,10 +67,7 @@ const Header = () => {
               <div className="flex items-center space-x-4">
                 {user && (
                   <>
-                    <NotificationBadge
-                      onClick={() => setShowNotifications(!showNotifications)}
-                      className="text-gray-600 hover:text-blue-600"
-                    />
+                    <NotificationBell />
                     <ThemeToggle />
                   </>
                 )}

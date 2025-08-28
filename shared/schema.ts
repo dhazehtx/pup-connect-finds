@@ -162,17 +162,38 @@ export const postShares = pgTable("post_shares", {
   created_at: timestamp("created_at").defaultNow(),
 });
 
-// Notifications table - Updated to match database structure
+// Enhanced notifications table with Instagram-style structure
 export const notifications = pgTable("notifications", {
   id: uuid("id").primaryKey().defaultRandom(),
-  to_user_id: uuid("to_user_id").references(() => profiles.id),
-  from_user_id: uuid("from_user_id").references(() => profiles.id),
-  type: text("type").notNull(), // 'like', 'comment', 'comment_reply', 'follow', etc.
+  recipient_id: uuid("recipient_id").references(() => profiles.id).notNull(),
+  actor_id: uuid("actor_id").references(() => profiles.id),
+  type: text("type").notNull(), // 'like', 'comment', 'follow', 'message', 'order_paid', 'provider_app_submitted', etc.
+  entity_table: text("entity_table"), // 'posts', 'comments', 'orders', 'provider_applications'
+  entity_id: uuid("entity_id"),
   message: text("message").notNull(),
-  post_id: uuid("post_id").references(() => posts.id),
-  comment_id: uuid("comment_id").references(() => comments.id),
+  meta: jsonb("meta").default({}),
   is_read: boolean("is_read").default(false),
-  created_at: timestamp("created_at").defaultNow(),
+  created_at: timestamp("created_at", { withTimezone: true }).defaultNow(),
+});
+
+// Notification preferences
+export const notificationPreferences = pgTable("notification_preferences", {
+  user_id: uuid("user_id").primaryKey().references(() => profiles.id),
+  likes: boolean("likes").default(true),
+  comments: boolean("comments").default(true),
+  follows: boolean("follows").default(true),
+  messages: boolean("messages").default(true),
+  order_updates: boolean("order_updates").default(true),
+  provider_app: boolean("provider_app").default(true),
+});
+
+// Device tokens for future web push
+export const deviceTokens = pgTable("device_tokens", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  user_id: uuid("user_id").references(() => profiles.id).notNull(),
+  fcm_token: text("fcm_token").notNull(),
+  platform: text("platform"), // 'web', 'ios', 'android'
+  created_at: timestamp("created_at", { withTimezone: true }).defaultNow(),
 });
 
 // Payment transactions table
@@ -206,6 +227,8 @@ export const insertPostSchema = createInsertSchema(posts).omit({ id: true, creat
 export const insertCommentSchema = createInsertSchema(comments).omit({ id: true, created_at: true, updated_at: true });
 export const insertCommentReplySchema = createInsertSchema(commentReplies).omit({ id: true, created_at: true });
 export const insertNotificationSchema = createInsertSchema(notifications).omit({ id: true, created_at: true });
+export const insertNotificationPreferencesSchema = createInsertSchema(notificationPreferences);
+export const insertDeviceTokenSchema = createInsertSchema(deviceTokens).omit({ id: true, created_at: true });
 export const insertTransactionSchema = createInsertSchema(transactions).omit({ id: true, created_at: true, updated_at: true });
 
 // Fraud detection events table
@@ -283,6 +306,42 @@ export const commissionSettings = pgTable("commission_settings", {
 export const insertCommissionSchema = createInsertSchema(commissions).omit({ id: true, created_at: true, updated_at: true });
 export const insertCommissionSettingsSchema = createInsertSchema(commissionSettings).omit({ id: true, created_at: true, updated_at: true });
 
+// Provider applications table
+export const providerApplications = pgTable("provider_applications", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  user_id: uuid("user_id").references(() => profiles.id, { onDelete: "cascade" }).notNull(),
+  provider_id: uuid("provider_id").references(() => providers.id, { onDelete: "cascade" }).notNull(),
+  status: text("status").notNull().default("pending"), // pending, approved, rejected
+  submitted_at: timestamp("submitted_at", { withTimezone: true }).notNull().defaultNow(),
+  reviewed_by: uuid("reviewed_by").references(() => profiles.id),
+  reviewed_at: timestamp("reviewed_at", { withTimezone: true }),
+  review_notes: text("review_notes"),
+});
+
+// Notification events log
+export const notificationEvents = pgTable("notification_events", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  user_id: uuid("user_id").references(() => profiles.id),
+  kind: text("kind").notNull(), // 'email' | 'sms' | 'push'
+  template: text("template"), // e.g., 'provider_application_received'
+  payload: jsonb("payload"), // arbitrary payload (ids, email, etc.)
+  status: text("status").notNull(), // 'queued' | 'sent' | 'failed'
+  error: text("error"),
+  created_at: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+// Admin settings
+export const adminSettings = pgTable("admin_settings", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  admin_user_id: uuid("admin_user_id").references(() => profiles.id).unique(),
+  notify_email: text("notify_email"),
+  notify_phone: text("notify_phone"),
+});
+
+export const insertProviderApplicationSchema = createInsertSchema(providerApplications).omit({ id: true, submitted_at: true });
+export const insertNotificationEventSchema = createInsertSchema(notificationEvents).omit({ id: true, created_at: true });
+export const insertAdminSettingsSchema = createInsertSchema(adminSettings).omit({ id: true });
+
 // Provider onboarding tables
 export const providers = pgTable("providers", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -293,6 +352,9 @@ export const providers = pgTable("providers", {
   service_types: text("service_types").array().default([]),
   radius_km: integer("radius_km").default(10),
   status: text("status").default("pending"), // pending, verified, pro, rejected
+  id_doc_front_url: text("id_doc_front_url"),
+  id_doc_back_url: text("id_doc_back_url"),
+  bg_status: text("bg_status").default("pending"), // pending, passed, failed
   created_at: timestamp("created_at").defaultNow(),
   updated_at: timestamp("updated_at").defaultNow(),
 });

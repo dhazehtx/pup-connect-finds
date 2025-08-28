@@ -1,0 +1,228 @@
+1) Database (SQL)
+
+Create tables/columns (adjust names to match our schema):
+
+-- Application lifecycle
+create type provider_app_status as enum ('pending','approved','rejected');
+
+create table if not exists provider_applications (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users(id) on delete cascade,
+  provider_id uuid not null references providers(id) on delete cascade,
+  status provider_app_status not null default 'pending',
+  submitted_at timestamptz not null default now(),
+  reviewed_by uuid references auth.users(id),
+  reviewed_at timestamptz,
+  review_notes text
+);
+
+-- Minimal notification log
+create table if not exists notification_events (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid,                      -- recipient user (null for global admin emails)
+  kind text not null,                -- 'email' | 'sms' | 'push'
+  template text,                     -- e.g., 'provider_application_received'
+  payload jsonb,                     -- arbitrary payload (ids, email, etc.)
+  status text not null,              -- 'queued' | 'sent' | 'failed'
+  error text,
+  created_at timestamptz not null default now()
+);
+
+-- Admin config (single row or per-admin)
+create table if not exists admin_settings (
+  id uuid primary key default gen_random_uuid(),
+  admin_user_id uuid references auth.users(id) unique,
+  notify_email text,
+  notify_phone text
+);
+
+-- Add ID doc URLs to providers if not present
+alter table providers
+  add column if not exists id_doc_front_url text,
+  add column if not exists id_doc_back_url  text,
+  add column if not exists bg_status text default 'pending';
+
+
+RLS (if enabled):
+
+provider_applications: owners (the submitting user) can select their own row; only admins can update.
+
+notification_events: admins select, system inserts.
+
+2) Environment Vars
+
+Add these to .env:
+
+SENDGRID_API_KEY=...
+SENDGRID_FROM=noreply@mypup.app
+ADMIN_NOTIFY_EMAIL=admin@mypup.app         # fallback if no admin_settings row
+TWILIO_ACCOUNT_SID=...                     # optional (P1)
+TWILIO_AUTH_TOKEN=...                      # optional (P1)
+TWILIO_FROM=+1XXXXXXXXXX                   # optional (P1)
+
+3) Storage + Upload (already started)
+
+Bucket: provider-ids (private).
+Frontend Step 3 should upload front + back then set providers.id_doc_front_url/back_url.
+
+4) API Routes (Next.js examples)
+
+Create application on Step 7 submit
+
+// POST /api/provider-applications/submit
+// body: { providerId }
+export default async function handler(req, res) {
+  try {
+    const { user } = await requireAuth(req); // project helper
+    const { providerId } = req.body;
+
+    // create row
+    const { data: app, error } = await supabase
+      .from('provider_applications')
+      .insert({ user_id: user.id, provider_id: providerId })
+      .select('*')
+      .single();
+    if (error) throw error;
+
+    // queue notifications
+    await notifyAdminNewApplication(app);
+
+    res.status(200).json({ ok: true, application: app });
+  } catch (e) {
+    res.status(400).json({ ok: false, error: String(e) });
+  }
+}
+
+
+Admin review endpoint
+
+// POST /api/provider-applications/review
+// body: { applicationId, action: 'approve'|'reject', notes?: string }
+export default async function handler(req, res) {
+  try {
+    const admin = await requireAdmin(req);
+    const { applicationId, action, notes } = req.body;
+
+    const status = action === 'approve' ? 'approved' : 'rejected';
+
+    const { data: app, error } = await supabase
+      .from('provider_applications')
+      .update({
+        status,
+        reviewed_by: admin.id,
+        reviewed_at: new Date().toISOString(),
+        review_notes: notes ?? null
+      })
+      .eq('id', applicationId)
+      .select('*')
+      .single();
+    if (error) throw error;
+
+    // email applicant result
+    await notifyApplicantResult(app);
+
+    res.json({ ok: true, application: app });
+  } catch (e) {
+    res.status(400).json({ ok: false, error: String(e) });
+  }
+}
+
+
+Notification helpers (SendGrid + optional Twilio)
+
+import sgMail from '@sendgrid/mail';
+import twilio from 'twilio';
+
+sgMail.setApiKey(process.env.SENDGRID_API_KEY!);
+
+export async function notifyAdminNewApplication(app){
+  const adminEmail = await getAdminEmail(); // from admin_settings or ENV
+  const subject = 'New Provider Application Submitted';
+  const html = `
+    <h3>New Provider Application</h3>
+    <p>Provider ID: ${app.provider_id}</p>
+    <p>Submitted at: ${app.submitted_at}</p>
+    <p>Review in Admin Inbox.</p>`;
+
+  await sgMail.send({ to: adminEmail, from: process.env.SENDGRID_FROM!, subject, html })
+    .then(() => logEvent(null, 'email', 'provider_application_received', app, 'sent'))
+    .catch(err => logEvent(null, 'email', 'provider_application_received', app, 'failed', String(err)));
+
+  // Optional SMS (if Twilio env is set)
+  if (process.env.TWILIO_ACCOUNT_SID && process.env.ADMIN_NOTIFY_PHONE){
+    const client = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
+    try{
+      await client.messages.create({
+        to: process.env.ADMIN_NOTIFY_PHONE!,
+        from: process.env.TWILIO_FROM!,
+        body: `My Pup: New provider application submitted (provider ${app.provider_id}).`
+      });
+      await logEvent(null, 'sms', 'provider_application_received', app, 'sent');
+    }catch(err){
+      await logEvent(null, 'sms', 'provider_application_received', app, 'failed', String(err));
+    }
+  }
+}
+
+export async function notifyApplicantResult(app){
+  const { data: provider } = await supabase.from('providers').select('user_id').eq('id', app.provider_id).single();
+  const { data: user } = await supabase.from('profiles').select('email').eq('id', provider.user_id).single();
+
+  const subject = app.status === 'approved' ? 'Provider Application Approved' : 'Provider Application Update';
+  const html = app.status === 'approved'
+    ? `<p>Congrats! Your provider application has been approved.</p>`
+    : `<p>Your provider application was reviewed. Status: ${app.status}. Notes: ${app.review_notes ?? 'N/A'}</p>`;
+
+  await sgMail.send({ to: user.email, from: process.env.SENDGRID_FROM!, subject, html })
+    .then(() => logEvent(provider.user_id, 'email', 'provider_application_result', app, 'sent'))
+    .catch(err => logEvent(provider.user_id, 'email', 'provider_application_result', app, 'failed', String(err)));
+}
+
+async function logEvent(userId, kind, template, payload, status, error){
+  await supabase.from('notification_events').insert({ user_id: userId, kind, template, payload, status, error });
+}
+
+async function getAdminEmail(){
+  const { data } = await supabase.from('admin_settings').select('notify_email').limit(1).single();
+  return data?.notify_email ?? process.env.ADMIN_NOTIFY_EMAIL!;
+}
+
+5) Admin UI
+
+Admin Inbox page /admin/inbox
+
+Table columns: Submitted, Applicant (user), Provider ID, Status, Actions (Approve, Reject, View Docs).
+
+Row click → detail drawer with ID previews (front/back), basic info, notes box.
+
+Approve/Reject calls /api/provider-applications/review.
+
+Admin Profile card /profile (when role=admin)
+
+“Pending Applications” card shows count + link to /admin/inbox.
+
+6) Frontend Wiring
+
+Step 7 “Submit Application” calls POST /api/provider-applications/submit.
+
+On success: show confirmation + email sent toast; advance to a “Submitted” screen.
+
+If upload step (3) is incomplete, block submission with a clear message.
+
+7) Acceptance Criteria
+
+Submitting Step 7 creates a provider_applications row (pending).
+
+Admin receives email (and SMS if Twilio configured) instantly.
+
+Admin Inbox lists the new row; Approve/Reject updates status + sends applicant email.
+
+Admin Profile shows Pending count.
+
+notification_events logs each send/attempt.
+
+8) Non-Goals (out of scope for this PR)
+
+Background check vendor integration (Persona/Stripe Identity) — stub via admin review.
+
+Push notifications — email/SMS only for now.
