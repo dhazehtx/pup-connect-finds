@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { formatDistanceToNow } from 'date-fns';
 import { Check, CheckCheck, User, Heart, MessageCircle, Shield, Bell } from 'lucide-react';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuthState } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -30,7 +30,7 @@ interface NotificationFeedProps {
 }
 
 export function NotificationFeedV2({ onMarkAsRead, onClose }: NotificationFeedProps) {
-  const { user } = useAuth();
+  const { user } = useAuthState();
   const queryClient = useQueryClient();
   const [cursor, setCursor] = useState<string | undefined>();
   const [allNotifications, setAllNotifications] = useState<Notification[]>([]);
@@ -42,15 +42,16 @@ export function NotificationFeedV2({ onMarkAsRead, onClose }: NotificationFeedPr
     refetchInterval: 30000, // Refetch every 30 seconds
   });
 
-  const notifications = notificationsData?.notifications || [];
-  const hasMore = notificationsData?.hasMore || false;
+  const notifications = (notificationsData as any)?.notifications || [];
+  const hasMore = (notificationsData as any)?.hasMore || false;
 
   // Mark as read mutation
   const markAsReadMutation = useMutation({
     mutationFn: async (notificationId: string) => {
       await apiRequest('/api/notifications-v2/mark-read', {
         method: 'POST',
-        body: { id: notificationId }
+        body: JSON.stringify({ id: notificationId }),
+        headers: { 'Content-Type': 'application/json' }
       });
     },
     onSuccess: (_, notificationId) => {
@@ -72,7 +73,8 @@ export function NotificationFeedV2({ onMarkAsRead, onClose }: NotificationFeedPr
     mutationFn: async () => {
       await apiRequest('/api/notifications-v2/mark-read', {
         method: 'POST',
-        body: { all: true }
+        body: JSON.stringify({ all: true }),
+        headers: { 'Content-Type': 'application/json' }
       });
     },
     onSuccess: () => {

@@ -178,7 +178,18 @@ router.post("/review", async (req, res) => {
 
     // Notify applicant
     try {
-      await notifyApplicantResult(application);
+      // Notify applicant of result
+      await notificationService.createNotification({
+        recipientId: application.user_id,
+        type: status === 'approved' ? 'provider_app_approved' : 'provider_app_rejected',
+        message: status === 'approved' 
+          ? 'Your provider application has been approved!' 
+          : 'Your provider application has been reviewed.',
+        entityTable: 'provider_applications',
+        entityId: application.id,
+        targetUrl: '/services/provider/dashboard',
+        meta: { status, notes }
+      });
       console.log('[PROVIDER APP] Applicant notified successfully');
     } catch (notifyError) {
       console.error('[PROVIDER APP] Failed to notify applicant:', notifyError);

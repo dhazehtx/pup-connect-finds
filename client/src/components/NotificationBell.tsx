@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Bell } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuthState } from '@/hooks/useAuth';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -12,7 +12,7 @@ import {
 import { NotificationFeedV2 } from './NotificationFeedV2';
 
 export function NotificationBell() {
-  const { user } = useAuth();
+  const { user } = useAuthState();
   const [isOpen, setIsOpen] = useState(false);
 
   // Fetch unread count using enhanced API
