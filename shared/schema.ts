@@ -165,26 +165,45 @@ export const postShares = pgTable("post_shares", {
 // Enhanced notifications table with Instagram-style structure
 export const notifications = pgTable("notifications", {
   id: uuid("id").primaryKey().defaultRandom(),
-  recipient_id: uuid("recipient_id").references(() => profiles.id).notNull(),
-  actor_id: uuid("actor_id").references(() => profiles.id),
-  type: text("type").notNull(), // 'like', 'comment', 'follow', 'message', 'order_paid', 'provider_app_submitted', etc.
-  entity_table: text("entity_table"), // 'posts', 'comments', 'orders', 'provider_applications'
-  entity_id: uuid("entity_id"),
+  // Keep existing column names for compatibility
+  toUserId: uuid("to_user_id").references(() => profiles.id),
+  fromUserId: uuid("from_user_id").references(() => profiles.id),
+  type: text("type").notNull(),
+  title: text("title"),
   message: text("message").notNull(),
+  read: boolean("read").default(false),
+  relatedId: uuid("related_id"),
+  postId: uuid("post_id"),
+  commentId: uuid("comment_id"),
+  messageId: uuid("message_id"),
+  // New enhanced fields
+  actorId: uuid("actor_id").references(() => profiles.id),
+  entityTable: text("entity_table"),
+  entityId: uuid("entity_id"),
   meta: jsonb("meta").default({}),
-  is_read: boolean("is_read").default(false),
-  created_at: timestamp("created_at", { withTimezone: true }).defaultNow(),
+  isRead: boolean("is_read").default(false),
+  targetUrl: text("target_url"),
+  readAt: timestamp("read_at", { withTimezone: true }),
+  bucketKey: text("bucket_key"),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
 });
 
 // Notification preferences
 export const notificationPreferences = pgTable("notification_preferences", {
-  user_id: uuid("user_id").primaryKey().references(() => profiles.id),
+  userId: uuid("user_id").primaryKey().references(() => profiles.id),
   likes: boolean("likes").default(true),
   comments: boolean("comments").default(true),
   follows: boolean("follows").default(true),
   messages: boolean("messages").default(true),
-  order_updates: boolean("order_updates").default(true),
-  provider_app: boolean("provider_app").default(true),
+  orderUpdates: boolean("order_updates").default(true),
+  providerApp: boolean("provider_app").default(true),
+  quietHoursStart: text("quiet_hours_start"), // TIME column as text
+  quietHoursEnd: text("quiet_hours_end"), // TIME column as text
+});
+
+// Admins table for fanout notifications
+export const admins = pgTable("admins", {
+  userId: uuid("user_id").primaryKey().references(() => profiles.id),
 });
 
 // Device tokens for future web push

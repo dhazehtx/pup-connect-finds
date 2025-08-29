@@ -21,6 +21,7 @@ import servicesRouter from './routes/services';
 import qaRouter from './routes/qa';
 import monetizationRouter from './routes/monetization';
 import providerApplicationsRouter from './routes/providerApplications';
+import enhancedNotificationsRouter from './routes/enhancedNotifications';
 import { registerHealthRoutes } from './routes/health';
 import { storage } from "./storage";
 import { 
@@ -124,6 +125,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Notifications routes (protected by auth middleware)
   app.use('/api/notifications', notificationsRouter);
+  app.use('/api/notifications-v2', enhancedNotificationsRouter);
 
   // Register GDPR compliance routes
   registerGDPRRoutes(app);

@@ -9,20 +9,20 @@ import {
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { NotificationFeed } from './NotificationFeed';
+import { NotificationFeedV2 } from './NotificationFeedV2';
 
 export function NotificationBell() {
   const { user } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
 
-  // Fetch unread count
+  // Fetch unread count using enhanced API
   const { data: unreadData, refetch: refetchUnread } = useQuery({
-    queryKey: ['/api/notifications/unread-count', user?.id],
+    queryKey: ['/api/notifications-v2?count=1', user?.id],
     enabled: !!user?.id,
     refetchInterval: 30000, // Refetch every 30 seconds
   });
 
-  const unreadCount = (unreadData as any)?.unread_count || 0;
+  const unreadCount = (unreadData as any)?.count || 0;
 
   // Real-time subscription for notifications (placeholder for future enhancement)
   useEffect(() => {
@@ -72,8 +72,8 @@ export function NotificationBell() {
         className="w-80 p-0"
         data-testid="notification-dropdown"
       >
-        <NotificationFeed 
-          onNotificationRead={refetchUnread}
+        <NotificationFeedV2 
+          onMarkAsRead={() => refetchUnread()}
           onClose={() => setIsOpen(false)}
         />
       </DropdownMenuContent>

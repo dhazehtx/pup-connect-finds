@@ -1,282 +1,222 @@
-import { supabase } from '../lib/supabase.js';
-import sgMail from '@sendgrid/mail';
+import { eq, and, desc, gt, count, isNull, or } from 'drizzle-orm';
+import { db } from '../db';
+import { notifications, notificationPreferences, admins } from '../../shared/schema';
 
-// Set up SendGrid if API key is available
-if (process.env.SENDGRID_API_KEY) {
-  sgMail.setApiKey(process.env.SENDGRID_API_KEY);
-}
-
-type NotificationType =
-  | 'like' | 'comment' | 'follow' | 'message'
-  | 'order_paid' | 'order_refund'
-  | 'provider_app_submitted' | 'provider_app_approved' | 'provider_app_rejected';
-
-interface NotifyArgs {
+export interface NotificationArgs {
   recipientId: string;
   actorId?: string;
-  type: NotificationType;
+  type: string;
+  message: string;
   entityTable?: string;
   entityId?: string;
-  message: string;
+  targetUrl?: string;
   meta?: Record<string, any>;
 }
 
-export async function createNotification(args: NotifyArgs) {
-  const { recipientId, actorId, type, entityTable, entityId, message, meta } = args;
-  
-  console.log('[NOTIFICATION] Creating notification:', { type, recipientId, message });
-
-  try {
-    // Insert notification into database
-    const { data: notification, error } = await supabase
-      .from('notifications')
-      .insert({
-        recipient_id: recipientId,
-        actor_id: actorId || null,
-        type,
-        entity_table: entityTable || null,
-        entity_id: entityId || null,
-        message,
-        meta: meta || {}
-      })
-      .select('*')
-      .single();
-
-    if (error) {
-      console.error('[NOTIFICATION] Error creating notification:', error);
-      throw error;
-    }
-
-    console.log('[NOTIFICATION] Created notification:', notification);
-
-    // Log notification event
-    await logNotificationEvent(recipientId, 'in_app', type, notification, 'sent');
-
-    return notification;
-  } catch (error) {
-    console.error('[NOTIFICATION] Failed to create notification:', error);
-    await logNotificationEvent(recipientId, 'in_app', type, { error: String(error) }, 'failed', String(error));
-    throw error;
-  }
+interface GetNotificationsOptions {
+  cursor?: string;
+  limit?: number;
+  unreadOnly?: boolean;
 }
 
-export async function notifyAdminNewApplication(application: any) {
-  const adminEmail = await getAdminEmail();
-  const adminUserId = await getAdminUserId();
-  
-  console.log('[NOTIFICATION] Notifying admin of new application:', application.id);
-
-  // Create in-app notification for admin
-  if (adminUserId) {
-    await createNotification({
-      recipientId: adminUserId,
-      actorId: application.user_id,
-      type: 'provider_app_submitted',
-      entityTable: 'provider_applications',
-      entityId: application.id,
-      message: 'New provider application submitted',
-      meta: { providerId: application.provider_id }
-    });
-  }
-
-  // Send email notification
-  if (process.env.SENDGRID_API_KEY && adminEmail) {
-    const subject = 'New Provider Application Submitted - MY PUP';
-    const html = `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-        <h2 style="color: #2563eb;">New Provider Application</h2>
-        <p>A new provider application has been submitted and requires your review.</p>
-        <div style="background: #f8fafc; padding: 20px; border-radius: 8px; margin: 20px 0;">
-          <p><strong>Application ID:</strong> ${application.id}</p>
-          <p><strong>Provider ID:</strong> ${application.provider_id}</p>
-          <p><strong>Submitted:</strong> ${new Date(application.submitted_at).toLocaleString()}</p>
-        </div>
-        <p>Please review this application in the Admin Inbox.</p>
-        <div style="margin: 30px 0;">
-          <a href="${process.env.FRONTEND_URL || 'http://localhost:5000'}/admin/inbox" 
-             style="background: #2563eb; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">
-            Review Application
-          </a>
-        </div>
-      </div>`;
-
-    try {
-      await sgMail.send({
-        to: adminEmail,
-        from: process.env.SENDGRID_FROM || 'noreply@mypup.app',
-        subject,
-        html
-      });
-      console.log('[NOTIFICATION] Email sent to admin:', adminEmail);
-      await logNotificationEvent(null, 'email', 'provider_application_received', application, 'sent');
-    } catch (error) {
-      console.error('[NOTIFICATION] Email failed:', error);
-      await logNotificationEvent(null, 'email', 'provider_application_received', application, 'failed', String(error));
-    }
-  }
-
-  // Send SMS notification (if Twilio is configured)
-  if (process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN && process.env.ADMIN_NOTIFY_PHONE) {
-    try {
-      const twilio = require('twilio');
-      const client = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
-      
-      await client.messages.create({
-        to: process.env.ADMIN_NOTIFY_PHONE,
-        from: process.env.TWILIO_PHONE_NUMBER || process.env.TWILIO_FROM,
-        body: `MY PUP: New provider application submitted (ID: ${application.id.slice(0, 8)}...). Review in admin inbox.`
-      });
-      
-      console.log('[NOTIFICATION] SMS sent to admin');
-      await logNotificationEvent(null, 'sms', 'provider_application_received', application, 'sent');
-    } catch (error) {
-      console.error('[NOTIFICATION] SMS failed:', error);
-      await logNotificationEvent(null, 'sms', 'provider_application_received', application, 'failed', String(error));
-    }
-  }
+interface NotificationResult {
+  notifications: any[];
+  nextCursor?: string;
+  hasMore: boolean;
 }
 
-export async function notifyApplicantResult(application: any) {
-  console.log('[NOTIFICATION] Notifying applicant of result:', application.id, application.status);
-
-  try {
-    // Get provider and user info
-    const { data: provider } = await supabase
-      .from('providers')
-      .select('user_id')
-      .eq('id', application.provider_id)
-      .single();
-
-    if (!provider) {
-      console.error('[NOTIFICATION] Provider not found for application:', application.id);
-      return;
-    }
-
-    const { data: user } = await supabase
-      .from('profiles')
-      .select('email, full_name')
-      .eq('id', provider.user_id)
-      .single();
-
-    if (!user) {
-      console.error('[NOTIFICATION] User not found for provider:', provider.user_id);
-      return;
-    }
-
-    // Create in-app notification
-    await createNotification({
-      recipientId: provider.user_id,
-      type: application.status === 'approved' ? 'provider_app_approved' : 'provider_app_rejected',
-      entityTable: 'provider_applications',
-      entityId: application.id,
-      message: application.status === 'approved' 
-        ? 'Your provider application was approved!' 
-        : 'Your provider application was reviewed',
-      meta: { 
-        status: application.status, 
-        notes: application.review_notes 
+export class NotificationService {
+  
+  async createNotification(args: NotificationArgs): Promise<void> {
+    try {
+      // Check user preferences
+      const preferences = await this.getUserPreferences(args.recipientId);
+      if (!this.shouldSendNotification(args.type, preferences)) {
+        return;
       }
-    });
 
-    // Send email notification
-    if (process.env.SENDGRID_API_KEY && user.email) {
-      const subject = application.status === 'approved' 
-        ? 'Provider Application Approved - MY PUP' 
-        : 'Provider Application Update - MY PUP';
+      // Generate bucket key for grouping similar notifications
+      const bucketKey = this.generateBucketKey(args);
+
+      // Check for existing notifications to group
+      const existingNotifications = await db
+        .select()
+        .from(notifications)
+        .where(
+          and(
+            eq(notifications.toUserId, args.recipientId),
+            eq(notifications.bucketKey, bucketKey),
+            eq(notifications.read, false),
+            gt(notifications.createdAt, new Date(Date.now() - 24 * 60 * 60 * 1000)) // within 24 hours
+          )
+        )
+        .orderBy(desc(notifications.createdAt))
+        .limit(1);
+
+      const existing = existingNotifications[0];
+
+      if (existing) {
+        // Update existing notification with new actor
+        const meta = (existing.meta as any) || {};
+        const actors: string[] = Array.from(new Set([...(meta.actors ?? []), args.actorId].filter(Boolean))) as string[];
+        meta.actors = actors;
         
-      const html = application.status === 'approved'
-        ? `
-          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-            <h2 style="color: #22c55e;">Congratulations! Your Provider Application was Approved</h2>
-            <p>Hi ${user.full_name || 'there'},</p>
-            <p>Great news! Your provider application has been approved and you can now start offering services on MY PUP.</p>
-            <div style="margin: 30px 0;">
-              <a href="${process.env.FRONTEND_URL || 'http://localhost:5000'}/marketplace" 
-                 style="background: #22c55e; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">
-                Start Offering Services
-              </a>
-            </div>
-            <p>Welcome to the MY PUP provider community!</p>
-          </div>`
-        : `
-          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-            <h2 style="color: #2563eb;">Provider Application Update</h2>
-            <p>Hi ${user.full_name || 'there'},</p>
-            <p>Your provider application has been reviewed.</p>
-            <div style="background: #f8fafc; padding: 20px; border-radius: 8px; margin: 20px 0;">
-              <p><strong>Status:</strong> ${application.status}</p>
-              ${application.review_notes ? `<p><strong>Notes:</strong> ${application.review_notes}</p>` : ''}
-            </div>
-            <p>If you have any questions, please contact our support team.</p>
-          </div>`;
+        const groupedMessage = actors.length > 1
+          ? `${args.message} (+${actors.length - 1} others)`
+          : args.message;
 
-      try {
-        await sgMail.send({
-          to: user.email,
-          from: process.env.SENDGRID_FROM || 'noreply@mypup.app',
-          subject,
-          html
+        await db
+          .update(notifications)
+          .set({
+            message: groupedMessage,
+            meta: meta,
+            createdAt: new Date()
+          })
+          .where(eq(notifications.id, existing.id));
+      } else {
+        // Create new notification
+        await db.insert(notifications).values({
+          toUserId: args.recipientId,
+          fromUserId: args.actorId,
+          actorId: args.actorId,
+          type: args.type,
+          message: args.message,
+          entityTable: args.entityTable,
+          entityId: args.entityId,
+          targetUrl: args.targetUrl,
+          bucketKey,
+          meta: args.meta || {},
+          read: false,
+          isRead: false
         });
-        console.log('[NOTIFICATION] Result email sent to applicant:', user.email);
-        await logNotificationEvent(provider.user_id, 'email', 'provider_application_result', application, 'sent');
-      } catch (error) {
-        console.error('[NOTIFICATION] Result email failed:', error);
-        await logNotificationEvent(provider.user_id, 'email', 'provider_application_result', application, 'failed', String(error));
       }
+    } catch (error) {
+      console.error('Error creating notification:', error);
     }
+  }
 
-  } catch (error) {
-    console.error('[NOTIFICATION] Failed to notify applicant:', error);
+  async getUserNotifications(userId: string, options: GetNotificationsOptions = {}): Promise<NotificationResult> {
+    const { cursor, limit = 30, unreadOnly = false } = options;
+
+    let query = db
+      .select()
+      .from(notifications)
+      .where(
+        and(
+          eq(notifications.toUserId, userId),
+          unreadOnly ? eq(notifications.read, false) : undefined,
+          cursor ? gt(notifications.createdAt, new Date(cursor)) : undefined
+        )
+      )
+      .orderBy(desc(notifications.createdAt))
+      .limit(limit + 1); // Get one extra to check if there are more
+
+    const results = await query;
+    const hasMore = results.length > limit;
+    const notificationsList = hasMore ? results.slice(0, -1) : results;
+    const nextCursor = hasMore ? notificationsList[notificationsList.length - 1]?.createdAt?.toISOString() : undefined;
+
+    return {
+      notifications: notificationsList,
+      nextCursor,
+      hasMore
+    };
+  }
+
+  async getUnreadCount(userId: string): Promise<number> {
+    const result = await db
+      .select({ count: count() })
+      .from(notifications)
+      .where(
+        and(
+          eq(notifications.toUserId, userId),
+          eq(notifications.read, false)
+        )
+      );
+
+    return result[0]?.count || 0;
+  }
+
+  async markNotificationRead(notificationId: string, userId: string): Promise<void> {
+    await db
+      .update(notifications)
+      .set({
+        read: true,
+        isRead: true,
+        readAt: new Date()
+      })
+      .where(
+        and(
+          eq(notifications.id, notificationId),
+          eq(notifications.toUserId, userId)
+        )
+      );
+  }
+
+  async markAllNotificationsRead(userId: string): Promise<void> {
+    await db
+      .update(notifications)
+      .set({
+        read: true,
+        isRead: true,
+        readAt: new Date()
+      })
+      .where(eq(notifications.toUserId, userId));
+  }
+
+  async getUserPreferences(userId: string) {
+    const prefs = await db
+      .select()
+      .from(notificationPreferences)
+      .where(eq(notificationPreferences.userId, userId))
+      .limit(1);
+
+    return prefs[0] || {
+      likes: true,
+      comments: true,
+      follows: true,
+      messages: true,
+      orderUpdates: true,
+      providerApp: true
+    };
+  }
+
+  private shouldSendNotification(type: string, preferences: any): boolean {
+    const typeMap: Record<string, string> = {
+      'like': 'likes',
+      'comment': 'comments',
+      'follow': 'follows',
+      'message': 'messages',
+      'order_paid': 'orderUpdates',
+      'provider_app_submitted': 'providerApp'
+    };
+
+    const prefKey = typeMap[type];
+    return prefKey ? preferences[prefKey] !== false : true;
+  }
+
+  private generateBucketKey(args: NotificationArgs): string {
+    // Create bucket key for grouping similar notifications
+    return `${args.type}_${args.entityTable || 'general'}_${args.entityId || 'none'}`;
+  }
+
+  async notifyAdmins(args: Omit<NotificationArgs, 'recipientId'>): Promise<void> {
+    try {
+      const adminUsers = await db.select().from(admins);
+      
+      const notifications_batch = adminUsers.map(admin => ({
+        ...args,
+        recipientId: admin.userId
+      }));
+
+      // Send notifications to all admins
+      await Promise.all(
+        notifications_batch.map(notif => this.createNotification(notif))
+      );
+    } catch (error) {
+      console.error('Error notifying admins:', error);
+    }
   }
 }
 
-async function logNotificationEvent(
-  userId: string | null, 
-  kind: string, 
-  template: string, 
-  payload: any, 
-  status: string, 
-  error?: string
-) {
-  try {
-    await supabase.from('notification_events').insert({
-      user_id: userId,
-      kind,
-      template,
-      payload,
-      status,
-      error: error || null
-    });
-  } catch (err) {
-    console.error('[NOTIFICATION] Failed to log event:', err);
-  }
-}
-
-async function getAdminEmail(): Promise<string | null> {
-  try {
-    const { data } = await supabase
-      .from('admin_settings')
-      .select('notify_email')
-      .limit(1)
-      .single();
-    
-    return data?.notify_email || process.env.ADMIN_NOTIFY_EMAIL || 'admin@mypup.app';
-  } catch {
-    return process.env.ADMIN_NOTIFY_EMAIL || 'admin@mypup.app';
-  }
-}
-
-async function getAdminUserId(): Promise<string | null> {
-  try {
-    const { data } = await supabase
-      .from('profiles')
-      .select('id')
-      .eq('is_admin', true)
-      .limit(1)
-      .single();
-    
-    return data?.id || null;
-  } catch {
-    return null;
-  }
-}
+export const notificationService = new NotificationService();

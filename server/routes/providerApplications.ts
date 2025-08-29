@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { supabase } from "../lib/supabase.js";
-import { notifyAdminNewApplication, notifyApplicantResult } from "../services/notificationService.js";
+import { notificationService } from "../services/notificationService";
 
 const router = Router();
 
@@ -91,9 +91,20 @@ router.post("/submit", async (req, res) => {
 
     console.log('[PROVIDER APP] Application created:', application);
 
-    // Notify admin
+    // Notify admins
     try {
-      await notifyAdminNewApplication(application);
+      await notificationService.notifyAdmins({
+        type: 'provider_app_submitted',
+        message: `New provider application submitted by ${provider.legal_name}`,
+        entityTable: 'provider_applications',
+        entityId: application.id,
+        targetUrl: `/admin/applications/${application.id}`,
+        actorId: userId,
+        meta: {
+          providerName: provider.legal_name,
+          applicationId: application.id
+        }
+      });
       console.log('[PROVIDER APP] Admin notified successfully');
     } catch (notifyError) {
       console.error('[PROVIDER APP] Failed to notify admin:', notifyError);

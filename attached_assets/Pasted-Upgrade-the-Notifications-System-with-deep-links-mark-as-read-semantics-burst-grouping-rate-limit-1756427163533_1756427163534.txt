@@ -1,0 +1,302 @@
+Upgrade the Notifications System with deep links, mark-as-read semantics, burst grouping, rate limiting, multi-admin fanout, preferences, quiet hours scaffolding, delivery logs/retries, and UX polish.
+
+0) Summary of work
+
+DB schema patch (fields + indexes).
+
+Server helpers: enqueue with grouping + throttling; multi-admin fanout.
+
+API routes: fetch, pagination, mark-as-read (single/all), preferences update.
+
+Client: bell badge accuracy, toast component, inbox sections, deep links.
+
+Optional scaffolding: quiet hours, web push tokens (kept disabled).
+
+Acceptance tests included.
+
+1) Database migrations (SQL)
+
+Apply these changes:
+
+-- 1) Extend notifications structure
+alter table notifications
+  add column if not exists target_url text,
+  add column if not exists read_at timestamptz,
+  add column if not exists bucket_key text; -- e.g., 15m bucket for grouping
+
+-- Keep boolean is_read for fast filters; we’ll write both
+create index if not exists idx_notifications_rec_unread_created
+  on notifications (recipient_id, is_read, created_at desc);
+
+create index if not exists idx_notifications_rec_bucket
+  on notifications (recipient_id, bucket_key);
+
+-- 2) Preferences table (on-by-default)
+create table if not exists notification_preferences (
+  user_id uuid primary key,
+  likes boolean default true,
+  comments boolean default true,
+  follows boolean default true,
+  messages boolean default true,
+  order_updates boolean default true,
+  provider_app boolean default true,
+  quiet_hours_start time,  -- optional
+  quiet_hours_end time     -- optional
+);
+
+-- 3) Admins table for fanout (or use existing roles)
+create table if not exists admins (
+  user_id uuid primary key
+);
+
+-- 4) Delivery log for push/email/sms retries (you may already have notification_events)
+create table if not exists delivery_attempts (
+  id uuid primary key default gen_random_uuid(),
+  notification_id uuid references notifications(id) on delete cascade,
+  channel text not null,                -- 'push' | 'email' | 'sms'
+  status text not null,                 -- 'queued' | 'sent' | 'failed' | 'retrying'
+  error text,
+  attempts int default 0,
+  created_at timestamptz default now(),
+  updated_at timestamptz default now()
+);
+
+
+RLS
+
+notifications: recipient can select; service role inserts/updates.
+
+notification_preferences: owner can select/update their row.
+
+admins: service role writes; read allowed to service/admin.
+
+delivery_attempts: service role only.
+
+2) Server: notification enqueue helper
+
+Create/replace lib/notify.ts with grouping, throttling, and deep-link support.
+
+// lib/notify.ts
+import { supabaseAdmin } from "@/lib/supabaseAdmin";
+import { DateTime } from "luxon";
+
+type NType =
+  | 'like' | 'comment' | 'follow' | 'message'
+  | 'order_paid' | 'order_refund'
+  | 'provider_app_submitted' | 'provider_app_approved' | 'provider_app_rejected';
+
+type NotifyArgs = {
+  recipientId: string;
+  actorId?: string | null;
+  type: NType;
+  entityTable?: string | null;
+  entityId?: string | null;
+  message: string;
+  meta?: Record<string, any>;
+  targetUrl?: string;     // absolute route like '/post/123'
+};
+
+const THROTTLE_MAX_PER_10M = 20;
+
+function bucket15m(): string {
+  const dt = DateTime.now().toUTC();
+  const b = dt.set({ minute: Math.floor(dt.minute / 15) * 15, second: 0, millisecond: 0 });
+  return b.toISO();
+}
+
+export async function createNotification(args: NotifyArgs) {
+  // 1) Throttle per (actor->recipient) in last 10m to avoid spam
+  if (args.actorId) {
+    const { data: countRows } = await supabaseAdmin
+      .from('notifications')
+      .select('id', { count: 'exact', head: true })
+      .eq('recipient_id', args.recipientId)
+      .eq('actor_id', args.actorId)
+      .gte('created_at', DateTime.utc().minus({ minutes: 10 }).toISO());
+
+    if ((countRows?.length ?? 0) > THROTTLE_MAX_PER_10M) {
+      return { throttled: true };
+    }
+  }
+
+  // 2) Respect recipient preferences (if row absent, assume true)
+  const { data: pref } = await supabaseAdmin
+    .from('notification_preferences')
+    .select('*')
+    .eq('user_id', args.recipientId)
+    .maybeSingle();
+  const typeKey =
+    args.type === 'like' ? 'likes'
+    : args.type === 'comment' ? 'comments'
+    : args.type === 'follow' ? 'follows'
+    : args.type === 'message' ? 'messages'
+    : args.type.startsWith('order_') ? 'order_updates'
+    : 'provider_app';
+  if (pref && pref[typeKey] === false) return { suppressed: true };
+
+  // 3) Burst grouping within 15m for same (recipient, type, entityId)
+  const bucket = bucket15m();
+  const base = {
+    recipient_id: args.recipientId,
+    actor_id: args.actorId ?? null,
+    type: args.type as any,
+    entity_table: args.entityTable ?? null,
+    entity_id: args.entityId ?? null,
+    message: args.message,
+    meta: args.meta ?? {},
+    target_url: args.targetUrl ?? null,
+    bucket_key: `${args.recipientId}:${args.type}:${args.entityId ?? ''}:${bucket}`,
+    is_read: false,
+    read_at: null
+  };
+
+  // Try to find an existing row in same bucket to update message/meta (e.g., "and 3 others")
+  const { data: existing } = await supabaseAdmin
+    .from('notifications')
+    .select('id, meta, message')
+    .eq('recipient_id', args.recipientId)
+    .eq('type', args.type)
+    .eq('entity_id', args.entityId)
+    .eq('bucket_key', base.bucket_key)
+    .limit(1).maybeSingle();
+
+  if (existing) {
+    const meta = existing.meta || {};
+    const actors: string[] = Array.from(new Set([...(meta.actors ?? []), args.actorId].filter(Boolean))) as string[];
+    meta.actors = actors;
+    const groupedMsg = actors.length > 1
+      ? `${args.message} (+${actors.length - 1} others)`
+      : args.message;
+
+    await supabaseAdmin.from('notifications')
+      .update({ meta, message: groupedMsg, created_at: new Date().toISOString() })
+      .eq('id', existing.id);
+
+    return { grouped: true, id: existing.id };
+  }
+
+  // Insert new
+  const { data, error } = await supabaseAdmin.from('notifications').insert(base).select('id').single();
+  if (error) throw error;
+  return { id: data.id };
+}
+
+/** Fanout to all admins for provider app submissions */
+export async function notifyAllAdminsProviderSubmission(appId: string, actorId: string, providerId: string) {
+  const { data: admins } = await supabaseAdmin.from('admins').select('user_id');
+  if (!admins || admins.length === 0) return;
+
+  await Promise.all(
+    admins.map(a => createNotification({
+      recipientId: a.user_id,
+      actorId,
+      type: 'provider_app_submitted',
+      entityTable: 'provider_applications',
+      entityId: appId,
+      message: 'New provider application submitted.',
+      meta: { providerId: providerId, applicationId: appId },
+      targetUrl: `/admin/inbox?app=${appId}`
+    }))
+  );
+}
+
+3) Wire emitters in business flows
+
+Likes, comments, follows, messages, orders → call createNotification(...) with correct targetUrl.
+
+Provider app submitted → call notifyAllAdminsProviderSubmission(app.id, currentUser.id, provider.id).
+
+Provider app approved/rejected → call createNotification({ recipientId: applicantUserId, actorId: admin.id, type: 'provider_app_approved'|'provider_app_rejected', entityTable:'provider_applications', entityId: app.id, message: 'Your provider application was approved.' /* or reviewed */, meta:{ status: app.status }, targetUrl:'/services/onboarding?review=1' }).
+
+Ensure business action + notification happen atomically (transaction or consistent sequencing).
+
+4) API routes
+
+Create/adjust routes:
+
+// GET /api/notifications?cursor=<iso>|<id>&limit=30&unreadOnly=false
+// Returns paginated list for current user.
+
+// POST /api/notifications/mark-read
+// body: { id?: string, all?: boolean }
+// If id provided -> mark single; if all -> mark all for user.
+
+// POST /api/notification-preferences
+// body: { likes?, comments?, follows?, messages?, order_updates?, provider_app?, quiet_hours_start?, quiet_hours_end? }
+
+
+Server logic:
+
+Cursor pagination using (created_at, id) tuple; order desc.
+
+Mark-as-read updates is_read=true, read_at=now().
+
+5) Client updates
+
+Hook (useNotifications):
+
+Keep unread badge in state; reconcile via /api/notifications?unreadOnly=true&limit=0&count=1 on app focus to avoid drift.
+
+Expose markAllRead() and markOne(id).
+
+Bell icon: shows unread count; click → /notifications.
+
+Notifications page:
+
+Two sections: New (unread) and Earlier (read).
+
+Each row: actor avatar, message, relative time, unread dot.
+
+Click row → navigate to target_url (fallback derive from type + meta).
+
+“Mark all as read” button.
+
+Toast: include avatar + CTA (“View”) → link to target_url.
+
+Inline actions (optional P1): follow-back button on follow notifications.
+
+6) Quiet hours scaffolding (keep off by default)
+
+Store quiet_hours_start/end in preferences.
+
+In the client toast listener, if current time within quiet hours → suppress toast (still write to feed).
+
+Add settings UI to edit quiet hours (future).
+
+7) Delivery attempts & retries (push/email/sms)
+
+If/when push/email/SMS are enabled, wrap send calls to record delivery_attempts rows and retry with exponential backoff (cron/queue worker). For now, include helper with no-op if channels are disabled.
+
+8) Admin specifics
+
+Admin inbox badge: query provider_applications with status='pending'; show count badge in /admin navbar.
+
+Admin notifications deep-link to /admin/inbox?app=<id>; the page opens that application’s drawer automatically.
+
+9) Acceptance criteria
+
+Tapping any notification routes to the exact screen (deep link).
+
+“Mark all as read” clears badge immediately; page refresh preserves state (server is source of truth).
+
+Burst likes within 10–15 minutes are grouped into a single row.
+
+Throttle prevents >20 notifs per actor→recipient in 10 minutes.
+
+Provider application submission fans out to all admins and links to the correct admin view.
+
+Preferences toggling suppresses that type for new notifications.
+
+Quiet hours suppress toasts but items still appear in feed.
+
+Pagination loads older items smoothly; performance is snappy for 1k+ rows.
+
+10) Post-merge checklist
+
+Add at least one row to admins with your user_id.
+
+Seed notification_preferences for existing users (or lazy-create on read).
+
+QA the flows: like/comment/follow/message/order/provider-app.
+
+Add unit tests for createNotification() grouping + throttle.
