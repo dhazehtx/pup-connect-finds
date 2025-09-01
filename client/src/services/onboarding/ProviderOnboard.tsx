@@ -247,10 +247,14 @@ const ProviderOnboard: React.FC = () => {
       console.log('[VERIFICATION DEBUG] API success response:', data);
 
       // Get current user ID
+      console.log('[VERIFICATION DEBUG] Importing storage functions...');
       const { getCurrentUserId, uploadIdImage } = await import('../../lib/supabase/storage');
+      console.log('[VERIFICATION DEBUG] Getting current user ID...');
       const userId = await getCurrentUserId();
+      console.log('[VERIFICATION DEBUG] Current user ID:', userId);
 
       // Upload both images to Supabase Storage
+      console.log('[VERIFICATION DEBUG] Uploading front image...');
       const frontPath = await uploadIdImage({
         userId,
         providerId,
@@ -258,7 +262,9 @@ const ProviderOnboard: React.FC = () => {
         file: idFrontFile,
         contentType: idFrontFile.type
       });
+      console.log('[VERIFICATION DEBUG] Front image uploaded:', frontPath);
 
+      console.log('[VERIFICATION DEBUG] Uploading back image...');
       const backPath = await uploadIdImage({
         userId,
         providerId,
@@ -266,10 +272,12 @@ const ProviderOnboard: React.FC = () => {
         file: idBackFile,
         contentType: idBackFile.type
       });
+      console.log('[VERIFICATION DEBUG] Back image uploaded:', backPath);
 
-      console.log('Images uploaded successfully:', { frontPath, backPath });
+      console.log('[VERIFICATION DEBUG] Images uploaded successfully:', { frontPath, backPath });
 
       // Link media paths to verification record
+      console.log('[VERIFICATION DEBUG] Calling link-media endpoint with:', { providerId, frontPath, backPath });
       const linkResponse = await fetch('/api/providers/id/link-media', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -280,12 +288,18 @@ const ProviderOnboard: React.FC = () => {
         }),
       });
 
+      console.log('[VERIFICATION DEBUG] Link-media response status:', linkResponse.status);
       if (!linkResponse.ok) {
         const linkError = await linkResponse.json();
+        console.error('[VERIFICATION DEBUG] Link-media error:', linkError);
         throw new Error(linkError.error || 'Failed to link media');
       }
 
+      const linkData = await linkResponse.json();
+      console.log('[VERIFICATION DEBUG] Link-media success:', linkData);
+
       // Complete verification process
+      console.log('[VERIFICATION DEBUG] Calling webhook endpoint with:', { providerId, status: 'passed', livenessPassed: true });
       const webhookResponse = await fetch('/api/providers/id/webhook', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -296,10 +310,15 @@ const ProviderOnboard: React.FC = () => {
         }),
       });
 
+      console.log('[VERIFICATION DEBUG] Webhook response status:', webhookResponse.status);
       if (!webhookResponse.ok) {
         const webhookError = await webhookResponse.json();
+        console.error('[VERIFICATION DEBUG] Webhook error:', webhookError);
         throw new Error(webhookError.error || 'Verification failed');
       }
+
+      const webhookData = await webhookResponse.json();
+      console.log('[VERIFICATION DEBUG] Webhook success:', webhookData);
 
       // Update local state
       setIdVerification({ status: 'passed' });
