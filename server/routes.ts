@@ -24,6 +24,12 @@ import providerApplicationsRouter from './routes/providerApplications';
 import enhancedNotificationsRouter from './routes/enhancedNotifications';
 import verificationRouter from './routes/verification';
 import { registerHealthRoutes } from './routes/health';
+
+// New Stripe verification system
+import { startVerificationRouter } from './routes/verification/start';
+import { progressRouter } from './routes/applications/progress';
+import { submitRouter } from './routes/applications/submit';
+import { webhookRouter as stripeWebhookRouter } from './routes/stripe/webhook';
 import { storage } from "./storage";
 import { 
   generalRateLimit, 
@@ -1383,6 +1389,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     }
   });
+
+  // Register new Stripe verification system routes
+  app.use('/api/verification/start', startVerificationRouter);
+  app.use('/api/applications/progress', progressRouter);
+  app.use('/api/applications/submit', submitRouter);
+  app.use('/api/stripe/webhook', stripeWebhookRouter);
 
   // Register health check routes
   registerHealthRoutes(app);

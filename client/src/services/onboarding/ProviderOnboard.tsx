@@ -7,6 +7,7 @@ import { CheckCircle, Circle, AlertCircle, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { useOnboardingStore } from '@/stores/onboarding';
+import { useOnboarding } from '@/stores/useOnboarding';
 
 // SOL:START ProviderOnboard
 interface Step {
@@ -34,6 +35,8 @@ interface PayoutSetupState {
 
 const ProviderOnboard: React.FC = () => {
   const { currentStep, providerId, setCurrentStep, setProviderId, loadFromStorage } = useOnboardingStore();
+  const { userId, applicationId, setIds, setApplicationId } = useOnboarding();
+  const { user: authUser } = useAuth();
   const [basicsData, setBasicsData] = useState({
     legalName: '',
     phone: ''
@@ -60,26 +63,23 @@ const ProviderOnboard: React.FC = () => {
   const [providerStatus, setProviderStatus] = useState<'pending' | 'verified' | 'loading'>('pending');
   const { toast } = useToast();
   const navigate = useNavigate();
-  const { user, loading } = useAuth();
+
+  // Initialize user IDs when component loads
+  useEffect(() => {
+    if (authUser?.id && providerId) {
+      setIds(authUser.id, providerId);
+    }
+  }, [authUser?.id, providerId, setIds]);
 
   // Auth guard - redirect to auth if not signed in
   useEffect(() => {
-    if (!loading && !user) {
+    if (authUser === null) {
       navigate('/auth?next=/services/onboarding');
     }
-  }, [user, loading, navigate]);
-
-  // Show loading while auth is being determined
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-      </div>
-    );
-  }
+  }, [authUser, navigate]);
 
   // Show nothing if user is not authenticated (redirect is happening)
-  if (!user) {
+  if (!authUser) {
     return null;
   }
   
@@ -115,17 +115,21 @@ const ProviderOnboard: React.FC = () => {
       if (idFrontFile && idBackFile && idVerification.status === 'idle') {
         toast({
           title: "Starting Verification",
-          description: "Please wait while we verify your ID documents...",
+          description: "Starting ID verification session...",
         });
-        handleStartIDVerification();
+        await handleStartIDVerification();
+        // After starting verification, allow user to proceed
+        if (idVerification.status !== 'failed') {
+          setCurrentStep(currentStep + 1);
+        }
         return;
       }
       
-      // If verification is in progress, inform user to wait
-      if (idVerification.status === 'loading' || idVerification.status === 'pending') {
+      // If verification is loading, wait for it to complete
+      if (idVerification.status === 'loading') {
         toast({
-          title: "Verification in Progress",
-          description: "Please wait for ID verification to complete before proceeding.",
+          title: "Starting Verification",
+          description: "Please wait while we start the verification session...",
           variant: "destructive",
         });
         return;
@@ -141,8 +145,10 @@ const ProviderOnboard: React.FC = () => {
         return;
       }
       
-      // Only allow next if verification passed
-      if (idVerification.status !== 'passed') {
+      // Allow next if verification started or passed (non-blocking approach)
+      if (idVerification.status === 'pending' || idVerification.status === 'passed') {
+        // User can proceed while verification happens in background
+      } else {
         toast({
           title: "Verification Required",
           description: "Please upload both front and back of your ID.",
@@ -195,8 +201,8 @@ const ProviderOnboard: React.FC = () => {
     setSubmitting(true);
     setError(null); // clear stale error
 
-    if (!providerId) {
-      setError("Provider ID not found. Please start from the beginning.");
+    if (!authUser?.id || !providerId) {
+      setError("Authentication or provider ID not found. Please refresh and try again.");
       setSubmitting(false);
       return;
     }
@@ -210,36 +216,42 @@ const ProviderOnboard: React.FC = () => {
     setIdVerification({ status: 'loading' });
 
     try {
-      console.log('[DEBUG] Starting verification API call for providerId:', providerId);
+      console.log('[STRIPE VERIFICATION] Starting comprehensive verification for:', { userId: authUser.id, providerId, applicationId });
       
       const res = await fetch("/api/verification/start", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ providerId }),
+        body: JSON.stringify({ 
+          userId: authUser.id, 
+          providerId, 
+          applicationId,
+          frontImagePath: idFrontFile.name,
+          backImagePath: idBackFile.name
+        }),
       });
 
-      console.log('[DEBUG] API response status:', res.status);
-      console.log('[DEBUG] API response ok:', res.ok);
-
       const data = await res.json().catch(() => ({}));
-      console.log('[DEBUG] API response data:', data);
+      console.log('[STRIPE VERIFICATION] API response:', { status: res.status, data });
 
       if (!res.ok || !data?.success) {
-        console.log('[DEBUG] API call failed, data:', data);
         throw new Error(data?.message || "Failed to start ID verification.");
       }
 
-      console.log('[DEBUG] API call succeeded, setting verification to passed');
-      // For now, simulate successful verification since the API call succeeds
-      setIdVerification({ status: 'passed' });
+      // Store the application ID for future use
+      if (data.applicationId) {
+        setApplicationId(data.applicationId);
+      }
+
+      // Mark verification as "started" - user can proceed to other steps
+      setIdVerification({ status: 'pending', sessionId: data.sessionId });
+      
       toast({
-        title: "ID Verification Complete",
-        description: "Your identity has been successfully verified!",
+        title: "Verification Started",
+        description: "ID verification session started. You can continue with other steps while we verify your identity in the background.",
       });
 
     } catch (err: any) {
-      console.log('[DEBUG] Caught error:', err);
-      console.log('[DEBUG] Error message:', err?.message);
+      console.error('[STRIPE VERIFICATION] Error:', err);
       setError(err?.message || "Could not start verification.");
       setIdVerification({ status: 'failed', message: err?.message || "Could not start verification." });
       toast({
@@ -589,9 +601,9 @@ const ProviderOnboard: React.FC = () => {
   // Save provider basics with direct Supabase call
   const saveBasics = async () => {
     console.log('[ONBOARDING] saveBasics function START');
-    console.log('[ONBOARDING] saveBasics called:', { user: !!user?.id, basicsData });
+    console.log('[ONBOARDING] saveBasics called:', { user: !!authUser?.id, basicsData });
     
-    if (!user?.id) {
+    if (!authUser?.id) {
       toast({
         title: "Error",
         description: "User not authenticated",
@@ -623,13 +635,13 @@ const ProviderOnboard: React.FC = () => {
 
     try {
       console.log('[ONBOARDING] Making save request with:', {
-        userId: user.id,
+        userId: authUser.id,
         legalName: basicsData.legalName,
         phone: basicsData.phone
       });
 
       // For now, create a mock provider ID to unblock the flow
-      const mockProviderId = `provider_${user.id}_${Date.now()}`;
+      const mockProviderId = `provider_${authUser.id}_${Date.now()}`;
       
       console.log('[ONBOARDING] Using mock provider ID:', mockProviderId);
       setProviderId(mockProviderId);
@@ -879,20 +891,15 @@ const ProviderOnboard: React.FC = () => {
             {idVerification.status === 'pending' && (
               <div className="space-y-4">
                 <div className="bg-blue-50 p-4 rounded-lg flex items-center space-x-3">
-                  <Loader2 className="h-5 w-5 animate-spin text-blue-600" />
+                  <CheckCircle className="h-5 w-5 text-blue-600" />
                   <div>
-                    <p className="text-sm font-medium text-blue-800">Verification in Progress</p>
-                    <p className="text-sm text-blue-700">Please wait while we verify your identity...</p>
+                    <p className="text-sm font-medium text-blue-800">Verification Started</p>
+                    <p className="text-sm text-blue-700">Your ID verification is processing in the background. You can continue with the remaining steps.</p>
                   </div>
                 </div>
-                <Button 
-                  onClick={checkVerificationStatus}
-                  variant="outline"
-                  className="w-full"
-                  data-testid="button-check-verification-status"
-                >
-                  Check Status
-                </Button>
+                <p className="text-sm text-gray-600 text-center">
+                  Verification typically takes 1-2 business days. You'll be notified when complete.
+                </p>
               </div>
             )}
 

@@ -1,0 +1,370 @@
+User uploads ID (front/back) → we start Stripe and mark step3 as started (not blocking).
+
+User can continue all remaining steps and submit the application.
+
+Admin reviews the whole application at the end (approve/reject).
+
+A webhook flips step3 to completed/failed when Stripe finishes.
+
+🔧 Replit Agent Prompt — “Allow proceed, admin reviews at end (Stripe)”
+
+Do all of the following exactly. If a file exists, update it; otherwise create it.
+
+0) Install deps & set secrets
+
+Ensure deps:
+
+npm i stripe @supabase/supabase-js
+
+
+Add/confirm secrets:
+
+STRIPE_SECRET_KEY=sk_test_***
+NEXT_PUBLIC_APP_URL=https://<your-preview-or-prod-url>
+NEXT_PUBLIC_SUPABASE_URL=https://<your-project>.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...  (service role; server-only)
+STRIPE_WEBHOOK_SECRET=whsec_***  (from Stripe CLI/Dashboard)
+
+1) Supabase schema (extend or create)
+
+Create a migration (or run in SQL editor):
+
+create table if not exists provider_applications (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null,
+  provider_id uuid not null,
+  status text not null default 'in_progress',    -- in_progress | submitted | under_review | approved | rejected
+  step1_status text default 'completed',         -- example if already done earlier
+  step2_status text default 'completed',
+  step3_id_status text default 'not_started',    -- not_started | started | completed | failed
+  step4_status text default 'not_started',
+  step5_status text default 'not_started',
+  step6_status text default 'not_started',
+  step7_status text default 'not_started',
+  step8_status text default 'not_started',
+  id_front_url text,
+  id_back_url text,
+  stripe_session_id text,
+  created_at timestamptz default now(),
+  updated_at timestamptz default now()
+);
+
+create index if not exists idx_provider_applications_user on provider_applications(user_id);
+create index if not exists idx_provider_applications_provider on provider_applications(provider_id);
+
+
+RLS: keep whatever you already have; ensure users can read/update their rows, admins can read all.
+
+2) Server helper: Supabase server client
+
+lib/supabaseServer.ts
+
+import { createClient } from "@supabase/supabase-js";
+
+export const serverSupabase = () =>
+  createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!, // SERVER ONLY
+    { auth: { persistSession: false } }
+  );
+
+3) API — Start Stripe, mark step3 “started”, DO NOT block
+
+App Router: app/api/verification/start/route.ts
+
+import { NextRequest, NextResponse } from "next/server";
+import Stripe from "stripe";
+import { serverSupabase } from "@/lib/supabaseServer";
+
+const ORIGIN = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+
+export async function POST(req: NextRequest) {
+  try {
+    const { userId, providerId, applicationId, frontImagePath, backImagePath } = await req.json();
+
+    if (!userId || !providerId || !frontImagePath || !backImagePath) {
+      return NextResponse.json({ success:false, message:"Missing fields" }, { status:400 });
+    }
+
+    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion:"2024-06-20" as any });
+    const session = await stripe.identity.verificationSessions.create({
+      type: "document",
+      metadata: { userId, providerId },
+      return_url: `${ORIGIN}/services/onboarding/check?session={VERIFICATION_SESSION_ID}`,
+    });
+
+    const supabase = serverSupabase();
+    const { data, error } = await supabase
+      .from("provider_applications")
+      .upsert({
+        id: applicationId ?? undefined,
+        user_id: userId,
+        provider_id: providerId,
+        step3_id_status: "started",
+        id_front_url: frontImagePath,
+        id_back_url: backImagePath,
+        stripe_session_id: session.id,
+        updated_at: new Date().toISOString(),
+      }, { onConflict: "id" })
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    return NextResponse.json({
+      success: true,
+      applicationId: data.id,
+      sessionId: session.id,
+      session_id: session.id,
+      url: `https://verify.stripe.com/session/${session.id}`,
+      stepStatus: "started"
+    });
+  } catch (e:any) {
+    console.error("[verification/start]", e);
+    return NextResponse.json({ success:false, message: e?.message || "Internal error" }, { status:500 });
+  }
+}
+
+4) API — Generic step progress updater (non-blocking)
+
+app/api/applications/progress/route.ts
+
+import { NextRequest, NextResponse } from "next/server";
+import { serverSupabase } from "@/lib/supabaseServer";
+
+export async function POST(req: NextRequest) {
+  try {
+    const { applicationId, userId, step, status } = await req.json(); // step like "step4_status"
+    if (!applicationId || !userId || !step || !status) {
+      return NextResponse.json({ success:false, message:"Missing fields" }, { status:400 });
+    }
+    if (!/^step[1-8]_status$/.test(step)) {
+      return NextResponse.json({ success:false, message:"Invalid step name" }, { status:400 });
+    }
+
+    const supabase = serverSupabase();
+    const { data, error } = await supabase
+      .from("provider_applications")
+      .update({ [step]: status, updated_at: new Date().toISOString() })
+      .eq("id", applicationId)
+      .eq("user_id", userId)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return NextResponse.json({ success:true, application: data });
+  } catch (e:any) {
+    console.error("[applications/progress]", e);
+    return NextResponse.json({ success:false, message:e?.message || "Internal error" }, { status:500 });
+  }
+}
+
+5) API — Final submit (send to admin review)
+
+app/api/applications/submit/route.ts
+
+import { NextRequest, NextResponse } from "next/server";
+import { serverSupabase } from "@/lib/supabaseServer";
+
+export async function POST(req: NextRequest) {
+  try {
+    const { applicationId, userId } = await req.json();
+    if (!applicationId || !userId) {
+      return NextResponse.json({ success:false, message:"Missing fields" }, { status:400 });
+    }
+
+    const supabase = serverSupabase();
+    const { data, error } = await supabase
+      .from("provider_applications")
+      .update({ status: "submitted", updated_at: new Date().toISOString() })
+      .eq("id", applicationId)
+      .eq("user_id", userId)
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    // TODO: enqueue admin notification if desired
+    return NextResponse.json({ success:true, status: data.status });
+  } catch (e:any) {
+    console.error("[applications/submit]", e);
+    return NextResponse.json({ success:false, message:e?.message || "Internal error" }, { status:500 });
+  }
+}
+
+6) API — Admin approve/reject
+
+app/api/admin/applications/[id]/route.ts
+
+import { NextRequest, NextResponse } from "next/server";
+import { serverSupabase } from "@/lib/supabaseServer";
+
+export async function PATCH(req: NextRequest, { params }: { params: { id: string }}) {
+  try {
+    const { action } = await req.json();  // "approve" | "reject"
+    const nextStatus = action === "approve" ? "approved" : "rejected";
+
+    const supabase = serverSupabase();
+    const { data, error } = await supabase
+      .from("provider_applications")
+      .update({ status: nextStatus, updated_at: new Date().toISOString() })
+      .eq("id", params.id)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return NextResponse.json({ success:true, status: data.status });
+  } catch (e:any) {
+    console.error("[admin/applications]", e);
+    return NextResponse.json({ success:false, message:e?.message || "Internal error" }, { status:500 });
+  }
+}
+
+7) Webhook — flip step3 to completed/failed automatically
+
+app/api/stripe/webhook/route.ts
+
+import { NextRequest, NextResponse } from "next/server";
+import Stripe from "stripe";
+import { serverSupabase } from "@/lib/supabaseServer";
+
+export async function POST(req: NextRequest) {
+  const sig = req.headers.get("stripe-signature") || "";
+  const buf = await req.arrayBuffer();
+  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion:"2024-06-20" as any });
+
+  let event: Stripe.Event;
+  try {
+    event = stripe.webhooks.constructEvent(Buffer.from(buf), sig, process.env.STRIPE_WEBHOOK_SECRET!);
+  } catch (e:any) {
+    return NextResponse.json({ error: `Webhook signature verification failed: ${e.message}` }, { status: 400 });
+  }
+
+  try {
+    if (event.type === "identity.verification_session.verified" ||
+        event.type === "identity.verification_session.canceled" ||
+        event.type === "identity.verification_session.requires_input") {
+
+      const session = event.data.object as Stripe.IdentityVerificationSession;
+      const status = event.type === "identity.verification_session.verified" ? "completed" : "failed";
+
+      const supabase = serverSupabase();
+      await supabase
+        .from("provider_applications")
+        .update({ step3_id_status: status, updated_at: new Date().toISOString() })
+        .eq("stripe_session_id", session.id);
+    }
+
+    return NextResponse.json({ received: true });
+  } catch (e:any) {
+    console.error("[stripe/webhook]", e);
+    return NextResponse.json({ error: "Webhook handling error" }, { status: 500 });
+  }
+}
+
+
+Add this endpoint URL to Stripe → Developers → Webhooks.
+
+8) Onboarding store (track applicationId + statuses)
+
+If you don’t already have it, create a tiny store.
+
+stores/useOnboarding.ts
+
+import { create } from "zustand";
+
+type Onboarding = {
+  userId: string | null;
+  providerId: string | null;
+  applicationId: string | null;
+  setIds: (u:string, p:string) => void;
+  setApplicationId: (id:string) => void;
+};
+export const useOnboarding = create<Onboarding>((set) => ({
+  userId: null,
+  providerId: null,
+  applicationId: null,
+  setIds: (u,p) => set({ userId:u, providerId:p }),
+  setApplicationId: (id) => set({ applicationId:id }),
+}));
+
+9) Step 3 UI — start session, allow “Next”
+
+Update the Step 3 component:
+
+const { userId, providerId, applicationId, setApplicationId } = useOnboarding();
+const [submitting, setSubmitting] = useState(false);
+const [err, setErr] = useState<string|null>(null);
+
+const startVerification = async () => {
+  if (submitting) return;
+  setSubmitting(true); setErr(null);
+
+  try {
+    const res = await fetch("/api/verification/start", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userId, providerId, applicationId, frontImagePath, backImagePath }),
+    });
+    const data = await res.json();
+    if (!res.ok || !data?.success) throw new Error(data?.message || "Failed to start verification.");
+
+    if (data.applicationId) setApplicationId(data.applicationId);
+
+    // Treat "started" as success → allow forward
+    toast.info("Verification session started. You can continue onboarding while we verify your ID.");
+    // Optional: let user complete capture now in a new tab:
+    // window.open(data.url, "_blank");
+
+    router.push("/services/onboarding/check");
+  } catch (e:any) {
+    setErr(e?.message || "Could not start verification.");
+    toast.error(e?.message || "Could not start verification.");
+  } finally {
+    setSubmitting(false);
+  }
+};
+
+// Bind BOTH buttons to same handler
+// "Start ID Verification" and "Next" should call startVerification
+
+
+Also adjust your stepper condition:
+
+const canProceedFromStep3 = Boolean(frontImagePath && backImagePath); // no admin gate
+
+10) Step 4..8 — mark progress without blocking
+
+Where each step completes, call:
+
+await fetch("/api/applications/progress", {
+  method:"POST",
+  headers:{ "Content-Type":"application/json" },
+  body: JSON.stringify({ applicationId, userId, step: "step4_status", status: "completed" })
+});
+
+11) Final “Submit Application”
+
+On the Review/Submit step:
+
+const submit = async () => {
+  const res = await fetch("/api/applications/submit", {
+    method:"POST",
+    headers:{ "Content-Type":"application/json" },
+    body: JSON.stringify({ applicationId, userId })
+  });
+  const data = await res.json();
+  if (!res.ok || !data?.success) return toast.error(data?.message || "Submit failed.");
+  toast.success("Application submitted. We’ll notify you after admin review.");
+  router.push("/services/onboarding/success");
+};
+
+What you get
+
+✅ Users don’t get stuck at Step 3.
+
+✅ Stripe verification runs asynchronously; webhook marks it completed/failed.
+
+✅ Users finish all steps and press Submit → status becomes submitted.
+
+✅ Admin can later approve/reject the whole application.
