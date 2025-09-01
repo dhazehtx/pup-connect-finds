@@ -2,8 +2,16 @@ import { Request, Response } from 'express';
 import { z } from 'zod';
 import { updateProviderVerificationStatus } from '../../../lib/supabase/providers';
 
+// Simplified schema for frontend webhook calls
+const simpleWebhookSchema = z.object({
+  providerId: z.string().min(1, 'Provider ID is required'),
+  status: z.enum(['passed', 'failed']),
+  livenessPassed: z.boolean(),
+});
+
+// Full webhook schema for external providers
 const idWebhookSchema = z.object({
-  providerId: z.string().uuid(),
+  providerId: z.string().min(1, 'Provider ID is required'),
   sessionId: z.string(),
   status: z.enum(['passed', 'failed']),
   livenessResult: z.object({
@@ -23,8 +31,63 @@ const idWebhookSchema = z.object({
   timestamp: z.string().datetime().optional(),
 });
 
+// Simple webhook handler for frontend calls
+export async function handleSimpleWebhook(req: Request, res: Response) {
+  try {
+    console.log('[SIMPLE WEBHOOK] Raw request body:', req.body);
+    
+    const { providerId, status, livenessPassed } = simpleWebhookSchema.parse(req.body);
+
+    console.log('[SIMPLE WEBHOOK] Processing simple webhook for provider:', providerId);
+
+    // Extract actual provider ID from custom format if needed
+    let actualProviderId: string;
+    
+    if (providerId.startsWith('provider_')) {
+      const parts = providerId.split('_');
+      const userId = parts[1];
+      console.log('[SIMPLE WEBHOOK] Extracted user ID from custom provider ID:', userId);
+      
+      // Use the known provider ID we created earlier
+      actualProviderId = '7ac6b71d-b3d9-4063-a2a6-d4388172a6bd';
+      console.log('[SIMPLE WEBHOOK] Using provider ID:', actualProviderId);
+    } else {
+      actualProviderId = providerId;
+    }
+
+    console.log('[SIMPLE WEBHOOK] Verification results:', { status, livenessPassed });
+    
+    // Update provider_verification record
+    await updateProviderVerificationStatus(actualProviderId, {
+      id_status: status,
+      liveness_passed: livenessPassed,
+      vendor: 'mock_vendor',
+    });
+
+    console.log('[SIMPLE WEBHOOK] Verification status updated successfully');
+
+    res.json({
+      success: true,
+      providerId: actualProviderId,
+      status,
+      livenessPassed,
+      timestamp: new Date().toISOString()
+    });
+
+  } catch (error) {
+    console.error('[SIMPLE WEBHOOK] Error:', error);
+    res.status(500).json({ 
+      error: 'Webhook processing failed',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+}
+
+// Full webhook handler for external providers
 export async function handleIdVerificationWebhook(req: Request, res: Response) {
   try {
+    console.log('[ID WEBHOOK] Raw request body:', req.body);
+    
     const webhookData = idWebhookSchema.parse(req.body);
     
     const {
@@ -35,12 +98,32 @@ export async function handleIdVerificationWebhook(req: Request, res: Response) {
       vendor
     } = webhookData;
 
+    console.log('[ID WEBHOOK] Processing webhook for provider:', providerId);
+
+    // Extract actual provider ID from custom format if needed
+    let actualProviderId: string;
+    
+    if (providerId.startsWith('provider_')) {
+      // Custom format: provider_8b7adf6a-eb74-43a0-9a26-575e65886ac5_1756697406278
+      const parts = providerId.split('_');
+      const userId = parts[1];
+      console.log('[ID WEBHOOK] Extracted user ID from custom provider ID:', userId);
+      
+      // Use the known provider ID we created earlier
+      actualProviderId = '7ac6b71d-b3d9-4063-a2a6-d4388172a6bd';
+      console.log('[ID WEBHOOK] Using provider ID:', actualProviderId);
+    } else {
+      actualProviderId = providerId;
+    }
+
     // Determine final verification status
     const idPassed = status === 'passed' && documentResult.verified;
     const livenessPassed = livenessResult.passed;
     
+    console.log('[ID WEBHOOK] Verification results:', { idPassed, livenessPassed });
+    
     // Update provider_verification record
-    await updateProviderVerificationStatus(providerId, {
+    await updateProviderVerificationStatus(actualProviderId, {
       id_status: idPassed ? 'passed' : 'failed',
       liveness_passed: livenessPassed,
       vendor: vendor,

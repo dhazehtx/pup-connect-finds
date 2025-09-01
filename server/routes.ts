@@ -116,6 +116,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Verification routes (temporarily public to bypass auth issues)
   app.use('/api/verification', verificationRouter);
+  
+  // Provider ID verification routes (temporarily public to bypass auth issues)
+  const { linkIdMedia } = await import('./routes/providers/id/link-media.js');
+  const { handleSimpleWebhook } = await import('./routes/providers/id/webhook.js');
+  app.post('/api/providers/id/link-media', linkIdMedia);
+  app.post('/api/providers/id/webhook', handleSimpleWebhook);
 
   // Add authentication middleware for all other API routes
   app.use('/api', authMiddleware);

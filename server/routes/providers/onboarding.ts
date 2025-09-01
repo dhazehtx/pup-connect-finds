@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { startIdVerification } from './id/start';
 import { handleIdVerificationWebhook } from './id/webhook';
 import { uploadIdImages, handleIdUpload } from './id/upload';
-import { linkVerificationMedia } from './id/link-media';
+import { linkIdMedia } from './id/link-media';
 import { startBackgroundCheck } from './checks/start';
 import { handleBackgroundCheckWebhook } from './checks/webhook';
 import { connectStripePayout, checkStripeAccountStatus } from './payouts/connect';
@@ -17,7 +17,7 @@ const router = Router();
 router.post('/id/start', startIdVerification);
 router.post('/id/webhook', handleIdVerificationWebhook);
 router.post('/id/upload', uploadIdImages, handleIdUpload);
-router.post('/id/link-media', linkVerificationMedia);
+router.post('/id/link-media', linkIdMedia);
 
 // Background Check routes  
 router.post('/checks/start', startBackgroundCheck);
