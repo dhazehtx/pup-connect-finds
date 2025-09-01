@@ -210,18 +210,26 @@ const ProviderOnboard: React.FC = () => {
     setIdVerification({ status: 'loading' });
 
     try {
+      console.log('[DEBUG] Starting verification API call for providerId:', providerId);
+      
       const res = await fetch("/api/verification/start", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ providerId }),
       });
 
+      console.log('[DEBUG] API response status:', res.status);
+      console.log('[DEBUG] API response ok:', res.ok);
+
       const data = await res.json().catch(() => ({}));
+      console.log('[DEBUG] API response data:', data);
 
       if (!res.ok || !data?.success) {
+        console.log('[DEBUG] API call failed, data:', data);
         throw new Error(data?.message || "Failed to start ID verification.");
       }
 
+      console.log('[DEBUG] API call succeeded, setting verification to passed');
       // For now, simulate successful verification since the API call succeeds
       setIdVerification({ status: 'passed' });
       toast({
@@ -230,6 +238,8 @@ const ProviderOnboard: React.FC = () => {
       });
 
     } catch (err: any) {
+      console.log('[DEBUG] Caught error:', err);
+      console.log('[DEBUG] Error message:', err?.message);
       setError(err?.message || "Could not start verification.");
       setIdVerification({ status: 'failed', message: err?.message || "Could not start verification." });
       toast({
