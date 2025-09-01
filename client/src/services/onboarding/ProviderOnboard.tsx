@@ -47,6 +47,10 @@ const ProviderOnboard: React.FC = () => {
   const [idBackFile, setIdBackFile] = useState<File | null>(null);
   const [idVerification, setIdVerification] = useState<IDVerificationState>({ status: 'idle' });
   const [backgroundCheck, setBackgroundCheck] = useState<BackgroundCheckState>({ status: 'idle' });
+  const [bgCheckConsent, setBgCheckConsent] = useState<boolean>(false);
+  const [isSavingConsent, setIsSavingConsent] = useState(false);
+  const [consentMessage, setConsentMessage] = useState<string | null>(null);
+  const [consentError, setConsentError] = useState<string | null>(null);
   const [payoutSetup, setPayoutSetup] = useState<PayoutSetupState>({ status: 'idle' });
   const [accountType, setAccountType] = useState<'individual' | 'business'>('individual');
   const [serviceDetails, setServiceDetails] = useState({
@@ -158,10 +162,10 @@ const ProviderOnboard: React.FC = () => {
       }
     }
 
-    if (currentStep === 3 && backgroundCheck.status !== 'passed') {
+    if (currentStep === 3 && !bgCheckConsent) {
       toast({
-        title: "Background Check Required",
-        description: "Please wait for background check to complete before proceeding.",
+        title: "Consent Required",
+        description: "Please provide consent for background check before proceeding.",
         variant: "destructive",
       });
       return;
@@ -664,6 +668,42 @@ const ProviderOnboard: React.FC = () => {
     }
   };
 
+  // Save background check consent
+  const saveConsent = async () => {
+    if (!applicationId || !authUser?.id) {
+      setConsentError("Missing application or user information");
+      return;
+    }
+
+    setIsSavingConsent(true);
+    setConsentError(null);
+    setConsentMessage(null);
+
+    try {
+      const response = await fetch('/api/applications/consent', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          applicationId, 
+          userId: authUser.id, 
+          consent: bgCheckConsent 
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok || !data?.success) {
+        throw new Error(data?.message || "Could not save consent.");
+      }
+
+      setConsentMessage("Consent saved.");
+    } catch (e: any) {
+      setConsentError(e?.message || "Could not save consent.");
+    } finally {
+      setIsSavingConsent(false);
+    }
+  };
+
   const submitProviderApplication = async () => {
     if (!providerId) {
       toast({
@@ -852,7 +892,7 @@ const ProviderOnboard: React.FC = () => {
                       ✓ Both images uploaded successfully! 
                     </p>
                     <p className="text-sm text-green-700 mt-1">
-                      Click "Next" to automatically start verification, or use the button below.
+                      Click "Save" to start verification and proceed to the next step.
                     </p>
                   </div>
                 )}
@@ -861,10 +901,9 @@ const ProviderOnboard: React.FC = () => {
                   onClick={handleStartIDVerification}
                   disabled={submitting || !idFrontFile || !idBackFile}
                   className="w-full"
-                  variant={idFrontFile && idBackFile ? "outline" : "default"}
-                  data-testid="button-start-id-verification"
+                  data-testid="button-save-id"
                 >
-                  {submitting ? "Starting verification…" : "Start ID Verification"}
+                  {submitting ? "Saving…" : "Save"}
                 </Button>
                 
                 {error && (
@@ -893,8 +932,8 @@ const ProviderOnboard: React.FC = () => {
                 <div className="bg-blue-50 p-4 rounded-lg flex items-center space-x-3">
                   <CheckCircle className="h-5 w-5 text-blue-600" />
                   <div>
-                    <p className="text-sm font-medium text-blue-800">Verification Started</p>
-                    <p className="text-sm text-blue-700">Your ID verification is processing in the background. You can continue with the remaining steps.</p>
+                    <p className="text-sm font-medium text-blue-800">ID saved. Verification in progress.</p>
+                    <p className="text-sm text-blue-700">You can continue with the remaining steps while verification processes in the background.</p>
                   </div>
                 </div>
                 <p className="text-sm text-gray-600 text-center">
@@ -941,87 +980,48 @@ const ProviderOnboard: React.FC = () => {
         return (
           <div className="space-y-4">
             <h2 className="text-xl font-semibold">Background Check</h2>
-            <p className="text-gray-600">We'll run a background check to ensure platform safety</p>
-            
-            {backgroundCheck.status === 'idle' && (
-              <div className="space-y-4">
-                <Button 
-                  onClick={handleStartBackgroundCheck}
-                  disabled={backgroundCheck.status === 'loading' || backgroundCheck.status === 'passed'}
-                  className="w-full"
-                  data-testid="button-start-background-check"
-                >
-                  {backgroundCheck.status === 'loading' ? 'Processing...' : 
-                   backgroundCheck.status === 'passed' ? '✓ Background Check Complete' : 
-                   'Start Background Check'}
-                </Button>
-                <div className="bg-blue-50 p-4 rounded-lg">
-                  <p className="text-sm text-blue-800">
-                    We'll verify your background to ensure platform safety.
-                    This process typically takes 1-3 business days.
-                  </p>
-                </div>
-              </div>
-            )}
+            <p className="text-sm text-gray-600">
+              We'll run a background check to ensure platform safety after you submit your application.
+            </p>
 
-            {backgroundCheck.status === 'loading' && (
-              <div className="text-center space-y-4">
-                <Loader2 className="h-8 w-8 animate-spin mx-auto text-blue-500" />
-                <p className="text-sm text-gray-600">Starting background check...</p>
-              </div>
-            )}
+            <label className="flex items-start gap-2 mt-4">
+              <input
+                type="checkbox"
+                checked={bgCheckConsent}
+                onChange={(e) => setBgCheckConsent(e.target.checked)}
+                className="mt-0.5"
+                data-testid="checkbox-bgcheck-consent"
+              />
+              <span className="text-sm">
+                I consent to a background check and authorize My Pup to process it upon submission.
+              </span>
+            </label>
 
-            {backgroundCheck.status === 'pending' && (
-              <div className="space-y-4">
-                <div className="bg-blue-50 p-4 rounded-lg flex items-center space-x-3">
-                  <Loader2 className="h-5 w-5 animate-spin text-blue-600" />
-                  <div>
-                    <p className="text-sm font-medium text-blue-800">Background Check in Progress</p>
-                    <p className="text-sm text-blue-700">Please wait while we verify your background...</p>
-                  </div>
+            <div className="mt-3 space-y-2">
+              {consentMessage && (
+                <div className="rounded-md border border-green-200 bg-green-50 px-3 py-2 text-sm">
+                  {consentMessage}
                 </div>
-                <Button 
-                  onClick={checkBackgroundStatus}
-                  variant="outline"
-                  className="w-full"
-                  data-testid="button-check-background-status"
-                >
-                  Check Status
-                </Button>
-              </div>
-            )}
+              )}
+              {consentError && (
+                <div className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+                  {consentError}
+                </div>
+              )}
 
-            {backgroundCheck.status === 'passed' && (
-              <div className="bg-green-50 p-4 rounded-lg flex items-center space-x-3">
-                <CheckCircle className="h-5 w-5 text-green-600" />
-                <div>
-                  <p className="text-sm font-medium text-green-800">Background Check Passed</p>
-                  <p className="text-sm text-green-700">Your background check has been completed successfully.</p>
-                </div>
-              </div>
-            )}
+              <Button 
+                onClick={saveConsent} 
+                disabled={isSavingConsent} 
+                className="w-full"
+                data-testid="button-save-consent"
+              >
+                {isSavingConsent ? "Saving…" : "Save"}
+              </Button>
+            </div>
 
-            {backgroundCheck.status === 'failed' && (
-              <div className="space-y-4">
-                <div className="bg-red-50 p-4 rounded-lg flex items-center space-x-3">
-                  <AlertCircle className="h-5 w-5 text-red-600" />
-                  <div>
-                    <p className="text-sm font-medium text-red-800">Background Check Failed</p>
-                    <p className="text-sm text-red-700">
-                      {backgroundCheck.message || 'Please contact support for assistance.'}
-                    </p>
-                  </div>
-                </div>
-                <Button 
-                  onClick={() => setBackgroundCheck({ status: 'idle' })}
-                  variant="outline"
-                  className="w-full"
-                  data-testid="button-retry-background-check"
-                >
-                  Contact Support
-                </Button>
-              </div>
-            )}
+            <p className="text-sm text-gray-600 text-center mt-4">
+              We'll verify your background after you submit your application. This typically takes 1–3 business days.
+            </p>
           </div>
         );
 

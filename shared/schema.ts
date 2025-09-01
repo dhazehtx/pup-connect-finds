@@ -335,6 +335,8 @@ export const providerApplications = pgTable("provider_applications", {
   reviewed_by: uuid("reviewed_by").references(() => profiles.id),
   reviewed_at: timestamp("reviewed_at", { withTimezone: true }),
   review_notes: text("review_notes"),
+  bgcheck_consent: boolean("bgcheck_consent").default(false),
+  bgcheck_status: text("bgcheck_status").default("not_requested"), // not_requested | pending | completed | failed
 });
 
 // Notification events log

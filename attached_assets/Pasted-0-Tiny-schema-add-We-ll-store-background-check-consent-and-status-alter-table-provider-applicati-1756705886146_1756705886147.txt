@@ -1,0 +1,236 @@
+0) Tiny schema add
+
+We’ll store background-check consent and status.
+
+alter table provider_applications
+  add column if not exists bgcheck_consent boolean default false,
+  add column if not exists bgcheck_status text default 'not_requested'; -- not_requested | pending | completed | failed
+
+1) Step 3 (ID) — change button to “Save”, remove red toast
+API (no change in behavior; we just treat “started” as success)
+
+You already have /api/verification/start. Keep it. It returns { success:true, stepStatus:"started", url, sessionId, applicationId }.
+
+Component changes (Step 3)
+
+Replace the “Start ID Verification” button with Save and remove the “failed” toast when status is started.
+
+// Step3ID.tsx (or wherever)
+const [saving, setSaving] = useState(false);
+const [statusMsg, setStatusMsg] = useState<string | null>(null);
+const [err, setErr] = useState<string | null>(null);
+
+const onSaveID = async () => {
+  if (saving) return;
+  setSaving(true);
+  setErr(null);
+  setStatusMsg(null);
+  try {
+    const res = await fetch("/api/verification/start", {
+      method: "POST",
+      headers: { "Content-Type":"application/json" },
+      body: JSON.stringify({ userId, providerId, applicationId, frontImagePath, backImagePath }),
+    });
+    const data = await res.json();
+    if (!res.ok || !data?.success) throw new Error(data?.message || "Could not save ID.");
+
+    // ✔ Treat "started" as success
+    setStatusMsg("ID saved. Verification in progress.");
+    // Optionally open Stripe in new tab for the user to finish now:
+    // window.open(data.url, "_blank");
+
+    // Enable Next (your stepper likely already does this if images exist)
+  } catch (e:any) {
+    setErr(e?.message || "Could not save ID.");
+  } finally {
+    setSaving(false);
+  }
+};
+
+
+Button + banners:
+
+<div className="space-y-3">
+  {!!statusMsg && (
+    <div className="rounded-md border border-blue-200 bg-blue-50 px-3 py-2 text-sm">
+      {statusMsg}
+    </div>
+  )}
+  {!!err && (
+    <div className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+      {err}
+    </div>
+  )}
+
+  <button
+    onClick={onSaveID}
+    disabled={saving || !frontImagePath || !backImagePath}
+    className="btn btn-primary"
+  >
+    {saving ? "Saving…" : "Save"}
+  </button>
+
+  {/* Next just does router.push to Step 4 now; no extra API call */}
+  <button
+    onClick={() => router.push("/services/onboarding/check")}
+    className="btn btn-secondary"
+  >
+    Next
+  </button>
+</div>
+
+
+Also search your Step 3 code for any line that sets a red “Verification Failed: session started” toast. Delete it or gate it:
+
+// BAD: if (data.stepStatus === "started") toast.error("Verification Failed...")
+// GOOD:
+if (data.stepStatus === "started") {
+  // no error toast
+}
+
+2) Step 4 (Background Check) — consent checkbox, not a “Start” button
+API: save consent (non-blocking)
+
+app/api/applications/consent/route.ts
+
+import { NextRequest, NextResponse } from "next/server";
+import { serverSupabase } from "@/lib/supabaseServer";
+
+export async function POST(req: NextRequest) {
+  try {
+    const { applicationId, userId, consent } = await req.json();
+    if (!applicationId || !userId || typeof consent !== "boolean") {
+      return NextResponse.json({ success:false, message:"Missing fields." }, { status:400 });
+    }
+    const supabase = serverSupabase();
+    const { data, error } = await supabase
+      .from("provider_applications")
+      .update({ bgcheck_consent: consent })
+      .eq("id", applicationId)
+      .eq("user_id", userId)
+      .select()
+      .single();
+    if (error) throw error;
+    return NextResponse.json({ success:true, consent: data.bgcheck_consent });
+  } catch (e:any) {
+    console.error("[applications/consent]", e);
+    return NextResponse.json({ success:false, message:e?.message || "Internal error" }, { status:500 });
+  }
+}
+
+Component (Step 4)
+
+Replace the “Start Background Check” button with a checkbox + Save, and only enable Next when consent is checked.
+
+// Step4Background.tsx
+const [consent, setConsent] = useState<boolean>(app?.bgcheck_consent ?? false);
+const [saving, setSaving] = useState(false);
+const [msg, setMsg] = useState<string | null>(null);
+const [err, setErr] = useState<string | null>(null);
+
+const saveConsent = async () => {
+  setSaving(true); setErr(null); setMsg(null);
+  try {
+    const res = await fetch("/api/applications/consent", {
+      method: "POST",
+      headers: { "Content-Type":"application/json" },
+      body: JSON.stringify({ applicationId, userId, consent }),
+    });
+    const data = await res.json();
+    if (!res.ok || !data?.success) throw new Error(data?.message || "Could not save consent.");
+    setMsg("Consent saved.");
+  } catch (e:any) {
+    setErr(e?.message || "Could not save consent.");
+  } finally {
+    setSaving(false);
+  }
+};
+
+
+UI:
+
+<h2 className="text-xl font-semibold">Background Check</h2>
+<p className="text-sm text-gray-600">
+  We’ll run a background check to ensure platform safety after you submit your application.
+</p>
+
+<label className="flex items-start gap-2 mt-4">
+  <input
+    type="checkbox"
+    checked={consent}
+    onChange={e => setConsent(e.target.checked)}
+  />
+  <span className="text-sm">
+    I consent to a background check and authorize My Pup to process it upon submission.
+  </span>
+</label>
+
+<div className="mt-3 space-y-2">
+  {!!msg && <div className="rounded-md border border-green-200 bg-green-50 px-3 py-2 text-sm">{msg}</div>}
+  {!!err && <div className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">{err}</div>}
+
+  <button onClick={saveConsent} disabled={saving} className="btn btn-primary">
+    {saving ? "Saving…" : "Save"}
+  </button>
+
+  <button
+    onClick={() => router.push("/services/onboarding/payout")}
+    disabled={!consent}
+    className="btn btn-secondary"
+  >
+    Next
+  </button>
+</div>
+
+
+Copy update under the button:
+“We’ll verify your background after you submit your application. This typically takes 1–3 business days.”
+
+3) Final submit triggers the background check (not Step 4)
+
+In your Submit Application API we set status to submitted, and we can queue the background check by flipping bgcheck_status to pending. (If you’re integrating a provider later—Checkr, Certn, etc.—kick it off there.)
+
+app/api/applications/submit/route.ts (add 2 fields to the update):
+
+const { data, error } = await supabase
+  .from("provider_applications")
+  .update({
+    status: "submitted",
+    bgcheck_status: consent ? "pending" : "not_requested",
+    updated_at: new Date().toISOString()
+  })
+  .eq("id", applicationId)
+  .eq("user_id", userId)
+  .select()
+  .single();
+
+4) Kill the confusing red toast (defensive guard)
+
+Search your codebase for the string that renders:
+
+“Verification Failed — ID verification session started”
+
+Remove it, or add a guard around it:
+
+if (data?.stepStatus === "started") {
+  // treat as success → show neutral/info banner; DO NOT toast error
+  return;
+}
+
+5) Stepper rules (so “Next” works intuitively)
+
+Step 3 (ID): allow Next if frontImagePath && backImagePath (do not require admin/Stripe completion).
+
+Step 4 (Check): allow Next only if bgcheck_consent === true.
+
+Final Step: calls /api/applications/submit.
+
+Result
+
+Step 3 shows Save; saving starts Stripe and displays “ID saved. Verification in progress.” No error toast.
+
+Step 4 is a consent checkbox + Save. No background check starts yet.
+
+Final Submit flips the app to submitted and sets bgcheck_status = pending (or triggers your provider when you’re ready).
+
+Admin reviews the complete application and approves/rejects in one shot.

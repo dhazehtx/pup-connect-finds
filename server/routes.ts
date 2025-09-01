@@ -30,6 +30,7 @@ import { startVerificationRouter } from './routes/verification/start';
 import { progressRouter } from './routes/applications/progress';
 import { submitRouter } from './routes/applications/submit';
 import { webhookRouter as stripeWebhookRouter } from './routes/stripe/webhook';
+import { POST as consentHandler } from './routes/applications/consent';
 import { storage } from "./storage";
 import { 
   generalRateLimit, 
@@ -1394,6 +1395,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api/verification/start', startVerificationRouter);
   app.use('/api/applications/progress', progressRouter);
   app.use('/api/applications/submit', submitRouter);
+  app.post('/api/applications/consent', consentHandler);
   app.use('/api/stripe/webhook', stripeWebhookRouter);
 
   // Register health check routes

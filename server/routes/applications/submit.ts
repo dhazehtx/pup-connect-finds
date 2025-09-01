@@ -17,10 +17,25 @@ router.post("/", async (req, res) => {
     }
 
     const supabase = serverSupabase();
+    
+    // First get the current application to check consent
+    const { data: currentApp, error: fetchError } = await supabase
+      .from("provider_applications")
+      .select("bgcheck_consent")
+      .eq("id", applicationId)
+      .eq("user_id", userId)
+      .single();
+
+    if (fetchError) {
+      console.error('[APPLICATION SUBMIT] Fetch error:', fetchError);
+      throw fetchError;
+    }
+
     const { data, error } = await supabase
       .from("provider_applications")
       .update({ 
-        status: "submitted", 
+        status: "submitted",
+        bgcheck_status: currentApp.bgcheck_consent ? "pending" : "not_requested",
         updated_at: new Date().toISOString() 
       })
       .eq("id", applicationId)
