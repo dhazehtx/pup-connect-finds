@@ -46,6 +46,9 @@ const ProviderOnboard: React.FC = () => {
   const [idFrontFile, setIdFrontFile] = useState<File | null>(null);
   const [idBackFile, setIdBackFile] = useState<File | null>(null);
   const [idVerification, setIdVerification] = useState<IDVerificationState>({ status: 'idle' });
+  const [idInputsLocked, setIdInputsLocked] = useState(false);
+  const [idInfo, setIdInfo] = useState<string | null>(null);
+  const [idError, setIdError] = useState<string | null>(null);
   const [backgroundCheck, setBackgroundCheck] = useState<BackgroundCheckState>({ status: 'idle' });
   const [bgCheckConsent, setBgCheckConsent] = useState<boolean>(false);
   const [isSavingConsent, setIsSavingConsent] = useState(false);
@@ -115,47 +118,13 @@ const ProviderOnboard: React.FC = () => {
     }
 
     if (currentStep === 2) {
-      // If both images are uploaded but verification hasn't started, start it automatically
-      if (idFrontFile && idBackFile && idVerification.status === 'idle') {
-        toast({
-          title: "Starting Verification",
-          description: "Starting ID verification session...",
-        });
-        await handleStartIDVerification();
-        // After starting verification, allow user to proceed
-        if (idVerification.status !== 'failed') {
-          setCurrentStep(currentStep + 1);
-        }
-        return;
-      }
-      
-      // If verification is loading, wait for it to complete
-      if (idVerification.status === 'loading') {
-        toast({
-          title: "Starting Verification",
-          description: "Please wait while we start the verification session...",
-          variant: "destructive",
-        });
-        return;
-      }
-      
-      // If verification failed, inform user
-      if (idVerification.status === 'failed') {
-        toast({
-          title: "Verification Failed",
-          description: "Please retry ID verification before proceeding.",
-          variant: "destructive",
-        });
-        return;
-      }
-      
-      // Allow next if verification started or passed (non-blocking approach)
-      if (idVerification.status === 'pending' || idVerification.status === 'passed') {
+      // Allow next if ID was saved (inputs are locked)
+      if (idInputsLocked || idVerification.status === 'pending' || idVerification.status === 'passed') {
         // User can proceed while verification happens in background
       } else {
         toast({
-          title: "Verification Required",
-          description: "Please upload both front and back of your ID.",
+          title: "Save ID Required",
+          description: "Please upload and save your ID documents before proceeding.",
           variant: "destructive",
         });
         return;
@@ -203,21 +172,20 @@ const ProviderOnboard: React.FC = () => {
 
     if (submitting) return; // prevent double fire
     setSubmitting(true);
-    setError(null); // clear stale error
+    setIdError(null);
+    setIdInfo(null);
 
     if (!authUser?.id || !providerId) {
-      setError("Authentication or provider ID not found. Please refresh and try again.");
+      setIdError("Authentication or provider ID not found. Please refresh and try again.");
       setSubmitting(false);
       return;
     }
 
     if (!idFrontFile || !idBackFile) {
-      setError("Please upload both front and back images of your ID.");
+      setIdError("Please upload both front and back images of your ID.");
       setSubmitting(false);
       return;
     }
-
-    setIdVerification({ status: 'loading' });
 
     try {
       console.log('[STRIPE VERIFICATION] Starting comprehensive verification for:', { userId: authUser.id, providerId, applicationId });
@@ -246,23 +214,16 @@ const ProviderOnboard: React.FC = () => {
         setApplicationId(data.applicationId);
       }
 
-      // Mark verification as "started" - user can proceed to other steps
-      setIdVerification({ status: 'pending', sessionId: data.sessionId });
-      
-      toast({
-        title: "Verification Started",
-        description: "ID verification session started. You can continue with other steps while we verify your identity in the background.",
-      });
+      // SUCCESS UX (no red, no error toast)
+      setIdInputsLocked(true);
+      setIdInfo("ID saved. Verification is running in the background. You can continue to the next step.");
+      setIdVerification({ status: 'pending' });
 
-    } catch (err: any) {
-      console.error('[STRIPE VERIFICATION] Error:', err);
-      setError(err?.message || "Could not start verification.");
-      setIdVerification({ status: 'failed', message: err?.message || "Could not start verification." });
-      toast({
-        title: "Verification Failed",
-        description: err?.message || "Could not start verification.",
-        variant: "destructive",
-      });
+      // NO error toast on success - removed any toast.error calls here
+
+    } catch (e: any) {
+      setIdError(e?.message || "Could not save ID.");
+      setIdVerification({ status: 'failed', message: e?.message });
     } finally {
       setSubmitting(false);
     }
@@ -419,10 +380,10 @@ const ProviderOnboard: React.FC = () => {
   };
 
   const handleStripeConnect = async () => {
-    if (!providerId) {
+    if (!authUser?.id || !providerId || !applicationId) {
       toast({
-        title: "Error",
-        description: "Provider ID not found. Please start from the beginning.",
+        title: "Missing Information",
+        description: "Required information missing. Please complete previous steps first.",
         variant: "destructive",
       });
       return;
@@ -431,44 +392,30 @@ const ProviderOnboard: React.FC = () => {
     setPayoutSetup({ status: 'loading' });
 
     try {
-      const response = await fetch('/api/providers/payouts/connect', {
+      const response = await fetch('/api/payout/start', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
+          userId: authUser.id,
           providerId,
-          accountType,
-          returnUrl: `${window.location.origin}/provider-onboarding?step=4&connected=true`,
-          refreshUrl: `${window.location.origin}/provider-onboarding?step=4&refresh=true`,
+          applicationId
         }),
       });
 
       const data = await response.json();
 
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to create Stripe Connect account');
+      if (!response.ok || !data?.success) {
+        throw new Error(data?.message || 'Could not start payout onboarding.');
       }
 
-      setPayoutSetup({ 
-        status: 'connecting',
-        accountId: data.accountId,
-        message: data.message 
-      });
+      // Redirect to Stripe Account Link
+      window.location.href = data.url;
 
-      // Open Stripe Connect onboarding in new window
-      window.open(data.accountLinkUrl, '_blank', 'width=600,height=800');
-
+    } catch (e: any) {
+      setPayoutSetup({ status: 'failed', message: e?.message || "Could not start payout onboarding." });
       toast({
-        title: "Stripe Connect Opened",
-        description: "Complete your setup in the new window.",
-      });
-
-    } catch (error) {
-      console.error('Stripe Connect error:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-      setPayoutSetup({ status: 'failed', message: errorMessage });
-      toast({
-        title: "Setup Failed", 
-        description: errorMessage,
+        title: "Payout Setup Failed",
+        description: e?.message || "Could not start payout onboarding.",
         variant: "destructive",
       });
     }
@@ -670,8 +617,12 @@ const ProviderOnboard: React.FC = () => {
 
   // Save background check consent
   const saveConsent = async () => {
-    if (!applicationId || !authUser?.id) {
-      setConsentError("Missing application or user information");
+    if (!authUser?.id || !applicationId) {
+      toast({
+        title: "Missing Information",
+        description: "Missing application or user information. Please complete previous steps first.",
+        variant: "destructive",
+      });
       return;
     }
 
@@ -680,6 +631,8 @@ const ProviderOnboard: React.FC = () => {
     setConsentMessage(null);
 
     try {
+      console.log('[CONSENT] Saving consent with:', { applicationId, userId: authUser.id, consent: bgCheckConsent });
+      
       const response = await fetch('/api/applications/consent', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -829,74 +782,98 @@ const ProviderOnboard: React.FC = () => {
             <h2 className="text-xl font-semibold">Identity Verification</h2>
             <p className="text-gray-600">Use your phone's camera or upload an image of your ID. Both front and back are required.</p>
             
-            {idVerification.status === 'idle' && (
-              <div className="space-y-6">
-                {/* Front of ID */}
-                <div className="space-y-2">
-                  <label className="block text-sm font-medium">Front of ID</label>
-                  <Input 
-                    type="file" 
-                    accept="image/*" 
-                    capture="environment"
-                    onChange={(e) => {
-                      const file = e.target.files?.[0];
-                      if (file) {
-                        setIdFrontFile(file);
-                      }
-                    }}
-                    data-testid="input-id-front"
-                  />
-                  {idFrontFile && (
-                    <div className="mt-2">
-                      <img 
-                        src={URL.createObjectURL(idFrontFile)} 
-                        alt="Front of ID preview" 
-                        className="w-32 h-20 object-cover rounded border"
-                      />
-                      <p className="text-sm text-green-600 mt-1">✓ Front image captured</p>
-                    </div>
-                  )}
+            <div className="space-y-6">
+              {/* Messages */}
+              {idInfo && (
+                <div className="rounded-md border border-green-200 bg-green-50 px-3 py-2 text-sm text-green-800">
+                  {idInfo}
                 </div>
-
-                {/* Back of ID */}
-                <div className="space-y-2">
-                  <label className="block text-sm font-medium">Back of ID</label>
-                  <Input 
-                    type="file" 
-                    accept="image/*" 
-                    capture="environment"
-                    onChange={(e) => {
-                      const file = e.target.files?.[0];
-                      if (file) {
-                        setIdBackFile(file);
-                      }
-                    }}
-                    data-testid="input-id-back"
-                  />
-                  {idBackFile && (
-                    <div className="mt-2">
-                      <img 
-                        src={URL.createObjectURL(idBackFile)} 
-                        alt="Back of ID preview" 
-                        className="w-32 h-20 object-cover rounded border"
-                      />
-                      <p className="text-sm text-green-600 mt-1">✓ Back image captured</p>
-                    </div>
-                  )}
+              )}
+              {idError && (
+                <div className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+                  {idError}
                 </div>
+              )}
 
-                {/* Show auto-start message when both images are uploaded */}
-                {idFrontFile && idBackFile && (
-                  <div className="bg-green-50 p-4 rounded-lg">
-                    <p className="text-sm text-green-800 font-medium">
-                      ✓ Both images uploaded successfully! 
-                    </p>
-                    <p className="text-sm text-green-700 mt-1">
-                      Click "Save" to start verification and proceed to the next step.
-                    </p>
+              {/* Front of ID */}
+              <div className="space-y-2">
+                <label className="block text-sm font-medium">Front of ID</label>
+                <Input 
+                  type="file" 
+                  accept="image/*" 
+                  capture="environment"
+                  disabled={idInputsLocked}
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      setIdFrontFile(file);
+                    }
+                  }}
+                  data-testid="input-id-front"
+                />
+                {idFrontFile && (
+                  <div className="mt-2">
+                    <img 
+                      src={URL.createObjectURL(idFrontFile)} 
+                      alt="Front of ID preview" 
+                      className="w-32 h-20 object-cover rounded border"
+                    />
+                    <p className="text-sm text-green-600 mt-1">✓ Front image captured</p>
                   </div>
                 )}
-                
+              </div>
+
+              {/* Back of ID */}
+              <div className="space-y-2">
+                <label className="block text-sm font-medium">Back of ID</label>
+                <Input 
+                  type="file" 
+                  accept="image/*" 
+                  capture="environment"
+                  disabled={idInputsLocked}
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      setIdBackFile(file);
+                    }
+                  }}
+                  data-testid="input-id-back"
+                />
+                {idBackFile && (
+                  <div className="mt-2">
+                    <img 
+                      src={URL.createObjectURL(idBackFile)} 
+                      alt="Back of ID preview" 
+                      className="w-32 h-20 object-cover rounded border"
+                    />
+                    <p className="text-sm text-green-600 mt-1">✓ Back image captured</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Edit button when inputs are locked */}
+              {idInputsLocked && (
+                <button 
+                  className="text-sm underline text-blue-600 hover:text-blue-800"
+                  onClick={() => setIdInputsLocked(false)}
+                >
+                  Edit ID photos
+                </button>
+              )}
+
+              {/* Show auto-start message when both images are uploaded */}
+              {idFrontFile && idBackFile && !idInputsLocked && (
+                <div className="bg-green-50 p-4 rounded-lg">
+                  <p className="text-sm text-green-800 font-medium">
+                    ✓ Both images uploaded successfully! 
+                  </p>
+                  <p className="text-sm text-green-700 mt-1">
+                    Click "Save" to start verification and proceed to the next step.
+                  </p>
+                </div>
+              )}
+              
+              {!idInputsLocked && (
                 <Button 
                   onClick={handleStartIDVerification}
                   disabled={submitting || !idFrontFile || !idBackFile}
@@ -905,20 +882,15 @@ const ProviderOnboard: React.FC = () => {
                 >
                   {submitting ? "Saving…" : "Save"}
                 </Button>
-                
-                {error && (
-                  <div className="text-sm text-red-600 text-center">
-                    {error}
-                  </div>
-                )}
-                <div className="bg-blue-50 p-4 rounded-lg">
-                  <p className="text-sm text-blue-800">
-                    We'll verify your identity using document analysis and liveness detection.
-                    This process typically takes 1-2 minutes.
-                  </p>
-                </div>
+              )}
+              
+              <div className="bg-blue-50 p-4 rounded-lg">
+                <p className="text-sm text-blue-800">
+                  We'll verify your identity using document analysis and liveness detection.
+                  This process typically takes 1-2 minutes.
+                </p>
               </div>
-            )}
+            </div>
 
             {idVerification.status === 'loading' && (
               <div className="text-center space-y-4">

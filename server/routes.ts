@@ -31,6 +31,7 @@ import { progressRouter } from './routes/applications/progress';
 import { submitRouter } from './routes/applications/submit';
 import { webhookRouter as stripeWebhookRouter } from './routes/stripe/webhook';
 import { POST as consentHandler } from './routes/applications/consent';
+import payoutRouter from './routes/payout/start';
 import { storage } from "./storage";
 import { 
   generalRateLimit, 
@@ -1316,6 +1317,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Register notifications routes
   app.use('/api/notifications', notificationsRouter);
+  
+  // Register payout routes
+  app.use('/api/payout', payoutRouter);
 
 
 

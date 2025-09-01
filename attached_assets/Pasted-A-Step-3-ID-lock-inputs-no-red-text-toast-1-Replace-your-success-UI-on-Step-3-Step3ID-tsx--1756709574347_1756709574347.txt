@@ -1,0 +1,283 @@
+A) Step 3 (ID) — lock inputs, no red text/toast
+1) Replace your success UI on Step 3
+// Step3ID.tsx
+const [saving, setSaving] = useState(false);
+const [locked, setLocked] = useState(false);        // NEW: lock inputs after save
+const [info, setInfo] = useState<string | null>(null);
+const [err, setErr]   = useState<string | null>(null);
+
+const onSaveID = async () => {
+  if (saving) return;
+  setSaving(true);
+  setErr(null);
+  setInfo(null);
+  try {
+    const res = await fetch("/api/verification/start", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        userId,                 // make sure these exist (see Section C)
+        providerId,
+        applicationId,
+        frontImagePath,
+        backImagePath,
+      }),
+    });
+    const data = await res.json();
+    if (!res.ok || !data?.success) throw new Error(data?.message || "Could not save ID.");
+
+    // Save the app id if backend created one
+    if (data.applicationId) setApplicationId(data.applicationId);
+
+    // SUCCESS UX (no red, no error toast)
+    setLocked(true);
+    setInfo("ID saved. Verification is running in the background. You can continue to the next step.");
+  } catch (e: any) {
+    setErr(e?.message || "Could not save ID.");
+    // show your toast.error here if you use one
+  } finally {
+    setSaving(false);
+  }
+};
+
+2) Lock/unlock the inputs & remove red line
+{/* File inputs */}
+<input type="file" disabled={locked} /* ...rest */ />
+<input type="file" disabled={locked} /* ...rest */ />
+
+{locked ? (
+  <button className="text-sm underline" onClick={() => setLocked(false)}>
+    Edit ID photos
+  </button>
+) : null}
+
+{/* Messages */}
+{info && (
+  <div className="rounded-md border border-green-200 bg-green-50 px-3 py-2 text-sm text-green-800">
+    {info}
+  </div>
+)}
+{err && (
+  <div className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+    {err}
+  </div>
+)}
+
+
+Remove any code that renders “Verification Failed – ID verification session started”. That message is just from an old branch—delete it or guard it:
+
+// if (data.stepStatus === "started") toast.error(...)  <-- DELETE
+
+3) “Next” just navigates
+<button onClick={() => router.push("/services/onboarding/check")} className="btn btn-secondary">
+  Next
+</button>
+
+B) Step 4 (Background Check) — fix the missing IDs & calm UX
+
+The toast “Missing application or user information” means your request body didn’t include applicationId or userId.
+
+1) Make sure you pass both
+// Step4Background.tsx
+const saveConsent = async () => {
+  setSaving(true); setErr(null); setMsg(null);
+  try {
+    if (!userId || !applicationId) throw new Error("Missing application or user information.");
+    const res = await fetch("/api/applications/consent", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ applicationId, userId, consent }),
+    });
+    const data = await res.json();
+    if (!res.ok || !data?.success) throw new Error(data?.message || "Could not save consent.");
+    setMsg("Consent saved.");
+  } catch (e:any) {
+    setErr(e?.message || "Could not save consent.");
+  } finally {
+    setSaving(false);
+  }
+};
+
+
+If applicationId might not exist yet, ensure Step 3 creates it (see Section C server code). Step 4 should not create it; it should reuse what Step 3 stored in your onboarding store.
+
+C) Backend safety — always create the application on Step 3 and return its id
+
+If you used my earlier route, it already upserts and returns applicationId. Make sure it’s exactly like this:
+
+// app/api/verification/start/route.ts  (excerpt)
+const { data: upserted, error } = await supabase
+  .from("provider_applications")
+  .upsert(
+    {
+      id: applicationId ?? undefined,     // will create one if undefined
+      user_id: userId,
+      provider_id: providerId,
+      step3_id_status: "started",
+      id_front_url: frontImagePath,
+      id_back_url: backImagePath,
+      stripe_session_id: session.id,
+      updated_at: new Date().toISOString(),
+    },
+    { onConflict: "id" }
+  )
+  .select()
+  .single();
+
+return NextResponse.json({
+  success: true,
+  applicationId: upserted.id,            // make sure this is returned
+  sessionId: session.id,
+  url: `https://verify.stripe.com/session/${session.id}`,
+  stepStatus: "started",
+});
+
+
+On the client, save applicationId to your onboarding store right after saving ID:
+
+if (data.applicationId) setApplicationId(data.applicationId);
+
+D) Step 5 (Payout) — how to go onward (“Connect with Stripe”)
+
+This is for Stripe Connect onboarding. The button should:
+
+Ensure the provider has a Connect account (create one if not).
+
+Create an Account Link (onboarding URL).
+
+Redirect the provider to Stripe.
+
+When Stripe sends them back to your return_url, mark Step 5 complete.
+
+1) API: create/fetch Connect account + account link
+// app/api/payout/start/route.ts
+import { NextRequest, NextResponse } from "next/server";
+import Stripe from "stripe";
+import { serverSupabase } from "@/lib/supabaseServer";
+
+const ORIGIN = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+
+export async function POST(req: NextRequest) {
+  try {
+    const { userId, providerId, applicationId } = await req.json();
+    if (!userId || !providerId || !applicationId) {
+      return NextResponse.json({ success:false, message:"Missing fields." }, { status:400 });
+    }
+
+    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: "2024-06-20" as any });
+    const supabase = serverSupabase();
+
+    // 1) get provider row that stores stripe_account_id (use your real table)
+    const { data: providerRow, error: pErr } = await supabase
+      .from("providers")
+      .select("id, stripe_account_id")
+      .eq("id", providerId)
+      .single();
+    if (pErr) throw pErr;
+
+    let accountId = providerRow?.stripe_account_id;
+
+    // 2) Create account if none
+    if (!accountId) {
+      const account = await stripe.accounts.create({
+        type: "express",    // or "standard" if you prefer
+        metadata: { providerId, userId },
+      });
+      accountId = account.id;
+      await supabase.from("providers")
+        .update({ stripe_account_id: accountId })
+        .eq("id", providerId);
+    }
+
+    // 3) Create account link
+    const acctLink = await stripe.accountLinks.create({
+      account: accountId!,
+      refresh_url: `${ORIGIN}/services/onboarding/payout?refresh=1`,
+      return_url:  `${ORIGIN}/services/onboarding/details?onboarding=1`,
+      type: "account_onboarding",
+    });
+
+    // Optional: mark step5 started so your stepper shows progress
+    await supabase.from("provider_applications")
+      .update({ step5_status: "started", updated_at: new Date().toISOString() })
+      .eq("id", applicationId);
+
+    return NextResponse.json({ success:true, url: acctLink.url });
+  } catch (e:any) {
+    console.error("[payout/start]", e);
+    return NextResponse.json({ success:false, message: e?.message || "Internal error" }, { status:500 });
+  }
+}
+
+2) Frontend: call it and redirect
+// Step5Payout.tsx
+const [loading, setLoading] = useState(false);
+const startPayout = async () => {
+  try {
+    setLoading(true);
+    const res = await fetch("/api/payout/start", {
+      method: "POST",
+      headers: { "Content-Type":"application/json" },
+      body: JSON.stringify({ userId, providerId, applicationId }),
+    });
+    const data = await res.json();
+    if (!res.ok || !data?.success) throw new Error(data?.message || "Could not start payout onboarding.");
+    window.location.href = data.url; // send to Stripe
+  } catch (e:any) {
+    // toast.error(e?.message || "Could not start payout onboarding.");
+  } finally {
+    setLoading(false);
+  }
+};
+
+3) When the user returns from Stripe
+
+You set return_url to /services/onboarding/details. In that page’s useEffect, mark step 5 as completed if the provider has charges_enabled or requirements satisfied (optional early). Minimal approach:
+
+useEffect(() => {
+  const markComplete = async () => {
+    await fetch("/api/applications/progress", {
+      method: "POST",
+      headers: { "Content-Type":"application/json" },
+      body: JSON.stringify({ applicationId, userId, step: "step5_status", status: "completed" }),
+    });
+  };
+  markComplete();
+}, []);
+
+
+(You can also stripe.accounts.retrieve(accountId) server-side and decide based on account status.)
+
+E) One more safety: hydrate your onboarding store
+
+Make sure you set userId and providerId into your store early (e.g., on /services/onboarding mount). If you rely on Supabase Auth:
+
+useEffect(() => {
+  (async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) setIds(user.id, providerIdFromDB); // however you resolve providerId
+  })();
+}, []);
+
+
+If these are null, you’ll keep seeing that Step 4 consent error.
+
+Quick test plan
+
+Step 3:
+
+Upload front/back → Save → inputs lock, green info appears, no red toast.
+
+Click Next → goes to Step 4.
+
+Step 4:
+
+Check consent → Save → green “Consent saved.”
+
+Next → Step 5.
+
+Step 5:
+
+Click Connect with Stripe → you’re redirected to Stripe onboarding; complete; you return to next step and step 5 is marked complete.
+
+If anything still throws a toast, search for toast.error in Step 3 & Step 4 and ensure it only runs inside the catch path (and not when data.stepStatus === 'started').
