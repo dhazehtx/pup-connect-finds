@@ -229,7 +229,7 @@ const ProviderOnboard: React.FC = () => {
       }
       
       // Now try the real verification endpoint
-      const response = await fetch('/api/providers/id/start', {
+      const response = await fetch('/api/verification/start', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ providerId })
