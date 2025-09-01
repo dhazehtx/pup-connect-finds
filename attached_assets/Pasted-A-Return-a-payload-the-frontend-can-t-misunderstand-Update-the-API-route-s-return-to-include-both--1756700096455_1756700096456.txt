@@ -1,0 +1,92 @@
+A. Return a payload the frontend can’t misunderstand
+
+Update the API route’s return to include both key styles and a ready-to-use URL:
+
+// after creating `session`
+return NextResponse.json({
+  success: true,
+  sessionId: session.id,          // camelCase
+  session_id: session.id,         // snake_case for older code
+  url: `https://verify.stripe.com/session/${session.id}`, // one-click redirect
+});
+
+
+(Do this in app/api/verification/start/route.ts.)
+
+B. Make the client handler bullet-proof (single call, clear errors, use provided URL)
+
+Wire this to both the “Next” and “Start ID Verification” buttons and remove any other verification starters.
+
+const [submitting, setSubmitting] = useState(false);
+const [error, setError] = useState<string | null>(null);
+
+const onStartVerification = async (e?: React.MouseEvent | React.FormEvent) => {
+  e?.preventDefault?.();
+  e?.stopPropagation?.();
+
+  if (submitting) return; // prevent double fire
+  setSubmitting(true);
+  setError(null);         // clear stale error
+
+  try {
+    const res = await fetch("/api/verification/start", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ providerId, frontImagePath, backImagePath }),
+    });
+
+    const data = await res.json().catch(() => ({}));
+
+    if (!res.ok || !data?.success) {
+      throw new Error(data?.message || "Failed to start ID verification.");
+    }
+
+    // prefer backend-provided URL
+    const dest =
+      data?.url ||
+      (data?.sessionId
+        ? `https://verify.stripe.com/session/${data.sessionId}`
+        : data?.session_id
+        ? `https://verify.stripe.com/session/${data.session_id}`
+        : null);
+
+    if (!dest) throw new Error("Verification session missing from response.");
+
+    window.location.href = dest; // go to Stripe hosted flow
+  } catch (err: any) {
+    setError(err?.message || "Could not start verification.");
+    // show toast here if you use one; otherwise set local error state
+  } finally {
+    setSubmitting(false);
+  }
+};
+
+
+Bind it:
+
+<button onClick={onStartVerification} disabled={submitting || !frontImagePath || !backImagePath}>
+  {submitting ? "Starting verification…" : "Start ID Verification"}
+</button>
+
+
+Also make the Next button call the same handler or navigate only after a session exists—don’t let it run a different path.
+
+C. Temporarily disable any follow-up “link media/webhook” calls
+
+Search your Step 3 component for any second API call that runs after starting verification (names like linkMedia, attachImages, createVerification etc.). Comment them out for now—once the Stripe hosted flow returns to your Step 4 route, we’ll process results via webhooks.
+
+D. Quick sanity checks
+
+In the browser Network tab, click your button:
+
+POST /api/verification/start → 200 with { success:true, sessionId, session_id, url }.
+
+No immediate second failing request.
+
+Confirm only one click handler is bound (no form submit + button click double-fire).
+
+Ensure any global toast logic checks error != null and that you set setError(null) before the call.
+
+E. (Optional next) Webhook + Step 4
+
+When you’re ready, I’ll give you a /api/stripe/webhook that updates provider_verifications to verified/failed and a Step 4 page that polls/reads status.
