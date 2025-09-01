@@ -222,8 +222,12 @@ const ProviderOnboard: React.FC = () => {
       // NO error toast on success - removed any toast.error calls here
 
     } catch (e: any) {
-      setIdError(e?.message || "Could not save ID.");
-      setIdVerification({ status: 'failed', message: e?.message });
+      // Only set error for actual failures, not when verification starts successfully
+      const errorMessage = e?.message || "Could not save ID.";
+      if (!errorMessage.includes("session started")) {
+        setIdError(errorMessage);
+        setIdVerification({ status: 'failed', message: e?.message });
+      }
     } finally {
       setSubmitting(false);
     }
@@ -924,7 +928,7 @@ const ProviderOnboard: React.FC = () => {
               </div>
             )}
 
-            {idVerification.status === 'failed' && (
+            {idVerification.status === 'failed' && !idVerification.message?.includes('session started') && (
               <div className="space-y-4">
                 <div className="bg-red-50 p-4 rounded-lg flex items-center space-x-3">
                   <AlertCircle className="h-5 w-5 text-red-600" />
@@ -1392,13 +1396,8 @@ const ProviderOnboard: React.FC = () => {
         <Button
           onClick={handleNext}
           disabled={currentStep === steps.length - 1}
-          className={currentStep === 2 && idFrontFile && idBackFile && idVerification.status === 'idle' ? 'bg-green-600 hover:bg-green-700' : ''}
         >
-          {currentStep === steps.length - 1 ? 'Complete' : 
-           currentStep === 2 && idFrontFile && idBackFile && idVerification.status === 'idle' ? 'Next (Start Verification)' :
-           currentStep === 2 && idVerification.status === 'loading' ? 'Verifying...' :
-           currentStep === 2 && idVerification.status === 'pending' ? 'Verification in Progress...' :
-           'Next'}
+          {currentStep === steps.length - 1 ? 'Complete' : 'Next'}
         </Button>
       </div>
     </div>
