@@ -1,0 +1,100 @@
+import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
+import Stripe from "stripe";
+
+// Toggle provider here: 'mock' | 'stripe' | 'persona'
+const PROVIDER = process.env.VERIFICATION_PROVIDER ?? "mock";
+
+// Optional: allow local dev from preview
+const ORIGIN = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+
+const Body = z.object({
+  providerId: z.string().min(1),
+  frontImagePath: z.string().min(1),
+  backImagePath: z.string().min(1),
+});
+
+export async function POST(req: NextRequest) {
+  try {
+    const json = await req.json();
+    const { providerId, frontImagePath, backImagePath } = Body.parse(json);
+
+    // Sanity: these files should already exist in Supabase Storage
+    // (You can add a HEAD request check if desired.)
+
+    if (PROVIDER === "mock") {
+      // Simulate a verification session
+      return NextResponse.json({ success: true, sessionId: "mock_sess_123" });
+    }
+
+    if (PROVIDER === "stripe") {
+      const key = process.env.STRIPE_SECRET_KEY;
+      if (!key) throw new Error("Missing STRIPE_SECRET_KEY");
+      const stripe = new Stripe(key, { apiVersion: "2024-06-20" as any });
+
+      // Stripe: create a document verification session
+      const session = await stripe.identity.verificationSessions.create({
+        type: "document",
+        // Optionally set metadata so you can reconcile later
+        metadata: { providerId, frontImagePath, backImagePath },
+        options: {
+          document: {
+            // allow uploads from file if you’re not using Stripe’s hosted capture
+            require_id_number: false,
+          },
+        },
+        // If you’re using the hosted flow:
+        // return_url: `${ORIGIN}/services/onboarding/check?session={VERIFICATION_SESSION_ID}`,
+      });
+
+      return NextResponse.json({ success: true, sessionId: session.id });
+    }
+
+    if (PROVIDER === "persona") {
+      const key = process.env.PERSONA_API_KEY;
+      if (!key) throw new Error("Missing PERSONA_API_KEY");
+
+      const resp = await fetch("https://withpersona.com/api/v1/inquiries", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${key}`,
+        },
+        body: JSON.stringify({
+          data: {
+            type: "inquiry",
+            attributes: {
+              templateId: process.env.PERSONA_TEMPLATE_ID, // required
+              referenceId: providerId,
+              // You can attach your storage URLs via attributes/metadata
+            },
+          },
+        }),
+      });
+
+      if (!resp.ok) {
+        const t = await resp.text();
+        throw new Error(`Persona create inquiry failed: ${resp.status} ${t}`);
+      }
+      const data = await resp.json();
+      const sessionId = data?.data?.id;
+      return NextResponse.json({ success: true, sessionId });
+    }
+
+    throw new Error(`Unsupported provider: ${PROVIDER}`);
+  } catch (err: any) {
+    // Server-side log with stack for debugging
+    console.error("[verification/start] ERROR:", err?.stack || err?.message || err);
+
+    // Safer client error (include message in dev)
+    const dev = process.env.NODE_ENV !== "production";
+    return NextResponse.json(
+      {
+        success: false,
+        error: "internal_error",
+        message: dev ? (err?.message ?? "Internal server error") : "Something went wrong on our end.",
+      },
+      { status: 500 }
+    );
+  }
+}

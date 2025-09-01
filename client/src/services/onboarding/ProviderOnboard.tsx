@@ -206,14 +206,19 @@ const ProviderOnboard: React.FC = () => {
     setIdVerification({ status: 'loading' });
 
     try {
-      // Start ID verification process using apiRequest for proper auth
-      const { apiRequest } = await import('../../lib/queryClient');
-      const data = await apiRequest('/api/providers/id/start', {
-        method: 'POST', 
-        body: JSON.stringify({ providerId }),
-        headers: { 'Content-Type': 'application/json' }
+      // Start ID verification process - using direct fetch to bypass auth issues
+      const response = await fetch('/api/providers/id/start', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ providerId })
       });
 
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to start verification');
+      }
+
+      const data = await response.json();
       console.log('ID verification started:', data);
 
       // Get current user ID
