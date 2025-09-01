@@ -206,18 +206,15 @@ const ProviderOnboard: React.FC = () => {
     setIdVerification({ status: 'loading' });
 
     try {
-      // Start ID verification process
-      const response = await fetch('/api/providers/id/start', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      // Start ID verification process using apiRequest for proper auth
+      const { apiRequest } = await import('../../lib/queryClient');
+      const data = await apiRequest('/api/providers/id/start', {
+        method: 'POST', 
         body: JSON.stringify({ providerId }),
+        headers: { 'Content-Type': 'application/json' }
       });
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to start verification');
-      }
+      console.log('ID verification started:', data);
 
       // Get current user ID
       const { getCurrentUserId, uploadIdImage } = await import('../../lib/supabase/storage');
