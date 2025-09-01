@@ -1,0 +1,191 @@
+two things are happening:
+
+an old error branch is still firing that shows the red “Verification Failed – ID verification session started” toast/text even on success.
+
+your Next button is still wired to the old “start verification” handler (or is a <button type="submit"> inside a form), so it doesn’t navigate to Step 4.
+
+Here’s a clean, surgical set of fixes.
+
+1) Step 3 — stop the error toast & red text
+A) Kill the old error branch
+
+Search your Step 3 code for any of these and remove them (or guard them):
+
+toast.error("Verification Failed")                     // remove if success
+if (data.stepStatus === "started") toast.error(...)    // ❌ delete
+setError("ID verification session started")            // ❌ delete
+
+
+To find them quickly:
+
+grep -R "Verification Failed" -n client/src app/src
+grep -R "session started" -n client/src app/src
+
+B) Use a neutral success path on Save
+
+Replace your Step-3 handler with this (it never throws an error for started):
+
+// Step3ID.tsx
+const [saving, setSaving] = useState(false);
+const [locked, setLocked] = useState(false);
+const [info, setInfo] = useState<string | null>(null);
+const [err, setErr] = useState<string | null>(null);
+
+const onSaveID = async () => {
+  if (saving) return;
+  setSaving(true);
+  setErr(null);
+  setInfo(null);
+
+  try {
+    const res = await fetch("/api/verification/start", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        userId,
+        providerId,
+        applicationId,
+        frontImagePath,
+        backImagePath,
+      }),
+    });
+    const data = await res.json();
+
+    if (!res.ok || !data?.success) {
+      throw new Error(data?.message || "Could not save ID.");
+    }
+
+    if (data.applicationId) setApplicationId(data.applicationId);
+
+    // ✅ success UX
+    setLocked(true); // lock inputs
+    setInfo("ID saved. Verification is running in the background. You can continue to the next step.");
+    // DO NOT toast.error here
+  } catch (e: any) {
+    setErr(e?.message || "Could not save ID.");
+  } finally {
+    setSaving(false);
+  }
+};
+
+C) Lock inputs after Save and remove any red static text
+<input type="file" disabled={locked} /* ... */ />
+<input type="file" disabled={locked} /* ... */ />
+
+{locked && (
+  <button type="button" className="text-sm underline" onClick={() => setLocked(false)}>
+    Edit ID photos
+  </button>
+)}
+
+{info && (
+  <div className="rounded-md border border-green-200 bg-green-50 px-3 py-2 text-sm text-green-800">
+    {info}
+  </div>
+)}
+{err && (
+  <div className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+    {err}
+  </div>
+)}
+
+
+Make sure any JSX that literally renders the red line
+
+Verification Failed
+ID verification session started
+
+
+is deleted.
+
+2) Step 3 — make Next go to Step 4 (and not start verification)
+
+Right now your Next button likely calls the old onStartVerification or is being treated as a form submit (which refreshes and does nothing).
+
+A) Give Next its own navigate handler
+const goNext = (e?: React.MouseEvent) => {
+  e?.preventDefault?.();
+  e?.stopPropagation?.();
+  // allow forward if both images exist (no need to re-start verification)
+  if (!frontImagePath || !backImagePath) return; // or show a small tip
+  router.push("/services/onboarding/check");
+};
+
+B) Button markup (note the type="button")
+<button
+  type="button"                   // prevent form submit
+  onClick={onSaveID}
+  disabled={saving || !frontImagePath || !backImagePath}
+  className="btn btn-primary"
+>
+  {saving ? "Saving…" : "Save"}
+</button>
+
+<button
+  type="button"                   // prevent form submit
+  onClick={goNext}
+  disabled={!frontImagePath || !backImagePath}
+  className="btn btn-secondary"
+>
+  Next
+</button>
+
+
+If this page sits inside a <form>, always put type="button" on non-submit buttons, or the browser will submit the form and cancel your navigation.
+
+3) Step 4 — fix “Missing application or user information”
+
+That toast appears because applicationId or userId isn’t being sent.
+
+Ensure Step 3 stores applicationId returned by /api/verification/start:
+
+if (data.applicationId) setApplicationId(data.applicationId);
+
+
+Ensure Step 4 sends both:
+
+const saveConsent = async () => {
+  setSaving(true); setErr(null); setMsg(null);
+  try {
+    if (!userId || !applicationId) throw new Error("Missing application or user information.");
+    const res = await fetch("/api/applications/consent", {
+      method: "POST",
+      headers: { "Content-Type":"application/json" },
+      body: JSON.stringify({ applicationId, userId, consent }),
+    });
+    const data = await res.json();
+    if (!res.ok || !data?.success) throw new Error(data?.message || "Could not save consent.");
+    setMsg("Consent saved.");
+  } catch (e:any) {
+    setErr(e?.message || "Could not save consent.");
+  } finally {
+    setSaving(false);
+  }
+};
+
+
+If you’re hydrating userId/providerId from Supabase Auth, do it once on the onboarding root and put them in your store before rendering Step 3/4.
+
+4) One-liner safety (optional): ignore any legacy “session started” error
+
+Until you remove all legacy calls, you can guard your global toast helper:
+
+const showError = (msg: string) => {
+  if (/session started/i.test(msg)) return; // ignore legacy false-error
+  toast.error(msg);
+};
+
+
+But the right fix is to remove the source (Section 1A).
+
+Quick checklist
+
+ No code path calls toast.error when data.stepStatus === "started".
+
+ No JSX renders a red “Verification Failed … session started” banner.
+
+ Next button has type="button" and calls goNext with router.push("/services/onboarding/check").
+
+ After Save, setApplicationId(data.applicationId) runs.
+
+ Step 4’s POST body includes both applicationId and userId.

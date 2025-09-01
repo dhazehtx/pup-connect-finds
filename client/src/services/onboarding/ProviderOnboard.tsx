@@ -118,13 +118,20 @@ const ProviderOnboard: React.FC = () => {
     }
 
     if (currentStep === 2) {
-      // Allow next if ID was saved (inputs are locked)
-      if (idInputsLocked || idVerification.status === 'pending' || idVerification.status === 'passed') {
+      // Allow next if ID was saved (inputs are locked) or verification is in any non-idle state
+      if (idInputsLocked || idVerification.status === 'pending' || idVerification.status === 'passed' || idVerification.status === 'loading') {
         // User can proceed while verification happens in background
+      } else if (!idFrontFile || !idBackFile) {
+        toast({
+          title: "ID Photos Required",
+          description: "Please upload both front and back photos of your ID before proceeding.",
+          variant: "destructive",
+        });
+        return;
       } else {
         toast({
           title: "Save ID Required",
-          description: "Please upload and save your ID documents before proceeding.",
+          description: "Please save your ID documents before proceeding.",
           variant: "destructive",
         });
         return;
@@ -224,9 +231,14 @@ const ProviderOnboard: React.FC = () => {
     } catch (e: any) {
       // Only set error for actual failures, not when verification starts successfully
       const errorMessage = e?.message || "Could not save ID.";
-      if (!errorMessage.includes("session started")) {
+      if (!errorMessage.includes("session started") && !errorMessage.includes("ID verification session started")) {
         setIdError(errorMessage);
         setIdVerification({ status: 'failed', message: e?.message });
+      } else {
+        // If it's a "session started" message, treat it as success
+        setIdInputsLocked(true);
+        setIdInfo("ID saved. Verification is running in the background. You can continue to the next step.");
+        setIdVerification({ status: 'pending' });
       }
     } finally {
       setSubmitting(false);
@@ -874,6 +886,18 @@ const ProviderOnboard: React.FC = () => {
                   <p className="text-sm text-green-700 mt-1">
                     Click "Save" to start verification and proceed to the next step.
                   </p>
+                </div>
+              )}
+
+              {/* Success/Error Messages */}
+              {idInfo && (
+                <div className="rounded-md border border-green-200 bg-green-50 px-3 py-2 text-sm text-green-800">
+                  {idInfo}
+                </div>
+              )}
+              {idError && (
+                <div className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+                  {idError}
                 </div>
               )}
               
