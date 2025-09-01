@@ -185,7 +185,14 @@ const ProviderOnboard: React.FC = () => {
   };
 
   const handleStartIDVerification = async () => {
+    console.log('[VERIFICATION DEBUG] Starting verification with:', { 
+      providerId, 
+      hasIdFrontFile: !!idFrontFile, 
+      hasIdBackFile: !!idBackFile 
+    });
+
     if (!providerId) {
+      console.error('[VERIFICATION DEBUG] No provider ID found');
       toast({
         title: "Error",
         description: "Provider ID not found. Please start from the beginning.",
@@ -195,6 +202,7 @@ const ProviderOnboard: React.FC = () => {
     }
 
     if (!idFrontFile || !idBackFile) {
+      console.error('[VERIFICATION DEBUG] Missing image files:', { idFrontFile, idBackFile });
       toast({
         title: "Images Required",
         description: "Please upload both front and back images of your ID.",
@@ -206,20 +214,37 @@ const ProviderOnboard: React.FC = () => {
     setIdVerification({ status: 'loading' });
 
     try {
-      // Start ID verification process - using direct fetch to bypass auth issues
+      console.log('[VERIFICATION DEBUG] Making API request to start verification');
+      
+      // First test with debug endpoint to ensure communication works
+      const debugResponse = await fetch('/api/debug-verification', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ providerId, test: 'frontend_communication' })
+      });
+      
+      if (debugResponse.ok) {
+        const debugData = await debugResponse.json();
+        console.log('[VERIFICATION DEBUG] Debug endpoint success:', debugData);
+      }
+      
+      // Now try the real verification endpoint
       const response = await fetch('/api/providers/id/start', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ providerId })
       });
 
+      console.log('[VERIFICATION DEBUG] API response status:', response.status);
+
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to start verification');
+        console.error('[VERIFICATION DEBUG] API error response:', errorData);
+        throw new Error(errorData.error || `HTTP ${response.status}: Failed to start verification`);
       }
 
       const data = await response.json();
-      console.log('ID verification started:', data);
+      console.log('[VERIFICATION DEBUG] API success response:', data);
 
       // Get current user ID
       const { getCurrentUserId, uploadIdImage } = await import('../../lib/supabase/storage');
@@ -284,12 +309,16 @@ const ProviderOnboard: React.FC = () => {
       });
 
     } catch (error) {
-      console.error('ID verification start error:', error);
+      console.error('[VERIFICATION DEBUG] Full error details:', error);
+      console.error('[VERIFICATION DEBUG] Error name:', error?.name);
+      console.error('[VERIFICATION DEBUG] Error message:', error?.message);
+      console.error('[VERIFICATION DEBUG] Error stack:', error?.stack);
+      
       const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
       setIdVerification({ status: 'failed', message: errorMessage });
       toast({
         title: "Verification Failed", 
-        description: errorMessage,
+        description: `${errorMessage}. Check console for details.`,
         variant: "destructive",
       });
     }

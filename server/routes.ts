@@ -1205,6 +1205,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Add logging routes
   app.use('/api/logs', logsRouter);
 
+  // Simple debug verification endpoint
+  app.post('/api/debug-verification', (req, res) => {
+    console.log('[DEBUG VERIFICATION] Request received:', {
+      body: req.body,
+      headers: req.headers['content-type'],
+      method: req.method
+    });
+    
+    res.json({
+      success: true,
+      message: 'Debug verification endpoint working',
+      received: req.body,
+      timestamp: new Date().toISOString()
+    });
+  });
+
   // Admin logging endpoints (secure backend-only access)
   app.post('/api/admin/log-navigation', authMiddleware, asyncHandler(async (req: any, res: any) => {
     // Silently handle navigation logging without crashing on errors
