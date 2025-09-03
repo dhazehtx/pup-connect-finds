@@ -1,0 +1,73 @@
+Backend (App Router)
+app/api/payments/create-intent/route.ts
+
+Creates a PaymentIntent that:
+
+charges the customer,
+
+routes funds to the provider’s connected account,
+
+keeps your platform fee via application_fee_amount.
+
+import { NextRequest, NextResponse } from "next/server";
+import Stripe from "stripe";
+
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: "2024-06-20" as any });
+
+// set once (e.g., 0.15 for 15%)
+const PLATFORM_FEE_PERCENT = Number(process.env.PLATFORM_FEE_PERCENT ?? "0.15");
+
+function toCents(n: number) {
+  // n is dollars (e.g., 100.00) -> cents
+  return Math.round(Math.round(n * 100 * 100) / 100);
+}
+
+export async function POST(req: NextRequest) {
+  try {
+    const {
+      amount,                 // e.g. 100.00 (USD)
+      currency = "usd",
+      providerStripeAccountId,
+      customerId,             // optional if you save customers
+      paymentMethodId,        // from client (Elements) if you want immediate confirm
+      description,            // optional
+      idempotencyKey,         // optional
+    } = await req.json();
+
+    if (!amount || !providerStripeAccountId) {
+      return NextResponse.json({ success: false, message: "Missing amount or provider account." }, { status: 400 });
+    }
+
+    const amountCents = toCents(Number(amount));
+    const feeCents = Math.max(0, Math.floor(amountCents * PLATFORM_FEE_PERCENT));
+
+    const params: Stripe.PaymentIntentCreateParams = {
+      amount: amountCents,
+      currency,
+      description,
+      application_fee_amount: feeCents,
+      transfer_data: {
+        destination: providerStripeAccountId,
+      },
+      // OPTIONAL: attach/save a customer, set capture_method, etc.
+      customer: customerId,
+      automatic_payment_methods: { enabled: true },
+    };
+
+    if (paymentMethodId) {
+      params.payment_method = paymentMethodId;
+      params.confirm = true;
+      params.return_url = `${process.env.NEXT_PUBLIC_APP_URL}/payments/return`; // for redirects (cards that require next_action)
+    }
+
+    const pi = await stripe.paymentIntents.create(params, idempotencyKey ? { idempotencyKey } : undefined);
+
+    return NextResponse.json({ success: true, paymentIntent: { id: pi.id, client_secret: pi.client_secret } });
+  } catch (e: any) {
+    console.error("[payments/create-intent]", e);
+    return NextResponse.json({ success: false, message: e?.message || "Internal error" }, { status: 500 });
+  }
+}
+
+
+Set PLATFORM_FEE_PERCENT in Replit Secrets, e.g. 0.15 for 15%.

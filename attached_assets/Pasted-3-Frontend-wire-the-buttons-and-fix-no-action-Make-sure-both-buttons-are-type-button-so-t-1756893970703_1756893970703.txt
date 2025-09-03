@@ -1,0 +1,93 @@
+3) Frontend – wire the buttons (and fix “no action”)
+
+Make sure both buttons are type="button" (so they don’t submit a surrounding form); give them handlers.
+
+// Step5Payout.tsx
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+// choose your toast lib
+import { toast } from "sonner"; // or react-hot-toast
+
+export default function Step5Payout({
+  userId,
+  providerId,
+  applicationId,
+}: { userId: string; providerId: string; applicationId: string }) {
+  const router = useRouter();
+  const [accountType, setAccountType] = useState<"individual"|"business">("individual");
+  const [ein, setEin] = useState("");                // optional UI; not required by API here
+  const [loading, setLoading] = useState(false);
+
+  const connectStripe = async () => {
+    if (loading) return;
+    setLoading(true);
+    try {
+      const res = await fetch("/api/payout/start", {
+        method: "POST",
+        headers: { "Content-Type":"application/json" },
+        body: JSON.stringify({ userId, providerId, applicationId, accountType, ein }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data?.success) throw new Error(data?.message || "Could not start payout onboarding.");
+
+      // Redirect to Stripe onboarding
+      window.location.href = data.url;
+    } catch (e: any) {
+      toast.error(e?.message || "Could not start payout onboarding.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const goNext = async () => {
+    // Optional: when user returns from Stripe to your Step 6 page,
+    // call /api/payout/status there instead. If you want a "Next" that
+    // simply proceeds without checking, just navigate:
+    router.push("/services/onboarding/details");
+  };
+
+  return (
+    <div className="space-y-4">
+      <h2 className="text-xl font-semibold">Payout Setup</h2>
+      <p className="text-sm text-gray-600">Connect your bank account to receive payments.</p>
+
+      <label className="text-sm">Account Type</label>
+      <select
+        className="input"
+        value={accountType}
+        onChange={(e) => setAccountType(e.target.value as "individual"|"business")}
+      >
+        <option value="individual">Individual</option>
+        <option value="business">Business</option>
+      </select>
+
+      {accountType === "business" && (
+        <div>
+          <label className="text-sm">Business EIN (optional here — Stripe will collect it)</label>
+          <input className="input" placeholder="XX-XXXXXXX" value={ein} onChange={(e)=>setEin(e.target.value)} />
+        </div>
+      )}
+
+      <button
+        type="button"
+        onClick={connectStripe}
+        disabled={loading}
+        className="btn btn-primary"
+      >
+        {loading ? "Connecting…" : "Connect with Stripe"}
+      </button>
+
+      <div className="rounded-md border border-green-200 bg-green-50 px-3 py-2 text-sm">
+        We use Stripe Connect for secure payment processing. Your financial information is encrypted and secure.
+      </div>
+
+      <div className="flex gap-2">
+        <button type="button" onClick={() => router.back()} className="btn">Back</button>
+        <button type="button" onClick={goNext} className="btn btn-secondary">Next</button>
+      </div>
+    </div>
+  );
+}
+
+
+“No action” previously happened because the buttons were likely defaulting to type="submit" inside a form, or had no handler. The above fixes both.

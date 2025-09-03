@@ -31,7 +31,6 @@ import { progressRouter } from './routes/applications/progress';
 import { submitRouter } from './routes/applications/submit';
 import { webhookRouter as stripeWebhookRouter } from './routes/stripe/webhook';
 import { POST as consentHandler } from './routes/applications/consent';
-import payoutRouter from './routes/payout/start';
 import { storage } from "./storage";
 import { 
   generalRateLimit, 
@@ -1318,8 +1317,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Register notifications routes
   app.use('/api/notifications', notificationsRouter);
   
-  // Register payout routes
-  app.use('/api/payout', payoutRouter);
+  // Payout routes are registered above with the verification routes
 
 
 
@@ -1397,6 +1395,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Register new Stripe verification system routes
   app.use('/api/verification/start', startVerificationRouter);
+  
+  // Payout routes
+  app.post('/api/payout/start', async (req, res) => {
+    const { startPayout } = await import('./routes/payout/start');
+    return startPayout(req, res);
+  });
+  
+  app.post('/api/payout/status', async (req, res) => {
+    const { checkPayoutStatus } = await import('./routes/payout/status');
+    return checkPayoutStatus(req, res);
+  });
   app.use('/api/applications/progress', progressRouter);
   app.use('/api/applications/submit', submitRouter);
   app.post('/api/applications/consent', consentHandler);

@@ -78,6 +78,22 @@ const ProviderOnboard: React.FC = () => {
     }
   }, [authUser?.id, providerId, setIds]);
 
+  // Check for return from Stripe and automatically verify payout status
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const fromStripe = urlParams.get('from') === 'stripe';
+    const step = urlParams.get('step');
+    
+    if (fromStripe && step === '5' && authUser?.id && providerId && applicationId) {
+      console.log('[PAYOUT] User returned from Stripe, checking status...');
+      checkPayoutStatus();
+      
+      // Clean up URL parameters
+      const newUrl = window.location.pathname + '?step=5';
+      window.history.replaceState({}, '', newUrl);
+    }
+  }, [authUser?.id, providerId, applicationId]);
+
   // Auth guard - redirect to auth if not signed in
   useEffect(() => {
     if (authUser === null) {
@@ -408,26 +424,37 @@ const ProviderOnboard: React.FC = () => {
     setPayoutSetup({ status: 'loading' });
 
     try {
+      console.log('[PAYOUT] Starting Stripe Connect for:', { 
+        userId: authUser.id, 
+        providerId, 
+        applicationId, 
+        accountType 
+      });
+
       const response = await fetch('/api/payout/start', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           userId: authUser.id,
           providerId,
-          applicationId
+          applicationId,
+          accountType
         }),
       });
 
       const data = await response.json();
+      console.log('[PAYOUT] API response:', data);
 
       if (!response.ok || !data?.success) {
         throw new Error(data?.message || 'Could not start payout onboarding.');
       }
 
+      setPayoutSetup({ status: 'connecting' });
       // Redirect to Stripe Account Link
       window.location.href = data.url;
 
     } catch (e: any) {
+      console.error('[PAYOUT] Stripe Connect error:', e);
       setPayoutSetup({ status: 'failed', message: e?.message || "Could not start payout onboarding." });
       toast({
         title: "Payout Setup Failed",
@@ -438,14 +465,37 @@ const ProviderOnboard: React.FC = () => {
   };
 
   const checkPayoutStatus = async () => {
-    if (!providerId) return;
+    if (!authUser?.id || !providerId || !applicationId) {
+      toast({
+        title: "Missing Information",
+        description: "Required information missing. Please complete previous steps first.",
+        variant: "destructive",
+      });
+      return;
+    }
 
     try {
-      const response = await fetch(`/api/providers/payouts/status/${providerId}`);
-      const data = await response.json();
+      console.log('[PAYOUT STATUS] Checking status for:', { 
+        userId: authUser.id, 
+        providerId, 
+        applicationId 
+      });
 
-      if (data.status === 'connected' && data.chargesEnabled) {
-        setPayoutSetup({ status: 'connected', accountId: data.accountId });
+      const response = await fetch('/api/payout/status', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: authUser.id,
+          providerId,
+          applicationId
+        }),
+      });
+
+      const data = await response.json();
+      console.log('[PAYOUT STATUS] API response:', data);
+
+      if (data.success && data.connected) {
+        setPayoutSetup({ status: 'connected', accountId: data.account?.id });
         toast({
           title: "Payout Setup Complete",
           description: "Your Stripe account is connected and ready!",
@@ -453,15 +503,15 @@ const ProviderOnboard: React.FC = () => {
       } else {
         toast({
           title: "Setup In Progress",
-          description: "Please complete your Stripe setup and try again.",
+          description: data.message || "Please complete your Stripe setup and try again.",
           variant: "destructive",
         });
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Payout status check error:', error);
       toast({
         title: "Status Check Failed",
-        description: "Unable to verify payout setup status.",
+        description: error?.message || "Unable to verify payout setup status.",
         variant: "destructive",
       });
     }
@@ -1057,6 +1107,7 @@ const ProviderOnboard: React.FC = () => {
                 </div>
                 
                 <Button 
+                  type="button"
                   onClick={handleStripeConnect}
                   className="w-full"
                   data-testid="button-connect-stripe"
@@ -1090,6 +1141,7 @@ const ProviderOnboard: React.FC = () => {
                   </div>
                 </div>
                 <Button 
+                  type="button"
                   onClick={checkPayoutStatus}
                   variant="outline"
                   className="w-full"
