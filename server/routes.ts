@@ -1428,7 +1428,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     return ensureOnboardingIds(req, res);
   });
 
-  // Note: /api/applications/ensure-open is now handled by Next.js App Router at app/api/applications/ensure-open/route.ts
+  // Ensure open application exists (bullet-proof with clear errors)
+  app.post('/api/applications/ensure-open', async (req, res) => {
+    const { ensureOpenApplication } = await import('./routes/applications/ensure-open');
+    return ensureOpenApplication(req, res);
+  });
   app.use('/api/stripe/webhook', stripeWebhookRouter);
 
   // Register health check routes

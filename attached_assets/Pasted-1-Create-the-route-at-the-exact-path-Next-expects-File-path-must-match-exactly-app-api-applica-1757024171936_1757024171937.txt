@@ -1,0 +1,100 @@
+1) Create the route at the exact path Next expects
+
+File path (must match exactly):
+
+app/api/applications/ensure-open/route.ts
+
+
+Contents:
+
+// app/api/applications/ensure-open/route.ts
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
+import { NextRequest, NextResponse } from "next/server";
+import { createClient } from "@supabase/supabase-js";
+
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const SR_KEY       = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+
+function fail(message: string, status = 400) {
+  return NextResponse.json({ success: false, message }, { status });
+}
+
+export async function POST(req: NextRequest) {
+  const sb = createClient(SUPABASE_URL, SR_KEY);
+  try {
+    const { userId, providerId } = await req.json();
+    if (!userId)     return fail("Missing userId", 400);
+    if (!providerId) return fail("Missing providerId", 400);
+
+    // find existing draft/in_progress
+    const { data: existing, error: findErr } = await sb
+      .from("provider_applications")
+      .select("id")
+      .eq("user_id", userId)
+      .eq("provider_id", providerId)
+      .in("status", ["draft","in_progress"])
+      .order("updated_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (findErr) return fail(`DB error (find application): ${findErr.message}`, 500);
+    if (existing?.id) {
+      return NextResponse.json({ success: true, applicationId: existing.id });
+    }
+
+    // create draft
+    const { data: created, error: insErr } = await sb
+      .from("provider_applications")
+      .insert({ user_id: userId, provider_id: providerId, status: "draft" })
+      .select("id")
+      .single();
+
+    if (insErr) return fail(`DB error (create application): ${insErr.message}`, 500);
+
+    return NextResponse.json({ success: true, applicationId: created!.id });
+  } catch (e:any) {
+    console.error("[ensure-open] ERROR", e);
+    return fail(e?.message || "Internal error", 500);
+  }
+}
+
+
+Common mistakes that cause the 404:
+
+Folder names not exact (applications vs application, ensure-open vs ensure_open).
+
+File not named route.ts.
+
+Route placed under pages/api instead of app/api/.../route.ts (you’re on the App Router).
+
+The dev server didn’t reload after adding the file.
+
+2) Confirm the client calls the same path
+
+Your Step-5 handler should call exactly:
+
+await fetch("/api/applications/ensure-open", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ userId, providerId }),
+});
+
+
+(no trailing slash, same casing)
+
+3) Restart dev server & hard refresh
+
+Stop/Run your Replit server to pick up the new file.
+
+Hard refresh the preview tab (or open in a new tab to avoid cached routes).
+
+4) Quick sanity check
+
+Open this in the browser (POST with a tool, or temporarily add a GET that returns {ok:true}) to verify the route exists. If you prefer, briefly add:
+
+export async function GET() { return NextResponse.json({ ok: true }); }
+
+
+Then visit /api/applications/ensure-open — if you see { ok: true }, the route is wired.
