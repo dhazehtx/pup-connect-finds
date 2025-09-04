@@ -99,7 +99,7 @@ const ProviderOnboard: React.FC = () => {
       if (authUser?.id && providerId && !applicationId) {
         console.log('[ONBOARDING] ApplicationId missing, creating one...');
         try {
-          const response = await fetch('/api/applications/ensure', {
+          const response = await fetch('/api/applications/ensure-open', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ 
@@ -109,9 +109,13 @@ const ProviderOnboard: React.FC = () => {
           });
           
           const data = await response.json();
-          if (data.success && data.applicationId) {
+          console.log('[ONBOARDING] Application response:', data);
+          
+          if (response.ok && data.success && data.applicationId) {
             console.log('[ONBOARDING] Created/found applicationId:', data.applicationId);
             setApplicationId(data.applicationId);
+          } else {
+            console.error('[ONBOARDING] Failed to ensure application:', data.message);
           }
         } catch (error) {
           console.error('[ONBOARDING] Failed to ensure applicationId:', error);
@@ -471,34 +475,27 @@ const ProviderOnboard: React.FC = () => {
         throw new Error("Provider information missing. Please complete previous steps.");
       }
       
-      // 2) Ensure applicationId exists (using simple client-side creation)
-      let resolvedApplicationId = applicationId;
+      // 2) Ensure applicationId exists (using bullet-proof endpoint with clear errors)
+      console.log('[PAYOUT] Ensuring application exists...');
+      const appResponse = await fetch('/api/applications/ensure-open', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          userId: authUser.id, 
+          providerId 
+        })
+      });
       
-      if (!resolvedApplicationId) {
-        console.log('[PAYOUT] ApplicationId missing, creating one...');
-        try {
-          const appResponse = await fetch('/api/applications/ensure', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ 
-              userId: authUser.id, 
-              providerId 
-            })
-          });
-          
-          const appData = await appResponse.json();
-          if (appData.success && appData.applicationId) {
-            resolvedApplicationId = appData.applicationId;
-            setApplicationId(appData.applicationId);
-            console.log('[PAYOUT] Created/found applicationId:', appData.applicationId);
-          } else {
-            throw new Error('Could not create application record');
-          }
-        } catch (appError) {
-          console.error('[PAYOUT] Application creation failed:', appError);
-          throw new Error('Could not prepare application data. Please try again.');
-        }
+      const appData = await appResponse.json();
+      console.log('[PAYOUT] Application response:', appData);
+      
+      if (!appResponse.ok || !appData?.success) {
+        throw new Error(appData?.message || "Could not prepare application.");
       }
+      
+      const resolvedApplicationId = appData.applicationId as string;
+      setApplicationId(resolvedApplicationId);
+      console.log('[PAYOUT] Application ready:', resolvedApplicationId);
       
       console.log('[PAYOUT] Final IDs:', { 
         userId: authUser.id, 

@@ -1427,6 +1427,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     const { ensureOnboardingIds } = await import('./routes/onboarding/ensure-ids');
     return ensureOnboardingIds(req, res);
   });
+
+  // Ensure open application exists (bullet-proof with clear errors)
+  app.post('/api/applications/ensure-open', async (req, res) => {
+    const { ensureOpenApplication } = await import('./routes/applications/ensure-open');
+    return ensureOpenApplication(req, res);
+  });
   app.use('/api/stripe/webhook', stripeWebhookRouter);
 
   // Register health check routes
