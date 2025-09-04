@@ -462,24 +462,58 @@ const ProviderOnboard: React.FC = () => {
     setPayoutSetup({ status: 'loading' });
 
     try {
-      // 1) Use bullet-proof ID resolution (server creates missing IDs)
-      console.log('[PAYOUT] Ensuring all IDs exist...');
-      const { userId, providerId: resolvedProviderId, applicationId: resolvedApplicationId } = await ensureOnboardingIds();
+      // 1) Get user ID from auth and validate
+      if (!authUser?.id) {
+        throw new Error("Please sign in to continue.");
+      }
       
-      console.log('[PAYOUT] Ensured IDs:', { 
-        userId, 
-        providerId: resolvedProviderId, 
+      if (!providerId) {
+        throw new Error("Provider information missing. Please complete previous steps.");
+      }
+      
+      // 2) Ensure applicationId exists (using simple client-side creation)
+      let resolvedApplicationId = applicationId;
+      
+      if (!resolvedApplicationId) {
+        console.log('[PAYOUT] ApplicationId missing, creating one...');
+        try {
+          const appResponse = await fetch('/api/applications/ensure', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+              userId: authUser.id, 
+              providerId 
+            })
+          });
+          
+          const appData = await appResponse.json();
+          if (appData.success && appData.applicationId) {
+            resolvedApplicationId = appData.applicationId;
+            setApplicationId(appData.applicationId);
+            console.log('[PAYOUT] Created/found applicationId:', appData.applicationId);
+          } else {
+            throw new Error('Could not create application record');
+          }
+        } catch (appError) {
+          console.error('[PAYOUT] Application creation failed:', appError);
+          throw new Error('Could not prepare application data. Please try again.');
+        }
+      }
+      
+      console.log('[PAYOUT] Final IDs:', { 
+        userId: authUser.id, 
+        providerId, 
         applicationId: resolvedApplicationId 
       });
 
-      // 2) Start Stripe onboarding with guaranteed IDs
+      // 3) Start Stripe onboarding with guaranteed IDs
       console.log('[PAYOUT] Starting Stripe Connect...');
       const response = await fetch('/api/payout/start', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
-          userId,
-          providerId: resolvedProviderId,
+          userId: authUser.id,
+          providerId,
           applicationId: resolvedApplicationId,
           accountType: accountType || 'individual'
         }),

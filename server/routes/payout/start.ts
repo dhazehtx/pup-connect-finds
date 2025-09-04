@@ -25,73 +25,25 @@ export async function startPayout(req: Request, res: Response) {
     
     let { userId, providerId, applicationId, accountType, ein } = body;
 
-    // Server-side tolerance: auto-ensure missing IDs
+    // Simple validation - require all IDs from client
     if (!userId || !providerId || !applicationId) {
-      console.log('[PAYOUT START] Some IDs missing, attempting to resolve...', { 
+      console.error('[PAYOUT START] Missing required fields:', { 
         userId: !!userId, 
         providerId: !!providerId, 
         applicationId: !!applicationId 
       });
-      
-      if (!userId) {
-        console.error('[PAYOUT START] userId is required');
-        return res.status(400).json({ 
-          success: false, 
-          message: "Missing required field: userId" 
-        });
-      }
-      
-      // Auto-ensure provider if missing
-      if (!providerId) {
-        const { data: existingProvider } = await supabase
-          .from('providers')
-          .select('id')
-          .eq('user_id', userId)
-          .maybeSingle();
-          
-        if (existingProvider?.id) {
-          providerId = existingProvider.id;
-        } else {
-          const { data: newProvider, error } = await supabase
-            .from('providers')
-            .insert({ user_id: userId })
-            .select('id')
-            .single();
-          if (error) throw error;
-          providerId = newProvider.id;
-        }
-        console.log('[PAYOUT START] Auto-created/found provider:', providerId);
-      }
-      
-      // Auto-ensure application if missing
-      if (!applicationId) {
-        const { data: existingApp } = await supabase
-          .from('provider_applications')
-          .select('id')
-          .eq('user_id', userId)
-          .eq('provider_id', providerId)
-          .in('status', ['draft', 'in_progress'])
-          .order('updated_at', { ascending: false })
-          .limit(1)
-          .maybeSingle();
-          
-        if (existingApp?.id) {
-          applicationId = existingApp.id;
-        } else {
-          const { data: newApp, error } = await supabase
-            .from('provider_applications')
-            .insert({ 
-              user_id: userId, 
-              provider_id: providerId, 
-              status: 'draft' 
-            })
-            .select('id')
-            .single();
-          if (error) throw error;
-          applicationId = newApp.id;
-        }
-        console.log('[PAYOUT START] Auto-created/found application:', applicationId);
-      }
+      return res.status(400).json({ 
+        success: false, 
+        message: "Missing required fields: userId, providerId, applicationId" 
+      });
+    }
+    
+    // Basic user validation to prevent abuse
+    if (typeof userId !== 'string' || userId.length < 10) {
+      return res.status(400).json({ 
+        success: false, 
+        message: "Invalid user ID format" 
+      });
     }
 
     console.log('[PAYOUT START] Processing request:', { userId, providerId, applicationId, accountType, origin: ORIGIN });

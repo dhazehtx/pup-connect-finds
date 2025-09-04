@@ -1422,13 +1422,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     return ensureApplication(req, res);
   });
   
-  // Ensure all onboarding IDs exist (bullet-proof)
-  app.post('/api/onboarding/ensure-ids', async (req, res, next) => {
-    const { authMiddleware } = await import('./middleware/auth');
-    return authMiddleware(req, res, async () => {
-      const { ensureOnboardingIds } = await import('./routes/onboarding/ensure-ids');
-      return ensureOnboardingIds(req, res);
-    });
+  // Ensure all onboarding IDs exist (bullet-proof) - no auth middleware, use Bearer token
+  app.post('/api/onboarding/ensure-ids', async (req, res) => {
+    const { ensureOnboardingIds } = await import('./routes/onboarding/ensure-ids');
+    return ensureOnboardingIds(req, res);
   });
   app.use('/api/stripe/webhook', stripeWebhookRouter);
 
