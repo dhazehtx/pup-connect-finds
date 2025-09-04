@@ -19,7 +19,8 @@ export function NotificationBell() {
   const { data: unreadData, refetch: refetchUnread } = useQuery({
     queryKey: ['/api/notifications-v2?count=1', user?.id],
     enabled: !!user?.id,
-    refetchInterval: 30000, // Refetch every 30 seconds
+    refetchInterval: user?.id ? 30000 : false, // Only refetch if user is authenticated
+    retry: false, // Don't retry failed requests to reduce console spam
   });
 
   const unreadCount = (unreadData as any)?.count || 0;

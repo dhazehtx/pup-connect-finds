@@ -75,7 +75,7 @@ import { contentModerationMiddleware } from './utils/aiModeration';
 import Stripe from 'stripe';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
-  apiVersion: '2025-07-30.basil',
+  apiVersion: '2024-11-20.acacia',
 });
 
 import { 
@@ -1314,9 +1314,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Register follows routes
   app.use('/api/follows', followsRouter);
 
-  // Register notifications routes
-  app.use('/api/notifications', notificationsRouter);
-  
   // Payout routes are registered above with the verification routes
 
 

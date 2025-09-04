@@ -37,40 +37,37 @@ export const authMiddleware = async (req: Request, res: Response, next: NextFunc
       return next();
     }
 
-    // Handle token encoding issues that cause ByteString errors
+    // Early validation to prevent ByteString errors before reaching Supabase
     try {
-      // First, handle any encoding issues by properly parsing the header value
-      let cleanedToken = token.trim();
-      
-      // For UTF-8 encoded tokens, convert to proper string
-      if (token.includes('\u2026') || token.includes('…')) {
-        console.log('Detected truncated or malformed token with ellipsis');
+      // Handle truncated tokens that end with ellipsis (common browser issue)
+      if (token.endsWith('…') || token.includes('…') || token.includes('\u2026')) {
         req.isAuthenticated = () => false;
         return next();
       }
       
-      // Remove any non-printable ASCII characters
-      cleanedToken = cleanedToken.replace(/[^\x21-\x7E]/g, '');
+      // Check for problematic Unicode characters at any position
+      for (let i = 0; i < token.length; i++) {
+        const charCode = token.charCodeAt(i);
+        if (charCode > 255) {
+          req.isAuthenticated = () => false;
+          return next();
+        }
+      }
       
-      // Validate JWT structure
-      const parts = cleanedToken.split('.');
-      if (parts.length !== 3) {
-        console.log('Token validation failed: JWT must have 3 parts, got', parts.length);
+      // Validate basic JWT structure before processing
+      const parts = token.trim().split('.');
+      if (parts.length !== 3 || parts.some(part => !part)) {
         req.isAuthenticated = () => false;
         return next();
       }
       
-      // Ensure each part contains only valid base64url characters
-      const base64UrlRegex = /^[A-Za-z0-9_-]+$/;
-      if (!parts.every(part => base64UrlRegex.test(part))) {
-        console.log('Token validation failed: Invalid base64url characters');
+      // Ensure token contains only valid characters
+      if (!/^[A-Za-z0-9._-]+$/.test(token)) {
         req.isAuthenticated = () => false;
         return next();
       }
       
-      token = cleanedToken;
     } catch (tokenError) {
-      console.error('Token validation error:', tokenError);
       req.isAuthenticated = () => false;
       return next();
     }

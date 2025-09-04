@@ -43,7 +43,8 @@ const NotificationButton: React.FC<NotificationButtonProps> = ({ className = '' 
       return response;
     },
     enabled: !!user,
-    refetchInterval: 30000, // Refetch every 30 seconds for real-time feel
+    refetchInterval: user ? 30000 : false, // Only refetch if user is authenticated
+    retry: false, // Don't retry failed requests to reduce console spam
   });
 
   // Mark all notifications as read
