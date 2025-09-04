@@ -35,7 +35,7 @@ interface PayoutSetupState {
 
 const ProviderOnboard: React.FC = () => {
   const { currentStep, providerId, setCurrentStep, setProviderId, loadFromStorage } = useOnboardingStore();
-  const { userId, applicationId, setIds, setApplicationId } = useOnboarding();
+  const { userId, applicationId, setIds, setApplicationId, hydrateApplicationId } = useOnboarding();
   const { user: authUser } = useAuth();
   const [basicsData, setBasicsData] = useState({
     legalName: '',
@@ -71,12 +71,55 @@ const ProviderOnboard: React.FC = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
 
-  // Initialize user IDs when component loads
+  // Initialize user IDs when component loads and hydrate applicationId
   useEffect(() => {
     if (authUser?.id && providerId) {
       setIds(authUser.id, providerId);
     }
-  }, [authUser?.id, providerId, setIds]);
+    // Hydrate applicationId from localStorage
+    hydrateApplicationId();
+  }, [authUser?.id, providerId, setIds, hydrateApplicationId]);
+
+  // Log IDs for debugging (Step 5 diagnostic)
+  useEffect(() => {
+    console.log('[Step5] IDs check:', { 
+      userId: authUser?.id, 
+      providerId, 
+      applicationId,
+      hasUserId: !!authUser?.id,
+      hasProviderId: !!providerId,
+      hasApplicationId: !!applicationId
+    });
+  }, [authUser?.id, providerId, applicationId]);
+
+  // Ensure applicationId exists when we have userId and providerId
+  useEffect(() => {
+    const ensureApplicationId = async () => {
+      if (authUser?.id && providerId && !applicationId) {
+        console.log('[ONBOARDING] ApplicationId missing, creating one...');
+        try {
+          const response = await fetch('/api/applications/ensure', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+              userId: authUser.id, 
+              providerId 
+            })
+          });
+          
+          const data = await response.json();
+          if (data.success && data.applicationId) {
+            console.log('[ONBOARDING] Created/found applicationId:', data.applicationId);
+            setApplicationId(data.applicationId);
+          }
+        } catch (error) {
+          console.error('[ONBOARDING] Failed to ensure applicationId:', error);
+        }
+      }
+    };
+
+    ensureApplicationId();
+  }, [authUser?.id, providerId, applicationId, setApplicationId]);
 
   // Check for return from Stripe and automatically verify payout status
   useEffect(() => {
@@ -414,9 +457,7 @@ const ProviderOnboard: React.FC = () => {
   const handleStripeConnect = async () => {
     console.log('[PAYOUT] Connect button clicked');
     
-    // TEMP: prove the click works. You should be redirected to Stripe home.
-    // If this doesn't redirect, the handler isn't bound.
-    // Remove this line after the test.
+    // Test temp redirect (uncomment to test handler binding):
     // window.location.href = "https://connect.stripe.com"; return;
     
     // Check for required IDs first

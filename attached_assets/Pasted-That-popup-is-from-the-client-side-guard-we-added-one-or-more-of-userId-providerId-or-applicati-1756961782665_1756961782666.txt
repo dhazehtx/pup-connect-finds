@@ -1,0 +1,189 @@
+That popup is from the client-side guard we added: one (or more) of userId, providerId, or applicationId is null/undefined on Step 5. Until those three IDs are present, the API refuses to start Stripe onboarding.
+
+Here’s how to fix it cleanly.
+
+What must exist on Step 5
+
+userId — from auth (e.g., Supabase).
+
+providerId — your row in providers for this user.
+
+applicationId — the current onboarding application; we created/returned it on Step 3 (ID “Save”).
+
+You need to hydrate these before rendering the Step-5 component.
+
+1) Add a tiny onboarding store (or context)
+// lib/useOnboardingIds.ts
+import { create } from "zustand";
+
+type State = {
+  userId: string | null;
+  providerId: string | null;
+  applicationId: string | null;
+  setIds: (p: Partial<State>) => void;
+};
+
+export const useOnboardingIds = create<State>((set) => ({
+  userId: null,
+  providerId: null,
+  applicationId: null,
+  setIds: (p) => set(p),
+}));
+
+2) Hydrate IDs on the onboarding root page
+
+Do this once on /services/onboarding (parent layout/page that wraps all steps).
+
+// app/services/onboarding/page.tsx (or layout.tsx)
+"use client";
+import { useEffect } from "react";
+import { useOnboardingIds } from "@/lib/useOnboardingIds";
+import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
+
+export default function OnboardingPage() {
+  const supabase = createClientComponentClient();
+  const { setIds, applicationId } = useOnboardingIds();
+
+  useEffect(() => {
+    (async () => {
+      // 1) userId from auth
+      const { data: { user } } = await supabase.auth.getUser();
+      const userId = user?.id || null;
+
+      // 2) providerId from your DB (create one if missing)
+      let providerId: string | null = null;
+      if (userId) {
+        const resp = await fetch("/api/providers/ensure", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ userId }),
+        });
+        const data = await resp.json();
+        providerId = data?.providerId ?? null;
+      }
+
+      // 3) applicationId
+      // - If we already saved it in Step 3, it may be in localStorage or returned by /ensure
+      const storedAppId = typeof window !== "undefined"
+        ? window.localStorage.getItem("applicationId")
+        : null;
+
+      setIds({ userId, providerId, applicationId: storedAppId ?? applicationId });
+    })();
+  }, [setIds, supabase, applicationId]);
+
+  return <OnboardingStepper />; // your existing wrapper
+}
+
+
+/api/providers/ensure (server) can upsert a provider row and return its id:
+
+// app/api/providers/ensure/route.ts
+import { NextRequest, NextResponse } from "next/server";
+import { createClient } from "@supabase/supabase-js";
+export const runtime = "nodejs";
+
+export async function POST(req: NextRequest) {
+  const { userId } = await req.json();
+  if (!userId) return NextResponse.json({ success:false, message:"Missing userId" }, { status:400 });
+
+  const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!);
+
+  // try to find existing provider
+  const { data: existing } = await supabase.from("providers").select("id").eq("user_id", userId).maybeSingle();
+
+  if (existing?.id) {
+    return NextResponse.json({ success:true, providerId: existing.id });
+  }
+
+  // create one
+  const { data, error } = await supabase.from("providers").insert({ user_id: userId }).select("id").single();
+  if (error) return NextResponse.json({ success:false, message:error.message }, { status:500 });
+
+  return NextResponse.json({ success:true, providerId: data.id });
+}
+
+3) Persist applicationId when Step 3 “Save” returns it
+
+In your Step-3 save handler (ID verification), right after success:
+
+if (data.applicationId) {
+  setApplicationId(data.applicationId);                 // your state
+  localStorage.setItem("applicationId", data.applicationId); // persist for later steps
+  // also update the onboarding store:
+  useOnboardingIds.getState().setIds({ applicationId: data.applicationId });
+}
+
+4) Use the store in Step 5
+
+Replace any props with store values and log them once:
+
+import { useOnboardingIds } from "@/lib/useOnboardingIds";
+
+const { userId, providerId, applicationId } = useOnboardingIds();
+useEffect(() => {
+  console.log("[Step5] IDs", { userId, providerId, applicationId });
+}, [userId, providerId, applicationId]);
+
+const connectStripe = async () => {
+  if (!userId || !providerId || !applicationId) {
+    alert("Missing IDs for payout (user/provider/application).");
+    return;
+  }
+  // ... call /api/payout/start (unchanged)
+};
+
+5) (Optional) fallback: derive applicationId from DB
+
+If you don’t want to rely on localStorage, you can add a small API to “ensure” an open application for the user and return its id:
+
+// app/api/applications/ensure-open/route.ts
+import { NextRequest, NextResponse } from "next/server";
+import { createClient } from "@supabase/supabase-js";
+export const runtime = "nodejs";
+
+export async function POST(req: NextRequest) {
+  const { userId, providerId } = await req.json();
+  if (!userId || !providerId) return NextResponse.json({ success:false, message:"Missing ids" }, { status:400 });
+
+  const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!);
+
+  // try existing draft application
+  const { data: existing } = await supabase
+    .from("provider_applications")
+    .select("id")
+    .eq("user_id", userId)
+    .eq("provider_id", providerId)
+    .in("status", ["draft","in_progress"])
+    .order("updated_at", { ascending:false })
+    .limit(1)
+    .maybeSingle();
+
+  if (existing?.id) return NextResponse.json({ success:true, applicationId: existing.id });
+
+  // create draft
+  const { data, error } = await supabase
+    .from("provider_applications")
+    .insert({ user_id: userId, provider_id: providerId, status: "draft" })
+    .select("id")
+    .single();
+  if (error) return NextResponse.json({ success:false, message:error.message }, { status:500 });
+
+  return NextResponse.json({ success:true, applicationId: data.id });
+}
+
+
+Call this once after you have userId & providerId and store the result in the onboarding store.
+
+Quick verification
+
+Open browser console on Step 5 → you should see:
+
+[Step5] IDs { userId: "...", providerId: "...", applicationId: "..." }
+
+
+Click Connect with Stripe → Network shows POST /api/payout/start (200) → redirects to Stripe.
+
+If the alert still shows, one of the IDs is not being set—check the hydrator in step 2 and the Step-3 persistence in step 3.
+
+Once those IDs are present, the “Missing IDs for payout” popup disappears and the redirect will work.

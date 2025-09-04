@@ -1415,6 +1415,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api/applications/progress', progressRouter);
   app.use('/api/applications/submit', submitRouter);
   app.post('/api/applications/consent', consentHandler);
+  
+  // Ensure application exists
+  app.post('/api/applications/ensure', async (req, res) => {
+    const { ensureApplication } = await import('./routes/applications/ensure');
+    return ensureApplication(req, res);
+  });
   app.use('/api/stripe/webhook', stripeWebhookRouter);
 
   // Register health check routes
