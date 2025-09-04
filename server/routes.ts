@@ -23,6 +23,7 @@ import monetizationRouter from './routes/monetization';
 import providerApplicationsRouter from './routes/providerApplications';
 import enhancedNotificationsRouter from './routes/enhancedNotifications';
 import verificationRouter from './routes/verification';
+import paymentsRouter from './routes/payments';
 import { registerHealthRoutes } from './routes/health';
 
 // New Stripe verification system
@@ -1313,6 +1314,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Register follows routes
   app.use('/api/follows', followsRouter);
+
+  // Register payments routes for Stripe Connect PaymentIntents
+  app.use('/api/payments', paymentsRouter);
 
   // Payout routes are registered above with the verification routes
 
