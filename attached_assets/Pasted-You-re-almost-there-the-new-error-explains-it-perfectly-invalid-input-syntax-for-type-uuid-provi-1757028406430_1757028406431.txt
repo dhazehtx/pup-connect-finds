@@ -1,0 +1,135 @@
+You’re almost there—the new error explains it perfectly:
+
+invalid input syntax for type uuid: "provider_8b7adf6a-eb74-43a0-9a26-575e65886ac5_1757027905080"
+
+Your frontend is passing a fabricated “providerId” string (e.g. provider_<userId>_<ts>), but the DB column provider_applications.provider_id is a UUID. When the Express route runs:
+
+... where provider_id = 'provider_8b7...'
+
+
+Postgres throws “invalid input syntax for type uuid”.
+
+We’ll fix this in two places:
+
+A) Server: normalize providerId to a real UUID
+
+If the incoming providerId is not a UUID, resolve (or create) the actual provider row by user_id and use its id.
+
+Add this helper:
+
+// server/lib/isUuid.js
+export function isUuid(v) {
+  return typeof v === "string" &&
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(v);
+}
+
+Patch /api/applications/ensure-open
+// server/routes/applications.js
+import { Router } from "express";
+import { createClient } from "@supabase/supabase-js";
+import { isUuid } from "../lib/isUuid.js";
+
+const router = Router();
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const SR_KEY       = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const sb = () => createClient(SUPABASE_URL, SR_KEY);
+
+router.post("/ensure-open", async (req, res) => {
+  try {
+    const { userId } = req.body || {};
+    let { providerId } = req.body || {};
+    if (!userId) return res.status(400).json({ success:false, message:"Missing userId" });
+
+    // 🔹 Normalize providerId
+    if (!isUuid(providerId)) {
+      // find-or-create provider by user_id
+      const s = sb();
+      const { data: existing, error: findProvErr } = await s
+        .from("providers").select("id").eq("user_id", userId).maybeSingle();
+      if (findProvErr) return res.status(500).json({ success:false, message:`DB error (find provider): ${findProvErr.message}` });
+
+      if (existing?.id) {
+        providerId = existing.id;
+      } else {
+        const { data: created, error: insProvErr } = await s
+          .from("providers").insert({ user_id: userId }).select("id").single();
+        if (insProvErr) return res.status(500).json({ success:false, message:`DB error (create provider): ${insProvErr.message}` });
+        providerId = created.id;
+      }
+    }
+
+    const s = sb();
+    // find existing draft/in_progress
+    const { data: existingApp, error: findErr } = await s
+      .from("provider_applications")
+      .select("id")
+      .eq("user_id", userId)
+      .eq("provider_id", providerId)   // ✅ now a real UUID
+      .in("status", ["draft","in_progress"])
+      .order("updated_at", { ascending:false })
+      .limit(1)
+      .maybeSingle();
+    if (findErr) return res.status(500).json({ success:false, message:`DB error (find application): ${findErr.message}` });
+
+    if (existingApp?.id) {
+      return res.json({ success:true, applicationId: existingApp.id, providerId });
+    }
+
+    // create draft
+    const { data: createdApp, error: insErr } = await s
+      .from("provider_applications")
+      .insert({ user_id: userId, provider_id: providerId, status: "draft" })
+      .select("id")
+      .single();
+    if (insErr) return res.status(500).json({ success:false, message:`DB error (create application): ${insErr.message}` });
+
+    res.json({ success:true, applicationId: createdApp.id, providerId });
+  } catch (e) {
+    console.error("[applications/ensure-open] ERROR", e);
+    res.status(500).json({ success:false, message: e?.message || "Internal error" });
+  }
+});
+
+export default router;
+
+Patch /api/payout/start similarly
+
+At the top, before you query by provider_id, normalize:
+
+import { isUuid } from "../lib/isUuid.js";
+
+router.post("/start", async (req, res) => {
+  try {
+    const { userId, accountType } = req.body || {};
+    let { providerId, applicationId } = req.body || {};
+    if (!userId) return res.status(401).json({ success:false, message:"Missing userId (not authenticated)." });
+
+    const s = sbAdmin();
+
+    // 🔹 Ensure provider is a UUID
+    if (!isUuid(providerId)) {
+      const { data: existing, error } = await s
+        .from("providers").select("id").eq("user_id", userId).maybeSingle();
+      if (error) return res.status(500).json({ success:false, message:`DB error (find provider): ${error.message}` });
+      if (existing?.id) providerId = existing.id;
+      else {
+        const { data, error: insErr } = await s
+          .from("providers").insert({ user_id: userId }).select("id").single();
+        if (insErr) return res.status(500).json({ success:false, message:`DB error (create provider): ${insErr.message}` });
+        providerId = data.id;
+      }
+    }
+
+    // ...then proceed to ensure application, stripe account, and create account link
+
+B) Frontend (optional but recommended): stop fabricating provider IDs
+
+Wherever you build provider_${userId}_${ts}, stop doing that. Either:
+
+store/use the real provider.id returned by the server, or
+
+on mount of Step 5, call /api/applications/ensure-open first and keep the providerId it returns in state.
+
+Also, if you cache providerId in localStorage, clear/update it to the real UUID after the first successful call:
+
+localStorage.setItem("providerId", providerIdFromServer);

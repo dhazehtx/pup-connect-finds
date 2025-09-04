@@ -1,8 +1,11 @@
 import { Request, Response } from 'express';
 import Stripe from 'stripe';
 import { supabase } from '../../lib/supabase';
+import { isUuid } from '../../lib/isUuid';
+import { Pool } from '@neondatabase/serverless';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
+const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 
 // Environment variable fallbacks for proper redirect URLs
 const ORIGIN = process.env.APP_URL || process.env.NEXT_PUBLIC_APP_URL || `https://${process.env.REPL_SLUG}.replit.app` || 'http://localhost:3000';
@@ -44,6 +47,38 @@ export async function startPayout(req: Request, res: Response) {
         success: false, 
         message: "Invalid user ID format" 
       });
+    }
+
+    // 🔹 Normalize providerId - convert fabricated IDs to real UUIDs
+    if (!isUuid(providerId)) {
+      console.log('[PAYOUT START] Non-UUID providerId detected, finding/creating provider...');
+      
+      try {
+        // Find existing provider by user_id
+        const findProviderQuery = `
+          SELECT id FROM providers WHERE user_id = $1 LIMIT 1
+        `;
+        const providerResult = await pool.query(findProviderQuery, [userId]);
+        
+        if (providerResult.rows.length > 0) {
+          providerId = providerResult.rows[0].id;
+          console.log('[PAYOUT START] Found existing provider:', providerId);
+        } else {
+          // Create new provider
+          const createProviderQuery = `
+            INSERT INTO providers (user_id) VALUES ($1) RETURNING id
+          `;
+          const createResult = await pool.query(createProviderQuery, [userId]);
+          providerId = createResult.rows[0].id;
+          console.log('[PAYOUT START] Created new provider:', providerId);
+        }
+      } catch (providerErr: any) {
+        console.error('[PAYOUT START] Provider error:', providerErr);
+        return res.status(500).json({ 
+          success: false, 
+          message: `DB error (provider lookup): ${providerErr.message}` 
+        });
+      }
     }
 
     console.log('[PAYOUT START] Processing request:', { userId, providerId, applicationId, accountType, origin: ORIGIN });
