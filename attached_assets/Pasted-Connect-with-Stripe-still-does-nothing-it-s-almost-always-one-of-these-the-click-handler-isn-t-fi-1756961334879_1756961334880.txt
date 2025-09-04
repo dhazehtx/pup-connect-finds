@@ -1,0 +1,199 @@
+Connect with Stripe still does nothing, it’s almost always one of these:
+
+the click handler isn’t firing (button submitting a form, or not bound),
+
+the API route isn’t being hit (404/405) or is failing (500),
+
+the API is running on Edge instead of Node (Stripe SDK can’t run on Edge),
+
+your request is missing userId/providerId/applicationId, the server returns 400, and the client swallows it,
+
+the server returns {success:true} but no url.
+
+Below is a quick, copy-paste fix + a 2-minute diagnostic to prove each hop.
+
+A) Client: make the button obviously fire + log everything
+
+Make sure your Step-5 component uses type="button", and add a first-line redirect test. If this doesn’t redirect, your handler isn’t wired.
+
+// Step5Payout.tsx (handler)
+const [loading, setLoading] = useState(false);
+
+const connectStripe = async () => {
+  if (loading) return;
+  setLoading(true);
+  try {
+    console.log("[connectStripe] clicked");
+
+    // TEMP: prove the click works. You should be redirected to Stripe home.
+    // If this doesn't redirect, the handler isn't bound.
+    // Remove this line after the test.
+    // window.location.href = "https://connect.stripe.com"; return;
+
+    if (!userId || !providerId || !applicationId) {
+      console.error("[connectStripe] Missing IDs", { userId, providerId, applicationId });
+      alert("Missing IDs for payout (user/provider/application).");
+      return;
+    }
+
+    const res = await fetch("/api/payout/start", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userId, providerId, applicationId, accountType }),
+    });
+    const data = await res.json();
+    console.log("[connectStripe] /api/payout/start →", res.status, data);
+
+    if (!res.ok || !data?.success) throw new Error(data?.message || `Request failed: ${res.status}`);
+    if (!data?.url) throw new Error("Stripe onboarding URL missing in response.");
+
+    window.location.href = data.url; // ← should navigate to Stripe onboarding
+  } catch (e:any) {
+    console.error("[connectStripe] ERROR", e);
+    alert(e?.message || "Could not start Stripe onboarding.");
+  } finally {
+    setLoading(false);
+  }
+};
+
+// Button
+<button type="button" onClick={connectStripe} disabled={loading} className="btn btn-primary">
+  {loading ? "Connecting…" : "Connect with Stripe"}
+</button>
+
+
+If clicking doesn’t redirect with the TEMP line uncommented, the handler isn’t firing or the button is acting like a form submit. Ensure type="button" and that there’s no parent <form> intercepting it.
+
+B) Server: force Node runtime, add a GET health check, and log
+
+In app/api/payout/start/route.ts:
+
+export const runtime = "nodejs";        // Stripe requires Node, not Edge
+export const dynamic = "force-dynamic"; // no caching
+
+import { NextRequest, NextResponse } from "next/server";
+import Stripe from "stripe";
+import { createClient } from "@supabase/supabase-js";
+
+const ORIGIN =
+  process.env.NEXT_PUBLIC_APP_URL ||
+  "https://"+(process.env.REPL_SLUG && process.env.REPL_OWNER ? `${process.env.REPL_SLUG}.${process.env.REPL_OWNER}.repl.co` : "localhost:3000");
+
+const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!);
+
+// ✅ Health check: open /api/payout/start in the browser; expect {ok:true}
+export async function GET() {
+  return NextResponse.json({ ok: true, origin: ORIGIN });
+}
+
+export async function POST(req: NextRequest) {
+  try {
+    const body = await req.json();
+    console.log("[payout/start] body", body);
+    const { userId, providerId, applicationId, accountType } = body;
+
+    if (!userId || !providerId || !applicationId) {
+      return NextResponse.json({ success:false, message:"Missing userId/providerId/applicationId." }, { status:400 });
+    }
+
+    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: "2024-06-20" as any });
+
+    // Fetch provider
+    const { data: provider, error: pErr } = await supabase
+      .from("providers")
+      .select("id, stripe_account_id")
+      .eq("id", providerId)
+      .single();
+    if (pErr) throw pErr;
+
+    let accountId = provider?.stripe_account_id;
+
+    if (!accountId) {
+      const acct = await stripe.accounts.create({
+        type: "express",
+        capabilities: { transfers: { requested: true }, card_payments: { requested: true } },
+        business_type: accountType === "business" ? "company" : "individual",
+        metadata: { providerId, userId, applicationId },
+      });
+      accountId = acct.id;
+      const { error: updErr } = await supabase
+        .from("providers")
+        .update({ stripe_account_id: accountId })
+        .eq("id", providerId);
+      if (updErr) throw updErr;
+    }
+
+    const link = await stripe.accountLinks.create({
+      account: accountId!,
+      type: "account_onboarding",
+      return_url: `${ORIGIN}/services/onboarding/details?from=stripe`,
+      refresh_url: `${ORIGIN}/services/onboarding/payout?refresh=1`,
+    });
+
+    console.log("[payout/start] accountLink", link);
+
+    if (!link?.url) {
+      return NextResponse.json({ success:false, message:"Stripe returned no onboarding URL." }, { status:500 });
+    }
+
+    // Mark step started (best-effort)
+    await supabase
+      .from("provider_applications")
+      .update({ step5_status: "started", updated_at: new Date().toISOString() })
+      .eq("id", applicationId)
+      .eq("user_id", userId);
+
+    return NextResponse.json({ success:true, url: link.url });
+  } catch (e:any) {
+    console.error("[payout/start] ERROR", e);
+    return NextResponse.json({ success:false, message: e?.message || "Internal error" }, { status:500 });
+  }
+}
+
+
+Quick test: open a new tab to /api/payout/start.
+
+If you don’t see { ok: true }, the route path/file is wrong.
+
+If you see it, click the button again and watch the Network tab for POST /api/payout/start and your Console logs for [payout/start] body and accountLink.
+
+C) Make sure IDs actually exist on the client
+
+Before calling the API, log them:
+
+console.log("IDs", { userId, providerId, applicationId });
+
+
+If they’re null/undefined, hydrate them (e.g., from your onboarding store or Supabase auth) before rendering Step 5.
+
+D) Common gotchas (fast checks)
+
+Button lives inside <form> → add type="button".
+
+Route file path must be app/api/payout/start/route.ts (App Router).
+
+Missing env vars: STRIPE_SECRET_KEY, NEXT_PUBLIC_APP_URL, NEXT_PUBLIC_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY.
+
+Route running on Edge → add export const runtime = "nodejs";
+
+Server returns {success:true} but url missing → client should throw “Stripe onboarding URL missing”.
+
+What to do right now
+
+Paste B into your route (keeps your logic, adds health check + logs + Node runtime).
+
+Add the TEMP redirect line at the top of connectStripe and click the button:
+
+If you’re NOT redirected → the click handler isn’t bound (fix type="button" / binding).
+
+If you ARE redirected → remove the TEMP line and watch Network; fix whatever the server logs show.
+
+Tell me what you see in:
+
+Network status for POST /api/payout/start
+
+The JSON body it returns
+
+Any [payout/start] ERROR lines in the server console
+
+…and I’ll pinpoint the exact line to fix.

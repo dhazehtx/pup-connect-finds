@@ -1397,7 +1397,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Register new Stripe verification system routes
   app.use('/api/verification/start', startVerificationRouter);
   
-  // Payout routes
+  // Payout routes - Health check
+  app.get('/api/payout/start', async (req, res) => {
+    const { getPayoutStart } = await import('./routes/payout/start');
+    return getPayoutStart(req, res);
+  });
+
   app.post('/api/payout/start', async (req, res) => {
     const { startPayout } = await import('./routes/payout/start');
     return startPayout(req, res);

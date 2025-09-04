@@ -7,6 +7,17 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 // Environment variable fallbacks for proper redirect URLs
 const ORIGIN = process.env.APP_URL || process.env.NEXT_PUBLIC_APP_URL || `https://${process.env.REPL_SLUG}.replit.app` || 'http://localhost:3000';
 
+// Health check endpoint - GET /api/payout/start
+export async function getPayoutStart(req: Request, res: Response) {
+  console.log('[PAYOUT START] Health check called');
+  return res.json({ 
+    ok: true, 
+    origin: ORIGIN,
+    hasStripeKey: !!process.env.STRIPE_SECRET_KEY,
+    timestamp: new Date().toISOString()
+  });
+}
+
 export async function startPayout(req: Request, res: Response) {
   try {
     const body = req.body;

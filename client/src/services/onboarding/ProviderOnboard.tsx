@@ -414,18 +414,25 @@ const ProviderOnboard: React.FC = () => {
   const handleStripeConnect = async () => {
     console.log('[PAYOUT] Connect button clicked');
     
+    // TEMP: prove the click works. You should be redirected to Stripe home.
+    // If this doesn't redirect, the handler isn't bound.
+    // Remove this line after the test.
+    // window.location.href = "https://connect.stripe.com"; return;
+    
     // Check for required IDs first
+    console.log('[PAYOUT] IDs check:', { 
+      userId: authUser?.id, 
+      providerId, 
+      applicationId 
+    });
+    
     if (!authUser?.id || !providerId || !applicationId) {
       console.error('[PAYOUT] Missing IDs:', { 
         userId: !!authUser?.id, 
         providerId: !!providerId, 
         applicationId: !!applicationId 
       });
-      toast({
-        title: "Missing Information",
-        description: "Required information missing. Please complete previous steps first.",
-        variant: "destructive",
-      });
+      alert("Missing IDs for payout (user/provider/application).");
       return;
     }
 
