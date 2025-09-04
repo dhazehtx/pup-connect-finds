@@ -8,6 +8,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { useOnboardingStore } from '@/stores/onboarding';
 import { useOnboarding } from '@/stores/useOnboarding';
+import { ensureOnboardingIds } from '@/lib/ensureOnboardingIds';
 
 // SOL:START ProviderOnboard
 interface Step {
@@ -457,44 +458,30 @@ const ProviderOnboard: React.FC = () => {
   const handleStripeConnect = async () => {
     console.log('[PAYOUT] Connect button clicked');
     
-    // Test temp redirect (uncomment to test handler binding):
-    // window.location.href = "https://connect.stripe.com"; return;
-    
-    // Check for required IDs first
-    console.log('[PAYOUT] IDs check:', { 
-      userId: authUser?.id, 
-      providerId, 
-      applicationId 
-    });
-    
-    if (!authUser?.id || !providerId || !applicationId) {
-      console.error('[PAYOUT] Missing IDs:', { 
-        userId: !!authUser?.id, 
-        providerId: !!providerId, 
-        applicationId: !!applicationId 
-      });
-      alert("Missing IDs for payout (user/provider/application).");
-      return;
-    }
-
+    if (payoutSetup.status === 'loading') return;
     setPayoutSetup({ status: 'loading' });
 
     try {
-      console.log('[PAYOUT] Starting Stripe Connect for:', { 
-        userId: authUser.id, 
-        providerId, 
-        applicationId, 
-        accountType 
+      // 1) Use bullet-proof ID resolution (server creates missing IDs)
+      console.log('[PAYOUT] Ensuring all IDs exist...');
+      const { userId, providerId: resolvedProviderId, applicationId: resolvedApplicationId } = await ensureOnboardingIds();
+      
+      console.log('[PAYOUT] Ensured IDs:', { 
+        userId, 
+        providerId: resolvedProviderId, 
+        applicationId: resolvedApplicationId 
       });
 
+      // 2) Start Stripe onboarding with guaranteed IDs
+      console.log('[PAYOUT] Starting Stripe Connect...');
       const response = await fetch('/api/payout/start', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
-          userId: authUser.id,
-          providerId,
-          applicationId,
-          accountType
+          userId,
+          providerId: resolvedProviderId,
+          applicationId: resolvedApplicationId,
+          accountType: accountType || 'individual'
         }),
       });
 
