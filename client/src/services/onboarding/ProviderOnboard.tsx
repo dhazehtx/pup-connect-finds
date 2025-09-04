@@ -412,7 +412,15 @@ const ProviderOnboard: React.FC = () => {
   };
 
   const handleStripeConnect = async () => {
+    console.log('[PAYOUT] Connect button clicked');
+    
+    // Check for required IDs first
     if (!authUser?.id || !providerId || !applicationId) {
+      console.error('[PAYOUT] Missing IDs:', { 
+        userId: !!authUser?.id, 
+        providerId: !!providerId, 
+        applicationId: !!applicationId 
+      });
       toast({
         title: "Missing Information",
         description: "Required information missing. Please complete previous steps first.",
@@ -443,18 +451,25 @@ const ProviderOnboard: React.FC = () => {
       });
 
       const data = await response.json();
-      console.log('[PAYOUT] API response:', data);
+      console.log('[PAYOUT] API response:', response.status, data);
 
       if (!response.ok || !data?.success) {
-        throw new Error(data?.message || 'Could not start payout onboarding.');
+        throw new Error(data?.message || `Request failed: ${response.status}`);
       }
 
+      // Validate that we got a URL back
+      if (!data?.url) {
+        throw new Error('Stripe onboarding URL was not returned.');
+      }
+
+      console.log('[PAYOUT] Redirecting to Stripe URL:', data.url);
       setPayoutSetup({ status: 'connecting' });
+      
       // Redirect to Stripe Account Link
       window.location.href = data.url;
 
     } catch (e: any) {
-      console.error('[PAYOUT] Stripe Connect error:', e);
+      console.error('[PAYOUT] connectStripe error:', e);
       setPayoutSetup({ status: 'failed', message: e?.message || "Could not start payout onboarding." });
       toast({
         title: "Payout Setup Failed",

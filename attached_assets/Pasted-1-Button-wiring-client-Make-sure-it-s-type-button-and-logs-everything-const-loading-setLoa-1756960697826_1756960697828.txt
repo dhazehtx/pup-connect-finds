@@ -1,0 +1,154 @@
+1) Button wiring (client)
+
+Make sure it’s type="button" and logs everything:
+
+const [loading, setLoading] = useState(false);
+
+const connectStripe = async () => {
+  if (loading) return;
+  setLoading(true);
+  try {
+    if (!userId || !providerId || !applicationId) {
+      console.error("Missing IDs", { userId, providerId, applicationId });
+      alert("Missing IDs for payout.");
+      return;
+    }
+
+    const res = await fetch("/api/payout/start", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        userId,
+        providerId,
+        applicationId,
+        accountType,              // "individual" | "business"
+        // ein (optional UI field, server ignores; Stripe collects it)
+      }),
+    });
+
+    const data = await res.json();
+    console.log("payout/start response", res.status, data);
+
+    if (!res.ok || !data?.success) {
+      throw new Error(data?.message || `Request failed: ${res.status}`);
+    }
+    if (!data?.url) {
+      throw new Error("Stripe onboarding URL was not returned.");
+    }
+
+    // Redirect to Stripe
+    window.location.href = data.url;
+  } catch (e:any) {
+    console.error("connectStripe error", e);
+    alert(e?.message || "Could not start Stripe onboarding.");
+  } finally {
+    setLoading(false);
+  }
+};
+
+<button type="button" onClick={connectStripe} disabled={loading} className="btn btn-primary">
+  {loading ? "Connecting…" : "Connect with Stripe"}
+</button>
+
+
+If no Network request appears in DevTools when you click → the handler isn’t bound or the button is default-submitting a form. The type="button" above fixes that.
+
+2) Route runtime + no caching (server)
+
+At the top of app/api/payout/start/route.ts, add:
+
+export const runtime = "nodejs";        // Stripe SDK needs Node runtime
+export const dynamic = "force-dynamic"; // disable caching for this route
+
+
+If this route runs on Edge, Stripe’s Node client will throw or silently fail.
+
+3) Verify required env vars
+
+In Replit “Secrets”, you must have:
+
+STRIPE_SECRET_KEY (starts with sk_test_ or sk_live_)
+
+NEXT_PUBLIC_APP_URL (your preview/prod URL, e.g. https://<your-app>.replit.app)
+
+NEXT_PUBLIC_SUPABASE_URL
+
+SUPABASE_SERVICE_ROLE_KEY
+
+If NEXT_PUBLIC_APP_URL is missing/wrong, you’ll still get a url back, but Stripe may fail to return to your app. Still, it shouldn’t block the initial redirect.
+
+4) Route body validation
+
+Your route returns 400 if any of these are missing. Make sure you’re sending them from the client:
+
+userId
+
+providerId
+
+applicationId
+
+If you’re uncertain, log the request body on the server:
+
+const body = await req.json();
+console.log("[payout/start] body", body);
+
+
+And also log any upstream errors:
+
+try {
+  // existing code...
+} catch (e:any) {
+  console.error("[payout/start] ERROR", e);
+  return NextResponse.json({ success:false, message:e?.message || "Internal error" }, { status:500 });
+}
+
+
+Open your server logs (Replit Console) and click the button once—look for these logs.
+
+5) Make sure provider has/gets a Connect account
+
+Your route should:
+
+read providers.stripe_account_id,
+
+create a Connect account if missing,
+
+store it back,
+
+create an Account Link and return link.url.
+
+Double-check this line returns a real URL:
+
+const link = await stripe.accountLinks.create({
+  account: accountId!,
+  type: "account_onboarding",
+  return_url: `${ORIGIN}/services/onboarding/details?from=stripe`,
+  refresh_url: `${ORIGIN}/services/onboarding/payout?refresh=1`,
+});
+return NextResponse.json({ success: true, url: link.url });
+
+
+If link.url is null/undefined, you won’t navigate—add the client-side guard in §1 to throw a clear error if no URL is returned.
+
+6) “Next” button does nothing
+
+Same issue as before: give it its own handler and ensure it’s type="button":
+
+const goNext = () => router.push("/services/onboarding/details");
+<button type="button" onClick={goNext} className="btn btn-secondary">Next</button>
+
+2-minute smoke test
+
+Open DevTools → Network tab.
+
+Click Connect with Stripe.
+
+You should see POST /api/payout/start
+
+Status 200 with JSON { success:true, url: "https://connect.stripe.com/..." }
+
+Browser navigates to Stripe.
+
+If it’s 400/500: check Console logs; the server will print the exact error (missing IDs, bad env var, etc.).
+
+If it’s 200 but no redirect: inspect the client console for “Stripe onboarding URL was not returned.”

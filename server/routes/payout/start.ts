@@ -4,20 +4,25 @@ import { supabase } from '../../lib/supabase';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 
-const ORIGIN = process.env.NEXT_PUBLIC_APP_URL || `https://${process.env.REPLIT_DOMAIN}` || 'http://localhost:3000';
+// Environment variable fallbacks for proper redirect URLs
+const ORIGIN = process.env.APP_URL || process.env.NEXT_PUBLIC_APP_URL || `https://${process.env.REPL_SLUG}.replit.app` || 'http://localhost:3000';
 
 export async function startPayout(req: Request, res: Response) {
   try {
-    const { userId, providerId, applicationId, accountType, ein } = req.body;
+    const body = req.body;
+    console.log('[PAYOUT START] Request body:', body);
+    
+    const { userId, providerId, applicationId, accountType, ein } = body;
 
     if (!userId || !providerId || !applicationId) {
+      console.error('[PAYOUT START] Missing required fields:', { userId: !!userId, providerId: !!providerId, applicationId: !!applicationId });
       return res.status(400).json({ 
         success: false, 
         message: "Missing required fields: userId, providerId, applicationId" 
       });
     }
 
-    console.log('[PAYOUT START] Processing request:', { userId, providerId, applicationId, accountType });
+    console.log('[PAYOUT START] Processing request:', { userId, providerId, applicationId, accountType, origin: ORIGIN });
 
     // 1) Fetch provider to see if they already have a Connect account
     const { data: provider, error: pErr } = await supabase
@@ -76,6 +81,12 @@ export async function startPayout(req: Request, res: Response) {
 
     console.log('[PAYOUT START] Created account link:', link.url);
 
+    // Validate that we got a proper URL back from Stripe
+    if (!link.url) {
+      console.error('[PAYOUT START] No URL returned from Stripe AccountLink');
+      throw new Error('Stripe onboarding URL was not returned.');
+    }
+
     // 4) Mark step5 as started
     const { error: appUpdateErr } = await supabase
       .from('provider_applications')
@@ -91,6 +102,7 @@ export async function startPayout(req: Request, res: Response) {
       // Don't throw - this is not critical for the user flow
     }
 
+    console.log('[PAYOUT START] Success! Returning URL:', link.url);
     return res.json({ 
       success: true, 
       url: link.url,
@@ -99,7 +111,7 @@ export async function startPayout(req: Request, res: Response) {
     });
 
   } catch (error: any) {
-    console.error('[PAYOUT START] Error:', error);
+    console.error('[PAYOUT START] ERROR:', error);
     return res.status(500).json({ 
       success: false, 
       message: error?.message || 'Internal server error' 
