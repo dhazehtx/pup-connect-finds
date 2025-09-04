@@ -1,0 +1,197 @@
+404 – /api/applications/ensure-open not found
+
+DB schema error – relation "public.pet_service_providers" does not exist
+
+Below is exactly what to change so the button works and you get redirected to Stripe.
+
+1) Fix the 404: make sure the Express route is mounted and reachable
+A) Confirm server wiring
+
+In your Express bootstrap (e.g. server/index.js), you must mount the routers:
+
+import express from "express";
+import cors from "cors";
+import bodyParser from "body-parser";
+
+import applicationsRouter from "./routes/applications.js";
+import payoutRouter from "./routes/payout.js";
+
+const app = express();
+
+app.use(cors({ origin: true, credentials: true }));
+app.use(bodyParser.json());
+
+// ⬇️ These two lines make the endpoints exist
+app.use("/api/applications", applicationsRouter);
+app.use("/api/payout", payoutRouter);
+
+// quick sanity checks
+app.get("/api/health", (_req, res) => res.json({ ok: true }));
+
+const port = process.env.PORT || 3000;
+app.listen(port, () => console.log(`Server listening on ${port}`));
+
+B) Make sure the route file path & path prefix match
+
+Create the file exactly at server/routes/applications.js with:
+
+import { Router } from "express";
+import { createClient } from "@supabase/supabase-js";
+
+const router = Router();
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const SR_KEY       = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+const sb = () => createClient(SUPABASE_URL, SR_KEY);
+
+router.post("/ensure-open", async (req, res) => {
+  try {
+    const { userId, providerId } = req.body || {};
+    if (!userId)     return res.status(400).json({ success:false, message:"Missing userId" });
+    if (!providerId) return res.status(400).json({ success:false, message:"Missing providerId" });
+
+    // find existing draft/in_progress
+    const { data: existing, error: findErr } = await sb()
+      .from("provider_applications")
+      .select("id")
+      .eq("user_id", userId)
+      .eq("provider_id", providerId)
+      .in("status", ["draft","in_progress"])
+      .order("updated_at", { ascending:false })
+      .limit(1)
+      .maybeSingle();
+    if (findErr) return res.status(500).json({ success:false, message:`DB error (find application): ${findErr.message}` });
+
+    if (existing?.id) return res.json({ success:true, applicationId: existing.id });
+
+    // create one
+    const { data: created, error: insErr } = await sb()
+      .from("provider_applications")
+      .insert({ user_id: userId, provider_id: providerId, status: "draft" })
+      .select("id")
+      .single();
+    if (insErr) return res.status(500).json({ success:false, message:`DB error (create application): ${insErr.message}` });
+
+    res.json({ success:true, applicationId: created.id });
+  } catch (e) {
+    console.error("[applications/ensure-open] ERROR", e);
+    res.status(500).json({ success:false, message: e?.message || "Internal error" });
+  }
+});
+
+export default router;
+
+
+With app.use("/api/applications", applicationsRouter), the full URL is /api/applications/ensure-open (what your client calls).
+
+C) If the frontend runs on Vite (different port), add a proxy
+
+In vite.config.ts/js:
+
+export default {
+  server: {
+    proxy: {
+      "/api": {
+        target: "http://localhost:3000", // your Express port
+        changeOrigin: true,
+      },
+    },
+  },
+};
+
+
+This ensures fetch("/api/...") goes to Express during dev.
+On Replit, if both run in the same server process, the proxy might not be needed.
+
+D) Quick route smoke test
+
+Open /api/health in the browser → should return { ok: true }.
+
+Temporarily add a GET handler to applications.js:
+
+router.get("/ensure-open", (_req, res) => res.json({ ok:true }));
+
+
+Visit /api/applications/ensure-open → see { ok:true }. Then remove the GET.
+
+2) Fix the DB schema error
+
+Your console shows:
+
+Error fetching service providers:
+message: relation "public.pet_service_providers" does not exist
+
+
+Some part of your UI queries pet_service_providers, but your onboarding code uses providers and provider_applications. You have two options:
+
+Option A — Create/align the expected tables
+
+Run these SQL statements in Supabase (SQL editor):
+
+-- providers table
+create table if not exists public.providers (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null,
+  stripe_account_id text,
+  created_at timestamptz default now(),
+  updated_at timestamptz default now()
+);
+
+-- provider_applications table
+create table if not exists public.provider_applications (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null,
+  provider_id uuid not null,
+  status text not null default 'draft', -- draft | in_progress | submitted | approved | rejected
+  step5_status text, -- optional: 'started'
+  created_at timestamptz default now(),
+  updated_at timestamptz default now()
+);
+
+-- keep updated_at fresh
+create or replace function public.touch_updated_at()
+returns trigger language plpgsql as $$
+begin new.updated_at = now(); return new; end $$;
+
+drop trigger if exists trg_providers_touch on public.providers;
+create trigger trg_providers_touch before update on public.providers
+for each row execute function public.touch_updated_at();
+
+drop trigger if exists trg_provider_apps_touch on public.provider_applications;
+create trigger trg_provider_apps_touch before update on public.provider_applications
+for each row execute function public.touch_updated_at();
+
+-- helpful indexes
+create index if not exists idx_providers_user on public.providers(user_id);
+create index if not exists idx_apps_user_provider on public.provider_applications(user_id, provider_id);
+create index if not exists idx_apps_status on public.provider_applications(status);
+
+
+If your UI truly needs pet_service_providers, create a view pointing to providers:
+
+create or replace view public.pet_service_providers as
+  select * from public.providers;
+
+Option B — Change the UI query to use providers
+
+Find the code that queries pet_service_providers and switch it to providers. That removes the dependency on a second table. (Option A is safer if you’re unsure how many places reference it.)
+
+3) Start Stripe onboarding route (Express)
+
+Make sure you also mounted the payout route (/api/payout/start). Use the version I sent earlier (ensures provider, application, and Stripe account; returns { success:true, url }).
+
+4) Test flow checklist (fast)
+
+Reload server (Replit “Run”) so Express picks up new routes.
+
+Open /api/health ⇒ { ok:true }.
+
+In the browser DevTools → Network, click Connect with Stripe:
+
+POST /api/applications/ensure-open ⇒ 200 { success:true, applicationId: "app_..." }
+
+POST /api/payout/start ⇒ 200 { success:true, url: "https://connect.stripe.com/..." }
+
+Browser should redirect to Stripe.
+
+If any request fails now, the response JSON will contain the exact DB message (e.g., missing column, RLS, wrong keys). Copy that message into your next note and you’ll know the precise place to adjust.

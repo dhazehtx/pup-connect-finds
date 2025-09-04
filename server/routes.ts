@@ -1428,11 +1428,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     return ensureOnboardingIds(req, res);
   });
 
-  // Ensure open application exists (bullet-proof with clear errors)
-  app.post('/api/applications/ensure-open', async (req, res) => {
-    const { ensureOpenApplication } = await import('./routes/applications/ensure-open');
-    return ensureOpenApplication(req, res);
-  });
+  // Ensure open application exists (bullet-proof with clear errors) - NO AUTH REQUIRED
+  app.post('/api/applications/ensure-open', 
+    // Skip auth middleware - this is used during onboarding before full auth
+    (req, res, next) => {
+      req.skipAuth = true;
+      next();
+    },
+    async (req, res) => {
+      const { ensureOpenApplication } = await import('./routes/applications/ensure-open');
+      return ensureOpenApplication(req, res);
+    }
+  );
   app.use('/api/stripe/webhook', stripeWebhookRouter);
 
   // Register health check routes
