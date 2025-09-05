@@ -494,12 +494,14 @@ const ProviderOnboard: React.FC = () => {
       }
       
       const resolvedApplicationId = appData.applicationId as string;
+      const resolvedProviderId = appData.providerId as string; // Use the real UUID from server
       setApplicationId(resolvedApplicationId);
       console.log('[PAYOUT] Application ready:', resolvedApplicationId);
+      console.log('[PAYOUT] Provider ID normalized:', resolvedProviderId);
       
       console.log('[PAYOUT] Final IDs:', { 
         userId: authUser.id, 
-        providerId, 
+        providerId: resolvedProviderId, // Use real UUID
         applicationId: resolvedApplicationId 
       });
 
@@ -510,7 +512,7 @@ const ProviderOnboard: React.FC = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           userId: authUser.id,
-          providerId,
+          providerId: resolvedProviderId, // Use real UUID instead of fabricated
           applicationId: resolvedApplicationId,
           accountType: accountType || 'individual'
         }),

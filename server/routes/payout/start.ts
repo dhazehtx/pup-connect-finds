@@ -83,15 +83,23 @@ export async function startPayout(req: Request, res: Response) {
 
     console.log('[PAYOUT START] Processing request:', { userId, providerId, applicationId, accountType, origin: ORIGIN });
 
-    // 1) Fetch provider to see if they already have a Connect account
-    const { data: provider, error: pErr } = await supabase
-      .from('providers')
-      .select('id, stripe_account_id')
-      .eq('id', providerId)
-      .single();
-
-    if (pErr) {
-      console.error('[PAYOUT START] Provider fetch error:', pErr);
+    // 1) Fetch provider to see if they already have a Connect account (using direct PostgreSQL)
+    let provider;
+    try {
+      const providerQuery = `
+        SELECT id, stripe_account_id FROM providers WHERE id = $1 LIMIT 1
+      `;
+      const providerResult = await pool.query(providerQuery, [providerId]);
+      
+      if (providerResult.rows.length === 0) {
+        console.error('[PAYOUT START] Provider not found for ID:', providerId);
+        throw new Error('Provider not found');
+      }
+      
+      provider = providerResult.rows[0];
+      console.log('[PAYOUT START] Found provider:', { id: provider.id, hasStripeAccount: !!provider.stripe_account_id });
+    } catch (providerErr: any) {
+      console.error('[PAYOUT START] Provider fetch error:', providerErr);
       throw new Error('Provider not found');
     }
 
@@ -118,15 +126,16 @@ export async function startPayout(req: Request, res: Response) {
       accountId = account.id;
       console.log('[PAYOUT START] Created Stripe account:', accountId);
 
-      // Update provider with new Stripe account ID
-      const { error: updateErr } = await supabase
-        .from('providers')
-        .update({ stripe_account_id: accountId })
-        .eq('id', providerId);
-
-      if (updateErr) {
+      // Update provider with new Stripe account ID (using direct PostgreSQL)
+      try {
+        const updateQuery = `
+          UPDATE providers SET stripe_account_id = $1 WHERE id = $2
+        `;
+        await pool.query(updateQuery, [accountId, providerId]);
+        console.log('[PAYOUT START] Updated provider with Stripe account ID');
+      } catch (updateErr) {
         console.error('[PAYOUT START] Provider update error:', updateErr);
-        throw updateErr;
+        throw new Error('Failed to save Stripe account');
       }
     }
 
@@ -146,17 +155,16 @@ export async function startPayout(req: Request, res: Response) {
       throw new Error('Stripe onboarding URL was not returned.');
     }
 
-    // 4) Mark step5 as started
-    const { error: appUpdateErr } = await supabase
-      .from('provider_applications')
-      .update({ 
-        step5_status: 'started', 
-        updated_at: new Date().toISOString() 
-      })
-      .eq('id', applicationId)
-      .eq('user_id', userId);
-
-    if (appUpdateErr) {
+    // 4) Mark step5 as started (using direct PostgreSQL)
+    try {
+      const appUpdateQuery = `
+        UPDATE provider_applications 
+        SET step5_status = $1 
+        WHERE id = $2 AND user_id = $3
+      `;
+      await pool.query(appUpdateQuery, ['started', applicationId, userId]);
+      console.log('[PAYOUT START] Updated application step5_status to started');
+    } catch (appUpdateErr) {
       console.error('[PAYOUT START] Application update error:', appUpdateErr);
       // Don't throw - this is not critical for the user flow
     }

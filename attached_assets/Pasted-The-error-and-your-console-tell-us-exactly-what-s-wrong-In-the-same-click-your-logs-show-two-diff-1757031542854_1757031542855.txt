@@ -1,0 +1,120 @@
+The error and your console tell us exactly what’s wrong:
+
+In the same click, your logs show two different providerIds:
+
+From /api/applications/ensure-open: providerId: "jac6b71d-b3d9-4063-a2a6-d..." (✅ a real UUID that exists in providers)
+
+In “Final IDs” (what you send to /api/payout/start): providerId: "provider_8b7adf6a-..._1757..." (❌ the fabricated string)
+
+Because /api/payout/start receives the fabricated providerId, the server can’t find that row → “Provider not found”.
+
+Below are two fixes—do both and you’ll get the redirect to Stripe.
+
+1) Frontend: send the real providerId
+
+Right after you call ensure-open, keep what the server returns and use that in the second call.
+
+// Step 5 click handler (simplified)
+
+// 1) Ensure an application and get the real providerId (uuid)
+const ensureRes = await fetch("/api/applications/ensure-open", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ userId, providerId }), // providerId may be fabricated here; that's OK
+});
+const ensureJson = await ensureRes.json();
+if (!ensureRes.ok || !ensureJson?.success) {
+  throw new Error(ensureJson?.message || "Could not prepare application.");
+}
+
+const applicationId = ensureJson.applicationId;
+const realProviderId = ensureJson.providerId;  // <- USE THIS going forward
+// Optional: cache the real uuid so future steps don’t regenerate a fake one
+localStorage.setItem("providerId", realProviderId);
+
+// 2) Start Stripe Connect onboarding with the REAL ids
+const startRes = await fetch("/api/payout/start", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({
+    userId,
+    providerId: realProviderId,     // <- IMPORTANT
+    applicationId,
+    accountType,                    // "individual" | "business"
+  }),
+});
+const startJson = await startRes.json();
+if (!startRes.ok || !startJson?.success) {
+  throw new Error(startJson?.message || "Could not start payout onboarding.");
+}
+
+window.location.href = startJson.url;   // ← should go to Stripe Connect
+
+
+Also remove any code that generates IDs like provider_${userId}_${Date.now()}. If you must keep it temporarily, overwrite it with the real UUID returned by the server.
+
+2) Server: ignore bad providerIds defensively
+
+If you haven’t already, make /api/payout/start normalize whatever it receives and resolve a real provider row by user_id (find-or-create). That way even if the client sends a fabricated value, the server still works.
+
+// server/routes/payout.js
+import { Router } from "express";
+import { createClient } from "@supabase/supabase-js";
+
+const router = Router();
+const sb = () => createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
+
+const isUuid = (v) =>
+  typeof v === "string" &&
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(v);
+
+router.post("/start", async (req, res) => {
+  try {
+    const { userId, accountType } = req.body || {};
+    let { providerId, applicationId } = req.body || {};
+    if (!userId) return res.status(401).json({ success:false, message:"Missing userId" });
+
+    const s = sb();
+
+    // 🔸 Ensure providerId is a real UUID; otherwise find-or-create by userId
+    if (!isUuid(providerId)) {
+      const { data: existing, error: findErr } = await s
+        .from("providers").select("id").eq("user_id", userId).maybeSingle();
+      if (findErr) return res.status(500).json({ success:false, message:`DB error (find provider): ${findErr.message}` });
+      if (existing?.id) providerId = existing.id;
+      else {
+        const { data: created, error: insErr } = await s
+          .from("providers").insert({ user_id: userId }).select("id").single();
+        if (insErr) return res.status(500).json({ success:false, message:`DB error (create provider): ${insErr.message}` });
+        providerId = created.id;
+      }
+    }
+
+    // …then continue: ensure applicationId, ensure/create stripe_account_id, create accountLink, return link.url
+    // (use the robust version you already added)
+  } catch (e) {
+    console.error("[payout/start] ERROR", e);
+    res.status(500).json({ success:false, message: e?.message || "Internal error" });
+  }
+});
+
+export default router;
+
+
+With those two changes, the flow no longer depends on any fabricated IDs.
+
+“Link bank account” — how users actually connect their bank
+
+You don’t build a separate “link bank” UI. For Stripe Connect (Express):
+
+You create a Connect Account (we do this in /api/payout/start if none exists).
+
+You create an Account Link of type account_onboarding.
+
+You redirect the user to that link (link.url).
+
+Stripe’s hosted onboarding collects legal info + bank account (and KYC).
+
+When they finish, they’re sent back to your return_url.
+
+So the “Connect with Stripe” button → redirect to Stripe’s onboarding is the correct “link bank account” experience. Once completed, payouts to the provider’s bank can occur automatically via destination charges + automatic payouts.
