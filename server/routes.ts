@@ -131,6 +131,84 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/providers/id/link-media', linkIdMedia);
   app.post('/api/providers/id/webhook', handleSimpleWebhook);
 
+  // Stripe onboarding return route (public - no auth required)
+  app.get('/services/onboarding', (req, res) => {
+    const { from, step } = req.query;
+    
+    res.send(`
+      <html>
+        <head>
+          <title>Onboarding Complete</title>
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <style>
+            body { 
+              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
+              text-align: center; 
+              padding: 2rem; 
+              background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+              min-height: 100vh;
+              margin: 0;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+            }
+            .container {
+              background: white;
+              padding: 3rem 2rem;
+              border-radius: 16px;
+              box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+              max-width: 500px;
+              width: 100%;
+            }
+            h1 { 
+              color: #2d3748; 
+              margin-bottom: 1rem; 
+              font-size: 2rem; 
+            }
+            p { 
+              color: #4a5568; 
+              margin-bottom: 2rem; 
+              font-size: 1.1rem; 
+              line-height: 1.6; 
+            }
+            .success-icon {
+              font-size: 4rem;
+              margin-bottom: 1rem;
+              color: #48bb78;
+            }
+            a { 
+              display: inline-block;
+              background: #4299e1;
+              color: white;
+              text-decoration: none;
+              padding: 12px 24px;
+              border-radius: 8px;
+              font-weight: 600;
+              transition: background 0.2s;
+            }
+            a:hover {
+              background: #3182ce;
+            }
+            .subtitle {
+              color: #718096;
+              font-size: 0.9rem;
+              margin-top: 1rem;
+            }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="success-icon">✅</div>
+            <h1>Stripe Onboarding Complete</h1>
+            <p>Congratulations! Your Stripe account has been successfully connected. You can now receive payouts for your services.</p>
+            <a href="/">Return to Dashboard</a>
+            <p class="subtitle">Your banking information is securely managed by Stripe</p>
+          </div>
+        </body>
+      </html>
+    `);
+  });
+
   // Add authentication middleware for all other API routes
   app.use('/api', authMiddleware);
 
