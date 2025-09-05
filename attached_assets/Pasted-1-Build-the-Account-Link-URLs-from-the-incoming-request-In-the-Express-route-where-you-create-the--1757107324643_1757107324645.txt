@@ -1,0 +1,100 @@
+1) Build the Account Link URLs from the incoming request
+
+In the Express route where you create the Connect Account Link:
+
+// server/routes/stripe.js (or wherever you create the account link)
+import Stripe from "stripe";
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+
+/** Utility: figure out the current public base URL for this request */
+function baseUrl(req) {
+  const proto = req.headers['x-forwarded-proto'] || 'https';
+  const host  = req.headers['x-forwarded-host'] || req.get('host');
+  return `${proto}://${host}`;
+}
+
+app.post('/api/payout/start', async (req, res) => {
+  try {
+    const { accountId /* your connected account id */ } = req.body;
+
+    const origin = baseUrl(req); // ← e.g. https://<something>.replit.dev
+    const returnUrl  = `${origin}/services/onboarding?step=5&from=stripe`;
+    const refreshUrl = `${origin}/services/onboarding?step=5&retry=stripe`;
+
+    const link = await stripe.accountLinks.create({
+      account: accountId,
+      type: 'account_onboarding',
+      return_url: returnUrl,
+      refresh_url: refreshUrl,
+    });
+
+    res.json({ url: link.url });
+  } catch (err) {
+    console.error('[PAYOUT] account link error:', err);
+    res.status(500).json({ error: 'Failed to create account link' });
+  }
+});
+
+
+Why this works:
+Replit’s preview domain is the *.replit.dev you see in the right-hand browser, not workspace.replit.app. Using the headers ensures Stripe returns you to the same host the user is actually on.
+
+If you previously hard-coded something like https://workspace.replit.app/..., remove it.
+
+2) Ensure your SPA serves /services/onboarding
+
+If you’re using Vite + Express to serve the built frontend, add an SPA fallback so direct hits to client routes (like /services/onboarding) serve index.html:
+
+// server/index.js (Express bootstrap)
+import path from 'path';
+import express from 'express';
+import history from 'connect-history-api-fallback';
+
+const app = express();
+
+// ...your API routes above...
+
+// Serve the Vite build with an SPA fallback
+app.use(history({
+  // let API requests pass through
+  rewrites: [{ from: /^\/api\/.*$/, to: (ctx) => ctx.parsedUrl.path }]
+}));
+
+app.use(express.static(path.join(process.cwd(), 'dist'))); // or your build dir
+
+
+If you serve with Vite dev server in dev, confirm your proxy rewrites still allow the /services/onboarding path to go to the client.
+
+3) (Optional) Improve the UX on return
+
+In your onboarding page component, read the query string and show a friendly status, then refetch account status:
+
+// client/src/services/onboarding/ProviderOnboard.tsx
+import { useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
+
+export default function ProviderOnboard() {
+  const { search } = useLocation();
+  useEffect(() => {
+    const qp = new URLSearchParams(search);
+    if (qp.get('from') === 'stripe') {
+      // show a toast and refetch provider/stripe status
+      // toast.success('Stripe onboarding complete. Finalizing setup…');
+      // await fetch('/api/payout/status'); // your status endpoint
+    }
+  }, [search]);
+
+  return /* … */;
+}
+
+4) Double-check how you open Stripe
+
+Open the link.url in the top window, not in an iframe. In the browser:
+
+// on button click:
+window.location.href = startResponse.url; // not target=_self in an <iframe>
+
+
+If Replit’s preview tries to trap it, also try:
+
+window.top!.location.href = startResponse.url;

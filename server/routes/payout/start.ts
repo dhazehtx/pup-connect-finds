@@ -7,15 +7,20 @@ import { Pool } from '@neondatabase/serverless';
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 
-// Environment variable fallbacks for proper redirect URLs
-const ORIGIN = process.env.APP_URL || process.env.NEXT_PUBLIC_APP_URL || `https://${process.env.REPL_SLUG}.replit.app` || 'http://localhost:3000';
+// Utility function to build dynamic base URL from request headers (works with Replit's *.replit.dev domains)
+function getBaseUrl(req: Request) {
+  const proto = req.headers['x-forwarded-proto'] || req.protocol || 'https';
+  const host = req.headers['x-forwarded-host'] || req.get('host');
+  return `${proto}://${host}`;
+}
 
 // Health check endpoint - GET /api/payout/start
 export async function getPayoutStart(req: Request, res: Response) {
   console.log('[PAYOUT START] Health check called');
+  const dynamicOrigin = getBaseUrl(req);
   return res.json({ 
     ok: true, 
-    origin: ORIGIN,
+    origin: dynamicOrigin,
     hasStripeKey: !!process.env.STRIPE_SECRET_KEY,
     timestamp: new Date().toISOString()
   });
@@ -81,6 +86,9 @@ export async function startPayout(req: Request, res: Response) {
       }
     }
 
+    // Build dynamic origin URL from request headers
+    const ORIGIN = getBaseUrl(req);
+    console.log('[PAYOUT START] Using dynamic origin:', ORIGIN);
     console.log('[PAYOUT START] Processing request:', { userId, providerId, applicationId, accountType, origin: ORIGIN });
 
     // 1) Fetch provider to see if they already have a Connect account (using direct PostgreSQL)
