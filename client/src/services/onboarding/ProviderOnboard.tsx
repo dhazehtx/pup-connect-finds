@@ -533,12 +533,9 @@ const ProviderOnboard: React.FC = () => {
       console.log('[PAYOUT] Redirecting to Stripe URL:', data.url);
       setPayoutSetup({ status: 'connecting' });
       
-      // Redirect to Stripe Account Link in top window (better for Replit preview)
-      if (window.top) {
-        window.top.location.href = data.url;
-      } else {
-        window.location.href = data.url;
-      }
+      // Use improved Stripe redirect utility
+      const { goToStripe } = await import('../../utils/goToStripe.js');
+      goToStripe(data.url);
 
     } catch (e: any) {
       console.error('[PAYOUT] connectStripe error:', e);
