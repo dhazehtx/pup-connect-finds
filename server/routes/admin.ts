@@ -2,8 +2,10 @@ import { Router } from "express";
 import { storage } from "../storage";
 import { authMiddleware } from "../middleware/auth";
 import { z } from "zod";
+import { Pool } from '@neondatabase/serverless';
 
 const router = Router();
+const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 
 // Admin middleware to check admin status
 const adminMiddleware = (req: any, res: any, next: any) => {
@@ -174,6 +176,24 @@ protectedRoutes.delete('/products/:id', async (req, res) => {
   } catch (error) {
     console.error('Error deactivating product:', error);
     res.status(500).json({ error: 'Failed to deactivate product' });
+  }
+});
+
+// GET /api/admin/stripe-events - View Stripe webhook events audit log
+protectedRoutes.get('/stripe-events', async (req, res) => {
+  try {
+    const query = `
+      SELECT event_id, type, created_at, payload
+      FROM stripe_events 
+      ORDER BY created_at DESC 
+      LIMIT 25
+    `;
+    
+    const result = await pool.query(query);
+    res.json(result.rows);
+  } catch (error) {
+    console.error('[ADMIN] Error fetching Stripe events:', error);
+    res.status(500).json({ error: 'Failed to fetch Stripe events' });
   }
 });
 
