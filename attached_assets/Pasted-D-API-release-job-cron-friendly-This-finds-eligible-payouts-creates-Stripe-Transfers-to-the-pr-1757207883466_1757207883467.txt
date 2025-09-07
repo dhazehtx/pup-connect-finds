@@ -1,0 +1,92 @@
+D) API: release job (cron-friendly)
+
+This finds eligible payouts, creates Stripe Transfers to the provider’s connected accounts, and updates rows.
+
+Create /pages/api/payouts/release.ts:
+
+import Stripe from 'stripe';
+import { createClient } from '@supabase/supabase-js';
+import { STRIPE_SECRET_KEY, CONNECT_APP_FEE_BPS } from '@/lib/config';
+
+const stripe = new Stripe(STRIPE_SECRET_KEY, { apiVersion: '2024-06-20' });
+const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!);
+
+// Compute platform/app fee (in cents) from gross amount (cents)
+function computeAppFee(amountCents: number) {
+  const fee = Math.floor((amountCents * CONNECT_APP_FEE_BPS) / 10_000);
+  return fee;
+}
+
+export default async function handler(req, res) {
+  if (req.method !== 'POST') return res.status(405).end('Method Not Allowed');
+
+  // 1) Fetch all payouts eligible to release
+  const { data: rows, error } = await supabase
+    .from('payouts')
+    .select(`
+      id, booking_id, status, stripe_transfer_id,
+      net_to_provider, app_fee, eligible_at,
+      bookings:booking_id (
+        id, amount, currency, provider_id, status, payment_intent_id, checkout_session_id
+      ),
+      providers:bookings(provider_id) (
+        id, stripe_account_id, charges_enabled, payouts_enabled
+      )
+    `)
+    .eq('status', 'pending_release')
+    .lte('eligible_at', new Date().toISOString());
+
+  if (error) return res.status(500).json({ error: error.message });
+
+  let released = 0, failed = 0;
+
+  for (const row of rows ?? []) {
+    try {
+      const booking = row.bookings;
+      const provider = row.providers?.[0]; // via implied join path above
+      if (!booking || !provider) throw new Error('Missing booking/provider for payout');
+      if (!provider.stripe_account_id) throw new Error('Provider missing stripe_account_id');
+      if (!provider.charges_enabled || !provider.payouts_enabled) {
+        throw new Error('Provider not enabled for charges/payouts');
+      }
+      if (booking.status !== 'completed') throw new Error('Booking not completed yet');
+
+      const gross = booking.amount; // cents
+      const appFee = computeAppFee(gross);
+      const toProvider = gross - appFee;
+      if (toProvider <= 0) throw new Error('Computed provider amount <= 0');
+
+      // 2) Create transfer to connected account
+      const transfer = await stripe.transfers.create({
+        amount: toProvider,
+        currency: booking.currency || 'usd',
+        destination: provider.stripe_account_id,
+        metadata: {
+          booking_id: booking.id,
+          payout_id: row.id,
+        },
+      });
+
+      // 3) Update payout row
+      const { error: upErr } = await supabase
+        .from('payouts')
+        .update({
+          status: 'created',
+          stripe_transfer_id: transfer.id,
+          net_to_provider: toProvider,
+          app_fee: appFee,
+          error: null,
+          released_at: new Date().toISOString(),
+        })
+        .eq('id', row.id);
+
+      if (upErr) throw upErr;
+      released++;
+    } catch (e: any) {
+      await supabase.from('payouts').update({ error: String(e?.message ?? e) }).eq('id', row.id);
+      failed++;
+    }
+  }
+
+  return res.json({ released, failed });
+}
