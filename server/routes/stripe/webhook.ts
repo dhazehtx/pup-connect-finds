@@ -1,82 +1,133 @@
 import { Router } from "express";
 import Stripe from "stripe";
-import { serverSupabase } from "../../lib/supabaseServer";
+import { STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET } from "../../lib/config";
+import { 
+  upsertProviderStatus, 
+  markBookingPaid, 
+  logStripeEvent, 
+  handleTransferResult, 
+  handleRefund 
+} from "../../lib/stripe-handlers";
+import { withDbIdempotency } from "../../lib/idempotency";
+import { Pool } from '@neondatabase/serverless';
 
 const router = Router();
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { 
-  apiVersion: "2024-06-20" as any 
-});
+// Initialize Stripe only if we have a secret key
+let stripe: Stripe | null = null;
+if (STRIPE_SECRET_KEY) {
+  stripe = new Stripe(STRIPE_SECRET_KEY, { apiVersion: '2024-06-20' });
+}
+
+const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 
 // Webhook endpoint needs raw body
 router.post("/", async (req, res) => {
   const sig = req.headers['stripe-signature'] as string;
-  
-  // Note: For webhook to work properly, you need raw body buffer
-  // This would typically require express.raw() middleware
   const body = req.body;
   
   console.log('[STRIPE WEBHOOK] Received webhook');
 
-  // For development, we might not have webhook secret set up yet
-  if (!process.env.STRIPE_WEBHOOK_SECRET) {
-    console.log('[STRIPE WEBHOOK] Warning: No webhook secret configured, skipping signature verification');
-    return res.json({ received: true, status: 'no_secret_configured' });
+  // Check if Stripe is configured
+  if (!stripe) {
+    console.log('[STRIPE WEBHOOK] Stripe not configured, returning success');
+    return res.json({ received: true, status: 'stripe_not_configured' });
+  }
+
+  if (!STRIPE_WEBHOOK_SECRET) {
+    console.log('[STRIPE WEBHOOK] Webhook secret not configured, returning success');
+    return res.json({ received: true, status: 'webhook_secret_not_configured' });
   }
 
   let event: Stripe.Event;
   try {
-    event = stripe.webhooks.constructEvent(
-      body, 
-      sig, 
-      process.env.STRIPE_WEBHOOK_SECRET!
-    );
-  } catch (e: any) {
-    console.error('[STRIPE WEBHOOK] Signature verification failed:', e.message);
-    return res.status(400).json({ 
-      error: `Webhook signature verification failed: ${e.message}` 
-    });
+    event = stripe.webhooks.constructEvent(body, sig, STRIPE_WEBHOOK_SECRET);
+  } catch (err: any) {
+    console.error('[STRIPE WEBHOOK] Signature verification failed:', err.message);
+    return res.status(400).send(`Webhook Error: ${err.message}`);
   }
 
   try {
-    console.log('[STRIPE WEBHOOK] Processing event:', event.type);
+    // Process webhook with idempotency protection
+    await withDbIdempotency(event.id, async () => {
+      await logStripeEvent(event); // audit table
 
-    if (event.type === "identity.verification_session.verified" ||
-        event.type === "identity.verification_session.canceled" ||
-        event.type === "identity.verification_session.requires_input") {
+      console.log('[STRIPE WEBHOOK] Processing event:', event.type);
 
-      const session = event.data.object as Stripe.Identity.VerificationSession;
-      const status = event.type === "identity.verification_session.verified" ? "completed" : "failed";
+      switch (event.type) {
+        case 'account.updated': {
+          const acct = event.data.object as Stripe.Account;
+          await upsertProviderStatus({
+            stripeAccountId: acct.id,
+            chargesEnabled: acct.charges_enabled || false,
+            payoutsEnabled: acct.payouts_enabled || false,
+            requirementsDue: acct.requirements?.currently_due ?? [],
+          });
+          break;
+        }
 
-      console.log('[STRIPE WEBHOOK] Updating verification status:', { 
-        sessionId: session.id, 
-        status, 
-        eventType: event.type 
-      });
+        case 'checkout.session.completed': {
+          const session = event.data.object as Stripe.Checkout.Session;
+          await markBookingPaid({ checkoutSessionId: session.id });
+          // TODO: If immediate payout enabled, create transfer to provider here
+          break;
+        }
 
-      const supabase = serverSupabase();
-      const { data, error } = await supabase
-        .from("provider_applications")
-        .update({ 
-          step3_id_status: status, 
-          updated_at: new Date().toISOString() 
-        })
-        .eq("stripe_session_id", session.id)
-        .select();
+        case 'payment_intent.succeeded': {
+          // Optional: Handle PaymentIntent success if needed
+          const paymentIntent = event.data.object as Stripe.PaymentIntent;
+          console.log('[STRIPE WEBHOOK] Payment succeeded:', paymentIntent.id);
+          break;
+        }
 
-      if (error) {
-        console.error('[STRIPE WEBHOOK] Database update error:', error);
-        throw error;
+        case 'transfer.created':
+        case 'transfer.failed':
+        case 'transfer.reversed': {
+          await handleTransferResult(event);
+          break;
+        }
+
+        case 'charge.refunded':
+        case 'refund.created': {
+          await handleRefund(event);
+          break;
+        }
+
+        // Legacy: Identity verification events
+        case "identity.verification_session.verified":
+        case "identity.verification_session.canceled":
+        case "identity.verification_session.requires_input": {
+          const session = event.data.object as Stripe.Identity.VerificationSession;
+          const status = event.type === "identity.verification_session.verified" ? "completed" : "failed";
+
+          console.log('[STRIPE WEBHOOK] Updating ID verification status:', { 
+            sessionId: session.id, 
+            status, 
+            eventType: event.type 
+          });
+
+          const query = `
+            UPDATE provider_applications 
+            SET step3_id_status = $1, updated_at = NOW() 
+            WHERE stripe_session_id = $2
+          `;
+          const result = await pool.query(query, [status, session.id]);
+          console.log('[STRIPE WEBHOOK] Updated applications:', result.rowCount);
+          break;
+        }
+
+        default:
+          console.log('[STRIPE WEBHOOK] Unhandled event type:', event.type);
+          break;
       }
-
-      console.log('[STRIPE WEBHOOK] Successfully updated applications:', data?.length || 0);
-    }
+    });
 
     return res.json({ received: true });
-  } catch (e: any) {
-    console.error("[STRIPE WEBHOOK] Error:", e);
+  } catch (error: any) {
+    console.error("[STRIPE WEBHOOK] Error processing webhook:", error);
     return res.status(500).json({ 
-      error: "Webhook handling error" 
+      error: "Webhook handling error",
+      details: error.message 
     });
   }
 });

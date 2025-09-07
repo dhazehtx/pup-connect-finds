@@ -1,0 +1,251 @@
+0) One-time env setup (Replit or Vercel)
+
+Add these vars (both TEST and LIVE so the app can auto-switch):
+
+NEXT_PUBLIC_APP_ENV=development   // or production on deploy
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY_TEST=pk_test_...
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY_LIVE=pk_live_...
+STRIPE_SECRET_KEY_TEST=sk_test_...
+STRIPE_SECRET_KEY_LIVE=sk_live_...
+STRIPE_WEBHOOK_SECRET_TEST=whsec_...
+STRIPE_WEBHOOK_SECRET_LIVE=whsec_...
+
+1) Config: environment-aware keys
+
+Create /lib/config.ts (or replace content if you already added it):
+
+// /lib/config.ts
+export const APP_ENV = process.env.NEXT_PUBLIC_APP_ENV ?? (process.env.VERCEL_ENV ?? 'development');
+export const IS_PROD = APP_ENV === 'production';
+
+export const STRIPE_PUBLIC_KEY = IS_PROD
+  ? process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY_LIVE!
+  : process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY_TEST!;
+
+export const STRIPE_SECRET_KEY = IS_PROD
+  ? process.env.STRIPE_SECRET_KEY_LIVE!
+  : process.env.STRIPE_SECRET_KEY_TEST!;
+
+export const STRIPE_WEBHOOK_SECRET = IS_PROD
+  ? process.env.STRIPE_WEBHOOK_SECRET_LIVE!
+  : process.env.STRIPE_WEBHOOK_SECRET_TEST!;
+
+export const CONNECT_APP_FEE_BPS = 1000; // 10% platform fee (adjust)
+
+2) Webhook route with idempotency
+
+Create /pages/api/stripe/webhook.ts:
+
+// /pages/api/stripe/webhook.ts
+import { buffer } from 'micro';
+import Stripe from 'stripe';
+import { STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET } from '@/lib/config';
+import { upsertProviderStatus, markBookingPaid, logStripeEvent, handleTransferResult, handleRefund } from '@/lib/stripe-handlers';
+import { withDbIdempotency } from '@/lib/idempotency';
+
+export const config = { api: { bodyParser: false } };
+
+const stripe = new Stripe(STRIPE_SECRET_KEY, { apiVersion: '2024-06-20' });
+
+export default async function handler(req, res) {
+  if (req.method !== 'POST') return res.status(405).end('Method Not Allowed');
+  const sig = req.headers['stripe-signature'] as string;
+  const buf = await buffer(req);
+
+  let event: Stripe.Event;
+  try {
+    event = stripe.webhooks.constructEvent(buf, sig, STRIPE_WEBHOOK_SECRET);
+  } catch (err: any) {
+    console.error('Webhook signature verification failed', err.message);
+    return res.status(400).send(`Webhook Error: ${err.message}`);
+  }
+
+  try {
+    await withDbIdempotency(event.id, async () => {
+      await logStripeEvent(event); // audit
+
+      switch (event.type) {
+        case 'account.updated': {
+          const acct = event.data.object as Stripe.Account;
+          await upsertProviderStatus({
+            stripeAccountId: acct.id,
+            chargesEnabled: acct.charges_enabled,
+            payoutsEnabled: acct.payouts_enabled,
+            requirementsDue: acct.requirements?.currently_due ?? [],
+          });
+          break;
+        }
+        case 'checkout.session.completed': {
+          const session = event.data.object as Stripe.Checkout.Session;
+          await markBookingPaid({ checkoutSessionId: session.id });
+          // If you pay immediately, initiate a transfer here.
+          break;
+        }
+        case 'transfer.created':
+        case 'transfer.failed':
+        case 'transfer.reversed':
+          await handleTransferResult(event);
+          break;
+        case 'charge.refunded':
+        case 'refund.created':
+          await handleRefund(event);
+          break;
+        default:
+          break;
+      }
+    });
+
+    return res.json({ received: true });
+  } catch (e: any) {
+    console.error('Webhook handler error:', e);
+    return res.status(500).json({ error: 'Webhook processing failed' });
+  }
+}
+
+3) Idempotency + handler stubs
+
+Create /lib/idempotency.ts:
+
+// /lib/idempotency.ts
+import { createClient } from '@supabase/supabase-js';
+
+const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!);
+
+export async function withDbIdempotency(eventId: string, fn: () => Promise<void>) {
+  const { data, error } = await supabase
+    .from('stripe_idempotency')
+    .insert({ event_id: eventId })
+    .select()
+    .single();
+
+  if (error && (error.code === '23505' || error.message?.includes('duplicate'))) {
+    // Already processed
+    return;
+  }
+  if (error) throw error;
+
+  try {
+    await fn();
+  } catch (e) {
+    // Best effort cleanup so a retry can re-process
+    await supabase.from('stripe_idempotency').delete().eq('event_id', eventId);
+    throw e;
+  }
+}
+
+
+Create /lib/stripe-handlers.ts:
+
+// /lib/stripe-handlers.ts
+import { createClient } from '@supabase/supabase-js';
+import Stripe from 'stripe';
+const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!);
+
+export async function logStripeEvent(event: Stripe.Event) {
+  await supabase.from('stripe_events').insert({
+    event_id: event.id,
+    type: event.type,
+    payload: event, // stored as jsonb
+  });
+}
+
+export async function upsertProviderStatus(input: {
+  stripeAccountId: string;
+  chargesEnabled: boolean;
+  payoutsEnabled: boolean;
+  requirementsDue: string[];
+}) {
+  await supabase
+    .from('providers')
+    .update({
+      charges_enabled: input.chargesEnabled,
+      payouts_enabled: input.payoutsEnabled,
+      requirements_due: input.requirementsDue,
+      onboarding_status: input.chargesEnabled ? 'verified' : 'requires_action',
+    })
+    .eq('stripe_account_id', input.stripeAccountId);
+}
+
+export async function markBookingPaid({ checkoutSessionId }: { checkoutSessionId: string }) {
+  // Find booking by checkout_session_id
+  const { data: bookings } = await supabase.from('bookings')
+    .select('id, provider_id, amount, currency')
+    .eq('checkout_session_id', checkoutSessionId)
+    .limit(1);
+  const booking = bookings?.[0];
+  if (!booking) return;
+
+  await supabase.from('bookings').update({ status: 'paid' }).eq('id', booking.id);
+
+  // If you pay later, stop here. If you pay immediately, insert a row in payouts with status 'pending_release'
+  await supabase.from('payouts').insert({
+    booking_id: booking.id,
+    status: 'pending_release',
+    net_to_provider: null, // compute later
+    app_fee: null,
+  });
+}
+
+export async function handleTransferResult(event: Stripe.Event) {
+  const t = event.data.object as any;
+  await supabase.from('payouts')
+    .update({ status: event.type.replace('transfer.', '') })
+    .eq('stripe_transfer_id', t.id);
+}
+
+export async function handleRefund(event: Stripe.Event) {
+  const payload: any = event.data.object;
+  const checkoutSessionId = payload.metadata?.checkout_session_id;
+  if (!checkoutSessionId) return;
+  const { data: bookings } = await supabase.from('bookings')
+    .select('id')
+    .eq('checkout_session_id', checkoutSessionId)
+    .limit(1);
+  const booking = bookings?.[0];
+  if (!booking) return;
+  await supabase.from('bookings').update({ status: 'refunded' }).eq('id', booking.id);
+}
+
+4) Supabase SQL (run once)
+
+Run this migration in Supabase SQL editor:
+
+-- Idempotency table
+create table if not exists public.stripe_idempotency (
+  event_id text primary key,
+  created_at timestamptz default now()
+);
+
+-- Stripe events audit
+create table if not exists public.stripe_events (
+  event_id text primary key,
+  type text not null,
+  payload jsonb not null,
+  created_at timestamptz default now()
+);
+
+-- Providers columns
+alter table public.providers
+  add column if not exists stripe_account_id text,
+  add column if not exists onboarding_status text check (onboarding_status in ('started','requires_action','verified')) default 'started',
+  add column if not exists charges_enabled boolean default false,
+  add column if not exists payouts_enabled boolean default false,
+  add column if not exists requirements_due jsonb default '[]'::jsonb;
+
+-- Bookings columns
+alter table public.bookings
+  add column if not exists payment_intent_id text,
+  add column if not exists checkout_session_id text,
+  add column if not exists status text check (status in ('pending','paid','completed','refunded','cancelled')) default 'pending';
+
+-- Payouts table
+create table if not exists public.payouts (
+  id uuid primary key default gen_random_uuid(),
+  booking_id uuid not null references public.bookings(id) on delete cascade,
+  stripe_transfer_id text,
+  net_to_provider integer,  -- cents
+  app_fee integer,          -- cents
+  status text check (status in ('pending_release','created','failed','reversed','paid')) default 'pending_release',
+  released_at timestamptz,
+  created_at timestamptz default now()
+);
