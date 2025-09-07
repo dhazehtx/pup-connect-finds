@@ -13,16 +13,15 @@ interface ProviderStatus {
 export async function logStripeEvent(event: Stripe.Event): Promise<void> {
   try {
     const query = `
-      INSERT INTO stripe_events (event_id, event_type, created_at, data) 
-      VALUES ($1, $2, $3, $4)
+      INSERT INTO stripe_events (event_id, type, payload) 
+      VALUES ($1, $2, $3)
       ON CONFLICT (event_id) DO NOTHING
     `;
     
     await pool.query(query, [
       event.id,
       event.type,
-      new Date(event.created * 1000),
-      JSON.stringify(event.data)
+      JSON.stringify(event) // Store the full event as jsonb
     ]);
 
     console.log(`[STRIPE HANDLERS] Logged event: ${event.type} (${event.id})`);
@@ -40,15 +39,19 @@ export async function upsertProviderStatus(status: ProviderStatus): Promise<void
         charges_enabled = $2,
         payouts_enabled = $3,
         requirements_due = $4,
+        onboarding_status = $5,
         updated_at = NOW()
       WHERE stripe_account_id = $1
     `;
+
+    const onboardingStatus = status.chargesEnabled ? 'verified' : 'requires_action';
 
     const result = await pool.query(query, [
       status.stripeAccountId,
       status.chargesEnabled,
       status.payoutsEnabled,
-      JSON.stringify(status.requirementsDue)
+      JSON.stringify(status.requirementsDue),
+      onboardingStatus
     ]);
 
     if (result.rowCount === 0) {
@@ -66,7 +69,7 @@ export async function markBookingPaid({ checkoutSessionId }: { checkoutSessionId
   try {
     // First find the booking/order by checkout session ID
     const findQuery = `
-      SELECT id, user_id FROM orders WHERE stripe_session_id = $1
+      SELECT id, user_id, amount_total FROM orders WHERE checkout_session_id = $1
     `;
     const result = await pool.query(findQuery, [checkoutSessionId]);
 
@@ -87,8 +90,14 @@ export async function markBookingPaid({ checkoutSessionId }: { checkoutSessionId
 
     console.log(`[STRIPE HANDLERS] Marked booking ${booking.id} as paid`);
 
-    // TODO: Create transfer to provider here if immediate payout is enabled
-    // await createProviderTransfer(booking);
+    // Create pending payout record
+    const payoutQuery = `
+      INSERT INTO payouts (booking_id, status, net_to_provider, app_fee)
+      VALUES ($1, 'pending_release', NULL, NULL)
+    `;
+    await pool.query(payoutQuery, [booking.id]);
+
+    console.log(`[STRIPE HANDLERS] Created pending payout for booking ${booking.id}`);
 
   } catch (error) {
     console.error('[STRIPE HANDLERS] Error marking booking as paid:', error);

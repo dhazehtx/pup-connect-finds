@@ -9,49 +9,39 @@ interface IdempotencyRecord {
 }
 
 export async function withDbIdempotency(eventId: string, handler: () => Promise<void>): Promise<void> {
-  const client = pool;
-
   try {
-    // Check if this event has already been processed
-    const existingQuery = 'SELECT id FROM webhook_idempotency WHERE event_id = $1';
-    const existing = await client.query(existingQuery, [eventId]);
+    // Try to insert idempotency record - if it already exists, we've processed this
+    const insertQuery = `
+      INSERT INTO stripe_idempotency (event_id) 
+      VALUES ($1)
+    `;
+    
+    await pool.query(insertQuery, [eventId]);
+    console.log(`[IDEMPOTENCY] Processing new event ${eventId}`);
 
-    if (existing.rows.length > 0) {
+  } catch (error: any) {
+    // If duplicate key error (already processed), skip
+    if (error.code === '23505' || error.message?.includes('duplicate')) {
       console.log(`[IDEMPOTENCY] Event ${eventId} already processed, skipping`);
       return;
     }
+    throw error;
+  }
 
-    // Insert idempotency record before processing
-    const insertQuery = `
-      INSERT INTO webhook_idempotency (event_id, created_at) 
-      VALUES ($1, NOW()) 
-      ON CONFLICT (event_id) DO NOTHING
-    `;
-    await client.query(insertQuery, [eventId]);
-
+  try {
     // Process the webhook
     await handler();
-
-    // Mark as processed
-    const updateQuery = `
-      UPDATE webhook_idempotency 
-      SET processed_at = NOW() 
-      WHERE event_id = $1
-    `;
-    await client.query(updateQuery, [eventId]);
-
     console.log(`[IDEMPOTENCY] Successfully processed event ${eventId}`);
 
   } catch (error) {
     console.error(`[IDEMPOTENCY] Error processing event ${eventId}:`, error);
     
-    // Mark as failed but don't delete - let it be retried later
-    const errorQuery = `
-      UPDATE webhook_idempotency 
-      SET error_message = $1, error_at = NOW() 
-      WHERE event_id = $2
-    `;
-    await client.query(errorQuery, [String(error), eventId]);
+    // Best effort cleanup so a retry can re-process
+    try {
+      await pool.query('DELETE FROM stripe_idempotency WHERE event_id = $1', [eventId]);
+    } catch (cleanupError) {
+      console.error(`[IDEMPOTENCY] Failed to cleanup event ${eventId}:`, cleanupError);
+    }
     
     throw error;
   }

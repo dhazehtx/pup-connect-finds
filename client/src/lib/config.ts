@@ -14,4 +14,4 @@ export const STRIPE_WEBHOOK_SECRET = IS_PROD
   ? process.env.STRIPE_WEBHOOK_SECRET_LIVE!
   : process.env.STRIPE_WEBHOOK_SECRET_TEST!;
 
-export const CONNECT_APP_FEE_BPS = 1000; // 10% = 1000 basis points (adjust)
+export const CONNECT_APP_FEE_BPS = 1000; // 10% platform fee (adjust)
