@@ -34,24 +34,27 @@ router.post('/complete', async (req, res) => {
 
     const booking = bookingResult.rows[0];
 
-    // 2) Set eligible_at on payouts row (now + hold period)
+    // 2) Set eligible_at on payouts row using atomic function
     const holdSeconds = PAYOUT_HOLD_DAYS * 24 * 60 * 60;
-    const eligibleAt = new Date(Date.now() + (holdSeconds * 1000));
-
-    const updatePayoutQuery = `
-      UPDATE payouts 
-      SET eligible_at = $2
-      WHERE booking_id = $1 AND status = 'pending_release'
-    `;
     
-    const payoutResult = await pool.query(updatePayoutQuery, [bookingId, eligibleAt]);
+    await pool.query('SELECT public.set_payout_eligible_at($1, $2)', [bookingId, holdSeconds]);
 
-    console.log(`[BOOKINGS] Booking ${bookingId} marked as completed, payout eligible at ${eligibleAt.toISOString()}`);
+    // Get the updated payout info to return to client
+    const payoutQuery = `
+      SELECT eligible_at, status
+      FROM payouts 
+      WHERE booking_id = $1 AND status = 'pending_release'
+      LIMIT 1
+    `;
+    const payoutResult = await pool.query(payoutQuery, [bookingId]);
+    const payout = payoutResult.rows[0];
+
+    console.log(`[BOOKINGS] Booking ${bookingId} marked as completed, payout eligible at ${payout?.eligible_at || 'N/A'}`);
 
     res.json({ 
       ok: true, 
       bookingId,
-      eligibleAt: eligibleAt.toISOString(),
+      eligibleAt: payout?.eligible_at,
       payoutsUpdated: payoutResult.rowCount
     });
 
