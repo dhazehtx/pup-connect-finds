@@ -25,6 +25,7 @@ import enhancedNotificationsRouter from './routes/enhancedNotifications';
 import verificationRouter from './routes/verification';
 import paymentsRouter from './routes/payments';
 import bookingsRouter from './routes/bookings';
+import payoutsRouter from './routes/payouts';
 import { registerHealthRoutes } from './routes/health';
 
 // New Stripe verification system
@@ -1399,6 +1400,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Register bookings routes
   app.use('/api/bookings', bookingsRouter);
+
+  // Register payouts routes
+  app.use('/api/payouts', payoutsRouter);
 
   // Payout routes are registered above with the verification routes
 

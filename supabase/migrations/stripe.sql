@@ -37,5 +37,26 @@ CREATE TABLE IF NOT EXISTS public.payouts (
   app_fee integer,          -- cents
   status text CHECK (status IN ('pending_release','created','failed','reversed','paid')) DEFAULT 'pending_release',
   released_at timestamptz,
-  created_at timestamptz DEFAULT now()
+  created_at timestamptz DEFAULT now(),
+  eligible_at timestamptz,
+  error text
 );
+
+-- Index for efficient payout release queries
+CREATE INDEX IF NOT EXISTS idx_payouts_release
+  ON public.payouts (status, eligible_at);
+
+-- Atomic function for setting payout eligibility
+CREATE OR REPLACE FUNCTION public.set_payout_eligible_at(p_booking_id uuid, p_hold_seconds integer)
+RETURNS void
+LANGUAGE plpgsql
+AS $$
+DECLARE
+  v_now timestamptz := now();
+BEGIN
+  UPDATE public.payouts
+    SET eligible_at = v_now + make_interval(secs => p_hold_seconds)
+  WHERE booking_id = p_booking_id
+    AND status = 'pending_release';
+END;
+$$;
