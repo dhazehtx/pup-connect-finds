@@ -96,6 +96,7 @@ const SessionTestPage = lazy(() => import('./pages/SessionTestPage'));
 const MyListingsPage = lazy(() => import('./pages/MyListingsPage'));
 const AdminApplicationsPage = lazy(() => import('./pages/AdminApplications').then(module => ({ default: module.default })));
 const AdminStripeEventsPage = lazy(() => import('./pages/AdminStripeEvents'));
+const AdminPayoutsTestPage = lazy(() => import('./pages/AdminPayoutsTest'));
 
 // Import new notification component
 import NotificationButton from './components/notifications/NotificationButton';
@@ -247,6 +248,13 @@ function App() {
                     <ProtectedRoute>
                       <Suspense fallback={<LoadingPage message="Loading Stripe Events..." />}>
                         <AdminStripeEventsPage />
+                      </Suspense>
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/admin/payouts-test" element={
+                    <ProtectedRoute>
+                      <Suspense fallback={<LoadingPage message="Loading Payouts Test..." />}>
+                        <AdminPayoutsTestPage />
                       </Suspense>
                     </ProtectedRoute>
                   } />
