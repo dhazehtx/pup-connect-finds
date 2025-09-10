@@ -96,7 +96,12 @@ export const useAuthEnhanced = () => {
 
       // Check if email is verified
       if (data.user && !data.user.email_confirmed_at) {
-        await supabase.auth.signOut();
+        const { data: sessionData } = await supabase.auth.getSession();
+        if (sessionData.session) {
+          await supabase.auth.signOut();
+        } else {
+          console.warn('[signOut] skipped, no session present');
+        }
         throw new Error('Please verify your email address before signing in.');
       }
 
@@ -134,8 +139,13 @@ export const useAuthEnhanced = () => {
 
   const signOut = async () => {
     try {
-      const { error } = await supabase.auth.signOut();
-      if (error) throw error;
+      const { data } = await supabase.auth.getSession();
+      if (data.session) {
+        const { error } = await supabase.auth.signOut();
+        if (error) throw error;
+      } else {
+        console.warn('[signOut] skipped, no session present');
+      }
 
       setUser(null);
       setSession(null);

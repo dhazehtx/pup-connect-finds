@@ -77,7 +77,12 @@ const EnhancedSignInForm = ({ onSubmit, loading }: EnhancedSignInFormProps) => {
 
         if (profile?.two_factor_enabled) {
           // Sign out temporarily and require 2FA
-          await supabase.auth.signOut();
+          const { data: sessionData } = await supabase.auth.getSession();
+          if (sessionData.session) {
+            await supabase.auth.signOut();
+          } else {
+            console.warn('[signOut] skipped, no session present');
+          }
           setRequires2FA(true);
           setTempUserId(data.user.id);
           return;

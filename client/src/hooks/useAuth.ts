@@ -127,8 +127,13 @@ export const useAuthState = () => {
 
   const signOut = async () => {
     try {
-      const { error } = await supabase.auth.signOut();
-      if (error) throw error;
+      const { data } = await supabase.auth.getSession();
+      if (data.session) {
+        const { error } = await supabase.auth.signOut();
+        if (error) throw error;
+      } else {
+        console.warn('[signOut] skipped, no session present');
+      }
 
       setUser(null);
       setSession(null);
