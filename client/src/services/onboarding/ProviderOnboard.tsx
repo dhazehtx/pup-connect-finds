@@ -1348,6 +1348,16 @@ const ProviderOnboard: React.FC = () => {
                 >
                   I've Completed Setup
                 </button>
+                <button 
+                  type="button" 
+                  className="text-sm underline mt-2"
+                  onClick={() => {
+                    // force re-check by clearing persisted flag
+                    sessionStorage.removeItem('payoutDone')
+                    setPayoutSetupComplete(false)
+                  }}>
+                  Force Re-check
+                </button>
               </div>
             )}
 
