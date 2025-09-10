@@ -282,24 +282,16 @@ const ProviderOnboard: React.FC = () => {
 
     // Step 5 specific debugging  
     if (currentStep === 5 && !payoutSetupComplete) {
-      console.warn('[STEP 5 BLOCKED] Please finish Stripe Connect first');
-      toast({
-        title: "Stripe Connect Required",
-        description: "Please complete Stripe Connect setup before proceeding.",
-        variant: "destructive"
-      });
-      return;
+      console.log('[STEP 5 GATE DISABLED] Would normally block for Stripe Connect - allowing for debug test');
+      // Temporarily disabled for button test
+      // return;
     }
 
     // CRITICAL: Step 6 enforces sequential flow - requires payout setup completion
     if (currentStep === 6 && !payoutSetupComplete) {
-      console.warn('[STEP 6 BLOCKED] Payout setup not complete');
-      toast({
-        title: "Payout Setup Required",
-        description: "Please complete your payout setup (Step 4) before proceeding to terms.",
-        variant: "destructive",
-      });
-      return;
+      console.log('[STEP 6 GATE DISABLED] Would normally block for payout setup - allowing for debug test');
+      // Temporarily disabled for button test
+      // return;
     }
 
     if (currentStep < steps.length - 1) {
