@@ -282,16 +282,24 @@ const ProviderOnboard: React.FC = () => {
 
     // Step 5 specific debugging  
     if (currentStep === 5 && !payoutSetupComplete) {
-      console.log('[STEP 5 GATE DISABLED] Would normally block for Stripe Connect - allowing for debug test');
-      // Temporarily disabled for button test
-      // return;
+      console.warn('[STEP 5 BLOCKED] Please finish Stripe Connect first');
+      toast({
+        title: "Stripe Connect Required",
+        description: "Please complete Stripe Connect setup before proceeding.",
+        variant: "destructive"
+      });
+      return;
     }
 
     // CRITICAL: Step 6 enforces sequential flow - requires payout setup completion
     if (currentStep === 6 && !payoutSetupComplete) {
-      console.log('[STEP 6 GATE DISABLED] Would normally block for payout setup - allowing for debug test');
-      // Temporarily disabled for button test
-      // return;
+      console.warn('[STEP 6 BLOCKED] Payout setup not complete');
+      toast({
+        title: "Payout Setup Required",
+        description: "Please complete your payout setup (Step 4) before proceeding to terms.",
+        variant: "destructive",
+      });
+      return;
     }
 
     if (currentStep < steps.length - 1) {
@@ -654,6 +662,7 @@ const ProviderOnboard: React.FC = () => {
 
       if (data.success && data.connected) {
         setPayoutSetup({ status: 'connected', accountId: data.account?.id });
+        setPayoutSetupComplete(true); // CRITICAL: Set the flag that gates depend on
         toast({
           title: "Payout Setup Complete",
           description: "Your Stripe account is connected and ready!",
@@ -764,10 +773,14 @@ const ProviderOnboard: React.FC = () => {
   // Check URL parameters for Stripe Connect return
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.get('connected') === 'true' && currentStep === 4) {
+    const fromStripe = urlParams.get('from') === 'stripe' || urlParams.get('connected') === 'true';
+    
+    if (fromStripe && currentStep === 4) {
+      console.log('[STRIPE RETURN] Detected return from Stripe, setting payout complete flag');
+      setPayoutSetupComplete(true);
       checkPayoutStatus();
     }
-  }, [currentStep]);
+  }, [currentStep, setPayoutSetupComplete]);
 
   // Initialize from storage on mount
   useEffect(() => {
