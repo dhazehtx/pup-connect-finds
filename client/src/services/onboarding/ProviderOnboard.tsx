@@ -214,12 +214,16 @@ const ProviderOnboard: React.FC = () => {
   ];
 
   const handleNext = () => {
-    console.log('[Step5] handleNext', { providerId, stripeAccountId: payoutSetup.accountId, payoutSetupComplete });
-    if (!payoutSetupComplete) {
+    console.log('[Steps] handleNext', { currentStep, providerId, stripeAccountId: payoutSetup.accountId, payoutSetupComplete });
+    
+    // Only check Stripe completion on Step 5 (Payout Setup step)
+    if (currentStep === 5 && !payoutSetupComplete) {
       alert('Please complete Stripe Connect first. If you just finished, tap "I\'ve Completed Setup" or wait 2–3 seconds.');
       return;
     }
-    navigate('/services/onboarding?step=6');
+    
+    // Navigate to next step
+    navigate(`/services/onboarding?step=${currentStep + 1}`);
   };
 
   const handleBack = () => {
