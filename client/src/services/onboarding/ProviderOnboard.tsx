@@ -36,7 +36,7 @@ interface PayoutSetupState {
 
 const ProviderOnboard: React.FC = () => {
   const { currentStep, providerId, setCurrentStep, setProviderId, loadFromStorage } = useOnboardingStore();
-  const { userId, applicationId, setIds, setApplicationId, hydrateApplicationId, hydrateProviderId } = useOnboarding();
+  const { userId, applicationId, payoutSetupComplete, setIds, setApplicationId, setPayoutSetupComplete, hydrateApplicationId, hydrateProviderId, hydratePayoutSetupComplete } = useOnboarding();
   const { user: authUser } = useAuth();
   const [basicsData, setBasicsData] = useState({
     legalName: '',
@@ -70,16 +70,16 @@ const ProviderOnboard: React.FC = () => {
     providerAgreement: false,
   });
   const [providerStatus, setProviderStatus] = useState<'pending' | 'verified' | 'loading'>('pending');
-  const [payoutSetupComplete, setPayoutSetupComplete] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
 
   // Initialize user IDs when component loads and hydrate from storage
   useEffect(() => {
-    // CRITICAL: Hydrate providerId from sessionStorage first
+    // CRITICAL: Hydrate all flags from storage first
     hydrateProviderId();
     hydrateApplicationId();
-  }, [hydrateProviderId, hydrateApplicationId]);
+    hydratePayoutSetupComplete();
+  }, [hydrateProviderId, hydrateApplicationId, hydratePayoutSetupComplete]);
 
   // Set IDs once we have the auth user and providerId (from storage or API)
   useEffect(() => {

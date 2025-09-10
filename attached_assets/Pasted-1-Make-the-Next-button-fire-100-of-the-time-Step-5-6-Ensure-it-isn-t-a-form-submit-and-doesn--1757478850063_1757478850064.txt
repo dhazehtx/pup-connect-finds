@@ -1,0 +1,86 @@
+1) Make the Next button fire 100% of the time (Step 5 & 6)
+
+Ensure it isn’t a form submit and doesn’t get blocked by unrelated errors.
+
+// Step5Payout.tsx (or component with the Next button)
+<button
+  type="button"                 // <-- important
+  data-testid="step5-next"
+  onClick={handleNext}
+  disabled={clicking}
+>
+  Next
+</button>
+
+
+Do the same for Step 6:
+
+// Step6Details.tsx
+<button
+  type="button"
+  data-testid="step6-next"
+  onClick={onNext}
+  disabled={!isValid || loading}
+>
+  {loading ? 'Saving…' : 'Next'}
+</button>
+
+
+(If you already changed this earlier, keep it; we’re making sure.)
+
+2) Wrap non-critical API reads with a “safe fetch” (prevents throws)
+
+If your layout or top-level provider loads theme/notifications on mount, replace the raw fetch with this helper so failures return null instead of throwing.
+
+// lib/safeRequest.ts
+export async function safeJson<T = any>(url: string, init?: RequestInit): Promise<T | null> {
+  try {
+    const res = await fetch(url, { credentials: 'include', ...init });
+    if (!res.ok) return null;
+    return (await res.json()) as T;
+  } catch {
+    return null;
+  }
+}
+
+
+Then in the places that call those endpoints:
+
+// e.g., app/providers/ThemeProvider.tsx or layout.tsx
+import { safeJson } from '@/lib/safeRequest';
+
+useEffect(() => {
+  (async () => {
+    const prefs = await safeJson<{ theme?: 'light'|'dark'; color?: string }>('/api/support/preferences');
+    setTheme(prefs?.theme ?? 'light');
+    setAccent(prefs?.color ?? '#2563eb');
+  })();
+}, []);
+
+
+Do the same for notifications preload:
+
+const inbox = await safeJson('/api/notifications');
+// if (inbox) setNotifications(inbox);
+
+
+This keeps the console clean and stops errors from interfering with your wizard.
+
+3) Provide tiny stub API routes so those endpoints stop 404’ing
+
+If you don’t have them yet, add minimal handlers that return safe defaults.
+
+// app/api/support/preferences/route.ts
+import { NextResponse } from 'next/server';
+export async function GET() {
+  return NextResponse.json({ theme: 'light', color: '#2563eb' });
+}
+
+// app/api/notifications/route.ts
+import { NextResponse } from 'next/server';
+export async function GET() {
+  return NextResponse.json({ items: [] });
+}
+
+
+Later you can wire these to real data; for now they prevent noise and side-effects.
