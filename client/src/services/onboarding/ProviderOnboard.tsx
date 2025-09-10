@@ -159,43 +159,29 @@ const ProviderOnboard: React.FC = () => {
     }
   }, [authUser, navigate]);
 
-  // Continuous Stripe status verification on Step 5 mount
+  // Re-check Stripe status on Step 5 mount (independent of ?from=stripe so it works after detours)
   useEffect(() => {
-    if (currentStep !== 5 || payoutSetupComplete) return;
+    if (currentStep !== 5 || !stripeAccountId || payoutSetupComplete) return
+    ;(async () => {
+      const res = await fetch(`/api/stripe/status?accountId=${encodeURIComponent(stripeAccountId)}`)
+      const data = await res.json()
 
-    (async () => {
-      try {
-        // Use existing payout status endpoint
-        const response = await fetch('/api/payout/status', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            userId: authUser?.id,
-            providerId,
-            applicationId
-          }),
-        });
-        const data = await response.json();
+      const isTest =
+        process.env.NEXT_PUBLIC_STRIPE_MODE === 'test' ||
+        process.env.NEXT_PUBLIC_VERCEL_ENV === 'development'
 
-        const isTest = import.meta.env.DEV || import.meta.env.VITE_STRIPE_MODE === 'test';
+      const okToProceed = isTest
+        ? Boolean(data?.details_submitted || data?.payouts_enabled)
+        : Boolean(data?.payouts_enabled)
 
-        const okToProceed = isTest
-          ? Boolean(data?.details_submitted || data?.payouts_enabled)
-          : Boolean(data?.payouts_enabled);
+      console.log('[Stripe status]', data, { okToProceed })
 
-        // DEBUG: show what Stripe says
-        console.log('[Step 5 Stripe status verification]', data);
-
-        if (okToProceed) {
-          setPayoutSetupComplete(true);
-          sessionStorage.setItem('payoutDone', '1');
-          console.log('[Step 5] ✅ Stripe verified - setting payoutSetupComplete to true');
-        }
-      } catch (e) {
-        console.warn('[Step 5 Stripe status] verify failed', e);
+      if (okToProceed) {
+        setPayoutSetupComplete(true)
+        sessionStorage.setItem('payoutDone', '1')
       }
-    })();
-  }, [currentStep, payoutSetup.accountId, payoutSetupComplete, setPayoutSetupComplete, authUser?.id, providerId, applicationId]);
+    })()
+  }, [currentStep, stripeAccountId, payoutSetupComplete, setPayoutSetupComplete])
 
   // Show nothing if user is not authenticated (redirect is happening)
   if (!authUser) {

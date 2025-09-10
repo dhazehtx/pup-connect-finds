@@ -1526,6 +1526,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return ensureOpenApplication(req, res);
     }
   );
+  // Stripe account status endpoint
+  app.get('/api/stripe/status', async (req, res) => {
+    try {
+      const { accountId } = req.query;
+      
+      if (!accountId || typeof accountId !== 'string') {
+        return res.status(400).json({ 
+          success: false, 
+          message: 'accountId parameter is required' 
+        });
+      }
+
+      const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+      const account = await stripe.accounts.retrieve(accountId);
+      
+      res.json({
+        success: true,
+        id: account.id,
+        details_submitted: account.details_submitted,
+        charges_enabled: account.charges_enabled,
+        payouts_enabled: account.payouts_enabled,
+        requirements_pending: account.requirements?.currently_due?.length || 0
+      });
+    } catch (error: any) {
+      console.error('[STRIPE STATUS] Error:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: error?.message || 'Internal server error' 
+      });
+    }
+  });
+
   app.use('/api/stripe/webhook', stripeWebhookRouter);
 
   // Register health check routes
