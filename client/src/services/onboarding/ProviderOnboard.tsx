@@ -36,7 +36,7 @@ interface PayoutSetupState {
 
 const ProviderOnboard: React.FC = () => {
   const { currentStep, providerId, setCurrentStep, setProviderId, loadFromStorage } = useOnboardingStore();
-  const { userId, applicationId, payoutSetupComplete, setIds, setApplicationId, setPayoutSetupComplete } = useOnboarding();
+  const { userId, applicationId, stripeAccountId, payoutSetupComplete, setIds, setApplicationId, setStripeAccountId, setPayoutSetupComplete } = useOnboarding();
   const { user: authUser } = useAuth();
   const [basicsData, setBasicsData] = useState({
     legalName: '',
@@ -246,7 +246,7 @@ const ProviderOnboard: React.FC = () => {
     console.log('[Steps] handleNext', {
       currentStep,
       providerId,
-      stripeAccountId: payoutSetup.accountId,
+      stripeAccountId,
       payoutSetupComplete,
     });
 
@@ -657,6 +657,7 @@ const ProviderOnboard: React.FC = () => {
 
       if (data.success && data.connected) {
         setPayoutSetup({ status: 'connected', accountId: data.account?.id });
+        if (data.account?.id) setStripeAccountId(data.account.id); // Store in global state
         setPayoutSetupComplete(true); // CRITICAL: Set the flag that gates depend on
         sessionStorage.setItem('payoutDone', '1'); // Persist flag
         console.log('[PAYOUT STATUS] ✅ Stripe connected - setting payoutSetupComplete to true');
@@ -673,6 +674,7 @@ const ProviderOnboard: React.FC = () => {
           
         if (okToProceed) {
           setPayoutSetup({ status: 'connected', accountId: data.account.id });
+          if (data.account?.id) setStripeAccountId(data.account.id); // Store in global state
           setPayoutSetupComplete(true);
           sessionStorage.setItem('payoutDone', '1');
           console.log('[PAYOUT STATUS] ✅ Test mode: Stripe details submitted - allowing progress');

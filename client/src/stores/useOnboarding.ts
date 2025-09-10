@@ -4,10 +4,12 @@ type OnboardingState = {
   userId: string | null;
   providerId: string | null;
   applicationId: string | null;
+  stripeAccountId: string | null;
   payoutSetupComplete: boolean;
   setIds: (userId: string, providerId: string) => void;
   setProviderId: (id: string) => void;
   setApplicationId: (id: string) => void;
+  setStripeAccountId: (id: string) => void;
   setPayoutSetupComplete: (v: boolean) => void;
   clear: () => void;
 };
@@ -16,6 +18,7 @@ export const useOnboarding = create<OnboardingState>((set, get) => ({
   userId: null,
   providerId: null,
   applicationId: null,
+  stripeAccountId: null,
   payoutSetupComplete: false,
   setIds: (userId: string, providerId: string) => {
     set({ userId, providerId });
@@ -37,6 +40,9 @@ export const useOnboarding = create<OnboardingState>((set, get) => ({
       localStorage.setItem('applicationId', id);
     }
   },
+  setStripeAccountId: (id: string) => {
+    set({ stripeAccountId: id });
+  },
   setPayoutSetupComplete: (v: boolean) => {
     set({ payoutSetupComplete: v });
     if (typeof window !== 'undefined') {
@@ -44,7 +50,7 @@ export const useOnboarding = create<OnboardingState>((set, get) => ({
     }
   },
   clear: () => {
-    set({ userId: null, providerId: null, applicationId: null, payoutSetupComplete: false });
+    set({ userId: null, providerId: null, applicationId: null, stripeAccountId: null, payoutSetupComplete: false });
     if (typeof window !== 'undefined') {
       localStorage.removeItem('applicationId');
       sessionStorage.removeItem('providerId');
