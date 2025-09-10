@@ -615,9 +615,8 @@ const ProviderOnboard: React.FC = () => {
       console.log('[PAYOUT] Redirecting to Stripe URL:', data.url);
       setPayoutSetup({ status: 'connecting' });
       
-      // Use improved Stripe redirect utility
-      const { goToStripe } = await import('../../utils/goToStripe.js');
-      goToStripe(data.url);
+      // Redirect to Stripe Connect
+      window.location.href = data.url;
 
     } catch (e: any) {
       console.error('[PAYOUT] connectStripe error:', e);
@@ -663,11 +662,35 @@ const ProviderOnboard: React.FC = () => {
       if (data.success && data.connected) {
         setPayoutSetup({ status: 'connected', accountId: data.account?.id });
         setPayoutSetupComplete(true); // CRITICAL: Set the flag that gates depend on
+        sessionStorage.setItem('payoutDone', '1'); // Persist flag
         console.log('[PAYOUT STATUS] ✅ Stripe connected - setting payoutSetupComplete to true');
         toast({
           title: "Payout Setup Complete",
           description: "Your Stripe account is connected and ready!",
         });
+      } else if (data.success && !data.connected && data.account) {
+        // In test mode, allow progress if details_submitted is true (payouts_enabled is often false in test)
+        const isTestMode = import.meta.env.DEV || import.meta.env.VITE_STRIPE_MODE === 'test';
+        const okToProceed = isTestMode 
+          ? Boolean(data.account.details_submitted || data.account.payouts_enabled)
+          : Boolean(data.account.payouts_enabled);
+          
+        if (okToProceed) {
+          setPayoutSetup({ status: 'connected', accountId: data.account.id });
+          setPayoutSetupComplete(true);
+          sessionStorage.setItem('payoutDone', '1');
+          console.log('[PAYOUT STATUS] ✅ Test mode: Stripe details submitted - allowing progress');
+          toast({
+            title: "Payout Setup Complete",
+            description: "Your Stripe account details are submitted and ready!",
+          });
+        } else {
+          toast({
+            title: "Setup In Progress",
+            description: data.message || "Please complete your Stripe setup and try again.",
+            variant: "destructive",
+          });
+        }
       } else {
         toast({
           title: "Setup In Progress",
@@ -929,7 +952,7 @@ const ProviderOnboard: React.FC = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           providerId,
-          userId: user?.id 
+          userId: authUser?.id 
         }),
       });
 
