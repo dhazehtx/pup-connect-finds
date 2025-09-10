@@ -1,0 +1,163 @@
+Step 6 (“Details”) not advancing when you click Next usually means one of these is blocking the transition:
+
+the Next button is disabled due to hidden validation failing
+
+the click is wired to a no-op (handler not bound / early return)
+
+your step gate is still waiting on a flag from Step 5 (e.g., payoutSetupComplete)
+
+providerId or the saved details aren’t persisted, so the guard refuses to advance
+
+an async error is thrown and swallowed (no toast, no console), so nothing happens
+
+Here’s a tight, safe patch set to make Step 6 advance reliably.
+
+1) Make Step 6 submit → save → advance
+// app/services/onboarding/Step6Details.tsx
+'use client';
+
+import { useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { supabase } from '@/lib/supabaseClient';
+import { useOnboarding } from '@/stores/useOnboarding'; // providerId, currentStep, setCurrentStep
+
+export default function Step6Details() {
+  const router = useRouter();
+  const q = useSearchParams();
+  const { providerId, setCurrentStep } = useOnboarding();
+  const [loading, setLoading] = useState(false);
+  const [form, setForm] = useState({
+    headline: '',
+    bio: '',
+    phonePublic: '',
+    website: '',
+  });
+  const [error, setError] = useState<string | null>(null);
+
+  const isValid =
+    providerId &&
+    form.headline.trim().length >= 4 &&  // keep rules simple & explicit
+    form.bio.trim().length >= 10;
+
+  async function onNext(e?: React.MouseEvent | React.FormEvent) {
+    e?.preventDefault?.();
+    if (!isValid || loading) return;
+    setLoading(true);
+    setError(null);
+    try {
+      // upsert provider details
+      const { error: upErr } = await supabase
+        .from('providers')
+        .update({
+          headline: form.headline.trim(),
+          bio: form.bio.trim(),
+          phone_public: form.phonePublic.trim() || null,
+          website: form.website.trim() || null,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', providerId);
+
+      if (upErr) throw upErr;
+
+      setCurrentStep(7);
+      // reflect in URL so refresh keeps you on the right step
+      const nextUrl = `/services/onboarding?step=7`;
+      router.replace(nextUrl);
+    } catch (err: any) {
+      console.error('[Step6Details] save error:', err);
+      setError(err?.message ?? 'Failed to save details');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <form onSubmit={onNext}>
+      {/* your inputs... make sure they’re controlled */}
+      {/* headline */}
+      {/* bio */}
+      {/* phonePublic, website */}
+      <button
+        type="submit"
+        data-testid="step6-next"
+        onClick={onNext}
+        disabled={!isValid || loading}
+      >
+        {loading ? 'Saving…' : 'Next'}
+      </button>
+      {error && <p className="text-red-600 mt-2">{error}</p>}
+    </form>
+  );
+}
+
+
+Why this helps
+
+Ensures the handler actually runs, shows errors, and advances URL + state.
+
+disabled={!isValid || loading} avoids silent no-ops caused by invalid fields.
+
+2) Don’t block Step 6 on Step 5 unless the flag is set
+
+If you gate steps, confirm Step 5 sets the flag:
+
+// after “Complete Setup in New Window” flow:
+useEffect(() => {
+  // Example: from=stripe when returning
+  if (q.get('from') === 'stripe') {
+    setPayoutSetupComplete(true);        // in your onboarding store
+  }
+}, [q, setPayoutSetupComplete]);
+
+
+And in the RouteGuard for Step 6:
+
+// if you enforce sequential steps
+if (!payoutSetupComplete) {
+  router.replace('/services/onboarding?step=5');
+  return null;
+}
+
+
+Make sure payoutSetupComplete is true (you can add a debug badge on the UI to confirm).
+
+3) Persist providerId (common hidden blocker)
+
+Step 2 should write it once and store both in the store and sessionStorage:
+
+setProviderId(id);
+sessionStorage.setItem('providerId', id);
+
+
+Hydrate it on app load (store init) if missing:
+
+const cached = typeof window !== 'undefined' && sessionStorage.getItem('providerId');
+if (!state.providerId && cached) set({ providerId: cached });
+
+
+If providerId is null at Step 6, the update fails silently and Next appears dead.
+
+4) Surface errors (no more silent failures)
+
+Add a global interceptor around Supabase calls (or just enforce console.error + on-screen message like above). Also turn on a toast on error so you see why Next didn’t move.
+
+5) Quick validations that often block “Next”
+
+Any invisible required fields in Step 6? Remove hidden required attributes.
+
+Zod/Yup schema: loosen min lengths or show inline messages so you know what’s failing.
+
+Check the console for the “ByteString 8230” error on this route—if that’s thrown inside middleware for this path, it can cancel the navigation. Replace any curly quotes/emdashes in headers or cookie names. (8230 = ellipsis “…”; often appears if a header name/value accidentally contains it.)
+
+6) One-file guard that fixes many flows
+
+If you use a wizard shell, centralize advancement:
+
+// components/OnboardingShell.tsx
+function goTo(step: number) {
+  setCurrentStep(step);
+  router.replace(`/services/onboarding?step=${step}`);
+}
+
+
+Call goTo(7) from Step 6 after save. This keeps the URL and store consistent.
