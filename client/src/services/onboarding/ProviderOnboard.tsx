@@ -64,6 +64,7 @@ const ProviderOnboard: React.FC = () => {
     serviceTypes: [] as string[],
     radiusKm: 10,
   });
+  const [serviceDetailsSaved, setServiceDetailsSaved] = useState(false);
   const [termsAccepted, setTermsAccepted] = useState({
     terms: false,
     providerAgreement: false,
@@ -218,6 +219,45 @@ const ProviderOnboard: React.FC = () => {
         variant: "destructive",
       });
       return;
+    }
+
+    if (currentStep === 5) {
+      // Validate service details are filled and saved
+      if (!serviceDetails.description.trim() || serviceDetails.description.trim().length < 10) {
+        toast({
+          title: "Service Description Required",
+          description: "Please provide a detailed service description (at least 10 characters).",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      if (!serviceDetails.pricePerService || parseFloat(serviceDetails.pricePerService) <= 0) {
+        toast({
+          title: "Price Required",
+          description: "Please enter a valid starting price for your services.",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      if (serviceDetails.serviceTypes.length === 0) {
+        toast({
+          title: "Service Types Required",
+          description: "Please select at least one service type you offer.",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      if (!serviceDetailsSaved) {
+        toast({
+          title: "Save Details Required",
+          description: "Please save your service details before proceeding.",
+          variant: "destructive",
+        });
+        return;
+      }
     }
 
     if (currentStep < steps.length - 1) {
@@ -625,7 +665,8 @@ const ProviderOnboard: React.FC = () => {
         title: "Details Saved",
         description: "Your service details have been saved successfully.",
       });
-
+      
+      setServiceDetailsSaved(true);
       return true;
     } catch (error) {
       console.error('Save service details error:', error);
