@@ -663,6 +663,7 @@ const ProviderOnboard: React.FC = () => {
       if (data.success && data.connected) {
         setPayoutSetup({ status: 'connected', accountId: data.account?.id });
         setPayoutSetupComplete(true); // CRITICAL: Set the flag that gates depend on
+        console.log('[PAYOUT STATUS] ✅ Stripe connected - setting payoutSetupComplete to true');
         toast({
           title: "Payout Setup Complete",
           description: "Your Stripe account is connected and ready!",
@@ -775,12 +776,16 @@ const ProviderOnboard: React.FC = () => {
     const urlParams = new URLSearchParams(window.location.search);
     const fromStripe = urlParams.get('from') === 'stripe' || urlParams.get('connected') === 'true';
     
-    if (fromStripe && currentStep === 4) {
-      console.log('[STRIPE RETURN] Detected return from Stripe, setting payout complete flag');
-      setPayoutSetupComplete(true);
+    if (fromStripe && (currentStep === 4 || currentStep === 5)) {
+      console.log('[STRIPE RETURN] Detected return from Stripe, checking account status...');
+      // Don't set flag immediately - verify with Stripe first
       checkPayoutStatus();
+      
+      // Clean up URL parameters after processing
+      const newUrl = window.location.pathname + `?step=${currentStep}`;
+      window.history.replaceState({}, '', newUrl);
     }
-  }, [currentStep, setPayoutSetupComplete]);
+  }, [currentStep]);
 
   // Initialize from storage on mount
   useEffect(() => {
