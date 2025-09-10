@@ -1,0 +1,92 @@
+Ah, I see it—classic “instant session-expired after sign-in” loop. This almost always comes from one (or a combo) of these:
+
+Auth not fully loaded yet → your guard/middleware fires before the session is fetched and treats it as expired.
+
+Token persistence misconfigured in the preview/iframe domain (Replit) → refresh token not saved, so you land “logged out.”
+
+Idle-timer bug → your “session timeout” logic reads an empty/old timestamp and immediately declares expiry.
+
+Cookie/SameSite on preview domains → cookies blocked across subdomains/iframes.
+
+Below is a tight, drop-in fix that covers all four. Use it as-is; tweak names if needed.
+
+1) Supabase client: make sessions persistent + refreshable
+// lib/supabaseClient.ts
+import { createClient } from '@supabase/supabase-js';
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+
+export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+  auth: {
+    persistSession: true,              // keep refresh_token
+    autoRefreshToken: true,            // background refresh
+    detectSessionInUrl: true,          // handle redirects
+    storage: typeof window !== 'undefined' ? window.localStorage : undefined,
+  },
+});
+
+
+Why: Replit preview sometimes runs in an iframe/subdomain; localStorage beats fragile cookies there.
+
+2) Global auth listener + “loaded” gate (prevents false expiries)
+// app/providers/AuthProvider.tsx (or _app.tsx)
+'use client';
+import { createContext, useContext, useEffect, useState } from 'react';
+import { supabase } from '@/lib/supabaseClient';
+
+type AuthCtx = { loaded: boolean; session: any | null };
+const AuthContext = createContext<AuthCtx>({ loaded: false, session: null });
+
+export function AuthProvider({ children }: { children: React.ReactNode }) {
+  const [loaded, setLoaded] = useState(false);
+  const [session, setSession] = useState<any | null>(null);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => {
+      setSession(data.session ?? null);
+      setLoaded(true);
+    });
+
+    const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => {
+      setSession(s);
+      if (!loaded) setLoaded(true);
+    });
+    return () => sub.subscription.unsubscribe();
+  }, [loaded]);
+
+  return (
+    <AuthContext.Provider value={{ loaded, session }}>
+      {children}
+    </AuthContext.Provider>
+  );
+}
+
+export const useAuth = () => useContext(AuthContext);
+
+
+Wrap your root layout with <AuthProvider>.
+
+3) Route guard that waits for auth (no more instant “expired”)
+// components/RouteGuard.tsx
+'use client';
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '@/app/providers/AuthProvider';
+
+export default function RouteGuard({ children }: { children: React.ReactNode }) {
+  const { loaded, session } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!loaded) return;          // wait for auth to load
+    if (!session) router.replace(`/auth?next=${encodeURIComponent(window.location.pathname)}`);
+  }, [loaded, session, router]);
+
+  if (!loaded) return null;       // or a spinner
+  if (!session) return null;      // guard will redirect
+  return <>{children}</>;
+}
+
+
+On protected pages, wrap the page content with <RouteGuard> instead of doing an immediate “session expired” render.

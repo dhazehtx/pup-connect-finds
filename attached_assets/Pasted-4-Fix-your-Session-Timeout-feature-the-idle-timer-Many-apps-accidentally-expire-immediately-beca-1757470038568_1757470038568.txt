@@ -1,0 +1,67 @@
+4) Fix your Session Timeout feature (the idle timer)
+
+Many apps accidentally expire immediately because lastActivity is empty. Guard it:
+
+// hooks/useIdleTimeout.ts
+'use client';
+import { useEffect, useRef } from 'react';
+import { useAuth } from '@/app/providers/AuthProvider';
+
+export function useIdleTimeout(minutes = 30) {
+  const { session } = useAuth();
+  const timer = useRef<number | null>(null);
+  const limitMs = minutes * 60 * 1000;
+
+  useEffect(() => {
+    if (!session) return; // don’t start timer until logged in
+
+    const reset = () => {
+      localStorage.setItem('lastActivity', Date.now().toString());
+      if (timer.current) window.clearTimeout(timer.current);
+      timer.current = window.setTimeout(check, 5_000);
+    };
+
+    const check = () => {
+      const ts = Number(localStorage.getItem('lastActivity') || '0');
+      // If we’ve never recorded activity, initialize instead of expiring.
+      if (!ts) return reset();
+      if (Date.now() - ts > limitMs) {
+        // Do a clean sign-out; don’t just render “expired”
+        window.localStorage.removeItem('lastActivity');
+        // optional: toast("Session expired");
+        window.location.href = '/auth?expired=1';
+      } else {
+        timer.current = window.setTimeout(check, 5_000);
+      }
+    };
+
+    const events = ['click', 'keydown', 'scroll', 'mousemove', 'touchstart'];
+    events.forEach(e => window.addEventListener(e, reset));
+    reset();
+    return () => {
+      events.forEach(e => window.removeEventListener(e, reset));
+      if (timer.current) window.clearTimeout(timer.current);
+    };
+  }, [session, limitMs]);
+}
+
+
+Use it only inside protected pages after auth is ready:
+
+// app/(protected)/some-page/page.tsx
+'use client';
+import { useIdleTimeout } from '@/hooks/useIdleTimeout';
+import RouteGuard from '@/components/RouteGuard';
+
+export default function Page() {
+  return (
+    <RouteGuard>
+      <Inner />
+    </RouteGuard>
+  );
+}
+
+function Inner() {
+  useIdleTimeout(30);
+  return <>…page…</>;
+}

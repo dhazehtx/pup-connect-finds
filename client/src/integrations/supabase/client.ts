@@ -14,9 +14,10 @@ console.log('Key →', SUPABASE_ANON_KEY ? `${SUPABASE_ANON_KEY.substring(0, 20)
 
 export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_ANON_KEY, {
   auth: {
-    persistSession: true,
-    autoRefreshToken: true,
-    detectSessionInUrl: true,
-    flowType: 'pkce'
-  }
+    persistSession: true,              // keep refresh_token
+    autoRefreshToken: true,            // background refresh
+    detectSessionInUrl: true,          // handle redirects
+    flowType: 'pkce',
+    storage: typeof window !== 'undefined' ? window.localStorage : undefined, // Force localStorage for Replit iframe
+  },
 });
