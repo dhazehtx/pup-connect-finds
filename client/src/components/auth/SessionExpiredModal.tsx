@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { AlertTriangle } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface SessionExpiredModalProps {
   onRedirect?: () => void;
@@ -10,11 +11,13 @@ interface SessionExpiredModalProps {
 export default function SessionExpiredModal({ onRedirect }: SessionExpiredModalProps) {
   const [open, setOpen] = useState(false);
   const [countdown, setCountdown] = useState(10);
+  const { loaded } = useAuth();
 
   useEffect(() => {
     // Listen for 440 status responses globally
     const handleFetchError = (event: CustomEvent) => {
-      if (event.detail?.status === 440) {
+      // CRITICAL: Don't show session expired until auth is fully loaded to prevent false states
+      if (event.detail?.status === 440 && loaded) {
         setOpen(true);
         startCountdown();
       }
@@ -26,7 +29,7 @@ export default function SessionExpiredModal({ onRedirect }: SessionExpiredModalP
     return () => {
       window.removeEventListener('sessionExpired', handleFetchError as EventListener);
     };
-  }, []);
+  }, [loaded]);
 
   const startCountdown = () => {
     let timeLeft = 10;
