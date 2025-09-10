@@ -161,7 +161,7 @@ const ProviderOnboard: React.FC = () => {
 
   // Continuous Stripe status verification on Step 5 mount
   useEffect(() => {
-    if (currentStep !== 5 || !payoutSetup.accountId || payoutSetupComplete) return;
+    if (currentStep !== 5 || payoutSetupComplete) return;
 
     (async () => {
       try {
