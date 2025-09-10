@@ -15,7 +15,19 @@ export async function apiRequest(
   const {
     data: { session },
   } = await supabase.auth.getSession();
-  const token = session?.access_token || '';
+  let token = session?.access_token || '';
+
+  // Clean token to prevent ByteString errors - remove Unicode characters
+  if (token) {
+    // Remove ellipsis and other problematic Unicode characters
+    token = token.replace(/…|\u2026/g, '');
+    
+    // Validate token is clean ASCII (Base64 + dots/dashes)
+    if (!/^[A-Za-z0-9._-]+$/.test(token)) {
+      console.warn('[apiRequest] Invalid token characters detected, clearing token');
+      token = '';
+    }
+  }
 
   // Handle paths that already start with /api or just ensure leading slash
   const url = path.startsWith('/api') ? path : 
@@ -60,7 +72,17 @@ export async function api(path: string, opts: RequestInit = {}) {
     data: { session },
   } = await supabase.auth.getSession();
 
-  const token = session?.access_token || '';
+  let token = session?.access_token || '';
+
+  // Clean token to prevent ByteString errors
+  if (token) {
+    token = token.replace(/…|\u2026/g, '');
+    if (!/^[A-Za-z0-9._-]+$/.test(token)) {
+      console.warn('[api] Invalid token characters detected, clearing token');
+      token = '';
+    }
+  }
+
   const base = import.meta.env.VITE_SUPABASE_URL;
 
   return fetch(`${base}/rest/v1/${path}`, {

@@ -1,12 +1,13 @@
 
 import React, { createContext, useContext, ReactNode, useMemo, useCallback } from 'react';
-import { useAuthState } from '@/hooks/useAuthState';
+import { useAuthState } from '@/hooks/useAuth';
 import { User, Session } from '@supabase/supabase-js';
 
 interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
+  loaded: boolean;
   profile: any | null;
   isGuest: boolean;
   signUp: (email: string, password: string, userData?: any) => Promise<void>;
@@ -73,6 +74,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       user: authState.user,
       session: authState.session,
       loading: authState.loading,
+      loaded: authState.loaded,
       profile: authState.profile,
       isGuest,
       signUp,
@@ -88,6 +90,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     authState.user?.id,  // User identity only, not full object
     authState.session?.access_token, // Session identity only
     authState.loading,   // Loading state
+    authState.loaded,    // Loaded flag - prevents false "expired" states
     authState.profile,   // Profile data including admin status
     isGuest,            // Guest mode
   ]);

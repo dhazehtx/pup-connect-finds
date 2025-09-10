@@ -8,6 +8,7 @@ export const useAuthState = () => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const [loaded, setLoaded] = useState(false);
   const [profile, setProfile] = useState<any>(null);
   const { toast } = useToast();
 
@@ -206,6 +207,22 @@ export const useAuthState = () => {
   useEffect(() => {
     let mounted = true;
 
+    // Initialize auth state first - critical for preventing "Session Expired" false positives
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (!mounted) return;
+      
+      setSession(session);
+      setUser(session?.user ?? null);
+      
+      if (session?.user) {
+        fetchProfile(session.user.id);
+      }
+      
+      // Mark as loaded after initial session check
+      setLoaded(true);
+      setLoading(false);
+    });
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         if (!mounted) return;
@@ -226,22 +243,11 @@ export const useAuthState = () => {
         }
 
         if (mounted) {
+          setLoaded(true);
           setLoading(false);
         }
       }
     );
-
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (!mounted) return;
-      
-      setSession(session);
-      setUser(session?.user ?? null);
-      
-      if (session?.user) {
-        fetchProfile(session.user.id);
-      }
-      setLoading(false);
-    });
 
     return () => {
       mounted = false;
@@ -253,6 +259,7 @@ export const useAuthState = () => {
     user,
     session,
     loading,
+    loaded,
     profile,
     signUp,
     signIn,

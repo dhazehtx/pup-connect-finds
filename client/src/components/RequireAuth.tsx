@@ -4,14 +4,15 @@ import { useAuth } from '@/contexts/AuthContext';
 import { LoadingPage } from '@/components/ui/loading';
 
 export default function RequireAuth({ children }: { children: JSX.Element }) {
-  const { user, loading } = useAuth();
+  const { user, loading, loaded } = useAuth();
   const location = useLocation();
 
   // 1. INSTRUMENT - Navigation guard activity logging
   console.log('[REQUIRE AUTH] Guard check:', { 
     userId: user?.id,
     hasUser: !!user, 
-    loading, 
+    loading,
+    loaded,
     pathname: location.pathname,
     timestamp: Date.now()
   });
@@ -24,14 +25,16 @@ export default function RequireAuth({ children }: { children: JSX.Element }) {
     console.log('[REQUIRE AUTH] Auth state changed:', { 
       userId: stableUserId,
       hasUser: !!user, 
-      loading, 
+      loading,
+      loaded,
       pathname: location.pathname,
     });
-  }, [stableUserId, !!user, loading, location.pathname]);
+  }, [stableUserId, !!user, loading, loaded, location.pathname]);
 
   // HARDEN GUARD REDIRECT SAFETY - Prevent redundant redirects  
   const shouldRedirect = useMemo(() => {
-    const result = !loading && !user;
+    // CRITICAL: Don't redirect until auth is fully loaded to prevent false "Session Expired"
+    const result = loaded && !loading && !user;
     const currentPath = location.pathname;
     const targetPath = '/greeting';
     const alreadyOnTarget = currentPath === targetPath;
@@ -39,6 +42,7 @@ export default function RequireAuth({ children }: { children: JSX.Element }) {
     console.log('[REQUIRE AUTH] Redirect decision:', {
       shouldRedirect: result,
       loading,
+      loaded,
       hasUser: !!user,
       pathname: currentPath,
       targetPath,
@@ -53,11 +57,11 @@ export default function RequireAuth({ children }: { children: JSX.Element }) {
     }
     
     return result;
-  }, [loading, !!user, location.pathname]);
+  }, [loading, loaded, !!user, location.pathname]);
 
-  // Wait until AuthContext finishes its first check
-  if (loading) {
-    console.log('[REQUIRE AUTH] Still loading, showing auth loading page');
+  // Wait until AuthContext finishes its first check - CRITICAL: Wait for loaded flag
+  if (loading || !loaded) {
+    console.log('[REQUIRE AUTH] Still loading or not loaded, showing auth loading page', { loading, loaded });
     return <LoadingPage message="Checking authentication..." />;
   }
 
