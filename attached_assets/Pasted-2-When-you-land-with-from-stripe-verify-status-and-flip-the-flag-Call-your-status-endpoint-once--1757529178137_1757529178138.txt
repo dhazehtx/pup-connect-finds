@@ -1,0 +1,78 @@
+2) When you land with ?from=stripe, verify status and flip the flag
+
+Call your status endpoint once and set the gate. In test mode it’s normal for payouts_enabled to be false; allow advance if details_submitted is true.
+
+// Step5Payout.tsx
+'use client';
+import { useEffect, useMemo, useState } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
+import { useOnboarding } from '@/stores/useOnboarding';
+
+export default function Step5Payout() {
+  const q = useSearchParams();
+  const router = useRouter();
+  const { providerId, stripeAccountId, payoutSetupComplete, setPayoutSetupComplete } = useOnboarding();
+  const [status, setStatus] = useState<{details_submitted?: boolean; payouts_enabled?: boolean; charges_enabled?: boolean} | null>(null);
+  const [checking, setChecking] = useState(false);
+  const fromStripe = useMemo(() => q.get('from') === 'stripe', [q]);
+
+  useEffect(() => {
+    if (!fromStripe || !stripeAccountId) return;
+    (async () => {
+      setChecking(true);
+      try {
+        const res = await fetch(`/api/stripe/status?accountId=${encodeURIComponent(stripeAccountId)}`);
+        const data = await res.json();
+        setStatus(data);
+
+        const isTest =
+          process.env.NEXT_PUBLIC_STRIPE_MODE === 'test' ||
+          process.env.NEXT_PUBLIC_VERCEL_ENV === 'development';
+
+        const okToProceed = isTest
+          ? Boolean(data?.details_submitted || data?.payouts_enabled)
+          : Boolean(data?.payouts_enabled);
+
+        if (okToProceed) {
+          setPayoutSetupComplete(true);
+          sessionStorage.setItem('payoutDone', '1');
+        }
+      } catch (e) {
+        console.warn('[Stripe status] verify failed', e);
+      } finally {
+        setChecking(false);
+      }
+    })();
+  }, [fromStripe, stripeAccountId, setPayoutSetupComplete]);
+
+  function handleNext() {
+    if (!payoutSetupComplete) {
+      alert('Please complete Stripe Connect first. If you just finished, wait a second for status check.');
+      return;
+    }
+    router.replace('/services/onboarding?step=6');
+  }
+
+  // …render…
+  return (
+    <>
+      {/* Connect with Stripe button remains the same */}
+      <div className="mt-3 text-sm">
+        {checking && <span>Checking Stripe status…</span>}
+        {!checking && payoutSetupComplete && <span className="text-green-600">Stripe connected ✔ You can proceed.</span>}
+        {!checking && !payoutSetupComplete && <span className="text-amber-600">Stripe not connected yet.</span>}
+        {status && (
+          <div className="mt-1 text-xs opacity-70">
+            details_submitted: {String(status.details_submitted)} · payouts_enabled: {String(status.payouts_enabled)}
+          </div>
+        )}
+      </div>
+
+      <div className="mt-6 flex justify-end">
+        <button type="button" data-testid="button-next-step" onClick={handleNext} className="btn btn-primary">
+          Next
+        </button>
+      </div>
+    </>
+  );
+}

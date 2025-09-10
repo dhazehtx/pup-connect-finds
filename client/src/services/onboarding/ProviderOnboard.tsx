@@ -776,14 +776,25 @@ const ProviderOnboard: React.FC = () => {
     const urlParams = new URLSearchParams(window.location.search);
     const fromStripe = urlParams.get('from') === 'stripe' || urlParams.get('connected') === 'true';
     
+    console.log('[STRIPE RETURN] URL check:', { 
+      search: window.location.search, 
+      fromStripe, 
+      currentStep, 
+      payoutSetupComplete 
+    });
+    
     if (fromStripe && (currentStep === 4 || currentStep === 5)) {
-      console.log('[STRIPE RETURN] Detected return from Stripe, checking account status...');
-      // Don't set flag immediately - verify with Stripe first
-      checkPayoutStatus();
+      console.log('[STRIPE RETURN] ✅ Detected return from Stripe, verifying account status...');
       
-      // Clean up URL parameters after processing
-      const newUrl = window.location.pathname + `?step=${currentStep}`;
-      window.history.replaceState({}, '', newUrl);
+      // Verify account status and set flag
+      checkPayoutStatus().then(() => {
+        console.log('[STRIPE RETURN] ✅ Status check completed, cleaning URL');
+        // Clean up URL parameters AFTER the async call completes
+        const newUrl = window.location.pathname + `?step=${currentStep}`;
+        window.history.replaceState({}, '', newUrl);
+      }).catch((err) => {
+        console.error('[STRIPE RETURN] ❌ Status check failed:', err);
+      });
     }
   }, [currentStep]);
 
