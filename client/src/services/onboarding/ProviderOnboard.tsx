@@ -159,6 +159,44 @@ const ProviderOnboard: React.FC = () => {
     }
   }, [authUser, navigate]);
 
+  // Continuous Stripe status verification on Step 5 mount
+  useEffect(() => {
+    if (currentStep !== 5 || !payoutSetup.accountId || payoutSetupComplete) return;
+
+    (async () => {
+      try {
+        // Use existing payout status endpoint
+        const response = await fetch('/api/payout/status', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            userId: authUser?.id,
+            providerId,
+            applicationId
+          }),
+        });
+        const data = await response.json();
+
+        const isTest = import.meta.env.DEV || import.meta.env.VITE_STRIPE_MODE === 'test';
+
+        const okToProceed = isTest
+          ? Boolean(data?.account?.details_submitted || data?.account?.payouts_enabled)
+          : Boolean(data?.account?.payouts_enabled);
+
+        // DEBUG: show what Stripe says
+        console.log('[Step 5 Stripe status verification]', data);
+
+        if (okToProceed) {
+          setPayoutSetupComplete(true);
+          sessionStorage.setItem('payoutDone', '1');
+          console.log('[Step 5] ✅ Stripe verified - setting payoutSetupComplete to true');
+        }
+      } catch (e) {
+        console.warn('[Step 5 Stripe status] verify failed', e);
+      }
+    })();
+  }, [currentStep, payoutSetup.accountId, payoutSetupComplete, setPayoutSetupComplete, authUser?.id, providerId, applicationId]);
+
   // Show nothing if user is not authenticated (redirect is happening)
   if (!authUser) {
     return null;
