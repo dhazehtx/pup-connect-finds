@@ -1,0 +1,102 @@
+Fix Step 4 (Background Check)
+1) Make the checkbox controlled (no stale state)
+// Step4Background.tsx
+'use client'
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { supabase } from '@/lib/supabaseClient'
+import { useOnboarding } from '@/stores/useOnboarding'
+
+export default function Step4Background() {
+  const router = useRouter()
+  const { applicationId, providerId, setCurrentStep } = useOnboarding()
+
+  const [consent, setConsent] = useState(false)
+  const [url, setUrl] = useState('')          // optional
+  const [urlErr, setUrlErr] = useState<string | null>(null)
+  const [saving, setSaving] = useState(false)
+
+  function validateUrlOptional(v: string) {
+    if (!v) return true               // <-- allow empty (optional)
+    try { new URL(v); return true } catch { return false }
+  }
+
+  async function onSave() {
+    setUrlErr(null)
+    if (!consent) {
+      alert('Please consent to background check.')
+      return
+    }
+    if (!validateUrlOptional(url)) {
+      setUrlErr('Invalid URL')
+      return
+    }
+    setSaving(true)
+    try {
+      const payload = {
+        bg_consent: true,
+        bg_consent_at: new Date().toISOString(),
+        bg_ref_url: url || null,
+      }
+      const { error } = await supabase
+        .from('provider_applications')
+        .update(payload)
+        .eq('id', applicationId)
+        .eq('provider_id', providerId)
+      if (error) throw error
+      // stay on step or advance on explicit Next
+    } catch (e: any) {
+      console.error('[BG] save failed', e)
+      alert('Could not save consent. Please try again.')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  function handleNext() {
+    // gate ONLY on Step 4 fields
+    if (!consent) {
+      alert('Please consent to background check.')
+      return
+    }
+    if (!validateUrlOptional(url)) {
+      setUrlErr('Invalid URL')
+      return
+    }
+    setCurrentStep(5)
+    router.replace('/services/onboarding?step=5')
+  }
+
+  return (
+    <div>
+      <label className="flex items-start gap-2">
+        <input
+          type="checkbox"
+          checked={consent}                 // <-- controlled
+          onChange={(e) => setConsent(e.target.checked)}
+        />
+        <span>I consent to a background check and authorize My Pup to process it upon submission.</span>
+      </label>
+
+      <input
+        className="mt-3 w-full"
+        placeholder="(optional) reference URL"
+        value={url}
+        onChange={(e) => {
+          setUrl(e.target.value)
+          if (urlErr) setUrlErr(null)
+        }}
+      />
+      {urlErr && <p className="text-red-600 text-sm mt-1">{urlErr}</p>}
+
+      <div className="mt-4 flex gap-3">
+        <button type="button" onClick={onSave} disabled={saving} className="btn btn-secondary">
+          {saving ? 'Saving…' : 'Save'}
+        </button>
+        <button type="button" onClick={handleNext} className="btn btn-primary ml-auto">
+          Next
+        </button>
+      </div>
+    </div>
+  )
+}

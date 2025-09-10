@@ -52,6 +52,8 @@ const ProviderOnboard: React.FC = () => {
   const [idError, setIdError] = useState<string | null>(null);
   const [backgroundCheck, setBackgroundCheck] = useState<BackgroundCheckState>({ status: 'idle' });
   const [bgCheckConsent, setBgCheckConsent] = useState<boolean>(false);
+  const [bgRefUrl, setBgRefUrl] = useState<string>('');
+  const [bgUrlError, setBgUrlError] = useState<string | null>(null);
   const [isSavingConsent, setIsSavingConsent] = useState(false);
   const [consentMessage, setConsentMessage] = useState<string | null>(null);
   const [consentError, setConsentError] = useState<string | null>(null);
@@ -218,6 +220,16 @@ const ProviderOnboard: React.FC = () => {
     return bgCheckConsent && (backgroundCheck.status === 'passed' || backgroundCheck.status === 'pending');
   };
 
+  const validateUrlOptional = (url: string) => {
+    if (!url) return true; // Allow empty (optional)
+    try { 
+      new URL(url); 
+      return true; 
+    } catch { 
+      return false; 
+    }
+  };
+
   const isDetailsValid = () => {
     return serviceDetails.description.trim() !== '' && 
            serviceDetails.pricePerService.trim() !== '' && 
@@ -255,8 +267,12 @@ const ProviderOnboard: React.FC = () => {
 
     if (currentStep === 3) {
       // validate background check consent
-      if (!isBackgroundCheckValid()) {
+      if (!bgCheckConsent) {
         return alert('Please consent to background check.');
+      }
+      if (!validateUrlOptional(bgRefUrl)) {
+        setBgUrlError('Invalid URL');
+        return;
       }
       return goTo(4);
     }
@@ -878,6 +894,16 @@ const ProviderOnboard: React.FC = () => {
 
   // Save background check consent
   const saveConsent = async () => {
+    setBgUrlError(null);
+    if (!bgCheckConsent) {
+      setConsentError('Please consent to background check.');
+      return;
+    }
+    if (!validateUrlOptional(bgRefUrl)) {
+      setBgUrlError('Invalid URL');
+      return;
+    }
+
     if (!authUser?.id || !applicationId) {
       toast({
         title: "Missing Information",
@@ -892,7 +918,12 @@ const ProviderOnboard: React.FC = () => {
     setConsentMessage(null);
 
     try {
-      console.log('[CONSENT] Saving consent with:', { applicationId, userId: authUser.id, consent: bgCheckConsent });
+      console.log('[CONSENT] Saving consent with:', { 
+        applicationId, 
+        userId: authUser.id, 
+        consent: bgCheckConsent, 
+        bgRefUrl: bgRefUrl || null 
+      });
       
       const response = await fetch('/api/applications/consent', {
         method: 'POST',
@@ -900,7 +931,8 @@ const ProviderOnboard: React.FC = () => {
         body: JSON.stringify({ 
           applicationId, 
           userId: authUser.id, 
-          consent: bgCheckConsent 
+          consent: bgCheckConsent,
+          bg_ref_url: bgRefUrl || null
         }),
       });
 
@@ -916,6 +948,21 @@ const ProviderOnboard: React.FC = () => {
     } finally {
       setIsSavingConsent(false);
     }
+  };
+
+  // Handle Next for background check step  
+  const handleBackgroundNext = () => {
+    // gate ONLY on Step 3 fields
+    if (!bgCheckConsent) {
+      alert('Please consent to background check.');
+      return;
+    }
+    if (!validateUrlOptional(bgRefUrl)) {
+      setBgUrlError('Invalid URL');
+      return;
+    }
+    setCurrentStep(4);
+    navigate('/services/onboarding?step=4');
   };
 
   const submitProviderApplication = async () => {
@@ -1243,6 +1290,21 @@ const ProviderOnboard: React.FC = () => {
             </label>
 
             <div className="mt-3 space-y-2">
+              <input
+                type="url"
+                placeholder="(optional) reference URL"
+                value={bgRefUrl}
+                onChange={(e) => {
+                  setBgRefUrl(e.target.value);
+                  if (bgUrlError) setBgUrlError(null);
+                }}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                data-testid="input-bg-ref-url"
+              />
+              {bgUrlError && (
+                <p className="text-red-600 text-sm">{bgUrlError}</p>
+              )}
+
               {consentMessage && (
                 <div className="rounded-md border border-green-200 bg-green-50 px-3 py-2 text-sm">
                   {consentMessage}
@@ -1254,14 +1316,23 @@ const ProviderOnboard: React.FC = () => {
                 </div>
               )}
 
-              <Button 
-                onClick={saveConsent} 
-                disabled={isSavingConsent} 
-                className="w-full"
-                data-testid="button-save-consent"
-              >
-                {isSavingConsent ? "Saving…" : "Save"}
-              </Button>
+              <div className="flex gap-3">
+                <Button 
+                  onClick={saveConsent} 
+                  disabled={isSavingConsent} 
+                  variant="outline"
+                  data-testid="button-save-consent"
+                >
+                  {isSavingConsent ? "Saving…" : "Save"}
+                </Button>
+                <Button 
+                  onClick={handleBackgroundNext}
+                  className="ml-auto"
+                  data-testid="button-background-next"
+                >
+                  Next
+                </Button>
+              </div>
             </div>
 
             <p className="text-sm text-gray-600 text-center mt-4">
