@@ -36,7 +36,7 @@ interface PayoutSetupState {
 
 const ProviderOnboard: React.FC = () => {
   const { currentStep, providerId, setCurrentStep, setProviderId, loadFromStorage } = useOnboardingStore();
-  const { userId, applicationId, payoutSetupComplete, setIds, setApplicationId, setPayoutSetupComplete, hydrateApplicationId, hydrateProviderId, hydratePayoutSetupComplete } = useOnboarding();
+  const { userId, applicationId, payoutSetupComplete, setIds, setApplicationId, setPayoutSetupComplete } = useOnboarding();
   const { user: authUser } = useAuth();
   const [basicsData, setBasicsData] = useState({
     legalName: '',
@@ -73,13 +73,10 @@ const ProviderOnboard: React.FC = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
 
-  // Initialize user IDs when component loads and hydrate from storage
+  // Initialize user IDs when component loads (hydration handled by OnboardingHydrator)
   useEffect(() => {
-    // CRITICAL: Hydrate all flags from storage first
-    hydrateProviderId();
-    hydrateApplicationId();
-    hydratePayoutSetupComplete();
-  }, [hydrateProviderId, hydrateApplicationId, hydratePayoutSetupComplete]);
+    // Note: Hydration now handled centrally by OnboardingHydrator component
+  }, []);
 
   // Set IDs once we have the auth user and providerId (from storage or API)
   useEffect(() => {

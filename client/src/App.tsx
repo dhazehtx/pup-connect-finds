@@ -13,6 +13,7 @@ import CookieConsentBanner from '@/components/privacy/CookieConsentBanner';
 import { FloatingBugReportButton } from '@/components/FloatingBugReportButton';
 import Analytics from './components/Analytics';
 import SessionExpiredModal from '@/components/auth/SessionExpiredModal';
+import OnboardingHydrator from './components/OnboardingHydrator';
 
 import { PageTransition } from './components/ui/transitions';
 import Home from './pages/Home';
@@ -111,7 +112,8 @@ function App() {
           <AuthProvider>
             <RealtimeProvider>
               <ThemeProvider>
-                  <AdminNavigationTracker />
+                <OnboardingHydrator />
+                <AdminNavigationTracker />
                 <Layout>
                   <PageTransition>
                   <Routes>

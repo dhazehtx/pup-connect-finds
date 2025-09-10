@@ -9,9 +9,6 @@ type OnboardingState = {
   setProviderId: (id: string) => void;
   setApplicationId: (id: string) => void;
   setPayoutSetupComplete: (v: boolean) => void;
-  hydrateApplicationId: () => void;
-  hydrateProviderId: () => void;
-  hydratePayoutSetupComplete: () => void;
   clear: () => void;
 };
 
@@ -44,30 +41,6 @@ export const useOnboarding = create<OnboardingState>((set, get) => ({
     set({ payoutSetupComplete: v });
     if (typeof window !== 'undefined') {
       sessionStorage.setItem('payoutDone', v ? '1' : '0');
-    }
-  },
-  hydrateApplicationId: () => {
-    if (typeof window !== 'undefined') {
-      const storedAppId = localStorage.getItem('applicationId');
-      if (storedAppId && !get().applicationId) {
-        set({ applicationId: storedAppId });
-      }
-    }
-  },
-  hydrateProviderId: () => {
-    if (typeof window !== 'undefined') {
-      const cached = sessionStorage.getItem('providerId');
-      if (!get().providerId && cached) {
-        set({ providerId: cached });
-      }
-    }
-  },
-  hydratePayoutSetupComplete: () => {
-    if (typeof window !== 'undefined') {
-      const cached = sessionStorage.getItem('payoutDone');
-      if (cached === '1') {
-        set({ payoutSetupComplete: true });
-      }
     }
   },
   clear: () => {
