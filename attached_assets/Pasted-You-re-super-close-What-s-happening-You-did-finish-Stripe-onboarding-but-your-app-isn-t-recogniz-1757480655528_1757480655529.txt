@@ -1,0 +1,152 @@
+You’re super close. What’s happening:
+
+You did finish Stripe onboarding, but your app isn’t recognizing it.
+
+That’s because the return URL is dumping you on /explore and/or you’re not verifying the Stripe account status when you come back.
+
+Result: payoutSetupComplete never flips → “Next” appears to do nothing.
+
+Fix it with three tight changes:
+
+1) Create the Connect link with the correct return URLs
+
+Make sure Stripe sends you back to onboarding Step 5 with a flag.
+
+// app/api/stripe/connect-link/route.ts
+import { NextResponse } from 'next/server'
+import Stripe from 'stripe'
+import { createClient } from '@supabase/supabase-js'
+
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: '2024-06-20' })
+
+export async function POST(req: Request) {
+  const { providerId, accountId } = await req.json() // you should have saved stripe_account_id on provider
+  if (!accountId) return NextResponse.json({ error: 'Missing accountId' }, { status: 400 })
+
+  const base = process.env.NEXT_PUBLIC_BASE_URL! // e.g. https://<your-replit-subdomain>.replit.dev
+  const returnUrl  = `${base}/services/onboarding?step=5&from=stripe`
+  const refreshUrl = `${base}/services/onboarding?step=5&from=refresh`
+
+  const link = await stripe.accountLinks.create({
+    account: accountId,
+    type: 'account_onboarding',
+    refresh_url: refreshUrl,
+    return_url: returnUrl,
+  })
+
+  return NextResponse.json({ url: link.url })
+}
+
+
+Key: return_url points to ?step=5&from=stripe, not /explore. That’s how Step 5 knows you’re back from Stripe.
+
+2) Verify account status when you return (and flip the gate)
+
+When you land on ?from=stripe, call a status endpoint that asks Stripe whether the account is ready (charges/payouts enabled). Update your providers row and set the in-memory flag.
+
+// app/api/stripe/status/route.ts
+import { NextResponse } from 'next/server'
+import Stripe from 'stripe'
+
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: '2024-06-20' })
+
+export async function GET(req: Request) {
+  const { searchParams } = new URL(req.url)
+  const accountId = searchParams.get('accountId')
+  if (!accountId) return NextResponse.json({ error: 'Missing accountId' }, { status: 400 })
+
+  const acct = await stripe.accounts.retrieve(accountId)
+  // you can also check acct.requirements.currently_due.length === 0 etc.
+  return NextResponse.json({
+    charges_enabled: acct.charges_enabled,
+    payouts_enabled: acct.payouts_enabled,
+    details_submitted: acct.details_submitted,
+  })
+}
+
+
+Update Step 5 UI to call this once you return (or when the “Next” area renders):
+
+// Step5Payout.tsx
+'use client'
+import { useEffect, useMemo, useState } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { useOnboarding } from '@/stores/useOnboarding'
+
+export default function Step5Payout() {
+  const q = useSearchParams()
+  const router = useRouter()
+  const { providerId, stripeAccountId, payoutSetupComplete, setPayoutSetupComplete } = useOnboarding()
+  const [checking, setChecking] = useState(false)
+  const [err, setErr] = useState<string|null>(null)
+  const fromStripe = useMemo(() => q.get('from') === 'stripe', [q])
+
+  useEffect(() => {
+    if (!fromStripe || !stripeAccountId) return
+    ;(async () => {
+      setChecking(true); setErr(null)
+      try {
+        const res = await fetch(`/api/stripe/status?accountId=${encodeURIComponent(stripeAccountId)}`)
+        const data = await res.json()
+        if (data?.payouts_enabled || data?.details_submitted) {
+          setPayoutSetupComplete(true)
+          sessionStorage.setItem('payoutDone', '1')
+        } else {
+          setErr('Stripe still needs more info. Click Connect again to finish.')
+        }
+      } catch (e:any) {
+        setErr('Could not verify Stripe status.')
+      } finally {
+        setChecking(false)
+      }
+    })()
+  }, [fromStripe, stripeAccountId, setPayoutSetupComplete])
+
+  async function openStripe() {
+    const res = await fetch('/api/stripe/connect-link', {
+      method: 'POST',
+      headers: { 'Content-Type':'application/json' },
+      body: JSON.stringify({ providerId, accountId: stripeAccountId })
+    })
+    const { url } = await res.json()
+    window.open(url, '_blank', 'noopener,noreferrer')
+  }
+
+  function handleNext() {
+    if (!payoutSetupComplete) {
+      alert('Please complete Stripe Connect first.')
+      return
+    }
+    router.replace('/services/onboarding?step=6')
+  }
+
+  return (
+    <div>
+      <button type="button" onClick={openStripe} className="btn btn-primary w-full">
+        Connect with Stripe
+      </button>
+
+      <div className="mt-3 text-sm">
+        {checking && <span>Checking Stripe status…</span>}
+        {!checking && payoutSetupComplete && <span className="text-green-600">Stripe connected ✔ You can proceed.</span>}
+        {!checking && !payoutSetupComplete && <span className="text-amber-600">Stripe not connected yet.</span>}
+        {err && <div className="text-red-600 mt-1">{err}</div>}
+      </div>
+
+      <div className="mt-6 flex justify-end">
+        <button type="button" onClick={handleNext} className="btn btn-primary">Next</button>
+      </div>
+    </div>
+  )
+}
+
+3) Persist flags so refresh doesn’t regress
+
+(You likely have this, but confirm.)
+
+// on set
+setPayoutSetupComplete(true)
+sessionStorage.setItem('payoutDone', '1')
+
+// on app load (hydrator)
+if (sessionStorage.getItem('payoutDone') === '1') setPayoutSetupComplete(true)
