@@ -213,17 +213,97 @@ const ProviderOnboard: React.FC = () => {
     { id: 7, title: 'Review', status: currentStep === 7 ? 'current' : currentStep > 7 ? 'completed' : 'pending' },
   ];
 
+  // Navigation helper function
+  const goTo = (step: number) => {
+    setCurrentStep(step);
+    navigate(`/services/onboarding?step=${step}`);
+  };
+
+  // Validation functions for each step
+  const isBasicsValid = () => {
+    return basicsData.legalName.trim() !== '' && basicsData.phone.trim() !== '';
+  };
+
+  const isIdValid = () => {
+    return idFrontFile && idBackFile && (idVerification.status === 'passed' || idVerification.status === 'pending');
+  };
+
+  const isBackgroundCheckValid = () => {
+    return bgCheckConsent && (backgroundCheck.status === 'passed' || backgroundCheck.status === 'pending');
+  };
+
+  const isDetailsValid = () => {
+    return serviceDetails.description.trim() !== '' && 
+           serviceDetails.pricePerService.trim() !== '' && 
+           serviceDetails.serviceTypes.length > 0;
+  };
+
+  const isTermsValid = () => {
+    return termsAccepted.terms && termsAccepted.providerAgreement;
+  };
+
   const handleNext = () => {
-    console.log('[Steps] handleNext', { currentStep, providerId, stripeAccountId: payoutSetup.accountId, payoutSetupComplete });
-    
-    // Only check Stripe completion on Step 5 (Payout Setup step)
-    if (currentStep === 5 && !payoutSetupComplete) {
-      alert('Please complete Stripe Connect first. If you just finished, tap "I\'ve Completed Setup" or wait 2–3 seconds.');
-      return;
+    console.log('[Steps] handleNext', {
+      currentStep,
+      providerId,
+      stripeAccountId: payoutSetup.accountId,
+      payoutSetupComplete,
+    });
+
+    // STEP-SPECIFIC GUARDS
+    if (currentStep === 1) {
+      // validate basics only
+      if (!isBasicsValid()) {
+        return alert('Please complete your basic info (legal name and phone).');
+      }
+      return goTo(2);
     }
-    
-    // Navigate to next step
-    navigate(`/services/onboarding?step=${currentStep + 1}`);
+
+    if (currentStep === 2) {
+      // validate ID verification
+      if (!isIdValid()) {
+        return alert('Please upload and verify your ID documents.');
+      }
+      return goTo(3);
+    }
+
+    if (currentStep === 3) {
+      // validate background check consent
+      if (!isBackgroundCheckValid()) {
+        return alert('Please consent to background check.');
+      }
+      return goTo(4);
+    }
+
+    if (currentStep === 4) {
+      // validate service details
+      if (!isDetailsValid()) {
+        return alert('Please complete your service details.');
+      }
+      return goTo(5);
+    }
+
+    // ✅ Stripe gate ONLY here
+    if (currentStep === 5) {
+      if (!payoutSetupComplete) {
+        alert('Please complete Stripe Connect first. If you just finished, tap "I\'ve Completed Setup" or wait 2–3s.');
+        return;
+      }
+      return goTo(6);
+    }
+
+    if (currentStep === 6) {
+      // validate terms acceptance
+      if (!isTermsValid()) {
+        return alert('Please accept the terms and agreements.');
+      }
+      return goTo(7);
+    }
+
+    if (currentStep === 7) {
+      // final review → submit
+      return goTo(8);
+    }
   };
 
   const handleBack = () => {
