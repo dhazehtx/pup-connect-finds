@@ -179,7 +179,18 @@ const ProviderOnboard: React.FC = () => {
   ];
 
   const handleNext = async () => {
-    console.log('[ONBOARDING] handleNext called:', { currentStep, providerId, hasProviderId: !!providerId });
+    console.log('[ONBOARDING] handleNext called:', { currentStep, providerId, hasProviderId: !!providerId, payoutSetupComplete });
+    
+    // DEBUG: Clear messages for common blocking issues
+    if (!providerId) {
+      console.warn('[STEP BLOCKED] No providerId - cannot advance');
+      toast({
+        title: "Setup Required", 
+        description: "Please complete your basic information first.",
+        variant: "destructive"
+      });
+      return;
+    }
     
     // Auto-save on step 1 if not saved yet
     if (currentStep === 1 && !providerId) {
@@ -272,8 +283,20 @@ const ProviderOnboard: React.FC = () => {
       }
     }
 
+    // Step 5 specific debugging  
+    if (currentStep === 5 && !payoutSetupComplete) {
+      console.warn('[STEP 5 BLOCKED] Please finish Stripe Connect first');
+      toast({
+        title: "Stripe Connect Required",
+        description: "Please complete Stripe Connect setup before proceeding.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     // CRITICAL: Step 6 enforces sequential flow - requires payout setup completion
     if (currentStep === 6 && !payoutSetupComplete) {
+      console.warn('[STEP 6 BLOCKED] Payout setup not complete');
       toast({
         title: "Payout Setup Required",
         description: "Please complete your payout setup (Step 4) before proceeding to terms.",
@@ -1308,6 +1331,15 @@ const ProviderOnboard: React.FC = () => {
                 </div>
               </div>
             )}
+            
+            {/* Clear visual status indicator */}
+            <div className="mt-4 text-sm">
+              {payoutSetupComplete ? (
+                <span className="text-green-600 font-medium">✓ Stripe connected - You can proceed.</span>
+              ) : (
+                <span className="text-amber-600 font-medium">⚠ Stripe not connected yet.</span>
+              )}
+            </div>
 
             {payoutSetup.status === 'failed' && (
               <div className="space-y-4">
@@ -1610,15 +1642,19 @@ const ProviderOnboard: React.FC = () => {
       {/* Navigation Buttons */}
       <div className="flex justify-between mt-6">
         <Button
+          type="button"
           variant="outline"
           onClick={handleBack}
           disabled={currentStep === 0}
+          data-testid="button-back-step"
         >
           Back
         </Button>
         <Button
+          type="button"
           onClick={handleNext}
           disabled={currentStep === steps.length - 1}
+          data-testid="button-next-step"
         >
           {currentStep === steps.length - 1 ? 'Complete' : 'Next'}
         </Button>

@@ -1,0 +1,94 @@
+On Step 5, “Next” doing nothing is almost always one of these:
+
+the button isn’t wired (wrong type, missing onClick)
+
+a hidden gate is blocking (e.g., payoutSetupComplete is false)
+
+providerId missing so guard cancels silently
+
+a CSS overlay is eating the click (rare, but happens with fixed footers)
+
+Here’s a safe drop-in patch to make Step 5 advance reliably and tell you why if it can’t.
+
+1) Ensure the Stripe-return flag is set
+
+When you come back from Stripe, the URL should include ?from=stripe. Capture that once:
+
+// Step5Payout.tsx
+'use client';
+import { useEffect, useMemo, useState } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
+import { useOnboarding } from '@/stores/useOnboarding'; // providerId, payoutSetupComplete, setPayoutSetupComplete
+
+export default function Step5Payout() {
+  const q = useSearchParams();
+  const router = useRouter();
+  const { providerId, payoutSetupComplete, setPayoutSetupComplete } = useOnboarding();
+  const [clicking, setClicking] = useState(false);
+  const fromStripe = useMemo(() => q.get('from') === 'stripe', [q]);
+
+  useEffect(() => {
+    if (fromStripe) {
+      // mark complete (you can also verify server-side if you want)
+      setPayoutSetupComplete(true);
+    }
+  }, [fromStripe, setPayoutSetupComplete]);
+
+  async function handleNext() {
+    // DEBUG: surface the real reason if blocked
+    if (!providerId) return console.warn('[Step5] No providerId – cannot advance');
+    if (!payoutSetupComplete) {
+      alert('Please finish Stripe Connect first (click the blue button above).');
+      return;
+    }
+    if (clicking) return;
+    setClicking(true);
+    try {
+      router.replace('/services/onboarding?step=6');
+    } finally {
+      setClicking(false);
+    }
+  }
+
+  function openStripe() {
+    // however you launch your account link:
+    window.open('/api/stripe/connect-link', '_blank', 'noopener,noreferrer');
+  }
+
+  return (
+    <div>
+      {/* ...your account type UI... */}
+      <button
+        type="button"
+        className="btn btn-primary w-full"
+        onClick={openStripe}
+        data-testid="connect-with-stripe"
+      >
+        Connect with Stripe
+      </button>
+
+      <div className="mt-4 text-sm">
+        {payoutSetupComplete ? (
+          <span className="text-green-600">Stripe connected ✔ You can proceed.</span>
+        ) : (
+          <span className="text-amber-600">Stripe not connected yet.</span>
+        )}
+      </div>
+
+      <div className="mt-6 flex justify-end">
+        <button
+          type="button"                // IMPORTANT: not submit
+          onClick={handleNext}
+          data-testid="step5-next"
+          disabled={clicking /* or !payoutSetupComplete if you want hard-disable */}
+          className="btn btn-primary"
+        >
+          Next
+        </button>
+      </div>
+    </div>
+  );
+}
+
+
+Why this helps
