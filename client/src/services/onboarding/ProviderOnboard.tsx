@@ -180,8 +180,8 @@ const ProviderOnboard: React.FC = () => {
         const isTest = import.meta.env.DEV || import.meta.env.VITE_STRIPE_MODE === 'test';
 
         const okToProceed = isTest
-          ? Boolean(data?.account?.details_submitted || data?.account?.payouts_enabled)
-          : Boolean(data?.account?.payouts_enabled);
+          ? Boolean(data?.details_submitted || data?.payouts_enabled)
+          : Boolean(data?.payouts_enabled);
 
         // DEBUG: show what Stripe says
         console.log('[Step 5 Stripe status verification]', data);
@@ -584,8 +584,8 @@ const ProviderOnboard: React.FC = () => {
         // In test mode, allow progress if details_submitted is true (payouts_enabled is often false in test)
         const isTestMode = import.meta.env.DEV || import.meta.env.VITE_STRIPE_MODE === 'test';
         const okToProceed = isTestMode 
-          ? Boolean(data.account.details_submitted || data.account.payouts_enabled)
-          : Boolean(data.account.payouts_enabled);
+          ? Boolean(data?.details_submitted || data?.payouts_enabled)
+          : Boolean(data?.payouts_enabled);
           
         if (okToProceed) {
           setPayoutSetup({ status: 'connected', accountId: data.account.id });
