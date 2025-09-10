@@ -7,6 +7,7 @@ type OnboardingState = {
   setIds: (userId: string, providerId: string) => void;
   setApplicationId: (id: string) => void;
   hydrateApplicationId: () => void;
+  hydrateProviderId: () => void;
   clear: () => void;
 };
 
@@ -14,8 +15,13 @@ export const useOnboarding = create<OnboardingState>((set, get) => ({
   userId: null,
   providerId: null,
   applicationId: null,
-  setIds: (userId: string, providerId: string) => 
-    set({ userId, providerId }),
+  setIds: (userId: string, providerId: string) => {
+    set({ userId, providerId });
+    // Persist providerId to sessionStorage
+    if (typeof window !== 'undefined') {
+      sessionStorage.setItem('providerId', providerId);
+    }
+  },
   setApplicationId: (id: string) => {
     set({ applicationId: id });
     // Persist to localStorage
@@ -31,10 +37,19 @@ export const useOnboarding = create<OnboardingState>((set, get) => ({
       }
     }
   },
+  hydrateProviderId: () => {
+    if (typeof window !== 'undefined') {
+      const cached = sessionStorage.getItem('providerId');
+      if (!get().providerId && cached) {
+        set({ providerId: cached });
+      }
+    }
+  },
   clear: () => {
     set({ userId: null, providerId: null, applicationId: null });
     if (typeof window !== 'undefined') {
       localStorage.removeItem('applicationId');
+      sessionStorage.removeItem('providerId');
     }
   },
 }));

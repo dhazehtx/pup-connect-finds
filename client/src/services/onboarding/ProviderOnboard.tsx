@@ -36,7 +36,7 @@ interface PayoutSetupState {
 
 const ProviderOnboard: React.FC = () => {
   const { currentStep, providerId, setCurrentStep, setProviderId, loadFromStorage } = useOnboardingStore();
-  const { userId, applicationId, setIds, setApplicationId, hydrateApplicationId } = useOnboarding();
+  const { userId, applicationId, setIds, setApplicationId, hydrateApplicationId, hydrateProviderId } = useOnboarding();
   const { user: authUser } = useAuth();
   const [basicsData, setBasicsData] = useState({
     legalName: '',
@@ -70,17 +70,23 @@ const ProviderOnboard: React.FC = () => {
     providerAgreement: false,
   });
   const [providerStatus, setProviderStatus] = useState<'pending' | 'verified' | 'loading'>('pending');
+  const [payoutSetupComplete, setPayoutSetupComplete] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
 
-  // Initialize user IDs when component loads and hydrate applicationId
+  // Initialize user IDs when component loads and hydrate from storage
+  useEffect(() => {
+    // CRITICAL: Hydrate providerId from sessionStorage first
+    hydrateProviderId();
+    hydrateApplicationId();
+  }, [hydrateProviderId, hydrateApplicationId]);
+
+  // Set IDs once we have the auth user and providerId (from storage or API)
   useEffect(() => {
     if (authUser?.id && providerId) {
       setIds(authUser.id, providerId);
     }
-    // Hydrate applicationId from localStorage
-    hydrateApplicationId();
-  }, [authUser?.id, providerId, setIds, hydrateApplicationId]);
+  }, [authUser?.id, providerId, setIds]);
 
   // Log IDs for debugging (Step 5 diagnostic)
   useEffect(() => {
@@ -127,11 +133,17 @@ const ProviderOnboard: React.FC = () => {
     ensureApplicationId();
   }, [authUser?.id, providerId, applicationId, setApplicationId]);
 
-  // Check for return from Stripe and automatically verify payout status
+  // CRITICAL: Step 5 completion flag when returning from Stripe
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const fromStripe = urlParams.get('from') === 'stripe';
     const step = urlParams.get('step');
+    
+    // Step 5 sets the completion flag after Stripe returns
+    if (fromStripe && step === '5') {
+      console.log('[STEP 5] User returned from Stripe, setting completion flag...');
+      setPayoutSetupComplete(true);
+    }
     
     if (fromStripe && step === '5' && authUser?.id && providerId && applicationId) {
       console.log('[PAYOUT] User returned from Stripe, checking status...');
@@ -258,6 +270,16 @@ const ProviderOnboard: React.FC = () => {
         });
         return;
       }
+    }
+
+    // CRITICAL: Step 6 enforces sequential flow - requires payout setup completion
+    if (currentStep === 6 && !payoutSetupComplete) {
+      toast({
+        title: "Payout Setup Required",
+        description: "Please complete your payout setup (Step 4) before proceeding to terms.",
+        variant: "destructive",
+      });
+      return;
     }
 
     if (currentStep < steps.length - 1) {
