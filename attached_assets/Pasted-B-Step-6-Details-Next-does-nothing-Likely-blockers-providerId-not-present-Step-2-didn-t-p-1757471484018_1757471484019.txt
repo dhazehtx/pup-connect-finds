@@ -1,0 +1,70 @@
+B) Step 6 (“Details”) → Next does nothing
+
+Likely blockers:
+
+providerId not present (Step 2 didn’t persist or rehydrate).
+
+Step 5 flag (payoutSetupComplete) never set after returning from Stripe.
+
+Button is disabled by hidden validation or the click handler early-returns.
+
+Supabase update throws and the error is swallowed.
+
+Drop-in Step 6 pattern (save → advance to step 7):
+
+// app/services/onboarding/Step6Details.tsx
+'use client'
+import { useState } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { supabase } from '@/lib/supabaseClient'
+import { useOnboarding } from '@/stores/useOnboarding' // { providerId, setCurrentStep }
+
+export default function Step6Details() {
+  const router = useRouter()
+  const { providerId, setCurrentStep } = useOnboarding()
+  const [form, setForm] = useState({ headline:'', bio:'', phonePublic:'', website:'' })
+  const [loading, setLoading] = useState(false)
+  const [err, setErr] = useState<string|null>(null)
+
+  const isValid =
+    !!providerId &&
+    form.headline.trim().length >= 4 &&
+    form.bio.trim().length >= 10
+
+  async function onNext(e?: any) {
+    e?.preventDefault?.()
+    if (!isValid || loading) return
+    setLoading(true); setErr(null)
+    try {
+      const { error } = await supabase
+        .from('providers')
+        .update({
+          headline: form.headline.trim(),
+          bio: form.bio.trim(),
+          phone_public: form.phonePublic.trim() || null,
+          website: form.website.trim() || null,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', providerId)
+      if (error) throw error
+
+      setCurrentStep(7)
+      router.replace('/services/onboarding?step=7')
+    } catch (e: any) {
+      console.error('[Step6Details]', e)
+      setErr(e?.message ?? 'Failed to save details')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <form onSubmit={onNext}>
+      {/* inputs ... make them controlled and visible validation messages */}
+      <button type="submit" onClick={onNext} disabled={!isValid || loading}>
+        {loading ? 'Saving…' : 'Next'}
+      </button>
+      {err && <p className="text-red-600 mt-2">{err}</p>}
+    </form>
+  )
+}
