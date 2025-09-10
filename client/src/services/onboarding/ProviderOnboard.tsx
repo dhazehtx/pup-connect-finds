@@ -213,139 +213,13 @@ const ProviderOnboard: React.FC = () => {
     { id: 7, title: 'Review', status: currentStep === 7 ? 'current' : currentStep > 7 ? 'completed' : 'pending' },
   ];
 
-  const handleNext = async () => {
-    console.log('[ONBOARDING] handleNext called:', { currentStep, providerId, hasProviderId: !!providerId, payoutSetupComplete });
-    
-    // DEBUG: Clear messages for common blocking issues
-    if (!providerId) {
-      console.warn('[STEP BLOCKED] No providerId - cannot advance');
-      toast({
-        title: "Setup Required", 
-        description: "Please complete your basic information first.",
-        variant: "destructive"
-      });
+  const handleNext = () => {
+    console.log('[Step5] handleNext', { providerId, stripeAccountId: payoutSetup.accountId, payoutSetupComplete });
+    if (!payoutSetupComplete) {
+      alert('Please complete Stripe Connect first. If you just finished, tap "I\'ve Completed Setup" or wait 2–3 seconds.');
       return;
     }
-    
-    // Auto-save on step 1 if not saved yet
-    if (currentStep === 1 && !providerId) {
-      console.log('[ONBOARDING] Auto-saving basics before proceeding');
-      await saveBasics();
-      // The save function will handle the toast and providerId setting
-      // Check again after save attempt
-      const store = useOnboardingStore.getState();
-      if (!store.providerId) {
-        console.log('[ONBOARDING] Save failed, cannot proceed');
-        return;
-      }
-    }
-
-    if (currentStep === 2) {
-      // Allow next if ID was saved (inputs are locked) or verification is in any non-idle state
-      if (idInputsLocked || idVerification.status === 'pending' || idVerification.status === 'passed' || idVerification.status === 'loading') {
-        // User can proceed while verification happens in background
-      } else if (!idFrontFile || !idBackFile) {
-        toast({
-          title: "ID Photos Required",
-          description: "Please upload both front and back photos of your ID before proceeding.",
-          variant: "destructive",
-        });
-        return;
-      } else {
-        toast({
-          title: "Save ID Required",
-          description: "Please save your ID documents before proceeding.",
-          variant: "destructive",
-        });
-        return;
-      }
-    }
-
-    if (currentStep === 3 && !bgCheckConsent) {
-      toast({
-        title: "Consent Required",
-        description: "Please provide consent for background check before proceeding.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (currentStep === 4 && payoutSetup.status !== 'connected') {
-      toast({
-        title: "Payout Setup Required",
-        description: "Please complete Stripe Connect setup before proceeding.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (currentStep === 5) {
-      // Validate service details are filled and saved
-      if (!serviceDetails.description.trim() || serviceDetails.description.trim().length < 10) {
-        toast({
-          title: "Service Description Required",
-          description: "Please provide a detailed service description (at least 10 characters).",
-          variant: "destructive",
-        });
-        return;
-      }
-      
-      if (!serviceDetails.pricePerService || parseFloat(serviceDetails.pricePerService) <= 0) {
-        toast({
-          title: "Price Required",
-          description: "Please enter a valid starting price for your services.",
-          variant: "destructive",
-        });
-        return;
-      }
-      
-      if (serviceDetails.serviceTypes.length === 0) {
-        toast({
-          title: "Service Types Required",
-          description: "Please select at least one service type you offer.",
-          variant: "destructive",
-        });
-        return;
-      }
-      
-      if (!serviceDetailsSaved) {
-        toast({
-          title: "Save Details Required",
-          description: "Please save your service details before proceeding.",
-          variant: "destructive",
-        });
-        return;
-      }
-    }
-
-    // Step 5 specific debugging  
-    if (currentStep === 5 && !payoutSetupComplete) {
-      console.warn('[STEP 5 BLOCKED] Please finish Stripe Connect first');
-      toast({
-        title: "Stripe Connect Required",
-        description: "Please complete Stripe Connect setup before proceeding.",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    // CRITICAL: Step 6 enforces sequential flow - requires payout setup completion
-    if (currentStep === 6 && !payoutSetupComplete) {
-      console.warn('[STEP 6 BLOCKED] Payout setup not complete');
-      toast({
-        title: "Payout Setup Required",
-        description: "Please complete your payout setup (Step 4) before proceeding to terms.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (currentStep < steps.length - 1) {
-      setCurrentStep(currentStep + 1);
-    } else if (currentStep === steps.length - 1) {
-      // Final step - navigate to services dashboard
-      navigate('/marketplace');
-    }
+    navigate('/services/onboarding?step=6');
   };
 
   const handleBack = () => {
@@ -1733,14 +1607,14 @@ const ProviderOnboard: React.FC = () => {
         >
           Back
         </Button>
-        <Button
+        <button
           type="button"
-          onClick={handleNext}
-          disabled={currentStep === steps.length - 1}
           data-testid="button-next-step"
+          onClick={handleNext}
+          className="btn btn-primary"
         >
-          {currentStep === steps.length - 1 ? 'Complete' : 'Next'}
-        </Button>
+          Next
+        </button>
       </div>
     </div>
   );
