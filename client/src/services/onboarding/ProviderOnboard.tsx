@@ -1389,15 +1389,19 @@ const ProviderOnboard: React.FC = () => {
                     <p className="text-sm text-blue-700">Finish your Stripe Connect setup in the opened window.</p>
                   </div>
                 </div>
-                <Button 
+                <button
                   type="button"
-                  onClick={checkPayoutStatus}
-                  variant="outline"
-                  className="w-full"
+                  className="text-sm text-muted-foreground underline mt-3"
+                  onClick={() => {
+                    // Re-run the effect logic explicitly
+                    sessionStorage.removeItem('payoutDone');
+                    // force a recheck by resetting the flag then triggering the effect above
+                    setPayoutSetupComplete(false);
+                  }}
                   data-testid="button-check-payout-status"
                 >
                   I've Completed Setup
-                </Button>
+                </button>
               </div>
             )}
 
