@@ -10,6 +10,7 @@ import { useToast } from '@/hooks/use-toast';
 import FeaturedProducts from '@/components/FeaturedProducts';
 import ProductTags from '@/components/ProductTags';
 import { Separator } from '@/components/ui/separator';
+import StripeCheckoutDemo from '@/components/StripeCheckoutDemo';
 
 interface Product {
   id: string;
@@ -222,6 +223,11 @@ const StoreTab = () => {
       <div className="h-2 w-full bg-primary-200 rounded-b-3xl"></div>
       
       <div className="p-4 space-y-6">
+        {/* Stripe Checkout Demo */}
+        <div className="flex justify-center mb-6">
+          <StripeCheckoutDemo />
+        </div>
+
         {/* Filter and Sort Section */}
         <div className="pt-4">
           <FilterBar

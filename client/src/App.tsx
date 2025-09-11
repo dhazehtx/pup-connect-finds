@@ -129,6 +129,8 @@ function App() {
                   <Route path="/cart" element={<Cart />} />
                   <Route path="/checkout/success" element={<CheckoutSuccess />} />
                   <Route path="/checkout/cancel" element={<CheckoutCancel />} />
+                  <Route path="/success" element={<CheckoutSuccess />} />
+                  <Route path="/cancel" element={<CheckoutCancel />} />
                   <Route path="/orders" element={
                     <RequireAuth>
                       <OrderHistory />

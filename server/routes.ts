@@ -78,7 +78,7 @@ import { contentModerationMiddleware } from './utils/aiModeration';
 import Stripe from 'stripe';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
-  apiVersion: '2024-11-20.acacia',
+  apiVersion: '2025-08-27.basil',
 });
 
 import { 
@@ -1309,6 +1309,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Error fetching notifications:', error);
       res.json([]); // Return empty array on error
+    }
+  }));
+
+  // Create Stripe checkout session
+  app.post("/create-checkout-session", asyncHandler(async (req: any, res: any) => {
+    try {
+      const session = await stripe.checkout.sessions.create({
+        payment_method_types: ["card"],
+        mode: "payment",
+        line_items: [
+          {
+            price_data: {
+              currency: "usd",
+              product_data: {
+                name: "My Pup Service Example",
+              },
+              unit_amount: 2000, // $20
+            },
+            quantity: 1,
+          },
+        ],
+        success_url: `${process.env.BASE_URL}/success`,
+        cancel_url: `${process.env.BASE_URL}/cancel`,
+      });
+
+      res.json({ url: session.url });
+    } catch (error: any) {
+      console.error("Stripe error:", error);
+      res.status(500).json({ error: error.message });
     }
   }));
 
