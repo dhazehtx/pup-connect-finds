@@ -59,6 +59,8 @@ const ProviderOnboard: React.FC = () => {
   const [consentError, setConsentError] = useState<string | null>(null);
   const [payoutSetup, setPayoutSetup] = useState<PayoutSetupState>({ status: 'idle' });
   const [accountType, setAccountType] = useState<'individual' | 'business'>('individual');
+  const [checking, setChecking] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
   const [serviceDetails, setServiceDetails] = useState({
     description: '',
     pricePerService: '',
@@ -132,27 +134,78 @@ const ProviderOnboard: React.FC = () => {
     ensureApplicationId();
   }, [authUser?.id, providerId, applicationId, setApplicationId]);
 
-  // CRITICAL: Step 5 completion flag when returning from Stripe
+  // Automatic Stripe account status polling
+  const pollStripeStatus = async () => {
+    let cancelled = false;
+    
+    setChecking(true);
+    setErr(null);
+
+    const start = Date.now();
+    while (!cancelled && Date.now() - start < 60_000) { // up to 60s
+      try {
+        console.log('[STRIPE POLL] Checking account status...');
+        const r = await fetch("/api/stripe/account/status");
+        
+        if (r.status === 401) {
+          // tell user to re-login (or do a silent refresh)
+          setErr("Your session expired. Please sign in again.");
+          break;
+        }
+        
+        if (!r.ok) {
+          console.log('[STRIPE POLL] Request failed, retrying in 2s...');
+          // brief delay then try again
+          await new Promise((s) => setTimeout(s, 2000));
+          continue;
+        }
+        
+        const data = await r.json();
+        console.log('[STRIPE POLL] Account status:', data);
+        
+        if (data.connected) {
+          console.log('[STRIPE POLL] Account fully connected! Advancing to next step...');
+          setPayoutSetupComplete(true);
+          setPayoutSetup({ status: 'connected', accountId: data.account_id });
+          // advance the wizard automatically
+          goTo(6); // details
+          return;
+        }
+        
+        console.log('[STRIPE POLL] Not enabled yet, trying again in 2s...');
+        // Not enabled yet — try again in 2s
+        await new Promise((s) => setTimeout(s, 2000));
+      } catch (error) {
+        console.error('[STRIPE POLL] Error:', error);
+        await new Promise((s) => setTimeout(s, 2000));
+      }
+    }
+    
+    setChecking(false);
+    
+    return () => { cancelled = true; };
+  };
+
+  // Auto-poll when returning from Stripe or on Step 5 mount
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const fromStripe = urlParams.get('from') === 'stripe';
     const step = urlParams.get('step');
     
-    // Step 5 sets the completion flag after Stripe returns
+    // Clean up URL parameters if returning from Stripe
     if (fromStripe && step === '5') {
-      console.log('[STEP 5] User returned from Stripe, setting completion flag...');
-      setPayoutSetupComplete(true);
-    }
-    
-    if (fromStripe && step === '5' && authUser?.id && providerId && applicationId) {
-      console.log('[PAYOUT] User returned from Stripe, checking status...');
-      checkPayoutStatus();
-      
-      // Clean up URL parameters
+      console.log('[STRIPE POLL] User returned from Stripe, starting auto-poll...');
       const newUrl = window.location.pathname + '?step=5';
       window.history.replaceState({}, '', newUrl);
+      
+      // Start polling immediately
+      pollStripeStatus();
+    } else if (currentStep === 5 && !payoutSetupComplete && authUser?.id) {
+      // Also poll on Step 5 mount if not already complete
+      console.log('[STRIPE POLL] Step 5 mounted, checking status...');
+      pollStripeStatus();
     }
-  }, [authUser?.id, providerId, applicationId]);
+  }, [currentStep, authUser?.id, payoutSetupComplete]);
 
   // Auth guard - redirect to auth if not signed in
   useEffect(() => {
@@ -161,29 +214,6 @@ const ProviderOnboard: React.FC = () => {
     }
   }, [authUser, navigate]);
 
-  // Re-check Stripe status on Step 5 mount (independent of ?from=stripe so it works after detours)
-  useEffect(() => {
-    if (currentStep !== 5 || !stripeAccountId || payoutSetupComplete) return
-    ;(async () => {
-      const res = await fetch(`/api/stripe/status?accountId=${encodeURIComponent(stripeAccountId)}`)
-      const data = await res.json()
-
-      const isTest =
-        process.env.NEXT_PUBLIC_STRIPE_MODE === 'test' ||
-        process.env.NEXT_PUBLIC_VERCEL_ENV === 'development'
-
-      const okToProceed = isTest
-        ? Boolean(data?.details_submitted || data?.payouts_enabled)
-        : Boolean(data?.payouts_enabled)
-
-      console.log('[Stripe status]', data, { okToProceed })
-
-      if (okToProceed) {
-        setPayoutSetupComplete(true)
-        sessionStorage.setItem('payoutDone', '1')
-      }
-    })()
-  }, [currentStep, stripeAccountId, payoutSetupComplete, setPayoutSetupComplete])
 
   // Show nothing if user is not authenticated (redirect is happening)
   if (!authUser) {
@@ -627,86 +657,6 @@ const ProviderOnboard: React.FC = () => {
     }
   };
 
-  const checkPayoutStatus = async () => {
-    if (!authUser?.id || !providerId || !applicationId) {
-      toast({
-        title: "Missing Information",
-        description: "Required information missing. Please complete previous steps first.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    try {
-      console.log('[PAYOUT STATUS] Checking status for:', { 
-        userId: authUser.id, 
-        providerId, 
-        applicationId 
-      });
-
-      const response = await fetch('/api/payout/status', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          userId: authUser.id,
-          providerId,
-          applicationId
-        }),
-      });
-
-      const data = await response.json();
-      console.log('[PAYOUT STATUS] API response:', data);
-
-      if (data.success && data.connected) {
-        setPayoutSetup({ status: 'connected', accountId: data.account?.id });
-        if (data.account?.id) setStripeAccountId(data.account.id); // Store in global state
-        setPayoutSetupComplete(true); // CRITICAL: Set the flag that gates depend on
-        sessionStorage.setItem('payoutDone', '1'); // Persist flag
-        console.log('[PAYOUT STATUS] ✅ Stripe connected - setting payoutSetupComplete to true');
-        toast({
-          title: "Payout Setup Complete",
-          description: "Your Stripe account is connected and ready!",
-        });
-      } else if (data.success && !data.connected && data.account) {
-        // In test mode, allow progress if details_submitted is true (payouts_enabled is often false in test)
-        const isTestMode = import.meta.env.DEV || import.meta.env.VITE_STRIPE_MODE === 'test';
-        const okToProceed = isTestMode 
-          ? Boolean(data?.details_submitted || data?.payouts_enabled)
-          : Boolean(data?.payouts_enabled);
-          
-        if (okToProceed) {
-          setPayoutSetup({ status: 'connected', accountId: data.account.id });
-          if (data.account?.id) setStripeAccountId(data.account.id); // Store in global state
-          setPayoutSetupComplete(true);
-          sessionStorage.setItem('payoutDone', '1');
-          console.log('[PAYOUT STATUS] ✅ Test mode: Stripe details submitted - allowing progress');
-          toast({
-            title: "Payout Setup Complete",
-            description: "Your Stripe account details are submitted and ready!",
-          });
-        } else {
-          toast({
-            title: "Setup In Progress",
-            description: data.message || "Please complete your Stripe setup and try again.",
-            variant: "destructive",
-          });
-        }
-      } else {
-        toast({
-          title: "Setup In Progress",
-          description: data.message || "Please complete your Stripe setup and try again.",
-          variant: "destructive",
-        });
-      }
-    } catch (error: any) {
-      console.error('Payout status check error:', error);
-      toast({
-        title: "Status Check Failed",
-        description: error?.message || "Unable to verify payout setup status.",
-        variant: "destructive",
-      });
-    }
-  };
 
   const saveServiceDetails = async () => {
     try {
@@ -794,32 +744,6 @@ const ProviderOnboard: React.FC = () => {
     }
   };
 
-  // Check URL parameters for Stripe Connect return
-  useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const fromStripe = urlParams.get('from') === 'stripe' || urlParams.get('connected') === 'true';
-    
-    console.log('[STRIPE RETURN] URL check:', { 
-      search: window.location.search, 
-      fromStripe, 
-      currentStep, 
-      payoutSetupComplete 
-    });
-    
-    if (fromStripe && (currentStep === 4 || currentStep === 5)) {
-      console.log('[STRIPE RETURN] ✅ Detected return from Stripe, verifying account status...');
-      
-      // Verify account status and set flag
-      checkPayoutStatus().then(() => {
-        console.log('[STRIPE RETURN] ✅ Status check completed, cleaning URL');
-        // Clean up URL parameters AFTER the async call completes
-        const newUrl = window.location.pathname + `?step=${currentStep}`;
-        window.history.replaceState({}, '', newUrl);
-      }).catch((err) => {
-        console.error('[STRIPE RETURN] ❌ Status check failed:', err);
-      });
-    }
-  }, [currentStep]);
 
   // Initialize from storage on mount
   useEffect(() => {
@@ -1400,34 +1324,44 @@ const ProviderOnboard: React.FC = () => {
             {payoutSetup.status === 'connecting' && (
               <div className="space-y-4">
                 <div className="bg-blue-50 p-4 rounded-lg flex items-center space-x-3">
-                  <Loader2 className="h-5 w-5 animate-spin text-blue-600" />
+                  {checking ? (
+                    <Loader2 className="h-5 w-5 animate-spin text-blue-600" />
+                  ) : (
+                    <Loader2 className="h-5 w-5 animate-spin text-blue-600" />
+                  )}
                   <div>
                     <p className="text-sm font-medium text-blue-800">Complete Setup in New Window</p>
                     <p className="text-sm text-blue-700">Finish your Stripe Connect setup in the opened window.</p>
+                    {checking && (
+                      <p className="text-xs text-blue-600 mt-1">Checking account status...</p>
+                    )}
+                    {err && (
+                      <p className="text-xs text-red-600 mt-1">{err}</p>
+                    )}
                   </div>
                 </div>
                 <button
                   type="button"
                   className="text-sm text-muted-foreground underline mt-3"
                   onClick={() => {
-                    // Re-run the effect logic explicitly
-                    sessionStorage.removeItem('payoutDone');
-                    // force a recheck by resetting the flag then triggering the effect above
-                    setPayoutSetupComplete(false);
+                    console.log('[BUTTON] I\'ve Completed Setup clicked - starting poll');
+                    pollStripeStatus();
                   }}
+                  disabled={checking}
                   data-testid="button-check-payout-status"
                 >
-                  I've Completed Setup
+                  {checking ? 'Checking...' : "I've Completed Setup"}
                 </button>
                 <button 
                   type="button" 
                   className="text-sm underline mt-2"
                   onClick={() => {
-                    // force re-check by clearing persisted flag
-                    sessionStorage.removeItem('payoutDone')
-                    setPayoutSetupComplete(false)
-                  }}>
-                  Force Re-check
+                    console.log('[BUTTON] Force Re-check clicked - starting poll');
+                    pollStripeStatus();
+                  }}
+                  disabled={checking}
+                >
+                  {checking ? 'Checking...' : 'Force Re-check'}
                 </button>
               </div>
             )}

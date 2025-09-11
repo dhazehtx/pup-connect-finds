@@ -17,6 +17,7 @@ declare global {
         [key: string]: any;
       };
       isAuthenticated(): boolean;
+      skipAuth?: boolean;
     }
   }
 }
