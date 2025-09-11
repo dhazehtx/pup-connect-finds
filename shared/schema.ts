@@ -376,6 +376,12 @@ export const providers = pgTable("providers", {
   id_doc_front_url: text("id_doc_front_url"),
   id_doc_back_url: text("id_doc_back_url"),
   bg_status: text("bg_status").default("pending"), // pending, passed, failed
+  stripe_account_id: text("stripe_account_id"),
+  onboarding_status: text("onboarding_status").default("pending"), // pending, verified, requires_action
+  charges_enabled: boolean("charges_enabled").default(false),
+  payouts_enabled: boolean("payouts_enabled").default(false),
+  requirements_due: jsonb("requirements_due").default([]),
+  payout_setup_complete: boolean("payout_setup_complete").default(false),
   created_at: timestamp("created_at").defaultNow(),
   updated_at: timestamp("updated_at").defaultNow(),
 });

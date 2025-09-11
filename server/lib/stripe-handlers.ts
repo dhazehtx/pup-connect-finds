@@ -33,6 +33,10 @@ export async function logStripeEvent(event: Stripe.Event): Promise<void> {
 
 export async function upsertProviderStatus(status: ProviderStatus): Promise<void> {
   try {
+    // Check if account is fully connected (both charges and payouts enabled)
+    const isFullyConnected = status.chargesEnabled && status.payoutsEnabled;
+    const onboardingStatus = status.chargesEnabled ? 'verified' : 'requires_action';
+
     const query = `
       UPDATE providers 
       SET 
@@ -40,24 +44,28 @@ export async function upsertProviderStatus(status: ProviderStatus): Promise<void
         payouts_enabled = $3,
         requirements_due = $4,
         onboarding_status = $5,
+        payout_setup_complete = $6,
         updated_at = NOW()
       WHERE stripe_account_id = $1
     `;
-
-    const onboardingStatus = status.chargesEnabled ? 'verified' : 'requires_action';
 
     const result = await pool.query(query, [
       status.stripeAccountId,
       status.chargesEnabled,
       status.payoutsEnabled,
       JSON.stringify(status.requirementsDue),
-      onboardingStatus
+      onboardingStatus,
+      isFullyConnected // Set payout_setup_complete to true when both are enabled
     ]);
 
     if (result.rowCount === 0) {
       console.warn(`[STRIPE HANDLERS] No provider found with Stripe account: ${status.stripeAccountId}`);
     } else {
-      console.log(`[STRIPE HANDLERS] Updated provider status for account: ${status.stripeAccountId}`);
+      console.log(`[STRIPE HANDLERS] Updated provider status for account: ${status.stripeAccountId}`, {
+        chargesEnabled: status.chargesEnabled,
+        payoutsEnabled: status.payoutsEnabled,
+        payoutSetupComplete: isFullyConnected
+      });
     }
   } catch (error) {
     console.error('[STRIPE HANDLERS] Error updating provider status:', error);

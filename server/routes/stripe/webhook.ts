@@ -16,7 +16,7 @@ const router = Router();
 // Initialize Stripe only if we have a secret key
 let stripe: Stripe | null = null;
 if (STRIPE_SECRET_KEY) {
-  stripe = new Stripe(STRIPE_SECRET_KEY, { apiVersion: '2024-06-20' });
+  stripe = new Stripe(STRIPE_SECRET_KEY, { apiVersion: '2025-08-27.basil' });
 }
 
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });
@@ -81,7 +81,6 @@ router.post("/", async (req, res) => {
         }
 
         case 'transfer.created':
-        case 'transfer.failed':
         case 'transfer.reversed': {
           await handleTransferResult(event);
           break;
