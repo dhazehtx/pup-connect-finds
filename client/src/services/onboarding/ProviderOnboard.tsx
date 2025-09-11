@@ -610,11 +610,11 @@ const ProviderOnboard: React.FC = () => {
         throw new Error('Stripe onboarding URL was not returned.');
       }
 
-      console.log('[PAYOUT] Redirecting to Stripe URL:', data.url);
+      console.log('[PAYOUT] Opening Stripe URL in new tab:', data.url);
       setPayoutSetup({ status: 'connecting' });
       
-      // Redirect to Stripe Connect
-      window.location.href = data.url;
+      // Open Stripe Connect in new tab (preferred for security and UX)
+      window.open(data.url, "_blank", "noopener");
 
     } catch (e: any) {
       console.error('[PAYOUT] connectStripe error:', e);
