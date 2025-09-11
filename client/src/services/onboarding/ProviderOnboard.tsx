@@ -138,50 +138,61 @@ const ProviderOnboard: React.FC = () => {
   const pollStripeStatus = async () => {
     let cancelled = false;
     
-    setChecking(true);
-    setErr(null);
+    try {
+      setChecking(true);
+      setErr(null);
 
-    const start = Date.now();
-    while (!cancelled && Date.now() - start < 60_000) { // up to 60s
-      try {
-        console.log('[STRIPE POLL] Checking account status...');
-        const r = await fetch("/api/stripe/account/status");
-        
-        if (r.status === 401) {
-          // tell user to re-login (or do a silent refresh)
-          setErr("Your session expired. Please sign in again.");
-          break;
-        }
-        
-        if (!r.ok) {
-          console.log('[STRIPE POLL] Request failed, retrying in 2s...');
-          // brief delay then try again
+      const start = Date.now();
+      while (!cancelled && Date.now() - start < 60_000) { // up to 60s
+        try {
+          console.log('[STRIPE POLL] Checking account status...');
+          const r = await fetch("/api/stripe/account/status");
+          
+          if (r.status === 401) {
+            setErr("Your session expired. Please sign in again.");
+            break;
+          }
+          
+          if (r.status === 500) {
+            setErr("Server error occurred. Please try again.");
+            break;
+          }
+          
+          if (!r.ok) {
+            console.log('[STRIPE POLL] Request failed, retrying in 2s...');
+            await new Promise((s) => setTimeout(s, 2000));
+            continue;
+          }
+          
+          const data = await r.json();
+          console.log('[STRIPE POLL] Account status:', data);
+          
+          if (data.connected) {
+            console.log('[STRIPE POLL] Account fully connected! Advancing to next step...');
+            setPayoutSetupComplete(true);
+            setPayoutSetup({ status: 'connected', accountId: data.account_id });
+            // advance the wizard automatically
+            goTo(6); // details
+            return;
+          }
+          
+          console.log('[STRIPE POLL] Not enabled yet, trying again in 2s...');
           await new Promise((s) => setTimeout(s, 2000));
-          continue;
+        } catch (error) {
+          console.error('[STRIPE POLL] Error:', error);
+          if (Date.now() - start > 50_000) { // If we're near timeout, show error
+            setErr("Connection issues. Please check your internet and try again.");
+            break;
+          }
+          await new Promise((s) => setTimeout(s, 2000));
         }
-        
-        const data = await r.json();
-        console.log('[STRIPE POLL] Account status:', data);
-        
-        if (data.connected) {
-          console.log('[STRIPE POLL] Account fully connected! Advancing to next step...');
-          setPayoutSetupComplete(true);
-          setPayoutSetup({ status: 'connected', accountId: data.account_id });
-          // advance the wizard automatically
-          goTo(6); // details
-          return;
-        }
-        
-        console.log('[STRIPE POLL] Not enabled yet, trying again in 2s...');
-        // Not enabled yet — try again in 2s
-        await new Promise((s) => setTimeout(s, 2000));
-      } catch (error) {
-        console.error('[STRIPE POLL] Error:', error);
-        await new Promise((s) => setTimeout(s, 2000));
       }
+    } catch (error) {
+      console.error('[STRIPE POLL] Unexpected error:', error);
+      setErr("An unexpected error occurred. Please try again.");
+    } finally {
+      setChecking(false);
     }
-    
-    setChecking(false);
     
     return () => { cancelled = true; };
   };
@@ -1332,12 +1343,13 @@ const ProviderOnboard: React.FC = () => {
                   <div>
                     <p className="text-sm font-medium text-blue-800">Complete Setup in New Window</p>
                     <p className="text-sm text-blue-700">Finish your Stripe Connect setup in the opened window.</p>
-                    {checking && (
-                      <p className="text-xs text-blue-600 mt-1">Checking account status...</p>
-                    )}
-                    {err && (
-                      <p className="text-xs text-red-600 mt-1">{err}</p>
-                    )}
+                    {checking ? (
+                      <p className="text-sm text-muted-foreground">Checking your Stripe status…</p>
+                    ) : err ? (
+                      <div className="text-sm text-red-600">
+                        {err} <button onClick={pollStripeStatus} className="underline">Try again</button>
+                      </div>
+                    ) : null}
                   </div>
                 </div>
                 <button
