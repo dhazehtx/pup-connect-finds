@@ -1603,6 +1603,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Stripe account status by authenticated user
+  app.get('/api/stripe/account/status', async (req, res) => {
+    const { getStripeAccountStatus } = await import('./routes/stripe/account/status');
+    return getStripeAccountStatus(req, res);
+  });
+
   app.use('/api/stripe/webhook', stripeWebhookRouter);
 
   // Register health check routes

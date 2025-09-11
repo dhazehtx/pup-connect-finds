@@ -2,7 +2,7 @@ import Stripe from 'stripe';
 
 // Initialize Stripe with secret key
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || 'sk_test_mock_key', {
-  apiVersion: '2025-07-30.basil',
+  apiVersion: '2025-08-27.basil',
 });
 
 export interface CreateAccountParams {
@@ -40,7 +40,7 @@ export async function createStripeConnectAccount(params: CreateAccountParams): P
       type: params.type,
       country: params.country,
       email: params.email,
-      business_type: params.business_type === 'business' ? 'company' : 'individual',
+      business_type: params.business_type === 'company' ? 'company' : 'individual',
     });
 
     return account;
