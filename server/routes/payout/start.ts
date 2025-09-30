@@ -1,15 +1,12 @@
 import type { Request, Response } from "express";
 import Stripe from "stripe";
-import { createClient } from "@supabase/supabase-js";
+import { Pool } from "@neondatabase/serverless";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
   apiVersion: "2025-08-27.basil",
 });
 
-const supabase = createClient(
-  process.env.SUPABASE_URL as string,
-  process.env.SUPABASE_SERVICE_ROLE_KEY as string
-);
+const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 
 // GET: health check for this route
 export async function getPayoutStart(req: Request, res: Response) {
@@ -32,14 +29,13 @@ export async function startPayout(req: Request, res: Response) {
       return res.status(400).json({ error: "Missing or invalid 'userId'." });
     }
 
-    // 1) Load provider row for this user
-    const { data: provider, error: providerErr } = await supabase
-      .from("service_providers")
-      .select("*")
-      .eq("user_id", userId)
-      .single();
-
-    if (providerErr && providerErr.code !== "PGRST116") {
+    // 1) Load provider row for this user  
+    let provider;
+    try {
+      const providerQuery = `SELECT id, stripe_account_id FROM providers WHERE user_id = $1 LIMIT 1`;
+      const providerResult = await pool.query(providerQuery, [userId]);
+      provider = providerResult.rows[0] || null;
+    } catch (providerErr: any) {
       console.error("[PAYOUT] provider load error:", providerErr);
       return res.status(500).json({ error: "Failed to load provider." });
     }
@@ -49,34 +45,29 @@ export async function startPayout(req: Request, res: Response) {
     let stripeAccountId = provider?.stripe_account_id as string | null | undefined;
 
     if (!providerId) {
-      const { data: inserted, error: insertErr } = await supabase
-        .from("service_providers")
-        .insert({ user_id: userId })
-        .select()
-        .single();
-
-      if (insertErr) {
+      try {
+        const insertQuery = `INSERT INTO providers (user_id) VALUES ($1) RETURNING id, stripe_account_id`;
+        const insertResult = await pool.query(insertQuery, [userId]);
+        providerId = insertResult.rows[0].id;
+        stripeAccountId = insertResult.rows[0].stripe_account_id;
+      } catch (insertErr: any) {
         console.error("[PAYOUT] provider insert error:", insertErr);
         return res.status(500).json({ error: "Failed to create provider row." });
       }
-      providerId = inserted.id;
-      stripeAccountId = inserted.stripe_account_id;
     }
 
     // 3) Create Stripe Express account if missing
     if (!stripeAccountId) {
       const account = await stripe.accounts.create({ type: "express" });
 
-      const { error: updateErr } = await supabase
-        .from("service_providers")
-        .update({ stripe_account_id: account.id })
-        .eq("id", providerId);
-
-      if (updateErr) {
+      try {
+        const updateQuery = `UPDATE providers SET stripe_account_id = $1 WHERE id = $2`;
+        await pool.query(updateQuery, [account.id, providerId]);
+        stripeAccountId = account.id;
+      } catch (updateErr: any) {
         console.error("[PAYOUT] provider update error:", updateErr);
         return res.status(500).json({ error: "Failed to save stripe_account_id." });
       }
-      stripeAccountId = account.id;
     }
 
     // 4) Create onboarding link
