@@ -1543,6 +1543,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
     const { checkPayoutStatus } = await import('./routes/payout/status');
     return checkPayoutStatus(req, res);
   });
+  
+  // New authenticated payout endpoints
+  app.post('/api/payout/link', async (req, res) => {
+    const { getPayoutLink } = await import('./routes/payout/link');
+    return getPayoutLink(req, res);
+  });
+  
+  app.get('/api/payout/status', async (req, res) => {
+    const { getPayoutStatus } = await import('./routes/payout/status');
+    return getPayoutStatus(req, res);
+  });
+  
+  app.post('/api/payout/dashboard-link', async (req, res) => {
+    const { getDashboardLink } = await import('./routes/payout/dashboard-link');
+    return getDashboardLink(req, res);
+  });
+  
   app.use('/api/applications/progress', progressRouter);
   app.use('/api/applications/submit', submitRouter);
   app.post('/api/applications/consent', consentHandler);
