@@ -1,0 +1,64 @@
+“Make, test, iterate…” box)
+
+Implement the following Stripe Connect onboarding polish in this project.
+
+Goals
+
+Add POST /api/payout/link → returns a fresh onboarding link for the current logged-in user’s connected account; creates an Express account and provider row if missing.
+
+Add GET /api/payout/status → returns { charges_enabled, payouts_enabled, requirements_due[] } for the current user’s connected account, or {… create_account …} if none exists.
+
+Add POST /api/payout/dashboard-link → returns { url } from stripe.accounts.createLoginLink(accountId).
+
+Persist lightweight onboarding state: add columns to the providers (or service_providers if that’s the active table) table:
+
+onboarding_status text check in ('pending','completed','needs_requirements') default 'pending'
+
+onboarding_last_checked_at timestamptz null
+Update these when status endpoints are called and when account is created.
+
+Ensure these endpoints use the authenticated user from session/middleware (ignore any userId in the request body). Use the same auth helper the app uses elsewhere. If a dev bypass exists, keep it only under NODE_ENV=development.
+
+Keep using the same DB access layer the app already uses (the project recently switched some code to direct PostgreSQL via @neondatabase/serverless pool.query()—match that pattern). Use whichever table actually exists in production: providers or service_providers. If only service_providers exists, either write to that or create a view public.providers as select * from public.service_providers;.
+
+Wire routes in server/routes.ts (or the central router) before the Vite catch-all. Return JSON with Content-Type: application/json.
+
+Exact responses
+
+POST /api/payout/link → 200 { "url": "<onboarding_url>" }
+
+GET /api/payout/status → 200 { "charges_enabled": bool, "payouts_enabled": bool, "requirements_due": string[] }
+
+POST /api/payout/dashboard-link → 200 { "url": "<dashboard_login_url>" }
+
+DB logic
+
+Provider row has: id, user_id, stripe_account_id, and the two onboarding fields above.
+
+If no row for user, create one. If no stripe_account_id, create Stripe Express account and persist stripe_account_id.
+
+Migrations (SQL)
+
+Add the two columns to whichever table is used. If table providers doesn’t exist but service_providers does, create a view providers on top of service_providers and then add the columns to the base table (service_providers). Make sure the routes write to the real table, not just a view.
+
+Security
+
+Pull the user id from session/auth (same helper used in other authenticated routes).
+
+Rate-limit payout routes (basic middleware if available).
+
+Ensure STRIPE_SECRET_KEY is server-only and never exposed.
+
+Acceptance tests to run now
+
+Call POST /api/payout/link as an authenticated test user → expect 200 { url }. Paste the URL here in the console so I can click it.
+
+Call GET /api/payout/status → show JSON.
+
+Call POST /api/payout/dashboard-link → show JSON { url }.
+
+Show the SQL it ran (or the concrete table it used), and confirm which table name is canonical.
+
+Notes
+
+We already have POST /api/payout/start working and returning JSON. You can reuse helpers from it to implement the new three endpoints.
