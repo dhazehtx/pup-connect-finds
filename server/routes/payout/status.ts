@@ -1,90 +1,96 @@
-import { Request, Response } from 'express';
-import Stripe from 'stripe';
-import { supabase } from '../../lib/supabase';
+import type { Request, Response } from "express";
+import Stripe from "stripe";
+import { Pool } from "@neondatabase/serverless";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
+  apiVersion: "2025-08-27.basil",
+});
 
-export async function checkPayoutStatus(req: Request, res: Response) {
+const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+
+/**
+ * GET /api/payout/status
+ * Returns account status for the current logged-in user's connected account
+ * Returns create_account flag if no account exists
+ */
+export async function getPayoutStatus(req: Request, res: Response) {
   try {
-    const { userId, providerId, applicationId } = req.body;
+    // Check authentication
+    if (!req.isAuthenticated || !req.isAuthenticated()) {
+      return res.status(401).json({ error: "Authentication required" });
+    }
 
-    if (!userId || !providerId || !applicationId) {
-      return res.status(400).json({ 
-        success: false, 
-        message: "Missing required fields: userId, providerId, applicationId" 
+    const userId = req.user!.id;
+
+    // 1) Load provider row
+    let provider;
+    try {
+      const providerQuery = `SELECT id, stripe_account_id, onboarding_status FROM providers WHERE user_id = $1 LIMIT 1`;
+      const providerResult = await pool.query(providerQuery, [userId]);
+      provider = providerResult.rows[0] || null;
+    } catch (providerErr: any) {
+      console.error("[PAYOUT STATUS] provider load error:", providerErr);
+      return res.status(500).json({ error: "Failed to load provider." });
+    }
+
+    // If no provider or no Stripe account, indicate account needs to be created
+    if (!provider || !provider.stripe_account_id) {
+      return res.status(200).json({
+        charges_enabled: false,
+        payouts_enabled: false,
+        requirements_due: [],
+        create_account: true,
       });
     }
 
-    console.log('[PAYOUT STATUS] Checking status:', { userId, providerId, applicationId });
-
-    // 1) Find the provider's stripe account id
-    const { data: provider, error: pErr } = await supabase
-      .from('providers')
-      .select('stripe_account_id')
-      .eq('id', providerId)
-      .single();
-
-    if (pErr || !provider?.stripe_account_id) {
-      console.error('[PAYOUT STATUS] Provider or account not found:', pErr);
-      return res.status(400).json({ 
-        success: false, 
-        message: 'Provider Stripe account not found' 
-      });
-    }
-
-    // 2) Retrieve account status from Stripe
+    // 2) Fetch account details from Stripe
     const account = await stripe.accounts.retrieve(provider.stripe_account_id);
-    
-    console.log('[PAYOUT STATUS] Stripe account status:', {
-      id: account.id,
-      details_submitted: account.details_submitted,
-      charges_enabled: account.charges_enabled,
-      payouts_enabled: account.payouts_enabled,
-      requirements: account.requirements?.currently_due?.length || 0
-    });
 
-    // 3) Determine if account is fully connected
-    const connected = account.details_submitted && 
-                     account.charges_enabled && 
-                     (account.requirements?.currently_due?.length || 0) === 0;
+    // Extract requirements
+    const requirementsDue = account.requirements?.currently_due || [];
+    const chargesEnabled = account.charges_enabled || false;
+    const payoutsEnabled = account.payouts_enabled || false;
 
-    // 4) Mark step complete if connected
-    if (connected) {
-      console.log('[PAYOUT STATUS] Marking step 5 as completed');
-      
-      const { error: updateErr } = await supabase
-        .from('provider_applications')
-        .update({ 
-          step5_status: 'completed', 
-          updated_at: new Date().toISOString() 
-        })
-        .eq('id', applicationId)
-        .eq('user_id', userId);
-
-      if (updateErr) {
-        console.error('[PAYOUT STATUS] Application update error:', updateErr);
-        // Don't throw - return status anyway
-      }
+    // Determine onboarding status
+    let onboardingStatus = 'pending';
+    if (chargesEnabled && payoutsEnabled && requirementsDue.length === 0) {
+      onboardingStatus = 'completed';
+    } else if (requirementsDue.length > 0) {
+      onboardingStatus = 'needs_requirements';
     }
 
-    return res.json({ 
-      success: true, 
-      connected,
-      account: {
-        id: account.id,
-        details_submitted: account.details_submitted,
-        charges_enabled: account.charges_enabled,
-        payouts_enabled: account.payouts_enabled,
-        requirements_pending: account.requirements?.currently_due?.length || 0
-      },
-      message: connected ? 'Payout setup completed successfully' : 'Payout setup still pending'
-    });
+    // 3) Update provider record with latest status
+    try {
+      const updateQuery = `
+        UPDATE providers 
+        SET 
+          charges_enabled = $1,
+          payouts_enabled = $2,
+          requirements_due = $3,
+          onboarding_status = $4,
+          onboarding_last_checked_at = NOW()
+        WHERE id = $5
+      `;
+      await pool.query(updateQuery, [
+        chargesEnabled,
+        payoutsEnabled,
+        JSON.stringify(requirementsDue),
+        onboardingStatus,
+        provider.id,
+      ]);
+    } catch (updateErr: any) {
+      console.error("[PAYOUT STATUS] update error:", updateErr);
+      // Don't fail the request if update fails
+    }
 
-  } catch (error: any) {
-    console.error('[PAYOUT STATUS] Error:', error);
-    return res.status(500).json({ 
-      success: false, 
-      message: error?.message || 'Internal server error' 
+    return res.status(200).json({
+      charges_enabled: chargesEnabled,
+      payouts_enabled: payoutsEnabled,
+      requirements_due: requirementsDue,
     });
+  } catch (err: any) {
+    console.error("💥 [PAYOUT STATUS] error:", err);
+    const message = err?.message ?? "Unexpected error";
+    return res.status(500).json({ error: message });
   }
 }
