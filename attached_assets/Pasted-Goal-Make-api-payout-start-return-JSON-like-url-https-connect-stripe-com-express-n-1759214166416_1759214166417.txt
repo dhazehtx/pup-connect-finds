@@ -1,9 +1,22 @@
+Goal: Make /api/payout/start return JSON like { "url": "https://connect.stripe.com/express/..." } (no HTML), creating a Stripe Connect Express account for the given userId and returning the onboarding link.
+
+Do this exactly:
+
+Open server/routes/payout/start.ts.
+
+Replace the existing getPayoutStart and startPayout implementations with the code below.
+
+Keep the exported function names the same because server/routes.ts imports them by name.
+
+Use env vars: STRIPE_SECRET_KEY, SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY.
+
+// server/routes/payout/start.ts
 import type { Request, Response } from "express";
 import Stripe from "stripe";
 import { createClient } from "@supabase/supabase-js";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
-  apiVersion: "2025-08-27.basil",
+  apiVersion: "2024-06-20",
 });
 
 const supabase = createClient(
@@ -20,7 +33,7 @@ export async function getPayoutStart(req: Request, res: Response) {
  * POST /api/payout/start
  * Body: { userId: string }
  * Behavior:
- *  - Ensure we have a provider row for this user (service_providers table)
+ *  - Ensure we have a provider row for this user (providers table)
  *  - If provider has no stripe_account_id, create an Express account
  *  - Create an onboarding Account Link and return { url }
  */
@@ -80,6 +93,7 @@ export async function startPayout(req: Request, res: Response) {
     }
 
     // 4) Create onboarding link
+    // NOTE: update these URLs to your real app paths if needed
     const refresh_url = `${process.env.BASE_URL ?? "https://pup-connect-finds.danieluke97.repl.co"}/payouts/reauth`;
     const return_url = `${process.env.BASE_URL ?? "https://pup-connect-finds.danieluke97.repl.co"}/payouts/return`;
 
@@ -98,3 +112,53 @@ export async function startPayout(req: Request, res: Response) {
     return res.status(500).json({ error: message });
   }
 }
+
+
+Do not change server/routes.ts registrations if they already have:
+
+app.get('/api/payout/start', async (req, res) => {
+  const { getPayoutStart } = await import('./routes/payout/start');
+  return getPayoutStart(req, res);
+});
+app.post('/api/payout/start', async (req, res) => {
+  const { startPayout } = await import('./routes/payout/start');
+  return startPayout(req, res);
+});
+
+
+Confirm env vars exist in Replit Secrets:
+
+STRIPE_SECRET_KEY
+
+SUPABASE_URL
+
+SUPABASE_SERVICE_ROLE_KEY
+
+(Optional) BASE_URL → e.g. your app URL, used for return_url/refresh_url.
+
+Restart the server (stop → start) so code + env are reloaded.
+
+Test with Postman:
+
+Method: POST
+
+URL: https://<your-replit-host>/api/payout/start
+
+Headers: Content-Type: application/json
+
+Body (raw → JSON):
+
+{ "userId": "<UUID from Supabase profiles.user_id or service_providers.user_id>" }
+
+
+Expected 200 JSON:
+
+{ "url": "https://connect.stripe.com/express/..." }
+
+
+If the response is HTML, verify you’re using POST, and check the server log for the line:
+
+🎯 [PAYOUT] startPayout CALLED!
+
+
+If it’s missing, the request is falling through to the Vite catch-all; ensure the route is registered before the catch-all (your project already does this).
