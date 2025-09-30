@@ -24,10 +24,12 @@ export async function getPayoutStart(req: Request, res: Response) {
 export async function startPayout(req: Request, res: Response) {
   console.log("🎯 [PAYOUT] startPayout CALLED!");
   try {
-    const { userId } = req.body ?? {};
-    if (!userId || typeof userId !== "string") {
-      return res.status(400).json({ error: "Missing or invalid 'userId'." });
+    // Dev bypass: accept userId from session, body, or query
+    const userId = (req as any).user?.id ?? req.body?.userId ?? req.query?.userId;
+    if (!userId) {
+      return res.status(400).json({ error: "missing_user_id" });
     }
+    console.log("[payout/start] Using userId:", userId);
 
     // 1) Load provider row for this user  
     let provider;

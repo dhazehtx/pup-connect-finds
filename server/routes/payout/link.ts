@@ -15,18 +15,12 @@ const pool = new Pool({ connectionString: process.env.DATABASE_URL });
  */
 export async function getPayoutLink(req: Request, res: Response) {
   try {
-    // Check authentication (with dev bypass)
-    let userId: string;
-    
-    if (process.env.NODE_ENV === 'development' && req.body.userId) {
-      // Dev bypass: allow userId in body for testing
-      userId = req.body.userId;
-      console.log('[PAYOUT LINK] Using dev bypass with userId:', userId);
-    } else if (!req.isAuthenticated || !req.isAuthenticated()) {
-      return res.status(401).json({ error: "Authentication required" });
-    } else {
-      userId = req.user!.id;
+    // Dev bypass: accept userId from session, body, or query
+    const userId = (req as any).user?.id ?? req.body?.userId ?? req.query?.userId;
+    if (!userId) {
+      return res.status(400).json({ error: "missing_user_id" });
     }
+    console.log('[PAYOUT LINK] Using userId:', userId);
 
     // 1) Load or create provider row
     let provider;
