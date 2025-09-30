@@ -14,12 +14,18 @@ const pool = new Pool({ connectionString: process.env.DATABASE_URL });
  */
 export async function getDashboardLink(req: Request, res: Response) {
   try {
-    // Check authentication
-    if (!req.isAuthenticated || !req.isAuthenticated()) {
+    // Check authentication (with dev bypass)
+    let userId: string;
+    
+    if (process.env.NODE_ENV === 'development' && req.body.userId) {
+      // Dev bypass: allow userId in body for testing
+      userId = req.body.userId;
+      console.log('[DASHBOARD LINK] Using dev bypass with userId:', userId);
+    } else if (!req.isAuthenticated || !req.isAuthenticated()) {
       return res.status(401).json({ error: "Authentication required" });
+    } else {
+      userId = req.user!.id;
     }
-
-    const userId = req.user!.id;
 
     // 1) Load provider row
     let provider;

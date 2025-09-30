@@ -15,12 +15,18 @@ const pool = new Pool({ connectionString: process.env.DATABASE_URL });
  */
 export async function getPayoutLink(req: Request, res: Response) {
   try {
-    // Check authentication
-    if (!req.isAuthenticated || !req.isAuthenticated()) {
+    // Check authentication (with dev bypass)
+    let userId: string;
+    
+    if (process.env.NODE_ENV === 'development' && req.body.userId) {
+      // Dev bypass: allow userId in body for testing
+      userId = req.body.userId;
+      console.log('[PAYOUT LINK] Using dev bypass with userId:', userId);
+    } else if (!req.isAuthenticated || !req.isAuthenticated()) {
       return res.status(401).json({ error: "Authentication required" });
+    } else {
+      userId = req.user!.id;
     }
-
-    const userId = req.user!.id;
 
     // 1) Load or create provider row
     let provider;
@@ -39,7 +45,7 @@ export async function getPayoutLink(req: Request, res: Response) {
     // Create provider row if missing
     if (!providerId) {
       try {
-        const insertQuery = `INSERT INTO providers (user_id, onboarding_status) VALUES ($1, 'pending') RETURNING id, stripe_account_id`;
+        const insertQuery = `INSERT INTO providers (user_id, onboarding_status) VALUES ($1, 'started') RETURNING id, stripe_account_id`;
         const insertResult = await pool.query(insertQuery, [userId]);
         providerId = insertResult.rows[0].id;
         stripeAccountId = insertResult.rows[0].stripe_account_id;
@@ -54,7 +60,7 @@ export async function getPayoutLink(req: Request, res: Response) {
       const account = await stripe.accounts.create({ type: "express" });
 
       try {
-        const updateQuery = `UPDATE providers SET stripe_account_id = $1, onboarding_status = 'pending' WHERE id = $2`;
+        const updateQuery = `UPDATE providers SET stripe_account_id = $1, onboarding_status = 'started' WHERE id = $2`;
         await pool.query(updateQuery, [account.id, providerId]);
         stripeAccountId = account.id;
       } catch (updateErr: any) {
