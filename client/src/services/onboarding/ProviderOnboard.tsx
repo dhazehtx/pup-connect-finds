@@ -628,7 +628,7 @@ const ProviderOnboard: React.FC = () => {
 
       // 3) Start Stripe onboarding with guaranteed IDs
       console.log('[PAYOUT] Starting Stripe Connect...');
-      const response = await fetch('/api/payout/start', {
+      const r = await fetch('/api/payout/start', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
@@ -639,16 +639,11 @@ const ProviderOnboard: React.FC = () => {
         }),
       });
 
-      const data = await response.json();
-      console.log('[PAYOUT] API response:', response.status, data);
+      const data = await r.json().catch(() => ({}));
+      console.log('[PAYOUT] API response:', r.status, data);
 
-      if (!response.ok || !data?.success) {
-        throw new Error(data?.message || `Request failed: ${response.status}`);
-      }
-
-      // Validate that we got a URL back
-      if (!data?.url) {
-        throw new Error('Stripe onboarding URL was not returned.');
+      if (!r.ok || !data?.url) {
+        throw new Error(data?.error?.message || `Onboarding failed (${r.status})`);
       }
 
       console.log('[PAYOUT] Opening Stripe URL in new tab:', data.url);
@@ -658,13 +653,11 @@ const ProviderOnboard: React.FC = () => {
       window.open(data.url, "_blank", "noopener");
 
     } catch (e: any) {
-      console.error('[PAYOUT] connectStripe error:', e);
+      console.error('[PAYOUT] client error:', e);
       setPayoutSetup({ status: 'failed', message: e?.message || "Could not start payout onboarding." });
-      toast({
-        title: "Payout Setup Failed",
-        description: e?.message || "Could not start payout onboarding.",
-        variant: "destructive",
-      });
+      
+      // Show the exact message to the user
+      alert(e.message || 'Stripe onboarding failed');
     }
   };
 
