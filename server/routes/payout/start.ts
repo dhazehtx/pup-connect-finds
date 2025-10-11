@@ -60,7 +60,13 @@ export async function startPayout(req: Request, res: Response) {
 
     // 3) Create Stripe Express account if missing
     if (!stripeAccountId) {
-      const account = await stripe.accounts.create({ type: "express" });
+      const account = await stripe.accounts.create({
+        type: "express",
+        capabilities: {
+          transfers: { requested: true },
+          card_payments: { requested: true },
+        },
+      });
 
       try {
         const updateQuery = `UPDATE providers SET stripe_account_id = $1 WHERE id = $2`;

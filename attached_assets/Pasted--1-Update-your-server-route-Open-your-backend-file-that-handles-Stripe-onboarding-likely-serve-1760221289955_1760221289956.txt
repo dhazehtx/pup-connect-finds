@@ -1,0 +1,72 @@
+🧩 1. Update your server route
+
+Open your backend file that handles Stripe onboarding — likely
+server/routes/payout/start.ts or something similar — and replace the contents of that function with the version I showed you earlier.
+
+Example:
+
+// ✅ server/routes/payout/start.ts
+import Stripe from 'stripe';
+import type { Request, Response } from 'express';
+
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: '2024-06-20' });
+
+export async function startPayout(req: Request, res: Response) {
+  try {
+    const userId = req.user?.id;
+    let acctId = await getStripeAccountIdForUser(userId); // however you store accounts
+
+    if (!acctId) {
+      const acct = await stripe.accounts.create({
+        type: 'express',
+        email: req.user?.email,
+        capabilities: {
+          transfers: { requested: true },
+          card_payments: { requested: true },
+        },
+      });
+      acctId = acct.id;
+      await saveStripeAccountId(userId, acctId);
+    }
+
+    const origin = process.env.PUBLIC_APP_URL!;
+    const link = await stripe.accountLinks.create({
+      account: acctId,
+      refresh_url: `${origin}/services/onboarding/stripe/refresh`,
+      return_url: `${origin}/services/onboarding/stripe/return`,
+      type: 'account_onboarding',
+    });
+
+    res.json({ ok: true, url: link.url });
+  } catch (err: any) {
+    res.status(400).json({ ok: false, error: { message: err.message } });
+  }
+}
+
+
+Then hit “Run” or “Restart server” in Replit.
+
+🧭 2. Update your frontend function
+
+Find your onboarding page file (for example Onboard.tsx or PayoutSetup.tsx) and replace your current Stripe connect logic with this:
+
+async function handleStripeConnect() {
+  try {
+    const r = await fetch('/api/payout/start', { method: 'POST' });
+    const text = await r.text();
+    const data = JSON.parse(text);
+
+    if (!r.ok || !data?.url) {
+      throw new Error(data?.error?.message || 'Stripe onboarding failed');
+    }
+
+    // ✅ Redirect user to Stripe
+    window.location.href = data.url;
+  } catch (err: any) {
+    console.error('Stripe connect error:', err.message);
+    alert(err.message || 'Something went wrong');
+  }
+}
+
+
+Make sure the button that triggers this (e.g. “Try Again” or “Next”) calls handleStripeConnect().

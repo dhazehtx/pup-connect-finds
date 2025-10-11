@@ -51,7 +51,13 @@ export async function getPayoutLink(req: Request, res: Response) {
 
     // 2) Create Stripe Express account if missing
     if (!stripeAccountId) {
-      const account = await stripe.accounts.create({ type: "express" });
+      const account = await stripe.accounts.create({
+        type: "express",
+        capabilities: {
+          transfers: { requested: true },
+          card_payments: { requested: true },
+        },
+      });
 
       try {
         const updateQuery = `UPDATE providers SET stripe_account_id = $1, onboarding_status = 'started' WHERE id = $2`;
