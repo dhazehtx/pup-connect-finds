@@ -1,0 +1,80 @@
+// server/routes/payout/start.ts
+import Stripe from 'stripe';
+import type { Request, Response } from 'express';
+
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: '2024-06-20' });
+
+export async function startPayout(req: Request, res: Response) {
+  try {
+    // --- Basic sanity checks
+    const origin =
+      process.env.PUBLIC_APP_URL ||
+      process.env.BASE_URL || // fallback if you used BASE_URL in Replit
+      '';
+
+    if (!process.env.STRIPE_SECRET_KEY?.startsWith('sk_test_')) {
+      console.warn('[PAYOUT] Warning: not using a test key');
+    }
+    if (!origin || !/^https?:\/\//i.test(origin)) {
+      throw new Error(
+        'Missing or invalid PUBLIC_APP_URL/BASE_URL. Set a public https URL for return/refresh.'
+      );
+    }
+
+    // Replace this with how you get the current user
+    const userId = (req as any).user?.id || req.body?.userId || req.query?.userId;
+    if (!userId) throw new Error('Missing userId (auth required before payout start).');
+
+    // --- Load or create connected account
+    let acctId = await getStripeAccountIdForUser(userId); // <-- implement lookup in your DB
+    if (!acctId) {
+      const acct = await stripe.accounts.create({
+        type: 'express',
+        capabilities: {
+          transfers: { requested: true },
+          card_payments: { requested: true },
+        },
+      });
+      acctId = acct.id;
+      await saveStripeAccountId(userId, acctId); // <-- persist in your DB
+    }
+
+    // --- Create account link
+    const link = await stripe.accountLinks.create({
+      account: acctId,
+      type: 'account_onboarding',
+      refresh_url: `${origin}/services/onboarding/stripe/refresh`,
+      return_url: `${origin}/services/onboarding/stripe/return`,
+    });
+
+    return res.json({ ok: true, url: link.url });
+  } catch (err: any) {
+    // Print everything we can to the server logs
+    console.error('[PAYOUT] Failed to create onboarding link:', {
+      message: err?.message,
+      type: err?.type,
+      code: err?.code,
+      param: err?.param,
+      raw: err?.raw?.message,
+    });
+    // Return a helpful message to the client
+    return res.status(500).json({
+      ok: false,
+      error: {
+        message:
+          err?.raw?.message ||
+          err?.message ||
+          'Stripe onboarding failed. Check server logs for details.',
+      },
+    });
+  }
+}
+
+// ---- stubs you should already have; keep your own implementations
+async function getStripeAccountIdForUser(userId: string): Promise<string | null> {
+  // query your DB: select stripe_account_id from service_providers where user_id = userId
+  return null;
+}
+async function saveStripeAccountId(userId: string, acctId: string) {
+  // update your DB
+}

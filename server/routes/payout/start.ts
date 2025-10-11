@@ -2,7 +2,7 @@ import type { Request, Response } from "express";
 import Stripe from "stripe";
 import { Pool } from "@neondatabase/serverless";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: "2025-08-27.basil",
 });
 
@@ -15,85 +15,134 @@ export async function getPayoutStart(req: Request, res: Response) {
 
 /**
  * POST /api/payout/start
- * Body: { userId: string }
- * Behavior:
- *  - Ensure we have a provider row for this user (service_providers table)
- *  - If provider has no stripe_account_id, create an Express account
- *  - Create an onboarding Account Link and return { url }
+ * Creates a Stripe Express account and returns an onboarding link
  */
 export async function startPayout(req: Request, res: Response) {
-  console.log("🎯 [PAYOUT] startPayout CALLED!");
   try {
-    // Dev bypass: accept userId from session, body, or query
-    const userId = (req as any).user?.id ?? req.body?.userId ?? req.query?.userId;
+    // --- Basic sanity checks
+    const origin =
+      process.env.PUBLIC_APP_URL ||
+      process.env.BASE_URL ||
+      "";
+
+    if (!process.env.STRIPE_SECRET_KEY?.startsWith("sk_test_")) {
+      console.warn("[PAYOUT] Warning: not using a test key");
+    }
+    
+    if (!origin || !/^https?:\/\//i.test(origin)) {
+      throw new Error(
+        "Missing or invalid PUBLIC_APP_URL/BASE_URL. Set a public https URL for return/refresh."
+      );
+    }
+
+    // Get user ID (dev bypass: session, body, or query)
+    const userId = (req as any).user?.id || req.body?.userId || req.query?.userId;
     if (!userId) {
-      return res.status(400).json({ error: "missing_user_id" });
-    }
-    console.log("[payout/start] Using userId:", userId);
-
-    // 1) Load provider row for this user  
-    let provider;
-    try {
-      const providerQuery = `SELECT id, stripe_account_id FROM providers WHERE user_id = $1 LIMIT 1`;
-      const providerResult = await pool.query(providerQuery, [userId]);
-      provider = providerResult.rows[0] || null;
-    } catch (providerErr: any) {
-      console.error("[PAYOUT] provider load error:", providerErr);
-      return res.status(500).json({ error: "Failed to load provider." });
+      return res.status(400).json({
+        ok: false,
+        error: { message: "Missing userId (auth required before payout start)." },
+      });
     }
 
-    // 2) Ensure provider row exists (create on the fly if needed)
-    let providerId = provider?.id as string | undefined;
-    let stripeAccountId = provider?.stripe_account_id as string | null | undefined;
+    console.log("[PAYOUT] Starting payout for userId:", userId);
 
-    if (!providerId) {
-      try {
-        const insertQuery = `INSERT INTO providers (user_id) VALUES ($1) RETURNING id, stripe_account_id`;
-        const insertResult = await pool.query(insertQuery, [userId]);
-        providerId = insertResult.rows[0].id;
-        stripeAccountId = insertResult.rows[0].stripe_account_id;
-      } catch (insertErr: any) {
-        console.error("[PAYOUT] provider insert error:", insertErr);
-        return res.status(500).json({ error: "Failed to create provider row." });
-      }
-    }
-
-    // 3) Create Stripe Express account if missing
+    // --- Load or create connected account
+    let stripeAccountId = await getStripeAccountIdForUser(userId);
+    
     if (!stripeAccountId) {
-      const account = await stripe.accounts.create({
+      console.log("[PAYOUT] No existing account, creating new Express account");
+      const acct = await stripe.accounts.create({
         type: "express",
         capabilities: {
           transfers: { requested: true },
           card_payments: { requested: true },
         },
       });
-
-      try {
-        const updateQuery = `UPDATE providers SET stripe_account_id = $1 WHERE id = $2`;
-        await pool.query(updateQuery, [account.id, providerId]);
-        stripeAccountId = account.id;
-      } catch (updateErr: any) {
-        console.error("[PAYOUT] provider update error:", updateErr);
-        return res.status(500).json({ error: "Failed to save stripe_account_id." });
-      }
+      stripeAccountId = acct.id;
+      await saveStripeAccountId(userId, stripeAccountId);
+      console.log("[PAYOUT] Created account:", stripeAccountId);
+    } else {
+      console.log("[PAYOUT] Using existing account:", stripeAccountId);
     }
 
-    // 4) Create onboarding link
-    const refresh_url = `${process.env.BASE_URL ?? "https://pup-connect-finds.danieluke97.repl.co"}/payouts/reauth`;
-    const return_url = `${process.env.BASE_URL ?? "https://pup-connect-finds.danieluke97.repl.co"}/payouts/return`;
-
+    // --- Create account link
     const link = await stripe.accountLinks.create({
-      account: stripeAccountId as string,
-      refresh_url,
-      return_url,
+      account: stripeAccountId,
       type: "account_onboarding",
+      refresh_url: `${origin}/services/onboarding/stripe/refresh`,
+      return_url: `${origin}/services/onboarding/stripe/return`,
     });
 
-    // 5) Respond with JSON (this is what Postman should see)
-    return res.status(200).json({ url: link.url });
+    console.log("[PAYOUT] Created onboarding link successfully");
+    return res.json({ ok: true, url: link.url });
   } catch (err: any) {
-    console.error("💥 [PAYOUT] startPayout error:", err);
-    const message = err?.message ?? "Unexpected error";
-    return res.status(500).json({ error: message });
+    // Print everything we can to the server logs
+    console.error("[PAYOUT] Failed to create onboarding link:", {
+      message: err?.message,
+      type: err?.type,
+      code: err?.code,
+      param: err?.param,
+      raw: err?.raw?.message,
+    });
+    
+    // Return a helpful message to the client
+    return res.status(500).json({
+      ok: false,
+      error: {
+        message:
+          err?.raw?.message ||
+          err?.message ||
+          "Stripe onboarding failed. Check server logs for details.",
+      },
+    });
+  }
+}
+
+// --- Database helper functions
+
+async function getStripeAccountIdForUser(userId: string): Promise<string | null> {
+  try {
+    // 1) Load provider row for this user
+    const providerQuery = `SELECT id, stripe_account_id FROM providers WHERE user_id = $1 LIMIT 1`;
+    const providerResult = await pool.query(providerQuery, [userId]);
+    const provider = providerResult.rows[0] || null;
+
+    let providerId = provider?.id as string | undefined;
+    let stripeAccountId = provider?.stripe_account_id as string | null | undefined;
+
+    // 2) Ensure provider row exists (create on the fly if needed)
+    if (!providerId) {
+      const insertQuery = `INSERT INTO providers (user_id) VALUES ($1) RETURNING id, stripe_account_id`;
+      const insertResult = await pool.query(insertQuery, [userId]);
+      providerId = insertResult.rows[0].id;
+      stripeAccountId = insertResult.rows[0].stripe_account_id;
+    }
+
+    return stripeAccountId || null;
+  } catch (error: any) {
+    console.error("[PAYOUT] Error in getStripeAccountIdForUser:", error);
+    throw error;
+  }
+}
+
+async function saveStripeAccountId(userId: string, acctId: string): Promise<void> {
+  try {
+    // Load provider to get providerId
+    const providerQuery = `SELECT id FROM providers WHERE user_id = $1 LIMIT 1`;
+    const providerResult = await pool.query(providerQuery, [userId]);
+    const providerId = providerResult.rows[0]?.id;
+
+    if (!providerId) {
+      throw new Error(`No provider found for userId: ${userId}`);
+    }
+
+    // Update with stripe_account_id
+    const updateQuery = `UPDATE providers SET stripe_account_id = $1 WHERE id = $2`;
+    await pool.query(updateQuery, [acctId, providerId]);
+    
+    console.log("[PAYOUT] Saved stripe_account_id for provider:", providerId);
+  } catch (error: any) {
+    console.error("[PAYOUT] Error in saveStripeAccountId:", error);
+    throw error;
   }
 }
