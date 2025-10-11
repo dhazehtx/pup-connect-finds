@@ -349,7 +349,7 @@ const StoreTab = () => {
                       type="button"
                       onClick={() => checkoutMutation.mutate(product.id)}
                       disabled={checkoutMutation.isPending}
-                      className="h-10 rounded-xl px-4 text-sm font-medium transition focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed bg-primary text-primary-foreground shadow-sm hover:bg-primary/90 active:bg-primary/95 flex items-center justify-center min-w-0"
+                      className="h-10 rounded-xl px-4 text-sm font-medium transition focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed bg-primary text-white shadow-sm hover:bg-primary/90 active:bg-primary/95 flex items-center justify-center min-w-0"
                     >
                       {checkoutMutation.isPending ? (
                         <>
@@ -358,9 +358,7 @@ const StoreTab = () => {
                         </>
                       ) : (
                         <>
-                          <span className="buy-now-icon mr-1.5 inline-flex">
-                            <CreditCard className="w-4 h-4 flex-shrink-0" />
-                          </span>
+                          <CreditCard className="w-4 h-4 mr-1.5 flex-shrink-0 text-white" />
                           <span className="truncate">Buy Now</span>
                         </>
                       )}
