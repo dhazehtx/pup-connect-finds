@@ -136,7 +136,16 @@ const ProviderOnboard: React.FC = () => {
 
   // Manual re-check of Stripe verification status
   const manualRecheck = async () => {
-    const r = await fetch('/api/payout/verify', { method: 'POST' });
+    if (!authUser?.id) {
+      alert('Please sign in to continue.');
+      return;
+    }
+    
+    const r = await fetch('/api/payout/verify', { 
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId: authUser.id })
+    });
     const d = await r.json().catch(() => ({}));
     if (!r.ok) {
       alert(d?.error?.message || 'Verification failed');
@@ -153,10 +162,19 @@ const ProviderOnboard: React.FC = () => {
 
   // Automatic Stripe account status polling
   function startVerifyPolling() {
+    if (!authUser?.id) {
+      console.error('[STRIPE POLL] No userId available for polling');
+      return;
+    }
+    
     let tries = 0;
     const id = setInterval(async () => {
       tries++;
-      const r = await fetch('/api/payout/verify', { method: 'POST' });
+      const r = await fetch('/api/payout/verify', { 
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: authUser.id })
+      });
       const d = await r.json().catch(() => ({}));
       if (d?.connected) {
         clearInterval(id);
@@ -617,9 +635,21 @@ const ProviderOnboard: React.FC = () => {
 
   // Open Stripe onboarding and start auto-verification polling
   async function openStripeOnboarding() {
-    const r = await fetch('/api/payout/start', { method: 'POST' });
+    if (!authUser?.id) {
+      alert('Please sign in to continue.');
+      return;
+    }
+    
+    const r = await fetch('/api/payout/start', { 
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId: authUser.id })
+    });
     const data = await r.json().catch(() => ({}));
-    if (!r.ok || !data?.url) throw new Error(data?.error?.message || `Onboarding failed (${r.status})`);
+    if (!r.ok || !data?.url) {
+      alert(data?.error?.message || `Onboarding failed (${r.status})`);
+      return;
+    }
     window.open(data.url, '_blank', 'noopener'); // open Stripe in a new tab
     startVerifyPolling(); // auto-advance when Stripe finishes
   }

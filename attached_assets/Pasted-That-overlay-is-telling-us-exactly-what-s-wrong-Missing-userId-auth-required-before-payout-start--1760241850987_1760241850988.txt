@@ -1,0 +1,99 @@
+That overlay is telling us exactly what’s wrong:
+
+Missing userId (auth required before payout start)
+
+It’s coming from the server code we added (it throws when it can’t find a user). Your Step-5 button is calling /api/payout/start without sending a user id, so the route rejects.
+
+Fix is simple: send the current user’s id in the POST body (and do the same for /api/payout/verify). Here are paste-ready changes.
+
+1) Frontend – send userId in both calls
+
+If you’re using Supabase auth on the client:
+
+// at top of the file
+import { createClient } from '@supabase/supabase-js';
+
+const supabase = createClient(
+  import.meta.env.VITE_SUPABASE_URL!,
+  import.meta.env.VITE_SUPABASE_ANON_KEY!
+);
+
+async function getUserIdOrThrow() {
+  const { data, error } = await supabase.auth.getUser();
+  if (error || !data?.user) throw new Error('Please sign in to continue.');
+  return data.user.id;
+}
+
+export async function openStripeOnboarding() {
+  const userId = await getUserIdOrThrow();
+
+  const r = await fetch('/api/payout/start', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ userId }),
+  });
+  const data = await r.json().catch(() => ({}));
+  if (!r.ok || !data?.url) throw new Error(data?.error?.message || `Onboarding failed (${r.status})`);
+  window.open(data.url, '_blank', 'noopener');
+  startVerifyPolling();
+}
+
+function startVerifyPolling() {
+  let tries = 0;
+  const id = setInterval(async () => {
+    tries++;
+    const userId = await getUserIdOrThrow();
+    const r = await fetch('/api/payout/verify', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId }),
+    });
+    const d = await r.json().catch(() => ({}));
+    if (d?.connected) {
+      clearInterval(id);
+      router.push('/services/onboarding?step=6');
+      return;
+    }
+    if (tries > 20) clearInterval(id);
+  }, 3000);
+}
+
+export async function manualRecheck() {
+  const userId = await getUserIdOrThrow();
+
+  const r = await fetch('/api/payout/verify', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ userId }),
+  });
+  const d = await r.json().catch(() => ({}));
+  if (!r.ok) return alert(d?.error?.message || 'Verification failed');
+  if (d.connected) router.push('/services/onboarding?step=6');
+  else alert('Still not connected. Finish the Stripe window or click “Complete Setup” again.');
+}
+
+
+If you already have a currentUser in React context, you can skip the Supabase call and just use currentUser.id.
+
+2) Server – keep our safety net (optional)
+
+You can leave this line in place so devs get a clear error if the client forgets to send it:
+
+const userId = (req as any).user?.id || req.body?.userId || req.query?.userId;
+if (!userId) throw new Error('Missing userId (auth required before payout start).');
+
+
+If you prefer, add a dev fallback so you’re never blocked locally:
+
+const userId =
+  (req as any).user?.id || req.body?.userId || req.query?.userId || process.env.DEV_TEST_USER_ID;
+if (!userId) throw new Error('Missing userId (auth required before payout start).');
+
+
+(Only do that with a non-production test account.)
+
+3) Ensure Express parses JSON
+
+In your server bootstrap:
+
+app.use(express.json()); // needed to read req.body.userId
