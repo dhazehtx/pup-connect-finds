@@ -34,6 +34,7 @@ import { progressRouter } from './routes/applications/progress';
 import { submitRouter } from './routes/applications/submit';
 import { webhookRouter as stripeWebhookRouter } from './routes/stripe/webhook';
 import { POST as consentHandler } from './routes/applications/consent';
+import { verifyPayout } from './routes/payout/verify';
 import { storage } from "./storage";
 import { 
   generalRateLimit, 
@@ -1544,10 +1545,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     return checkPayoutStatus(req, res);
   });
   
-  app.post('/api/payout/verify', async (req, res) => {
-    const { verifyPayout } = await import('./routes/payout/verify');
-    return verifyPayout(req, res);
-  });
+  app.post('/api/payout/verify', verifyPayout);
   
   // New authenticated payout endpoints
   app.post('/api/payout/link', async (req, res) => {
