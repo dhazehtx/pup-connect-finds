@@ -1,0 +1,62 @@
+// server/routes/payout/verify.ts
+import Stripe from 'stripe';
+import type { Request, Response } from 'express';
+import { createClient } from '@supabase/supabase-js';
+
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: '2024-06-20' });
+const supabase = createClient(
+  process.env.VITE_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY! // server-side secret
+);
+
+export async function verifyPayout(req: Request, res: Response) {
+  try {
+    const userId = (req as any).user?.id || req.body?.userId || req.query?.userId;
+    if (!userId) throw new Error('Missing userId');
+
+    const acctId = await getStripeAccountIdForUser(userId);
+    if (!acctId) throw new Error('No Stripe account on file');
+
+    const acct = await stripe.accounts.retrieve(acctId);
+
+    const connected       = !!acct.details_submitted;
+    const payoutsEnabled  = !!acct.payouts_enabled;
+    const chargesEnabled  = !!acct.charges_enabled;
+
+    await upsertProviderStripeStatus(userId, {
+      stripe_account_id: acctId,
+      stripe_connected: connected,
+      payouts_enabled: payoutsEnabled,
+      charges_enabled: chargesEnabled,
+      requirements_due: JSON.stringify(acct.requirements?.currently_due ?? []),
+      last_stripe_check_at: new Date().toISOString(),
+    });
+
+    // optional: advance onboarding in your own table if you have one
+    await markOnboardingStepComplete(userId, 5).catch(() => { /* ok if you don't have this table */ });
+
+    return res.json({ ok: true, connected, payoutsEnabled, chargesEnabled });
+  } catch (err: any) {
+    console.error('[PAYOUT verify] error:', err);
+    return res.status(400).json({ ok: false, error: { message: err?.message || 'Verification failed' } });
+  }
+}
+
+// ---- helpers (adjust table/column names to your schema)
+async function getStripeAccountIdForUser(userId: string): Promise<string | null> {
+  const { data, error } = await supabase
+    .from('service_providers')
+    .select('stripe_account_id')
+    .eq('user_id', userId)
+    .maybeSingle();
+  if (error) throw error;
+  return data?.stripe_account_id ?? null;
+}
+
+async function upsertProviderStripeStatus(userId: string, fields: any) {
+  const { data, error } = await supabase
+    .from('service_providers')
+    .update(fields)
+    .eq('user_id', userId)
+    .select('user_id');
+  if (error) throw error;
