@@ -245,7 +245,7 @@ export const insertReviewSchema = createInsertSchema(reviews).omit({ id: true, c
 export const insertPostSchema = createInsertSchema(posts).omit({ id: true, created_at: true, updated_at: true });
 export const insertCommentSchema = createInsertSchema(comments).omit({ id: true, created_at: true, updated_at: true });
 export const insertCommentReplySchema = createInsertSchema(commentReplies).omit({ id: true, created_at: true });
-export const insertNotificationSchema = createInsertSchema(notifications).omit({ id: true, created_at: true });
+export const insertNotificationSchema = createInsertSchema(notifications).omit({ id: true, createdAt: true });
 export const insertNotificationPreferencesSchema = createInsertSchema(notificationPreferences);
 export const insertDeviceTokenSchema = createInsertSchema(deviceTokens).omit({ id: true, created_at: true });
 export const insertTransactionSchema = createInsertSchema(transactions).omit({ id: true, created_at: true, updated_at: true });
@@ -377,10 +377,12 @@ export const providers = pgTable("providers", {
   id_doc_back_url: text("id_doc_back_url"),
   bg_status: text("bg_status").default("pending"), // pending, passed, failed
   stripe_account_id: text("stripe_account_id"),
+  stripe_connected: boolean("stripe_connected").default(false),
   onboarding_status: text("onboarding_status").default("pending"), // pending, verified, requires_action
   charges_enabled: boolean("charges_enabled").default(false),
   payouts_enabled: boolean("payouts_enabled").default(false),
   requirements_due: jsonb("requirements_due").default([]),
+  onboarding_last_checked_at: timestamp("onboarding_last_checked_at"),
   payout_setup_complete: boolean("payout_setup_complete").default(false),
   created_at: timestamp("created_at").defaultNow(),
   updated_at: timestamp("updated_at").defaultNow(),

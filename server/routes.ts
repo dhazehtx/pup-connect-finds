@@ -1544,6 +1544,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     return checkPayoutStatus(req, res);
   });
   
+  app.post('/api/payout/verify', async (req, res) => {
+    const { verifyPayout } = await import('./routes/payout/verify');
+    return verifyPayout(req, res);
+  });
+  
   // New authenticated payout endpoints
   app.post('/api/payout/link', async (req, res) => {
     const { getPayoutLink } = await import('./routes/payout/link');

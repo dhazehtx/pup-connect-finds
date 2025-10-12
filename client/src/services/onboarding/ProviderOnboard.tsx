@@ -134,6 +134,43 @@ const ProviderOnboard: React.FC = () => {
     ensureApplicationId();
   }, [authUser?.id, providerId, applicationId, setApplicationId]);
 
+  // Manual Stripe verification check
+  const handleStripeVerify = async () => {
+    try {
+      setChecking(true);
+      setErr(null);
+      
+      console.log('[STRIPE VERIFY] Starting verification check...');
+      const r = await fetch('/api/payout/verify', { method: 'POST' });
+      const data = await r.json().catch(() => ({}));
+      
+      if (!r.ok) {
+        throw new Error(data?.error?.message || `Verification failed (${r.status})`);
+      }
+      
+      console.log('[STRIPE VERIFY] Verification response:', data);
+      
+      // Check if account is fully connected
+      if (data.connected) {
+        console.log('[STRIPE VERIFY] Account is connected! Advancing...');
+        setPayoutSetupComplete(true);
+        setPayoutSetup({ status: 'connected', accountId: data.accountId });
+        goTo(6); // advance to next step
+      } else {
+        // Show status message
+        const msg = data.requirementsDue?.length 
+          ? `Setup incomplete. Missing: ${data.requirementsDue.join(', ')}`
+          : 'Stripe setup is not complete yet. Please finish setup in the Stripe window.';
+        alert(msg);
+      }
+    } catch (e: any) {
+      console.error('[STRIPE VERIFY] Error:', e);
+      alert(e.message || 'Could not verify Stripe status');
+    } finally {
+      setChecking(false);
+    }
+  };
+
   // Automatic Stripe account status polling
   const pollStripeStatus = async () => {
     let cancelled = false;
@@ -1361,10 +1398,11 @@ const ProviderOnboard: React.FC = () => {
                   type="button" 
                   className="text-sm underline mt-2"
                   onClick={() => {
-                    console.log('[BUTTON] Force Re-check clicked - starting poll');
-                    pollStripeStatus();
+                    console.log('[BUTTON] Force Re-check clicked - verifying Stripe status');
+                    handleStripeVerify();
                   }}
                   disabled={checking}
+                  data-testid="button-force-recheck-stripe"
                 >
                   {checking ? 'Checking...' : 'Force Re-check'}
                 </button>
