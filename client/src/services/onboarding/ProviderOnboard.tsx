@@ -143,6 +143,8 @@ const ProviderOnboard: React.FC = () => {
       return;
     }
     if (d.connected) {
+      setPayoutSetupComplete(true); // Update state before advancing
+      setPayoutSetup({ status: 'connected', accountId: d.accountId });
       goTo(6); // advance to next step
     } else {
       alert('Still not connected. Finish the Stripe window or click "Complete Setup" again.');
@@ -158,8 +160,9 @@ const ProviderOnboard: React.FC = () => {
       const d = await r.json().catch(() => ({}));
       if (d?.connected) {
         clearInterval(id);
-        // enable Next or auto-advance
-        goTo(6);
+        setPayoutSetupComplete(true); // Update state before advancing
+        setPayoutSetup({ status: 'connected', accountId: d.accountId });
+        goTo(6); // auto-advance to next step
         return;
       }
       if (tries > 20) clearInterval(id); // ~60s at 3s/try
@@ -236,16 +239,16 @@ const ProviderOnboard: React.FC = () => {
     const step = urlParams.get('step');
     
     // Clean up URL parameters if returning from Stripe
-    if (fromStripe && step === '5') {
+    if (fromStripe && step === '4') {
       console.log('[STRIPE POLL] User returned from Stripe, starting auto-poll...');
-      const newUrl = window.location.pathname + '?step=5';
+      const newUrl = window.location.pathname + '?step=4';
       window.history.replaceState({}, '', newUrl);
       
       // Start polling immediately
       startVerifyPolling();
-    } else if (currentStep === 5 && !payoutSetupComplete && authUser?.id) {
-      // Also poll on Step 5 mount if not already complete
-      console.log('[STRIPE POLL] Step 5 mounted, checking status...');
+    } else if (currentStep === 4 && !payoutSetupComplete && authUser?.id) {
+      // Also poll on Step 4 (Payout) mount if not already complete
+      console.log('[STRIPE POLL] Step 4 (Payout) mounted, checking status...');
       startVerifyPolling();
     }
   }, [currentStep, authUser?.id, payoutSetupComplete]);
@@ -351,18 +354,18 @@ const ProviderOnboard: React.FC = () => {
     }
 
     if (currentStep === 4) {
-      // validate service details
-      if (!isDetailsValid()) {
-        return alert('Please complete your service details.');
+      // ✅ Stripe payout gate
+      if (!payoutSetupComplete) {
+        alert('Please complete Stripe Connect first. If you just finished, tap "I\'ve Completed Setup / Re-check".');
+        return;
       }
       return goTo(5);
     }
 
-    // ✅ Stripe gate ONLY here
     if (currentStep === 5) {
-      if (!payoutSetupComplete) {
-        alert('Please complete Stripe Connect first. If you just finished, tap "I\'ve Completed Setup" or wait 2–3s.');
-        return;
+      // validate service details
+      if (!isDetailsValid()) {
+        return alert('Please complete your service details.');
       }
       return goTo(6);
     }
@@ -1287,47 +1290,32 @@ const ProviderOnboard: React.FC = () => {
 
             {payoutSetup.status === 'connecting' && (
               <div className="space-y-4">
-                <div className="bg-blue-50 p-4 rounded-lg flex items-center space-x-3">
-                  {checking ? (
-                    <Loader2 className="h-5 w-5 animate-spin text-blue-600" />
-                  ) : (
-                    <Loader2 className="h-5 w-5 animate-spin text-blue-600" />
-                  )}
-                  <div>
-                    <p className="text-sm font-medium text-blue-800">Complete Setup in New Window</p>
-                    <p className="text-sm text-blue-700">Finish your Stripe Connect setup in the opened window.</p>
-                    {checking ? (
-                      <p className="text-sm text-muted-foreground">Checking your Stripe status…</p>
-                    ) : err ? (
-                      <div className="text-sm text-red-600">
-                        {err} <button onClick={startVerifyPolling} className="underline">Try again</button>
-                      </div>
-                    ) : null}
-                  </div>
+                <div className="bg-blue-50 p-4 rounded-lg">
+                  <p className="text-sm font-medium text-blue-800 mb-2">Complete Setup in New Window</p>
+                  <p className="text-sm text-blue-700 mb-3">Finish your Stripe Connect setup in the opened window.</p>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      console.log('[BUTTON] Re-opening Stripe setup window');
+                      openStripeOnboarding();
+                    }}
+                    data-testid="button-reopen-stripe"
+                  >
+                    Open Stripe Setup Again
+                  </Button>
                 </div>
                 <button
                   type="button"
-                  className="text-sm text-muted-foreground underline mt-3"
+                  className="text-sm text-blue-600 underline"
                   onClick={() => {
-                    console.log('[BUTTON] I\'ve Completed Setup clicked - starting poll');
-                    startVerifyPolling();
-                  }}
-                  disabled={checking}
-                  data-testid="button-check-payout-status"
-                >
-                  {checking ? 'Checking...' : "I've Completed Setup"}
-                </button>
-                <button 
-                  type="button" 
-                  className="text-sm underline mt-2"
-                  onClick={() => {
-                    console.log('[BUTTON] Force Re-check clicked - verifying Stripe status');
+                    console.log('[BUTTON] I\'ve Completed Setup / Re-check clicked');
                     manualRecheck();
                   }}
-                  disabled={checking}
-                  data-testid="button-force-recheck-stripe"
+                  data-testid="button-check-payout-status"
                 >
-                  {checking ? 'Checking...' : 'Force Re-check'}
+                  I've Completed Setup / Re-check
                 </button>
               </div>
             )}
@@ -1660,14 +1648,14 @@ const ProviderOnboard: React.FC = () => {
         >
           Back
         </Button>
-        <button
+        <Button
           type="button"
           data-testid="button-next-step"
           onClick={handleNext}
-          className="btn btn-primary"
+          disabled={currentStep === 4 && !payoutSetupComplete}
         >
           Next
-        </button>
+        </Button>
       </div>
     </div>
   );
