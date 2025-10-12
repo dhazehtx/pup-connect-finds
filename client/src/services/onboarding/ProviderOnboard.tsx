@@ -134,45 +134,40 @@ const ProviderOnboard: React.FC = () => {
     ensureApplicationId();
   }, [authUser?.id, providerId, applicationId, setApplicationId]);
 
-  // Manual Stripe verification check
-  const handleStripeVerify = async () => {
-    try {
-      setChecking(true);
-      setErr(null);
-      
-      console.log('[STRIPE VERIFY] Starting verification check...');
-      const r = await fetch('/api/payout/verify', { method: 'POST' });
-      const data = await r.json().catch(() => ({}));
-      
-      if (!r.ok) {
-        throw new Error(data?.error?.message || `Verification failed (${r.status})`);
-      }
-      
-      console.log('[STRIPE VERIFY] Verification response:', data);
-      
-      // Check if account is fully connected
-      if (data.connected) {
-        console.log('[STRIPE VERIFY] Account is connected! Advancing...');
-        setPayoutSetupComplete(true);
-        setPayoutSetup({ status: 'connected', accountId: data.accountId });
-        goTo(6); // advance to next step
-      } else {
-        // Show status message
-        const msg = data.requirementsDue?.length 
-          ? `Setup incomplete. Missing: ${data.requirementsDue.join(', ')}`
-          : 'Stripe setup is not complete yet. Please finish setup in the Stripe window.';
-        alert(msg);
-      }
-    } catch (e: any) {
-      console.error('[STRIPE VERIFY] Error:', e);
-      alert(e.message || 'Could not verify Stripe status');
-    } finally {
-      setChecking(false);
+  // Manual re-check of Stripe verification status
+  const manualRecheck = async () => {
+    const r = await fetch('/api/payout/verify', { method: 'POST' });
+    const d = await r.json().catch(() => ({}));
+    if (!r.ok) {
+      alert(d?.error?.message || 'Verification failed');
+      return;
+    }
+    if (d.connected) {
+      goTo(6); // advance to next step
+    } else {
+      alert('Still not connected. Finish the Stripe window or click "Complete Setup" again.');
     }
   };
 
   // Automatic Stripe account status polling
-  const pollStripeStatus = async () => {
+  function startVerifyPolling() {
+    let tries = 0;
+    const id = setInterval(async () => {
+      tries++;
+      const r = await fetch('/api/payout/verify', { method: 'POST' });
+      const d = await r.json().catch(() => ({}));
+      if (d?.connected) {
+        clearInterval(id);
+        // enable Next or auto-advance
+        goTo(6);
+        return;
+      }
+      if (tries > 20) clearInterval(id); // ~60s at 3s/try
+    }, 3000);
+  }
+
+  // Old polling function (keeping temporarily for reference)
+  const pollStripeStatus_OLD = async () => {
     let cancelled = false;
     
     try {
@@ -247,11 +242,11 @@ const ProviderOnboard: React.FC = () => {
       window.history.replaceState({}, '', newUrl);
       
       // Start polling immediately
-      pollStripeStatus();
+      startVerifyPolling();
     } else if (currentStep === 5 && !payoutSetupComplete && authUser?.id) {
       // Also poll on Step 5 mount if not already complete
       console.log('[STRIPE POLL] Step 5 mounted, checking status...');
-      pollStripeStatus();
+      startVerifyPolling();
     }
   }, [currentStep, authUser?.id, payoutSetupComplete]);
 
@@ -617,86 +612,14 @@ const ProviderOnboard: React.FC = () => {
     setTimeout(() => clearInterval(pollInterval), 300000);
   };
 
-  const handleStripeConnect = async () => {
-    console.log('[PAYOUT] Connect button clicked');
-    
-    if (payoutSetup.status === 'loading') return;
-    setPayoutSetup({ status: 'loading' });
-
-    try {
-      // 1) Get user ID from auth and validate
-      if (!authUser?.id) {
-        throw new Error("Please sign in to continue.");
-      }
-      
-      if (!providerId) {
-        throw new Error("Provider information missing. Please complete previous steps.");
-      }
-      
-      // 2) Ensure applicationId exists (using bullet-proof endpoint with clear errors)
-      console.log('[PAYOUT] Ensuring application exists...');
-      const appResponse = await fetch('/api/applications/ensure-open', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          userId: authUser.id, 
-          providerId 
-        })
-      });
-      
-      const appData = await appResponse.json();
-      console.log('[PAYOUT] Application response:', appData);
-      
-      if (!appResponse.ok || !appData?.success) {
-        throw new Error(appData?.message || "Could not prepare application.");
-      }
-      
-      const resolvedApplicationId = appData.applicationId as string;
-      const resolvedProviderId = appData.providerId as string; // Use the real UUID from server
-      setApplicationId(resolvedApplicationId);
-      console.log('[PAYOUT] Application ready:', resolvedApplicationId);
-      console.log('[PAYOUT] Provider ID normalized:', resolvedProviderId);
-      
-      console.log('[PAYOUT] Final IDs:', { 
-        userId: authUser.id, 
-        providerId: resolvedProviderId, // Use real UUID
-        applicationId: resolvedApplicationId 
-      });
-
-      // 3) Start Stripe onboarding with guaranteed IDs
-      console.log('[PAYOUT] Starting Stripe Connect...');
-      const r = await fetch('/api/payout/start', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          userId: authUser.id,
-          providerId: resolvedProviderId, // Use real UUID instead of fabricated
-          applicationId: resolvedApplicationId,
-          accountType: accountType || 'individual'
-        }),
-      });
-
-      const data = await r.json().catch(() => ({}));
-      console.log('[PAYOUT] API response:', r.status, data);
-
-      if (!r.ok || !data?.url) {
-        throw new Error(data?.error?.message || `Onboarding failed (${r.status})`);
-      }
-
-      console.log('[PAYOUT] Opening Stripe URL in new tab:', data.url);
-      setPayoutSetup({ status: 'connecting' });
-      
-      // Open Stripe Connect in new tab (preferred for security and UX)
-      window.open(data.url, "_blank", "noopener");
-
-    } catch (e: any) {
-      console.error('[PAYOUT] client error:', e);
-      setPayoutSetup({ status: 'failed', message: e?.message || "Could not start payout onboarding." });
-      
-      // Show the exact message to the user
-      alert(e.message || 'Stripe onboarding failed');
-    }
-  };
+  // Open Stripe onboarding and start auto-verification polling
+  async function openStripeOnboarding() {
+    const r = await fetch('/api/payout/start', { method: 'POST' });
+    const data = await r.json().catch(() => ({}));
+    if (!r.ok || !data?.url) throw new Error(data?.error?.message || `Onboarding failed (${r.status})`);
+    window.open(data.url, '_blank', 'noopener'); // open Stripe in a new tab
+    startVerifyPolling(); // auto-advance when Stripe finishes
+  }
 
 
   const saveServiceDetails = async () => {
@@ -1339,7 +1262,7 @@ const ProviderOnboard: React.FC = () => {
                 
                 <Button 
                   type="button"
-                  onClick={handleStripeConnect}
+                  onClick={openStripeOnboarding}
                   className="w-full"
                   data-testid="button-connect-stripe"
                 >
@@ -1377,7 +1300,7 @@ const ProviderOnboard: React.FC = () => {
                       <p className="text-sm text-muted-foreground">Checking your Stripe status…</p>
                     ) : err ? (
                       <div className="text-sm text-red-600">
-                        {err} <button onClick={pollStripeStatus} className="underline">Try again</button>
+                        {err} <button onClick={startVerifyPolling} className="underline">Try again</button>
                       </div>
                     ) : null}
                   </div>
@@ -1387,7 +1310,7 @@ const ProviderOnboard: React.FC = () => {
                   className="text-sm text-muted-foreground underline mt-3"
                   onClick={() => {
                     console.log('[BUTTON] I\'ve Completed Setup clicked - starting poll');
-                    pollStripeStatus();
+                    startVerifyPolling();
                   }}
                   disabled={checking}
                   data-testid="button-check-payout-status"
@@ -1399,7 +1322,7 @@ const ProviderOnboard: React.FC = () => {
                   className="text-sm underline mt-2"
                   onClick={() => {
                     console.log('[BUTTON] Force Re-check clicked - verifying Stripe status');
-                    handleStripeVerify();
+                    manualRecheck();
                   }}
                   disabled={checking}
                   data-testid="button-force-recheck-stripe"
