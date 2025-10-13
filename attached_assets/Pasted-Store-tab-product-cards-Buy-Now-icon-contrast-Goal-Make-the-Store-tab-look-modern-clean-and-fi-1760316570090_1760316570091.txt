@@ -1,0 +1,66 @@
+Store tab product cards + “Buy Now” icon contrast
+
+Goal: Make the Store tab look modern/clean and fix the icon visibility inside the “Buy Now” button (icon currently hidden by color scheme). Keep everything else functionally the same.
+
+Prompt (paste this exactly):
+
+Title: Polish Store tab cards and fix Buy Now icon contrast
+Context: On the Store tab (marketplace products), the “Buy Now” button’s icon is not visible due to color contrast. The overall product cards look bulky/sloppy. Align the design with the blue theme and the new Pup Box styling.
+Files likely involved: pages/marketplace/Store.tsx (or similar), components/marketplace/store/ProductCard.tsx, shared Button component, icon components.
+Tasks:
+
+Fix “Buy Now” button icon visibility
+
+Ensure the CreditCard (or cart) SVG inherits currentColor and the button sets text-white on the solid primary variant.
+
+If using Lucide/heroicons, set the icon props: className="h-4 w-4" and add stroke="currentColor" (and fill="none" unless the icon is filled).
+
+On the Button, confirm className includes bg-blue-600 hover:bg-blue-700 text-white and that the icon is not overridden by an internal text-transparent or opacity-0.
+
+If the icon is its own component, add a className="text-white" fallback.
+
+Button hierarchy
+
+Keep Add to Cart as an outline button: border border-blue-200 text-blue-700 bg-white hover:bg-blue-50.
+
+Keep Buy Now as solid primary: bg-blue-600 text-white hover:bg-blue-700.
+
+Use unified sizing: h-10 rounded-xl px-4 text-sm font-medium inline-flex items-center gap-2. Icons always h-4 w-4.
+
+Product card cleanup
+
+Replace bulky cards with modern white cards: rounded-2xl border border-gray-200 bg-white shadow-sm hover:shadow-md transition.
+
+Image containers use a consistent aspect ratio: parent relative aspect-square overflow-hidden rounded-xl bg-gray-50 and product image set to object-cover.
+
+Text stack: title text-base font-semibold text-gray-900, price text-lg font-bold, description text-sm text-gray-600 line-clamp-2.
+
+Action row uses flex with gap: mt-3 flex items-center gap-3.
+
+Ensure consistent vertical spacing so cards in a row are equal height: outer flex flex-col, make the action row mt-auto.
+
+Grid + gutters
+
+Grid container: grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8.
+
+Quick win on “sloppy” look (screenshot #5)
+
+Remove heavy outer shadows and uneven borders. Use subtle border + small shadow, add hover:shadow-md.
+
+Normalize margins around price and description; avoid double padding.
+
+Accessibility
+
+Button text contrast ≥ 4.5:1; focus-visible ring for buttons focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500.
+Code markers: // SOL:STORE:START … // SOL:STORE:END
+Acceptance checklist:
+
+ The Buy Now icon is clearly visible (white) on the blue button.
+
+ Cards are white, rounded, even height, with tidy spacing.
+
+ Image aspect ratios are consistent; no layout jumps.
+
+ Add to Cart = outline, Buy Now = solid.
+
+ Overall look matches the blue theme and feels as clean as Pet Services.

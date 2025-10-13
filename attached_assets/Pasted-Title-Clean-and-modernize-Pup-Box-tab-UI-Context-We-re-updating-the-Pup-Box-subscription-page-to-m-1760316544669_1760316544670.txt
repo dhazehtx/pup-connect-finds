@@ -1,0 +1,59 @@
+Title: Clean and modernize Pup Box tab UI
+Context: We’re updating the Pup Box subscription page to match the clean, blue-theme look of the Pet Services tab. Keep the purple gift icon as-is. Don’t change prices or plan names.
+Files likely involved: pages/marketplace/PupBox.tsx (or similarly named), components/marketplace/pupbox/*, shared UI Button/Badge components, global CSS/Tailwind.
+Tasks:
+
+Layout + spacing
+
+Wrap the page content in a centered container max-w-6xl mx-auto px-4 md:px-6.
+
+Add a simple hero header stack (icon, H1, subtitle) with space-y-3 pt-6 pb-6 md:pb-8.
+
+Plan cards
+
+Convert the three plans into consistent white cards with rounded-2xl border border-gray-200 bg-white shadow-sm hover:shadow-md transition.
+
+Use a responsive grid grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8.
+
+Each card should have:
+
+Plan label row (e.g., “Most Popular”, “Best Value”) using a small blue pill badge inline-flex items-center rounded-full bg-blue-600/10 text-blue-700 text-xs font-medium px-2.5 py-1.
+
+Plan title (Small / Medium / Large) text-lg font-semibold, price row text-3xl font-bold tracking-tight, and a short “great for…” line text-sm text-gray-600.
+
+Replace the toggle switch with a neutral “Select plan” button (keep it non-functional if this is a demo) placed above the features. Use your primary solid button for “Select plan”.
+
+Features list as bullets with a check icon: space-y-2 text-sm text-gray-700 (use Lucide/heroicons check with text-blue-600).
+
+Ensure all three cards have equal height using flex flex-col and place the CTA button at the bottom:
+
+Card body flex flex-col gap-4 grow, then a mt-auto section for the button.
+
+Footnotes / guarantees
+
+Replace the scattered footer text with a 3-column benefits row under the grid: grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 pt-6 md:pt-8.
+
+Each item is a small white card rounded-xl border bg-white p-4 text-sm text-gray-700 with a subtle icon (truck, shield, rotate) in blue. Titles bold, short one-line copy under each.
+
+Typography + colors
+
+Use explicit contrast: titles text-gray-900, copy text-gray-600/700.
+
+Keep the purple gift icon exactly as is, but ensure the rest follows the blue theme used app-wide.
+
+Accessibility
+
+All interactive elements must have :focus-visible outlines and 4.5:1 contrast for text on solid buttons.
+Do not: change price logic, add new routes, or modify global nav/footer.
+Code markers: Wrap edits with // SOL:PUPBOX:START and // SOL:PUPBOX:END to make diffs easy.
+Acceptance checklist:
+
+ Three balanced white cards, equal height, tidy spacing.
+
+ Blue pill badges visible; gift icon unchanged.
+
+ “Select plan” solid buttons align along the bottom of each card.
+
+ A clean 3-item benefit row replaces scattered footers.
+
+ Page looks visually consistent with the Pet Services tab.
