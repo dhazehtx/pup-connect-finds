@@ -39,6 +39,7 @@ interface FilterState {
   maxPrice: number;
 }
 
+// SOL:STORE:START
 const StoreTab = () => {
   const { addToCart, isInCart } = useCart();
   const { toast } = useToast();
@@ -220,16 +221,16 @@ const StoreTab = () => {
   return (
     <div className="store-tab bg-white min-h-screen pb-24">
       {/* Subtle blue accent divider */}
-      <div className="h-2 w-full bg-primary-200 rounded-b-3xl"></div>
+      <div className="h-2 w-full bg-blue-100 rounded-b-3xl"></div>
       
-      <div className="p-4 space-y-6">
+      <div className="max-w-6xl mx-auto px-4 md:px-6 py-6 space-y-6">
         {/* Stripe Checkout Demo */}
-        <div className="flex justify-center mb-6">
+        <div className="flex justify-center">
           <StripeCheckoutDemo />
         </div>
 
         {/* Filter and Sort Section */}
-        <div className="pt-4">
+        <div className="pt-2">
           <FilterBar
             sortType={sortType}
             onSortChange={setSortType}
@@ -240,22 +241,22 @@ const StoreTab = () => {
 
         {/* Loading state */}
         {isLoading && (
-          <div className="text-center py-8">
-            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
+          <div className="text-center py-12">
+            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
             <p className="mt-2 text-gray-600">Loading products...</p>
           </div>
         )}
 
         {/* Error state */}
         {error && (
-          <div className="m-4 rounded-xl border border-red-200 bg-red-50 p-4">
+          <div className="rounded-xl border border-red-200 bg-red-50 p-4">
             <div className="text-red-800 font-medium">Unable to load products</div>
             <div className="text-red-600 text-sm mt-1">
               {error.message || 'Please try again in a moment.'}
             </div>
             <button 
               onClick={() => window.location.reload()} 
-              className="mt-3 btn btn-outline text-sm"
+              className="mt-3 px-4 py-2 bg-red-100 text-red-700 rounded-lg text-sm font-medium hover:bg-red-200 transition"
             >
               Try Again
             </button>
@@ -270,9 +271,9 @@ const StoreTab = () => {
                 Showing {filteredAndSortedProducts.length} products
               </div>
             ) : (
-              <div className="m-6 rounded-2xl border border-slate-200 bg-white p-8 text-center">
-                <div className="text-slate-700 font-medium">No products available</div>
-                <div className="mt-1 text-slate-500 text-sm">
+              <div className="rounded-2xl border border-gray-200 bg-white p-8 text-center">
+                <div className="text-gray-900 font-medium">No products available</div>
+                <div className="mt-1 text-gray-500 text-sm">
                   Products will appear here once they're added to the store.
                 </div>
               </div>
@@ -282,11 +283,14 @@ const StoreTab = () => {
 
         {/* Products Grid */}
         {!isLoading && !error && filteredAndSortedProducts.length > 0 && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
             {filteredAndSortedProducts.map((product) => (
-              <div key={product.id} className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow flex flex-col h-full">
+              <div 
+                key={product.id} 
+                className="rounded-2xl border border-gray-200 bg-white shadow-sm hover:shadow-md transition flex flex-col"
+              >
                 {/* Product Image */}
-                <div className="aspect-square bg-gray-100 rounded-lg mb-3 overflow-hidden flex-shrink-0">
+                <div className="relative aspect-square overflow-hidden rounded-xl bg-gray-50">
                   {product.image_url ? (
                     <img
                       src={product.image_url}
@@ -294,71 +298,75 @@ const StoreTab = () => {
                       className="w-full h-full object-cover"
                     />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center text-gray-400">
-                      <Filter className="w-8 h-8 text-gray-400" />
+                    <div className="w-full h-full flex items-center justify-center">
+                      <ShoppingCart className="w-12 h-12 text-gray-300" />
                     </div>
                   )}
                 </div>
 
                 {/* Product Info */}
-                <div className="flex flex-col flex-grow space-y-2">
-                  <h3 className="font-medium text-foreground line-clamp-2">{product.name}</h3>
+                <div className="p-4 flex flex-col flex-grow">
+                  <h3 className="text-base font-semibold text-gray-900 line-clamp-2">{product.name}</h3>
+                  
                   {product.description && (
-                    <p className="text-sm text-muted-foreground line-clamp-2">{product.description}</p>
+                    <p className="text-sm text-gray-600 line-clamp-2 mt-1">{product.description}</p>
                   )}
                   
                   {/* Price and Rating */}
-                  <div className="flex items-center justify-between mb-auto">
-                    <span className="text-lg font-semibold text-primary-600">
+                  <div className="flex items-center justify-between mt-2">
+                    <span className="text-lg font-bold text-gray-900">
                       ${parseFloat(product.unit_price).toFixed(2)}
                     </span>
                     {product.rating && (
                       <div className="flex items-center gap-1">
-                        <Star className="w-4 h-4 fill-blue-400 text-blue-400" />
+                        <Star className="w-4 h-4 fill-amber-400 text-amber-400" />
                         <span className="text-sm text-gray-600">{product.rating}</span>
                       </div>
                     )}
                   </div>
 
-                  {/* Action Buttons - Fixed accessibility and contrast */}
-                  <div className="grid grid-cols-2 gap-3 mt-auto pt-3">
+                  {/* Action Buttons */}
+                  <div className="mt-auto pt-3 flex items-center gap-3">
                     <button
                       type="button"
                       onClick={() => handleAddToCart(product)}
                       disabled={addedItems.has(product.id)}
-                      className="h-10 rounded-xl px-4 text-sm font-medium transition focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed bg-primary text-primary-foreground hover:bg-primary/90 flex items-center justify-center min-w-0"
+                      className="h-10 rounded-xl px-4 text-sm font-medium inline-flex items-center gap-2 border border-blue-200 text-blue-700 bg-white hover:bg-blue-50 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed flex-1"
+                      data-testid={`button-add-cart-${product.id}`}
                     >
                       {addedItems.has(product.id) ? (
                         <>
-                          <Check className="w-4 h-4 mr-1.5 flex-shrink-0" />
+                          <Check className="h-4 w-4" />
                           <span className="truncate">Added</span>
                         </>
                       ) : isInCart(product.id) ? (
                         <>
-                          <ShoppingCart className="w-4 h-4 mr-1.5 flex-shrink-0" />
+                          <ShoppingCart className="h-4 w-4" />
                           <span className="truncate">In Cart</span>
                         </>
                       ) : (
                         <>
-                          <ShoppingCart className="w-4 h-4 mr-1.5 flex-shrink-0" />
-                          <span className="truncate">Add to Cart</span>
+                          <ShoppingCart className="h-4 w-4" />
+                          <span className="truncate">Add</span>
                         </>
                       )}
                     </button>
+                    
                     <button
                       type="button"
                       onClick={() => checkoutMutation.mutate(product.id)}
                       disabled={checkoutMutation.isPending}
-                      className="h-10 rounded-xl px-4 text-sm font-medium transition focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed bg-primary text-white shadow-sm hover:bg-primary/90 active:bg-primary/95 flex items-center justify-center min-w-0"
+                      className="h-10 rounded-xl px-4 text-sm font-medium inline-flex items-center gap-2 bg-blue-600 text-white hover:bg-blue-700 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed flex-1"
+                      data-testid={`button-buy-now-${product.id}`}
                     >
                       {checkoutMutation.isPending ? (
                         <>
-                          <div className="w-4 h-4 mr-1.5 flex-shrink-0 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
+                          <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
                           <span className="truncate">Processing</span>
                         </>
                       ) : (
                         <>
-                          <CreditCard className="w-4 h-4 mr-1.5 flex-shrink-0 text-white" />
+                          <CreditCard className="h-4 w-4 text-white" />
                           <span className="truncate">Buy Now</span>
                         </>
                       )}
@@ -371,7 +379,7 @@ const StoreTab = () => {
         )}
 
         {/* No results */}
-        {!isLoading && !error && filteredAndSortedProducts.length === 0 && (
+        {!isLoading && !error && filteredAndSortedProducts.length === 0 && hasActiveFilters && (
           <div className="text-center py-8">
             <p className="text-gray-600">No products found matching your criteria.</p>
             <Button 
@@ -408,5 +416,6 @@ const StoreTab = () => {
     </div>
   );
 };
+// SOL:STORE:END
 
 export default StoreTab;
