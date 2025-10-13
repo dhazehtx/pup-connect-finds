@@ -219,6 +219,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const { default: providersRouter } = await import('./routes/providers/onboarding.js');
   app.use('/api/providers', providersRouter);
   
+  // Provider document management routes (protected by auth middleware)
+  const { default: providerDocsRouter } = await import('./routes/provider/docs.js');
+  app.use('/api/provider', providerDocsRouter);
+  
   // Provider applications routes (protected by auth middleware)
   app.use('/api/provider-applications', providerApplicationsRouter);
   
