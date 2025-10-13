@@ -1,0 +1,124 @@
+3) Frontend — Step 6 form additions
+
+Update the Step 6 component. Keep existing props/state. Add the following fields and validations:
+
+Profile Photo Upload: profile_photo_url
+
+Documents: business license (PDF/JPG/PNG), insurance cert (PDF/JPG/PNG), certifications (CPR, AKC)
+
+Years of Experience: integer 0–50 (show “Self-reported” in UI; verification only if admin flips doc status to approved)
+
+Cat Services toggle: offers_cats (dogs are default target)
+
+Breed Restrictions: textarea (optional)
+
+Pricing & Availability:
+
+rate_type (hourly / per_visit / flat) – radio buttons
+
+starting_price
+
+min_booking_minutes (30/45/60/90/120)
+
+cancellation_policy (flexible/moderate/strict) – show a tooltip:
+
+Flexible: full refund up to 24h before, 50% <24h
+
+Moderate: full up to 48h, 50% <48h
+
+Strict: 50% up to 72h, no refund <72h
+
+Extra Fees
+
+travel_fee_enabled + travel_fee_amount
+
+additional_pet_fee_enabled + additional_pet_fee_amount
+
+holiday_rate_enabled + holiday_rate_multiplier (1.25 default)
+
+Availability JSON editor (MVP):
+
+Checkboxes for days (Mon–Sun)
+
+Two time-range inputs (start/end) — store as availability = { weekdays:[...], timeRanges:[[start,end],[start2,end2]] }
+
+Communication Policy (fixed):
+
+Disabled radio set to “In-App Chat only”
+
+Info row + “Learn why” link opens modal
+
+Policy Toast:
+
+When user opens the Messages composer OR attempts to paste a phone/email/URL, show a persistent toast:
+
+“For safety, keep all communication and payments in My Pup. We’re not liable for off-platform interactions.”
+
+Provide an “OK, got it” button that calls /api/provider/policy-ack.
+
+Upload flow (client)
+
+Call /api/provider/docs/signed-url → PUT to returned uploadUrl with file blob → call /api/provider/docs/record with {docType, key,...}.
+
+Accepted types: image/png, image/jpeg, application/pdf. Max 8 MB. Block others with a friendly error.
+
+Submit payload (unchanged endpoint)
+
+When the Step 6 form submits, include the new fields in the payload to your existing save/update route for service_providers.
+
+Example shape:
+
+{
+  profile_photo_url,
+  years_experience,
+  offers_cats,
+  breed_restrictions,
+  rate_type,
+  starting_price,
+  min_booking_minutes,
+  cancellation_policy,
+  travel_fee_enabled,
+  travel_fee_amount: travel_fee_enabled ? valueOr0 : 0,
+  additional_pet_fee_enabled,
+  additional_pet_fee_amount: additional_pet_fee_enabled ? valueOr0 : 0,
+  holiday_rate_enabled,
+  holiday_rate_multiplier: holiday_rate_enabled ? valueOrDefault : null,
+  availability,                 // jsonb as described
+  communication_policy: 'in_app_only',
+  background_check_status: 'verified',
+  verified_badge: true
+}
+
+UI notes
+
+Keep your current typography and spacing. Use the same input components and button styles already used in previous steps.
+
+Group the new controls into collapsible sections:
+
+Identity & Credentials
+
+Pricing & Policies
+
+Availability
+
+Additional Options
+
+Add helper text under Years of Experience: “Self-reported. May be subject to verification.”
+
+Next button stays disabled until required fields are valid:
+
+description (existing), rate_type, starting_price, min_booking_minutes, cancellation_policy.
+
+4) Admin side (light touch now, full later)
+
+In your existing admin dashboard (or create a placeholder page), list provider_documents with filters by status. Allow toggling status to approved/rejected and adding notes. This will later power badges like “License Verified” or “Insured”.
+
+5) Safety & UX guards
+
+If a user pastes content that matches phone/email/URL regex into chat or description fields, show the in-app policy toast and strip the paste (soft-block) with a small notice: “External contact info removed. Use in-app chat.”
+
+If holiday_rate_enabled, require holiday_rate_multiplier >= 1.10.
+
+If *_fee_enabled, require amount > 0.
+
+End of prompt.”

@@ -67,6 +67,33 @@ const ProviderOnboard: React.FC = () => {
     availability: 'weekdays',
     serviceTypes: [] as string[],
     radiusKm: 10,
+    // New enrichment fields
+    yearsExperience: 0,
+    offersCats: false,
+    breedRestrictions: '',
+    rateType: 'hourly' as 'hourly' | 'per_visit' | 'flat',
+    startingPrice: '',
+    minBookingMinutes: 60,
+    cancellationPolicy: 'flexible' as 'flexible' | 'moderate' | 'strict',
+    travelFeeEnabled: false,
+    travelFeeAmount: '',
+    additionalPetFeeEnabled: false,
+    additionalPetFeeAmount: '',
+    holidayRateEnabled: false,
+    holidayRateMultiplier: '1.5',
+    weeklySchedule: {
+      weekdays: [] as string[],
+      timeRanges: [['09:00', '17:00']] as string[][],
+    },
+    communicationPolicy: 'in_app_only',
+    policyAcknowledged: false,
+  });
+  const [documents, setDocuments] = useState({
+    businessLicense: null as File | null,
+    insuranceCertificate: null as File | null,
+    certCPR: null as File | null,
+    certAKCTrainer: null as File | null,
+    other: null as File | null,
   });
   const [serviceDetailsSaved, setServiceDetailsSaved] = useState(false);
   const [termsAccepted, setTermsAccepted] = useState({
@@ -327,7 +354,10 @@ const ProviderOnboard: React.FC = () => {
   const isDetailsValid = () => {
     return serviceDetails.description.trim() !== '' && 
            serviceDetails.pricePerService.trim() !== '' && 
-           serviceDetails.serviceTypes.length > 0;
+           serviceDetails.serviceTypes.length > 0 && 
+           serviceDetails.startingPrice.trim() !== '' &&
+           parseFloat(serviceDetails.startingPrice) > 0 &&
+           serviceDetails.policyAcknowledged;
   };
 
   const isTermsValid = () => {
@@ -657,15 +687,55 @@ const ProviderOnboard: React.FC = () => {
 
   const saveServiceDetails = async () => {
     try {
+      // First, upload documents if any
+      const uploadedDocs: Record<string, string> = {};
+      
+      if (documents.businessLicense || documents.insuranceCertificate || documents.certCPR || documents.certAKCTrainer || documents.other) {
+        const formData = new FormData();
+        if (documents.businessLicense) formData.append('businessLicense', documents.businessLicense);
+        if (documents.insuranceCertificate) formData.append('insuranceCertificate', documents.insuranceCertificate);
+        if (documents.certCPR) formData.append('certCPR', documents.certCPR);
+        if (documents.certAKCTrainer) formData.append('certAKCTrainer', documents.certAKCTrainer);
+        if (documents.other) formData.append('other', documents.other);
+        
+        const uploadResponse = await fetch('/api/providers/upload-documents', {
+          method: 'POST',
+          body: formData,
+        });
+        
+        if (uploadResponse.ok) {
+          const uploadData = await uploadResponse.json();
+          Object.assign(uploadedDocs, uploadData.files || {});
+        }
+      }
+
+      // Now save all service details
       const response = await fetch('/api/providers/save', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           description: serviceDetails.description,
           pricePerService: parseFloat(serviceDetails.pricePerService) || undefined,
-          availability: serviceDetails.availability,
           serviceTypes: serviceDetails.serviceTypes,
           radiusKm: serviceDetails.radiusKm,
+          // New enrichment fields
+          yearsExperience: serviceDetails.yearsExperience,
+          offersCats: serviceDetails.offersCats,
+          breedRestrictions: serviceDetails.breedRestrictions || null,
+          rateType: serviceDetails.rateType,
+          startingPrice: parseFloat(serviceDetails.startingPrice) || undefined,
+          minBookingMinutes: serviceDetails.minBookingMinutes,
+          cancellationPolicy: serviceDetails.cancellationPolicy,
+          travelFeeEnabled: serviceDetails.travelFeeEnabled,
+          travelFeeAmount: serviceDetails.travelFeeEnabled ? parseFloat(serviceDetails.travelFeeAmount) : null,
+          additionalPetFeeEnabled: serviceDetails.additionalPetFeeEnabled,
+          additionalPetFeeAmount: serviceDetails.additionalPetFeeEnabled ? parseFloat(serviceDetails.additionalPetFeeAmount) : null,
+          holidayRateEnabled: serviceDetails.holidayRateEnabled,
+          holidayRateMultiplier: serviceDetails.holidayRateEnabled ? parseFloat(serviceDetails.holidayRateMultiplier) : null,
+          availability: JSON.stringify(serviceDetails.weeklySchedule),
+          communicationPolicy: serviceDetails.communicationPolicy,
+          policyAcknowledged: serviceDetails.policyAcknowledged,
+          uploadedDocuments: uploadedDocs,
         }),
       });
 
@@ -677,7 +747,7 @@ const ProviderOnboard: React.FC = () => {
 
       toast({
         title: "Details Saved",
-        description: "Your service details have been saved successfully.",
+        description: "Your service details and documents have been saved successfully.",
       });
       
       setServiceDetailsSaved(true);
@@ -1393,46 +1463,109 @@ const ProviderOnboard: React.FC = () => {
           </div>
         );
 
-      case 5: // Service Details
+      case 5: // Service Details (Enhanced)
         return (
-          <div className="space-y-4">
-            <h2 className="text-xl font-semibold">Service Details</h2>
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium mb-2">Service Description</label>
-                <textarea 
-                  className="w-full border rounded-lg px-3 py-2 h-24"
-                  placeholder="Describe your services..."
-                  value={serviceDetails.description}
-                  onChange={(e) => setServiceDetails(prev => ({ ...prev, description: e.target.value }))}
-                  data-testid="textarea-service-description"
-                />
+          <div className="space-y-6">
+            <h2 className="text-xl font-semibold">Service Details & Documents</h2>
+            
+            {/* Document Uploads Section */}
+            <div className="border rounded-lg p-4 space-y-4">
+              <h3 className="text-lg font-medium">Verified Documents</h3>
+              <p className="text-sm text-gray-600">Upload your credentials for verification</p>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium mb-2">Business License</label>
+                  <Input 
+                    type="file" 
+                    onChange={(e) => setDocuments(prev => ({ ...prev, businessLicense: e.target.files?.[0] || null }))}
+                    accept=".pdf,.jpg,.jpeg,.png"
+                    data-testid="input-business-license"
+                  />
+                  {documents.businessLicense && (
+                    <p className="text-xs text-green-600 mt-1">✓ {documents.businessLicense.name}</p>
+                  )}
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2">Insurance Certificate</label>
+                  <Input 
+                    type="file" 
+                    onChange={(e) => setDocuments(prev => ({ ...prev, insuranceCertificate: e.target.files?.[0] || null }))}
+                    accept=".pdf,.jpg,.jpeg,.png"
+                    data-testid="input-insurance-certificate"
+                  />
+                  {documents.insuranceCertificate && (
+                    <p className="text-xs text-green-600 mt-1">✓ {documents.insuranceCertificate.name}</p>
+                  )}
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2">CPR Certification (Optional)</label>
+                  <Input 
+                    type="file" 
+                    onChange={(e) => setDocuments(prev => ({ ...prev, certCPR: e.target.files?.[0] || null }))}
+                    accept=".pdf,.jpg,.jpeg,.png"
+                    data-testid="input-cert-cpr"
+                  />
+                  {documents.certCPR && (
+                    <p className="text-xs text-green-600 mt-1">✓ {documents.certCPR.name}</p>
+                  )}
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2">AKC Trainer Cert (Optional)</label>
+                  <Input 
+                    type="file" 
+                    onChange={(e) => setDocuments(prev => ({ ...prev, certAKCTrainer: e.target.files?.[0] || null }))}
+                    accept=".pdf,.jpg,.jpeg,.png"
+                    data-testid="input-cert-akc-trainer"
+                  />
+                  {documents.certAKCTrainer && (
+                    <p className="text-xs text-green-600 mt-1">✓ {documents.certAKCTrainer.name}</p>
+                  )}
+                </div>
               </div>
+            </div>
+
+            {/* Experience & Preferences Section */}
+            <div className="border rounded-lg p-4 space-y-4">
+              <h3 className="text-lg font-medium">Experience & Preferences</h3>
+              
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium mb-2">Starting Price ($)</label>
+                  <label className="block text-sm font-medium mb-2">Years of Experience</label>
                   <Input 
                     type="number" 
-                    placeholder="50"
-                    value={serviceDetails.pricePerService}
-                    onChange={(e) => setServiceDetails(prev => ({ ...prev, pricePerService: e.target.value }))}
-                    data-testid="input-price-per-service"
+                    min="0" 
+                    max="50"
+                    value={serviceDetails.yearsExperience}
+                    onChange={(e) => setServiceDetails(prev => ({ ...prev, yearsExperience: parseInt(e.target.value) || 0 }))}
+                    data-testid="input-years-experience"
                   />
                 </div>
-                <div>
-                  <label className="block text-sm font-medium mb-2">Availability</label>
-                  <select 
-                    className="w-full border rounded-lg px-3 py-2"
-                    value={serviceDetails.availability}
-                    onChange={(e) => setServiceDetails(prev => ({ ...prev, availability: e.target.value }))}
-                    data-testid="select-availability"
-                  >
-                    <option value="weekdays">Weekdays</option>
-                    <option value="weekends">Weekends</option>
-                    <option value="anytime">Anytime</option>
-                  </select>
+                <div className="flex items-center pt-6">
+                  <label className="flex items-center space-x-2">
+                    <input 
+                      type="checkbox" 
+                      className="rounded"
+                      checked={serviceDetails.offersCats}
+                      onChange={(e) => setServiceDetails(prev => ({ ...prev, offersCats: e.target.checked }))}
+                      data-testid="checkbox-offers-cats"
+                    />
+                    <span className="text-sm">I also service cats</span>
+                  </label>
                 </div>
               </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-2">Breed Restrictions (Optional)</label>
+                <Input 
+                  type="text" 
+                  placeholder="e.g., No large aggressive breeds"
+                  value={serviceDetails.breedRestrictions}
+                  onChange={(e) => setServiceDetails(prev => ({ ...prev, breedRestrictions: e.target.value }))}
+                  data-testid="input-breed-restrictions"
+                />
+              </div>
+
               <div>
                 <label className="block text-sm font-medium mb-2">Services Offered</label>
                 <div className="grid grid-cols-2 gap-2">
@@ -1462,6 +1595,202 @@ const ProviderOnboard: React.FC = () => {
                   ))}
                 </div>
               </div>
+            </div>
+
+            {/* Pricing & Fees Section */}
+            <div className="border rounded-lg p-4 space-y-4">
+              <h3 className="text-lg font-medium">Pricing & Fees</h3>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium mb-2">Rate Type</label>
+                  <select 
+                    className="w-full border rounded-lg px-3 py-2"
+                    value={serviceDetails.rateType}
+                    onChange={(e) => setServiceDetails(prev => ({ ...prev, rateType: e.target.value as any }))}
+                    data-testid="select-rate-type"
+                  >
+                    <option value="hourly">Hourly</option>
+                    <option value="per_visit">Per Visit</option>
+                    <option value="flat">Flat Rate</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2">Starting Price ($)</label>
+                  <Input 
+                    type="number" 
+                    placeholder="50"
+                    value={serviceDetails.startingPrice}
+                    onChange={(e) => setServiceDetails(prev => ({ ...prev, startingPrice: e.target.value }))}
+                    data-testid="input-starting-price"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-2">Minimum Booking Duration</label>
+                <select 
+                  className="w-full border rounded-lg px-3 py-2"
+                  value={serviceDetails.minBookingMinutes}
+                  onChange={(e) => setServiceDetails(prev => ({ ...prev, minBookingMinutes: parseInt(e.target.value) }))}
+                  data-testid="select-min-booking-minutes"
+                >
+                  <option value="30">30 minutes</option>
+                  <option value="45">45 minutes</option>
+                  <option value="60">1 hour</option>
+                  <option value="90">1.5 hours</option>
+                  <option value="120">2 hours</option>
+                </select>
+              </div>
+
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <label className="flex items-center space-x-2">
+                    <input 
+                      type="checkbox" 
+                      className="rounded"
+                      checked={serviceDetails.travelFeeEnabled}
+                      onChange={(e) => setServiceDetails(prev => ({ ...prev, travelFeeEnabled: e.target.checked }))}
+                      data-testid="checkbox-travel-fee"
+                    />
+                    <span className="text-sm">Travel Fee</span>
+                  </label>
+                  {serviceDetails.travelFeeEnabled && (
+                    <Input 
+                      type="number" 
+                      placeholder="10"
+                      className="w-24"
+                      value={serviceDetails.travelFeeAmount}
+                      onChange={(e) => setServiceDetails(prev => ({ ...prev, travelFeeAmount: e.target.value }))}
+                      data-testid="input-travel-fee-amount"
+                    />
+                  )}
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <label className="flex items-center space-x-2">
+                    <input 
+                      type="checkbox" 
+                      className="rounded"
+                      checked={serviceDetails.additionalPetFeeEnabled}
+                      onChange={(e) => setServiceDetails(prev => ({ ...prev, additionalPetFeeEnabled: e.target.checked }))}
+                      data-testid="checkbox-additional-pet-fee"
+                    />
+                    <span className="text-sm">Additional Pet Fee</span>
+                  </label>
+                  {serviceDetails.additionalPetFeeEnabled && (
+                    <Input 
+                      type="number" 
+                      placeholder="5"
+                      className="w-24"
+                      value={serviceDetails.additionalPetFeeAmount}
+                      onChange={(e) => setServiceDetails(prev => ({ ...prev, additionalPetFeeAmount: e.target.value }))}
+                      data-testid="input-additional-pet-fee-amount"
+                    />
+                  )}
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <label className="flex items-center space-x-2">
+                    <input 
+                      type="checkbox" 
+                      className="rounded"
+                      checked={serviceDetails.holidayRateEnabled}
+                      onChange={(e) => setServiceDetails(prev => ({ ...prev, holidayRateEnabled: e.target.checked }))}
+                      data-testid="checkbox-holiday-rate"
+                    />
+                    <span className="text-sm">Holiday Rate Multiplier</span>
+                  </label>
+                  {serviceDetails.holidayRateEnabled && (
+                    <Input 
+                      type="number" 
+                      placeholder="1.5"
+                      step="0.1"
+                      min="1"
+                      max="3"
+                      className="w-24"
+                      value={serviceDetails.holidayRateMultiplier}
+                      onChange={(e) => setServiceDetails(prev => ({ ...prev, holidayRateMultiplier: e.target.value }))}
+                      data-testid="input-holiday-rate-multiplier"
+                    />
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Availability Section */}
+            <div className="border rounded-lg p-4 space-y-4">
+              <h3 className="text-lg font-medium">Availability</h3>
+              
+              <div>
+                <label className="block text-sm font-medium mb-2">Available Days</label>
+                <div className="grid grid-cols-4 gap-2">
+                  {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day) => (
+                    <label key={day} className="flex items-center space-x-2">
+                      <input 
+                        type="checkbox" 
+                        className="rounded"
+                        checked={serviceDetails.weeklySchedule.weekdays.includes(day)}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setServiceDetails(prev => ({ 
+                              ...prev, 
+                              weeklySchedule: {
+                                ...prev.weeklySchedule,
+                                weekdays: [...prev.weeklySchedule.weekdays, day]
+                              }
+                            }));
+                          } else {
+                            setServiceDetails(prev => ({ 
+                              ...prev, 
+                              weeklySchedule: {
+                                ...prev.weeklySchedule,
+                                weekdays: prev.weeklySchedule.weekdays.filter(d => d !== day)
+                              }
+                            }));
+                          }
+                        }}
+                        data-testid={`checkbox-day-${day.toLowerCase()}`}
+                      />
+                      <span className="text-sm">{day}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium mb-2">Start Time</label>
+                  <Input 
+                    type="time" 
+                    value={serviceDetails.weeklySchedule.timeRanges[0]?.[0] || '09:00'}
+                    onChange={(e) => setServiceDetails(prev => ({ 
+                      ...prev, 
+                      weeklySchedule: {
+                        ...prev.weeklySchedule,
+                        timeRanges: [[e.target.value, prev.weeklySchedule.timeRanges[0]?.[1] || '17:00']]
+                      }
+                    }))}
+                    data-testid="input-start-time"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2">End Time</label>
+                  <Input 
+                    type="time" 
+                    value={serviceDetails.weeklySchedule.timeRanges[0]?.[1] || '17:00'}
+                    onChange={(e) => setServiceDetails(prev => ({ 
+                      ...prev, 
+                      weeklySchedule: {
+                        ...prev.weeklySchedule,
+                        timeRanges: [[prev.weeklySchedule.timeRanges[0]?.[0] || '09:00', e.target.value]]
+                      }
+                    }))}
+                    data-testid="input-end-time"
+                  />
+                </div>
+              </div>
+
               <div>
                 <label className="block text-sm font-medium mb-2">Service Radius (km)</label>
                 <Input 
@@ -1474,19 +1803,64 @@ const ProviderOnboard: React.FC = () => {
                   data-testid="input-service-radius"
                 />
               </div>
-              <div className="pt-4">
-                <Button 
-                  onClick={saveServiceDetails}
-                  variant="outline"
-                  className="w-full"
-                  data-testid="button-save-service-details"
+            </div>
+
+            {/* Policies Section */}
+            <div className="border rounded-lg p-4 space-y-4">
+              <h3 className="text-lg font-medium">Policies</h3>
+              
+              <div>
+                <label className="block text-sm font-medium mb-2">Cancellation Policy</label>
+                <select 
+                  className="w-full border rounded-lg px-3 py-2"
+                  value={serviceDetails.cancellationPolicy}
+                  onChange={(e) => setServiceDetails(prev => ({ ...prev, cancellationPolicy: e.target.value as any }))}
+                  data-testid="select-cancellation-policy"
                 >
-                  Save Service Details
-                </Button>
-                <p className="text-xs text-gray-500 mt-2 text-center">
-                  Details are saved as draft and can be updated later
-                </p>
+                  <option value="flexible">Flexible - Full refund if cancelled 24hrs before</option>
+                  <option value="moderate">Moderate - 50% refund if cancelled 48hrs before</option>
+                  <option value="strict">Strict - No refunds</option>
+                </select>
               </div>
+
+              <div className="bg-blue-50 p-4 rounded-lg space-y-3">
+                <div className="flex items-start space-x-2">
+                  <CheckCircle className="h-5 w-5 text-blue-600 mt-0.5" />
+                  <div>
+                    <p className="text-sm font-medium text-blue-900">In-App Communication Policy</p>
+                    <p className="text-xs text-blue-700 mt-1">
+                      All client communications must happen through the app for safety and security.
+                      This protects both you and your clients.
+                    </p>
+                  </div>
+                </div>
+                
+                <label className="flex items-center space-x-2">
+                  <input 
+                    type="checkbox" 
+                    className="rounded"
+                    checked={serviceDetails.policyAcknowledged}
+                    onChange={(e) => setServiceDetails(prev => ({ ...prev, policyAcknowledged: e.target.checked }))}
+                    data-testid="checkbox-policy-acknowledged"
+                  />
+                  <span className="text-sm text-blue-900">I understand and will comply with in-app communication policy</span>
+                </label>
+              </div>
+            </div>
+
+            {/* Save Button */}
+            <div className="pt-4">
+              <Button 
+                onClick={saveServiceDetails}
+                variant="outline"
+                className="w-full"
+                data-testid="button-save-service-details"
+              >
+                Save Service Details
+              </Button>
+              <p className="text-xs text-gray-500 mt-2 text-center">
+                Details are saved as draft and can be updated later
+              </p>
             </div>
           </div>
         );

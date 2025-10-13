@@ -8,6 +8,7 @@ import { handleBackgroundCheckWebhook } from './checks/webhook';
 import { connectStripePayout, checkStripeAccountStatus } from './payouts/connect';
 import { saveProviderDetails } from './save';
 import { advanceProviderStatus } from './status/advance';
+import { uploadDocuments, handleDocumentUpload } from './upload-documents';
 // Background check webhook will be imported when file is created
 import { getProviderWithVerificationStatus } from '../../lib/supabase/providers';
 
@@ -29,6 +30,7 @@ router.get('/payouts/status/:providerId', checkStripeAccountStatus);
 
 // Provider details
 router.post('/save', saveProviderDetails);
+router.post('/upload-documents', uploadDocuments, handleDocumentUpload);
 
 // Status management
 router.post('/status/advance', advanceProviderStatus);

@@ -384,6 +384,25 @@ export const providers = pgTable("providers", {
   requirements_due: jsonb("requirements_due").default([]),
   onboarding_last_checked_at: timestamp("onboarding_last_checked_at"),
   payout_setup_complete: boolean("payout_setup_complete").default(false),
+  // Service Details Enrichments
+  years_experience: integer("years_experience"),
+  offers_cats: boolean("offers_cats").default(false),
+  breed_restrictions: text("breed_restrictions"),
+  rate_type: text("rate_type"), // 'hourly','per_visit','flat'
+  starting_price: decimal("starting_price"),
+  min_booking_minutes: integer("min_booking_minutes"), // 30,45,60,90,120
+  cancellation_policy: text("cancellation_policy"), // 'flexible','moderate','strict'
+  travel_fee_enabled: boolean("travel_fee_enabled").default(false),
+  travel_fee_amount: decimal("travel_fee_amount"),
+  additional_pet_fee_enabled: boolean("additional_pet_fee_enabled").default(false),
+  additional_pet_fee_amount: decimal("additional_pet_fee_amount"),
+  holiday_rate_enabled: boolean("holiday_rate_enabled").default(false),
+  holiday_rate_multiplier: decimal("holiday_rate_multiplier"),
+  availability: jsonb("availability").default({}), // {"weekdays":["Mon","Tue"],"timeRanges":[["09:00","17:00"]]}
+  background_check_status: text("background_check_status").default("verified"),
+  verified_badge: boolean("verified_badge").default(true),
+  communication_policy: text("communication_policy").default("in_app_only"),
+  policy_acknowledged: boolean("policy_acknowledged").default(false),
   created_at: timestamp("created_at").defaultNow(),
   updated_at: timestamp("updated_at").defaultNow(),
 });
@@ -415,11 +434,25 @@ export const providerPayouts = pgTable("provider_payouts", {
   updated_at: timestamp("updated_at").defaultNow(),
 });
 
+export const providerDocuments = pgTable("provider_documents", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  user_id: text("user_id").notNull(),
+  doc_type: text("doc_type").notNull(), // 'business_license','insurance_certificate','cert_cpr','cert_akc_trainer','other'
+  file_path: text("file_path").notNull(),
+  file_name: text("file_name").notNull(),
+  mime_type: text("mime_type").notNull(),
+  uploaded_at: timestamp("uploaded_at").defaultNow(),
+  reviewed: boolean("reviewed").default(false),
+  status: text("status").notNull().default("pending"), // 'pending','approved','rejected'
+  notes: text("notes"),
+});
+
 // Provider schemas
 export const insertProviderSchema = createInsertSchema(providers).omit({ id: true, created_at: true, updated_at: true });
 export const insertProviderVerificationSchema = createInsertSchema(providerVerifications).omit({ id: true, created_at: true, updated_at: true });
 export const insertProviderCheckSchema = createInsertSchema(providerChecks).omit({ id: true, created_at: true, updated_at: true });
 export const insertProviderPayoutSchema = createInsertSchema(providerPayouts).omit({ id: true, created_at: true, updated_at: true });
+export const insertProviderDocumentSchema = createInsertSchema(providerDocuments).omit({ id: true, uploaded_at: true });
 
 // Infer types
 export type Profile = typeof profiles.$inferSelect;
@@ -460,6 +493,8 @@ export type ProviderCheck = typeof providerChecks.$inferSelect;
 export type InsertProviderCheck = z.infer<typeof insertProviderCheckSchema>;
 export type ProviderPayout = typeof providerPayouts.$inferSelect;
 export type InsertProviderPayout = z.infer<typeof insertProviderPayoutSchema>;
+export type ProviderDocument = typeof providerDocuments.$inferSelect;
+export type InsertProviderDocument = z.infer<typeof insertProviderDocumentSchema>;
 
 
 

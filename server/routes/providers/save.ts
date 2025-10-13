@@ -16,6 +16,23 @@ const saveProviderSchema = z.object({
   availability: z.string().optional(),
   serviceTypes: z.array(z.string()).optional(),
   radiusKm: z.number().positive().max(50).optional(),
+  // New enrichment fields
+  yearsExperience: z.number().min(0).max(50).optional(),
+  offersCats: z.boolean().optional(),
+  breedRestrictions: z.string().nullable().optional(),
+  rateType: z.enum(['hourly', 'per_visit', 'flat']).optional(),
+  startingPrice: z.number().positive().optional(),
+  minBookingMinutes: z.number().optional(),
+  cancellationPolicy: z.enum(['flexible', 'moderate', 'strict']).optional(),
+  travelFeeEnabled: z.boolean().optional(),
+  travelFeeAmount: z.number().nullable().optional(),
+  additionalPetFeeEnabled: z.boolean().optional(),
+  additionalPetFeeAmount: z.number().nullable().optional(),
+  holidayRateEnabled: z.boolean().optional(),
+  holidayRateMultiplier: z.number().nullable().optional(),
+  communicationPolicy: z.string().optional(),
+  policyAcknowledged: z.boolean().optional(),
+  uploadedDocuments: z.record(z.string()).optional(),
 });
 
 export async function saveProviderDetails(req: Request, res: Response) {
