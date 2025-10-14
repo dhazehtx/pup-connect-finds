@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { getProviderWithVerificationStatus, updateProviderStatus } from '../../../lib/supabase/providers';
+import { ensureVerifiedBadge } from '../../../lib/badges';
 
 export async function advanceProviderStatus(req: Request, res: Response) {
   try {
@@ -42,6 +43,9 @@ export async function advanceProviderStatus(req: Request, res: Response) {
 
     // Advance provider status to verified
     const updatedProvider = await updateProviderStatus(providerData.id, 'verified');
+    
+    // Check if provider is now fully verified and add badge
+    await ensureVerifiedBadge(req.user.id);
 
     res.json({
       success: true,

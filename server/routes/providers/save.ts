@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { z } from 'zod';
 import { getProviderByUserId, updateProviderDetails, createProvider } from '../../lib/supabase/providers';
+import { ensureVerifiedBadge } from '../../lib/badges';
 
 // Schema for basic provider creation
 const createProviderSchema = z.object({
@@ -79,6 +80,9 @@ export async function saveProviderDetails(req: Request, res: Response) {
 
       // Update provider with new details
       const updatedProvider = await updateProviderDetails(provider.id, data);
+      
+      // Check if provider is now fully verified and add badge (especially after policyAcknowledged)
+      await ensureVerifiedBadge(req.user.id);
 
       return res.json({
         success: true,

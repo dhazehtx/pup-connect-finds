@@ -24,6 +24,7 @@ export const profiles = pgTable("profiles", {
   is_admin: boolean("is_admin").default(false),
   last_login_ip: text("last_login_ip"),
   suspicious_activity_count: integer("suspicious_activity_count").default(0),
+  badges: text("badges").array(), // Array of badge strings like ["verified_provider", "top_seller"]
   created_at: timestamp("created_at").defaultNow(),
   updated_at: timestamp("updated_at").defaultNow(),
 });

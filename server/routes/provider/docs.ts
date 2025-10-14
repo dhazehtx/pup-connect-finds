@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { supabase } from "../../lib/supabase";
 import { requireAuth } from "../../middleware/auth";
+import { ensureVerifiedBadge } from "../../lib/badges";
 
 const r = Router();
 r.use(requireAuth);
@@ -39,6 +40,10 @@ r.post("/policy-ack", async (req, res) => {
     .update({ policy_acknowledged: !!acknowledged })
     .eq("user_id", userId);
   if (error) return res.status(500).json({ error: error.message });
+  
+  // Check if provider is now fully verified and add badge
+  await ensureVerifiedBadge(userId);
+  
   res.json({ ok: true });
 });
 

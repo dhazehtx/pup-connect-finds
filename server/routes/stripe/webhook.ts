@@ -10,6 +10,7 @@ import {
 } from "../../lib/stripe-handlers";
 import { withDbIdempotency } from "../../lib/idempotency";
 import { Pool } from '@neondatabase/serverless';
+import { ensureVerifiedBadge } from "../../lib/badges";
 
 const router = Router();
 
@@ -63,6 +64,15 @@ router.post("/", async (req, res) => {
             payoutsEnabled: acct.payouts_enabled || false,
             requirementsDue: acct.requirements?.currently_due ?? [],
           });
+          
+          // Check if provider is now fully verified and add badge
+          const { rows } = await pool.query<{ user_id: string }>(
+            'SELECT user_id FROM providers WHERE stripe_account_id = $1',
+            [acct.id]
+          );
+          if (rows[0]?.user_id) {
+            await ensureVerifiedBadge(rows[0].user_id);
+          }
           break;
         }
 
