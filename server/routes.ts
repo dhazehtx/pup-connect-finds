@@ -223,6 +223,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const { default: providerDocsRouter } = await import('./routes/provider/docs.js');
   app.use('/api/provider', providerDocsRouter);
   
+  // Legal requirements routes (public for pre-validation)
+  const { default: legalRequirementsRouter } = await import('./routes/legal/requirements.js');
+  app.use('/api/legal', legalRequirementsRouter);
+  
   // Provider applications routes (protected by auth middleware)
   app.use('/api/provider-applications', providerApplicationsRouter);
   

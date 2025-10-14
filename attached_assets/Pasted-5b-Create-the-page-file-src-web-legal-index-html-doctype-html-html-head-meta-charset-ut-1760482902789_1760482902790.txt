@@ -1,0 +1,93 @@
+5b) Create the page file: src/web/legal/index.html
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Legal Guide • My Pup</title>
+  <link rel="stylesheet" href="/lib/toast.css"/>
+  <style>
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; margin: 0; color: #0a0a0a; }
+    header { padding: 28px 20px; border-bottom: 1px solid #eee; }
+    main { max-width: 980px; margin: 0 auto; padding: 24px; }
+    .tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin: 24px 0; }
+    .tile { background: #fff; border: 1px solid #eee; border-radius: 12px; padding: 18px; text-align: center; }
+    .card { background: #fff; border: 1px solid #eee; border-radius: 12px; padding: 18px; margin: 16px 0; }
+    .muted { color: #667; }
+    label { display:block; margin: 10px 0 6px; font-weight:600; }
+    select { padding:10px; border-radius:8px; border:1px solid #ddd; }
+    .note { background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:12px; margin-top:10px; }
+    .disclaimer { font-size: 13px; color: #556; margin-top: 12px; }
+  </style>
+</head>
+<body>
+  <header><h1>Legal Guide</h1><div class="muted">Know the rules when offering or booking pet services.</div></header>
+  <main>
+    <section class="card">
+      <label for="statePick">Select your state</label>
+      <select id="statePick">
+        <option>AL</option><option>AK</option><option>AZ</option><option>AR</option><option>CA</option>
+        <option>CO</option><option>CT</option><option>DE</option><option>FL</option><option>GA</option>
+        <option>HI</option><option>ID</option><option>IL</option><option>IN</option><option>IA</option>
+        <option>KS</option><option>KY</option><option>LA</option><option>ME</option><option>MD</option>
+        <option>MA</option><option>MI</option><option>MN</option><option>MS</option><option>MO</option>
+        <option>MT</option><option>NE</option><option>NV</option><option>NH</option><option>NJ</option>
+        <option>NM</option><option>NY</option><option>NC</option><option>ND</option><option>OH</option>
+        <option>OK</option><option>OR</option><option>PA</option><option>RI</option><option>SC</option>
+        <option>SD</option><option>TN</option><option>TX</option><option>UT</option><option>VT</option>
+        <option>VA</option><option>WA</option><option>WV</option><option>WI</option><option>WY</option>
+      </select>
+      <div class="disclaimer">This page is informational, not legal advice. Requirements change; check local law.</div>
+    </section>
+
+    <section class="tiles">
+      <div class="tile"><div style="font-size:28px;font-weight:700" id="strictCount">—</div><div class="muted">States with Strict Regulations</div></div>
+      <div class="tile"><div style="font-size:28px;font-weight:700" id="moderateCount">—</div><div class="muted">States with Moderate Regulations</div></div>
+      <div class="tile"><div style="font-size:28px;font-weight:700" id="lenientCount">—</div><div class="muted">States with Lenient Regulations</div></div>
+    </section>
+
+    <section class="card">
+      <h2>Veterinary Care</h2>
+      <div id="vetNote" class="note">Pick a state above to load requirements…</div>
+    </section>
+  </main>
+
+  <script type="module">
+    import { showToast } from "/lib/toast.js";
+
+    const statePick = document.getElementById("statePick");
+    const vetNote   = document.getElementById("vetNote");
+    const strictEl  = document.getElementById("strictCount");
+    const modEl     = document.getElementById("moderateCount");
+    const lenEl     = document.getElementById("lenientCount");
+
+    // simple demo counts; replace with real metrics later
+    strictEl.textContent   = "18";
+    modEl.textContent      = "23";
+    lenEl.textContent      = "9";
+
+    async function loadVet(state) {
+      const r = await fetch(`/api/legal/requirements?state=${state}&category=veterinary_care`);
+      if (!r.ok) { vetNote.textContent = "Could not load requirements."; return; }
+      const { rule } = await r.json();
+      if (!rule) {
+        vetNote.innerHTML = `No specific rule stored for ${state}. In general, professional veterinary licensing is required in the U.S.`;
+        return;
+      }
+      vetNote.innerHTML = `
+        <strong>${state}</strong>: ${rule.notes || "License required."}
+        <div class="muted" style="margin-top:6px">
+          requires_license: ${rule.requires_license ? "yes" : "no"} •
+          hard_block: ${rule.hard_block ? "yes" : "no"} •
+          allowed_home_based: ${rule.allowed_home_based ? "yes" : "no"}
+        </div>
+      `;
+    }
+
+    statePick.addEventListener("change", () => loadVet(statePick.value));
+    // default state:
+    statePick.value = "TX";
+    loadVet("TX");
+  </script>
+</body>
+</html>

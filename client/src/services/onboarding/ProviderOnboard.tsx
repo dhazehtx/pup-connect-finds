@@ -67,24 +67,32 @@ const ProviderOnboard: React.FC = () => {
     availability: 'weekdays',
     serviceTypes: [] as string[],
     radiusKm: 10,
-    // New enrichment fields
+    // Identity fields
+    state: 'TX',
+    licenseNumber: '',
+    profilePhotoUrl: '',
+    // Experience fields
     yearsExperience: 0,
     offersCats: false,
     breedRestrictions: '',
+    // Pricing fields
     rateType: 'hourly' as 'hourly' | 'per_visit' | 'flat',
     startingPrice: '',
     minBookingMinutes: 60,
     cancellationPolicy: 'flexible' as 'flexible' | 'moderate' | 'strict',
+    // Extra fees
     travelFeeEnabled: false,
     travelFeeAmount: '',
     additionalPetFeeEnabled: false,
     additionalPetFeeAmount: '',
     holidayRateEnabled: false,
     holidayRateMultiplier: '1.5',
+    // Availability
     weeklySchedule: {
       weekdays: [] as string[],
       timeRanges: [['09:00', '17:00']] as string[][],
     },
+    // Policy
     communicationPolicy: 'in_app_only',
     policyAcknowledged: false,
   });
@@ -352,12 +360,28 @@ const ProviderOnboard: React.FC = () => {
   };
 
   const isDetailsValid = () => {
-    return serviceDetails.description.trim() !== '' && 
-           serviceDetails.pricePerService.trim() !== '' && 
-           serviceDetails.serviceTypes.length > 0 && 
-           serviceDetails.startingPrice.trim() !== '' &&
-           parseFloat(serviceDetails.startingPrice) > 0 &&
-           serviceDetails.policyAcknowledged;
+    // Basic validations
+    if (serviceDetails.description.trim() === '') return false;
+    if (serviceDetails.pricePerService.trim() === '') return false;
+    if (serviceDetails.serviceTypes.length === 0) return false;
+    if (serviceDetails.startingPrice.trim() === '' || parseFloat(serviceDetails.startingPrice) <= 0) return false;
+    if (!serviceDetails.policyAcknowledged) return false;
+    
+    // Extra fee validations with NaN guards
+    if (serviceDetails.travelFeeEnabled) {
+      const amount = parseFloat(serviceDetails.travelFeeAmount);
+      if (!serviceDetails.travelFeeAmount || isNaN(amount) || amount <= 0) return false;
+    }
+    if (serviceDetails.additionalPetFeeEnabled) {
+      const amount = parseFloat(serviceDetails.additionalPetFeeAmount);
+      if (!serviceDetails.additionalPetFeeAmount || isNaN(amount) || amount <= 0) return false;
+    }
+    if (serviceDetails.holidayRateEnabled) {
+      const multiplier = parseFloat(serviceDetails.holidayRateMultiplier);
+      if (!serviceDetails.holidayRateMultiplier || isNaN(multiplier) || multiplier < 1.10) return false;
+    }
+    
+    return true;
   };
 
   const isTermsValid = () => {
@@ -1468,6 +1492,87 @@ const ProviderOnboard: React.FC = () => {
           <div className="space-y-6">
             <h2 className="text-xl font-semibold">Service Details & Documents</h2>
             
+            {/* Identity & Credentials Section */}
+            <div className="border rounded-lg p-4 space-y-4">
+              <h3 className="text-lg font-medium">Identity & Credentials</h3>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium mb-2">State (for legal requirements)</label>
+                  <select 
+                    id="stateSelect"
+                    className="w-full border rounded-lg px-3 py-2"
+                    value={serviceDetails.state}
+                    onChange={(e) => setServiceDetails(prev => ({ ...prev, state: e.target.value }))}
+                    data-testid="select-state"
+                    required
+                  >
+                    <option value="TX">Texas</option>
+                    <option value="CA">California</option>
+                    <option value="NY">New York</option>
+                    <option value="FL">Florida</option>
+                    <option value="IL">Illinois</option>
+                    <option value="PA">Pennsylvania</option>
+                  </select>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium mb-2">Professional License Number (if required)</label>
+                  <Input 
+                    id="licenseNumber"
+                    type="text" 
+                    placeholder="Enter license number"
+                    value={serviceDetails.licenseNumber}
+                    onChange={(e) => setServiceDetails(prev => ({ ...prev, licenseNumber: e.target.value }))}
+                    data-testid="input-license-number"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">Required for certain services in some states</p>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-2">Profile Photo (Optional)</label>
+                <Input 
+                  type="file" 
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      // Simple validation: max 8MB, images only
+                      const maxSize = 8 * 1024 * 1024;
+                      const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg'];
+                      
+                      if (file.size > maxSize) {
+                        toast({
+                          title: "File too large",
+                          description: "Profile photo must be under 8MB",
+                          variant: "destructive",
+                        });
+                        return;
+                      }
+                      
+                      if (!allowedTypes.includes(file.type)) {
+                        toast({
+                          title: "Invalid file type",
+                          description: "Please upload a PNG or JPEG image",
+                          variant: "destructive",
+                        });
+                        return;
+                      }
+                      
+                      // TODO: Upload to signed URL and set profilePhotoUrl
+                      toast({
+                        title: "Photo ready",
+                        description: "Profile photo will be uploaded when you save",
+                      });
+                    }
+                  }}
+                  accept="image/png,image/jpeg,image/jpg"
+                  data-testid="input-profile-photo"
+                />
+                <p className="text-xs text-gray-500 mt-1">Max 8MB. PNG or JPEG only.</p>
+              </div>
+            </div>
+            
             {/* Document Uploads Section */}
             <div className="border rounded-lg p-4 space-y-4">
               <h3 className="text-lg font-medium">Verified Documents</h3>
@@ -1478,7 +1583,22 @@ const ProviderOnboard: React.FC = () => {
                   <label className="block text-sm font-medium mb-2">Business License</label>
                   <Input 
                     type="file" 
-                    onChange={(e) => setDocuments(prev => ({ ...prev, businessLicense: e.target.files?.[0] || null }))}
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        const maxSize = 8 * 1024 * 1024;
+                        const allowedTypes = ['application/pdf', 'image/png', 'image/jpeg', 'image/jpg'];
+                        if (file.size > maxSize) {
+                          toast({ title: "File too large", description: "Max 8MB", variant: "destructive" });
+                          return;
+                        }
+                        if (!allowedTypes.includes(file.type)) {
+                          toast({ title: "Invalid type", description: "PDF, PNG, or JPEG only", variant: "destructive" });
+                          return;
+                        }
+                        setDocuments(prev => ({ ...prev, businessLicense: file }));
+                      }
+                    }}
                     accept=".pdf,.jpg,.jpeg,.png"
                     data-testid="input-business-license"
                   />
@@ -1540,6 +1660,7 @@ const ProviderOnboard: React.FC = () => {
                     onChange={(e) => setServiceDetails(prev => ({ ...prev, yearsExperience: parseInt(e.target.value) || 0 }))}
                     data-testid="input-years-experience"
                   />
+                  <p className="text-xs text-gray-500 mt-1">Self-reported. May be subject to verification.</p>
                 </div>
                 <div className="flex items-center pt-6">
                   <label className="flex items-center space-x-2">
@@ -1817,10 +1938,15 @@ const ProviderOnboard: React.FC = () => {
                   onChange={(e) => setServiceDetails(prev => ({ ...prev, cancellationPolicy: e.target.value as any }))}
                   data-testid="select-cancellation-policy"
                 >
-                  <option value="flexible">Flexible - Full refund if cancelled 24hrs before</option>
-                  <option value="moderate">Moderate - 50% refund if cancelled 48hrs before</option>
-                  <option value="strict">Strict - No refunds</option>
+                  <option value="flexible">Flexible</option>
+                  <option value="moderate">Moderate</option>
+                  <option value="strict">Strict</option>
                 </select>
+                <div className="mt-2 text-xs text-gray-600 space-y-1">
+                  <p><strong>Flexible:</strong> Full refund up to 24h before, 50% refund &lt;24h</p>
+                  <p><strong>Moderate:</strong> Full refund up to 48h before, 50% refund &lt;48h</p>
+                  <p><strong>Strict:</strong> 50% refund up to 72h before, no refund &lt;72h</p>
+                </div>
               </div>
 
               <div className="bg-blue-50 p-4 rounded-lg space-y-3">
