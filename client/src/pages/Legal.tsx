@@ -1,14 +1,41 @@
 
 import React, { useState } from 'react';
-import { Scale, FileText, AlertTriangle, Shield, Users, CheckCircle, Gavel, Book, Search, Filter } from 'lucide-react';
+import { Scale, FileText, AlertTriangle, Shield, Users, CheckCircle, Gavel, Book, Search, Filter, Info } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { useQuery } from '@tanstack/react-query';
+
+interface LegalRequirement {
+  rule: {
+    requires_license: boolean;
+    hard_block: boolean;
+    info?: string;
+  };
+}
 
 const Legal = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
+  
+  // Service Provider Requirements lookup
+  const [selectedState, setSelectedState] = useState('TX');
+  const [selectedService, setSelectedService] = useState('pet_sitting');
+  
+  const { data: requirements, isLoading: reqLoading, isError } = useQuery<LegalRequirement>({
+    queryKey: ['/api/legal/requirements', selectedState, selectedService],
+    queryFn: async () => {
+      const params = new URLSearchParams({
+        state: selectedState,
+        category: selectedService,
+      });
+      const response = await fetch(`/api/legal/requirements?${params}`);
+      if (!response.ok) throw new Error('Failed to fetch requirements');
+      return response.json();
+    },
+    enabled: !!selectedState && !!selectedService,
+  });
 
   const stateData = [
     {
@@ -773,6 +800,127 @@ const Legal = () => {
                 </li>
               </ul>
             </div>
+          </CardContent>
+        </Card>
+
+        {/* Service Provider Requirements - Dynamic */}
+        <Card className="mb-8 border-blue-200">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-gray-900">
+              <Shield size={20} />
+              Service Provider Licensing Requirements
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <p className="text-sm text-gray-600">
+              Check licensing requirements for specific service categories in your state.
+            </p>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium mb-2">Select State</label>
+                <select 
+                  className="w-full border rounded-lg px-3 py-2 border-blue-200 focus:border-blue-600 focus:ring-blue-600"
+                  value={selectedState}
+                  onChange={(e) => setSelectedState(e.target.value)}
+                  data-testid="select-requirement-state"
+                >
+                  <option value="TX">Texas</option>
+                  <option value="CA">California</option>
+                  <option value="NY">New York</option>
+                  <option value="FL">Florida</option>
+                  <option value="IL">Illinois</option>
+                  <option value="PA">Pennsylvania</option>
+                </select>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium mb-2">Select Service Category</label>
+                <select 
+                  className="w-full border rounded-lg px-3 py-2 border-blue-200 focus:border-blue-600 focus:ring-blue-600"
+                  value={selectedService}
+                  onChange={(e) => setSelectedService(e.target.value)}
+                  data-testid="select-service-category"
+                >
+                  <option value="pet_sitting">Pet Sitting</option>
+                  <option value="dog_training">Dog Training</option>
+                  <option value="grooming">Grooming</option>
+                  <option value="veterinary">Veterinary Services</option>
+                </select>
+              </div>
+            </div>
+
+            {reqLoading ? (
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <p className="text-sm text-gray-600">Loading requirements...</p>
+              </div>
+            ) : isError ? (
+              <div className="bg-red-50 border border-red-200 p-4 rounded-lg">
+                <p className="text-sm text-red-700">Failed to load requirements. Please try again.</p>
+              </div>
+            ) : requirements?.rule ? (
+              <div className={`p-4 rounded-lg ${
+                requirements.rule.hard_block 
+                  ? 'bg-red-50 border border-red-200' 
+                  : requirements.rule.requires_license
+                  ? 'bg-blue-50 border border-blue-200'
+                  : 'bg-green-50 border border-green-200'
+              }`}>
+                <div className="flex items-start gap-3">
+                  {requirements.rule.hard_block ? (
+                    <AlertTriangle className="h-5 w-5 text-red-600 mt-0.5" />
+                  ) : requirements.rule.requires_license ? (
+                    <Info className="h-5 w-5 text-blue-600 mt-0.5" />
+                  ) : (
+                    <CheckCircle className="h-5 w-5 text-green-600 mt-0.5" />
+                  )}
+                  <div className="flex-1">
+                    <h4 className={`font-semibold text-sm mb-2 ${
+                      requirements.rule.hard_block 
+                        ? 'text-red-800' 
+                        : requirements.rule.requires_license
+                        ? 'text-blue-800'
+                        : 'text-green-800'
+                    }`}>
+                      {requirements.rule.hard_block 
+                        ? 'License Required - Strictly Enforced' 
+                        : requirements.rule.requires_license
+                        ? 'License Recommended'
+                        : 'No License Required'}
+                    </h4>
+                    {requirements.rule.info && (
+                      <p className={`text-sm ${
+                        requirements.rule.hard_block 
+                          ? 'text-red-700' 
+                          : requirements.rule.requires_license
+                          ? 'text-blue-700'
+                          : 'text-green-700'
+                      }`}>
+                        {requirements.rule.info}
+                      </p>
+                    )}
+                    {!requirements.rule.info && (
+                      <p className={`text-sm ${
+                        requirements.rule.hard_block 
+                          ? 'text-red-700' 
+                          : requirements.rule.requires_license
+                          ? 'text-blue-700'
+                          : 'text-green-700'
+                      }`}>
+                        {requirements.rule.requires_license 
+                          ? `Professional licensing recommended for ${selectedService.replace('_', ' ')} services in ${selectedState}.`
+                          : `No professional license currently required for ${selectedService.replace('_', ' ')} services in ${selectedState}.`
+                        }
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <p className="text-sm text-gray-600">No specific requirements found for this combination.</p>
+              </div>
+            )}
           </CardContent>
         </Card>
 
