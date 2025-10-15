@@ -9,6 +9,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useOnboardingStore } from '@/stores/onboarding';
 import { useOnboarding } from '@/stores/useOnboarding';
 import { ensureOnboardingIds } from '@/lib/ensureOnboardingIds';
+import { RiskDisclaimer } from '@/components/legal/RiskDisclaimer';
 
 // SOL:START ProviderOnboard
 interface Step {
@@ -1393,6 +1394,8 @@ const ProviderOnboard: React.FC = () => {
                     </div>
                   )}
                 </div>
+                
+                <RiskDisclaimer variant="stripe" className="mb-4" />
                 
                 <Button 
                   type="button"

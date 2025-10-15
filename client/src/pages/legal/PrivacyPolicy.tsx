@@ -101,9 +101,23 @@ function PrivacyPolicy() {
         </CardContent>
       </Card>
 
+      <Card className="border-blue-200 bg-blue-50">
+        <CardHeader>
+          <CardTitle>4. Payment Processing and Disputes</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <p>
+            We may process limited information related to payments and disputes via our payment partner (e.g., Stripe). We are not a party to service agreements between users and do not control or assume liability for such services.
+          </p>
+          <p className="text-sm text-muted-foreground">
+            For detailed information about how payment data is handled, please review our Terms of Service and Stripe's privacy policy.
+          </p>
+        </CardContent>
+      </Card>
+
       <Card>
         <CardHeader>
-          <CardTitle>4. Data Security</CardTitle>
+          <CardTitle>5. Data Security</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <p>
@@ -121,7 +135,7 @@ function PrivacyPolicy() {
 
       <Card>
         <CardHeader>
-          <CardTitle>5. Your Rights and Choices</CardTitle>
+          <CardTitle>6. Your Rights and Choices</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <h4 className="font-semibold">Account Management:</h4>
@@ -145,7 +159,7 @@ function PrivacyPolicy() {
 
       <Card>
         <CardHeader>
-          <CardTitle>6. Cookies and Tracking</CardTitle>
+          <CardTitle>7. Cookies and Tracking</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <p>
@@ -165,7 +179,7 @@ function PrivacyPolicy() {
 
       <Card>
         <CardHeader>
-          <CardTitle>7. Data Retention</CardTitle>
+          <CardTitle>8. Data Retention</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <p>
@@ -185,7 +199,7 @@ function PrivacyPolicy() {
 
       <Card>
         <CardHeader>
-          <CardTitle>8. Children's Privacy</CardTitle>
+          <CardTitle>9. Children's Privacy</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <p>
@@ -199,7 +213,7 @@ function PrivacyPolicy() {
 
       <Card>
         <CardHeader>
-          <CardTitle>9. International Data Transfers</CardTitle>
+          <CardTitle>10. International Data Transfers</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <p>
@@ -210,7 +224,7 @@ function PrivacyPolicy() {
 
       <Card>
         <CardHeader>
-          <CardTitle>10. Changes to This Policy</CardTitle>
+          <CardTitle>11. Changes to This Policy</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <p>
@@ -221,7 +235,7 @@ function PrivacyPolicy() {
 
       <Card>
         <CardHeader>
-          <CardTitle>11. Contact Us</CardTitle>
+          <CardTitle>12. Contact Us</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <p>

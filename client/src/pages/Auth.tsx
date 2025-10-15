@@ -66,6 +66,41 @@ const Auth = () => {
     return Object.keys(newErrors).length === 0;
   };
 
+  // Helper to record user consent
+  const recordConsent = async (userId: string, consentType: string) => {
+    try {
+      const termsVersion = 'v2.0_2025-10-15';
+      const userAgent = navigator.userAgent;
+      
+      // Get user IP (best effort - may not work in all environments)
+      let ipAddress = null;
+      try {
+        const ipResponse = await fetch('https://api.ipify.org?format=json');
+        const ipData = await ipResponse.json();
+        ipAddress = ipData.ip;
+      } catch {
+        console.log('Could not fetch IP address');
+      }
+
+      await fetch('/api/consent/record', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId,
+          consentType,
+          termsVersion,
+          ipAddress,
+          userAgent,
+        }),
+      });
+      
+      console.log(`[CONSENT] Recorded ${consentType} consent for user ${userId}`);
+    } catch (error) {
+      console.error('[CONSENT] Error recording consent:', error);
+      // Don't block user flow if consent recording fails
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validateForm() || isSubmitting) return;
@@ -75,8 +110,20 @@ const Auth = () => {
     
     try {
       if (activeTab === 'signup') {
-        await signUp(email, password, { full_name: fullName });
+        const { data } = await signUp(email, password, { full_name: fullName });
         console.log('Sign up successful');
+        
+        // Record consent using the signup response data (not context which is null immediately after signup)
+        const newUserId = data?.user?.id;
+        if (newUserId) {
+          console.log('[CONSENT] Recording consent for new user:', newUserId);
+          await Promise.all([
+            recordConsent(newUserId, 'terms'),
+            recordConsent(newUserId, 'privacy'),
+          ]);
+        } else {
+          console.warn('[CONSENT] Unable to record consent - no user ID in signup response');
+        }
       } else {
         await signIn(email, password);
         console.log('Sign in successful');

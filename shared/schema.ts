@@ -1225,3 +1225,27 @@ export const insertBreedSchema = createInsertSchema(breeds).omit({
 
 export type Breed = typeof breeds.$inferSelect;
 export type InsertBreed = z.infer<typeof insertBreedSchema>;
+
+// ===== USER CONSENTS TABLE =====
+
+// User consents table for tracking legal agreement acceptance
+export const userConsents = pgTable("user_consents", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  user_id: uuid("user_id").notNull().references(() => profiles.id, { onDelete: "cascade" }),
+  consent_type: text("consent_type").notNull(), // 'terms', 'privacy', 'booking', 'stripe'
+  terms_version: text("terms_version").notNull(), // e.g., 'v2.0_2025-10-15'
+  accepted: boolean("accepted").default(true).notNull(),
+  ip_address: text("ip_address"),
+  user_agent: text("user_agent"),
+  created_at: timestamp("created_at").defaultNow().notNull(),
+  updated_at: timestamp("updated_at").defaultNow(),
+});
+
+export const insertUserConsentSchema = createInsertSchema(userConsents).omit({ 
+  id: true, 
+  created_at: true, 
+  updated_at: true 
+});
+
+export type UserConsent = typeof userConsents.$inferSelect;
+export type InsertUserConsent = z.infer<typeof insertUserConsentSchema>;

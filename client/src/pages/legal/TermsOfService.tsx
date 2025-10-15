@@ -1,195 +1,235 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
+import { AlertTriangle } from 'lucide-react';
 
 function TermsOfService() {
+  const currentVersion = 'v2.0';
+  const effectiveDate = 'October 15, 2025';
+  
   return (
     <div className="max-w-4xl mx-auto p-6 space-y-6">
       <div className="text-center mb-8">
         <h1 className="text-3xl font-bold mb-2">Terms of Service</h1>
-        <p className="text-muted-foreground">Last updated: August 2025</p>
+        <p className="text-muted-foreground">Version {currentVersion} | Effective Date: {effectiveDate}</p>
       </div>
 
+      <Card className="border-amber-300 bg-amber-50">
+        <CardContent className="pt-6">
+          <div className="flex gap-3">
+            <AlertTriangle className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
+            <p className="text-sm text-amber-900">
+              <strong>Important Notice:</strong> These Terms include limitations on liability, a release of claims, an indemnification obligation, and an arbitration agreement. Please read carefully.
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+
       <Card>
         <CardHeader>
-          <CardTitle>1. Acceptance of Terms</CardTitle>
+          <CardTitle>1. Marketplace; No Provider of Services</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <p>
-            By accessing and using My Pup ("the Platform"), you accept and agree to be bound by the terms and provision of this agreement.
-          </p>
-          <p>
-            If you do not agree to abide by the above, please do not use this service.
+            My Pup, Inc. ("My Pup") is a marketplace platform that enables pet owners and third-party providers (e.g., sitters, walkers, groomers, breeders) to find, communicate, and transact. My Pup is not a party to any agreement between users, does not provide pet-related services, does not supervise or control users, and does not guarantee quality, safety, insurance coverage, background checks, or legal compliance of any user or service.
           </p>
         </CardContent>
       </Card>
 
       <Card>
         <CardHeader>
-          <CardTitle>2. Platform Services</CardTitle>
+          <CardTitle>2. Independent Users; No Employment/Agency</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <p>
-            My Pup provides a marketplace platform that connects:
+            Users act solely as independent parties. No joint venture, partnership, employment, or agency relationship is created between My Pup and any user or between users. Users are exclusively responsible for their acts, omissions, and representations.
+          </p>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>3. Assumption of Risk; Animal Behavior</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <p>
+            Users acknowledge that animals can be unpredictable and may cause injury, property damage, illness, or death. By using the platform or engaging in services, you voluntarily assume all risks associated with animal handling, transportation, boarding, grooming, breeding, training, or related activities.
+          </p>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>4. Release & Covenant Not to Sue</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <p>
+            To the maximum extent permitted by law, you release and forever discharge My Pup, its affiliates, and their officers, directors, employees, and agents from any and all claims, demands, damages, losses, liabilities, costs, and expenses (including reasonable attorneys' fees) arising out of or relating to:
           </p>
           <ul className="list-disc list-inside space-y-2 ml-4">
-            <li>Dog buyers with verified breeders and sellers</li>
-            <li>Pet owners with professional service providers</li>
-            <li>Community members through social features</li>
-            <li>Customers with pet product retailers</li>
+            <li>(a) interactions or contracts between users;</li>
+            <li>(b) injuries to persons or animals;</li>
+            <li>(c) damage or loss to property; or</li>
+            <li>(d) disputes, misrepresentations, or conduct of any user.</li>
           </ul>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>3. User Responsibilities</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <h4 className="font-semibold">For Buyers:</h4>
-          <ul className="list-disc list-inside space-y-2 ml-4">
-            <li>Verify seller credentials and pet health documentation</li>
-            <li>Meet pets in person before finalizing purchases</li>
-            <li>Report suspicious or fraudulent activity</li>
-            <li>Complete transactions through the platform for protection</li>
-          </ul>
-
-          <h4 className="font-semibold mt-4">For Sellers/Breeders:</h4>
-          <ul className="list-disc list-inside space-y-2 ml-4">
-            <li>Provide accurate and truthful information about pets</li>
-            <li>Maintain current health certifications and documentation</li>
-            <li>Follow ethical breeding and sales practices</li>
-            <li>Respond promptly to buyer inquiries</li>
-          </ul>
-
-          <h4 className="font-semibold mt-4">For Service Providers:</h4>
-          <ul className="list-disc list-inside space-y-2 ml-4">
-            <li>Maintain current insurance and certifications</li>
-            <li>Provide services as described and scheduled</li>
-            <li>Follow platform safety guidelines</li>
-            <li>Treat all pets with care and respect</li>
-          </ul>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>4. Platform Fees and Payments</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <h4 className="font-semibold">Commission Structure:</h4>
-          <ul className="list-disc list-inside space-y-2 ml-4">
-            <li>Pet services: 10% platform commission on completed bookings</li>
-            <li>Product sales: Standard marketplace fees apply</li>
-            <li>Premium listings: Optional boost fees for enhanced visibility</li>
-          </ul>
-
-          <h4 className="font-semibold mt-4">Payment Processing:</h4>
-          <ul className="list-disc list-inside space-y-2 ml-4">
-            <li>All payments processed securely through Stripe</li>
-            <li>Funds held in escrow until service completion</li>
-            <li>Refunds processed according to our refund policy</li>
-          </ul>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>5. Prohibited Activities</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <p>Users are prohibited from:</p>
-          <ul className="list-disc list-inside space-y-2 ml-4">
-            <li>Posting false or misleading information</li>
-            <li>Engaging in fraudulent transactions</li>
-            <li>Harassing other users</li>
-            <li>Selling sick or unhealthy animals</li>
-            <li>Operating puppy mills or unethical breeding facilities</li>
-            <li>Circumventing platform payment systems</li>
-            <li>Spamming or sending unsolicited messages</li>
-          </ul>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>6. Account Suspension and Termination</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <p>
-            We reserve the right to suspend or terminate accounts that violate these terms, engage in prohibited activities, or pose a risk to platform safety.
-          </p>
-          <p>
-            Users may appeal suspensions by contacting our support team with relevant documentation.
+          <p className="text-sm text-muted-foreground mt-4">
+            This release does not waive claims that cannot be waived by law (e.g., gross negligence or willful misconduct where such waiver is prohibited).
           </p>
         </CardContent>
       </Card>
 
       <Card>
         <CardHeader>
-          <CardTitle>7. Limitation of Liability</CardTitle>
+          <CardTitle>5. Indemnification</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <p>
-            My Pup serves as a platform connecting users and is not responsible for:
-          </p>
-          <ul className="list-disc list-inside space-y-2 ml-4">
-            <li>The quality, health, or condition of pets sold through the platform</li>
-            <li>The quality of services provided by third-party service providers</li>
-            <li>Disputes between users</li>
-            <li>Acts of fraud or misrepresentation by users</li>
-          </ul>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>8. Privacy and Data Protection</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <p>
-            Your privacy is important to us. Please review our Privacy Policy to understand how we collect, use, and protect your information.
-          </p>
-          <p>
-            We comply with applicable data protection regulations including GDPR where applicable.
+            You agree to defend, indemnify, and hold harmless My Pup from and against any third-party claims, damages, obligations, losses, liabilities, costs, and expenses (including reasonable attorneys' fees) arising from or related to: (i) your use of the platform or services; (ii) your breach of these Terms; (iii) your violation of law or the rights of any person; or (iv) any injury or damage to persons, animals, or property in connection with services you offer or receive.
           </p>
         </CardContent>
       </Card>
 
       <Card>
         <CardHeader>
-          <CardTitle>9. Changes to Terms</CardTitle>
+          <CardTitle>6. No Medical, Legal, or Insurance Advice</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <p>
-            We may update these terms from time to time. Users will be notified of significant changes via email or platform notification.
-          </p>
-          <p>
-            Continued use of the platform after changes constitutes acceptance of updated terms.
+            My Pup does not provide veterinary, medical, legal, or insurance advice. You are solely responsible for obtaining any required licenses, permits, or insurance and for evaluating whether another user maintains adequate qualifications or coverage.
           </p>
         </CardContent>
       </Card>
 
       <Card>
         <CardHeader>
-          <CardTitle>10. Contact Information</CardTitle>
+          <CardTitle>7. Emergency Care & Costs Between Users</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <p>
-            If you have questions about these terms, please contact us:
+            Users engaging in services are solely responsible for arranging emergency protocols (e.g., veterinary care authorization, cost responsibility, and reimbursement). My Pup is not responsible for coordinating or paying for emergency services unless required by law.
           </p>
-          <ul className="space-y-1">
-            <li><strong>Email:</strong> legal@mypup.com</li>
-            <li><strong>Support:</strong> support@mypup.com</li>
-            <li><strong>Address:</strong> My Pup Platform, Austin, TX</li>
-          </ul>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>8. Payments; Platform Role</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <p>
+            Payments may be processed by third-party providers (e.g., Stripe). My Pup is a platform and not a bank, money transmitter, or insurer. Refunds, chargebacks, taxes, and fee obligations are handled per the applicable payment terms and the agreement between users.
+          </p>
+        </CardContent>
+      </Card>
+
+      <Card className="border-red-300 bg-red-50">
+        <CardHeader>
+          <CardTitle className="text-red-900">9. Disclaimers; Limitation of Liability</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-3">
+            <p className="uppercase font-semibold text-red-900">
+              THE PLATFORM AND CONTENT ARE PROVIDED "AS IS" AND "AS AVAILABLE." TO THE MAXIMUM EXTENT PERMITTED BY LAW, MY PUP DISCLAIMS ALL WARRANTIES, EXPRESS OR IMPLIED, INCLUDING MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT.
+            </p>
+            <p className="uppercase font-semibold text-red-900">
+              TO THE MAXIMUM EXTENT PERMITTED BY LAW, MY PUP SHALL NOT BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, EXEMPLARY, OR PUNITIVE DAMAGES, OR ANY LOSS OF PROFITS, REVENUE, DATA, OR GOODWILL, ARISING OUT OF OR RELATING TO THE PLATFORM OR SERVICES.
+            </p>
+            <p className="uppercase font-semibold text-red-900">
+              IN NO EVENT WILL MY PUP'S TOTAL LIABILITY EXCEED THE GREATER OF: (A) THE AMOUNT YOU PAID TO MY PUP IN FEES DURING THE TWELVE (12) MONTHS PRIOR TO THE EVENT GIVING RISE TO LIABILITY; OR (B) US $100.
+            </p>
+            <p className="text-sm text-red-800 mt-4">
+              Nothing herein limits liability where such limitation is prohibited by law.
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card className="border-blue-300 bg-blue-50">
+        <CardHeader>
+          <CardTitle className="text-blue-900">10. Dispute Resolution; Arbitration; Class-Action Waiver</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <p className="font-semibold text-blue-900">PLEASE READ THIS SECTION CAREFULLY. It requires binding arbitration and affects your rights.</p>
+          
+          <div className="space-y-3">
+            <div>
+              <h4 className="font-semibold text-blue-900">(a) Informal Resolution</h4>
+              <p className="text-blue-800">
+                Before filing a claim, the parties will attempt in good faith to resolve disputes by emailing contact@mypup.com with "Dispute Notice" and a description of the claim.
+              </p>
+            </div>
+
+            <div>
+              <h4 className="font-semibold text-blue-900">(b) Arbitration</h4>
+              <p className="text-blue-800">
+                If not resolved within 30 days, disputes will be finally resolved by binding arbitration administered by the American Arbitration Association (AAA) under its rules. Venue: Travis County, Texas. The arbitrator may award individual relief only.
+              </p>
+            </div>
+
+            <div>
+              <h4 className="font-semibold text-blue-900">(c) Class-Action Waiver</h4>
+              <p className="text-blue-800 uppercase font-semibold">
+                Claims must be brought in an individual capacity only and not as a plaintiff or class member in any purported class, collective, or representative proceeding.
+              </p>
+            </div>
+
+            <div>
+              <h4 className="font-semibold text-blue-900">(d) Opt-Out</h4>
+              <p className="text-blue-800">
+                You may opt out of arbitration by mailing written notice to My Pup, Inc., Austin, Texas within 30 days of your first acceptance of these Terms.
+              </p>
+            </div>
+
+            <p className="text-sm text-blue-800 mt-4">
+              If arbitration/class-action waivers are not enforceable in your locale, the parties agree to the exclusive jurisdiction of the state and federal courts located in Travis County, Texas.
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>11. Safety Expectations</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <p>
+            Users agree to follow reasonable safety practices, comply with applicable laws and animal-welfare regulations, and immediately report unsafe conduct, suspected abuse, or policy violations through in-app reporting or email to safety@mypup.com. My Pup may, in its discretion, suspend or terminate accounts.
+          </p>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>12. Governing Law; Severability</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <p>
+            These Terms are governed by the laws of the State of Texas, without regard to conflict-of-law rules. If any provision is found unenforceable, it will be modified to the minimum extent necessary, and the remainder will continue in full force.
+          </p>
         </CardContent>
       </Card>
 
       <Separator className="my-8" />
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Contact Information</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <p>If you have questions about these terms, please contact us:</p>
+          <ul className="space-y-1">
+            <li><strong>Legal:</strong> legal@mypup.com</li>
+            <li><strong>Support:</strong> support@mypup.com</li>
+            <li><strong>Safety:</strong> safety@mypup.com</li>
+            <li><strong>Disputes:</strong> contact@mypup.com (subject: "Dispute Notice")</li>
+            <li><strong>Address:</strong> My Pup, Inc., Austin, Texas</li>
+          </ul>
+        </CardContent>
+      </Card>
       
-      <div className="text-center text-sm text-muted-foreground">
-        <p>By using My Pup, you acknowledge that you have read and understood these Terms of Service.</p>
+      <div className="text-center text-sm text-muted-foreground pb-8">
+        <p>By using My Pup, you acknowledge that you have read, understood, and agree to be bound by these Terms of Service.</p>
+        <p className="mt-2">Version {currentVersion} | Effective {effectiveDate}</p>
       </div>
     </div>
   );

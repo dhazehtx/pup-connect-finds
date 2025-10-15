@@ -1586,6 +1586,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api/applications/submit', submitRouter);
   app.post('/api/applications/consent', consentHandler);
   
+  // User consent recording for legal agreements
+  app.post('/api/consent/record', async (req, res) => {
+    const { recordConsent } = await import('./routes/consent/record');
+    return recordConsent(req, res);
+  });
+  
   // Ensure application exists
   app.post('/api/applications/ensure', async (req, res) => {
     const { ensureApplication } = await import('./routes/applications/ensure');

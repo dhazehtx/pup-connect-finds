@@ -1,0 +1,104 @@
+Drop-in “Liability & Risk” module (ToS)
+
+Replace bracketed items: [My Pup, Inc.], [My Pup], [State], [contact@mypup.com
+], [Effective Date].
+
+1) Marketplace; No Provider of Services
+
+[My Pup] is a marketplace platform that enables pet owners and third-party providers (e.g., sitters, walkers, groomers, breeders) to find, communicate, and transact. [My Pup] is not a party to any agreement between users, does not provide pet-related services, does not supervise or control users, and does not guarantee quality, safety, insurance coverage, background checks, or legal compliance of any user or service.
+
+2) Independent Users; No Employment/Agency
+
+Users act solely as independent parties. No joint venture, partnership, employment, or agency relationship is created between [My Pup] and any user or between users. Users are exclusively responsible for their acts, omissions, and representations.
+
+3) Assumption of Risk; Animal Behavior
+
+Users acknowledge that animals can be unpredictable and may cause injury, property damage, illness, or death. By using the platform or engaging in services, you voluntarily assume all risks associated with animal handling, transportation, boarding, grooming, breeding, training, or related activities.
+
+4) Release & Covenant Not to Sue
+
+To the maximum extent permitted by law, you release and forever discharge [My Pup], its affiliates, and their officers, directors, employees, and agents from any and all claims, demands, damages, losses, liabilities, costs, and expenses (including reasonable attorneys’ fees) arising out of or relating to:
+(a) interactions or contracts between users;
+(b) injuries to persons or animals;
+(c) damage or loss to property; or
+(d) disputes, misrepresentations, or conduct of any user.
+This release does not waive claims that cannot be waived by law (e.g., gross negligence or willful misconduct where such waiver is prohibited).
+
+5) Indemnification
+
+You agree to defend, indemnify, and hold harmless [My Pup] from and against any third-party claims, damages, obligations, losses, liabilities, costs, and expenses (including reasonable attorneys’ fees) arising from or related to: (i) your use of the platform or services; (ii) your breach of these Terms; (iii) your violation of law or the rights of any person; or (iv) any injury or damage to persons, animals, or property in connection with services you offer or receive.
+
+6) No Medical, Legal, or Insurance Advice
+
+[My Pup] does not provide veterinary, medical, legal, or insurance advice. You are solely responsible for obtaining any required licenses, permits, or insurance and for evaluating whether another user maintains adequate qualifications or coverage.
+
+7) Emergency Care & Costs Between Users
+
+Users engaging in services are solely responsible for arranging emergency protocols (e.g., veterinary care authorization, cost responsibility, and reimbursement). [My Pup] is not responsible for coordinating or paying for emergency services unless required by law.
+
+8) Payments; Platform Role
+
+Payments may be processed by third-party providers (e.g., Stripe). [My Pup] is a platform and not a bank, money transmitter, or insurer. Refunds, chargebacks, taxes, and fee obligations are handled per the applicable payment terms and the agreement between users.
+
+9) Disclaimers; Limitation of Liability
+
+THE PLATFORM AND CONTENT ARE PROVIDED “AS IS” AND “AS AVAILABLE.” TO THE MAXIMUM EXTENT PERMITTED BY LAW, [MY PUP] DISCLAIMS ALL WARRANTIES, EXPRESS OR IMPLIED, INCLUDING MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT.
+TO THE MAXIMUM EXTENT PERMITTED BY LAW, [MY PUP] SHALL NOT BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, EXEMPLARY, OR PUNITIVE DAMAGES, OR ANY LOSS OF PROFITS, REVENUE, DATA, OR GOODWILL, ARISING OUT OF OR RELATING TO THE PLATFORM OR SERVICES.
+IN NO EVENT WILL [MY PUP]’S TOTAL LIABILITY EXCEED THE GREATER OF: (A) THE AMOUNT YOU PAID TO [MY PUP] IN FEES DURING THE TWELVE (12) MONTHS PRIOR TO THE EVENT GIVING RISE TO LIABILITY; OR (B) US $100.
+Nothing herein limits liability where such limitation is prohibited by law.
+
+10) Dispute Resolution; Arbitration; Class-Action Waiver
+
+PLEASE READ THIS SECTION CAREFULLY. It requires binding arbitration and affects your rights.
+(a) Informal Resolution. Before filing a claim, the parties will attempt in good faith to resolve disputes by emailing [contact@mypup.com
+] with “Dispute Notice” and a description of the claim.
+(b) Arbitration. If not resolved within 30 days, disputes will be finally resolved by binding arbitration administered by [AAA/JAMS] under its rules. Venue: [County, State]. The arbitrator may award individual relief only.
+(c) Class-Action Waiver. Claims must be brought in an individual capacity only and not as a plaintiff or class member in any purported class, collective, or representative proceeding.
+(d) Opt-Out. You may opt out of arbitration by mailing written notice to [My Pup, Inc., Address] within 30 days of your first acceptance of these Terms.
+If arbitration/class-action waivers are not enforceable in your locale, the parties agree to the exclusive jurisdiction of the state and federal courts located in [County, State].
+
+11) Safety Expectations
+
+Users agree to follow reasonable safety practices, comply with applicable laws and animal-welfare regulations, and immediately report unsafe conduct, suspected abuse, or policy violations through [in-app reporting/Email]. [My Pup] may, in its discretion, suspend or terminate accounts.
+
+12) Governing Law; Severability
+
+These Terms are governed by the laws of [State], without regard to conflict-of-law rules. If any provision is found unenforceable, it will be modified to the minimum extent necessary, and the remainder will continue in full force.
+
+Short “at-point” disclaimer you can show in flows
+
+“[My Pup] is a marketplace that connects pet owners and independent providers. We don’t provide pet services, supervise users, or guarantee safety/insurance. By continuing, you acknowledge animal-related risks and agree that services are at your own risk between you and the other party. See our Terms for release, indemnity, arbitration, and limits on liability.”
+
+(Place this next to the Connect with Stripe / Book / Post Job buttons with a link to the full Terms.)
+
+Minimal Privacy Policy tweak
+
+Add a one-liner clarifying role in payments & disputes:
+
+“We may process limited information related to payments and disputes via our payment partner (e.g., Stripe). We are not a party to service agreements between users and do not control or assume liability for such services.”
+
+(Keep the rest of your privacy disclosures as required—this note is just to align with the ToS story.)
+
+Product checklist (so your ToS is enforceable)
+
+Explicit checkbox at sign-up: “I agree to the Terms of Service and Privacy Policy.”
+
+Both links open in new tabs; no pre-checked boxes.
+
+Record consent: user id, terms version, IP, timestamp, user-agent.
+
+Store in user_consents (or on profiles) with terms_version.
+
+Versioning: When Terms change, force re-consent on next login; store the new version + timestamp.
+
+Email a receipt of the Terms link on sign-up (“Welcome to My Pup—here are the Terms you agreed to on [date]”).
+
+In-flow notice: show the short disclaimer near any high-risk actions (bookings, boarding, grooming, payouts).
+
+Insurance & safety (optional but powerful):
+
+Let providers attest to having liability/animal-bailee coverage; collect policy info.
+
+Provide an optional incident-report form and escalation email.
+
+Offer optional background checks with a clear “no guarantee” notice.
