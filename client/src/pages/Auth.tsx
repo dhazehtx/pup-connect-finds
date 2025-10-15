@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Heart, Mail, User, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+import { Link } from 'wouter';
 
 const Auth = () => {
   const [activeTab, setActiveTab] = useState('signin');
@@ -329,6 +330,20 @@ const Auth = () => {
                   activeTab === 'signup' ? 'Create Account' : 'Sign In'
                 )}
               </Button>
+
+              {/* Signup Disclaimer */}
+              {activeTab === 'signup' && (
+                <p className="text-xs text-gray-500 text-center -mt-2">
+                  By creating an account, you agree to the{' '}
+                  <Link href="/legal/terms" className="underline hover:text-gray-700">
+                    Terms of Service
+                  </Link>{' '}
+                  and{' '}
+                  <Link href="/legal/privacy" className="underline hover:text-gray-700">
+                    Privacy Policy
+                  </Link>.
+                </p>
+              )}
             </form>
 
             {/* "Can't sign in?" link for sign in page */}

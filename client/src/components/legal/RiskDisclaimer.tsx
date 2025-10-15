@@ -1,4 +1,3 @@
-import { AlertTriangle } from 'lucide-react';
 import { Link } from 'wouter';
 
 interface RiskDisclaimerProps {
@@ -10,41 +9,39 @@ export function RiskDisclaimer({ variant = 'general', className = '' }: RiskDisc
   const getContent = () => {
     switch (variant) {
       case 'stripe':
-        return {
-          title: 'Payment Service Agreement',
-          message: 'My Pup is a marketplace that connects pet owners and independent providers. We do not provide pet services, supervise users, or guarantee safety/insurance. By continuing with Stripe Connect, you acknowledge animal-related risks and agree that services are at your own risk between you and the other party.',
-        };
+        return (
+          <>
+            My Pup is a marketplace. We don't provide pet services or insurance and don't supervise users. 
+            By continuing, you accept animal-related risks and agree services are between you and the other party. 
+            See our <Link href="/legal/terms" className="underline hover:text-gray-700">Terms</Link> (release, indemnity, arbitration) 
+            and <Link href="/legal/privacy" className="underline hover:text-gray-700">Privacy</Link>.
+          </>
+        );
       case 'booking':
-        return {
-          title: 'Booking Risk Acknowledgment',
-          message: 'My Pup is a marketplace that connects pet owners and independent providers. We do not provide pet services, supervise users, or guarantee safety/insurance. By booking, you acknowledge animal-related risks and agree that services are at your own risk between you and the provider.',
-        };
+        return (
+          <>
+            Services are provided by independent users, not My Pup. 
+            You assume animal-related risks and agree disputes are between the parties. 
+            See our <Link href="/legal/terms" className="underline hover:text-gray-700">Terms</Link> and{' '}
+            <Link href="/legal/privacy" className="underline hover:text-gray-700">Privacy</Link>.
+          </>
+        );
       case 'general':
       default:
-        return {
-          title: 'Service Agreement',
-          message: 'My Pup is a marketplace that connects pet owners and independent providers. We do not provide pet services, supervise users, or guarantee safety/insurance. By continuing, you acknowledge animal-related risks and agree that services are at your own risk between you and the other party.',
-        };
+        return (
+          <>
+            Services are provided by independent users, not My Pup. 
+            You assume animal-related risks and agree disputes are between the parties. 
+            See our <Link href="/legal/terms" className="underline hover:text-gray-700">Terms</Link> and{' '}
+            <Link href="/legal/privacy" className="underline hover:text-gray-700">Privacy</Link>.
+          </>
+        );
     }
   };
 
-  const content = getContent();
-
   return (
-    <div className={`rounded-lg border border-amber-200 bg-amber-50 p-4 ${className}`} data-testid="disclaimer-risk">
-      <div className="flex gap-3">
-        <AlertTriangle className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
-        <div className="flex-1">
-          <h4 className="font-semibold text-sm text-amber-900 mb-1">{content.title}</h4>
-          <p className="text-sm text-amber-800 leading-relaxed">
-            {content.message}{' '}
-            <Link href="/legal/terms" className="underline hover:text-amber-900 font-medium">
-              See our Terms
-            </Link>
-            {' for release, indemnity, arbitration, and limits on liability.'}
-          </p>
-        </div>
-      </div>
-    </div>
+    <p className={`text-xs text-gray-500 leading-relaxed ${className}`} data-testid="disclaimer-risk">
+      {getContent()}
+    </p>
   );
 }

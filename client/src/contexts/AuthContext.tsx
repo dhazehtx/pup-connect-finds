@@ -10,7 +10,7 @@ interface AuthContextType {
   loaded: boolean;
   profile: any | null;
   isGuest: boolean;
-  signUp: (email: string, password: string, userData?: any) => Promise<void>;
+  signUp: (email: string, password: string, userData?: any) => Promise<{ data: any; error: any; }>;
   signIn: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
   updateProfile: (updates: any) => Promise<void>;
@@ -48,7 +48,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   // Wrapper functions to ensure void return type - memoized
   const signUp = useCallback(async (email: string, password: string, userData?: any) => {
-    await authState.signUp(email, password, userData);
+    return await authState.signUp(email, password, userData);
   }, [authState.signUp]);
 
   const signIn = useCallback(async (email: string, password: string) => {
