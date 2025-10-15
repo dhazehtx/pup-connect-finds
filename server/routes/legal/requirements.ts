@@ -9,18 +9,21 @@ const REQUIREMENTS = {
     dog_training: { requires_license: true, hard_block: true, info: "Texas requires professional certification for dog training services" },
     grooming: { requires_license: true, hard_block: false, info: "Grooming license recommended but not strictly enforced" },
     veterinary: { requires_license: true, hard_block: true, info: "Veterinary license required by Texas law" },
+    veterinary_care: { requires_license: true, hard_block: true, info: "Veterinary license required by Texas law" },
   },
   CA: {
     pet_sitting: { requires_license: false, hard_block: false },
     dog_training: { requires_license: true, hard_block: true, info: "California requires CPDT certification for professional trainers" },
     grooming: { requires_license: true, hard_block: true, info: "California requires grooming license" },
     veterinary: { requires_license: true, hard_block: true, info: "Veterinary license required by California law" },
+    veterinary_care: { requires_license: true, hard_block: true, info: "Veterinary license required by California law" },
   },
   NY: {
     pet_sitting: { requires_license: false, hard_block: false },
     dog_training: { requires_license: true, hard_block: false, info: "New York recommends professional certification" },
     grooming: { requires_license: true, hard_block: true, info: "New York requires grooming license" },
     veterinary: { requires_license: true, hard_block: true, info: "Veterinary license required by New York law" },
+    veterinary_care: { requires_license: true, hard_block: true, info: "Veterinary license required by New York law" },
   },
 };
 
