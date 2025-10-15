@@ -1,7 +1,14 @@
 import Stripe from 'stripe';
 import { Pool } from '@neondatabase/serverless';
+import { createClient } from '@supabase/supabase-js';
 
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+
+// Supabase service role client for server-side operations
+const supabase = createClient(
+  process.env.SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
 
 interface ProviderStatus {
   stripeAccountId: string;
@@ -68,21 +75,28 @@ export async function upsertProviderStatus(status: ProviderStatus): Promise<void
       });
     }
 
-    // ALSO update profiles table for simpler querying
-    const profileQuery = `
-      UPDATE profiles 
-      SET 
-        stripe_account_id = $1,
-        stripe_connected = $2
-      WHERE id = (
-        SELECT user_id FROM providers WHERE stripe_account_id = $1 LIMIT 1
-      )
-    `;
+    // ALSO update profiles table using Supabase service role
+    // First get the user_id from providers
+    const userResult = await pool.query<{ user_id: string }>(
+      'SELECT user_id FROM providers WHERE stripe_account_id = $1 LIMIT 1',
+      [status.stripeAccountId]
+    );
     
-    await pool.query(profileQuery, [
-      status.stripeAccountId,
-      isFullyConnected
-    ]);
+    if (userResult.rows[0]?.user_id) {
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .update({
+          stripe_account_id: status.stripeAccountId,
+          stripe_connected: isFullyConnected,
+        })
+        .eq('id', userResult.rows[0].user_id);
+      
+      if (profileError) {
+        console.error('[STRIPE HANDLERS] Error updating profiles table:', profileError);
+      } else {
+        console.log('[STRIPE HANDLERS] Updated profiles table for user:', userResult.rows[0].user_id);
+      }
+    }
 
   } catch (error) {
     console.error('[STRIPE HANDLERS] Error updating provider status:', error);

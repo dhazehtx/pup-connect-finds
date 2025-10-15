@@ -1,7 +1,14 @@
 import { Request, Response } from 'express';
 import { z } from 'zod';
+import { createClient } from '@supabase/supabase-js';
 import { createStripeConnectAccount, createStripeAccountLink } from '../../../lib/stripe/connect';
 import { createProviderPayout, getProviderByUserId, getProviderPayout } from '../../../lib/supabase/providers';
+
+// Supabase service role client for server-side operations
+const supabase = createClient(
+  process.env.SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
 
 const connectPayoutSchema = z.object({
   providerId: z.string().uuid(),
@@ -39,13 +46,21 @@ export async function connectStripePayout(req: Request, res: Response) {
       account_type: accountType,
     });
 
-    // ALSO update profiles table for simpler querying
-    const { Pool } = require('@neondatabase/serverless');
-    const pool = new Pool({ connectionString: process.env.DATABASE_URL });
-    await pool.query(
-      'UPDATE profiles SET stripe_account_id = $1, stripe_connected = false WHERE id = $2',
-      [stripeAccount.id, req.user.id]
-    );
+    // ALSO update profiles table using Supabase service role
+    const { error: upsertError } = await supabase
+      .from('profiles')
+      .update({
+        stripe_account_id: stripeAccount.id,
+        stripe_connected: false, // Will be set to true by webhook when details_submitted
+      })
+      .eq('id', req.user.id);
+
+    if (upsertError) {
+      console.error('[STRIPE CONNECT] Error updating profiles table:', upsertError);
+      throw upsertError;
+    }
+    
+    console.log('[STRIPE CONNECT] Saved stripe_account_id to profiles table for user:', req.user.id);
 
     // Create account link for onboarding
     const accountLink = await createStripeAccountLink({

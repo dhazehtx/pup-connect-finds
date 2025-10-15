@@ -1,12 +1,19 @@
 import type { Request, Response } from "express";
 import Stripe from "stripe";
 import { Pool } from "@neondatabase/serverless";
+import { createClient } from '@supabase/supabase-js';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: "2025-08-27.basil",
 });
 
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+
+// Supabase service role client for server-side operations
+const supabase = createClient(
+  process.env.SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
 
 // GET: health check for this route
 export async function getPayoutStart(req: Request, res: Response) {
@@ -127,7 +134,7 @@ async function getStripeAccountIdForUser(userId: string): Promise<string | null>
 
 async function saveStripeAccountId(userId: string, acctId: string): Promise<void> {
   try {
-    // Load provider to get providerId
+    // 1) Update providers table (for backwards compatibility)
     const providerQuery = `SELECT id FROM providers WHERE user_id = $1 LIMIT 1`;
     const providerResult = await pool.query(providerQuery, [userId]);
     const providerId = providerResult.rows[0]?.id;
@@ -136,11 +143,26 @@ async function saveStripeAccountId(userId: string, acctId: string): Promise<void
       throw new Error(`No provider found for userId: ${userId}`);
     }
 
-    // Update with stripe_account_id
     const updateQuery = `UPDATE providers SET stripe_account_id = $1 WHERE id = $2`;
     await pool.query(updateQuery, [acctId, providerId]);
     
-    console.log("[PAYOUT] Saved stripe_account_id for provider:", providerId);
+    console.log("[PAYOUT] Saved stripe_account_id to providers table:", providerId);
+
+    // 2) ALSO update profiles table using Supabase service role
+    const { error: upsertError } = await supabase
+      .from('profiles')
+      .update({
+        stripe_account_id: acctId,
+        stripe_connected: false, // Will be set to true by webhook when details_submitted
+      })
+      .eq('id', userId);
+
+    if (upsertError) {
+      console.error("[PAYOUT] Error updating profiles table:", upsertError);
+      throw upsertError;
+    }
+    
+    console.log("[PAYOUT] Saved stripe_account_id to profiles table for user:", userId);
   } catch (error: any) {
     console.error("[PAYOUT] Error in saveStripeAccountId:", error);
     throw error;
