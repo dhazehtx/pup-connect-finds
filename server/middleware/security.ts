@@ -2,54 +2,10 @@ import helmet from 'helmet';
 import { Request, Response, NextFunction } from 'express';
 
 // Security middleware with optimized settings
+// NOTE: CSP is now handled via direct Express header in server/index.ts
 export const securityMiddleware = helmet({
-  // Content Security Policy - Dev-friendly configuration
-  contentSecurityPolicy: {
-    directives: {
-      defaultSrc: ["'self'"],
-      scriptSrc: [
-        "'self'",
-        "'unsafe-inline'",
-        "'unsafe-eval'", // Needed for Vite dev mode
-        "https://js.stripe.com",
-        "https://*.supabase.co",
-        "https://cdn.jsdelivr.net",
-        "https://*.replit.com",
-        "https://www.googletagmanager.com",
-        "https://www.google-analytics.com"
-      ],
-      connectSrc: [
-        "'self'",
-        "https://*.supabase.co",
-        "https://api.stripe.com",
-        "wss://*.supabase.co",
-        "wss://replit.com",
-        "wss://*.replit.com",
-        "https://*.replit.com",
-        "https://www.google-analytics.com",
-        "https://region1.google-analytics.com"
-      ],
-      imgSrc: [
-        "'self'",
-        "data:",
-        "blob:",
-        "https://*.stripe.com",
-        "https://*.supabase.co"
-      ],
-      styleSrc: [
-        "'self'",
-        "'unsafe-inline'",
-        "https://fonts.googleapis.com"
-      ],
-      fontSrc: ["'self'", "https://fonts.gstatic.com"],
-      frameSrc: [
-        "https://js.stripe.com",
-        "https://hooks.stripe.com"
-      ],
-      objectSrc: ["'none'"],
-      upgradeInsecureRequests: [],
-    },
-  },
+  // Disable Helmet's CSP since we're using direct header approach
+  contentSecurityPolicy: false,
   
   // Cross-Origin settings
   crossOriginEmbedderPolicy: false, // Allow embedding for Stripe, etc.

@@ -10,6 +10,22 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
+// Content Security Policy - Dev-friendly configuration for Stripe, Supabase, and Replit
+app.use((req, res, next) => {
+  res.setHeader(
+    'Content-Security-Policy',
+    [
+      "default-src 'self'",
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com https://*.supabase.co https://cdn.jsdelivr.net https://*.replit.com",
+      "connect-src 'self' https://*.supabase.co https://api.stripe.com wss://*.supabase.co wss://replit.com wss://*.replit.com https://*.replit.com",
+      "img-src 'self' data: blob: https://*.stripe.com https://*.supabase.co",
+      "style-src 'self' 'unsafe-inline'",
+      "frame-src https://js.stripe.com https://hooks.stripe.com"
+    ].join('; ')
+  );
+  next();
+});
+
 app.use((req, res, next) => {
   const start = Date.now();
   const path = req.path;
