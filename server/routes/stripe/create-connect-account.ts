@@ -27,13 +27,7 @@ export async function createConnectAccount(req: Request, res: Response) {
     console.log('[STRIPE CONNECT] Creating account for userId:', userId);
 
     // Create Stripe Express account
-    const account = await stripe.accounts.create({ 
-      type: 'express',
-      capabilities: {
-        transfers: { requested: true },
-        card_payments: { requested: true },
-      },
-    });
+    const account = await stripe.accounts.create({ type: 'express' });
 
     console.log('[STRIPE CONNECT] Created account:', account.id);
 
@@ -42,14 +36,11 @@ export async function createConnectAccount(req: Request, res: Response) {
       .from('profiles')
       .update({
         stripe_account_id: account.id,
-        stripe_connected: false // Will be set to true by webhook when onboarding completes
+        stripe_connected: !!account.details_submitted
       })
       .eq('id', userId);
 
-    if (upsertError) {
-      console.error('[STRIPE CONNECT] Error updating profiles table:', upsertError);
-      throw upsertError;
-    }
+    if (upsertError) throw upsertError;
 
     console.log('[STRIPE CONNECT] Saved stripe_account_id to profiles table for user:', userId);
 
