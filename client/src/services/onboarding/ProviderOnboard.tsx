@@ -9,7 +9,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useOnboardingStore } from '@/stores/onboarding';
 import { useOnboarding } from '@/stores/useOnboarding';
 import { ensureOnboardingIds } from '@/lib/ensureOnboardingIds';
-import { RiskDisclaimer } from '@/components/legal/RiskDisclaimer';
+import { LegalBlurb } from '@/components/legal/LegalBlurb';
 
 // SOL:START ProviderOnboard
 interface Step {
@@ -1395,8 +1395,6 @@ const ProviderOnboard: React.FC = () => {
                   )}
                 </div>
                 
-                <RiskDisclaimer variant="stripe" className="mb-4" />
-                
                 <Button 
                   type="button"
                   onClick={openStripeOnboarding}
@@ -1405,6 +1403,7 @@ const ProviderOnboard: React.FC = () => {
                 >
                   Connect with Stripe
                 </Button>
+                <LegalBlurb variant="stripe" />
                 
                 <div className="bg-green-50 p-4 rounded-lg">
                   <p className="text-sm text-green-800">
