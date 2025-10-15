@@ -2,6 +2,7 @@
 import { useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useOnboarding } from '@/stores/useOnboarding';
+import { fetchProviderStripeStatus } from '@/lib/providerStripe';
 
 export default function OnboardingHydrator() {
   const { providerId, setProviderId, setApplicationId, setStripeAccountId, setPayoutSetupComplete } = useOnboarding();
@@ -21,18 +22,20 @@ export default function OnboardingHydrator() {
       const pid = sessionStorage.getItem('providerId');
       if (pid && !providerId) setProviderId(pid);
 
-      // 3) Fetch Stripe data from profiles using real user.id (UUID)
-      const { data, error } = await (supabase as any)
-        .from('profiles')
-        .select('stripe_account_id, stripe_connected')
-        .eq('id', userId)
-        .single();
-        
-      if (!error && data?.stripe_account_id) {
-        setStripeAccountId(data.stripe_account_id);
+      // 3) Fetch Stripe data from profiles using centralized helper
+      try {
+        const stripeData = await fetchProviderStripeStatus(userId);
+        if (stripeData?.stripe_account_id) {
+          setStripeAccountId(stripeData.stripe_account_id);
+        }
+        if (stripeData?.stripe_connected) {
+          setPayoutSetupComplete(true);
+        }
+      } catch (error) {
+        console.warn('[OnboardingHydrator] Error fetching Stripe status:', error);
       }
 
-      // 4) Restore the payout gate (if already done earlier)
+      // 4) Restore the payout gate from sessionStorage if needed
       if (sessionStorage.getItem('payoutDone') === '1') {
         setPayoutSetupComplete(true);
       }

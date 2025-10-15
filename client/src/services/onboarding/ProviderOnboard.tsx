@@ -474,8 +474,8 @@ const ProviderOnboard: React.FC = () => {
     setIdError(null);
     setIdInfo(null);
 
-    if (!authUser?.id || !providerId) {
-      setIdError("Authentication or provider ID not found. Please refresh and try again.");
+    if (!authUser?.id) {
+      setIdError("Authentication required. Please sign in.");
       setSubmitting(false);
       return;
     }
@@ -487,14 +487,17 @@ const ProviderOnboard: React.FC = () => {
     }
 
     try {
-      console.log('[STRIPE VERIFICATION] Starting comprehensive verification for:', { userId: authUser.id, providerId, applicationId });
+      // Get the real providerId from the database
+      const { providerId: realProviderId } = await ensureOnboardingIds();
+      
+      console.log('[STRIPE VERIFICATION] Starting comprehensive verification for:', { userId: authUser.id, providerId: realProviderId, applicationId });
       
       const res = await fetch("/api/verification/start", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ 
           userId: authUser.id, 
-          providerId, 
+          providerId: realProviderId, 
           applicationId,
           frontImagePath: idFrontFile.name,
           backImagePath: idBackFile.name
@@ -538,10 +541,10 @@ const ProviderOnboard: React.FC = () => {
   };
 
   const checkVerificationStatus = async () => {
-    if (!providerId) return;
+    if (!authUser?.id) return;
 
     try {
-      const response = await fetch(`/api/providers/verification-status/${providerId}`);
+      const response = await fetch(`/api/providers/verification-status/${authUser.id}`);
       const data = await response.json();
 
       if (data.verification?.id_status === 'passed' && data.verification?.liveness_passed) {
@@ -573,10 +576,10 @@ const ProviderOnboard: React.FC = () => {
   };
 
   const handleStartBackgroundCheck = async () => {
-    if (!providerId) {
+    if (!authUser?.id) {
       toast({
         title: "Error",
-        description: "Provider ID not found. Please start from the beginning.",
+        description: "Authentication required. Please sign in.",
         variant: "destructive",
       });
       return;
@@ -585,10 +588,13 @@ const ProviderOnboard: React.FC = () => {
     setBackgroundCheck({ status: 'loading' });
 
     try {
+      // Get the real providerId from the database
+      const { providerId: realProviderId } = await ensureOnboardingIds();
+      
       const response = await fetch('/api/providers/checks/start', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ providerId }),
+        body: JSON.stringify({ providerId: realProviderId }),
       });
 
       const data = await response.json();
@@ -653,10 +659,10 @@ const ProviderOnboard: React.FC = () => {
   };
 
   const checkBackgroundStatus = async () => {
-    if (!providerId) return;
+    if (!authUser?.id) return;
 
     try {
-      const response = await fetch(`/api/providers/verification-status/${providerId}`);
+      const response = await fetch(`/api/providers/verification-status/${authUser.id}`);
       const data = await response.json();
 
       if (data.backgroundCheck?.check_status === 'passed') {
@@ -877,17 +883,14 @@ const ProviderOnboard: React.FC = () => {
     setIsSavingBasics(true);
 
     try {
-      console.log('[ONBOARDING] Making save request with:', {
+      console.log('[ONBOARDING] Saving basics with:', {
         userId: authUser.id,
         legalName: basicsData.legalName,
         phone: basicsData.phone
       });
 
-      // For now, create a mock provider ID to unblock the flow
-      const mockProviderId = `provider_${authUser.id}_${Date.now()}`;
-      
-      console.log('[ONBOARDING] Using mock provider ID:', mockProviderId);
-      setProviderId(mockProviderId);
+      // Note: We no longer create fake provider IDs
+      // The real providerId will be fetched when needed via ensureOnboardingIds()
 
       toast({
         title: "Basics Saved",
@@ -981,10 +984,10 @@ const ProviderOnboard: React.FC = () => {
   };
 
   const submitProviderApplication = async () => {
-    if (!providerId) {
+    if (!authUser?.id) {
       toast({
         title: "Error",
-        description: "Provider ID not found. Please complete all previous steps.",
+        description: "Authentication required. Please sign in.",
         variant: "destructive",
       });
       return;
@@ -993,12 +996,15 @@ const ProviderOnboard: React.FC = () => {
     setIsSubmittingApplication(true);
 
     try {
+      // Get the real providerId from the database
+      const { providerId: realProviderId } = await ensureOnboardingIds();
+      
       const response = await fetch('/api/provider-applications/submit', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
-          providerId,
-          userId: authUser?.id 
+          providerId: realProviderId,
+          userId: authUser.id 
         }),
       });
 
