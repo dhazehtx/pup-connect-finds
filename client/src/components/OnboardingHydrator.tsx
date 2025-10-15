@@ -8,25 +8,31 @@ export default function OnboardingHydrator() {
   
   useEffect(() => {
     (async () => {
-      // 1) from sessionStorage
+      // 1) Get the authenticated user's ID
+      const { data: authData } = await supabase.auth.getUser();
+      const userId = authData?.user?.id;
+      
+      if (!userId) {
+        console.warn('[OnboardingHydrator] No authenticated user');
+        return;
+      }
+
+      // 2) Restore providerId from sessionStorage for compatibility
       const pid = sessionStorage.getItem('providerId');
       if (pid && !providerId) setProviderId(pid);
 
-      // 2) fetch provider to get stripe_account_id
-      const id = pid || providerId;
-      if (!id) return;
-      
+      // 3) Fetch provider data using real userId (UUID) matched against user_id
       const { data, error } = await (supabase as any)
         .from('providers')
-        .select('stripe_account_id')
-        .eq('id', id)
+        .select('stripe_account_id, stripe_connected')
+        .eq('user_id', userId)
         .maybeSingle();
         
       if (!error && data?.stripe_account_id) {
         setStripeAccountId(data.stripe_account_id);
       }
 
-      // 3) restore the payout gate (if already done earlier)
+      // 4) Restore the payout gate (if already done earlier)
       if (sessionStorage.getItem('payoutDone') === '1') {
         setPayoutSetupComplete(true);
       }
