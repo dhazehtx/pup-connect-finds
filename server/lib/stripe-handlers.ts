@@ -67,6 +67,23 @@ export async function upsertProviderStatus(status: ProviderStatus): Promise<void
         payoutSetupComplete: isFullyConnected
       });
     }
+
+    // ALSO update profiles table for simpler querying
+    const profileQuery = `
+      UPDATE profiles 
+      SET 
+        stripe_account_id = $1,
+        stripe_connected = $2
+      WHERE id = (
+        SELECT user_id FROM providers WHERE stripe_account_id = $1 LIMIT 1
+      )
+    `;
+    
+    await pool.query(profileQuery, [
+      status.stripeAccountId,
+      isFullyConnected
+    ]);
+
   } catch (error) {
     console.error('[STRIPE HANDLERS] Error updating provider status:', error);
     throw error;

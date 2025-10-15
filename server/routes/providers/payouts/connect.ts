@@ -29,7 +29,7 @@ export async function connectStripePayout(req: Request, res: Response) {
       type: 'express',
       country: 'US', // Default to US, could be made configurable
       email: req.user.email,
-      business_type: accountType,
+      business_type: accountType === 'business' ? 'company' : 'individual',
     });
 
     // Save Stripe account ID to database
@@ -38,6 +38,14 @@ export async function connectStripePayout(req: Request, res: Response) {
       stripe_account_id: stripeAccount.id,
       account_type: accountType,
     });
+
+    // ALSO update profiles table for simpler querying
+    const { Pool } = require('@neondatabase/serverless');
+    const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+    await pool.query(
+      'UPDATE profiles SET stripe_account_id = $1, stripe_connected = false WHERE id = $2',
+      [stripeAccount.id, req.user.id]
+    );
 
     // Create account link for onboarding
     const accountLink = await createStripeAccountLink({

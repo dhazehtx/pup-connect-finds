@@ -21,12 +21,12 @@ export default function OnboardingHydrator() {
       const pid = sessionStorage.getItem('providerId');
       if (pid && !providerId) setProviderId(pid);
 
-      // 3) Fetch provider data using real userId (UUID) matched against user_id
+      // 3) Fetch Stripe data from profiles using real user.id (UUID)
       const { data, error } = await (supabase as any)
-        .from('providers')
+        .from('profiles')
         .select('stripe_account_id, stripe_connected')
-        .eq('user_id', userId)
-        .maybeSingle();
+        .eq('id', userId)
+        .single();
         
       if (!error && data?.stripe_account_id) {
         setStripeAccountId(data.stripe_account_id);
