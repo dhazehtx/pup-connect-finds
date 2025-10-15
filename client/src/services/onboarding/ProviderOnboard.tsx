@@ -700,7 +700,8 @@ const ProviderOnboard: React.FC = () => {
       return;
     }
     
-    const r = await fetch('/api/payout/start', { 
+    // Kick off onboarding with real userId
+    const r = await fetch('/create-connect-account', { 
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ userId: authUser.id })
