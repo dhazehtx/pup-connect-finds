@@ -1,0 +1,71 @@
+B) Replit — server code (Step 1 + optional Step 3 polling)
+
+In your server (e.g. server.js or server/routes/payout/start.ts), make sure you have:
+
+import express from 'express'
+import Stripe from 'stripe'
+import { createClient } from '@supabase/supabase-js'
+
+const app = express()
+app.use(express.json())
+
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, { apiVersion: '2024-06-20' })
+const supabase = createClient(
+  process.env.SUPABASE_URL as string,
+  process.env.SUPABASE_SERVICE_ROLE_KEY as string // service role
+)
+
+// STEP 1: create account and save to profiles
+app.post('/create-connect-account', async (req, res) => {
+  try {
+    const { userId } = req.body
+    if (!userId) return res.status(400).json({ error: 'Missing userId' })
+
+    const account = await stripe.accounts.create({ type: 'express' })
+
+    const { error: upsertError } = await supabase
+      .from('profiles')
+      .update({
+        stripe_account_id: account.id,
+        stripe_connected: false
+      })
+      .eq('id', userId)
+
+    if (upsertError) throw upsertError
+
+    // optionally create an onboarding link
+    const link = await stripe.accountLinks.create({
+      account: account.id,
+      refresh_url: `${process.env.PUBLIC_WEB_URL}/onboarding/refresh`,
+      return_url: `${process.env.PUBLIC_WEB_URL}/onboarding/return`,
+      type: 'account_onboarding'
+    })
+
+    res.json({ accountId: account.id, onboardingUrl: link.url })
+  } catch (err) {
+    console.error(err)
+    res.status(500).json({ error: 'Failed to create connect account' })
+  }
+})
+
+// OPTIONAL (Step 3): simple polling endpoint if webhooks aren’t set up yet
+app.get('/stripe/account-status/:acctId/:userId', async (req, res) => {
+  try {
+    const { acctId, userId } = req.params
+    const acct = await stripe.accounts.retrieve(acctId)
+    const isReady = !!(acct.charges_enabled && acct.payouts_enabled)
+
+    await supabase
+      .from('profiles')
+      .update({ stripe_connected: isReady })
+      .eq('id', userId)
+
+    res.json({ ready: isReady })
+  } catch (err) {
+    console.error(err)
+    res.status(500).json({ error: 'Status check failed' })
+  }
+})
+
+
+Make sure env vars are set in Replit: STRIPE_SECRET_KEY, SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, and PUBLIC_WEB_URL.
