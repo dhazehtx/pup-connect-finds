@@ -3,30 +3,49 @@ import { Request, Response, NextFunction } from 'express';
 
 // Security middleware with optimized settings
 export const securityMiddleware = helmet({
-  // Content Security Policy
+  // Content Security Policy - Dev-friendly configuration
   contentSecurityPolicy: {
     directives: {
       defaultSrc: ["'self'"],
-      styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
-      fontSrc: ["'self'", "https://fonts.gstatic.com"],
       scriptSrc: [
-        "'self'", 
-        "'unsafe-inline'", 
+        "'self'",
+        "'unsafe-inline'",
+        "'unsafe-eval'", // Needed for Vite dev mode
+        "https://js.stripe.com",
+        "https://*.supabase.co",
+        "https://cdn.jsdelivr.net",
+        "https://*.replit.com",
         "https://www.googletagmanager.com",
-        "https://www.google-analytics.com",
-        "https://js.stripe.com"
+        "https://www.google-analytics.com"
       ],
-      imgSrc: ["'self'", "data:", "https:", "blob:"],
       connectSrc: [
-        "'self'", 
+        "'self'",
+        "https://*.supabase.co",
         "https://api.stripe.com",
+        "wss://*.supabase.co",
+        "wss://replit.com",
+        "wss://*.replit.com",
+        "https://*.replit.com",
         "https://www.google-analytics.com",
-        "https://region1.google-analytics.com",
-        process.env.VITE_SUPABASE_URL || "https://wneticxjhxpjpfghnclr.supabase.co",
-        "wss:",
-        "ws:"
+        "https://region1.google-analytics.com"
       ],
-      frameSrc: ["'self'", "https://js.stripe.com"],
+      imgSrc: [
+        "'self'",
+        "data:",
+        "blob:",
+        "https://*.stripe.com",
+        "https://*.supabase.co"
+      ],
+      styleSrc: [
+        "'self'",
+        "'unsafe-inline'",
+        "https://fonts.googleapis.com"
+      ],
+      fontSrc: ["'self'", "https://fonts.gstatic.com"],
+      frameSrc: [
+        "https://js.stripe.com",
+        "https://hooks.stripe.com"
+      ],
       objectSrc: ["'none'"],
       upgradeInsecureRequests: [],
     },
