@@ -67,35 +67,30 @@ const Auth = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  // Helper to record user consent
-  const recordConsent = async (userId: string, consentType: string) => {
+  // Helper to record user consent with Supabase session token
+  const recordConsent = async (userId: string, sessionToken: string, doc: 'tos' | 'privacy') => {
     try {
-      const termsVersion = 'v2.0_2025-10-15';
-      const userAgent = navigator.userAgent;
-      
-      // Get user IP (best effort - may not work in all environments)
-      let ipAddress = null;
-      try {
-        const ipResponse = await fetch('https://api.ipify.org?format=json');
-        const ipData = await ipResponse.json();
-        ipAddress = ipData.ip;
-      } catch {
-        console.log('Could not fetch IP address');
-      }
+      const version = '2025-10-15';
 
-      await fetch('/api/consent/record', {
+      const response = await fetch('/api/consent', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${sessionToken}`
+        },
         body: JSON.stringify({
           userId,
-          consentType,
-          termsVersion,
-          ipAddress,
-          userAgent,
+          doc,
+          version,
+          accepted: true
         }),
       });
       
-      console.log(`[CONSENT] Recorded ${consentType} consent for user ${userId}`);
+      if (!response.ok) {
+        console.error(`[CONSENT] Failed to record ${doc} consent:`, response.status);
+      } else {
+        console.log(`[CONSENT] Recorded ${doc} consent for user ${userId}`);
+      }
     } catch (error) {
       console.error('[CONSENT] Error recording consent:', error);
       // Don't block user flow if consent recording fails
@@ -114,16 +109,18 @@ const Auth = () => {
         const { data } = await signUp(email, password, { full_name: fullName });
         console.log('Sign up successful');
         
-        // Record consent using the signup response data (not context which is null immediately after signup)
+        // Record consent using the signup response data and session token
         const newUserId = data?.user?.id;
-        if (newUserId) {
+        const sessionToken = data?.session?.access_token;
+        
+        if (newUserId && sessionToken) {
           console.log('[CONSENT] Recording consent for new user:', newUserId);
           await Promise.all([
-            recordConsent(newUserId, 'terms'),
-            recordConsent(newUserId, 'privacy'),
+            recordConsent(newUserId, sessionToken, 'tos'),
+            recordConsent(newUserId, sessionToken, 'privacy'),
           ]);
         } else {
-          console.warn('[CONSENT] Unable to record consent - no user ID in signup response');
+          console.warn('[CONSENT] Unable to record consent - missing user ID or session token');
         }
       } else {
         await signIn(email, password);
