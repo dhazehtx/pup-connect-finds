@@ -27,6 +27,7 @@ import paymentsRouter from './routes/payments';
 import bookingsRouter from './routes/bookings';
 import payoutsRouter from './routes/payouts';
 import { registerHealthRoutes } from './routes/health';
+import consentRouter from './routes/consent';
 
 // New Stripe verification system
 import { startVerificationRouter } from './routes/verification/start';
@@ -127,6 +128,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Verification routes (temporarily public to bypass auth issues)
   app.use('/api/verification', verificationRouter);
+  
+  // Consent tracking route (public - used during signup)
+  app.use('/api', consentRouter);
   
   // Provider ID verification routes (temporarily public to bypass auth issues)
   const { linkIdMedia } = await import('./routes/providers/id/link-media.js');
