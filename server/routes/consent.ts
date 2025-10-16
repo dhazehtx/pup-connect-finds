@@ -1,59 +1,76 @@
-// server/routes/consent.ts
-import express from 'express'
-import { createClient } from '@supabase/supabase-js'
+import express from 'express';
+import { createClient } from '@supabase/supabase-js';
 
-const router = express.Router()
+const router = express.Router();
 
-// Build a service-role Supabase client (SERVER ONLY)
-const supabaseUrl = process.env.SUPABASE_URL as string
-const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY as string
+const supabaseUrl = process.env.SUPABASE_URL!;
+const serviceRoleKey =
+  process.env.SUPABASE_SERVICE_ROLE_KEY ||
+  process.env.SUPABASE_SERVICE_ROLE ||
+  process.env.SUPABASE_SERVICE_KEY;
 
-if (!supabaseUrl || !supabaseServiceRoleKey) {
-  console.error('[consent] Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY envs')
-  // we still export the router so the app starts, but requests will 500
+if (!supabaseUrl || !serviceRoleKey) {
+  console.error('[consent] Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY env var');
+  throw new Error('Supabase server env not configured');
 }
 
-const supabase = createClient(supabaseUrl, supabaseServiceRoleKey)
+const sb = createClient(supabaseUrl, serviceRoleKey, { auth: { persistSession: false } });
 
-// POST /api/consent
-// Body: { userId: string, doc: 'tos'|'privacy', version: string, accepted: boolean }
-router.post('/consent', async (req, res) => {
+router.use(async (req, res, next) => {
   try {
-    const { userId, doc, version, accepted } = req.body ?? {}
+    const hdr = req.headers.authorization || '';
+    const token = hdr.startsWith('Bearer ') ? hdr.slice(7) : null;
+    if (!token) return res.status(401).json({ error: 'auth token required' });
 
-    if (!userId || typeof userId !== 'string') {
-      return res.status(400).json({ error: 'userId required' })
-    }
-    if (doc !== 'tos' && doc !== 'privacy') {
-      return res.status(400).json({ error: "doc must be 'tos' or 'privacy'" })
-    }
-    if (!version || typeof version !== 'string') {
-      return res.status(400).json({ error: 'version required' })
-    }
-    if (accepted !== true) {
-      return res.status(400).json({ error: 'accepted must be true' })
-    }
+    const { data, error } = await sb.auth.getUser(token);
+    if (error || !data?.user) return res.status(401).json({ error: 'invalid token' });
 
-    const { error } = await supabase
-      .from('user_consents')
-      .insert({
-        user_id: userId,
-        doc,
-        version,
-        accepted_at: new Date().toISOString(),
-      })
-
-    if (error) {
-      console.error('[consent] insert error', error)
-      return res.status(500).json({ error: 'insert failed' })
-    }
-
-    // No body needed — client just needs to know it worked
-    return res.status(204).end()
+    (req as any).userId = data.user.id;
+    next();
   } catch (e) {
-    console.error('[consent] unexpected error', e)
-    return res.status(500).json({ error: 'unexpected error' })
+    console.error('[consent] auth error', e);
+    return res.status(401).json({ error: 'auth check failed' });
   }
-})
+});
 
-export default router
+router.post('/', async (req, res) => {
+  try {
+    const authedUserId = (req as any).userId as string | undefined;
+    const { userId: bodyUserId, doc, version, accepted } = req.body ?? {};
+
+    const user_id = bodyUserId || authedUserId;
+    if (!user_id || !doc || !version) {
+      return res.status(400).json({ error: 'userId, doc and version are required' });
+    }
+
+    const ip =
+      (req.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim() ||
+      req.socket.remoteAddress ||
+      null;
+    const user_agent = (req.headers['user-agent'] as string) || null;
+    const acceptedBool = !!accepted;
+
+    const insertRow = { user_id, doc, version, accepted: acceptedBool, ip, user_agent };
+
+    const { error } = await sb.from('user_consents').insert(insertRow);
+
+    if (!error) {
+      return res.status(201).end();
+    }
+
+    if ((error as any)?.code === '23505') {
+      await sb
+        .from('user_consents')
+        .upsert(insertRow, { onConflict: 'user_id,doc,version' });
+      return res.status(204).end();
+    }
+
+    console.error('[consent] insert failed', error);
+    return res.status(500).json({ error: 'consent insert failed' });
+  } catch (e) {
+    console.error('[consent] unexpected', e);
+    return res.status(500).json({ error: 'unexpected error' });
+  }
+});
+
+export default router;
