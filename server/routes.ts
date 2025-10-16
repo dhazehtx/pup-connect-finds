@@ -102,6 +102,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use(additionalSecurityHeaders); // Custom security headers
   app.use(compressionMiddleware); // Gzip compression
 
+  // 🔐 Mount consent endpoint BEFORE rate limiters (requires JSON body parsing from server/index.ts)
+  app.post('/api/consent', consentHandler);
+
   // Apply global middleware
   app.use(checkLockout); // Check for locked out IPs/users
   app.use(speedLimiter); // Gradual slowdown for high-frequency requests
@@ -124,9 +127,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api/admin/analytics', analyticsRouter);
   app.use('/api/webhook', webhookRouter);
   app.use('/api/qa', qaRouter);
-  
-  // Consent tracking route (public - used during signup, BEFORE auth middleware)
-  app.post('/api/consent', consentHandler);
   
   // Verification routes (temporarily public to bypass auth issues)
   app.use('/api/verification', verificationRouter);
