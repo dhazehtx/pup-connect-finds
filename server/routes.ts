@@ -28,6 +28,7 @@ import bookingsRouter from './routes/bookings';
 import payoutsRouter from './routes/payouts';
 import { registerHealthRoutes } from './routes/health';
 import consentRouter from './routes/consent';
+import consentGetRouter from './routes/consent-get';
 
 // New Stripe verification system
 import { startVerificationRouter } from './routes/verification/start';
@@ -102,8 +103,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use(additionalSecurityHeaders); // Custom security headers
   app.use(compressionMiddleware); // Gzip compression
 
-  // 🔐 Mount consent endpoint BEFORE rate limiters (requires JSON body parsing from server/index.ts)
+  // 🔐 Mount consent endpoints BEFORE rate limiters (requires JSON body parsing from server/index.ts)
   app.use('/api', consentRouter);
+  app.use('/api', consentGetRouter);
 
   // Apply global middleware
   app.use(checkLockout); // Check for locked out IPs/users
