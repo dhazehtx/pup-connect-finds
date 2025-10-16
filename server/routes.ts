@@ -103,6 +103,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use(additionalSecurityHeaders); // Custom security headers
   app.use(compressionMiddleware); // Gzip compression
 
+  // Consent tracking route (MUST be early, before rate limiting)
+  app.use('/api/consent', consentRouter);
+
   // Apply global middleware
   app.use(checkLockout); // Check for locked out IPs/users
   app.use(speedLimiter); // Gradual slowdown for high-frequency requests
@@ -128,9 +131,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Verification routes (temporarily public to bypass auth issues)
   app.use('/api/verification', verificationRouter);
-  
-  // Consent tracking route (public - used during signup)
-  app.use('/api', consentRouter);
   
   // Provider ID verification routes (temporarily public to bypass auth issues)
   const { linkIdMedia } = await import('./routes/providers/id/link-media.js');
