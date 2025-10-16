@@ -4,11 +4,15 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import LoadingState from '@/components/ui/loading-state';
 import UnifiedProfileView from '@/components/profile/UnifiedProfileView';
+import { useEnsureConsent } from '@/hooks/useEnsureConsent';
 
 const Profile = () => {
   const { userId } = useParams();
   const { user, loading } = useAuth();
   const navigate = useNavigate();
+  
+  // Auto-post consent after login
+  useEnsureConsent();
   
   // Debug logging - throttled to avoid excessive re-renders
   useEffect(() => {
