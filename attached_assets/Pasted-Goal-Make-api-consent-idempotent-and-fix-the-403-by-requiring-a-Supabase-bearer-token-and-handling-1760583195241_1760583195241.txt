@@ -1,0 +1,109 @@
+Goal: Make /api/consent idempotent and fix the 403 by requiring a Supabase bearer token and handling duplicate inserts as success.
+
+Do this:
+
+Create (or replace) server/routes/consent.ts with the code below.
+
+Register the route early in the server bootstrap (before any generic rate-limiter or catch-alls):
+
+import consentRouter from './routes/consent';
+app.use('/api/consent', consentRouter);
+
+
+Put that above any generic rateLimit, “auth guard for all routes”, or 404 handlers.
+
+Do not import the anon key on the server. Use the service role key via env:
+
+SUPABASE_URL
+
+SUPABASE_SERVICE_ROLE_KEY
+
+Leave the DB as-is (we already added accepted_at and the unique index on (user_id, doc, version)).
+
+File content to write: server/routes/consent.ts
+
+import express from 'express';
+import { createClient } from '@supabase/supabase-js';
+
+const router = express.Router();
+
+const supabaseUrl = process.env.SUPABASE_URL!;
+const serviceRoleKey =
+  process.env.SUPABASE_SERVICE_ROLE_KEY ||
+  process.env.SUPABASE_SERVICE_ROLE ||
+  process.env.SUPABASE_SERVICE_KEY;
+
+if (!supabaseUrl || !serviceRoleKey) {
+  // Fail fast if misconfigured
+  console.error('[consent] Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY env var');
+  throw new Error('Supabase server env not configured');
+}
+
+// Server-side client with service role (no session persistence)
+const sb = createClient(supabaseUrl, serviceRoleKey, { auth: { persistSession: false } });
+
+// Minimal auth middleware: require Supabase bearer token and resolve user id
+router.use(async (req, res, next) => {
+  try {
+    const hdr = req.headers.authorization || '';
+    const token = hdr.startsWith('Bearer ') ? hdr.slice(7) : null;
+    if (!token) return res.status(401).json({ error: 'auth token required' });
+
+    const { data, error } = await sb.auth.getUser(token);
+    if (error || !data?.user) return res.status(401).json({ error: 'invalid token' });
+
+    (req as any).userId = data.user.id;
+    next();
+  } catch (e) {
+    console.error('[consent] auth error', e);
+    return res.status(401).json({ error: 'auth check failed' });
+  }
+});
+
+// POST /api/consent
+router.post('/', async (req, res) => {
+  try {
+    const authedUserId = (req as any).userId as string | undefined;
+    const { userId: bodyUserId, doc, version, accepted } = req.body ?? {};
+
+    const user_id = bodyUserId || authedUserId;
+    if (!user_id || !doc || !version) {
+      return res.status(400).json({ error: 'userId, doc and version are required' });
+    }
+
+    const ip =
+      (req.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim() ||
+      req.socket.remoteAddress ||
+      null;
+    const user_agent = (req.headers['user-agent'] as string) || null;
+    const acceptedBool = !!accepted;
+
+    // Try a plain insert first (preferred so we can detect duplicates cleanly)
+    const insertRow = { user_id, doc, version, accepted: acceptedBool, ip, user_agent };
+
+    const { error } = await sb.from('user_consents').insert(insertRow);
+
+    if (!error) {
+      // first time recorded
+      return res.status(201).end();
+    }
+
+    // If duplicate (unique index on user_id,doc,version), treat as success/idempotent
+    // Postgres unique_violation code: 23505
+    if ((error as any)?.code === '23505') {
+      // Upsert to refresh ip / user_agent / accepted flag without erroring
+      await sb
+        .from('user_consents')
+        .upsert(insertRow, { onConflict: 'user_id,doc,version' });
+      return res.status(204).end();
+    }
+
+    console.error('[consent] insert failed', error);
+    return res.status(500).json({ error: 'consent insert failed' });
+  } catch (e) {
+    console.error('[consent] unexpected', e);
+    return res.status(500).json({ error: 'unexpected error' });
+  }
+});
+
+export default router;
