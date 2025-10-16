@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -216,9 +216,9 @@ const ExploreGuest = () => {
     }
   }, [activeTab, listings, posts]);
 
-  const handleFiltersChange = (newFilters: any) => {
+  const handleFiltersChange = useCallback((newFilters: any) => {
     setFilters(newFilters);
-  };
+  }, []);
 
   const handleTabChange = (tab: string) => {
     setActiveTab(tab as 'listings' | 'posts');

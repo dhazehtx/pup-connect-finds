@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Search, Grid, List } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
@@ -86,9 +86,9 @@ const EnhancedExplorePage: React.FC = () => {
     }
   }, [activeTab, listings, posts]);
 
-  const handleFiltersChange = (newFilters: any) => {
+  const handleFiltersChange = useCallback((newFilters: any) => {
     setFilters(newFilters);
-  };
+  }, []);
 
   const handleTabChange = (tab: string) => {
     setActiveTab(tab as 'listings' | 'posts');

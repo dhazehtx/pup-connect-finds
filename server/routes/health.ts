@@ -1,7 +1,19 @@
 import type { Express } from "express";
 import { db } from "../db";
+import { supabaseAdmin } from "../lib/supabaseAdmin";
 
 export function registerHealthRoutes(app: Express) {
+  // Supabase health check
+  app.get("/api/health/supabase", async (req, res) => {
+    try {
+      const { data, error } = await supabaseAdmin.auth.admin.listUsers({ page: 1, perPage: 1 });
+      if (error) throw error;
+      res.json({ ok: true, usersSeen: data.users?.length ?? 0 });
+    } catch (e: any) {
+      res.status(500).json({ ok: false, error: e?.message || String(e) });
+    }
+  });
+
   // Basic health check
   app.get("/api/health", async (req, res) => {
     try {
