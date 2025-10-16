@@ -1,76 +1,55 @@
-import express from 'express';
-import { createClient } from '@supabase/supabase-js';
+// server/routes/consent.ts
+import type { Request, Response } from 'express'
+import { supabaseAdmin } from '../lib/supabaseAdmin'
 
-const router = express.Router();
-
-const supabaseUrl = process.env.SUPABASE_URL!;
-const serviceRoleKey =
-  process.env.SUPABASE_SERVICE_ROLE_KEY ||
-  process.env.SUPABASE_SERVICE_ROLE ||
-  process.env.SUPABASE_SERVICE_KEY;
-
-if (!supabaseUrl || !serviceRoleKey) {
-  console.error('[consent] Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY env var');
-  throw new Error('Supabase server env not configured');
-}
-
-const sb = createClient(supabaseUrl, serviceRoleKey, { auth: { persistSession: false } });
-
-router.use(async (req, res, next) => {
+export async function consentHandler(req: Request, res: Response) {
   try {
-    const hdr = req.headers.authorization || '';
-    const token = hdr.startsWith('Bearer ') ? hdr.slice(7) : null;
-    if (!token) return res.status(401).json({ error: 'auth token required' });
+    if (req.method !== 'POST') return res.status(405).send('Method Not Allowed')
 
-    const { data, error } = await sb.auth.getUser(token);
-    if (error || !data?.user) return res.status(401).json({ error: 'invalid token' });
+    // 1) Require bearer token
+    const auth = req.headers.authorization ?? ''
+    const token = auth.replace(/^Bearer\s+/i, '')
+    if (!token) return res.status(401).json({ error: 'missing bearer token' })
 
-    (req as any).userId = data.user.id;
-    next();
-  } catch (e) {
-    console.error('[consent] auth error', e);
-    return res.status(401).json({ error: 'auth check failed' });
-  }
-});
+    // 2) Validate token and get user id
+    const { data: userData, error: userErr } = await supabaseAdmin.auth.getUser(token)
+    if (userErr || !userData?.user) return res.status(401).json({ error: 'invalid token' })
+    const user_id = userData.user.id
 
-router.post('/', async (req, res) => {
-  try {
-    const authedUserId = (req as any).userId as string | undefined;
-    const { userId: bodyUserId, doc, version, accepted } = req.body ?? {};
-
-    const user_id = bodyUserId || authedUserId;
-    if (!user_id || !doc || !version) {
-      return res.status(400).json({ error: 'userId, doc and version are required' });
+    // 3) Basic payload
+    const { doc, version, accepted } = req.body ?? {}
+    if (!doc || !version || typeof accepted !== 'boolean') {
+      return res.status(400).json({ error: 'doc, version, accepted required' })
     }
 
+    // 4) Audit
     const ip =
       (req.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim() ||
       req.socket.remoteAddress ||
-      null;
-    const user_agent = (req.headers['user-agent'] as string) || null;
-    const acceptedBool = !!accepted;
+      null
+    const user_agent = (req.headers['user-agent'] as string) || null
 
-    const insertRow = { user_id, doc, version, accepted: acceptedBool, ip, user_agent };
-
-    const { error } = await sb.from('user_consents').insert(insertRow);
-
-    if (!error) {
-      return res.status(201).end();
+    // 5) Idempotent insert (unique on user_id,doc,version)
+    const payload = {
+      user_id,
+      doc,
+      version,
+      accepted,
+      accepted_at: new Date().toISOString(),
+      ip,
+      user_agent
     }
 
-    if ((error as any)?.code === '23505') {
-      await sb
-        .from('user_consents')
-        .upsert(insertRow, { onConflict: 'user_id,doc,version' });
-      return res.status(204).end();
+    // Try plain insert and treat unique violation as success (204)
+    const { error: insErr } = await supabaseAdmin.from('user_consents').insert(payload)
+    if (insErr) {
+      // 23505 = unique_violation
+      if ((insErr as any).code === '23505') return res.status(204).end()
+      return res.status(500).json({ error: insErr.message })
     }
 
-    console.error('[consent] insert failed', error);
-    return res.status(500).json({ error: 'consent insert failed' });
-  } catch (e) {
-    console.error('[consent] unexpected', e);
-    return res.status(500).json({ error: 'unexpected error' });
+    return res.status(201).json({ ok: true })
+  } catch (e: any) {
+    return res.status(500).json({ error: e?.message ?? 'server error' })
   }
-});
-
-export default router;
+}

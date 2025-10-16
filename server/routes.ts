@@ -27,14 +27,13 @@ import paymentsRouter from './routes/payments';
 import bookingsRouter from './routes/bookings';
 import payoutsRouter from './routes/payouts';
 import { registerHealthRoutes } from './routes/health';
-import consentRouter from './routes/consent';
+import { consentHandler } from './routes/consent';
 
 // New Stripe verification system
 import { startVerificationRouter } from './routes/verification/start';
 import { progressRouter } from './routes/applications/progress';
 import { submitRouter } from './routes/applications/submit';
 import { webhookRouter as stripeWebhookRouter } from './routes/stripe/webhook';
-import { POST as consentHandler } from './routes/applications/consent';
 import { verifyPayout } from './routes/payout/verify';
 import { storage } from "./storage";
 import { 
@@ -127,7 +126,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api/qa', qaRouter);
   
   // Consent tracking route (public - used during signup, BEFORE auth middleware)
-  app.use('/api/consent', consentRouter);
+  app.post('/api/consent', consentHandler);
   
   // Verification routes (temporarily public to bypass auth issues)
   app.use('/api/verification', verificationRouter);
