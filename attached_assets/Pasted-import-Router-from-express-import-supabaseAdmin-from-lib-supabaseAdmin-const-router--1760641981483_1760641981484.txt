@@ -16,7 +16,7 @@ router.post('/consent', async (req, res) => {
     }
     const user_id = userRes.user.id
 
-    // 2) Validate body against your table's columns
+    // 2) Validate body against your table’s columns
     const { doc, version } = req.body || {}
     if (!doc || !version) {
       // we map version -> terms_version, so require them here
@@ -45,7 +45,7 @@ router.post('/consent', async (req, res) => {
     }
 
     // If it was an update (conflict), return 204; otherwise 201
-    // Supabase doesn't directly tell us conflict vs insert, so 201 is fine.
+    // Supabase doesn’t directly tell us conflict vs insert, so 201 is fine.
     return res.status(201).json({ ok: true })
   } catch (e: any) {
     console.error('CONSENT route exception', e)
