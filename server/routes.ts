@@ -127,6 +127,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api/services', servicesRouter);
   app.use('/api/admin', adminRouter);
   app.use('/api/admin/analytics', analyticsRouter);
+  
+  // Admin provider management routes (protected by requireAdmin middleware)
+  const { default: adminProvidersRouter } = await import('./routes/admin/providers.js');
+  app.use('/api/admin/providers', adminProvidersRouter);
   app.use('/api/webhook', webhookRouter);
   app.use('/api/qa', qaRouter);
   
