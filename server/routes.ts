@@ -227,6 +227,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Provider document management routes (protected by auth middleware)
   const { default: providerDocsRouter } = await import('./routes/provider/docs.js');
   app.use('/api/provider', providerDocsRouter);
+
+  // Provider submit route (protected by auth middleware)
+  const { default: providerSubmitRouter } = await import('./routes/provider/submit.js');
+  app.use('/api/provider/submit', providerSubmitRouter);
   
   // Legal requirements routes (public for pre-validation)
   const { default: legalRequirementsRouter } = await import('./routes/legal/requirements.js');
