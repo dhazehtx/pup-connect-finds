@@ -2,7 +2,6 @@ import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import { initializeSentry, Sentry, captureError } from "./utils/sentry";
-import type { Server } from "http";
 
 // Initialize Sentry as early as possible
 initializeSentry();
@@ -59,7 +58,8 @@ app.use((req, res, next) => {
   next();
 });
 
-export async function setupApp(): Promise<{ app: express.Application; server: Server }> {
+// Register routes and configure the app (async setup)
+export async function setupApp() {
   const server = await registerRoutes(app);
 
   // Sentry error handling middleware (only if initialized)
@@ -91,7 +91,7 @@ export async function setupApp(): Promise<{ app: express.Application; server: Se
     serveStatic(app);
   }
 
-  return { app, server };
+  return server;
 }
 
 export default app;
