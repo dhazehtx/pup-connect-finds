@@ -1,0 +1,127 @@
+1) Frontend: Step 8 Review (fixed)
+
+Where: components/provider/Step8Review.tsx
+
+import React, { useState } from 'react';
+
+export default function Step8Review({
+  accessToken, providerId, onSubmitted,
+}: { accessToken: string; providerId: string; onSubmitted: () => void }) {
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+
+  const handleSubmit = async () => {
+    try {
+      setBusy(true); setErr(null);
+      const resp = await fetch('/api/provider/submit', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${accessToken}`,     // ✅ backticks
+        },
+        body: JSON.stringify({ provider_id: providerId }),
+      });
+      const body = await resp.json().catch(() => null);
+      if (!resp.ok) throw new Error(body?.error || `Submit failed: ${resp.status}`); // ✅ backticks
+      onSubmitted();
+    } catch (e: any) {
+      setErr(e.message || 'Something went wrong');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <div className="space-y-4">
+      <h2 className="text-xl font-semibold">Review & Submit</h2>
+      <ul className="text-sm list-disc pl-6">
+        <li>Business name, services, pricing, availability</li>
+        <li>Government ID / verification uploaded</li>
+        <li>Payout account connected</li>
+      </ul>
+      {err && <div className="text-red-600 text-sm">{err}</div>}
+      <button
+        disabled={busy}
+        onClick={handleSubmit}
+        className="px-4 py-2 rounded-xl bg-emerald-600 text-white"
+      >
+        {busy ? 'Submitting…' : 'Submit for Review'}
+      </button>
+      <p className="text-sm text-gray-500">
+        After submission your status becomes <strong>pending review</strong>. We’ll notify you when approved.
+      </p>
+    </div>
+  );
+}
+
+2) DevTools: token + consent + submit (fixed)
+
+Where: Browser DevTools Console (logged in as the provider)
+
+// Get an access token from Supabase localStorage
+const REF = 'wneticxjhxpjpfghnclr';                 // your ref
+const k = `sb-${REF}-auth-token`;                   // ✅ backticks + quotes
+const p = JSON.parse(localStorage.getItem(k) || 'null');
+const accessToken =
+  p?.access_token ||
+  p?.currentSession?.access_token ||
+  p?.session?.access_token ||
+  p?.data?.session?.access_token;
+
+// 1) Post consent
+await fetch('/api/consent', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${accessToken}`,       // ✅
+  },
+  body: JSON.stringify({ doc: 'service_provider_terms', version: 'v1', accepted: true }),
+}).then(r => r.json()).then(console.log);
+
+// 2) Submit provider (use a real providers.id from DB)
+await fetch('/api/provider/submit', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${accessToken}`,       // ✅
+  },
+  body: JSON.stringify({ provider_id: 'REPLACE_WITH_PROVIDER_ID' }),
+}).then(r => r.json()).then(console.log);
+
+3) DevTools: admin approve/reject (fixed)
+
+Where: Browser DevTools Console (logged in as admin UUID in ADMIN_USER_IDS)
+
+const adminAccessToken = accessToken; // if current session is the admin
+
+// Approve
+await fetch(`/api/admin/providers/REPLACE_PROVIDER_ID/approve`, {  // ✅ backticks
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${adminAccessToken}`,                 // ✅
+  },
+  body: JSON.stringify({ badge: 'verified', review_notes: 'All checks clear' }),
+}).then(r => r.json()).then(console.log);
+
+// Or reject
+await fetch(`/api/admin/providers/REPLACE_PROVIDER_ID/reject`, {    // ✅ backticks
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${adminAccessToken}`,                 // ✅
+  },
+  body: JSON.stringify({ review_notes: 'Missing docs' }),
+}).then(r => r.json()).then(console.log);
+
+4) Admin queue fetch (fixed header)
+
+Where: Admin frontend page/component (or DevTools to sanity check)
+
+const resp = await fetch('/api/admin/queue/providers', {
+  headers: { 'Authorization': `Bearer ${adminAccessToken}` },       // ✅ backticks
+});
+const { items } = await resp.json();
+console.log(items);
+
+Quick checklist before you drive
