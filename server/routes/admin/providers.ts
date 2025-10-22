@@ -2,6 +2,7 @@
 import { Router } from 'express';
 import { supabaseAdmin } from '../../lib/supabaseAdmin';
 import { requireAdmin } from '../../middleware/requireAdmin';
+import { notifyAdmins } from '../../lib/adminNotify';
 
 const r = Router();
 r.use(requireAdmin);
@@ -40,6 +41,13 @@ r.post('/:id/approve', async (req: any, res) => {
     payload: { provider_id: providerId },
   });
 
+  // Notify admins of approval
+  await notifyAdmins('provider_approved', {
+    provider_id: data.id,
+    reviewer_id: reviewerId,
+    approved_at: new Date().toISOString(),
+  });
+
   res.json({ ok: true, provider: data });
 });
 
@@ -73,6 +81,14 @@ r.post('/:id/reject', async (req: any, res) => {
     user_id: prov.user_id,
     type: 'provider_rejected',
     payload: { provider_id: providerId, review_notes },
+  });
+
+  // Notify admins of rejection
+  await notifyAdmins('provider_rejected', {
+    provider_id: data.id,
+    reviewer_id: reviewerId,
+    review_notes,
+    rejected_at: new Date().toISOString(),
   });
 
   res.json({ ok: true, provider: data });

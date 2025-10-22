@@ -135,6 +135,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Admin queue routes (protected by requireAdmin middleware)
   const { default: adminQueueRouter } = await import('./routes/admin/queue.js');
   app.use('/api/admin/queue', adminQueueRouter);
+  
+  // Admin inbox routes (protected by requireAdmin middleware)
+  const { default: adminInboxRouter } = await import('./routes/admin/inbox.js');
+  app.use('/api/admin', adminInboxRouter);
   app.use('/api/webhook', webhookRouter);
   app.use('/api/qa', qaRouter);
   
