@@ -58,8 +58,7 @@ app.use((req, res, next) => {
   next();
 });
 
-// Register routes and configure the app (async setup)
-export async function setupApp() {
+(async () => {
   const server = await registerRoutes(app);
 
   // Sentry error handling middleware (only if initialized)
@@ -91,7 +90,15 @@ export async function setupApp() {
     serveStatic(app);
   }
 
-  return server;
-}
-
-export default app;
+  // ALWAYS serve the app on port 5000
+  // this serves both the API and the client.
+  // It is the only port that is not firewalled.
+  const port = 5000;
+  server.listen({
+    port,
+    host: "0.0.0.0",
+    reusePort: true,
+  }, () => {
+    log(`serving on port ${port}`);
+  });
+})();
