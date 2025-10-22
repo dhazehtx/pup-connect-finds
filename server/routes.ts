@@ -1679,47 +1679,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Register health check routes
   registerHealthRoutes(app);
 
-  // Root health endpoint (so webview shows something even if SPA isn't bundled)
-  app.get('/', (_req, res) => {
-    res.type('html').send(`
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <title>My Pup API</title>
-          <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <style>
-            body {
-              font-family: system-ui, -apple-system, sans-serif;
-              display: flex;
-              justify-content: center;
-              align-items: center;
-              min-height: 100vh;
-              margin: 0;
-              background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            }
-            .container {
-              background: white;
-              padding: 2rem;
-              border-radius: 1rem;
-              box-shadow: 0 10px 40px rgba(0,0,0,0.1);
-              text-align: center;
-            }
-            h1 { color: #667eea; margin: 0 0 0.5rem; }
-            p { color: #666; margin: 0; }
-            .status { color: #10b981; font-weight: 600; }
-          </style>
-        </head>
-        <body>
-          <div class="container">
-            <h1>🐕 My Pup API</h1>
-            <p class="status">✓ Server is running</p>
-            <p>API endpoints available at <code>/api/*</code></p>
-          </div>
-        </body>
-      </html>
-    `);
-  });
-
   // 404 handler for API routes only (not for static files)
   app.use('/api/*', notFoundHandler);
 
