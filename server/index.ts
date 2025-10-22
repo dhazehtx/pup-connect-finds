@@ -2,6 +2,7 @@ import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import { initializeSentry, Sentry, captureError } from "./utils/sentry";
+import type { Server } from "http";
 
 // Initialize Sentry as early as possible
 initializeSentry();
@@ -58,7 +59,7 @@ app.use((req, res, next) => {
   next();
 });
 
-(async () => {
+export async function setupApp(): Promise<{ app: express.Application; server: Server }> {
   const server = await registerRoutes(app);
 
   // Sentry error handling middleware (only if initialized)
@@ -90,15 +91,7 @@ app.use((req, res, next) => {
     serveStatic(app);
   }
 
-  // ALWAYS serve the app on port 5000
-  // this serves both the API and the client.
-  // It is the only port that is not firewalled.
-  const port = 5000;
-  server.listen({
-    port,
-    host: "0.0.0.0",
-    reusePort: true,
-  }, () => {
-    log(`serving on port ${port}`);
-  });
-})();
+  return { app, server };
+}
+
+export default app;
