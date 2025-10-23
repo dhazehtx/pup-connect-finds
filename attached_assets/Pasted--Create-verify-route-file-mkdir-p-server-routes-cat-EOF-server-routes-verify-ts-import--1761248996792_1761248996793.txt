@@ -1,0 +1,90 @@
+# Create verify route file
+mkdir -p server/routes && cat <<'EOF' > server/routes/verify.ts
+import { Router } from 'express';
+import { requireAuth } from '../middleware/requireAuth';
+import { supabaseAdmin } from '../lib/supabase'; // your existing admin client
+
+const router = Router();
+
+/**
+ * POST /api/verify/start
+ * Accepts either:
+ *  - { front_url, back_url }           -> manual upload (no liveness)
+ *  - { front_url, back_url, liveness_session_id } -> liveness path (future)
+ */
+router.post('/start', requireAuth, async (req: any, res) => {
+  try {
+    const userId = req.user?.id;
+    const { front_url, back_url, liveness_session_id } = req.body || {};
+
+    if (!front_url || !back_url) {
+      return res.status(400).json({ error: 'Both front_url and back_url are required.' });
+    }
+
+    // Manual upload (no liveness)
+    if (!liveness_session_id) {
+      const { data, error } = await supabaseAdmin
+        .from('provider_applications')
+        .upsert(
+          {
+            user_id: userId,
+            front_id_url: front_url,
+            back_id_url: back_url,
+            status: 'submitted',
+          },
+          { onConflict: 'user_id' }
+        )
+        .select()
+        .single();
+
+      if (error) {
+        console.error('[verify] manual submit failed:', error);
+        return res.status(500).json({ error: 'Failed to submit manual verification.' });
+      }
+
+      return res.status(201).json({
+        ok: true,
+        mode: 'manual',
+        application: data,
+        message: 'Manual verification submitted. Our team will review shortly.',
+      });
+    }
+
+    // Placeholder if client sends a liveness id (we still submit manually for now)
+    const { data, error } = await supabaseAdmin
+      .from('provider_applications')
+      .upsert(
+        {
+          user_id: userId,
+          front_id_url: front_url,
+          back_id_url: back_url,
+          status: 'submitted',
+        },
+        { onConflict: 'user_id' }
+      )
+      .select()
+      .single();
+
+    if (error) {
+      console.error('[verify] submit (liveness placeholder) failed:', error);
+      return res.status(500).json({ error: 'Failed to submit verification.' });
+    }
+
+    return res.status(201).json({ ok: true, mode: 'manual-fallback', application: data });
+  } catch (e: any) {
+    console.error('[verify] start error:', e);
+    return res.status(500).json({ error: 'Failed to start verification.' });
+  }
+});
+
+export default router;
+EOF
+
+# Add the import + route mount to your main server file
+if grep -q "express" server/index.ts; then
+  echo "✅ Route file created. Now add this line to server/index.ts near your other routes:"
+  echo "import verifyRouter from './routes/verify';"
+  echo "app.use('/api/verify', verifyRouter);"
+else
+  echo "⚠️ Could not auto-detect express entry (server/index.ts). Add the import + mount manually where app is defined."
+fi
