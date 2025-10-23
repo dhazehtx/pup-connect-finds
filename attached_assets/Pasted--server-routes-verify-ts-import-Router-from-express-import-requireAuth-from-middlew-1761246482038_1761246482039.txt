@@ -1,0 +1,84 @@
+// server/routes/verify.ts
+import { Router } from 'express';
+import { requireAuth } from '../middleware/requireAuth';
+import { supabaseAdmin } from '../lib/supabase'; // your existing admin client
+
+const router = Router();
+
+/**
+ * POST /api/verify/start
+ * Accepts either:
+ *  - { front_url, back_url }           -> manual upload (no liveness)
+ *  - { front_url, back_url, liveness_session_id } -> liveness path
+ */
+router.post('/start', requireAuth, async (req: any, res) => {
+  try {
+    const userId = req.user?.id;
+    const { front_url, back_url, liveness_session_id } = req.body || {};
+
+    if (!front_url || !back_url) {
+      return res.status(400).json({ error: 'Both front_url and back_url are required.' });
+    }
+
+    // If no liveness session provided, treat as "manual verification submitted"
+    if (!liveness_session_id) {
+      const { data, error } = await supabaseAdmin
+        .from('provider_applications')
+        .upsert(
+          {
+            user_id: userId,
+            front_id_url: front_url,
+            back_id_url: back_url,
+            status: 'submitted',
+          },
+          { onConflict: 'user_id' } // requires the unique index we added; remove if you allow multiple
+        )
+        .select()
+        .single();
+
+      if (error) {
+        console.error('[verify] manual submit failed:', error);
+        return res.status(500).json({ error: 'Failed to submit manual verification.' });
+      }
+
+      return res.status(201).json({
+        ok: true,
+        mode: 'manual',
+        application: data,
+        message: 'Manual verification submitted. Our team will review shortly.',
+      });
+    }
+
+    // ----- Optional: liveness path if you wire a vendor later -----
+    // const session = await startLivenessWithVendor({ front_url, back_url, userId, liveness_session_id });
+    // await supabaseAdmin.from('provider_applications').upsert({ user_id: userId, front_id_url: front_url, back_id_url: back_url, status: 'submitted' });
+    // return res.status(201).json({ ok: true, mode: 'liveness', session });
+
+    // For now just treat it as submitted even if client sent a meaningless liveness id
+    const { data, error } = await supabaseAdmin
+      .from('provider_applications')
+      .upsert(
+        {
+          user_id: userId,
+          front_id_url: front_url,
+          back_id_url: back_url,
+          status: 'submitted',
+        },
+        { onConflict: 'user_id' }
+      )
+      .select()
+      .single();
+
+    if (error) {
+      console.error('[verify] submit (liveness placeholder) failed:', error);
+      return res.status(500).json({ error: 'Failed to submit verification.' });
+    }
+
+    return res.status(201).json({ ok: true, mode: 'manual-fallback', application: data });
+  } catch (e: any) {
+    console.error('[verify] start error:', e);
+    return res.status(500).json({ error: 'Failed to start verification.' });
+  }
+});
+
+export default router;
