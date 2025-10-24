@@ -1,0 +1,125 @@
+1) Supabase Storage: make a bucket
+
+Where: Supabase → Storage → “Create new bucket”
+
+Name: ids
+
+Public: ✅ (simplest for now; you can switch to private + signed URLs later)
+
+(Nothing else needed.)
+
+2) Frontend: upload & upsert from the step that shows “Failed to start ID verification”
+
+Where to paste: your onboarding identity step component (the one with the “Save” button).
+If you don’t have a separate file, paste into the component that handles the front/back ID upload UI.
+
+2.1 Add the file inputs (works for desktop + mobile)
+<input
+  type="file"
+  accept="image/*"
+  capture="environment"   // opens camera on many mobiles; ignored on desktop
+  onChange={e => setFrontFile(e.target.files?.[0] || null)}
+/>
+
+<input
+  type="file"
+  accept="image/*"
+  capture="environment"
+  onChange={e => setBackFile(e.target.files?.[0] || null)}
+/>
+
+
+capture="environment" hints phones to use the rear camera. On desktop it just opens the file picker.
+
+2.2 Upload both files to Supabase Storage, then upsert the URLs
+import { createClient } from '@supabase/supabase-js';
+import { useState } from 'react';
+
+const supabase = createClient(
+  import.meta.env.VITE_SUPABASE_URL!,
+  import.meta.env.VITE_SUPABASE_ANON_KEY!
+);
+
+export function IdentityStep({ onNext }: { onNext: () => void }) {
+  const [frontFile, setFrontFile] = useState<File | null>(null);
+  const [backFile, setBackFile]   = useState<File | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+
+  const handleSave = async () => {
+    try {
+      setBusy(true); setErr(null);
+      if (!frontFile || !backFile) {
+        setErr('Please select both front and back images.');
+        return;
+      }
+
+      // who is logged in?
+      const { data: { user }, error: userErr } = await supabase.auth.getUser();
+      if (userErr || !user) throw new Error('Not signed in');
+
+      // 1) upload to Storage bucket `ids`
+      const base = `users/${user.id}/${Date.now()}`;
+      const frontKey = `${base}_front_${frontFile.name}`;
+      const backKey  = `${base}_back_${backFile.name}`;
+
+      const up1 = await supabase.storage.from('ids').upload(frontKey, frontFile, { upsert: true });
+      if (up1.error) throw up1.error;
+
+      const up2 = await supabase.storage.from('ids').upload(backKey, backFile, { upsert: true });
+      if (up2.error) throw up2.error;
+
+      // 2) get public URLs
+      const frontUrl = supabase.storage.from('ids').getPublicUrl(frontKey).data.publicUrl;
+      const backUrl  = supabase.storage.from('ids').getPublicUrl(backKey).data.publicUrl;
+
+      // 3) upsert into public.provider_applications (RLS must allow user to insert/update own row)
+      const { data, error } = await supabase
+        .from('provider_applications')
+        .upsert(
+          {
+            user_id: user.id,
+            front_image_url: frontUrl,
+            back_image_url: backUrl,
+            status: 'submitted',
+            updated_at: new Date().toISOString()
+          },
+          { onConflict: 'user_id' } // one row per user
+        )
+        .select('*')
+        .single();
+
+      if (error) throw error;
+
+      // done → go next
+      onNext();
+    } catch (e: any) {
+      console.error(e);
+      setErr(e.message || 'Upload failed');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <div className="space-y-4">
+      {/* your two inputs from 2.1 go here */}
+      {err && <div className="text-red-600 text-sm">{err}</div>}
+      <button disabled={busy} onClick={handleSave} className="px-4 py-2 rounded-lg bg-emerald-600 text-white">
+        {busy ? 'Saving…' : 'Save'}
+      </button>
+    </div>
+  );
+}
+
+2.3 RLS policies (you already ran them, but here’s what must be true)
+
+In public.provider_applications with RLS enabled, the user must be allowed to manage their own row:
+
+INSERT using/check: auth.uid() = user_id
+
+SELECT using: auth.uid() = user_id
+
+UPDATE using/check: auth.uid() = user_id
+
+Your earlier screenshot shows those policies were created and “Success. No rows returned,” so you should be set.
