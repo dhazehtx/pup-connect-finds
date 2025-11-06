@@ -3,7 +3,7 @@ import { supabaseAdmin } from '../lib/supabaseAdmin';
 import { requireAuth } from '../middleware/requireAuth';
 import { db } from '../db';
 import { providerApplications } from '@shared/schema';
-import { eq } from 'drizzle-orm';
+import { eq, sql } from 'drizzle-orm';
 
 const router = Router();
 
@@ -60,39 +60,45 @@ router.post('/start', async (req: Request, res: Response) => {
 
     console.log('[verify/start] Manual ID verification request:', { userId, applicationId });
 
-    // 3. Upsert to provider_applications table using direct Drizzle query
+    // 3. Upsert to provider_applications table using raw SQL to avoid schema sync issues
     const now = new Date();
     
-    // Prepare the data to insert/update
-    const insertData: any = {
-      user_id: userId,
-      front_image_url: frontUrl,
-      back_image_url: backUrl,
-      verification_status: 'pending',
-      verification_started_at: now,
-    };
-
-    // If applicationId provided, use it
+    // Use raw SQL to perform upsert - works directly with database, bypassing schema validation
+    let result;
     if (applicationId) {
-      insertData.id = applicationId;
+      result = await db.execute(
+        sql`INSERT INTO provider_applications (
+          id, user_id, front_image_url, back_image_url, verification_status, verification_started_at
+        ) VALUES (
+          ${applicationId}, ${userId}, ${frontUrl}, ${backUrl}, 'pending', ${now}
+        )
+        ON CONFLICT (user_id) 
+        DO UPDATE SET
+          front_image_url = EXCLUDED.front_image_url,
+          back_image_url = EXCLUDED.back_image_url,
+          verification_status = EXCLUDED.verification_status,
+          verification_started_at = EXCLUDED.verification_started_at
+        RETURNING *`
+      );
+    } else {
+      result = await db.execute(
+        sql`INSERT INTO provider_applications (
+          user_id, front_image_url, back_image_url, verification_status, verification_started_at
+        ) VALUES (
+          ${userId}, ${frontUrl}, ${backUrl}, 'pending', ${now}
+        )
+        ON CONFLICT (user_id) 
+        DO UPDATE SET
+          front_image_url = EXCLUDED.front_image_url,
+          back_image_url = EXCLUDED.back_image_url,
+          verification_status = EXCLUDED.verification_status,
+          verification_started_at = EXCLUDED.verification_started_at
+        RETURNING *`
+      );
     }
 
-    // Perform upsert: insert if not exists, update if exists based on user_id
-    const [result] = await db
-      .insert(providerApplications)
-      .values(insertData)
-      .onConflictDoUpdate({
-        target: providerApplications.user_id,
-        set: {
-          front_image_url: frontUrl,
-          back_image_url: backUrl,
-          verification_status: 'pending',
-          verification_started_at: now,
-        }
-      })
-      .returning();
-
-    if (!result) {
+    const row = result.rows[0];
+    if (!row) {
       console.error('[verify/start] Database upsert failed - no result returned');
       return res.status(500).json({ error: 'internal_error' });
     }
@@ -103,7 +109,7 @@ router.post('/start', async (req: Request, res: Response) => {
     return res.status(201).json({ 
       ok: true, 
       verification_status: 'pending',
-      applicationId: result.id,
+      applicationId: row.id,
       message: 'ID documents submitted for manual review'
     });
   } catch (e: any) {
