@@ -25,7 +25,7 @@ export async function ensureProviderIdBucket(): Promise<string> {
       const { data, error: createError } = await supabaseAdmin.storage.createBucket(BUCKET_NAME, {
         public: true,
         fileSizeLimit: 10485760, // 10MB
-        allowedMimeTypes: ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'application/pdf']
+        allowedMimeTypes: ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/heic', 'image/heif', 'application/pdf']
       });
 
       if (createError) {
