@@ -1166,12 +1166,21 @@ const ProviderOnboard: React.FC = () => {
                 <label className="block text-sm font-medium">Front of ID</label>
                 <Input 
                   type="file" 
-                  accept="image/*" 
+                  accept="image/jpeg,image/jpg,image/png,image/webp,.pdf" 
                   capture="environment"
                   disabled={idInputsLocked}
                   onChange={(e) => {
                     const file = e.target.files?.[0];
                     if (file) {
+                      // Validate file type
+                      const supportedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'application/pdf'];
+                      if (!supportedTypes.includes(file.type)) {
+                        setIdError(`Unsupported file format. Please use JPG, PNG, WebP, or PDF.\n\niPhone users: Your device saves photos as HEIC by default. To convert:\n1. Open Photos app\n2. Select the photo\n3. Tap Share → Save to Files → Save as JPG`);
+                        setIdFrontFile(null);
+                        e.target.value = '';
+                        return;
+                      }
+                      setIdError(null);
                       setIdFrontFile(file);
                     }
                   }}
@@ -1194,12 +1203,21 @@ const ProviderOnboard: React.FC = () => {
                 <label className="block text-sm font-medium">Back of ID</label>
                 <Input 
                   type="file" 
-                  accept="image/*" 
+                  accept="image/jpeg,image/jpg,image/png,image/webp,.pdf" 
                   capture="environment"
                   disabled={idInputsLocked}
                   onChange={(e) => {
                     const file = e.target.files?.[0];
                     if (file) {
+                      // Validate file type
+                      const supportedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'application/pdf'];
+                      if (!supportedTypes.includes(file.type)) {
+                        setIdError(`Unsupported file format. Please use JPG, PNG, WebP, or PDF.\n\niPhone users: Your device saves photos as HEIC by default. To convert:\n1. Open Photos app\n2. Select the photo\n3. Tap Share → Save to Files → Save as JPG`);
+                        setIdBackFile(null);
+                        e.target.value = '';
+                        return;
+                      }
+                      setIdError(null);
                       setIdBackFile(file);
                     }
                   }}
