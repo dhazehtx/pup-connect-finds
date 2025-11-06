@@ -1,6 +1,9 @@
 import { Router, Request, Response } from 'express';
 import { supabaseAdmin } from '../lib/supabaseAdmin';
 import { requireAuth } from '../middleware/requireAuth';
+import { db } from '../db';
+import { providerApplications } from '@shared/schema';
+import { eq } from 'drizzle-orm';
 
 const router = Router();
 
@@ -57,29 +60,40 @@ router.post('/start', async (req: Request, res: Response) => {
 
     console.log('[verify/start] Manual ID verification request:', { userId, applicationId });
 
-    // 3. Upsert to provider_applications table
-    const updateData: any = {
+    // 3. Upsert to provider_applications table using direct Drizzle query
+    const now = new Date();
+    
+    // Prepare the data to insert/update
+    const insertData: any = {
       user_id: userId,
       front_image_url: frontUrl,
       back_image_url: backUrl,
       verification_status: 'pending',
-      verification_started_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
+      verification_started_at: now,
     };
 
-    // If applicationId provided, include it in the upsert
+    // If applicationId provided, use it
     if (applicationId) {
-      updateData.id = applicationId;
+      insertData.id = applicationId;
     }
 
-    const { data, error } = await supabaseAdmin
-      .from('provider_applications')
-      .upsert(updateData, { onConflict: 'user_id' })
-      .select('*')
-      .single();
+    // Perform upsert: insert if not exists, update if exists based on user_id
+    const [result] = await db
+      .insert(providerApplications)
+      .values(insertData)
+      .onConflictDoUpdate({
+        target: providerApplications.user_id,
+        set: {
+          front_image_url: frontUrl,
+          back_image_url: backUrl,
+          verification_status: 'pending',
+          verification_started_at: now,
+        }
+      })
+      .returning();
 
-    if (error) {
-      console.error('[verify/start] Database upsert error:', error);
+    if (!result) {
+      console.error('[verify/start] Database upsert failed - no result returned');
       return res.status(500).json({ error: 'internal_error' });
     }
 
@@ -89,7 +103,7 @@ router.post('/start', async (req: Request, res: Response) => {
     return res.status(201).json({ 
       ok: true, 
       verification_status: 'pending',
-      applicationId: data.id,
+      applicationId: result.id,
       message: 'ID documents submitted for manual review'
     });
   } catch (e: any) {
