@@ -29,6 +29,7 @@ import payoutsRouter from './routes/payouts';
 import { registerHealthRoutes } from './routes/health';
 import consentRouter from './routes/consent';
 import consentGetRouter from './routes/consent-get';
+import uploadIdRouter from './routes/upload-id';
 
 // New Stripe verification system
 import { startVerificationRouter } from './routes/verification/start';
@@ -144,6 +145,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // ID verification upload route (uses auth middleware)
   const { default: verifyRouter } = await import('./routes/verify.js');
   app.use('/api/verify', verifyRouter);
+  
+  // ID document upload endpoints (uses service role to bypass RLS)
+  app.use('/api/upload-id', uploadIdRouter);
   
   // Provider ID verification routes (temporarily public to bypass auth issues)
   const { linkIdMedia } = await import('./routes/providers/id/link-media.js');

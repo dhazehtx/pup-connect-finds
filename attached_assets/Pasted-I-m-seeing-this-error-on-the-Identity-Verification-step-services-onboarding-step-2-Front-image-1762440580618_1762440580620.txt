@@ -1,0 +1,112 @@
+I’m seeing this error on the Identity Verification step (/services/onboarding?step=2):
+
+“Front image upload failed: new row violates row-level security policy”
+
+The UI also shows “Front image ready / Back image ready,” so the storage upload is working. The failure is coming from a database insert that violates Supabase RLS.
+
+Goal (IMPORTANT):
+For ID uploads, I want:
+
+Files (HEIC/JPG/PNG/WebP/PDF) to go straight into the provider-id-docs bucket.
+
+No database writes at upload-time from the browser.
+
+The only DB write should happen when the user clicks Save, using the server-side supabaseAdmin client (service role) so RLS is not a problem.
+
+Please do the following exact changes:
+
+1) Remove any client-side inserts that run during image upload
+
+Search the codebase for the error text or similar patterns:
+
+"new row violates row-level security policy"
+
+any supabase.from(...).insert(...) inside the ID upload code in client/src/services/onboarding/ProviderOnboard.tsx or related files.
+
+Wherever we are doing something like:
+
+supabase
+  .from('id_documents' or 'provider_verifications' or similar)
+  .insert(...)
+
+
+in the browser as part of the “front/back image upload”, REMOVE that DB insert.
+
+The only thing that should happen when a user selects or uploads an ID image is:
+
+Upload file → Supabase Storage (provider-id-docs bucket).
+
+Get back the public/signed URL.
+
+Store that URL in React state (e.g. frontImageUrl, backImageUrl).
+
+No table insert at that moment. No RLS-triggering queries from the browser.
+
+2) Make sure the DB write happens only in the server route on Save
+
+We already have a server route that upserts the verification row using supabaseAdmin (service role) when the user clicks Save, e.g.:
+
+// something like:
+// POST /api/provider/verification/submit
+// using supabaseAdmin.from('provider_verifications').upsert(...)
+
+
+Please confirm / enforce this:
+
+When the user clicks Save on the ID step:
+
+The frontend sends the front and back image URLs to /api/provider/verification/submit.
+
+The server route uses supabaseAdmin to upsert into the verification table:
+
+user_id
+
+front_url
+
+back_url
+
+status = 'submitted' (or similar)
+
+This server-side DB write is the only place we touch that table for ID verification.
+
+Because this uses supabaseAdmin (service role), it should not be subject to RLS, and the “new row violates row-level security policy” error should disappear.
+
+3) Keep file upload behavior as-is
+
+Do not reintroduce any HEIC conversion.
+
+Keep accepting HEIC/JPG/PNG/WebP/PDF and uploading them raw to the provider-id-docs bucket.
+
+The “Front image ready / Back image ready” banners should still show when the uploads succeed.
+
+Just make sure the red error banner about row-level security is gone, because we’re no longer doing browser-side inserts hitting RLS.
+
+4) Final test
+
+After these changes, please:
+
+Go to /services/onboarding?step=2.
+
+Upload a HEIC file for front and back (or JPG/PNG).
+
+Confirm:
+
+No “row-level security” error banners appear.
+
+“Front image ready” and “Back image ready” still show.
+
+Click Save:
+
+Confirm the request hits the /api/provider/verification/submit route.
+
+Confirm that a row is created/updated in the verification table for my user ID, using supabaseAdmin.
+
+Then, in plain language, tell me:
+
+Which table we’re writing to on Save.
+
+That there are no more client-side inserts for ID uploads.
+
+That the “new row violates row-level security policy” error is resolved.
+
+Please implement only these changes and do not modify other parts of the provider onboarding flow.

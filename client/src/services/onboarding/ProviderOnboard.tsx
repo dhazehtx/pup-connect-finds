@@ -490,44 +490,12 @@ const ProviderOnboard: React.FC = () => {
     try {
       console.log('[ID VERIFICATION] Starting manual ID verification for:', { userId: authUser.id, applicationId });
 
-      // Step 1: Upload front image to Supabase Storage
+      // Get auth token
       const { createClient } = await import('@supabase/supabase-js');
       const supabase = createClient(
         import.meta.env.VITE_SUPABASE_URL!,
         import.meta.env.VITE_SUPABASE_ANON_KEY!
       );
-
-      const BUCKET_NAME = 'provider-id-docs';
-      const frontPath = `users/${authUser.id}/id/${Date.now()}_front_${idFrontFile.name}`;
-      const backPath = `users/${authUser.id}/id/${Date.now()}_back_${idBackFile.name}`;
-
-      console.log('[ID VERIFICATION] Uploading front image to Storage...');
-      const { data: frontUpload, error: frontError } = await supabase.storage
-        .from(BUCKET_NAME)
-        .upload(frontPath, idFrontFile, { upsert: true });
-
-      if (frontError) {
-        console.error('[ID VERIFICATION] Front upload error:', frontError);
-        throw new Error(`Front image upload failed: ${frontError.message}`);
-      }
-
-      console.log('[ID VERIFICATION] Uploading back image to Storage...');
-      const { data: backUpload, error: backError } = await supabase.storage
-        .from(BUCKET_NAME)
-        .upload(backPath, idBackFile, { upsert: true });
-
-      if (backError) {
-        console.error('[ID VERIFICATION] Back upload error:', backError);
-        throw new Error(`Back image upload failed: ${backError.message}`);
-      }
-
-      // Step 2: Get public URLs for the uploaded images
-      const frontImageUrl = supabase.storage.from(BUCKET_NAME).getPublicUrl(frontPath).data.publicUrl;
-      const backImageUrl = supabase.storage.from(BUCKET_NAME).getPublicUrl(backPath).data.publicUrl;
-
-      console.log('[ID VERIFICATION] Images uploaded, calling verification endpoint...');
-
-      // Step 3: Call simplified /api/verify/start endpoint
       const { data: session } = await supabase.auth.getSession();
       const token = session.session?.access_token;
 
@@ -535,6 +503,51 @@ const ProviderOnboard: React.FC = () => {
         throw new Error('No authentication token available');
       }
 
+      // Step 1: Upload front image via backend (bypasses RLS)
+      console.log('[ID VERIFICATION] Uploading front image via backend...');
+      const frontFormData = new FormData();
+      frontFormData.append('file', idFrontFile);
+
+      const frontUploadRes = await fetch('/api/upload-id/front', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        },
+        body: frontFormData
+      });
+
+      if (!frontUploadRes.ok) {
+        const frontError = await frontUploadRes.json().catch(() => ({ error: 'Upload failed' }));
+        throw new Error(`Front image upload failed: ${frontError.error}`);
+      }
+
+      const frontUploadData = await frontUploadRes.json();
+      const frontImageUrl = frontUploadData.url;
+
+      // Step 2: Upload back image via backend (bypasses RLS)
+      console.log('[ID VERIFICATION] Uploading back image via backend...');
+      const backFormData = new FormData();
+      backFormData.append('file', idBackFile);
+
+      const backUploadRes = await fetch('/api/upload-id/back', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        },
+        body: backFormData
+      });
+
+      if (!backUploadRes.ok) {
+        const backError = await backUploadRes.json().catch(() => ({ error: 'Upload failed' }));
+        throw new Error(`Back image upload failed: ${backError.error}`);
+      }
+
+      const backUploadData = await backUploadRes.json();
+      const backImageUrl = backUploadData.url;
+
+      console.log('[ID VERIFICATION] Images uploaded successfully, calling verification endpoint...');
+
+      // Step 3: Call /api/verify/start to save URLs to database
       const res = await fetch("/api/verify/start", {
         method: "POST",
         headers: { 
