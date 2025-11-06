@@ -854,7 +854,7 @@ const ProviderOnboard: React.FC = () => {
       return false;
     }
 
-    if (!createdProviderId) {
+    if (!providerId) {
       toast({
         title: "Error",
         description: "Provider ID not found. Please complete previous steps.",
@@ -870,7 +870,7 @@ const ProviderOnboard: React.FC = () => {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          providerId: createdProviderId,
+          providerId: providerId,
           userId: authUser?.id
         }),
       });
@@ -1069,58 +1069,6 @@ const ProviderOnboard: React.FC = () => {
       fetchProviderStatus();
     }
   }, [currentStep, authUser?.id]);
-
-  const submitProviderApplication = async () => {
-    if (!authUser?.id) {
-      toast({
-        title: "Error",
-        description: "Authentication required. Please sign in.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setIsSubmittingApplication(true);
-
-    try {
-      // Get the real providerId from the database
-      const { providerId: realProviderId } = await ensureOnboardingIds();
-      
-      const response = await fetch('/api/provider-applications/submit', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          providerId: realProviderId,
-          userId: authUser.id 
-        }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to submit application');
-      }
-
-      toast({
-        title: "Application Submitted!",
-        description: "Your provider application has been submitted for review. You'll receive an email confirmation and updates on the status.",
-      });
-
-      // Optionally advance to a confirmation step or redirect
-      // setCurrentStep(8); // Could add a confirmation step
-      
-    } catch (error) {
-      console.error('Submit application error:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-      toast({
-        title: "Submission Failed",
-        description: errorMessage,
-        variant: "destructive",
-      });
-    } finally {
-      setIsSubmittingApplication(false);
-    }
-  };
 
   const renderStepContent = () => {
     switch (currentStep) {
