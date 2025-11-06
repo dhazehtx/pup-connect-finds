@@ -1,0 +1,171 @@
+removes the broken “start ID verification” call and replaces it with a simple, reliable flow: we just save the uploaded image URLs to Supabase and mark the status as submitted. No liveness/third-party call required.
+
+🟦 ONE PROMPT TO FIX “Failed to start ID verification”
+
+Paste everything below as-is into Replit’s AI:
+
+Goal: Stop calling the old “start verification” endpoint. Instead, when the user clicks Save, post the front/back image URLs to a new server route that upserts a row into provider_verifications with status submitted. Return 201 { ok: true } so the UI can advance.
+
+Make these changes exactly:
+
+Ensure Supabase Admin client exists
+
+If missing, create server/lib/supabaseAdmin.ts (TS) or server/lib/supabaseAdmin.js (JS):
+
+// server/lib/supabaseAdmin.ts (TS)
+// or server/lib/supabaseAdmin.js (JS) with the same contents minus types
+import { createClient } from '@supabase/supabase-js'
+
+const url = process.env.SUPABASE_URL!
+const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
+
+export const supabaseAdmin = createClient(url, serviceKey, {
+  auth: { persistSession: false },
+})
+
+
+Add a tiny auth helper (server-side)
+
+Create server/middleware/requireAuth.ts (or .js):
+
+// server/middleware/requireAuth.ts
+import type { Request, Response, NextFunction } from 'express'
+import { supabaseAdmin } from '../lib/supabaseAdmin'
+
+export async function requireAuth(req: Request, res: Response, next: NextFunction) {
+  const auth = req.headers.authorization || ''
+  const jwt = auth.replace(/^Bearer\s+/i, '')
+  if (!jwt) return res.status(401).json({ error: 'Bearer token required' })
+
+  const { data, error } = await supabaseAdmin.auth.getUser(jwt)
+  if (error || !data?.user) return res.status(401).json({ error: 'invalid token' })
+
+  ;(req as any).user = { id: data.user.id }
+  next()
+}
+
+
+Create the new submit route
+
+Create server/routes/provider/verification.ts (or .js):
+
+// server/routes/provider/verification.ts
+import { Router } from 'express'
+import { requireAuth } from '../../middleware/requireAuth'
+import { supabaseAdmin } from '../../lib/supabaseAdmin'
+
+const r = Router()
+r.use(requireAuth)
+
+/**
+ * POST /api/provider/verification/submit
+ * Body: { front_url: string, back_url: string, doc_type?: string }
+ * Effect: upsert row to provider_verifications and return 201 { ok: true }
+ */
+r.post('/submit', async (req, res) => {
+  try {
+    const userId = (req as any).user.id as string
+    const { front_url, back_url, doc_type } = req.body || {}
+
+    if (!front_url || !back_url) {
+      return res.status(400).json({ error: 'front_url and back_url are required' })
+    }
+
+    // Upsert into your verifications table (adjust table/columns if needed)
+    const { error } = await supabaseAdmin
+      .from('provider_verifications')
+      .upsert(
+        {
+          user_id: userId,
+          front_url,
+          back_url,
+          doc_type: doc_type || 'id_card',
+          status: 'submitted',
+          submitted_at: new Date().toISOString(),
+        },
+        { onConflict: 'user_id' } // requires a unique index on user_id
+      )
+
+    if (error) return res.status(500).json({ error: error.message })
+
+    return res.status(201).json({ ok: true })
+  } catch (e: any) {
+    return res.status(500).json({ error: e?.message || 'server error' })
+  }
+})
+
+export default r
+
+
+If you don’t have the table yet, run this SQL in Supabase (adjust names if you already have one):
+
+create table if not exists provider_verifications (
+  user_id uuid primary key references auth.users(id) on delete cascade,
+  front_url text not null,
+  back_url  text not null,
+  doc_type  text,
+  status    text not null default 'submitted',
+  submitted_at timestamptz not null default now()
+);
+create unique index if not exists provider_verifications_user_id_key on provider_verifications(user_id);
+
+
+Mount the route and ensure JSON parsing is enabled
+
+If your entry file is start.ts (TS), add:
+
+// start.ts
+import express from 'express'
+import verificationRouter from './server/routes/provider/verification'
+
+const app = express()
+app.use(express.json({ limit: '10mb' }))
+
+app.use('/api/provider/verification', verificationRouter)
+
+// (existing app.listen or export stays the same)
+
+
+If your entry file is server.js (JS), add:
+
+// server.js
+const express = require('express')
+const verificationRouter = require('./server/routes/provider/verification').default || require('./server/routes/provider/verification')
+
+const app = express()
+app.use(express.json({ limit: '10mb' }))
+
+app.use('/api/provider/verification', verificationRouter)
+
+// (existing app.listen stays the same)
+
+
+Frontend: replace the old call
+
+Find the code that runs when you press Save on Step 2 (it likely calls something like /api/verification/start and then shows “Failed to start ID verification”). Replace that fetch with this:
+
+// wherever you handle the Save action in onboarding Step 2:
+const resp = await fetch('/api/provider/verification/submit', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${accessToken}`, // the Supabase user JWT you already read from localStorage
+  },
+  body: JSON.stringify({
+    front_url: uploadedFrontUrl, // the public (or signed) Storage URL you already have after upload
+    back_url: uploadedBackUrl,
+    doc_type: selectedDocType || 'id_card',
+  }),
+})
+
+if (resp.ok) {
+  // Show success and advance to the next step
+  // e.g., setToast('Verification submitted!'); goToStep(3)
+} else {
+  const err = await resp.json().catch(() => null)
+  throw new Error(err?.error || `Submit failed: ${resp.status}`)
+}
+
+
+Remove/ignore any code that hits “liveness” or “start verification” endpoints.
+The new flow is: upload → save URLs → upsert row → admin reviews later.
