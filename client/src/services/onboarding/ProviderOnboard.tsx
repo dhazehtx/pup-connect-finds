@@ -466,6 +466,32 @@ const ProviderOnboard: React.FC = () => {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Helper function to convert HEIC to JPEG
+  const convertHeicToJpeg = async (file: File): Promise<File> => {
+    if (file.type !== 'image/heic' && !file.name.toLowerCase().endsWith('.heic')) {
+      return file; // Not a HEIC file, return as-is
+    }
+
+    try {
+      const heic2any = (await import('heic2any')).default;
+      const convertedBlob = await heic2any({
+        blob: file,
+        toType: 'image/jpeg',
+        quality: 0.9
+      });
+
+      // heic2any can return Blob or Blob[], handle both cases
+      const blob = Array.isArray(convertedBlob) ? convertedBlob[0] : convertedBlob;
+      
+      // Create a new File from the converted blob
+      const newFileName = file.name.replace(/\.heic$/i, '.jpg');
+      return new File([blob], newFileName, { type: 'image/jpeg' });
+    } catch (err) {
+      console.error('[HEIC CONVERSION] Failed to convert:', err);
+      throw new Error('Failed to convert HEIC image. Please try a different photo.');
+    }
+  };
+
   const handleStartIDVerification = async (e?: React.MouseEvent | React.FormEvent) => {
     e?.preventDefault?.();
     e?.stopPropagation?.();
@@ -1150,10 +1176,9 @@ const ProviderOnboard: React.FC = () => {
             
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 space-y-2">
               <p className="text-sm font-medium text-blue-900">✓ Accepted formats:</p>
-              <p className="text-sm text-blue-800">JPG, PNG, WebP, or PDF</p>
+              <p className="text-sm text-blue-800">JPG, PNG, WebP, PDF, and HEIC</p>
               <p className="text-xs text-blue-700 mt-2">
-                <strong>iPhone users:</strong> iOS saves photos as HEIC by default, which is not supported. 
-                Change your camera settings to "Most Compatible" or convert existing photos to JPG before uploading.
+                <strong>iPhone users:</strong> HEIC photos will be automatically converted to JPG for you!
               </p>
             </div>
             
@@ -1175,25 +1200,41 @@ const ProviderOnboard: React.FC = () => {
                 <label className="block text-sm font-medium">Front of ID</label>
                 <Input 
                   type="file" 
-                  accept="image/jpeg,image/jpg,image/png,image/webp,.pdf" 
+                  accept="image/jpeg,image/jpg,image/png,image/webp,.pdf,.heic,image/heic" 
                   capture="environment"
                   disabled={idInputsLocked}
-                  onChange={(e) => {
+                  onChange={async (e) => {
                     const file = e.target.files?.[0];
                     if (file) {
-                      // Validate file type
-                      const supportedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'application/pdf'];
-                      if (!supportedTypes.includes(file.type)) {
-                        const errorMsg = file.type === 'image/heic' || file.name.toLowerCase().endsWith('.heic')
-                          ? `HEIC format is not supported. Please convert to JPG:\n\n• On iPhone: Settings → Camera → Formats → Select "Most Compatible"\n• On Mac: Open photo in Preview → File → Export → Format: JPEG\n• On Windows: Use an online converter or photo editing app\n• Android users: Your photos are already in JPG format ✓`
-                          : `File type "${file.type}" is not supported. Please use JPG, PNG, WebP, or PDF.`;
-                        setIdError(errorMsg);
+                      // Validate file type (including HEIC which we'll convert)
+                      const supportedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'application/pdf', 'image/heic'];
+                      const isHeic = file.type === 'image/heic' || file.name.toLowerCase().endsWith('.heic');
+                      
+                      if (!supportedTypes.includes(file.type) && !isHeic) {
+                        setIdError(`File type "${file.type}" is not supported. Please use JPG, PNG, WebP, PDF, or HEIC.`);
                         setIdFrontFile(null);
                         e.target.value = '';
                         return;
                       }
+                      
                       setIdError(null);
-                      setIdFrontFile(file);
+                      
+                      // Auto-convert HEIC to JPEG
+                      if (isHeic) {
+                        try {
+                          setIdInfo('Converting HEIC to JPG...');
+                          const convertedFile = await convertHeicToJpeg(file);
+                          setIdFrontFile(convertedFile);
+                          setIdInfo('✓ HEIC converted to JPG successfully');
+                          setTimeout(() => setIdInfo(null), 3000);
+                        } catch (err: any) {
+                          setIdError(err.message || 'Failed to convert HEIC file');
+                          setIdFrontFile(null);
+                          e.target.value = '';
+                        }
+                      } else {
+                        setIdFrontFile(file);
+                      }
                     }
                   }}
                   data-testid="input-id-front"
@@ -1215,25 +1256,41 @@ const ProviderOnboard: React.FC = () => {
                 <label className="block text-sm font-medium">Back of ID</label>
                 <Input 
                   type="file" 
-                  accept="image/jpeg,image/jpg,image/png,image/webp,.pdf" 
+                  accept="image/jpeg,image/jpg,image/png,image/webp,.pdf,.heic,image/heic" 
                   capture="environment"
                   disabled={idInputsLocked}
-                  onChange={(e) => {
+                  onChange={async (e) => {
                     const file = e.target.files?.[0];
                     if (file) {
-                      // Validate file type
-                      const supportedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'application/pdf'];
-                      if (!supportedTypes.includes(file.type)) {
-                        const errorMsg = file.type === 'image/heic' || file.name.toLowerCase().endsWith('.heic')
-                          ? `HEIC format is not supported. Please convert to JPG:\n\n• On iPhone: Settings → Camera → Formats → Select "Most Compatible"\n• On Mac: Open photo in Preview → File → Export → Format: JPEG\n• On Windows: Use an online converter or photo editing app\n• Android users: Your photos are already in JPG format ✓`
-                          : `File type "${file.type}" is not supported. Please use JPG, PNG, WebP, or PDF.`;
-                        setIdError(errorMsg);
+                      // Validate file type (including HEIC which we'll convert)
+                      const supportedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'application/pdf', 'image/heic'];
+                      const isHeic = file.type === 'image/heic' || file.name.toLowerCase().endsWith('.heic');
+                      
+                      if (!supportedTypes.includes(file.type) && !isHeic) {
+                        setIdError(`File type "${file.type}" is not supported. Please use JPG, PNG, WebP, PDF, or HEIC.`);
                         setIdBackFile(null);
                         e.target.value = '';
                         return;
                       }
+                      
                       setIdError(null);
-                      setIdBackFile(file);
+                      
+                      // Auto-convert HEIC to JPEG
+                      if (isHeic) {
+                        try {
+                          setIdInfo('Converting HEIC to JPG...');
+                          const convertedFile = await convertHeicToJpeg(file);
+                          setIdBackFile(convertedFile);
+                          setIdInfo('✓ HEIC converted to JPG successfully');
+                          setTimeout(() => setIdInfo(null), 3000);
+                        } catch (err: any) {
+                          setIdError(err.message || 'Failed to convert HEIC file');
+                          setIdBackFile(null);
+                          e.target.value = '';
+                        }
+                      } else {
+                        setIdBackFile(file);
+                      }
                     }
                   }}
                   data-testid="input-id-back"
