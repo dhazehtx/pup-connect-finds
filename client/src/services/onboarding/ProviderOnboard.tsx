@@ -1146,7 +1146,16 @@ const ProviderOnboard: React.FC = () => {
         return (
           <div className="space-y-4">
             <h2 className="text-xl font-semibold">Identity Verification</h2>
-            <p className="text-gray-600">Use your phone's camera or upload an image of your ID. Both front and back are required.</p>
+            <p className="text-gray-600">Upload photos of your ID. Both front and back are required.</p>
+            
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 space-y-2">
+              <p className="text-sm font-medium text-blue-900">✓ Accepted formats:</p>
+              <p className="text-sm text-blue-800">JPG, PNG, WebP, or PDF</p>
+              <p className="text-xs text-blue-700 mt-2">
+                <strong>iPhone users:</strong> iOS saves photos as HEIC by default, which is not supported. 
+                Change your camera settings to "Most Compatible" or convert existing photos to JPG before uploading.
+              </p>
+            </div>
             
             <div className="space-y-6">
               {/* Messages */}
@@ -1175,7 +1184,10 @@ const ProviderOnboard: React.FC = () => {
                       // Validate file type
                       const supportedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'application/pdf'];
                       if (!supportedTypes.includes(file.type)) {
-                        setIdError(`Unsupported file format. Please use JPG, PNG, WebP, or PDF.\n\niPhone users: Your device saves photos as HEIC by default. To convert:\n1. Open Photos app\n2. Select the photo\n3. Tap Share → Save to Files → Save as JPG`);
+                        const errorMsg = file.type === 'image/heic' || file.name.toLowerCase().endsWith('.heic')
+                          ? `HEIC format is not supported. Please convert to JPG:\n\n• On iPhone: Settings → Camera → Formats → Select "Most Compatible"\n• On Mac: Open photo in Preview → File → Export → Format: JPEG\n• On Windows: Use an online converter or photo editing app\n• Android users: Your photos are already in JPG format ✓`
+                          : `File type "${file.type}" is not supported. Please use JPG, PNG, WebP, or PDF.`;
+                        setIdError(errorMsg);
                         setIdFrontFile(null);
                         e.target.value = '';
                         return;
@@ -1212,7 +1224,10 @@ const ProviderOnboard: React.FC = () => {
                       // Validate file type
                       const supportedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'application/pdf'];
                       if (!supportedTypes.includes(file.type)) {
-                        setIdError(`Unsupported file format. Please use JPG, PNG, WebP, or PDF.\n\niPhone users: Your device saves photos as HEIC by default. To convert:\n1. Open Photos app\n2. Select the photo\n3. Tap Share → Save to Files → Save as JPG`);
+                        const errorMsg = file.type === 'image/heic' || file.name.toLowerCase().endsWith('.heic')
+                          ? `HEIC format is not supported. Please convert to JPG:\n\n• On iPhone: Settings → Camera → Formats → Select "Most Compatible"\n• On Mac: Open photo in Preview → File → Export → Format: JPEG\n• On Windows: Use an online converter or photo editing app\n• Android users: Your photos are already in JPG format ✓`
+                          : `File type "${file.type}" is not supported. Please use JPG, PNG, WebP, or PDF.`;
+                        setIdError(errorMsg);
                         setIdBackFile(null);
                         e.target.value = '';
                         return;
