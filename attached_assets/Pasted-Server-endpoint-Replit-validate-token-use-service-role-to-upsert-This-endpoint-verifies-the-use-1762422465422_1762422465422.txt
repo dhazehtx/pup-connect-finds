@@ -1,0 +1,91 @@
+Server endpoint (Replit) — validate token, use service role to upsert
+This endpoint verifies the user token (so only authenticated users can request verification) and then uses the Supabase service role client (server-only env var) to insert/upsert the verifications row. It can also create a short signed URL for admin use if you want to return it.
+// server/routes/provider/verification.js (Express)
+import { Router } from 'express';
+import { createClient } from '@supabase/supabase-js';
+
+const router = Router();
+
+// server-side supabase admin client (use SERVICE_ROLE key)
+const supabaseAdmin = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY, {
+  auth: { persistSession: false }
+});
+
+// lightweight auth: verify user's jwt with supabaseAdmin.auth.getUser
+async function getUserIdFromBearer(req) {
+  const auth = req.headers.authorization || '';
+  const jwt = auth.replace(/^Bearer\s+/i, '');
+  if (!jwt) return null;
+  const { data, error } = await supabaseAdmin.auth.getUser(jwt);
+  if (error || !data?.user) return null;
+  return data.user.id;
+}
+
+router.post('/', async (req, res) => {
+  try {
+    const user_id = await getUserIdFromBearer(req);
+    if (!user_id) return res.status(401).json({ error: 'invalid token' });
+
+    const { storage_path, filename } = req.body;
+    if (!storage_path) return res.status(400).json({ error: 'storage_path required' });
+
+    // Insert or upsert verification row
+    // table: verifications (id serial), user_id text, storage_path text, status text, created_at timestamptz
+    const row = {
+      user_id,
+      storage_path,
+      filename,
+      status: 'pending',
+      created_at: new Date().toISOString()
+    };
+
+    const { data, error } = await supabaseAdmin
+      .from('verifications')
+      .upsert(row, { onConflict: ['user_id', 'storage_path'] });
+
+    if (error) return res.status(500).json({ error });
+
+    // Optionally: create a short signed URL for admin to preview (expire in 24 hours)
+    const { data: signed, error: signedErr } = await supabaseAdmin
+      .storage
+      .from('id-docs')
+      .createSignedUrl(storage_path, 60 * 60 * 24); // seconds
+
+    if (signedErr) {
+      // still return row; admin can create signed url later
+      return res.status(201).json({ row: data, signed_url: null });
+    }
+
+    res.status(201).json({ row: data, signed_url: signed.signedUrl });
+  } catch (err) {
+    console.error('verification error', err);
+    res.status(500).json({ error: err.message || err });
+  }
+});
+
+export default router;
+Add this route under /api/provider/verification and mount it in your Express app.
+Security notes:
+Never expose SUPABASE_SERVICE_ROLE_KEY in frontend. Set it in Replit secrets/env.
+The server checks the user token via supabaseAdmin.auth.getUser(jwt) before inserting.
+DB schema (suggested)
+create table verifications (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null,
+  storage_path text not null,
+  filename text,
+  status text not null default 'pending', -- 'pending' | 'approved' | 'rejected'
+  admin_id uuid, -- who reviewed it
+  admin_notes text,
+  created_at timestamptz default now(),
+  updated_at timestamptz default now()
+);
+Add an index on status and user_id. Use Row-Level Security (RLS): allow users to insert their own row, but only admins can update status.
+Example RLS policy (very simple):
+Allow authenticated user to INSERT rows where user_id = auth.uid().
+Allow admin role (check a profiles.is_admin flag) to UPDATE status.
+Admin review flow
+Admin UI queries verifications where status = 'pending'.
+When admin selects a row, server uses createSignedUrl(storage_path, expiry) to show the file to the admin without making the bucket public.
+After review, admin updates the row: status = 'approved' and optionally store verified_at, admin_id, admin_notes.
+Admin update endpoint should be server-protected and only accessible to admin users (check profiles.is_admin in DB or a separate role).

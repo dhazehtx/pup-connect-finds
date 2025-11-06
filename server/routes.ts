@@ -141,6 +141,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Verification routes (temporarily public to bypass auth issues)
   app.use('/api/verification', verificationRouter);
   
+  // ID verification upload route (uses auth middleware)
+  const { default: verifyRouter } = await import('./routes/verify.js');
+  app.use('/api/verify', verifyRouter);
+  
   // Provider ID verification routes (temporarily public to bypass auth issues)
   const { linkIdMedia } = await import('./routes/providers/id/link-media.js');
   const { handleSimpleWebhook } = await import('./routes/providers/id/webhook.js');

@@ -1,0 +1,57 @@
+// Frontend: upload-and-submit.js
+// Assumes: import { createClient } from '@supabase/supabase-js'
+// and user is signed in (we have accessToken and user.id)
+const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+async function uploadIdAndCreateVerification(file, user) {
+  if (!file) throw new Error('No file selected');
+  const path = `id-docs/${user.id}/${Date.now()}_${file.name}`;
+
+  // Upload to storage bucket (private recommended)
+  const { data: uploadData, error: uploadErr } = await supabase
+    .storage
+    .from('id-docs')           // bucket name — create in Supabase UI
+    .upload(path, file, { upsert: false });
+
+  if (uploadErr) throw uploadErr;
+
+  // For a private bucket: we will NOT use publicURL. Instead request server to create verification
+  // For convenience in admin UI, server will create a signed URL when needed.
+
+  // Now call your backend to upsert verification row
+  const token = (await supabase.auth.getSession()).data.session?.access_token;
+  const resp = await fetch('/api/provider/verification', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`
+    },
+    body: JSON.stringify({
+      user_id: user.id,
+      storage_path: path,   // server will compose full storage path
+      filename: file.name,
+    }),
+  });
+
+  if (!resp.ok) {
+    const err = await resp.json().catch(()=>({error:'unknown'}));
+    throw new Error('Failed to create verification: ' + JSON.stringify(err));
+  }
+
+  return await resp.json(); // verification row returned
+}
+
+// HTML example for mobile camera usage:
+// <input id="id-file" type="file" accept="image/*" capture="environment" />
+// capture="environment" hints mobile to open rear camera
+document.getElementById('id-file').addEventListener('change', async (e) => {
+  const file = e.target.files[0];
+  const user = supabase.auth.user();
+  try {
+    const result = await uploadIdAndCreateVerification(file, user);
+    alert('ID uploaded, pending admin review');
+  } catch (err) {
+    console.error(err);
+    alert('Upload failed: ' + err.message);
+  }
+});
