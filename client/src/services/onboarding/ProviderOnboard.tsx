@@ -466,29 +466,74 @@ const ProviderOnboard: React.FC = () => {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Helper function to convert HEIC to JPEG
-  const convertHeicToJpeg = async (file: File): Promise<File> => {
+  // Helper function to convert HEIC to JPEG with automatic resizing for faster uploads
+  const convertHeicToResizedJpeg = async (file: File): Promise<File> => {
+    const MAX_DIMENSION = 1600; // pixels - enough for ID readability
+    
     if (file.type !== 'image/heic' && !file.name.toLowerCase().endsWith('.heic')) {
       return file; // Not a HEIC file, return as-is
     }
 
     try {
+      // Step 1: HEIC -> JPEG blob using heic2any
       const heic2any = (await import('heic2any')).default;
-      const convertedBlob = await heic2any({
+      const jpegBlob = (await heic2any({
         blob: file,
         toType: 'image/jpeg',
-        quality: 0.9
+        quality: 0.8,
+      })) as Blob;
+
+      // Step 2: Resize via canvas to keep it light
+      const img = await new Promise<HTMLImageElement>((resolve, reject) => {
+        const url = URL.createObjectURL(jpegBlob);
+        const image = new Image();
+        image.onload = () => {
+          URL.revokeObjectURL(url);
+          resolve(image);
+        };
+        image.onerror = (err) => {
+          URL.revokeObjectURL(url);
+          reject(err);
+        };
+        image.src = url;
       });
 
-      // heic2any can return Blob or Blob[], handle both cases
-      const blob = Array.isArray(convertedBlob) ? convertedBlob[0] : convertedBlob;
-      
-      // Create a new File from the converted blob
-      const newFileName = file.name.replace(/\.heic$/i, '.jpg');
-      return new File([blob], newFileName, { type: 'image/jpeg' });
+      const canvas = document.createElement('canvas');
+      let { width, height } = img;
+
+      // Calculate scale to fit within MAX_DIMENSION
+      const scale = Math.min(1, MAX_DIMENSION / Math.max(width, height));
+      width = Math.round(width * scale);
+      height = Math.round(height * scale);
+
+      canvas.width = width;
+      canvas.height = height;
+
+      const ctx = canvas.getContext('2d');
+      if (!ctx) {
+        // Fallback: just return the original JPEG file if canvas is not available
+        return new File([jpegBlob], file.name.replace(/\.heic$/i, '.jpg'), {
+          type: 'image/jpeg',
+        });
+      }
+
+      ctx.drawImage(img, 0, 0, width, height);
+
+      // Step 3: Convert canvas to optimized JPEG blob
+      const finalBlob: Blob = await new Promise((resolve, reject) => {
+        canvas.toBlob(
+          (b) => (b ? resolve(b) : reject(new Error('Failed to create JPEG blob'))),
+          'image/jpeg',
+          0.8 // Quality: balance between size and clarity
+        );
+      });
+
+      return new File([finalBlob], file.name.replace(/\.heic$/i, '.jpg'), {
+        type: 'image/jpeg',
+      });
     } catch (err) {
       console.error('[HEIC CONVERSION] Failed to convert:', err);
-      throw new Error('Failed to convert HEIC image. Please try a different photo.');
+      throw new Error('We couldn\'t convert this HEIC file. Please try another photo or upload as JPG/PNG.');
     }
   };
 
@@ -1223,10 +1268,10 @@ const ProviderOnboard: React.FC = () => {
                       if (isHeic) {
                         try {
                           setIdInfo('Converting HEIC to JPG...');
-                          const convertedFile = await convertHeicToJpeg(file);
+                          const convertedFile = await convertHeicToResizedJpeg(file);
                           setIdFrontFile(convertedFile);
-                          setIdInfo('✓ HEIC converted to JPG successfully');
-                          setTimeout(() => setIdInfo(null), 3000);
+                          setIdInfo('✓ Converted to JPG');
+                          setTimeout(() => setIdInfo(null), 2000);
                         } catch (err: any) {
                           setIdError(err.message || 'Failed to convert HEIC file');
                           setIdFrontFile(null);
@@ -1279,10 +1324,10 @@ const ProviderOnboard: React.FC = () => {
                       if (isHeic) {
                         try {
                           setIdInfo('Converting HEIC to JPG...');
-                          const convertedFile = await convertHeicToJpeg(file);
+                          const convertedFile = await convertHeicToResizedJpeg(file);
                           setIdBackFile(convertedFile);
-                          setIdInfo('✓ HEIC converted to JPG successfully');
-                          setTimeout(() => setIdInfo(null), 3000);
+                          setIdInfo('✓ Converted to JPG');
+                          setTimeout(() => setIdInfo(null), 2000);
                         } catch (err: any) {
                           setIdError(err.message || 'Failed to convert HEIC file');
                           setIdBackFile(null);

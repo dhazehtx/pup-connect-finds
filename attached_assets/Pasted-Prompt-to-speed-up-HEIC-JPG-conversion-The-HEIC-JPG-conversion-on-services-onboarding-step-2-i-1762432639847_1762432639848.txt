@@ -1,0 +1,141 @@
+Prompt to speed up HEIC → JPG conversion
+
+The HEIC → JPG conversion on /services/onboarding?step=2 is working, but it feels slow. I want it to be noticeably faster and lighter. Please optimize the conversion pipeline.
+
+Goals
+
+Keep supporting HEIC, but:
+
+Resize the final JPG to a reasonable size for ID review (max width/height around 1400–1600px).
+
+Use a JPG quality around 0.75–0.85 for smaller files.
+
+Make sure conversion only runs once per selected file, not on every re-render.
+
+Keep the “Converting HEIC to JPG…” status text, but hide it as soon as the final, resized JPG is ready.
+
+A) Find and optimize the HEIC conversion helper
+
+Locate the HEIC conversion code that uses heic2any (likely in client/src/services/onboarding/ProviderOnboard.tsx or a nearby helper file). It probably looks like:
+
+const convertedBlob = await heic2any({ blob: file, toType: 'image/jpeg' })
+
+
+or similar.
+
+Replace it with a helper that:
+
+const MAX_DIMENSION = 1600 // pixels – enough for ID readability
+
+async function convertHeicToResizedJpeg(file: File): Promise<File> {
+  // First: HEIC -> JPEG blob using heic2any
+  const jpegBlob = (await heic2any({
+    blob: file,
+    toType: 'image/jpeg',
+    quality: 0.8,
+  })) as Blob
+
+  // Then: resize via canvas to keep it light
+  const img = await new Promise<HTMLImageElement>((resolve, reject) => {
+    const url = URL.createObjectURL(jpegBlob)
+    const image = new Image()
+    image.onload = () => {
+      URL.revokeObjectURL(url)
+      resolve(image)
+    }
+    image.onerror = (err) => {
+      URL.revokeObjectURL(url)
+      reject(err)
+    }
+    image.src = url
+  })
+
+  const canvas = document.createElement('canvas')
+  let { width, height } = img
+
+  const scale = Math.min(
+    1,
+    MAX_DIMENSION / Math.max(width, height)
+  )
+
+  width = Math.round(width * scale)
+  height = Math.round(height * scale)
+
+  canvas.width = width
+  canvas.height = height
+
+  const ctx = canvas.getContext('2d')
+  if (!ctx) {
+    // Fallback: just return the original JPEG file if canvas is not available
+    return new File([jpegBlob], file.name.replace(/\.heic$/i, '.jpg'), {
+      type: 'image/jpeg',
+    })
+  }
+
+  ctx.drawImage(img, 0, 0, width, height)
+
+  const finalBlob: Blob = await new Promise((resolve, reject) => {
+    canvas.toBlob(
+      (b) => (b ? resolve(b) : reject(new Error('Failed to create JPEG blob'))),
+      'image/jpeg',
+      0.8
+    )
+  })
+
+  return new File([finalBlob], file.name.replace(/\.heic$/i, '.jpg'), {
+    type: 'image/jpeg',
+  })
+}
+
+
+Update the place where we handle file selection so that:
+
+async function normalizeUploadFile(file: File): Promise<File> {
+  if (file.type === 'image/heic' || file.type === 'image/heif' || /\.heic$/i.test(file.name)) {
+    // show "Converting..." status here
+    setConverting(true)  // or front/back specific flags
+    const converted = await convertHeicToResizedJpeg(file)
+    setConverting(false)
+    return converted
+  }
+  return file
+}
+
+
+and make sure this function is called once when a new file is selected, before we send it to Supabase.
+
+B) Ensure we don’t re-convert the same file
+
+Use component state or a memoized value so we don’t run HEIC conversion multiple times for the same File:
+
+After conversion, store the resulting File object in state (e.g. frontFileNormalized, backFileNormalized).
+
+Use those normalized files for upload and previews.
+
+Confirm in the code that HEIC conversion is only triggered in the onChange handler of the file input, not on every render.
+
+C) UX polish
+
+Keep the “Converting HEIC to JPG…” message while conversion is running and hide it after normalizeUploadFile resolves.
+
+If conversion ever fails, show a clear error like:
+
+“We couldn’t convert this HEIC file. Please try another photo or upload as JPG/PNG.”
+
+After implementing this, please:
+
+Test with a large HEIC file and confirm the conversion completes significantly faster than before.
+
+Confirm the uploaded JPG in Supabase has a more reasonable resolution (max ~1600px wide) and file size.
+
+Please apply these optimizations without changing the rest of the ID verification flow (bucket name, DB upsert, or success banners).
+
+Once that’s in, HEIC conversion should feel much snappier:
+
+Smaller image → less work to convert
+
+Smaller file → faster to upload
+
+Better UX → users just see a quick “Converting…” flash and done ✅
+
+If, after this change, it’s still noticeably slow, tell me roughly how many seconds it takes and we can look at adding a super-light “low-res preview first, full-res in background” pattern—but I suspect just resizing to ~1600px will fix most of it.
