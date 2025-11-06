@@ -1,0 +1,154 @@
+We just fixed my old “Failed to start ID verification” error by stopping the external liveness endpoint. Now I have a new error on the ID upload step:
+
+“Front image upload failed: Bucket not found”, even though I still see:
+
+“Front image captured”
+
+“Back image captured”
+
+“Both images uploaded successfully!”
+
+I want you to CLEAN THIS UP and make it bullet-proof:
+
+Overall goal
+
+Use Supabase Storage for ID uploads.
+
+Create/use ONE consistent bucket, for example: provider-id-docs.
+
+Ensure that bucket always exists (create it in code if missing).
+
+Update all front/back ID upload code to use that bucket.
+
+Show correct success/error status (no green “Both images uploaded successfully” if the upload actually failed).
+
+1) Add a helper to ensure the bucket exists
+
+In the server-side code where we have access to supabaseAdmin (service role), create a new helper, for example in server/lib/storageHelpers.ts:
+
+// server/lib/storageHelpers.ts
+import { supabaseAdmin } from './supabaseAdmin'
+
+const ID_BUCKET = 'provider-id-docs'
+
+export const getIdBucketName = () => ID_BUCKET
+
+export async function ensureIdBucketExists() {
+  const { data: existing, error: listError } = await supabaseAdmin.storage.listBuckets()
+  if (!listError && existing?.some(b => b.name === ID_BUCKET)) {
+    return ID_BUCKET
+  }
+
+  const { error: createError } = await supabaseAdmin.storage.createBucket(ID_BUCKET, {
+    public: false,
+  })
+
+  // Ignore “already exists” type errors just in case
+  if (createError && !/exists/i.test(createError.message)) {
+    console.error('Failed to create ID bucket', createError.message)
+  }
+
+  return ID_BUCKET
+}
+
+
+Make sure supabaseAdmin is imported from server/lib/supabaseAdmin (or whatever path we already use).
+
+2) Use this bucket in the upload route
+
+Find the server route that uploads the front/back ID images to Supabase Storage. It probably calls something like:
+
+supabase.storage.from('some-old-bucket-name').upload(...)
+
+
+or uses createSignedUploadUrl for ID images.
+
+Update that route to:
+
+Import and call ensureIdBucketExists() at the top of the handler.
+
+Use getIdBucketName() for the from() calls.
+
+Handle “bucket not found” gracefully.
+
+For example (adjust to match my actual route file and naming):
+
+import { getIdBucketName, ensureIdBucketExists } from '../../lib/storageHelpers'
+
+router.post('/upload-id', async (req, res) => {
+  try {
+    const bucket = await ensureIdBucketExists()
+    const file = req.file // or however we’re getting the file buffer
+
+    if (!file) {
+      return res.status(400).json({ error: 'file required' })
+    }
+
+    const path = `ids/${Date.now()}-${file.originalname}`
+
+    const { data, error } = await supabaseAdmin.storage
+      .from(bucket)
+      .upload(path, file.buffer, {
+        contentType: file.mimetype || 'image/jpeg',
+        upsert: false,
+      })
+
+    if (error) {
+      console.error('ID upload error', error.message)
+      return res.status(500).json({ error: error.message })
+    }
+
+    const { data: publicUrlData } = supabaseAdmin.storage
+      .from(bucket)
+      .getPublicUrl(path)
+
+    return res.status(201).json({
+      ok: true,
+      url: publicUrlData.publicUrl,
+    })
+  } catch (e: any) {
+    console.error('ID upload server error', e)
+    return res.status(500).json({ error: e?.message || 'server error' })
+  }
+})
+
+
+Wherever we previously used a hard-coded bucket name (like 'id-verifications', 'id-docs', etc.), replace it with getIdBucketName() so all ID uploads go to provider-id-docs.
+
+3) Fix the frontend status messages
+
+In the React/TS/JS code for services onboarding step 2 (the Identity Verification page at /services/onboarding?step=2):
+
+Find the functions that upload the front and back ID images. They probably call the server endpoint we just fixed.
+
+Make sure the state is updated like this:
+
+On successful upload: set frontUploadStatus = 'success' or backUploadStatus = 'success', store the returned url in state, and clear any error message for that side.
+
+On failure: set frontUploadStatus = 'error' or backUploadStatus = 'error', store the error message (like error.message), and DO NOT show the green “captured” checkmark or the green “Both images uploaded successfully” banner.
+
+Concretely:
+
+// pseudo example – adapt to the actual component
+if (uploadSucceeded) {
+  setFrontStatus('success')
+  setFrontError(null)
+} else {
+  setFrontStatus('error')
+  setFrontError(serverErrorMessage)
+}
+
+const bothSuccess = frontStatus === 'success' && backStatus === 'success'
+
+
+Then:
+
+Only show “Front image captured” when frontStatus === 'success'.
+
+Only show “Back image captured” when backStatus === 'success'.
+
+Only show “Both images uploaded successfully! Click ‘Save’…” when bothSuccess is true.
+
+Show the red “Front image upload failed: …” banner only when frontStatus === 'error'.
+
+This should eliminate the situation where the UI shows a red error and a green success message at the same time.
