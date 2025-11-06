@@ -1,0 +1,94 @@
+I’m on /services/onboarding?step=2 with front/back images uploaded (both show “image ready”), and when I click Save I get a red internal_error banner.
+
+The uploads via /api/upload-id/front and /api/upload-id/back seem to be working. The error is happening when the frontend calls /api/verify/start to save the verification in the database.
+
+Goal:
+
+Fix the root cause of this internal_error in /api/verify/start.
+
+Keep the new upload flow and storage logic exactly as-is (server-side upload with supabaseAdmin, raw files in provider-id-docs).
+
+Make sure Save successfully upserts the verification row as pending with the correct URLs.
+
+Please do the following:
+
+Reproduce and inspect the error
+
+Trigger the /api/verify/start call the same way I do on the page (with front/back URLs).
+
+Check the server logs/stack trace for this endpoint and surface the exact error (for example: missing column, wrong table name, NOT NULL constraint failed, foreign key issue, etc.).
+
+Fix the underlying bug in /api/verify/start
+
+Open the route implementation for POST /api/verify/start.
+
+Make sure it:
+
+Authenticates the user from the bearer token.
+
+Validates that front_url and back_url are present.
+
+Uses supabaseAdmin to upsert into the correct table (you said provider_applications):
+
+user_id
+
+front_id_url / back_id_url (or whatever the actual column names are)
+
+verification_status = 'pending' (or similar)
+
+Handles the case where no row exists yet (insert instead of failing an update).
+
+Handles any NOT NULL / foreign key constraints correctly (e.g. create the application row if needed before updating).
+
+Fix any mismatched column names or table references that are causing the internal error.
+
+Improve the response
+
+Make sure /api/verify/start returns a clean success JSON on happy path, e.g.:
+
+{ "ok": true, "applicationId": "<id>" }
+
+
+On error, log the real error to the server console, but return a user-friendly message to the client.
+
+Do NOT change these parts
+
+Do not change the /api/upload-id/front and /api/upload-id/back endpoints or the storage bucket setup.
+
+Do not reintroduce any external verification services (Stripe Identity, Persona, etc.).
+
+Do not remove HEIC/JPG/PNG/WebP/PDF support.
+
+Final verification
+
+After fixing /api/verify/start, run through this flow:
+
+Go to /services/onboarding?step=2.
+
+Upload a HEIC file for front and back (or JPG/PNG).
+
+Click Save.
+
+Confirm:
+
+No internal_error banner appears.
+
+The request to /api/verify/start returns HTTP 200 with { ok: true, applicationId: ... }.
+
+A row in the verification/application table is created/updated with:
+
+my user_id
+
+the front/back ID URLs
+
+verification_status = 'pending'.
+
+Afterwards, please summarize in plain language:
+
+What the bug was (e.g. which constraint or column mismatch caused the internal error).
+
+What you changed in /api/verify/start to fix it.
+
+Which table and columns now store the verification data.
+
+Please keep all other onboarding steps and flows unchanged.

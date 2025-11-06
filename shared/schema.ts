@@ -332,7 +332,7 @@ export const insertCommissionSettingsSchema = createInsertSchema(commissionSetti
 export const providerApplications = pgTable("provider_applications", {
   id: uuid("id").primaryKey().defaultRandom(),
   user_id: uuid("user_id").references(() => profiles.id, { onDelete: "cascade" }).notNull(),
-  provider_id: uuid("provider_id").references(() => providers.id, { onDelete: "cascade" }).notNull(),
+  provider_id: uuid("provider_id").references(() => providers.id, { onDelete: "cascade" }),
   status: text("status").notNull().default("pending"), // pending, approved, rejected
   submitted_at: timestamp("submitted_at", { withTimezone: true }).notNull().defaultNow(),
   reviewed_by: uuid("reviewed_by").references(() => profiles.id),
@@ -340,6 +340,10 @@ export const providerApplications = pgTable("provider_applications", {
   review_notes: text("review_notes"),
   bgcheck_consent: boolean("bgcheck_consent").default(false),
   bgcheck_status: text("bgcheck_status").default("not_requested"), // not_requested | pending | completed | failed
+  front_image_url: text("front_image_url"),
+  back_image_url: text("back_image_url"),
+  verification_status: text("verification_status").default("pending"), // pending, approved, rejected
+  verification_started_at: timestamp("verification_started_at", { withTimezone: true }),
 });
 
 // Notification events log
