@@ -18,15 +18,17 @@ export async function ensureProviderIdBucket(): Promise<string> {
 
     const bucketExists = buckets?.some(b => b.name === BUCKET_NAME);
 
+    const bucketConfig = {
+      public: true,
+      fileSizeLimit: 10485760, // 10MB
+      allowedMimeTypes: ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/heic', 'image/heif', 'application/pdf']
+    };
+
     if (!bucketExists) {
       console.log(`[Storage] Creating bucket: ${BUCKET_NAME}`);
       
       // Create the bucket with public access
-      const { data, error: createError } = await supabaseAdmin.storage.createBucket(BUCKET_NAME, {
-        public: true,
-        fileSizeLimit: 10485760, // 10MB
-        allowedMimeTypes: ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/heic', 'image/heif', 'application/pdf']
-      });
+      const { data, error: createError } = await supabaseAdmin.storage.createBucket(BUCKET_NAME, bucketConfig);
 
       if (createError) {
         console.error('[Storage] Error creating bucket:', createError);
@@ -36,6 +38,17 @@ export async function ensureProviderIdBucket(): Promise<string> {
       console.log(`[Storage] Bucket created successfully: ${BUCKET_NAME}`);
     } else {
       console.log(`[Storage] Bucket already exists: ${BUCKET_NAME}`);
+      
+      // Update existing bucket to ensure MIME types include HEIC/HEIF
+      console.log(`[Storage] Updating bucket MIME types to include HEIC/HEIF...`);
+      const { error: updateError } = await supabaseAdmin.storage.updateBucket(BUCKET_NAME, bucketConfig);
+      
+      if (updateError) {
+        console.warn('[Storage] Warning: Could not update bucket MIME types:', updateError.message);
+        console.warn('[Storage] HEIC/HEIF uploads may be blocked. Consider updating bucket settings manually.');
+      } else {
+        console.log(`[Storage] Bucket MIME types updated successfully`);
+      }
     }
 
     return BUCKET_NAME;
