@@ -2,6 +2,7 @@ import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import { initializeSentry, Sentry, captureError } from "./utils/sentry";
+import { ensureProviderIdBucket } from "./lib/ensureStorageBucket";
 
 // Initialize Sentry as early as possible
 initializeSentry();
@@ -59,6 +60,14 @@ app.use((req, res, next) => {
 });
 
 (async () => {
+  // Ensure storage bucket exists for provider ID documents
+  try {
+    await ensureProviderIdBucket();
+  } catch (error) {
+    console.error('[Startup] Failed to ensure storage bucket:', error);
+    // Continue anyway - uploads will fail with clear error messages
+  }
+
   const server = await registerRoutes(app);
 
   // Sentry error handling middleware (only if initialized)

@@ -497,30 +497,33 @@ const ProviderOnboard: React.FC = () => {
         import.meta.env.VITE_SUPABASE_ANON_KEY!
       );
 
+      const BUCKET_NAME = 'provider-id-docs';
       const frontPath = `users/${authUser.id}/id/${Date.now()}_front_${idFrontFile.name}`;
       const backPath = `users/${authUser.id}/id/${Date.now()}_back_${idBackFile.name}`;
 
       console.log('[ID VERIFICATION] Uploading front image to Storage...');
       const { data: frontUpload, error: frontError } = await supabase.storage
-        .from('ids')
+        .from(BUCKET_NAME)
         .upload(frontPath, idFrontFile, { upsert: true });
 
       if (frontError) {
+        console.error('[ID VERIFICATION] Front upload error:', frontError);
         throw new Error(`Front image upload failed: ${frontError.message}`);
       }
 
       console.log('[ID VERIFICATION] Uploading back image to Storage...');
       const { data: backUpload, error: backError } = await supabase.storage
-        .from('ids')
+        .from(BUCKET_NAME)
         .upload(backPath, idBackFile, { upsert: true });
 
       if (backError) {
+        console.error('[ID VERIFICATION] Back upload error:', backError);
         throw new Error(`Back image upload failed: ${backError.message}`);
       }
 
       // Step 2: Get public URLs for the uploaded images
-      const frontImageUrl = supabase.storage.from('ids').getPublicUrl(frontPath).data.publicUrl;
-      const backImageUrl = supabase.storage.from('ids').getPublicUrl(backPath).data.publicUrl;
+      const frontImageUrl = supabase.storage.from(BUCKET_NAME).getPublicUrl(frontPath).data.publicUrl;
+      const backImageUrl = supabase.storage.from(BUCKET_NAME).getPublicUrl(backPath).data.publicUrl;
 
       console.log('[ID VERIFICATION] Images uploaded, calling verification endpoint...');
 
