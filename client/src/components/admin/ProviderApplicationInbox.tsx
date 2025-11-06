@@ -189,7 +189,7 @@ export function ProviderApplicationInbox() {
                       </div>
                       
                       <div className="space-y-2">
-                        {application.providers?.service_types?.length > 0 && (
+                        {application.providers?.service_types && application.providers.service_types.length > 0 && (
                           <div>
                             <span className="text-sm font-medium">Services:</span>
                             <div className="flex flex-wrap gap-1 mt-1">

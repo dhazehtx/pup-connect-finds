@@ -844,7 +844,7 @@ const ProviderOnboard: React.FC = () => {
     }
   };
 
-  const advanceProviderStatus = async () => {
+  const submitProviderApplication = async () => {
     if (!termsAccepted.terms || !termsAccepted.providerAgreement) {
       toast({
         title: "Terms Required",
@@ -854,36 +854,47 @@ const ProviderOnboard: React.FC = () => {
       return false;
     }
 
+    if (!createdProviderId) {
+      toast({
+        title: "Error",
+        description: "Provider ID not found. Please complete previous steps.",
+        variant: "destructive",
+      });
+      return false;
+    }
+
     setProviderStatus('loading');
 
     try {
-      const response = await fetch('/api/providers/status/advance', {
+      const response = await fetch('/api/provider-applications/submit', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          providerId: createdProviderId,
+          userId: authUser?.id
+        }),
       });
 
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to advance provider status');
+        throw new Error(data.error || 'Failed to submit application');
       }
 
-      setProviderStatus('verified');
+      setProviderStatus('pending');
       toast({
-        title: "Congratulations!",
-        description: "You're now a verified provider. You can start accepting bookings!",
+        title: "Application Submitted",
+        description: "Your provider application has been submitted for review.",
       });
 
-      // Advance to final step
       setCurrentStep(7);
       return true;
 
     } catch (error) {
-      console.error('Advance status error:', error);
+      console.error('Submit application error:', error);
       const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-      setProviderStatus('pending');
       toast({
-        title: "Status Update Failed",
+        title: "Submission Failed",
         description: errorMessage,
         variant: "destructive",
       });
@@ -2153,7 +2164,7 @@ const ProviderOnboard: React.FC = () => {
             {termsAccepted.terms && termsAccepted.providerAgreement && (
               <div className="pt-4">
                 <Button 
-                  onClick={advanceProviderStatus}
+                  onClick={submitProviderApplication}
                   className="w-full"
                   disabled={providerStatus === 'loading'}
                   data-testid="button-complete-onboarding"
@@ -2161,10 +2172,10 @@ const ProviderOnboard: React.FC = () => {
                   {providerStatus === 'loading' ? (
                     <>
                       <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                      Completing Setup...
+                      Submitting Application...
                     </>
                   ) : (
-                    'Complete Provider Setup'
+                    'Submit Application for Review'
                   )}
                 </Button>
               </div>
@@ -2235,21 +2246,19 @@ const ProviderOnboard: React.FC = () => {
               </div>
             </div>
 
-            {providerStatus !== 'verified' && (
-              <div className="pt-4">
-                <Button 
-                  onClick={submitProviderApplication}
-                  disabled={isSubmittingApplication}
-                  className="w-full bg-blue-600 hover:bg-blue-700"
-                  data-testid="button-submit-application"
-                >
-                  {isSubmittingApplication ? "Submitting Application..." : "Submit Provider Application"}
-                </Button>
-                <p className="text-xs text-gray-500 mt-2 text-center">
-                  Your application will be reviewed by our team within 24-48 hours
-                </p>
-              </div>
-            )}
+            <div className="pt-4 text-center">
+              <Button 
+                onClick={() => navigate('/services/provider/dashboard')}
+                variant="outline"
+                className="w-full"
+                data-testid="button-go-to-dashboard"
+              >
+                Go to Dashboard
+              </Button>
+              <p className="text-xs text-gray-500 mt-2">
+                You'll be notified once your application is approved
+              </p>
+            </div>
           </div>
         );
 
