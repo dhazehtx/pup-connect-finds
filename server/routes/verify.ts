@@ -1,9 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { supabaseAdmin } from '../lib/supabaseAdmin';
 import { requireAuth } from '../middleware/requireAuth';
-import { db } from '../db';
-import { providerApplications } from '@shared/schema';
-import { eq, sql } from 'drizzle-orm';
+import { pool } from '../db';
 
 const router = Router();
 
@@ -60,40 +58,38 @@ router.post('/start', async (req: Request, res: Response) => {
 
     console.log('[verify/start] Manual ID verification request:', { userId, applicationId });
 
-    // 3. Upsert to provider_applications table using raw SQL to avoid schema sync issues
+    // 3. Upsert to provider_applications table using direct pool query
     const now = new Date();
     
-    // Use raw SQL to perform upsert - works directly with database, bypassing schema validation
+    // Use pool.query() to execute raw SQL, bypassing all schema/cache issues
     let result;
     if (applicationId) {
-      result = await db.execute(
-        sql`INSERT INTO provider_applications (
+      result = await pool.query(
+        `INSERT INTO provider_applications (
           id, user_id, front_image_url, back_image_url, verification_status, verification_started_at
-        ) VALUES (
-          ${applicationId}, ${userId}, ${frontUrl}, ${backUrl}, 'pending', ${now}
-        )
+        ) VALUES ($1, $2, $3, $4, $5, $6)
         ON CONFLICT (user_id) 
         DO UPDATE SET
           front_image_url = EXCLUDED.front_image_url,
           back_image_url = EXCLUDED.back_image_url,
           verification_status = EXCLUDED.verification_status,
           verification_started_at = EXCLUDED.verification_started_at
-        RETURNING *`
+        RETURNING *`,
+        [applicationId, userId, frontUrl, backUrl, 'pending', now]
       );
     } else {
-      result = await db.execute(
-        sql`INSERT INTO provider_applications (
+      result = await pool.query(
+        `INSERT INTO provider_applications (
           user_id, front_image_url, back_image_url, verification_status, verification_started_at
-        ) VALUES (
-          ${userId}, ${frontUrl}, ${backUrl}, 'pending', ${now}
-        )
+        ) VALUES ($1, $2, $3, $4, $5)
         ON CONFLICT (user_id) 
         DO UPDATE SET
           front_image_url = EXCLUDED.front_image_url,
           back_image_url = EXCLUDED.back_image_url,
           verification_status = EXCLUDED.verification_status,
           verification_started_at = EXCLUDED.verification_started_at
-        RETURNING *`
+        RETURNING *`,
+        [userId, frontUrl, backUrl, 'pending', now]
       );
     }
 
