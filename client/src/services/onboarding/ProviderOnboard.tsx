@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { CheckCircle, Circle, AlertCircle, Loader2 } from 'lucide-react';
+import { CheckCircle, Circle, AlertCircle, Loader2, Clock } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { useOnboardingStore } from '@/stores/onboarding';
@@ -1032,6 +1032,32 @@ const ProviderOnboard: React.FC = () => {
     setCurrentStep(4);
     navigate('/services/onboarding?step=4');
   };
+
+  // Fetch actual provider status from database
+  const fetchProviderStatus = async () => {
+    if (!authUser?.id) return;
+    
+    try {
+      const response = await fetch(`/api/providers/status?userId=${authUser.id}`);
+      if (!response.ok) return;
+      
+      const data = await response.json();
+      if (data.status === 'verified') {
+        setProviderStatus('verified');
+      } else {
+        setProviderStatus('pending');
+      }
+    } catch (error) {
+      console.error('Error fetching provider status:', error);
+    }
+  };
+
+  // Check provider status when reaching Step 7
+  useEffect(() => {
+    if (currentStep === 7 && authUser?.id) {
+      fetchProviderStatus();
+    }
+  }, [currentStep, authUser?.id]);
 
   const submitProviderApplication = async () => {
     if (!authUser?.id) {
@@ -2149,31 +2175,54 @@ const ProviderOnboard: React.FC = () => {
       case 7: // Review
         return (
           <div className="space-y-4">
-            <h2 className="text-xl font-semibold">Welcome to the Platform!</h2>
-            <div className="bg-green-50 p-6 rounded-lg text-center">
-              <CheckCircle className="h-16 w-16 text-green-500 mx-auto mb-4" />
-              <h3 className="text-xl font-semibold text-green-800 mb-2">Congratulations!</h3>
-              <p className="text-green-700 mb-4">
-                You're now a verified provider on our platform.
-              </p>
-              <div className="bg-white p-4 rounded-lg mb-4">
-                <p className="text-sm text-gray-700 mb-2">
-                  <strong>Provider Status:</strong> <span className="text-green-600 font-semibold">Verified</span>
+            <h2 className="text-xl font-semibold">
+              {providerStatus === 'verified' ? 'Welcome to the Platform!' : 'Application Review'}
+            </h2>
+            
+            {providerStatus === 'verified' ? (
+              // VERIFIED STATUS - Show success message
+              <div className="bg-green-50 p-6 rounded-lg text-center">
+                <CheckCircle className="h-16 w-16 text-green-500 mx-auto mb-4" />
+                <h3 className="text-xl font-semibold text-green-800 mb-2">Congratulations!</h3>
+                <p className="text-green-700 mb-4">
+                  You're now a verified provider on our platform.
                 </p>
-                <p className="text-sm text-gray-700">
-                  You can now start accepting bookings and providing services to pet owners in your area.
-                </p>
+                <div className="bg-white p-4 rounded-lg mb-4">
+                  <p className="text-sm text-gray-700 mb-2">
+                    <strong>Provider Status:</strong> <span className="text-green-600 font-semibold">Verified</span>
+                  </p>
+                  <p className="text-sm text-gray-700">
+                    You can now start accepting bookings and providing services to pet owners in your area.
+                  </p>
+                </div>
               </div>
-            </div>
+            ) : (
+              // PENDING STATUS - Show pending review message
+              <div className="bg-yellow-50 p-6 rounded-lg text-center">
+                <Clock className="h-16 w-16 text-yellow-500 mx-auto mb-4" />
+                <h3 className="text-xl font-semibold text-yellow-800 mb-2">Application Submitted</h3>
+                <p className="text-yellow-700 mb-4">
+                  Your application has been submitted and is pending review.
+                </p>
+                <div className="bg-white p-4 rounded-lg mb-4">
+                  <p className="text-sm text-gray-700 mb-2">
+                    <strong>Provider Status:</strong> <span className="text-yellow-600 font-semibold">Pending Review</span>
+                  </p>
+                  <p className="text-sm text-gray-700">
+                    Our team will review your application within 24-48 hours. You'll receive a notification once your application is approved.
+                  </p>
+                </div>
+              </div>
+            )}
             
             <div className="space-y-3 bg-gray-50 p-4 rounded-lg">
-              <h4 className="font-medium text-gray-800">Verification Complete:</h4>
+              <h4 className="font-medium text-gray-800">Application Checklist:</h4>
               <div className="flex justify-between text-sm">
-                <span>Identity Verified</span>
+                <span>Identity Documents Submitted</span>
                 <CheckCircle className="h-4 w-4 text-green-500" />
               </div>
               <div className="flex justify-between text-sm">
-                <span>Background Check</span>
+                <span>Background Check Consent</span>
                 <CheckCircle className="h-4 w-4 text-green-500" />
               </div>
               <div className="flex justify-between text-sm">
@@ -2186,19 +2235,21 @@ const ProviderOnboard: React.FC = () => {
               </div>
             </div>
 
-            <div className="pt-4">
-              <Button 
-                onClick={submitProviderApplication}
-                disabled={isSubmittingApplication}
-                className="w-full bg-green-600 hover:bg-green-700"
-                data-testid="button-submit-application"
-              >
-                {isSubmittingApplication ? "Submitting Application..." : "Submit Provider Application"}
-              </Button>
-              <p className="text-xs text-gray-500 mt-2 text-center">
-                Your application will be reviewed by our team within 24-48 hours
-              </p>
-            </div>
+            {providerStatus !== 'verified' && (
+              <div className="pt-4">
+                <Button 
+                  onClick={submitProviderApplication}
+                  disabled={isSubmittingApplication}
+                  className="w-full bg-blue-600 hover:bg-blue-700"
+                  data-testid="button-submit-application"
+                >
+                  {isSubmittingApplication ? "Submitting Application..." : "Submit Provider Application"}
+                </Button>
+                <p className="text-xs text-gray-500 mt-2 text-center">
+                  Your application will be reviewed by our team within 24-48 hours
+                </p>
+              </div>
+            )}
           </div>
         );
 

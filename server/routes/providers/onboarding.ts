@@ -35,6 +35,36 @@ router.post('/upload-documents', uploadDocuments, handleDocumentUpload);
 // Status management
 router.post('/status/advance', advanceProviderStatus);
 
+// Get provider status (for Step 7 display)
+router.get('/status', async (req, res) => {
+  try {
+    const userId = req.query.userId as string;
+    
+    if (!userId) {
+      return res.status(400).json({ error: 'userId is required' });
+    }
+
+    // Get provider status from database
+    const { supabase } = await import('../../lib/supabase.js');
+    const { data: provider, error } = await supabase
+      .from('providers')
+      .select('status')
+      .eq('user_id', userId)
+      .single();
+
+    if (error || !provider) {
+      // If provider doesn't exist yet, return pending status
+      return res.json({ status: 'pending' });
+    }
+
+    res.json({ status: provider.status || 'pending' });
+
+  } catch (error) {
+    console.error('Get provider status error:', error);
+    res.status(500).json({ error: 'Failed to get provider status' });
+  }
+});
+
 // Verification status check
 router.get('/verification-status/:providerId', async (req, res) => {
   try {
