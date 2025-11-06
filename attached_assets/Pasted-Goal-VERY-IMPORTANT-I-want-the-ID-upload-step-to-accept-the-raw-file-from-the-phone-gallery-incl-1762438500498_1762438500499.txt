@@ -1,0 +1,144 @@
+Goal (VERY IMPORTANT):
+I want the ID upload step to accept the raw file from the phone/gallery (including HEIC) and just store it. No more client-side conversion, no liveness API, no extra friction for the user.
+
+We are moving to Option A: accept everything, store as-is, manual admin review.
+
+Please make the following changes:
+
+1) Remove client-side HEIC → JPG conversion
+
+Find all code that uses the heic2any library or shows messages like:
+
+“Converting HEIC to JPG…”
+
+“HEIC converted to JPG successfully”
+
+Stop doing client-side conversion completely.
+
+You can either remove the heic2any import and related functions or keep the dependency but don’t call it anywhere.
+
+The file we upload to Supabase should now be exactly the file the user selected (HEIC, JPG, PNG, WebP, PDF, etc.) with no transformation in the browser.
+
+❌ Do NOT do canvas resizing or any other image processing in the browser for ID uploads.
+✅ Just send the original File directly to the upload endpoint.
+
+2) Frontend: what file types we accept
+
+In the Identity Verification step (/services/onboarding?step=2 or step 3 of 8 for “Become a Provider”):
+
+Update the <input type="file"> elements for Front of ID and Back of ID so that:
+
+They accept at least:
+
+image/*
+
+application/pdf
+
+If you prefer a specific list, use:
+accept="image/jpeg,image/png,image/webp,image/heic,image/heif,application/pdf"
+
+Do not block HEIC on the client.
+
+It should be treated as a valid image file.
+
+The instruction text at the top of the ID step should say something like:
+
+“Accepted formats: HEIC, JPG/JPEG, PNG, WebP, or PDF. Just take a clear photo of your ID with your phone or upload it from your device. Both front and back are required.”
+
+Remove or update any text that says:
+
+“HEIC will be converted to JPG”
+
+“Change your phone settings to Most Compatible”
+We are not asking users to change settings or promising conversion anymore.
+
+Keep the status banners logic:
+
+Green “image captured / uploaded successfully” only when the upload call actually succeeds.
+
+Red error when the upload fails (network, size, etc.).
+
+3) Backend / Supabase upload behavior
+
+For the server route that uploads ID photos to Supabase Storage (the one that uses the provider-id-docs bucket):
+
+Allow these MIME types at minimum:
+
+image/heic, image/heif
+
+image/jpeg
+
+image/png
+
+image/webp
+
+application/pdf
+
+If you already have validation that only allows jpeg/png, expand it to include all of the above. Do not reject HEIC anymore.
+
+When uploading to Supabase:
+
+Keep using the same bucket (provider-id-docs).
+
+Use the file’s original mimetype as contentType.
+
+Keep the existing path structure (e.g. ids/{timestamp}-{filename}).
+
+We do not need to convert formats on the server right now—just store the raw file.
+
+The verification record in the database (e.g. provider_verifications table) should continue to store:
+
+front_url, back_url
+
+user_id, status, etc.
+If it’s easy, you can also store the MIME type, but that’s optional.
+
+4) Keep the current verification flow
+
+Please do NOT:
+
+Re-introduce any external liveness / “start ID verification” services.
+
+Change the logic that upserts the verification row or the status (e.g. submitted/pending).
+
+The flow should remain:
+
+User uploads front + back → URLs are saved.
+
+User clicks Save → we upsert a verification row with status like 'submitted'.
+
+An admin manually reviews the stored images later.
+
+5) Final test to run
+
+After you apply these changes, please:
+
+Go to /services/onboarding?step=2 (or the Identity Verification step).
+
+Upload:
+
+A HEIC file (from Mac/iPhone).
+
+A JPG or PNG.
+
+Confirm both:
+
+Upload successfully with green success messages.
+
+Create/update the verification row in the database as before.
+
+Confirm in Supabase Storage (provider-id-docs bucket) that:
+
+The HEIC file is stored as HEIC.
+
+The JPG/PNG are stored as-is with their original types.
+
+Finally, tell me in plain language:
+
+Which file types are accepted now.
+
+That there is no more client-side HEIC conversion.
+
+That uploads of HEIC/JPG/PNG/WebP/PDF go straight to the bucket as raw files.
+
+Please implement only the changes above and keep the rest of the provider signup logic as it is.
