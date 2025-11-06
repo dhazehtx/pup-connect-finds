@@ -488,54 +488,86 @@ const ProviderOnboard: React.FC = () => {
     }
 
     try {
-      // Get the real providerId from the database
-      const { providerId: realProviderId } = await ensureOnboardingIds();
-      
-      console.log('[STRIPE VERIFICATION] Starting comprehensive verification for:', { userId: authUser.id, providerId: realProviderId, applicationId });
-      
-      const res = await fetch("/api/verification/start", {
+      console.log('[ID VERIFICATION] Starting manual ID verification for:', { userId: authUser.id, applicationId });
+
+      // Step 1: Upload front image to Supabase Storage
+      const { createClient } = await import('@supabase/supabase-js');
+      const supabase = createClient(
+        import.meta.env.VITE_SUPABASE_URL!,
+        import.meta.env.VITE_SUPABASE_ANON_KEY!
+      );
+
+      const frontPath = `users/${authUser.id}/id/${Date.now()}_front_${idFrontFile.name}`;
+      const backPath = `users/${authUser.id}/id/${Date.now()}_back_${idBackFile.name}`;
+
+      console.log('[ID VERIFICATION] Uploading front image to Storage...');
+      const { data: frontUpload, error: frontError } = await supabase.storage
+        .from('ids')
+        .upload(frontPath, idFrontFile, { upsert: true });
+
+      if (frontError) {
+        throw new Error(`Front image upload failed: ${frontError.message}`);
+      }
+
+      console.log('[ID VERIFICATION] Uploading back image to Storage...');
+      const { data: backUpload, error: backError } = await supabase.storage
+        .from('ids')
+        .upload(backPath, idBackFile, { upsert: true });
+
+      if (backError) {
+        throw new Error(`Back image upload failed: ${backError.message}`);
+      }
+
+      // Step 2: Get public URLs for the uploaded images
+      const frontImageUrl = supabase.storage.from('ids').getPublicUrl(frontPath).data.publicUrl;
+      const backImageUrl = supabase.storage.from('ids').getPublicUrl(backPath).data.publicUrl;
+
+      console.log('[ID VERIFICATION] Images uploaded, calling verification endpoint...');
+
+      // Step 3: Call simplified /api/verify/start endpoint
+      const { data: session } = await supabase.auth.getSession();
+      const token = session.session?.access_token;
+
+      if (!token) {
+        throw new Error('No authentication token available');
+      }
+
+      const res = await fetch("/api/verify/start", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
         body: JSON.stringify({ 
-          userId: authUser.id, 
-          providerId: realProviderId, 
-          applicationId,
-          frontImagePath: idFrontFile.name,
-          backImagePath: idBackFile.name
+          frontImageUrl,
+          backImageUrl,
+          applicationId
         }),
       });
 
       const data = await res.json().catch(() => ({}));
-      console.log('[STRIPE VERIFICATION] API response:', { status: res.status, data });
+      console.log('[ID VERIFICATION] API response:', { status: res.status, data });
 
-      if (!res.ok || !data?.success) {
-        throw new Error(data?.message || "Failed to start ID verification.");
+      if (!res.ok) {
+        throw new Error(data?.error || data?.message || "Failed to submit ID for verification.");
       }
 
-      // Store the application ID for future use
+      // Step 4: Store the application ID for future use
       if (data.applicationId) {
         setApplicationId(data.applicationId);
       }
 
-      // SUCCESS UX (no red, no error toast)
+      // Step 5: SUCCESS - Show green success message
       setIdInputsLocked(true);
-      setIdInfo("ID saved. Verification is running in the background. You can continue to the next step.");
+      setIdInfo("Your ID documents have been uploaded successfully. Our team will manually review them and notify you when you're approved.");
       setIdVerification({ status: 'pending' });
 
-      // NO error toast on success - removed any toast.error calls here
+      console.log('[ID VERIFICATION] Success! Verification status set to pending');
 
     } catch (e: any) {
-      // Only set error for actual failures, not when verification starts successfully
-      const errorMessage = e?.message || "Could not save ID.";
-      if (!errorMessage.includes("session started") && !errorMessage.includes("ID verification session started")) {
-        setIdError(errorMessage);
-        setIdVerification({ status: 'failed', message: e?.message });
-      } else {
-        // If it's a "session started" message, treat it as success
-        setIdInputsLocked(true);
-        setIdInfo("ID saved. Verification is running in the background. You can continue to the next step.");
-        setIdVerification({ status: 'pending' });
-      }
+      console.error('[ID VERIFICATION] Error:', e);
+      setIdError(e?.message || "Failed to upload ID documents.");
+      setIdVerification({ status: 'failed', message: e?.message });
     } finally {
       setSubmitting(false);
     }
@@ -1229,8 +1261,8 @@ const ProviderOnboard: React.FC = () => {
               
               <div className="bg-blue-50 p-4 rounded-lg">
                 <p className="text-sm text-blue-800">
-                  We'll verify your identity using document analysis and liveness detection.
-                  This process typically takes 1-2 minutes.
+                  We'll manually review your ID documents to ensure the safety and security of our platform.
+                  Our admin team typically completes reviews within 1-2 business days.
                 </p>
               </div>
             </div>

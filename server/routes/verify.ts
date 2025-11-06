@@ -21,43 +21,80 @@ router.get('/ping', (_req: Request, res: Response) => res.json({ ok: true }));
 
 /**
  * POST /api/verify/start
- * Accepts: { front_url, back_url }
- * Creates/updates provider_applications with ID document URLs
+ * Simplified manual ID verification - no external services
+ * Accepts: { frontImageUrl, backImageUrl, applicationId? }
+ * Creates/updates provider_applications with ID document URLs and marks as pending verification
  */
 router.post('/start', async (req: Request, res: Response) => {
   try {
+    // 1. Authenticate user from Bearer token
     const userId: string | null = (req as any).user?.id || await getUserIdFromToken(req);
-    if (!userId) return res.status(401).json({ error: 'Unauthorized' });
+    if (!userId) {
+      return res.status(401).json({ error: 'invalid token' });
+    }
 
-    const { front_url, back_url } = (req.body ?? {}) as { front_url?: string; back_url?: string };
-    if (!front_url || !back_url) {
-      return res.status(400).json({ error: 'front_url and back_url are required' });
+    // 2. Extract image URLs from request body (support both naming conventions)
+    const { 
+      frontImageUrl, 
+      backImageUrl, 
+      front_url, 
+      back_url,
+      applicationId 
+    } = (req.body ?? {}) as { 
+      frontImageUrl?: string; 
+      backImageUrl?: string;
+      front_url?: string;
+      back_url?: string;
+      applicationId?: string;
+    };
+
+    const frontUrl = frontImageUrl || front_url;
+    const backUrl = backImageUrl || back_url;
+
+    if (!frontUrl || !backUrl) {
+      return res.status(400).json({ error: 'frontImageUrl and backImageUrl are required' });
+    }
+
+    console.log('[verify/start] Manual ID verification request:', { userId, applicationId });
+
+    // 3. Upsert to provider_applications table
+    const updateData: any = {
+      user_id: userId,
+      front_image_url: frontUrl,
+      back_image_url: backUrl,
+      verification_status: 'pending',
+      verification_started_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+
+    // If applicationId provided, include it in the upsert
+    if (applicationId) {
+      updateData.id = applicationId;
     }
 
     const { data, error } = await supabaseAdmin
       .from('provider_applications')
-      .upsert(
-        {
-          user_id: userId,
-          front_image_url: front_url,
-          back_image_url: back_url,
-          status: 'submitted',
-          updated_at: new Date().toISOString(),
-        },
-        { onConflict: 'user_id' }
-      )
+      .upsert(updateData, { onConflict: 'user_id' })
       .select('*')
       .single();
 
     if (error) {
-      console.error('[verify/start] upsert error', error);
-      return res.status(500).json({ error: 'DB upsert failed' });
+      console.error('[verify/start] Database upsert error:', error);
+      return res.status(500).json({ error: 'internal_error' });
     }
 
-    return res.json({ ok: true, application: data });
-  } catch (e) {
-    console.error('[verify/start] exception', e);
-    return res.status(500).json({ error: 'Internal error' });
+    console.log('[verify/start] Success - ID verification marked as pending for manual review');
+
+    // 4. Return success response
+    return res.status(201).json({ 
+      ok: true, 
+      verification_status: 'pending',
+      applicationId: data.id,
+      message: 'ID documents submitted for manual review'
+    });
+  } catch (e: any) {
+    console.error('[verify/start] Unexpected error:', e);
+    return res.status(500).json({ error: 'internal_error' });
   }
 });
 

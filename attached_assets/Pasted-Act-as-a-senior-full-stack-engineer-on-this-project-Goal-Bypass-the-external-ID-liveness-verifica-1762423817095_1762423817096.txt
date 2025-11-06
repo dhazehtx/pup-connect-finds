@@ -1,0 +1,118 @@
+Act as a senior full-stack engineer on this project.
+
+Goal: Bypass the external ID/liveness verification service. The provider onboarding step at `/services/onboarding?step=2` should behave like this:
+
+- Frontend uploads front/back ID images to Supabase Storage (this already works).
+- When the user clicks **Save**, we just:
+  1) store those image URLs in our own DB,
+  2) mark the application as "pending manual review",
+  3) treat it as a success and allow the user to click **Next**.
+- We no longer call any external "liveness" or KYC API. No third-party service, no external env vars.
+
+Right now the UI shows:
+- "Both images uploaded successfully!"
+- then a red banner: **Failed to start ID verification.**
+- and sometimes a modal: "Please upload and verify your ID documents."
+
+Fix this by simplifying the backend and adjusting the frontend logic, WITHOUT breaking any other parts of the provider onboarding flow.
+
+### 1) Backend: replace /api/verify/start with a simple manual-verification handler
+
+Find the Express/TS route that handles `POST /api/verify/start` (I see a `start.ts` file open; use that or the equivalent).
+
+Re-implement it with the following behavior:
+
+- Use the Supabase **admin** client (service role key) to authenticate the user and write to the DB.
+- Steps:
+
+  1. Read the bearer token from `Authorization: Bearer <jwt>` and verify it with `supabaseAdmin.auth.getUser(jwt)`.
+     - If token is missing or invalid, return `401 { error: 'invalid token' }`.
+
+  2. Read from `req.body` the fields that contain the uploaded image URLs and (if available) the current provider application ID.
+     - Expect something like:
+       - `frontImageUrl`
+       - `backImageUrl`
+       - optionally `applicationId`
+     - If the two image URLs are missing, return `400 { error: 'frontImageUrl and backImageUrl are required' }`.
+
+  3. Using the Supabase admin client, upsert a row into the **provider_applications** table:
+     - If `applicationId` is provided, upsert by that id; otherwise create a new application row linked to the authenticated user.
+     - Store the two image URLs in columns such as:
+       - `id_front_url`
+       - `id_back_url`
+     - Set a status/field to indicate manual review is needed. For example:
+       - `verification_status = 'pending'`
+       - or `status = 'pending_verification'`
+       - also optionally set `verification_started_at = now()`.
+
+  4. On success, respond with HTTP 201:
+     ```json
+     { "ok": true, "verification_status": "pending" }
+     ```
+     DO NOT call any external liveness / document analysis provider. This endpoint should be completely self-contained and only touch our database.
+
+- Make sure this handler never throws unhandled errors; log the error server-side and return `500 { error: 'internal_error' }` if anything unexpected happens.
+
+### 2) Frontend: update the onboarding step 2 screen to use the simplified endpoint
+
+Find the React component/page for the services onboarding ID step (the screen at `/services/onboarding?step=2`). It currently:
+
+- Uploads both images to Supabase (works).
+- Calls `/api/verify/start`.
+- Shows "Failed to start ID verification" when the request fails.
+- Shows the modal "Please upload and verify your ID documents" and blocks the **Next** button if it thinks verification hasn’t started.
+
+Update this component as follows:
+
+1. When both images have uploaded successfully and we have their URLs in state, the **Save** button should:
+
+   - Call `POST /api/verify/start` with a JSON body like:
+     ```ts
+     {
+       frontImageUrl,  // URL/path for front image
+       backImageUrl,   // URL/path for back image
+       applicationId   // if we track it in this step
+     }
+     ```
+   - If `resp.ok` (200/201), set a local state flag like `verificationStatus = 'pending'` or `verificationStarted = true`.
+
+2. On a successful response:
+
+   - Show a green success message like:
+     > "Your ID documents have been uploaded. We’ll manually review them and notify you when you’re approved."
+   - CLEAR any previous error banner about "Failed to start ID verification".
+   - Allow the user to proceed to the next step:
+     - The **Next** button should be enabled when:
+       - both images are uploaded, AND
+       - `verificationStarted` (or equivalent) is true.
+
+3. Error handling:
+
+   - Only show the red "Failed to start ID verification" banner if the POST to `/api/verify/start` actually fails (non-2xx or network error).
+   - Only show the "Please upload and verify your ID documents" modal if the user tries to click **Next** without:
+     - both images uploaded, or
+     - a successful call to `/api/verify/start`.
+
+4. Copy/wording:
+
+   - Remove or update any wording that references "liveness detection" or automated document analysis.
+   - Replace with language about **manual verification by the My Pup admin team** (e.g., “We’ll review your ID documents manually for your safety and the safety of our users.”).
+
+### 3) Keep everything else as-is
+
+- DO NOT remove or alter the existing logic for:
+  - storing the image URLs in Supabase Storage,
+  - the rest of the provider onboarding steps,
+  - the admin queue that reads from `provider_applications`.
+- Just make `/api/verify/start` a cheap, reliable way to mark an application as "pending manual ID review" and wire the frontend to treat a 201 response as success.
+
+After making these changes:
+
+- Run the dev server.
+- Open `/services/onboarding?step=2` in a fresh tab.
+- Test uploading both ID images, click **Save**, confirm:
+  - green success message,
+  - no "Failed to start ID verification",
+  - **Next** button becomes enabled and allows moving to the next step.
+
+Please paste a summary of what you changed and any relevant file diffs when you’re done.
