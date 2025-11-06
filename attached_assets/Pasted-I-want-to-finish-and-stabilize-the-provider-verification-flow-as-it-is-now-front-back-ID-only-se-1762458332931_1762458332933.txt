@@ -1,0 +1,133 @@
+I want to finish and stabilize the provider verification flow as it is now (front + back ID only, selfie will come later). Please don’t add new features beyond what’s listed here.
+
+Goals:
+
+Admin can properly review each application with front/back ID images.
+
+Provider status is pending after onboarding and only becomes verified/approved when an admin explicitly approves.
+
+Full 8-step provider onboarding works cleanly end-to-end.
+
+Please do the following:
+
+1) Fix and finalize the admin review view for ID images
+
+You already found that:
+
+ID images are stored in provider_applications:
+
+front_image_url
+
+back_image_url
+
+The admin review page was looking at the wrong table/columns.
+
+Make sure that:
+
+The admin review API (in server/routes/providerApplications.ts or equivalent) returns:
+
+provider_applications.front_image_url
+
+provider_applications.back_image_url
+
+plus the current status and basic provider info.
+
+The admin UI shows:
+
+A clear preview of front of ID.
+
+A clear preview of back of ID.
+
+The images come from the same storage bucket we’re already using, and load correctly for the admin.
+
+2) Lock in the correct status flow (no auto-approval)
+
+I want the status behavior to be:
+
+After completing onboarding and submitting ID:
+
+provider_applications.status (or verification_status) = 'pending'
+
+providers.status = 'pending' (or equivalent “not yet verified” state)
+
+Only when an admin takes an explicit action in the admin panel should:
+
+The provider be marked as approved/verified.
+
+Please:
+
+Verify there are no code paths that auto-set a provider to “verified” just because onboarding reached Step 7/8.
+
+Ensure the text on Step 7 / final screen:
+
+Does not say “You’re now a verified provider” when the status is still pending.
+
+Instead shows something like:
+
+“Application submitted – pending review”
+
+Provider Status: Pending review
+
+Make sure any route/feature that requires a verified provider checks the appropriate status field and blocks pending providers.
+
+Don’t change how approval works internally — just confirm that:
+
+There is an admin action that moves status from pending → approved/verified.
+
+That is the only way to become verified.
+
+3) Run a full end-to-end test and summarize
+
+Please run through the full flow as a test user:
+
+Sign up as a new provider.
+
+Complete all 8 onboarding steps.
+
+On the ID step:
+
+Upload front + back ID images.
+
+Submit and finish onboarding.
+
+Then, as admin:
+
+Open the admin provider applications review screen.
+
+Confirm you can see:
+
+Front ID image
+
+Back ID image
+
+Status = pending
+
+Approve the application.
+
+After approval:
+
+Confirm the provider’s status becomes verified/approved.
+
+Confirm the provider can now access provider-only features.
+
+Finally, please summarize in plain language:
+
+Which tables and columns now store:
+
+front ID URL
+
+back ID URL
+
+verification / application status
+
+Which endpoints are involved in:
+
+Uploading the ID images
+
+Submitting the verification (/api/verify/start etc.)
+
+Admin reviewing/approving applications
+
+How the status transitions work from pending → approved/verified.
+
+Please don’t add the “selfie with ID” feature yet — I’ll request that separately later.

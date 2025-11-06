@@ -26,6 +26,8 @@ interface ProviderApplication {
   submitted_at: string;
   reviewed_at?: string;
   review_notes?: string;
+  front_image_url?: string;
+  back_image_url?: string;
   profiles: {
     id: string;
     full_name: string;
@@ -35,8 +37,6 @@ interface ProviderApplication {
     id: string;
     legal_name: string;
     phone: string;
-    id_doc_front_url?: string;
-    id_doc_back_url?: string;
     service_types?: string[];
   };
 }
@@ -249,28 +249,46 @@ export function ProviderApplicationInbox() {
                               </div>
                               
                               {/* ID Documents */}
-                              {(selectedApp.providers?.id_doc_front_url || selectedApp.providers?.id_doc_back_url) && (
+                              {(selectedApp.front_image_url || selectedApp.back_image_url) && (
                                 <div>
                                   <h4 className="font-medium mb-2">ID Documents</h4>
                                   <div className="grid grid-cols-2 gap-4">
-                                    {selectedApp.providers.id_doc_front_url && (
+                                    {selectedApp.front_image_url && (
                                       <div>
-                                        <p className="text-sm font-medium mb-1">Front</p>
+                                        <p className="text-sm font-medium mb-1">Front of ID</p>
                                         <img 
-                                          src={selectedApp.providers.id_doc_front_url} 
+                                          src={selectedApp.front_image_url} 
                                           alt="ID Front"
-                                          className="w-full h-32 object-cover border rounded"
+                                          className="w-full h-auto object-contain border rounded bg-gray-50"
+                                          data-testid="id-front-image"
                                         />
+                                        <a 
+                                          href={selectedApp.front_image_url} 
+                                          target="_blank" 
+                                          rel="noopener noreferrer"
+                                          className="text-xs text-blue-600 hover:underline mt-1 inline-block"
+                                        >
+                                          View full size
+                                        </a>
                                       </div>
                                     )}
-                                    {selectedApp.providers.id_doc_back_url && (
+                                    {selectedApp.back_image_url && (
                                       <div>
-                                        <p className="text-sm font-medium mb-1">Back</p>
+                                        <p className="text-sm font-medium mb-1">Back of ID</p>
                                         <img 
-                                          src={selectedApp.providers.id_doc_back_url} 
+                                          src={selectedApp.back_image_url} 
                                           alt="ID Back"
-                                          className="w-full h-32 object-cover border rounded"
+                                          className="w-full h-auto object-contain border rounded bg-gray-50"
+                                          data-testid="id-back-image"
                                         />
+                                        <a 
+                                          href={selectedApp.back_image_url} 
+                                          target="_blank" 
+                                          rel="noopener noreferrer"
+                                          className="text-xs text-blue-600 hover:underline mt-1 inline-block"
+                                        >
+                                          View full size
+                                        </a>
                                       </div>
                                     )}
                                   </div>

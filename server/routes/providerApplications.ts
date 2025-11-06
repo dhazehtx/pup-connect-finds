@@ -227,8 +227,7 @@ router.get("/", async (req, res) => {
           id,
           legal_name,
           phone,
-          id_doc_front_url,
-          id_doc_back_url
+          service_types
         )
       `)
       .order('submitted_at', { ascending: false });
@@ -280,8 +279,6 @@ router.get("/:id", async (req, res) => {
           id,
           legal_name,
           phone,
-          id_doc_front_url,
-          id_doc_back_url,
           service_types
         )
       `)
