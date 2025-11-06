@@ -1184,7 +1184,7 @@ const ProviderOnboard: React.FC = () => {
                       alt="Front of ID preview" 
                       className="w-32 h-20 object-cover rounded border"
                     />
-                    <p className="text-sm text-green-600 mt-1">✓ Front image captured</p>
+                    <p className="text-sm text-green-600 mt-1">✓ Front image ready</p>
                   </div>
                 )}
               </div>
@@ -1212,7 +1212,7 @@ const ProviderOnboard: React.FC = () => {
                       alt="Back of ID preview" 
                       className="w-32 h-20 object-cover rounded border"
                     />
-                    <p className="text-sm text-green-600 mt-1">✓ Back image captured</p>
+                    <p className="text-sm text-green-600 mt-1">✓ Back image ready</p>
                   </div>
                 )}
               </div>
@@ -1227,14 +1227,14 @@ const ProviderOnboard: React.FC = () => {
                 </button>
               )}
 
-              {/* Show auto-start message when both images are uploaded */}
-              {idFrontFile && idBackFile && !idInputsLocked && (
-                <div className="bg-green-50 p-4 rounded-lg">
-                  <p className="text-sm text-green-800 font-medium">
-                    ✓ Both images uploaded successfully! 
+              {/* Show ready message when both images are selected */}
+              {idFrontFile && idBackFile && !idInputsLocked && !idError && (
+                <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                  <p className="text-sm text-blue-800 font-medium">
+                    ✓ Both images selected and ready to upload
                   </p>
-                  <p className="text-sm text-green-700 mt-1">
-                    Click "Save" to start verification and proceed to the next step.
+                  <p className="text-sm text-blue-700 mt-1">
+                    Click "Save" below to upload your documents and continue.
                   </p>
                 </div>
               )}
