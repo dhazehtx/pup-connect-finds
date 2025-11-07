@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { Heart, Menu, X } from 'lucide-react';
+import { Heart, Menu, X, Shield } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
@@ -13,7 +13,7 @@ import { logNav } from '@/lib/adminLog';
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
-  const { user, signOut, isGuest } = useAuth();
+  const { user, signOut, isGuest, profile } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const { toast } = useToast();
@@ -68,6 +68,16 @@ const Header = () => {
                 {user && (
                   <>
                     <NotificationBell />
+                    {profile?.is_admin && (
+                      <Link to="/admin/dashboard" data-testid="admin-shield-link">
+                        <button 
+                          className="p-2 rounded-full hover:bg-blue-50 dark:hover:bg-gray-700 transition-colors"
+                          title="Admin Dashboard"
+                        >
+                          <Shield className="h-5 w-5 text-blue-600" />
+                        </button>
+                      </Link>
+                    )}
                     <ThemeToggle />
                   </>
                 )}
