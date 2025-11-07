@@ -82,10 +82,19 @@ export const authMiddleware = async (req: Request, res: Response, next: NextFunc
       return next();
     }
 
-    // Add user info to request
+    // Fetch user profile to get is_admin status
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('is_admin, role')
+      .eq('id', user.id)
+      .single();
+
+    // Add user info to request with admin status
     req.user = {
       id: user.id,
       email: user.email,
+      is_admin: profile?.is_admin || false,
+      role: profile?.role,
       ...user.user_metadata
     };
 
