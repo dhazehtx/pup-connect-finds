@@ -5,7 +5,7 @@ import { Heart, Menu, X, Shield } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
-import NotificationBell from '@/components/NotificationBell';
+import { NotificationBell } from '@/components/NotificationBell';
 import NotificationCenter from '@/components/notifications/NotificationCenter';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
 import { logNav } from '@/lib/adminLog';
