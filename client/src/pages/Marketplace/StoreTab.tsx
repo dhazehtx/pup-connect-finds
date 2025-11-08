@@ -285,17 +285,13 @@ const StoreTab = () => {
         {!isLoading && !error && filteredAndSortedProducts.length > 0 && (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
             {filteredAndSortedProducts.map((product) => (
-              <div 
-                key={product.id} 
-                className="rounded-2xl border border-gray-200 bg-white shadow-sm hover:shadow-md transition flex flex-col"
-              >
+              <div key={product.id} className="product-card">
                 {/* Product Image */}
-                <div className="relative aspect-square overflow-hidden rounded-xl bg-gray-50">
+                <div className="product-card__image">
                   {product.image_url ? (
                     <img
                       src={product.image_url}
                       alt={product.name}
-                      className="w-full h-full object-cover"
                     />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center">
@@ -305,71 +301,33 @@ const StoreTab = () => {
                 </div>
 
                 {/* Product Info */}
-                <div className="p-4 flex flex-col flex-grow">
-                  <h3 className="text-base font-semibold text-gray-900 line-clamp-2">{product.name}</h3>
+                <div className="product-card__body">
+                  <h3 className="product-card__title">{product.name}</h3>
                   
                   {product.description && (
-                    <p className="text-sm text-gray-600 line-clamp-2 mt-1">{product.description}</p>
+                    <p className="product-card__description">{product.description}</p>
                   )}
-                  
-                  {/* Price and Rating */}
-                  <div className="flex items-center justify-between mt-2">
-                    <span className="text-lg font-bold text-gray-900">
-                      ${parseFloat(product.unit_price).toFixed(2)}
-                    </span>
-                    {product.rating && (
-                      <div className="flex items-center gap-1">
-                        <Star className="w-4 h-4 fill-amber-400 text-amber-400" />
-                        <span className="text-sm text-gray-600">{product.rating}</span>
-                      </div>
-                    )}
-                  </div>
 
                   {/* Action Buttons */}
-                  <div className="mt-auto pt-3 flex items-center gap-3">
+                  <div className="product-card__actions">
                     <button
                       type="button"
                       onClick={() => handleAddToCart(product)}
                       disabled={addedItems.has(product.id)}
-                      className="h-10 rounded-xl px-4 text-sm font-medium inline-flex items-center gap-2 border border-blue-200 text-blue-700 bg-white hover:bg-blue-50 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed flex-1"
+                      className="btn-pill btn-pill--outline"
                       data-testid={`button-add-cart-${product.id}`}
                     >
-                      {addedItems.has(product.id) ? (
-                        <>
-                          <Check className="h-4 w-4" />
-                          <span className="truncate">Added</span>
-                        </>
-                      ) : isInCart(product.id) ? (
-                        <>
-                          <ShoppingCart className="h-4 w-4" />
-                          <span className="truncate">In Cart</span>
-                        </>
-                      ) : (
-                        <>
-                          <ShoppingCart className="h-4 w-4" />
-                          <span className="truncate">Add</span>
-                        </>
-                      )}
+                      {addedItems.has(product.id) ? 'Added' : isInCart(product.id) ? 'In Cart' : 'Add'}
                     </button>
                     
                     <button
                       type="button"
                       onClick={() => checkoutMutation.mutate(product.id)}
                       disabled={checkoutMutation.isPending}
-                      className="h-10 rounded-xl px-4 text-sm font-medium inline-flex items-center gap-2 bg-blue-600 text-white hover:bg-blue-700 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed flex-1"
+                      className="btn-pill btn-pill--primary"
                       data-testid={`button-buy-now-${product.id}`}
                     >
-                      {checkoutMutation.isPending ? (
-                        <>
-                          <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
-                          <span className="truncate">Processing</span>
-                        </>
-                      ) : (
-                        <>
-                          <CreditCard className="h-4 w-4 text-white" />
-                          <span className="truncate">Buy Now</span>
-                        </>
-                      )}
+                      {checkoutMutation.isPending ? 'Processing...' : 'Buy Now'}
                     </button>
                   </div>
                 </div>
