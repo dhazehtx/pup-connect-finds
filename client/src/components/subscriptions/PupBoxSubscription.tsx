@@ -7,6 +7,7 @@ import StripeCheckout from '@/components/checkout/StripeCheckout';
 
 // SOL:PUPBOX:START
 const PupBoxSubscription = () => {
+  console.log('[PUP BOX SUBSCRIPTION] Component rendering');
   const { user } = useAuth();
   const { toast } = useToast();
   const { createSubscriptionCheckout, createPaymentIntent, processing } = usePayments();
@@ -63,7 +64,10 @@ const PupBoxSubscription = () => {
   ];
 
   const handleSelectPlan = (planId: string) => {
+    console.log('[PUP BOX] Select Plan clicked:', planId);
+    
     if (!user) {
+      console.log('[PUP BOX] No user, showing auth toast');
       toast({
         title: "Authentication required",
         description: "Please sign in to subscribe",
@@ -73,8 +77,12 @@ const PupBoxSubscription = () => {
     }
 
     const plan = plans.find(p => p.id === planId);
-    if (!plan) return;
+    if (!plan) {
+      console.log('[PUP BOX] Plan not found:', planId);
+      return;
+    }
 
+    console.log('[PUP BOX] Opening checkout for:', plan.name, plan.price);
     setCheckoutPlan({
       name: `${plan.name} Pup Box`,
       price: plan.price,

@@ -1,0 +1,68 @@
+The Pup Box prices still do NOT show and the “Select Plan” buttons do nothing on the actual /marketplace → “Pup Box” tab, so please treat this as a bug in the currently rendered component, not in an unused one.
+
+Important: You previously edited client/src/components/subscriptions/PupBoxSubscription.tsx, but it looks like that component is not what the live /marketplace page is using.
+
+What I need you to do
+
+Find the REAL component used on the live page:
+
+Search the entire project for the literal text "Small Pup Box" and "Medium Pup Box".
+
+Identify which component is actually rendered on /marketplace when the “Pup Box” tab is active.
+
+Tell me the file path of that component (for example: client/src/pages/MarketplacePage.tsx or similar).
+
+Add visible prices to those cards:
+
+In that real component, for each Pup Box card (Small / Medium / Large), render a price line directly under the plan title and above the description.
+
+Use a shared config/array inside that file for the plans, e.g.:
+
+const pupBoxPlans = [
+  { id: 'small', name: 'Small Pup Box', price: 19.99, description: 'Great for pups under 25 lbs' },
+  { id: 'medium', name: 'Medium Pup Box', price: 29.99, description: 'Perfect for dogs 25–65 lbs' },
+  { id: 'large', name: 'Large Pup Box', price: 39.99, description: 'Ideal for dogs over 65 lbs' },
+];
+
+
+Display the price as:
+
+<div className="mt-2">
+  <span className="text-2xl font-bold">${plan.price.toFixed(2)}</span>
+  <span className="text-sm text-gray-600">&nbsp;/ month</span>
+</div>
+
+
+Make sure the text color is dark enough to be visible on the white section of the card (e.g. text-gray-900).
+
+Wire up the “Select Plan” button in that same component:
+
+If there is already a handler function in the codebase for starting Pup Box checkout (for example handleSelectPlan(planId) or a createCheckoutSession for subscriptions), use that.
+
+If such a function already exists elsewhere, import and call it from the “Select Plan” button for each plan, passing the correct plan identifier.
+
+Do NOT change any existing Stripe product IDs, price IDs, or API routes—just connect the button’s onClick to whatever logic already exists for Pup Box subscriptions.
+
+If absolutely no checkout logic exists yet for Pup Box, for now make the button at least do a console.log('Selected plan', plan.id) so I can see in the browser console that the click works.
+
+Verify it against the real UI:
+
+Run the app, go to /marketplace, click on the “Pup Box” tab.
+
+Confirm that on the actual rendered page you see:
+
+Small Pup Box with $19.99 / month above its description
+
+Medium Pup Box with $29.99 / month
+
+Large Pup Box with $39.99 / month
+
+Confirm that clicking each “Select Plan” triggers the correct onClick behavior (either checkout or at least a console log).
+
+Reply back with:
+
+The file path of the component you actually modified.
+
+The final JSX for one Pup Box card in that real component, showing exactly where the price and button click handler are.
+
+Again: please ignore PupBoxSubscription.tsx if it is not used on /marketplace. I only care about the component that actually renders the Pup Box tab that I see in the browser.
