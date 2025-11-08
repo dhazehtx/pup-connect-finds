@@ -17,7 +17,7 @@ export default function MarketplaceTabs({ activeTab, onTabChange }: MarketplaceT
       <div
         role="tablist"
         aria-label="Marketplace sections"
-        className="mx-auto w-full max-w-[680px] bg-white border border-gray-200 rounded-full p-1 flex items-center justify-center gap-2"
+        className="marketplace-tabs"
       >
         {tabs.map(t => {
           const IconComponent = t.icon;
@@ -29,15 +29,7 @@ export default function MarketplaceTabs({ activeTab, onTabChange }: MarketplaceT
               aria-selected={isActive}
               data-testid={`tab-${t.key}`}
               onClick={() => onTabChange(t.key)}
-              className={[
-                // shared
-                "rounded-full px-4 py-2 font-semibold inline-flex items-center gap-2",
-                "focus:outline-none focus:ring-4 focus:ring-blue-600/20 transition-all",
-                // states
-                isActive
-                  ? "bg-blue-600 text-white border border-blue-600"
-                  : "bg-white text-blue-600 border border-gray-200 hover:bg-gray-50",
-              ].join(" ")}
+              className={`marketplace-tab ${isActive ? 'marketplace-tab--active' : ''} inline-flex items-center gap-2`}
             >
               <IconComponent className="w-4 h-4" />
               <span className="hidden sm:inline">{t.label}</span>
