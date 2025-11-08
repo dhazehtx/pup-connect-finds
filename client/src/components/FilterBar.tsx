@@ -9,13 +9,15 @@ interface FilterBarProps {
   onSortChange: (sort: SortType) => void;
   onFilterOpen: () => void;
   hasActiveFilters: boolean;
+  productCount?: number;
 }
 
 const FilterBar: React.FC<FilterBarProps> = ({
   sortType,
   onSortChange,
   onFilterOpen,
-  hasActiveFilters
+  hasActiveFilters,
+  productCount
 }) => {
   const sortOptions: { value: SortType; label: string; icon: React.ReactNode }[] = [
     { value: 'featured', label: 'Featured', icon: <Star className="w-4 h-4" /> },
@@ -28,26 +30,35 @@ const FilterBar: React.FC<FilterBarProps> = ({
   const currentSort = sortOptions.find(opt => opt.value === sortType);
 
   return (
-    <div className="flex items-center justify-between">
+    <div className="flex items-center justify-between gap-4">
       {/* Filter Button */}
       <Button 
         onClick={onFilterOpen}
-        className="flex items-center gap-2 border border-gray-400 text-gray-700 bg-white rounded-full px-6 py-2 hover:bg-gray-50 transition-colors"
+        className="flex items-center gap-2 border border-gray-300 text-gray-700 bg-white rounded-full px-6 py-2 hover:bg-gray-50 transition-colors"
+        data-testid="button-filter"
       >
         <Filter className="h-4 w-4 text-gray-700" />
         Filter
         {hasActiveFilters && (
-          <span className="bg-primary-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center ml-1">
+          <span className="bg-blue-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center ml-1">
             !
           </span>
         )}
       </Button>
       
+      {/* Product Count */}
+      {productCount !== undefined && (
+        <span className="text-sm text-gray-500">
+          Showing {productCount} {productCount === 1 ? 'product' : 'products'}
+        </span>
+      )}
+      
       {/* Sort Dropdown */}
       <select
         value={sortType}
         onChange={(e) => onSortChange(e.target.value as SortType)}
-        className="border border-gray-400 text-gray-700 bg-white rounded-full px-6 py-2 hover:bg-gray-50 transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary-500"
+        className="border border-gray-300 text-gray-700 bg-white rounded-full px-6 py-2 hover:bg-gray-50 transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500"
+        data-testid="select-sort"
       >
         {sortOptions.map((option) => (
           <option key={option.value} value={option.value}>

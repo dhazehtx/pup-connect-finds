@@ -1,0 +1,113 @@
+I want to polish the Marketplace UI visually so it feels like a premium, professional e-commerce experience. Please ONLY change React markup and CSS/styling for the marketplace pages (Pup Box tab, Store tab, and the filter drawer).
+
+Do NOT touch any backend logic, Supabase, Stripe routes, or authentication.
+
+1) Marketplace toolbar (Store tab)
+
+On /marketplace in the Store tab:
+
+Reduce the vertical space between the tab pills (Pet Services / Pup Box / Store) and the row that contains “Filter / Showing X products / sort dropdown” by about 25–30%. They should feel like part of one toolbar, not two separate sections.
+
+Keep the “Filter” button, “Showing X products” text, and the sort dropdown on one horizontal line and align them visually.
+
+Style “Showing X products” as secondary text (use a lighter gray similar to other muted text instead of strong black).
+
+Slightly soften the blue divider line under the tabs (either make it a bit lighter or thinner) so it doesn’t dominate the top of the page.
+
+2) Product cards (Store tab)
+
+For each product card in the Store tab:
+
+Add a visible price for each product on the card (for example, right above the buttons or beneath the title). Make sure it uses a consistent font size and weight across all cards.
+
+Refine the buttons:
+
+“Add” button should remain an outline pill (white background, blue border, blue text).
+
+“Buy Now” button should remain a solid blue pill with white text and a soft shadow.
+
+Make “Buy Now” look slightly more “primary” by using either a slightly stronger font weight or a slightly darker text color so it clearly reads as the main CTA.
+
+Add a subtle hover effect for the entire card on desktop:
+
+On hover, slightly lift the card: small translateY (e.g., -2px) and increase the shadow very slightly. Keep it tasteful and smooth.
+
+3) Filter drawer (right side panel)
+
+In the filter drawer that opens from the right:
+
+Keep the current design, but tighten vertical spacing a bit so “Categories”, the category checkboxes, “Price Range”, the slider, and the “Price: $X – $Y” box feel like a single cohesive module.
+
+Make the “Apply Filters” button sticky at the bottom of the drawer on desktop and mobile. When the drawer content scrolls, “Apply Filters” (and the “Clear All” link, if they are grouped) should remain visible at the bottom so the user doesn’t need to scroll back down to confirm their selection.
+
+4) Pup Box hero section
+
+In the Pup Box tab:
+
+Reduce the vertical space between the main heading/subheading (“Pup Box Subscription” + descriptive text) and the top of the plan cards by about 20–25% so the hero and the pricing cards feel like one section.
+
+Add a very subtle background band behind the entire Pup Box pricing section:
+
+A very light blue or off-white background that spans the full width behind the three plan cards and the benefits row (Free Shipping / Quality Guaranteed / Cancel Anytime). It should be soft and not overpowering, just enough to visually separate this section from the rest of the page.
+
+5) Pup Box plan cards (Small / Medium / Large)
+
+For each Pup Box plan card:
+
+Add a clear price (e.g., “$19.99 / month”, “$29.99 / month”, etc.) directly on each card, in a consistent, bold style. Place it near the plan title so users immediately see what each box costs.
+
+Replace the empty circle placeholder at the top of each card with either:
+
+A simple icon/illustration (e.g., a box / bone / toy), OR a subtle gradient circle that looks intentional. The circle should not appear empty; it should visually indicate that it’s a designed element, not a missing image.
+
+Make the Medium Pup Box card the emphasized “featured” plan:
+
+Slightly increase its scale (e.g., 1–2% larger) and/or use a slightly stronger shadow or border to make it pop.
+
+Ensure it still fits nicely in the responsive layout (no overlap).
+
+Ensure the “Most Popular” and “Best Value” badges are styled as pill chips with solid blue backgrounds and white text, centered nicely above their respective cards.
+
+Update the “Select Plan” buttons on all plan cards so that they match the styling of the primary “Buy Now” button on the store cards:
+
+Same pill shape, same blue color, same shadow, same hover behavior.
+
+6) Benefits row (Free Shipping / Quality Guaranteed / Cancel Anytime)
+
+In the Pup Box tab, refine the benefits row under the plan cards:
+
+Slightly reduce the vertical gap between the plan cards and the benefits row so it reads like part of the same section.
+
+Ensure each benefit card has consistent padding and the same card radius/shadow as other info cards in the app.
+
+7) Global consistency for Marketplace (visual only)
+
+In marketplace-related components (Store tab, Pup Box tab, filter drawer), please:
+
+Ensure all blue UI elements (tab outlines, tab fills, primary buttons, icons) use the same primary blue color variable/hex value for consistency.
+
+Standardize typography:
+
+Titles (product names, plan names) should share a consistent font size and weight.
+
+Body text (descriptions, helper text like “Showing 5 products”) should use a single muted text style.
+
+Confirm that card corner radii and button radii are consistent:
+
+Cards use the same radius as other cards in the app.
+
+Buttons and tabs use a full pill radius.
+
+8) Constraints & checks
+
+Do NOT change any business logic, routing, cart behavior, or Stripe integration. These changes should be purely visual (markup structure and CSS).
+
+After you’re done:
+
+Restart the server if needed.
+
+Manually test /marketplace:
+
+Check both Store and Pup Box tabs on desktop and mobile widths.
+
+Confirm that product prices and Pup Box prices are visible, hover effects work, spacing looks tighter and more intentional, and the filter drawer’s “Apply Filters” button remains visible at the bottom while scrolling.

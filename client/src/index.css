@@ -873,6 +873,7 @@ button:contains("Become a Service Provider") {
   border-radius: 9999px;              /* pill shape */
   background: rgba(255, 255, 255, 0.7);
   box-shadow: 0 6px 14px rgba(15, 23, 42, 0.08);
+  margin-bottom: 1rem;                /* reduced spacing to filter bar */
 }
 
 /* Single tab – default (inactive) state */
@@ -904,6 +905,14 @@ button:contains("Become a Service Provider") {
   outline-offset: 2px;
 }
 
+/* Softer blue divider under tabs */
+.marketplace-divider {
+  height: 1px;
+  width: 100%;
+  background-color: rgba(31, 111, 235, 0.15);
+  margin-bottom: 1.5rem;
+}
+
 /* ========================================
    Product Card Styling
    ======================================== */
@@ -918,6 +927,13 @@ button:contains("Become a Service Provider") {
   display: flex;
   flex-direction: column;
   height: 100%;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* Hover effect for product cards */
+.product-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 16px 40px rgba(15, 23, 42, 0.12);
 }
 
 /* Image area – fixed height so all cards line up */
@@ -992,9 +1008,49 @@ button:contains("Become a Service Provider") {
   border: none;
   background-color: #1f6feb;
   color: #ffffff;
+  font-weight: 700;              /* stronger weight for CTA */
   box-shadow: 0 8px 18px rgba(31, 111, 235, 0.35);
 }
 
 .btn-pill--primary:hover {
   background-color: #1557c3;
+}
+
+/* Product price display */
+.product-card__price {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #111827;
+  margin-top: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+/* Pup Box styling */
+.pupbox-section {
+  background-color: #f8fafc;
+  padding: 2rem 0;
+  margin: -2rem -1rem 0;
+}
+
+@media (min-width: 768px) {
+  .pupbox-section {
+    margin: -2rem 0 0;
+    padding: 3rem 0;
+  }
+}
+
+/* Featured Pup Box card (Medium) */
+.pupbox-card--featured {
+  transform: scale(1.02);
+  box-shadow: 0 16px 40px rgba(31, 111, 235, 0.15) !important;
+  border: 2px solid rgba(31, 111, 235, 0.2);
+}
+
+/* Pup Box badge positioning */
+.pupbox-badge {
+  position: absolute;
+  top: 1rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
 }

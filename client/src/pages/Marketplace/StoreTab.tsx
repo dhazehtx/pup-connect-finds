@@ -232,12 +232,13 @@ const StoreTab = () => {
         )}
 
         {/* Filter and Sort Section */}
-        <div className="pt-2">
+        <div className="pt-0">
           <FilterBar
             sortType={sortType}
             onSortChange={setSortType}
             onFilterOpen={() => setIsFilterOpen(true)}
             hasActiveFilters={hasActiveFilters}
+            productCount={filteredAndSortedProducts.length}
           />
         </div>
 
@@ -265,22 +266,14 @@ const StoreTab = () => {
           </div>
         )}
 
-        {/* Results count and empty state */}
-        {!isLoading && !error && (
-          <>
-            {filteredAndSortedProducts.length > 0 ? (
-              <div className="text-sm text-gray-600">
-                Showing {filteredAndSortedProducts.length} products
-              </div>
-            ) : (
-              <div className="rounded-2xl border border-gray-200 bg-white p-8 text-center">
-                <div className="text-gray-900 font-medium">No products available</div>
-                <div className="mt-1 text-gray-500 text-sm">
-                  Products will appear here once they're added to the store.
-                </div>
-              </div>
-            )}
-          </>
+        {/* Empty state */}
+        {!isLoading && !error && filteredAndSortedProducts.length === 0 && (
+          <div className="rounded-2xl border border-gray-200 bg-white p-8 text-center">
+            <div className="text-gray-900 font-medium">No products available</div>
+            <div className="mt-1 text-gray-500 text-sm">
+              Products will appear here once they're added to the store.
+            </div>
+          </div>
         )}
 
         {/* Products Grid */}
@@ -309,6 +302,11 @@ const StoreTab = () => {
                   {product.description && (
                     <p className="product-card__description">{product.description}</p>
                   )}
+
+                  {/* Price */}
+                  <div className="product-card__price">
+                    ${parseFloat(product.unit_price).toFixed(2)}
+                  </div>
 
                   {/* Action Buttons */}
                   <div className="product-card__actions">

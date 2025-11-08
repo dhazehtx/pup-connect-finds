@@ -86,10 +86,10 @@ const PupBoxSubscription = () => {
   };
 
   return (
-    <div className="max-w-6xl mx-auto px-4 md:px-6 bg-white min-h-screen pb-24">
+    <div className="bg-white min-h-screen pb-24">
       {/* Hero Header */}
-      <div className="text-center space-y-4 pt-8 pb-8">
-        <div className="flex items-center justify-center mb-4">
+      <div className="text-center space-y-3 pt-8 pb-6 max-w-6xl mx-auto px-4 md:px-6">
+        <div className="flex items-center justify-center mb-3">
           <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center shadow-lg">
             <Gift className="w-8 h-8 text-white" />
           </div>
@@ -99,99 +99,104 @@ const PupBoxSubscription = () => {
         <p className="text-sm text-gray-500">Prefer a one-time box? Try it out before subscribing!</p>
       </div>
 
-      {/* Plan Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 mb-8">
-        {plans.map((plan) => (
-          <div 
-            key={plan.id}
-            className="product-card"
-          >
-            {/* Badge positioned at top */}
-            {plan.badge && (
-              <div className="absolute top-4 left-1/2 transform -translate-x-1/2 z-10">
-                <span className="inline-flex items-center rounded-full bg-blue-600 text-white text-xs font-semibold px-3 py-1 shadow-md">
-                  {plan.badge}
-                </span>
-              </div>
-            )}
-
-            {/* Icon/Visual Header */}
-            <div className="product-card__image bg-gradient-to-br from-blue-50 to-blue-100 flex items-center justify-center relative">
-              <div className="w-24 h-24 bg-white rounded-full shadow-lg flex items-center justify-center">
-                <Gift className="w-12 h-12 text-blue-600" />
-              </div>
-            </div>
-
-            {/* Card Body */}
-            <div className="product-card__body">
-              <div className="text-center mb-4">
-                <h3 className="product-card__title text-xl mb-2">{plan.name} Pup Box</h3>
-                <div className="flex items-baseline justify-center gap-1 mb-2">
-                  <span className="text-3xl font-bold text-gray-900">${plan.price}</span>
-                  <span className="text-sm text-gray-600">/month</span>
-                </div>
-                <p className="product-card__description text-center">{plan.description}</p>
-              </div>
-
-              {/* Features List */}
-              <div className="space-y-2 mb-4 flex-1">
-                {plan.features.map((feature, index) => (
-                  <div key={index} className="flex items-start gap-2">
-                    <Check className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
-                    <span className="text-sm text-gray-700">{feature}</span>
+      {/* Background Section for Plans & Benefits */}
+      <div className="pupbox-section">
+        <div className="max-w-6xl mx-auto px-4 md:px-6">
+          {/* Plan Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 mb-6">
+            {plans.map((plan) => (
+              <div 
+                key={plan.id}
+                className={`product-card ${plan.id === 'medium' ? 'pupbox-card--featured' : ''}`}
+              >
+                {/* Badge positioned at top */}
+                {plan.badge && (
+                  <div className="pupbox-badge">
+                    <span className="inline-flex items-center rounded-full bg-blue-600 text-white text-xs font-semibold px-3 py-1 shadow-md">
+                      {plan.badge}
+                    </span>
                   </div>
-                ))}
+                )}
+
+                {/* Icon/Visual Header - Solid gradient with icon */}
+                <div className="product-card__image bg-gradient-to-br from-blue-400 via-blue-500 to-blue-600 flex items-center justify-center relative">
+                  <div className="w-28 h-28 bg-white/20 backdrop-blur-sm rounded-full shadow-xl flex items-center justify-center border-4 border-white/30">
+                    <Gift className="w-14 h-14 text-white drop-shadow-lg" />
+                  </div>
+                </div>
+
+                {/* Card Body */}
+                <div className="product-card__body">
+                  <div className="text-center mb-4">
+                    <h3 className="product-card__title text-xl mb-2">{plan.name} Pup Box</h3>
+                    <div className="flex items-baseline justify-center gap-1 mb-2">
+                      <span className="text-3xl font-bold text-gray-900">${plan.price.toFixed(2)}</span>
+                      <span className="text-sm text-gray-600">/month</span>
+                    </div>
+                    <p className="product-card__description text-center">{plan.description}</p>
+                  </div>
+
+                  {/* Features List */}
+                  <div className="space-y-2 mb-4 flex-1">
+                    {plan.features.map((feature, index) => (
+                      <div key={index} className="flex items-start gap-2">
+                        <Check className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
+                        <span className="text-sm text-gray-700">{feature}</span>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Select Plan Button */}
+                  <div className="product-card__actions">
+                    <button
+                      onClick={() => handleSelectPlan(plan.id)}
+                      className="btn-pill btn-pill--primary w-full"
+                      data-testid={`button-select-${plan.id}`}
+                    >
+                      Select Plan
+                    </button>
+                  </div>
+                </div>
               </div>
+            ))}
+          </div>
 
-              {/* Select Plan Button */}
-              <div className="product-card__actions">
-                <button
-                  onClick={() => handleSelectPlan(plan.id)}
-                  className="btn-pill btn-pill--primary w-full"
-                  data-testid={`button-select-${plan.id}`}
-                >
-                  Select Plan
-                </button>
+          {/* Benefits Row */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 pt-4 pb-6">
+            <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+              <div className="flex items-start gap-3">
+                <div className="p-2 bg-blue-50 rounded-lg">
+                  <Truck className="w-5 h-5 text-blue-600" />
+                </div>
+                <div className="flex-1">
+                  <h4 className="text-sm font-semibold text-gray-900 mb-1">Free Shipping</h4>
+                  <p className="text-sm text-gray-600">Delivered right to your door at no extra cost</p>
+                </div>
               </div>
             </div>
-          </div>
-        ))}
-      </div>
 
-      {/* Benefits Row */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 pt-6 md:pt-8 pb-8">
-        <div className="rounded-xl border border-gray-200 bg-white p-4">
-          <div className="flex items-start gap-3">
-            <div className="p-2 bg-blue-50 rounded-lg">
-              <Truck className="w-5 h-5 text-blue-600" />
+            <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+              <div className="flex items-start gap-3">
+                <div className="p-2 bg-blue-50 rounded-lg">
+                  <Shield className="w-5 h-5 text-blue-600" />
+                </div>
+                <div className="flex-1">
+                  <h4 className="text-sm font-semibold text-gray-900 mb-1">Quality Guaranteed</h4>
+                  <p className="text-sm text-gray-600">30-day money-back guarantee on all boxes</p>
+                </div>
+              </div>
             </div>
-            <div className="flex-1">
-              <h4 className="text-sm font-bold text-gray-900 mb-1">Free Shipping</h4>
-              <p className="text-sm text-gray-700">Delivered right to your door at no extra cost</p>
-            </div>
-          </div>
-        </div>
 
-        <div className="rounded-xl border border-gray-200 bg-white p-4">
-          <div className="flex items-start gap-3">
-            <div className="p-2 bg-blue-50 rounded-lg">
-              <Shield className="w-5 h-5 text-blue-600" />
-            </div>
-            <div className="flex-1">
-              <h4 className="text-sm font-bold text-gray-900 mb-1">Quality Guaranteed</h4>
-              <p className="text-sm text-gray-700">30-day money-back guarantee on all boxes</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="rounded-xl border border-gray-200 bg-white p-4">
-          <div className="flex items-start gap-3">
-            <div className="p-2 bg-blue-50 rounded-lg">
-              <RotateCcw className="w-5 h-5 text-blue-600" />
-            </div>
-            <div className="flex-1">
-              <h4 className="text-sm font-bold text-gray-900 mb-1">Cancel Anytime</h4>
-              <p className="text-sm text-gray-700">Skip, pause, or cancel your subscription anytime</p>
+            <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+              <div className="flex items-start gap-3">
+                <div className="p-2 bg-blue-50 rounded-lg">
+                  <RotateCcw className="w-5 h-5 text-blue-600" />
+                </div>
+                <div className="flex-1">
+                  <h4 className="text-sm font-semibold text-gray-900 mb-1">Cancel Anytime</h4>
+                  <p className="text-sm text-gray-600">Skip, pause, or cancel your subscription anytime</p>
+                </div>
+              </div>
             </div>
           </div>
         </div>
