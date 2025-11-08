@@ -1,0 +1,67 @@
+(Checkbox + Slider Visual Polish)
+
+Please refine the filter drawer UI on /marketplace for a cleaner, more professional aesthetic consistent with the overall Marketplace redesign. These updates are purely visual — do not alter any logic or backend code.
+
+1) Checkbox style refresh
+
+Replace the current solid blue checkbox background with a lighter, modern look consistent with standard ecommerce filters.
+
+Unchecked state:
+
+White background
+
+Light gray border (#d1d5db)
+
+Rounded corners (4 px radius)
+
+No fill or icon
+
+Checked state:
+
+White background (no blue fill)
+
+Border switches to the app’s primary blue
+
+Add a blue checkmark icon inside (same blue as primary buttons)
+
+Hover/focus:
+
+Add a soft, subtle blue glow or shadow to show interactivity
+
+Smooth 150–200 ms transition for background, border, and icon
+
+Behavior: Keep all checkbox logic and state management exactly as-is — only update the CSS and any supporting icons if needed.
+
+2) Price Range slider polish
+
+Make the price range slider visually consistent with the refined checkbox style and the rest of the app.
+
+Track:
+
+Use a very light neutral gray (#e5e7eb) for the inactive portion.
+
+Use the primary blue for the filled (active) portion, but at ~90% opacity so it feels softer.
+
+Thumb (the draggable circle):
+
+White center with a blue border (2 px, same primary blue).
+
+Slight shadow (0 2px 4px rgba(0,0,0,0.1)) for depth.
+
+Hover/focus effect: increase shadow slightly and scale the thumb to 1.05× for a tactile feel.
+
+Transitions:
+
+Animate hover/focus changes smoothly (150–200 ms).
+
+Ensure the slider remains fully accessible and mobile-responsive.
+
+3) Final consistency checks
+
+Keep “Apply Filters” and “Clear All” buttons exactly as they are now (sticky bottom position).
+
+Make sure the updated checkbox and slider styles render properly in both light and dark contexts of the Marketplace design.
+
+Verify alignment and spacing in the filter drawer still look balanced on desktop and mobile.
+
+Once finished, please take a screenshot preview of the drawer showing both the unchecked and checked checkboxes and the price range slider, so I can confirm the new visual style before we move forward.
