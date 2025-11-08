@@ -224,10 +224,12 @@ const StoreTab = () => {
       <div className="h-2 w-full bg-blue-100 rounded-b-3xl"></div>
       
       <div className="max-w-6xl mx-auto px-4 md:px-6 py-6 space-y-6">
-        {/* Stripe Checkout Demo */}
-        <div className="flex justify-center">
-          <StripeCheckoutDemo />
-        </div>
+        {/* Stripe Checkout Demo - Hidden in production, only show in dev mode */}
+        {process.env.NODE_ENV === 'development' && false && (
+          <div className="flex justify-center">
+            <StripeCheckoutDemo />
+          </div>
+        )}
 
         {/* Filter and Sort Section */}
         <div className="pt-2">
@@ -283,7 +285,7 @@ const StoreTab = () => {
 
         {/* Products Grid */}
         {!isLoading && !error && filteredAndSortedProducts.length > 0 && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
+          <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
             {filteredAndSortedProducts.map((product) => (
               <div key={product.id} className="product-card">
                 {/* Product Image */}

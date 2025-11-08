@@ -910,6 +910,7 @@ button:contains("Become a Service Provider") {
 
 /* Product card */
 .product-card {
+  position: relative;           /* for absolute badge positioning */
   background-color: #ffffff;
   border-radius: 12px;
   box-shadow: 0 12px 30px rgba(15, 23, 42, 0.06);

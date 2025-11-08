@@ -1,0 +1,78 @@
+I just added some new CSS for pill-style tabs and product cards in our styles.
+Please refresh the entire Marketplace UI (Pup Box + Store tabs) to look like a clean, professional online store, while keeping all existing backend logic, routes, and API calls intact.
+
+Scope (VERY IMPORTANT – do NOT go outside this):
+
+Only update React components and styles related to the marketplace: the marketplace page, Pup Box tab, and Store tab.
+
+Do NOT modify authentication, Supabase/Stripe server code, or any unrelated pages (Explore, Profile, Messages, etc.).
+
+Goals:
+
+Remove or hide the “Stripe Checkout Demo” card from the public Store tab.
+
+The public Store tab should only show real store products (My Pup rope toy, feeder, dog bed, etc.).
+
+You can keep the demo code commented out or behind a simple “dev only” flag, but it should not render on /marketplace for normal users.
+
+Store tab layout (desktop + mobile):
+
+Use the .product-card, .product-card__image, .product-card__body, .product-card__title, .product-card__description, .product-card__actions, .btn-pill, .btn-pill--outline, and .btn-pill--primary classes that are already defined.
+
+3-column grid on desktop, 2-column grid on mobile.
+
+Fixed image height so all cards line up evenly.
+
+Each product card should look like a modern ecommerce site (large image, title, short description, Add + Buy Now buttons).
+
+“Add” button = white pill with blue outline (secondary).
+
+“Buy Now” button = solid blue pill with white text and a soft shadow (primary).
+
+Keep the Filter button and the sort dropdown aligned above the grid, visually balanced like a real online store.
+
+Marketplace tab navigation:
+
+Use the marketplace-tabs, marketplace-tab, and marketplace-tab--active classes already present in the CSS.
+
+Inactive tab: white background, blue border, blue text (outline chip).
+
+Active tab: solid blue pill with white text and an elevated shadow.
+
+Make sure this segmented control looks polished on both desktop and mobile.
+
+Pup Box tab design:
+
+Redesign the Pup Box tab to look like a modern subscription page:
+
+A center-aligned heading: “Pup Box Subscription”.
+
+Subheading text that explains monthly surprise boxes.
+
+Cards for Small / Medium / Large Pup Boxes in a responsive grid (1 column mobile, 3 columns desktop).
+
+Each card: badge chip (e.g., “Most Popular” or “Best Value” when applicable), plan title, price, short description, and a “Select plan” pill button.
+
+The style should be consistent with the store: blue/white theme, soft shadows, rounded cards.
+
+Theme consistency:
+
+Remove any remaining yellow/amber accents in these marketplace components. Replace with the primary blue theme already used in the app.
+
+Match typography weight and sizes to the rest of the app (no random fonts or sizes).
+
+Do not:
+
+Do NOT rename routes or change any API endpoints.
+
+Do NOT alter cart / checkout logic. Only change the visual markup and CSS.
+
+Do NOT touch admin dashboards, provider flows, or verification steps.
+
+After making changes, please:
+
+Restart the server.
+
+Visit /marketplace and test both Pup Box and Store tabs.
+
+Confirm that the Stripe demo card no longer appears publicly and that the pages look like a polished online store.
