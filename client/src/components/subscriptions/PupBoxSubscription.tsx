@@ -136,12 +136,14 @@ const PupBoxSubscription = () => {
                 {/* Card Body */}
                 <div className="product-card__body">
                   <div className="text-center mb-4">
-                    <h3 className="product-card__title text-xl mb-2">{plan.name} Pup Box</h3>
-                    <div className="flex items-baseline justify-center gap-1 mb-2">
-                      <span className="text-3xl font-bold text-gray-900">${plan.price.toFixed(2)}</span>
-                      <span className="text-sm text-gray-600">/month</span>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">{plan.name} Pup Box</h3>
+                    <div className="mt-1 mb-2">
+                      <span className="text-2xl font-bold" style={{ color: '#000000' }}>
+                        ${plan.price.toFixed(2)}
+                      </span>
+                      <span className="text-sm text-gray-600">&nbsp;/ month</span>
                     </div>
-                    <p className="product-card__description text-center">{plan.description}</p>
+                    <p className="mt-2 text-sm text-gray-700">{plan.description}</p>
                   </div>
 
                   {/* Features List */}
@@ -157,7 +159,10 @@ const PupBoxSubscription = () => {
                   {/* Select Plan Button */}
                   <div className="product-card__actions">
                     <button
-                      onClick={() => handleSelectPlan(plan.id)}
+                      onClick={() => {
+                        console.log('[PUP BOX] Button clicked for:', plan.id, plan.name, `$${plan.price.toFixed(2)}`);
+                        handleSelectPlan(plan.id);
+                      }}
                       className="btn-pill btn-pill--primary w-full"
                       data-testid={`button-select-${plan.id}`}
                     >

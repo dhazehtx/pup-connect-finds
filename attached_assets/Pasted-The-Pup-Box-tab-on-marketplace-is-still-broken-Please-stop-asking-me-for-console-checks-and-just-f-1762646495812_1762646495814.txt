@@ -1,0 +1,88 @@
+The Pup Box tab on /marketplace is still broken. Please stop asking me for console checks and just fix it directly in the code.
+
+Goals
+
+On /marketplace → Pup Box tab, each card must show a visible monthly price.
+
+Small Pup Box: $19.99 / month
+
+Medium Pup Box: $29.99 / month
+
+Large Pup Box: $39.99 / month
+
+The “Select Plan” button on each card must actually do something when clicked (either start the existing checkout flow or, if none exists, at least clearly log or alert which plan was clicked).
+
+Keep the current visual design: blue gift-box icon, gradient header, white card body, etc. Do not redesign the layout.
+
+Requirements
+
+Edit the REAL rendered component, not an unused one.
+
+Search the entire project for the literal text "Small Pup Box".
+
+The component/file that contains that text is the one I care about. That is the source of truth for the Pup Box UI.
+
+If PupBoxSubscription.tsx is not the one containing "Small Pup Box", then ignore it and work on the file that does contain that text.
+
+Add a shared config for the three plans in that real component, e.g.:
+
+const pupBoxPlans = [
+  { id: 'small',  name: 'Small Pup Box',  price: 19.99, description: 'Great for pups under 25 lbs' },
+  { id: 'medium', name: 'Medium Pup Box', price: 29.99, description: 'Perfect for dogs 25–65 lbs' },
+  { id: 'large',  name: 'Large Pup Box',  price: 39.99, description: 'Ideal for dogs over 65 lbs' },
+];
+
+
+Then render the cards by mapping over pupBoxPlans instead of hard-coding them.
+
+Render a clearly visible price line INSIDE each card, between title and description, for that real component:
+
+<h3 className="text-lg font-semibold text-gray-900">{plan.name}</h3>
+<div className="mt-1">
+  <span className="text-2xl font-bold text-gray-900">
+    ${plan.price.toFixed(2)}
+  </span>
+  <span className="text-sm text-gray-600">&nbsp;/ month</span>
+</div>
+<p className="mt-2 text-sm text-gray-700">
+  {plan.description}
+</p>
+
+
+Make sure text colors are dark (text-gray-900 / text-gray-700) so prices are VERY visible on the white background.
+
+Do not use any class that could hide or fade the text (no text-transparent, opacity-0, etc.).
+
+Make “Select Plan” actually respond to clicks in that same component.
+
+If there is existing checkout logic for Pup Box, reuse it and pass the correct plan ID or Stripe price ID.
+
+If there is no ready checkout handler, temporarily wire it to:
+
+onClick={() => {
+  console.log('[PUP BOX] Select Plan clicked', plan.id);
+  alert(`Selected ${plan.name} (${plan.price.toFixed(2)} / month)`);
+}}
+
+
+This is just so I can see the click is working; don’t break any existing Stripe routes or IDs.
+
+Verify internally (no questions back to me):
+
+After your change, ensure that the component containing "Small Pup Box" now also contains the price JSX and updated button.
+
+Take a screenshot yourself if needed and confirm that on /marketplace → Pup Box the UI shows:
+
+Titles (Small/Medium/Large Pup Box)
+
+A price line like $19.99 / month directly under each title
+
+Description text under the price
+
+“Select Plan” that shows the alert or uses checkout logic.
+
+In your reply, tell me:
+
+The exact file path you modified (for example: client/src/pages/Marketplace.tsx or client/src/components/MarketplacePupBoxSection.tsx).
+
+The final JSX for one Pup Box card from that real component so I can see what you actually changed.
