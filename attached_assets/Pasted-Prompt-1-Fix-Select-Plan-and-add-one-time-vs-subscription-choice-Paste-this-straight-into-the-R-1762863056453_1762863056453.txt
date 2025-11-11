@@ -1,0 +1,89 @@
+Prompt 1 — Fix “Select Plan” and add one-time vs subscription choice
+
+Paste this straight into the Replit Agent:
+
+On the /marketplace Pup Box tab, please fix the “Select Plan” buttons and add a choice between a one-time box and a subscription for each size.
+
+Goals
+
+When I click Select Plan on Small / Medium / Large Pup Box, a simple choice UI appears (modal or inline) with:
+
+Subscribe monthly – uses the Pup Box subscription price from Stripe
+
+One-time box – uses the one-time purchase price from Stripe
+
+Both options must trigger the existing Stripe checkout flow instead of doing nothing.
+
+Stripe details
+
+In my Stripe sandbox product catalog there are Pup Box products for both subscriptions and one-time purchases, roughly like:
+
+Small pup box – subscription (e.g. $19.99 / month)
+
+Medium Pup Box – subscription (e.g. $29.99 / month)
+
+Large pup box – subscription (e.g. $39.99 / month)
+
+Small pup box (One time purchase) – one-time
+
+Medium Pup box (One time purchase) – one-time
+
+Large pup box (One time purchase) – one-time
+
+Please do not hardcode Stripe price IDs. Instead:
+
+Find where the Store tab “Buy Now” buttons get their priceId / product info for Stripe Checkout (search for create-checkout, stripe.checkout.sessions.create, or the existing “Buy Now” handler).
+
+Reuse that same checkout logic for Pup Box, and add a small config object that maps each Pup Box size to the correct subscription price and one-time price. For example:
+
+const pupBoxPricing = {
+  small: {
+    subscriptionPriceId: 'stripe_price_id_here',
+    oneTimePriceId: 'stripe_price_id_here',
+  },
+  medium: { ... },
+  large: { ... },
+};
+
+
+Populate this using the real price IDs you find in the Stripe-related code or environment variables.
+
+UI behavior
+
+Keep the current card design (blue gradient header, white body, gift icon, title, price, description, Select Plan button).
+
+When Select Plan is clicked for a card:
+
+Show a small modal or dropdown inside that component with two buttons:
+
+“Subscribe monthly – $XX.XX / month”
+
+“One-time box – $YY.YY”
+
+Clicking each button calls the existing checkout handler with the correct priceId for that plan+option.
+
+After implementing, verify that:
+
+Clicking “Subscribe monthly” opens Stripe Checkout with the subscription price.
+
+Clicking “One-time box” opens Stripe Checkout with the one-time price.
+
+Constraints
+
+Don’t break or change existing checkout routes used by the Store tab.
+
+Don’t rename or delete any existing Stripe env variables.
+
+Keep all styling consistent with the current My Pup theme.
+
+In your reply, please tell me:
+
+Which file you updated for the Pup Box logic, and
+
+The function name that now handles the Pup Box checkout.
+
+Run that, test clicking Select Plan, and you should finally see real behavior.
+
+3. Theme, colors, typography, micro-animations
+
+Once the buttons are working, we can let the Agent do a pass over the whole UI. Here’s a second prompt you can use after functionality is good:

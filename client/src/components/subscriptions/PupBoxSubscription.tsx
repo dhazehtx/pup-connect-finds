@@ -1,19 +1,41 @@
 import React, { useState } from 'react';
-import { Gift, Truck, Shield, RotateCcw, Check } from 'lucide-react';
+import { Gift, Truck, Shield, RotateCcw, Check, X } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
-import { usePayments } from '@/hooks/usePayments';
-import StripeCheckout from '@/components/checkout/StripeCheckout';
+import { useMutation } from '@tanstack/react-query';
+import { apiRequest } from '@/lib/queryClient';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+
+// Pup Box Product Configuration
+// TODO: Replace these with your actual Stripe Product IDs from your Stripe dashboard
+const PUP_BOX_PRODUCTS = {
+  small: {
+    subscription: 'STRIPE_PRODUCT_ID_SMALL_SUBSCRIPTION', // Replace with actual Stripe product ID
+    oneTime: 'STRIPE_PRODUCT_ID_SMALL_ONETIME', // Replace with actual Stripe product ID
+  },
+  medium: {
+    subscription: 'STRIPE_PRODUCT_ID_MEDIUM_SUBSCRIPTION',
+    oneTime: 'STRIPE_PRODUCT_ID_MEDIUM_ONETIME',
+  },
+  large: {
+    subscription: 'STRIPE_PRODUCT_ID_LARGE_SUBSCRIPTION',
+    oneTime: 'STRIPE_PRODUCT_ID_LARGE_ONETIME',
+  },
+};
 
 // SOL:PUPBOX:START
 const PupBoxSubscription = () => {
   console.log('[PUP BOX SUBSCRIPTION] Component rendering');
   const { user } = useAuth();
   const { toast } = useToast();
-  const { createSubscriptionCheckout, createPaymentIntent, processing } = usePayments();
-  const [selectedPlan, setSelectedPlan] = useState('');
-  const [showCheckout, setShowCheckout] = useState(false);
-  const [checkoutPlan, setCheckoutPlan] = useState<any>(null);
+  const [showPlanChoice, setShowPlanChoice] = useState(false);
+  const [selectedSize, setSelectedSize] = useState<'small' | 'medium' | 'large' | null>(null);
 
   const plans = [
     {
@@ -63,7 +85,33 @@ const PupBoxSubscription = () => {
     }
   ];
 
-  const handleSelectPlan = (planId: string) => {
+  // Create checkout session mutation (same as Store tab)
+  const checkoutMutation = useMutation({
+    mutationFn: async (productId: string) => {
+      const response = await apiRequest('/api/checkout', {
+        method: 'POST',
+        body: JSON.stringify({
+          product_id: productId,
+          quantity: 1
+        })
+      });
+      return response.json();
+    },
+    onSuccess: (data) => {
+      console.log('[PUP BOX] Redirecting to Stripe checkout:', data.url);
+      window.location.href = data.url;
+    },
+    onError: (error) => {
+      console.error('[PUP BOX] Checkout error:', error);
+      toast({
+        title: "Checkout Error",
+        description: "Failed to create checkout session. Please try again.",
+        variant: "destructive",
+      });
+    }
+  });
+
+  const handleSelectPlan = (planId: 'small' | 'medium' | 'large') => {
     console.log('[PUP BOX] Select Plan clicked:', planId);
     
     if (!user) {
@@ -76,21 +124,22 @@ const PupBoxSubscription = () => {
       return;
     }
 
-    const plan = plans.find(p => p.id === planId);
-    if (!plan) {
-      console.log('[PUP BOX] Plan not found:', planId);
-      return;
-    }
+    // Show modal to choose between subscription and one-time
+    setSelectedSize(planId);
+    setShowPlanChoice(true);
+  };
 
-    console.log('[PUP BOX] Opening checkout for:', plan.name, plan.price);
-    setCheckoutPlan({
-      name: `${plan.name} Pup Box`,
-      price: plan.price,
-      features: plan.features,
-      popular: plan.badge === 'Most Popular',
-      purchaseType: 'subscription'
-    });
-    setShowCheckout(true);
+  const handlePurchaseChoice = (type: 'subscription' | 'oneTime') => {
+    if (!selectedSize) return;
+
+    const productId = PUP_BOX_PRODUCTS[selectedSize][type];
+    console.log('[PUP BOX] Checkout type:', type, 'Product ID:', productId);
+
+    // Close modal
+    setShowPlanChoice(false);
+
+    // Start checkout with the selected product
+    checkoutMutation.mutate(productId);
   };
 
   return (
@@ -159,10 +208,7 @@ const PupBoxSubscription = () => {
                   {/* Select Plan Button */}
                   <div className="product-card__actions">
                     <button
-                      onClick={() => {
-                        console.log('[PUP BOX] Button clicked for:', plan.id, plan.name, `$${plan.price.toFixed(2)}`);
-                        handleSelectPlan(plan.id);
-                      }}
+                      onClick={() => handleSelectPlan(plan.id as 'small' | 'medium' | 'large')}
                       className="btn-pill btn-pill--primary w-full"
                       data-testid={`button-select-${plan.id}`}
                     >
@@ -215,12 +261,67 @@ const PupBoxSubscription = () => {
         </div>
       </div>
 
-      <StripeCheckout
-        isOpen={showCheckout}
-        onClose={() => setShowCheckout(false)}
-        productType="pupbox"
-        planDetails={checkoutPlan}
-      />
+      {/* Purchase Choice Modal */}
+      <Dialog open={showPlanChoice} onOpenChange={setShowPlanChoice}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Gift className="w-5 h-5 text-blue-600" />
+              Choose Your Option
+            </DialogTitle>
+            <DialogDescription>
+              {selectedSize && `${plans.find(p => p.id === selectedSize)?.name} Pup Box`}
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-3 py-4">
+            {/* Subscription Option */}
+            <button
+              onClick={() => handlePurchaseChoice('subscription')}
+              disabled={checkoutMutation.isPending}
+              className="w-full p-4 text-left rounded-xl border-2 border-blue-600 bg-blue-50 hover:bg-blue-100 transition-colors"
+              data-testid="button-subscribe-monthly"
+            >
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="font-semibold text-gray-900">Subscribe Monthly</p>
+                  <p className="text-sm text-gray-600">
+                    ${selectedSize && plans.find(p => p.id === selectedSize)?.price.toFixed(2)} / month
+                  </p>
+                </div>
+                <div className="text-xs bg-blue-600 text-white px-2 py-1 rounded-full">
+                  Best Value
+                </div>
+              </div>
+              <p className="text-xs text-gray-500 mt-2">Cancel anytime, skip or pause deliveries</p>
+            </button>
+
+            {/* One-Time Purchase Option */}
+            <button
+              onClick={() => handlePurchaseChoice('oneTime')}
+              disabled={checkoutMutation.isPending}
+              className="w-full p-4 text-left rounded-xl border-2 border-gray-300 bg-white hover:bg-gray-50 transition-colors"
+              data-testid="button-one-time"
+            >
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="font-semibold text-gray-900">One-Time Box</p>
+                  <p className="text-sm text-gray-600">
+                    ${selectedSize && ((plans.find(p => p.id === selectedSize)?.price || 0) * 1.2).toFixed(2)}
+                  </p>
+                </div>
+              </div>
+              <p className="text-xs text-gray-500 mt-2">Try it out before subscribing</p>
+            </button>
+          </div>
+
+          {checkoutMutation.isPending && (
+            <div className="text-center text-sm text-gray-600">
+              Creating checkout session...
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
