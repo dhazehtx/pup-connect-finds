@@ -143,17 +143,20 @@ const PupBoxSubscription = () => {
   };
 
   return (
-    <div className="bg-white min-h-screen pb-24">
-      {/* Hero Header */}
-      <div className="text-center space-y-3 pt-8 pb-6 max-w-6xl mx-auto px-4 md:px-6">
-        <div className="flex items-center justify-center mb-3">
-          <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center shadow-lg">
-            <Gift className="w-8 h-8 text-white" />
+    <div className="min-h-screen pb-24" style={{ backgroundColor: '#f9f7f3' }}>
+      {/* Hero Header with Gradient */}
+      <div className="relative bg-gradient-blue-violet text-white pt-12 pb-16 mb-8 overflow-hidden">
+        <div className="absolute inset-0 bg-black/5"></div>
+        <div className="relative text-center space-y-4 max-w-4xl mx-auto px-6 md:px-8">
+          <div className="flex items-center justify-center mb-4">
+            <div className="w-20 h-20 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center shadow-2xl border-2 border-white/30">
+              <Gift className="w-10 h-10 text-white drop-shadow-lg" />
+            </div>
           </div>
+          <h1 className="text-4xl md:text-5xl font-bold drop-shadow-lg">Pup Box Subscription</h1>
+          <p className="text-lg md:text-xl text-white/95 max-w-2xl mx-auto">Monthly surprise boxes filled with premium toys, treats, and goodies for your furry friend</p>
+          <p className="text-sm text-white/85">✨ Prefer a one-time box? Try it out before subscribing!</p>
         </div>
-        <h1 className="text-3xl md:text-4xl font-bold text-gray-900">Pup Box Subscription</h1>
-        <p className="text-lg text-gray-600 max-w-2xl mx-auto">Monthly surprise boxes filled with toys, treats, and goodies for your furry friend</p>
-        <p className="text-sm text-gray-500">Prefer a one-time box? Try it out before subscribing!</p>
       </div>
 
       {/* Background Section for Plans & Benefits */}
@@ -169,14 +172,14 @@ const PupBoxSubscription = () => {
                 {/* Badge positioned at top */}
                 {plan.badge && (
                   <div className="pupbox-badge">
-                    <span className="inline-flex items-center rounded-full bg-blue-600 text-white text-xs font-semibold px-3 py-1 shadow-md">
+                    <span className="inline-flex items-center rounded-full bg-primary-600 text-white text-xs font-semibold px-3 py-1 shadow-md">
                       {plan.badge}
                     </span>
                   </div>
                 )}
 
-                {/* Icon/Visual Header - Solid gradient with icon */}
-                <div className="product-card__image bg-gradient-to-br from-blue-400 via-blue-500 to-blue-600 flex items-center justify-center relative">
+                {/* Icon/Visual Header - Royal blue to violet gradient */}
+                <div className="product-card__image bg-gradient-blue-violet flex items-center justify-center relative">
                   <div className="w-28 h-28 bg-white/20 backdrop-blur-sm rounded-full shadow-xl flex items-center justify-center border-4 border-white/30">
                     <Gift className="w-14 h-14 text-white drop-shadow-lg" />
                   </div>
@@ -199,8 +202,8 @@ const PupBoxSubscription = () => {
                   <div className="space-y-2 mb-4 flex-1">
                     {plan.features.map((feature, index) => (
                       <div key={index} className="flex items-start gap-2">
-                        <Check className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
-                        <span className="text-sm text-gray-700">{feature}</span>
+                        <Check className="w-4 h-4 text-primary-600 mt-0.5 flex-shrink-0" />
+                        <span className="text-sm" style={{ color: '#555555' }}>{feature}</span>
                       </div>
                     ))}
                   </div>
@@ -222,38 +225,38 @@ const PupBoxSubscription = () => {
 
           {/* Benefits Row */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 pt-4 pb-6">
-            <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+            <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm transition-shadow duration-200 hover:shadow-lg motion-safe:hover:shadow-lg">
               <div className="flex items-start gap-3">
-                <div className="p-2 bg-blue-50 rounded-lg">
-                  <Truck className="w-5 h-5 text-blue-600" />
+                <div className="p-2 bg-primary-50 rounded-lg">
+                  <Truck className="w-5 h-5 text-primary-600" />
                 </div>
                 <div className="flex-1">
                   <h4 className="text-sm font-semibold text-gray-900 mb-1">Free Shipping</h4>
-                  <p className="text-sm text-gray-600">Delivered right to your door at no extra cost</p>
+                  <p className="text-sm" style={{ color: '#555555' }}>Delivered right to your door at no extra cost</p>
                 </div>
               </div>
             </div>
 
-            <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+            <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm transition-shadow duration-200 hover:shadow-lg motion-safe:hover:shadow-lg">
               <div className="flex items-start gap-3">
-                <div className="p-2 bg-blue-50 rounded-lg">
-                  <Shield className="w-5 h-5 text-blue-600" />
+                <div className="p-2 bg-primary-50 rounded-lg">
+                  <Shield className="w-5 h-5 text-primary-600" />
                 </div>
                 <div className="flex-1">
                   <h4 className="text-sm font-semibold text-gray-900 mb-1">Quality Guaranteed</h4>
-                  <p className="text-sm text-gray-600">30-day money-back guarantee on all boxes</p>
+                  <p className="text-sm" style={{ color: '#555555' }}>30-day money-back guarantee on all boxes</p>
                 </div>
               </div>
             </div>
 
-            <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+            <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm transition-shadow duration-200 hover:shadow-lg motion-safe:hover:shadow-lg">
               <div className="flex items-start gap-3">
-                <div className="p-2 bg-blue-50 rounded-lg">
-                  <RotateCcw className="w-5 h-5 text-blue-600" />
+                <div className="p-2 bg-primary-50 rounded-lg">
+                  <RotateCcw className="w-5 h-5 text-primary-600" />
                 </div>
                 <div className="flex-1">
                   <h4 className="text-sm font-semibold text-gray-900 mb-1">Cancel Anytime</h4>
-                  <p className="text-sm text-gray-600">Skip, pause, or cancel your subscription anytime</p>
+                  <p className="text-sm" style={{ color: '#555555' }}>Skip, pause, or cancel your subscription anytime</p>
                 </div>
               </div>
             </div>
@@ -266,7 +269,7 @@ const PupBoxSubscription = () => {
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <Gift className="w-5 h-5 text-blue-600" />
+              <Gift className="w-5 h-5 text-primary-600" />
               Choose Your Option
             </DialogTitle>
             <DialogDescription>
@@ -279,39 +282,39 @@ const PupBoxSubscription = () => {
             <button
               onClick={() => handlePurchaseChoice('subscription')}
               disabled={checkoutMutation.isPending}
-              className="w-full p-4 text-left rounded-xl border-2 border-blue-600 bg-blue-50 hover:bg-blue-100 transition-colors"
+              className="w-full p-4 text-left rounded-xl border-2 border-primary-600 bg-primary-50 hover:bg-primary-100 transition-all duration-200 motion-safe:hover:scale-[1.02]"
               data-testid="button-subscribe-monthly"
             >
               <div className="flex items-center justify-between">
                 <div>
                   <p className="font-semibold text-gray-900">Subscribe Monthly</p>
-                  <p className="text-sm text-gray-600">
+                  <p className="text-sm" style={{ color: '#555555' }}>
                     ${selectedSize && plans.find(p => p.id === selectedSize)?.price.toFixed(2)} / month
                   </p>
                 </div>
-                <div className="text-xs bg-blue-600 text-white px-2 py-1 rounded-full">
+                <div className="text-xs bg-primary-600 text-white px-2 py-1 rounded-full">
                   Best Value
                 </div>
               </div>
-              <p className="text-xs text-gray-500 mt-2">Cancel anytime, skip or pause deliveries</p>
+              <p className="text-xs mt-2" style={{ color: '#555555' }}>Cancel anytime, skip or pause deliveries</p>
             </button>
 
             {/* One-Time Purchase Option */}
             <button
               onClick={() => handlePurchaseChoice('oneTime')}
               disabled={checkoutMutation.isPending}
-              className="w-full p-4 text-left rounded-xl border-2 border-gray-300 bg-white hover:bg-gray-50 transition-colors"
+              className="w-full p-4 text-left rounded-xl border-2 border-gray-300 bg-white hover:bg-gray-50 transition-all duration-200 motion-safe:hover:scale-[1.02]"
               data-testid="button-one-time"
             >
               <div className="flex items-center justify-between">
                 <div>
                   <p className="font-semibold text-gray-900">One-Time Box</p>
-                  <p className="text-sm text-gray-600">
+                  <p className="text-sm" style={{ color: '#555555' }}>
                     ${selectedSize && ((plans.find(p => p.id === selectedSize)?.price || 0) * 1.2).toFixed(2)}
                   </p>
                 </div>
               </div>
-              <p className="text-xs text-gray-500 mt-2">Try it out before subscribing</p>
+              <p className="text-xs mt-2" style={{ color: '#555555' }}>Try it out before subscribing</p>
             </button>
           </div>
 

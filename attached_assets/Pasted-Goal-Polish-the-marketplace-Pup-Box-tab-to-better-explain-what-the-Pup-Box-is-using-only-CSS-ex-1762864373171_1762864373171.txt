@@ -1,0 +1,111 @@
+Goal: Polish the /marketplace Pup Box tab to better explain what the Pup Box is, using only CSS + existing icons (no custom illustrations), and apply refined typography + micro-animations. Keep all existing Stripe/checkout logic exactly as-is.
+
+Key constraints
+
+Do not change any Stripe product IDs, routes, or the Pup Box checkout modal logic you recently added.
+
+Do not remove the current Pup Box prices ($19.99 / $29.99 / $39.99) or the “Select Plan” buttons.
+
+Do not change the Pet Services or Store tab layouts beyond shared theme styles.
+
+You can adjust CSS, classNames, layout, and text only.
+
+1. Pup Box hero section (top of Pup Box tab)
+
+Update the Pup Box hero at the top of the Pup Box tab to look like a polished subscription landing section:
+
+Use the same royal blue → violet gradient treatment you used for the Pet Services hero, but tuned for Pup Box:
+
+Example idea: slightly lighter at the top, a touch more violet at the bottom.
+
+Keep the existing gift icon in the circle, but:
+
+Add a very subtle animated halo / glow behind it using CSS (e.g. a blurred circular gradient).
+
+Animation should be very gentle (e.g. pulse or slow scale) and respect prefers-reduced-motion.
+
+Update the text block under “Pup Box Subscription” to help explain what it is:
+
+Main heading: keep “Pup Box Subscription”.
+
+Subheading: something like
+“Curated toys, treats, and essentials delivered for your pup every month.”
+
+Optional small line under that:
+“Pick your size, choose monthly or one-time, and we’ll handle the rest.”
+
+Make sure the hero layout is responsive and matches the overall marketplace style.
+
+2. Pup Box cards (Small / Medium / Large)
+
+Refine the three Pup Box cards so they visually communicate “subscription box” better, with no custom images:
+
+Keep the current gift icon in the round circle at the top of each card.
+
+Behind the icon, use CSS only to suggest a box/contents:
+
+For example: add a soft, abstract pattern using multiple layered gradients or a faint paw-print/toy pattern in the header area of each card.
+
+This should stay subtle and not fight with the text.
+
+Typography:
+
+Plan titles (Small / Medium / Large Pup Box): slightly larger and bolder.
+
+Prices: keep them bold, but ensure they’re clearly linked to “/ month” (or whatever label is already there).
+
+Descriptions: slightly softer gray instead of pure black, matching the new theme.
+
+Layout:
+
+Keep the sequence: Icon → Title → Price → Description → Button.
+
+Ensure consistent spacing across all three cards.
+
+Hover/micro-animations:
+
+On card hover: tiny lift + shadow (no crazy motion).
+
+On “Select Plan” hover: very slight scale + glow in the blue button, consistent with the new theme.
+
+Keep the “Most Popular” / “Best Value” badges, but:
+
+Make them use the new blue theme and rounded pill style.
+
+Ensure they are aligned consistently across the three cards.
+
+3. UX copy + clarity (still no new logic)
+
+Without changing any routing or Stripe logic, tighten up the copy to make the flow obvious:
+
+Above or below the cards, add a short helper line like:
+
+“Click Select Plan to choose monthly subscription or one-time gift at checkout.”
+
+Make sure the “Select Plan” buttons still open the existing modal with subscription vs one-time choice.
+
+4. Theme, consistency, and cleanup
+
+Apply the new Nunito (or equivalent rounded) font and royal blue color system consistently on the Pup Box tab:
+
+Titles, prices, badges, and buttons should all use the same type scale and weights as the Store tab.
+
+Use the same hover / animation timing you already implemented globally (around 150–200ms).
+
+Remove any temporary debug logging in the PupBoxSubscription component (e.g. console.log("[PUP BOX SUBSCRIPTION] ...")).
+
+Make sure the Pup Box tab still looks correct on mobile: cards stack properly, hero text remains readable, and buttons are not cramped.
+
+When you’re done, please:
+
+Summarize the CSS/JSX changes you made (which files/components you touched).
+
+Confirm:
+
+The Pup Box hero shows the updated description and soft animated icon halo.
+
+Each Pup Box card shows the icon, enhanced header background, price, and hover effects.
+
+“Select Plan” still opens the subscription vs one-time choice modal and the Stripe flow is unchanged.
+
+Focus on visual polish only, without altering any Stripe wiring or backend behavior.

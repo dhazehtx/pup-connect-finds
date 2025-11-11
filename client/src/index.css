@@ -26,17 +26,17 @@ button.btn-primary * {
   color: white !important;
 }
 
-/* Auth page button styling - force blue background and white text */
+/* Auth page button styling - force royal blue background and white text */
 button[type="submit"]:not(:disabled),
 button[type="submit"]:not(:disabled) * {
-  background-color: #2563eb !important;
+  background-color: #0074d4 !important;
   color: #ffffff !important;
-  border-color: #2563eb !important;
+  border-color: #0074d4 !important;
 }
 
 button[type="submit"]:not(:disabled):hover {
-  background-color: #1d4ed8 !important;
-  border-color: #1d4ed8 !important;
+  background-color: #005aa8 !important;
+  border-color: #005aa8 !important;
 }
 
 /* Remove yellow/amber borders from all input fields */
@@ -47,7 +47,7 @@ textarea,
 .auth-page input,
 .auth-form input {
   border-color: #d1d5db !important;  /* Gray border */
-  outline-color: #2563eb !important; /* Blue focus outline */
+  outline-color: #0074d4 !important; /* Royal blue focus outline */
 }
 
 /* Remove yellow/amber focus states */
@@ -57,10 +57,10 @@ input[type="text"]:focus,
 textarea:focus,
 .auth-page input:focus,
 .auth-form input:focus {
-  border-color: #2563eb !important;  /* Blue focus border */
-  outline-color: #2563eb !important;
-  ring-color: #2563eb !important;
-  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2) !important;
+  border-color: #0074d4 !important;  /* Royal blue focus border */
+  outline-color: #0074d4 !important;
+  ring-color: #0074d4 !important;
+  box-shadow: 0 0 0 2px rgba(0, 116, 212, 0.2) !important;
 }
 
 /* Override any yellow/amber ring colors on inputs */
@@ -69,7 +69,7 @@ input[class*="ring-amber"],
 input[class*="border-yellow"],
 input[class*="border-amber"] {
   border-color: #d1d5db !important;
-  ring-color: #2563eb !important;
+  ring-color: #0074d4 !important;
 }
 
 /* Additional marketplace tab styling */
@@ -77,9 +77,9 @@ input[class*="border-amber"] {
   color: white !important;
 }
 
-/* Bottom navigation container styling */
+/* Bottom navigation container styling - Royal blue to violet gradient */
 .bottom-nav {
-  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  background: linear-gradient(135deg, #0074d4, #7c3aed);
 }
 
 /* Ensure icons and text remain white in all states */
@@ -101,10 +101,9 @@ input[class*="border-amber"] {
   color: white !important;
 }
 
-/* Greeting page section styling - remove all borders and ensure pure white background */
+/* Greeting page section styling - remove borders, allow theme backgrounds */
 .greeting-page section,
 .greeting-page .relative {
-  background-color: #ffffff !important;
   border: none !important;
   border-top: none !important;
   border-bottom: none !important;
@@ -127,7 +126,7 @@ input[class*="border-amber"] {
 }
 
 /* Force white text on marketplace filter buttons when active */
-.bg-\[#2363FF\] {
+.bg-\[#0074d4\] {
   color: white !important;
 }
 
@@ -210,48 +209,36 @@ button[class*="bg-gradient-to-r"]:hover {
   border-color: #e5e7eb !important;
 }
 
-/* Main page background enforcement */
-body, #root, main, .min-h-screen {
-  background-color: #ffffff !important;
-}
+/* Main page background - Allow theme backgrounds */
+/* Removed: body, #root, main background enforcement to allow warm neutral theme */
 
-/* Page section background enforcement */
-.max-w-4xl, .container, .px-4, .py-6, .p-6, .space-y-6 {
-  background-color: #ffffff !important;
-}
+/* Page section background - Allow Tailwind utilities to control backgrounds */
+/* Removed: container/spacing class overrides to allow gradient and warm neutral surfaces */
 
-/* Profile page specific overrides */
-.profile-header, .profile-section, .profile-content {
-  background-color: #ffffff !important;
-}
+/* Profile page specific overrides - Allow theme backgrounds */
+/* Removed: .profile-* background enforcement */
 
-/* Messages page specific overrides */
-.messages-header, .messages-content, .messages-section {
-  background-color: #ffffff !important;
-}
+/* Messages page specific overrides - Allow theme backgrounds */
+/* Removed: .messages-* background enforcement */
 
 /* Explore page specific overrides */
 .explore-header, .explore-content, .explore-section {
-  background-color: #ffffff !important;
   border-radius: 1rem !important;
 }
 
 /* Fix for conversation/message borders - eliminate yellow borders */
 .conversation-item, .message-border, [class*="conversation"] {
   border-color: #e5e7eb !important;
-  background-color: #ffffff !important;
 }
 
 /* Fix for marketplace tabs border - eliminate yellow outlines */
-[class*="marketplace"] [class*="tab"], .marketplace-tabs {
+[class*="marketplace"] [class*="tab"] {
   border-color: #e5e7eb !important;
-  background-color: #ffffff !important;
 }
+/* Removed: marketplace-tabs background override to allow warm neutral theme */
 
-/* Force white backgrounds on all cards and panels */
-.card, .panel, [class*="card"], [class*="panel"] {
-  background-color: #ffffff !important;
-}
+/* Card and panel backgrounds - Allow theme to control */
+/* Removed: universal card/panel background override to allow gradient cards */
 
 /* ULTIMATE YELLOW ELIMINATION - Override any possible yellow styling */
 * {
@@ -277,19 +264,19 @@ body, #root, main, .min-h-screen {
 .profile-action-button, button[class*="report"], button[class*="privacy"], 
 [class*="bug-report"], [class*="report-bug"] {
   background-color: #ffffff !important;
-  color: #2563eb !important;
-  border-color: #2563eb !important;
+  color: #0074d4 !important;
+  border-color: #0074d4 !important;
 }
 
 /* Force blue styling for selected tabs */
 [data-state="active"], .tab-active, [aria-selected="true"] {
-  color: #2563eb !important;
-  background-color: #ffffff !important;
+  color: #ffffff !important;
+  background-color: #0074d4 !important;
 }
 
 /* Fix for yellow toggle switches */
 .toggle, .switch, [role="switch"] {
-  background-color: #2563eb !important;
+  background-color: #0074d4 !important;
 }
 
 /* Force white text for store product cards */
@@ -308,7 +295,7 @@ body, #root, main, .min-h-screen {
 .text-yellow-600, .text-yellow-700, .text-yellow-800, .text-yellow-900,
 .text-amber-50, .text-amber-100, .text-amber-200, .text-amber-300, .text-amber-400, .text-amber-500,
 .text-amber-600, .text-amber-700, .text-amber-800, .text-amber-900 {
-  color: #2563eb !important;
+  color: #0074d4 !important;
 }
 
 .border-yellow-50, .border-yellow-100, .border-yellow-200, .border-yellow-300, .border-yellow-400, .border-yellow-500,
@@ -326,7 +313,7 @@ body, #root, main, .min-h-screen {
 .marketplace [data-state="active"] {
   color: #1f2937 !important;
   background-color: #ffffff !important;
-  border-bottom-color: #2563eb !important;
+  border-bottom-color: #0074d4 !important;
 }
 
 /* Specific fix for marketplace tab triggers */
@@ -374,7 +361,7 @@ button:contains("Add to Cart"), button:contains("Buy Now"),
 }
 
 .bg-primary, [class*="bg-primary"] {
-  background-color: #2563eb !important;
+  background-color: #0074d4 !important;
   color: #ffffff !important;
 }
 
@@ -385,8 +372,8 @@ button.bg-primary, .bg-primary button {
 
 /* Remove ALL yellow borders and styling from inputs, tabs, cards */
 input:focus, textarea:focus, [role="textbox"]:focus {
-  border-color: #2563eb !important;
-  outline-color: #2563eb !important;
+  border-color: #0074d4 !important;
+  outline-color: #0074d4 !important;
   box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1) !important;
 }
 
@@ -477,14 +464,14 @@ button:contains("Continue with"), .social-auth-button {
 button:contains("Report a Bug"),
 button:contains("Privacy") {
   background-color: #ffffff !important;
-  color: #2563eb !important;
+  color: #0074d4 !important;
   border-color: #93c5fd !important;
 }
 
 button:contains("Report a Bug"):hover,
 button:contains("Privacy"):hover {
   background-color: #eff6ff !important;
-  color: #2563eb !important;
+  color: #0074d4 !important;
 }
 
 /* Messaging and Conversation Components - Remove ALL yellow borders */
@@ -500,13 +487,13 @@ button:contains("Privacy"):hover {
 .message-bubble:focus, .message-bubble:hover,
 [class*="conversation"]:focus, [class*="conversation"]:hover,
 [class*="message"]:focus, [class*="message"]:hover {
-  border-color: #2563eb !important;
-  outline-color: #2563eb !important;
+  border-color: #0074d4 !important;
+  outline-color: #0074d4 !important;
 }
 
 /* Override any ring colors on messaging components */
 .conversation-item, [class*="conversation"], [class*="message"], [class*="chat"] {
-  --tw-ring-color: #2563eb !important;
+  --tw-ring-color: #0074d4 !important;
 }
 
 /* Force gray borders for all messaging containers */
@@ -659,9 +646,9 @@ button:contains("Become a Service Provider") {
 /* Services tabs specific styling - ensure white text on active state */
 .services-tabs .tab-pill[data-state="active"],
 .services-tabs .tab-pill.is-active {
-  background-color: #2563eb !important;
+  background-color: #0074d4 !important;
   color: white !important;
-  border-color: #2563eb !important;
+  border-color: #0074d4 !important;
 }
 
 /* Remove orange borders from services tabs */
@@ -718,7 +705,7 @@ button:contains("Become a Service Provider") {
 }
 
 .services-tabs .tab-pill[data-state="active"] {
-  border: 1px solid #2563eb !important;
+  border: 1px solid #0074d4 !important;
 }
 
 /* Make any icons inside pills inherit and be visible */
@@ -819,20 +806,20 @@ button:contains("Become a Service Provider") {
 
 /* Ensure inactive marketplace tabs have blue text */
 .marketplace [data-state="inactive"] {
-  color: #2563eb !important;
+  color: #0074d4 !important;
 }
 
 .marketplace [data-state="inactive"] span {
-  color: #2563eb !important;
+  color: #0074d4 !important;
 }
 
 .marketplace [data-state="inactive"] svg {
-  color: #2563eb !important;
+  color: #0074d4 !important;
 }
 
 /* Force service filter buttons to match tab color */
 .text-primary-600 {
-  color: #2563eb !important;
+  color: #0074d4 !important;
 }
 
 /* Remove previous tab spacing rules - now using pill design */
@@ -840,24 +827,24 @@ button:contains("Become a Service Provider") {
 /* Auth page - ensure Sign In / Sign Up tabs have white text when active */
 .auth-tab-active {
   color: #FFFFFF !important;
-  background-color: #2363FF !important;
+  background-color: #0074d4 !important;
 }
 
 .auth-tab-inactive {
   color: #000000 !important;
-  background-color: #E5EEFF !important;
+  background-color: #e6f2ff !important;
 }
 
 /* Featured/All Services tabs - ensure proper blue pill styling */
 .services-tabs [data-state="active"] {
-  background-color: #2363FF !important;
+  background-color: #0074d4 !important;
   color: #FFFFFF !important;
-  border-color: #2363FF !important;
+  border-color: #0074d4 !important;
 }
 
 .services-tabs [data-state="inactive"] {
   background-color: transparent !important;
-  color: #1D4ED8 !important;
+  color: #0074d4 !important;
   border-color: transparent !important;
 }
 
@@ -880,28 +867,36 @@ button:contains("Become a Service Provider") {
 .marketplace-tab {
   padding: 8px 20px;
   border-radius: 9999px;
-  border: 1px solid #1f6feb;          /* brand blue */
+  border: 1px solid #0074d4;          /* royal blue */
   background-color: #ffffff;
-  color: #1f6feb;
+  color: #0074d4;
   font-weight: 600;
   font-size: 14px;
   cursor: pointer;
   transition:
-    background-color 0.18s ease,
-    color 0.18s ease,
-    box-shadow 0.18s ease;
+    background-color 0.15s ease-out,
+    color 0.15s ease-out,
+    box-shadow 0.15s ease-out,
+    transform 0.15s ease-out;
 }
 
 /* Active tab */
 .marketplace-tab--active {
-  background-color: #1f6feb;
+  background-color: #0074d4;
   color: #ffffff;
-  box-shadow: 0 8px 18px rgba(31, 111, 235, 0.35);
+  box-shadow: 0 8px 18px rgba(0, 116, 212, 0.35);
+}
+
+/* Hover state for tabs */
+@media (prefers-reduced-motion: no-preference) {
+  .marketplace-tab:hover {
+    transform: scale(1.03);
+  }
 }
 
 /* Optional: focus state for keyboard users */
 .marketplace-tab:focus-visible {
-  outline: 2px solid rgba(31, 111, 235, 0.7);
+  outline: 2px solid rgba(0, 116, 212, 0.7);
   outline-offset: 2px;
 }
 
@@ -909,7 +904,7 @@ button:contains("Become a Service Provider") {
 .marketplace-divider {
   height: 1px;
   width: 100%;
-  background-color: rgba(31, 111, 235, 0.15);
+  background-color: rgba(0, 116, 212, 0.15);
   margin-bottom: 1.5rem;
 }
 
@@ -930,10 +925,19 @@ button:contains("Become a Service Provider") {
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-/* Hover effect for product cards */
-.product-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 16px 40px rgba(15, 23, 42, 0.12);
+/* Hover effect for product cards - Motion-safe with enhanced lift */
+@media (prefers-reduced-motion: no-preference) {
+  .product-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    transition: transform 0.2s ease-out, box-shadow 0.2s ease-out;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .product-card:hover {
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  }
 }
 
 /* Image area – fixed height so all cards line up */
@@ -966,7 +970,7 @@ button:contains("Become a Service Provider") {
 
 .product-card__description {
   font-size: 0.875rem;
-  color: #6b7280;
+  color: #555555;  /* Softer gray for descriptions */
   margin-bottom: 12px;
   flex: 1;                 /* pushes buttons to bottom */
 }
@@ -992,28 +996,40 @@ button:contains("Become a Service Provider") {
     box-shadow 0.18s ease;
 }
 
-/* Secondary (Add) */
+/* Secondary (Add) - Royal Blue */
 .btn-pill--outline {
-  border: 1px solid #1f6feb;
+  border: 1px solid #0074d4;
   background-color: #ffffff;
-  color: #1f6feb;
+  color: #0074d4;
 }
 
 .btn-pill--outline:hover {
-  background-color: rgba(31, 111, 235, 0.08);
+  background-color: rgba(0, 116, 212, 0.08);
 }
 
-/* Primary (Buy Now / Checkout) */
+/* Primary (Buy Now / Checkout) - Royal Blue with gradient option */
 .btn-pill--primary {
   border: none;
-  background-color: #1f6feb;
+  background-color: #0074d4;  /* Royal blue */
   color: #ffffff;
-  font-weight: 700;              /* stronger weight for CTA */
-  box-shadow: 0 8px 18px rgba(31, 111, 235, 0.35);
+  font-weight: 700;
+  box-shadow: 0 8px 18px rgba(0, 116, 212, 0.35);
+  transition: transform 0.15s ease-out, box-shadow 0.15s ease-out;
 }
 
-.btn-pill--primary:hover {
-  background-color: #1557c3;
+@media (prefers-reduced-motion: no-preference) {
+  .btn-pill--primary:hover {
+    background-color: #005aa8;
+    transform: scale(1.05);
+    box-shadow: 0 0 20px rgba(0, 116, 212, 0.5);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .btn-pill--primary:hover {
+    background-color: #005aa8;
+    box-shadow: 0 0 20px rgba(0, 116, 212, 0.5);
+  }
 }
 
 /* Product price display */

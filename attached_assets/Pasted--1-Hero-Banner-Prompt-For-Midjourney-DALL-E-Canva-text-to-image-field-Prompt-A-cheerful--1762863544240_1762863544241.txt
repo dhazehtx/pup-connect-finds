@@ -1,0 +1,48 @@
+🐾 1. Hero Banner Prompt
+For Midjourney / DALL·E / Canva (text-to-image field)
+
+Prompt:
+“A cheerful dog opening a subscription box filled with colorful toys, healthy treats, and grooming items. The box is branded with a subtle blue heart logo and glowing blue gradient accents. The background is bright white fading into soft sky blue, with a warm natural light feel. The scene conveys excitement and love — like a monthly surprise for pets. Highly detailed, cinematic lighting, soft depth of field, clean product-ad style photography.”
+
+If using Canva, paste this into the “Magic Media → Text to Image” prompt field and choose Photo – Bright or 3D – Product style.
+
+📦 2. Card-Level Illustration Prompt
+
+(For each Small / Medium / Large Pup Box card)
+
+Prompt:
+“Minimal modern illustration of an open subscription box for dogs, blue and white color palette. Inside are dog toys (rope toy, ball, plush bone), small treats, and grooming items. Background should be white with a faint blue gradient halo. Style: clean vector or 3D render matching a tech-startup app aesthetic.”
+
+Use this version for Midjourney’s --v 6 or DALL·E 3 to get crisp card assets that match your app’s rounded-corner style.
+
+💡 3. Brand Matching Notes
+
+When generating, include or adjust:
+
+Primary Blue: #0074d4
+
+Accent Blue: #0097ff
+
+Gradient Option: #0097ff → #6c63ff
+
+Logo hint: A small tag or ribbon with a heart icon (your My Pup heart).
+
+Lighting: Soft white highlights; no harsh shadows.
+
+Aspect Ratios:
+
+Hero: 16 × 9 (desktop / tablet top banner)
+
+Cards: 1 × 1 square with transparent or white background.
+
+🧠 4. Optional prompt for a unified set
+
+If you want to generate all assets in one cohesive style set (for example via Midjourney or DALL·E “series” mode):
+
+“Design a cohesive brand visual set for a dog subscription service called My Pup. Include:
+
+A hero banner showing a happy dog opening a box of toys and treats.
+
+Three matching product images for Small / Medium / Large Pup Boxes.
+
+Consistent blue-white palette (#0074d4, #0097ff), rounded-corner minimalist style, clean lighting, joyful atmosphere.”

@@ -28,35 +28,35 @@ export default {
           inverse: 'var(--color-text-inverse)', // #ffffff - text on blue
         },
         
-        // Centralized Brand Theme
+        // Centralized Brand Theme - Royal Blue (#0074d4)
         brand: {
-          50: "#eff6ff",    // lightest blue
-          100: "#dbeafe", 
-          200: "#bfdbfe",
-          300: "#93c5fd",
-          400: "#60a5fa",
-          500: "#3b82f6",
-          600: "#2563eb",   // primary brand blue
-          700: "#1d4ed8",
-          800: "#1e40af",
-          900: "#1e3a8a",   // darkest blue
-          DEFAULT: "#2563eb",
+          50: "#e6f2ff",    // lightest blue
+          100: "#cce6ff", 
+          200: "#99ccff",
+          300: "#66b3ff",
+          400: "#3399ff",
+          500: "#0099ff",
+          600: "#0074d4",   // primary royal blue
+          700: "#005aa8",
+          800: "#00407b",
+          900: "#00264f",   // darkest blue
+          DEFAULT: "#0074d4",
         },
         
-        // Platform Primary (Blue) - Using CSS Variables
+        // Platform Primary (Royal Blue) - Using CSS Variables
         primary: {
-          50: 'var(--color-primary-50)',
-          100: 'var(--color-primary-100)',
-          200: 'var(--color-primary-200)',
-          300: 'var(--color-primary-300)',
-          400: 'var(--color-primary-400)',
-          500: 'var(--color-primary-500)',  // desktop blue
-          600: 'var(--color-primary-600)', // Main brand blue
-          700: 'var(--color-primary-700)',
-          800: 'var(--color-primary-800)',
-          900: 'var(--color-primary-900)',
-          DEFAULT: 'var(--color-primary-600)',
-          foreground: 'var(--color-text-inverse)',
+          50: "#e6f2ff",
+          100: "#cce6ff",
+          200: "#99ccff",
+          300: "#66b3ff",
+          400: "#3399ff",
+          500: "#0099ff",
+          600: "#0074d4", // Main royal blue
+          700: "#005aa8",
+          800: "#00407b",
+          900: "#00264f",
+          DEFAULT: "#0074d4",
+          foreground: "#ffffff",
         },
         
         // Platform Secondary (Warm Orange)
@@ -109,6 +109,19 @@ export default {
           900: "#111827",
         },
         
+        // Warm neutral background
+        warm: {
+          50: "#f9f7f3",  // Light warm neutral for backgrounds
+          100: "#f5f3ef",
+        },
+        
+        // Violet accent for gradients
+        violet: {
+          500: "#8b5cf6",
+          600: "#7c3aed",
+          700: "#6d28d9",
+        },
+        
         // shadcn/ui compatibility
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
@@ -156,8 +169,8 @@ export default {
 
       // Typography Scale
       fontFamily: {
-        sans: ['Inter', 'system-ui', 'sans-serif'],
-        display: ['Cal Sans', 'Inter', 'system-ui', 'sans-serif'],
+        sans: ['Nunito', 'Poppins', 'Inter', 'system-ui', 'sans-serif'],
+        display: ['Nunito', 'Poppins', 'Cal Sans', 'Inter', 'system-ui', 'sans-serif'],
       },
       fontSize: {
         'xs': ['0.75rem', { lineHeight: '1rem' }],
@@ -202,12 +215,25 @@ export default {
         'xl': '0 25px 50px -12px rgb(0 0 0 / 0.25)',
         'card': '0 4px 6px -1px rgb(0 0 0 / 0.07), 0 2px 4px -1px rgb(0 0 0 / 0.03)',
         'card-hover': '0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -2px rgb(0 0 0 / 0.05)',
+        'glow': '0 0 20px rgba(0, 116, 212, 0.5)',
+        'glow-lg': '0 0 30px rgba(0, 116, 212, 0.6)',
+      },
+      
+      // Gradient Utilities
+      backgroundImage: {
+        'gradient-blue-violet': 'linear-gradient(135deg, #0074d4 0%, #7c3aed 100%)',
+        'gradient-blue-violet-soft': 'linear-gradient(135deg, #0099ff 0%, #8b5cf6 100%)',
       },
 
       // Animation & Transitions
       transitionDuration: {
+        '150': '150ms',
+        '200': '200ms',
         '400': '400ms',
         '600': '600ms', 
+      },
+      transitionTimingFunction: {
+        'smooth': 'cubic-bezier(0.4, 0, 0.2, 1)',
       },
       keyframes: {
         "accordion-down": {
@@ -231,6 +257,18 @@ export default {
           "50%": { transform: "scale(1.02)" },
           "100%": { transform: "scale(1)", opacity: "1" },
         },
+        "card-hover-lift": {
+          "0%": { transform: "translateY(0)", boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)" },
+          "100%": { transform: "translateY(-4px)", boxShadow: "0 25px 50px -12px rgb(0 0 0 / 0.25)" },
+        },
+        "button-scale": {
+          "0%": { transform: "scale(1)" },
+          "100%": { transform: "scale(1.05)" },
+        },
+        "glow-pulse": {
+          "0%, 100%": { boxShadow: "0 0 20px rgba(59, 130, 246, 0.5)" },
+          "50%": { boxShadow: "0 0 30px rgba(59, 130, 246, 0.8)" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -238,6 +276,15 @@ export default {
         "fade-in": "fade-in 0.3s ease-out",
         "slide-up": "slide-up 0.4s ease-out",
         "bounce-in": "bounce-in 0.5s ease-out",
+        // Motion-safe animations
+        "card-hover": "card-hover-lift 0.2s ease-out forwards",
+        "button-hover": "button-scale 0.15s ease-out forwards",
+        "glow": "glow-pulse 2s ease-in-out infinite",
+      },
+      // Accessibility support
+      screens: {
+        'motion-safe': { 'raw': '(prefers-reduced-motion: no-preference)' },
+        'motion-reduce': { 'raw': '(prefers-reduced-motion: reduce)' },
       },
 
       // Grid & Layout
