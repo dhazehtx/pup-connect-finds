@@ -1,16 +1,8 @@
 import React, { useState } from 'react';
-import { Gift, Truck, Shield, RotateCcw, Check, X } from 'lucide-react';
+import { Gift, Truck, Shield, RotateCcw, Check, ShoppingCart } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
-import { useMutation } from '@tanstack/react-query';
-import { apiRequest } from '@/lib/queryClient';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { useCart } from '@/hooks/use-cart';
 
 // Pup Box Product Configuration
 // TODO: Replace these with your actual Stripe Product IDs from your Stripe dashboard
@@ -33,6 +25,7 @@ const PUP_BOX_PRODUCTS = {
 const PupBoxSubscription = () => {
   const { user } = useAuth();
   const { toast } = useToast();
+  const { addToCart } = useCart();
   
   // Track billing type selection for each plan
   const [billingType, setBillingType] = useState<{
@@ -96,46 +89,35 @@ const PupBoxSubscription = () => {
     }
   ];
 
-  // Create checkout session mutation (same as Store tab)
-  const checkoutMutation = useMutation({
-    mutationFn: async (productId: string) => {
-      const response = await apiRequest('/api/checkout', {
-        method: 'POST',
-        body: JSON.stringify({
-          product_id: productId,
-          quantity: 1
-        })
-      });
-      return response.json();
-    },
-    onSuccess: (data) => {
-      window.location.href = data.url;
-    },
-    onError: (error) => {
-      toast({
-        title: "Checkout Error",
-        description: "Failed to create checkout session. Please try again.",
-        variant: "destructive",
-      });
-    }
-  });
+  const handleAddToCart = (planId: 'small' | 'medium' | 'large') => {
+    const plan = plans.find(p => p.id === planId);
+    if (!plan) return;
 
-  const handleSelectPlan = (planId: 'small' | 'medium' | 'large') => {
-    if (!user) {
-      toast({
-        title: "Authentication required",
-        description: "Please sign in to subscribe",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    // Get the selected billing type for this plan
     const selectedBillingType = billingType[planId];
-    const productId = PUP_BOX_PRODUCTS[planId][selectedBillingType];
+    const isSubscription = selectedBillingType === 'subscription';
+    const price = isSubscription ? plan.subscriptionPrice : plan.oneTimePrice;
+    const stripePriceId = PUP_BOX_PRODUCTS[planId][selectedBillingType];
+    
+    // Create a unique cart item ID that includes billing type
+    const cartItemId = `pupbox-${planId}-${selectedBillingType}`;
+    
+    // Create display name
+    const billingLabel = isSubscription ? 'Subscription' : 'One-Time';
+    const displayName = `${plan.name} Pup Box (${billingLabel})`;
 
-    // Start checkout with the selected product
-    checkoutMutation.mutate(productId);
+    addToCart({
+      id: cartItemId,
+      name: displayName,
+      unit_price: price.toFixed(2),
+      image_url: null, // Pup Box uses Gift icon
+      is_subscription: isSubscription,
+      stripe_price_id: stripePriceId
+    });
+
+    toast({
+      title: "Added to cart",
+      description: `${displayName} has been added to your cart.`,
+    });
   };
 
   const handleToggleBillingType = (planId: 'small' | 'medium' | 'large', type: 'subscription' | 'oneTime') => {
@@ -185,7 +167,7 @@ const PupBoxSubscription = () => {
           {/* Helper Text */}
           <div className="text-center mb-8">
             <p className="text-base text-gray-700 max-w-2xl mx-auto">
-              Choose <span className="font-semibold text-primary-600">Subscribe</span> or <span className="font-semibold text-primary-600">One-Time</span> on each box before selecting your plan.
+              Choose <span className="font-semibold text-primary-600">Subscribe</span> or <span className="font-semibold text-primary-600">One-Time</span> on each box, then click <span className="font-semibold text-primary-600">Add to Cart</span>. You can review everything and check out from your cart when you're ready.
             </p>
           </div>
           
@@ -220,15 +202,15 @@ const PupBoxSubscription = () => {
                   <div className="text-center mb-5">
                     <h3 className="text-xl font-bold text-gray-900 mb-4">{plan.name} Pup Box</h3>
                     
-                    {/* Billing Type Toggle */}
+                    {/* Billing Type Toggle - Enhanced Visual Distinction */}
                     <div className="flex items-center justify-center mb-4">
-                      <div className="inline-flex rounded-full bg-white border-2 border-gray-200 p-1 shadow-sm">
+                      <div className="inline-flex rounded-full p-1 bg-gray-100">
                         <button
                           onClick={() => handleToggleBillingType(plan.id, 'subscription')}
-                          className={`px-6 py-2 rounded-full text-sm font-semibold transition-all duration-200 ${
+                          className={`px-6 py-2.5 rounded-full text-sm font-semibold transition-all duration-150 ${
                             billingType[plan.id] === 'subscription'
-                              ? 'bg-primary-600 text-white shadow-md'
-                              : 'bg-transparent text-primary-600 hover:bg-primary-50'
+                              ? 'bg-primary-600 text-white shadow-md scale-105'
+                              : 'bg-white text-primary-600 border border-primary-200 hover:border-primary-400'
                           }`}
                           data-testid={`toggle-subscription-${plan.id}`}
                         >
@@ -236,10 +218,10 @@ const PupBoxSubscription = () => {
                         </button>
                         <button
                           onClick={() => handleToggleBillingType(plan.id, 'oneTime')}
-                          className={`px-6 py-2 rounded-full text-sm font-semibold transition-all duration-200 ${
+                          className={`px-6 py-2.5 rounded-full text-sm font-semibold transition-all duration-150 ml-1 ${
                             billingType[plan.id] === 'oneTime'
-                              ? 'bg-primary-600 text-white shadow-md'
-                              : 'bg-transparent text-primary-600 hover:bg-primary-50'
+                              ? 'bg-primary-600 text-white shadow-md scale-105'
+                              : 'bg-white text-primary-600 border border-primary-200 hover:border-primary-400'
                           }`}
                           data-testid={`toggle-onetime-${plan.id}`}
                         >
@@ -290,14 +272,15 @@ const PupBoxSubscription = () => {
                     ))}
                   </div>
 
-                  {/* Select Plan Button */}
+                  {/* Add to Cart Button */}
                   <div className="product-card__actions">
                     <button
-                      onClick={() => handleSelectPlan(plan.id as 'small' | 'medium' | 'large')}
-                      className="btn-pill btn-pill--primary w-full"
-                      data-testid={`button-select-${plan.id}`}
+                      onClick={() => handleAddToCart(plan.id)}
+                      className="btn-pill btn-pill--primary w-full flex items-center justify-center gap-2"
+                      data-testid={`button-add-to-cart-${plan.id}`}
                     >
-                      Select Plan
+                      <ShoppingCart className="w-4 h-4" />
+                      Add to Cart
                     </button>
                   </div>
                 </div>

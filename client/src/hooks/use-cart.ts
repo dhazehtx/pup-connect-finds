@@ -7,6 +7,7 @@ export interface CartItem {
   image_url: string | null;
   is_subscription: boolean;
   quantity: number;
+  stripe_price_id?: string;
 }
 
 export function useCart() {

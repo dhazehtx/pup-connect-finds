@@ -1,0 +1,144 @@
+I want to refine the Pup Box subscription UX on /marketplace → Pup Box tab.
+Right now the inline toggle (Subscribe / One-Time) exists, but:
+
+The selected state is hard to distinguish.
+
+The “Select Plan” button doesn’t clearly reflect the toggle, and it still behaves like a Stripe checkout trigger.
+
+Goal
+
+Make the toggle visually obvious which side is selected.
+
+Change the button from “immediate checkout” to “Add to Cart”, using the same cart flow as the Store tab.
+
+1. Toggle visual update
+
+In client/src/components/subscriptions/PupBoxSubscription.tsx (or wherever the Pup Box cards & toggle are defined):
+
+Keep the two options: Subscribe and One-Time.
+
+Update the styles so the selected state is very clear:
+
+Selected segment:
+
+Background: primary blue (the same royal blue you’re using elsewhere).
+
+Text: white.
+
+Slight shadow (e.g. shadow-md) and maybe a tiny scale-up on hover.
+
+Unselected segment:
+
+Background: white.
+
+Text: primary blue.
+
+Border: border border-primary/20 or equivalent.
+
+Example class pattern (feel free to adapt to how the component is built):
+
+const isSelected = selectedBillingType === 'subscription'; // or 'one-time'
+
+<button
+  className={clsx(
+    "px-4 py-2 text-sm rounded-full transition-all duration-150",
+    isSelected
+      ? "bg-primary text-white shadow-md"
+      : "bg-white text-primary border border-primary/20"
+  )}
+>
+  Subscribe
+</button>
+
+
+Make sure there is a single source of truth for the selected option per plan ('subscription' | 'one-time'), and the price text below the toggle updates live when this state changes.
+
+2. Change button to “Add to Cart” and use the cart instead of direct checkout
+
+I want the Pup Box behavior to match a normal e-commerce flow:
+
+The toggle chooses the plan (Subscribe vs One-Time).
+
+The button adds that choice to the shopping cart, not directly to Stripe checkout.
+
+Please do this:
+
+Rename the button text on each Pup Box card:
+
+From: "Select Plan"
+
+To: "Add to Cart"
+
+Reuse the existing cart logic from the Store tab.
+
+Find wherever Store products use an “Add” button (on /marketplace → Store tab).
+
+Identify the function/hook used there (e.g. something like addToCart, useCartStore, cartContext, etc.).
+
+Use that same cart API inside the Pup Box component instead of calling the Stripe checkout mutation directly.
+
+Add the correct Pup Box item to the cart, including:
+
+Plan size: Small / Medium / Large.
+
+Billing type: 'subscription' or 'one-time' (based on the toggle).
+
+Display name (e.g. "Small Pup Box (Subscription)" vs "Small Pup Box (One-Time)").
+
+Price info:
+
+Use the same numeric prices already configured for each size and option.
+
+Stripe reference:
+
+Keep the existing mapping from size + billing type to Stripe price/product IDs (e.g. a config object like PUP_BOX_PRODUCTS).
+
+Include the Stripe price ID in the cart item so the checkout page can decide whether to run a subscription or one-time checkout when the user clicks “Checkout” later.
+
+Behavior when clicking “Add to Cart”:
+
+If the current store/cart flow requires login before adding, mirror that behavior (e.g. show the same auth toast or redirect).
+
+If store products allow adding to cart while logged out, do the same here.
+
+In all cases: do not immediately open Stripe from this button anymore.
+
+Remove or bypass the old checkout mutation for this button.
+
+Wherever you currently call something like checkoutMutation.mutate(productId) inside the Pup Box button handler, replace it with the addToCart logic.
+
+The Stripe checkout should only be triggered later from the cart/checkout page, exactly the same as for Store products.
+
+Copy update
+
+Update the helper text above the cards (currently referencing “Click Select Plan to choose between monthly or one-time”) to match the new UX. For example:
+
+“Choose Subscribe or One-Time on each box, then click Add to Cart. You can review everything and check out from your cart when you’re ready.”
+
+Acceptance criteria
+
+On the Pup Box tab:
+
+The selected toggle segment is clearly blue with white text; the other is white with blue text and a border.
+
+The live price text under the toggle updates when switching between Subscribe and One-Time.
+
+The button reads “Add to Cart” on all three cards.
+
+Clicking “Add to Cart”:
+
+Uses the same cart mechanism as the Store tab.
+
+Adds an item that includes size, billing type, price, and Stripe price ID.
+
+No Stripe checkout modal/page opens immediately from the Pup Box tab.
+
+The cart/checkout page can still handle these Pup Box items correctly using the stored Stripe IDs.
+
+Any existing auth gating (if required before adding to cart) matches the Store product behavior.
+
+Finally, please show me:
+
+The updated JSX snippet for one Pup Box card (Small) with the toggle, price, and “Add to Cart” button.
+
+A brief summary of how the Pup Box addToCart integration mirrors the Store tab’s add-to-cart logic.
