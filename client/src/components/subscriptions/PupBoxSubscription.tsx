@@ -33,15 +33,25 @@ const PUP_BOX_PRODUCTS = {
 const PupBoxSubscription = () => {
   const { user } = useAuth();
   const { toast } = useToast();
-  const [showPlanChoice, setShowPlanChoice] = useState(false);
-  const [selectedSize, setSelectedSize] = useState<'small' | 'medium' | 'large' | null>(null);
+  
+  // Track billing type selection for each plan
+  const [billingType, setBillingType] = useState<{
+    small: 'subscription' | 'oneTime';
+    medium: 'subscription' | 'oneTime';
+    large: 'subscription' | 'oneTime';
+  }>({
+    small: 'subscription',
+    medium: 'subscription',
+    large: 'subscription'
+  });
 
   const plans = [
     {
-      id: 'small',
+      id: 'small' as const,
       name: 'Small',
       size: 'small',
-      price: 19.99,
+      subscriptionPrice: 19.99,
+      oneTimePrice: 23.99,
       description: 'Great for pups under 25 lbs',
       features: [
         '3-4 premium toys',
@@ -53,10 +63,11 @@ const PupBoxSubscription = () => {
       badgeColor: 'blue'
     },
     {
-      id: 'medium',
+      id: 'medium' as const,
       name: 'Medium',
-      size: 'medium', 
-      price: 29.99,
+      size: 'medium',
+      subscriptionPrice: 29.99,
+      oneTimePrice: 35.99,
       description: 'Perfect for dogs 25-65 lbs',
       features: [
         '4-5 premium toys',
@@ -68,10 +79,11 @@ const PupBoxSubscription = () => {
       badgeColor: null
     },
     {
-      id: 'large',
+      id: 'large' as const,
       name: 'Large',
       size: 'large',
-      price: 39.99,
+      subscriptionPrice: 39.99,
+      oneTimePrice: 47.99,
       description: 'Ideal for dogs over 65 lbs',
       features: [
         '5-6 premium toys',
@@ -118,21 +130,19 @@ const PupBoxSubscription = () => {
       return;
     }
 
-    // Show modal to choose between subscription and one-time
-    setSelectedSize(planId);
-    setShowPlanChoice(true);
-  };
-
-  const handlePurchaseChoice = (type: 'subscription' | 'oneTime') => {
-    if (!selectedSize) return;
-
-    const productId = PUP_BOX_PRODUCTS[selectedSize][type];
-
-    // Close modal
-    setShowPlanChoice(false);
+    // Get the selected billing type for this plan
+    const selectedBillingType = billingType[planId];
+    const productId = PUP_BOX_PRODUCTS[planId][selectedBillingType];
 
     // Start checkout with the selected product
     checkoutMutation.mutate(productId);
+  };
+
+  const handleToggleBillingType = (planId: 'small' | 'medium' | 'large', type: 'subscription' | 'oneTime') => {
+    setBillingType(prev => ({
+      ...prev,
+      [planId]: type
+    }));
   };
 
   return (
@@ -175,7 +185,7 @@ const PupBoxSubscription = () => {
           {/* Helper Text */}
           <div className="text-center mb-8">
             <p className="text-base text-gray-700 max-w-2xl mx-auto">
-              <span className="font-semibold text-primary-600">Click "Select Plan"</span> to choose between a monthly subscription or one-time gift at checkout.
+              Choose <span className="font-semibold text-primary-600">Subscribe</span> or <span className="font-semibold text-primary-600">One-Time</span> on each box before selecting your plan.
             </p>
           </div>
           
@@ -208,14 +218,66 @@ const PupBoxSubscription = () => {
                 {/* Card Body */}
                 <div className="product-card__body">
                   <div className="text-center mb-5">
-                    <h3 className="text-xl font-bold text-gray-900 mb-3">{plan.name} Pup Box</h3>
-                    <div className="mt-1 mb-3">
-                      <span className="text-3xl font-bold text-primary-600">
-                        ${plan.price.toFixed(2)}
-                      </span>
-                      <span className="text-base font-medium" style={{ color: '#555555' }}>&nbsp;/ month</span>
+                    <h3 className="text-xl font-bold text-gray-900 mb-4">{plan.name} Pup Box</h3>
+                    
+                    {/* Billing Type Toggle */}
+                    <div className="flex items-center justify-center mb-4">
+                      <div className="inline-flex rounded-full bg-white border-2 border-gray-200 p-1 shadow-sm">
+                        <button
+                          onClick={() => handleToggleBillingType(plan.id, 'subscription')}
+                          className={`px-6 py-2 rounded-full text-sm font-semibold transition-all duration-200 ${
+                            billingType[plan.id] === 'subscription'
+                              ? 'bg-primary-600 text-white shadow-md'
+                              : 'bg-transparent text-primary-600 hover:bg-primary-50'
+                          }`}
+                          data-testid={`toggle-subscription-${plan.id}`}
+                        >
+                          Subscribe
+                        </button>
+                        <button
+                          onClick={() => handleToggleBillingType(plan.id, 'oneTime')}
+                          className={`px-6 py-2 rounded-full text-sm font-semibold transition-all duration-200 ${
+                            billingType[plan.id] === 'oneTime'
+                              ? 'bg-primary-600 text-white shadow-md'
+                              : 'bg-transparent text-primary-600 hover:bg-primary-50'
+                          }`}
+                          data-testid={`toggle-onetime-${plan.id}`}
+                        >
+                          One-Time
+                        </button>
+                      </div>
                     </div>
-                    <p className="mt-2 text-sm leading-relaxed" style={{ color: '#555555' }}>{plan.description}</p>
+
+                    {/* Dynamic Price Display */}
+                    <div className="mt-1 mb-3">
+                      {billingType[plan.id] === 'subscription' ? (
+                        <>
+                          <div>
+                            <span className="text-3xl font-bold text-primary-600">
+                              ${plan.subscriptionPrice.toFixed(2)}
+                            </span>
+                            <span className="text-base font-medium" style={{ color: '#555555' }}>&nbsp;/ month</span>
+                          </div>
+                          <p className="text-xs mt-2" style={{ color: '#888888' }}>
+                            Cancel anytime, skip or pause deliveries
+                          </p>
+                        </>
+                      ) : (
+                        <>
+                          <div>
+                            <span className="text-3xl font-bold text-primary-600">
+                              ${plan.oneTimePrice.toFixed(2)}
+                            </span>
+                            <span className="text-base font-medium" style={{ color: '#555555' }}>&nbsp;one-time</span>
+                          </div>
+                          <p className="text-xs mt-2" style={{ color: '#888888' }}>
+                            Try it out before subscribing
+                          </p>
+                        </>
+                      )}
+                    </div>
+                    
+                    <p className="mt-3 text-sm leading-relaxed" style={{ color: '#555555' }}>{plan.description}</p>
                   </div>
 
                   {/* Features List */}
@@ -284,67 +346,6 @@ const PupBoxSubscription = () => {
         </div>
       </div>
 
-      {/* Purchase Choice Modal */}
-      <Dialog open={showPlanChoice} onOpenChange={setShowPlanChoice}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Gift className="w-5 h-5 text-primary-600" />
-              Choose Your Option
-            </DialogTitle>
-            <DialogDescription>
-              {selectedSize && `${plans.find(p => p.id === selectedSize)?.name} Pup Box`}
-            </DialogDescription>
-          </DialogHeader>
-          
-          <div className="space-y-3 py-4">
-            {/* Subscription Option */}
-            <button
-              onClick={() => handlePurchaseChoice('subscription')}
-              disabled={checkoutMutation.isPending}
-              className="w-full p-4 text-left rounded-xl border-2 border-primary-600 bg-primary-50 hover:bg-primary-100 transition-all duration-200 motion-safe:hover:scale-[1.02]"
-              data-testid="button-subscribe-monthly"
-            >
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="font-semibold text-gray-900">Subscribe Monthly</p>
-                  <p className="text-sm" style={{ color: '#555555' }}>
-                    ${selectedSize && plans.find(p => p.id === selectedSize)?.price.toFixed(2)} / month
-                  </p>
-                </div>
-                <div className="text-xs bg-primary-600 text-white px-2 py-1 rounded-full">
-                  Best Value
-                </div>
-              </div>
-              <p className="text-xs mt-2" style={{ color: '#555555' }}>Cancel anytime, skip or pause deliveries</p>
-            </button>
-
-            {/* One-Time Purchase Option */}
-            <button
-              onClick={() => handlePurchaseChoice('oneTime')}
-              disabled={checkoutMutation.isPending}
-              className="w-full p-4 text-left rounded-xl border-2 border-gray-300 bg-white hover:bg-gray-50 transition-all duration-200 motion-safe:hover:scale-[1.02]"
-              data-testid="button-one-time"
-            >
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="font-semibold text-gray-900">One-Time Box</p>
-                  <p className="text-sm" style={{ color: '#555555' }}>
-                    ${selectedSize && ((plans.find(p => p.id === selectedSize)?.price || 0) * 1.2).toFixed(2)}
-                  </p>
-                </div>
-              </div>
-              <p className="text-xs mt-2" style={{ color: '#555555' }}>Try it out before subscribing</p>
-            </button>
-          </div>
-
-          {checkoutMutation.isPending && (
-            <div className="text-center text-sm text-gray-600">
-              Creating checkout session...
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
     </div>
   );
 };

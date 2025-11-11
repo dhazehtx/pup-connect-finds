@@ -1,0 +1,125 @@
+I want to change the Pup Box purchase flow on /marketplace → Pup Box tab from the current “Choose Your Option” modal into an inline toggle on each card.
+
+Current behavior (keep the logic, change the UI)
+
+File: client/src/components/subscriptions/PupBoxSubscription.tsx
+
+When I click Select Plan on Small/Medium/Large Pup Box:
+
+If not logged in → I get an auth-required message (this behavior should stay).
+
+If logged in → a modal opens with two choices:
+
+Subscribe Monthly (e.g. $19.99 / month, $29.99 / month, $39.99 / month)
+
+One-Time Box (one-time price with small markup)
+
+Choosing an option runs Stripe Checkout with the correct product/price IDs.
+
+I want to keep all that backend / checkout logic, but replace the modal UX with a toggle UI directly on each Pup Box card.
+
+New desired behavior
+
+1. Inline toggle instead of modal
+
+On each Pup Box card (Small, Medium, Large):
+
+Under the plan title (e.g. “Small Pup Box”) and above the description, add a pill-style toggle:
+
+Example layout inside each card:
+
+Row with centered segmented control:
+
+Left segment: Subscribe
+
+Right segment: One-Time
+
+Active side is filled blue with white text; inactive side is white with blue text and a border.
+
+Default selection: Subscribe.
+
+Directly below the toggle, show the price and descriptor based on the selected option:
+
+If Subscribe is selected:
+
+Show something like:
+"$19.99 / month" (or $29.99 / month, $39.99 / month for other sizes)
+Subtext (smaller gray): "Cancel anytime, skip or pause deliveries"
+
+If One-Time is selected:
+
+Show something like:
+"$23.99 one-time" (or corresponding one-time price)
+Subtext: "Try it out before subscribing"
+
+The big helper sentence above the cards (currently something like “Click Select Plan to choose between a monthly subscription or one-time gift at checkout”) should be updated to reflect the new toggle UX, e.g.:
+“Choose Subscribe or One-Time on each box before selecting your plan.”
+
+2. Button behavior
+
+The Select Plan button at the bottom of each card should:
+
+If user is not logged in: keep the existing behavior (auth toast / redirect) — don’t change that.
+
+If user is logged in:
+
+Read the current toggle state for that card (Subscribe vs One-Time).
+
+Start Stripe Checkout using the correct price/product ID for:
+
+The selected size (Small / Medium / Large), and
+
+The selected billing type (subscription vs one-time).
+
+This should reuse whatever mapping / functions you created for the modal (don’t duplicate logic if possible).
+
+3. Implementation details
+
+Keep all Stripe product/price IDs, API calls, and routes exactly as they are now.
+Just move the choice between “subscription vs one-time” into the card UI instead of the modal.
+
+It’s fine to have a small configuration object at the top of PupBoxSubscription.tsx, something like:
+
+const PUP_BOX_PLANS = {
+  small: {
+    name: "Small Pup Box",
+    subscriptionPrice: 19.99,
+    oneTimePrice: 23.99,
+    subscriptionPriceId: "price_xxx",
+    oneTimePriceId: "price_yyy",
+  },
+  // medium, large…
+};
+
+
+For state:
+
+Either store the selected option per plan in React state (e.g. selectedBillingType[plan.id] = 'subscription' | 'one-time'), or
+
+Keep local state inside each rendered card.
+
+Remove or no longer use the existing plan selection modal (or leave it unused but the UX should no longer open it).
+
+4. Styling
+
+Please keep the new blue/violet gradient and Nunito typography you already applied, and style the toggle to match:
+
+Rounded pill with a subtle shadow.
+
+Quick hover/active transitions (150–200ms).
+
+Accessible contrast (blue on white / white on blue should meet WCAG).
+
+At the end, please:
+
+Show me the updated JSX snippet for ONE Pup Box card (Small) with the new toggle and price display.
+
+Confirm that:
+
+Not-logged-in behavior still works as before.
+
+Logged-in users can:
+
+Toggle between Subscribe and One-Time on the card.
+
+Click Select Plan and get sent to Stripe Checkout with the matching Stripe price.
