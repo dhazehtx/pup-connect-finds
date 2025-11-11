@@ -1,0 +1,126 @@
+Fix Pup Box “Select Plan” behaviour + subscription vs one-time choice
+
+I’m on /marketplace → Pup Box tab. The UI now has a nice gradient hero and the text:
+
+“Click Select Plan to choose between a monthly subscription or one-time gift at checkout.”
+
+But currently:
+
+The Select Plan buttons on the Small / Medium / Large Pup Box cards do nothing
+
+There is no UI to choose Subscription vs One-time
+
+The glowing gift icon in the hero animates on hover but has no click behaviour
+
+I want you to fix the functionality so the copy is true and the buttons work.
+
+Goals
+
+On the Pup Box tab only, make each Select Plan button open a modal or panel that lets the user choose:
+
+Monthly subscription
+
+One-time gift
+
+In that modal:
+
+Show the plan name (Small / Medium / Large Pup Box)
+
+Show both prices clearly, e.g.
+
+“Subscription: $19.99 / month”
+
+“One-time gift: $24.99”
+(Use the existing Stripe prices for each plan / billing type — don’t invent new ones.)
+
+Have two CTAs:
+
+Continue with subscription
+
+Continue with one-time gift
+
+When the user clicks one of those CTAs:
+
+Call the existing Stripe checkout logic that we already use for Pup Box / Store.
+
+Re-use existing product/price IDs or config from the repo (server or shared config), don’t duplicate or hardcode new IDs.
+
+Make sure:
+
+The Select Plan buttons on all three cards always open this modal.
+
+The hero helper text about “Click Select Plan to choose between monthly or one-time” is now accurate.
+
+The glowing gift icon in the hero is purely decorative:
+
+Do not attach any click handler
+
+Make sure the cursor stays default (not a pointer) so it doesn’t look clickable.
+
+Implementation details
+
+Main component to update:
+client/src/components/subscriptions/PupBoxSubscription.tsx
+
+What I want structurally:
+
+A central config (array or object) that maps:
+
+size → subscription price + one-time price + Stripe IDs
+(reuse whatever IDs/config already exist in the project)
+
+Each card’s Select Plan button should call something like openPlanModal(planKey).
+
+A PupBoxPlanModal (inline in this component or a small child component) that:
+
+Reads the selected plan from state
+
+Shows both pricing options
+
+Calls the correct checkout handler with the right Stripe ID when a user chooses one.
+
+If there is any old code in the repo that previously handled “subscription vs one-time” for Pup Box:
+
+Reuse or adapt that logic instead of re-inventing it.
+
+Make sure we’re not leaving dead/duplicate versions behind.
+
+Acceptance criteria
+
+On /marketplace → Pup Box tab:
+
+Clicking Select Plan on Small / Medium / Large:
+
+Opens a modal/panel every time.
+
+The modal clearly shows:
+
+Plan name
+
+Subscription price
+
+One-time price
+
+Two CTAs: “Continue with subscription” and “Continue with one-time gift”.
+
+Clicking each CTA:
+
+Triggers the current Stripe checkout flow with the correct price ID for that choice.
+
+No console errors.
+
+If Stripe config is missing, fail gracefully:
+
+Show a friendly message in the modal instead of crashing.
+
+The glowing hero gift icon:
+
+Has no click or pointer behaviour (just hover animation).
+
+Please summarize:
+
+Which files you changed
+
+The name of any new component you created (e.g. PupBoxPlanModal)
+
+Which function actually calls Stripe checkout for each option.

@@ -1147,3 +1147,15 @@ button:contains("Become a Service Provider") {
   }
 }
 
+
+/* Ensure hero icon is purely decorative - no pointer cursor */
+.pup-box-icon-container {
+  cursor: default !important;
+  pointer-events: none;
+}
+
+/* Re-enable pointer on card icons since they're decorative too but part of cards */
+.pup-box-card-icon {
+  cursor: default;
+  pointer-events: none;
+}
