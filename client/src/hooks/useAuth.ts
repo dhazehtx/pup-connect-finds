@@ -24,6 +24,14 @@ export const useAuthState = () => {
         throw error;
       }
       
+      // Debug: Log the exact data returned from Supabase
+      console.log('[FETCH PROFILE] Supabase returned:', {
+        hasData: !!data,
+        is_admin: data?.is_admin,
+        allKeys: data ? Object.keys(data) : [],
+        fullData: data
+      });
+      
       setProfile(data || null);
       return data;
     } catch (error: any) {
