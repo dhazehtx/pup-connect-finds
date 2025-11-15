@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { supabase } from "../lib/supabase.js";
+import { supabaseAdmin } from "../lib/supabaseAdmin.js";
 import { insertNotificationSchema } from "@shared/schema";
 
 const router = Router();
@@ -7,64 +8,56 @@ const router = Router();
 // Get notifications for a user
 router.get("/", async (req, res) => {
   try {
-    const userId = req.query.userId || req.user?.id;
-    
+    const userId = req.user?.id;
+
     if (!userId) {
-      return res.status(400).json({ error: 'User ID required' });
+      return res.status(200).json([]);
     }
 
-    const { data: notifications, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from('notifications')
-      .select(`
-        *,
-        actor:actor_id (
-          id,
-          full_name,
-          avatar_url
-        )
-      `)
-      .eq('recipient_id', userId)
+      .select('*')
+      .eq('user_id', userId)
       .order('created_at', { ascending: false })
       .limit(50);
 
     if (error) {
-      console.error('[NOTIFICATIONS] Error fetching notifications:', error);
-      return res.status(500).json({ error: 'Failed to fetch notifications' });
+      console.error('Error loading notifications:', error);
+      return res.status(200).json([]);
     }
 
-    res.json({ notifications: notifications || [] });
-
-  } catch (error) {
-    console.error('[NOTIFICATIONS] Fetch error:', error);
-    res.status(500).json({ error: String(error) });
+    return res.status(200).json(data ?? []);
+  } catch (err) {
+    console.error('Unexpected /notifications error:', err);
+    return res.status(200).json([]);
   }
 });
 
 // Get unread count for a user
 router.get("/unread-count", async (req, res) => {
   try {
-    const userId = req.query.userId || req.user?.id;
+    const userId = req.user?.id;
     
     if (!userId) {
-      return res.status(400).json({ error: 'User ID required' });
+      return res.status(200).json({ unread_count: 0 });
     }
 
-    const { count, error } = await supabase
+    const { count, error } = await supabaseAdmin
       .from('notifications')
       .select('*', { count: 'exact', head: true })
-      .eq('recipient_id', userId)
+      .eq('user_id', userId)
       .eq('is_read', false);
 
     if (error) {
       console.error('[NOTIFICATIONS] Error counting unread:', error);
-      return res.status(500).json({ error: 'Failed to count unread notifications' });
+      return res.status(200).json({ unread_count: 0 });
     }
 
     res.json({ unread_count: count || 0 });
 
   } catch (error) {
     console.error('[NOTIFICATIONS] Count error:', error);
-    res.status(500).json({ error: String(error) });
+    return res.status(200).json({ unread_count: 0 });
   }
 });
 
