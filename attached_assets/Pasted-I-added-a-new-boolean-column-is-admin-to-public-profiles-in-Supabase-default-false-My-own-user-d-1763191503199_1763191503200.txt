@@ -1,0 +1,147 @@
+I added a new boolean column is_admin to public.profiles in Supabase (default false).
+My own user (danieluke97@yahoo.com) already has is_admin = true.
+Please update the codebase so that admin access is based on is_admin.
+
+Goals
+
+Any admin-only routes or pages (like /admin) should allow access when profile.is_admin === true.
+
+The existing “Access Denied – You don’t have administrator privileges” behavior should still happen when is_admin is false or missing.
+
+The header/nav should only show the admin shield / admin link when profile.is_admin is true.
+
+1. Find existing admin checks
+
+Search the codebase for:
+
+"Access Denied"
+
+"administrator privileges"
+
+"/admin"
+
+functions or middleware named something like requireAdmin, adminOnly, isAdmin, or similar.
+
+Identify:
+
+The server-side middleware / route guard that protects admin APIs.
+
+The client-side route or component that renders the /admin page.
+
+The header / navbar logic that decides whether to show any admin icon/link.
+
+2. Update the server-side admin guard to use profiles.is_admin
+
+Wherever the server is currently deciding whether a user is an admin, change the logic so it:
+
+Reads the authenticated user id from the request (whatever we already use, e.g. req.user.id or from the JWT).
+
+Fetches the profile row from Supabase public.profiles including the is_admin column.
+
+Treats the user as admin only if profile.is_admin === true.
+
+If is_admin is false, null, or the profile is missing, respond with the same 403 / “Access Denied” response we use today.
+
+Example pattern for the middleware (adapt the exact code style and imports to this project):
+
+// pseudo-code example, adjust to actual file + imports
+async function requireAdmin(req, res, next) {
+  try {
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({ error: 'Not authenticated' });
+    }
+
+    const { data: profile, error } = await supabaseAdmin
+      .from('profiles')
+      .select('id, is_admin')
+      .eq('id', userId)
+      .single();
+
+    if (error || !profile || !profile.is_admin) {
+      // keep the existing Access Denied response / redirect here
+      return res.status(403).json({ error: 'Access Denied: admin only' });
+    }
+
+    // attach profile if useful
+    (req as any).profile = profile;
+    return next();
+  } catch (err) {
+    console.error('requireAdmin error', err);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+}
+
+
+Make sure all admin API routes (e.g. under /api/admin or /admin/*) are using this updated middleware.
+
+3. Update TypeScript types / profile model to include is_admin
+
+Find where the profile type or interface is defined (for example in types, models, or wherever we map Supabase rows to frontend types).
+
+Add the field:
+
+is_admin?: boolean | null;
+
+
+Make sure any code that builds a Profile object from Supabase includes is_admin in the select list (e.g. .select('id, email, username, is_admin, ...')).
+
+If there is a useProfile or similar hook, ensure it returns is_admin as part of the profile data so the React components can use it.
+
+4. Update the client-side admin route guard
+
+For the React route or component that renders the admin dashboard (e.g. /admin):
+
+Use the loaded profile from the auth/profile context or hook.
+
+Allow rendering the admin page when profile?.is_admin is true.
+
+If is_admin is falsey, keep the existing behavior (show the “Access Denied” component and/or redirect to home).
+
+Example pattern (adjust to actual components):
+
+if (isLoadingProfile) return <Spinner />;
+if (!profile?.is_admin) return <AccessDenied />; // use existing component
+
+return <AdminDashboard />;
+
+5. Update navbar / header to show admin icon only for admins
+
+In the header/nav component (where the admin shield or admin link would appear):
+
+Read the current profile from context/hook.
+
+Only render the admin button/link when profile?.is_admin is true.
+
+Example pattern:
+
+{profile?.is_admin && (
+  <NavLink to="/admin">
+    {/* existing admin icon / text */}
+  </NavLink>
+)}
+
+
+Make sure nothing else about the header layout changes, just the condition.
+
+6. Clean up + verify
+
+Remove any old checks that depended on fields like user_type === 'admin' or similar, if they are no longer used.
+
+Confirm that:
+
+Logging in as my user (danieluke97@yahoo.com):
+
+/admin loads successfully.
+
+The admin icon/link is visible in the header.
+
+A regular non-admin user:
+
+Sees “Access Denied” for /admin.
+
+Does NOT see the admin icon/link in the header.
+
+When done, summarize which files you changed and how the admin check now works.
+
+Please make these changes now.
