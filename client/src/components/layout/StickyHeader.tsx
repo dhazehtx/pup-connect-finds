@@ -21,18 +21,6 @@ const StickyHeader = () => {
   const [showPostCreator, setShowPostCreator] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
 
-  // Debug: Log profile data to check admin status
-  React.useEffect(() => {
-    console.log('[STICKY HEADER] Profile data:', {
-      hasProfile: !!profile,
-      is_admin: profile?.is_admin,
-      role: profile?.role,
-      user_type: profile?.user_type,
-      loading,
-      userId: user?.id
-    });
-  }, [profile, loading, user]);
-
   const handleCreatePost = () => {
     if (!user && !isGuest) {
       navigate('/auth');
