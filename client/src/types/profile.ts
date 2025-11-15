@@ -62,6 +62,7 @@ export interface UserProfile {
   user_type: 'buyer' | 'breeder' | 'shelter' | 'admin';
   verified: boolean;
   verification_badges: VerificationBadge[];
+  is_admin?: boolean;
   
   // Professional Info
   years_experience: number;

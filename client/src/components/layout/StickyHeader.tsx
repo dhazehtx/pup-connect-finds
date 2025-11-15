@@ -122,7 +122,7 @@ const StickyHeader = () => {
                   {/* Admin Panel Access - Only for admin users */}
                   {loading ? (
                     <div className="h-6 w-6" />
-                  ) : (profile?.is_admin || profile?.role === 'admin' || profile?.user_type === 'admin') ? (
+                  ) : profile?.is_admin ? (
                     <Link
                       to="/admin"
                       title="Admin Dashboard"
@@ -173,7 +173,7 @@ const StickyHeader = () => {
                   {/* Mobile Admin Panel Access - Only for admin users */}
                   {loading ? (
                     <div className="h-6 w-6" />
-                  ) : (profile?.is_admin || profile?.role === 'admin' || profile?.user_type === 'admin') && (
+                  ) : profile?.is_admin && (
                     <Link
                       to="/admin"
                       title="Admin Dashboard"  
