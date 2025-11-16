@@ -63,7 +63,7 @@ import { sessionTimeout, lightSessionCheck } from './middleware/sessionTimeout';
 
 // Authentication middleware
 import { authMiddleware } from './middleware/auth';
-import requireAdmin from './middleware/requireAdmin';
+import { requireAdmin } from './middleware/requireAdmin';
 
 // Admin logging utilities
 import { logPostAction, logCommentAction, logSubscriptionAction } from './utils/adminLogger';

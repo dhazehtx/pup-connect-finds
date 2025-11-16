@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { supabase } from "../lib/supabase.js";
+import { supabaseAdmin } from "../lib/supabaseAdmin.js";
 import { notificationService } from "../services/notificationService";
 
 const router = Router();
@@ -125,7 +126,7 @@ router.post("/submit", async (req, res) => {
   }
 });
 
-// Admin review endpoint
+// Admin review endpoint (uses supabaseAdmin)
 router.post("/review", async (req, res) => {
   try {
     const { applicationId, action, notes } = req.body;
@@ -146,19 +147,21 @@ router.post("/review", async (req, res) => {
 
     const status = action === 'approve' ? 'approved' : 'rejected';
 
-    // Update application
-    const { data: application, error } = await supabase
+    // Update application using admin client to bypass RLS
+    const { data: application, error } = await supabaseAdmin
       .from('provider_applications')
       .update({
         status,
+        verification_status: status, // Keep both fields in sync
         reviewed_at: new Date().toISOString(),
         review_notes: notes || null
       })
       .eq('id', applicationId)
+      .eq('status', 'pending') // Prevent race conditions
       .select('*')
       .single();
 
-    if (error || !application) {
+    if (error) {
       console.error('[PROVIDER APP] Error updating application:', error);
       return res.status(500).json({ 
         ok: false, 
@@ -166,19 +169,55 @@ router.post("/review", async (req, res) => {
       });
     }
 
+    if (!application) {
+      return res.status(404).json({ 
+        ok: false, 
+        error: "Application not found or already reviewed" 
+      });
+    }
+
     console.log('[PROVIDER APP] Application reviewed:', application);
 
-    // Update provider status if approved
-    if (status === 'approved') {
-      await supabase
-        .from('providers')
-        .update({ status: 'verified' })
-        .eq('id', application.provider_id);
+    // Update provider status if approved (with error handling)
+    if (status === 'approved' && application.provider_id) {
+      try {
+        const { error: providerError } = await supabaseAdmin
+          .from('providers')
+          .update({ 
+            status: 'verified',
+            verified: true
+          })
+          .eq('id', application.provider_id);
+        
+        if (providerError) {
+          console.error('[PROVIDER APP] Failed to update provider:', providerError);
+          // Don't fail the request, but log the error
+        } else {
+          console.log('[PROVIDER APP] Provider marked as verified');
+        }
+      } catch (providerUpdateError) {
+        console.error('[PROVIDER APP] Provider update exception:', providerUpdateError);
+      }
+
+      // Update user profile (with error handling)
+      try {
+        const { error: profileError } = await supabaseAdmin
+          .from('profiles')
+          .update({ verified: true })
+          .eq('id', application.user_id);
+        
+        if (profileError) {
+          console.error('[PROVIDER APP] Failed to update profile:', profileError);
+        } else {
+          console.log('[PROVIDER APP] User profile marked as verified');
+        }
+      } catch (profileUpdateError) {
+        console.error('[PROVIDER APP] Profile update exception:', profileUpdateError);
+      }
     }
 
     // Notify applicant
     try {
-      // Notify applicant of result
       await notificationService.createNotification({
         recipientId: application.user_id,
         type: status === 'approved' ? 'provider_app_approved' : 'provider_app_rejected',
@@ -209,31 +248,27 @@ router.post("/review", async (req, res) => {
   }
 });
 
-// Get applications for admin
+// Get applications for admin (uses supabaseAdmin for secure access)
 router.get("/", async (req, res) => {
   try {
     const { status } = req.query;
 
-    let query = supabase
+    let query = supabaseAdmin
       .from('provider_applications')
       .select(`
         *,
         profiles:user_id (
           id,
+          username,
           full_name,
-          email
-        ),
-        providers:provider_id (
-          id,
-          legal_name,
-          phone,
-          service_types
+          email,
+          avatar_url
         )
       `)
       .order('submitted_at', { ascending: false });
 
-    if (status) {
-      query = query.eq('status', status);
+    if (status === 'pending') {
+      query = query.eq('status', 'pending');
     }
 
     const { data: applications, error } = await query;
@@ -241,18 +276,206 @@ router.get("/", async (req, res) => {
     if (error) {
       console.error('[PROVIDER APP] Error fetching applications:', error);
       return res.status(500).json({ 
-        ok: false, 
-        error: "Failed to fetch applications" 
+        ok: false,
+        error: "Failed to fetch applications",
+        data: []
       });
     }
 
+    // Transform data to match frontend expectations
+    const transformedData = (applications || []).map((app: any) => ({
+      id: app.id,
+      user_id: app.user_id,
+      provider_id: app.provider_id,
+      front_image_url: app.front_image_url,
+      back_image_url: app.back_image_url,
+      verification_status: app.status, // Map 'status' to 'verification_status'
+      created_at: app.submitted_at || app.created_at,
+      user: app.profiles ? {
+        id: app.profiles.id,
+        username: app.profiles.username || 'user',
+        full_name: app.profiles.full_name || 'Unknown User',
+        email: app.profiles.email,
+        avatar_url: app.profiles.avatar_url
+      } : {
+        id: app.user_id,
+        username: 'user',
+        full_name: 'Unknown User',
+        email: '',
+        avatar_url: null
+      },
+      // Add placeholder fields that the frontend expects but aren't in the DB
+      service_type: 'provider',
+      bio: 'Service provider application',
+      price: '0',
+      location: null,
+      availability: null
+    }));
+
     res.json({ 
-      ok: true, 
-      applications: applications || [] 
+      ok: true,
+      data: transformedData
     });
 
   } catch (error) {
     console.error('[PROVIDER APP] Fetch error:', error);
+    res.status(500).json({ 
+      ok: false, 
+      error: String(error),
+      data: []
+    });
+  }
+});
+
+// PATCH endpoint for approve/reject (admin only, uses supabaseAdmin)
+router.patch("/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status, notes } = req.body;
+
+    if (!status || !['verified', 'rejected', 'approved'].includes(status)) {
+      return res.status(400).json({ 
+        ok: false, 
+        error: "Invalid status. Must be 'verified', 'approved', or 'rejected'" 
+      });
+    }
+
+    // Map 'verified' to 'approved' for consistency
+    const dbStatus = status === 'verified' ? 'approved' : status;
+
+    console.log(`[PROVIDER APP] Updating application ${id} to status: ${dbStatus}`);
+
+    // Update application status with race condition protection
+    const { data: application, error } = await supabaseAdmin
+      .from('provider_applications')
+      .update({
+        status: dbStatus,
+        verification_status: dbStatus, // Keep both fields in sync
+        reviewed_at: new Date().toISOString(),
+        review_notes: notes || null
+      })
+      .eq('id', id)
+      .eq('status', 'pending') // Prevent race conditions - only update if still pending
+      .select('*, profiles:user_id(id, username, full_name, email, avatar_url)')
+      .single();
+
+    if (error) {
+      console.error('[PROVIDER APP] Error updating application:', error);
+      return res.status(500).json({ 
+        ok: false, 
+        error: "Failed to update application" 
+      });
+    }
+
+    if (!application) {
+      return res.status(404).json({ 
+        ok: false, 
+        error: "Application not found or already reviewed" 
+      });
+    }
+
+    console.log('[PROVIDER APP] Application updated:', application);
+
+    // Update provider status if approved (with error handling)
+    if (dbStatus === 'approved' && application.provider_id) {
+      try {
+        const { error: providerError } = await supabaseAdmin
+          .from('providers')
+          .update({ 
+            status: 'verified',
+            verified: true
+          })
+          .eq('id', application.provider_id);
+        
+        if (providerError) {
+          console.error('[PROVIDER APP] Failed to update provider:', providerError);
+          // Return error to admin so they know something went wrong
+          return res.status(500).json({
+            ok: false,
+            error: 'Application updated but failed to verify provider. Please contact support.'
+          });
+        }
+        console.log('[PROVIDER APP] Provider marked as verified');
+      } catch (providerUpdateError) {
+        console.error('[PROVIDER APP] Provider update exception:', providerUpdateError);
+        return res.status(500).json({
+          ok: false,
+          error: 'Application updated but provider verification failed.'
+        });
+      }
+
+      // Update user profile (with error handling)
+      try {
+        const { error: profileError } = await supabaseAdmin
+          .from('profiles')
+          .update({ verified: true })
+          .eq('id', application.user_id);
+        
+        if (profileError) {
+          console.error('[PROVIDER APP] Failed to update profile:', profileError);
+          // Don't fail the request for profile update, just log
+        } else {
+          console.log('[PROVIDER APP] User profile marked as verified');
+        }
+      } catch (profileUpdateError) {
+        console.error('[PROVIDER APP] Profile update exception:', profileUpdateError);
+      }
+    }
+
+    // Notify applicant
+    try {
+      await notificationService.createNotification({
+        recipientId: application.user_id,
+        type: dbStatus === 'approved' ? 'provider_app_approved' : 'provider_app_rejected',
+        message: dbStatus === 'approved' 
+          ? 'Your service provider application has been approved!' 
+          : 'Your service provider application has been reviewed.',
+        entityTable: 'provider_applications',
+        entityId: application.id,
+        targetUrl: '/services/provider/dashboard',
+        meta: { status: dbStatus, notes }
+      });
+      console.log('[PROVIDER APP] Applicant notified successfully');
+    } catch (notifyError) {
+      console.error('[PROVIDER APP] Failed to notify applicant:', notifyError);
+    }
+
+    // Transform response to match frontend expectations
+    const transformedApplication = {
+      id: application.id,
+      user_id: application.user_id,
+      provider_id: application.provider_id,
+      front_image_url: application.front_image_url,
+      back_image_url: application.back_image_url,
+      verification_status: application.status,
+      created_at: application.submitted_at,
+      user: application.profiles ? {
+        id: application.profiles.id,
+        username: application.profiles.username || 'user',
+        full_name: application.profiles.full_name || 'Unknown User',
+        email: application.profiles.email,
+        avatar_url: application.profiles.avatar_url
+      } : {
+        id: application.user_id,
+        username: 'user',
+        full_name: 'Unknown User',
+        email: '',
+        avatar_url: null
+      },
+      service_type: 'provider',
+      bio: 'Service provider application',
+      price: '0',
+      location: null,
+      availability: null
+    };
+
+    res.json({ 
+      ok: true, 
+      application: transformedApplication
+    });
+
+  } catch (error) {
+    console.error('[PROVIDER APP] Update error:', error);
     res.status(500).json({ 
       ok: false, 
       error: String(error) 
@@ -265,7 +488,7 @@ router.get("/:id", async (req, res) => {
   try {
     const { id } = req.params;
 
-    const { data: application, error } = await supabase
+    const { data: application, error } = await supabaseAdmin
       .from('provider_applications')
       .select(`
         *,
@@ -274,12 +497,6 @@ router.get("/:id", async (req, res) => {
           full_name,
           email,
           avatar_url
-        ),
-        providers:provider_id (
-          id,
-          legal_name,
-          phone,
-          service_types
         )
       `)
       .eq('id', id)
