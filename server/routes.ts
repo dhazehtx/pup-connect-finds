@@ -63,6 +63,7 @@ import { sessionTimeout, lightSessionCheck } from './middleware/sessionTimeout';
 
 // Authentication middleware
 import { authMiddleware } from './middleware/auth';
+import requireAdmin from './middleware/requireAdmin';
 
 // Admin logging utilities
 import { logPostAction, logCommentAction, logSubscriptionAction } from './utils/adminLogger';
@@ -254,6 +255,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Provider applications routes (protected by auth middleware)
   app.use('/api/provider-applications', providerApplicationsRouter);
+  app.use('/api/admin/service-applications', requireAdmin, providerApplicationsRouter);
   
   // Notifications routes (protected by auth middleware)
   app.use('/api/notifications', notificationsRouter);
