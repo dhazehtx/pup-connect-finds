@@ -32,16 +32,12 @@ function ServiceProviderApplications() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const { data: applications = [], isLoading } = useQuery({
+  const { data: applicationsData, isLoading } = useQuery<{ data: ServiceApplication[] }>({
     queryKey: ['/api/admin/service-applications'],
-    queryFn: async () => {
-      const response = await fetch('/api/admin/service-applications');
-      if (!response.ok) throw new Error('Failed to fetch applications');
-      
-      const result = await response.json();
-      return result.data || [];
-    },
   });
+
+  // Extract applications array from the response
+  const applications = applicationsData?.data || [];
 
   const reviewApplication = useMutation({
     mutationFn: async ({ id, status }: { id: string; status: 'verified' | 'rejected' }) => {

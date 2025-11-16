@@ -1,0 +1,126 @@
+We’re still having an issue with the admin service applications page.
+Context:
+
+URL: /admin/service-applications
+
+In Chrome DevTools → Network, I see requests named service-applications returning 403 Forbidden.
+
+In Supabase, there is 1 row in public.provider_applications with status = 'pending' and the new columns:
+
+front_image_url
+
+back_image_url
+
+submitted_at
+
+verification_status (default 'pending')
+
+In public.profiles, my row (email = danieluke97@yahoo.com) has is_admin = true.
+
+I need you to fully fix the admin review flow for service providers so that:
+
+Backend API
+
+Create or fix an Express route at:
+GET /api/admin/service-applications
+PATCH /api/admin/service-applications/:id
+
+Use our admin/supabase service client (bypassing RLS) to:
+
+On GET:
+
+Return all rows from public.provider_applications joined with the related profile (basic info like name, email, username, location).
+
+Support an optional status=pending query param to only return pending ones.
+
+On PATCH:
+
+Accept a JSON body like { status: 'approved' } or { status: 'rejected' }.
+
+Only allow transitions from status = 'pending' to approved or rejected (avoid race conditions).
+
+Update BOTH:
+
+provider_applications.status
+
+provider_applications.verification_status (e.g. 'approved' | 'rejected' | 'pending').
+
+On approval:
+
+Mark the related provider as verified in the appropriate table(s) (e.g. providers, profiles, or service_providers – use whatever structure is already in this project for verified providers).
+
+On rejection:
+
+Just mark the application as rejected and do NOT enable provider access.
+
+Make sure these routes are protected by our admin middleware (see next point).
+
+Admin auth middleware
+
+Find the existing requireAdmin (or similar) middleware used for admin routes.
+
+Make sure it:
+
+Uses the authenticated Supabase user from the request.
+
+Looks up their row in public.profiles.
+
+Checks profiles.is_admin === true.
+
+If the user is not admin, responds with 403 before reaching the route handler.
+
+Confirm that when I am logged in as danieluke97@yahoo.com, requireAdmin passes successfully.
+
+Frontend wiring for /admin/service-applications
+
+On the React page for the Service Provider Applications admin screen:
+
+Call the new backend route:
+GET /api/admin/service-applications?status=pending for the Pending tab.
+GET /api/admin/service-applications for All Applications.
+
+Render the returned applications in a list / table with:
+
+Applicant name / email
+
+Submitted date (submitted_at)
+
+Current status (status / verification_status)
+
+Each row should have Approve and Reject buttons that:
+
+Call PATCH /api/admin/service-applications/:id with { status: 'approved' } or { status: 'rejected' }.
+
+After a successful response, refresh the list so counts and rows update.
+
+Show a loading state while fetching and a friendly message if there are 0 pending applications.
+
+Fix the 403 issue
+
+Right now, in DevTools Network, I see service-applications requests returning 403 Forbidden.
+
+Update the frontend to call the correct /api/admin/service-applications endpoint you implemented above, not any placeholder path.
+
+Then, verify in DevTools that:
+
+The request to /api/admin/service-applications returns 200 when I’m logged in as admin.
+
+The JSON payload includes my pending application.
+
+Finally, confirm that the /admin/service-applications page shows my application with working Approve/Reject buttons.
+
+Please:
+
+Show me in your summary which files you edited (backend routes, middleware, and the React admin page).
+
+Confirm in your summary that the following manual test passes:
+
+Log in as danieluke97@yahoo.com.
+
+Visit /admin/service-applications.
+
+See my pending application listed.
+
+Click Approve → status updates and the row disappears from the Pending tab.
+
+Switch to All Applications tab → see the approved record there with the correct status.
