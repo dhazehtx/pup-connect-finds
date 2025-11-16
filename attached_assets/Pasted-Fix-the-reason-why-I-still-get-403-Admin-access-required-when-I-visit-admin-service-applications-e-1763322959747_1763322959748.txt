@@ -1,0 +1,56 @@
+Fix the reason why I still get 403 Admin access required when I visit /admin/service-applications, even though my row in public.profiles has is_admin = true for danieluke97@yahoo.com.
+
+What I’m seeing:
+
+The /admin dashboard loads fine and shows the admin shield icon.
+
+In DevTools → Network, when I load /admin/service-applications I see:
+
+Request: GET /api/admin/service-applications
+
+Status: 403 Forbidden
+
+Response JSON: {"error": "Admin access required"}
+
+This means the Express middleware for admin is rejecting the request.
+
+What I want you to do:
+
+Search the codebase for the string "Admin access required" and open the middleware / route handler where this 403 is returned (likely something like requireAdmin, adminGuard, or similar).
+
+Update that middleware so it uses the public.profiles table and the is_admin boolean field to determine admin access. The logic should be:
+
+Read the Supabase auth user from the JWT on the request (whatever we currently use in the app – e.g. getUserIdFromToken, supabase.auth.getUser, or our existing helper).
+
+Look up the profile with that user id from public.profiles.
+
+If profile.is_admin === true, allow the request:
+
+(req as any).adminProfile = profile;
+next();
+
+
+Otherwise, return 403 with the same {"error":"Admin access required"} message.
+
+Make sure the middleware used by the /api/admin/service-applications and /api/admin/log-action routes is the updated one. If any admin routes are using a different check (for example checking user_profiles.role or a hard-coded list of emails), refactor them to use this unified requireAdmin that reads profiles.is_admin.
+
+Add temporary logging so we can confirm what’s happening. For example, inside the middleware log:
+
+console.log('[ADMIN CHECK]', {
+  userId,
+  email: profile?.email,
+  isAdmin: profile?.is_admin,
+});
+
+
+After you change the middleware, restart the server if needed and then:
+
+Visit /admin (should still work).
+
+Visit /admin/service-applications and confirm that:
+
+The request GET /api/admin/service-applications now returns 200.
+
+My pending application from public.provider_applications shows in the UI with Approve / Reject buttons.
+
+When you’re done, summarize exactly what files and functions you changed, and paste any relevant console logs from the [ADMIN CHECK] output to confirm that my profile is detected as is_admin: true.

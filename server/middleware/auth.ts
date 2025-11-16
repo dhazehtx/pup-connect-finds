@@ -1,7 +1,8 @@
 import { Request, Response, NextFunction } from 'express';
 import { createClient } from '@supabase/supabase-js';
+import { supabaseAdmin } from '../lib/supabaseAdmin.js';
 
-// Initialize Supabase client with hardcoded values for now
+// Initialize Supabase client for JWT verification
 const supabase = createClient(
   'https://wneticxjhxpjpfghnclr.supabase.co',
   process.env.SUPABASE_SERVICE_ROLE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InduZXRpY3hqaHhwanBmZ2huY2xyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDgzOTQ5MDksImV4cCI6MjA2Mzk3MDkwOX0.7bFOxaZyK97nruVmJFbyNpd6VnmgJpGVTzYtcZ74lUo'
@@ -82,12 +83,21 @@ export const authMiddleware = async (req: Request, res: Response, next: NextFunc
       return next();
     }
 
-    // Fetch user profile to get is_admin status
-    const { data: profile } = await supabase
+    // Fetch user profile to get is_admin status using admin client to bypass RLS
+    console.log('[AUTH MIDDLEWARE] Looking up profile for user:', user.id, user.email);
+    const { data: profile, error: profileError } = await supabaseAdmin
       .from('profiles')
-      .select('is_admin, role')
+      .select('is_admin, role, username')
       .eq('id', user.id)
       .single();
+
+    console.log('[AUTH MIDDLEWARE] Profile lookup result:', {
+      userId: user.id,
+      email: user.email,
+      hasProfile: !!profile,
+      isAdmin: profile?.is_admin,
+      error: profileError?.message
+    });
 
     // Add user info to request with admin status
     req.user = {
@@ -97,6 +107,8 @@ export const authMiddleware = async (req: Request, res: Response, next: NextFunc
       role: profile?.role,
       ...user.user_metadata
     };
+
+    console.log('[AUTH MIDDLEWARE] Set req.user with is_admin:', req.user.is_admin);
 
     // Add isAuthenticated method that returns true
     req.isAuthenticated = () => true;

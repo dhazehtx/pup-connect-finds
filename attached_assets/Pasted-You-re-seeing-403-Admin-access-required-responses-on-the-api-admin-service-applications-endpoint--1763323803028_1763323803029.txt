@@ -1,0 +1,94 @@
+You’re seeing 403 “Admin access required” responses on the /api/admin/service-applications endpoint even though the database has is_admin = true for my profile (email: danieluke97@yahoo.com).
+
+I need you to FIX the admin authorization logic so that my account is treated as an admin and the Service Provider Applications page can load real data.
+
+Here’s exactly what I want you to do:
+
+1. Locate the admin auth middleware
+   - Find the Express middleware that enforces admin access. It’s probably named something like:
+     - requireAdmin
+     - adminOnly
+     - isAdminMiddleware
+   - It will be used on routes like:
+     - /api/admin/service-applications
+     - /api/admin/log-action
+
+2. Confirm how admin is currently checked
+   - Open that middleware file and check:
+     - How it reads the authenticated user (Supabase JWT, session, etc.)
+     - Which field or table it uses to decide “is admin”.
+   - Right now, the client gets this JSON from the server when calling /api/admin/service-applications:
+     { "error": "Admin access required" }
+   - That means the middleware itself is returning the 403, not a missing token.
+
+3. Update the middleware to use public.profiles.is_admin
+   - We already have a boolean column is_admin on public.profiles with a default of false.
+   - For my user (email: danieluke97@yahoo.com) it is set to true.
+
+   I want the middleware logic to work like this (pseudocode):
+
+   - Read the Supabase JWT from the request:
+     - Use the Authorization: Bearer <token> header or whatever helper you already use in apiRequest.
+   - Use Supabase Auth to get the user:
+     const { data, error } = await supabase.auth.getUser(token);
+   - If there’s no user, return 401.
+   - If there is a user, query the profiles table by user id:
+
+     SELECT id, email, is_admin
+     FROM public.profiles
+     WHERE id = auth_user_id
+     LIMIT 1;
+
+     where auth_user_id is the Supabase auth user id you got from getUser().
+
+   - If no profile is found, return 403 with:
+     { error: "Admin profile not found" }
+
+   - If profile.is_admin === true:
+     - Attach the profile to the request (e.g. req.adminProfile or req.userProfile) and call next().
+
+   - Otherwise:
+     - Return 403 with:
+       { error: "Admin access required" }
+
+   IMPORTANT:
+   - Do NOT depend on any old role field, or anything in user metadata.
+   - The ONLY source of truth for admin access must be public.profiles.is_admin.
+   - Make sure this middleware is actually applied to:
+     - /api/admin/service-applications
+     - /api/admin/log-action
+     and any other /api/admin/* routes.
+
+4. Add clear debug logging (temporarily)
+   - Inside the middleware, before returning 403, log something like:
+
+     console.log("[ADMIN DEBUG] userId:", userId, "email:", profile?.email, "is_admin:", profile?.is_admin);
+
+   - Also log when access is granted:
+
+     console.log("[ADMIN DEBUG] Admin access granted for", profile.email);
+
+   This will show up in the server logs pane in Replit.
+
+5. Make sure the frontend uses the authenticated apiRequest helper
+   - Find where /api/admin/service-applications is called on the client.
+   - Ensure it uses the same apiRequest helper (or equivalent) that sends the JWT in the Authorization header.
+   - If it was using plain fetch without auth headers, update it to use the authenticated helper so the backend actually receives the token.
+
+6. Test end-to-end
+   - After updating the middleware and rebuilding:
+     - Log in as danieluke97@yahoo.com.
+     - Visit /admin.
+     - Then visit /admin/service-applications.
+   - Confirm in the Network tab that:
+     - GET /api/admin/service-applications returns 200 OK (not 403).
+   - Confirm in the UI that:
+     - The Service Provider Applications table shows my pending application row instead of “All caught up!”.
+
+7. Leave a short summary comment in the middleware file
+   - Add a brief code comment at the top of the middleware explaining that admin access is controlled via public.profiles.is_admin so it’s clear for future work.
+
+Please implement this carefully, focusing ONLY on:
+- the admin auth middleware, and
+- the admin API calls on the frontend,
+without breaking general user login or other non-admin APIs.
