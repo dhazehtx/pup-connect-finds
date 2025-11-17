@@ -87,7 +87,7 @@ export const authMiddleware = async (req: Request, res: Response, next: NextFunc
     console.log('[AUTH MIDDLEWARE] Looking up profile for user:', user.id, user.email);
     const { data: profile, error: profileError } = await supabaseAdmin
       .from('profiles')
-      .select('is_admin, role, username')
+      .select('is_admin, username')
       .eq('id', user.id)
       .single();
 
@@ -104,7 +104,7 @@ export const authMiddleware = async (req: Request, res: Response, next: NextFunc
       id: user.id,
       email: user.email,
       is_admin: profile?.is_admin || false,
-      role: profile?.role,
+      username: profile?.username,
       ...user.user_metadata
     };
 
