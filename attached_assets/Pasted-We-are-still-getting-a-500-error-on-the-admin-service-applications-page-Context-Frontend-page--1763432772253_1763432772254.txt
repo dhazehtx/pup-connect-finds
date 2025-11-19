@@ -1,0 +1,63 @@
+We are still getting a 500 error on the admin service applications page.
+
+Context:
+
+Frontend page: /admin/service-applications
+
+Network tab shows the request service-applications with Status: 500 and JSON:
+{ "ok": false, "error": "Failed to fetch applications", "data": [] }
+
+Backend routes file: server/routes/providerApplications.ts
+
+At the bottom of that file I now have an ADMIN SERVICE APPLICATIONS section with:
+
+router.get('/', async (req, res) => { ... })
+
+router.patch('/:id', async (req, res) => { ... })
+
+In server/routes/routes.ts we mount it like this:
+
+app.use('/api/admin/service-applications', requireAdmin, providerApplicationsRouter);
+
+
+In Supabase, public.provider_applications exists and has a row with status = 'submitted' and verification_status = 'pending'.
+
+My profiles row for danieluke97@yahoo.com has is_admin = true.
+
+Task:
+
+Run the dev server, reproduce the /api/admin/service-applications?status=pending request, and check the server console logs. You should see [ADMIN SERVICE APPLICATIONS] logs from the GET handler.
+
+Find the exact Supabase or runtime error that is causing the 500 response.
+
+Fix ONLY the admin service applications API, keeping the shape of the responses the same:
+
+GET /api/admin/service-applications?status=pending → { ok: true, data: [...] }
+
+GET /api/admin/service-applications → { ok: true, data: [...] }
+
+On error, still return { ok: false, error: "..." , data: [] } but make sure normal happy path returns 200.
+
+Do NOT rename tables or create new ones. Use the existing public.provider_applications table. You can join to profiles or providers for display fields if needed, but the query must not fail if join tables are empty.
+
+Make sure requireAdmin still protects this route and that when I am logged in as danieluke97@yahoo.com I get 200, not 403.
+
+Update the admin React page (if needed) ONLY so that it correctly calls /api/admin/service-applications for:
+
+Pending tab → ?status=pending
+
+All Applications tab → no query params
+
+After you’re done, confirm the manual test:
+
+Log in as my admin user
+
+Visit /admin/service-applications
+
+See my submitted provider application listed in Pending
+
+Approve or Reject it
+
+Row disappears from Pending and shows correctly in All Applications with the updated status.
+
+Please list exactly which files and lines you changed in your summary, and don’t touch unrelated features (Stripe payout, messaging, etc.).

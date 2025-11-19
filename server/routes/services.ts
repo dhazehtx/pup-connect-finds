@@ -245,53 +245,8 @@ router.post("/book/:providerId", authMiddleware, async (req, res) => {
 
 // ===== ADMIN ROUTES =====
 
-// GET /api/admin/service-applications - Get pending applications (Admin only)
-// Admin access is controlled by public.profiles.is_admin field
-router.get("/admin/service-applications", authMiddleware, async (req, res) => {
-  try {
-    // Check admin permissions
-    if (!req.user?.is_admin) {
-      console.log('[ADMIN SERVICE APPLICATIONS] Access denied - not admin:', req.user?.email);
-      return res.status(403).json({ error: "Admin access required" });
-    }
-
-    console.log('[ADMIN SERVICE APPLICATIONS] Fetching from admin_provider_queue view');
-    
-    // Use admin_provider_queue view if available, otherwise fall back to base table
-    const source = 'admin_provider_queue';
-
-    const { data, error } = await supabaseAdmin
-      .from(source)
-      .select('*')
-      .in('status', ['submitted'])
-      .eq('verification_status', 'pending')
-      .order('submitted_at', { ascending: true });
-
-    if (error) {
-      console.error('[ADMIN SERVICE APPLICATIONS] Supabase error:', error);
-      return res.status(500).json({
-        ok: false,
-        error: error.message,
-        data: [],
-      });
-    }
-
-    console.log('[ADMIN SERVICE APPLICATIONS] Found', data?.length || 0, 'pending applications');
-
-    return res.json({
-      ok: true,
-      error: null,
-      data: data ?? [],
-    });
-  } catch (err: any) {
-    console.error('[ADMIN SERVICE APPLICATIONS] Unexpected server error:', err);
-    return res.status(500).json({
-      ok: false,
-      error: 'Unexpected server error while fetching applications',
-      data: [],
-    });
-  }
-});
+// Note: Admin service application routes are now handled by providerApplicationsRouter
+// mounted at /api/admin/service-applications in server/routes.ts
 
 // PATCH /api/admin/service-applications/:id - Approve/reject application (Admin only)
 router.patch("/admin/service-applications/:id", authMiddleware, async (req, res) => {
