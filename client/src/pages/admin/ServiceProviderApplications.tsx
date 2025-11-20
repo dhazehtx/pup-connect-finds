@@ -26,7 +26,6 @@ interface ServiceApplication {
     id: string;
     username: string;
     full_name: string;
-    email: string;
     avatar_url?: string;
   };
 }
@@ -112,11 +111,17 @@ function ServiceProviderApplications() {
             </Avatar>
             
             <div>
-              <h3 className="font-semibold text-lg">
+              <a 
+                href={`/profile/${application.user.username}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-semibold text-lg hover:text-primary transition-colors"
+                data-testid={`link-profile-${application.user_id}`}
+              >
                 {application.user.full_name}
-              </h3>
+              </a>
               <p className="text-sm text-muted-foreground">
-                @{application.user.username} • {application.user.email}
+                @{application.user.username}
               </p>
               <div className="flex items-center gap-1 text-sm text-muted-foreground mt-1">
                 <span>{serviceTypeIcons[application.service_type] || '🐕'}</span>
@@ -305,11 +310,18 @@ function ServiceProviderApplications() {
                   </AvatarFallback>
                 </Avatar>
                 <div className="flex-1">
-                  <h3 className="font-semibold text-lg">{detailedApp.user.full_name}</h3>
+                  <a 
+                    href={`/profile/${detailedApp.user.username}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="font-semibold text-lg hover:text-primary transition-colors block"
+                    data-testid={`link-detailed-profile-${detailedApp.user_id}`}
+                  >
+                    {detailedApp.user.full_name}
+                  </a>
                   <p className="text-sm text-muted-foreground">@{detailedApp.user.username}</p>
-                  <p className="text-sm text-muted-foreground">{detailedApp.user.email}</p>
                   {detailedApp.user.phone && (
-                    <p className="text-sm text-muted-foreground">📞 {detailedApp.user.phone}</p>
+                    <p className="text-sm text-muted-foreground mt-1">📞 {detailedApp.user.phone}</p>
                   )}
                   {detailedApp.user.location && (
                     <p className="text-sm text-muted-foreground">📍 {detailedApp.user.location}</p>
