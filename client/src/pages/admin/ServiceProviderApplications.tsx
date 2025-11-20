@@ -324,33 +324,48 @@ function ServiceProviderApplications() {
           ) : detailedApp ? (
             <div className="space-y-6 mt-6">
               {/* User Info */}
-              <div className="flex items-start gap-4 p-4 bg-muted/50 rounded-lg">
-                <Avatar className="h-16 w-16">
-                  <AvatarImage src={detailedApp.user.avatar_url} />
-                  <AvatarFallback>
-                    {detailedApp.user.full_name?.charAt(0) || 'U'}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="flex-1">
-                  <button 
-                    onClick={() => {
-                      setSelectedAppId(null); // Close drawer
-                      navigate(`/profile/${detailedApp.user.username}`);
-                    }}
-                    className="font-semibold text-lg hover:text-primary transition-colors text-left block"
-                    data-testid={`link-detailed-profile-${detailedApp.user_id}`}
-                  >
-                    {detailedApp.user.full_name}
-                  </button>
-                  <p className="text-sm text-muted-foreground">@{detailedApp.user.username}</p>
-                  {detailedApp.user.phone && (
-                    <p className="text-sm text-muted-foreground mt-1">📞 {detailedApp.user.phone}</p>
-                  )}
-                  {detailedApp.user.location && (
-                    <p className="text-sm text-muted-foreground">📍 {detailedApp.user.location}</p>
-                  )}
-                </div>
-              </div>
+              {(() => {
+                const user = detailedApp.user; // may be undefined
+                
+                const displayName =
+                  user?.full_name ||
+                  user?.username ||
+                  "Unknown User";
+                
+                const avatarSrc =
+                  user?.avatar_url ||
+                  "/images/default-avatar.png";
+                
+                return (
+                  <div className="flex items-start gap-4 p-4 bg-muted/50 rounded-lg">
+                    <Avatar className="h-16 w-16">
+                      <AvatarImage src={avatarSrc} />
+                      <AvatarFallback>
+                        {displayName.charAt(0)}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1">
+                      <button 
+                        onClick={() => {
+                          setSelectedAppId(null); // Close drawer
+                          navigate(`/profile/${user?.username || 'user'}`);
+                        }}
+                        className="font-semibold text-lg hover:text-primary transition-colors text-left block"
+                        data-testid={`link-detailed-profile-${detailedApp.user_id}`}
+                      >
+                        {displayName}
+                      </button>
+                      <p className="text-sm text-muted-foreground">@{user?.username || "user"}</p>
+                      {user?.phone && (
+                        <p className="text-sm text-muted-foreground mt-1">📞 {user.phone}</p>
+                      )}
+                      {user?.location && (
+                        <p className="text-sm text-muted-foreground">📍 {user.location}</p>
+                      )}
+                    </div>
+                  </div>
+                );
+              })()}
 
               {/* Provider Info */}
               {detailedApp.provider && (
