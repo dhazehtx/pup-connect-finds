@@ -1,11 +1,14 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { CheckCircle, XCircle, Clock, MapPin, DollarSign, Shield } from 'lucide-react';
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
+import { CheckCircle, XCircle, Clock, MapPin, DollarSign, Shield, Eye, FileText } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 
@@ -31,6 +34,8 @@ interface ServiceApplication {
 function ServiceProviderApplications() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [selectedAppId, setSelectedAppId] = useState<string | null>(null);
+  const [reviewNotes, setReviewNotes] = useState('');
 
   const { data: applicationsData, isLoading } = useQuery<{ data: ServiceApplication[] }>({
     queryKey: ['/api/admin/service-applications'],
@@ -39,11 +44,23 @@ function ServiceProviderApplications() {
   // Extract applications array from the response
   const applications = applicationsData?.data || [];
 
+  // Fetch detailed application data when drawer opens
+  const { data: detailedApp, isLoading: loadingDetails } = useQuery({
+    queryKey: ['/api/admin/service-applications', selectedAppId],
+    queryFn: async () => {
+      if (!selectedAppId) return null;
+      const response = await fetch(`/api/admin/service-applications/${selectedAppId}`);
+      const data = await response.json();
+      return data.data;
+    },
+    enabled: !!selectedAppId,
+  });
+
   const reviewApplication = useMutation({
-    mutationFn: async ({ id, status }: { id: string; status: 'verified' | 'rejected' }) => {
+    mutationFn: async ({ id, status, notes }: { id: string; status: 'verified' | 'rejected'; notes?: string }) => {
       return apiRequest(`/api/admin/service-applications/${id}`, {
         method: 'PATCH',
-        body: JSON.stringify({ status }),
+        body: JSON.stringify({ status, notes }),
       });
     },
     onSuccess: (_, { status }) => {
@@ -52,6 +69,8 @@ function ServiceProviderApplications() {
         description: `The service provider application has been ${status}.`,
       });
       queryClient.invalidateQueries({ queryKey: ['/api/admin/service-applications'] });
+      setSelectedAppId(null);
+      setReviewNotes('');
     },
     onError: (error: any) => {
       toast({
@@ -152,22 +171,13 @@ function ServiceProviderApplications() {
         {/* Action Buttons */}
         <div className="flex gap-2 pt-2">
           <Button
-            onClick={() => reviewApplication.mutate({ id: application.id, status: 'verified' })}
-            disabled={reviewApplication.isPending}
-            className="flex-1 bg-green-600 hover:bg-green-700"
-          >
-            <CheckCircle className="w-4 h-4 mr-2" />
-            Approve
-          </Button>
-          
-          <Button
-            onClick={() => reviewApplication.mutate({ id: application.id, status: 'rejected' })}
-            disabled={reviewApplication.isPending}
-            variant="destructive"
+            onClick={() => setSelectedAppId(application.id)}
+            variant="outline"
             className="flex-1"
+            data-testid={`button-review-${application.id}`}
           >
-            <XCircle className="w-4 h-4 mr-2" />
-            Reject
+            <Eye className="w-4 h-4 mr-2" />
+            View Details & Review
           </Button>
         </div>
 
@@ -267,6 +277,169 @@ function ServiceProviderApplications() {
           )}
         </TabsContent>
       </Tabs>
+
+      {/* Review Drawer */}
+      <Sheet open={!!selectedAppId} onOpenChange={(open) => !open && setSelectedAppId(null)}>
+        <SheetContent className="w-full sm:max-w-2xl overflow-y-auto">
+          <SheetHeader>
+            <SheetTitle>Review Provider Application</SheetTitle>
+            <SheetDescription>
+              Review the applicant's information and ID verification documents
+            </SheetDescription>
+          </SheetHeader>
+
+          {loadingDetails ? (
+            <div className="space-y-4 mt-6">
+              <div className="h-20 bg-muted rounded animate-pulse" />
+              <div className="h-40 bg-muted rounded animate-pulse" />
+              <div className="h-40 bg-muted rounded animate-pulse" />
+            </div>
+          ) : detailedApp ? (
+            <div className="space-y-6 mt-6">
+              {/* User Info */}
+              <div className="flex items-start gap-4 p-4 bg-muted/50 rounded-lg">
+                <Avatar className="h-16 w-16">
+                  <AvatarImage src={detailedApp.user.avatar_url} />
+                  <AvatarFallback>
+                    {detailedApp.user.full_name?.charAt(0) || 'U'}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="flex-1">
+                  <h3 className="font-semibold text-lg">{detailedApp.user.full_name}</h3>
+                  <p className="text-sm text-muted-foreground">@{detailedApp.user.username}</p>
+                  <p className="text-sm text-muted-foreground">{detailedApp.user.email}</p>
+                  {detailedApp.user.phone && (
+                    <p className="text-sm text-muted-foreground">📞 {detailedApp.user.phone}</p>
+                  )}
+                  {detailedApp.user.location && (
+                    <p className="text-sm text-muted-foreground">📍 {detailedApp.user.location}</p>
+                  )}
+                </div>
+              </div>
+
+              {/* Provider Info */}
+              {detailedApp.provider && (
+                <div className="p-4 bg-blue-50 dark:bg-blue-950 rounded-lg">
+                  <h4 className="font-semibold mb-2">Provider Business Info</h4>
+                  <div className="space-y-1 text-sm">
+                    {detailedApp.provider.business_name && (
+                      <p><strong>Business:</strong> {detailedApp.provider.business_name}</p>
+                    )}
+                    {detailedApp.provider.service_type && (
+                      <p><strong>Service:</strong> {detailedApp.provider.service_type}</p>
+                    )}
+                    {detailedApp.provider.description && (
+                      <p className="mt-2">{detailedApp.provider.description}</p>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* ID Verification Photos */}
+              <div>
+                <h4 className="font-semibold mb-3 flex items-center gap-2">
+                  <FileText className="w-4 h-4" />
+                  ID Verification Documents
+                </h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {detailedApp.front_image_url ? (
+                    <div>
+                      <Label className="text-xs text-muted-foreground mb-2 block">Front of ID</Label>
+                      <img
+                        src={detailedApp.front_image_url}
+                        alt="ID Front"
+                        className="w-full rounded-lg border-2 border-border cursor-pointer hover:opacity-90 transition"
+                        onClick={() => window.open(detailedApp.front_image_url, '_blank')}
+                        data-testid="image-id-front"
+                      />
+                    </div>
+                  ) : (
+                    <div className="text-sm text-muted-foreground italic">No front ID image uploaded</div>
+                  )}
+
+                  {detailedApp.back_image_url ? (
+                    <div>
+                      <Label className="text-xs text-muted-foreground mb-2 block">Back of ID</Label>
+                      <img
+                        src={detailedApp.back_image_url}
+                        alt="ID Back"
+                        className="w-full rounded-lg border-2 border-border cursor-pointer hover:opacity-90 transition"
+                        onClick={() => window.open(detailedApp.back_image_url, '_blank')}
+                        data-testid="image-id-back"
+                      />
+                    </div>
+                  ) : (
+                    <div className="text-sm text-muted-foreground italic">No back ID image uploaded</div>
+                  )}
+                </div>
+              </div>
+
+              {/* Application Status */}
+              <div className="p-4 border rounded-lg">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="font-semibold">Status</span>
+                  <Badge variant="outline">{detailedApp.verification_status}</Badge>
+                </div>
+                <div className="text-sm text-muted-foreground">
+                  <p>Applied: {new Date(detailedApp.submitted_at).toLocaleString()}</p>
+                  {detailedApp.bgcheck_consent && (
+                    <p className="text-xs mt-1">✓ Background check consent provided</p>
+                  )}
+                </div>
+              </div>
+
+              {/* Admin Review Notes */}
+              <div className="space-y-2">
+                <Label htmlFor="review-notes">Admin Review Notes (optional)</Label>
+                <Textarea
+                  id="review-notes"
+                  placeholder="Add any notes about this application review..."
+                  value={reviewNotes}
+                  onChange={(e) => setReviewNotes(e.target.value)}
+                  rows={4}
+                  data-testid="textarea-admin-notes"
+                />
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex gap-3 pt-4 border-t">
+                <Button
+                  onClick={() => reviewApplication.mutate({ 
+                    id: detailedApp.id, 
+                    status: 'verified',
+                    notes: reviewNotes 
+                  })}
+                  disabled={reviewApplication.isPending}
+                  className="flex-1 bg-green-600 hover:bg-green-700"
+                  data-testid="button-approve"
+                >
+                  <CheckCircle className="w-4 h-4 mr-2" />
+                  Approve
+                </Button>
+                
+                <Button
+                  onClick={() => reviewApplication.mutate({ 
+                    id: detailedApp.id, 
+                    status: 'rejected',
+                    notes: reviewNotes 
+                  })}
+                  disabled={reviewApplication.isPending}
+                  variant="destructive"
+                  className="flex-1"
+                  data-testid="button-reject"
+                >
+                  <XCircle className="w-4 h-4 mr-2" />
+                  Reject
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <div className="py-8 text-center text-muted-foreground">
+              Application details not available
+            </div>
+          )}
+        </SheetContent>
+      </Sheet>
     </div>
   );
 }

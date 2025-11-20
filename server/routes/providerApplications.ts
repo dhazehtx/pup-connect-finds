@@ -3,7 +3,7 @@ import { supabase } from "../lib/supabase.js";
 import { supabaseAdmin } from "../lib/supabaseAdmin.js";
 import { notificationService } from "../services/notificationService";
 import { db } from "../db";
-import { providerApplications } from "../../shared/schema";
+import { providerApplications, profiles } from "../../shared/schema";
 import { eq, and, desc } from "drizzle-orm";
 
 const router = Router();
@@ -274,50 +274,61 @@ router.get("/", async (req, res) => {
   try {
     const { status } = req.query;
 
-    // Build query using Drizzle ORM for local Neon database
-    let applications;
-    
+    // Build query using Drizzle ORM with LEFT JOIN to profiles table
+    let query = db
+      .select({
+        // Application fields
+        id: providerApplications.id,
+        user_id: providerApplications.user_id,
+        provider_id: providerApplications.provider_id,
+        status: providerApplications.status,
+        verification_status: providerApplications.verification_status,
+        submitted_at: providerApplications.submitted_at,
+        front_image_url: providerApplications.front_image_url,
+        back_image_url: providerApplications.back_image_url,
+        // User profile fields
+        username: profiles.username,
+        full_name: profiles.full_name,
+        email: profiles.email,
+        avatar_url: profiles.avatar_url,
+      })
+      .from(providerApplications)
+      .leftJoin(profiles, eq(providerApplications.user_id, profiles.id));
+
+    // Add status filter if requested
     if (status === "pending") {
-      // Filter for pending applications (status='submitted' AND verification_status='pending')
-      applications = await db
-        .select()
-        .from(providerApplications)
-        .where(
-          and(
-            eq(providerApplications.status, "submitted"),
-            eq(providerApplications.verification_status, "pending")
-          )
+      query = query.where(
+        and(
+          eq(providerApplications.status, "submitted"),
+          eq(providerApplications.verification_status, "pending")
         )
-        .orderBy(desc(providerApplications.submitted_at));
-    } else {
-      // Get all applications
-      applications = await db
-        .select()
-        .from(providerApplications)
-        .orderBy(desc(providerApplications.submitted_at));
+      );
     }
 
-    console.log(`[PROVIDER APP] Found ${applications.length} applications`);
+    // Execute query with ordering
+    const results = await query.orderBy(desc(providerApplications.submitted_at));
+
+    console.log(`[PROVIDER APP] Found ${results.length} applications`);
 
     // Transform data to match frontend expectations
-    const transformedData = (applications || []).map((app: any) => ({
-      id: app.id,
-      user_id: app.user_id,
-      provider_id: app.provider_id,
-      front_image_url: app.front_image_url,
-      back_image_url: app.back_image_url,
-      verification_status: app.verification_status,
-      status: app.status,
-      created_at: app.submitted_at,
-      // Add placeholder user data - you may want to join with profiles table
+    const transformedData = results.map((row) => ({
+      id: row.id,
+      user_id: row.user_id,
+      provider_id: row.provider_id,
+      front_image_url: row.front_image_url,
+      back_image_url: row.back_image_url,
+      verification_status: row.verification_status,
+      status: row.status,
+      created_at: row.submitted_at,
+      // User data from joined profiles table
       user: {
-        id: app.user_id,
-        username: "user",
-        full_name: "Unknown User",
-        email: "",
-        avatar_url: null,
+        id: row.user_id,
+        username: row.username || "user",
+        full_name: row.full_name || "Unknown User",
+        email: row.email || "",
+        avatar_url: row.avatar_url,
       },
-      // Add placeholder fields that the frontend expects but aren't in the DB
+      // Add placeholder fields that the frontend expects
       service_type: "provider",
       bio: "Service provider application",
       price: "0",
@@ -339,11 +350,139 @@ router.get("/", async (req, res) => {
   }
 });
 
-// PATCH endpoint for approve/reject (admin only, uses supabaseAdmin)
+// Get detailed application by ID (admin only)
+router.get("/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Fetch application with user profile data using JOIN
+    const result = await db
+      .select({
+        // Application fields
+        id: providerApplications.id,
+        user_id: providerApplications.user_id,
+        provider_id: providerApplications.provider_id,
+        status: providerApplications.status,
+        verification_status: providerApplications.verification_status,
+        submitted_at: providerApplications.submitted_at,
+        front_image_url: providerApplications.front_image_url,
+        back_image_url: providerApplications.back_image_url,
+        bgcheck_consent: providerApplications.bgcheck_consent,
+        bgcheck_status: providerApplications.bgcheck_status,
+        // User profile fields
+        username: profiles.username,
+        full_name: profiles.full_name,
+        email: profiles.email,
+        avatar_url: profiles.avatar_url,
+        bio: profiles.bio,
+        phone: profiles.phone,
+        location: profiles.location,
+      })
+      .from(providerApplications)
+      .leftJoin(profiles, eq(providerApplications.user_id, profiles.id))
+      .where(eq(providerApplications.id, id))
+      .limit(1);
+
+    if (!result || result.length === 0) {
+      return res.status(404).json({
+        ok: false,
+        error: "Application not found",
+      });
+    }
+
+    const application = result[0];
+
+    // Fetch provider details from Supabase if provider_id exists
+    let providerDetails = null;
+    if (application.provider_id) {
+      try {
+        const { data: provider } = await supabaseAdmin
+          .from("providers")
+          .select("*")
+          .eq("id", application.provider_id)
+          .single();
+
+        providerDetails = provider;
+      } catch (err) {
+        console.error("[PROVIDER APP] Error fetching provider details:", err);
+      }
+    }
+
+    // Generate signed URLs for ID photos if they exist
+    let frontImageSignedUrl = null;
+    let backImageSignedUrl = null;
+
+    if (application.front_image_url) {
+      try {
+        const { data: signedData } = await supabaseAdmin.storage
+          .from("provider-id-docs")
+          .createSignedUrl(application.front_image_url, 3600); // 1 hour expiry
+
+        frontImageSignedUrl = signedData?.signedUrl || application.front_image_url;
+      } catch (err) {
+        console.error("[PROVIDER APP] Error generating signed URL for front image:", err);
+        frontImageSignedUrl = application.front_image_url;
+      }
+    }
+
+    if (application.back_image_url) {
+      try {
+        const { data: signedData } = await supabaseAdmin.storage
+          .from("provider-id-docs")
+          .createSignedUrl(application.back_image_url, 3600); // 1 hour expiry
+
+        backImageSignedUrl = signedData?.signedUrl || application.back_image_url;
+      } catch (err) {
+        console.error("[PROVIDER APP] Error generating signed URL for back image:", err);
+        backImageSignedUrl = application.back_image_url;
+      }
+    }
+
+    // Return detailed application data
+    res.json({
+      ok: true,
+      data: {
+        id: application.id,
+        user_id: application.user_id,
+        provider_id: application.provider_id,
+        status: application.status,
+        verification_status: application.verification_status,
+        submitted_at: application.submitted_at,
+        bgcheck_consent: application.bgcheck_consent,
+        bgcheck_status: application.bgcheck_status,
+        // User profile
+        user: {
+          id: application.user_id,
+          username: application.username || "user",
+          full_name: application.full_name || "Unknown User",
+          email: application.email || "",
+          avatar_url: application.avatar_url,
+          bio: application.bio,
+          phone: application.phone,
+          location: application.location,
+        },
+        // Provider details (if exists)
+        provider: providerDetails,
+        // ID document images with signed URLs
+        front_image_url: frontImageSignedUrl,
+        back_image_url: backImageSignedUrl,
+      },
+    });
+  } catch (error) {
+    console.error("[PROVIDER APP] Error fetching application details:", error);
+    res.status(500).json({
+      ok: false,
+      error: String(error),
+    });
+  }
+});
+
+// PATCH endpoint for approve/reject (admin only)
 router.patch("/:id", async (req, res) => {
   try {
     const { id } = req.params;
     const { status, notes } = req.body;
+    const adminId = (req as any).user?.id; // Get admin ID from auth middleware
 
     if (!status || !["verified", "rejected", "approved"].includes(status)) {
       return res.status(400).json({
@@ -356,36 +495,49 @@ router.patch("/:id", async (req, res) => {
     const dbStatus = status === "verified" ? "approved" : status;
 
     console.log(
-      `[PROVIDER APP] Updating application ${id} to status: ${dbStatus}`,
+      `[PROVIDER APP] Admin ${adminId} updating application ${id} to status: ${dbStatus}`,
     );
 
-    // Update application status with race condition protection
-    const { data: application, error } = await supabaseAdmin
-      .from("provider_applications")
-      .update({
-        status: dbStatus,
-        verification_status: dbStatus, // Keep both fields in sync
-      })
-      .eq("id", id)
-      .eq("status", "submitted") // Prevent race conditions - only update if still submitted
-      .select("id, user_id, provider_id, status, verification_status, submitted_at, front_image_url, back_image_url")
-      .single();
+    // First, check if application exists and is in submitted state
+    const existing = await db
+      .select()
+      .from(providerApplications)
+      .where(
+        and(
+          eq(providerApplications.id, id),
+          eq(providerApplications.status, "submitted")
+        )
+      )
+      .limit(1);
 
-    if (error) {
-      console.error("[PROVIDER APP] Error updating application:", error);
-      return res.status(500).json({
-        ok: false,
-        error: "Failed to update application",
-      });
-    }
-
-    if (!application) {
+    if (!existing || existing.length === 0) {
       return res.status(404).json({
         ok: false,
         error: "Application not found or already reviewed",
       });
     }
 
+    // Update application with review metadata using Drizzle
+    const updated = await db
+      .update(providerApplications)
+      .set({
+        status: dbStatus,
+        verification_status: dbStatus,
+        reviewed_at: new Date(),
+        reviewed_by: adminId || null,
+        review_notes: notes || null,
+      })
+      .where(eq(providerApplications.id, id))
+      .returning();
+
+    if (!updated || updated.length === 0) {
+      return res.status(500).json({
+        ok: false,
+        error: "Failed to update application",
+      });
+    }
+
+    const application = updated[0];
     console.log("[PROVIDER APP] Application updated:", application);
 
     // Update provider status if approved (with error handling)
@@ -498,73 +650,6 @@ router.patch("/:id", async (req, res) => {
     });
   } catch (error) {
     console.error("[PROVIDER APP] Update error:", error);
-    res.status(500).json({
-      ok: false,
-      error: String(error),
-    });
-  }
-});
-
-// Get single application
-router.get("/:id", async (req, res) => {
-  try {
-    const { id } = req.params;
-
-    const { data: application, error } = await supabaseAdmin
-      .from("provider_applications")
-      .select(
-        `
-        id,
-        user_id,
-        provider_id,
-        status,
-        verification_status,
-        submitted_at,
-        reviewed_at,
-        review_notes,
-        front_image_url,
-        back_image_url
-      `
-      )
-      .eq("id", id)
-      .single();
-
-    if (error || !application) {
-      return res.status(404).json({
-        ok: false,
-        error: "Application not found",
-      });
-    }
-
-    // Transform to match frontend expectations
-    const transformedApplication = {
-      id: application.id,
-      user_id: application.user_id,
-      provider_id: application.provider_id,
-      front_image_url: application.front_image_url,
-      back_image_url: application.back_image_url,
-      verification_status: application.verification_status,
-      created_at: application.submitted_at,
-      user: {
-        id: application.user_id,
-        username: "user",
-        full_name: "Unknown User",
-        email: "",
-        avatar_url: null,
-      },
-      service_type: "provider",
-      bio: "Service provider application",
-      price: "0",
-      location: null,
-      availability: null,
-    };
-
-    res.json({
-      ok: true,
-      application: transformedApplication,
-    });
-  } catch (error) {
-    console.error("[PROVIDER APP] Get application error:", error);
     res.status(500).json({
       ok: false,
       error: String(error),
