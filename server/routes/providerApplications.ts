@@ -2,6 +2,9 @@ import { Router } from "express";
 import { supabase } from "../lib/supabase.js";
 import { supabaseAdmin } from "../lib/supabaseAdmin.js";
 import { notificationService } from "../services/notificationService";
+import { db } from "../db";
+import { providerApplications } from "../../shared/schema";
+import { eq, and, desc } from "drizzle-orm";
 
 const router = Router();
 
@@ -158,11 +161,10 @@ router.post("/review", async (req, res) => {
       .update({
         status,
         verification_status: status, // Keep both fields in sync
-        review_notes: notes || null,
       })
       .eq("id", applicationId)
       .eq("status", "submitted") // Prevent race conditions - only update if still submitted
-      .select("id, user_id, provider_id, status, verification_status, submitted_at, review_notes, front_image_url, back_image_url")
+      .select("id, user_id, provider_id, status, verification_status, submitted_at, front_image_url, back_image_url")
       .single();
 
     if (error) {
@@ -272,28 +274,30 @@ router.get("/", async (req, res) => {
   try {
     const { status } = req.query;
 
-    let query = supabaseAdmin
-      .from("provider_applications")
-      .select("id, user_id, provider_id, status, verification_status, submitted_at, review_notes, front_image_url, back_image_url")
-      .order("submitted_at", { ascending: false });
-
-    // Filter for pending applications (status='submitted' AND verification_status='pending')
+    // Build query using Drizzle ORM for local Neon database
+    let applications;
+    
     if (status === "pending") {
-      query = query
-        .eq("status", "submitted")
-        .eq("verification_status", "pending");
+      // Filter for pending applications (status='submitted' AND verification_status='pending')
+      applications = await db
+        .select()
+        .from(providerApplications)
+        .where(
+          and(
+            eq(providerApplications.status, "submitted"),
+            eq(providerApplications.verification_status, "pending")
+          )
+        )
+        .orderBy(desc(providerApplications.submitted_at));
+    } else {
+      // Get all applications
+      applications = await db
+        .select()
+        .from(providerApplications)
+        .orderBy(desc(providerApplications.submitted_at));
     }
 
-    const { data: applications, error } = await query;
-
-    if (error) {
-      console.error("[PROVIDER APP] Error fetching applications:", error);
-      return res.status(500).json({
-        ok: false,
-        error: "Failed to fetch applications",
-        data: [],
-      });
-    }
+    console.log(`[PROVIDER APP] Found ${applications.length} applications`);
 
     // Transform data to match frontend expectations
     const transformedData = (applications || []).map((app: any) => ({
@@ -303,22 +307,16 @@ router.get("/", async (req, res) => {
       front_image_url: app.front_image_url,
       back_image_url: app.back_image_url,
       verification_status: app.verification_status,
-      created_at: app.submitted_at || app.created_at,
-      user: app.profiles
-        ? {
-            id: app.profiles.id,
-            username: app.profiles.username || "user",
-            full_name: app.profiles.full_name || "Unknown User",
-            email: app.profiles.email,
-            avatar_url: app.profiles.avatar_url,
-          }
-        : {
-            id: app.user_id,
-            username: "user",
-            full_name: "Unknown User",
-            email: "",
-            avatar_url: null,
-          },
+      status: app.status,
+      created_at: app.submitted_at,
+      // Add placeholder user data - you may want to join with profiles table
+      user: {
+        id: app.user_id,
+        username: "user",
+        full_name: "Unknown User",
+        email: "",
+        avatar_url: null,
+      },
       // Add placeholder fields that the frontend expects but aren't in the DB
       service_type: "provider",
       bio: "Service provider application",
@@ -367,11 +365,10 @@ router.patch("/:id", async (req, res) => {
       .update({
         status: dbStatus,
         verification_status: dbStatus, // Keep both fields in sync
-        review_notes: notes || null,
       })
       .eq("id", id)
       .eq("status", "submitted") // Prevent race conditions - only update if still submitted
-      .select("id, user_id, provider_id, status, verification_status, submitted_at, review_notes, front_image_url, back_image_url")
+      .select("id, user_id, provider_id, status, verification_status, submitted_at, front_image_url, back_image_url")
       .single();
 
     if (error) {
