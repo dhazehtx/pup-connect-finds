@@ -69,10 +69,12 @@ function ServiceProviderApplications() {
   const applications = applicationsData?.data || [];
 
   // Fetch detailed application data when drawer opens
-  const { data: detailedApp, isLoading: loadingDetails } = useQuery<DetailedApplication>({
+  const { data: detailedAppResponse, isLoading: loadingDetails } = useQuery<{ data: DetailedApplication }>({
     queryKey: ['/api/admin/service-applications', selectedAppId],
     enabled: !!selectedAppId,
   });
+  
+  const detailedApp = detailedAppResponse?.data;
 
   const reviewApplication = useMutation({
     mutationFn: async ({ id, status, notes }: { id: string; status: 'verified' | 'rejected'; notes?: string }) => {
@@ -131,7 +133,10 @@ function ServiceProviderApplications() {
             
             <div>
               <button 
-                onClick={() => navigate(`/profile/${application.user.username}`)}
+                onClick={() => {
+                  setSelectedAppId(null); // Close drawer if open
+                  navigate(`/profile/${application.user.username}`);
+                }}
                 className="font-semibold text-lg hover:text-primary transition-colors text-left"
                 data-testid={`link-profile-${application.user_id}`}
               >
@@ -328,7 +333,10 @@ function ServiceProviderApplications() {
                 </Avatar>
                 <div className="flex-1">
                   <button 
-                    onClick={() => navigate(`/profile/${detailedApp.user.username}`)}
+                    onClick={() => {
+                      setSelectedAppId(null); // Close drawer
+                      navigate(`/profile/${detailedApp.user.username}`);
+                    }}
                     className="font-semibold text-lg hover:text-primary transition-colors text-left block"
                     data-testid={`link-detailed-profile-${detailedApp.user_id}`}
                   >
