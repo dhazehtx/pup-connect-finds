@@ -11,6 +11,7 @@ import { Label } from '@/components/ui/label';
 import { CheckCircle, XCircle, Clock, MapPin, DollarSign, Shield, Eye, FileText } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
+import { useLocation } from 'wouter';
 
 interface ServiceApplication {
   id: string;
@@ -30,9 +31,33 @@ interface ServiceApplication {
   };
 }
 
+interface DetailedApplication {
+  id: string;
+  user_id: string;
+  provider_id?: string;
+  status: string;
+  verification_status: string;
+  submitted_at: string;
+  bgcheck_consent: boolean;
+  bgcheck_status?: string;
+  user: {
+    id: string;
+    username: string;
+    full_name: string;
+    avatar_url?: string;
+    bio?: string;
+    phone?: string;
+    location?: string;
+  };
+  provider?: any;
+  front_image_url?: string;
+  back_image_url?: string;
+}
+
 function ServiceProviderApplications() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [, navigate] = useLocation();
   const [selectedAppId, setSelectedAppId] = useState<string | null>(null);
   const [reviewNotes, setReviewNotes] = useState('');
 
@@ -44,14 +69,8 @@ function ServiceProviderApplications() {
   const applications = applicationsData?.data || [];
 
   // Fetch detailed application data when drawer opens
-  const { data: detailedApp, isLoading: loadingDetails } = useQuery({
+  const { data: detailedApp, isLoading: loadingDetails } = useQuery<DetailedApplication>({
     queryKey: ['/api/admin/service-applications', selectedAppId],
-    queryFn: async () => {
-      if (!selectedAppId) return null;
-      const response = await fetch(`/api/admin/service-applications/${selectedAppId}`);
-      const data = await response.json();
-      return data.data;
-    },
     enabled: !!selectedAppId,
   });
 
@@ -111,15 +130,13 @@ function ServiceProviderApplications() {
             </Avatar>
             
             <div>
-              <a 
-                href={`/profile/${application.user.username}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="font-semibold text-lg hover:text-primary transition-colors"
+              <button 
+                onClick={() => navigate(`/profile/${application.user.username}`)}
+                className="font-semibold text-lg hover:text-primary transition-colors text-left"
                 data-testid={`link-profile-${application.user_id}`}
               >
                 {application.user.full_name}
-              </a>
+              </button>
               <p className="text-sm text-muted-foreground">
                 @{application.user.username}
               </p>
@@ -310,15 +327,13 @@ function ServiceProviderApplications() {
                   </AvatarFallback>
                 </Avatar>
                 <div className="flex-1">
-                  <a 
-                    href={`/profile/${detailedApp.user.username}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="font-semibold text-lg hover:text-primary transition-colors block"
+                  <button 
+                    onClick={() => navigate(`/profile/${detailedApp.user.username}`)}
+                    className="font-semibold text-lg hover:text-primary transition-colors text-left block"
                     data-testid={`link-detailed-profile-${detailedApp.user_id}`}
                   >
                     {detailedApp.user.full_name}
-                  </a>
+                  </button>
                   <p className="text-sm text-muted-foreground">@{detailedApp.user.username}</p>
                   {detailedApp.user.phone && (
                     <p className="text-sm text-muted-foreground mt-1">📞 {detailedApp.user.phone}</p>
