@@ -275,7 +275,7 @@ router.get("/", async (req, res) => {
     const { status } = req.query;
 
     // Build query using Drizzle ORM with LEFT JOIN to profiles table
-    let query = db
+    const baseQuery = db
       .select({
         // Application fields
         id: providerApplications.id,
@@ -294,18 +294,17 @@ router.get("/", async (req, res) => {
       .from(providerApplications)
       .leftJoin(profiles, eq(providerApplications.user_id, profiles.id));
 
-    // Add status filter if requested
-    if (status === "pending") {
-      query = query.where(
-        and(
-          eq(providerApplications.status, "submitted"),
-          eq(providerApplications.verification_status, "pending")
-        )
-      );
-    }
-
-    // Execute query with ordering
-    const results = await query.orderBy(desc(providerApplications.submitted_at));
+    // Add status filter if requested and execute query with ordering
+    const results = status === "pending"
+      ? await baseQuery
+          .where(
+            and(
+              eq(providerApplications.status, "submitted"),
+              eq(providerApplications.verification_status, "pending")
+            )
+          )
+          .orderBy(desc(providerApplications.submitted_at))
+      : await baseQuery.orderBy(desc(providerApplications.submitted_at));
 
     console.log(`[PROVIDER APP] Found ${results.length} applications`);
 
