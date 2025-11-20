@@ -69,7 +69,7 @@ function ServiceProviderApplications() {
   const applications = applicationsData?.data || [];
 
   // Fetch detailed application data when drawer opens
-  const { data: detailedAppResponse, isLoading: loadingDetails } = useQuery<{ data: DetailedApplication }>({
+  const { data: detailedAppResponse, isLoading: loadingDetails } = useQuery<{ ok: boolean; data: DetailedApplication }>({
     queryKey: ['/api/admin/service-applications', selectedAppId],
     enabled: !!selectedAppId,
   });
