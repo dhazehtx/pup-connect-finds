@@ -275,20 +275,7 @@ router.get("/", async (req, res) => {
 
     let query = supabaseAdmin
       .from("provider_applications")
-      .select(
-        `
-        id,
-        user_id,
-        provider_id,
-        status,
-        verification_status,
-        submitted_at,
-        reviewed_at,
-        review_notes,
-        front_image_url,
-        back_image_url
-        `
-      )
+      .select("id, user_id, provider_id, status, verification_status, submitted_at, reviewed_at, review_notes, front_image_url, back_image_url")
       .order("submitted_at", { ascending: false });
 
     // Filter for pending applications (status='submitted' AND verification_status='pending')
@@ -386,20 +373,7 @@ router.patch("/:id", async (req, res) => {
       })
       .eq("id", id)
       .eq("status", "submitted") // Prevent race conditions - only update if still submitted
-      .select(
-        `
-        id,
-        user_id,
-        provider_id,
-        status,
-        verification_status,
-        submitted_at,
-        reviewed_at,
-        review_notes,
-        front_image_url,
-        back_image_url
-      `
-      )
+      .select("id, user_id, provider_id, status, verification_status, submitted_at, reviewed_at, review_notes, front_image_url, back_image_url")
       .single();
 
     if (error) {
