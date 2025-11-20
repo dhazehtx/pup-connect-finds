@@ -289,7 +289,6 @@ router.get("/", async (req, res) => {
         // User profile fields
         username: profiles.username,
         full_name: profiles.full_name,
-        email: profiles.email,
         avatar_url: profiles.avatar_url,
       })
       .from(providerApplications)
@@ -325,7 +324,6 @@ router.get("/", async (req, res) => {
         id: row.user_id,
         username: row.username || "user",
         full_name: row.full_name || "Unknown User",
-        email: row.email || "",
         avatar_url: row.avatar_url,
       },
       // Add placeholder fields that the frontend expects
@@ -372,7 +370,6 @@ router.get("/:id", async (req, res) => {
         // User profile fields
         username: profiles.username,
         full_name: profiles.full_name,
-        email: profiles.email,
         avatar_url: profiles.avatar_url,
         bio: profiles.bio,
         phone: profiles.phone,
@@ -455,7 +452,6 @@ router.get("/:id", async (req, res) => {
           id: application.user_id,
           username: application.username || "user",
           full_name: application.full_name || "Unknown User",
-          email: application.email || "",
           avatar_url: application.avatar_url,
           bio: application.bio,
           phone: application.phone,
