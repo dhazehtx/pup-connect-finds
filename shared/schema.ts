@@ -23,6 +23,7 @@ export const profiles = pgTable("profiles", {
   profile_status: text("profile_status").default("active"), // active, under_review, suspended
   is_admin: boolean("is_admin").default(false),
   last_login_ip: text("last_login_ip"),
+  last_login_at: timestamp("last_login_at"),
   suspicious_activity_count: integer("suspicious_activity_count").default(0),
   badges: text("badges").array(), // Array of badge strings like ["verified_provider", "top_seller"]
   stripe_account_id: text("stripe_account_id"),
@@ -358,17 +359,8 @@ export const notificationEvents = pgTable("notification_events", {
   created_at: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
-// Admin settings
-export const adminSettings = pgTable("admin_settings", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  admin_user_id: uuid("admin_user_id").references(() => profiles.id).unique(),
-  notify_email: text("notify_email"),
-  notify_phone: text("notify_phone"),
-});
-
 export const insertProviderApplicationSchema = createInsertSchema(providerApplications).omit({ id: true, submitted_at: true });
 export const insertNotificationEventSchema = createInsertSchema(notificationEvents).omit({ id: true, created_at: true });
-export const insertAdminSettingsSchema = createInsertSchema(adminSettings).omit({ id: true });
 
 // Provider onboarding tables
 export const providers = pgTable("providers", {

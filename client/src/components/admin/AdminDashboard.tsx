@@ -21,29 +21,29 @@ import {
   Clock
 } from 'lucide-react';
 
+import { useQuery } from '@tanstack/react-query';
+
 interface AdminStats {
-  totalUsers: number;
   activeUsers: number;
-  totalListings: number;
-  pendingVerifications: number;
-  totalRevenue: number;
-  monthlyRevenue: number;
+  totalUsers: number;
   pendingReports: number;
-  resolvedToday: number;
+  totalReports: number;
+  activeListings: number;
+  totalListings: number;
+  totalProducts: number;
+  totalOrders: number;
+  monthlyOrders: number;
 }
 
 const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState('overview');
-  const [stats] = useState<AdminStats>({
-    totalUsers: 1250,
-    activeUsers: 450,
-    totalListings: 320,
-    pendingVerifications: 15,
-    totalRevenue: 45000,
-    monthlyRevenue: 8500,
-    pendingReports: 7,
-    resolvedToday: 12
+  
+  // Fetch real dashboard metrics from API
+  const { data: metricsData, isLoading } = useQuery<{ ok: boolean; data: AdminStats }>({
+    queryKey: ['/api/admin/dashboard/metrics'],
   });
+  
+  const stats = metricsData?.data;
 
   const renderContent = () => {
     switch (activeTab) {
@@ -65,67 +65,83 @@ const AdminDashboard = () => {
         return (
           <div className="space-y-6">
             {/* Stats Overview */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              <Card>
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-gray-600">Total Users</p>
-                      <p className="text-2xl font-bold">{stats.totalUsers.toLocaleString()}</p>
+            {isLoading ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                {[1, 2, 3, 4].map((i) => (
+                  <Card key={i}>
+                    <CardContent className="p-6">
+                      <div className="animate-pulse space-y-3">
+                        <div className="h-4 bg-gray-200 rounded w-24"></div>
+                        <div className="h-8 bg-gray-200 rounded w-16"></div>
+                        <div className="h-3 bg-gray-200 rounded w-32"></div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            ) : stats ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <Card>
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium text-gray-600">Total Users</p>
+                        <p className="text-2xl font-bold">{stats.totalUsers.toLocaleString()}</p>
+                      </div>
+                      <Users className="w-8 h-8 text-blue-500" />
                     </div>
-                    <Users className="w-8 h-8 text-blue-500" />
-                  </div>
-                  <p className="text-xs text-gray-500 mt-2">
-                    {stats.activeUsers} active this month
-                  </p>
-                </CardContent>
-              </Card>
+                    <p className="text-xs text-gray-500 mt-2">
+                      {stats.activeUsers} new in last 30 days
+                    </p>
+                  </CardContent>
+                </Card>
 
-              <Card>
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-gray-600">Total Listings</p>
-                      <p className="text-2xl font-bold">{stats.totalListings}</p>
+                <Card>
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium text-gray-600">Active Listings</p>
+                        <p className="text-2xl font-bold">{stats.activeListings}</p>
+                      </div>
+                      <MessageSquare className="w-8 h-8 text-green-500" />
                     </div>
-                    <MessageSquare className="w-8 h-8 text-green-500" />
-                  </div>
-                  <p className="text-xs text-gray-500 mt-2">
-                    {stats.pendingVerifications} pending verification
-                  </p>
-                </CardContent>
-              </Card>
+                    <p className="text-xs text-gray-500 mt-2">
+                      {stats.totalListings} total listings
+                    </p>
+                  </CardContent>
+                </Card>
 
-              <Card>
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-gray-600">Monthly Revenue</p>
-                      <p className="text-2xl font-bold">${stats.monthlyRevenue.toLocaleString()}</p>
+                <Card>
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium text-gray-600">Store Orders</p>
+                        <p className="text-2xl font-bold">{stats.monthlyOrders}</p>
+                      </div>
+                      <TrendingUp className="w-8 h-8 text-green-600" />
                     </div>
-                    <TrendingUp className="w-8 h-8 text-green-600" />
-                  </div>
-                  <p className="text-xs text-gray-500 mt-2">
-                    ${stats.totalRevenue.toLocaleString()} total
-                  </p>
-                </CardContent>
-              </Card>
+                    <p className="text-xs text-gray-500 mt-2">
+                      {stats.totalOrders} total orders
+                    </p>
+                  </CardContent>
+                </Card>
 
-              <Card>
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-gray-600">Pending Reports</p>
-                      <p className="text-2xl font-bold">{stats.pendingReports}</p>
+                <Card>
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium text-gray-600">Pending Reports</p>
+                        <p className="text-2xl font-bold">{stats.pendingReports}</p>
+                      </div>
+                      <AlertTriangle className="w-8 h-8 text-orange-500" />
                     </div>
-                    <AlertTriangle className="w-8 h-8 text-orange-500" />
-                  </div>
-                  <p className="text-xs text-gray-500 mt-2">
-                    {stats.resolvedToday} resolved today
-                  </p>
-                </CardContent>
-              </Card>
-            </div>
+                    <p className="text-xs text-gray-500 mt-2">
+                      {stats.totalReports} total reports
+                    </p>
+                  </CardContent>
+                </Card>
+              </div>
+            ) : null}
 
             {/* Quick Actions */}
             <div className="grid md:grid-cols-2 gap-6">

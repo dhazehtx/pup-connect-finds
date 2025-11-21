@@ -15,6 +15,7 @@ import checkoutRouter from './routes/checkout';
 import ordersRouter from './routes/orders';
 import webhookRouter from './routes/webhook';
 import adminRouter from './routes/admin';
+import adminDashboardRouter from './routes/adminDashboard';
 import analyticsRouter from './routes/analytics';
 import reviewsRouter from './routes/reviews';
 import servicesRouter from './routes/services';
@@ -128,6 +129,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api/reviews', reviewsRouter);
   app.use('/api/services', servicesRouter);
   app.use('/api/admin', adminRouter);
+  app.use('/api/admin/dashboard', adminDashboardRouter);
   app.use('/api/admin/analytics', analyticsRouter);
   
   // Admin provider management routes (protected by requireAdmin middleware)

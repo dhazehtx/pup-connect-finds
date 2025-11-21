@@ -1,78 +1,57 @@
 
-import React, { useState, useEffect } from 'react';
+import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { 
-  Users, 
   Search, 
   Shield, 
-  Ban, 
   CheckCircle,
-  AlertTriangle,
-  Mail
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface User {
   id: string;
-  email: string;
+  username: string;
   full_name: string;
-  user_type: 'buyer' | 'breeder' | 'shelter' | 'admin';
+  email: string;
+  avatar_url?: string;
   verified: boolean;
+  is_admin: boolean;
   created_at: string;
-  last_seen: string;
-  status: 'active' | 'suspended' | 'pending';
+  last_login_ip?: string;
+}
+
+interface UserListResponse {
+  ok: boolean;
+  data: {
+    users: User[];
+    pagination: {
+      page: number;
+      limit: number;
+      total: number;
+      pages: number;
+    };
+  };
 }
 
 const UserManagement = () => {
-  const [users, setUsers] = useState<User[]>([]);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filterType, setFilterType] = useState<'all' | 'buyer' | 'breeder' | 'shelter'>('all');
-  const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(1);
+  const [search, setSearch] = useState('');
+  const [searchInput, setSearchInput] = useState('');
   const { toast } = useToast();
 
-  // Mock data for demonstration
-  useEffect(() => {
-    const mockUsers: User[] = [
-      {
-        id: '1',
-        email: 'john@example.com',
-        full_name: 'John Doe',
-        user_type: 'buyer',
-        verified: true,
-        created_at: '2024-01-15',
-        last_seen: '2024-01-20',
-        status: 'active'
-      },
-      {
-        id: '2',
-        email: 'sarah@breeder.com',
-        full_name: 'Sarah Wilson',
-        user_type: 'breeder',
-        verified: false,
-        created_at: '2024-01-10',
-        last_seen: '2024-01-19',
-        status: 'pending'
-      },
-      {
-        id: '3',
-        email: 'shelter@rescue.org',
-        full_name: 'Happy Paws Shelter',
-        user_type: 'shelter',
-        verified: true,
-        created_at: '2024-01-05',
-        last_seen: '2024-01-20',
-        status: 'active'
-      }
-    ];
-    
-    setTimeout(() => {
-      setUsers(mockUsers);
-      setLoading(false);
-    }, 1000);
-  }, []);
+  const { data, isLoading } = useQuery<UserListResponse>({
+    queryKey: ['/api/admin/dashboard/users', { page, search, limit: 20 }],
+  });
+
+  const users = data?.data?.users || [];
+  const pagination = data?.data?.pagination;
 
   const filteredUsers = users.filter(user => {
     const matchesSearch = user.full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
