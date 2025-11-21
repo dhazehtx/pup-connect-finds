@@ -1,0 +1,54 @@
+Goal: Make the entire Admin Dashboard fully functional using our Neon + Drizzle backend (no Supabase queries).
+
+Admin sections that must be implemented end-to-end:
+
+1. Top-Level Dashboard Metrics
+   - Active Users: real count of users who logged in during the last 30 days
+   - Pending Reports: count of reports with status="pending"
+   - Active Listings: count of listings with status="active"
+
+2. Service Provider Applications
+   - Keep using the new Neon/Drizzle logic
+   - Ensure "Pending" and "All Applications" tabs load real data
+   - Ensure "View Details & Review" loads full profile + ID images without errors
+   - If profile join is missing, restore joined profile data from backend
+
+3. Store Management
+   - Show real products from products table
+   - Show total products, total orders, and list of latest orders
+
+4. User Management
+   - Paginated users table with: id, username, email, created_at, last_login_at
+   - Support search by email or username
+
+5. Reports + Moderation (MVP)
+   - If a "reports" table exists, use it to show:
+       reporter_id, target_user_id OR listing_id, description, status, created_at
+   - If NO reports table exists:
+       Propose a minimal Drizzle schema and create a migration for it
+   - Add Pending + Resolved tabs
+   - Add ability to mark a report as resolved
+
+6. Analytics Dashboard (MVP)
+   - Daily new users (last 14–30 days)
+   - Daily new listings (last 14–30 days)
+
+7. Platform Settings (MVP)
+   - If a settings/config table does not exist:
+       Propose and create a simple table (key, value, updated_at)
+   - Add ability to read/write a few basic settings
+
+Very important rules:
+
+- Use Neon + Drizzle ORM for ALL queries
+- Do NOT reintroduce any Supabase queries
+- No `.select("*")` anywhere — always select explicit columns
+- If a required table does not exist:
+    *Propose a schema, create a Drizzle model, create a migration, apply it, then wire it up*
+- Keep changes scoped to admin pages, API routes, and schema/migrations
+- After implementation, the entire admin dashboard must load without errors and display real data
+
+When finished:
+- Show me the new schema/migrations created
+- Confirm which admin sections are fully functional
+- Confirm all mock/fake counts have been replaced with real DB queries
