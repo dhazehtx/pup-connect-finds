@@ -70,7 +70,7 @@ function ServiceProviderApplications() {
 
   // Fetch detailed application data when drawer opens
   const { data: detailedAppResponse, isLoading: loadingDetails } = useQuery<{ ok: boolean; data: DetailedApplication }>({
-    queryKey: ['/api/admin/service-applications', selectedAppId],
+    queryKey: [`/api/admin/service-applications/${selectedAppId}`],
     enabled: !!selectedAppId,
   });
   
