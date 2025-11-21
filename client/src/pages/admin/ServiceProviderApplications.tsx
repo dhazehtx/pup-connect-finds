@@ -326,27 +326,33 @@ function ServiceProviderApplications() {
               {/* User Info */}
               <div className="flex items-start gap-4 p-4 bg-muted/50 rounded-lg">
                 <Avatar className="h-16 w-16">
-                  <AvatarImage src={detailedApp.user.avatar_url || undefined} />
+                  <AvatarImage src={detailedApp.user?.avatar_url || undefined} />
                   <AvatarFallback>
-                    {(detailedApp.user.full_name || detailedApp.user.username || 'U').charAt(0).toUpperCase()}
+                    {(detailedApp.user?.full_name || detailedApp.user?.username || 'U').charAt(0).toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
                 <div className="flex-1">
-                  <button 
-                    onClick={() => {
-                      setSelectedAppId(null); // Close drawer
-                      navigate(`/profile/${detailedApp.user.username}`);
-                    }}
-                    className="font-semibold text-lg hover:text-primary transition-colors text-left block"
-                    data-testid={`link-detailed-profile-${detailedApp.user_id}`}
-                  >
-                    {detailedApp.user.full_name}
-                  </button>
-                  <p className="text-sm text-muted-foreground">@{detailedApp.user.username}</p>
-                  {detailedApp.user.phone && (
+                  {detailedApp.user?.username ? (
+                    <button 
+                      onClick={() => {
+                        setSelectedAppId(null); // Close drawer
+                        navigate(`/profile/${detailedApp.user.username}`);
+                      }}
+                      className="font-semibold text-lg hover:text-primary transition-colors text-left block"
+                      data-testid={`link-detailed-profile-${detailedApp.user_id}`}
+                    >
+                      {detailedApp.user.full_name || detailedApp.user.username}
+                    </button>
+                  ) : (
+                    <p className="font-semibold text-lg">User Information Unavailable</p>
+                  )}
+                  {detailedApp.user?.username && (
+                    <p className="text-sm text-muted-foreground">@{detailedApp.user.username}</p>
+                  )}
+                  {detailedApp.user?.phone && (
                     <p className="text-sm text-muted-foreground mt-1">📞 {detailedApp.user.phone}</p>
                   )}
-                  {detailedApp.user.location && (
+                  {detailedApp.user?.location && (
                     <p className="text-sm text-muted-foreground">📍 {detailedApp.user.location}</p>
                   )}
                 </div>
