@@ -6,9 +6,10 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { CheckCircle, XCircle, Clock, MapPin, DollarSign, Shield, Eye, FileText } from 'lucide-react';
+import { CheckCircle, XCircle, Clock, MapPin, DollarSign, Shield, Eye, FileText, X } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import { useLocation } from 'wouter';
@@ -60,6 +61,7 @@ function ServiceProviderApplications() {
   const [, navigate] = useLocation();
   const [selectedAppId, setSelectedAppId] = useState<string | null>(null);
   const [reviewNotes, setReviewNotes] = useState('');
+  const [zoomImage, setZoomImage] = useState<{ url: string; label: string } | null>(null);
 
   const { data: applicationsData, isLoading } = useQuery<{ data: ServiceApplication[] }>({
     queryKey: ['/api/admin/service-applications'],
@@ -347,7 +349,16 @@ function ServiceProviderApplications() {
                     <p className="font-semibold text-lg">User Information Unavailable</p>
                   )}
                   {detailedApp.user?.username && (
-                    <p className="text-sm text-muted-foreground">@{detailedApp.user.username}</p>
+                    <button
+                      onClick={() => {
+                        setSelectedAppId(null); // Close drawer
+                        navigate(`/profile/${detailedApp.user.username}`);
+                      }}
+                      className="text-sm text-muted-foreground hover:text-primary transition-colors"
+                      data-testid={`link-detailed-username-${detailedApp.user_id}`}
+                    >
+                      @{detailedApp.user.username}
+                    </button>
                   )}
                   {detailedApp.user?.phone && (
                     <p className="text-sm text-muted-foreground mt-1">📞 {detailedApp.user.phone}</p>
@@ -386,13 +397,19 @@ function ServiceProviderApplications() {
                   {detailedApp.front_image_url ? (
                     <div>
                       <Label className="text-xs text-muted-foreground mb-2 block">Front of ID</Label>
-                      <img
-                        src={detailedApp.front_image_url}
-                        alt="ID Front"
-                        className="w-full rounded-lg border-2 border-border cursor-pointer hover:opacity-90 transition"
-                        onClick={() => window.open(detailedApp.front_image_url, '_blank')}
-                        data-testid="image-id-front"
-                      />
+                      <button
+                        onClick={() => setZoomImage({ url: detailedApp.front_image_url!, label: 'Front of ID' })}
+                        className="w-full rounded-lg border-2 border-border overflow-hidden hover:border-primary transition-colors group"
+                        aria-label="View front of ID"
+                        data-testid="button-zoom-front"
+                      >
+                        <img
+                          src={detailedApp.front_image_url}
+                          alt="ID Front"
+                          className="w-full h-auto cursor-pointer group-hover:opacity-90 transition"
+                          data-testid="image-id-front"
+                        />
+                      </button>
                     </div>
                   ) : (
                     <div className="text-sm text-muted-foreground italic">No front ID image uploaded</div>
@@ -401,13 +418,19 @@ function ServiceProviderApplications() {
                   {detailedApp.back_image_url ? (
                     <div>
                       <Label className="text-xs text-muted-foreground mb-2 block">Back of ID</Label>
-                      <img
-                        src={detailedApp.back_image_url}
-                        alt="ID Back"
-                        className="w-full rounded-lg border-2 border-border cursor-pointer hover:opacity-90 transition"
-                        onClick={() => window.open(detailedApp.back_image_url, '_blank')}
-                        data-testid="image-id-back"
-                      />
+                      <button
+                        onClick={() => setZoomImage({ url: detailedApp.back_image_url!, label: 'Back of ID' })}
+                        className="w-full rounded-lg border-2 border-border overflow-hidden hover:border-primary transition-colors group"
+                        aria-label="View back of ID"
+                        data-testid="button-zoom-back"
+                      >
+                        <img
+                          src={detailedApp.back_image_url}
+                          alt="ID Back"
+                          className="w-full h-auto cursor-pointer group-hover:opacity-90 transition"
+                          data-testid="image-id-back"
+                        />
+                      </button>
                     </div>
                   ) : (
                     <div className="text-sm text-muted-foreground italic">No back ID image uploaded</div>
@@ -481,6 +504,25 @@ function ServiceProviderApplications() {
           )}
         </SheetContent>
       </Sheet>
+
+      {/* Image Zoom Modal */}
+      <Dialog open={!!zoomImage} onOpenChange={() => setZoomImage(null)}>
+        <DialogContent className="max-w-4xl w-full p-0">
+          <DialogHeader className="p-6 pb-0">
+            <DialogTitle>{zoomImage?.label}</DialogTitle>
+          </DialogHeader>
+          <div className="relative p-6">
+            {zoomImage && (
+              <img
+                src={zoomImage.url}
+                alt={zoomImage.label}
+                className="w-full h-auto rounded-lg"
+                data-testid="image-zoom-preview"
+              />
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

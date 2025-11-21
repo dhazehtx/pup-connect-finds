@@ -1,0 +1,81 @@
+I want to polish the Service Provider Applications admin drawer UX.
+
+Context:
+- The drawer currently loads correctly and shows applicant info and ID image links.
+- Clicking “ID Front” / “ID Back” downloads the files to the computer via the browser.
+- Clicking the applicant name / handle does nothing right now.
+- The profile page URL pattern is already working like: /profile/:username (example: /profile/Royalbabybullz).
+
+Goals:
+1. Show inline ID image thumbnails in the review drawer instead of auto-downloading.
+2. Clicking those thumbnails should open a larger zoomed preview modal/lightbox (no file download, just view).
+3. Clicking the applicant’s name or @handle should navigate to the user’s profile page.
+
+Please implement this ONLY on the frontend. Do NOT change backend routes, the Neon/Drizzle setup, or any database schema.
+
+Files to edit (frontend only):
+- client/src/pages/admin/ServiceProviderApplications.tsx
+(If there is a separate component for the review drawer, update that instead/in addition.)
+
+### Part 1 – Inline ID previews + zoom modal
+
+Inside the “Review Provider Application” drawer:
+
+- In the “ID Verification Documents” section, stop using links or anchors that trigger file downloads (no `download` attribute, no `target="_blank"` unless absolutely necessary).
+- Use the `front_image_url` and `back_image_url` fields returned from the API. These are signed URLs to Supabase storage.
+
+Implementation details:
+- Render both images as **visible thumbnails by default** (for example, ~100–150px wide).
+- Wrap each in a button/div with `cursor: pointer` and an accessible label (e.g. `aria-label="View front of ID"`).
+- When a thumbnail is clicked, open a simple image preview modal/lightbox that shows a larger version of that image.
+  - You can reuse any existing modal/dialog component from our design system (e.g. `Dialog`, `Sheet`, or a simple custom overlay).
+  - The modal should have:
+    - The full image
+    - A close button (X)
+    - Clicking outside the modal should also close it.
+- If either `front_image_url` or `back_image_url` is missing, show a short “No front ID image uploaded” / “No back ID image uploaded” message instead of a broken image.
+
+Important:
+- Make sure clicking the thumbnail **does not trigger a browser download**.
+- The images should be loaded via `<img>` or equivalent, not as direct file downloads.
+
+### Part 2 – Clickable applicant name → profile page
+
+In the same drawer, at the top where the applicant’s name and handle are shown:
+
+- Make the **full name** and **@username** clickable.
+- Use the existing routing solution (likely `useNavigate` from `react-router-dom`).
+  - If we’re using React Router:
+    - `import { useNavigate } from "react-router-dom";`
+    - Create `const navigate = useNavigate();`
+- When the name or username is clicked:
+  - If `detailedApp.user?.username` exists, navigate to `/profile/${detailedApp.user.username}`.
+  - If not, but `detailedApp.user_id` exists, fall back to `/profile/${detailedApp.user_id}` or simply disable the link.
+- Add basic defensive checks:
+  - If there is no username/user_id at all, render it as plain text with no click interaction.
+- Style the clickable element to look clearly interactive:
+  - e.g. `cursor: pointer`, maybe underline on hover or subtle color change.
+
+### Part 3 – Defensive coding & UX polish
+
+- Ensure the drawer does NOT crash if:
+  - `user` is null or undefined
+  - `avatar_url`, `front_image_url`, or `back_image_url` are missing
+- Instead of crashing, show:
+  - “User information unavailable” only when user data is genuinely missing
+  - Or “No ID image uploaded” when the relevant image URL is missing.
+- Keep the existing “Approve” / “Reject” actions working exactly as they are now.
+
+### Acceptance criteria
+
+When you are done, the admin flow should behave like this:
+
+1. On `/admin/service-applications`, click “View Details & Review” on a pending application.
+2. The drawer opens:
+   - Shows the user’s name, handle, avatar, phone, location, status & timestamps.
+   - Shows **visible thumbnail** images for “Front of ID” and “Back of ID”.
+3. Clicking a thumbnail opens a **non-downloading** zoom modal with the full image.
+4. Clicking the user’s name or @handle navigates to `/profile/<username>` and loads their profile page.
+5. No 500 errors, no runtime errors in the console, and no auto-downloads when interacting with the images.
+
+Please implement these changes now, and then describe which files you edited and the key code changes you made.
