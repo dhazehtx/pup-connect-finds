@@ -366,13 +366,18 @@ router.get("/:id", async (req, res) => {
         back_image_url: providerApplications.back_image_url,
         bgcheck_consent: providerApplications.bgcheck_consent,
         bgcheck_status: providerApplications.bgcheck_status,
+        reviewed_at: providerApplications.reviewed_at,
+        review_notes: providerApplications.review_notes,
         // User profile fields
         username: profiles.username,
         full_name: profiles.full_name,
         avatar_url: profiles.avatar_url,
         bio: profiles.bio,
         phone: profiles.phone,
-        location: profiles.location,
+        address: profiles.address,
+        city: profiles.city,
+        state: profiles.state,
+        zip_code: profiles.zip_code,
       })
       .from(providerApplications)
       .leftJoin(profiles, eq(providerApplications.user_id, profiles.id))
@@ -387,6 +392,10 @@ router.get("/:id", async (req, res) => {
     }
 
     const application = result[0];
+
+    // Build location string from address components
+    const locationParts = [application.city, application.state, application.zip_code].filter(Boolean);
+    const location = locationParts.length > 0 ? locationParts.join(', ') : null;
 
     // Fetch provider details from Supabase if provider_id exists
     let providerDetails = null;
@@ -444,6 +453,8 @@ router.get("/:id", async (req, res) => {
         status: application.status,
         verification_status: application.verification_status,
         submitted_at: application.submitted_at,
+        reviewed_at: application.reviewed_at,
+        review_notes: application.review_notes,
         bgcheck_consent: application.bgcheck_consent,
         bgcheck_status: application.bgcheck_status,
         // User profile
@@ -454,7 +465,7 @@ router.get("/:id", async (req, res) => {
           avatar_url: application.avatar_url,
           bio: application.bio,
           phone: application.phone,
-          location: application.location,
+          location: location,
         },
         // Provider details (if exists)
         provider: providerDetails,

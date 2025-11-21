@@ -1,0 +1,126 @@
+I’m on the Review Provider Application drawer on /admin/service-applications.
+The drawer opens, but it shows:
+
+“User information unavailable”
+
+“No front ID image uploaded”
+
+“No back ID image uploaded”
+
+This used to show:
+
+The applicant’s profile info (name, username, avatar, email)
+
+The uploaded front and back ID images from the provider_applications table.
+
+After the recent changes (switching to Neon/Drizzle and adding null checks), the UI no longer receives these fields.
+
+What I want you to do
+
+Backend: fix the “get application by id” endpoint
+
+Locate the backend route used by the admin detail drawer, e.g. in server/routes/providerApplications.ts (or whatever file now handles provider application routes with Drizzle).
+
+Update the “GET by id” handler (the one used by “View Details & Review”) so that it:
+
+Selects and returns at least:
+
+id
+
+user_id
+
+provider_id
+
+status
+
+verification_status
+
+submitted_at
+
+reviewed_at
+
+review_notes
+
+front_image_url
+
+back_image_url
+
+Joins the profiles table on user_id (using Drizzle) and returns a nested user object with:
+
+id
+
+username
+
+full_name
+
+email
+
+avatar_url
+
+The JSON shape should look like:
+
+{
+  ok: true,
+  data: {
+    id: string;
+    user_id: string;
+    provider_id: string | null;
+    status: string;
+    verification_status: string;
+    submitted_at: string | null;
+    reviewed_at: string | null;
+    review_notes: string | null;
+    front_image_url: string | null;
+    back_image_url: string | null;
+    user: {
+      id: string;
+      username: string | null;
+      full_name: string | null;
+      email: string | null;
+      avatar_url: string | null;
+    } | null;
+  }
+}
+
+
+Make sure the query actually reads front_image_url and back_image_url from the database (Neon), not just from an old Supabase client.
+
+Frontend: wire the data into the admin detail drawer
+
+Open client/src/pages/admin/ServiceProviderApplications.tsx.
+
+Find the component that renders “Review Provider Application” and the detailedApp (or similar) object used for this drawer.
+
+Update it so that:
+
+The top section shows the user’s name / username / avatar using the data.user object from the API.
+
+The ID Verification Documents section renders:
+
+Front image preview when front_image_url is non-null.
+
+Back image preview when back_image_url is non-null.
+
+Only show the “User information unavailable” and “No front/back ID image uploaded” messages when those fields are actually null or missing.
+
+Keep the defensive null checks so we don’t crash if the user/profile is missing, but prefer to show real data when it exists.
+
+Verify
+
+Submit or use an existing provider application that has front_image_url and back_image_url filled in the database.
+
+On /admin/service-applications, click:
+
+the applicant’s name/username – this should either navigate to their profile page or at least no longer crash.
+
+“View Details & Review” – the drawer should show:
+
+The correct user info
+
+The front & back ID images
+
+Status and dates
+
+Confirm there are no 500 errors in the Network tab and no runtime errors in the Console.
+
+Don’t change the approve/reject logic or any status update endpoints – only fix the data retrieval + display for the admin review drawer.
