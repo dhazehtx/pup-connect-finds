@@ -1253,3 +1253,21 @@ export const insertUserConsentSchema = createInsertSchema(userConsents).omit({
 
 export type UserConsent = typeof userConsents.$inferSelect;
 export type InsertUserConsent = z.infer<typeof insertUserConsentSchema>;
+
+// ===== PLATFORM SETTINGS TABLE =====
+
+// Platform settings for admin configuration
+export const platformSettings = pgTable("platform_settings", {
+  key: text("key").primaryKey(),
+  value: text("value").notNull(),
+  description: text("description"),
+  updated_at: timestamp("updated_at").defaultNow().notNull(),
+  updated_by: uuid("updated_by").references(() => profiles.id),
+});
+
+export const insertPlatformSettingSchema = createInsertSchema(platformSettings).omit({
+  updated_at: true
+});
+
+export type PlatformSetting = typeof platformSettings.$inferSelect;
+export type InsertPlatformSetting = z.infer<typeof insertPlatformSettingSchema>;

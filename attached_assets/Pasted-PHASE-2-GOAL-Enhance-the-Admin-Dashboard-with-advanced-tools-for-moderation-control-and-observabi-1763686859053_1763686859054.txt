@@ -1,0 +1,129 @@
+PHASE 2 GOAL:
+Enhance the Admin Dashboard with advanced tools for moderation, control, and observability — building on top of the existing Neon + Drizzle backend and Phase 1 admin features.
+
+Do NOT run this until Phase 1 admin functionality is stable.
+
+When I run this, improve the following areas:
+
+------------------------------------------------
+1) Advanced Moderation Tools
+------------------------------------------------
+- Extend "User Management" and "Reports" so admins can:
+  - Soft-ban a user (ban flag + reason + timestamp)
+  - Temporarily suspend a user (suspension_until datetime)
+  - Mark users as "shadow banned" (their content is hidden from others, but still visible to them)
+- If needed, create/extend tables:
+  - `user_flags` or add columns to `profiles`:
+      - is_banned (boolean)
+      - banned_at (timestamp)
+      - ban_reason (text)
+      - suspension_until (timestamp)
+      - is_shadow_banned (boolean)
+- Update frontend:
+  - Add moderation actions (ban, unban, suspend, shadow-ban) on the User Management detail drawer.
+  - Confirm actions with a modal before applying them.
+
+------------------------------------------------
+2) Role-Based Admin Permissions
+------------------------------------------------
+- Implement basic role-based permissions:
+  - Roles: `super_admin`, `admin`, `moderator`, `support`
+- If a roles/permissions table does NOT exist, create:
+  - `admin_roles` or extend `profiles` with:
+      - admin_role (text, enum-like)
+- Backend:
+  - Update admin auth middleware so:
+      - `super_admin` can do everything
+      - `admin` can manage users, listings, providers, store, reports
+      - `moderator` can handle reports and bans, but not platform settings
+      - `support` can view data but not perform destructive actions
+- Frontend:
+  - Hide or disable actions in the UI based on role (e.g. only `super_admin` sees platform settings).
+
+------------------------------------------------
+3) Audit Logs / Admin Activity Log
+------------------------------------------------
+- Add an "Admin Activity Log" page to the admin dashboard.
+- If a log table does not exist, create something like:
+  - `admin_logs` with:
+      - id (uuid)
+      - admin_id (uuid)
+      - action (text)
+      - target_type (e.g. "user", "listing", "report", "setting")
+      - target_id (uuid or text)
+      - meta (jsonb for extra context)
+      - created_at (timestamp)
+- Log key actions:
+  - User ban/unban/suspend
+  - Approve / reject provider applications
+  - Resolve reports
+  - Change platform settings
+- Frontend:
+  - Paginated table with filters:
+      - by admin
+      - by action type
+      - by date range
+
+------------------------------------------------
+4) Better Filters, Search & Bulk Actions
+------------------------------------------------
+- Improve "User Management" and "Reports" pages:
+  - Add filters:
+      - Users: role, banned/active, created_at range, last_login range
+      - Reports: status (pending/resolved), type, created_at range
+  - Add search:
+      - Users: by email, username, id
+      - Reports: by target id or reporter id
+  - Add bulk actions where safe:
+      - Bulk resolve reports
+      - (Optional) Bulk email selected users (placeholder, no real email send yet)
+- Use server-side pagination and filtering via Neon + Drizzle for performance.
+
+------------------------------------------------
+5) Platform Settings v2 / Feature Flags (MVP)
+------------------------------------------------
+- Extend the platform settings created in Phase 1:
+  - Add concept of feature flags:
+      - Example keys:
+          - "enable_new_feed"
+          - "enable_beta_messaging"
+          - "enable_stripe_payouts"
+  - If needed, extend settings/config table:
+      - key (text)
+      - value (text/json)
+      - type (text: "boolean" | "string" | "json")
+      - updated_at (timestamp)
+- Frontend:
+  - Admin Settings page:
+      - Toggle switches for boolean flags
+      - Show current state and last updated
+- Backend:
+  - Provide `/api/admin/settings` routes to:
+      - GET all settings
+      - PATCH a single setting
+  - Use Drizzle only; no Supabase.
+
+------------------------------------------------
+6) Technical Requirements / Constraints
+------------------------------------------------
+- Keep using Neon + Drizzle ORM for ALL new queries.
+- Do NOT reintroduce Supabase client code.
+- Avoid `.select("*")`. Always select explicit columns.
+- If you need new tables or columns:
+  - Propose a minimal schema
+  - Add Drizzle models
+  - Create and apply migrations
+- Keep changes scoped to:
+  - admin pages
+  - admin-related API routes
+  - schema/migrations needed for these admin features
+- Do not modify user-facing flows unless required to respect bans or feature flags.
+
+------------------------------------------------
+7) Final Confirmation & Testing
+------------------------------------------------
+When done, confirm:
+- Which new tables/columns you created (with schema).
+- That admin actions (ban, suspend, resolve reports, change settings) are visible in the Admin Activity Log.
+- That different admin roles see different capabilities in the UI.
+- That all new admin pages load with no 500 errors and no runtime React errors.
