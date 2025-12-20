@@ -57,36 +57,65 @@ export const useConversationsManager = () => {
 
       if (conversationsError) throw conversationsError;
 
-      const conversationsWithProfiles = await Promise.all(
-        (conversationsData || []).map(async (conv) => {
-          const otherUserId = conv.buyer_id === user.id ? conv.seller_id : conv.buyer_id;
-          
-          const { data: profileData } = await supabase
-            .from('profiles')
-            .select('full_name, username, avatar_url')
-            .eq('id', otherUserId)
-            .single();
+      if (!conversationsData || conversationsData.length === 0) {
+        setConversations([]);
+        return;
+      }
 
-          // Count unread messages
-          const { count: unreadCount } = await supabase
-            .from('messages')
-            .select('*', { count: 'exact', head: true })
-            .eq('conversation_id', conv.id)
-            .neq('sender_id', user.id)
-            .is('read_at', null);
-
-          return {
-            ...conv,
-            listing: Array.isArray(conv.listing) ? conv.listing[0] : conv.listing,
-            other_user: profileData || {
-              full_name: null,
-              username: null,
-              avatar_url: null
-            },
-            unread_count: unreadCount || 0
-          };
-        })
+      // Batch fetch all other user IDs to minimize queries
+      const otherUserIds = conversationsData.map(conv => 
+        conv.buyer_id === user.id ? conv.seller_id : conv.buyer_id
       );
+      
+      // Fetch all profiles at once
+      const { data: profilesData } = await supabase
+        .from('profiles')
+        .select('id, full_name, username, avatar_url')
+        .in('id', otherUserIds);
+
+      const profilesMap = new Map(
+        (profilesData || []).map(p => [p.id, p])
+      );
+
+      // Batch fetch unread counts for all conversations
+      const { data: messagesCounts } = await supabase
+        .from('messages')
+        .select('conversation_id', { count: 'exact', head: true })
+        .in('conversation_id', conversationsData.map(c => c.id))
+        .eq('read', false)
+        .neq('sender_id', user.id);
+
+      const unreadCountMap = new Map<string, number>();
+      conversationsData.forEach(conv => {
+        unreadCountMap.set(conv.id, 0);
+      });
+      
+      if (messagesCounts) {
+        conversationsData.forEach(conv => {
+          const count = messagesCounts.filter(m => m.conversation_id === conv.id).length;
+          unreadCountMap.set(conv.id, count);
+        });
+      }
+
+      const conversationsWithProfiles = conversationsData.map((conv) => {
+        const otherUserId = conv.buyer_id === user.id ? conv.seller_id : conv.buyer_id;
+        const profileData = profilesMap.get(otherUserId);
+
+        return {
+          ...conv,
+          listing: Array.isArray(conv.listing) ? conv.listing[0] : conv.listing,
+          other_user: profileData ? {
+            full_name: profileData.full_name,
+            username: profileData.username,
+            avatar_url: profileData.avatar_url
+          } : {
+            full_name: null,
+            username: null,
+            avatar_url: null
+          },
+          unread_count: unreadCountMap.get(conv.id) || 0
+        };
+      });
 
       // For signed-in users: only show real conversations, no demo data
       setConversations(conversationsWithProfiles);
