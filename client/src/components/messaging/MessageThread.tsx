@@ -18,7 +18,8 @@ interface Message {
   reply_to_message_id?: string | null;
   content: string;
   created_at: string;
-  message_type: string;
+  message_type?: string | null;
+  read?: boolean;
   sender_profile?: {
     full_name: string | null;
     avatar_url: string | null;

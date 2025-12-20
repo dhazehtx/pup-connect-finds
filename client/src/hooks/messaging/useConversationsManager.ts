@@ -109,13 +109,12 @@ export const useConversationsManager = () => {
     if (!user) return null;
 
     try {
-      // Check if conversation already exists
+      // Check if conversation already exists (bidirectional - user can be buyer or seller)
       const { data: existingConv } = await supabase
         .from('conversations')
         .select('id')
         .eq('listing_id', listingId)
-        .eq('buyer_id', user.id)
-        .eq('seller_id', sellerId)
+        .or(`and(buyer_id.eq.${user.id},seller_id.eq.${sellerId}),and(buyer_id.eq.${sellerId},seller_id.eq.${user.id})`)
         .single();
 
       if (existingConv) {

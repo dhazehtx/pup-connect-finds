@@ -42,12 +42,7 @@ const MessageInbox = ({ onConversationSelect, loading }: MessageInboxProps) => {
   const isLoading = loading || conversationsLoading;
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-6">
-      <div className="mb-6 text-center">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Messages</h1>
-        <p className="text-gray-600">Stay connected with other pet lovers</p>
-      </div>
-
+    <>
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -135,7 +130,7 @@ const MessageInbox = ({ onConversationSelect, loading }: MessageInboxProps) => {
           )}
         </CardContent>
       </Card>
-    </div>
+    </>
   );
 };
 

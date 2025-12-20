@@ -44,13 +44,12 @@ const Messages = () => {
     setLoading(true);
     
     try {
-      // Check if conversation already exists
+      // Check if conversation already exists (bidirectional - user can be buyer or seller)
       const { data: existingConversation } = await supabase
         .from('conversations')
         .select('id')
         .eq('listing_id', listingId)
-        .eq('buyer_id', user.id)
-        .eq('seller_id', contactUserId)
+        .or(`and(buyer_id.eq.${user.id},seller_id.eq.${contactUserId}),and(buyer_id.eq.${contactUserId},seller_id.eq.${user.id})`)
         .single();
 
       if (existingConversation) {
@@ -59,7 +58,7 @@ const Messages = () => {
         return;
       }
 
-      // Create new conversation
+      // Create new conversation (current user is buyer, contactUserId is seller)
       const conversationId = await createConversation(listingId, contactUserId);
       if (conversationId) {
         // Navigate to new conversation
@@ -84,10 +83,16 @@ const Messages = () => {
   };
 
   return (
-    <MessageInbox 
-      onConversationSelect={handleConversationSelect}
-      loading={loading}
-    />
+    <div className="max-w-4xl mx-auto px-4 py-6">
+      <div className="mb-6 text-center">
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">Messages</h1>
+        <p className="text-gray-600">Stay connected with other pet lovers</p>
+      </div>
+      <MessageInbox 
+        onConversationSelect={handleConversationSelect}
+        loading={loading}
+      />
+    </div>
   );
 };
 
