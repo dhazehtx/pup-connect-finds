@@ -137,7 +137,7 @@ function ServiceProviderApplications() {
               <button 
                 onClick={() => {
                   setSelectedAppId(null); // Close drawer if open
-                  navigate(`/profile/${application.user.username}`);
+                  navigate(`/profile/${application.user.id}`);
                 }}
                 className="font-semibold text-lg hover:text-primary transition-colors text-left"
                 data-testid={`link-profile-${application.user_id}`}
@@ -334,11 +334,11 @@ function ServiceProviderApplications() {
                   </AvatarFallback>
                 </Avatar>
                 <div className="flex-1">
-                  {detailedApp.user?.username ? (
+                  {detailedApp.user?.id ? (
                     <button 
                       onClick={() => {
                         setSelectedAppId(null); // Close drawer
-                        navigate(`/profile/${detailedApp.user.username}`);
+                        navigate(`/profile/${detailedApp.user.id}`);
                       }}
                       className="font-semibold text-lg hover:text-primary transition-colors text-left block"
                       data-testid={`link-detailed-profile-${detailedApp.user_id}`}
@@ -352,7 +352,7 @@ function ServiceProviderApplications() {
                     <button
                       onClick={() => {
                         setSelectedAppId(null); // Close drawer
-                        navigate(`/profile/${detailedApp.user.username}`);
+                        navigate(`/profile/${detailedApp.user.id}`);
                       }}
                       className="text-sm text-muted-foreground hover:text-primary transition-colors"
                       data-testid={`link-detailed-username-${detailedApp.user_id}`}

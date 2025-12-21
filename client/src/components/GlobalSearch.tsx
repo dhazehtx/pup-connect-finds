@@ -50,7 +50,7 @@ const GlobalSearch: React.FC<GlobalSearchProps> = ({
     if (result.type === 'listing') {
       setLocation(`/listing/${result.id}`);
     } else if (result.type === 'profile') {
-      setLocation(`/profile/${result.username}`);
+      setLocation(`/profile/${result.id}`);
     }
     
     setIsOpen(false);
