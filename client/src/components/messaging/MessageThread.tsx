@@ -22,6 +22,8 @@ interface Message {
   read?: boolean;
   sender_profile?: {
     full_name: string | null;
+    username: string | null;
+    email: string | null;
     avatar_url: string | null;
   } | null;
   replies?: Message[];
@@ -122,7 +124,7 @@ const MessageThread = ({ parentMessage, onClose, conversationId: propConversatio
         // Fetch other user's profile
         const { data: profileData, error: profileError } = await supabase
           .from('profiles')
-          .select('id, full_name, avatar_url')
+          .select('id, full_name, username, email, avatar_url')
           .eq('id', otherUserId)
           .single();
 
@@ -131,11 +133,18 @@ const MessageThread = ({ parentMessage, onClose, conversationId: propConversatio
         }
 
         // Set conversation data
+        const getDisplayName = (profile: any) => {
+          if (profile?.full_name) return profile.full_name;
+          if (profile?.username) return profile.username;
+          if (profile?.email) return profile.email.split('@')[0];
+          return 'Unknown User';
+        };
+
         setConversation({
           id: convData.id,
           other_user: {
             id: otherUserId,
-            full_name: profileData?.full_name || 'Unknown User',
+            full_name: getDisplayName(profileData),
             avatar_url: profileData?.avatar_url || null
           },
           listing: convData.dog_listings ? {
@@ -167,7 +176,7 @@ const MessageThread = ({ parentMessage, onClose, conversationId: propConversatio
         const senderIds = Array.from(new Set(messagesData.map(msg => msg.sender_id)));
         const { data: profilesData, error: profilesError } = await supabase
           .from('profiles')
-          .select('id, full_name, avatar_url')
+          .select('id, full_name, username, email, avatar_url')
           .in('id', senderIds);
 
         if (profilesError) {
@@ -217,7 +226,7 @@ const MessageThread = ({ parentMessage, onClose, conversationId: propConversatio
           // Fetch sender profile for the new message
           const { data: senderProfile } = await supabase
             .from('profiles')
-            .select('id, full_name, avatar_url')
+            .select('id, full_name, username, email, avatar_url')
             .eq('id', newMessage.sender_id)
             .single();
 
@@ -464,6 +473,16 @@ const MessageThread = ({ parentMessage, onClose, conversationId: propConversatio
   const renderMessage = (message: Message, isReply = false) => {
     const isOwnMessage = message.sender_id === user?.id;
     
+    const getDisplayName = (profile: any) => {
+      if (profile?.full_name) return profile.full_name;
+      if (profile?.username) return profile.username;
+      if (profile?.email) return profile.email.split('@')[0];
+      return 'Unknown User';
+    };
+
+    const displayName = getDisplayName(message.sender_profile);
+    const displayInitial = displayName?.charAt(0)?.toUpperCase() || 'U';
+    
     return (
       <div 
         key={message.id} 
@@ -481,7 +500,7 @@ const MessageThread = ({ parentMessage, onClose, conversationId: propConversatio
             >
               <AvatarImage src={message.sender_profile?.avatar_url || undefined} />
               <AvatarFallback className="bg-gradient-to-br from-gray-400 to-gray-600 text-white text-xs font-semibold">
-                {message.sender_profile?.full_name?.[0]?.toUpperCase() || 'U'}
+                {displayInitial}
               </AvatarFallback>
             </Avatar>
           )}
