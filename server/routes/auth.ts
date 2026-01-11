@@ -24,11 +24,13 @@ router.post('/refresh', async (req, res) => {
       });
     }
 
-    // Update user's last activity
-    await storage.updateProfile(userId, {
-      updated_at: new Date(),
-      last_login_ip: req.ip || req.connection.remoteAddress || 'unknown'
-    });
+    // Update user's last activity using direct DB call
+    await db
+      .update(profiles)
+      .set({
+        last_login_ip: req.ip || req.socket?.remoteAddress || 'unknown',
+      })
+      .where(eq(profiles.id, userId));
 
     res.json({ 
       success: true, 

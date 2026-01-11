@@ -1,19 +1,19 @@
 import { supabase } from '@/integrations/supabase/client';
 
-// Track login event to update last_login_at
-const trackLogin = async (userId: string, accessToken: string) => {
+// Track login event to update last_login_at via Supabase direct update
+// This is more reliable than an API call with token that may expire
+const trackLoginViaSupabase = async (userId: string) => {
   try {
-    const response = await fetch('/api/auth/track-login', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${accessToken}`,
-      },
-      body: JSON.stringify({ userId }),
-    });
+    // Use type assertion since last_login_at may not be in generated Supabase types yet
+    const updateData = { last_login_at: new Date().toISOString() } as Record<string, string>;
     
-    if (!response.ok) {
-      console.warn('[AUTH] Failed to track login:', response.status);
+    const { error } = await supabase
+      .from('profiles')
+      .update(updateData)
+      .eq('id', userId);
+    
+    if (error) {
+      console.warn('[AUTH] Failed to track login via Supabase:', error.message);
     } else {
       console.log('[AUTH] Login tracked successfully');
     }
@@ -29,9 +29,9 @@ export const setupAuthStateListener = () => {
     switch (event) {
       case 'SIGNED_IN':
         console.log('User signed in successfully');
-        // Track login for admin dashboard metrics
-        if (session?.user?.id && session.access_token) {
-          trackLogin(session.user.id, session.access_token);
+        // Track login for admin dashboard metrics using Supabase RLS
+        if (session?.user?.id) {
+          trackLoginViaSupabase(session.user.id);
         }
         break;
       case 'SIGNED_OUT':

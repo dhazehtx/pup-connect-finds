@@ -4,31 +4,9 @@
 @import './styles/utilities.css';
 @import './styles/accessibility.css';
 
-/* CRITICAL: Force white background globally - eliminates ALL yellow backgrounds */
+/* Ensure consistent white backgrounds for main app containers */
 html, body, #root {
-  background-color: #ffffff !important;
-}
-
-/* Nuclear yellow elimination - catches any element with yellow-ish background */
-*[style*="background"] {
-  background-color: inherit;
-}
-
-/* Force all containers and wrappers to white */
-.min-h-screen, .h-screen, .flex-1, main, section, article, div[class*="container"] {
   background-color: #ffffff;
-}
-
-/* Override inline yellow styles at highest specificity */
-[style*="rgb(255, 255, 0)"],
-[style*="rgb(255,255,0)"],
-[style*="#ff0"],
-[style*="#FF0"],
-[style*="#ffff00"],
-[style*="#FFFF00"],
-[style*="yellow"] {
-  background-color: #ffffff !important;
-  background: #ffffff !important;
 }
 
 /* Bottom Navigation & Button Styling - White Text/Icons */
