@@ -127,8 +127,8 @@ router.get("/users", async (req, res) => {
         )
       : undefined;
 
-    // Get users with pagination
-    let usersQuery = db
+    // Get users with pagination - use $dynamic() for conditional where
+    const usersQuery = db
       .select({
         id: profiles.id,
         username: profiles.username,
@@ -140,25 +140,22 @@ router.get("/users", async (req, res) => {
         created_at: profiles.created_at,
         last_login_ip: profiles.last_login_ip,
       })
-      .from(profiles);
+      .from(profiles)
+      .$dynamic();
 
-    if (searchCondition) {
-      usersQuery = usersQuery.where(searchCondition);
-    }
-
-    const users = await usersQuery
+    const users = await (searchCondition 
+      ? usersQuery.where(searchCondition)
+      : usersQuery)
       .orderBy(desc(profiles.created_at))
       .limit(limit)
       .offset(offset);
 
     // Get total count for pagination
-    let countQuery = db.select({ count: count() }).from(profiles);
+    const countQuery = db.select({ count: count() }).from(profiles).$dynamic();
     
-    if (searchCondition) {
-      countQuery = countQuery.where(searchCondition);
-    }
-    
-    const [{ count: totalCount }] = await countQuery;
+    const [{ count: totalCount }] = await (searchCondition 
+      ? countQuery.where(searchCondition)
+      : countQuery);
 
     res.json({
       ok: true,
@@ -191,8 +188,8 @@ router.get("/orders", async (req, res) => {
     // Build status filter
     const statusCondition = status ? eq(orders.status, status) : undefined;
 
-    // Get orders with user details
-    let ordersQuery = db
+    // Get orders with user details - use $dynamic() for conditional where
+    const ordersQuery = db
       .select({
         id: orders.id,
         user_id: orders.user_id,
@@ -211,25 +208,22 @@ router.get("/orders", async (req, res) => {
         email: profiles.email,
       })
       .from(orders)
-      .leftJoin(profiles, eq(orders.user_id, profiles.id));
+      .leftJoin(profiles, eq(orders.user_id, profiles.id))
+      .$dynamic();
 
-    if (statusCondition) {
-      ordersQuery = ordersQuery.where(statusCondition);
-    }
-
-    const ordersList = await ordersQuery
+    const ordersList = await (statusCondition 
+      ? ordersQuery.where(statusCondition)
+      : ordersQuery)
       .orderBy(desc(orders.created_at))
       .limit(limit)
       .offset(offset);
 
     // Get total count
-    let countQuery = db.select({ count: count() }).from(orders);
+    const countQuery = db.select({ count: count() }).from(orders).$dynamic();
     
-    if (statusCondition) {
-      countQuery = countQuery.where(statusCondition);
-    }
-    
-    const [{ count: totalCount }] = await countQuery;
+    const [{ count: totalCount }] = await (statusCondition 
+      ? countQuery.where(statusCondition)
+      : countQuery);
 
     res.json({
       ok: true,

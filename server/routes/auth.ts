@@ -1,6 +1,10 @@
 import { Router } from 'express';
 import { sessionTimeout } from '../middleware/sessionTimeout';
 import { storage } from '../storage';
+import { db } from '../db';
+import { profiles } from '../../shared/schema';
+import { eq } from 'drizzle-orm';
+import { authMiddleware } from '../middleware/auth';
 
 const router = Router();
 
@@ -80,6 +84,46 @@ router.get('/status', async (req, res) => {
     res.status(500).json({ 
       error: 'Internal server error',
       message: 'Failed to check session status' 
+    });
+  }
+});
+
+/**
+ * Track login endpoint - updates last_login_at for admin dashboard metrics
+ * Called by client on SIGNED_IN auth event
+ */
+router.post('/track-login', authMiddleware, async (req, res) => {
+  try {
+    const userId = req.user?.id;
+    
+    if (!userId) {
+      return res.status(401).json({ 
+        error: 'Not authenticated',
+        message: 'User ID not found' 
+      });
+    }
+
+    // Update last_login_at and last_login_ip
+    await db
+      .update(profiles)
+      .set({
+        last_login_at: new Date(),
+        last_login_ip: req.ip || req.socket?.remoteAddress || 'unknown',
+      })
+      .where(eq(profiles.id, userId));
+
+    console.log(`[AUTH] Login tracked for user ${userId}`);
+
+    res.json({ 
+      success: true, 
+      message: 'Login tracked',
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error('[AUTH] Track login error:', error);
+    res.status(500).json({ 
+      error: 'Internal server error',
+      message: 'Failed to track login' 
     });
   }
 });
