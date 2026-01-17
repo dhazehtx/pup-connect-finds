@@ -32,12 +32,12 @@ export default function Footer() {
 
           {/* Legal */}
           <div>
-            <h3 className="font-semibold text-gray-900 mb-4">Legal</h3>
+            <Link to="/legal" className="font-semibold text-gray-900 mb-4 block hover:text-primary-600">Legal</Link>
             <ul className="space-y-2 text-sm text-gray-600">
-              <li><Link to="/privacy" className="hover:text-primary-600">Privacy Policy</Link></li>
-              <li><Link to="/terms" className="hover:text-primary-600">Terms of Service</Link></li>
-              <li><Link to="/cookies" className="hover:text-primary-600">Cookie Policy</Link></li>
-              <li><Link to="/guidelines" className="hover:text-primary-600">Community Guidelines</Link></li>
+              <li><Link to="/legal/privacy" className="hover:text-primary-600">Privacy Policy</Link></li>
+              <li><Link to="/legal/terms" className="hover:text-primary-600">Terms of Service</Link></li>
+              <li><Link to="/legal/privacy" className="hover:text-primary-600">Cookie Policy</Link></li>
+              <li><Link to="/legal/guidelines" className="hover:text-primary-600">Community Guidelines</Link></li>
             </ul>
           </div>
 
@@ -61,10 +61,10 @@ export default function Footer() {
             <Link to="/help" className="text-sm text-gray-500 hover:text-primary-600">
               Help Center
             </Link>
-            <Link to="/privacy" className="text-sm text-gray-500 hover:text-primary-600">
+            <Link to="/legal/privacy" className="text-sm text-gray-500 hover:text-primary-600">
               Privacy
             </Link>
-            <Link to="/terms" className="text-sm text-gray-500 hover:text-primary-600">
+            <Link to="/legal/terms" className="text-sm text-gray-500 hover:text-primary-600">
               Terms
             </Link>
           </div>
