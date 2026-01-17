@@ -12,6 +12,21 @@
     html, body, #root {
       overflow-x: hidden;
       max-width: 100vw;
+      -webkit-text-size-adjust: 100%;
+    }
+    
+    /* Fix tap delay on all interactive elements */
+    button,
+    a,
+    [role="button"],
+    [role="link"],
+    [onclick],
+    input,
+    select,
+    textarea,
+    label {
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
     }
     
     /* Consistent container padding */
@@ -262,30 +277,66 @@
   }
 
   /* ============================================
-     MODALS & DIALOGS
+     MODALS & DIALOGS - Scrolling & Z-Index Fixes
      ============================================ */
   
   @media (max-width: 768px) {
-    /* Full-screen modals on mobile */
+    /* Modal overlay - highest z-index */
+    [data-radix-dialog-overlay],
+    [data-radix-alert-dialog-overlay],
+    .modal-overlay {
+      z-index: 9998 !important;
+      position: fixed;
+      inset: 0;
+    }
+    
+    /* Modal content - scrollable and above overlay */
     [role="dialog"],
-    .modal,
-    [class*="Dialog"] > div[class*="fixed"] {
-      max-height: 100vh;
-      max-height: 100dvh;
-    }
-    
-    /* Modal content */
-    [class*="DialogContent"] {
-      max-width: 100vw;
-      width: 100%;
-      margin: 0;
-      border-radius: 1rem 1rem 0 0;
-    }
-    
-    /* Sheet drawers */
-    [class*="Sheet"] [class*="Content"] {
+    [data-radix-dialog-content],
+    [data-radix-alert-dialog-content] {
+      z-index: 9999 !important;
       max-height: 90vh;
       max-height: 90dvh;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior: contain;
+    }
+    
+    /* Dialog content positioning */
+    [class*="DialogContent"] {
+      max-width: calc(100vw - 2rem);
+      width: calc(100% - 2rem);
+      max-height: 85vh;
+      max-height: 85dvh;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      margin: 1rem;
+      border-radius: 1rem;
+    }
+    
+    /* Sheet drawers - proper scrolling */
+    [data-vaul-drawer],
+    [class*="SheetContent"] {
+      max-height: 90vh;
+      max-height: 90dvh;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior: contain;
+    }
+    
+    /* Bottom sheet specific */
+    [data-vaul-drawer][data-vaul-drawer-direction="bottom"],
+    [class*="SheetContent"][class*="bottom"] {
+      border-radius: 1.5rem 1.5rem 0 0;
+      padding-bottom: env(safe-area-inset-bottom, 1rem);
+    }
+    
+    /* Prevent body scroll when modal open */
+    body:has([data-radix-dialog-overlay]),
+    body:has([data-vaul-drawer]) {
+      overflow: hidden;
+      position: fixed;
+      width: 100%;
     }
   }
 
@@ -474,6 +525,115 @@
   }
 
   /* ============================================
+     Z-INDEX HIERARCHY (Mobile)
+     ============================================ */
+  
+  @media (max-width: 768px) {
+    /* Base layers */
+    .z-base { z-index: 1; }
+    
+    /* Sticky headers */
+    header.sticky,
+    .sticky-header,
+    [class*="StickyHeader"] {
+      z-index: 40 !important;
+    }
+    
+    /* Dropdowns and popovers */
+    [data-radix-popper-content-wrapper],
+    [data-radix-select-content],
+    [data-radix-dropdown-menu-content],
+    [data-radix-context-menu-content],
+    [data-radix-menubar-content] {
+      z-index: 50 !important;
+    }
+    
+    /* Tooltips */
+    [data-radix-tooltip-content] {
+      z-index: 60 !important;
+    }
+    
+    /* Bottom navigation - above content, below modals */
+    .bottom-nav,
+    nav.fixed.bottom-0,
+    [class*="BottomNav"] {
+      z-index: 45 !important;
+    }
+    
+    /* Toast notifications */
+    [data-sonner-toaster],
+    .toast-container,
+    [class*="Toaster"] {
+      z-index: 9990 !important;
+    }
+    
+    /* Modal overlays */
+    [data-radix-dialog-overlay],
+    [data-radix-alert-dialog-overlay] {
+      z-index: 9998 !important;
+    }
+    
+    /* Modal content - top layer */
+    [data-radix-dialog-content],
+    [data-radix-alert-dialog-content] {
+      z-index: 9999 !important;
+    }
+  }
+
+  /* ============================================
+     KEYBOARD HANDLING - Input Focus
+     ============================================ */
+  
+  @media (max-width: 768px) {
+    /* Scroll input into view when focused */
+    input:focus,
+    textarea:focus,
+    select:focus {
+      scroll-margin-bottom: 100px;
+      scroll-padding-bottom: 100px;
+    }
+    
+    /* Message input area - stay above keyboard */
+    .message-input-area,
+    .chat-input-container,
+    [class*="MessageInput"] {
+      position: sticky;
+      bottom: 0;
+      background: white;
+      padding-bottom: env(safe-area-inset-bottom, 0.5rem);
+      z-index: 30;
+    }
+    
+    /* Form containers - ensure scroll room */
+    form {
+      scroll-padding-bottom: 150px;
+    }
+  }
+
+  /* ============================================
+     STICKY HEADERS - Content Spacing
+     ============================================ */
+  
+  @media (max-width: 768px) {
+    /* Ensure content not hidden under sticky header */
+    main:has(~ header.sticky),
+    .main-content {
+      scroll-padding-top: 80px;
+    }
+    
+    /* Add top padding when sticky header present */
+    body:has(header.sticky) main,
+    body:has(.sticky-header) main {
+      padding-top: 0;
+    }
+    
+    /* Anchor link offset for sticky headers */
+    [id] {
+      scroll-margin-top: 80px;
+    }
+  }
+
+  /* ============================================
      UTILITY OVERRIDES
      ============================================ */
   
@@ -508,6 +668,13 @@
     /* Gap adjustments */
     .gap-mobile-sm {
       gap: 0.5rem !important;
+    }
+    
+    /* Touch-friendly interactions */
+    .touch-target {
+      min-height: 44px;
+      min-width: 44px;
+      touch-action: manipulation;
     }
   }
 }
