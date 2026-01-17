@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
-import { AlertTriangle, Download, Trash2, Shield, FileText } from 'lucide-react';
+import { AlertTriangle, Download, Trash2, Shield, FileText, ExternalLink } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { useMutation } from '@tanstack/react-query';
@@ -123,6 +124,13 @@ const AccountSettings = () => {
       <div>
         <h1 className="text-2xl font-bold text-gray-900">Account Settings</h1>
         <p className="text-gray-600 mt-2">Manage your account data and privacy settings</p>
+        <Link 
+          to="/account-data" 
+          className="inline-flex items-center gap-1 text-sm text-primary hover:underline mt-2"
+        >
+          Learn about your data rights
+          <ExternalLink className="h-3 w-3" />
+        </Link>
       </div>
 
       {/* Data Export Section */}

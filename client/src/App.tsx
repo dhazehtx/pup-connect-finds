@@ -89,6 +89,7 @@ const BugTestPage = lazy(() => import('./pages/BugTestPage'));
 const TermsOfService = lazy(() => import('./pages/legal/TermsOfService'));
 const PrivacyPolicy = lazy(() => import('./pages/legal/PrivacyPolicy'));
 const CommunityGuidelines = lazy(() => import('./pages/legal/CommunityGuidelines'));
+const AccountDataRequests = lazy(() => import('./pages/legal/AccountDataRequests'));
 const PrivacyPolicyPage = lazy(() => import('./pages/PrivacyPolicyPage'));
 const PrivacySettingsPage = lazy(() => import('./pages/PrivacySettingsPage'));
 const SubscriptionSuccess = lazy(() => import('./pages/SubscriptionSuccess'));
@@ -455,6 +456,11 @@ function App() {
                   <Route path="/legal/guidelines" element={
                     <Suspense fallback={<LoadingPage message="Loading Guidelines..." />}>
                       <CommunityGuidelines />
+                    </Suspense>
+                  } />
+                  <Route path="/account-data" element={
+                    <Suspense fallback={<LoadingPage message="Loading..." />}>
+                      <AccountDataRequests />
                     </Suspense>
                   } />
                   </Routes>
