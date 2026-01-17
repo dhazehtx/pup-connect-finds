@@ -1,0 +1,214 @@
+Perfect. Let’s knock Legal Pages out fast, clean, and launch-safe — no over-lawyering, no wasted time.
+
+Below are production-ready templates you can paste directly into your app (or CMS). These are written for a pet social + marketplace platform like My Pup.
+
+📄 MY PUP — LEGAL PAGES (FAST + SAFE)
+1️⃣ Terms of Service (REQUIRED)
+Where this lives
+
+/terms
+
+Linked in footer
+
+Shown during signup (checkbox or link)
+
+TERMS OF SERVICE
+
+Last Updated: [Insert Date]
+
+Welcome to My Pup (“My Pup,” “we,” “us,” or “our”). By accessing or using the My Pup platform, you agree to these Terms of Service (“Terms”). If you do not agree, do not use the platform.
+
+1. Eligibility
+
+You must be at least 18 years old to use My Pup. By using the platform, you confirm you meet this requirement.
+
+2. Platform Overview
+
+My Pup is a social and marketplace platform that allows users to:
+
+Create profiles and posts
+
+Interact with other users
+
+Browse pet-related content
+
+Offer or purchase pet-related services
+
+Engage with breeders, owners, and service providers
+
+My Pup does not guarantee the quality, legality, or safety of any user-generated content, listings, or services.
+
+3. User Responsibilities
+
+You agree:
+
+To provide accurate information
+
+Not to post illegal, harmful, or misleading content
+
+Not to misuse the platform or attempt unauthorized access
+
+That all interactions are at your own risk
+
+You are solely responsible for your actions and content.
+
+4. Payments & Transactions
+
+Payments processed through My Pup are handled by third-party providers (e.g., Stripe).
+
+My Pup:
+
+Is not responsible for disputes between users
+
+Does not guarantee refunds unless explicitly stated
+
+Is not liable for service quality or outcomes
+
+5. Content Ownership
+
+You retain ownership of your content
+
+You grant My Pup a non-exclusive, royalty-free license to display and distribute your content within the platform
+
+6. Account Termination
+
+We reserve the right to suspend or terminate accounts for:
+
+Violations of these Terms
+
+Harmful or illegal activity
+
+Abuse of the platform
+
+7. Disclaimer
+
+My Pup is provided “as is” without warranties of any kind. We do not guarantee uninterrupted or error-free operation.
+
+8. Limitation of Liability
+
+To the fullest extent permitted by law, My Pup is not liable for:
+
+Losses
+
+Damages
+
+Injuries
+
+Disputes between users
+
+9. Changes to Terms
+
+We may update these Terms at any time. Continued use of the platform constitutes acceptance of the updated Terms.
+
+10. Contact
+
+For questions, contact:
+📧 support@mypup.app
+ (placeholder)
+
+2️⃣ Privacy Policy (REQUIRED)
+Where this lives
+
+/privacy
+
+Linked in footer
+
+Referenced during signup
+
+PRIVACY POLICY
+
+Last Updated: [Insert Date]
+
+My Pup respects your privacy. This Privacy Policy explains how we collect, use, and protect your information.
+
+1. Information We Collect
+
+Account information (email, username, profile info)
+
+Content you upload (posts, images, messages)
+
+Usage data (interactions, app activity)
+
+Payment data (processed securely by third parties)
+
+2. How We Use Information
+
+We use your information to:
+
+Operate and improve the platform
+
+Provide customer support
+
+Process payments
+
+Ensure safety and compliance
+
+Analyze usage trends
+
+3. Data Sharing
+
+We do not sell your data.
+
+We may share data with:
+
+Service providers (hosting, payments)
+
+Legal authorities if required by law
+
+4. Data Security
+
+We implement reasonable safeguards, but no system is 100% secure.
+
+5. Your Rights
+
+You may:
+
+Access your data
+
+Update your profile
+
+Request account deletion
+
+6. Cookies & Analytics
+
+My Pup may use cookies or analytics tools to improve performance and user experience.
+
+7. Children’s Privacy
+
+My Pup is not intended for users under 18. We do not knowingly collect data from minors.
+
+8. Changes to Policy
+
+We may update this policy periodically.
+
+9. Contact
+
+📧 support@mypup.app
+ (placeholder)
+
+3️⃣ Account Deletion & Data Requests (STRONGLY RECOMMENDED)
+Where this lives
+
+/account-data
+
+Linked from settings or help center
+
+ACCOUNT DELETION & DATA REQUESTS
+
+You may request:
+
+Account deletion
+
+Export of your personal data
+
+To do so:
+
+Log into your account
+
+Navigate to Account Settings
+
+Submit a deletion or data request
+
+Requests are processed within a reasonable timeframe.
+
+Some data may be retained for legal or operational purposes.
