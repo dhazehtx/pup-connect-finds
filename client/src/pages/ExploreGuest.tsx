@@ -86,39 +86,39 @@ const PuppyGrid = ({ listings, viewMode }: { listings?: any[], viewMode: 'grid' 
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6">
       {displayData.map((puppy) => (
-        <Card key={puppy.id} className="hover:shadow-lg transition-shadow cursor-pointer">
+        <Card key={puppy.id} className="hover:shadow-lg transition-shadow cursor-pointer overflow-hidden">
           <div className="relative">
             <img 
               src={puppy.image} 
               alt={puppy.name}
-              className="w-full h-48 object-cover rounded-t-lg"
+              className="w-full h-32 sm:h-48 object-cover"
             />
             <Button
               size="sm"
               variant="ghost"
-              className="absolute top-2 right-2 bg-white/80 hover:bg-white"
+              className="absolute top-2 right-2 bg-white/80 hover:bg-white min-h-[36px] min-w-[36px] p-1.5"
             >
               <Heart className="h-4 w-4" />
             </Button>
           </div>
-          <CardContent className="p-4">
-            <div className="flex justify-between items-start mb-2">
-              <h3 className="font-semibold text-lg">{puppy.name}</h3>
-              <span className="text-lg font-bold text-blue-600">{puppy.price}</span>
+          <CardContent className="p-3 sm:p-4">
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start mb-1 sm:mb-2 gap-0.5">
+              <h3 className="font-semibold text-sm sm:text-lg leading-tight line-clamp-1">{puppy.name}</h3>
+              <span className="text-sm sm:text-lg font-bold text-blue-600">{puppy.price}</span>
             </div>
-            <p className="text-gray-600 mb-2">{puppy.breed} • {puppy.age}</p>
-            <div className="flex items-center text-sm text-gray-500 mb-2">
-              <MapPin className="h-4 w-4 mr-1" />
-              {puppy.location}
+            <p className="text-xs sm:text-base text-gray-600 mb-1 sm:mb-2 line-clamp-1">{puppy.breed} • {puppy.age}</p>
+            <div className="flex items-center text-xs sm:text-sm text-gray-500 mb-1 sm:mb-2">
+              <MapPin className="h-3 w-3 sm:h-4 sm:w-4 mr-1 flex-shrink-0" />
+              <span className="truncate">{puppy.location}</span>
             </div>
             <div className="flex items-center justify-between">
               <div className="flex items-center">
-                <Star className="h-4 w-4 text-blue-400 mr-1" />
-                <span className="text-sm font-medium">{puppy.rating}</span>
+                <Star className="h-3 w-3 sm:h-4 sm:w-4 text-blue-400 mr-1" />
+                <span className="text-xs sm:text-sm font-medium">{puppy.rating}</span>
               </div>
-              <span className="text-sm text-gray-500">{puppy.breeder}</span>
+              <span className="text-xs sm:text-sm text-gray-500 hidden sm:inline">{puppy.breeder}</span>
             </div>
           </CardContent>
         </Card>

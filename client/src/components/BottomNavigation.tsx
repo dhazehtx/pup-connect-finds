@@ -137,8 +137,8 @@ const BottomNavigation = () => {
 
   return (
     <>
-      <nav className="fixed bottom-0 left-0 right-0 bottom-nav border-t border-gray-200 dark:border-gray-700 z-40 shadow-sm">
-        <div className="grid grid-cols-5 h-16">
+      <nav className="fixed bottom-0 left-0 right-0 bottom-nav border-t border-gray-200 dark:border-gray-700 z-40 shadow-sm safe-area-bottom">
+        <div className="grid grid-cols-5 h-16" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0)' }}>
           {navItems.map((item, index) => {
             const Icon = item.icon;
             const active = isActive(item.path);
@@ -151,18 +151,18 @@ const BottomNavigation = () => {
                   e.stopPropagation();
                   item.onClick();
                 }}
-                className={`flex flex-col items-center justify-center p-2 transition-colors relative text-white ${
+                className={`flex flex-col items-center justify-center p-2 transition-colors relative text-white min-h-[48px] touch-manipulation ${
                   active 
                     ? 'bg-white/20' 
-                    : 'text-white/80 hover:text-white hover:bg-white/10'
+                    : 'text-white/80 hover:text-white hover:bg-white/10 active:bg-white/20'
                 }`}
                 type="button"
                 aria-label={item.label}
               >
                 <div className="relative">
-                  <Icon size={20} className="flex-shrink-0" />
+                  <Icon size={22} className="flex-shrink-0" />
                 </div>
-                <span className="text-xs mt-1 font-medium text-inherit">{item.label}</span>
+                <span className="text-[11px] mt-0.5 font-medium text-inherit leading-tight">{item.label}</span>
                 {item.protected && !user && !isGuest && (
                   <div className="absolute top-1 right-1 w-2 h-2 bg-blue-500 rounded-full"></div>
                 )}

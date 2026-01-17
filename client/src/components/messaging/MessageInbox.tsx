@@ -66,14 +66,14 @@ const MessageInbox = ({ onConversationSelect, loading }: MessageInboxProps) => {
               <p className="text-gray-600">Start browsing puppies to connect with breeders</p>
             </div>
           ) : (
-            <div className="space-y-4">
+            <div className="space-y-2 sm:space-y-4">
               {conversations.map((conversation) => (
                 <div
                   key={conversation.id}
                   onClick={() => onConversationSelect?.(conversation)}
-                  className="flex items-center space-x-4 p-4 rounded-lg border hover:bg-gray-50 cursor-pointer transition-colors"
+                  className="flex items-center space-x-3 sm:space-x-4 p-3 sm:p-4 rounded-lg border hover:bg-gray-50 cursor-pointer transition-colors min-h-[56px] active:bg-gray-100"
                 >
-                  <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center overflow-hidden">
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gray-200 rounded-full flex items-center justify-center overflow-hidden flex-shrink-0">
                     {conversation.other_user?.avatar_url ? (
                       <img 
                         src={conversation.other_user.avatar_url} 

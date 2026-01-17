@@ -40,16 +40,16 @@ const Notifications = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 flex items-start justify-center pt-8 px-4">
+    <div className="min-h-screen bg-gray-100 flex items-start justify-center pt-4 sm:pt-8 px-4 pb-20">
       {/* Modal Container */}
-      <div className="w-full max-w-md bg-white rounded-2xl shadow-xl overflow-hidden">
+      <div className="w-full max-w-md bg-white rounded-2xl shadow-xl overflow-hidden mx-auto">
         {/* Header */}
-        <div className="bg-gradient-to-r from-blue-100 to-teal-100 px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
+        <div className="bg-gradient-to-r from-blue-100 to-teal-100 px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0">
               <Bell className="w-4 h-4 text-white" />
             </div>
-            <h1 className="text-lg font-semibold text-gray-800">Notifications</h1>
+            <h1 className="text-base sm:text-lg font-semibold text-gray-800">Notifications</h1>
           </div>
           <Button
             variant="ghost"

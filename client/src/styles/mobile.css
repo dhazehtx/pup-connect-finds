@@ -1,0 +1,513 @@
+
+/* Mobile UI Polish - Consistent mobile experience */
+/* Focus: max-width: 768px (tablet and below) */
+
+@layer components {
+  /* ============================================
+     MOBILE LAYOUT FOUNDATIONS
+     ============================================ */
+  
+  @media (max-width: 768px) {
+    /* Prevent horizontal overflow globally */
+    html, body, #root {
+      overflow-x: hidden;
+      max-width: 100vw;
+    }
+    
+    /* Consistent container padding */
+    .container,
+    [class*="max-w-"] {
+      padding-left: 1rem;
+      padding-right: 1rem;
+    }
+    
+    /* Full-width sections should still have padding */
+    main > section,
+    main > div {
+      padding-left: 1rem;
+      padding-right: 1rem;
+    }
+    
+    /* Page-level containers */
+    .page-container,
+    .min-h-screen > div:first-child {
+      padding-left: 1rem;
+      padding-right: 1rem;
+    }
+  }
+
+  /* ============================================
+     TOUCH TARGETS - Minimum 44px
+     ============================================ */
+  
+  @media (max-width: 768px) {
+    /* Buttons minimum touch size */
+    button,
+    [role="button"],
+    a.btn,
+    .btn,
+    input[type="submit"],
+    input[type="button"] {
+      min-height: 44px;
+      min-width: 44px;
+    }
+    
+    /* Interactive list items */
+    .clickable-item,
+    [data-clickable="true"],
+    .conversation-item,
+    .notification-item,
+    .list-item-interactive {
+      min-height: 44px;
+      padding-top: 0.75rem;
+      padding-bottom: 0.75rem;
+    }
+    
+    /* Form inputs */
+    input[type="text"],
+    input[type="email"],
+    input[type="password"],
+    input[type="search"],
+    input[type="tel"],
+    input[type="url"],
+    input[type="number"],
+    textarea,
+    select {
+      min-height: 44px;
+      font-size: 16px; /* Prevents iOS zoom on focus */
+    }
+    
+    /* Icon buttons */
+    .icon-button,
+    button[aria-label],
+    [class*="IconButton"] {
+      min-height: 44px;
+      min-width: 44px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+  }
+
+  /* ============================================
+     TYPOGRAPHY - Mobile readable sizes
+     ============================================ */
+  
+  @media (max-width: 768px) {
+    /* Headings - scaled for mobile */
+    h1 {
+      font-size: 1.75rem;
+      line-height: 1.2;
+    }
+    
+    h2 {
+      font-size: 1.5rem;
+      line-height: 1.25;
+    }
+    
+    h3 {
+      font-size: 1.25rem;
+      line-height: 1.3;
+    }
+    
+    h4, h5, h6 {
+      font-size: 1.125rem;
+      line-height: 1.4;
+    }
+    
+    /* Body text - minimum readable size */
+    body,
+    p,
+    span,
+    li {
+      font-size: 1rem;
+      line-height: 1.5;
+    }
+    
+    /* Small text - still readable */
+    .text-xs {
+      font-size: 0.8125rem;
+      line-height: 1.4;
+    }
+    
+    .text-sm {
+      font-size: 0.875rem;
+      line-height: 1.5;
+    }
+    
+    /* Muted text - ensure contrast */
+    .text-muted,
+    .text-muted-foreground,
+    .text-gray-500,
+    .text-gray-400 {
+      color: #64748b;
+    }
+  }
+
+  /* ============================================
+     CARDS & CONTAINERS
+     ============================================ */
+  
+  @media (max-width: 768px) {
+    /* Card layouts */
+    .card,
+    [class*="Card"],
+    .rounded-lg.border,
+    .rounded-xl.border {
+      margin-left: 0;
+      margin-right: 0;
+      border-radius: 0.75rem;
+    }
+    
+    /* Full-width cards on mobile */
+    .card-full-mobile {
+      margin-left: -1rem;
+      margin-right: -1rem;
+      border-radius: 0;
+      border-left: none;
+      border-right: none;
+    }
+    
+    /* Card content padding */
+    .card-content,
+    [class*="CardContent"] {
+      padding: 1rem;
+    }
+    
+    /* Card header */
+    .card-header,
+    [class*="CardHeader"] {
+      padding: 1rem;
+      padding-bottom: 0.5rem;
+    }
+  }
+
+  /* ============================================
+     IMAGES - Proper aspect ratios
+     ============================================ */
+  
+  @media (max-width: 768px) {
+    /* Prevent image stretching */
+    img {
+      max-width: 100%;
+      height: auto;
+    }
+    
+    /* Square aspect ratio for thumbnails */
+    .aspect-square {
+      aspect-ratio: 1 / 1;
+      object-fit: cover;
+    }
+    
+    /* Post images - maintain ratio */
+    .post-image,
+    .feed-image,
+    [class*="post-img"] {
+      width: 100%;
+      max-height: 400px;
+      object-fit: cover;
+      object-position: center;
+    }
+    
+    /* Avatar images */
+    .avatar,
+    [class*="Avatar"] {
+      flex-shrink: 0;
+    }
+    
+    /* Grid images */
+    .image-grid img {
+      aspect-ratio: 1 / 1;
+      object-fit: cover;
+    }
+  }
+
+  /* ============================================
+     BOTTOM NAVIGATION
+     ============================================ */
+  
+  @media (max-width: 768px) {
+    /* Bottom nav container */
+    .bottom-nav,
+    nav[class*="bottom"],
+    nav.fixed.bottom-0 {
+      padding-bottom: env(safe-area-inset-bottom, 0);
+      height: calc(64px + env(safe-area-inset-bottom, 0));
+    }
+    
+    /* Nav items */
+    .bottom-nav button,
+    .bottom-nav a {
+      min-height: 56px;
+      min-width: 56px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0.25rem;
+    }
+    
+    /* Nav labels */
+    .bottom-nav span {
+      font-size: 0.6875rem;
+      font-weight: 500;
+    }
+    
+    /* Content spacing above bottom nav */
+    main,
+    .main-content,
+    [class*="min-h-screen"] {
+      padding-bottom: calc(64px + env(safe-area-inset-bottom, 0) + 1rem);
+    }
+  }
+
+  /* ============================================
+     MODALS & DIALOGS
+     ============================================ */
+  
+  @media (max-width: 768px) {
+    /* Full-screen modals on mobile */
+    [role="dialog"],
+    .modal,
+    [class*="Dialog"] > div[class*="fixed"] {
+      max-height: 100vh;
+      max-height: 100dvh;
+    }
+    
+    /* Modal content */
+    [class*="DialogContent"] {
+      max-width: 100vw;
+      width: 100%;
+      margin: 0;
+      border-radius: 1rem 1rem 0 0;
+    }
+    
+    /* Sheet drawers */
+    [class*="Sheet"] [class*="Content"] {
+      max-height: 90vh;
+      max-height: 90dvh;
+    }
+  }
+
+  /* ============================================
+     LISTS & FEEDS
+     ============================================ */
+  
+  @media (max-width: 768px) {
+    /* Feed items */
+    .feed-item,
+    .post-item,
+    .list-item {
+      padding: 1rem;
+      border-bottom: 1px solid hsl(var(--border));
+    }
+    
+    /* Conversation list */
+    .conversation-list,
+    .message-list {
+      max-height: calc(100vh - 200px);
+      max-height: calc(100dvh - 200px);
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    
+    /* Notification list */
+    .notification-list {
+      max-height: calc(100vh - 180px);
+      max-height: calc(100dvh - 180px);
+    }
+  }
+
+  /* ============================================
+     MESSAGING
+     ============================================ */
+  
+  @media (max-width: 768px) {
+    /* Message container */
+    .messages-container {
+      height: calc(100vh - 140px);
+      height: calc(100dvh - 140px);
+      display: flex;
+      flex-direction: column;
+    }
+    
+    /* Message input area */
+    .message-input-area {
+      position: sticky;
+      bottom: 0;
+      padding: 0.75rem 1rem;
+      padding-bottom: calc(0.75rem + env(safe-area-inset-bottom, 0));
+      background: white;
+      border-top: 1px solid hsl(var(--border));
+    }
+    
+    /* Message bubbles */
+    .message-bubble {
+      max-width: 80%;
+      padding: 0.75rem 1rem;
+      border-radius: 1rem;
+      word-wrap: break-word;
+    }
+    
+    /* Message thread */
+    .message-thread {
+      flex: 1;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      padding: 1rem;
+    }
+  }
+
+  /* ============================================
+     FORMS
+     ============================================ */
+  
+  @media (max-width: 768px) {
+    /* Form groups */
+    .form-group,
+    [class*="FormField"] {
+      margin-bottom: 1rem;
+    }
+    
+    /* Labels */
+    label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: 500;
+    }
+    
+    /* Stacked buttons on mobile */
+    .button-group,
+    .flex.gap-2 > button,
+    .flex.gap-4 > button {
+      flex: 1;
+    }
+    
+    /* Buttons in a row - ensure they fit */
+    .button-row {
+      display: flex;
+      gap: 0.5rem;
+    }
+    
+    .button-row button {
+      flex: 1;
+      padding-left: 0.75rem;
+      padding-right: 0.75rem;
+    }
+  }
+
+  /* ============================================
+     EXPLORE & SEARCH
+     ============================================ */
+  
+  @media (max-width: 768px) {
+    /* Search bar */
+    .search-bar,
+    [class*="SearchBar"] {
+      width: 100%;
+      margin-bottom: 1rem;
+    }
+    
+    /* Filter pills */
+    .filter-pills {
+      display: flex;
+      gap: 0.5rem;
+      overflow-x: auto;
+      padding-bottom: 0.5rem;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+    }
+    
+    .filter-pills::-webkit-scrollbar {
+      display: none;
+    }
+    
+    /* Grid layouts - 2 columns on mobile */
+    .grid-cols-3,
+    .grid-cols-4 {
+      grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .grid-cols-2 {
+      gap: 0.5rem;
+    }
+  }
+
+  /* ============================================
+     PROFILE PAGE
+     ============================================ */
+  
+  @media (max-width: 768px) {
+    /* Profile header */
+    .profile-header {
+      text-align: center;
+      padding: 1.5rem 1rem;
+    }
+    
+    /* Profile avatar */
+    .profile-avatar {
+      width: 80px;
+      height: 80px;
+      margin: 0 auto 1rem;
+    }
+    
+    /* Profile stats */
+    .profile-stats {
+      display: flex;
+      justify-content: center;
+      gap: 2rem;
+      padding: 1rem 0;
+      border-top: 1px solid hsl(var(--border));
+      border-bottom: 1px solid hsl(var(--border));
+    }
+    
+    /* Profile actions */
+    .profile-actions {
+      display: flex;
+      gap: 0.5rem;
+      padding: 1rem;
+    }
+    
+    .profile-actions button {
+      flex: 1;
+    }
+  }
+
+  /* ============================================
+     UTILITY OVERRIDES
+     ============================================ */
+  
+  @media (max-width: 768px) {
+    /* Hide on mobile */
+    .hide-mobile,
+    .desktop-only {
+      display: none !important;
+    }
+    
+    /* Show on mobile only */
+    .show-mobile,
+    .mobile-only {
+      display: block !important;
+    }
+    
+    /* Flex mobile only */
+    .flex-mobile-only {
+      display: flex !important;
+    }
+    
+    /* Full width on mobile */
+    .w-full-mobile {
+      width: 100% !important;
+    }
+    
+    /* Stack on mobile */
+    .stack-mobile {
+      flex-direction: column !important;
+    }
+    
+    /* Gap adjustments */
+    .gap-mobile-sm {
+      gap: 0.5rem !important;
+    }
+  }
+}

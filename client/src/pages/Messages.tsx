@@ -83,10 +83,10 @@ const Messages = () => {
   };
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-6">
-      <div className="mb-6 text-center">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Messages</h1>
-        <p className="text-gray-600">Stay connected with other pet lovers</p>
+    <div className="max-w-4xl mx-auto px-4 sm:px-6 py-4 sm:py-6 pb-20">
+      <div className="mb-4 sm:mb-6 text-center">
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-1 sm:mb-2">Messages</h1>
+        <p className="text-sm sm:text-base text-gray-600">Stay connected with other pet lovers</p>
       </div>
       <MessageInbox 
         onConversationSelect={handleConversationSelect}
