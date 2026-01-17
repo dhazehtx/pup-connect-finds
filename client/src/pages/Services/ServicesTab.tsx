@@ -7,13 +7,114 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Search, MapPin, Clock, Star, Shield, Filter } from 'lucide-react';
+import { Search, MapPin, Clock, Star, Shield, Filter, DollarSign } from 'lucide-react';
 import { ServiceProviderCard } from '@/components/ServiceProviderCard';
 import { BookServiceModal } from '@/components/BookServiceModal';
 import Pill from '@/components/Pill';
 import type { PetServiceProvider } from '@shared/schema';
 import { useProviders } from '@/hooks/useProviders';
 import { useSignedIn } from '@/hooks/useSignedIn';
+
+const serviceTypeIcons: Record<string, string> = {
+  grooming: '✂️',
+  walking: '🚶',
+  sitting: '🏠',
+  training: '🎓',
+  boarding: '🏨',
+  veterinary: '🏥',
+};
+
+const serviceTypeLabels: Record<string, string> = {
+  grooming: 'Dog Grooming',
+  walking: 'Dog Walking',
+  sitting: 'Pet Sitting',
+  training: 'Dog Training',
+  boarding: 'Pet Boarding',
+  veterinary: 'Veterinary Care',
+};
+
+function DemoProviderCard({ provider }: { provider: any }) {
+  const navigate = useNavigate();
+  
+  const handleSignIn = () => {
+    navigate('/auth/sign-up');
+  };
+
+  return (
+    <Card className="hover:shadow-lg transition-shadow duration-200 relative overflow-hidden">
+      {provider.is_verified && (
+        <div className="absolute top-2 right-2 z-10">
+          <Badge variant="secondary" className="bg-green-100 text-green-800 border-green-300">
+            <Shield className="w-3 h-3 mr-1" />
+            Verified
+          </Badge>
+        </div>
+      )}
+      
+      <CardHeader className="pb-3">
+        <div className="flex items-start space-x-3">
+          <img 
+            src={provider.avatar_url || provider.user?.avatar_url || "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&h=150&fit=crop"}
+            alt={provider.name || provider.user?.full_name}
+            className="h-12 w-12 rounded-full object-cover"
+          />
+          
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2">
+              <h3 className="font-semibold text-lg truncate">
+                {provider.name || provider.user?.full_name || 'Service Provider'}
+              </h3>
+            </div>
+            
+            <div className="flex items-center gap-1 text-sm text-slate-600">
+              <span>{serviceTypeIcons[provider.service_type] || '🐕'}</span>
+              <span>{serviceTypeLabels[provider.service_type] || provider.service_type}</span>
+            </div>
+          </div>
+        </div>
+      </CardHeader>
+
+      <CardContent className="space-y-4">
+        <p className="text-sm text-slate-600 line-clamp-3">
+          {provider.bio || provider.headline}
+        </p>
+
+        <div className="space-y-2">
+          {provider.location && (
+            <div className="flex items-center gap-2 text-sm text-slate-600">
+              <MapPin className="h-4 w-4" />
+              <span>{provider.location}</span>
+            </div>
+          )}
+          
+          <div className="flex items-center gap-2 text-sm font-medium">
+            <DollarSign className="h-4 w-4" />
+            <span>${provider.price}/hour</span>
+          </div>
+        </div>
+
+        <div className="flex gap-2 pt-2">
+          <Button onClick={handleSignIn} className="flex-1 text-sm">
+            Sign in to book
+          </Button>
+          
+          <Button 
+            variant="outline" 
+            size="sm"
+            className="text-slate-700 font-medium border-slate-300 hover:bg-slate-50"
+            onClick={handleSignIn}
+          >
+            View Profile
+          </Button>
+        </div>
+
+        <div className="text-xs text-slate-500 border-t pt-2">
+          {provider.since || 'Provider since 2024'}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
 
 // Pill styles (keep these exactly)
 const PILL_BASE =
@@ -291,11 +392,15 @@ export function ServicesTab() {
           ) : featuredServices.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {featuredServices.map((service: any) => (
-                <ServiceProviderCard
-                  key={service.id}
-                  provider={service}
-                  onBook={() => setSelectedProvider(service)}
-                />
+                service.isDemo ? (
+                  <DemoProviderCard key={service.id} provider={service} />
+                ) : (
+                  <ServiceProviderCard
+                    key={service.id}
+                    provider={service}
+                    onBook={() => setSelectedProvider(service)}
+                  />
+                )
               ))}
             </div>
           ) : (
@@ -339,11 +444,15 @@ export function ServicesTab() {
           ) : allServices.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {allServices.map((service: any) => (
-                <ServiceProviderCard
-                  key={service.id}
-                  provider={service}
-                  onBook={() => setSelectedProvider(service)}
-                />
+                service.isDemo ? (
+                  <DemoProviderCard key={service.id} provider={service} />
+                ) : (
+                  <ServiceProviderCard
+                    key={service.id}
+                    provider={service}
+                    onBook={() => setSelectedProvider(service)}
+                  />
+                )
               ))}
             </div>
           ) : (

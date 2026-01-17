@@ -1,0 +1,174 @@
+🔍 WHY IT’S STILL BROKEN (PRECISE ROOT CAUSE)
+
+Replit did not actually wire images into the card components.
+
+What it did instead:
+
+Added demo data objects
+
+BUT reused the same JSX/image container that expects:
+
+listing.images[0]
+
+listing.photo_url
+
+or Supabase storage paths
+
+Since guest demo objects do not have those fields, the <img> tag is either:
+
+Rendering with src={undefined}
+
+Or not rendered at all
+
+Leaving behind the background container color (blue/white blocks)
+
+That’s why:
+
+Titles show
+
+Metadata shows
+
+Cards render
+
+Images do not
+
+This will never fix itself unless we explicitly hardcode a valid image source for guest cards.
+
+✅ WHAT MUST HAPPEN (NON-NEGOTIABLE)
+
+For guest mode only:
+
+The card must use:
+
+<img src="https://images.unsplash.com/..." />
+
+
+OR
+
+<img src="/images/demo/golden-retriever.jpg" />
+
+
+NOT
+
+listing.image
+
+listing.images?.[0]
+
+Any backend-derived field
+
+Right now, Replit has not done this.
+
+🔥 FINAL “FORCE IT” REPLIT PROMPT (THIS ONE WILL WORK)
+
+This prompt removes all ambiguity.
+It tells Replit exactly what JSX to write.
+
+Paste this EXACTLY. No commentary.
+
+TASK: Explicitly render images for guest demo cards.
+
+IMPORTANT:
+Guest demo cards MUST use hardcoded image sources.
+Do NOT reference backend fields for guest images.
+
+FILES TO UPDATE:
+- Explore page component (guest demo cards)
+- Marketplace Pet Services card component (guest demo providers)
+
+IMPLEMENTATION DETAILS:
+
+1. Explore Page (Guest Mode Only):
+- Locate JSX that renders guest/demo puppy cards
+- Replace image logic with a hardcoded <img> tag
+
+Example (guest only):
+<img
+  src="https://images.unsplash.com/photo-1558788353-f76d92427f16"
+  alt="Golden Retriever Puppy"
+  className="listing-image"
+/>
+
+- Repeat with 2–3 different Unsplash dog images
+- These images must render even with no data present
+- Do NOT use listing.image or listing.images for guest cards
+
+2. Marketplace → Pet Services (Guest Mode Only):
+- Locate guest/demo service provider cards
+- Add a visible avatar image using a hardcoded src
+
+Example:
+<img
+  src="https://images.unsplash.com/photo-1548199973-03cce0bbc87b"
+  alt="Service Provider"
+  className="provider-avatar"
+/>
+
+RULES:
+- Logged-in behavior must remain unchanged
+- Conditional rendering only when no user is authenticated
+- No backend calls
+- No schema changes
+
+OUTPUT:
+- Modified files only
+- Short summary
+
+
+💳 Yes, this costs another ~$1
+But this ends the loop. There is no softer way to fix this.
+
+🧪 HOW TO VERIFY (VERY IMPORTANT)
+
+After it runs, log out and check:
+
+Explore (guest)
+
+You should now see:
+
+🖼️ Actual dog photos
+
+📛 Name
+
+📝 Description
+
+📍 Metadata
+
+It should feel like:
+
+Facebook Marketplace
+
+Zillow browsing
+
+Airbnb browsing (preview-only)
+
+Marketplace → Pet Services (guest)
+
+You should now see:
+
+Avatar photos
+
+Names
+
+Descriptions
+
+“Sign in to book”
+
+If you do not see images after this, then the issue is:
+
+CSS display: none
+
+Or overflow: hidden masking the image
+
+And we fix that in one final micro-prompt.
+
+🚦 VERY IMPORTANT (READ THIS)
+
+You are correct to demand this level of polish before domain + prod.
+
+Once this is fixed:
+
+❌ No more UX work
+
+❌ No more demo tweaks
+
+🔒 UI is locked

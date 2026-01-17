@@ -14,43 +14,24 @@ import { apiRequest } from '@/lib/api';
 
 
 const PuppyGrid = ({ listings, viewMode }: { listings?: any[], viewMode: 'grid' | 'list' }) => {
-  // Use provided listings or fallback to demo data
-  const displayData = listings || [
-    {
-      id: 1,
-      name: "Golden Retriever Puppy",
-      breed: "Golden Retriever",
-      age: "8 weeks",
-      price: "$1,200",
-      location: "San Francisco, CA",
-      rating: 4.8,
-      image: "https://images.unsplash.com/photo-1552053831-71594a27632d?w=400",
-      breeder: "Golden Dreams Kennel"
-    },
-    {
-      id: 2,
-      name: "Labrador Puppy",
-      breed: "Labrador Retriever",
-      age: "10 weeks",
-      price: "$1,000",
-      location: "Los Angeles, CA",
-      rating: 4.9,
-      image: "https://images.unsplash.com/photo-1518717758536-85ae29035b6d?w=400",
-      breeder: "Happy Tails Breeding"
-    }
-  ];
+  const displayData = listings || [];
+
+  const handleSignIn = () => {
+    window.location.href = '/auth/sign-up';
+  };
 
   if (viewMode === 'list') {
     return (
       <div className="space-y-3 sm:space-y-4">
         {displayData.map((puppy) => (
-          <Card key={puppy.id} className="hover:shadow-lg transition-shadow cursor-pointer overflow-hidden">
+          <Card key={puppy.id} className="hover:shadow-lg transition-shadow cursor-pointer overflow-hidden" onClick={handleSignIn}>
             <CardContent className="p-3 sm:p-6">
               <div className="flex gap-3 sm:gap-4">
                 <img 
                   src={puppy.image} 
                   alt={puppy.name}
                   className="w-20 h-20 sm:w-24 sm:h-24 object-cover rounded-lg flex-shrink-0"
+                  loading="lazy"
                 />
                 <div className="flex-1 min-w-0">
                   <div className="flex justify-between items-start mb-1 sm:mb-2 gap-2">
@@ -62,18 +43,15 @@ const PuppyGrid = ({ listings, viewMode }: { listings?: any[], viewMode: 'grid' 
                     <MapPin className="h-3 w-3 sm:h-4 sm:w-4 mr-1 flex-shrink-0" />
                     <span className="truncate">{puppy.location}</span>
                   </div>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center">
-                      <Star className="h-3 w-3 sm:h-4 sm:w-4 text-blue-400 mr-1" />
-                      <span className="text-xs sm:text-sm font-medium">{puppy.rating}</span>
-                    </div>
-                    <span className="text-xs sm:text-sm text-gray-500 hidden sm:inline">{puppy.breeder}</span>
-                  </div>
+                  <Button size="sm" className="w-full sm:w-auto mt-2" onClick={handleSignIn}>
+                    Sign in to view
+                  </Button>
                 </div>
                 <Button
                   size="sm"
                   variant="ghost"
                   className="bg-white/80 hover:bg-white self-start min-h-[36px] min-w-[36px] p-1.5 flex-shrink-0"
+                  onClick={(e) => { e.stopPropagation(); handleSignIn(); }}
                 >
                   <Heart className="h-4 w-4" />
                 </Button>
@@ -88,17 +66,19 @@ const PuppyGrid = ({ listings, viewMode }: { listings?: any[], viewMode: 'grid' 
   return (
     <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6">
       {displayData.map((puppy) => (
-        <Card key={puppy.id} className="hover:shadow-lg transition-shadow cursor-pointer overflow-hidden">
+        <Card key={puppy.id} className="hover:shadow-lg transition-shadow cursor-pointer overflow-hidden" onClick={handleSignIn}>
           <div className="relative">
             <img 
               src={puppy.image} 
               alt={puppy.name}
               className="w-full h-32 sm:h-48 object-cover"
+              loading="lazy"
             />
             <Button
               size="sm"
               variant="ghost"
               className="absolute top-2 right-2 bg-white/80 hover:bg-white min-h-[36px] min-w-[36px] p-1.5"
+              onClick={(e) => { e.stopPropagation(); handleSignIn(); }}
             >
               <Heart className="h-4 w-4" />
             </Button>
@@ -109,17 +89,13 @@ const PuppyGrid = ({ listings, viewMode }: { listings?: any[], viewMode: 'grid' 
               <span className="text-sm sm:text-lg font-bold text-blue-600">{puppy.price}</span>
             </div>
             <p className="text-xs sm:text-base text-gray-600 mb-1 sm:mb-2 line-clamp-1">{puppy.breed} • {puppy.age}</p>
-            <div className="flex items-center text-xs sm:text-sm text-gray-500 mb-1 sm:mb-2">
+            <div className="flex items-center text-xs sm:text-sm text-gray-500 mb-2">
               <MapPin className="h-3 w-3 sm:h-4 sm:w-4 mr-1 flex-shrink-0" />
               <span className="truncate">{puppy.location}</span>
             </div>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center">
-                <Star className="h-3 w-3 sm:h-4 sm:w-4 text-blue-400 mr-1" />
-                <span className="text-xs sm:text-sm font-medium">{puppy.rating}</span>
-              </div>
-              <span className="text-xs sm:text-sm text-gray-500 hidden sm:inline">{puppy.breeder}</span>
-            </div>
+            <Button size="sm" className="w-full" onClick={handleSignIn}>
+              Sign in to view
+            </Button>
           </CardContent>
         </Card>
       ))}
@@ -138,49 +114,79 @@ const ExploreGuest = () => {
     console.log('[EXPLORE GUEST] Component mounted');
   }, []);
 
-  // Fetch listings - using demo data for guest users since API endpoints may not be available
-  const { data: listings, isLoading: loadingListings } = useQuery({
-    queryKey: ['explore-listings-guest', filters],
-    queryFn: async () => {
-      // Return demo data for guest users
-      return [
-        {
-          id: 1,
-          name: "Golden Retriever Puppy",
-          breed: "Golden Retriever",
-          age: "8 weeks",
-          price: "$1,200",
-          location: "San Francisco, CA",
-          rating: 4.8,
-          image: "https://images.unsplash.com/photo-1552053831-71594a27632d?w=400",
-          breeder: "Golden Dreams Kennel"
-        },
-        {
-          id: 2,
-          name: "Labrador Puppy", 
-          breed: "Labrador Retriever",
-          age: "10 weeks",
-          price: "$1,000",
-          location: "Los Angeles, CA",
-          rating: 4.9,
-          image: "https://images.unsplash.com/photo-1518717758536-85ae29035b6d?w=400",
-          breeder: "Happy Tails Breeding"
-        },
-        {
-          id: 3,
-          name: "German Shepherd Puppy",
-          breed: "German Shepherd", 
-          age: "12 weeks",
-          price: "$1,500",
-          location: "Austin, TX",
-          rating: 4.7,
-          image: "https://images.unsplash.com/photo-1589941013453-ec89f33b5e95?w=400",
-          breeder: "Texas Shepherds"
-        }
-      ];
+  // Static demo data for guest users - no API calls, instant load
+  const GUEST_DEMO_LISTINGS = [
+    {
+      id: 1,
+      name: "Golden Retriever Puppy",
+      breed: "Golden Retriever",
+      age: "8 weeks",
+      price: "$1,200",
+      location: "San Francisco, CA",
+      rating: 4.8,
+      image: "https://images.unsplash.com/photo-1552053831-71594a27632d?w=400&h=300&fit=crop",
+      breeder: "Golden Dreams Kennel"
     },
-    enabled: activeTab === 'listings',
-  });
+    {
+      id: 2,
+      name: "Labrador Puppy", 
+      breed: "Labrador Retriever",
+      age: "10 weeks",
+      price: "$1,000",
+      location: "Los Angeles, CA",
+      rating: 4.9,
+      image: "https://images.unsplash.com/photo-1518717758536-85ae29035b6d?w=400&h=300&fit=crop",
+      breeder: "Happy Tails Breeding"
+    },
+    {
+      id: 3,
+      name: "German Shepherd Puppy",
+      breed: "German Shepherd", 
+      age: "12 weeks",
+      price: "$1,500",
+      location: "Austin, TX",
+      rating: 4.7,
+      image: "https://images.unsplash.com/photo-1589941013453-ec89f33b5e95?w=400&h=300&fit=crop",
+      breeder: "Texas Shepherds"
+    },
+    {
+      id: 4,
+      name: "French Bulldog Puppy",
+      breed: "French Bulldog",
+      age: "9 weeks",
+      price: "$2,500",
+      location: "New York, NY",
+      rating: 4.9,
+      image: "https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?w=400&h=300&fit=crop",
+      breeder: "NYC Frenchies"
+    },
+    {
+      id: 5,
+      name: "Beagle Puppy",
+      breed: "Beagle",
+      age: "11 weeks",
+      price: "$800",
+      location: "Chicago, IL",
+      rating: 4.6,
+      image: "https://images.unsplash.com/photo-1505628346881-b72b27e84530?w=400&h=300&fit=crop",
+      breeder: "Midwest Beagles"
+    },
+    {
+      id: 6,
+      name: "Standard Poodle Puppy",
+      breed: "Standard Poodle",
+      age: "10 weeks",
+      price: "$1,800",
+      location: "Miami, FL",
+      rating: 4.8,
+      image: "https://images.unsplash.com/photo-1616149250666-c3d46d310e1f?w=400&h=300&fit=crop",
+      breeder: "Florida Poodles"
+    }
+  ];
+
+  // Use static data - no network request needed for guests
+  const listings = GUEST_DEMO_LISTINGS;
+  const loadingListings = false;
 
   // Fetch posts - using demo data for guest users
   const { data: posts, isLoading: loadingPosts } = useQuery({
