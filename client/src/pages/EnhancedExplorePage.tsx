@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Search, Grid, List } from 'lucide-react';
+import { Search, Grid, List, Heart, MapPin, Star } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -12,6 +12,76 @@ import LoadingSpinner from '@/components/ui/loading-spinner';
 import { apiRequest } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
 
+// Demo listings for guest users
+const DEMO_LISTINGS = [
+  {
+    id: 'demo-1',
+    dog_name: 'Golden Retriever Puppy',
+    breed: 'Golden Retriever',
+    age: 8,
+    price: 1200,
+    location: 'San Francisco, CA',
+    image_url: 'https://images.unsplash.com/photo-1552053831-71594a27632d?w=400&h=300&fit=crop',
+    description: 'Adorable golden retriever puppy from champion bloodlines.',
+    isDemo: true,
+  },
+  {
+    id: 'demo-2',
+    dog_name: 'Labrador Puppy',
+    breed: 'Labrador Retriever',
+    age: 10,
+    price: 1000,
+    location: 'Los Angeles, CA',
+    image_url: 'https://images.unsplash.com/photo-1518717758536-85ae29035b6d?w=400&h=300&fit=crop',
+    description: 'Friendly and playful lab puppy ready for a loving home.',
+    isDemo: true,
+  },
+  {
+    id: 'demo-3',
+    dog_name: 'German Shepherd Puppy',
+    breed: 'German Shepherd',
+    age: 12,
+    price: 1500,
+    location: 'Austin, TX',
+    image_url: 'https://images.unsplash.com/photo-1589941013453-ec89f33b5e95?w=400&h=300&fit=crop',
+    description: 'Intelligent and loyal German Shepherd puppy.',
+    isDemo: true,
+  },
+  {
+    id: 'demo-4',
+    dog_name: 'French Bulldog Puppy',
+    breed: 'French Bulldog',
+    age: 9,
+    price: 2500,
+    location: 'New York, NY',
+    image_url: 'https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?w=400&h=300&fit=crop',
+    description: 'Charming Frenchie with excellent temperament.',
+    isDemo: true,
+  },
+  {
+    id: 'demo-5',
+    dog_name: 'Beagle Puppy',
+    breed: 'Beagle',
+    age: 11,
+    price: 800,
+    location: 'Chicago, IL',
+    image_url: 'https://images.unsplash.com/photo-1505628346881-b72b27e84530?w=400&h=300&fit=crop',
+    description: 'Curious and friendly beagle looking for adventure.',
+    isDemo: true,
+  },
+  {
+    id: 'demo-6',
+    dog_name: 'Poodle Puppy',
+    breed: 'Standard Poodle',
+    age: 10,
+    price: 1800,
+    location: 'Miami, FL',
+    image_url: 'https://images.unsplash.com/photo-1616149250666-c3d46d310e1f?w=400&h=300&fit=crop',
+    description: 'Elegant and hypoallergenic poodle puppy.',
+    isDemo: true,
+  },
+];
+
 const EnhancedExplorePage: React.FC = () => {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<'listings' | 'posts'>('listings');
@@ -19,8 +89,11 @@ const EnhancedExplorePage: React.FC = () => {
   const [filters, setFilters] = useState<any>({});
   const [resultCount, setResultCount] = useState(0);
 
-  // Fetch listings based on filters
-  const { data: listings, isLoading: loadingListings, refetch: refetchListings } = useQuery({
+  // For guests, use demo data; for authenticated users, fetch from API
+  const isGuest = !user;
+  
+  // Fetch listings based on filters (only for authenticated users)
+  const { data: apiListings, isLoading: loadingListings, refetch: refetchListings } = useQuery({
     queryKey: ['explore-listings', filters],
     queryFn: async () => {
       const params = new URLSearchParams();
@@ -54,8 +127,11 @@ const EnhancedExplorePage: React.FC = () => {
       const response = await apiRequest(`/api/dog-listings/search?${params.toString()}`);
       return response;
     },
-    enabled: activeTab === 'listings',
+    enabled: activeTab === 'listings' && !isGuest,
   });
+  
+  // Use demo listings for guests, API listings for authenticated users
+  const listings = isGuest ? DEMO_LISTINGS : apiListings;
 
   // Fetch posts based on filters
   const { data: posts, isLoading: loadingPosts, refetch: refetchPosts } = useQuery({
@@ -94,7 +170,8 @@ const EnhancedExplorePage: React.FC = () => {
     setActiveTab(tab as 'listings' | 'posts');
   };
 
-  const isLoading = activeTab === 'listings' ? loadingListings : loadingPosts;
+  // For guests, never show loading state for listings (demo data is instant)
+  const isLoading = activeTab === 'listings' ? (isGuest ? false : loadingListings) : loadingPosts;
   const data = activeTab === 'listings' ? listings : posts;
 
   const handleLike = async (postId: string) => {
@@ -206,11 +283,51 @@ const EnhancedExplorePage: React.FC = () => {
                   : 'grid-cols-1'
               }`}>
                 {listings?.map((listing: any) => (
-                  <ListingCard
-                    key={listing.id}
-                    listing={listing}
-                    variant={viewMode}
-                  />
+                  listing.isDemo ? (
+                    <Card key={listing.id} className="hover:shadow-lg transition-shadow cursor-pointer overflow-hidden">
+                      <div className="relative">
+                        <img 
+                          src={listing.image_url} 
+                          alt={listing.dog_name}
+                          className="w-full h-48 object-cover"
+                          loading="lazy"
+                        />
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="absolute top-2 right-2 bg-white/80 hover:bg-white min-h-[36px] min-w-[36px] p-1.5"
+                          onClick={() => window.location.href = '/auth/sign-up'}
+                        >
+                          <Heart className="h-4 w-4" />
+                        </Button>
+                      </div>
+                      <CardContent className="p-4">
+                        <div className="flex justify-between items-start mb-2">
+                          <h3 className="font-semibold text-lg">{listing.dog_name}</h3>
+                          <span className="text-lg font-bold text-blue-600">${listing.price}</span>
+                        </div>
+                        <p className="text-gray-600 mb-2">{listing.breed} • {listing.age} weeks</p>
+                        <div className="flex items-center text-sm text-gray-500 mb-2">
+                          <MapPin className="h-4 w-4 mr-1" />
+                          <span>{listing.location}</span>
+                        </div>
+                        <Button 
+                          className="w-full mt-2" 
+                          onClick={() => window.location.href = '/auth/sign-up'}
+                        >
+                          Sign in to view
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  ) : (
+                    <ListingCard
+                      key={listing.id}
+                      listing={listing}
+                      onContactSeller={() => {}}
+                      onAddToFavorites={() => {}}
+                      onAddToComparison={() => {}}
+                    />
+                  )
                 ))}
               </div>
             )}
