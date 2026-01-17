@@ -139,13 +139,13 @@ const UnifiedProfileView = ({ userId, isCurrentUser }: UnifiedProfileViewProps) 
   }
 
   return (
-    <div className="max-w-4xl mx-auto p-4">
+    <div className="max-w-4xl mx-auto p-4 pb-20">
       {/* Profile Header */}
-      <Card className="mb-6">
-        <CardContent className="p-6">
-          <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
+      <Card className="mb-4 sm:mb-6">
+        <CardContent className="p-4 sm:p-6">
+          <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 sm:gap-6">
             {/* Avatar */}
-            <div className="w-32 h-32 rounded-full bg-gray-200 flex-shrink-0 overflow-hidden">
+            <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-full bg-gray-200 flex-shrink-0 overflow-hidden">
               {profile.avatar_url ? (
                 <img
                   src={profile.avatar_url}
@@ -160,10 +160,10 @@ const UnifiedProfileView = ({ userId, isCurrentUser }: UnifiedProfileViewProps) 
             </div>
 
             {/* Profile Info */}
-            <div className="flex-1">
-              <div className="flex items-center justify-between mb-2">
-                <div className="flex items-center gap-4">
-                  <h1 className="text-2xl font-bold">{profile.full_name}</h1>
+            <div className="flex-1 w-full text-center sm:text-left">
+              <div className="flex flex-col sm:flex-row items-center sm:items-start sm:justify-between mb-2 gap-2">
+                <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-4">
+                  <h1 className="text-xl sm:text-2xl font-bold">{profile.full_name}</h1>
                   {profile.verified && (
                     <div className="flex items-center gap-1 bg-blue-100 text-blue-800 text-xs px-3 py-1 rounded-full">
                       <Shield className="w-3 h-3" />
@@ -179,11 +179,11 @@ const UnifiedProfileView = ({ userId, isCurrentUser }: UnifiedProfileViewProps) 
               </div>
               
               {profile.username && (
-                <p className="text-gray-600 mb-2">@{profile.username}</p>
+                <p className="text-sm sm:text-base text-gray-600 mb-2">@{profile.username}</p>
               )}
 
               {/* Stats */}
-              <div className="flex gap-6 text-center mb-4">
+              <div className="flex justify-center sm:justify-start gap-4 sm:gap-6 text-center mb-3 sm:mb-4">
                 <div>
                   <div className="font-bold">{postCount}</div>
                   <div className="text-sm text-gray-600">Posts</div>
@@ -202,23 +202,23 @@ const UnifiedProfileView = ({ userId, isCurrentUser }: UnifiedProfileViewProps) 
                 <p className="text-gray-700 mb-4">{profile.bio}</p>
               )}
 
-              <div className="flex flex-wrap gap-4 text-sm text-gray-600 mb-4">
+              <div className="flex flex-wrap justify-center sm:justify-start gap-3 sm:gap-4 text-xs sm:text-sm text-gray-600 mb-3 sm:mb-4">
                 {profile.location && (
                   <div className="flex items-center gap-1">
-                    <MapPin className="w-4 h-4" />
+                    <MapPin className="w-3 h-3 sm:w-4 sm:h-4" />
                     {profile.location}
                   </div>
                 )}
                 {profile.website_url && (
                   <div className="flex items-center gap-1">
-                    <Globe className="w-4 h-4" />
+                    <Globe className="w-3 h-3 sm:w-4 sm:h-4" />
                     <a href={profile.website_url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
                       Website
                     </a>
                   </div>
                 )}
                 <div className="flex items-center gap-1">
-                  <Calendar className="w-4 h-4" />
+                  <Calendar className="w-3 h-3 sm:w-4 sm:h-4" />
                   Joined {new Date(profile.created_at).toLocaleDateString()}
                 </div>
               </div>

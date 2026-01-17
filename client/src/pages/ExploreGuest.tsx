@@ -42,38 +42,38 @@ const PuppyGrid = ({ listings, viewMode }: { listings?: any[], viewMode: 'grid' 
 
   if (viewMode === 'list') {
     return (
-      <div className="space-y-4">
+      <div className="space-y-3 sm:space-y-4">
         {displayData.map((puppy) => (
-          <Card key={puppy.id} className="hover:shadow-lg transition-shadow cursor-pointer">
-            <CardContent className="p-6">
-              <div className="flex gap-4">
+          <Card key={puppy.id} className="hover:shadow-lg transition-shadow cursor-pointer overflow-hidden">
+            <CardContent className="p-3 sm:p-6">
+              <div className="flex gap-3 sm:gap-4">
                 <img 
                   src={puppy.image} 
                   alt={puppy.name}
-                  className="w-24 h-24 object-cover rounded-lg flex-shrink-0"
+                  className="w-20 h-20 sm:w-24 sm:h-24 object-cover rounded-lg flex-shrink-0"
                 />
-                <div className="flex-1">
-                  <div className="flex justify-between items-start mb-2">
-                    <h3 className="font-semibold text-lg">{puppy.name}</h3>
-                    <span className="text-lg font-bold text-blue-600">{puppy.price}</span>
+                <div className="flex-1 min-w-0">
+                  <div className="flex justify-between items-start mb-1 sm:mb-2 gap-2">
+                    <h3 className="font-semibold text-sm sm:text-lg truncate">{puppy.name}</h3>
+                    <span className="text-sm sm:text-lg font-bold text-blue-600 flex-shrink-0">{puppy.price}</span>
                   </div>
-                  <p className="text-gray-600 mb-2">{puppy.breed} • {puppy.age}</p>
-                  <div className="flex items-center text-sm text-gray-500 mb-2">
-                    <MapPin className="h-4 w-4 mr-1" />
-                    {puppy.location}
+                  <p className="text-xs sm:text-base text-gray-600 mb-1 sm:mb-2">{puppy.breed} • {puppy.age}</p>
+                  <div className="flex items-center text-xs sm:text-sm text-gray-500 mb-1 sm:mb-2">
+                    <MapPin className="h-3 w-3 sm:h-4 sm:w-4 mr-1 flex-shrink-0" />
+                    <span className="truncate">{puppy.location}</span>
                   </div>
                   <div className="flex items-center justify-between">
                     <div className="flex items-center">
-                      <Star className="h-4 w-4 text-blue-400 mr-1" />
-                      <span className="text-sm font-medium">{puppy.rating}</span>
+                      <Star className="h-3 w-3 sm:h-4 sm:w-4 text-blue-400 mr-1" />
+                      <span className="text-xs sm:text-sm font-medium">{puppy.rating}</span>
                     </div>
-                    <span className="text-sm text-gray-500">{puppy.breeder}</span>
+                    <span className="text-xs sm:text-sm text-gray-500 hidden sm:inline">{puppy.breeder}</span>
                   </div>
                 </div>
                 <Button
                   size="sm"
                   variant="ghost"
-                  className="bg-white/80 hover:bg-white self-start"
+                  className="bg-white/80 hover:bg-white self-start min-h-[36px] min-w-[36px] p-1.5 flex-shrink-0"
                 >
                   <Heart className="h-4 w-4" />
                 </Button>
@@ -228,15 +228,15 @@ const ExploreGuest = () => {
   const data = activeTab === 'listings' ? listings : posts;
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 pb-20">
       {/* Page Header */}
       <div className="bg-white border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">Explore</h1>
-              <p className="text-gray-600 mt-1">
-                Discover puppies, connect with breeders, and find your perfect companion
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Explore</h1>
+              <p className="text-sm sm:text-base text-gray-600 mt-0.5 sm:mt-1">
+                Discover puppies and find your perfect companion
               </p>
             </div>
             
@@ -246,19 +246,19 @@ const ExploreGuest = () => {
                 variant={viewMode === 'grid' ? 'default' : 'outline'}
                 size="sm"
                 onClick={() => setViewMode('grid')}
-                className="gap-2"
+                className="gap-1.5 min-h-[40px]"
               >
                 <Grid className="h-4 w-4" />
-                Grid
+                <span className="hidden sm:inline">Grid</span>
               </Button>
               <Button
                 variant={viewMode === 'list' ? 'default' : 'outline'}
                 size="sm"
                 onClick={() => setViewMode('list')}
-                className="gap-2"
+                className="gap-1.5 min-h-[40px]"
               >
                 <List className="h-4 w-4" />
-                List
+                <span className="hidden sm:inline">List</span>
               </Button>
             </div>
           </div>
@@ -266,20 +266,20 @@ const ExploreGuest = () => {
       </div>
 
       {/* Filters Section */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
         <AdvancedFilters onFiltersChange={handleFiltersChange} />
       </div>
 
       {/* Content Tabs */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
-          <div className="flex items-center justify-between mb-6">
-            <TabsList className="grid w-full max-w-md grid-cols-2">
-              <TabsTrigger value="listings">Puppy Listings</TabsTrigger>
-              <TabsTrigger value="posts">Community Posts</TabsTrigger>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4 sm:mb-6">
+            <TabsList className="grid w-full sm:w-auto sm:max-w-md grid-cols-2">
+              <TabsTrigger value="listings" className="text-xs sm:text-sm">Puppy Listings</TabsTrigger>
+              <TabsTrigger value="posts" className="text-xs sm:text-sm">Community Posts</TabsTrigger>
             </TabsList>
             
-            <div className="text-sm text-gray-600">
+            <div className="text-xs sm:text-sm text-gray-600 text-center sm:text-right">
               {resultCount} results found
             </div>
           </div>
@@ -297,16 +297,16 @@ const ExploreGuest = () => {
             )}
           </TabsContent>
 
-          <TabsContent value="posts" className="space-y-6">
+          <TabsContent value="posts" className="space-y-4 sm:space-y-6">
             {isLoading ? (
               <LoadingSpinner />
             ) : data && data.length > 0 ? (
-              <div className="space-y-4">
+              <div className="space-y-3 sm:space-y-4">
                 {data.map((post: any) => (
-                  <div key={post.id} className="bg-white rounded-lg shadow-sm border p-6">
-                    <h3 className="font-semibold text-lg mb-2">{post.title}</h3>
-                    <p className="text-gray-600 mb-4">{post.content}</p>
-                    <div className="flex items-center justify-between text-sm text-gray-500">
+                  <div key={post.id} className="bg-white rounded-lg shadow-sm border p-4 sm:p-6">
+                    <h3 className="font-semibold text-base sm:text-lg mb-1 sm:mb-2">{post.title}</h3>
+                    <p className="text-sm sm:text-base text-gray-600 mb-3 sm:mb-4 line-clamp-3">{post.content}</p>
+                    <div className="flex items-center justify-between text-xs sm:text-sm text-gray-500">
                       <span>By {post.author?.username || 'Anonymous'}</span>
                       <span>{new Date(post.created_at).toLocaleDateString()}</span>
                     </div>

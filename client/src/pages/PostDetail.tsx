@@ -263,15 +263,16 @@ const PostDetail = () => {
   };
 
   return (
-    <div className="max-w-md mx-auto bg-white min-h-screen">
+    <div className="max-w-md mx-auto bg-white min-h-screen pb-20">
       {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b">
+      <div className="flex items-center justify-between p-3 sm:p-4 border-b sticky top-0 bg-white z-10">
         <Button
           variant="ghost"
           size="icon"
           onClick={() => navigate(-1)}
+          className="min-h-[44px] min-w-[44px]"
         >
-          <ArrowLeft size={20} />
+          <ArrowLeft size={22} />
         </Button>
         <h1 className="font-medium">Post</h1>
         <Button 
