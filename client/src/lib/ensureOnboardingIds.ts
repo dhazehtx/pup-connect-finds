@@ -1,4 +1,4 @@
-import { createClient } from '@supabase/supabase-js';
+import { supabase } from '@/integrations/supabase/client';
 
 // Helper to ensure all onboarding IDs exist before Stripe Connect
 export async function ensureOnboardingIds(): Promise<{
@@ -8,11 +8,6 @@ export async function ensureOnboardingIds(): Promise<{
 }> {
   try {
     // Get the current Supabase session for Bearer token auth
-    const supabase = createClient(
-      import.meta.env.VITE_SUPABASE_URL!, 
-      import.meta.env.VITE_SUPABASE_ANON_KEY!
-    );
-    
     const { data: { session } } = await supabase.auth.getSession();
     
     if (!session?.access_token) {

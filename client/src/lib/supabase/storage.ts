@@ -1,9 +1,5 @@
 // Storage utilities for handling file uploads with Supabase
-import { createClient } from "@supabase/supabase-js";
-
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL!;
-const supabaseAnon = import.meta.env.VITE_SUPABASE_ANON_KEY!;
-const supabase = createClient(supabaseUrl, supabaseAnon);
+import { supabase } from '@/integrations/supabase/client';
 
 export async function uploadIdImage(opts: {
   userId: string;

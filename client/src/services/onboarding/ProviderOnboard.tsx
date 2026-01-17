@@ -10,6 +10,7 @@ import { useOnboardingStore } from '@/stores/onboarding';
 import { useOnboarding } from '@/stores/useOnboarding';
 import { ensureOnboardingIds } from '@/lib/ensureOnboardingIds';
 import { LegalBlurb } from '@/components/legal/LegalBlurb';
+import { supabase } from '@/integrations/supabase/client';
 
 // SOL:START ProviderOnboard
 interface Step {
@@ -490,12 +491,7 @@ const ProviderOnboard: React.FC = () => {
     try {
       console.log('[ID VERIFICATION] Starting manual ID verification for:', { userId: authUser.id, applicationId });
 
-      // Get auth token
-      const { createClient } = await import('@supabase/supabase-js');
-      const supabase = createClient(
-        import.meta.env.VITE_SUPABASE_URL!,
-        import.meta.env.VITE_SUPABASE_ANON_KEY!
-      );
+      // Get auth token from shared client
       const { data: session } = await supabase.auth.getSession();
       const token = session.session?.access_token;
 
