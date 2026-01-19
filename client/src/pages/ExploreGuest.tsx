@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { useNavigate } from 'react-router-dom';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -10,96 +11,69 @@ import AdvancedFilters from '@/components/explore/AdvancedFilters';
 import FeaturedPosts from '@/components/FeaturedPosts';
 import LoadingSpinner from '@/components/ui/loading-spinner';
 import { apiRequest } from '@/lib/api';
+import ListingCard from '@/components/ListingCard';
 
 
 
-const PuppyGrid = ({ listings, viewMode }: { listings?: any[], viewMode: 'grid' | 'list' }) => {
-  const displayData = listings || [];
-
+// Demo listing card that matches real ListingCard but with guest-mode behavior
+const GuestListingCard = ({ listing }: { listing: any }) => {
+  const navigate = useNavigate();
+  
   const handleSignIn = () => {
-    window.location.href = '/auth/sign-up';
+    navigate('/auth/sign-up');
   };
 
-  if (viewMode === 'list') {
-    return (
-      <div className="space-y-3 sm:space-y-4">
-        {displayData.map((puppy) => (
-          <Card key={puppy.id} className="hover:shadow-lg transition-shadow cursor-pointer overflow-hidden" onClick={handleSignIn}>
-            <CardContent className="p-3 sm:p-6">
-              <div className="flex gap-3 sm:gap-4">
-                <img 
-                  src={puppy.image} 
-                  alt={puppy.name}
-                  className="w-20 h-20 sm:w-24 sm:h-24 object-cover rounded-lg flex-shrink-0"
-                  loading="lazy"
-                />
-                <div className="flex-1 min-w-0">
-                  <div className="flex justify-between items-start mb-1 sm:mb-2 gap-2">
-                    <h3 className="font-semibold text-sm sm:text-lg truncate">{puppy.name}</h3>
-                    <span className="text-sm sm:text-lg font-bold text-blue-600 flex-shrink-0">{puppy.price}</span>
-                  </div>
-                  <p className="text-xs sm:text-base text-gray-600 mb-1 sm:mb-2">{puppy.breed} • {puppy.age}</p>
-                  <div className="flex items-center text-xs sm:text-sm text-gray-500 mb-1 sm:mb-2">
-                    <MapPin className="h-3 w-3 sm:h-4 sm:w-4 mr-1 flex-shrink-0" />
-                    <span className="truncate">{puppy.location}</span>
-                  </div>
-                  <Button size="sm" className="w-full sm:w-auto mt-2" onClick={handleSignIn}>
-                    Sign in to view
-                  </Button>
-                </div>
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  className="bg-white/80 hover:bg-white self-start min-h-[36px] min-w-[36px] p-1.5 flex-shrink-0"
-                  onClick={(e) => { e.stopPropagation(); handleSignIn(); }}
-                >
-                  <Heart className="h-4 w-4" />
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-    );
-  }
-
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6">
-      {displayData.map((puppy) => (
-        <Card key={puppy.id} className="hover:shadow-lg transition-shadow cursor-pointer overflow-hidden" onClick={handleSignIn}>
-          <div className="relative">
-            <img 
-              src={puppy.image} 
-              alt={puppy.name}
-              className="w-full h-32 sm:h-48 object-cover"
-              loading="lazy"
-            />
-            <Button
-              size="sm"
-              variant="ghost"
-              className="absolute top-2 right-2 bg-white/80 hover:bg-white min-h-[36px] min-w-[36px] p-1.5"
-              onClick={(e) => { e.stopPropagation(); handleSignIn(); }}
-            >
-              <Heart className="h-4 w-4" />
-            </Button>
+    <Card 
+      className="w-full overflow-hidden hover:shadow-lg transition-shadow duration-300 cursor-pointer"
+      onClick={handleSignIn}
+    >
+      <div className="relative">
+        <div className="aspect-[4/3] overflow-hidden">
+          <img
+            src={listing.image_url}
+            alt={listing.dog_name}
+            className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
+            loading="lazy"
+          />
+          
+          <div className="absolute top-3 right-3">
+            <Badge className="bg-black/70 text-white font-bold">
+              ${listing.price?.toLocaleString()}
+            </Badge>
           </div>
-          <CardContent className="p-3 sm:p-4">
-            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start mb-1 sm:mb-2 gap-0.5">
-              <h3 className="font-semibold text-sm sm:text-lg leading-tight line-clamp-1">{puppy.name}</h3>
-              <span className="text-sm sm:text-lg font-bold text-blue-600">{puppy.price}</span>
+          
+          <Button
+            variant="ghost"
+            size="sm"
+            className="absolute bottom-3 right-3 h-8 w-8 p-0 bg-white/90 hover:bg-white backdrop-blur-sm"
+            onClick={(e) => { e.stopPropagation(); handleSignIn(); }}
+          >
+            <Heart className="h-4 w-4 text-gray-600" />
+          </Button>
+        </div>
+        
+        <CardContent className="p-4 space-y-3">
+          <div>
+            <h3 className="font-semibold text-lg leading-tight">{listing.dog_name}</h3>
+            <p className="text-muted-foreground">{listing.breed}</p>
+          </div>
+          
+          <div className="flex items-center gap-4 text-sm text-muted-foreground">
+            <span>{listing.age} weeks</span>
+            <span>•</span>
+            <div className="flex items-center gap-1">
+              <MapPin className="h-3 w-3" />
+              <span>{listing.location}</span>
             </div>
-            <p className="text-xs sm:text-base text-gray-600 mb-1 sm:mb-2 line-clamp-1">{puppy.breed} • {puppy.age}</p>
-            <div className="flex items-center text-xs sm:text-sm text-gray-500 mb-2">
-              <MapPin className="h-3 w-3 sm:h-4 sm:w-4 mr-1 flex-shrink-0" />
-              <span className="truncate">{puppy.location}</span>
-            </div>
-            <Button size="sm" className="w-full" onClick={handleSignIn}>
-              Sign in to view
-            </Button>
-          </CardContent>
-        </Card>
-      ))}
-    </div>
+          </div>
+          
+          <Button size="sm" className="w-full" onClick={handleSignIn}>
+            Sign in to view
+          </Button>
+        </CardContent>
+      </div>
+    </Card>
   );
 };
 
@@ -114,73 +88,68 @@ const ExploreGuest = () => {
     console.log('[EXPLORE GUEST] Component mounted');
   }, []);
 
-  // Static demo data for guest users - no API calls, instant load
+  // Static demo data for guest users - matches real listing data shape
+  // CRITICAL: Must include image_url, dog_name, price (number), age (number)
   const GUEST_DEMO_LISTINGS = [
     {
-      id: 1,
-      name: "Golden Retriever Puppy",
+      id: "demo-1",
+      dog_name: "Golden Retriever Puppy",
       breed: "Golden Retriever",
-      age: "8 weeks",
-      price: "$1,200",
-      location: "San Francisco, CA",
-      rating: 4.8,
-      image: "https://images.unsplash.com/photo-1552053831-71594a27632d?w=400&h=300&fit=crop",
-      breeder: "Golden Dreams Kennel"
-    },
-    {
-      id: 2,
-      name: "Labrador Puppy", 
-      breed: "Labrador Retriever",
-      age: "10 weeks",
-      price: "$1,000",
-      location: "Los Angeles, CA",
-      rating: 4.9,
-      image: "https://images.unsplash.com/photo-1518717758536-85ae29035b6d?w=400&h=300&fit=crop",
-      breeder: "Happy Tails Breeding"
-    },
-    {
-      id: 3,
-      name: "German Shepherd Puppy",
-      breed: "German Shepherd", 
-      age: "12 weeks",
-      price: "$1,500",
+      age: 8,
+      price: 1200,
       location: "Austin, TX",
-      rating: 4.7,
-      image: "https://images.unsplash.com/photo-1589941013453-ec89f33b5e95?w=400&h=300&fit=crop",
-      breeder: "Texas Shepherds"
+      image_url: "https://images.unsplash.com/photo-1552053831-71594a27632d?w=400&h=300&fit=crop",
+      isDemo: true
     },
     {
-      id: 4,
-      name: "French Bulldog Puppy",
-      breed: "French Bulldog",
-      age: "9 weeks",
-      price: "$2,500",
-      location: "New York, NY",
-      rating: 4.9,
-      image: "https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?w=400&h=300&fit=crop",
-      breeder: "NYC Frenchies"
+      id: "demo-2",
+      dog_name: "Labrador Puppy", 
+      breed: "Labrador Retriever",
+      age: 10,
+      price: 1000,
+      location: "Los Angeles, CA",
+      image_url: "https://images.unsplash.com/photo-1518717758536-85ae29035b6d?w=400&h=300&fit=crop",
+      isDemo: true
     },
     {
-      id: 5,
-      name: "Beagle Puppy",
-      breed: "Beagle",
-      age: "11 weeks",
-      price: "$800",
+      id: "demo-3",
+      dog_name: "German Shepherd Puppy",
+      breed: "German Shepherd", 
+      age: 12,
+      price: 1500,
       location: "Chicago, IL",
-      rating: 4.6,
-      image: "https://images.unsplash.com/photo-1505628346881-b72b27e84530?w=400&h=300&fit=crop",
-      breeder: "Midwest Beagles"
+      image_url: "https://images.unsplash.com/photo-1589941013453-ec89f33b5e95?w=400&h=300&fit=crop",
+      isDemo: true
     },
     {
-      id: 6,
-      name: "Standard Poodle Puppy",
+      id: "demo-4",
+      dog_name: "French Bulldog Puppy",
+      breed: "French Bulldog",
+      age: 9,
+      price: 2500,
+      location: "New York, NY",
+      image_url: "https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?w=400&h=300&fit=crop",
+      isDemo: true
+    },
+    {
+      id: "demo-5",
+      dog_name: "Beagle Puppy",
+      breed: "Beagle",
+      age: 11,
+      price: 800,
+      location: "Seattle, WA",
+      image_url: "https://images.unsplash.com/photo-1505628346881-b72b27e84530?w=400&h=300&fit=crop",
+      isDemo: true
+    },
+    {
+      id: "demo-6",
+      dog_name: "Poodle Puppy",
       breed: "Standard Poodle",
-      age: "10 weeks",
-      price: "$1,800",
+      age: 10,
+      price: 1800,
       location: "Miami, FL",
-      rating: 4.8,
-      image: "https://images.unsplash.com/photo-1616149250666-c3d46d310e1f?w=400&h=300&fit=crop",
-      breeder: "Florida Poodles"
+      image_url: "https://images.unsplash.com/photo-1616149250666-c3d46d310e1f?w=400&h=300&fit=crop",
+      isDemo: true
     }
   ];
 
@@ -291,10 +260,14 @@ const ExploreGuest = () => {
           </div>
 
           <TabsContent value="listings" className="space-y-6">
-            {isLoading ? (
+            {loadingListings ? (
               <LoadingSpinner />
-            ) : data && data.length > 0 ? (
-              <PuppyGrid listings={data} viewMode={viewMode} />
+            ) : listings && listings.length > 0 ? (
+              <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-6">
+                {listings.map((listing) => (
+                  <GuestListingCard key={listing.id} listing={listing} />
+                ))}
+              </div>
             ) : (
               <div className="text-center py-12">
                 <p className="text-gray-500">No listings found matching your criteria.</p>
@@ -304,11 +277,11 @@ const ExploreGuest = () => {
           </TabsContent>
 
           <TabsContent value="posts" className="space-y-4 sm:space-y-6">
-            {isLoading ? (
+            {loadingPosts ? (
               <LoadingSpinner />
-            ) : data && data.length > 0 ? (
+            ) : posts && posts.length > 0 ? (
               <div className="space-y-3 sm:space-y-4">
-                {data.map((post: any) => (
+                {posts.map((post: any) => (
                   <div key={post.id} className="bg-white rounded-lg shadow-sm border p-4 sm:p-6">
                     <h3 className="font-semibold text-base sm:text-lg mb-1 sm:mb-2">{post.title}</h3>
                     <p className="text-sm sm:text-base text-gray-600 mb-3 sm:mb-4 line-clamp-3">{post.content}</p>
