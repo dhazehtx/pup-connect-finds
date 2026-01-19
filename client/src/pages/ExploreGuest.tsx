@@ -15,6 +15,9 @@ import ListingCard from '@/components/ListingCard';
 
 
 
+// Fallback image for demo listings
+const DEMO_FALLBACK_IMAGE = "https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=400&h=300&fit=crop";
+
 // Demo listing card that matches real ListingCard but with guest-mode behavior
 const GuestListingCard = ({ listing }: { listing: any }) => {
   const navigate = useNavigate();
@@ -23,21 +26,41 @@ const GuestListingCard = ({ listing }: { listing: any }) => {
     navigate('/auth/sign-up');
   };
 
+  // Get image URL with fallback chain
+  const imageUrl = listing.image_url || listing.images?.[0] || DEMO_FALLBACK_IMAGE;
+
   return (
     <Card 
       className="w-full overflow-hidden hover:shadow-lg transition-shadow duration-300 cursor-pointer"
       onClick={handleSignIn}
     >
       <div className="relative">
-        <div className="aspect-[4/3] overflow-hidden">
+        {/* Fixed height image wrapper - immune to CSS overrides */}
+        <div 
+          className="listing-image-wrapper relative w-full overflow-hidden"
+          style={{ 
+            height: '200px', 
+            minHeight: '200px',
+            aspectRatio: '4 / 3'
+          }}
+        >
           <img
-            src={listing.image_url}
-            alt={listing.dog_name}
-            className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
+            src={imageUrl}
+            alt={listing.dog_name || 'Puppy'}
+            className="absolute inset-0 w-full h-full object-cover transition-transform duration-300 hover:scale-105"
+            style={{ 
+              display: 'block',
+              width: '100%',
+              height: '100%',
+              objectFit: 'cover'
+            }}
             loading="lazy"
+            onError={(e) => {
+              (e.target as HTMLImageElement).src = DEMO_FALLBACK_IMAGE;
+            }}
           />
           
-          <div className="absolute top-3 right-3">
+          <div className="absolute top-3 right-3 z-10">
             <Badge className="bg-black/70 text-white font-bold">
               ${listing.price?.toLocaleString()}
             </Badge>
@@ -46,7 +69,7 @@ const GuestListingCard = ({ listing }: { listing: any }) => {
           <Button
             variant="ghost"
             size="sm"
-            className="absolute bottom-3 right-3 h-8 w-8 p-0 bg-white/90 hover:bg-white backdrop-blur-sm"
+            className="absolute bottom-3 right-3 z-10 h-8 w-8 p-0 bg-white/90 hover:bg-white backdrop-blur-sm"
             onClick={(e) => { e.stopPropagation(); handleSignIn(); }}
           >
             <Heart className="h-4 w-4 text-gray-600" />

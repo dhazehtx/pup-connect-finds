@@ -1,0 +1,99 @@
+🟢 OPTION A — PROPER FIX (BEST, STILL SAFE)
+
+Explicitly force the image block to render for demo listings
+
+Requirements:
+
+Reuse the existing card component
+
+Add a guaranteed image render path
+
+Set a fixed image container height
+
+What the card MUST include:
+<div className="listing-image-wrapper">
+  <img
+    src={listing.images?.[0] || DEMO_FALLBACK_IMAGE}
+    alt={listing.title}
+    loading="lazy"
+  />
+</div>
+
+
+And CSS:
+
+.listing-image-wrapper {
+  width: 100%;
+  height: 180px;
+  overflow: hidden;
+  border-radius: 12px 12px 0 0;
+}
+
+.listing-image-wrapper img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+
+This guarantees an image always shows.
+
+🟡 OPTION B — BYPASS FIX (FASTEST, VISUAL-ONLY)
+
+If Replit keeps missing it:
+
+👉 Hardcode a demo image overlay ONLY for guests
+
+Example:
+
+{!user && (
+  <img
+    src="https://images.unsplash.com/photo-1558788353-f76d92427f16"
+    className="demo-image"
+  />
+)}
+
+
+This is acceptable for pre-launch demo UX.
+
+🔥 EXACT REPLIT PROMPT (THIS IS THE ONE)
+
+Paste this exactly — do not paraphrase:
+
+🔥 FINAL REPLIT PROMPT — IMAGE FIX
+TASK: Force demo listing images to render correctly for guest users.
+
+GOAL:
+Ensure guest demo listings display large, visible images like a marketplace post.
+
+CONSTRAINTS:
+- DO NOT modify database schema
+- DO NOT touch backend logic
+- DO NOT seed data
+- DO NOT affect logged-in users
+- UI-only changes
+
+ROOT CAUSE:
+Demo listings exist, but images are not rendering due to missing or hidden <img> rendering in the card component.
+
+REQUIREMENTS:
+
+1. Locate the puppy listing card component used on the Explore page.
+2. Ensure the image section ALWAYS renders for demo listings:
+   - Use <img src={listing.images?.[0]} />
+   - Provide a fallback image if undefined
+3. Add a fixed-height image wrapper:
+   - height: ~180–220px
+   - object-fit: cover
+   - overflow: hidden
+4. Ensure <img> is NOT conditionally skipped for demo data.
+5. Do NOT create a new card component.
+6. Logged-in users must see no behavior change.
+
+OPTIONAL:
+If demo listings do not include images, inject a fallback Unsplash image ONLY for guest mode.
+
+OUTPUT:
+- Modified files only
+- Short bullet summary

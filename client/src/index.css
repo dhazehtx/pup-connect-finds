@@ -1319,3 +1319,23 @@ button:contains("Become a Service Provider") {
   cursor: default;
   pointer-events: none;
 }
+
+/* CRITICAL: Listing image wrapper - guaranteed visible images */
+.listing-image-wrapper {
+  width: 100% !important;
+  height: 200px !important;
+  min-height: 200px !important;
+  overflow: hidden !important;
+  position: relative !important;
+  display: block !important;
+  border-radius: 12px 12px 0 0;
+}
+
+.listing-image-wrapper img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  display: block !important;
+  position: absolute !important;
+  inset: 0 !important;
+}
