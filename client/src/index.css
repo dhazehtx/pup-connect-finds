@@ -239,7 +239,23 @@ input[class*="border-amber"] {
   color: white !important;
 }
 
-/* Greeting page button styling */
+/* Greeting page button styling - CRITICAL: Force blue backgrounds */
+.greeting-page,
+button.greeting-page,
+.greeting-page button {
+  background-color: #0074d4 !important;
+  background: #0074d4 !important;
+  color: #ffffff !important;
+  border-color: #0074d4 !important;
+}
+
+.greeting-page:hover,
+button.greeting-page:hover,
+.greeting-page button:hover {
+  background-color: #005aa8 !important;
+  background: #005aa8 !important;
+}
+
 .greeting-page svg,
 .greeting-page span {
   color: white !important;

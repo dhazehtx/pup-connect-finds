@@ -789,6 +789,29 @@
      ============================================ */
   
   @media (max-width: 768px) {
+    /* CRITICAL: Greeting page buttons - force blue backgrounds */
+    button.greeting-page,
+    .greeting-page button,
+    .greeting-page.bg-blue-600 {
+      background-color: #0074d4 !important;
+      background: #0074d4 !important;
+      color: #ffffff !important;
+      border-color: #0074d4 !important;
+    }
+    
+    button.greeting-page:hover,
+    .greeting-page button:hover {
+      background-color: #005aa8 !important;
+      background: #005aa8 !important;
+    }
+    
+    button.greeting-page svg,
+    button.greeting-page span,
+    .greeting-page button svg,
+    .greeting-page button span {
+      color: #ffffff !important;
+    }
+    
     /* Primary button consistency */
     button.bg-primary,
     button.bg-blue-600,
