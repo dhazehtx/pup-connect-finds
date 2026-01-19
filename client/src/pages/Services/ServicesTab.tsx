@@ -33,6 +33,50 @@ const serviceTypeLabels: Record<string, string> = {
   veterinary: 'Veterinary Care',
 };
 
+// Icon avatar colors for different service types
+const serviceIconColors: Record<string, string> = {
+  grooming: 'bg-blue-500',
+  walking: 'bg-green-500',
+  sitting: 'bg-purple-500',
+  training: 'bg-orange-500',
+  boarding: 'bg-indigo-500',
+  veterinary: 'bg-red-500',
+};
+
+// SVG icons for service types (non-human imagery)
+const ServiceIcon = ({ type }: { type: string }) => {
+  const colorClass = serviceIconColors[type] || 'bg-blue-500';
+  
+  return (
+    <div className={`h-16 w-16 rounded-full ${colorClass} flex items-center justify-center`}>
+      {type === 'grooming' && (
+        <svg className="h-8 w-8 text-white" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
+          <text x="8" y="14" fontSize="8" fill="white">✂</text>
+        </svg>
+      )}
+      {type === 'walking' && (
+        <svg className="h-8 w-8 text-white" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M13.5 5.5c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zM9.8 8.9L7 23h2.1l1.8-8 2.1 2v6h2v-7.5l-2.1-2 .6-3C14.8 12 16.8 13 19 13v-2c-1.9 0-3.5-1-4.3-2.4l-1-1.6c-.4-.6-1-1-1.7-1-.3 0-.5.1-.8.1L6 8.3V13h2V9.6l1.8-.7"/>
+        </svg>
+      )}
+      {type === 'sitting' && (
+        <svg className="h-8 w-8 text-white" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
+        </svg>
+      )}
+      {type === 'training' && (
+        <svg className="h-8 w-8 text-white" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M5 13.18v4L12 21l7-3.82v-4L12 17l-7-3.82zM12 3L1 9l11 6 9-4.91V17h2V9L12 3z"/>
+        </svg>
+      )}
+      {(type !== 'grooming' && type !== 'walking' && type !== 'sitting' && type !== 'training') && (
+        <span className="text-2xl">🐕</span>
+      )}
+    </div>
+  );
+};
+
 function DemoProviderCard({ provider }: { provider: any }) {
   const navigate = useNavigate();
   
@@ -42,31 +86,32 @@ function DemoProviderCard({ provider }: { provider: any }) {
 
   return (
     <Card className="hover:shadow-lg transition-shadow duration-200 relative overflow-hidden">
-      {provider.is_verified && (
-        <div className="absolute top-2 right-2 z-10">
-          <Badge variant="secondary" className="bg-green-100 text-green-800 border-green-300">
-            <Shield className="w-3 h-3 mr-1" />
-            Verified
-          </Badge>
-        </div>
-      )}
-      
       <CardHeader className="pb-3">
-        <div className="flex items-start space-x-3">
-          <img 
-            src={provider.avatar_url || provider.user?.avatar_url || "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&h=150&fit=crop"}
-            alt={provider.name || provider.user?.full_name}
-            className="h-12 w-12 rounded-full object-cover"
-          />
+        <div className="flex flex-col items-center text-center space-y-3">
+          {/* Icon-based avatar - no human faces */}
+          <div className="relative">
+            <ServiceIcon type={provider.service_type} />
+            {provider.is_verified && (
+              <div className="absolute -bottom-1 -right-1">
+                <div className="bg-green-500 rounded-full p-1">
+                  <Shield className="w-3 h-3 text-white" />
+                </div>
+              </div>
+            )}
+          </div>
           
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2">
-              <h3 className="font-semibold text-lg truncate">
-                {provider.name || provider.user?.full_name || 'Service Provider'}
-              </h3>
-            </div>
-            
-            <div className="flex items-center gap-1 text-sm text-slate-600">
+          {provider.is_verified && (
+            <Badge variant="secondary" className="bg-green-100 text-green-800 border-green-300">
+              <Shield className="w-3 h-3 mr-1" />
+              Verified
+            </Badge>
+          )}
+          
+          <div>
+            <h3 className="font-semibold text-lg">
+              {provider.name || 'Service Provider'}
+            </h3>
+            <div className="flex items-center justify-center gap-1 text-sm text-slate-600">
               <span>{serviceTypeIcons[provider.service_type] || '🐕'}</span>
               <span>{serviceTypeLabels[provider.service_type] || provider.service_type}</span>
             </div>
@@ -75,40 +120,29 @@ function DemoProviderCard({ provider }: { provider: any }) {
       </CardHeader>
 
       <CardContent className="space-y-4">
-        <p className="text-sm text-slate-600 line-clamp-3">
+        <p className="text-sm text-slate-600 text-center">
           {provider.bio || provider.headline}
         </p>
 
         <div className="space-y-2">
           {provider.location && (
-            <div className="flex items-center gap-2 text-sm text-slate-600">
+            <div className="flex items-center justify-center gap-2 text-sm text-slate-600">
               <MapPin className="h-4 w-4" />
               <span>{provider.location}</span>
             </div>
           )}
           
-          <div className="flex items-center gap-2 text-sm font-medium">
+          <div className="flex items-center justify-center gap-2 text-sm font-medium">
             <DollarSign className="h-4 w-4" />
             <span>${provider.price}/hour</span>
           </div>
         </div>
 
-        <div className="flex gap-2 pt-2">
-          <Button onClick={handleSignIn} className="flex-1 text-sm">
-            Sign in to book
-          </Button>
-          
-          <Button 
-            variant="outline" 
-            size="sm"
-            className="text-slate-700 font-medium border-slate-300 hover:bg-slate-50"
-            onClick={handleSignIn}
-          >
-            View Profile
-          </Button>
-        </div>
+        <Button onClick={handleSignIn} className="w-full">
+          Sign in to book
+        </Button>
 
-        <div className="text-xs text-slate-500 border-t pt-2">
+        <div className="text-xs text-slate-500 text-center border-t pt-2">
           {provider.since || 'Provider since 2024'}
         </div>
       </CardContent>

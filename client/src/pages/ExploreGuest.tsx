@@ -13,6 +13,12 @@ import LoadingSpinner from '@/components/ui/loading-spinner';
 import { apiRequest } from '@/lib/api';
 import ListingCard from '@/components/ListingCard';
 
+// Local demo puppy images - guaranteed to render
+import goldenRetrieverImg from '@assets/image_1768789113456.png';
+import labradorImg from '@assets/image_1768789180374.png';
+import germanShepherdImg from '@assets/image_1768789189271.png';
+import frenchBulldogImg from '@assets/image_1768789197905.png';
+
 
 
 // Fallback image for demo listings
@@ -111,8 +117,8 @@ const ExploreGuest = () => {
     console.log('[EXPLORE GUEST] Component mounted');
   }, []);
 
-  // Static demo data for guest users - matches real listing data shape
-  // CRITICAL: Must include image_url, dog_name, price (number), age (number)
+  // Static demo data for guest users - uses LOCAL images for guaranteed rendering
+  // CRITICAL: Uses imported local images, not external URLs
   const GUEST_DEMO_LISTINGS = [
     {
       id: "demo-1",
@@ -121,7 +127,7 @@ const ExploreGuest = () => {
       age: 8,
       price: 1200,
       location: "Austin, TX",
-      image_url: "https://images.unsplash.com/photo-1552053831-71594a27632d?w=400&h=300&fit=crop",
+      image_url: goldenRetrieverImg,
       isDemo: true
     },
     {
@@ -131,7 +137,7 @@ const ExploreGuest = () => {
       age: 10,
       price: 1000,
       location: "Los Angeles, CA",
-      image_url: "https://images.unsplash.com/photo-1518717758536-85ae29035b6d?w=400&h=300&fit=crop",
+      image_url: labradorImg,
       isDemo: true
     },
     {
@@ -141,7 +147,7 @@ const ExploreGuest = () => {
       age: 12,
       price: 1500,
       location: "Chicago, IL",
-      image_url: "https://images.unsplash.com/photo-1589941013453-ec89f33b5e95?w=400&h=300&fit=crop",
+      image_url: germanShepherdImg,
       isDemo: true
     },
     {
@@ -151,27 +157,7 @@ const ExploreGuest = () => {
       age: 9,
       price: 2500,
       location: "New York, NY",
-      image_url: "https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?w=400&h=300&fit=crop",
-      isDemo: true
-    },
-    {
-      id: "demo-5",
-      dog_name: "Beagle Puppy",
-      breed: "Beagle",
-      age: 11,
-      price: 800,
-      location: "Seattle, WA",
-      image_url: "https://images.unsplash.com/photo-1505628346881-b72b27e84530?w=400&h=300&fit=crop",
-      isDemo: true
-    },
-    {
-      id: "demo-6",
-      dog_name: "Poodle Puppy",
-      breed: "Standard Poodle",
-      age: 10,
-      price: 1800,
-      location: "Miami, FL",
-      image_url: "https://images.unsplash.com/photo-1616149250666-c3d46d310e1f?w=400&h=300&fit=crop",
+      image_url: frenchBulldogImg,
       isDemo: true
     }
   ];

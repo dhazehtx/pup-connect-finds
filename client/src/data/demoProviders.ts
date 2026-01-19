@@ -3,29 +3,21 @@ export type ServiceProvider = {
   id: string;
   name: string;
   headline: string;
-  since: string;      // e.g., "Provider since 8/11/2025"
-  tags?: string[];    // Grooming, Walking, etc.
-  isDemo?: boolean;   // Flag to identify demo providers
+  since: string;
+  tags?: string[];
+  isDemo?: boolean;
   service_type?: string;
   location?: string;
   price?: number;
   is_verified?: boolean;
-  avatar_url?: string;
   bio?: string;
-  user?: {
-    id: string;
-    username: string;
-    full_name: string;
-    avatar_url?: string;
-    verified?: boolean;
-  };
 };
 
 export const DEMO_PROVIDERS: ServiceProvider[] = [
   {
     id: "demo-1",
-    name: "Sarah Mitchell",
-    headline: "Professional grooming services with 10+ years experience",
+    name: "Verified Pet Groomer",
+    headline: "Professional pet grooming services",
     since: "Provider since 2024",
     tags: ["Grooming"],
     isDemo: true,
@@ -33,20 +25,12 @@ export const DEMO_PROVIDERS: ServiceProvider[] = [
     location: "San Francisco, CA",
     price: 65,
     is_verified: true,
-    bio: "Certified professional groomer specializing in all breeds. I treat every pup like family!",
-    avatar_url: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&h=150&fit=crop",
-    user: {
-      id: "demo-user-1",
-      username: "sarah_grooms",
-      full_name: "Sarah Mitchell",
-      avatar_url: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&h=150&fit=crop",
-      verified: true,
-    },
+    bio: "Certified professional groomer specializing in all breeds. Full service grooming, nail trimming, and spa treatments.",
   },
   {
     id: "demo-2",
-    name: "Marcus Johnson",
-    headline: "Reliable dog walking service for busy pet owners",
+    name: "Certified Dog Walker",
+    headline: "Reliable and caring dog walking",
     since: "Provider since 2023",
     tags: ["Dog Walking"],
     isDemo: true,
@@ -55,34 +39,31 @@ export const DEMO_PROVIDERS: ServiceProvider[] = [
     price: 25,
     is_verified: true,
     bio: "Daily walks, group adventures, and personalized exercise plans for your furry friend.",
-    avatar_url: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop",
-    user: {
-      id: "demo-user-2",
-      username: "marcus_walks",
-      full_name: "Marcus Johnson",
-      avatar_url: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop",
-      verified: true,
-    },
   },
   {
     id: "demo-3",
-    name: "Emily Chen",
-    headline: "In-home pet care while you are away",
+    name: "Trusted Pet Sitter",
+    headline: "In-home pet care while you're away",
     since: "Provider since 2024",
-    tags: ["Dog Sitting"],
+    tags: ["Pet Sitting"],
     isDemo: true,
     service_type: "sitting",
     location: "Seattle, WA",
     price: 45,
     is_verified: true,
-    bio: "Your pet will feel right at home with me. Overnight stays and daily check-ins available.",
-    avatar_url: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop",
-    user: {
-      id: "demo-user-3",
-      username: "emily_petsitter",
-      full_name: "Emily Chen",
-      avatar_url: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop",
-      verified: true,
-    },
+    bio: "Your pet will feel right at home. Overnight stays and daily check-ins available.",
+  },
+  {
+    id: "demo-4",
+    name: "Professional Dog Trainer",
+    headline: "Expert obedience and behavior training",
+    since: "Provider since 2022",
+    tags: ["Training"],
+    isDemo: true,
+    service_type: "training",
+    location: "Austin, TX",
+    price: 75,
+    is_verified: true,
+    bio: "Positive reinforcement training methods. Puppy classes, basic obedience, and advanced skills.",
   },
 ];
