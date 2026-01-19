@@ -2,6 +2,93 @@
 /* Mobile UI Polish - Consistent mobile experience */
 /* Focus: max-width: 768px (tablet and below) */
 
+/* ============================================
+   MOBILE YELLOW ELIMINATION - CRITICAL
+   Force white backgrounds on mobile to match desktop
+   ============================================ */
+
+@media (max-width: 768px) {
+  /* Nuclear mobile background reset */
+  html, body, #root, main, .app-container {
+    background-color: #ffffff !important;
+    background: #ffffff !important;
+  }
+  
+  /* All page containers - white backgrounds */
+  .explore-page, .marketplace-page, .greeting-page, 
+  .profile-page, .services-page, .messages-page,
+  .auth-page, .home-page, .listing-page {
+    background-color: #ffffff !important;
+    background: #ffffff !important;
+  }
+  
+  /* All cards - white backgrounds */
+  .card, [class*="Card"], [class*="card"],
+  .service-card, .provider-card, .listing-card,
+  .post-card, .user-card {
+    background-color: #ffffff !important;
+    background: #ffffff !important;
+  }
+  
+  /* Section containers - light gray or white */
+  section, article, aside {
+    background-color: #ffffff !important;
+  }
+  
+  /* Tab panels and content areas */
+  [role="tabpanel"], .tab-content, .tabs-content,
+  [class*="TabsContent"], [class*="TabContent"] {
+    background-color: #ffffff !important;
+  }
+  
+  /* Featured sections - subtle gray instead of yellow */
+  .featured-section, [class*="featured"], [class*="Featured"] {
+    background-color: #f9fafb !important;
+  }
+  
+  /* Filter and search areas - white/light gray */
+  .filters-section, .search-section, [class*="filter"],
+  [class*="Filter"], [class*="search"], [class*="Search"] {
+    background-color: #ffffff !important;
+  }
+  
+  /* Input fields - white background, gray border */
+  input, textarea, select {
+    background-color: #ffffff !important;
+    border-color: #d1d5db !important;
+  }
+  
+  /* Buttons - proper brand colors */
+  button:not([class*="ghost"]):not([class*="outline"]):not([class*="secondary"]) {
+    /* Let other button styles apply normally */
+  }
+  
+  /* Override ALL yellow classes on mobile specifically */
+  .bg-yellow-50, .bg-yellow-100, .bg-yellow-200, .bg-yellow-300,
+  .bg-yellow-400, .bg-yellow-500, .bg-yellow-600, .bg-yellow-700,
+  .bg-yellow-800, .bg-yellow-900,
+  .bg-amber-50, .bg-amber-100, .bg-amber-200, .bg-amber-300,
+  .bg-amber-400, .bg-amber-500, .bg-amber-600, .bg-amber-700,
+  .bg-amber-800, .bg-amber-900 {
+    background-color: #ffffff !important;
+    background: #ffffff !important;
+  }
+  
+  /* Yellow borders to gray */
+  .border-yellow-50, .border-yellow-100, .border-yellow-200,
+  .border-yellow-300, .border-yellow-400, .border-yellow-500,
+  .border-amber-50, .border-amber-100, .border-amber-200,
+  .border-amber-300, .border-amber-400, .border-amber-500 {
+    border-color: #e5e7eb !important;
+  }
+  
+  /* Content wrappers - white */
+  .content-wrapper, .page-wrapper, .main-content,
+  [class*="container"], [class*="wrapper"] {
+    background-color: #ffffff !important;
+  }
+}
+
 @layer components {
   /* ============================================
      MOBILE LAYOUT FOUNDATIONS
@@ -13,6 +100,7 @@
       overflow-x: hidden;
       max-width: 100vw;
       -webkit-text-size-adjust: 100%;
+      background-color: #ffffff !important;
     }
     
     /* Fix tap delay on all interactive elements */
