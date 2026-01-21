@@ -113,25 +113,66 @@ const Home = () => {
           
           {/* Main 4 Buttons - greeting-cta-group locked styling */}
           <div className="greeting-cta-group flex flex-col gap-3 sm:flex-row sm:gap-4 justify-center mb-6 sm:mb-8 px-2">
-            <Link to="/auth" className="w-full sm:w-auto">
-              <button className="greeting-cta-btn">
-                <UserPlus className="w-5 h-5 mr-2" />
+            <Link 
+              to="/auth" 
+              className="w-full sm:w-auto"
+              style={{ display: 'contents' }}
+            >
+              <button 
+                className="greeting-cta-btn"
+                style={{ 
+                  backgroundColor: '#0074D4', 
+                  color: '#FFFFFF',
+                  maxHeight: '56px'
+                }}
+              >
+                <UserPlus className="w-5 h-5 mr-2" style={{ color: '#FFFFFF' }} />
                 Sign Up
               </button>
             </Link>
-            <Link to="/auth" className="w-full sm:w-auto">
-              <button className="greeting-cta-btn">
-                <LogIn className="w-5 h-5 mr-2" />
+            <Link 
+              to="/auth" 
+              className="w-full sm:w-auto"
+              style={{ display: 'contents' }}
+            >
+              <button 
+                className="greeting-cta-btn"
+                style={{ 
+                  backgroundColor: '#0074D4', 
+                  color: '#FFFFFF',
+                  maxHeight: '56px'
+                }}
+              >
+                <LogIn className="w-5 h-5 mr-2" style={{ color: '#FFFFFF' }} />
                 Sign In
               </button>
             </Link>
-            <button className="greeting-cta-btn" onClick={handleGuestAccess}>
-              <Eye className="w-5 h-5 mr-2" />
+            <button 
+              className="greeting-cta-btn" 
+              onClick={handleGuestAccess}
+              style={{ 
+                backgroundColor: '#0074D4', 
+                color: '#FFFFFF',
+                maxHeight: '56px'
+              }}
+            >
+              <Eye className="w-5 h-5 mr-2" style={{ color: '#FFFFFF' }} />
               Browse as Guest
             </button>
-            <Link to="/explore" className="w-full sm:w-auto">
-              <button className="greeting-cta-btn">
-                <Search className="w-5 h-5 mr-2" />
+            <Link 
+              to="/explore" 
+              className="w-full sm:w-auto"
+              style={{ display: 'contents' }}
+            >
+              <button 
+                className="greeting-cta-btn"
+                style={{ 
+                  backgroundColor: '#0074D4', 
+                  color: '#FFFFFF',
+                  maxHeight: '56px'
+                }}
+              >
+                <Search className="w-5 h-5 mr-2" style={{ color: '#FFFFFF' }} />
                 Explore Puppies
               </button>
             </Link>

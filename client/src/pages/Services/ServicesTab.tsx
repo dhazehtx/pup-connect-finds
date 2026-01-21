@@ -253,13 +253,22 @@ export function ServicesTab() {
       <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-blue-600 via-blue-700 to-purple-700 text-white shadow-2xl">
         <div className="absolute inset-0 bg-gradient-to-br from-blue-600/90 to-purple-700/90"></div>
         <div className="relative px-6 py-12 md:px-12 md:py-16 text-center">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4 tracking-tight">
+          <h1 
+            className="text-4xl md:text-5xl font-bold mb-4 tracking-tight"
+            style={{ color: '#FFFFFF' }}
+          >
             Pet Services
           </h1>
-          <h2 className="text-4xl md:text-5xl font-bold mb-6 tracking-tight">
+          <h2 
+            className="text-4xl md:text-5xl font-bold mb-6 tracking-tight"
+            style={{ color: '#FFFFFF' }}
+          >
             Marketplace
           </h2>
-          <p className="text-xl md:text-2xl opacity-90 mb-8 max-w-2xl mx-auto leading-relaxed">
+          <p 
+            className="text-xl md:text-2xl mb-8 max-w-2xl mx-auto leading-relaxed"
+            style={{ color: '#FFFFFF' }}
+          >
             Find trusted professionals for grooming, training, sitting, and more
           </p>
           

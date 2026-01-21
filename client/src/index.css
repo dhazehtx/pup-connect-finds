@@ -167,15 +167,20 @@ button[class*="yellow"], button[class*="amber"],
   background-color: #0074D4 !important;
   color: #FFFFFF !important;
   font-weight: 600 !important;
-  font-size: 1.125rem !important;
+  font-size: 1rem !important;
   border-radius: 10px !important;
-  padding: 16px 32px !important;
+  padding: 14px 24px !important;
   opacity: 1 !important;
   filter: none !important;
   border: none !important;
   outline: none !important;
   cursor: pointer !important;
   width: 100% !important;
+  max-width: 100% !important;
+  max-height: 56px !important;
+  min-height: 48px !important;
+  height: auto !important;
+  flex: 0 0 auto !important;
   -webkit-tap-highlight-color: transparent !important;
   transition: background-color 0.2s ease !important;
 }
@@ -226,6 +231,99 @@ button[class*="yellow"], button[class*="amber"],
 .greeting-hero h1 span:last-child,
 .greeting-hero .accent {
   color: #0074D4 !important;
+}
+
+/* ============================================================
+   GLOBAL YELLOW ELIMINATION - FOCUS STATES & TOGGLES
+   ============================================================ */
+
+/* Global focus state - blue ring, never yellow */
+*:focus,
+*:focus-visible,
+button:focus,
+button:focus-visible,
+input:focus,
+input:focus-visible,
+a:focus,
+a:focus-visible {
+  outline-color: #0074d4 !important;
+  --tw-ring-color: #0074d4 !important;
+}
+
+/* Toggle button fixes - prevent yellow backgrounds */
+button[data-state="on"],
+button[data-state="active"],
+button.active,
+[data-pressed="true"],
+[aria-pressed="true"] {
+  background-color: #0074d4 !important;
+  color: #ffffff !important;
+  border-color: #0074d4 !important;
+}
+
+button[data-state="off"],
+button[data-state="inactive"],
+button:not(.active)[data-state] {
+  background-color: #ffffff !important;
+  color: #374151 !important;
+  border-color: #d1d5db !important;
+}
+
+/* Heart icons - gray default, never yellow */
+svg.lucide-heart,
+.heart-icon,
+button:has(svg.lucide-heart) svg {
+  color: #9ca3af !important;
+}
+
+/* Heart icons when favorited - red */
+button[data-favorited="true"] svg.lucide-heart,
+.heart-icon.favorited,
+.heart-icon.active {
+  color: #ef4444 !important;
+  fill: #ef4444 !important;
+}
+
+/* Notification bell - never yellow background */
+button:has(svg.lucide-bell),
+.notification-bell {
+  background-color: transparent !important;
+}
+
+button:has(svg.lucide-bell) svg {
+  color: #6b7280 !important;
+}
+
+/* Tab styling - clean white/blue, no yellow */
+[role="tablist"] {
+  background-color: #f3f4f6 !important;
+}
+
+[role="tab"] {
+  background-color: transparent !important;
+  color: #6b7280 !important;
+}
+
+[role="tab"][data-state="active"],
+[role="tab"][aria-selected="true"] {
+  background-color: #ffffff !important;
+  color: #111827 !important;
+}
+
+/* View mode toggle specific fix */
+.view-toggle button,
+button:has(.lucide-grid),
+button:has(.lucide-list) {
+  -webkit-tap-highlight-color: transparent !important;
+}
+
+/* Filter button styling */
+button:has(.lucide-filter),
+button:has(.lucide-sliders),
+.filter-button {
+  background-color: #ffffff !important;
+  color: #374151 !important;
+  border: 1px solid #d1d5db !important;
 }
 
 /* ============================================================
