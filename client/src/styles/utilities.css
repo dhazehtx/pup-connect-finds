@@ -25,7 +25,16 @@
   }
 
   .btn-primary {
-    @apply bg-primary text-primary-foreground shadow-sm hover:bg-blue-700 active:bg-blue-800;
+    @apply bg-primary text-primary-foreground shadow-sm;
+    /* Hover/active uses brand color variations */
+  }
+  
+  .btn-primary:hover {
+    background-color: #005fa8 !important; /* primary-700 */
+  }
+  
+  .btn-primary:active {
+    background-color: #004a7d !important; /* primary-800 */
   }
 
   .btn-outline {
@@ -44,10 +53,16 @@
   }
 
   .unified-button {
-    @apply bg-primary text-primary-foreground border-primary;
-    @apply hover:bg-blue-700 active:bg-blue-800;
-    @apply shadow-lg;
+    @apply bg-primary text-primary-foreground border-primary shadow-lg;
     color: hsl(var(--primary-foreground)) !important;
+  }
+  
+  .unified-button:hover {
+    background-color: #005fa8 !important; /* primary-700 */
+  }
+  
+  .unified-button:active {
+    background-color: #004a7d !important; /* primary-800 */
   }
 
   .unified-card {

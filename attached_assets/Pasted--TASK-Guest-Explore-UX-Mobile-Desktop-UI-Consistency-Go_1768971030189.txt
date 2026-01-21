@@ -1,0 +1,166 @@
+🎯 TASK: Guest Explore UX + Mobile/Desktop UI Consistency
+
+Goal:
+Polish guest browsing behavior and ensure mobile & desktop feel like the same product, with consistent visuals and intentional UX.
+
+PART 1️⃣ — UX: Guest Demo Listing Click Behavior (Explore Page)
+Problem
+
+Guest users can click demo listings on the Explore page, but the behavior is unclear or inconsistent.
+
+Required Behavior (Guest Mode Only)
+
+When a guest user (not authenticated) clicks any demo puppy listing on the Explore page:
+
+Clicking the card
+
+Clicking the image
+
+Clicking the title
+
+Clicking the “Sign in to view” button
+
+➡️ Must redirect to the Sign Up / Sign In Greeting Page
+
+UX Rules
+
+No dead clicks
+
+No broken navigation
+
+No partial opens
+
+No loading real listing detail pages for guests
+
+Intent
+
+A guest should immediately understand:
+
+“To view details, I need to sign up.”
+
+This applies only to guest users.
+Authenticated users must keep existing behavior unchanged.
+
+PART 2️⃣ — UI: Mobile & Desktop Color Consistency (CRITICAL)
+Important Clarification
+
+Layouts may differ between desktop and mobile
+
+Colors, brand, buttons, and surfaces must NOT differ
+
+Mobile should feel like:
+
+“The same app, optimized for my phone”
+
+Not:
+
+“A different version of the app”
+
+1️⃣ Single Source of Truth (Required)
+
+Ensure both mobile and desktop use the same:
+
+Primary brand blue
+
+Secondary accent colors
+
+Neutral backgrounds
+
+Card backgrounds
+
+Text colors
+
+Button styles
+
+Border radius
+
+Shadow styles
+
+🚫 Do NOT define separate mobile color styles
+🚫 Do NOT use fallback/default browser colors
+
+2️⃣ Fix Mobile-Only Color Drift
+
+Audit and remove any mobile-only styling, including:
+
+Yellow highlights
+
+Blue background blocks between cards
+
+Default tap/focus colors
+
+Gradient mismatches
+
+Over-saturated mobile nav colors
+
+Mobile must visually feel like:
+
+“The same app, just stacked differently.”
+
+3️⃣ Buttons (Critical)
+
+All buttons (desktop + mobile) must:
+
+Use the same primary brand blue
+
+Use the same corner radius
+
+Use the same text color
+
+Share consistent hover / active / disabled states
+
+🚫 No yellow
+🚫 No alternate blues
+🚫 No platform-specific button colors
+
+4️⃣ Cards & Containers
+
+Ensure cards on mobile:
+
+Match desktop background color
+
+Match desktop border radius
+
+Match desktop shadow softness
+
+Do NOT introduce new background colors between cards
+
+Specifically:
+
+Remove unnatural blue gaps or blocks between Explore cards
+
+Cards should sit on a neutral background, not colored panels
+
+5️⃣ Navigation Bar (Mobile)
+
+Mobile bottom navigation must:
+
+Use the same brand gradient or solid color as the desktop header
+
+Avoid extra saturation or hue shifts
+
+Use icons that match the desktop color palette
+
+No “mobile-only” color decisions.
+
+🚫 Constraints (Do NOT Do These)
+
+Do NOT modify backend logic
+
+Do NOT change database schema
+
+Do NOT seed or write data
+
+Do NOT alter authentication logic
+
+UI + UX behavior only
+
+✅ Success Criteria
+
+A user switching from desktop → mobile should feel:
+
+“This is the same product.”
+
+A guest clicking any demo listing should feel:
+
+“This looks polished — I should sign up.”

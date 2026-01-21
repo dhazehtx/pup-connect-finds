@@ -3,19 +3,20 @@
 
 @layer base {
   :root {
-    /* Unified Desktop/Mobile Color System - No Yellow Anywhere */
+    /* Unified Desktop/Mobile Color System - Single Source of Truth */
+    /* Brand: Royal Blue #0074d4 - Used across ALL devices identically */
     
-    /* Primary Colors - Desktop Blue Theme */
-    --color-primary-50:  #eff6ff;
-    --color-primary-100: #dbeafe;
-    --color-primary-200: #bfdbfe;
-    --color-primary-300: #93c5fd;
-    --color-primary-400: #60a5fa;
-    --color-primary-500: #3b82f6;
-    --color-primary-600: #2563eb;  /* Main brand blue - matches desktop */
-    --color-primary-700: #1d4ed8;
-    --color-primary-800: #1e40af;
-    --color-primary-900: #1e3a8a;
+    /* Primary Colors - Royal Blue Theme */
+    --color-primary-50:  #e6f3ff;
+    --color-primary-100: #cce7ff;
+    --color-primary-200: #99cfff;
+    --color-primary-300: #66b7ff;
+    --color-primary-400: #339fff;
+    --color-primary-500: #0087ff;
+    --color-primary-600: #0074d4;  /* BRAND COLOR - Royal Blue */
+    --color-primary-700: #005fa8;
+    --color-primary-800: #004a7d;
+    --color-primary-900: #003552;
 
     /* Surface Colors - Clean Neutral Backgrounds */
     --color-surface:      #ffffff;  /* Main app/page background */
@@ -37,7 +38,7 @@
     --popover: 255 255 255; /* Pure white */
     --popover-foreground: 15 23 42; /* Dark text */
 
-    --primary: 37 99 235; /* Blue-600 #2563EB */
+    --primary: 0 116 212; /* Royal Blue #0074d4 */
     --primary-foreground: 255 255 255; /* White text on blue */
 
     --secondary: 248 250 252; /* Slate-50 - light surface */
@@ -54,7 +55,7 @@
 
     --border: 226 232 240; /* Slate-200 borders */
     --input: 226 232 240; /* Slate-200 inputs */
-    --ring: 37 99 235; /* Blue-600 focus rings */
+    --ring: 0 116 212; /* Royal Blue focus rings */
 
     --radius: 0.5rem;
   }
@@ -67,7 +68,7 @@
     --color-text:         #0f172a;
     --color-text-muted:   #64748b;
     --color-text-inverse: #ffffff;
-    --color-primary-600:  #2563eb;
+    --color-primary-600:  #0074d4;
   }
   
   .dark {
@@ -78,16 +79,16 @@
     --color-text:         #0f172a;
     --color-text-muted:   #64748b;
     --color-text-inverse: #ffffff;
-    --color-primary-600:  #2563eb;
+    --color-primary-600:  #0074d4;
     
-    /* Legacy variables */
+    /* Legacy variables - unified with light theme */
     --background: 255 255 255;
     --foreground: 15 23 42;
     --card: 255 255 255;
     --card-foreground: 15 23 42;
     --popover: 255 255 255;
     --popover-foreground: 15 23 42;
-    --primary: 37 99 235;
+    --primary: 0 116 212; /* Royal Blue #0074d4 */
     --primary-foreground: 255 255 255;
     --secondary: 248 250 252;
     --secondary-foreground: 15 23 42;
@@ -99,7 +100,7 @@
     --destructive-foreground: 255 255 255;
     --border: 226 232 240;
     --input: 226 232 240;
-    --ring: 37 99 235;
+    --ring: 0 116 212;
   }
 }
 
