@@ -8,7 +8,6 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Search, Heart, MapPin, Star, Grid, List } from 'lucide-react';
 import AdvancedFilters from '@/components/explore/AdvancedFilters';
-import FeaturedPosts from '@/components/FeaturedPosts';
 import LoadingSpinner from '@/components/ui/loading-spinner';
 import { apiRequest } from '@/lib/api';
 import ListingCard from '@/components/ListingCard';
@@ -40,11 +39,11 @@ const GuestListingCard = ({ listing }: { listing: any }) => {
       className="w-full overflow-hidden hover:shadow-lg transition-shadow duration-300 cursor-pointer bg-white border border-gray-200"
       onClick={handleSignIn}
     >
-      {/* Image container - fills completely with center crop */}
+      {/* Image container - square aspect ratio to show full puppy */}
       <div 
         className="relative w-full overflow-hidden bg-gray-100"
         style={{ 
-          aspectRatio: '4 / 3'
+          aspectRatio: '1 / 1'
         }}
       >
         <img
@@ -52,8 +51,9 @@ const GuestListingCard = ({ listing }: { listing: any }) => {
           alt={listing.dog_name || 'Puppy'}
           className="absolute inset-0 w-full h-full transition-transform duration-300 hover:scale-105"
           style={{ 
-            objectFit: 'cover',
-            objectPosition: 'center'
+            objectFit: 'contain',
+            objectPosition: 'center',
+            backgroundColor: '#f3f4f6'
           }}
           loading="lazy"
           onError={(e) => {
@@ -63,7 +63,10 @@ const GuestListingCard = ({ listing }: { listing: any }) => {
         
         {/* Price badge */}
         <div className="absolute top-3 right-3 z-10">
-          <Badge className="bg-black/70 text-white font-bold px-3 py-1">
+          <Badge 
+            className="font-bold px-3 py-1"
+            style={{ backgroundColor: '#0074d4', color: '#ffffff' }}
+          >
             ${listing.price?.toLocaleString()}
           </Badge>
         </div>
@@ -322,11 +325,6 @@ const ExploreGuest = () => {
         </Tabs>
       </div>
 
-      {/* Featured Posts Section */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <h2 className="text-xl font-semibold mb-6">Featured Posts</h2>
-        <FeaturedPosts />
-      </div>
     </div>
   );
 };

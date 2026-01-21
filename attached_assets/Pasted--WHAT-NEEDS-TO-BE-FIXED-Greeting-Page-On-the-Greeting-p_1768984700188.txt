@@ -1,0 +1,123 @@
+🔧 WHAT NEEDS TO BE FIXED (Greeting Page)
+
+On the Greeting page:
+
+Current problems:
+
+Buttons are invisible by default
+
+Only appear when highlighted / focused
+
+Desktop + mobile no longer match original design
+
+What we want:
+
+Buttons always visible
+
+Solid primary blue background
+
+White text
+
+Normal size
+
+Same style on desktop + mobile
+
+No hover/focus dependency to see them
+
+🧠 VERY IMPORTANT RULE GOING FORWARD
+
+After this fix, you are correct:
+
+🚫 NO MORE GLOBAL THEME CHANGES
+🚫 NO MORE COLOR SYSTEM CHANGES
+🚫 ONLY PAGE-SPECIFIC FIXES IF ABSOLUTELY NECESSARY
+
+We will explicitly tell Replit/Lovable to:
+
+Freeze the design system
+
+Not touch any other pages
+
+Only change greeting page button styles
+
+This prevents the nightmare loop you were in before.
+
+🧩 EXACT PROMPT TO PASTE INTO REPLIT / LOVABLE (SAFE & TARGETED)
+
+Copy this exactly and run it:
+
+🔵 GREETING PAGE BUTTON VISIBILITY FIX + DESIGN LOCK PROMPT
+
+The greeting page Sign In and Sign Up buttons are currently not visible by default on mobile and desktop and only appear when highlighted or focused. We need to restore them to their original visible design.
+
+Tasks:
+
+On the Greeting page only:
+
+Restore the Sign In and Sign Up buttons to always be fully visible by default.
+
+Set button background to the primary blue theme color.
+
+Set button text color to pure white.
+
+Ensure buttons have proper padding, border-radius, and size as before.
+
+Remove any reliance on hover, focus, or active states for visibility.
+
+Fix mobile and desktop consistency:
+
+Ensure the greeting page buttons look the same on mobile and desktop.
+
+Buttons should be clearly visible without tapping or highlighting.
+
+Lock the design system:
+
+Do NOT modify any other pages, components, or global theme styles.
+
+Do NOT change colors, spacing, or layouts outside of the greeting page.
+
+Freeze the current mobile and desktop design styles so no further automatic UI changes are applied.
+
+⚠️ Important:
+
+Only adjust greeting page button styling.
+
+Do NOT refactor logic, routing, or backend.
+
+Do NOT change any other UI elements.
+
+✅ WHAT THIS WILL FIX
+
+After this runs:
+
+Sign In / Sign Up buttons visible immediately ✅
+
+No more “highlight to see” bug ✅
+
+Desktop + mobile greeting page match again ✅
+
+No other pages touched ✅
+
+Design system effectively frozen ✅
+
+🔒 FINAL STEP (HIGHLY RECOMMENDED)
+
+After this fix works, I strongly suggest:
+
+1. Take screenshots of:
+
+Greeting page (desktop + mobile)
+
+Explore page
+
+Marketplace page
+
+So we have a visual reference of your “locked” design.
+
+2. Add this rule to all future prompts:
+
+Whenever you ask Replit to change anything later, always include:
+
+“Do not modify any existing UI styles, color systems, or layouts unless explicitly instructed.”
+
+This protects your app from accidental redesigns.
