@@ -1,75 +1,29 @@
-
-import React, { useEffect, useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Heart, Search, Shield, Users, Star, ArrowRight, UserPlus, LogIn, Eye } from 'lucide-react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { Heart, Search, Shield, Star, UserPlus, LogIn, Eye } from 'lucide-react';
 
 const Home = () => {
   const { user, loading, continueAsGuest, isGuest } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
-  // 1. INSTRUMENT FOR CLARITY - Comprehensive logging
-  console.log('[HOME PAGE] Rendering Home component', {
-    userId: user?.id,
-    hasUser: !!user,
-    loading,
-    isGuest,
-    pathname: location.pathname,
-    timestamp: Date.now()
-  });
-
   // Stable user identity for dependency tracking
   const stableUserId = useMemo(() => user?.id || null, [user?.id]);
 
   useEffect(() => {
-    console.log('[HOME PAGE] Component mounted', { user: !!user, loading, isGuest });
     document.title = 'My Pup - Find Your Perfect Puppy Companion';
-    return () => console.log('[HOME PAGE] Component unmounted');
   }, []);
 
-  useEffect(() => {
-    console.log('[HOME PAGE] Auth state changed:', { 
-      userId: stableUserId, 
-      hasUser: !!user, 
-      loading, 
-      isGuest,
-      pathname: location.pathname
-    });
-  }, [stableUserId, !!user, loading, isGuest, location.pathname]);
-
-  // HARDEN NAVIGATION GUARD - Prevent redirect loops and redundant navigation  
+  // Navigation guard
   useEffect(() => {
     const shouldRedirect = !loading && !user && !isGuest;
     const currentPath = location.pathname;
     const targetPath = '/greeting';
     
-    console.log('[HOME PAGE] Navigation guard check:', {
-      loading,
-      hasUser: !!user,
-      isGuest,
-      pathname: currentPath,
-      shouldRedirect,
-      alreadyOnGreeting: currentPath === targetPath
-    });
-    
-    // Skip redirect if already on target path
-    if (shouldRedirect && currentPath === targetPath) {
-      console.log('[NAV GUARD] Already on target path (/greeting), skipping redirect');
-      return;
-    }
-    
-    // Only redirect if we're definitely not authenticated and not on greeting page
-    if (shouldRedirect) {
-      console.log('[NAV GUARD] Redirecting unauthenticated user from', currentPath, 'to', targetPath);
+    if (shouldRedirect && currentPath !== targetPath) {
       navigate(targetPath, { replace: true });
-      return;
     }
-    
-    console.log('[NAV GUARD] No redirect needed - user authenticated or guest');
   }, [loading, user, isGuest, location.pathname, navigate]);
 
   const handleGuestAccess = () => {
@@ -77,144 +31,127 @@ const Home = () => {
     navigate('/explore');
   };
 
-  // Show loading while checking auth state
+  // Show loading spinner while checking auth
   if (loading) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-600 border-t-transparent mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading...</p>
+      <div style={{ minHeight: '100vh', backgroundColor: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ textAlign: 'center' }}>
+          <div style={{ 
+            width: '48px', 
+            height: '48px', 
+            border: '4px solid #0074D4', 
+            borderTopColor: 'transparent', 
+            borderRadius: '50%', 
+            margin: '0 auto 16px',
+            animation: 'spin 1s linear infinite'
+          }}></div>
+          <p style={{ color: '#6b7280' }}>Loading...</p>
         </div>
       </div>
     );
   }
 
+  // Button styles - defined once for consistency
+  const ctaButtonStyle: React.CSSProperties = {
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#0074D4',
+    color: '#FFFFFF',
+    fontWeight: 600,
+    fontSize: '16px',
+    fontFamily: 'inherit',
+    borderRadius: '10px',
+    padding: '14px 24px',
+    border: 'none',
+    cursor: 'pointer',
+    minHeight: '48px',
+    boxShadow: '0 2px 4px rgba(0, 116, 212, 0.3)',
+    textDecoration: 'none'
+  };
+
+  const iconStyle: React.CSSProperties = {
+    width: '20px',
+    height: '20px',
+    marginRight: '8px',
+    color: '#FFFFFF'
+  };
+
   return (
-    <div className="min-h-screen bg-white pb-20 greeting-page">
+    <div style={{ minHeight: '100vh', backgroundColor: '#ffffff', paddingBottom: '80px' }}>
       {/* Hero Section */}
-      <section className="greeting-hero relative bg-white py-8 sm:py-16 md:py-24">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 text-center">
-          <h1 
-            className="text-3xl sm:text-4xl md:text-6xl font-bold mb-4 sm:mb-6"
-            style={{ background: 'none', backgroundColor: 'transparent' }}
-          >
-            <span style={{ color: '#0F172A', background: 'none' }}>Find Your Perfect</span>
-            <span 
-              className="block" 
-              style={{ color: '#0074D4', background: 'none', backgroundColor: 'transparent' }}
-            >
-              Puppy Companion
-            </span>
+      <section style={{ backgroundColor: '#ffffff', padding: '64px 16px', textAlign: 'center' }}>
+        <div style={{ maxWidth: '896px', margin: '0 auto' }}>
+          {/* Title */}
+          <h1 style={{ fontSize: '48px', fontWeight: 700, marginBottom: '24px', lineHeight: 1.2 }}>
+            <span style={{ color: '#0F172A', display: 'block' }}>Find Your Perfect</span>
+            <span style={{ color: '#0074D4', display: 'block' }}>Puppy Companion</span>
           </h1>
-          <p className="text-base sm:text-xl text-gray-600 mb-6 sm:mb-8 max-w-2xl mx-auto px-2">
+          
+          {/* Subtitle */}
+          <p style={{ fontSize: '20px', color: '#6b7280', marginBottom: '32px', maxWidth: '640px', margin: '0 auto 32px' }}>
             Connect with verified breeders and discover adorable, healthy puppies 
             waiting for their forever homes.
           </p>
           
-          {/* Main 4 Buttons - All using button elements for CSS compatibility */}
+          {/* CTA Buttons - Always rendered, no conditions */}
           <div style={{ 
             display: 'flex', 
             flexDirection: 'row', 
             flexWrap: 'wrap',
             gap: '16px', 
             justifyContent: 'center', 
-            marginBottom: '32px',
-            padding: '0 8px'
+            marginBottom: '32px'
           }}>
-            <Button 
+            <button 
+              type="button"
               onClick={() => navigate('/auth')}
-              className="bg-blue-600"
-              style={{ 
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                backgroundColor: '#0074D4',
-                color: '#FFFFFF',
-                fontWeight: 600,
-                fontSize: '16px',
-                borderRadius: '10px',
-                padding: '14px 24px',
-                minHeight: '48px',
-                boxShadow: '0 2px 4px rgba(0, 116, 212, 0.3)'
-              }}
+              style={ctaButtonStyle}
             >
-              <UserPlus style={{ width: '20px', height: '20px', marginRight: '8px', color: '#FFFFFF' }} />
+              <UserPlus style={iconStyle} />
               <span style={{ color: '#FFFFFF' }}>Sign Up</span>
-            </Button>
-            <Button 
+            </button>
+            
+            <button 
+              type="button"
               onClick={() => navigate('/auth')}
-              className="bg-blue-600"
-              style={{ 
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                backgroundColor: '#0074D4',
-                color: '#FFFFFF',
-                fontWeight: 600,
-                fontSize: '16px',
-                borderRadius: '10px',
-                padding: '14px 24px',
-                minHeight: '48px',
-                boxShadow: '0 2px 4px rgba(0, 116, 212, 0.3)'
-              }}
+              style={ctaButtonStyle}
             >
-              <LogIn style={{ width: '20px', height: '20px', marginRight: '8px', color: '#FFFFFF' }} />
+              <LogIn style={iconStyle} />
               <span style={{ color: '#FFFFFF' }}>Sign In</span>
-            </Button>
-            <Button 
+            </button>
+            
+            <button 
+              type="button"
               onClick={handleGuestAccess}
-              className="bg-blue-600"
-              style={{ 
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                backgroundColor: '#0074D4',
-                color: '#FFFFFF',
-                fontWeight: 600,
-                fontSize: '16px',
-                borderRadius: '10px',
-                padding: '14px 24px',
-                minHeight: '48px',
-                boxShadow: '0 2px 4px rgba(0, 116, 212, 0.3)'
-              }}
+              style={ctaButtonStyle}
             >
-              <Eye style={{ width: '20px', height: '20px', marginRight: '8px', color: '#FFFFFF' }} />
+              <Eye style={iconStyle} />
               <span style={{ color: '#FFFFFF' }}>Browse as Guest</span>
-            </Button>
-            <Button 
+            </button>
+            
+            <button 
+              type="button"
               onClick={() => navigate('/explore')}
-              className="bg-blue-600"
-              style={{ 
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                backgroundColor: '#0074D4',
-                color: '#FFFFFF',
-                fontWeight: 600,
-                fontSize: '16px',
-                borderRadius: '10px',
-                padding: '14px 24px',
-                minHeight: '48px',
-                boxShadow: '0 2px 4px rgba(0, 116, 212, 0.3)'
-              }}
+              style={ctaButtonStyle}
             >
-              <Search style={{ width: '20px', height: '20px', marginRight: '8px', color: '#FFFFFF' }} />
+              <Search style={iconStyle} />
               <span style={{ color: '#FFFFFF' }}>Explore Puppies</span>
-            </Button>
+            </button>
           </div>
 
-          {/* Verified badges underneath */}
-          <div className="mt-8 flex items-center justify-center gap-6 text-sm text-gray-600">
-            <div className="flex items-center gap-1">
-              <Shield className="w-4 h-4 text-green-600" />
+          {/* Trust badges */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '24px', fontSize: '14px', color: '#6b7280', marginTop: '32px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+              <Shield style={{ width: '16px', height: '16px', color: '#16a34a' }} />
               <span>Verified Breeders</span>
             </div>
-            <div className="flex items-center gap-1">
-              <Heart className="w-4 h-4 text-red-500" />
+            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+              <Heart style={{ width: '16px', height: '16px', color: '#ef4444' }} />
               <span>Health Guaranteed</span>
             </div>
-            <div className="flex items-center gap-1">
-              <Star className="w-4 h-4 text-blue-500" />
+            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+              <Star style={{ width: '16px', height: '16px', color: '#0074D4' }} />
               <span>5-Star Support</span>
             </div>
           </div>
