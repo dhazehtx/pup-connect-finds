@@ -165,24 +165,29 @@ button[class*="yellow"], button[class*="amber"],
   align-items: center !important;
   justify-content: center !important;
   background-color: #0074D4 !important;
+  background: #0074D4 !important;
   color: #FFFFFF !important;
   font-weight: 600 !important;
   font-size: 1rem !important;
+  line-height: 1.5 !important;
   border-radius: 10px !important;
   padding: 14px 24px !important;
   opacity: 1 !important;
+  visibility: visible !important;
   filter: none !important;
   border: none !important;
   outline: none !important;
   cursor: pointer !important;
   width: 100% !important;
   max-width: 100% !important;
-  max-height: 56px !important;
   min-height: 48px !important;
-  height: auto !important;
+  height: 48px !important;
   flex: 0 0 auto !important;
+  box-shadow: 0 2px 4px rgba(0, 116, 212, 0.3) !important;
   -webkit-tap-highlight-color: transparent !important;
   transition: background-color 0.2s ease !important;
+  -webkit-appearance: none !important;
+  appearance: none !important;
 }
 
 @media (min-width: 640px) {

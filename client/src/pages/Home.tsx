@@ -113,34 +113,32 @@ const Home = () => {
           
           {/* Main 4 Buttons - greeting-cta-group locked styling */}
           <div className="greeting-cta-group flex flex-col gap-3 sm:flex-row sm:gap-4 justify-center mb-6 sm:mb-8 px-2">
-            <Link 
-              to="/auth" 
-              className="w-full sm:w-auto"
-              style={{ display: 'contents' }}
-            >
+            <Link to="/auth" className="w-full sm:w-auto" style={{ display: 'block' }}>
               <button 
+                type="button"
                 className="greeting-cta-btn"
                 style={{ 
                   backgroundColor: '#0074D4', 
+                  background: '#0074D4',
                   color: '#FFFFFF',
-                  maxHeight: '56px'
+                  opacity: 1,
+                  visibility: 'visible'
                 }}
               >
                 <UserPlus className="w-5 h-5 mr-2" style={{ color: '#FFFFFF' }} />
                 Sign Up
               </button>
             </Link>
-            <Link 
-              to="/auth" 
-              className="w-full sm:w-auto"
-              style={{ display: 'contents' }}
-            >
+            <Link to="/auth" className="w-full sm:w-auto" style={{ display: 'block' }}>
               <button 
+                type="button"
                 className="greeting-cta-btn"
                 style={{ 
                   backgroundColor: '#0074D4', 
+                  background: '#0074D4',
                   color: '#FFFFFF',
-                  maxHeight: '56px'
+                  opacity: 1,
+                  visibility: 'visible'
                 }}
               >
                 <LogIn className="w-5 h-5 mr-2" style={{ color: '#FFFFFF' }} />
@@ -148,28 +146,30 @@ const Home = () => {
               </button>
             </Link>
             <button 
+              type="button"
               className="greeting-cta-btn" 
               onClick={handleGuestAccess}
               style={{ 
                 backgroundColor: '#0074D4', 
+                background: '#0074D4',
                 color: '#FFFFFF',
-                maxHeight: '56px'
+                opacity: 1,
+                visibility: 'visible'
               }}
             >
               <Eye className="w-5 h-5 mr-2" style={{ color: '#FFFFFF' }} />
               Browse as Guest
             </button>
-            <Link 
-              to="/explore" 
-              className="w-full sm:w-auto"
-              style={{ display: 'contents' }}
-            >
+            <Link to="/explore" className="w-full sm:w-auto" style={{ display: 'block' }}>
               <button 
+                type="button"
                 className="greeting-cta-btn"
                 style={{ 
                   backgroundColor: '#0074D4', 
+                  background: '#0074D4',
                   color: '#FFFFFF',
-                  maxHeight: '56px'
+                  opacity: 1,
+                  visibility: 'visible'
                 }}
               >
                 <Search className="w-5 h-5 mr-2" style={{ color: '#FFFFFF' }} />
