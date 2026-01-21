@@ -159,11 +159,19 @@ const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
             />
           </div>
 
-          {/* Filter Toggle */}
+          {/* Filter Toggle - inline styles to prevent mobile color drift */}
           <Collapsible open={isOpen} onOpenChange={setIsOpen}>
             <CollapsibleTrigger asChild>
-              <Button variant="outline" className="relative">
-                <Filter className="w-4 h-4 mr-2" />
+              <Button 
+                variant="outline" 
+                className="relative"
+                style={{
+                  backgroundColor: '#ffffff',
+                  color: '#374151',
+                  borderColor: '#d1d5db'
+                }}
+              >
+                <Filter className="w-4 h-4 mr-2" style={{ color: '#0074d4' }} />
                 Filters
                 {activeFiltersCount > 0 && (
                   <Badge 

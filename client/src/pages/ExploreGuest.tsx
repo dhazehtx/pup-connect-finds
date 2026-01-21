@@ -68,14 +68,18 @@ const GuestListingCard = ({ listing }: { listing: any }) => {
           </Badge>
         </div>
         
-        {/* Heart button */}
+        {/* Heart button - inline styles to prevent yellow on mobile */}
         <Button
           variant="ghost"
           size="sm"
-          className="absolute bottom-3 right-3 z-10 h-8 w-8 p-0 bg-white/90 hover:bg-white backdrop-blur-sm rounded-full"
+          className="absolute bottom-3 right-3 z-10 h-8 w-8 p-0 backdrop-blur-sm rounded-full"
+          style={{ 
+            backgroundColor: 'rgba(255,255,255,0.9)', 
+            WebkitTapHighlightColor: 'transparent' 
+          }}
           onClick={(e) => { e.stopPropagation(); handleSignIn(); }}
         >
-          <Heart className="h-4 w-4 text-gray-600" />
+          <Heart className="h-4 w-4" style={{ color: '#6b7280' }} />
         </Button>
       </div>
       
@@ -209,7 +213,7 @@ const ExploreGuest = () => {
   const data = activeTab === 'listings' ? listings : posts;
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-20">
+    <div className="min-h-screen pb-20 explore-guest-page" data-page="explore" style={{ backgroundColor: '#ffffff' }}>
       {/* Page Header */}
       <div className="bg-white border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
@@ -221,15 +225,20 @@ const ExploreGuest = () => {
               </p>
             </div>
             
-            {/* View Toggle */}
+            {/* View Toggle - inline styles to prevent mobile color drift */}
             <div className="flex items-center gap-2">
               <Button
                 variant={viewMode === 'grid' ? 'default' : 'outline'}
                 size="sm"
                 onClick={() => setViewMode('grid')}
                 className="gap-1.5 min-h-[40px]"
+                style={{
+                  backgroundColor: viewMode === 'grid' ? '#0074d4' : '#ffffff',
+                  color: viewMode === 'grid' ? '#ffffff' : '#374151',
+                  borderColor: viewMode === 'grid' ? '#0074d4' : '#d1d5db'
+                }}
               >
-                <Grid className="h-4 w-4" />
+                <Grid className="h-4 w-4" style={{ color: 'inherit' }} />
                 <span className="hidden sm:inline">Grid</span>
               </Button>
               <Button
@@ -237,8 +246,13 @@ const ExploreGuest = () => {
                 size="sm"
                 onClick={() => setViewMode('list')}
                 className="gap-1.5 min-h-[40px]"
+                style={{
+                  backgroundColor: viewMode === 'list' ? '#0074d4' : '#ffffff',
+                  color: viewMode === 'list' ? '#ffffff' : '#374151',
+                  borderColor: viewMode === 'list' ? '#0074d4' : '#d1d5db'
+                }}
               >
-                <List className="h-4 w-4" />
+                <List className="h-4 w-4" style={{ color: 'inherit' }} />
                 <span className="hidden sm:inline">List</span>
               </Button>
             </div>
@@ -269,7 +283,7 @@ const ExploreGuest = () => {
             {loadingListings ? (
               <LoadingSpinner />
             ) : listings && listings.length > 0 ? (
-              <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6 bg-transparent">
+              <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6" style={{ backgroundColor: 'transparent' }}>
                 {listings.map((listing) => (
                   <GuestListingCard key={listing.id} listing={listing} />
                 ))}

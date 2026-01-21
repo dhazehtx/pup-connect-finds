@@ -31,13 +31,19 @@ const FilterBar: React.FC<FilterBarProps> = ({
 
   return (
     <div className="flex items-center justify-between gap-4">
-      {/* Filter Button */}
+      {/* Filter Button - inline styles to prevent mobile color drift */}
       <Button 
         onClick={onFilterOpen}
         className="flex items-center gap-2 border border-gray-300 text-gray-700 bg-white rounded-full px-6 py-2 hover:bg-gray-50 transition-colors"
         data-testid="button-filter"
+        style={{
+          backgroundColor: '#ffffff',
+          color: '#374151',
+          borderColor: '#d1d5db',
+          WebkitTapHighlightColor: 'transparent'
+        }}
       >
-        <Filter className="h-4 w-4 text-gray-700" />
+        <Filter className="h-4 w-4" style={{ color: '#0074d4' }} />
         Filter
         {hasActiveFilters && (
           <span className="bg-blue-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center ml-1">

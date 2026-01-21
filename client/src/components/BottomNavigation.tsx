@@ -158,6 +158,10 @@ const BottomNavigation = () => {
                 }`}
                 type="button"
                 aria-label={item.label}
+                style={{ 
+                  WebkitTapHighlightColor: 'transparent',
+                  color: '#ffffff'
+                }}
               >
                 <div className="relative">
                   <Icon size={22} className="flex-shrink-0" />

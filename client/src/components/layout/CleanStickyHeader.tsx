@@ -171,9 +171,14 @@ const CleanStickyHeader = () => {
                         variant="ghost"
                         size="sm"
                         onClick={() => setShowNotifications(!showNotifications)}
-                        className="relative p-1.5 text-[#2C3EDC] hover:text-[#2C3EDC] hover:bg-[#2C3EDC]/5 rounded-full w-8 h-8"
+                        className="relative p-1.5 rounded-full w-8 h-8"
+                        style={{ 
+                          backgroundColor: 'transparent', 
+                          color: '#6b7280',
+                          WebkitTapHighlightColor: 'transparent'
+                        }}
                       >
-                        <Bell className="h-5 w-5" />
+                        <Bell className="h-5 w-5" style={{ color: '#6b7280' }} />
                         {unreadCount > 0 && (
                           <div className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-[#FF3B30] rounded-full border border-white"></div>
                         )}

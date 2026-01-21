@@ -1,0 +1,194 @@
+🎨 UI CONSISTENCY & VISUAL PARITY PROMPT
+
+(Desktop ↔ Mobile Alignment)
+
+Context (Important)
+
+We are seeing visual inconsistencies between desktop and mobile UI across the app (Explore, Marketplace, Greeting, Navigation).
+
+This is NOT a layout issue.
+Layouts can differ.
+
+This IS a UI system issue.
+
+Mobile should feel like:
+
+“The same app, just adapted for a smaller screen.”
+
+Not:
+
+“A different product.”
+
+🎯 GOAL
+
+Ensure desktop and mobile share the exact same UI design system:
+
+Colors
+
+Typography
+
+Buttons
+
+Cards
+
+Backgrounds
+
+Spacing logic
+
+Shadows & borders
+
+Desktop is the single source of truth.
+
+1️⃣ COLORS (CRITICAL)
+Required:
+
+Mobile must use the exact same colors as desktop
+
+No mobile-only color overrides
+
+Fix the following:
+
+❌ Remove blue background slabs between cards on mobile Explore
+
+❌ Remove extra saturation on mobile gradients
+
+❌ Remove mobile-only background fills behind cards
+
+❌ Remove any fallback system colors (yellow, gray-blue, default tap colors)
+
+Enforce:
+
+Same primary brand blue
+
+Same gradient values
+
+Same neutral background (#ffffff / off-white)
+
+Same card surface color
+
+2️⃣ CARD DESIGN (Explore + Marketplace)
+Desktop card design is correct → replicate on mobile
+
+Ensure mobile cards:
+
+Match desktop background color
+
+Match desktop border radius
+
+Match desktop shadow softness
+
+Do not introduce colored gutters or separators between cards
+
+❌ No blue bars
+❌ No blue padding columns
+❌ No background blocks between images
+
+Cards should visually float on the page — same as desktop.
+
+3️⃣ IMAGES (Explore Demo Listings)
+Current issue:
+
+Mobile images are cropped inconsistently
+
+Images feel squeezed or vertically off
+
+Fix:
+
+Use the same image aspect ratio logic as desktop
+
+Apply object-fit: cover
+
+Center subjects vertically and horizontally
+
+Maintain consistent image height across cards
+
+Images should feel:
+
+Clean, balanced, and marketplace-grade
+(Facebook Marketplace / Airbnb-style)
+
+4️⃣ BUTTONS (VERY IMPORTANT)
+
+All buttons on desktop and mobile must be identical in:
+
+Color
+
+Radius
+
+Height
+
+Font weight
+
+Text color
+
+Hover / active / disabled states
+
+Fix:
+
+Remove any mobile-specific button colors
+
+Remove default mobile tap styles
+
+No yellow
+
+No alternative blues
+
+Primary CTA = one blue, everywhere
+
+5️⃣ TYPOGRAPHY
+
+Ensure mobile uses the same typography system as desktop:
+
+Same font family
+
+Same font weights
+
+Same color hierarchy
+
+Same title/body distinction
+
+No mobile-only font resizing that changes hierarchy.
+
+Scaling is fine — style changes are not.
+
+6️⃣ NAVIGATION (Mobile)
+
+Bottom navigation bar must:
+
+Use the same brand gradient/colors as desktop
+
+Match icon color palette
+
+Avoid extra saturation
+
+Avoid new gradients
+
+It should feel like:
+
+Desktop header → folded into a bottom nav
+
+7️⃣ WHAT NOT TO TOUCH ❌
+
+❌ Backend
+
+❌ Auth
+
+❌ Routes
+
+❌ Data
+
+❌ Schema
+
+❌ API calls
+
+This is a UI-only alignment task.
+
+✅ SUCCESS CRITERIA
+
+A user switching from desktop → mobile should think:
+
+“This is clearly the same product.”
+
+Not:
+
+“Why does mobile feel different?”
