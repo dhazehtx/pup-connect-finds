@@ -1,0 +1,114 @@
+What’s happening:
+
+The greeting page is rendering a placeholder CTA skeleton row (4 empty pills)
+
+The real CTA component (with text + icons) is either:
+
+Not mounted
+
+Hidden by a conditional (isGuest, isLoaded, etc.)
+
+Being overwritten by a skeleton / loading state that never turns off
+
+That’s why:
+
+You see 4 empty pills
+
+Only sometimes 1 button shows
+
+The real 4-button bar from the third screenshot never appears
+
+So we must force the greeting page to always render the real CTA bar and delete the skeleton version entirely.
+
+This cannot be solved by CSS alone. We must fix the JSX/TSX logic.
+
+🔴 THIS IS THE CORRECT FINAL PROMPT (THIS WILL FIX IT)
+
+Paste this EXACTLY into Replit:
+
+🔵 FIX GREETING PAGE CTA RENDERING – REMOVE SKELETON, RESTORE REAL BUTTON BAR
+
+The Greeting page is currently rendering an empty skeleton / placeholder CTA row instead of the real CTA buttons. Remove the placeholder CTA containers and permanently restore the real 4-button CTA bar exactly as shown in the reference screenshot.
+
+Tasks (Greeting page ONLY):
+
+Locate the Greeting page CTA section (component rendering the 4 empty pill boxes).
+
+Remove or disable the skeleton / placeholder CTA row entirely:
+
+Delete any loading, skeleton, or placeholder button containers under the hero text.
+
+Remove any conditional rendering that shows placeholders instead of real buttons.
+
+Restore the real CTA bar exactly like the reference design:
+Render 4 real buttons in this exact order:
+
+“Sign Up”
+
+“Sign In”
+
+“Browse as Guest”
+
+“Explore Puppies”
+
+Each button must:
+
+Use the standard Button component (not div placeholders)
+
+Have solid blue background #0074D4
+
+White text
+
+Visible icon (user, arrow, eye, search)
+
+Normal height and padding
+
+Rendering rules (CRITICAL):
+
+The real CTA buttons must ALWAYS render immediately on page load.
+
+No loading state, no skeleton, no placeholder version.
+
+No conditional hiding based on auth, query, or useQuery.
+
+Layout:
+
+Desktop: 4 buttons in one centered row (match reference screenshot exactly).
+
+Mobile: wrap to 2x2 or stack, but never show placeholders.
+
+Lock scope:
+
+Do NOT change global theme styles.
+
+Do NOT modify any other pages.
+
+Do NOT touch routing or backend.
+
+⚠️ Important:
+
+The current bug is NOT styling — it is incorrect component rendering.
+
+Remove the skeleton CTA version completely and force the real CTA bar to render.
+
+Acceptance test:
+
+On /greeting, the page must visually match the third reference screenshot with all 4 blue CTA buttons visible.
+
+🔍 WHY THIS WILL FINALLY FIX IT
+
+Right now your app has BOTH:
+
+A skeleton CTA row (empty pills) ❌
+
+A real CTA row (correct design) ✅
+
+But the skeleton version is rendering instead of the real one.
+
+This prompt forces Replit to:
+
+Delete the skeleton version
+
+Always mount the real CTA bar
+
+Stop any isLoading, useQuery, or guest logic from hiding it

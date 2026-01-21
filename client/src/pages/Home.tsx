@@ -111,7 +111,7 @@ const Home = () => {
             waiting for their forever homes.
           </p>
           
-          {/* Main 4 Buttons - Direct styled approach */}
+          {/* Main 4 Buttons - All using button elements for CSS compatibility */}
           <div style={{ 
             display: 'flex', 
             flexDirection: 'row', 
@@ -121,8 +121,9 @@ const Home = () => {
             marginBottom: '32px',
             padding: '0 8px'
           }}>
-            <Link 
-              to="/auth" 
+            <Button 
+              onClick={() => navigate('/auth')}
+              className="bg-blue-600"
               style={{ 
                 display: 'inline-flex',
                 alignItems: 'center',
@@ -133,16 +134,16 @@ const Home = () => {
                 fontSize: '16px',
                 borderRadius: '10px',
                 padding: '14px 24px',
-                textDecoration: 'none',
                 minHeight: '48px',
                 boxShadow: '0 2px 4px rgba(0, 116, 212, 0.3)'
               }}
             >
               <UserPlus style={{ width: '20px', height: '20px', marginRight: '8px', color: '#FFFFFF' }} />
               <span style={{ color: '#FFFFFF' }}>Sign Up</span>
-            </Link>
-            <Link 
-              to="/auth" 
+            </Button>
+            <Button 
+              onClick={() => navigate('/auth')}
+              className="bg-blue-600"
               style={{ 
                 display: 'inline-flex',
                 alignItems: 'center',
@@ -153,17 +154,16 @@ const Home = () => {
                 fontSize: '16px',
                 borderRadius: '10px',
                 padding: '14px 24px',
-                textDecoration: 'none',
                 minHeight: '48px',
                 boxShadow: '0 2px 4px rgba(0, 116, 212, 0.3)'
               }}
             >
               <LogIn style={{ width: '20px', height: '20px', marginRight: '8px', color: '#FFFFFF' }} />
               <span style={{ color: '#FFFFFF' }}>Sign In</span>
-            </Link>
-            <button 
-              type="button"
+            </Button>
+            <Button 
               onClick={handleGuestAccess}
+              className="bg-blue-600"
               style={{ 
                 display: 'inline-flex',
                 alignItems: 'center',
@@ -174,17 +174,16 @@ const Home = () => {
                 fontSize: '16px',
                 borderRadius: '10px',
                 padding: '14px 24px',
-                border: 'none',
-                cursor: 'pointer',
                 minHeight: '48px',
                 boxShadow: '0 2px 4px rgba(0, 116, 212, 0.3)'
               }}
             >
               <Eye style={{ width: '20px', height: '20px', marginRight: '8px', color: '#FFFFFF' }} />
               <span style={{ color: '#FFFFFF' }}>Browse as Guest</span>
-            </button>
-            <Link 
-              to="/explore" 
+            </Button>
+            <Button 
+              onClick={() => navigate('/explore')}
+              className="bg-blue-600"
               style={{ 
                 display: 'inline-flex',
                 alignItems: 'center',
@@ -195,14 +194,13 @@ const Home = () => {
                 fontSize: '16px',
                 borderRadius: '10px',
                 padding: '14px 24px',
-                textDecoration: 'none',
                 minHeight: '48px',
                 boxShadow: '0 2px 4px rgba(0, 116, 212, 0.3)'
               }}
             >
               <Search style={{ width: '20px', height: '20px', marginRight: '8px', color: '#FFFFFF' }} />
               <span style={{ color: '#FFFFFF' }}>Explore Puppies</span>
-            </Link>
+            </Button>
           </div>
 
           {/* Verified badges underneath */}
