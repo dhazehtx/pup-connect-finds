@@ -1,16 +1,10 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
-import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Search, Heart, MapPin, Star, Grid, List } from 'lucide-react';
+import { Heart, MapPin, Grid, List } from 'lucide-react';
 import AdvancedFilters from '@/components/explore/AdvancedFilters';
 import LoadingSpinner from '@/components/ui/loading-spinner';
-import { apiRequest } from '@/lib/api';
-import ListingCard from '@/components/ListingCard';
 
 // Local demo puppy images - guaranteed to render
 import goldenRetrieverImg from '@assets/image_1768789113456.png';
@@ -61,14 +55,18 @@ const GuestListingCard = ({ listing }: { listing: any }) => {
           }}
         />
         
-        {/* Price badge */}
+        {/* Price badge - blue background, white text */}
         <div className="absolute top-3 right-3 z-10">
-          <Badge 
-            className="font-bold px-3 py-1"
-            style={{ backgroundColor: '#0074d4', color: '#ffffff' }}
+          <span 
+            className="font-bold px-3 py-1 rounded-full text-sm"
+            style={{ 
+              backgroundColor: '#0074d4', 
+              color: '#ffffff',
+              display: 'inline-block'
+            }}
           >
             ${listing.price?.toLocaleString()}
-          </Badge>
+          </span>
         </div>
         
         {/* Heart button - inline styles to prevent yellow on mobile */}
@@ -111,7 +109,6 @@ const GuestListingCard = ({ listing }: { listing: any }) => {
 };
 
 const ExploreGuest = () => {
-  const [activeTab, setActiveTab] = useState<'listings' | 'posts'>('listings');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [filters, setFilters] = useState<any>({});
   const [resultCount, setResultCount] = useState(0);
@@ -170,50 +167,14 @@ const ExploreGuest = () => {
   const listings = GUEST_DEMO_LISTINGS;
   const loadingListings = false;
 
-  // Fetch posts - using demo data for guest users
-  const { data: posts, isLoading: loadingPosts } = useQuery({
-    queryKey: ['explore-posts-guest', filters],
-    queryFn: async () => {
-      // Return demo data for guest users
-      return [
-        {
-          id: 1,
-          title: "Tips for First-Time Dog Owners",
-          content: "Bringing home your first puppy is exciting! Here are some essential tips to help you prepare...",
-          author: { username: "PuppyExpert" },
-          created_at: new Date().toISOString()
-        },
-        {
-          id: 2,
-          title: "Best Dog Breeds for Families",
-          content: "When choosing a family dog, consider these friendly and gentle breeds that are great with children...",
-          author: { username: "FamilyDogLover" },
-          created_at: new Date().toISOString()
-        }
-      ];
-    },
-    enabled: activeTab === 'posts',
-  });
-
-  // Update result count when data changes
+  // Update result count when listings change
   useEffect(() => {
-    if (activeTab === 'listings' && listings) {
-      setResultCount(listings.length || 0);
-    } else if (activeTab === 'posts' && posts) {
-      setResultCount(posts.length || 0);
-    }
-  }, [activeTab, listings, posts]);
+    setResultCount(listings.length || 0);
+  }, [listings]);
 
   const handleFiltersChange = useCallback((newFilters: any) => {
     setFilters(newFilters);
   }, []);
-
-  const handleTabChange = (tab: string) => {
-    setActiveTab(tab as 'listings' | 'posts');
-  };
-
-  const isLoading = activeTab === 'listings' ? loadingListings : loadingPosts;
-  const data = activeTab === 'listings' ? listings : posts;
 
   return (
     <div className="min-h-screen pb-20 explore-guest-page" data-page="explore" style={{ backgroundColor: '#ffffff' }}>
@@ -268,21 +229,18 @@ const ExploreGuest = () => {
         <AdvancedFilters onFiltersChange={handleFiltersChange} />
       </div>
 
-      {/* Content Tabs */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
+      {/* Puppy Listings */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-8">
+        <div className="w-full">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4 sm:mb-6">
-            <TabsList className="grid w-full sm:w-auto sm:max-w-md grid-cols-2">
-              <TabsTrigger value="listings" className="text-xs sm:text-sm">Puppy Listings</TabsTrigger>
-              <TabsTrigger value="posts" className="text-xs sm:text-sm">Community Posts</TabsTrigger>
-            </TabsList>
+            <h2 className="text-lg font-semibold text-gray-900">Puppy Listings</h2>
             
             <div className="text-xs sm:text-sm text-gray-600 text-center sm:text-right">
               {resultCount} results found
             </div>
           </div>
 
-          <TabsContent value="listings" className="space-y-6">
+          <div className="space-y-6">
             {loadingListings ? (
               <LoadingSpinner />
             ) : listings && listings.length > 0 ? (
@@ -297,32 +255,8 @@ const ExploreGuest = () => {
                 <p className="text-sm text-gray-400 mt-2">Try adjusting your filters or search terms.</p>
               </div>
             )}
-          </TabsContent>
-
-          <TabsContent value="posts" className="space-y-4 sm:space-y-6">
-            {loadingPosts ? (
-              <LoadingSpinner />
-            ) : posts && posts.length > 0 ? (
-              <div className="space-y-3 sm:space-y-4">
-                {posts.map((post: any) => (
-                  <div key={post.id} className="bg-white rounded-lg shadow-sm border p-4 sm:p-6">
-                    <h3 className="font-semibold text-base sm:text-lg mb-1 sm:mb-2">{post.title}</h3>
-                    <p className="text-sm sm:text-base text-gray-600 mb-3 sm:mb-4 line-clamp-3">{post.content}</p>
-                    <div className="flex items-center justify-between text-xs sm:text-sm text-gray-500">
-                      <span>By {post.author?.username || 'Anonymous'}</span>
-                      <span>{new Date(post.created_at).toLocaleDateString()}</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-12">
-                <p className="text-gray-500">No posts found matching your criteria.</p>
-                <p className="text-sm text-gray-400 mt-2">Try adjusting your filters or search terms.</p>
-              </div>
-            )}
-          </TabsContent>
-        </Tabs>
+          </div>
+        </div>
       </div>
 
     </div>
