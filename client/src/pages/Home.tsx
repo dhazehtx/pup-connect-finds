@@ -92,11 +92,19 @@ const Home = () => {
   return (
     <div className="min-h-screen bg-white pb-20 greeting-page">
       {/* Hero Section */}
-      <section className="relative bg-white py-8 sm:py-16 md:py-24">
+      <section className="greeting-hero relative bg-white py-8 sm:py-16 md:py-24">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 text-center">
-          <h1 className="text-3xl sm:text-4xl md:text-6xl font-bold text-gray-900 mb-4 sm:mb-6">
-            Find Your Perfect
-            <span className="text-blue-600 block">Puppy Companion</span>
+          <h1 
+            className="text-3xl sm:text-4xl md:text-6xl font-bold mb-4 sm:mb-6"
+            style={{ background: 'none', backgroundColor: 'transparent' }}
+          >
+            <span style={{ color: '#0F172A', background: 'none' }}>Find Your Perfect</span>
+            <span 
+              className="block" 
+              style={{ color: '#0074D4', background: 'none', backgroundColor: 'transparent' }}
+            >
+              Puppy Companion
+            </span>
           </h1>
           <p className="text-base sm:text-xl text-gray-600 mb-6 sm:mb-8 max-w-2xl mx-auto px-2">
             Connect with verified breeders and discover adorable, healthy puppies 

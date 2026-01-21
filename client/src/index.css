@@ -209,6 +209,26 @@ button[class*="yellow"], button[class*="amber"],
 }
 
 /* ============================================================
+   GREETING HERO TEXT - NO BACKGROUNDS
+   ============================================================ */
+
+.greeting-hero h1,
+.greeting-hero h1 span,
+.greeting-hero .accent {
+  background: none !important;
+  background-color: transparent !important;
+}
+
+.greeting-hero h1 span:first-child {
+  color: #0F172A !important;
+}
+
+.greeting-hero h1 span:last-child,
+.greeting-hero .accent {
+  color: #0074D4 !important;
+}
+
+/* ============================================================
    NUCLEAR BUTTON VISIBILITY FIX - HIGHEST PRIORITY
    Solid blue (#0074D4), white text, NO opacity, NO fading
    ============================================================ */

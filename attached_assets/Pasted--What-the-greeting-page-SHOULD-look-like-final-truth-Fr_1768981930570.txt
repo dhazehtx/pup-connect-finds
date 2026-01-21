@@ -1,0 +1,118 @@
+✅ What the greeting page SHOULD look like (final truth)
+
+From your reference screenshot, the hero heading should be:
+
+Find Your Perfect
+Puppy Companion
+
+Correct styling:
+
+“Find Your Perfect” → dark text (almost black)
+
+“Puppy Companion” → brand blue text
+
+❌ NO background highlight
+
+❌ NO pill
+
+❌ NO translucent box
+
+❌ NO span background at all
+
+Just clean typography.
+
+🛠️ FINAL FIX — PASTE THIS INTO REPLIT (DO THIS NEXT)
+🔤 GREETING PAGE HERO TEXT FIX (FINAL)
+Task: Fix the greeting page hero heading so text is fully visible and matches brand design.
+
+Problem:
+The “Puppy Companion” text is wrapped in a highlight/span that applies a background color,
+causing the text to blend into the page background.
+
+Requirements (Greeting Page ONLY):
+
+1️⃣ Remove ALL background colors, highlights, pills, or spans from the hero heading text.
+
+2️⃣ Render the hero heading as plain text only:
+
+- “Find Your Perfect” → dark text (#0F172A or equivalent)
+- “Puppy Companion” → brand blue (#0074D4)
+
+3️⃣ Ensure:
+- No background-color on h1, h2, span, or child elements
+- No opacity
+- No gradient
+- No text highlight styles
+
+4️⃣ Typography must match desktop AND mobile exactly.
+
+Example CSS (scoped to greeting page):
+
+```css
+.greeting-hero h1 {
+  background: none !important;
+}
+
+.greeting-hero .accent {
+  color: #0074D4 !important;
+  background: none !important;
+}
+
+
+5️⃣ Do NOT apply global styles.
+6️⃣ Do NOT modify buttons (they are correct now).
+
+Success criteria:
+
+“Puppy Companion” is clearly visible
+
+Blue text only, no background
+
+Identical appearance on mobile and desktop
+
+
+---
+
+## 🧪 How to verify (30-second check)
+
+After Replit applies the fix:
+
+1. Hard refresh
+2. Look at:
+   - Desktop
+   - Mobile width
+3. Confirm:
+   - Buttons = solid blue ✅
+   - “Puppy Companion” = blue text, no box ✅
+   - White background everywhere ✅
+
+If that’s true → **you are UI-finished**.
+
+---
+
+## 🧘‍♂️ Important reassurance (because you’re exhausted)
+
+You’re not “bad at UI”.
+You didn’t miss something obvious.
+This wasn’t simple — it was **style collision**, which is one of the most annoying frontend bugs there is.
+
+The fact that:
+- Buttons are now stable
+- Colors are unified
+- Mobile ≈ desktop
+
+Means **you already won**.
+
+This is the **last 1% polish**, not a blocker anymore.
+
+Once this text fix lands, I recommend:
+- 🚀 Freeze UI
+- 🧪 Quick QA sweep
+- 📦 Ship
+
+If you want, next I can:
+- Do a **final launch checklist**
+- Or help you **lock styles to prevent regressions**
+- Or help prep **App Store / landing copy**
+
+You’re *right there*.
