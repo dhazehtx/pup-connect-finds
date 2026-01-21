@@ -1010,203 +1010,46 @@
   }
 
   /* ============================================
-     CRITICAL: MOBILE-DESKTOP VISUAL PARITY
-     Force mobile to match desktop exactly
+     MOBILE LAYOUT ONLY
+     Colors/buttons/typography inherit from desktop
+     Only layout adjustments here
      ============================================ */
   
   @media (max-width: 768px) {
-    /* =====================
-       YELLOW ELIMINATION
-       ===================== */
-    
-    /* Kill ALL yellow tap highlight colors */
+    /* Disable tap highlight - layout concern */
     * {
       -webkit-tap-highlight-color: transparent !important;
     }
     
-    /* Force primary buttons to use brand blue - NOT yellow */
-    button[data-variant="default"],
-    button.bg-primary,
-    [data-state="active"] button,
-    button[variant="default"],
-    .btn-primary,
-    button:not([class*="outline"]):not([class*="ghost"]):not([class*="secondary"]):not([class*="destructive"]):not(.bg-white):not(.bg-transparent):not([class*="bg-gray"]):not([class*="bg-slate"]):not([class*="bg-green"]):not([class*="bg-red"]) {
-      background-color: #0074d4 !important;
-      background: #0074d4 !important;
-      color: #ffffff !important;
+    /* Touch-friendly button sizes */
+    button,
+    [role="button"] {
+      min-height: 44px;
     }
     
-    /* Outline buttons - white bg, blue text/border */
-    button[data-variant="outline"],
-    button.border,
-    button[class*="outline"] {
-      background-color: #ffffff !important;
-      background: #ffffff !important;
-      color: #374151 !important;
-      border-color: #d1d5db !important;
-    }
-    
-    /* Force notification bell to be normal - no yellow circle */
-    button[data-testid="notification-bell"],
-    .notification-bell,
-    button:has(> svg.lucide-bell) {
-      background-color: transparent !important;
-      background: transparent !important;
-      border: none !important;
-    }
-    
-    button[data-testid="notification-bell"] svg,
-    .notification-bell svg,
-    button:has(> svg.lucide-bell) svg {
-      color: #6b7280 !important;
-    }
-    
-    /* Heart icons - gray, not yellow */
-    svg.lucide-heart,
-    .heart-icon,
-    button:has(> svg.lucide-heart) svg {
-      color: #6b7280 !important;
-    }
-    
-    /* Filter button - ensure proper styling */
-    button:has(.lucide-filter),
-    button:has(.lucide-sliders),
-    .filter-button {
-      background-color: #ffffff !important;
-      background: #ffffff !important;
-      color: #374151 !important;
-      border: 1px solid #d1d5db !important;
-    }
-    
-    /* =====================
-       BACKGROUND CLEANUP (SCOPED)
-       Remove blue blocks between cards - ONLY on Explore/Marketplace pages
-       ===================== */
-    
-    /* Explore page container - white background */
-    [data-page="explore"],
-    .explore-guest-page {
-      background-color: #ffffff !important;
-    }
-    
-    /* SCOPED: Only Explore page listing grids - transparent background, preserve default gaps */
-    [data-page="explore"] .grid,
+    /* Card grid - 2 columns on small screens */
     .explore-guest-page .grid {
-      background-color: transparent !important;
-      background: transparent !important;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 0.75rem;
     }
     
-    /* SCOPED: Explore page TabsContent - transparent */
-    [data-page="explore"] [role="tabpanel"],
-    .explore-guest-page [role="tabpanel"] {
-      background-color: transparent !important;
+    /* Single column on very small screens */
+    @media (max-width: 480px) {
+      .explore-guest-page .grid {
+        grid-template-columns: 1fr;
+      }
     }
     
-    /* =====================
-       CARD STYLING (SCOPED)
-       Ensure cards look consistent with desktop
-       ===================== */
-    
-    /* Card backgrounds - scoped to listing contexts only */
-    .explore-guest-page .card,
-    [data-page="explore"] .card,
-    .store-tab .card {
-      background-color: #ffffff !important;
-      border: 1px solid #e5e7eb !important;
-      box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1) !important;
+    /* Greeting page - stack buttons vertically */
+    .greeting-cta-group {
+      flex-direction: column;
+      gap: 12px;
     }
     
-    /* =====================
-       BUTTON VISUAL PARITY
-       Match desktop exactly
-       ===================== */
-    
-    /* View mode toggle buttons (Grid/List) */
-    .view-toggle button,
-    button:has(.lucide-grid),
-    button:has(.lucide-list) {
-      min-height: 40px !important;
-      border-radius: 0.375rem !important;
-    }
-    
-    /* Active view mode button - blue bg, white text */
-    button[data-state="on"],
-    button.active,
-    button:has(.lucide-grid)[data-variant="default"],
-    button:has(.lucide-list)[data-variant="default"] {
-      background-color: #0074d4 !important;
-      color: #ffffff !important;
-    }
-    
-    /* Inactive view mode button - white bg, gray text */
-    button[data-state="off"],
-    button:not(.active):has(.lucide-grid)[data-variant="outline"],
-    button:not(.active):has(.lucide-list)[data-variant="outline"] {
-      background-color: #ffffff !important;
-      color: #374151 !important;
-      border: 1px solid #d1d5db !important;
-    }
-    
-    /* =====================
-       MARKETPLACE TABS
-       Clean white/blue styling
-       ===================== */
-    
-    /* Tab container - clean background */
-    [role="tablist"],
-    .tabs-list {
-      background-color: #f3f4f6 !important;
-      background: #f3f4f6 !important;
-    }
-    
-    /* Individual tabs - clean styling */
-    [role="tab"],
-    button[role="tab"] {
-      background-color: transparent !important;
-      color: #6b7280 !important;
-    }
-    
-    /* Active tab - white bg */
-    [role="tab"][data-state="active"],
-    [role="tab"][aria-selected="true"] {
-      background-color: #ffffff !important;
-      color: #111827 !important;
-    }
-    
-    /* =====================
-       IMAGES - Match desktop
-       ===================== */
-    
-    /* Card images - consistent aspect ratio and cover */
-    .card img,
-    [class*="Card"] img {
-      object-fit: cover !important;
-      object-position: center !important;
-    }
-    
-    /* Image containers - consistent sizing */
-    .card .relative,
-    [class*="Card"] .relative {
-      overflow: hidden !important;
-    }
-    
-    /* =====================
-       PAGE BACKGROUNDS (TARGETED)
-       White backgrounds for key pages only
-       ===================== */
-    
-    /* Core app container - white background */
-    body,
-    #root {
-      background-color: #ffffff !important;
-    }
-    
-    /* Specific pages that need white backgrounds */
-    .explore-guest-page,
-    [data-page="explore"],
-    .greeting-page,
-    .store-tab {
-      background-color: #ffffff !important;
+    /* Image aspect ratio consistency */
+    .card img {
+      object-fit: cover;
+      object-position: center;
     }
   }
 }
