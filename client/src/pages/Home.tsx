@@ -111,70 +111,97 @@ const Home = () => {
             waiting for their forever homes.
           </p>
           
-          {/* Main 4 Buttons - greeting-cta-group locked styling */}
-          <div className="greeting-cta-group flex flex-col gap-3 sm:flex-row sm:gap-4 justify-center mb-6 sm:mb-8 px-2">
-            <Link to="/auth" className="w-full sm:w-auto" style={{ display: 'block' }}>
-              <button 
-                type="button"
-                className="greeting-cta-btn"
-                style={{ 
-                  backgroundColor: '#0074D4', 
-                  background: '#0074D4',
-                  color: '#FFFFFF',
-                  opacity: 1,
-                  visibility: 'visible'
-                }}
-              >
-                <UserPlus className="w-5 h-5 mr-2" style={{ color: '#FFFFFF' }} />
-                Sign Up
-              </button>
+          {/* Main 4 Buttons - Direct styled approach */}
+          <div style={{ 
+            display: 'flex', 
+            flexDirection: 'row', 
+            flexWrap: 'wrap',
+            gap: '16px', 
+            justifyContent: 'center', 
+            marginBottom: '32px',
+            padding: '0 8px'
+          }}>
+            <Link 
+              to="/auth" 
+              style={{ 
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                backgroundColor: '#0074D4',
+                color: '#FFFFFF',
+                fontWeight: 600,
+                fontSize: '16px',
+                borderRadius: '10px',
+                padding: '14px 24px',
+                textDecoration: 'none',
+                minHeight: '48px',
+                boxShadow: '0 2px 4px rgba(0, 116, 212, 0.3)'
+              }}
+            >
+              <UserPlus style={{ width: '20px', height: '20px', marginRight: '8px', color: '#FFFFFF' }} />
+              <span style={{ color: '#FFFFFF' }}>Sign Up</span>
             </Link>
-            <Link to="/auth" className="w-full sm:w-auto" style={{ display: 'block' }}>
-              <button 
-                type="button"
-                className="greeting-cta-btn"
-                style={{ 
-                  backgroundColor: '#0074D4', 
-                  background: '#0074D4',
-                  color: '#FFFFFF',
-                  opacity: 1,
-                  visibility: 'visible'
-                }}
-              >
-                <LogIn className="w-5 h-5 mr-2" style={{ color: '#FFFFFF' }} />
-                Sign In
-              </button>
+            <Link 
+              to="/auth" 
+              style={{ 
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                backgroundColor: '#0074D4',
+                color: '#FFFFFF',
+                fontWeight: 600,
+                fontSize: '16px',
+                borderRadius: '10px',
+                padding: '14px 24px',
+                textDecoration: 'none',
+                minHeight: '48px',
+                boxShadow: '0 2px 4px rgba(0, 116, 212, 0.3)'
+              }}
+            >
+              <LogIn style={{ width: '20px', height: '20px', marginRight: '8px', color: '#FFFFFF' }} />
+              <span style={{ color: '#FFFFFF' }}>Sign In</span>
             </Link>
             <button 
               type="button"
-              className="greeting-cta-btn" 
               onClick={handleGuestAccess}
               style={{ 
-                backgroundColor: '#0074D4', 
-                background: '#0074D4',
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                backgroundColor: '#0074D4',
                 color: '#FFFFFF',
-                opacity: 1,
-                visibility: 'visible'
+                fontWeight: 600,
+                fontSize: '16px',
+                borderRadius: '10px',
+                padding: '14px 24px',
+                border: 'none',
+                cursor: 'pointer',
+                minHeight: '48px',
+                boxShadow: '0 2px 4px rgba(0, 116, 212, 0.3)'
               }}
             >
-              <Eye className="w-5 h-5 mr-2" style={{ color: '#FFFFFF' }} />
-              Browse as Guest
+              <Eye style={{ width: '20px', height: '20px', marginRight: '8px', color: '#FFFFFF' }} />
+              <span style={{ color: '#FFFFFF' }}>Browse as Guest</span>
             </button>
-            <Link to="/explore" className="w-full sm:w-auto" style={{ display: 'block' }}>
-              <button 
-                type="button"
-                className="greeting-cta-btn"
-                style={{ 
-                  backgroundColor: '#0074D4', 
-                  background: '#0074D4',
-                  color: '#FFFFFF',
-                  opacity: 1,
-                  visibility: 'visible'
-                }}
-              >
-                <Search className="w-5 h-5 mr-2" style={{ color: '#FFFFFF' }} />
-                Explore Puppies
-              </button>
+            <Link 
+              to="/explore" 
+              style={{ 
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                backgroundColor: '#0074D4',
+                color: '#FFFFFF',
+                fontWeight: 600,
+                fontSize: '16px',
+                borderRadius: '10px',
+                padding: '14px 24px',
+                textDecoration: 'none',
+                minHeight: '48px',
+                boxShadow: '0 2px 4px rgba(0, 116, 212, 0.3)'
+              }}
+            >
+              <Search style={{ width: '20px', height: '20px', marginRight: '8px', color: '#FFFFFF' }} />
+              <span style={{ color: '#FFFFFF' }}>Explore Puppies</span>
             </Link>
           </div>
 
