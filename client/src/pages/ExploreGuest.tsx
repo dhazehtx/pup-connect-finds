@@ -37,71 +37,68 @@ const GuestListingCard = ({ listing }: { listing: any }) => {
 
   return (
     <Card 
-      className="w-full overflow-hidden hover:shadow-lg transition-shadow duration-300 cursor-pointer"
+      className="w-full overflow-hidden hover:shadow-lg transition-shadow duration-300 cursor-pointer bg-white border border-gray-200"
       onClick={handleSignIn}
     >
-      <div className="relative">
-        {/* Fixed height image wrapper - immune to CSS overrides */}
-        <div 
-          className="listing-image-wrapper relative w-full overflow-hidden"
+      {/* Image container - fills completely with center crop */}
+      <div 
+        className="relative w-full overflow-hidden bg-gray-100"
+        style={{ 
+          aspectRatio: '4 / 3'
+        }}
+      >
+        <img
+          src={imageUrl}
+          alt={listing.dog_name || 'Puppy'}
+          className="absolute inset-0 w-full h-full transition-transform duration-300 hover:scale-105"
           style={{ 
-            height: '200px', 
-            minHeight: '200px',
-            aspectRatio: '4 / 3'
+            objectFit: 'cover',
+            objectPosition: 'center'
           }}
-        >
-          <img
-            src={imageUrl}
-            alt={listing.dog_name || 'Puppy'}
-            className="absolute inset-0 w-full h-full object-cover transition-transform duration-300 hover:scale-105"
-            style={{ 
-              display: 'block',
-              width: '100%',
-              height: '100%',
-              objectFit: 'cover'
-            }}
-            loading="lazy"
-            onError={(e) => {
-              (e.target as HTMLImageElement).src = DEMO_FALLBACK_IMAGE;
-            }}
-          />
-          
-          <div className="absolute top-3 right-3 z-10">
-            <Badge className="bg-black/70 text-white font-bold">
-              ${listing.price?.toLocaleString()}
-            </Badge>
-          </div>
-          
-          <Button
-            variant="ghost"
-            size="sm"
-            className="absolute bottom-3 right-3 z-10 h-8 w-8 p-0 bg-white/90 hover:bg-white backdrop-blur-sm"
-            onClick={(e) => { e.stopPropagation(); handleSignIn(); }}
-          >
-            <Heart className="h-4 w-4 text-gray-600" />
-          </Button>
+          loading="lazy"
+          onError={(e) => {
+            (e.target as HTMLImageElement).src = DEMO_FALLBACK_IMAGE;
+          }}
+        />
+        
+        {/* Price badge */}
+        <div className="absolute top-3 right-3 z-10">
+          <Badge className="bg-black/70 text-white font-bold px-3 py-1">
+            ${listing.price?.toLocaleString()}
+          </Badge>
         </div>
         
-        <CardContent className="p-4 space-y-3">
-          <div>
-            <h3 className="font-semibold text-lg leading-tight">{listing.dog_name}</h3>
-            <p className="text-muted-foreground">{listing.breed}</p>
-          </div>
-          
-          <div className="flex items-center gap-4 text-sm text-muted-foreground">
-            <span>{listing.age} weeks</span>
-            <span>•</span>
-            <div className="flex items-center gap-1">
-              <MapPin className="h-3 w-3" />
-              <span>{listing.location}</span>
-            </div>
-          </div>
-          
-          <Button size="sm" className="w-full" onClick={handleSignIn}>
-            Sign in to view
-          </Button>
-        </CardContent>
+        {/* Heart button */}
+        <Button
+          variant="ghost"
+          size="sm"
+          className="absolute bottom-3 right-3 z-10 h-8 w-8 p-0 bg-white/90 hover:bg-white backdrop-blur-sm rounded-full"
+          onClick={(e) => { e.stopPropagation(); handleSignIn(); }}
+        >
+          <Heart className="h-4 w-4 text-gray-600" />
+        </Button>
       </div>
+      
+      {/* Card content */}
+      <CardContent className="p-4 space-y-2 bg-white">
+        <div>
+          <h3 className="font-semibold text-base leading-tight text-gray-900">{listing.dog_name}</h3>
+          <p className="text-sm text-gray-500">{listing.breed}</p>
+        </div>
+        
+        <div className="flex items-center gap-3 text-xs text-gray-500">
+          <span>{listing.age} weeks</span>
+          <span>•</span>
+          <div className="flex items-center gap-1">
+            <MapPin className="h-3 w-3" />
+            <span>{listing.location}</span>
+          </div>
+        </div>
+        
+        <Button size="sm" className="w-full mt-2" onClick={handleSignIn}>
+          Sign in to view
+        </Button>
+      </CardContent>
     </Card>
   );
 };
@@ -272,7 +269,7 @@ const ExploreGuest = () => {
             {loadingListings ? (
               <LoadingSpinner />
             ) : listings && listings.length > 0 ? (
-              <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-6">
+              <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6 bg-transparent">
                 {listings.map((listing) => (
                   <GuestListingCard key={listing.id} listing={listing} />
                 ))}

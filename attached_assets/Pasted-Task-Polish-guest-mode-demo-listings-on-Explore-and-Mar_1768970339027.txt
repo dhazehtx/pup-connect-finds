@@ -1,0 +1,148 @@
+Task: Polish guest-mode demo listings on Explore and Marketplace → Pet Services to match the provided mockup.
+
+Scope & Constraints (IMPORTANT):
+
+UI-only changes
+
+Guest mode only (!user)
+
+Do NOT modify database, schema, backend logic, or Supabase calls
+
+Do NOT seed or fetch fake data
+
+Logged-in experience must remain unchanged
+
+1️⃣ Explore Page — Demo Puppy Listings (Guest Mode Only)
+Image handling (critical fixes):
+
+Use the uploaded local demo puppy images
+
+Ensure images fully fill the card image container
+
+Apply:
+
+object-fit: cover;
+width: 100%;
+height: 100%;
+
+
+Center crop images (no letterboxing, no stretching)
+
+Maintain consistent aspect ratio across all cards
+
+Layout cleanup:
+
+Remove ALL blue backgrounds / blue gutters / vertical blue bars between cards
+
+Card grid background should be neutral / white like the mockup
+
+Spacing between cards should be natural (margin/gap), not background color
+
+Cards should show:
+
+Puppy image (top)
+
+Breed name
+
+Breed subtitle
+
+Price badge (top-right)
+
+CTA: “Sign in to view”
+
+Demo puppies to include:
+
+Golden Retriever Puppy
+
+Labrador Puppy
+
+German Shepherd Puppy
+
+French Bulldog Puppy
+
+(Optional) Beagle Puppy
+
+(Optional) Poodle Puppy
+
+2️⃣ Marketplace → Pet Services (Guest Mode Only)
+Expand demo providers (missing items):
+
+Add demo cards for ALL of the following service types:
+
+Verified Pet Groomer
+
+Certified Dog Walker
+
+Trusted Pet Sitter
+
+Professional Dog Trainer
+
+Pet Boarding
+
+Mobile Grooming
+
+Avatar style (DO NOT use human faces):
+
+Use icon-based or service-themed imagery only
+
+Circular avatars
+
+Soft brand colors
+
+Consistent size across all cards
+
+Card content:
+
+Service title (not a human name)
+
+Short service description
+
+“Verified” badge where applicable
+
+CTA: “Sign in to book”
+
+Footer text: “Provider since 20XX”
+
+3️⃣ Behavioral Rules
+
+Demo content renders only when user is not authenticated
+
+Authenticated users continue using existing live data
+
+No new routes
+
+No backend calls for demo content
+
+Use conditional rendering only
+
+Visual Goal
+
+Guest users should think:
+“This looks polished and trustworthy — I should sign up.”
+
+Not:
+“Why does this look broken?”
+
+Match the provided mockup exactly in spacing, cropping, and cleanliness.
+
+🧠 WHY THIS WILL WORK
+
+You already solved data + auth
+
+This prompt fixes:
+
+❌ Broken image crops
+
+❌ Blue background artifacts
+
+❌ Missing provider categories
+
+❌ Visual inconsistency
+
+Replit now has:
+
+Local images
+
+Clear conditional logic
+
+Explicit CSS instructions

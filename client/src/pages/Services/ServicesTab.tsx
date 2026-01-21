@@ -22,6 +22,7 @@ const serviceTypeIcons: Record<string, string> = {
   training: '🎓',
   boarding: '🏨',
   veterinary: '🏥',
+  mobile_grooming: '🚐',
 };
 
 const serviceTypeLabels: Record<string, string> = {
@@ -31,6 +32,7 @@ const serviceTypeLabels: Record<string, string> = {
   training: 'Dog Training',
   boarding: 'Pet Boarding',
   veterinary: 'Veterinary Care',
+  mobile_grooming: 'Mobile Grooming',
 };
 
 // Icon avatar colors for different service types
@@ -41,6 +43,7 @@ const serviceIconColors: Record<string, string> = {
   training: 'bg-orange-500',
   boarding: 'bg-indigo-500',
   veterinary: 'bg-red-500',
+  mobile_grooming: 'bg-teal-500',
 };
 
 // SVG icons for service types (non-human imagery)
@@ -70,7 +73,17 @@ const ServiceIcon = ({ type }: { type: string }) => {
           <path d="M5 13.18v4L12 21l7-3.82v-4L12 17l-7-3.82zM12 3L1 9l11 6 9-4.91V17h2V9L12 3z"/>
         </svg>
       )}
-      {(type !== 'grooming' && type !== 'walking' && type !== 'sitting' && type !== 'training') && (
+      {type === 'boarding' && (
+        <svg className="h-8 w-8 text-white" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M7 13c1.66 0 3-1.34 3-3S8.66 7 7 7s-3 1.34-3 3 1.34 3 3 3zm12-6h-8v7H3V5H1v15h2v-3h18v3h2v-9c0-2.21-1.79-4-4-4z"/>
+        </svg>
+      )}
+      {type === 'mobile_grooming' && (
+        <svg className="h-8 w-8 text-white" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.5 16c-.83 0-1.5-.67-1.5-1.5S5.67 13 6.5 13s1.5.67 1.5 1.5S7.33 16 6.5 16zm11 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM5 11l1.5-4.5h11L19 11H5z"/>
+        </svg>
+      )}
+      {!['grooming', 'walking', 'sitting', 'training', 'boarding', 'mobile_grooming'].includes(type) && (
         <span className="text-2xl">🐕</span>
       )}
     </div>
