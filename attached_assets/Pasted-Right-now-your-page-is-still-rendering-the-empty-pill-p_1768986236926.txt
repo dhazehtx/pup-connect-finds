@@ -1,0 +1,89 @@
+Right now your page is still rendering the empty pill placeholders, while your target (second screenshot) is the full CTA bar with 4 real buttons:
+
+Sign Up
+
+Sign In
+
+Browse as Guest
+
+Explore Puppies
+
+Blue background, white text, icons, evenly spaced in one row.
+
+This is not a color issue anymore — this is a broken CTA component / wrong container being rendered.
+
+We need to explicitly tell Replit to:
+
+Throw away the empty placeholder CTA row
+
+Restore the real 4-button CTA section exactly like the reference
+
+Lock it after
+
+🔴 THIS IS THE FINAL, CORRECT PROMPT (COPY EXACTLY)
+
+Paste this directly into Replit:
+
+🔵 RESTORE GREETING PAGE CTA BUTTON ROW (MATCH REFERENCE DESIGN EXACTLY)
+
+The Greeting page CTA section is currently broken and showing empty pill containers instead of the real buttons. Restore the Greeting page CTA row to exactly match the reference design with 4 visible blue buttons.
+
+Tasks (Greeting page ONLY):
+
+Remove the current empty / placeholder pill containers under the hero text.
+
+Rebuild the CTA section to match the reference screenshot exactly:
+
+Show 4 real buttons in this order:
+
+“Sign Up”
+
+“Sign In”
+
+“Browse as Guest”
+
+“Explore Puppies”
+
+Each button must have:
+
+Solid primary blue background (#0074D4)
+
+White text
+
+Visible icon (user, arrow, eye, search as in reference)
+
+Rounded corners and equal height
+
+Proper horizontal spacing
+
+Layout requirements:
+
+Desktop: all 4 buttons in one centered row under the hero text (like reference).
+
+Mobile: buttons wrap cleanly into 2 rows (2x2) or stack, but remain fully visible and readable.
+
+Fix visibility bug:
+
+Ensure button text and icons are NOT hidden by CSS.
+
+No opacity: 0, color: transparent, overlays, or placeholder skeleton styles.
+
+Buttons must be visible immediately without hover, focus, or click.
+
+Lock scope:
+
+Do NOT change global theme styles.
+
+Do NOT modify any other pages or components.
+
+Only modify the Greeting page CTA section.
+
+⚠️ Important:
+
+Do NOT refactor logic, routing, or backend.
+
+Do NOT change header, footer, or navigation.
+
+Acceptance test:
+
+The Greeting page must visually match the reference screenshot with 4 blue CTA buttons visible.
