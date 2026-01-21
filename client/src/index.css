@@ -144,78 +144,110 @@ button[class*="yellow"], button[class*="amber"],
    ============================================================ */
 
 /* ============================================================
-   GLOBAL PRIMARY BUTTON STYLING - SINGLE SOURCE OF TRUTH
-   All primary/default buttons: Blue background (#0074d4), white text
+   NUCLEAR BUTTON VISIBILITY FIX - HIGHEST PRIORITY
+   Solid blue (#0074D4), white text, NO opacity, NO fading
    ============================================================ */
 
-/* Primary buttons - force correct colors on ALL states */
+/* ALL primary/default buttons - force solid visibility */
+button,
+.btn,
+.btn-primary,
 button[class*="bg-primary"],
 button[class*="bg-blue"],
-button.btn-primary,
-.btn-primary,
-button[data-variant="default"],
-[data-slot="button"][class*="bg-primary"],
-.greeting-page button[class*="bg-blue"],
-.explore-guest-page button[class*="bg-blue"] {
-  background-color: #0074d4 !important;
-  background: #0074d4 !important;
-  color: #ffffff !important;
-  border: none !important;
-  outline: none !important;
+button[class*="Button"],
+[role="button"][class*="bg-blue"],
+[role="button"][class*="bg-primary"] {
   -webkit-tap-highlight-color: transparent !important;
 }
 
-/* Hover state */
+/* Specific primary buttons - solid blue, full opacity */
+button[class*="bg-blue-600"],
+button[class*="bg-blue-700"],
+button[class*="bg-primary"],
+button.btn-primary,
+.btn-primary,
+.greeting-page button,
+.explore-guest-page button[class*="bg-blue"] {
+  background-color: #0074D4 !important;
+  background: #0074D4 !important;
+  color: #FFFFFF !important;
+  opacity: 1 !important;
+  filter: none !important;
+  border: none !important;
+  outline: none !important;
+  font-weight: 600 !important;
+  cursor: pointer !important;
+  -webkit-tap-highlight-color: transparent !important;
+}
+
+/* Hover state - darker blue */
+button[class*="bg-blue-600"]:hover,
+button[class*="bg-blue-700"]:hover,
 button[class*="bg-primary"]:hover,
-button[class*="bg-blue"]:hover,
 button.btn-primary:hover,
-.btn-primary:hover {
-  background-color: #005fa8 !important;
-  background: #005fa8 !important;
-  color: #ffffff !important;
+.btn-primary:hover,
+.greeting-page button:hover {
+  background-color: #0063B8 !important;
+  background: #0063B8 !important;
+  color: #FFFFFF !important;
+  opacity: 1 !important;
+  filter: none !important;
+  outline: none !important;
 }
 
 /* Active/pressed state */
+button[class*="bg-blue-600"]:active,
+button[class*="bg-blue-700"]:active,
 button[class*="bg-primary"]:active,
-button[class*="bg-blue"]:active,
 button.btn-primary:active,
-.btn-primary:active {
+.btn-primary:active,
+.greeting-page button:active {
   background-color: #004a7d !important;
   background: #004a7d !important;
-  color: #ffffff !important;
+  color: #FFFFFF !important;
+  opacity: 1 !important;
+  filter: none !important;
+  outline: none !important;
 }
 
-/* Focus state - blue ring, not yellow */
+/* Focus state - solid blue, blue ring */
+button[class*="bg-blue-600"]:focus,
+button[class*="bg-blue-600"]:focus-visible,
 button[class*="bg-primary"]:focus,
-button[class*="bg-blue"]:focus,
+button[class*="bg-primary"]:focus-visible,
 button.btn-primary:focus,
 .btn-primary:focus,
-button[class*="bg-primary"]:focus-visible,
-button[class*="bg-blue"]:focus-visible {
-  background-color: #0074d4 !important;
-  color: #ffffff !important;
+.greeting-page button:focus {
+  background-color: #0074D4 !important;
+  color: #FFFFFF !important;
+  opacity: 1 !important;
+  filter: none !important;
   outline: none !important;
-  box-shadow: 0 0 0 3px rgba(0, 116, 212, 0.3) !important;
+  box-shadow: 0 0 0 3px rgba(0, 116, 212, 0.4) !important;
 }
 
-/* Ensure SVG icons inside buttons are white */
-button[class*="bg-primary"] svg,
+/* Icons inside buttons - white */
 button[class*="bg-blue"] svg,
+button[class*="bg-primary"] svg,
 button.btn-primary svg,
-.btn-primary svg {
-  color: #ffffff !important;
+.btn-primary svg,
+.greeting-page button svg {
+  color: #FFFFFF !important;
+  opacity: 1 !important;
 }
 
-/* Ensure spans/text inside buttons are white */
-button[class*="bg-primary"] span,
+/* Text/spans inside buttons - white */
 button[class*="bg-blue"] span,
+button[class*="bg-primary"] span,
 button.btn-primary span,
-.btn-primary span {
-  color: #ffffff !important;
+.btn-primary span,
+.greeting-page button span {
+  color: #FFFFFF !important;
+  opacity: 1 !important;
 }
 
 /* ============================================================
-   END GLOBAL BUTTON STYLING
+   END NUCLEAR BUTTON VISIBILITY FIX
    ============================================================ */
 
 /* Ensure consistent white backgrounds for main app containers */

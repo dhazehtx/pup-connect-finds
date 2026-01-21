@@ -90,7 +90,7 @@ const Home = () => {
   }
 
   return (
-    <div className="min-h-screen bg-white pb-20">
+    <div className="min-h-screen bg-white pb-20 greeting-page">
       {/* Hero Section */}
       <section className="relative bg-white py-8 sm:py-16 md:py-24">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 text-center">
@@ -103,45 +103,45 @@ const Home = () => {
             waiting for their forever homes.
           </p>
           
-          {/* Main 4 Buttons - inline styles for mobile visual parity */}
+          {/* Main 4 Buttons - solid blue, full opacity, no fading */}
           <div className="flex flex-col gap-3 sm:flex-row sm:gap-4 justify-center mb-6 sm:mb-8 px-2">
             <Link to="/auth">
               <Button 
                 size="lg" 
-                className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 text-lg font-semibold greeting-page w-full sm:w-auto"
-                style={{ backgroundColor: '#0074d4', color: '#ffffff', WebkitTapHighlightColor: 'transparent' }}
+                className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 text-lg font-semibold w-full sm:w-auto"
+                style={{ backgroundColor: '#0074D4', color: '#FFFFFF', opacity: 1, filter: 'none', WebkitTapHighlightColor: 'transparent' }}
               >
-                <UserPlus className="w-5 h-5 mr-2" style={{ color: '#ffffff' }} />
-                <span style={{ color: '#ffffff' }}>Sign Up</span>
+                <UserPlus className="w-5 h-5 mr-2" style={{ color: '#FFFFFF' }} />
+                <span style={{ color: '#FFFFFF' }}>Sign Up</span>
               </Button>
             </Link>
             <Link to="/auth">
               <Button 
                 size="lg" 
-                className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 text-lg font-semibold greeting-page w-full sm:w-auto"
-                style={{ backgroundColor: '#0074d4', color: '#ffffff', WebkitTapHighlightColor: 'transparent' }}
+                className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 text-lg font-semibold w-full sm:w-auto"
+                style={{ backgroundColor: '#0074D4', color: '#FFFFFF', opacity: 1, filter: 'none', WebkitTapHighlightColor: 'transparent' }}
               >
-                <LogIn className="w-5 h-5 mr-2" style={{ color: '#ffffff' }} />
-                <span style={{ color: '#ffffff' }}>Sign In</span>
+                <LogIn className="w-5 h-5 mr-2" style={{ color: '#FFFFFF' }} />
+                <span style={{ color: '#FFFFFF' }}>Sign In</span>
               </Button>
             </Link>
             <Button 
               size="lg" 
               onClick={handleGuestAccess}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 text-lg font-semibold greeting-page w-full sm:w-auto"
-              style={{ backgroundColor: '#0074d4', color: '#ffffff', WebkitTapHighlightColor: 'transparent' }}
+              className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 text-lg font-semibold w-full sm:w-auto"
+              style={{ backgroundColor: '#0074D4', color: '#FFFFFF', opacity: 1, filter: 'none', WebkitTapHighlightColor: 'transparent' }}
             >
-              <Eye className="w-5 h-5 mr-2" style={{ color: '#ffffff' }} />
-              <span style={{ color: '#ffffff' }}>Browse as Guest</span>
+              <Eye className="w-5 h-5 mr-2" style={{ color: '#FFFFFF' }} />
+              <span style={{ color: '#FFFFFF' }}>Browse as Guest</span>
             </Button>
             <Link to="/explore">
               <Button 
                 size="lg" 
-                className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 text-lg font-semibold greeting-page w-full sm:w-auto"
-                style={{ backgroundColor: '#0074d4', color: '#ffffff', WebkitTapHighlightColor: 'transparent' }}
+                className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 text-lg font-semibold w-full sm:w-auto"
+                style={{ backgroundColor: '#0074D4', color: '#FFFFFF', opacity: 1, filter: 'none', WebkitTapHighlightColor: 'transparent' }}
               >
-                <Search className="w-5 h-5 mr-2" style={{ color: '#ffffff' }} />
-                <span style={{ color: '#ffffff' }}>Explore Puppies</span>
+                <Search className="w-5 h-5 mr-2" style={{ color: '#FFFFFF' }} />
+                <span style={{ color: '#FFFFFF' }}>Explore Puppies</span>
               </Button>
             </Link>
           </div>

@@ -33,8 +33,9 @@ const GuestPrompt = ({ action, description, onCancel }: GuestPromptProps) => {
           <Button
             onClick={() => navigate('/auth')}
             className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+            style={{ backgroundColor: '#0074D4', color: '#FFFFFF', opacity: 1, filter: 'none' }}
           >
-            <Heart size={16} className="mr-2" />
+            <Heart size={16} className="mr-2" style={{ color: '#FFFFFF' }} />
             Sign In / Sign Up
           </Button>
           

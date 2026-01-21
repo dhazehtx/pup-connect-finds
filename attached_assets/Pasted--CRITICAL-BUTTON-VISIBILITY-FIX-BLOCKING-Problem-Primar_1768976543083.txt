@@ -1,0 +1,132 @@
+🚨 CRITICAL BUTTON VISIBILITY FIX (BLOCKING)
+Problem
+
+Primary CTA buttons are not visually readable.
+They appear faded / washed out and are not clearly visible to users on both desktop and mobile.
+
+This is a hard UX failure and must be fixed immediately.
+
+✅ NON-NEGOTIABLE BUTTON REQUIREMENTS
+
+All primary buttons must meet WCAG contrast and be obviously clickable.
+
+Final button spec (FORCE THIS):
+
+background-color: #0074D4 (solid, no opacity)
+
+color: #FFFFFF
+
+opacity: 1
+
+filter: none
+
+border: none
+
+outline: none
+
+box-shadow: none (unless already used on desktop)
+
+font-weight: 600
+
+border-radius: same as desktop
+
+cursor: pointer
+
+This applies to:
+
+Sign Up
+
+Sign In
+
+Browse as Guest
+
+Explore Puppies
+
+Sign in to view
+
+Sign in to book
+
+ALL primary CTAs across the app
+
+🛠 REQUIRED IMPLEMENTATION (DO THIS EXACTLY)
+
+1️⃣ DO NOT rely on CSS variables for buttons
+
+Hardcode the button background color using hex (#0074D4)
+
+Do NOT use hsl()
+
+Do NOT use rgba()
+
+Do NOT use opacity
+
+2️⃣ Add a global override that cannot be overridden:
+
+button,
+.btn,
+.btn-primary {
+  background-color: #0074D4 !important;
+  color: #FFFFFF !important;
+  opacity: 1 !important;
+  filter: none !important;
+}
+
+
+3️⃣ Explicitly override all states:
+
+button:hover,
+button:active,
+button:focus {
+  background-color: #0063B8 !important;
+  color: #FFFFFF !important;
+  outline: none !important;
+}
+
+
+4️⃣ Remove any:
+
+opacity < 1
+
+background: transparent
+
+background: linear-gradient (for buttons)
+
+disabled-looking styles applied unintentionally
+
+📱 MOBILE REQUIREMENTS
+
+Mobile buttons must look identical to desktop
+
+No lighter blue
+
+No faded state
+
+No iOS tap highlight color
+
+Disable -webkit-tap-highlight-color
+
+button {
+  -webkit-tap-highlight-color: transparent;
+}
+
+🎯 SUCCESS CRITERIA (MANDATORY)
+
+A user should immediately see:
+
+“These are clearly clickable blue buttons with white text.”
+
+If buttons are not instantly visible, the task is not complete.
+
+🚫 DO NOT
+
+Change backend
+
+Change routes
+
+Change auth
+
+Change layout
+
+Introduce new button variants
+
+This is a visual visibility fix only.
