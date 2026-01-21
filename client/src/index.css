@@ -143,6 +143,81 @@ button[class*="yellow"], button[class*="amber"],
    END NUCLEAR YELLOW ELIMINATION
    ============================================================ */
 
+/* ============================================================
+   GLOBAL PRIMARY BUTTON STYLING - SINGLE SOURCE OF TRUTH
+   All primary/default buttons: Blue background (#0074d4), white text
+   ============================================================ */
+
+/* Primary buttons - force correct colors on ALL states */
+button[class*="bg-primary"],
+button[class*="bg-blue"],
+button.btn-primary,
+.btn-primary,
+button[data-variant="default"],
+[data-slot="button"][class*="bg-primary"],
+.greeting-page button[class*="bg-blue"],
+.explore-guest-page button[class*="bg-blue"] {
+  background-color: #0074d4 !important;
+  background: #0074d4 !important;
+  color: #ffffff !important;
+  border: none !important;
+  outline: none !important;
+  -webkit-tap-highlight-color: transparent !important;
+}
+
+/* Hover state */
+button[class*="bg-primary"]:hover,
+button[class*="bg-blue"]:hover,
+button.btn-primary:hover,
+.btn-primary:hover {
+  background-color: #005fa8 !important;
+  background: #005fa8 !important;
+  color: #ffffff !important;
+}
+
+/* Active/pressed state */
+button[class*="bg-primary"]:active,
+button[class*="bg-blue"]:active,
+button.btn-primary:active,
+.btn-primary:active {
+  background-color: #004a7d !important;
+  background: #004a7d !important;
+  color: #ffffff !important;
+}
+
+/* Focus state - blue ring, not yellow */
+button[class*="bg-primary"]:focus,
+button[class*="bg-blue"]:focus,
+button.btn-primary:focus,
+.btn-primary:focus,
+button[class*="bg-primary"]:focus-visible,
+button[class*="bg-blue"]:focus-visible {
+  background-color: #0074d4 !important;
+  color: #ffffff !important;
+  outline: none !important;
+  box-shadow: 0 0 0 3px rgba(0, 116, 212, 0.3) !important;
+}
+
+/* Ensure SVG icons inside buttons are white */
+button[class*="bg-primary"] svg,
+button[class*="bg-blue"] svg,
+button.btn-primary svg,
+.btn-primary svg {
+  color: #ffffff !important;
+}
+
+/* Ensure spans/text inside buttons are white */
+button[class*="bg-primary"] span,
+button[class*="bg-blue"] span,
+button.btn-primary span,
+.btn-primary span {
+  color: #ffffff !important;
+}
+
+/* ============================================================
+   END GLOBAL BUTTON STYLING
+   ============================================================ */
+
 /* Ensure consistent white backgrounds for main app containers */
 html, body, #root {
   background-color: #ffffff !important;

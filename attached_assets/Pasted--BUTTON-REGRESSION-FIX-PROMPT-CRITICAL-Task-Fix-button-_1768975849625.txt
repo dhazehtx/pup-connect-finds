@@ -1,0 +1,135 @@
+🔴 BUTTON REGRESSION FIX PROMPT (CRITICAL)
+Task: Fix button styling regression on desktop and mobile.
+
+Buttons have reverted to an incorrect visual state on both desktop and mobile.
+This is a regression from a previously correct state.
+
+✅ CORRECT BUTTON DESIGN (SOURCE OF TRUTH)
+
+All primary buttons must:
+
+Background color: brand primary blue (same as before)
+
+Text color: white
+
+Border: none
+
+Border radius: same as desktop
+
+Font weight: medium / semibold
+
+No outlines
+
+No yellow
+
+No gray
+
+No transparent states
+
+This applies to ALL buttons, including:
+
+Sign Up
+
+Sign In
+
+Browse as Guest
+
+Explore Puppies
+
+Sign in to view
+
+Sign in to book
+
+Any CTA button on Explore, Marketplace, Greeting pages
+
+❌ CURRENT PROBLEM
+
+Buttons are currently:
+
+Using incorrect background colors
+
+Showing fallback / default styles
+
+Appearing inconsistent between states
+
+Reverted on both desktop and mobile
+
+This is not intentional.
+
+🛠 REQUIRED FIX (DO THIS EXACTLY)
+
+1️⃣ Identify where button styles are being overridden:
+
+index.css
+
+global styles
+
+mobile media queries
+
+component-level button styles
+
+focus / active / hover states
+
+2️⃣ Restore a single global button style, for example:
+
+.btn-primary
+
+or the existing primary button class used before
+
+3️⃣ Ensure mobile does NOT define a different button style
+
+No mobile-only colors
+
+No mobile-only overrides
+
+Same CSS rules apply across breakpoints
+
+4️⃣ Explicitly define:
+
+background-color
+
+color
+
+border
+
+outline: none
+
+box-shadow (if used)
+
+:hover, :active, :focus states
+
+5️⃣ Remove or override any browser default focus/tap styles.
+
+🎯 SUCCESS CRITERIA
+
+After the fix:
+
+Buttons look identical to the previously correct version
+
+Desktop and mobile buttons match exactly
+
+No yellow
+
+No gray
+
+No transparency
+
+No regression when resizing screen
+
+A user should think:
+
+“These buttons look clean, intentional, and consistent everywhere.”
+
+🚫 DO NOT
+
+Change backend
+
+Change auth
+
+Change routes
+
+Change data
+
+Introduce new button variants
+
+This is a style correction only.
