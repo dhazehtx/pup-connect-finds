@@ -1,0 +1,143 @@
+🚨 The Key Insight (this unlocks everything)
+Your greeting page buttons are NOT using the same button component as the rest of the app.
+
+They are either:
+
+Inline-styled
+
+Or using a secondary variant
+
+Or inheriting typography styles instead of CTA styles
+
+That’s why:
+
+Marketplace buttons look right
+
+Explore buttons mostly work
+
+Greeting page buttons keep breaking
+
+👉 So global overrides alone will never fully fix this.
+
+We must fix the greeting page at the component level, once.
+
+✅ What the greeting page SHOULD be (based on your reference screenshot)
+
+From the image you shared, the greeting page should have:
+
+Visual requirements
+
+White background
+
+Strong headline
+
+Solid blue primary buttons
+
+Clear spacing between CTAs
+
+NO gradients
+
+NO translucency
+
+NO pastel blue
+
+NO outline-only buttons
+
+🛠️ THIS is the correct fix (step-by-step, minimal, permanent)
+🔒 Step 1 — Stop fighting global CSS
+
+We do NOT touch global button styles anymore.
+
+Instead, we lock the greeting page buttons locally.
+
+🔧 Step 2 — Force correct button styles on the Greeting page ONLY
+
+Paste this exact instruction into Replit:
+
+🔵 GREETING PAGE BUTTON LOCK (FINAL FIX)
+Task
+
+Fix the greeting page CTA buttons so they exactly match the intended design and cannot regress.
+
+Requirements (Greeting Page ONLY)
+
+All CTA buttons on /greeting must use:
+
+background-color: #0074D4;
+color: #FFFFFF;
+font-weight: 600;
+border-radius: 10px;
+padding: 12px 20px;
+opacity: 1;
+filter: none;
+border: none;
+
+
+No gradients.
+No transparency.
+No secondary styles.
+
+Implementation Instructions
+
+1️⃣ Edit the Greeting page component directly
+
+Wrap all CTA buttons in a container class:
+
+<div className="greeting-cta-group">
+
+
+2️⃣ Apply scoped styles:
+
+.greeting-cta-group button {
+  background-color: #0074D4 !important;
+  color: #FFFFFF !important;
+  opacity: 1 !important;
+  border: none !important;
+}
+
+.greeting-cta-group button:hover {
+  background-color: #0063B8 !important;
+}
+
+
+3️⃣ Do NOT rely on shared button components here
+4️⃣ Do NOT use CSS variables
+5️⃣ Do NOT apply conditional styles
+
+Success Criteria
+
+Buttons are immediately visible
+
+White text on solid blue
+
+Same on desktop & mobile
+
+Matches provided reference screenshot exactly
+
+If buttons appear faded, outlined, pastel, or translucent → ❌ FAIL
+
+🧪 Step 3 — Verify with ONE test
+
+After Replit applies this:
+
+Hard refresh
+
+Open greeting page
+
+Resize window to mobile width
+
+Buttons should not change at all
+
+If they don’t change → we’ve won.
+
+💡 Why this WILL work (confidence)
+
+We stop relying on shared styles
+
+We bypass CSS variable conflicts
+
+We isolate the problem page
+
+We remove all ambiguity
+
+This is how senior frontend engineers fix “mysterious” UI regressions in production apps.

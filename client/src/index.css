@@ -144,6 +144,71 @@ button[class*="yellow"], button[class*="amber"],
    ============================================================ */
 
 /* ============================================================
+   GREETING PAGE CTA BUTTONS - LOCKED STYLES (CANNOT BE OVERRIDDEN)
+   ============================================================ */
+
+.greeting-cta-group {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+@media (min-width: 640px) {
+  .greeting-cta-group {
+    flex-direction: row;
+    gap: 16px;
+  }
+}
+
+.greeting-cta-btn {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  background-color: #0074D4 !important;
+  color: #FFFFFF !important;
+  font-weight: 600 !important;
+  font-size: 1.125rem !important;
+  border-radius: 10px !important;
+  padding: 16px 32px !important;
+  opacity: 1 !important;
+  filter: none !important;
+  border: none !important;
+  outline: none !important;
+  cursor: pointer !important;
+  width: 100% !important;
+  -webkit-tap-highlight-color: transparent !important;
+  transition: background-color 0.2s ease !important;
+}
+
+@media (min-width: 640px) {
+  .greeting-cta-btn {
+    width: auto !important;
+  }
+}
+
+.greeting-cta-btn:hover {
+  background-color: #0063B8 !important;
+  color: #FFFFFF !important;
+}
+
+.greeting-cta-btn:active {
+  background-color: #004a7d !important;
+  color: #FFFFFF !important;
+}
+
+.greeting-cta-btn:focus {
+  background-color: #0074D4 !important;
+  color: #FFFFFF !important;
+  box-shadow: 0 0 0 3px rgba(0, 116, 212, 0.4) !important;
+}
+
+.greeting-cta-btn svg {
+  color: #FFFFFF !important;
+  width: 20px !important;
+  height: 20px !important;
+}
+
+/* ============================================================
    NUCLEAR BUTTON VISIBILITY FIX - HIGHEST PRIORITY
    Solid blue (#0074D4), white text, NO opacity, NO fading
    ============================================================ */
