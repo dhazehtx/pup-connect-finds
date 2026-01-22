@@ -90,8 +90,8 @@ const Home = () => {
           
           {/* Subtitle */}
           <p style={{ fontSize: '20px', color: '#6b7280', marginBottom: '32px', maxWidth: '640px', margin: '0 auto 32px' }}>
-            Connect with shelters verified breeders and discover adorable, healthy puppies 
-            waiting for their forever homes.
+            Connect with shelters and verified breeders to discover adorable, 
+            healthy puppies waiting for their forever homes.
           </p>
           
           {/* CTA Buttons - Always rendered, no conditions */}
