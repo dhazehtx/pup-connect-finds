@@ -135,7 +135,21 @@ const Home = () => {
               onClick={() => navigate('/explore')}
               style={ctaButtonStyle}
             >
-              <Search style={iconStyle} />
+              <svg 
+                xmlns="http://www.w3.org/2000/svg" 
+                width="20" 
+                height="20" 
+                viewBox="0 0 24 24" 
+                fill="none" 
+                stroke="#FFFFFF" 
+                strokeWidth="2" 
+                strokeLinecap="round" 
+                strokeLinejoin="round"
+                style={{ marginRight: '8px', flexShrink: 0 }}
+              >
+                <circle cx="11" cy="11" r="8"></circle>
+                <path d="m21 21-4.3-4.3"></path>
+              </svg>
               <span style={{ color: '#FFFFFF' }}>Explore Puppies</span>
             </button>
           </div>
