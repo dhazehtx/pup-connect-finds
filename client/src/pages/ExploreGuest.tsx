@@ -55,14 +55,17 @@ const GuestListingCard = ({ listing }: { listing: any }) => {
           }}
         />
         
-        {/* Price badge - blue background, white text */}
-        <div className="absolute top-3 right-3 z-10">
+        {/* Price badge - blue background, white text - pure inline styles */}
+        <div style={{ position: 'absolute', top: '12px', right: '12px', zIndex: 10 }}>
           <span 
-            className="font-bold px-3 py-1 rounded-full text-sm"
             style={{ 
               backgroundColor: '#0074d4', 
               color: '#ffffff',
-              display: 'inline-block'
+              display: 'inline-block',
+              fontWeight: 700,
+              padding: '4px 12px',
+              borderRadius: '9999px',
+              fontSize: '14px'
             }}
           >
             ${listing.price?.toLocaleString()}
