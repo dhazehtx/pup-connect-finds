@@ -8,14 +8,6 @@
    ============================================ */
 
 @media (max-width: 768px) {
-  /* Greeting page hero title - BIG attention-grabbing hook on mobile */
-  .greeting-page .greeting-hero h1 {
-    font-size: 52px !important;
-    line-height: 1.05 !important;
-    font-weight: 800 !important;
-    letter-spacing: -0.02em !important;
-  }
-  
   /* Nuclear mobile background reset */
   html, body, #root, main, .app-container {
     background-color: #ffffff !important;

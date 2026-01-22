@@ -80,16 +80,16 @@ const Home = () => {
   return (
     <div className="greeting-page" style={{ minHeight: '100vh', backgroundColor: '#ffffff', paddingBottom: '80px' }}>
       {/* Hero Section */}
-      <section className="greeting-hero" style={{ backgroundColor: '#ffffff', padding: '64px 16px', textAlign: 'center' }}>
-        <div style={{ maxWidth: '896px', margin: '0 auto' }}>
-          {/* Title */}
-          <h1 style={{ fontSize: '64px', fontWeight: 700, marginBottom: '24px', lineHeight: 1.1 }}>
-            <span style={{ color: '#0F172A', display: 'block' }}>Find Your Perfect</span>
-            <span style={{ color: '#0074D4', display: 'block' }}>Puppy Companion</span>
+      <section className="greeting-hero px-4 py-12 sm:py-16 text-center bg-white">
+        <div className="max-w-4xl mx-auto">
+          {/* Title - Mobile: 44px bold, Desktop: 64px */}
+          <h1 className="greeting-hero-title text-[44px] sm:text-[64px] font-extrabold sm:font-bold leading-[1.05] sm:leading-[1.1] mb-6 sm:mb-6 tracking-tight">
+            <span className="block text-slate-900">Find Your Perfect</span>
+            <span className="block text-[#0074D4]">Puppy Companion</span>
           </h1>
           
-          {/* Subtitle */}
-          <p style={{ fontSize: '20px', color: '#6b7280', marginBottom: '32px', maxWidth: '640px', margin: '0 auto 32px' }}>
+          {/* Subtitle - Mobile: 18px with better spacing, Desktop: 20px */}
+          <p className="greeting-hero-subtitle text-[18px] sm:text-[20px] text-gray-500 leading-relaxed max-w-xl mx-auto mb-8 sm:mb-8 px-2">
             Connect with shelters and verified breeders to discover adorable, 
             healthy puppies waiting for their forever homes.
           </p>
