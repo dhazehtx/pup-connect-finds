@@ -1106,9 +1106,24 @@
     color: rgba(255, 255, 255, 0.95) !important;
   }
   
-  /* Product card image area must keep the gradient background */
-  .product-card__image.bg-gradient-blue-violet {
+  /* Product card image area - FORCE the blue-violet gradient on mobile */
+  .product-card__image.bg-gradient-blue-violet,
+  .product-card .bg-gradient-blue-violet,
+  div.product-card__image.bg-gradient-blue-violet {
     background: linear-gradient(135deg, #0074D4 0%, #6366f1 50%, #8b5cf6 100%) !important;
+    background-color: transparent !important;
+  }
+  
+  /* Pup box card icon container - white background with blur */
+  .product-card .pup-box-card-icon {
+    background: rgba(255, 255, 255, 0.25) !important;
+    border-color: rgba(255, 255, 255, 0.4) !important;
+  }
+  
+  /* Gift icon inside must be white */
+  .product-card__image.bg-gradient-blue-violet svg,
+  .product-card .bg-gradient-blue-violet svg {
+    color: #ffffff !important;
   }
   
   /* Subscribe/One-Time toggle buttons - black text when not selected */
