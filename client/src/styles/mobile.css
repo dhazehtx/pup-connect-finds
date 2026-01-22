@@ -226,10 +226,18 @@
      ============================================ */
   
   @media (max-width: 768px) {
-    /* Headings - scaled for mobile */
-    h1 {
+    /* Headings - scaled for mobile (exclude greeting-hero which has its own sizing) */
+    h1:not(.greeting-hero h1) {
       font-size: 1.75rem;
       line-height: 1.2;
+    }
+    
+    /* Greeting hero headline - large marketing hook */
+    .greeting-hero h1 {
+      font-size: 44px !important;
+      font-weight: 800 !important;
+      line-height: 1.1 !important;
+      letter-spacing: -0.02em !important;
     }
     
     h2 {
