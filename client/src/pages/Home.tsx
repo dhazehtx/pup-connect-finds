@@ -83,14 +83,14 @@ const Home = () => {
       <section className="greeting-hero" style={{ backgroundColor: '#ffffff', padding: '64px 16px', textAlign: 'center' }}>
         <div style={{ maxWidth: '896px', margin: '0 auto' }}>
           {/* Title */}
-          <h1 style={{ fontSize: '48px', fontWeight: 700, marginBottom: '24px', lineHeight: 1.2 }}>
+          <h1 style={{ fontSize: '56px', fontWeight: 700, marginBottom: '24px', lineHeight: 1.2 }}>
             <span style={{ color: '#0F172A', display: 'block' }}>Find Your Perfect</span>
             <span style={{ color: '#0074D4', display: 'block' }}>Puppy Companion</span>
           </h1>
           
           {/* Subtitle */}
           <p style={{ fontSize: '20px', color: '#6b7280', marginBottom: '32px', maxWidth: '640px', margin: '0 auto 32px' }}>
-            Connect with verified breeders and discover adorable, healthy puppies 
+            Connect with shelters verified breeders and discover adorable, healthy puppies 
             waiting for their forever homes.
           </p>
           
