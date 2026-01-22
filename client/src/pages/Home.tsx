@@ -1,12 +1,26 @@
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Heart, Search, Shield, Star, UserPlus, LogIn, Eye } from 'lucide-react';
+
+const useIsMobile = () => {
+  const [isMobile, setIsMobile] = useState(false);
+  
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 640);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+  
+  return isMobile;
+};
 
 const Home = () => {
   const { user, loading, continueAsGuest, isGuest } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const isMobile = useIsMobile();
 
   // Stable user identity for dependency tracking
   const stableUserId = useMemo(() => user?.id || null, [user?.id]);
@@ -79,34 +93,31 @@ const Home = () => {
 
   return (
     <div className="greeting-page" style={{ minHeight: '100vh', backgroundColor: '#ffffff', paddingBottom: '80px' }}>
-      {/* Mobile hero text styles - scoped to this component only */}
-      <style>{`
-        @media (max-width: 639px) {
-          .greeting-hero-headline {
-            font-size: 46px !important;
-            font-weight: 800 !important;
-            line-height: 1.08 !important;
-            letter-spacing: -0.02em !important;
-          }
-          .greeting-hero-subtitle-text {
-            font-size: 17px !important;
-            line-height: 1.6 !important;
-            max-width: 90% !important;
-          }
-        }
-      `}</style>
-      
       {/* Hero Section */}
-      <section className="greeting-hero px-4 pt-10 pb-8 sm:py-16 text-center bg-white">
-        <div className="max-w-4xl mx-auto">
+      <section className="greeting-hero" style={{ backgroundColor: '#ffffff', padding: isMobile ? '40px 16px 32px' : '64px 16px', textAlign: 'center' }}>
+        <div style={{ maxWidth: '896px', margin: '0 auto' }}>
           {/* Title - Mobile: 46px extra-bold hook, Desktop: 64px */}
-          <h1 className="greeting-hero-headline mb-8 sm:mb-6" style={{ fontSize: '64px', fontWeight: 700, lineHeight: 1.1 }}>
+          <h1 style={{ 
+            fontSize: isMobile ? '46px' : '64px', 
+            fontWeight: isMobile ? 800 : 700, 
+            marginBottom: isMobile ? '28px' : '24px', 
+            lineHeight: isMobile ? 1.08 : 1.1,
+            letterSpacing: isMobile ? '-0.02em' : 'normal'
+          }}>
             <span style={{ display: 'block', color: '#0F172A' }}>Find Your Perfect</span>
             <span style={{ display: 'block', color: '#0074D4' }}>Puppy Companion</span>
           </h1>
           
           {/* Subtitle - Mobile: 17px with better spacing, Desktop: 20px */}
-          <p className="greeting-hero-subtitle-text mx-auto mb-10 sm:mb-8 px-2" style={{ fontSize: '20px', color: '#6b7280', lineHeight: 1.5, maxWidth: '640px' }}>
+          <p style={{ 
+            fontSize: isMobile ? '17px' : '20px', 
+            color: '#6b7280', 
+            marginBottom: isMobile ? '36px' : '32px', 
+            maxWidth: isMobile ? '90%' : '640px', 
+            margin: isMobile ? '0 auto 36px' : '0 auto 32px',
+            lineHeight: isMobile ? 1.6 : 1.5,
+            padding: '0 8px'
+          }}>
             Connect with shelters and verified breeders to discover adorable, 
             healthy puppies waiting for their forever homes.
           </p>
