@@ -1113,9 +1113,11 @@
     letter-spacing: -0.02em !important;
   }
   
+  /* Subtitle must be clearly smaller than headline */
   .greeting-hero p {
-    font-size: 17px !important;
-    line-height: 1.6 !important;
-    max-width: 90% !important;
+    font-size: 15px !important;
+    line-height: 1.5 !important;
+    max-width: 85% !important;
+    color: #6b7280 !important;
   }
 }
