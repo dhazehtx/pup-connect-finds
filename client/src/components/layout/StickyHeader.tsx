@@ -124,9 +124,9 @@ const StickyHeader = () => {
 
 
 
-                  {/* Notification Bell - Only for authenticated users */}
-                  {(user || isGuest) && (
-                    <NotificationButton className="p-2 text-[#2C3EDC] hover:text-[#2C3EDC] hover:bg-[#2C3EDC]/5 hover:shadow-sm transition-all duration-200 rounded-full" />
+                  {/* Notification Bell - Only for fully authenticated users (not guests) */}
+                  {user && !isGuest && (
+                    <NotificationButton className="p-2 text-[#0074d4] hover:text-[#0074d4] hover:bg-[#0074d4]/5 hover:shadow-sm transition-all duration-200 rounded-full" />
                   )}
                 </div>
               </div>
@@ -171,20 +171,41 @@ const StickyHeader = () => {
                     </Link>
                   )}
 
-                  {/* Mobile Notification Bell - Only for authenticated users */}
-                  {(user || isGuest) && (
+                  {/* Mobile Notification Bell - Only for fully authenticated users (not guests) */}
+                  {user && !isGuest && (
                     <div className="relative">
-                      <Button
-                        variant="ghost"
-                        size="sm"
+                      <button
+                        type="button"
                         onClick={() => setShowNotifications(!showNotifications)}
-                        className="relative p-1.5 text-[#2C3EDC] hover:text-[#2C3EDC] hover:bg-[#2C3EDC]/5 rounded-full w-8 h-8"
+                        style={{
+                          padding: '6px',
+                          color: '#0074d4',
+                          backgroundColor: 'transparent',
+                          border: 'none',
+                          borderRadius: '9999px',
+                          width: '32px',
+                          height: '32px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          cursor: 'pointer',
+                          outline: 'none'
+                        }}
                       >
-                        <Bell className="h-5 w-5" />
+                        <Bell className="h-5 w-5" style={{ color: '#0074d4' }} />
                         {unreadCount > 0 && (
-                          <div className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-[#FF3B30] rounded-full border border-white"></div>
+                          <div style={{
+                            position: 'absolute',
+                            top: '-2px',
+                            right: '-2px',
+                            width: '8px',
+                            height: '8px',
+                            backgroundColor: '#FF3B30',
+                            borderRadius: '50%',
+                            border: '1px solid white'
+                          }}></div>
                         )}
-                      </Button>
+                      </button>
                     </div>
                   )}
                 </div>
