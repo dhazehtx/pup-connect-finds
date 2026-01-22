@@ -1,13 +1,47 @@
 
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Home, Search, ShoppingBag, MessageCircle, User } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { useNotifications } from '@/hooks/useNotifications';
 import { logNav } from '@/lib/adminLog';
 
 import GuestPrompt from '@/components/GuestPrompt';
+
+const HomeIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+    <polyline points="9 22 9 12 15 12 15 22"></polyline>
+  </svg>
+);
+
+const SearchIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="11" cy="11" r="8"></circle>
+    <path d="m21 21-4.3-4.3"></path>
+  </svg>
+);
+
+const ShoppingBagIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"></path>
+    <path d="M3 6h18"></path>
+    <path d="M16 10a4 4 0 0 1-8 0"></path>
+  </svg>
+);
+
+const MessageCircleIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"></path>
+  </svg>
+);
+
+const UserIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="12" cy="8" r="5"></circle>
+    <path d="M20 21a8 8 0 0 0-16 0"></path>
+  </svg>
+);
 
 const BottomNavigation = () => {
   const navigate = useNavigate();
@@ -78,7 +112,7 @@ const BottomNavigation = () => {
 
   const navItems = [
     {
-      icon: Home,
+      icon: HomeIcon,
       label: 'Home',
       path: '/home',
       protected: true,
@@ -87,7 +121,7 @@ const BottomNavigation = () => {
       }
     },
     {
-      icon: Search,
+      icon: SearchIcon,
       label: 'Explore',
       path: '/explore',
       protected: false,
@@ -96,7 +130,7 @@ const BottomNavigation = () => {
       }
     },
     {
-      icon: ShoppingBag,
+      icon: ShoppingBagIcon,
       label: 'Marketplace',
       path: '/marketplace',
       protected: false,
@@ -105,7 +139,7 @@ const BottomNavigation = () => {
       }
     },
     {
-      icon: MessageCircle,
+      icon: MessageCircleIcon,
       label: 'Messages',
       path: '/messages',
       protected: true,
@@ -115,7 +149,7 @@ const BottomNavigation = () => {
     },
 
     {
-      icon: User,
+      icon: UserIcon,
       label: 'Profile',
       path: '/profile',
       protected: true,
@@ -164,7 +198,7 @@ const BottomNavigation = () => {
                 }}
               >
                 <div className="relative">
-                  <Icon size={22} style={{ color: '#ffffff', stroke: '#ffffff' }} />
+                  <Icon />
                 </div>
                 <span style={{ fontSize: '11px', marginTop: '2px', fontWeight: 500, color: '#ffffff', lineHeight: 1.2 }}>{item.label}</span>
                 {item.protected && !user && !isGuest && (
