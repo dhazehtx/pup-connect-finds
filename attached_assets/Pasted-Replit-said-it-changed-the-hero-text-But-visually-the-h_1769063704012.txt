@@ -1,0 +1,152 @@
+Replit said it changed the hero text
+
+But visually… the headline is still:
+
+Too small
+
+Too thin
+
+Not dominant enough
+
+Subtitle still competing too much
+
+So either:
+
+The changes were applied to the wrong component (Home instead of Greeting), or
+
+There’s another CSS override still winning, or
+
+The mobile breakpoint classes didn’t actually attach to the correct elements.
+
+We’re very close — the layout is correct, buttons are locked, now we just need to force the hero typography properly.
+
+🔴 IMPORTANT DIAGNOSIS
+
+Look at your screen:
+
+“Find Your Perfect” is still small
+
+“Puppy Companion” is not visually dominant enough
+
+Subtitle is still almost same visual weight
+
+This means:
+
+❌ The mobile-only hero text change did NOT successfully apply to the Greeting hero <h1>
+
+So we need to directly target the exact JSX that renders this text and hard-lock the mobile sizes.
+
+✅ THIS IS THE CORRECT, FINAL FIX (VERY SAFE)
+
+Paste this EXACT prompt into Replit:
+
+🔵 FORCE MOBILE HERO HEADLINE TYPOGRAPHY ON GREETING PAGE (LOCK DESIGN)
+
+The mobile hero headline styling on the Greeting page is not applying correctly. Directly update the Greeting page hero JSX and Tailwind classes so the mobile layout matches a proper marketing “hook” design.
+
+Tasks:
+
+Locate the Greeting page component that renders:
+“Find Your Perfect”
+“Puppy Companion”
+and the subtitle text below.
+
+Modify ONLY this hero block (do not touch other pages).
+
+Apply these exact responsive styles:
+
+For the main headline container:
+
+On mobile (<640px):
+
+Font size: 42–46px
+
+Font weight: 800 (extra-bold)
+
+Line height: tight (leading-tight or ~1.1)
+
+Center aligned
+
+Force line break so it always renders as:
+
+Find Your Perfect
+Puppy Companion
+
+For desktop:
+
+Keep current desktop size unchanged.
+
+Styling rules:
+
+“Find Your Perfect” → dark navy / text-slate-900
+
+“Puppy Companion” → brand blue #0074D4
+
+Add slight letter spacing tightening on mobile (tracking-tight)
+
+Subtitle text:
+
+Mobile font size: 17–18px
+
+Line height relaxed (leading-relaxed)
+
+Max width ~90%
+
+Centered under headline
+
+Spacing:
+
+Add more spacing between:
+
+Headline → subtitle
+
+Subtitle → CTA buttons
+
+Lock scope:
+
+Modify ONLY the Greeting page hero text JSX
+
+Do NOT use global CSS overrides
+
+Do NOT touch buttons, layout, or other pages
+
+Acceptance:
+
+On mobile, the hero headline must be:
+
+The largest visual element on the page
+
+Immediately dominant when the page loads
+
+Clearly readable and balanced
+
+Feel like a proper marketing “hook” headline
+
+🧠 WHY THIS WILL FIX IT
+
+This forces Replit to:
+
+Go into the actual Greeting.tsx / Home.tsx hero JSX
+
+Apply Tailwind classes like:
+
+<h1 className="text-[44px] font-extrabold leading-tight tracking-tight sm:text-6xl">
+
+
+Instead of trying to patch CSS files that are currently fighting each other.
+
+Right now your project has too many CSS overrides, so only JSX-level Tailwind will reliably win.
+
+🔍 AFTER IT RUNS — WHAT I WANT YOU TO CHECK
+
+When it finishes, look only at MOBILE and tell me:
+
+Is “Puppy Companion” now clearly the biggest element?
+
+Does the headline break cleanly into 2 lines?
+
+Does it feel like the first thing your eye sees?
+
+Is the subtitle clearly secondary (not competing)?
+
+If you can, send me one more mobile screenshot.

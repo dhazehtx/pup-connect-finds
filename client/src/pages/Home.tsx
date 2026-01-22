@@ -92,32 +92,18 @@ const Home = () => {
   };
 
   return (
-    <div className="greeting-page" style={{ minHeight: '100vh', backgroundColor: '#ffffff', paddingBottom: '80px' }}>
+    <div className="greeting-page min-h-screen bg-white pb-20">
       {/* Hero Section */}
-      <section className="greeting-hero" style={{ backgroundColor: '#ffffff', padding: isMobile ? '40px 16px 32px' : '64px 16px', textAlign: 'center' }}>
-        <div style={{ maxWidth: '896px', margin: '0 auto' }}>
-          {/* Title - Mobile: 46px extra-bold hook, Desktop: 64px */}
-          <h1 style={{ 
-            fontSize: isMobile ? '46px' : '64px', 
-            fontWeight: isMobile ? 800 : 700, 
-            marginBottom: isMobile ? '28px' : '24px', 
-            lineHeight: isMobile ? 1.08 : 1.1,
-            letterSpacing: isMobile ? '-0.02em' : 'normal'
-          }}>
-            <span style={{ display: 'block', color: '#0F172A' }}>Find Your Perfect</span>
-            <span style={{ display: 'block', color: '#0074D4' }}>Puppy Companion</span>
+      <section className="greeting-hero bg-white px-4 pt-10 pb-8 sm:py-16 text-center">
+        <div className="max-w-4xl mx-auto">
+          {/* Title - Mobile: 44px extra-bold hook, Desktop: 64px */}
+          <h1 className="text-[44px] sm:text-[64px] font-extrabold sm:font-bold leading-tight tracking-tight sm:tracking-normal mb-7 sm:mb-6">
+            <span className="block text-slate-900">Find Your Perfect</span>
+            <span className="block text-[#0074D4]">Puppy Companion</span>
           </h1>
           
           {/* Subtitle - Mobile: 17px with better spacing, Desktop: 20px */}
-          <p style={{ 
-            fontSize: isMobile ? '17px' : '20px', 
-            color: '#6b7280', 
-            marginBottom: isMobile ? '36px' : '32px', 
-            maxWidth: isMobile ? '90%' : '640px', 
-            margin: isMobile ? '0 auto 36px' : '0 auto 32px',
-            lineHeight: isMobile ? 1.6 : 1.5,
-            padding: '0 8px'
-          }}>
+          <p className="text-[17px] sm:text-xl text-gray-500 leading-relaxed sm:leading-normal max-w-[90%] sm:max-w-xl mx-auto mb-9 sm:mb-8 px-2">
             Connect with shelters and verified breeders to discover adorable, 
             healthy puppies waiting for their forever homes.
           </p>
