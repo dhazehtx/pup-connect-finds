@@ -1092,6 +1092,43 @@
 }
 
 /* ============================================
+   PUP BOX SUBSCRIPTION - MOBILE FIXES
+   Match desktop design on mobile
+   ============================================ */
+
+@media (max-width: 768px) {
+  /* Hero header text must be white on the gradient background */
+  .bg-gradient-blue-violet h1 {
+    color: #ffffff !important;
+  }
+  
+  .bg-gradient-blue-violet p {
+    color: rgba(255, 255, 255, 0.95) !important;
+  }
+  
+  /* Product card image area must keep the gradient background */
+  .product-card__image.bg-gradient-blue-violet {
+    background: linear-gradient(135deg, #0074D4 0%, #6366f1 50%, #8b5cf6 100%) !important;
+  }
+  
+  /* Subscribe/One-Time toggle buttons - black text when not selected */
+  .product-card .inline-flex button:not(.bg-primary-600) {
+    color: #000000 !important;
+  }
+  
+  /* Add to Cart button text visible */
+  .product-card .btn-pill--primary {
+    color: #ffffff !important;
+  }
+  
+  /* Helper text "Subscribe", "One-Time", "Add to Cart" in black */
+  .pupbox-section .text-primary-600,
+  .pupbox-section span.font-semibold.text-primary-600 {
+    color: #000000 !important;
+  }
+}
+
+/* ============================================
    GREETING HERO HEADLINE - OVERRIDE GLOBAL H1
    Forces large marketing "hook" headline on greeting page
    ============================================ */
