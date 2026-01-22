@@ -8,6 +8,12 @@
    ============================================ */
 
 @media (max-width: 768px) {
+  /* Greeting page hero title - larger on mobile */
+  .greeting-page .greeting-hero h1 {
+    font-size: 42px !important;
+    line-height: 1.1 !important;
+  }
+  
   /* Nuclear mobile background reset */
   html, body, #root, main, .app-container {
     background-color: #ffffff !important;
