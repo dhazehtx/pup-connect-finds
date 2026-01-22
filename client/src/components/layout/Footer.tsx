@@ -4,67 +4,76 @@ import { Link } from 'react-router-dom';
 export default function Footer() {
   const currentYear = new Date().getFullYear();
 
+  const linkStyle: React.CSSProperties = {
+    color: '#000000',
+    textDecoration: 'none'
+  };
+
+  const linkHoverStyle = {
+    color: '#0074d4'
+  };
+
   return (
-    <footer className="bg-gray-50 border-t border-gray-200 mt-auto">
-      <div className="max-w-7xl mx-auto px-4 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+    <footer style={{ backgroundColor: '#f9fafb', borderTop: '1px solid #e5e7eb', marginTop: 'auto' }}>
+      <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '48px 16px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '32px' }}>
           {/* Company */}
           <div>
-            <h3 className="font-semibold text-gray-900 mb-4">My Pup</h3>
-            <ul className="space-y-2 text-sm text-gray-600">
-              <li><Link to="/about" className="hover:text-primary-600">About Us</Link></li>
-              <li><Link to="/careers" className="hover:text-primary-600">Careers</Link></li>
-              <li><Link to="/press" className="hover:text-primary-600">Press</Link></li>
-              <li><Link to="/blog" className="hover:text-primary-600">Blog</Link></li>
+            <h3 style={{ fontWeight: 600, color: '#111827', marginBottom: '16px' }}>My Pup</h3>
+            <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+              <li style={{ marginBottom: '8px' }}><Link to="/about" style={linkStyle}>About Us</Link></li>
+              <li style={{ marginBottom: '8px' }}><Link to="/careers" style={linkStyle}>Careers</Link></li>
+              <li style={{ marginBottom: '8px' }}><Link to="/press" style={linkStyle}>Press</Link></li>
+              <li style={{ marginBottom: '8px' }}><Link to="/blog" style={linkStyle}>Blog</Link></li>
             </ul>
           </div>
 
           {/* Support */}
           <div>
-            <h3 className="font-semibold text-gray-900 mb-4">Support</h3>
-            <ul className="space-y-2 text-sm text-gray-600">
-              <li><Link to="/help" className="hover:text-primary-600">Help Center</Link></li>
-              <li><Link to="/contact" className="hover:text-primary-600">Contact Us</Link></li>
-              <li><Link to="/faq" className="hover:text-primary-600">FAQ</Link></li>
-              <li><Link to="/community" className="hover:text-primary-600">Community</Link></li>
+            <h3 style={{ fontWeight: 600, color: '#111827', marginBottom: '16px' }}>Support</h3>
+            <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+              <li style={{ marginBottom: '8px' }}><Link to="/help" style={linkStyle}>Help Center</Link></li>
+              <li style={{ marginBottom: '8px' }}><Link to="/contact" style={linkStyle}>Contact Us</Link></li>
+              <li style={{ marginBottom: '8px' }}><Link to="/faq" style={linkStyle}>FAQ</Link></li>
+              <li style={{ marginBottom: '8px' }}><Link to="/community" style={linkStyle}>Community</Link></li>
             </ul>
           </div>
 
           {/* Legal */}
           <div>
-            <Link to="/legal" className="font-semibold text-gray-900 mb-4 block hover:text-primary-600">Legal</Link>
-            <ul className="space-y-2 text-sm text-gray-600">
-              <li><Link to="/legal/privacy" className="hover:text-primary-600">Privacy Policy</Link></li>
-              <li><Link to="/legal/terms" className="hover:text-primary-600">Terms of Service</Link></li>
-              <li><Link to="/legal/privacy" className="hover:text-primary-600">Cookie Policy</Link></li>
-              <li><Link to="/legal/guidelines" className="hover:text-primary-600">Community Guidelines</Link></li>
+            <Link to="/legal" style={{ fontWeight: 600, color: '#111827', marginBottom: '16px', display: 'block', textDecoration: 'none' }}>Legal</Link>
+            <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+              <li style={{ marginBottom: '8px' }}><Link to="/legal/privacy" style={linkStyle}>Privacy Policy</Link></li>
+              <li style={{ marginBottom: '8px' }}><Link to="/legal/terms" style={linkStyle}>Terms of Service</Link></li>
+              <li style={{ marginBottom: '8px' }}><Link to="/legal/privacy" style={linkStyle}>Cookie Policy</Link></li>
+              <li style={{ marginBottom: '8px' }}><Link to="/legal/guidelines" style={linkStyle}>Community Guidelines</Link></li>
             </ul>
           </div>
 
           {/* Connect */}
           <div>
-            <h3 className="font-semibold text-gray-900 mb-4">Connect</h3>
-            <ul className="space-y-2 text-sm text-gray-600">
-              <li><a href="https://twitter.com/mypup" className="hover:text-primary-600">Twitter</a></li>
-              <li><a href="https://facebook.com/mypup" className="hover:text-primary-600">Facebook</a></li>
-              <li><a href="https://instagram.com/mypup" className="hover:text-primary-600">Instagram</a></li>
-              <li><a href="https://youtube.com/mypup" className="hover:text-primary-600">YouTube</a></li>
+            <h3 style={{ fontWeight: 600, color: '#111827', marginBottom: '16px' }}>Connect</h3>
+            <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+              <li style={{ marginBottom: '8px' }}><a href="https://twitter.com/mypup" style={linkStyle}>Twitter</a></li>
+              <li style={{ marginBottom: '8px' }}><a href="https://facebook.com/mypup" style={linkStyle}>Facebook</a></li>
+              <li style={{ marginBottom: '8px' }}><a href="https://instagram.com/mypup" style={linkStyle}>Instagram</a></li>
+              <li style={{ marginBottom: '8px' }}><a href="https://youtube.com/mypup" style={linkStyle}>YouTube</a></li>
             </ul>
           </div>
         </div>
 
-        <div className="border-t border-gray-200 mt-8 pt-8 flex flex-col md:flex-row justify-between items-center">
-          <p className="text-sm text-gray-500">
+        <div style={{ borderTop: '1px solid #e5e7eb', marginTop: '32px', paddingTop: '32px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+          <p style={{ fontSize: '14px', color: '#6b7280', marginBottom: '16px' }}>
             © {currentYear} My Pup. All rights reserved.
           </p>
-          <div className="flex space-x-6 mt-4 md:mt-0">
-            <Link to="/help" className="text-sm text-gray-500 hover:text-primary-600">
+          <div style={{ display: 'flex', gap: '24px' }}>
+            <Link to="/help" style={{ fontSize: '14px', color: '#000000', textDecoration: 'none' }}>
               Help Center
             </Link>
-            <Link to="/legal/privacy" className="text-sm text-gray-500 hover:text-primary-600">
+            <Link to="/legal/privacy" style={{ fontSize: '14px', color: '#000000', textDecoration: 'none' }}>
               Privacy
             </Link>
-            <Link to="/legal/terms" className="text-sm text-gray-500 hover:text-primary-600">
+            <Link to="/legal/terms" style={{ fontSize: '14px', color: '#000000', textDecoration: 'none' }}>
               Terms
             </Link>
           </div>
