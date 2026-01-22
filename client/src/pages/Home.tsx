@@ -83,7 +83,7 @@ const Home = () => {
       <section className="greeting-hero" style={{ backgroundColor: '#ffffff', padding: '64px 16px', textAlign: 'center' }}>
         <div style={{ maxWidth: '896px', margin: '0 auto' }}>
           {/* Title */}
-          <h1 style={{ fontSize: '56px', fontWeight: 700, marginBottom: '24px', lineHeight: 1.2 }}>
+          <h1 style={{ fontSize: '64px', fontWeight: 700, marginBottom: '24px', lineHeight: 1.1 }}>
             <span style={{ color: '#0F172A', display: 'block' }}>Find Your Perfect</span>
             <span style={{ color: '#0074D4', display: 'block' }}>Puppy Companion</span>
           </h1>
