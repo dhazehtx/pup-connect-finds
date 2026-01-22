@@ -1090,3 +1090,32 @@
     }
   }
 }
+
+/* ============================================
+   GREETING HERO HEADLINE - OVERRIDE GLOBAL H1
+   Forces large marketing "hook" headline on greeting page
+   ============================================ */
+
+/* Desktop: 64px bold */
+.greeting-hero h1 {
+  font-size: 64px !important;
+  font-weight: 700 !important;
+  line-height: 1.1 !important;
+  letter-spacing: normal !important;
+}
+
+/* Mobile: 44px extra-bold with tight spacing */
+@media (max-width: 768px) {
+  .greeting-hero h1 {
+    font-size: 44px !important;
+    font-weight: 800 !important;
+    line-height: 1.08 !important;
+    letter-spacing: -0.02em !important;
+  }
+  
+  .greeting-hero p {
+    font-size: 17px !important;
+    line-height: 1.6 !important;
+    max-width: 90% !important;
+  }
+}
