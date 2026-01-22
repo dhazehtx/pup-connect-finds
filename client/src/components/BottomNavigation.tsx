@@ -151,10 +151,10 @@ const BottomNavigation = () => {
                   e.stopPropagation();
                   item.onClick();
                 }}
-                className={`flex flex-col items-center justify-center p-2 transition-colors relative text-white min-h-[48px] touch-manipulation ${
+                className={`flex flex-col items-center justify-center p-2 transition-colors relative min-h-[48px] touch-manipulation ${
                   active 
                     ? 'bg-white/20' 
-                    : 'text-white/80 hover:text-white hover:bg-white/10 active:bg-white/20'
+                    : 'hover:bg-white/10 active:bg-white/20'
                 }`}
                 type="button"
                 aria-label={item.label}
@@ -164,9 +164,9 @@ const BottomNavigation = () => {
                 }}
               >
                 <div className="relative">
-                  <Icon size={22} className="flex-shrink-0" />
+                  <Icon size={22} style={{ color: '#ffffff', stroke: '#ffffff' }} />
                 </div>
-                <span className="text-[11px] mt-0.5 font-medium text-inherit leading-tight">{item.label}</span>
+                <span style={{ fontSize: '11px', marginTop: '2px', fontWeight: 500, color: '#ffffff', lineHeight: 1.2 }}>{item.label}</span>
                 {item.protected && !user && !isGuest && (
                   <div className="absolute top-1 right-1 w-2 h-2 bg-blue-500 rounded-full"></div>
                 )}
