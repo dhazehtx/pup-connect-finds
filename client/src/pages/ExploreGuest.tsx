@@ -55,17 +55,18 @@ const GuestListingCard = ({ listing }: { listing: any }) => {
           }}
         />
         
-        {/* Price badge - blue background, white text - pure inline styles */}
+        {/* Price badge - white background, black text for visibility */}
         <div style={{ position: 'absolute', top: '12px', right: '12px', zIndex: 10 }}>
           <span 
             style={{ 
-              backgroundColor: '#0074d4', 
-              color: '#ffffff',
+              backgroundColor: '#ffffff', 
+              color: '#000000',
               display: 'inline-block',
               fontWeight: 700,
-              padding: '4px 12px',
+              padding: '6px 14px',
               borderRadius: '9999px',
-              fontSize: '14px'
+              fontSize: '14px',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.15)'
             }}
           >
             ${listing.price?.toLocaleString()}
