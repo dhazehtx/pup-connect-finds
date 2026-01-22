@@ -79,17 +79,34 @@ const Home = () => {
 
   return (
     <div className="greeting-page" style={{ minHeight: '100vh', backgroundColor: '#ffffff', paddingBottom: '80px' }}>
+      {/* Mobile hero text styles - scoped to this component only */}
+      <style>{`
+        @media (max-width: 639px) {
+          .greeting-hero-headline {
+            font-size: 46px !important;
+            font-weight: 800 !important;
+            line-height: 1.08 !important;
+            letter-spacing: -0.02em !important;
+          }
+          .greeting-hero-subtitle-text {
+            font-size: 17px !important;
+            line-height: 1.6 !important;
+            max-width: 90% !important;
+          }
+        }
+      `}</style>
+      
       {/* Hero Section */}
-      <section className="greeting-hero px-4 py-12 sm:py-16 text-center bg-white">
+      <section className="greeting-hero px-4 pt-10 pb-8 sm:py-16 text-center bg-white">
         <div className="max-w-4xl mx-auto">
-          {/* Title - Mobile: 44px bold, Desktop: 64px */}
-          <h1 className="greeting-hero-title text-[44px] sm:text-[64px] font-extrabold sm:font-bold leading-[1.05] sm:leading-[1.1] mb-6 sm:mb-6 tracking-tight">
-            <span className="block text-slate-900">Find Your Perfect</span>
-            <span className="block text-[#0074D4]">Puppy Companion</span>
+          {/* Title - Mobile: 46px extra-bold hook, Desktop: 64px */}
+          <h1 className="greeting-hero-headline mb-8 sm:mb-6" style={{ fontSize: '64px', fontWeight: 700, lineHeight: 1.1 }}>
+            <span style={{ display: 'block', color: '#0F172A' }}>Find Your Perfect</span>
+            <span style={{ display: 'block', color: '#0074D4' }}>Puppy Companion</span>
           </h1>
           
-          {/* Subtitle - Mobile: 18px with better spacing, Desktop: 20px */}
-          <p className="greeting-hero-subtitle text-[18px] sm:text-[20px] text-gray-500 leading-relaxed max-w-xl mx-auto mb-8 sm:mb-8 px-2">
+          {/* Subtitle - Mobile: 17px with better spacing, Desktop: 20px */}
+          <p className="greeting-hero-subtitle-text mx-auto mb-10 sm:mb-8 px-2" style={{ fontSize: '20px', color: '#6b7280', lineHeight: 1.5, maxWidth: '640px' }}>
             Connect with shelters and verified breeders to discover adorable, 
             healthy puppies waiting for their forever homes.
           </p>
