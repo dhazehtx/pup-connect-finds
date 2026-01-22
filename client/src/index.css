@@ -1,4 +1,3 @@
-
 @import './styles/base.css';
 @import './styles/components.css';
 @import './styles/utilities.css';
@@ -11,7 +10,11 @@
    ============================================================ */
 
 /* Global body and root - white backgrounds only */
-html, body, #root, main, .app-container {
+html,
+body,
+#root,
+main,
+.app-container {
   background-color: #ffffff !important;
   background: #ffffff !important;
 }
@@ -22,10 +25,26 @@ html, body, #root, main, .app-container {
 }
 
 /* Force override ALL Tailwind yellow/amber classes */
-.bg-yellow-50, .bg-yellow-100, .bg-yellow-200, .bg-yellow-300, .bg-yellow-400,
-.bg-yellow-500, .bg-yellow-600, .bg-yellow-700, .bg-yellow-800, .bg-yellow-900,
-.bg-amber-50, .bg-amber-100, .bg-amber-200, .bg-amber-300, .bg-amber-400,
-.bg-amber-500, .bg-amber-600, .bg-amber-700, .bg-amber-800, .bg-amber-900 {
+.bg-yellow-50,
+.bg-yellow-100,
+.bg-yellow-200,
+.bg-yellow-300,
+.bg-yellow-400,
+.bg-yellow-500,
+.bg-yellow-600,
+.bg-yellow-700,
+.bg-yellow-800,
+.bg-yellow-900,
+.bg-amber-50,
+.bg-amber-100,
+.bg-amber-200,
+.bg-amber-300,
+.bg-amber-400,
+.bg-amber-500,
+.bg-amber-600,
+.bg-amber-700,
+.bg-amber-800,
+.bg-amber-900 {
   background-color: #ffffff !important;
   background: #ffffff !important;
 }
@@ -44,98 +63,182 @@ html, body, #root, main, .app-container {
 }
 
 /* Override yellow borders everywhere */
-.border-yellow-50, .border-yellow-100, .border-yellow-200, .border-yellow-300,
-.border-yellow-400, .border-yellow-500, .border-yellow-600, .border-yellow-700,
-.border-yellow-800, .border-yellow-900,
-.border-amber-50, .border-amber-100, .border-amber-200, .border-amber-300,
-.border-amber-400, .border-amber-500, .border-amber-600, .border-amber-700,
-.border-amber-800, .border-amber-900 {
+.border-yellow-50,
+.border-yellow-100,
+.border-yellow-200,
+.border-yellow-300,
+.border-yellow-400,
+.border-yellow-500,
+.border-yellow-600,
+.border-yellow-700,
+.border-yellow-800,
+.border-yellow-900,
+.border-amber-50,
+.border-amber-100,
+.border-amber-200,
+.border-amber-300,
+.border-amber-400,
+.border-amber-500,
+.border-amber-600,
+.border-amber-700,
+.border-amber-800,
+.border-amber-900 {
   border-color: #e5e7eb !important;
 }
 
 /* Override yellow text everywhere */
-.text-yellow-50, .text-yellow-100, .text-yellow-200, .text-yellow-300,
-.text-yellow-400, .text-yellow-500, .text-yellow-600, .text-yellow-700,
-.text-yellow-800, .text-yellow-900,
-.text-amber-50, .text-amber-100, .text-amber-200, .text-amber-300,
-.text-amber-400, .text-amber-500, .text-amber-600, .text-amber-700,
-.text-amber-800, .text-amber-900 {
+.text-yellow-50,
+.text-yellow-100,
+.text-yellow-200,
+.text-yellow-300,
+.text-yellow-400,
+.text-yellow-500,
+.text-yellow-600,
+.text-yellow-700,
+.text-yellow-800,
+.text-yellow-900,
+.text-amber-50,
+.text-amber-100,
+.text-amber-200,
+.text-amber-300,
+.text-amber-400,
+.text-amber-500,
+.text-amber-600,
+.text-amber-700,
+.text-amber-800,
+.text-amber-900 {
   color: #0074d4 !important;
 }
 
 /* Override yellow ring/focus colors */
-.ring-yellow-50, .ring-yellow-100, .ring-yellow-200, .ring-yellow-300,
-.ring-yellow-400, .ring-yellow-500, .ring-yellow-600, .ring-yellow-700,
-.ring-yellow-800, .ring-yellow-900,
-.ring-amber-50, .ring-amber-100, .ring-amber-200, .ring-amber-300,
-.ring-amber-400, .ring-amber-500, .ring-amber-600, .ring-amber-700,
-.ring-amber-800, .ring-amber-900 {
+.ring-yellow-50,
+.ring-yellow-100,
+.ring-yellow-200,
+.ring-yellow-300,
+.ring-yellow-400,
+.ring-yellow-500,
+.ring-yellow-600,
+.ring-yellow-700,
+.ring-yellow-800,
+.ring-yellow-900,
+.ring-amber-50,
+.ring-amber-100,
+.ring-amber-200,
+.ring-amber-300,
+.ring-amber-400,
+.ring-amber-500,
+.ring-amber-600,
+.ring-amber-700,
+.ring-amber-800,
+.ring-amber-900 {
   --tw-ring-color: #0074d4 !important;
 }
 
 /* Cards, panels, containers - force white backgrounds */
-.card, [class*="Card"], [class*="card"],
-.panel, [class*="Panel"], [class*="panel"],
-.section, [class*="Section"],
-.container, [class*="container"],
-.content, [class*="content"],
-.wrapper, [class*="wrapper"],
-.box, [class*="box"],
-article, aside, section, div[class*="bg-"] {
+.card,
+[class*="Card"],
+[class*="card"],
+.panel,
+[class*="Panel"],
+[class*="panel"],
+.section,
+[class*="Section"],
+.container,
+[class*="container"],
+.content,
+[class*="content"],
+.wrapper,
+[class*="wrapper"],
+.box,
+[class*="box"],
+article,
+aside,
+section,
+div[class*="bg-"] {
   /* Only override if it has yellow - checked via specificity */
 }
 
 /* Page-specific yellow elimination */
-.explore-page, .marketplace-page, .greeting-page, .profile-page,
-.services-page, .messages-page, .auth-page {
+.explore-page,
+.marketplace-page,
+.greeting-page,
+.profile-page,
+.services-page,
+.messages-page,
+.auth-page {
   background-color: #ffffff !important;
 }
 
-.explore-page *, .marketplace-page *, .greeting-page *, .profile-page *,
-.services-page *, .messages-page * {
+.explore-page *,
+.marketplace-page *,
+.greeting-page *,
+.profile-page *,
+.services-page *,
+.messages-page * {
   /* Inherit proper backgrounds */
 }
 
 /* Input fields - gray borders, blue focus */
-input, textarea, select, [type="text"], [type="email"], [type="password"], [type="search"] {
+input,
+textarea,
+select,
+[type="text"],
+[type="email"],
+[type="password"],
+[type="search"] {
   border-color: #d1d5db !important;
   background-color: #ffffff !important;
 }
 
-input:focus, textarea:focus, select:focus {
+input:focus,
+textarea:focus,
+select:focus {
   border-color: #0074d4 !important;
   outline-color: #0074d4 !important;
   box-shadow: 0 0 0 2px rgba(0, 116, 212, 0.2) !important;
 }
 
 /* Button overrides - eliminate any yellow buttons */
-button[class*="yellow"], button[class*="amber"],
-.btn-yellow, .btn-amber {
+button[class*="yellow"],
+button[class*="amber"],
+.btn-yellow,
+.btn-amber {
   background-color: #0074d4 !important;
   color: #ffffff !important;
 }
 
 /* Tab styling - ensure proper blue theme */
-[role="tablist"], .tabs-list, .tab-list {
+[role="tablist"],
+.tabs-list,
+.tab-list {
   background-color: #f5f7fb !important;
 }
 
-[role="tab"], .tab, .tab-trigger {
+[role="tab"],
+.tab,
+.tab-trigger {
   background-color: transparent !important;
 }
 
-[role="tab"][data-state="active"], .tab-active, [data-state="active"] {
+[role="tab"][data-state="active"],
+.tab-active,
+[data-state="active"] {
   background-color: #0074d4 !important;
   color: #ffffff !important;
 }
 
 /* Service provider cards - white backgrounds */
-.service-card, .provider-card, [class*="ServiceProvider"], [class*="ProviderCard"] {
+.service-card,
+.provider-card,
+[class*="ServiceProvider"],
+[class*="ProviderCard"] {
   background-color: #ffffff !important;
 }
 
 /* Featured sections - clean styling */
-.featured-section, [class*="featured"], [class*="Featured"] {
+.featured-section,
+[class*="featured"],
+[class*="Featured"] {
   background-color: #f5f7fb !important;
 }
 
@@ -147,76 +250,6 @@ button[class*="yellow"], button[class*="amber"],
    GREETING PAGE CTA BUTTONS - LOCKED STYLES (CANNOT BE OVERRIDDEN)
    ============================================================ */
 
-.greeting-cta-group {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-@media (min-width: 640px) {
-  .greeting-cta-group {
-    flex-direction: row;
-    gap: 16px;
-  }
-}
-
-.greeting-cta-btn {
-  display: inline-flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  background-color: #0074D4 !important;
-  background: #0074D4 !important;
-  color: #FFFFFF !important;
-  font-weight: 600 !important;
-  font-size: 1rem !important;
-  line-height: 1.5 !important;
-  border-radius: 10px !important;
-  padding: 14px 24px !important;
-  opacity: 1 !important;
-  visibility: visible !important;
-  filter: none !important;
-  border: none !important;
-  outline: none !important;
-  cursor: pointer !important;
-  width: 100% !important;
-  max-width: 100% !important;
-  min-height: 48px !important;
-  height: 48px !important;
-  flex: 0 0 auto !important;
-  box-shadow: 0 2px 4px rgba(0, 116, 212, 0.3) !important;
-  -webkit-tap-highlight-color: transparent !important;
-  transition: background-color 0.2s ease !important;
-  -webkit-appearance: none !important;
-  appearance: none !important;
-}
-
-@media (min-width: 640px) {
-  .greeting-cta-btn {
-    width: auto !important;
-  }
-}
-
-.greeting-cta-btn:hover {
-  background-color: #0063B8 !important;
-  color: #FFFFFF !important;
-}
-
-.greeting-cta-btn:active {
-  background-color: #004a7d !important;
-  color: #FFFFFF !important;
-}
-
-.greeting-cta-btn:focus {
-  background-color: #0074D4 !important;
-  color: #FFFFFF !important;
-  box-shadow: 0 0 0 3px rgba(0, 116, 212, 0.4) !important;
-}
-
-.greeting-cta-btn svg {
-  color: #FFFFFF !important;
-  width: 20px !important;
-  height: 20px !important;
-}
 
 /* ============================================================
    GREETING HERO TEXT - NO BACKGROUNDS
@@ -439,19 +472,21 @@ button.btn-primary span,
    ============================================================ */
 
 /* Ensure consistent white backgrounds for main app containers */
-html, body, #root {
+html,
+body,
+#root {
   background-color: #ffffff !important;
 }
 
 /* Bottom Navigation & Button Styling - White Text/Icons */
-.bottom-nav a, 
+.bottom-nav a,
 .bottom-nav svg {
   color: white !important;
 }
 
-.btn-list-puppy, 
-.btn-list-puppy *, 
-.greeting-page button, 
+.btn-list-puppy,
+.btn-list-puppy *,
+.greeting-page button,
 .greeting-page button *,
 .marketplace .tabs button {
   color: white !important;
@@ -485,8 +520,10 @@ input[type="text"],
 textarea,
 .auth-page input,
 .auth-form input {
-  border-color: #d1d5db !important;  /* Gray border */
-  outline-color: #0074d4 !important; /* Royal blue focus outline */
+  border-color: #d1d5db !important;
+  /* Gray border */
+  outline-color: #0074d4 !important;
+  /* Royal blue focus outline */
 }
 
 /* Remove yellow/amber focus states */
@@ -496,7 +533,8 @@ input[type="text"]:focus,
 textarea:focus,
 .auth-page input:focus,
 .auth-form input:focus {
-  border-color: #0074d4 !important;  /* Royal blue focus border */
+  border-color: #0074d4 !important;
+  /* Royal blue focus border */
   outline-color: #0074d4 !important;
   ring-color: #0074d4 !important;
   box-shadow: 0 0 0 2px rgba(0, 116, 212, 0.2) !important;
@@ -625,7 +663,7 @@ button[class*="bg-gradient-to-r"]:hover {
 .services-tabs [role="tabpanel"],
 [data-radix-tabs-content],
 .services-tabs div[data-state],
-.services-tabs > div[data-state] {
+.services-tabs>div[data-state] {
   border: none !important;
   outline: none !important;
   box-shadow: none !important;
@@ -654,12 +692,36 @@ button[class*="bg-gradient-to-r"]:hover {
 }
 
 /* Override any yellow background classes */
-.bg-yellow-50, .bg-yellow-100, .bg-yellow-200, .bg-yellow-300, .bg-yellow-400,
-.bg-yellow-500, .bg-yellow-600, .bg-yellow-700, .bg-yellow-800, .bg-yellow-900,
-.bg-amber-50, .bg-amber-100, .bg-amber-200, .bg-amber-300, .bg-amber-400,
-.bg-amber-500, .bg-amber-600, .bg-amber-700, .bg-amber-800, .bg-amber-900,
-.bg-orange-50, .bg-orange-100, .bg-orange-200, .bg-orange-300, .bg-orange-400,
-.bg-orange-500, .bg-orange-600, .bg-orange-700, .bg-orange-800, .bg-orange-900 {
+.bg-yellow-50,
+.bg-yellow-100,
+.bg-yellow-200,
+.bg-yellow-300,
+.bg-yellow-400,
+.bg-yellow-500,
+.bg-yellow-600,
+.bg-yellow-700,
+.bg-yellow-800,
+.bg-yellow-900,
+.bg-amber-50,
+.bg-amber-100,
+.bg-amber-200,
+.bg-amber-300,
+.bg-amber-400,
+.bg-amber-500,
+.bg-amber-600,
+.bg-amber-700,
+.bg-amber-800,
+.bg-amber-900,
+.bg-orange-50,
+.bg-orange-100,
+.bg-orange-200,
+.bg-orange-300,
+.bg-orange-400,
+.bg-orange-500,
+.bg-orange-600,
+.bg-orange-700,
+.bg-orange-800,
+.bg-orange-900 {
   background-color: #ffffff !important;
   border-color: #e5e7eb !important;
 }
@@ -677,12 +739,16 @@ button[class*="bg-gradient-to-r"]:hover {
 /* Removed: .messages-* background enforcement */
 
 /* Explore page specific overrides */
-.explore-header, .explore-content, .explore-section {
+.explore-header,
+.explore-content,
+.explore-section {
   border-radius: 1rem !important;
 }
 
 /* Fix for conversation/message borders - eliminate yellow borders */
-.conversation-item, .message-border, [class*="conversation"] {
+.conversation-item,
+.message-border,
+[class*="conversation"] {
   border-color: #e5e7eb !important;
 }
 
@@ -690,6 +756,7 @@ button[class*="bg-gradient-to-r"]:hover {
 [class*="marketplace"] [class*="tab"] {
   border-color: #e5e7eb !important;
 }
+
 /* Removed: marketplace-tabs background override to allow warm neutral theme */
 
 /* Card and panel backgrounds - Allow theme to control */
@@ -710,53 +777,107 @@ button[class*="bg-gradient-to-r"]:hover {
 }
 
 /* Override any dynamic yellow borders or backgrounds */
-[style*="yellow"], [style*="amber"], [style*="#FFFF"], [style*="#ffff"] {
+[style*="yellow"],
+[style*="amber"],
+[style*="#FFFF"],
+[style*="#ffff"] {
   background-color: #ffffff !important;
   border-color: #e5e7eb !important;
 }
 
 /* Force blue theme for Report a Bug and Privacy buttons */
-.profile-action-button, button[class*="report"], button[class*="privacy"], 
-[class*="bug-report"], [class*="report-bug"] {
+.profile-action-button,
+button[class*="report"],
+button[class*="privacy"],
+[class*="bug-report"],
+[class*="report-bug"] {
   background-color: #ffffff !important;
   color: #0074d4 !important;
   border-color: #0074d4 !important;
 }
 
 /* Force blue styling for selected tabs */
-[data-state="active"], .tab-active, [aria-selected="true"] {
+[data-state="active"],
+.tab-active,
+[aria-selected="true"] {
   color: #ffffff !important;
   background-color: #0074d4 !important;
 }
 
 /* Fix for yellow toggle switches */
-.toggle, .switch, [role="switch"] {
+.toggle,
+.switch,
+[role="switch"] {
   background-color: #0074d4 !important;
 }
 
 /* Force white text for store product cards */
-.store-card .product-title, .store-card .product-description, 
-.product-card h3, .product-card p {
+.store-card .product-title,
+.store-card .product-description,
+.product-card h3,
+.product-card p {
   color: #1f2937 !important;
 }
 
 /* Ultimate override for all remaining yellow/amber styling */
-.bg-yellow-50, .bg-yellow-100, .bg-yellow-200, .bg-yellow-300, .bg-yellow-400, .bg-yellow-500,
-.bg-amber-50, .bg-amber-100, .bg-amber-200, .bg-amber-300, .bg-amber-400, .bg-amber-500 {
+.bg-yellow-50,
+.bg-yellow-100,
+.bg-yellow-200,
+.bg-yellow-300,
+.bg-yellow-400,
+.bg-yellow-500,
+.bg-amber-50,
+.bg-amber-100,
+.bg-amber-200,
+.bg-amber-300,
+.bg-amber-400,
+.bg-amber-500 {
   background-color: #ffffff !important;
 }
 
-.text-yellow-50, .text-yellow-100, .text-yellow-200, .text-yellow-300, .text-yellow-400, .text-yellow-500,
-.text-yellow-600, .text-yellow-700, .text-yellow-800, .text-yellow-900,
-.text-amber-50, .text-amber-100, .text-amber-200, .text-amber-300, .text-amber-400, .text-amber-500,
-.text-amber-600, .text-amber-700, .text-amber-800, .text-amber-900 {
+.text-yellow-50,
+.text-yellow-100,
+.text-yellow-200,
+.text-yellow-300,
+.text-yellow-400,
+.text-yellow-500,
+.text-yellow-600,
+.text-yellow-700,
+.text-yellow-800,
+.text-yellow-900,
+.text-amber-50,
+.text-amber-100,
+.text-amber-200,
+.text-amber-300,
+.text-amber-400,
+.text-amber-500,
+.text-amber-600,
+.text-amber-700,
+.text-amber-800,
+.text-amber-900 {
   color: #0074d4 !important;
 }
 
-.border-yellow-50, .border-yellow-100, .border-yellow-200, .border-yellow-300, .border-yellow-400, .border-yellow-500,
-.border-yellow-600, .border-yellow-700, .border-yellow-800, .border-yellow-900,
-.border-amber-50, .border-amber-100, .border-amber-200, .border-amber-300, .border-amber-400, .border-amber-500,
-.border-amber-600, .border-amber-700, .border-amber-800, .border-amber-900 {
+.border-yellow-50,
+.border-yellow-100,
+.border-yellow-200,
+.border-yellow-300,
+.border-yellow-400,
+.border-yellow-500,
+.border-yellow-600,
+.border-yellow-700,
+.border-yellow-800,
+.border-yellow-900,
+.border-amber-50,
+.border-amber-100,
+.border-amber-200,
+.border-amber-300,
+.border-amber-400,
+.border-amber-500,
+.border-amber-600,
+.border-amber-700,
+.border-amber-800,
+.border-amber-900 {
   border-color: #e5e7eb !important;
 }
 
@@ -778,118 +899,181 @@ button[class*="bg-gradient-to-r"]:hover {
 }
 
 /* Fix filter symbol color to black */
-.filter-symbol, .filter-icon, button .filter-icon,
-[class*="filter"] svg, [class*="filter"] .lucide {
+.filter-symbol,
+.filter-icon,
+button .filter-icon,
+[class*="filter"] svg,
+[class*="filter"] .lucide {
   color: #000000 !important;
   fill: #000000 !important;
 }
 
 /* Fix store button text colors - force black text on white buttons */
-.store-product-card button, .product-card button,
-[class*="add-to-cart"], [class*="buy-now"], 
-button[class*="cart"], button[class*="buy"] {
+.store-product-card button,
+.product-card button,
+[class*="add-to-cart"],
+[class*="buy-now"],
+button[class*="cart"],
+button[class*="buy"] {
   color: #000000 !important;
   background-color: #ffffff !important;
   border-color: #d1d5db !important;
 }
 
 /* Specific targeting for store tab buttons - more comprehensive selectors */
-.store-tab button, .marketplace button,
-button:contains("Add to Cart"), button:contains("Buy Now"),
-.product-actions button, .store-product button,
-[data-testid*="button-add"], [data-testid*="button-buy"],
-.btn-primary, .btn-secondary {
+.store-tab button,
+.marketplace button,
+button:contains("Add to Cart"),
+button:contains("Buy Now"),
+.product-actions button,
+.store-product button,
+[data-testid*="button-add"],
+[data-testid*="button-buy"],
+.btn-primary,
+.btn-secondary {
   color: #000000 !important;
   background-color: #ffffff !important;
   border: 1px solid #d1d5db !important;
 }
 
 /* Force black text on all button variants in store/marketplace */
-.marketplace .btn, .store .btn, 
-.product-card .btn, .store-card .btn {
+.marketplace .btn,
+.store .btn,
+.product-card .btn,
+.store-card .btn {
   color: #000000 !important;
 }
 
 /* Fix specific button styling issues in store */
-.text-primary-foreground, [class*="primary-foreground"] {
+.text-primary-foreground,
+[class*="primary-foreground"] {
   color: #000000 !important;
 }
 
-.bg-primary, [class*="bg-primary"] {
+.bg-primary,
+[class*="bg-primary"] {
   background-color: #0074d4 !important;
   color: #ffffff !important;
 }
 
 /* Override any conflicting primary button styles */
-button.bg-primary, .bg-primary button {
+button.bg-primary,
+.bg-primary button {
   color: #ffffff !important;
 }
 
 /* Remove ALL yellow borders and styling from inputs, tabs, cards */
-input:focus, textarea:focus, [role="textbox"]:focus {
+input:focus,
+textarea:focus,
+[role="textbox"]:focus {
   border-color: #0074d4 !important;
   outline-color: #0074d4 !important;
   box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1) !important;
 }
 
 /* Fix yellow borders around any container elements */
-.border-yellow-400, .border-yellow-500, .border-yellow-300,
-.border-amber-400, .border-amber-500, .border-amber-300,
-[style*="border-color: yellow"], [style*="border-color: amber"] {
+.border-yellow-400,
+.border-yellow-500,
+.border-yellow-300,
+.border-amber-400,
+.border-amber-500,
+.border-amber-300,
+[style*="border-color: yellow"],
+[style*="border-color: amber"] {
   border-color: #e5e7eb !important;
 }
 
 /* Fix conversation cards and tab containers */
-.conversation-card, .tab-container, .message-card,
-[class*="conversation"], [class*="message"], .card {
+.conversation-card,
+.tab-container,
+.message-card,
+[class*="conversation"],
+[class*="message"],
+.card {
   border-color: #e5e7eb !important;
 }
 
 /* Fix auth buttons - ensure readable text */
-.auth-form button, .sign-in-form button, .auth-button,
-button[type="submit"], .login-button, .signin-button {
+.auth-form button,
+.sign-in-form button,
+.auth-button,
+button[type="submit"],
+.login-button,
+.signin-button {
   color: #000000 !important;
   background-color: #ffffff !important;
   border-color: #d1d5db !important;
 }
 
 /* Specific targeting for sign-in buttons */
-button:contains("Sign In"), button:contains("Sign Up"),
-button:contains("Continue with"), .social-auth-button {
+button:contains("Sign In"),
+button:contains("Sign Up"),
+button:contains("Continue with"),
+.social-auth-button {
   color: #000000 !important;
   background-color: #ffffff !important;
 }
 
 /* Remove ALL yellow colors from border, background, and text everywhere */
-[style*="border-color:#fbbf24"], [style*="border-color:#f59e0b"], 
-[style*="border-color:#d97706"], [style*="border-color:#92400e"],
-[style*="border-color:rgb(251,191,36)"], [style*="border-color:rgb(245,158,11)"],
-[style*="background-color:#fbbf24"], [style*="background-color:#f59e0b"],
-[style*="background-color:#d97706"], [style*="background-color:#92400e"],
-[style*="background-color:rgb(251,191,36)"], [style*="background-color:rgb(245,158,11)"] {
+[style*="border-color:#fbbf24"],
+[style*="border-color:#f59e0b"],
+[style*="border-color:#d97706"],
+[style*="border-color:#92400e"],
+[style*="border-color:rgb(251,191,36)"],
+[style*="border-color:rgb(245,158,11)"],
+[style*="background-color:#fbbf24"],
+[style*="background-color:#f59e0b"],
+[style*="background-color:#d97706"],
+[style*="background-color:#92400e"],
+[style*="background-color:rgb(251,191,36)"],
+[style*="background-color:rgb(245,158,11)"] {
   border-color: #e5e7eb !important;
   background-color: #ffffff !important;
 }
 
 /* Force all Tailwind yellow variants to neutral */
-.text-yellow-500, .text-yellow-400, .text-yellow-600,
-.text-amber-500, .text-amber-400, .text-amber-600,
-.border-yellow-500, .border-yellow-400, .border-yellow-600,
-.border-amber-500, .border-amber-400, .border-amber-600,
-.bg-yellow-50, .bg-yellow-100, .bg-yellow-200,
-.bg-amber-50, .bg-amber-100, .bg-amber-200 {
+.text-yellow-500,
+.text-yellow-400,
+.text-yellow-600,
+.text-amber-500,
+.text-amber-400,
+.text-amber-600,
+.border-yellow-500,
+.border-yellow-400,
+.border-yellow-600,
+.border-amber-500,
+.border-amber-400,
+.border-amber-600,
+.bg-yellow-50,
+.bg-yellow-100,
+.bg-yellow-200,
+.bg-amber-50,
+.bg-amber-100,
+.bg-amber-200 {
   color: #374151 !important;
-  border-color: #e5e7eb !important;  
+  border-color: #e5e7eb !important;
   background-color: #ffffff !important;
 }
 
 /* Target specific elements instead of nuclear approach - preserve tab functionality */
-.text-yellow-500, .text-yellow-400, .text-yellow-600,
-.text-amber-500, .text-amber-400, .text-amber-600,
-.bg-yellow-500, .bg-yellow-400, .bg-yellow-600,
-.bg-amber-500, .bg-amber-400, .bg-amber-600,
-.border-yellow-500, .border-yellow-400, .border-yellow-600,
-.border-amber-500, .border-amber-400, .border-amber-600 {
+.text-yellow-500,
+.text-yellow-400,
+.text-yellow-600,
+.text-amber-500,
+.text-amber-400,
+.text-amber-600,
+.bg-yellow-500,
+.bg-yellow-400,
+.bg-yellow-600,
+.bg-amber-500,
+.bg-amber-400,
+.bg-amber-600,
+.border-yellow-500,
+.border-yellow-400,
+.border-yellow-600,
+.border-amber-500,
+.border-amber-400,
+.border-amber-600 {
   color: #374151 !important;
   border-color: #e5e7eb !important;
   background-color: #ffffff !important;
@@ -930,30 +1114,50 @@ button:contains("Privacy"):hover {
 }
 
 /* Messaging and Conversation Components - Remove ALL yellow borders */
-.conversation-item, .message-bubble, .chat-interface, .messaging-interface,
-[class*="conversation"], [class*="message"], [class*="chat"],
-.conversation-list, .message-list, .conversation-view,
-.messaging-wrapper, .chat-wrapper, .conversation-wrapper {
+.conversation-item,
+.message-bubble,
+.chat-interface,
+.messaging-interface,
+[class*="conversation"],
+[class*="message"],
+[class*="chat"],
+.conversation-list,
+.message-list,
+.conversation-view,
+.messaging-wrapper,
+.chat-wrapper,
+.conversation-wrapper {
   border-color: #e5e7eb !important;
 }
 
 /* Target all messaging borders specifically */
-.conversation-item:focus, .conversation-item:hover,
-.message-bubble:focus, .message-bubble:hover,
-[class*="conversation"]:focus, [class*="conversation"]:hover,
-[class*="message"]:focus, [class*="message"]:hover {
+.conversation-item:focus,
+.conversation-item:hover,
+.message-bubble:focus,
+.message-bubble:hover,
+[class*="conversation"]:focus,
+[class*="conversation"]:hover,
+[class*="message"]:focus,
+[class*="message"]:hover {
   border-color: #0074d4 !important;
   outline-color: #0074d4 !important;
 }
 
 /* Override any ring colors on messaging components */
-.conversation-item, [class*="conversation"], [class*="message"], [class*="chat"] {
+.conversation-item,
+[class*="conversation"],
+[class*="message"],
+[class*="chat"] {
   --tw-ring-color: #0074d4 !important;
 }
 
 /* Force gray borders for all messaging containers */
-.messaging-container, .chat-container, .conversations-container,
-[data-testid*="conversation"], [data-testid*="message"], [data-testid*="chat"] {
+.messaging-container,
+.chat-container,
+.conversations-container,
+[data-testid*="conversation"],
+[data-testid*="message"],
+[data-testid*="chat"] {
   border-color: #d1d5db !important;
 }
 
@@ -1077,13 +1281,12 @@ button:contains("Become a Service Provider") {
 
 /* Legacy pill tabs: outline by default, blue pill + white text when active */
 .tab-pill {
-  @apply rounded-full px-4 py-2 text-sm font-medium
-         border border-blue-200 text-gray-600 bg-white
-         transition-colors hover:bg-gray-50;
+  @apply rounded-full px-4 py-2 text-sm font-medium border border-blue-200 text-gray-600 bg-white transition-colors hover:bg-gray-50;
   gap: 0.5rem;
   display: inline-flex;
   align-items: center;
 }
+
 .tab-pill.is-active,
 .tab-pill[data-state="active"] {
   @apply bg-blue-600 border-blue-600 shadow;
@@ -1111,7 +1314,8 @@ button:contains("Become a Service Provider") {
 .services-tabs .TabsTrigger,
 .services-tabs [data-radix-tabs-trigger],
 .services-tabs .tab-pill[data-state="inactive"] {
-  border-color: #e5e7eb !important;  /* Gray border */
+  border-color: #e5e7eb !important;
+  /* Gray border */
   outline: none !important;
   box-shadow: none !important;
 }
@@ -1141,7 +1345,8 @@ button:contains("Become a Service Provider") {
   border: none !important;
   outline: none !important;
   box-shadow: none !important;
-  background-color: #f8fafc !important; /* Light gray instead of secondary */
+  background-color: #f8fafc !important;
+  /* Light gray instead of secondary */
 }
 
 /* Override any orange/amber background colors */
@@ -1165,8 +1370,12 @@ button:contains("Become a Service Provider") {
 
 /* Make any icons inside pills inherit and be visible */
 .tab-pill svg {
-  width: 1rem; height: 1rem; margin-right: 0.375rem;
-  fill: none; stroke: currentColor; stroke-width: 2;
+  width: 1rem;
+  height: 1rem;
+  margin-right: 0.375rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
 }
 
 /* Optional: tab list spacing */
@@ -1312,17 +1521,20 @@ button:contains("Become a Service Provider") {
   display: inline-flex;
   padding: 4px;
   gap: 8px;
-  border-radius: 9999px;              /* pill shape */
+  border-radius: 9999px;
+  /* pill shape */
   background: rgba(255, 255, 255, 0.7);
   box-shadow: 0 6px 14px rgba(15, 23, 42, 0.08);
-  margin-bottom: 1rem;                /* reduced spacing to filter bar */
+  margin-bottom: 1rem;
+  /* reduced spacing to filter bar */
 }
 
 /* Single tab – default (inactive) state */
 .marketplace-tab {
   padding: 8px 20px;
   border-radius: 9999px;
-  border: 1px solid #0074d4;          /* royal blue */
+  border: 1px solid #0074d4;
+  /* royal blue */
   background-color: #ffffff;
   color: #0074d4;
   font-weight: 600;
@@ -1369,7 +1581,8 @@ button:contains("Become a Service Provider") {
 
 /* Product card */
 .product-card {
-  position: relative;           /* for absolute badge positioning */
+  position: relative;
+  /* for absolute badge positioning */
   background-color: #ffffff;
   border-radius: 12px;
   box-shadow: 0 12px 30px rgba(15, 23, 42, 0.06);
@@ -1397,7 +1610,8 @@ button:contains("Become a Service Provider") {
 
 /* Image area – fixed height so all cards line up */
 .product-card__image {
-  height: 260px;          /* adjust if needed */
+  height: 260px;
+  /* adjust if needed */
   background-color: #f9fafb;
   overflow: hidden;
 }
@@ -1425,9 +1639,11 @@ button:contains("Become a Service Provider") {
 
 .product-card__description {
   font-size: 0.875rem;
-  color: #555555;  /* Softer gray for descriptions */
+  color: #555555;
+  /* Softer gray for descriptions */
   margin-bottom: 12px;
-  flex: 1;                 /* pushes buttons to bottom */
+  flex: 1;
+  /* pushes buttons to bottom */
 }
 
 /* Buttons row */
@@ -1465,7 +1681,8 @@ button:contains("Become a Service Provider") {
 /* Primary (Buy Now / Checkout) - Royal Blue with gradient option */
 .btn-pill--primary {
   border: none;
-  background-color: #0074d4;  /* Royal blue */
+  background-color: #0074d4;
+  /* Royal blue */
   color: #ffffff;
   font-weight: 700;
   box-shadow: 0 8px 18px rgba(0, 116, 212, 0.35);
@@ -1533,10 +1750,13 @@ button:contains("Become a Service Provider") {
 
 /* Animated halo behind hero gift icon */
 @keyframes pupBoxHaloPulse {
-  0%, 100% {
+
+  0%,
+  100% {
     transform: scale(1);
     opacity: 0.3;
   }
+
   50% {
     transform: scale(1.15);
     opacity: 0.5;
@@ -1571,7 +1791,7 @@ button:contains("Become a Service Provider") {
 
 /* Subtle pattern behind card icons */
 .pup-box-card-pattern {
-  background: 
+  background:
     radial-gradient(circle at 20% 30%, rgba(255, 255, 255, 0.15) 0%, transparent 50%),
     radial-gradient(circle at 80% 70%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
     radial-gradient(circle at 50% 50%, rgba(124, 58, 237, 0.1) 0%, transparent 70%);
@@ -1579,9 +1799,12 @@ button:contains("Become a Service Provider") {
 
 /* Card icon gentle pulse */
 @keyframes pupBoxCardPulse {
-  0%, 100% {
+
+  0%,
+  100% {
     transform: scale(1);
   }
+
   50% {
     transform: scale(1.03);
   }
@@ -1595,7 +1818,7 @@ button:contains("Become a Service Provider") {
   .pup-box-card-icon {
     animation: pupBoxCardPulse 3s ease-in-out infinite;
   }
-  
+
   .product-card:hover .pup-box-card-icon {
     animation: none;
     transform: scale(1.1);

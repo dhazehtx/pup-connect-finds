@@ -78,9 +78,9 @@ const Home = () => {
   };
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#ffffff', paddingBottom: '80px' }}>
+    <div className="greeting-page" style={{ minHeight: '100vh', backgroundColor: '#ffffff', paddingBottom: '80px' }}>
       {/* Hero Section */}
-      <section style={{ backgroundColor: '#ffffff', padding: '64px 16px', textAlign: 'center' }}>
+      <section className="greeting-hero" style={{ backgroundColor: '#ffffff', padding: '64px 16px', textAlign: 'center' }}>
         <div style={{ maxWidth: '896px', margin: '0 auto' }}>
           {/* Title */}
           <h1 style={{ fontSize: '48px', fontWeight: 700, marginBottom: '24px', lineHeight: 1.2 }}>
