@@ -96,10 +96,16 @@ const Home = () => {
       {/* Hero Section */}
       <section className="greeting-hero bg-white px-4 pt-10 pb-8 sm:py-16 text-center">
         <div className="max-w-4xl mx-auto">
-          {/* Title - Mobile: 44px extra-bold hook, Desktop: 64px */}
-          <h1 className="font-extrabold tracking-tight leading-[1.1] text-[40px] sm:text-[44px] md:text-[56px] lg:text-[64px] mb-7 sm:mb-6">
-            <span className="block text-slate-900">Find Your Perfect</span>
-            <span className="block text-[#0074D4]">Puppy Companion</span>
+          {/* Title - Mobile: 40px extra-bold hook, Desktop: 64px - INLINE STYLES to override all CSS */}
+          <h1 style={{ 
+            fontSize: '40px', 
+            fontWeight: 800, 
+            lineHeight: 1.1, 
+            letterSpacing: '-0.02em',
+            marginBottom: '28px'
+          }} className="sm:!text-[56px] md:!text-[64px]">
+            <span style={{ display: 'block', color: '#0F172A' }}>Find Your Perfect</span>
+            <span style={{ display: 'block', color: '#0074D4' }}>Puppy Companion</span>
           </h1>
           
           {/* Subtitle - Mobile: 17px with better spacing, Desktop: 20px */}
