@@ -97,7 +97,7 @@ const Home = () => {
       <section className="greeting-hero bg-white px-4 pt-10 pb-8 sm:py-16 text-center">
         <div className="max-w-4xl mx-auto">
           {/* Title - Mobile: 44px extra-bold hook, Desktop: 64px */}
-          <h1 className="text-[44px] sm:text-[64px] font-extrabold sm:font-bold leading-tight tracking-tight sm:tracking-normal mb-7 sm:mb-6">
+          <h1 className="font-extrabold tracking-tight leading-[1.1] text-[40px] sm:text-[44px] md:text-[56px] lg:text-[64px] mb-7 sm:mb-6">
             <span className="block text-slate-900">Find Your Perfect</span>
             <span className="block text-[#0074D4]">Puppy Companion</span>
           </h1>
