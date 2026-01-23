@@ -192,8 +192,8 @@ const PupBoxSubscription = () => {
                   {/* Subtle abstract pattern using layered gradients */}
                   <div className="absolute inset-0 pup-box-card-pattern"></div>
                   
-                  <div className="relative w-32 h-32 bg-white/25 backdrop-blur-sm rounded-full shadow-2xl flex items-center justify-center border-4 border-white/40 pup-box-card-icon">
-                    <Gift className="w-16 h-16 text-white drop-shadow-2xl" />
+                  <div className="relative w-32 h-32 bg-white/40 md:bg-white/25 backdrop-blur-sm rounded-full shadow-2xl flex items-center justify-center border-4 border-white/40 pup-box-card-icon">
+                    <Gift className="w-16 h-16 text-primary-600 md:text-white drop-shadow-2xl" />
                   </div>
                 </div>
 
