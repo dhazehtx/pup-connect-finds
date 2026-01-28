@@ -98,18 +98,25 @@ const Home = () => {
         <div className="max-w-4xl mx-auto">
           {/* Title - Mobile: 40px extra-bold hook, Desktop: 64px - INLINE STYLES to override all CSS */}
           <h1 style={{ 
-            fontSize: '52px', 
+            fontSize: '56px', 
             fontWeight: 800, 
-            lineHeight: 1.05, 
+            lineHeight: 1.0, 
             letterSpacing: '-0.03em',
-            marginBottom: '28px'
-          }} className="md:!text-[64px]">
+            marginBottom: '24px'
+          }} className="md:!text-[72px]">
             <span style={{ display: 'block', color: '#0F172A' }}>Find Your Perfect</span>
             <span style={{ display: 'block', color: '#0074D4' }}>Puppy Companion</span>
           </h1>
           
-          {/* Subtitle - Mobile: 17px with better spacing, Desktop: 20px */}
-          <p className="text-[17px] sm:text-xl text-gray-500 leading-relaxed sm:leading-normal max-w-[90%] sm:max-w-xl mx-auto mb-9 sm:mb-8 px-2">
+          {/* Subtitle - larger and more readable */}
+          <p style={{
+            fontSize: '20px',
+            lineHeight: 1.5,
+            color: '#4b5563',
+            maxWidth: '90%',
+            margin: '0 auto 32px',
+            padding: '0 8px'
+          }} className="md:!text-2xl">
             Connect with shelters and verified breeders to discover adorable, 
             healthy puppies waiting for their forever homes.
           </p>
