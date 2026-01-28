@@ -189,8 +189,8 @@ const PupBoxSubscription = () => {
 
                 {/* Icon/Visual Header - Royal blue to violet gradient - INLINE STYLES to force gradient */}
                 <div 
-                  className="product-card__image flex items-center justify-center relative overflow-hidden"
-                  style={{ background: 'linear-gradient(135deg, #0074D4 0%, #6366f1 50%, #8b5cf6 100%)' }}
+                  className="product-card__image pup-box-gradient flex items-center justify-center relative overflow-hidden"
+                  style={{ background: 'linear-gradient(135deg, #0074D4 0%, #6366f1 50%, #8b5cf6 100%) !important' }}
                 >
                   {/* Subtle abstract pattern using layered gradients */}
                   <div className="absolute inset-0 pup-box-card-pattern"></div>
