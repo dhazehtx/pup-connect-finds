@@ -98,12 +98,12 @@ const Home = () => {
         <div className="max-w-4xl mx-auto">
           {/* Title - Mobile: 40px extra-bold hook, Desktop: 64px - INLINE STYLES to override all CSS */}
           <h1 style={{ 
-            fontSize: '40px', 
+            fontSize: '52px', 
             fontWeight: 800, 
-            lineHeight: 1.1, 
-            letterSpacing: '-0.02em',
+            lineHeight: 1.05, 
+            letterSpacing: '-0.03em',
             marginBottom: '28px'
-          }} className="sm:!text-[56px] md:!text-[64px]">
+          }} className="md:!text-[64px]">
             <span style={{ display: 'block', color: '#0F172A' }}>Find Your Perfect</span>
             <span style={{ display: 'block', color: '#0074D4' }}>Puppy Companion</span>
           </h1>
