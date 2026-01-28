@@ -86,10 +86,10 @@ const Index = () => {
         <div className="text-center max-w-4xl mx-auto mb-16">
           <h1
             style={{
-              fontSize: '46px',
+              fontSize: '52px',
               fontWeight: 800,
-              lineHeight: 1.1,
-              letterSpacing: '-0.02em',
+              lineHeight: 1.05,
+              letterSpacing: '-0.03em',
               marginBottom: '1.5rem',
             }}
             className="text-gray-900 md:text-[64px]"
