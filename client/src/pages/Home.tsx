@@ -103,7 +103,7 @@ const Home = () => {
             lineHeight: 1.0, 
             letterSpacing: '-0.03em',
             marginBottom: '24px'
-          }} className="md:!text-[72px]">
+          }} className="md:!text-[64px]">
             <span style={{ display: 'block', color: '#0F172A' }}>Find Your Perfect</span>
             <span style={{ display: 'block', color: '#0074D4' }}>Puppy Companion</span>
           </h1>
@@ -116,7 +116,7 @@ const Home = () => {
             maxWidth: '90%',
             margin: '0 auto 32px',
             padding: '0 8px'
-          }} className="md:!text-2xl">
+          }} className="md:!text-xl">
             Connect with shelters and verified breeders to discover adorable, 
             healthy puppies waiting for their forever homes.
           </p>
