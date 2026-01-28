@@ -232,19 +232,9 @@
       line-height: 1.2;
     }
     
-    /* Greeting hero headline - large marketing hook */
+    /* Greeting hero headline - let component styles control */
     .greeting-hero h1 {
-      font-size: 125px;
-      font-weight: 900;
-      line-height: 1.14;
-      letter-spacing: -0.015em;
-      margin-bottom: 24px;
-      max-width: 90%;
-      margin-left: auto;
-      margin-right: auto;
-      white-space: normal;
-      word-wrap: break-word;
-      overflow-wrap: break-word;
+      /* Styles controlled by Home.tsx inline styles */
     }
     
     h2 {
@@ -1164,20 +1154,10 @@
   margin-bottom: 20px;
 }
 
-/* Mobile: 125px bold hero hook */
+/* Mobile: Let component styles control hero headline */
 @media (max-width: 768px) {
   .greeting-hero h1 {
-    font-size: 125px;
-    font-weight: 900;
-    line-height: 1.14;
-    letter-spacing: -0.015em;
-    margin-bottom: 24px;
-    max-width: 90%;
-    margin-left: auto;
-    margin-right: auto;
-    white-space: normal;
-    word-wrap: break-word;
-    overflow-wrap: break-word;
+    /* Styles controlled by Home.tsx inline styles */
   }
   
   /* Subtitle with proper spacing */

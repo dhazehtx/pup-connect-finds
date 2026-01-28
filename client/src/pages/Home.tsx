@@ -96,23 +96,22 @@ const Home = () => {
       {/* Hero Section */}
       <section className="greeting-hero bg-white px-4 pt-10 pb-8 sm:py-16 text-center">
         <div className="max-w-4xl mx-auto">
-          {/* Title - Polished hero with visual hierarchy */}
+          {/* Title - Polished hero with balanced proportions */}
           <h1
             style={{
-              marginBottom: '1.75rem',
-              maxWidth: '95%',
-              marginLeft: 'auto',
-              marginRight: 'auto',
-              lineHeight: '1.05',
+              marginBottom: '1.5rem',
+              maxWidth: '100%',
+              lineHeight: '1.1',
             }}
             className="text-gray-900"
           >
             <span
               style={{
                 display: 'block',
-                fontSize: 'clamp(44px, 7vw, 56px)',
-                fontWeight: 800,
-                letterSpacing: '-0.02em',
+                fontSize: 'clamp(28px, 5vw, 40px)',
+                fontWeight: 700,
+                letterSpacing: '-0.01em',
+                marginBottom: '0.25rem',
               }}
             >
               Find Your Perfect
@@ -121,11 +120,10 @@ const Home = () => {
             <span
               style={{
                 display: 'block',
-                fontSize: 'clamp(64px, 11vw, 88px)',
-                fontWeight: 900,
-                letterSpacing: '-0.025em',
+                fontSize: 'clamp(36px, 8vw, 64px)',
+                fontWeight: 800,
+                letterSpacing: '-0.02em',
                 color: '#2363FF',
-                marginTop: '0.15em',
               }}
             >
               Puppy Companion
