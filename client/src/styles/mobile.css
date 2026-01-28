@@ -1104,22 +1104,27 @@
   }
   
   /* Product card image area - FORCE the blue-violet gradient on mobile */
+  .product-card__image,
   .product-card__image.bg-gradient-blue-violet,
   .product-card .bg-gradient-blue-violet,
-  div.product-card__image.bg-gradient-blue-violet {
+  div.product-card__image.bg-gradient-blue-violet,
+  div.product-card__image {
     background: linear-gradient(135deg, #0074D4 0%, #6366f1 50%, #8b5cf6 100%) !important;
     background-color: transparent !important;
   }
   
   /* Pup box card icon container - white background with blur */
-  .product-card .pup-box-card-icon {
+  .product-card .pup-box-card-icon,
+  .pup-box-card-icon {
     background: rgba(255, 255, 255, 0.25) !important;
     border-color: rgba(255, 255, 255, 0.4) !important;
   }
   
   /* Gift icon inside must be white */
+  .product-card__image svg,
   .product-card__image.bg-gradient-blue-violet svg,
-  .product-card .bg-gradient-blue-violet svg {
+  .product-card .bg-gradient-blue-violet svg,
+  .pup-box-card-icon svg {
     color: #ffffff !important;
   }
   
