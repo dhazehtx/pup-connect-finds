@@ -15,7 +15,9 @@ import { useAuth } from '@/contexts/AuthContext';
 const ExploreAuth: React.FC = () => {
   const { user, loading } = useAuth();
   const [activeTab, setActiveTab] = useState<'listings' | 'posts'>('listings');
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  // Responsive view mode: list on mobile, grid on desktop
+  const [isMobile, setIsMobile] = useState(typeof window !== 'undefined' ? window.innerWidth < 768 : false);
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>(typeof window !== 'undefined' && window.innerWidth < 768 ? 'list' : 'grid');
   // STABLE INITIAL FILTERS - Prevent infinite re-renders with stable default values
   const initialFilters = useMemo(() => ({
     breeds: [],
@@ -68,8 +70,19 @@ const ExploreAuth: React.FC = () => {
 
   useEffect(() => {
     console.log('[EXPLORE AUTH] Component mounted');
+    
+    // Listen for screen size changes and update view mode accordingly
+    const handleResize = () => {
+      const mobile = window.innerWidth < 768;
+      setIsMobile(mobile);
+      setViewMode(mobile ? 'list' : 'grid');
+    };
+    
+    window.addEventListener('resize', handleResize);
+    
     return () => {
       console.log('[EXPLORE AUTH] Component unmounted');
+      window.removeEventListener('resize', handleResize);
       // Reset fetch guards on unmount
       hasFetchedListingsRef.current = false;
       hasFetchedPostsRef.current = false;
@@ -299,24 +312,28 @@ const ExploreAuth: React.FC = () => {
           </div>
           
           <div className="flex items-center space-x-4 mt-4 sm:mt-0">
-            {/* View Mode Toggle */}
+            {/* View indicator - auto-switches by screen size */}
             <div className="flex bg-gray-100 rounded-lg p-1">
-              <Button
-                size="sm"
-                variant={viewMode === 'grid' ? 'default' : 'ghost'}
-                onClick={() => setViewMode('grid')}
-                className="p-2"
-              >
-                <Grid className="h-4 w-4" />
-              </Button>
-              <Button
-                size="sm"
-                variant={viewMode === 'list' ? 'default' : 'ghost'}
-                onClick={() => setViewMode('list')}
-                className="p-2"
-              >
-                <List className="h-4 w-4" />
-              </Button>
+              {/* Desktop: Grid only */}
+              {!isMobile && (
+                <Button
+                  size="sm"
+                  variant="default"
+                  className="p-2"
+                >
+                  <Grid className="h-4 w-4" />
+                </Button>
+              )}
+              {/* Mobile: List only */}
+              {isMobile && (
+                <Button
+                  size="sm"
+                  variant="default"
+                  className="p-2"
+                >
+                  <List className="h-4 w-4" />
+                </Button>
+              )}
             </div>
           </div>
         </div>

@@ -113,9 +113,23 @@ const GuestListingCard = ({ listing }: { listing: any }) => {
 };
 
 const ExploreGuest = () => {
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  // Responsive view mode: list on mobile, grid on desktop
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>(window.innerWidth < 768 ? 'list' : 'grid');
   const [filters, setFilters] = useState<any>({});
   const [resultCount, setResultCount] = useState(0);
+
+  // Listen for screen size changes and update view mode accordingly
+  useEffect(() => {
+    const handleResize = () => {
+      const mobile = window.innerWidth < 768;
+      setIsMobile(mobile);
+      setViewMode(mobile ? 'list' : 'grid');
+    };
+    
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // Debug logging - throttled to avoid excessive re-renders
   useEffect(() => {
@@ -193,36 +207,40 @@ const ExploreGuest = () => {
               </p>
             </div>
             
-            {/* View Toggle - inline styles to prevent mobile color drift */}
+            {/* View indicator - no toggle needed, auto-switches by screen size */}
             <div className="flex items-center gap-2">
-              <Button
-                variant={viewMode === 'grid' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setViewMode('grid')}
-                className="gap-1.5 min-h-[40px]"
-                style={{
-                  backgroundColor: viewMode === 'grid' ? '#0074d4' : '#ffffff',
-                  color: viewMode === 'grid' ? '#ffffff' : '#374151',
-                  borderColor: viewMode === 'grid' ? '#0074d4' : '#d1d5db'
-                }}
-              >
-                <Grid className="h-4 w-4" style={{ color: 'inherit' }} />
-                <span className="hidden sm:inline">Grid</span>
-              </Button>
-              <Button
-                variant={viewMode === 'list' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setViewMode('list')}
-                className="gap-1.5 min-h-[40px]"
-                style={{
-                  backgroundColor: viewMode === 'list' ? '#0074d4' : '#ffffff',
-                  color: viewMode === 'list' ? '#ffffff' : '#374151',
-                  borderColor: viewMode === 'list' ? '#0074d4' : '#d1d5db'
-                }}
-              >
-                <List className="h-4 w-4" style={{ color: 'inherit' }} />
-                <span className="hidden sm:inline">List</span>
-              </Button>
+              {/* Desktop: Grid only */}
+              {!isMobile && (
+                <Button
+                  variant="default"
+                  size="sm"
+                  className="gap-1.5 min-h-[40px]"
+                  style={{
+                    backgroundColor: '#0074d4',
+                    color: '#ffffff',
+                    borderColor: '#0074d4'
+                  }}
+                >
+                  <Grid className="h-4 w-4" style={{ color: 'inherit' }} />
+                  <span>Grid</span>
+                </Button>
+              )}
+              {/* Mobile: List only */}
+              {isMobile && (
+                <Button
+                  variant="default"
+                  size="sm"
+                  className="gap-1.5 min-h-[40px]"
+                  style={{
+                    backgroundColor: '#0074d4',
+                    color: '#ffffff',
+                    borderColor: '#0074d4'
+                  }}
+                >
+                  <List className="h-4 w-4" style={{ color: 'inherit' }} />
+                  <span>List</span>
+                </Button>
+              )}
             </div>
           </div>
         </div>
