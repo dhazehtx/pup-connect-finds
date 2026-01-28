@@ -100,18 +100,18 @@ const Home = () => {
           <h1
             style={{
               marginBottom: '1.5rem',
-              maxWidth: '100%',
-              lineHeight: '1.1',
+              lineHeight: '1.15',
+              textAlign: 'center',
             }}
             className="text-gray-900"
           >
             <span
               style={{
                 display: 'block',
-                fontSize: 'clamp(28px, 5vw, 40px)',
-                fontWeight: 700,
+                fontSize: 'clamp(24px, 4.5vw, 36px)',
+                fontWeight: 600,
                 letterSpacing: '-0.01em',
-                marginBottom: '0.25rem',
+                marginBottom: '0.35rem',
               }}
             >
               Find Your Perfect
@@ -120,9 +120,9 @@ const Home = () => {
             <span
               style={{
                 display: 'block',
-                fontSize: 'clamp(36px, 8vw, 64px)',
+                fontSize: 'clamp(32px, 7vw, 56px)',
                 fontWeight: 800,
-                letterSpacing: '-0.02em',
+                letterSpacing: '-0.015em',
                 color: '#2363FF',
               }}
             >
