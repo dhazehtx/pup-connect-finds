@@ -108,8 +108,8 @@ const Home = () => {
             <span
               style={{
                 display: 'block',
-                fontSize: 'clamp(24px, 4.5vw, 36px)',
-                fontWeight: 600,
+                fontSize: 'clamp(28px, 5.5vw, 44px)',
+                fontWeight: 700,
                 letterSpacing: '-0.01em',
                 marginBottom: '0.35rem',
               }}
