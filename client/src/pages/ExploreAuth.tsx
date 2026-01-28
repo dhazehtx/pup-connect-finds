@@ -310,32 +310,6 @@ const ExploreAuth: React.FC = () => {
               {resultCount} {activeTab === 'listings' ? 'listings' : 'posts'} found
             </p>
           </div>
-          
-          <div className="flex items-center space-x-4 mt-4 sm:mt-0">
-            {/* View indicator - auto-switches by screen size */}
-            <div className="flex bg-gray-100 rounded-lg p-1">
-              {/* Desktop: Grid only */}
-              {!isMobile && (
-                <Button
-                  size="sm"
-                  variant="default"
-                  className="p-2"
-                >
-                  <Grid className="h-4 w-4" />
-                </Button>
-              )}
-              {/* Mobile: List only */}
-              {isMobile && (
-                <Button
-                  size="sm"
-                  variant="default"
-                  className="p-2"
-                >
-                  <List className="h-4 w-4" />
-                </Button>
-              )}
-            </div>
-          </div>
         </div>
 
         {/* Tabs */}

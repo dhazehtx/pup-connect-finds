@@ -206,42 +206,6 @@ const ExploreGuest = () => {
                 Discover puppies and find your perfect companion
               </p>
             </div>
-            
-            {/* View indicator - no toggle needed, auto-switches by screen size */}
-            <div className="flex items-center gap-2">
-              {/* Desktop: Grid only */}
-              {!isMobile && (
-                <Button
-                  variant="default"
-                  size="sm"
-                  className="gap-1.5 min-h-[40px]"
-                  style={{
-                    backgroundColor: '#0074d4',
-                    color: '#ffffff',
-                    borderColor: '#0074d4'
-                  }}
-                >
-                  <Grid className="h-4 w-4" style={{ color: 'inherit' }} />
-                  <span>Grid</span>
-                </Button>
-              )}
-              {/* Mobile: List only */}
-              {isMobile && (
-                <Button
-                  variant="default"
-                  size="sm"
-                  className="gap-1.5 min-h-[40px]"
-                  style={{
-                    backgroundColor: '#0074d4',
-                    color: '#ffffff',
-                    borderColor: '#0074d4'
-                  }}
-                >
-                  <List className="h-4 w-4" style={{ color: 'inherit' }} />
-                  <span>List</span>
-                </Button>
-              )}
-            </div>
           </div>
         </div>
       </div>
