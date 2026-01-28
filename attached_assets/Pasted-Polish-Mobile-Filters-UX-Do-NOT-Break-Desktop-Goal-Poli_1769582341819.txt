@@ -1,0 +1,123 @@
+Polish Mobile Filters UX (Do NOT Break Desktop)
+
+Goal:
+Polish and modernize the mobile filter experience on the Explore page so it feels clean, intentional, and app-quality. Desktop layout should remain unchanged.
+
+Requirements (READ CAREFULLY)
+
+1. Desktop (≥1024px)
+
+Keep the current sidebar filter layout exactly as is
+
+No visual or structural changes on desktop
+
+Filters remain visible inline on the right
+
+2. Mobile (≤768px) – Major Improvements Needed
+Replace the current mobile filter behavior with a dedicated slide-up filter panel (bottom sheet).
+
+Mobile Filter Behavior
+
+When the “Filters” button is tapped:
+
+Open a full-width bottom sheet that slides up from the bottom
+
+Overlay the screen with a subtle dark backdrop
+
+Lock background scrolling while open
+
+The filter panel should:
+
+Have rounded top corners
+
+Be vertically scrollable
+
+Respect safe-area spacing (no content cut off)
+
+Mobile Filter Panel Layout (Order Matters)
+
+Inside the panel, organize filters in this order:
+
+Header
+
+Title: “Filters”
+
+Right-aligned ✕ close icon
+
+Optional “Reset” action (top right or bottom)
+
+Sort By
+
+Dropdown (full width)
+
+Breed Selection
+
+Use a clean two-column checkbox grid
+
+Adequate spacing between items
+
+Avoid cramped vertical stacking
+
+Age Range
+
+Slider with clear min/max labels
+
+Gender
+
+Dropdown (full width)
+
+Location
+
+Dropdown (full width)
+
+Price Range
+
+Slider with min/max values visible
+
+Quick Filters
+
+Stack checkboxes vertically
+
+Clear labels, larger tap targets
+
+Footer (Sticky)
+
+Primary button: “Apply Filters”
+
+Secondary text button: “Clear All”
+
+Footer stays visible while scrolling
+
+Design Rules
+
+Increase padding and vertical spacing for touch usability
+
+Use consistent font sizes (no tiny labels)
+
+No overlapping or compressed elements
+
+No horizontal scrolling
+
+Buttons must be easy to tap with thumbs
+
+Match existing color palette and typography
+
+Technical Constraints
+
+Use responsive logic (media queries or JS breakpoints)
+
+Reuse existing filter logic/state — UI change only
+
+Do NOT remove or break filtering functionality
+
+Do NOT introduce new libraries
+
+Final Check
+
+After implementation:
+
+Desktop filters must look identical to before
+
+Mobile filters must feel like a modern marketplace app (Airbnb / Zillow style)
+
+No layout jumps, no clipped content, no awkward stacking
