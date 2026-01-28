@@ -67,16 +67,16 @@ hr,
   border-color: #e5e7eb !important;
 }
 
-/* === REMOVE YELLOW FROM ANY GRADIENT LINES === */
-[class*="gradient-to"],
+/* === REMOVE YELLOW FROM GRADIENT COLORS ONLY === */
 [class*="from-yellow"],
 [class*="to-yellow"],
 [class*="via-yellow"],
 [class*="from-amber"],
 [class*="to-amber"],
 [class*="via-amber"] {
-  background-image: none !important;
-  background-color: #e5e7eb !important;
+  --tw-gradient-from: #3b82f6 !important;
+  --tw-gradient-to: #3b82f6 !important;
+  --tw-gradient-via: #3b82f6 !important;
 }
 
 /* Eliminate yellow from ALL elements - universal selector with high specificity */
