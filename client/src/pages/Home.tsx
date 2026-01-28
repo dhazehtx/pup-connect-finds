@@ -99,7 +99,7 @@ const Home = () => {
           {/* Title - Mobile: 40px extra-bold hook, Desktop: 64px - INLINE STYLES to override all CSS */}
           <h1
             style={{
-              fontSize: '68px',
+              fontSize: '100px',
               fontWeight: 900,
               lineHeight: '1.02',
               letterSpacing: '-0.04em',
