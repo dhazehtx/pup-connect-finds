@@ -597,13 +597,14 @@ const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
           <Button 
             variant="outline" 
             onClick={clearAllFilters}
-            className="flex-1 h-12 text-base font-medium"
+            className="flex-1 h-12 text-base font-medium border-gray-300 text-gray-700 hover:bg-gray-50"
+            style={{ backgroundColor: '#ffffff' }}
           >
             Clear All
           </Button>
           <Button 
             onClick={handleApplyFilters}
-            className="flex-1 h-12 text-base font-medium"
+            className="flex-1 h-12 text-base font-medium text-white"
             style={{ backgroundColor: '#0074d4' }}
           >
             Apply Filters

@@ -207,6 +207,36 @@ button[class*="amber"],
   color: #ffffff !important;
 }
 
+/* Filter bottom sheet buttons - force clean white/blue theme */
+.fixed button[class*="outline"],
+[class*="bottom-0"] button[class*="outline"],
+.sticky button[class*="outline"] {
+  background-color: #ffffff !important;
+  border-color: #d1d5db !important;
+  color: #374151 !important;
+}
+
+.fixed button[class*="outline"]:hover,
+[class*="bottom-0"] button[class*="outline"]:hover,
+.sticky button[class*="outline"]:hover {
+  background-color: #f9fafb !important;
+}
+
+/* Force ALL variant="outline" buttons to use gray/white theme, never yellow */
+button[data-slot="button"][class*="border"],
+.btn-outline,
+button.border {
+  background-color: #ffffff !important;
+  border-color: #e5e7eb !important;
+  color: #374151 !important;
+}
+
+button[data-slot="button"][class*="border"]:hover,
+.btn-outline:hover,
+button.border:hover {
+  background-color: #f3f4f6 !important;
+}
+
 /* Tab styling - ensure proper blue theme */
 [role="tablist"],
 .tabs-list,
