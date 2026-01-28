@@ -84,9 +84,19 @@ const Index = () => {
       <div className="container mx-auto px-4 py-16">
         {/* Hero Section */}
         <div className="text-center max-w-4xl mx-auto mb-16">
-          <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6">
+          <h1
+            style={{
+              fontSize: '46px',
+              fontWeight: 800,
+              lineHeight: 1.1,
+              letterSpacing: '-0.02em',
+              marginBottom: '1.5rem',
+            }}
+            className="text-gray-900 md:text-[64px]"
+          >
             Find Your Perfect Puppy Companion
           </h1>
+
           <p className="text-xl md:text-2xl text-gray-600 mb-12">
             Connect with verified breeders and discover adorable, healthy puppies waiting for their forever homes.
           </p>
