@@ -26,7 +26,11 @@ import {
   Calendar,
   DollarSign,
   Award,
-  Star
+  Star,
+  Dog,
+  Home,
+  Navigation,
+  Clock
 } from 'lucide-react';
 
 interface AdvancedFiltersProps {
@@ -65,13 +69,18 @@ const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
   const [filters, setFilters] = useState({
     breeds: [] as string[],
     ageRange: [0, 10] as [number, number],
+    ageCategory: '' as '' | 'puppy' | 'young' | 'adult',
+    size: [] as string[],
     gender: 'all' as 'all' | 'male' | 'female',
     location: '',
+    distanceRadius: '' as '' | '25' | '50' | '100' | 'local',
     priceRange: [0, 5000] as [number, number],
     sortBy: 'newest' as 'newest' | 'price_low' | 'price_high' | 'verified' | 'popular',
     verifiedOnly: false,
     healthTested: false,
     vaccinated: false,
+    breederType: [] as string[],
+    availability: '' as '' | 'available' | 'coming_soon' | 'reserved',
     keywords: ''
   });
 
@@ -134,13 +143,18 @@ const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
     const defaultFilters = {
       breeds: [],
       ageRange: [0, 10] as [number, number],
+      ageCategory: '' as '' | 'puppy' | 'young' | 'adult',
+      size: [] as string[],
       gender: 'all' as 'all' | 'male' | 'female',
       location: '',
+      distanceRadius: '' as '' | '25' | '50' | '100' | 'local',
       priceRange: [0, 5000] as [number, number],
       sortBy: 'newest' as 'newest' | 'price_low' | 'price_high' | 'verified' | 'popular',
       verifiedOnly: false,
       healthTested: false,
       vaccinated: false,
+      breederType: [] as string[],
+      availability: '' as '' | 'available' | 'coming_soon' | 'reserved',
       keywords: ''
     };
     setFilters(defaultFilters);
@@ -152,14 +166,53 @@ const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
     let count = 0;
     if (filters.breeds.length > 0) count++;
     if (filters.ageRange[0] > 0 || filters.ageRange[1] < 10) count++;
+    if (filters.ageCategory) count++;
+    if (filters.size.length > 0) count++;
     if (filters.gender !== 'all') count++;
     if (filters.location) count++;
+    if (filters.distanceRadius) count++;
     if (filters.priceRange[0] > 0 || filters.priceRange[1] < 5000) count++;
     if (filters.verifiedOnly) count++;
     if (filters.healthTested) count++;
     if (filters.vaccinated) count++;
+    if (filters.breederType.length > 0) count++;
+    if (filters.availability) count++;
     if (searchQuery) count++;
     return count;
+  };
+
+  // Helper for age category selection
+  const selectAgeCategory = (category: '' | 'puppy' | 'young' | 'adult') => {
+    let newRange: [number, number] = [0, 10];
+    if (category === 'puppy') newRange = [0, 1];
+    else if (category === 'young') newRange = [1, 3];
+    else if (category === 'adult') newRange = [3, 15];
+    
+    setFilters(prev => ({
+      ...prev,
+      ageCategory: prev.ageCategory === category ? '' : category,
+      ageRange: prev.ageCategory === category ? [0, 10] : newRange
+    }));
+  };
+
+  // Helper for size toggle
+  const toggleSize = (size: string) => {
+    setFilters(prev => ({
+      ...prev,
+      size: prev.size.includes(size)
+        ? prev.size.filter(s => s !== size)
+        : [...prev.size, size]
+    }));
+  };
+
+  // Helper for breeder type toggle
+  const toggleBreederType = (type: string) => {
+    setFilters(prev => ({
+      ...prev,
+      breederType: prev.breederType.includes(type)
+        ? prev.breederType.filter(t => t !== type)
+        : [...prev.breederType, type]
+    }));
   };
 
   const activeFiltersCount = getActiveFiltersCount();
@@ -189,6 +242,80 @@ const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
             <SelectItem value="popular">Most Popular</SelectItem>
           </SelectContent>
         </Select>
+      </div>
+
+      {/* Age Category - Pill Buttons */}
+      <div className="space-y-3">
+        <label className="text-sm font-medium flex items-center gap-2">
+          <Calendar className="w-4 h-4" />
+          Age Category
+        </label>
+        <div className="flex flex-wrap gap-2">
+          {[
+            { value: 'puppy', label: 'Puppy (0-1 yr)' },
+            { value: 'young', label: 'Young (1-3 yrs)' },
+            { value: 'adult', label: 'Adult (3+ yrs)' }
+          ].map(({ value, label }) => (
+            <button
+              key={value}
+              onClick={() => selectAgeCategory(value as 'puppy' | 'young' | 'adult')}
+              className={`px-4 py-2 rounded-full text-sm font-medium transition-colors min-h-[44px] ${
+                filters.ageCategory === value
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Age Range Slider */}
+      <div className="space-y-3">
+        <label className="text-sm font-medium">
+          Age Range: {filters.ageRange[0]} - {filters.ageRange[1]} years
+        </label>
+        <div className="px-2">
+          <Slider
+            value={filters.ageRange}
+            onValueChange={(value) => {
+              updateFilter('ageRange', value as [number, number]);
+              updateFilter('ageCategory', '');
+            }}
+            min={0}
+            max={15}
+            step={1}
+            className="w-full"
+          />
+          <div className="flex justify-between text-xs text-gray-500 mt-1">
+            <span>0 years</span>
+            <span>15 years</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Size / Weight Filter */}
+      <div className="space-y-3">
+        <label className="text-sm font-medium flex items-center gap-2">
+          <Dog className="w-4 h-4" />
+          Size / Adult Weight
+        </label>
+        <div className="flex flex-wrap gap-2">
+          {['Small', 'Medium', 'Large'].map((size) => (
+            <button
+              key={size}
+              onClick={() => toggleSize(size)}
+              className={`px-4 py-2 rounded-full text-sm font-medium transition-colors min-h-[44px] ${
+                filters.size.includes(size)
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              {size}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Breeds - Two column grid on mobile */}
@@ -227,28 +354,6 @@ const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
         )}
       </div>
 
-      {/* Age Range */}
-      <div className="space-y-3">
-        <label className="text-sm font-medium flex items-center gap-2">
-          <Calendar className="w-4 h-4" />
-          Age Range: {filters.ageRange[0]} - {filters.ageRange[1]} years
-        </label>
-        <div className="px-2">
-          <Slider
-            value={filters.ageRange}
-            onValueChange={(value) => updateFilter('ageRange', value as [number, number])}
-            min={0}
-            max={15}
-            step={1}
-            className="w-full"
-          />
-          <div className="flex justify-between text-xs text-gray-500 mt-1">
-            <span>0 years</span>
-            <span>15 years</span>
-          </div>
-        </div>
-      </div>
-
       {/* Gender */}
       <div className="space-y-3">
         <label className="text-sm font-medium">Gender</label>
@@ -283,6 +388,34 @@ const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
         </Select>
       </div>
 
+      {/* Distance Radius */}
+      <div className="space-y-3">
+        <label className="text-sm font-medium flex items-center gap-2">
+          <Navigation className="w-4 h-4" />
+          Distance
+        </label>
+        <div className="flex flex-wrap gap-2">
+          {[
+            { value: '25', label: '25 mi' },
+            { value: '50', label: '50 mi' },
+            { value: '100', label: '100 mi' },
+            { value: 'local', label: 'Local Only' }
+          ].map(({ value, label }) => (
+            <button
+              key={value}
+              onClick={() => updateFilter('distanceRadius', filters.distanceRadius === value ? '' : value)}
+              className={`px-4 py-2 rounded-full text-sm font-medium transition-colors min-h-[44px] ${
+                filters.distanceRadius === value
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+      </div>
+
       {/* Price Range */}
       <div className="space-y-3">
         <label className="text-sm font-medium flex items-center gap-2">
@@ -302,6 +435,60 @@ const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
             <span>$0</span>
             <span>$10,000</span>
           </div>
+        </div>
+      </div>
+
+      {/* Breeder Type */}
+      <div className="space-y-3">
+        <label className="text-sm font-medium flex items-center gap-2">
+          <Home className="w-4 h-4" />
+          Breeder Type
+        </label>
+        <div className="space-y-3">
+          {[
+            { value: 'verified', label: 'Verified Breeder' },
+            { value: 'shelter', label: 'Shelter / Rescue' },
+            { value: 'rehoming', label: 'Rehoming' }
+          ].map(({ value, label }) => (
+            <div key={value} className="flex items-center space-x-3 min-h-[44px]">
+              <Checkbox
+                id={`breeder-${value}`}
+                checked={filters.breederType.includes(value)}
+                onCheckedChange={() => toggleBreederType(value)}
+                className="h-5 w-5"
+              />
+              <label htmlFor={`breeder-${value}`} className="text-sm font-medium cursor-pointer">
+                {label}
+              </label>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Availability */}
+      <div className="space-y-3">
+        <label className="text-sm font-medium flex items-center gap-2">
+          <Clock className="w-4 h-4" />
+          Availability
+        </label>
+        <div className="flex flex-wrap gap-2">
+          {[
+            { value: 'available', label: 'Available Now' },
+            { value: 'coming_soon', label: 'Coming Soon' },
+            { value: 'reserved', label: 'Reserved' }
+          ].map(({ value, label }) => (
+            <button
+              key={value}
+              onClick={() => updateFilter('availability', filters.availability === value ? '' : value)}
+              className={`px-4 py-2 rounded-full text-sm font-medium transition-colors min-h-[44px] ${
+                filters.availability === value
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              {label}
+            </button>
+          ))}
         </div>
       </div>
 
@@ -483,7 +670,7 @@ const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
       {isOpen && (
         <Card className="mb-4">
           <CardContent className="pt-6">
-            {/* Filter Grid - 4 columns on large screens, 2 on medium */}
+            {/* Row 1: Sort, Gender, Location, Quick Filters */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
               {/* Sort By */}
               <div className="space-y-2">
@@ -574,9 +761,109 @@ const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
               </div>
             </div>
 
-            {/* Second Row - Breeds and Sliders */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
-              {/* Breeds - Takes 1 column */}
+            {/* Row 2: Age Category, Size, Distance, Availability */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 mt-6">
+              {/* Age Category */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium flex items-center gap-2">
+                  <Calendar className="w-4 h-4 text-blue-600" />
+                  Age Category
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  {[
+                    { value: 'puppy', label: 'Puppy' },
+                    { value: 'young', label: 'Young' },
+                    { value: 'adult', label: 'Adult' }
+                  ].map(({ value, label }) => (
+                    <Badge
+                      key={value}
+                      variant={filters.ageCategory === value ? "default" : "outline"}
+                      className="cursor-pointer px-3 py-1"
+                      onClick={() => selectAgeCategory(value as 'puppy' | 'young' | 'adult')}
+                      style={filters.ageCategory === value ? { backgroundColor: '#0074d4' } : {}}
+                    >
+                      {label}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+
+              {/* Size */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium flex items-center gap-2">
+                  <Dog className="w-4 h-4 text-blue-600" />
+                  Size
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  {['Small', 'Medium', 'Large'].map((size) => (
+                    <Badge
+                      key={size}
+                      variant={filters.size.includes(size) ? "default" : "outline"}
+                      className="cursor-pointer px-3 py-1"
+                      onClick={() => toggleSize(size)}
+                      style={filters.size.includes(size) ? { backgroundColor: '#0074d4' } : {}}
+                    >
+                      {size}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+
+              {/* Distance */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium flex items-center gap-2">
+                  <Navigation className="w-4 h-4 text-blue-600" />
+                  Distance
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  {[
+                    { value: '25', label: '25 mi' },
+                    { value: '50', label: '50 mi' },
+                    { value: '100', label: '100 mi' },
+                    { value: 'local', label: 'Local' }
+                  ].map(({ value, label }) => (
+                    <Badge
+                      key={value}
+                      variant={filters.distanceRadius === value ? "default" : "outline"}
+                      className="cursor-pointer px-3 py-1"
+                      onClick={() => updateFilter('distanceRadius', filters.distanceRadius === value ? '' : value)}
+                      style={filters.distanceRadius === value ? { backgroundColor: '#0074d4' } : {}}
+                    >
+                      {label}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+
+              {/* Availability */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium flex items-center gap-2">
+                  <Clock className="w-4 h-4 text-blue-600" />
+                  Availability
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  {[
+                    { value: 'available', label: 'Available' },
+                    { value: 'coming_soon', label: 'Coming Soon' },
+                    { value: 'reserved', label: 'Reserved' }
+                  ].map(({ value, label }) => (
+                    <Badge
+                      key={value}
+                      variant={filters.availability === value ? "default" : "outline"}
+                      className="cursor-pointer px-3 py-1"
+                      onClick={() => updateFilter('availability', filters.availability === value ? '' : value)}
+                      style={filters.availability === value ? { backgroundColor: '#0074d4' } : {}}
+                    >
+                      {label}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Row 3: Breeds, Breeder Type, Age Slider, Price Slider */}
+            <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mt-6">
+              {/* Breeds */}
               <div className="space-y-2">
                 <label className="text-sm font-medium">Dog Breeds</label>
                 <div className="grid grid-cols-2 gap-2 max-h-40 overflow-y-auto border rounded-lg p-3 bg-gray-50">
@@ -608,24 +895,56 @@ const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
                 )}
               </div>
 
+              {/* Breeder Type */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium flex items-center gap-2">
+                  <Home className="w-4 h-4 text-blue-600" />
+                  Breeder Type
+                </label>
+                <div className="space-y-2 border rounded-lg p-3 bg-gray-50">
+                  {[
+                    { value: 'verified', label: 'Verified Breeder' },
+                    { value: 'shelter', label: 'Shelter / Rescue' },
+                    { value: 'rehoming', label: 'Rehoming' }
+                  ].map(({ value, label }) => (
+                    <div key={value} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={`breeder-desktop-${value}`}
+                        checked={filters.breederType.includes(value)}
+                        onCheckedChange={() => toggleBreederType(value)}
+                      />
+                      <label
+                        htmlFor={`breeder-desktop-${value}`}
+                        className="text-xs font-medium leading-none cursor-pointer"
+                      >
+                        {label}
+                      </label>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
               {/* Age Range */}
               <div className="space-y-2">
                 <label className="text-sm font-medium flex items-center gap-2">
                   <Calendar className="w-4 h-4 text-blue-600" />
-                  Age Range: {filters.ageRange[0]} - {filters.ageRange[1]} years
+                  Age: {filters.ageRange[0]} - {filters.ageRange[1]} yrs
                 </label>
                 <div className="px-2 pt-4">
                   <Slider
                     value={filters.ageRange}
-                    onValueChange={(value) => updateFilter('ageRange', value as [number, number])}
+                    onValueChange={(value) => {
+                      updateFilter('ageRange', value as [number, number]);
+                      updateFilter('ageCategory', '');
+                    }}
                     min={0}
                     max={15}
                     step={1}
                     className="w-full"
                   />
                   <div className="flex justify-between text-xs text-gray-500 mt-2">
-                    <span>0 years</span>
-                    <span>15 years</span>
+                    <span>0 yrs</span>
+                    <span>15 yrs</span>
                   </div>
                 </div>
               </div>
@@ -634,7 +953,7 @@ const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
               <div className="space-y-2">
                 <label className="text-sm font-medium flex items-center gap-2">
                   <DollarSign className="w-4 h-4 text-blue-600" />
-                  Price Range: ${filters.priceRange[0].toLocaleString()} - ${filters.priceRange[1].toLocaleString()}
+                  ${filters.priceRange[0].toLocaleString()} - ${filters.priceRange[1].toLocaleString()}
                 </label>
                 <div className="px-2 pt-4">
                   <Slider
@@ -647,7 +966,7 @@ const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
                   />
                   <div className="flex justify-between text-xs text-gray-500 mt-2">
                     <span>$0</span>
-                    <span>$10,000</span>
+                    <span>$10k</span>
                   </div>
                 </div>
               </div>
