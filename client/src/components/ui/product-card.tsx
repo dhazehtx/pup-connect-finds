@@ -86,7 +86,7 @@ export function ProductCard({ product, onQuickView }: ProductCardProps) {
               )}
             </div>
             <div className="flex items-center text-sm text-muted-foreground">
-              <Star className="h-4 w-4 fill-yellow-400 text-yellow-400 mr-1" />
+              <Star className="h-4 w-4 fill-blue-500 text-blue-500 mr-1" />
               <span>4.8 (42 reviews)</span>
             </div>
           </div>

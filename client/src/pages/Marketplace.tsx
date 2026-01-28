@@ -21,7 +21,7 @@ const Marketplace = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-warm-50">
+    <div className="min-h-screen bg-white">
       {/* Hero Ad Banner */}
       <div className="container mx-auto px-4 py-6">
         <AdBanner targetPage="marketplace" format="banner" className="mb-6" />

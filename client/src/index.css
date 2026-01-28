@@ -19,6 +19,66 @@ main,
   background: #ffffff !important;
 }
 
+/* === STAR RATINGS - Convert all yellow stars to blue === */
+.fill-yellow-400,
+.fill-yellow-500,
+.fill-amber-400,
+.fill-amber-500,
+[class*="fill-yellow"],
+[class*="fill-amber"] {
+  fill: #3b82f6 !important;
+}
+
+.text-yellow-400,
+.text-yellow-500,
+.text-amber-400,
+.text-amber-500,
+[class*="text-yellow"],
+[class*="text-amber"] {
+  color: #3b82f6 !important;
+}
+
+/* === HEART ICONS - Remove any yellow borders/outlines === */
+button[class*="heart"],
+[class*="Heart"],
+.heart-btn,
+button:has(svg[class*="heart"]) {
+  border-color: #e5e7eb !important;
+  outline-color: #e5e7eb !important;
+}
+
+button:focus svg,
+button:active svg {
+  stroke: currentColor !important;
+}
+
+/* === FILTER SHEET - Force all borders to gray === */
+[class*="fixed"] [class*="rounded"],
+[class*="bottom-0"] [class*="rounded"],
+.sticky,
+.filter-sheet {
+  border-color: #e5e7eb !important;
+}
+
+/* === UNDERLINES & DIVIDERS - Force gray only === */
+[class*="border-b"],
+hr,
+.divider {
+  border-color: #e5e7eb !important;
+}
+
+/* === REMOVE YELLOW FROM ANY GRADIENT LINES === */
+[class*="gradient-to"],
+[class*="from-yellow"],
+[class*="to-yellow"],
+[class*="via-yellow"],
+[class*="from-amber"],
+[class*="to-amber"],
+[class*="via-amber"] {
+  background-image: none !important;
+  background-color: #e5e7eb !important;
+}
+
 /* Eliminate yellow from ALL elements - universal selector with high specificity */
 *:not(.bg-green-100):not(.bg-green-500):not(.bg-red-100):not(.bg-red-500):not(.bg-blue-100):not(.bg-blue-500):not(.bg-primary):not(.bg-primary-600):not(.gradient-blue-violet):not([class*="gradient"]) {
   --tw-bg-opacity: 1;
