@@ -22,8 +22,10 @@
     background: #ffffff !important;
   }
   
-  /* All cards - white backgrounds */
-  .card, [class*="Card"], [class*="card"],
+  /* All cards - white backgrounds (except gradient areas) */
+  .card:not(.pup-box-gradient), 
+  [class*="Card"]:not(.pup-box-gradient), 
+  [class*="card"]:not(.pup-box-gradient):not(.product-card__image),
   .service-card, .provider-card, .listing-card,
   .post-card, .user-card {
     background-color: #ffffff !important;
@@ -1172,5 +1174,40 @@
     max-width: 90%;
     margin: 0 auto 32px;
     color: #6b7280;
+  }
+}
+
+/* ============================================================
+   FINAL MOBILE OVERRIDE: PUP BOX GIFT ICON GRADIENT
+   Maximum specificity rules at the end of the file
+   ============================================================ */
+@media (max-width: 768px) {
+  /* Force gradient on pup box card image areas */
+  html body .pup-box-gradient,
+  html body .product-card__image.pup-box-gradient,
+  html body div.pup-box-gradient,
+  .pup-box-gradient,
+  .product-card__image.pup-box-gradient {
+    background: linear-gradient(135deg, #0074D4 0%, #6366f1 50%, #8b5cf6 100%) !important;
+    background-color: transparent !important;
+    background-image: linear-gradient(135deg, #0074D4 0%, #6366f1 50%, #8b5cf6 100%) !important;
+  }
+  
+  /* Force white gift icon */
+  html body .pup-box-gradient svg,
+  html body .pup-box-card-icon svg,
+  .pup-box-gradient svg,
+  .pup-box-card-icon svg {
+    color: #ffffff !important;
+    fill: #ffffff !important;
+    stroke: none !important;
+  }
+  
+  /* Force white semi-transparent circle background */
+  html body .pup-box-card-icon,
+  .pup-box-card-icon {
+    background: rgba(255, 255, 255, 0.25) !important;
+    background-color: rgba(255, 255, 255, 0.25) !important;
+    border-color: rgba(255, 255, 255, 0.4) !important;
   }
 }
