@@ -236,9 +236,15 @@
     .greeting-hero h1 {
       font-size: 74px;
       font-weight: 900;
-      line-height: 1.05;
-      letter-spacing: -0.03em;
+      line-height: 1.14;
+      letter-spacing: -0.015em;
       margin-bottom: 24px;
+      max-width: 90%;
+      margin-left: auto;
+      margin-right: auto;
+      white-space: normal;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
     }
     
     h2 {
@@ -1163,9 +1169,15 @@
   .greeting-hero h1 {
     font-size: 74px;
     font-weight: 900;
-    line-height: 1.05;
-    letter-spacing: -0.03em;
+    line-height: 1.14;
+    letter-spacing: -0.015em;
     margin-bottom: 24px;
+    max-width: 90%;
+    margin-left: auto;
+    margin-right: auto;
+    white-space: normal;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
   }
   
   /* Subtitle with proper spacing */
