@@ -234,11 +234,11 @@
     
     /* Greeting hero headline - large marketing hook */
     .greeting-hero h1 {
-      font-size: 42px !important;
-      font-weight: 900 !important;
-      line-height: 1.1 !important;
-      letter-spacing: -0.02em !important;
-      margin-bottom: 20px !important;
+      font-size: 74px;
+      font-weight: 900;
+      line-height: 1.05;
+      letter-spacing: -0.03em;
+      margin-bottom: 24px;
     }
     
     h2 {
@@ -1149,30 +1149,31 @@
    Forces large marketing "hook" headline on greeting page
    ============================================ */
 
-/* Desktop: 56px refined */
+/* Desktop: 58px refined */
 .greeting-hero h1 {
-  font-size: 56px;
+  font-size: 58px;
   font-weight: 800;
-  line-height: 1.08;
+  line-height: 1.1;
   letter-spacing: -0.02em;
+  margin-bottom: 20px;
 }
 
-/* Mobile: 42px bold hero hook */
+/* Mobile: 74px bold hero hook */
 @media (max-width: 768px) {
   .greeting-hero h1 {
-    font-size: 42px !important;
-    font-weight: 900 !important;
-    line-height: 1.1 !important;
-    letter-spacing: -0.02em !important;
-    margin-bottom: 20px !important;
+    font-size: 74px;
+    font-weight: 900;
+    line-height: 1.05;
+    letter-spacing: -0.03em;
+    margin-bottom: 24px;
   }
   
   /* Subtitle with proper spacing */
   .greeting-hero p {
-    font-size: 16px;
+    font-size: 17px;
     line-height: 1.6;
     max-width: 90%;
-    margin: 0 auto 28px;
+    margin: 0 auto 32px;
     color: #6b7280;
   }
 }
