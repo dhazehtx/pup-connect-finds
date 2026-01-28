@@ -431,84 +431,254 @@ const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
     </>
   );
 
-  // Desktop layout (unchanged)
+  // Desktop layout - Full width grid
   const DesktopFilters = () => (
-    <Card className={className}>
-      <CardHeader className="pb-3">
-        <div className="flex items-center gap-3">
-          {/* Search Bar */}
-          <div className="flex-1 relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              type="text"
-              placeholder="Search by keywords, breed, location..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10"
-            />
-          </div>
-
-          {/* Filter Toggle */}
-          <Collapsible open={isOpen} onOpenChange={setIsOpen}>
-            <CollapsibleTrigger asChild>
-              <Button 
-                variant="outline" 
-                className="relative"
-                style={{
-                  backgroundColor: '#ffffff',
-                  color: '#374151',
-                  borderColor: '#d1d5db'
-                }}
-              >
-                <Filter className="w-4 h-4 mr-2" style={{ color: '#0074d4' }} />
-                Filters
-                {activeFiltersCount > 0 && (
-                  <Badge 
-                    variant="destructive" 
-                    className="absolute -top-2 -right-2 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs"
-                  >
-                    {activeFiltersCount}
-                  </Badge>
-                )}
-                <ChevronDown className="w-4 h-4 ml-2" />
+    <div className={className}>
+      {/* Search Bar Row */}
+      <Card className="mb-4">
+        <CardHeader className="pb-3">
+          <div className="flex items-center gap-3">
+            <div className="flex-1 relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                type="text"
+                placeholder="Search by keywords, breed, location..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+            <Button 
+              variant="outline" 
+              className="relative"
+              onClick={() => setIsOpen(!isOpen)}
+              style={{
+                backgroundColor: isOpen ? '#0074d4' : '#ffffff',
+                color: isOpen ? '#ffffff' : '#374151',
+                borderColor: '#0074d4'
+              }}
+            >
+              <Filter className="w-4 h-4 mr-2" style={{ color: isOpen ? '#ffffff' : '#0074d4' }} />
+              {isOpen ? 'Hide Filters' : 'Show Filters'}
+              {activeFiltersCount > 0 && (
+                <Badge 
+                  className="absolute -top-2 -right-2 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs"
+                  style={{ backgroundColor: '#ef4444', color: '#ffffff' }}
+                >
+                  {activeFiltersCount}
+                </Badge>
+              )}
+            </Button>
+            {activeFiltersCount > 0 && (
+              <Button variant="ghost" size="sm" onClick={clearAllFilters}>
+                <X className="w-4 h-4 mr-1" />
+                Clear All
               </Button>
-            </CollapsibleTrigger>
+            )}
+          </div>
+        </CardHeader>
+      </Card>
 
-            <CollapsibleContent>
-              <CardContent className="pt-4 space-y-6">
-                {/* Quick Actions */}
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-lg">Advanced Filters</CardTitle>
-                  {activeFiltersCount > 0 && (
-                    <Button variant="ghost" size="sm" onClick={clearAllFilters}>
-                      <X className="w-4 h-4 mr-1" />
-                      Clear All
-                    </Button>
-                  )}
+      {/* Full Width Filter Grid */}
+      {isOpen && (
+        <Card className="mb-4">
+          <CardContent className="pt-6">
+            {/* Filter Grid - 4 columns on large screens, 2 on medium */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+              {/* Sort By */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium flex items-center gap-2">
+                  <Star className="w-4 h-4 text-blue-600" />
+                  Sort By
+                </label>
+                <Select value={filters.sortBy} onValueChange={(value) => updateFilter('sortBy', value)}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="newest">Newest First</SelectItem>
+                    <SelectItem value="price_low">Price: Low to High</SelectItem>
+                    <SelectItem value="price_high">Price: High to Low</SelectItem>
+                    <SelectItem value="verified">Verified Breeders Only</SelectItem>
+                    <SelectItem value="popular">Most Popular</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Gender */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Gender</label>
+                <Select value={filters.gender} onValueChange={(value) => updateFilter('gender', value)}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Genders</SelectItem>
+                    <SelectItem value="male">Male</SelectItem>
+                    <SelectItem value="female">Female</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Location */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium flex items-center gap-2">
+                  <MapPin className="w-4 h-4 text-blue-600" />
+                  Location
+                </label>
+                <Select value={filters.location} onValueChange={(value) => updateFilter('location', value)}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select state..." />
+                  </SelectTrigger>
+                  <SelectContent className="max-h-60">
+                    <SelectItem value="all">All Locations</SelectItem>
+                    {US_STATES.map(state => (
+                      <SelectItem key={state} value={state}>{state}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Quick Filters */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium flex items-center gap-2">
+                  <Award className="w-4 h-4 text-blue-600" />
+                  Quick Filters
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  <Badge 
+                    variant={filters.verifiedOnly ? "default" : "outline"}
+                    className="cursor-pointer px-3 py-1"
+                    onClick={() => updateFilter('verifiedOnly', !filters.verifiedOnly)}
+                    style={filters.verifiedOnly ? { backgroundColor: '#0074d4' } : {}}
+                  >
+                    Verified
+                  </Badge>
+                  <Badge 
+                    variant={filters.healthTested ? "default" : "outline"}
+                    className="cursor-pointer px-3 py-1"
+                    onClick={() => updateFilter('healthTested', !filters.healthTested)}
+                    style={filters.healthTested ? { backgroundColor: '#0074d4' } : {}}
+                  >
+                    Health Tested
+                  </Badge>
+                  <Badge 
+                    variant={filters.vaccinated ? "default" : "outline"}
+                    className="cursor-pointer px-3 py-1"
+                    onClick={() => updateFilter('vaccinated', !filters.vaccinated)}
+                    style={filters.vaccinated ? { backgroundColor: '#0074d4' } : {}}
+                  >
+                    Vaccinated
+                  </Badge>
                 </div>
+              </div>
+            </div>
 
-                <FilterContent />
-
-                {/* Filter Summary */}
-                {activeFiltersCount > 0 && (
-                  <div className="bg-blue-50 p-3 rounded-lg">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Filter className="w-4 h-4 text-blue-600" />
-                      <span className="text-sm font-medium text-blue-900">
-                        {activeFiltersCount} filter{activeFiltersCount !== 1 ? 's' : ''} applied
-                      </span>
+            {/* Second Row - Breeds and Sliders */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
+              {/* Breeds - Takes 1 column */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Dog Breeds</label>
+                <div className="grid grid-cols-2 gap-2 max-h-40 overflow-y-auto border rounded-lg p-3 bg-gray-50">
+                  {DOG_BREEDS.map((breed) => (
+                    <div key={breed} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={`desktop-${breed}`}
+                        checked={filters.breeds.includes(breed)}
+                        onCheckedChange={() => toggleBreed(breed)}
+                      />
+                      <label
+                        htmlFor={`desktop-${breed}`}
+                        className="text-xs font-medium leading-none cursor-pointer"
+                      >
+                        {breed}
+                      </label>
                     </div>
-                    <p className="text-xs text-blue-800">
-                      Filters are automatically saved and will be restored when you return.
-                    </p>
+                  ))}
+                </div>
+                {filters.breeds.length > 0 && (
+                  <div className="flex flex-wrap gap-1">
+                    {filters.breeds.map(breed => (
+                      <Badge key={breed} variant="secondary" className="text-xs">
+                        {breed}
+                        <X className="w-3 h-3 ml-1 cursor-pointer" onClick={() => toggleBreed(breed)} />
+                      </Badge>
+                    ))}
                   </div>
                 )}
-              </CardContent>
-            </CollapsibleContent>
-          </Collapsible>
-        </div>
-      </CardHeader>
-    </Card>
+              </div>
+
+              {/* Age Range */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium flex items-center gap-2">
+                  <Calendar className="w-4 h-4 text-blue-600" />
+                  Age Range: {filters.ageRange[0]} - {filters.ageRange[1]} years
+                </label>
+                <div className="px-2 pt-4">
+                  <Slider
+                    value={filters.ageRange}
+                    onValueChange={(value) => updateFilter('ageRange', value as [number, number])}
+                    min={0}
+                    max={15}
+                    step={1}
+                    className="w-full"
+                  />
+                  <div className="flex justify-between text-xs text-gray-500 mt-2">
+                    <span>0 years</span>
+                    <span>15 years</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Price Range */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium flex items-center gap-2">
+                  <DollarSign className="w-4 h-4 text-blue-600" />
+                  Price Range: ${filters.priceRange[0].toLocaleString()} - ${filters.priceRange[1].toLocaleString()}
+                </label>
+                <div className="px-2 pt-4">
+                  <Slider
+                    value={filters.priceRange}
+                    onValueChange={(value) => updateFilter('priceRange', value as [number, number])}
+                    min={0}
+                    max={10000}
+                    step={100}
+                    className="w-full"
+                  />
+                  <div className="flex justify-between text-xs text-gray-500 mt-2">
+                    <span>$0</span>
+                    <span>$10,000</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Filter Summary */}
+            {activeFiltersCount > 0 && (
+              <div className="bg-blue-50 p-3 rounded-lg mt-6 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Filter className="w-4 h-4 text-blue-600" />
+                  <span className="text-sm font-medium text-blue-900">
+                    {activeFiltersCount} filter{activeFiltersCount !== 1 ? 's' : ''} applied
+                  </span>
+                  <span className="text-xs text-blue-800 ml-2">
+                    Filters are automatically saved
+                  </span>
+                </div>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={clearAllFilters}
+                  className="text-blue-600 border-blue-600 hover:bg-blue-50"
+                >
+                  Clear All
+                </Button>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
+    </div>
   );
 
   // Mobile layout
