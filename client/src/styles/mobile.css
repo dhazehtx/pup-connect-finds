@@ -234,10 +234,11 @@
     
     /* Greeting hero headline - large marketing hook */
     .greeting-hero h1 {
-      font-size: 100px !important;
-      font-weight: 900 !important;
-      line-height: 1.02 !important;
-      letter-spacing: -0.04em !important;
+      font-size: 64px;
+      font-weight: 900;
+      line-height: 1.05;
+      letter-spacing: -0.03em;
+      margin-bottom: 24px;
     }
     
     h2 {
@@ -1148,28 +1149,30 @@
    Forces large marketing "hook" headline on greeting page
    ============================================ */
 
-/* Desktop: 80px bold */
+/* Desktop: 72px refined */
 .greeting-hero h1 {
-  font-size: 80px !important;
-  font-weight: 900 !important;
-  line-height: 1.02 !important;
-  letter-spacing: -0.04em !important;
+  font-size: 72px;
+  font-weight: 800;
+  line-height: 1.08;
+  letter-spacing: -0.02em;
 }
 
-/* Mobile: 100px extra-bold with tight spacing */
+/* Mobile: 64px bold hero hook */
 @media (max-width: 768px) {
   .greeting-hero h1 {
-    font-size: 100px !important;
-    font-weight: 900 !important;
-    line-height: 1.02 !important;
-    letter-spacing: -0.04em !important;
+    font-size: 64px;
+    font-weight: 900;
+    line-height: 1.05;
+    letter-spacing: -0.03em;
+    margin-bottom: 24px;
   }
   
-  /* Subtitle must be clearly smaller than headline */
+  /* Subtitle with proper spacing */
   .greeting-hero p {
-    font-size: 15px !important;
-    line-height: 1.5 !important;
-    max-width: 85% !important;
-    color: #6b7280 !important;
+    font-size: 16px;
+    line-height: 1.6;
+    max-width: 90%;
+    margin: 0 auto 28px;
+    color: #6b7280;
   }
 }

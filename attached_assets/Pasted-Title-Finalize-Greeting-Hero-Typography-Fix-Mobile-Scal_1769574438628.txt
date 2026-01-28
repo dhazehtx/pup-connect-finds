@@ -1,0 +1,102 @@
+Title:
+🔧 Finalize Greeting Hero Typography – Fix Mobile Scale, Restore Desktop Balance
+
+Prompt:
+
+We’ve identified the real issue:
+mobile.css contained !important rules overriding the greeting hero headline, which has now been confirmed and edited.
+
+Now we need to polish the final result, not brute-force it.
+
+GOAL
+
+Make the greeting hero headline feel equally impactful on mobile and desktop, with clean spacing and no cramped text.
+
+FILES TO EDIT (STRICT)
+
+client/src/pages/Home.tsx
+
+client/src/styles/mobile.css (or wherever mobile !important rules exist)
+
+❌ Do NOT touch any other files
+❌ Do NOT add new global styles
+❌ Do NOT add new breakpoints
+
+STEP 1 — FIX MOBILE HERO HEADLINE (PRIMARY ISSUE)
+
+For the <h1> rendering “Find Your Perfect Puppy Companion” on /greeting:
+
+Mobile (default):
+
+font-size: 64px
+
+font-weight: 900
+
+line-height: 1.05
+
+letter-spacing: -0.03em
+
+Add margin-bottom: 24px
+
+Text should NOT wrap awkwardly or overlap
+
+This should feel like a true hero hook — big, confident, instantly readable.
+
+STEP 2 — RESTORE DESKTOP BALANCE (UNDO OVERSIZE)
+
+Desktop currently feels too bold/heavy after the mobile.css change.
+
+Set desktop (md+) to:
+
+font-size: 72px
+
+font-weight: 800
+
+line-height: 1.08
+
+Keep current color styling:
+
+“Find Your Perfect” → text-gray-900
+
+“Puppy Companion” → #2363FF
+
+Desktop should feel premium and strong, not oversized.
+
+STEP 3 — FIX SPACING (CRAMPING ISSUE)
+
+Ensure:
+
+Adequate spacing between:
+
+Headline
+
+Subtext paragraph
+
+CTA buttons
+
+Increase vertical rhythm slightly on mobile
+
+No text collisions or compressed layout
+
+STEP 4 — CLEAN UP MOBILE.CSS (CRITICAL)
+
+In mobile.css:
+
+REMOVE or RELAX any !important rules that hard-lock hero <h1> font-size
+
+Do NOT force 100px
+
+Allow component-level styles to control the headline
+
+Mobile should respect the hero’s intended scale — not override it blindly.
+
+ACCEPTANCE CHECKLIST (MUST PASS)
+
+✅ Mobile hero immediately feels bold and eye-catching
+✅ Desktop hero looks strong but refined
+✅ No cramped text
+✅ No duplicated headlines
+✅ No hard-coded “100px” hacks
+✅ /greeting visually feels launch-ready
+
+Confirm when complete and specify exact final font sizes used for mobile and desktop.

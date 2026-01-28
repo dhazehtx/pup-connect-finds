@@ -97,16 +97,7 @@ const Home = () => {
       <section className="greeting-hero bg-white px-4 pt-10 pb-8 sm:py-16 text-center">
         <div className="max-w-4xl mx-auto">
           {/* Title - Mobile: 40px extra-bold hook, Desktop: 64px - INLINE STYLES to override all CSS */}
-          <h1
-            style={{
-              fontSize: '100px',
-              fontWeight: 900,
-              lineHeight: '1.02',
-              letterSpacing: '-0.04em',
-              marginBottom: '1.5rem',
-            }}
-            className="text-gray-900 md:text-[80px]"
-          >
+          <h1 className="text-gray-900">
             <span style={{ display: 'block' }}>Find Your Perfect</span>
             <span style={{ display: 'block', color: '#2363FF' }}>Puppy Companion</span>
           </h1>
