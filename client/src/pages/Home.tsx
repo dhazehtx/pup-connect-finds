@@ -111,7 +111,7 @@ const Home = () => {
                 fontSize: 'clamp(28px, 5.5vw, 44px)',
                 fontWeight: 700,
                 letterSpacing: '-0.01em',
-                marginBottom: '0.1rem',
+                marginBottom: '-0.1rem',
               }}
             >
               Find Your Perfect
