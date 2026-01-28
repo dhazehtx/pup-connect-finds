@@ -96,11 +96,42 @@ const Home = () => {
       {/* Hero Section */}
       <section className="greeting-hero bg-white px-4 pt-10 pb-8 sm:py-16 text-center">
         <div className="max-w-4xl mx-auto">
-          {/* Title - Mobile: 40px extra-bold hook, Desktop: 64px - INLINE STYLES to override all CSS */}
-          <h1 className="text-gray-900">
-            <span style={{ display: 'block' }}>Find Your Perfect</span>
-            <span style={{ display: 'block', color: '#2363FF' }}>Puppy Companion</span>
+          {/* Title - Polished hero with visual hierarchy */}
+          <h1
+            style={{
+              marginBottom: '1.75rem',
+              maxWidth: '95%',
+              marginLeft: 'auto',
+              marginRight: 'auto',
+              lineHeight: '1.05',
+            }}
+            className="text-gray-900"
+          >
+            <span
+              style={{
+                display: 'block',
+                fontSize: 'clamp(44px, 7vw, 56px)',
+                fontWeight: 800,
+                letterSpacing: '-0.02em',
+              }}
+            >
+              Find Your Perfect
+            </span>
+
+            <span
+              style={{
+                display: 'block',
+                fontSize: 'clamp(64px, 11vw, 88px)',
+                fontWeight: 900,
+                letterSpacing: '-0.025em',
+                color: '#2363FF',
+                marginTop: '0.15em',
+              }}
+            >
+              Puppy Companion
+            </span>
           </h1>
+
           
           {/* Subtitle - larger and more readable */}
           <p style={{
