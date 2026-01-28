@@ -1018,10 +1018,10 @@ const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
             />
           </div>
 
-          {/* Filter Button */}
+          {/* Filter Button - Icon only on mobile */}
           <Button 
             variant="outline" 
-            className="relative h-11 px-4"
+            className="relative h-11 w-11 p-0 flex items-center justify-center"
             onClick={() => setIsOpen(true)}
             style={{
               backgroundColor: '#ffffff',
@@ -1029,8 +1029,7 @@ const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
               borderColor: '#d1d5db'
             }}
           >
-            <Filter className="w-4 h-4 mr-2" style={{ color: '#0074d4' }} />
-            Filters
+            <Filter className="w-5 h-5" style={{ color: '#0074d4' }} />
             {activeFiltersCount > 0 && (
               <Badge 
                 className="absolute -top-2 -right-2 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs"
