@@ -99,16 +99,16 @@ const Home = () => {
           {/* Title - Mobile: 40px extra-bold hook, Desktop: 64px - INLINE STYLES to override all CSS */}
           <h1
             style={{
-              fontSize: '52px',
-              fontWeight: 800,
-              lineHeight: '1.05',
-              letterSpacing: '-0.03em',
+              fontSize: '68px',
+              fontWeight: 900,
+              lineHeight: '1.02',
+              letterSpacing: '-0.04em',
               marginBottom: '1.5rem',
             }}
-            className="text-gray-900 md:text-[64px]"
+            className="text-gray-900 md:text-[80px]"
           >
             <span style={{ display: 'block' }}>Find Your Perfect</span>
-            <span style={{ display: 'block', color: '#0074D4' }}>Puppy Companion</span>
+            <span style={{ display: 'block', color: '#2363FF' }}>Puppy Companion</span>
           </h1>
           
           {/* Subtitle - larger and more readable */}
