@@ -234,7 +234,7 @@
     
     /* Greeting hero headline - large marketing hook */
     .greeting-hero h1 {
-      font-size: 64px;
+      font-size: 80px;
       font-weight: 900;
       line-height: 1.05;
       letter-spacing: -0.03em;
@@ -1157,10 +1157,10 @@
   letter-spacing: -0.02em;
 }
 
-/* Mobile: 64px bold hero hook */
+/* Mobile: 80px bold hero hook */
 @media (max-width: 768px) {
   .greeting-hero h1 {
-    font-size: 64px;
+    font-size: 80px;
     font-weight: 900;
     line-height: 1.05;
     letter-spacing: -0.03em;
