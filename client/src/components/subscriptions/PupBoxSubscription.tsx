@@ -205,10 +205,10 @@ const PupBoxSubscription = () => {
                   {/* Subtle abstract pattern using layered gradients */}
                   <div className="absolute inset-0 pup-box-card-pattern"></div>
                   
-                  {/* Icon container - matches hero style: rounded square with semi-transparent white bg */}
-                  <div 
-                    className="relative pup-box-icon-container"
-                    style={{ 
+                  {/* Icon container - FULLY INLINE STYLED to prevent mobile CSS override */}
+                  <div
+                    className="relative w-24 h-24 rounded-3xl flex items-center justify-center shadow-2xl pup-box-icon-container"
+                    style={{
                       width: '96px',
                       height: '96px',
                       minWidth: '96px',
@@ -224,19 +224,33 @@ const PupBoxSubscription = () => {
                       boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)'
                     }}
                   >
-                    <Gift 
-                      className="pup-box-gift-icon" 
-                      style={{ 
-                        width: '48px', 
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="48"
+                      height="48"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="#ffffff"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      style={{
+                        width: '48px',
                         height: '48px',
                         minWidth: '48px',
                         minHeight: '48px',
-                        color: '#ffffff', 
-                        stroke: '#ffffff', 
+                        color: '#ffffff',
+                        stroke: '#ffffff',
                         fill: 'none',
                         filter: 'drop-shadow(0 25px 25px rgba(0, 0, 0, 0.15))'
                       }}
-                    />
+                    >
+                      <polyline points="20 12 20 22 4 22 4 12" style={{ stroke: '#ffffff' }} />
+                      <rect width="20" height="5" x="2" y="7" rx="1" style={{ stroke: '#ffffff', fill: 'none' }} />
+                      <line x1="12" x2="12" y1="22" y2="7" style={{ stroke: '#ffffff' }} />
+                      <path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z" style={{ stroke: '#ffffff', fill: 'none' }} />
+                      <path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z" style={{ stroke: '#ffffff', fill: 'none' }} />
+                    </svg>
                   </div>
                 </div>
 

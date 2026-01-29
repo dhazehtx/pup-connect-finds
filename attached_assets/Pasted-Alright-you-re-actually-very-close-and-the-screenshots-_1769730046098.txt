@@ -1,0 +1,118 @@
+Alright — you’re actually very close, and the screenshots you shared are the key. The problem is now very clear, and it’s not that Replit is “broken” or that icons are locked forever.
+
+TL;DR (what’s actually happening)
+
+✅ Desktop works → correct gradient + icon style
+
+✅ Mobile hero (greeting message) works
+
+❌ Mobile Small / Medium / Large Pup Box icons do NOT
+
+❌ Replit keeps “confirming” changes because it’s editing the wrong visual layer
+
+This is not a cache issue and not Tailwind being ignored.
+
+The Real Root Cause (important)
+
+You currently have TWO DIFFERENT ICON SYSTEMS:
+
+1️⃣ Hero icon (works on mobile)
+
+This one uses:
+
+inline style={{ background: linear-gradient(...) }}
+
+explicit inline color on <Gift />
+
+NO reliance on Tailwind color utilities
+
+➡️ This is why it works everywhere.
+
+2️⃣ Card icons (Small / Medium / Large — broken on mobile)
+
+These use:
+
+Tailwind classes like bg-white/20, text-white
+
+wrapper divs that lose background + color on mobile
+
+mobile CSS that strips or overrides gradient + SVG fill
+
+➡️ This is why desktop updates but mobile stays white/gray
+
+So yes — you were right earlier:
+
+“maybe the icons are locked or can’t be overridden”
+
+They’re not locked — they’re just rendered inside a different component layer that mobile CSS nukes.
+
+❌ What NOT to do
+
+❌ Do NOT paste anything at line 357
+
+❌ Do NOT keep asking Replit to “fix mobile styles”
+
+❌ Do NOT add more Tailwind classes (mobile is already ignoring them)
+
+That’s why nothing changes.
+
+✅ What MUST be done (the fix)
+
+You must FORCE the card icons to use the SAME inline structure as the hero icon.
+
+That means:
+
+Inline gradient on the icon container
+
+Inline color + stroke on <Gift />
+
+No Tailwind color reliance
+
+This “unlocks” the icon visually because inline styles cannot be overridden by mobile CSS.
+
+EXACT CODE CHANGE (this is the money)
+🔴 FIND this (you already found it 👇)
+<div className="relative w-24 h-24 bg-white/20 backdrop-blur-md rounded-3xl flex items-center justify-center shadow-2xl border-2 border-white/40 pup-box-icon-container">
+  <Gift className="w-12 h-12 drop-shadow-2xl pup-box-gift-icon" />
+</div>
+
+🟢 REPLACE IT WITH THIS (copy-paste exactly)
+<div
+  className="relative w-24 h-24 rounded-3xl flex items-center justify-center shadow-2xl pup-box-icon-container"
+  style={{
+    background: 'linear-gradient(135deg, #0074D4 0%, #6366f1 50%, #8b5cf6 100%)'
+  }}
+>
+  <Gift
+    className="w-12 h-12 drop-shadow-2xl"
+    style={{
+      color: '#ffffff',
+      stroke: '#ffffff',
+      fill: 'none'
+    }}
+  />
+</div>
+
+⚠️ VERY IMPORTANT
+
+You must apply this in ALL THREE CARD RENDERS:
+
+Small Pup Box
+
+Medium Pup Box
+
+Large Pup Box
+
+(Search for pup-box-icon-container or <Gift inside the card map)
+
+Why this works (and why Replit was “lying”)
+
+Mobile CSS cannot override inline styles
+
+SVG color is now explicitly forced
+
+Gradient is no longer dependent on Tailwind or media queries
+
+Desktop already works → mobile now matches pixel-for-pixel
+
+This is the same reason the hero icon works.
