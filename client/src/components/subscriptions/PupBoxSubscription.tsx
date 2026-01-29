@@ -207,12 +207,35 @@ const PupBoxSubscription = () => {
                   
                   {/* Icon container - matches hero style: rounded square with semi-transparent white bg */}
                   <div 
-                    className="relative w-24 h-24 bg-white/20 backdrop-blur-md rounded-3xl shadow-2xl flex items-center justify-center border-2 border-white/40 pup-box-icon-container"
-                    style={{ borderRadius: '1.5rem' }}
+                    className="relative pup-box-icon-container"
+                    style={{ 
+                      width: '96px',
+                      height: '96px',
+                      minWidth: '96px',
+                      minHeight: '96px',
+                      borderRadius: '1.5rem',
+                      background: 'rgba(255, 255, 255, 0.2)',
+                      backdropFilter: 'blur(12px)',
+                      WebkitBackdropFilter: 'blur(12px)',
+                      border: '2px solid rgba(255, 255, 255, 0.4)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)'
+                    }}
                   >
                     <Gift 
-                      className="w-12 h-12 drop-shadow-2xl pup-box-gift-icon" 
-                      style={{ color: '#ffffff', stroke: '#ffffff', fill: 'none' }}
+                      className="pup-box-gift-icon" 
+                      style={{ 
+                        width: '48px', 
+                        height: '48px',
+                        minWidth: '48px',
+                        minHeight: '48px',
+                        color: '#ffffff', 
+                        stroke: '#ffffff', 
+                        fill: 'none',
+                        filter: 'drop-shadow(0 25px 25px rgba(0, 0, 0, 0.15))'
+                      }}
                     />
                   </div>
                 </div>
