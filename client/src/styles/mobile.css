@@ -1220,11 +1220,51 @@
     fill: none !important;
   }
   
-  /* Force white semi-transparent circle background */
+  /* Force white semi-transparent ROUNDED SQUARE background */
   html body .pup-box-card-icon,
-  .pup-box-card-icon {
-    background: rgba(255, 255, 255, 0.25) !important;
-    background-color: rgba(255, 255, 255, 0.25) !important;
-    border-color: rgba(255, 255, 255, 0.4) !important;
+  html body .pup-box-icon-container,
+  html body .product-card__image .pup-box-icon-container,
+  html body .product-card__image > div.relative,
+  html body .pup-box-gradient > div.relative,
+  .pup-box-card-icon,
+  .pup-box-icon-container,
+  .product-card__image .pup-box-icon-container,
+  .product-card__image > div.relative,
+  .pup-box-gradient > div.relative {
+    width: 96px !important;
+    height: 96px !important;
+    min-width: 96px !important;
+    min-height: 96px !important;
+    background: rgba(255, 255, 255, 0.2) !important;
+    background-color: rgba(255, 255, 255, 0.2) !important;
+    border: 2px solid rgba(255, 255, 255, 0.4) !important;
+    border-radius: 1.5rem !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    backdrop-filter: blur(12px) !important;
+    -webkit-backdrop-filter: blur(12px) !important;
+  }
+  
+  /* CRITICAL: Force white SVG icons on mobile cards */
+  html body .product-card__image svg,
+  html body .product-card__image .pup-box-icon-container svg,
+  html body .product-card__image > div.relative svg,
+  html body .pup-box-gradient > div.relative svg,
+  .product-card__image svg,
+  .product-card__image .pup-box-icon-container svg,
+  .product-card__image > div.relative svg,
+  .pup-box-gradient > div.relative svg {
+    width: 48px !important;
+    height: 48px !important;
+    min-width: 48px !important;
+    min-height: 48px !important;
+    color: #ffffff !important;
+    stroke: #ffffff !important;
+    fill: none !important;
+    opacity: 1 !important;
+    visibility: visible !important;
   }
 }
