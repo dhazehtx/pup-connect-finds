@@ -1193,14 +1193,18 @@
     background-image: linear-gradient(135deg, #0074D4 0%, #6366f1 50%, #8b5cf6 100%) !important;
   }
   
-  /* Force white gift icon */
+  /* Force white gift icon - CRITICAL: stroke must be white, not none */
   html body .pup-box-gradient svg,
   html body .pup-box-card-icon svg,
+  html body .pup-box-gift-icon,
+  html body .pup-box-icon-container svg,
   .pup-box-gradient svg,
-  .pup-box-card-icon svg {
+  .pup-box-card-icon svg,
+  .pup-box-gift-icon,
+  .pup-box-icon-container svg {
     color: #ffffff !important;
-    fill: #ffffff !important;
-    stroke: none !important;
+    stroke: #ffffff !important;
+    fill: none !important;
   }
   
   /* Force white semi-transparent circle background */

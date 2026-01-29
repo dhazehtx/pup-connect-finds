@@ -1999,14 +1999,29 @@ html body div.product-card__image.pup-box-gradient,
   background-image: linear-gradient(135deg, #0074D4 0%, #6366f1 50%, #8b5cf6 100%) !important;
 }
 
-/* Force the gift icon to be white */
-html body .pup-box-gradient svg,
-html body .pup-box-card-icon svg,
-.pup-box-gradient svg,
-.pup-box-card-icon svg {
+/* ============================================================
+   PUP BOX GIFT ICON - GLOBAL OVERRIDE (ALL SCREEN SIZES)
+   Ensures white icon on blue-purple gradient background
+   ============================================================ */
+
+/* Scoped CSS override for Pup Box gift icons - ALL screen sizes */
+.pup-box-gift-icon,
+.pup-box-icon-container svg,
+.pup-box-card-icon svg,
+.pup-box-gradient svg {
   color: #ffffff !important;
-  fill: #ffffff !important;
   stroke: #ffffff !important;
+  fill: none !important;
+}
+
+/* Maximum specificity version */
+html body .pup-box-gift-icon,
+html body .pup-box-icon-container svg,
+html body .pup-box-gradient svg,
+html body .pup-box-card-icon svg {
+  color: #ffffff !important;
+  stroke: #ffffff !important;
+  fill: none !important;
 }
 
 /* Force the icon circle background */
@@ -2015,4 +2030,16 @@ html body .pup-box-card-icon,
   background: rgba(255, 255, 255, 0.25) !important;
   background-color: rgba(255, 255, 255, 0.25) !important;
   border-color: rgba(255, 255, 255, 0.4) !important;
+}
+
+/* Mobile-specific safeguard */
+@media (max-width: 768px) {
+  .pup-box-gift-icon,
+  .pup-box-icon-container svg,
+  .pup-box-card-icon svg,
+  .pup-box-gradient svg {
+    color: #ffffff !important;
+    stroke: #ffffff !important;
+    fill: none !important;
+  }
 }

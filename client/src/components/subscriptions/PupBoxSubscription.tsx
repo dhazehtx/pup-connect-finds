@@ -142,7 +142,10 @@ const PupBoxSubscription = () => {
           {/* Icon with animated glow */}
           <div className="flex items-center justify-center mb-5">
             <div className="w-24 h-24 bg-white/20 backdrop-blur-md rounded-3xl flex items-center justify-center shadow-2xl border-2 border-white/40 pup-box-icon-container">
-              <Gift className="w-12 h-12 text-white drop-shadow-2xl" />
+              <Gift 
+                className="w-12 h-12 drop-shadow-2xl pup-box-gift-icon" 
+                style={{ color: '#ffffff', stroke: '#ffffff', fill: 'none' }}
+              />
             </div>
           </div>
           
@@ -199,7 +202,10 @@ const PupBoxSubscription = () => {
                     className="relative w-32 h-32 backdrop-blur-sm rounded-full shadow-2xl flex items-center justify-center border-4 pup-box-card-icon"
                     style={{ background: 'rgba(255,255,255,0.25)', borderColor: 'rgba(255,255,255,0.4)' }}
                   >
-                    <Gift className="w-16 h-16 drop-shadow-2xl" style={{ color: '#ffffff' }} />
+                    <Gift 
+                      className="w-16 h-16 drop-shadow-2xl pup-box-gift-icon" 
+                      style={{ color: '#ffffff', stroke: '#ffffff', fill: 'none' }}
+                    />
                   </div>
                 </div>
 
