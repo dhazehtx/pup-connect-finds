@@ -2055,61 +2055,114 @@ html body .pup-box-card-icon,
   }
 }
 
-/* FORCE Pup Box icon containers to be ROUNDED SQUARES (not circles) - ALL screen sizes */
+/* ============================================================================
+   PUP BOX ICON STYLING - UNIVERSAL FIX FOR ALL SCREEN SIZES
+   All gift icons MUST match: rounded square (1.5rem), white bg/20, white icon
+   ============================================================================ */
+
+/* Base styles for ALL icon containers - desktop and mobile */
 .pup-box-icon-container,
 .pup-box-card-icon,
 .product-card .pup-box-icon-container,
-.product-card__image .pup-box-icon-container {
+.product-card__image .pup-box-icon-container,
+.product-card__image > div.relative,
+.pup-box-gradient > div.relative {
   width: 96px !important;
   height: 96px !important;
+  min-width: 96px !important;
+  min-height: 96px !important;
   border-radius: 1.5rem !important;
   background: rgba(255, 255, 255, 0.2) !important;
+  background-color: rgba(255, 255, 255, 0.2) !important;
   backdrop-filter: blur(12px) !important;
   -webkit-backdrop-filter: blur(12px) !important;
   border: 2px solid rgba(255, 255, 255, 0.4) !important;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
+  opacity: 1 !important;
+  visibility: visible !important;
 }
 
-/* Force icon size inside containers */
+/* Force icon size and color inside ALL containers */
 .pup-box-icon-container svg,
 .pup-box-card-icon svg,
 .pup-box-icon-container .pup-box-gift-icon,
-.pup-box-card-icon .pup-box-gift-icon {
+.pup-box-card-icon .pup-box-gift-icon,
+.product-card__image svg,
+.pup-box-gradient svg,
+.product-card__image > div.relative svg,
+.pup-box-gradient > div.relative svg {
   width: 48px !important;
   height: 48px !important;
+  min-width: 48px !important;
+  min-height: 48px !important;
   color: #ffffff !important;
   stroke: #ffffff !important;
   fill: none !important;
+  opacity: 1 !important;
+  visibility: visible !important;
 }
 
-/* Maximum specificity for icon container shape */
+/* Maximum specificity for icon container shape - desktop */
 html body .pup-box-icon-container,
 html body .pup-box-card-icon,
-html body .product-card .pup-box-icon-container {
+html body .product-card .pup-box-icon-container,
+html body .product-card__image .pup-box-icon-container,
+html body .product-card__image > div.relative,
+html body .pup-box-gradient > div.relative {
   border-radius: 1.5rem !important;
+  background: rgba(255, 255, 255, 0.2) !important;
+  opacity: 1 !important;
+  visibility: visible !important;
 }
 
-/* Mobile-specific shape enforcement */
+/* Maximum specificity for SVGs */
+html body .pup-box-icon-container svg,
+html body .pup-box-card-icon svg,
+html body .product-card__image svg,
+html body .pup-box-gradient svg,
+html body .product-card__image > div.relative svg {
+  color: #ffffff !important;
+  stroke: #ffffff !important;
+  fill: none !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+/* Mobile-specific enforcement */
 @media (max-width: 768px) {
   .pup-box-icon-container,
   .pup-box-card-icon,
   .product-card .pup-box-icon-container,
-  .product-card__image .pup-box-icon-container {
+  .product-card__image .pup-box-icon-container,
+  .product-card__image > div.relative,
+  .pup-box-gradient > div.relative {
     width: 96px !important;
     height: 96px !important;
+    min-width: 96px !important;
+    min-height: 96px !important;
     border-radius: 1.5rem !important;
     background: rgba(255, 255, 255, 0.2) !important;
     border: 2px solid rgba(255, 255, 255, 0.4) !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
   }
   
   .pup-box-icon-container svg,
-  .pup-box-card-icon svg {
+  .pup-box-card-icon svg,
+  .product-card__image svg,
+  .pup-box-gradient svg,
+  .product-card__image > div.relative svg {
     width: 48px !important;
     height: 48px !important;
     color: #ffffff !important;
     stroke: #ffffff !important;
     fill: none !important;
+    opacity: 1 !important;
+    visibility: visible !important;
   }
 }
