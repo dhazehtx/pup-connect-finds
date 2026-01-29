@@ -1193,15 +1193,28 @@
     background-image: linear-gradient(135deg, #0074D4 0%, #6366f1 50%, #8b5cf6 100%) !important;
   }
   
-  /* Force white gift icon - CRITICAL: stroke must be white, not none */
+  /* CRITICAL: Force gradient on pup box via data attribute on mobile */
+  [data-pup-box="true"],
+  div[data-pup-box="true"],
+  html body [data-pup-box="true"],
+  .product-card__image[data-pup-box="true"] {
+    background: linear-gradient(135deg, #0074D4 0%, #6366f1 50%, #8b5cf6 100%) !important;
+    background-image: linear-gradient(135deg, #0074D4 0%, #6366f1 50%, #8b5cf6 100%) !important;
+    background-color: transparent !important;
+    min-height: 200px !important;
+  }
+  
+  /* Force white gift icon - CRITICAL: stroke must be white */
   html body .pup-box-gradient svg,
   html body .pup-box-card-icon svg,
   html body .pup-box-gift-icon,
   html body .pup-box-icon-container svg,
+  html body [data-pup-box="true"] svg,
   .pup-box-gradient svg,
   .pup-box-card-icon svg,
   .pup-box-gift-icon,
-  .pup-box-icon-container svg {
+  .pup-box-icon-container svg,
+  [data-pup-box="true"] svg {
     color: #ffffff !important;
     stroke: #ffffff !important;
     fill: none !important;

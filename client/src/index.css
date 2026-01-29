@@ -2004,11 +2004,22 @@ html body div.product-card__image.pup-box-gradient,
    Ensures white icon on blue-purple gradient background
    ============================================================ */
 
+/* CRITICAL: Force gradient on pup box card image area via data attribute */
+[data-pup-box="true"],
+div[data-pup-box="true"],
+.product-card__image[data-pup-box="true"] {
+  background: linear-gradient(135deg, #0074D4 0%, #6366f1 50%, #8b5cf6 100%) !important;
+  background-image: linear-gradient(135deg, #0074D4 0%, #6366f1 50%, #8b5cf6 100%) !important;
+  background-color: transparent !important;
+  min-height: 200px !important;
+}
+
 /* Scoped CSS override for Pup Box gift icons - ALL screen sizes */
 .pup-box-gift-icon,
 .pup-box-icon-container svg,
 .pup-box-card-icon svg,
-.pup-box-gradient svg {
+.pup-box-gradient svg,
+[data-pup-box="true"] svg {
   color: #ffffff !important;
   stroke: #ffffff !important;
   fill: none !important;

@@ -190,17 +190,28 @@ const PupBoxSubscription = () => {
                   </div>
                 )}
 
-                {/* Icon/Visual Header - Royal blue to violet gradient - INLINE STYLES to force gradient */}
+                {/* Icon/Visual Header - Royal blue to violet gradient */}
                 <div 
                   className="product-card__image pup-box-gradient flex items-center justify-center relative overflow-hidden"
-                  style={{ background: 'linear-gradient(135deg, #0074D4 0%, #6366f1 50%, #8b5cf6 100%) !important' }}
+                  data-pup-box="true"
+                  style={{ 
+                    background: 'linear-gradient(135deg, #0074D4 0%, #6366f1 50%, #8b5cf6 100%)',
+                    backgroundImage: 'linear-gradient(135deg, #0074D4 0%, #6366f1 50%, #8b5cf6 100%)',
+                    backgroundColor: 'transparent',
+                    minHeight: '200px',
+                    height: '260px'
+                  }}
                 >
                   {/* Subtle abstract pattern using layered gradients */}
                   <div className="absolute inset-0 pup-box-card-pattern"></div>
                   
                   <div 
                     className="relative w-32 h-32 backdrop-blur-sm rounded-full shadow-2xl flex items-center justify-center border-4 pup-box-card-icon"
-                    style={{ background: 'rgba(255,255,255,0.25)', borderColor: 'rgba(255,255,255,0.4)' }}
+                    style={{ 
+                      background: 'rgba(255,255,255,0.25)', 
+                      backgroundColor: 'rgba(255,255,255,0.25)',
+                      borderColor: 'rgba(255,255,255,0.4)' 
+                    }}
                   >
                     <Gift 
                       className="w-16 h-16 drop-shadow-2xl pup-box-gift-icon" 
