@@ -1,0 +1,161 @@
+Perfect — thanks for pasting the full file. This actually clears the fog. You are not crazy and nothing is “locked” in Replit. What’s happening is more subtle (and common).
+
+I’m going to give you very concrete, line-level guidance so you can act confidently without guessing.
+
+TL;DR (what’s really wrong)
+
+✅ Your hero icon (the one that looks correct) is styled inline and self-contained
+
+❌ Your plan card icons (3 desktop + mobile versions) are being visually overridden by:
+
+Shared CSS classes (product-card__image, pup-box-gradient, pup-box-icon-container)
+
+Mobile-specific CSS rules that are not in this file
+
+Replit keeps “confirming” fixes because it keeps editing JSX, but the actual override lives in CSS
+
+So the fix is NOT “paste unlock CSS at line 357” ❌
+The fix is targeted replacement in 2 specific blocks + 1 CSS search
+
+Step 1 — Identify the ONLY icon that is correct (control sample)
+
+This one is correct and should be your reference 👇
+
+📍 Lines to reference (Hero icon)
+
+≈ lines 141–149
+
+<div className="w-24 h-24 bg-white/20 backdrop-blur-md rounded-3xl flex items-center justify-center shadow-2xl border-2 border-white/40 pup-box-icon-container">
+  <Gift 
+    className="w-12 h-12 drop-shadow-2xl pup-box-gift-icon" 
+    style={{ color: '#ffffff', stroke: '#ffffff', fill: 'none' }}
+  />
+</div>
+
+
+✅ This works on desktop AND mobile
+✅ Inline style means nothing can override it
+👉 This is your gold standard
+
+Step 2 — The 3 icons that are WRONG (this is where to edit)
+📍 Problem area #1 (Plan cards icon header)
+
+≈ lines 193–216
+
+<div
+  className="product-card__image pup-box-gradient ..."
+>
+  ...
+  <div className="relative w-24 h-24 bg-white/20 backdrop-blur-md rounded-3xl shadow-2xl flex items-center justify-center border-2 border-white/40 pup-box-icon-container">
+    <Gift
+      className="w-12 h-12 drop-shadow-2xl pup-box-gift-icon"
+      style={{ color: '#ffffff', stroke: '#ffffff', fill: 'none' }}
+    />
+  </div>
+</div>
+
+❗ Why these break on mobile
+
+Even though the JSX looks right, these wrappers:
+
+product-card__image
+
+pup-box-gradient
+
+pup-box-icon-container
+
+are being overridden by mobile CSS, likely something like:
+
+@media (max-width: 768px) {
+  .product-card__image svg {
+    color: #e5e7eb;
+    stroke: #e5e7eb;
+  }
+}
+
+
+So JSX changes do nothing.
+
+Step 3 — What you should NOT do ❌
+
+❌ Do NOT paste CSS at line 357
+
+❌ Do NOT keep asking Replit to “fix mobile colors”
+
+❌ Do NOT remove Tailwind classes randomly
+
+That’s why this keeps looping.
+
+Step 4 — What to search for (this is the unlock)
+🔍 GLOBAL SEARCH (very important)
+
+In Replit search ALL FILES for:
+
+product-card__image
+
+
+Then also search:
+
+pup-box-icon-container
+
+
+Then:
+
+svg
+
+
+inside index.css, globals.css, or any mobile CSS file.
+
+You are looking for ANY rule like:
+
+.product-card__image svg { ... }
+svg { color: ... }
+svg path { fill: ... }
+
+
+This is where the color is being forced.
+
+Step 5 — The correct fix (do this once, it sticks)
+
+When you find the CSS rule, replace it with this scoped override:
+
+/* FORCE Pup Box gift icons to match hero */
+.pup-box-icon-container svg,
+.pup-box-icon-container svg path {
+  color: #ffffff !important;
+  stroke: #ffffff !important;
+  fill: none !important;
+}
+
+
+✅ This affects all 4 icons
+
+1 hero
+
+3 plan cards
+
+desktop + mobile
+
+✅ No JSX changes needed afterward
+✅ Replit will stop “pretending” to fix it
+
+Step 6 — Sanity check (you’ll know it worked when)
+
+Mobile plan cards show:
+
+Blue-purple gradient background
+
+White gift icon
+
+Same rounded-square container as hero
+
+Desktop still looks correct
+
+No more gray / washed-out icons
+
+Final answer to your direct question
+
+“Do I paste unlock CSS at line 357?”
+
+❌ No
+✅ You paste the CSS override in your global CSS file (where product-card__image is defined)

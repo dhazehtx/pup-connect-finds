@@ -2054,3 +2054,62 @@ html body .pup-box-card-icon,
     fill: none !important;
   }
 }
+
+/* FORCE Pup Box icon containers to be ROUNDED SQUARES (not circles) - ALL screen sizes */
+.pup-box-icon-container,
+.pup-box-card-icon,
+.product-card .pup-box-icon-container,
+.product-card__image .pup-box-icon-container {
+  width: 96px !important;
+  height: 96px !important;
+  border-radius: 1.5rem !important;
+  background: rgba(255, 255, 255, 0.2) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+  border: 2px solid rgba(255, 255, 255, 0.4) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+/* Force icon size inside containers */
+.pup-box-icon-container svg,
+.pup-box-card-icon svg,
+.pup-box-icon-container .pup-box-gift-icon,
+.pup-box-card-icon .pup-box-gift-icon {
+  width: 48px !important;
+  height: 48px !important;
+  color: #ffffff !important;
+  stroke: #ffffff !important;
+  fill: none !important;
+}
+
+/* Maximum specificity for icon container shape */
+html body .pup-box-icon-container,
+html body .pup-box-card-icon,
+html body .product-card .pup-box-icon-container {
+  border-radius: 1.5rem !important;
+}
+
+/* Mobile-specific shape enforcement */
+@media (max-width: 768px) {
+  .pup-box-icon-container,
+  .pup-box-card-icon,
+  .product-card .pup-box-icon-container,
+  .product-card__image .pup-box-icon-container {
+    width: 96px !important;
+    height: 96px !important;
+    border-radius: 1.5rem !important;
+    background: rgba(255, 255, 255, 0.2) !important;
+    border: 2px solid rgba(255, 255, 255, 0.4) !important;
+  }
+  
+  .pup-box-icon-container svg,
+  .pup-box-card-icon svg {
+    width: 48px !important;
+    height: 48px !important;
+    color: #ffffff !important;
+    stroke: #ffffff !important;
+    fill: none !important;
+  }
+}
