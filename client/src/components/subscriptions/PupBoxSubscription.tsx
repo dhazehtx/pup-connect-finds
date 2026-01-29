@@ -205,16 +205,12 @@ const PupBoxSubscription = () => {
                   {/* Subtle abstract pattern using layered gradients */}
                   <div className="absolute inset-0 pup-box-card-pattern"></div>
                   
+                  {/* Icon container - matches hero style: rounded square with semi-transparent white bg */}
                   <div 
-                    className="relative w-32 h-32 backdrop-blur-sm rounded-full shadow-2xl flex items-center justify-center border-4 pup-box-card-icon"
-                    style={{ 
-                      background: 'rgba(255,255,255,0.25)', 
-                      backgroundColor: 'rgba(255,255,255,0.25)',
-                      borderColor: 'rgba(255,255,255,0.4)' 
-                    }}
+                    className="relative w-24 h-24 bg-white/20 backdrop-blur-md rounded-3xl shadow-2xl flex items-center justify-center border-2 border-white/40 pup-box-icon-container"
                   >
                     <Gift 
-                      className="w-16 h-16 drop-shadow-2xl pup-box-gift-icon" 
+                      className="w-12 h-12 drop-shadow-2xl pup-box-gift-icon" 
                       style={{ color: '#ffffff', stroke: '#ffffff', fill: 'none' }}
                     />
                   </div>
