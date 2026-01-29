@@ -208,6 +208,7 @@ const PupBoxSubscription = () => {
                   {/* Icon container - matches hero style: rounded square with semi-transparent white bg */}
                   <div 
                     className="relative w-24 h-24 bg-white/20 backdrop-blur-md rounded-3xl shadow-2xl flex items-center justify-center border-2 border-white/40 pup-box-icon-container"
+                    style={{ borderRadius: '1.5rem' }}
                   >
                     <Gift 
                       className="w-12 h-12 drop-shadow-2xl pup-box-gift-icon" 
