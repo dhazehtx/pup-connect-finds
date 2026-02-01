@@ -217,30 +217,24 @@ const PupBoxSubscription = () => {
                 )}
 
                 {/* Icon/Visual Header - Royal blue to violet gradient */}
+                {/* NO CLASS NAMES to avoid CSS wildcard conflicts */}
                 <div
-                  className="product-card__image pup-box-gradient flex items-center justify-center relative overflow-hidden"
-                  data-pup-box="true"
                   style={{
-                    background:
-                      "linear-gradient(135deg, #0074D4 0%, #6366f1 50%, #8b5cf6 100%)",
-                    backgroundImage:
-                      "linear-gradient(135deg, #0074D4 0%, #6366f1 50%, #8b5cf6 100%)",
-                    backgroundColor: "transparent",
+                    background: "linear-gradient(135deg, #0074D4 0%, #6366f1 50%, #8b5cf6 100%)",
                     minHeight: "200px",
                     height: "260px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    position: "relative",
+                    overflow: "hidden",
                   }}
                 >
-                  {/* Subtle abstract pattern using layered gradients */}
-                  <div className="absolute inset-0 pup-box-card-pattern"></div>
-
-                  {/* Icon container */}
+                  {/* Icon container - NO CLASS NAMES */}
                   <div
-                    className="relative w-24 h-24 rounded-3xl flex items-center justify-center shadow-2xl pup-box-icon-container"
                     style={{
                       width: "96px",
                       height: "96px",
-                      minWidth: "96px",
-                      minHeight: "96px",
                       borderRadius: "1.5rem",
                       background: "rgba(255, 255, 255, 0.2)",
                       backdropFilter: "blur(12px)",
@@ -250,6 +244,8 @@ const PupBoxSubscription = () => {
                       alignItems: "center",
                       justifyContent: "center",
                       boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.25)",
+                      position: "relative",
+                      zIndex: 10,
                     }}
                   >
                     <svg
