@@ -1,0 +1,174 @@
+🔥 What’s ACTUALLY happening (final truth)
+
+You fixed Problem #1 already ✅
+✔ The nuclear wildcard rule
+
+[class*="container"], [class*="wrapper"] { background-color: #fff !important; }
+
+
+That’s gone. Good.
+
+But there is Problem #2, which is why you’re still blocked:
+
+🚨 REAL remaining issue (this is the blocker)
+
+On mobile only, the gradient is not missing because of the icon container.
+
+It’s missing because .product-card__image is being overridden on mobile.
+
+You can see it in Replit’s own words:
+
+“the gradient background is completely missing on mobile, showing only the white icon container”
+
+That means:
+
+Your icon container changes ARE WORKING
+
+But they are sitting on top of a white card header
+
+So visually, it looks wrong
+
+This is why:
+
+Desktop = correct
+
+Mobile = white header + floating icon
+
+🎯 The correct fix (this is the one that ends it)
+You must FORCE the gradient on .product-card__image for mobile
+
+Not the icon
+Not the SVG
+Not the container
+
+👉 The CARD HEADER itself
+
+✅ Step-by-step fix (do this exactly)
+1️⃣ Open mobile.css
+
+Search for ANY rule touching:
+
+.product-card__image
+
+
+You will find something like:
+
+.product-card__image {
+  background-color: #f9fafb;
+}
+
+
+or
+
+.product-card__image {
+  background: #ffffff;
+}
+
+
+or a mobile media query version.
+
+2️⃣ DELETE or COMMENT OUT that rule
+
+If it exists at all, it must go.
+
+3️⃣ Add THIS at the BOTTOM of mobile.css
+
+This is not optional. This is the override.
+
+/* FORCE Pup Box gradient on mobile */
+@media (max-width: 768px) {
+  .product-card__image[data-pup-box="true"] {
+    background: linear-gradient(
+      135deg,
+      #0074D4 0%,
+      #6366f1 50%,
+      #8b5cf6 100%
+    ) !important;
+    background-color: transparent !important;
+  }
+}
+
+
+Why this works:
+
+Scoped to mobile
+
+Scoped to Pup Box only
+
+Beats any leftover mobile styles
+
+Does NOT affect desktop
+
+4️⃣ DO NOT TOUCH your React component anymore
+
+Your current JSX is correct:
+
+<div
+  className="product-card__image pup-box-gradient ..."
+  data-pup-box="true"
+  style={{
+    background: "linear-gradient(135deg, #0074D4 0%, #6366f1 50%, #8b5cf6 100%)",
+    backgroundColor: "transparent",
+  }}
+>
+
+
+This is fine. Stop editing it.
+
+5️⃣ Hard refresh PROPERLY
+
+On mobile:
+
+iOS Safari:
+
+Pull down to reload → then close tab → reopen
+
+Chrome mobile:
+
+Long-press reload → “Empty cache & hard reload” (or close tab)
+
+This matters. Mobile caches CSS aggressively.
+
+✅ Expected result (this is how you’ll know it’s fixed)
+
+On mobile:
+
+Small / Medium / Large Pup Box cards:
+
+Blue → purple gradient header ✅
+
+White rounded icon container ✅
+
+White gift icon ✅
+
+Matches desktop exactly ✅
+
+If this doesn’t happen, then the rule does not exist in mobile.css, and I’ll help you locate it in index.css or another imported file.
+
+❗ One VERY important improvement (do this after it works)
+
+Rename this class everywhere (future-proofing):
+
+- pup-box-icon-container
++ pup-box-icon
+
+
+Why:
+
+Avoids future wildcard collisions
+
+Prevents this exact nightmare again
+
+🧠 Why this took a week (and why it ends today)
+
+You were fighting:
+
+Wildcard CSS
+
+Mobile-only overrides
+
+CSS loaded after inline styles
+
+Safari quirks
+
+You didn’t fail — this is a classic production-level CSS trap.
