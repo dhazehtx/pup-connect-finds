@@ -1,0 +1,98 @@
+🚨 The real problem (why mobile looks faded)
+
+The issue is NOT the SVG stroke color.
+The issue is THIS wrapper layer:
+
+<div
+  className="relative w-24 h-24 rounded-3xl flex items-center justify-center shadow-2xl pup-box-icon-container"
+  style={{
+    background: 'rgba(255, 255, 255, 0.2)',
+    backdropFilter: 'blur(12px)',
+    WebkitBackdropFilter: 'blur(12px)',
+
+Why mobile breaks:
+
+Mobile Safari reduces opacity + blur strength
+
+rgba(255,255,255,0.2) becomes almost invisible
+
+The icon sits on a light gradient → looks gray/faded
+
+Desktop hides this problem because it renders blur differently.
+
+🎯 Fix strategy (the ONLY fix that works)
+
+We must force the icon container to use the SAME gradient as the card, not translucent white.
+
+That means:
+
+❌ Remove white glass background
+
+❌ Remove blur
+
+✅ Apply the blue-violet gradient inline (so mobile can’t override it)
+
+✂️ EXACT lines to replace
+🔍 Find this block (you already have it)
+
+Around lines ~205–235
+
+<div
+  className="relative w-24 h-24 rounded-3xl flex items-center justify-center shadow-2xl pup-box-icon-container"
+  style={{
+    width: '96px',
+    height: '96px',
+    minWidth: '96px',
+    minHeight: '96px',
+    borderRadius: '1.5rem',
+    background: 'rgba(255, 255, 255, 0.2)',
+    backdropFilter: 'blur(12px)',
+    WebkitBackdropFilter: 'blur(12px)',
+    border: '2px solid rgba(255, 255, 255, 0.4)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)'
+  }}
+>
+
+✅ Replace it with THIS (copy/paste)
+<div
+  className="relative w-24 h-24 rounded-3xl flex items-center justify-center shadow-2xl"
+  style={{
+    width: '96px',
+    height: '96px',
+    minWidth: '96px',
+    minHeight: '96px',
+    borderRadius: '1.5rem',
+    background: 'linear-gradient(135deg, #0074D4 0%, #6366f1 50%, #8b5cf6 100%)',
+    border: '2px solid rgba(255, 255, 255, 0.6)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    boxShadow: '0 30px 60px -15px rgba(0, 0, 0, 0.35)'
+  }}
+>
+
+🚫 Important
+
+Do NOT re-add backdropFilter
+
+Do NOT use bg-white/20
+
+Do NOT rely on Tailwind here
+
+Inline styles are intentional — they override mobile Safari.
+
+✅ SVG icon stays EXACTLY as is
+
+This part is already correct — do not touch it:
+
+<svg
+  stroke="#ffffff"
+  style={{
+    color: '#ffffff',
+    stroke: '#ffffff',
+    fill: 'none'
+  }}
+>
