@@ -355,8 +355,11 @@ const PupBoxSubscription = () => {
                             </span>
                           </div>
                           <p
-                            className="text-xs mt-2"
-                            style={{ color: "#888888" }}
+                            style={{
+                              marginTop: "0.5rem",
+                              fontSize: "0.75rem",
+                              color: "#444444"
+                            }}
                           >
                             Cancel anytime, skip or pause deliveries
                           </p>
@@ -375,8 +378,11 @@ const PupBoxSubscription = () => {
                             </span>
                           </div>
                           <p
-                            className="text-xs mt-2"
-                            style={{ color: "#888888" }}
+                            style={{
+                              marginTop: "0.5rem",
+                              fontSize: "0.75rem",
+                              color: "#444444"
+                            }}
                           >
                             Try it out before subscribing
                           </p>
@@ -385,8 +391,12 @@ const PupBoxSubscription = () => {
                     </div>
 
                     <p
-                      className="mt-3 text-sm leading-relaxed"
-                      style={{ color: "#000000" }}
+                      style={{
+                        marginTop: "0.75rem",
+                        fontSize: "0.875rem",
+                        lineHeight: "1.5",
+                        color: "#111111"
+                      }}
                     >
                       {plan.description}
                     </p>
@@ -397,7 +407,12 @@ const PupBoxSubscription = () => {
                     {plan.features.map((feature, index) => (
                       <div key={index} className="flex items-start gap-2">
                         <Check className="w-4 h-4 text-primary-600 mt-0.5 flex-shrink-0" />
-                        <span className="text-sm" style={{ color: "#000000" }}>
+                        <span
+                          style={{
+                            fontSize: "0.875rem",
+                            color: "#111111"
+                          }}
+                        >
                           {feature}
                         </span>
                       </div>
