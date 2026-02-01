@@ -1713,15 +1713,19 @@ button:contains("Become a Service Provider") {
 /* Image area – fixed height so all cards line up */
 .product-card__image {
   height: 260px;
-  /* adjust if needed */
-  background-color: #f9fafb;
   overflow: hidden;
 }
 
-/* Pup Box cards - fallback gradient (inline styles are primary) */
+/* Non-pup-box product card images get gray background */
+.product-card__image:not(.pup-box-gradient):not([data-pup-box="true"]) {
+  background-color: #f9fafb;
+}
+
+/* Pup Box cards - gradient background (MUST work on all devices) */
 .product-card__image.pup-box-gradient,
 .product-card__image[data-pup-box="true"] {
-  background: linear-gradient(135deg, #0074D4 0%, #6366f1 50%, #8b5cf6 100%);
+  background: linear-gradient(135deg, #0074D4 0%, #6366f1 50%, #8b5cf6 100%) !important;
+  background-color: transparent !important;
 }
 
 /* Force white color for gift icon inside pup box cards */
