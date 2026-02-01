@@ -2167,3 +2167,17 @@ html body .product-card__image > div.relative svg {
     visibility: visible !important;
   }
 }
+/* ============================================================
+   ABSOLUTE FINAL OVERRIDE - PUP BOX GRADIENT
+   This is the LAST rule in ALL CSS - highest cascade priority
+   ============================================================ */
+@media (max-width: 768px) {
+  html body .product-card__image[data-pup-box="true"],
+  html body .product-card__image.pup-box-gradient,
+  html body div.product-card__image[data-pup-box="true"],
+  html body div.product-card__image.pup-box-gradient {
+    background: linear-gradient(135deg, #0074D4 0%, #6366f1 50%, #8b5cf6 100%) !important;
+    background-color: transparent !important;
+    background-image: linear-gradient(135deg, #0074D4 0%, #6366f1 50%, #8b5cf6 100%) !important;
+  }
+}
