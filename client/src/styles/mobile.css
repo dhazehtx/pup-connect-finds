@@ -84,17 +84,16 @@
     border-color: #e5e7eb !important;
   }
   
-  /* Content wrappers - white (excluding pup box icon containers) */
-  .content-wrapper, .page-wrapper, .main-content,
-  [class*="container"]:not(.pup-box-icon-container):not(.product-card__image),
-  [class*="wrapper"]:not(.pup-box-gradient) {
+  /* Content wrappers - white (specific layout containers only, NO wildcards) */
+  .content-wrapper, 
+  .page-wrapper, 
+  .main-content,
+  .app-container,
+  .layout-container,
+  .page-container,
+  .section-wrapper,
+  .content-area {
     background-color: #ffffff !important;
-  }
-  
-  /* CRITICAL: Pup Box icon container MUST be semi-transparent white on gradient */
-  .pup-box-icon-container {
-    background: rgba(255, 255, 255, 0.2) !important;
-    background-color: rgba(255, 255, 255, 0.2) !important;
   }
   
   /* Remove ALL yellow/amber focus rings and outlines on mobile */
@@ -1112,32 +1111,12 @@
     color: rgba(255, 255, 255, 0.95) !important;
   }
   
-  /* Product card image area - FORCE the blue-violet gradient on mobile */
-  /* Using data attribute and pup-box-gradient class for max specificity */
-  .product-card__image.pup-box-gradient,
-  .product-card__image[data-pup-box="true"],
-  div.product-card__image.pup-box-gradient,
-  div.product-card__image[data-pup-box="true"],
-  .pupbox-section .product-card__image,
-  .pupbox-section div.product-card__image {
-    background: linear-gradient(135deg, #0074D4 0%, #6366f1 50%, #8b5cf6 100%) !important;
-    background-color: transparent !important;
-    background-image: linear-gradient(135deg, #0074D4 0%, #6366f1 50%, #8b5cf6 100%) !important;
-  }
-  
-  /* Pup box card icon container - white background with blur */
-  .product-card .pup-box-card-icon,
-  .pup-box-card-icon {
-    background: rgba(255, 255, 255, 0.25) !important;
-    border-color: rgba(255, 255, 255, 0.4) !important;
-  }
-  
-  /* Gift icon inside must be white */
+  /* Pup Box cards - inline styles handle gradient, just ensure text/icon colors */
   .product-card__image svg,
-  .product-card__image.bg-gradient-blue-violet svg,
-  .product-card .bg-gradient-blue-violet svg,
-  .pup-box-card-icon svg {
-    color: #ffffff !important;
+  .pup-box-gradient svg,
+  .pup-box-icon-container svg {
+    color: #ffffff;
+    stroke: #ffffff;
   }
   
   /* Subscribe/One-Time toggle buttons - black text when not selected */
