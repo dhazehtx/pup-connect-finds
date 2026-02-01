@@ -386,7 +386,7 @@ const PupBoxSubscription = () => {
 
                     <p
                       className="mt-3 text-sm leading-relaxed"
-                      style={{ color: "#555555" }}
+                      style={{ color: "#000000" }}
                     >
                       {plan.description}
                     </p>
@@ -397,7 +397,7 @@ const PupBoxSubscription = () => {
                     {plan.features.map((feature, index) => (
                       <div key={index} className="flex items-start gap-2">
                         <Check className="w-4 h-4 text-primary-600 mt-0.5 flex-shrink-0" />
-                        <span className="text-sm" style={{ color: "#555555" }}>
+                        <span className="text-sm" style={{ color: "#000000" }}>
                           {feature}
                         </span>
                       </div>
