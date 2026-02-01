@@ -233,7 +233,7 @@ const PupBoxSubscription = () => {
                   {/* Subtle abstract pattern using layered gradients */}
                   <div className="absolute inset-0 pup-box-card-pattern"></div>
 
-                  {/* Icon container - FULLY INLINE STYLED to prevent mobile CSS override */}
+                  {/* Icon container */}
                   <div
                     className="relative w-24 h-24 rounded-3xl flex items-center justify-center shadow-2xl pup-box-icon-container"
                     style={{
@@ -242,8 +242,8 @@ const PupBoxSubscription = () => {
                       minWidth: "96px",
                       minHeight: "96px",
                       borderRadius: "1.5rem",
-                      background: "red",
-                      border: "5px solid yellow",
+                      background: "rgba(255, 255, 255, 0.2)",
+                      backdropFilter: "blur(12px)",
                       WebkitBackdropFilter: "blur(12px)",
                       border: "2px solid rgba(255, 255, 255, 0.4)",
                       display: "flex",
