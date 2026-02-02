@@ -1134,6 +1134,16 @@
   .pupbox-section span.font-semibold.text-primary-600 {
     color: #000000 !important;
   }
+  
+  /* FORCE all Pup Box card text to be black/dark - override any white text */
+  .pupbox-section .product-card span,
+  .pupbox-section .product-card p,
+  .pupbox-section .product-card__body span,
+  .pupbox-section .product-card__body p,
+  .pupbox-section .space-y-2 span,
+  .pupbox-section .flex.items-start span {
+    color: #111111 !important;
+  }
 }
 
 /* ============================================
