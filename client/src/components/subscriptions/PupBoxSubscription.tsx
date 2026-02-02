@@ -186,13 +186,16 @@ const PupBoxSubscription = () => {
         <div className="max-w-6xl mx-auto px-4 md:px-6">
           {/* Helper Text */}
           <div className="text-center mb-8">
-            <p className="text-base text-gray-700 max-w-2xl mx-auto">
+            <p 
+              className="text-base max-w-2xl mx-auto"
+              style={{ color: "#111111" }}
+            >
               Choose{" "}
-              <span className="font-semibold text-primary-600">Subscribe</span>{" "}
+              <span style={{ fontWeight: 600, color: "#0074d4" }}>Subscribe</span>{" "}
               or{" "}
-              <span className="font-semibold text-primary-600">One-Time</span>{" "}
+              <span style={{ fontWeight: 600, color: "#0074d4" }}>One-Time</span>{" "}
               on each box, then click{" "}
-              <span className="font-semibold text-primary-600">
+              <span style={{ fontWeight: 600, color: "#0074d4" }}>
                 Add to Cart
               </span>
               . You can review everything and check out from your cart when
