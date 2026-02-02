@@ -1856,6 +1856,14 @@ button:contains("Become a Service Provider") {
   color: #111111 !important;
 }
 
+/* Force helper instruction text to be black */
+.pupbox-section .text-center p,
+.pupbox-section .text-center span,
+.pupbox-section .mb-8 p,
+.pupbox-section .mb-8 span {
+  color: #111111 !important;
+}
+
 /* Ensure Add to Cart button is visible with blue background and white text */
 .pupbox-section .btn-pill--primary,
 .pupbox-section .product-card .btn-pill--primary,
