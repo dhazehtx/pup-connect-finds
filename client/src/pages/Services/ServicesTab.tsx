@@ -287,8 +287,8 @@ export function ServicesTab() {
             </div>
           </div>
           
-          <button onClick={handleBecomeProvider} className="btn-primary text-lg px-8 py-3 shadow-lg">
-            <Shield className="h-5 w-5 mr-2" />
+          <button onClick={handleBecomeProvider} className="btn-primary text-sm px-5 py-2">
+            <Shield className="h-4 w-4 mr-1.5" />
             Become a Service Provider
           </button>
         </div>
