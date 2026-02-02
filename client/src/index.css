@@ -1856,12 +1856,18 @@ button:contains("Become a Service Provider") {
   color: #111111 !important;
 }
 
-/* Force helper instruction text to be black */
-.pupbox-section .text-center p,
-.pupbox-section .text-center span,
-.pupbox-section .mb-8 p,
-.pupbox-section .mb-8 span {
+/* Force helper instruction text to be black - exclude badge text */
+.pupbox-section .text-center.mb-8 p,
+.pupbox-section .text-center.mb-8 span {
   color: #111111 !important;
+}
+
+/* Keep badge text white on blue background */
+.pupbox-section .pupbox-badge,
+.pupbox-section .pupbox-badge span,
+.pupbox-section .bg-primary-600 span,
+.pupbox-section [class*="bg-primary"] span {
+  color: #ffffff !important;
 }
 
 /* Ensure Add to Cart button is visible with blue background and white text */
