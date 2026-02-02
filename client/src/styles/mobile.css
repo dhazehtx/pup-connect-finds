@@ -1136,13 +1136,20 @@
   }
   
   /* FORCE all Pup Box card text to be black/dark - override any white text */
-  .pupbox-section .product-card span,
-  .pupbox-section .product-card p,
-  .pupbox-section .product-card__body span,
+  /* Exclude button text which should remain white */
+  .pupbox-section .product-card__body span:not(button span),
   .pupbox-section .product-card__body p,
   .pupbox-section .space-y-2 span,
   .pupbox-section .flex.items-start span {
     color: #111111 !important;
+  }
+  
+  /* Ensure Add to Cart button is visible with blue background and white text */
+  .pupbox-section .btn-pill--primary,
+  .pupbox-section .product-card .btn-pill--primary,
+  .pupbox-section button.btn-pill--primary {
+    background-color: #0074d4 !important;
+    color: #ffffff !important;
   }
 }
 
