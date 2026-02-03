@@ -1,0 +1,154 @@
+1️⃣ What’s wrong near “Show Advanced Filters”
+The problem
+
+There are two visual bugs happening at once:
+
+❌ A. The button looks like it’s floating / clipped
+
+The “Show Advanced Filters” button is visually overlapping the card shadow
+
+It feels detached instead of being clearly part of the section
+
+This happens because:
+
+The gradient card has overflow-hidden
+
+The filters container below has margin/padding + shadow
+
+The button is sitting in an awkward in-between zone
+
+❌ B. Focus/active ring residue
+
+Even though you removed the white highlight earlier, this button is still inheriting:
+
+ring
+
+ring-offset
+
+focus-visible styles from your shared button system
+
+That’s why it looks slightly “outlined” or inconsistent compared to the rest of the UI.
+
+✅ Fix (what you should do)
+
+Design recommendation (clean & premium):
+
+Treat “Show Advanced Filters” as a text-toggle, not a button
+
+It should feel secondary, not CTA-level
+
+✅ Change it to:
+
+Smaller font
+
+Muted gray
+
+No background
+
+No ring / outline
+
+Chevron icon optional
+
+Target style:
+
+.show-filters-btn {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  color: #6b7280; /* gray-500 */
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.show-filters-btn:focus,
+.show-filters-btn:focus-visible {
+  outline: none;
+  box-shadow: none;
+}
+
+
+This immediately fixes:
+
+The awkward spacing
+
+The visual “border”
+
+The hierarchy problem
+
+💡 Result:
+CTA = “Become a Service Provider”
+Secondary action = “Show Advanced Filters”
+Perfect UX hierarchy.
+
+2️⃣ Dropdown text turns white after selection (this is a real bug)
+
+You spotted an actual usability issue here — good catch.
+
+The problem
+
+When you:
+
+Open Advanced Filters
+
+Select a service
+
+Dropdown closes
+
+👉 The selected value text becomes white on a white background
+
+That means:
+
+The Select component is inheriting text-white
+
+Likely from:
+
+A parent container
+
+Or a shared .text-white / gradient utility
+
+Or a button base style
+
+✅ The exact cause (what’s happening)
+
+Most likely one of these:
+
+.text-white
+
+
+or
+
+button { color: white; }
+
+
+is being applied to the closed select trigger, but the dropdown panel overrides it correctly.
+
+So:
+
+Open menu → text is fine
+
+Closed state → text inherits white ❌
+
+✅ The fix (safe and scoped)
+
+Force black text ONLY for the closed state:
+
+.filter-select-trigger {
+  color: #111827 !important; /* gray-900 */
+}
+
+
+If this is a Radix / Headless UI / Shadcn Select, target:
+
+[data-state="closed"] {
+  color: #111827;
+}
+
+
+Or more explicitly:
+
+.select-trigger span {
+  color: #111827;
+}
+
+
+⚠️ Do NOT remove text-white globally — scope it tightly.
