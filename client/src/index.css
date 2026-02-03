@@ -1469,6 +1469,18 @@ button:contains("Become a Service Provider") {
   border: 1px solid #0074d4 !important;
 }
 
+/* Remove white highlight/ring from tab pills on focus/hover */
+.services-tabs .tab-pill:focus,
+.services-tabs .tab-pill:focus-visible,
+.services-tabs .tab-pill:active,
+.tab-pill:focus,
+.tab-pill:focus-visible,
+.tab-pill:active {
+  outline: none !important;
+  box-shadow: none !important;
+  ring: none !important;
+}
+
 /* Make any icons inside pills inherit and be visible */
 .tab-pill svg {
   width: 1rem;
