@@ -297,16 +297,17 @@ export function ServicesTab() {
         </div>
       </div>
 
-      {/* Advanced Filters Panel */}
+      {/* Advanced Filters Panel - Premium filter tray */}
       {showFilters && (
-        <Card className="shadow-lg border-0 bg-white">
-          <CardContent className="p-6">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <Card className="border border-gray-200 bg-gray-50 rounded-xl shadow-sm">
+          <CardContent className="p-4">
+            <p className="text-xs text-gray-500 font-medium mb-3">Refine your search</p>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
               <Select 
                 value={filters.type || 'all'} 
                 onValueChange={(value) => setFilters(prev => ({ ...prev, type: value === 'all' ? undefined : value }))}
               >
-                <SelectTrigger className="border-2 bg-white" style={{ color: '#000000' }}>
+                <SelectTrigger className="h-9 border border-gray-200 bg-white rounded-lg" style={{ color: '#000000' }}>
                   <SelectValue placeholder="Service Type" className="text-black" />
                 </SelectTrigger>
                 <SelectContent className="bg-white">
@@ -319,37 +320,46 @@ export function ServicesTab() {
                 </SelectContent>
               </Select>
 
-              <Input
-                placeholder="Location"
-                value={filters.location || ''}
-                onChange={(e) => setFilters(prev => ({ ...prev, location: e.target.value || undefined }))}
-                className="border-2"
-              />
+              <div className="relative">
+                <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Input
+                  placeholder="Location"
+                  value={filters.location || ''}
+                  onChange={(e) => setFilters(prev => ({ ...prev, location: e.target.value || undefined }))}
+                  className="h-9 pl-9 border border-gray-200 bg-white rounded-lg"
+                />
+              </div>
 
-              <Input
-                type="number"
-                placeholder="Min Price ($)"
-                value={filters.min_price || ''}
-                onChange={(e) => setFilters(prev => ({ ...prev, min_price: e.target.value || undefined }))}
-                className="border-2"
-              />
+              <div className="relative">
+                <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Input
+                  type="number"
+                  placeholder="Min Price"
+                  value={filters.min_price || ''}
+                  onChange={(e) => setFilters(prev => ({ ...prev, min_price: e.target.value || undefined }))}
+                  className="h-9 pl-9 border border-gray-200 bg-white rounded-lg"
+                />
+              </div>
 
-              <Input
-                type="number"
-                placeholder="Max Price ($)"
-                value={filters.max_price || ''}
-                onChange={(e) => setFilters(prev => ({ ...prev, max_price: e.target.value || undefined }))}
-                className="border-2"
-              />
+              <div className="relative">
+                <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Input
+                  type="number"
+                  placeholder="Max Price"
+                  value={filters.max_price || ''}
+                  onChange={(e) => setFilters(prev => ({ ...prev, max_price: e.target.value || undefined }))}
+                  className="h-9 pl-9 border border-gray-200 bg-white rounded-lg"
+                />
+              </div>
             </div>
             
             {Object.values(filters).some(Boolean) && (
-              <div className="flex justify-end mt-4">
+              <div className="flex justify-end mt-3">
                 <Button
                   variant="ghost"
                   onClick={() => setFilters({})}
                   size="sm"
-                  className="text-blue-600 hover:text-blue-700"
+                  className="text-blue-600 hover:text-blue-700 h-8 text-xs"
                 >
                   Clear All Filters
                 </Button>
@@ -358,6 +368,9 @@ export function ServicesTab() {
           </CardContent>
         </Card>
       )}
+      
+      {/* Subtle divider when filters are open */}
+      {showFilters && <div className="border-t border-gray-100 mx-4" />}
 
       {/* Filters Section - grouped together */}
       <div className="flex flex-col items-center gap-2 px-4">
