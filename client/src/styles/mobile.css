@@ -1346,11 +1346,13 @@
   /* Product description - readable text on mobile */
   .product-card p,
   .product-card .product-description,
+  .product-card__description,
   .product-card [class*="CardDescription"],
   [class*="CardDescription"],
   .product-card .line-clamp-2,
   [class*="Card"] .text-muted-foreground,
-  [class*="Card"] p {
+  [class*="Card"] p,
+  .store-tab .product-card__description {
     color: #111827 !important; /* near-black */
     opacity: 1 !important;
   }

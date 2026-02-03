@@ -1820,10 +1820,11 @@ button:contains("Become a Service Provider") {
 
 .product-card__description {
   font-size: 0.875rem;
-  color: #555555;
-  /* Softer gray for descriptions */
+  color: #111827 !important;
+  /* Near-black for better readability */
   margin-bottom: 12px;
   flex: 1;
+  opacity: 1 !important;
   /* pushes buttons to bottom */
 }
 
