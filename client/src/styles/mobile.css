@@ -1305,6 +1305,53 @@
 }
 
 /* ============================================================
+   MOBILE PRODUCT CARD IMAGE FIX
+   Fix aspect ratio and display on mobile for better product visibility
+   ============================================================ */
+@media (max-width: 768px) {
+  /* Product card image container - taller aspect ratio on mobile */
+  .product-card .aspect-square,
+  [class*="Card"] .aspect-square {
+    aspect-ratio: 4 / 5 !important;
+  }
+  
+  /* Product images - contain instead of cover, with neutral backdrop */
+  .product-card img,
+  [class*="Card"] .aspect-square img,
+  [class*="CardHeader"] .aspect-square img {
+    object-fit: contain !important;
+    background-color: #f8f9fb !important;
+  }
+  
+  /* Product card padding adjustment */
+  .product-card,
+  [class*="Card"].h-full {
+    padding: 8px !important;
+  }
+  
+  /* Product title - slightly smaller on mobile */
+  .product-card .text-lg,
+  [class*="CardTitle"].text-lg {
+    font-size: 14px !important;
+    margin-top: 8px !important;
+  }
+  
+  /* Product price - bold and visible */
+  .product-card .text-2xl,
+  [class*="CardContent"] .text-2xl {
+    font-size: 16px !important;
+    font-weight: 600 !important;
+  }
+  
+  /* Button padding reduction on mobile cards */
+  .product-card button,
+  [class*="CardFooter"] button {
+    padding-top: 8px !important;
+    padding-bottom: 8px !important;
+  }
+}
+
+/* ============================================================
    SERVICE FILTER BUTTONS - Remove white hover/focus overlay
    Scoped ONLY to buttons with data-service-filter attribute
    ============================================================ */

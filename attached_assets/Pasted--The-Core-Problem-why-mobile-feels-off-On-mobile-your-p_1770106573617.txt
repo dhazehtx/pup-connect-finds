@@ -1,0 +1,104 @@
+🔴 The Core Problem (why mobile feels “off”)
+
+On mobile, your product cards are too constrained vertically, so images are:
+
+Cropped awkwardly
+
+Too small to read details
+
+Competing with price + buttons for space
+
+Desktop works because you have horizontal real estate. Mobile needs a different image strategy, not just responsive scaling.
+
+This is not a data issue — it’s a layout + aspect-ratio issue.
+
+✅ What You Should Do (Option B — the correct move)
+1️⃣ Fix image aspect ratio on mobile (MOST IMPORTANT)
+
+Right now, your images are probably using something like:
+
+aspect-square
+
+fixed height (h-40, h-48)
+
+or object-cover in a container that’s too short
+
+✅ Mobile fix (this alone will make it feel 10× better):
+
+On mobile only, switch to a taller image ratio.
+
+Recommended: 4:5 or 3:4
+
+/* Mobile product image fix */
+@media (max-width: 768px) {
+  .product-card img {
+    aspect-ratio: 4 / 5;
+    object-fit: contain;
+    background-color: #f8f9fb; /* subtle neutral backdrop */
+  }
+}
+
+
+Why this works:
+
+Shows the entire product
+
+Prevents aggressive cropping
+
+Adds a clean “catalog” feel (Shopify does this)
+
+2️⃣ Give the image visual priority on mobile
+
+On mobile, the image should be the hero, not the title.
+
+Do this:
+
+Increase image height
+
+Push title + price slightly lower
+
+Reduce vertical padding on buttons
+
+Example adjustment:
+
+@media (max-width: 768px) {
+  .product-card {
+    padding: 12px;
+  }
+
+  .product-card .title {
+    font-size: 14px;
+    margin-top: 8px;
+  }
+
+  .product-card .price {
+    font-size: 15px;
+    font-weight: 600;
+  }
+}
+
+3️⃣ Keep desktop EXACTLY as-is (important)
+
+Do not touch desktop styles.
+Scope everything with media queries or mobile-specific classes.
+
+You already did the right thing earlier with data-service-filter.
+Same mindset here.
+
+4️⃣ Optional but VERY premium mobile upgrade (recommended)
+
+Add tap-to-expand image on mobile only:
+
+Tap image → full-screen modal
+
+Swipe down to dismiss
+
+This solves:
+
+“I want to see details”
+
+“Image feels small”
+
+No clutter added to card UI
+
+You can ship this after launch, but it’s a killer enhancement.
