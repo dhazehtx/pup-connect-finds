@@ -308,26 +308,26 @@ const StoreTab = () => {
                     ${parseFloat(product.unit_price).toFixed(2)}
                   </div>
 
-                  {/* Action Buttons */}
-                  <div className="product-card__actions">
-                    <button
-                      type="button"
-                      onClick={() => handleAddToCart(product)}
-                      disabled={addedItems.has(product.id)}
-                      className="btn-pill btn-pill--secondary"
-                      data-testid={`button-add-cart-${product.id}`}
-                    >
-                      {addedItems.has(product.id) ? 'Added' : isInCart(product.id) ? 'In Cart' : 'Add'}
-                    </button>
-                    
+                  {/* Action Buttons - Stack on mobile, row on desktop */}
+                  <div className="flex flex-col gap-2 md:flex-row md:gap-3 mt-3">
                     <button
                       type="button"
                       onClick={() => checkoutMutation.mutate(product.id)}
                       disabled={checkoutMutation.isPending}
-                      className="btn-pill btn-pill--cta"
+                      className="flex-1 px-4 py-2.5 rounded-xl bg-[#0074d4] text-white font-semibold shadow-md hover:bg-[#005aa8] active:scale-[0.98] transition-all"
                       data-testid={`button-buy-now-${product.id}`}
                     >
                       {checkoutMutation.isPending ? 'Processing...' : 'Buy Now'}
+                    </button>
+                    
+                    <button
+                      type="button"
+                      onClick={() => handleAddToCart(product)}
+                      disabled={addedItems.has(product.id)}
+                      className="flex-1 px-4 py-2.5 rounded-xl bg-white text-gray-900 font-medium border border-gray-300 hover:bg-gray-50 active:scale-[0.98] transition-all"
+                      data-testid={`button-add-cart-${product.id}`}
+                    >
+                      {addedItems.has(product.id) ? 'Added' : isInCart(product.id) ? 'In Cart' : 'Add'}
                     </button>
                   </div>
                 </div>
