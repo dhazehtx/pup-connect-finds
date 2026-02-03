@@ -1,0 +1,140 @@
+🔴 What’s wrong near “Show Advanced Filters”
+
+There are two issues happening at once:
+
+1️⃣ The “Show Advanced Filters” control is floating / detached
+
+It’s visually orphaned between sections.
+
+What you’re seeing:
+
+The Pet Services hero card ends
+
+Then there’s an awkward gap
+
+Then “Show Advanced Filters” appears alone
+
+Then the pill buttons start
+
+This breaks visual hierarchy and feels unintentional.
+
+Why this happens
+
+The button is not grouped with the section it controls
+
+It’s likely sitting outside the container that holds the filter pills
+
+Or it has margin/padding coming from a generic utility class
+
+2️⃣ There’s a subtle ghost highlight / spacing artifact
+
+That faint “pill-shaped” hover/active area you’re noticing is:
+
+A focus / ring-offset / hover background
+
+Coming from a shared button or text-button style
+
+It’s invisible until you scroll or tap, then it feels “wrong”
+
+This is not a bug, but it looks like one.
+
+✅ What the UI should look like (UX-wise)
+
+The correct mental model is:
+
+[ Hero Card ]
+[ Become a Service Provider button ]
+
+──────────────
+[ Filters Section ]
+  Show Advanced Filters
+  All Services | Grooming | Dog Sitting | ...
+──────────────
+
+
+Right now, you have:
+
+[ Hero Card ]
+[ Become a Service Provider ]
+
+   (floating)
+   Show Advanced Filters
+
+[ Filters ]
+
+
+That’s the problem.
+
+🛠️ The clean fix (recommended)
+Move “Show Advanced Filters” INTO the filters container
+
+Instead of treating it as a standalone element, it should:
+
+Live inside the same wrapper as the filter pills
+
+Be visually tied to them
+
+Have reduced vertical margin
+
+Conceptually:
+<div className="filters-section">
+  <button className="show-advanced-filters">
+    Show Advanced Filters
+  </button>
+
+  <div className="filter-pills">
+    ...
+  </div>
+</div>
+
+🎨 Styling tweaks (small but important)
+
+For “Show Advanced Filters”:
+
+Smaller font than pills
+
+Muted gray / subtle blue
+
+No ring-offset background
+
+Tight margin-bottom (8–12px max)
+
+Example intent (not exact code):
+
+.show-advanced-filters {
+  font-size: 0.85rem;
+  color: #6b7280; /* gray-500 */
+  background: transparent;
+  padding: 4px 8px;
+  margin-bottom: 8px;
+}
+
+❌ What NOT to do
+
+Don’t add more !important
+
+Don’t hide it
+
+Don’t leave it floating between sections
+
+Don’t treat it like a primary CTA (it’s secondary)
+
+✅ Verdict: where you are now
+
+Good news
+
+Icons ✅ fixed
+
+Buttons ✅ consistent
+
+Visual style ✅ premium
+
+You’re past the hard part
+
+Remaining work
+
+Pure layout polish
+
+10–15 minutes total
+
+Zero architectural risk

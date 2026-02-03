@@ -359,20 +359,19 @@ export function ServicesTab() {
         </Card>
       )}
 
-      {/* Quick Filter Toggle */}
-      <div className="flex justify-center">
-        <Button
-          variant="outline"
+      {/* Filters Section - grouped together */}
+      <div className="flex flex-col items-center gap-3 px-4">
+        {/* Show Advanced Filters - subtle secondary control */}
+        <button
           onClick={() => setShowFilters(!showFilters)}
-          className="flex items-center gap-2 rounded-xl border-2 px-6 py-3 bg-white hover:bg-blue-50 border-blue-200 text-blue-700"
+          className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-blue-600 transition-colors"
         >
-          <Filter className="h-4 w-4" />
+          <Filter className="h-3.5 w-3.5" />
           {showFilters ? 'Hide Filters' : 'Show Advanced Filters'}
-        </Button>
-      </div>
+        </button>
 
-      {/* Service Categories Pill Row */}
-      <div className="flex flex-wrap gap-3 justify-center px-4">
+        {/* Service Categories Pill Row */}
+        <div className="flex flex-wrap gap-3 justify-center">
         <Button
           className={`${PILL_BASE} ${!filters.type ? PILL_ACTIVE : PILL_INACTIVE}`}
           onClick={() => setFilters(prev => ({ ...prev, type: undefined }))}
@@ -409,6 +408,7 @@ export function ServicesTab() {
         >
           🏨 Boarding
         </Button>
+        </div>
       </div>
 
       {/* Services Content - Tabs for All Services and Featured (Promoted) */}
