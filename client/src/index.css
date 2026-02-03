@@ -1520,13 +1520,27 @@ button:contains("Become a Service Provider") {
   stroke-width: 2;
 }
 
-/* Force black text on filter dropdowns in services/marketplace page */
-.services-page [data-radix-select-trigger],
-.services-page [role="combobox"],
-.marketplace [data-radix-select-trigger],
-.marketplace [role="combobox"],
+/* Force black text on all filter dropdowns and inputs */
+[data-radix-select-trigger],
 [data-radix-select-trigger] span,
-[role="combobox"] span {
+[data-radix-select-content],
+[data-radix-select-item],
+[data-radix-select-item] span,
+[role="combobox"],
+[role="combobox"] span,
+[role="option"],
+[role="listbox"] *,
+.SelectContent *,
+.SelectItem,
+.SelectItem *,
+input::placeholder {
+  color: #000000 !important;
+}
+
+/* Force black text on input fields and placeholders */
+input,
+input::placeholder,
+.border-2::placeholder {
   color: #000000 !important;
 }
 
