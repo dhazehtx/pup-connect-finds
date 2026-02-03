@@ -309,10 +309,10 @@ export function ServicesTab() {
                 <SelectTrigger className="border-2 text-gray-900 bg-white">
                   <SelectValue placeholder="Service Type" />
                 </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Services</SelectItem>
+                <SelectContent className="bg-white">
+                  <SelectItem value="all" className="text-gray-900">All Services</SelectItem>
                   {serviceTypes.map(type => (
-                    <SelectItem key={type.value} value={type.value}>
+                    <SelectItem key={type.value} value={type.value} className="text-gray-900">
                       {type.icon} {type.label}
                     </SelectItem>
                   ))}
