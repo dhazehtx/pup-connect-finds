@@ -288,7 +288,6 @@ export function ServicesTab() {
           </div>
           
           <Button onClick={handleBecomeProvider} className="w-full max-w-xs">
-            <Shield className="h-4 w-4 mr-2" />
             Become a Service Provider
           </Button>
         </div>
