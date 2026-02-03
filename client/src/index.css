@@ -1469,30 +1469,6 @@ button:contains("Become a Service Provider") {
   border: 1px solid #0074d4 !important;
 }
 
-/* Remove white highlight/overlay on tab buttons when focused/hovered */
-.services-tabs .tab-pill:focus,
-.services-tabs .tab-pill:focus-visible,
-.services-tabs .tab-pill:hover,
-.services-tabs [data-radix-tabs-trigger]:focus,
-.services-tabs [data-radix-tabs-trigger]:focus-visible,
-.services-tabs [data-radix-tabs-trigger]:hover {
-  outline: none !important;
-  box-shadow: none !important;
-  -webkit-tap-highlight-color: transparent !important;
-}
-
-/* Inactive tab hover state - subtle blue tint instead of white overlay */
-.services-tabs .tab-pill[data-state="inactive"]:hover {
-  background-color: #f0f7ff !important;
-  border-color: #0074d4 !important;
-}
-
-/* Active tab - no change on hover */
-.services-tabs .tab-pill[data-state="active"]:hover {
-  background-color: #0074d4 !important;
-  color: white !important;
-}
-
 /* Make any icons inside pills inherit and be visible */
 .tab-pill svg {
   width: 1rem;
