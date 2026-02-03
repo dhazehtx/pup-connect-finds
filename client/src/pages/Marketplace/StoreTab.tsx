@@ -324,7 +324,8 @@ const StoreTab = () => {
                       type="button"
                       onClick={() => checkoutMutation.mutate(product.id)}
                       disabled={checkoutMutation.isPending}
-                      className="btn-pill btn-pill--primary"
+                      className="btn-pill btn-pill--outline"
+                      style={{ color: '#111827' }}
                       data-testid={`button-buy-now-${product.id}`}
                     >
                       {checkoutMutation.isPending ? 'Processing...' : 'Buy Now'}
