@@ -411,13 +411,16 @@ export function ServicesTab() {
         </Button>
       </div>
 
-      {/* Services Content - All Services Only */}
+      {/* Services Content - Tabs for All Services and Featured (Promoted) */}
       <Tabs defaultValue="all" className="w-full services-tabs">
         <div className="flex justify-center">
           <div className="inline-flex items-center gap-2 rounded-full bg-secondary p-1 shadow-sm">
             <TabsList className="tab-list border-0 bg-transparent p-0">
               <TabsTrigger value="all" className="tab-pill">
                 All Services
+              </TabsTrigger>
+              <TabsTrigger value="featured" className="tab-pill">
+                Featured Services
               </TabsTrigger>
             </TabsList>
           </div>
@@ -466,7 +469,57 @@ export function ServicesTab() {
               <div className="text-6xl mb-4">🔍</div>
               <h3 className="text-xl font-semibold mb-2">No Services Found</h3>
               <p className="text-muted-foreground mb-4">
-                Be the first to offer featured services in your area!
+                Be the first to offer services in your area!
+              </p>
+              <button onClick={handleBecomeProvider} className="btn-primary">
+                Become a Service Provider
+              </button>
+            </div>
+          )}
+        </TabsContent>
+
+        <TabsContent value="featured" className="bg-white rounded-lg border border-border shadow-sm p-0 focus-visible:outline-none space-y-4">
+          <div className="text-center py-4 md:py-6 bg-white rounded-lg">
+            <div className="max-w-6xl mx-auto px-4 md:px-6">
+              <h2 className="text-2xl font-semibold mb-2">Featured Services</h2>
+              <p className="text-muted-foreground">
+                Promoted listings from verified service providers
+              </p>
+            </div>
+          </div>
+
+          {isLoading ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {[...Array(6)].map((_, i) => (
+                <Card key={i} className="animate-pulse">
+                  <CardContent className="p-6">
+                    <div className="h-16 bg-muted rounded mb-4"></div>
+                    <div className="h-4 bg-muted rounded mb-2"></div>
+                    <div className="h-4 bg-muted rounded w-2/3"></div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          ) : featuredServices.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {featuredServices.map((service: any) => (
+                service.isDemo ? (
+                  <DemoProviderCard key={service.id} provider={service} />
+                ) : (
+                  <ServiceProviderCard
+                    key={service.id}
+                    provider={service}
+                    onBook={() => setSelectedProvider(service)}
+                  />
+                )
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-12 bg-white rounded-xl">
+              <div className="text-6xl mb-4">⭐</div>
+              <h3 className="text-xl font-semibold mb-2">No Featured Services Yet</h3>
+              <p className="text-muted-foreground mb-4">
+                Promote your service to appear here and reach more customers!
               </p>
               <button onClick={handleBecomeProvider} className="btn-primary">
                 Become a Service Provider
