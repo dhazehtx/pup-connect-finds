@@ -3,6 +3,29 @@
 /* Focus: max-width: 768px (tablet and below) */
 
 /* ============================================
+   PRODUCT CARD BUTTON TEXT - BLACK TEXT FIX
+   Normalize Store card action buttons (Add + Buy Now)
+   ============================================ */
+.product-card button,
+.product-card a button {
+  color: #111827 !important; /* near-black */
+}
+
+/* Explicitly target Buy Now if it has a variant class */
+.product-card .buy-now,
+.product-card button[data-action="buy-now"],
+.product-card .btn-pill--primary {
+  background-color: #ffffff !important;
+  color: #111827 !important;
+  border: 1px solid #e5e7eb;
+}
+
+/* Keep subtle interaction without color change */
+.product-card button:hover {
+  filter: brightness(0.97);
+}
+
+/* ============================================
    MOBILE YELLOW ELIMINATION - CRITICAL
    Force white backgrounds on mobile to match desktop
    ============================================ */
