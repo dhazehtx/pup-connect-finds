@@ -1305,6 +1305,48 @@
 }
 
 /* ============================================================
+   SERVICE FILTER BUTTONS - Remove white hover/focus overlay
+   Scoped ONLY to buttons with data-service-filter attribute
+   ============================================================ */
+button[data-service-filter],
+button[data-service-filter="true"] {
+  --tw-ring-offset-width: 0px !important;
+  --tw-ring-color: transparent !important;
+  --tw-ring-offset-color: transparent !important;
+}
+
+button[data-service-filter]:hover,
+button[data-service-filter]:focus,
+button[data-service-filter]:focus-visible,
+button[data-service-filter]:active {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* Active state - blue background */
+button[data-service-filter][data-state="active"] {
+  background-color: #0074d4 !important;
+  color: #ffffff !important;
+}
+
+button[data-service-filter][data-state="active"]:hover,
+button[data-service-filter][data-state="active"]:focus {
+  background-color: #0074d4 !important;
+  filter: brightness(0.95);
+}
+
+/* Inactive state - white background */
+button[data-service-filter][data-state="inactive"] {
+  background-color: #ffffff !important;
+  color: #374151 !important;
+}
+
+button[data-service-filter][data-state="inactive"]:hover {
+  background-color: #f3f4f6 !important;
+  filter: brightness(0.98);
+}
+
+/* ============================================================
    ABSOLUTE FINAL OVERRIDE - PUP BOX GRADIENT ON MOBILE
    This must be the LAST rule in the file
    ============================================================ */

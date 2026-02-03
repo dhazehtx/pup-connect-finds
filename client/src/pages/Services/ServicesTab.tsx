@@ -430,10 +430,10 @@ export function ServicesTab() {
         <div className="flex justify-center">
           <div className="inline-flex items-center gap-2 rounded-full bg-secondary p-1 shadow-sm">
             <TabsList className="tab-list border-0 bg-transparent p-0">
-              <TabsTrigger value="all" className="tab-pill">
+              <TabsTrigger value="all" className="tab-pill" data-service-filter="true">
                 All Services
               </TabsTrigger>
-              <TabsTrigger value="featured" className="tab-pill">
+              <TabsTrigger value="featured" className="tab-pill" data-service-filter="true">
                 Featured Services
               </TabsTrigger>
             </TabsList>
