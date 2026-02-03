@@ -2201,9 +2201,13 @@ html body .product-card__image > div.relative svg {
    FILTER SELECT TRIGGERS - Force black text
    ============================================================ */
 [data-radix-select-trigger],
+[data-radix-select-trigger] *,
+[data-radix-select-trigger] span,
 [role="combobox"],
-.select-trigger,
-button[data-state] span {
+[role="combobox"] *,
+[role="combobox"] span,
+button[data-state="closed"] span,
+button[data-state="open"] span {
   color: #111827 !important;
 }
 
