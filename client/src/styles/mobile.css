@@ -1343,6 +1343,14 @@
     font-weight: 600 !important;
   }
   
+  /* Product description - black text for visibility */
+  .product-card [class*="CardDescription"],
+  [class*="CardDescription"],
+  .product-card .line-clamp-2,
+  [class*="Card"] .text-muted-foreground {
+    color: #000000 !important;
+  }
+  
   /* Button padding reduction on mobile cards */
   .product-card button,
   [class*="CardFooter"] button {
