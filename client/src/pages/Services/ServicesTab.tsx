@@ -287,7 +287,11 @@ export function ServicesTab() {
             </div>
           </div>
           
-          <Button onClick={handleBecomeProvider} className="w-full max-w-xs">
+          <Button 
+            onClick={handleBecomeProvider} 
+            className="w-full max-w-xs mt-3"
+            style={{ boxShadow: '0 4px 12px rgba(0, 0, 0, 0.12)' }}
+          >
             Become a Service Provider
           </Button>
         </div>
