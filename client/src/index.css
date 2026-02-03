@@ -2198,16 +2198,21 @@ html body .product-card__image > div.relative svg {
   }
 }
 /* ============================================================
-   FILTER SELECT TRIGGERS - Force black text
+   FILTER SELECT TRIGGERS - Force black text on selected value
    ============================================================ */
 [data-radix-select-trigger],
-[data-radix-select-trigger] *,
-[data-radix-select-trigger] span,
-[role="combobox"],
-[role="combobox"] *,
-[role="combobox"] span,
-button[data-state="closed"] span,
-button[data-state="open"] span {
+[data-radix-select-trigger] > span,
+[data-radix-select-trigger] span[style],
+button[role="combobox"],
+button[role="combobox"] > span,
+button[role="combobox"] span:first-child,
+.border-2[role="combobox"] span {
+  color: #000000 !important;
+}
+
+/* Target the SelectValue span specifically */
+button[data-state="closed"] > span:first-child,
+button[data-state="open"] > span:first-child {
   color: #000000 !important;
 }
 
