@@ -2208,7 +2208,7 @@ html body .product-card__image > div.relative svg {
 [role="combobox"] span,
 button[data-state="closed"] span,
 button[data-state="open"] span {
-  color: #111827 !important;
+  color: #000000 !important;
 }
 
 /* ============================================================
