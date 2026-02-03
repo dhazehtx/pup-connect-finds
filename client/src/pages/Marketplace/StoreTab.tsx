@@ -314,7 +314,7 @@ const StoreTab = () => {
                       type="button"
                       onClick={() => handleAddToCart(product)}
                       disabled={addedItems.has(product.id)}
-                      className="btn-pill btn-pill--outline"
+                      className="btn-pill btn-pill--secondary"
                       data-testid={`button-add-cart-${product.id}`}
                     >
                       {addedItems.has(product.id) ? 'Added' : isInCart(product.id) ? 'In Cart' : 'Add'}
@@ -324,8 +324,7 @@ const StoreTab = () => {
                       type="button"
                       onClick={() => checkoutMutation.mutate(product.id)}
                       disabled={checkoutMutation.isPending}
-                      className="btn-pill btn-pill--outline"
-                      style={{ color: '#111827' }}
+                      className="btn-pill btn-pill--cta"
                       data-testid={`button-buy-now-${product.id}`}
                     >
                       {checkoutMutation.isPending ? 'Processing...' : 'Buy Now'}

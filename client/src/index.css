@@ -1860,28 +1860,46 @@ button:contains("Become a Service Provider") {
   background-color: rgba(0, 116, 212, 0.08);
 }
 
-/* Primary (Buy Now / Checkout) - White background with black text */
-.btn-pill--primary {
+/* Secondary (Add to Cart) - Subtle outline, black text */
+.btn-pill--secondary {
   border: 1px solid #d1d5db;
   background-color: #ffffff;
-  color: #000000 !important;
-  font-weight: 700;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  transition: transform 0.15s ease-out, box-shadow 0.15s ease-out;
+  color: #111827 !important;
+  font-weight: 500;
+}
+
+.btn-pill--secondary:hover {
+  background-color: #f9fafb;
+  border-color: #9ca3af;
+}
+
+/* Primary CTA (Buy Now) - Bold blue, white text, thumb-friendly */
+.btn-pill--cta {
+  border: none;
+  background-color: #0074d4 !important;
+  color: #ffffff !important;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(0, 116, 212, 0.3);
+  transition: transform 0.15s ease-out, box-shadow 0.15s ease-out, background-color 0.15s ease-out;
+}
+
+.btn-pill--cta:hover {
+  background-color: #005aa8 !important;
+  box-shadow: 0 4px 12px rgba(0, 116, 212, 0.4);
 }
 
 @media (prefers-reduced-motion: no-preference) {
-  .btn-pill--primary:hover {
-    background-color: #f3f4f6;
-    transform: scale(1.05);
-    box-shadow: 0 0 20px rgba(0, 116, 212, 0.5);
+  .btn-pill--cta:hover {
+    transform: scale(1.02);
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .btn-pill--primary:hover {
-    background-color: #f3f4f6;
-  }
+/* Legacy primary kept for backwards compatibility */
+.btn-pill--primary {
+  border: 1px solid #d1d5db;
+  background-color: #ffffff;
+  color: #111827 !important;
+  font-weight: 500;
 }
 
 /* Product price display */
