@@ -173,7 +173,7 @@ const PILL_INACTIVE =
   "!bg-blue-50 !text-blue-700 !border-blue-600 hover:!bg-blue-100";
 
 const PILL_ACTIVE =
-  "!bg-[#2363FF] !text-black !border-[#2363FF] hover:!bg-[#1E55D6]";
+  "!bg-[#2363FF] !text-white !border-[#2363FF] hover:!bg-[#1E55D6]";
 
 interface ServicesFilters {
   type?: string;
@@ -306,8 +306,8 @@ export function ServicesTab() {
                 value={filters.type || 'all'} 
                 onValueChange={(value) => setFilters(prev => ({ ...prev, type: value === 'all' ? undefined : value }))}
               >
-                <SelectTrigger className="border-2 text-black bg-white">
-                  <SelectValue placeholder="Service Type" className="text-black" />
+                <SelectTrigger className="border-2 bg-white" style={{ color: '#000000' }}>
+                  <SelectValue placeholder="Service Type" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Services</SelectItem>

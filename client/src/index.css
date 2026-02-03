@@ -1520,6 +1520,16 @@ button:contains("Become a Service Provider") {
   stroke-width: 2;
 }
 
+/* Force black text on filter dropdowns in services/marketplace page */
+.services-page [data-radix-select-trigger],
+.services-page [role="combobox"],
+.marketplace [data-radix-select-trigger],
+.marketplace [role="combobox"],
+[data-radix-select-trigger] span,
+[role="combobox"] span {
+  color: #000000 !important;
+}
+
 /* Remove ALL pseudo-elements that create blue stripes/corners */
 .services-tabs [data-state="active"]::before,
 .services-tabs [data-state="active"]::after,
