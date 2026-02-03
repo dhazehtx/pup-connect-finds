@@ -1478,7 +1478,50 @@ button:contains("Become a Service Provider") {
 .tab-pill:active {
   outline: none !important;
   box-shadow: none !important;
-  ring: none !important;
+}
+
+/* Kill ring + offset overlay on service tabs */
+.services-tabs .tab-pill,
+.services-tabs button[data-state] {
+  --tw-ring-offset-width: 0px !important;
+  --tw-ring-color: transparent !important;
+  --tw-ring-offset-color: transparent !important;
+}
+
+/* Override shadcn/radix tab highlight - ACTIVE state */
+.services-tabs button[data-state="active"],
+.services-tabs .tab-pill[data-state="active"] {
+  background-color: #0074d4 !important;
+  color: #ffffff !important;
+  box-shadow: none !important;
+  outline: none !important;
+}
+
+/* Override shadcn/radix tab highlight - INACTIVE state */
+.services-tabs button[data-state="inactive"],
+.services-tabs .tab-pill[data-state="inactive"] {
+  background-color: #ffffff !important;
+  color: #374151 !important;
+}
+
+/* Hover state - subtle darken instead of white overlay */
+.services-tabs button[data-state="inactive"]:hover,
+.services-tabs .tab-pill[data-state="inactive"]:hover {
+  background-color: #f3f4f6 !important;
+  filter: brightness(0.98);
+}
+
+.services-tabs button[data-state="active"]:hover,
+.services-tabs .tab-pill[data-state="active"]:hover {
+  background-color: #0074d4 !important;
+  filter: brightness(0.95);
+}
+
+/* Focus states - no white wash */
+.services-tabs button[data-state]:focus,
+.services-tabs button[data-state]:focus-visible {
+  outline: none !important;
+  box-shadow: none !important;
 }
 
 /* Make any icons inside pills inherit and be visible */

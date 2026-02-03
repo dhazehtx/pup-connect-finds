@@ -1,0 +1,115 @@
+2️⃣ The white highlight overlay on “All Services / Featured Services” buttons
+What you’re seeing
+
+That white “wash” on hover / click is NOT a bug in your component.
+
+It’s coming from focus + ring + background utilities, most likely from one of these:
+
+focus-visible:ring-*
+
+ring-offset-background
+
+hover:bg-white/xx
+
+data-[state=active] styles (Radix / shadcn)
+
+You can literally see it in DevTools:
+
+ring-offset-background
+focus-visible:ring-2
+transition-colors
+
+
+That’s the smoking gun.
+
+3️⃣ The exact fix (this is the one you had before)
+
+You want:
+
+❌ No white overlay
+
+✅ Keep accessibility
+
+✅ Keep subtle interaction feedback
+
+✅ Add this CSS (recommended: global or mobile.css)
+/* Remove white hover/focus overlay on service filter pills */
+button[data-service-filter],
+button.service-filter {
+  background-color: #0b6fd8; /* your blue */
+}
+
+button[data-service-filter]:hover,
+button[data-service-filter]:focus,
+button[data-service-filter]:focus-visible {
+  background-color: #0b6fd8 !important;
+  box-shadow: none !important;
+  outline: none !important;
+}
+
+/* Kill ring + offset overlay specifically */
+button[data-service-filter] {
+  --tw-ring-offset-width: 0px;
+  --tw-ring-color: transparent;
+}
+
+
+If you don’t have a data-service-filter attribute yet, add one.
+This avoids nuking styles globally.
+
+4️⃣ If these buttons are Radix / shadcn Tabs (very likely)
+
+Then the real culprit is:
+
+[data-state="active"]
+[data-state="inactive"]
+
+Fix it properly:
+/* Override shadcn / radix tab highlight */
+button[data-state="active"],
+button[data-state="inactive"]:hover {
+  background-color: #0b6fd8 !important;
+  color: #ffffff !important;
+}
+
+button[data-state="active"] {
+  box-shadow: none !important;
+}
+
+
+This preserves:
+
+Active state
+
+Hover feedback
+
+Zero white wash
+
+5️⃣ UX suggestion (small but premium)
+
+Right now the pills are good — one tweak makes them feel intentional:
+
+Add a slight darken instead of overlay
+button[data-service-filter]:hover {
+  filter: brightness(0.95);
+}
+
+
+That’s it.
+No white. No glow. No cheap feel.
+
+6️⃣ Why this kept coming back
+
+You weren’t imagining it — this happened because:
+
+Tailwind focus styles are implicit
+
+Reverts bring back:
+
+ring-offset-background
+
+focus-visible utilities
+
+Replit refactors can reapply defaults
+
+This is exactly why scoping with a data-attribute is the right long-term fix.
