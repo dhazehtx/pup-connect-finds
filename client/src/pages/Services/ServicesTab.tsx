@@ -361,15 +361,15 @@ export function ServicesTab() {
 
       {/* Filters Section - grouped together */}
       <div className="flex flex-col items-center gap-2 px-4">
-        {/* Show Advanced Filters - subtle secondary action */}
-        <button
+        {/* Show Advanced Filters - matches Sign in to book button styling */}
+        <Button
           onClick={() => setShowFilters(!showFilters)}
-          className="flex items-center gap-1.5 text-xs text-gray-500 hover:text-blue-600 transition-colors focus:outline-none"
-          style={{ background: 'transparent', border: 'none', boxShadow: 'none' }}
+          variant="outline"
+          size="sm"
+          className="text-sm font-medium shadow-sm"
         >
-          <Filter className="h-3 w-3" />
           {showFilters ? 'Hide Filters' : 'Show Advanced Filters'}
-        </button>
+        </Button>
 
         {/* Service Categories Pill Row */}
         <div className="flex flex-wrap gap-3 justify-center">
