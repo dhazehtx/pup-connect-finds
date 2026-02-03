@@ -1860,20 +1860,19 @@ button:contains("Become a Service Provider") {
   background-color: rgba(0, 116, 212, 0.08);
 }
 
-/* Primary (Buy Now / Checkout) - Royal Blue with gradient option */
+/* Primary (Buy Now / Checkout) - White background with black text */
 .btn-pill--primary {
-  border: none;
-  background-color: #0074d4;
-  /* Royal blue */
-  color: #ffffff;
+  border: 1px solid #d1d5db;
+  background-color: #ffffff;
+  color: #000000 !important;
   font-weight: 700;
-  box-shadow: 0 8px 18px rgba(0, 116, 212, 0.35);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   transition: transform 0.15s ease-out, box-shadow 0.15s ease-out;
 }
 
 @media (prefers-reduced-motion: no-preference) {
   .btn-pill--primary:hover {
-    background-color: #005aa8;
+    background-color: #f3f4f6;
     transform: scale(1.05);
     box-shadow: 0 0 20px rgba(0, 116, 212, 0.5);
   }
