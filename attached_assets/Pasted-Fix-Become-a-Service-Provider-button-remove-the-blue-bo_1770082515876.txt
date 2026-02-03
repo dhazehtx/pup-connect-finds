@@ -1,0 +1,61 @@
+Fix “Become a Service Provider” button + remove the blue border
+
+From your screenshots:
+
+The “Become a Service Provider” button is getting big padding / big height / big width styling.
+
+The “Sign in to book” button has the slim style you want (more like text-sm px-5 py-2 etc).
+
+That blue border looks like a border/outline class on a wrapper/card (or a focus/selected outline style).
+
+What to paste into Replit (best prompt)
+
+Paste this exactly:
+
+Goal: Make the “Become a Service Provider” button match the “Sign in to book” button styling on both mobile + desktop, and remove the unwanted blue border around the purple hero card/container shown in the screenshot.
+
+File: client/src/pages/Services/ServicesTab.tsx
+
+Tasks:
+
+Find the “Become a Service Provider” button (the one inside the purple/blue hero section).
+
+Update its classes to match the styling of the “Sign in to book” button used in the service provider cards (same padding/height/font size/border radius).
+
+Use a slim button style like: text-sm px-5 py-2 rounded-md (or reuse the same shared button class if one exists, like btn-primary / btn-pill etc).
+
+Ensure it is not full-height or oversized.
+
+Keep it centered and responsive, but remove any large fixed height like py-10, h-40, min-h-*, etc.
+
+Remove the unwanted blue border around the hero card/container (search in ServicesTab.tsx for any border, border-2, border-blue-*, ring-*, outline-*, or debug styling on the hero wrapper). Remove those border/ring/outline classes so the card edge is clean.
+
+After changes: confirm the hero button visually matches the “Sign in to book” buttons and the blue border is gone.
+
+If you want the exact class recipe (quick manual fix)
+
+When you find the “Become a Service Provider” button, you usually want something like:
+
+Good slim baseline
+
+inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium px-5 py-2
+
+If it should be full width on mobile but not huge:
+
+add w-full max-w-xs (or w-full inside a max-width wrapper)
+
+What to remove if present:
+
+py-10, py-12, h-32, h-40, min-h-*, w-full without a max width (if it makes it look like a giant slab), and any border-2 border-blue-500 / ring-2 ring-blue-*
+
+Why there’s a “blank space” with an invisible Add to Cart button (your earlier screenshot)
+
+That usually happens when:
+
+the button exists but text color matches background (e.g., white text on white bg), or
+
+the button is present but has opacity/visibility styles, or
+
+the container reserves height (margin/padding) even if button is visually broken.
+
+If you still see that anywhere: inspect the button → check computed styles for color, background-color, opacity, visibility, display, and height/min-height.

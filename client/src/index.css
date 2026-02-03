@@ -1023,15 +1023,14 @@ button[class*="buy"] {
 }
 
 /* Specific targeting for store tab buttons - more comprehensive selectors */
-.store-tab button,
-.marketplace button,
+.store-tab button:not(.btn-primary),
+.marketplace button:not(.btn-primary),
 button:contains("Add to Cart"),
 button:contains("Buy Now"),
 .product-actions button,
 .store-product button,
 [data-testid*="button-add"],
 [data-testid*="button-buy"],
-.btn-primary,
 .btn-secondary {
   color: #000000 !important;
   background-color: #ffffff !important;
