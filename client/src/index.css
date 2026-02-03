@@ -1520,30 +1520,6 @@ button:contains("Become a Service Provider") {
   stroke-width: 2;
 }
 
-/* Force black text on all filter dropdowns and inputs */
-[data-radix-select-trigger],
-[data-radix-select-trigger] span,
-[data-radix-select-content],
-[data-radix-select-item],
-[data-radix-select-item] span,
-[role="combobox"],
-[role="combobox"] span,
-[role="option"],
-[role="listbox"] *,
-.SelectContent *,
-.SelectItem,
-.SelectItem *,
-input::placeholder {
-  color: #000000 !important;
-}
-
-/* Force black text on input fields and placeholders */
-input,
-input::placeholder,
-.border-2::placeholder {
-  color: #000000 !important;
-}
-
 /* Remove ALL pseudo-elements that create blue stripes/corners */
 .services-tabs [data-state="active"]::before,
 .services-tabs [data-state="active"]::after,
