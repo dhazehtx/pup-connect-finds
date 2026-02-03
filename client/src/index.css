@@ -1851,9 +1851,9 @@ button:contains("Become a Service Provider") {
 
 /* Secondary (Add) - Royal Blue */
 .btn-pill--outline {
-  border: 1px solid #0074d4;
+  border: 1px solid #d1d5db;
   background-color: #ffffff;
-  color: #0074d4;
+  color: #000000 !important;
 }
 
 .btn-pill--outline:hover {
@@ -1880,8 +1880,7 @@ button:contains("Become a Service Provider") {
 
 @media (prefers-reduced-motion: reduce) {
   .btn-pill--primary:hover {
-    background-color: #005aa8;
-    box-shadow: 0 0 20px rgba(0, 116, 212, 0.5);
+    background-color: #f3f4f6;
   }
 }
 
@@ -1928,8 +1927,9 @@ button:contains("Become a Service Provider") {
 .pupbox-section .btn-pill--primary,
 .pupbox-section .product-card .btn-pill--primary,
 .pupbox-section button.btn-pill--primary {
-  background-color: #0074d4 !important;
-  color: #ffffff !important;
+  background-color: #ffffff !important;
+  color: #000000 !important;
+  border: 1px solid #d1d5db !important;
 }
 
 @media (min-width: 768px) {
