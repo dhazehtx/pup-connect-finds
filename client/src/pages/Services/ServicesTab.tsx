@@ -306,7 +306,7 @@ export function ServicesTab() {
                 value={filters.type || 'all'} 
                 onValueChange={(value) => setFilters(prev => ({ ...prev, type: value === 'all' ? undefined : value }))}
               >
-                <SelectTrigger className="border-2">
+                <SelectTrigger className="border-2 text-gray-900 bg-white">
                   <SelectValue placeholder="Service Type" />
                 </SelectTrigger>
                 <SelectContent>

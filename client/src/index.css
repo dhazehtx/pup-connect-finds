@@ -2198,6 +2198,16 @@ html body .product-card__image > div.relative svg {
   }
 }
 /* ============================================================
+   FILTER SELECT TRIGGERS - Force black text
+   ============================================================ */
+[data-radix-select-trigger],
+[role="combobox"],
+.select-trigger,
+button[data-state] span {
+  color: #111827 !important;
+}
+
+/* ============================================================
    ABSOLUTE FINAL OVERRIDE - PUP BOX GRADIENT
    This is the LAST rule in ALL CSS - highest cascade priority
    ============================================================ */
