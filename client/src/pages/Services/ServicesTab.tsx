@@ -360,13 +360,14 @@ export function ServicesTab() {
       )}
 
       {/* Filters Section - grouped together */}
-      <div className="flex flex-col items-center gap-3 px-4">
+      <div className="flex flex-col items-center gap-2 px-4">
         {/* Show Advanced Filters - subtle secondary action */}
         <button
           onClick={() => setShowFilters(!showFilters)}
-          className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-blue-600 transition-colors"
+          className="flex items-center gap-1.5 text-xs text-gray-500 hover:text-blue-600 transition-colors focus:outline-none"
+          style={{ background: 'transparent', border: 'none', boxShadow: 'none' }}
         >
-          <Filter className="h-3.5 w-3.5" />
+          <Filter className="h-3 w-3" />
           {showFilters ? 'Hide Filters' : 'Show Advanced Filters'}
         </button>
 
