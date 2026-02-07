@@ -1,6 +1,5 @@
 import React from 'react';
 import { Filter, ArrowUpDown, Star } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 
 type SortType = 'featured' | 'price-low-high' | 'price-high-low' | 'sale' | 'best-selling';
 
@@ -19,51 +18,34 @@ const FilterBar: React.FC<FilterBarProps> = ({
   hasActiveFilters,
   productCount
 }) => {
-  const sortOptions: { value: SortType; label: string; icon: React.ReactNode }[] = [
-    { value: 'featured', label: 'Featured', icon: <Star className="w-4 h-4" /> },
-    { value: 'price-low-high', label: 'Price: Low→High', icon: <ArrowUpDown className="w-4 h-4" /> },
-    { value: 'price-high-low', label: 'Price: High→Low', icon: <ArrowUpDown className="w-4 h-4 rotate-180" /> },
-    { value: 'sale', label: 'Sale', icon: <Filter className="w-4 h-4" /> },
-    { value: 'best-selling', label: 'Best-Selling', icon: <Star className="w-4 h-4" /> }
+  const sortOptions: { value: SortType; label: string }[] = [
+    { value: 'featured', label: 'Featured' },
+    { value: 'price-low-high', label: 'Price: Low→High' },
+    { value: 'price-high-low', label: 'Price: High→Low' },
+    { value: 'sale', label: 'Sale' },
+    { value: 'best-selling', label: 'Best-Selling' }
   ];
-
-  const currentSort = sortOptions.find(opt => opt.value === sortType);
 
   return (
     <div className="flex items-center justify-between gap-4">
-      {/* Filter Button - inline styles to prevent mobile color drift */}
-      <Button 
+      <button 
         onClick={onFilterOpen}
-        className="flex items-center gap-2 border border-gray-300 text-gray-700 bg-white rounded-full px-6 py-2 hover:bg-gray-50 transition-colors"
+        className="h-9 px-4 rounded-full border border-gray-300 text-sm font-medium flex items-center gap-1 bg-white text-gray-700 hover:border-gray-400 hover:bg-gray-50 active:scale-[0.98] transition"
         data-testid="button-filter"
-        style={{
-          backgroundColor: '#ffffff',
-          color: '#374151',
-          borderColor: '#d1d5db',
-          WebkitTapHighlightColor: 'transparent'
-        }}
       >
-        <Filter className="h-4 w-4" style={{ color: '#0074d4' }} />
+        <Filter className="w-4 h-4 text-[#0074d4]" />
         Filter
         {hasActiveFilters && (
           <span className="bg-blue-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center ml-1">
             !
           </span>
         )}
-      </Button>
+      </button>
       
-      {/* Product Count */}
-      {productCount !== undefined && (
-        <span className="text-sm text-gray-500">
-          Showing {productCount} {productCount === 1 ? 'product' : 'products'}
-        </span>
-      )}
-      
-      {/* Sort Dropdown */}
       <select
         value={sortType}
         onChange={(e) => onSortChange(e.target.value as SortType)}
-        className="border border-gray-300 text-gray-700 bg-white rounded-full px-6 py-2 hover:bg-gray-50 transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500"
+        className="h-9 px-4 rounded-full border border-gray-300 text-sm font-medium bg-white text-gray-700 hover:border-gray-400 hover:bg-gray-50 active:scale-[0.98] transition cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500"
         data-testid="select-sort"
       >
         {sortOptions.map((option) => (
