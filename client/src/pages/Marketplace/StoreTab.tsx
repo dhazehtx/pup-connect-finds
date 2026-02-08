@@ -340,10 +340,10 @@ const StoreTab = () => {
 
                   {/* Action Buttons */}
                   <div className="flex flex-col gap-2 mt-3">
-                    <button
+                    <Button
                       onClick={() => requireAuth(() => handleBuyNow(product))}
                       disabled={buyingItems.has(product.id)}
-                      className="guest-continue-btn h-11 w-full rounded-lg font-semibold shadow-sm active:scale-[0.97] transition-all text-sm"
+                      className="w-full"
                       data-testid={`button-buy-now-${product.id}`}
                     >
                       {buyingItems.has(product.id) ? (
@@ -354,22 +354,22 @@ const StoreTab = () => {
                       ) : (
                         'Buy Now'
                       )}
-                    </button>
+                    </Button>
 
-                    <button
+                    <Button
                       onClick={() => requireAuth(() => handleAddToCart(product))}
                       disabled={addingItems.has(product.id) || addedItems.has(product.id)}
-                      className="h-11 w-full rounded-lg font-medium border-2 border-gray-300 text-gray-800 bg-white hover:bg-gray-50 active:scale-[0.97] transition-all text-sm flex items-center justify-center gap-2"
+                      className="w-full"
                       data-testid={`button-add-cart-${product.id}`}
                     >
                       {addingItems.has(product.id) ? (
                         <>
-                          <span className="inline-block h-3.5 w-3.5 animate-spin rounded-full border-2 border-gray-400/30 border-t-gray-600" />
+                          <span className="inline-block h-3.5 w-3.5 animate-spin rounded-full border-2 border-white/30 border-t-white mr-2" />
                           Adding…
                         </>
                       ) : addedItems.has(product.id) ? (
                         <>
-                          <Check className="h-4 w-4 text-green-600" />
+                          <Check className="h-4 w-4" />
                           Added
                         </>
                       ) : isInCart(product.id) ? (
@@ -383,7 +383,7 @@ const StoreTab = () => {
                           Add to Cart
                         </>
                       )}
-                    </button>
+                    </Button>
                   </div>
                 </div>
               </div>

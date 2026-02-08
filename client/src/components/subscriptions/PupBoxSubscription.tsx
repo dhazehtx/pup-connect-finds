@@ -8,6 +8,7 @@ import {
   Check,
   ShoppingCart,
 } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { ToastAction } from "@/components/ui/toast";
@@ -439,14 +440,14 @@ const PupBoxSubscription = () => {
 
                   {/* Add to Cart Button */}
                   <div className="product-card__actions">
-                    <button
+                    <Button
                       onClick={() => requireAuth(() => handleAddToCart(plan.id))}
-                      className="btn-pill btn-pill--primary w-full flex items-center justify-center gap-2"
+                      className="w-full"
                       data-testid={`button-add-to-cart-${plan.id}`}
                     >
-                      <ShoppingCart className="w-4 h-4" />
+                      <ShoppingCart className="w-4 h-4 mr-2" />
                       Add to Cart
-                    </button>
+                    </Button>
                   </div>
                 </div>
               </div>
