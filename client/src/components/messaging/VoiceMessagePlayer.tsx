@@ -64,7 +64,7 @@ const VoiceMessagePlayer = ({ audioUrl, duration, timestamp, isOwn = false }: Vo
 
   return (
     <div className={`flex flex-col gap-3 p-3 rounded-lg max-w-xs ${
-      isOwn ? 'bg-primary text-primary-foreground ml-auto' : 'bg-muted'
+      isOwn ? 'bg-blue-600 text-white ml-auto' : 'bg-muted'
     }`}>
       <audio
         ref={audioRef}

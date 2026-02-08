@@ -73,7 +73,7 @@ const FileMessageDisplay = ({
 
       {/* File info */}
       <div className={`flex items-center gap-3 p-3 rounded-lg border ${
-        isOwn ? 'bg-primary text-primary-foreground' : 'bg-muted'
+        isOwn ? 'bg-blue-600 text-white' : 'bg-muted'
       }`}>
         <div className="flex-shrink-0">
           {getFileIcon()}

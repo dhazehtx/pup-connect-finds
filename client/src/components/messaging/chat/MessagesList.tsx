@@ -55,7 +55,7 @@ const MessagesList = ({ messages }: MessagesListProps) => {
                   <div
                     className={`rounded-lg px-3 py-2 relative ${
                       isOwn
-                        ? 'bg-primary text-primary-foreground'
+                        ? 'bg-blue-600 text-white'
                         : 'bg-muted'
                     }`}
                   >

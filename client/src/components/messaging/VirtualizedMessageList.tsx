@@ -47,8 +47,8 @@ const MessageItem = ({ index, style, data }: any) => {
           <div
             className={`rounded-lg px-3 py-2 ${
               isOwn
-                ? 'bg-primary text-primary-foreground'
-                : 'bg-muted text-muted-foreground'
+                ? 'bg-blue-600 text-white'
+                : 'bg-gray-100 text-gray-900'
             }`}
           >
             {message.message_type === 'image' && message.image_url && (

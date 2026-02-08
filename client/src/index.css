@@ -1045,15 +1045,23 @@ button:contains("Buy Now"),
   color: #000000 !important;
 }
 
-/* Fix specific button styling issues in store */
-.text-primary-foreground,
-[class*="primary-foreground"] {
+/* Fix specific button styling issues in store - scoped to product cards only */
+.product-card .text-primary-foreground:not(.bg-primary *),
+.store-card .text-primary-foreground:not(.bg-primary *) {
   color: #000000 !important;
 }
 
 .bg-primary,
 [class*="bg-primary"] {
   background-color: #0074d4 !important;
+  color: #ffffff !important;
+}
+
+/* Ensure text-primary-foreground on bg-primary is always white */
+.bg-primary .text-primary-foreground,
+.bg-primary.text-primary-foreground,
+[class*="bg-primary"] .text-primary-foreground,
+[class*="bg-primary"].text-primary-foreground {
   color: #ffffff !important;
 }
 

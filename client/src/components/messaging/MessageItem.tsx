@@ -63,7 +63,7 @@ const MessageItem = ({
         <div className={cn(
           "inline-block max-w-[70%] rounded-2xl px-4 py-2 text-sm",
           isOwn 
-            ? "bg-primary text-primary-foreground rounded-br-sm" 
+            ? "bg-blue-600 text-white rounded-br-sm" 
             : "bg-muted rounded-bl-sm"
         )}>
           {message.message_type === 'text' ? (
