@@ -1024,46 +1024,6 @@ button .filter-icon,
   fill: #000000 !important;
 }
 
-/* Fix store button text colors - force black text on white buttons */
-.store-product-card button,
-.product-card button,
-[class*="add-to-cart"],
-[class*="buy-now"],
-button[class*="cart"],
-button[class*="buy"] {
-  color: #000000 !important;
-  background-color: #ffffff !important;
-  border-color: #d1d5db !important;
-}
-
-/* Specific targeting for store tab buttons - more comprehensive selectors */
-.store-tab button:not(.btn-primary),
-.marketplace button:not(.btn-primary),
-button:contains("Add to Cart"),
-button:contains("Buy Now"),
-.product-actions button,
-.store-product button,
-[data-testid*="button-add"],
-[data-testid*="button-buy"],
-.btn-secondary {
-  color: #000000 !important;
-  background-color: #ffffff !important;
-  border: 1px solid #d1d5db !important;
-}
-
-/* Force black text on all button variants in store/marketplace */
-.marketplace .btn,
-.store .btn,
-.product-card .btn,
-.store-card .btn {
-  color: #000000 !important;
-}
-
-/* Fix specific button styling issues in store - scoped to product cards only */
-.product-card .text-primary-foreground:not(.bg-primary *),
-.store-card .text-primary-foreground:not(.bg-primary *) {
-  color: #000000 !important;
-}
 
 .bg-primary,
 [class*="bg-primary"] {
