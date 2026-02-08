@@ -14,6 +14,7 @@ import Pill from '@/components/Pill';
 import type { PetServiceProvider } from '@shared/schema';
 import { useProviders } from '@/hooks/useProviders';
 import { useSignedIn } from '@/hooks/useSignedIn';
+import { useRequireAuth } from '@/hooks/useRequireAuth';
 
 const serviceTypeIcons: Record<string, string> = {
   grooming: '✂️',
@@ -91,10 +92,10 @@ const ServiceIcon = ({ type }: { type: string }) => {
 };
 
 function DemoProviderCard({ provider }: { provider: any }) {
-  const navigate = useNavigate();
+  const { requireAuth } = useRequireAuth();
   
   const handleSignIn = () => {
-    navigate('/greeting');
+    requireAuth(() => {});
   };
 
   return (
@@ -191,12 +192,10 @@ export function ServicesTab() {
   const isSignedIn = useSignedIn();
   const navigate = useNavigate();
 
+  const { requireAuth } = useRequireAuth();
+
   const handleBecomeProvider = () => {
-    if (isSignedIn) {
-      navigate('/services/onboarding');
-    } else {
-      navigate('/auth?next=/services/onboarding');
-    }
+    requireAuth(() => navigate('/services/onboarding'));
   };
 
   // Fetch real data only - no demo fallback for signed-in users

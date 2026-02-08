@@ -1,0 +1,73 @@
+Implement a clear, functional cart experience for signed-in users across Pup Boxes and Store products.
+
+A) Pup Box “Add to cart” must work + toast
+
+Make Pup Box “Add to cart” functional (Small/Medium/Large):
+
+When clicked, the selected Pup Box variant is added to the user’s cart (state and/or database—use the existing cart approach already in the codebase).
+
+Prevent overwriting existing cart items; adding should increment quantity or add a new line item (depending on current design).
+
+Show a toast after adding:
+
+Toast message: Added to cart (X items)
+
+“X items” reflects the total cart count after the add.
+
+Toast includes a “View cart” action button that navigates to the cart page/route (use the existing cart route, do not invent a new one).
+
+B) Store tab “Add to cart” + “Buy now” + cart access
+
+Add to Cart (Store products):
+
+Adds product to cart (respect quantity/line item rules).
+
+Shows the same toast pattern: Added to cart (X items) with “View cart” CTA.
+
+Buy Now:
+
+When clicked, ensure it results in a clear purchase flow:
+
+Option 1: add item to cart then immediately navigate to Checkout, OR
+
+Option 2: navigate to product checkout flow if that exists already.
+
+Use the existing checkout route/system; do not create a new flow if one already exists.
+
+Cart access + badge count:
+
+Add a cart icon button in the Store tab header (or persistent top bar used on Store).
+
+Show a badge count on the cart icon representing total items in cart.
+
+Clicking the cart icon navigates to the cart page.
+
+C) Persistence
+
+If the current app is designed to persist cart in Supabase (or storage), ensure:
+
+Cart is tied to the signed-in user id
+
+Adding items does not overwrite previous items
+
+After refresh, cart should still show items IF persistence already exists in the project. If persistence does NOT exist yet, keep state-based cart but do not break anything.
+
+Acceptance tests:
+
+Signed in → add Small/Medium/Large Pup Box → toast appears and item count updates correctly.
+
+Signed in → add 2 store products → cart badge shows 2 (or correct total quantity).
+
+Click “View cart” from toast → opens cart page with correct items.
+
+Click cart icon → opens cart page with correct items.
+
+Buy Now → ends at checkout with correct item.
+
+Constraints:
+
+Do not redesign the store UI in this prompt (we will polish buttons and filter shape later).
+
+Keep changes focused on functionality + toast + cart icon/badge.
+
+Reuse existing components/utilities for toast, routing, cart logic if they already exist.

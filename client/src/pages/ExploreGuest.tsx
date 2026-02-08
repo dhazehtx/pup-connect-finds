@@ -5,6 +5,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Heart, MapPin, Grid, List } from 'lucide-react';
 import AdvancedFilters from '@/components/explore/AdvancedFilters';
 import LoadingSpinner from '@/components/ui/loading-spinner';
+import { useRequireAuth } from '@/hooks/useRequireAuth';
 
 // Local demo puppy images - guaranteed to render
 import goldenRetrieverImg from '@assets/image_1768789113456.png';
@@ -19,10 +20,10 @@ const DEMO_FALLBACK_IMAGE = "https://images.unsplash.com/photo-1587300003388-592
 
 // Demo listing card that matches real ListingCard but with guest-mode behavior
 const GuestListingCard = ({ listing }: { listing: any }) => {
-  const navigate = useNavigate();
+  const { requireAuth } = useRequireAuth();
   
-  const handleSignIn = () => {
-    navigate('/greeting');
+  const handleGatedClick = () => {
+    requireAuth(() => {});
   };
 
   // Get image URL with fallback chain
@@ -31,7 +32,7 @@ const GuestListingCard = ({ listing }: { listing: any }) => {
   return (
     <Card 
       className="w-full overflow-hidden hover:shadow-lg transition-shadow duration-300 cursor-pointer bg-white border border-gray-200"
-      onClick={handleSignIn}
+      onClick={handleGatedClick}
     >
       {/* Image container - square aspect ratio to show full puppy */}
       <div 
@@ -82,7 +83,7 @@ const GuestListingCard = ({ listing }: { listing: any }) => {
             backgroundColor: 'rgba(255,255,255,0.9)', 
             WebkitTapHighlightColor: 'transparent' 
           }}
-          onClick={(e) => { e.stopPropagation(); handleSignIn(); }}
+          onClick={(e) => { e.stopPropagation(); handleGatedClick(); }}
         >
           <Heart className="h-4 w-4" style={{ color: '#6b7280' }} />
         </Button>
@@ -104,7 +105,7 @@ const GuestListingCard = ({ listing }: { listing: any }) => {
           </div>
         </div>
         
-        <Button size="sm" className="w-full mt-2" onClick={handleSignIn}>
+        <Button size="sm" className="w-full mt-2" onClick={handleGatedClick}>
           Sign in to view
         </Button>
       </CardContent>

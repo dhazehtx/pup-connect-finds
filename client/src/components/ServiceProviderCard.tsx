@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { MapPin, Clock, Star, Shield, DollarSign } from 'lucide-react';
 import { useSignedIn } from '@/hooks/useSignedIn';
+import { useRequireAuth } from '@/hooks/useRequireAuth';
 import type { PetServiceProvider } from '@shared/schema';
 
 interface ServiceProviderCardProps {
@@ -24,23 +25,14 @@ interface ServiceProviderCardProps {
 export function ServiceProviderCard({ provider, onBook }: ServiceProviderCardProps) {
   const navigate = useNavigate();
   const isSignedIn = useSignedIn();
+  const { requireAuth } = useRequireAuth();
   
   const handleBookClick = () => {
-    // If user is not signed in and this is a demo provider, redirect to auth
-    if (!isSignedIn && (provider as any)?.isDemo) {
-      navigate('/auth/sign-up');
-      return;
-    }
-    onBook();
+    requireAuth(() => onBook());
   };
 
   const handleViewProfile = () => {
-    // If user is not signed in and this is a demo provider, redirect to auth
-    if (!isSignedIn && (provider as any)?.isDemo) {
-      navigate('/auth/sign-up');
-      return;
-    }
-    window.open(`/profile/${provider.user?.id}`, '_blank');
+    requireAuth(() => window.open(`/profile/${provider.user?.id}`, '_blank'));
   };
 
   const serviceTypeIcons: Record<string, string> = {
