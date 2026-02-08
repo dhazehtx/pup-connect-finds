@@ -1,12 +1,14 @@
 import React, { useState, useMemo } from 'react';
+import { useLocation } from 'wouter';
 import { Button } from '@/components/ui/button';
-import { Filter, Star, Check, ShoppingCart, CreditCard } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Filter, Star, Check, ShoppingCart } from 'lucide-react';
 import FilterDrawer from './FilterDrawer';
 import FilterBar from '@/components/FilterBar';
 import { useCart } from '@/hooks/use-cart';
-import { useQuery, useMutation } from '@tanstack/react-query';
-import { apiRequest } from '@/lib/queryClient';
+import { useQuery } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
+import { ToastAction } from '@/components/ui/toast';
 import FeaturedProducts from '@/components/FeaturedProducts';
 import ProductTags from '@/components/ProductTags';
 import { Separator } from '@/components/ui/separator';
@@ -42,9 +44,10 @@ interface FilterState {
 
 // SOL:STORE:START
 const StoreTab = () => {
-  const { addToCart, isInCart } = useCart();
+  const { addToCart, isInCart, getItemCount } = useCart();
   const { toast } = useToast();
   const { requireAuth } = useRequireAuth();
+  const [, setLocation] = useLocation();
   const [addedItems, setAddedItems] = useState<Set<string>>(new Set());
   const [sortType, setSortType] = useState<SortType>('featured');
   const [isFilterOpen, setIsFilterOpen] = useState(false);
@@ -88,30 +91,6 @@ const StoreTab = () => {
 
   const products = productsResponse?.data || [];
 
-  // Create checkout session mutation
-  const checkoutMutation = useMutation({
-    mutationFn: async (productId: string) => {
-      const response = await apiRequest('/api/checkout', {
-        method: 'POST',
-        body: JSON.stringify({
-          product_id: productId,
-          quantity: 1
-        })
-      });
-      return response.json();
-    },
-    onSuccess: (data) => {
-      // Redirect to Stripe checkout
-      window.location.href = data.url;
-    },
-    onError: (error) => {
-      toast({
-        title: "Checkout Error",
-        description: "Failed to create checkout session. Please try again.",
-        variant: "destructive",
-      });
-    }
-  });
 
   const sortOptions = [
     { value: 'featured', label: 'Featured' },
@@ -207,7 +186,17 @@ const StoreTab = () => {
       is_subscription: product.is_subscription
     });
     
-    // Show "Added" state for 1.5 seconds
+    const count = getItemCount() + 1;
+    toast({
+      title: "Added to cart",
+      description: `Added to cart (${count} ${count === 1 ? 'item' : 'items'})`,
+      action: (
+        <ToastAction altText="View cart" onClick={() => setLocation('/cart')}>
+          View cart
+        </ToastAction>
+      ),
+    });
+
     setAddedItems(prev => new Set(prev).add(product.id));
     setTimeout(() => {
       setAddedItems(prev => {
@@ -216,6 +205,17 @@ const StoreTab = () => {
         return newSet;
       });
     }, 1500);
+  };
+
+  const handleBuyNow = (product: Product) => {
+    addToCart({
+      id: product.id,
+      name: product.name,
+      unit_price: product.unit_price,
+      image_url: product.image_url || null,
+      is_subscription: product.is_subscription
+    });
+    setLocation('/cart');
   };
 
   const hasActiveFilters = filters.categories.length > 0 || filters.minPrice > 0 || filters.maxPrice < 100;
@@ -233,15 +233,30 @@ const StoreTab = () => {
           </div>
         )}
 
-        {/* Filter and Sort Section */}
-        <div className="pt-0">
-          <FilterBar
-            sortType={sortType}
-            onSortChange={setSortType}
-            onFilterOpen={() => setIsFilterOpen(true)}
-            hasActiveFilters={hasActiveFilters}
-            productCount={filteredAndSortedProducts.length}
-          />
+        {/* Filter and Sort Section + Cart Icon */}
+        <div className="pt-0 flex items-center gap-3">
+          <div className="flex-1">
+            <FilterBar
+              sortType={sortType}
+              onSortChange={setSortType}
+              onFilterOpen={() => setIsFilterOpen(true)}
+              hasActiveFilters={hasActiveFilters}
+              productCount={filteredAndSortedProducts.length}
+            />
+          </div>
+          <button
+            type="button"
+            onClick={() => setLocation('/cart')}
+            className="relative p-2.5 rounded-xl bg-white border border-gray-200 hover:bg-gray-50 transition-colors"
+            aria-label="View cart"
+          >
+            <ShoppingCart className="h-5 w-5 text-gray-700" />
+            {getItemCount() > 0 && (
+              <Badge className="absolute -top-1.5 -right-1.5 h-5 min-w-[20px] flex items-center justify-center p-0 text-xs font-bold bg-[#0074d4] text-white border-2 border-white">
+                {getItemCount()}
+              </Badge>
+            )}
+          </button>
         </div>
 
         {/* Loading state */}
@@ -314,12 +329,11 @@ const StoreTab = () => {
                   <div className="flex flex-col gap-2 md:flex-row md:gap-3 mt-3">
                     <button
                       type="button"
-                      onClick={() => requireAuth(() => checkoutMutation.mutate(product.id))}
-                      disabled={checkoutMutation.isPending}
+                      onClick={() => requireAuth(() => handleBuyNow(product))}
                       className="flex-1 px-4 py-2.5 rounded-xl bg-[#0074d4] text-white font-semibold shadow-md hover:bg-[#005aa8] active:scale-[0.98] transition-all"
                       data-testid={`button-buy-now-${product.id}`}
                     >
-                      {checkoutMutation.isPending ? 'Processing...' : 'Buy Now'}
+                      Buy Now
                     </button>
                     
                     <button

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { createContext, useContext, useState, useEffect, useCallback } from "react";
 
 export interface CartItem {
   id: string;
@@ -10,27 +10,34 @@ export interface CartItem {
   stripe_price_id?: string;
 }
 
-export function useCart() {
-  const [cart, setCart] = useState<CartItem[]>([]);
+interface CartContextType {
+  cart: CartItem[];
+  addToCart: (product: Omit<CartItem, "quantity">) => void;
+  removeFromCart: (productId: string) => void;
+  updateQuantity: (productId: string, quantity: number) => void;
+  clearCart: () => void;
+  getItemCount: () => number;
+  getTotalPrice: () => number;
+  isInCart: (productId: string) => boolean;
+}
 
-  // Load cart from localStorage on mount
-  useEffect(() => {
-    const savedCart = localStorage.getItem("mypup-cart");
-    if (savedCart) {
-      try {
-        setCart(JSON.parse(savedCart));
-      } catch (error) {
-        console.error("Error loading cart from localStorage:", error);
-      }
+export const CartContext = createContext<CartContextType | null>(null);
+
+export function useCartProvider() {
+  const [cart, setCart] = useState<CartItem[]>(() => {
+    try {
+      const savedCart = localStorage.getItem("mypup-cart");
+      return savedCart ? JSON.parse(savedCart) : [];
+    } catch {
+      return [];
     }
-  }, []);
+  });
 
-  // Save cart to localStorage whenever it changes
   useEffect(() => {
     localStorage.setItem("mypup-cart", JSON.stringify(cart));
   }, [cart]);
 
-  const addToCart = (product: Omit<CartItem, "quantity">) => {
+  const addToCart = useCallback((product: Omit<CartItem, "quantity">) => {
     setCart(prev => {
       const existingItem = prev.find(item => item.id === product.id);
       if (existingItem) {
@@ -42,18 +49,17 @@ export function useCart() {
       }
       return [...prev, { ...product, quantity: 1 }];
     });
-  };
+  }, []);
 
-  const removeFromCart = (productId: string) => {
+  const removeFromCart = useCallback((productId: string) => {
     setCart(prev => prev.filter(item => item.id !== productId));
-  };
+  }, []);
 
-  const updateQuantity = (productId: string, quantity: number) => {
+  const updateQuantity = useCallback((productId: string, quantity: number) => {
     if (quantity <= 0) {
-      removeFromCart(productId);
+      setCart(prev => prev.filter(item => item.id !== productId));
       return;
     }
-    
     setCart(prev =>
       prev.map(item =>
         item.id === productId
@@ -61,25 +67,25 @@ export function useCart() {
           : item
       )
     );
-  };
+  }, []);
 
-  const clearCart = () => {
+  const clearCart = useCallback(() => {
     setCart([]);
-  };
+  }, []);
 
-  const getItemCount = () => {
+  const getItemCount = useCallback(() => {
     return cart.reduce((total, item) => total + item.quantity, 0);
-  };
+  }, [cart]);
 
-  const getTotalPrice = () => {
+  const getTotalPrice = useCallback(() => {
     return cart.reduce((total, item) => {
       return total + (parseFloat(item.unit_price) * item.quantity);
     }, 0);
-  };
+  }, [cart]);
 
-  const isInCart = (productId: string) => {
+  const isInCart = useCallback((productId: string) => {
     return cart.some(item => item.id === productId);
-  };
+  }, [cart]);
 
   return {
     cart,
@@ -91,4 +97,12 @@ export function useCart() {
     getTotalPrice,
     isInCart,
   };
+}
+
+export function useCart(): CartContextType {
+  const context = useContext(CartContext);
+  if (!context) {
+    throw new Error("useCart must be used within a CartProvider");
+  }
+  return context;
 }

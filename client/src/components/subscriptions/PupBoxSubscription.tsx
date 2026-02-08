@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useLocation } from "wouter";
 import {
   Gift,
   Truck,
@@ -9,6 +10,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
+import { ToastAction } from "@/components/ui/toast";
 import { useCart } from "@/hooks/use-cart";
 import { useRequireAuth } from "@/hooks/useRequireAuth";
 
@@ -33,8 +35,9 @@ const PUP_BOX_PRODUCTS = {
 const PupBoxSubscription = () => {
   const { user } = useAuth();
   const { toast } = useToast();
-  const { addToCart } = useCart();
+  const { addToCart, getItemCount } = useCart();
   const { requireAuth } = useRequireAuth();
+  const [, setLocation] = useLocation();
 
   // Track billing type selection for each plan
   const [billingType, setBillingType] = useState<{
@@ -123,9 +126,15 @@ const PupBoxSubscription = () => {
       stripe_price_id: stripePriceId,
     });
 
+    const count = getItemCount() + 1;
     toast({
       title: "Added to cart",
-      description: `${displayName} has been added to your cart.`,
+      description: `Added to cart (${count} ${count === 1 ? 'item' : 'items'})`,
+      action: (
+        <ToastAction altText="View cart" onClick={() => setLocation('/cart')}>
+          View cart
+        </ToastAction>
+      ),
     });
   };
 

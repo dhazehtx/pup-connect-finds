@@ -7,6 +7,7 @@ import { ThemeProvider } from './contexts/ThemeContext';
 import { AuthProvider } from './contexts/AuthContext';
 import { RealtimeProvider } from './contexts/RealtimeContext';
 import { CartFab } from './components/ui/cart-fab';
+import { CartProvider } from './components/CartProvider';
 import Layout from './components/Layout';
 import AdminNavigationTracker from './components/admin/AdminNavigationTracker';
 import CookieConsentBanner from '@/components/privacy/CookieConsentBanner';
@@ -113,6 +114,7 @@ function App() {
           <AuthProvider>
             <RealtimeProvider>
               <ThemeProvider>
+              <CartProvider>
                 <OnboardingHydrator />
                 <AdminNavigationTracker />
                 <Layout>
@@ -471,6 +473,7 @@ function App() {
               <SessionExpiredModal />
               <CartFab />
               <FloatingBugReportButton />
+              </CartProvider>
               </ThemeProvider>
             </RealtimeProvider>
           </AuthProvider>
