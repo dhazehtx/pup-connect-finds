@@ -339,7 +339,7 @@ const StoreTab = () => {
                   </div>
 
                   {/* Action Buttons */}
-                  <div className="flex flex-col gap-2 mt-3">
+                  <div className="product-card__actions flex-col">
                     <Button
                       onClick={() => requireAuth(() => handleBuyNow(product))}
                       disabled={buyingItems.has(product.id)}
@@ -348,7 +348,7 @@ const StoreTab = () => {
                     >
                       {buyingItems.has(product.id) ? (
                         <>
-                          <span className="inline-block h-3.5 w-3.5 animate-spin rounded-full border-2 border-white/30 border-t-white mr-2" />
+                          <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white mr-2" />
                           Loading…
                         </>
                       ) : (
