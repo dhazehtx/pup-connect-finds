@@ -245,14 +245,14 @@ const UnifiedProfileView = ({ userId, isCurrentUser }: UnifiedProfileViewProps) 
                 )}
                 {isCurrentUser && (
                   <>
-                    <BugReportButton variant="outline" size="sm" className="bg-white text-blue-600 border-blue-300 hover:bg-blue-50" />
+                    <BugReportButton variant="outline" size="sm" className="bg-white text-blue-600 border-blue-300 hover:bg-slate-50" iconClassName="text-blue-600" />
                     <Button
                       variant="outline"
                       size="sm"
                       onClick={() => navigate('/privacy-settings')}
-                      className="gap-2 bg-white text-blue-600 border-blue-300 hover:bg-blue-50"
+                      className="gap-2 bg-white text-blue-600 border-blue-300 hover:bg-slate-50"
                     >
-                      <Shield className="w-4 h-4" />
+                      <Shield className="w-4 h-4 text-blue-600" />
                       Privacy
                     </Button>
                   </>

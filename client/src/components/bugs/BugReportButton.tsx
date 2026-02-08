@@ -8,12 +8,14 @@ interface BugReportButtonProps {
   variant?: 'default' | 'outline' | 'ghost';
   size?: 'sm' | 'md' | 'lg';
   className?: string;
+  iconClassName?: string;
 }
 
 const BugReportButton: React.FC<BugReportButtonProps> = ({ 
   variant = 'outline', 
   size = 'sm',
-  className = '' 
+  className = '',
+  iconClassName = ''
 }) => {
   const { user } = useAuth();
   const [showModal, setShowModal] = useState(false);
@@ -30,7 +32,7 @@ const BugReportButton: React.FC<BugReportButtonProps> = ({
         onClick={() => setShowModal(true)}
         className={`flex items-center gap-2 ${className}`}
       >
-        <Bug className="w-4 h-4" />
+        <Bug className={`w-4 h-4 ${iconClassName}`} />
         Report a Bug
       </Button>
 
