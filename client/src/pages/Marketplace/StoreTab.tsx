@@ -359,27 +359,27 @@ const StoreTab = () => {
                     <Button
                       onClick={() => requireAuth(() => handleAddToCart(product))}
                       disabled={addingItems.has(product.id) || addedItems.has(product.id)}
-                      className="w-full text-xs sm:text-sm h-10"
+                      className="w-full text-xs sm:text-sm h-11 px-2 sm:px-4"
                       data-testid={`button-add-cart-${product.id}`}
                     >
                       {addingItems.has(product.id) ? (
                         <>
-                          <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white mr-2" />
+                          <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white mr-1" />
                           Adding…
                         </>
                       ) : addedItems.has(product.id) ? (
                         <>
-                          <Check className="w-4 h-4 mr-2" />
+                          <Check className="w-4 h-4 shrink-0 mr-1" />
                           Added
                         </>
                       ) : isInCart(product.id) ? (
                         <>
-                          <ShoppingCart className="w-4 h-4 mr-2" />
+                          <ShoppingCart className="w-3.5 h-3.5 shrink-0 mr-1" />
                           In Cart
                         </>
                       ) : (
                         <>
-                          <ShoppingCart className="w-4 h-4 mr-2" />
+                          <ShoppingCart className="w-3.5 h-3.5 shrink-0 mr-1" />
                           Add to Cart
                         </>
                       )}
