@@ -27,6 +27,7 @@ const Home = () => {
 
   useEffect(() => {
     document.title = 'My Pup - Find Your Perfect Puppy Companion';
+    window.scrollTo(0, 0);
   }, []);
 
   // Navigation guard

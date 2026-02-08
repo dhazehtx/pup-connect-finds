@@ -23,6 +23,7 @@ export function useRequireAuth() {
           title: 'Sign in required',
           description: 'Please sign in to continue.',
         });
+        window.scrollTo(0, 0);
         navigate('/greeting');
         return;
       }

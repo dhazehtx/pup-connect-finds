@@ -1,6 +1,6 @@
 
-import React, { Suspense, lazy } from 'react';
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import React, { Suspense, lazy, useEffect } from 'react';
+import { BrowserRouter as Router, Route, Routes, useLocation } from 'react-router-dom';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { queryClient } from '@/lib/queryClient';
 import { ThemeProvider } from './contexts/ThemeContext';
@@ -106,11 +106,20 @@ import NotificationButton from './components/notifications/NotificationButton';
 
 
 
+function ScrollToTop() {
+  const { pathname } = useLocation();
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
+  return null;
+}
+
 function App() {
   return (
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
         <Router>
+          <ScrollToTop />
           <AuthProvider>
             <RealtimeProvider>
               <ThemeProvider>
