@@ -338,10 +338,10 @@ const StoreTab = () => {
                   )}
 
                   <div className="mt-auto pt-3 flex flex-col gap-2">
-                    <Button
+                    <button
                       onClick={() => requireAuth(() => handleBuyNow(product))}
                       disabled={buyingItems.has(product.id)}
-                      className="w-full text-xs sm:text-sm h-10"
+                      className="inline-flex items-center justify-center rounded-full bg-blue-600 text-white font-semibold text-sm px-5 py-2 hover:bg-blue-700 disabled:opacity-50 transition-colors self-start"
                       data-testid={`button-buy-now-${product.id}`}
                     >
                       {buyingItems.has(product.id) ? (
@@ -352,36 +352,36 @@ const StoreTab = () => {
                       ) : (
                         'Buy Now'
                       )}
-                    </Button>
+                    </button>
 
-                    <Button
+                    <button
                       onClick={() => requireAuth(() => handleAddToCart(product))}
                       disabled={addingItems.has(product.id) || addedItems.has(product.id)}
-                      className="w-full text-xs sm:text-sm h-11 px-2 sm:px-4"
+                      className="inline-flex items-center justify-center rounded-full border-2 border-blue-600 text-blue-600 font-semibold text-sm px-5 py-2 hover:bg-blue-50 disabled:opacity-50 transition-colors self-start"
                       data-testid={`button-add-cart-${product.id}`}
                     >
                       {addingItems.has(product.id) ? (
                         <>
-                          <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white mr-1" />
+                          <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-blue-300 border-t-blue-600 mr-2" />
                           Adding…
                         </>
                       ) : addedItems.has(product.id) ? (
                         <>
-                          <Check className="w-4 h-4 shrink-0 mr-1" />
+                          <Check className="w-4 h-4 shrink-0 mr-1.5" />
                           Added
                         </>
                       ) : isInCart(product.id) ? (
                         <>
-                          <ShoppingCart className="w-3.5 h-3.5 shrink-0 mr-1" />
+                          <ShoppingCart className="w-4 h-4 shrink-0 mr-1.5" />
                           In Cart
                         </>
                       ) : (
                         <>
-                          <ShoppingCart className="w-3.5 h-3.5 shrink-0 mr-1" />
+                          <ShoppingCart className="w-4 h-4 shrink-0 mr-1.5" />
                           Add to Cart
                         </>
                       )}
-                    </Button>
+                    </button>
                   </div>
                 </div>
               </div>
