@@ -339,11 +339,11 @@ const StoreTab = () => {
                   </div>
 
                   {/* Action Buttons */}
-                  <div className="product-card__actions flex-col">
+                  <div className="product-card__actions flex-col gap-2">
                     <Button
                       onClick={() => requireAuth(() => handleBuyNow(product))}
                       disabled={buyingItems.has(product.id)}
-                      className="w-full"
+                      className="w-full text-xs sm:text-sm"
                       data-testid={`button-buy-now-${product.id}`}
                     >
                       {buyingItems.has(product.id) ? (
@@ -359,7 +359,7 @@ const StoreTab = () => {
                     <Button
                       onClick={() => requireAuth(() => handleAddToCart(product))}
                       disabled={addingItems.has(product.id) || addedItems.has(product.id)}
-                      className="w-full"
+                      className="w-full text-xs sm:text-sm"
                       data-testid={`button-add-cart-${product.id}`}
                     >
                       {addingItems.has(product.id) ? (
