@@ -1803,8 +1803,11 @@ button:contains("Become a Service Provider") {
 .product-card__description {
   font-size: 0.875rem;
   color: #111827 !important;
-  margin-bottom: 0;
+  /* Near-black for better readability */
+  margin-bottom: 12px;
+  flex: 1;
   opacity: 1 !important;
+  /* pushes buttons to bottom */
 }
 
 /* Buttons row */
@@ -1886,8 +1889,8 @@ button:contains("Become a Service Provider") {
   font-size: 1.25rem;
   font-weight: 700;
   color: #111827;
-  margin-top: 0.25rem;
-  margin-bottom: 0.5rem;
+  margin-top: 0.5rem;
+  margin-bottom: 0.75rem;
 }
 
 /* Pup Box styling */
