@@ -378,7 +378,7 @@ const Auth = () => {
             style={{
               backgroundColor: '#2563eb',
               color: '#ffffff',
-              border: '2px solid #2563eb'
+              border: 'none'
             }}
             onMouseEnter={(e) => {
               e.currentTarget.style.backgroundColor = '#1d4ed8';
