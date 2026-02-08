@@ -94,44 +94,6 @@ const AuthScreen = ({ onSignIn, onGuestBrowse, onSkip }: AuthScreenProps) => {
         </CardHeader>
         
         <CardContent className="space-y-4">
-          <div className="space-y-3">
-            <RippleButton
-              onClick={() => {
-                toast({
-                  title: "Coming Soon!",
-                  description: "Google sign-in will be available soon.",
-                });
-              }}
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white"
-              disabled={loading}
-            >
-              <Mail size={18} className="mr-2" />
-              Continue with Google
-            </RippleButton>
-            
-            <RippleButton
-              onClick={() => {
-                toast({
-                  title: "Coming Soon!",
-                  description: "Facebook sign-in will be available soon.",
-                });
-              }}
-              variant="outline"
-              className="w-full border-gray-300 text-deep-navy hover:bg-gray-50"
-              disabled={loading}
-            >
-              <User size={18} className="mr-2" />
-              Continue with Facebook
-            </RippleButton>
-          </div>
-
-          <div className="relative">
-            <Separator className="my-4" />
-            <span className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-cloud-white px-2 text-sm text-deep-navy/60">
-              or
-            </span>
-          </div>
-
           <form onSubmit={handleSubmit} className="space-y-3">
             <div>
               <Label htmlFor="email" className="text-deep-navy">Email</Label>

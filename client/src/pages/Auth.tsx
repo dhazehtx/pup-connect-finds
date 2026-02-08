@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Heart, Mail, User, Eye, EyeOff } from 'lucide-react';
+import { Heart, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { LegalBlurb } from '@/components/legal/LegalBlurb';
@@ -355,48 +355,6 @@ const Auth = () => {
               </div>
             )}
 
-            {/* Social Login Buttons */}
-            <div className="space-y-3 mt-6">
-              <Button
-                type="button"
-                onClick={() => {
-                  toast({
-                    title: "Coming Soon!",
-                    description: "Google sign-in will be available soon.",
-                  });
-                }}
-                className="w-full h-12 !bg-blue-600 hover:!bg-blue-700 !text-white !border-blue-600 hover:!border-blue-700"
-                style={{
-                  backgroundColor: '#2563eb',
-                  color: '#ffffff',
-                  borderColor: '#2563eb'
-                }}
-                disabled={loading || isSubmitting}
-              >
-                <Mail size={18} className="mr-3 !text-white" style={{ color: '#ffffff' }} />
-                Sign in with Google
-              </Button>
-              
-              <Button
-                type="button"
-                onClick={() => {
-                  toast({
-                    title: "Coming Soon!",
-                    description: "Facebook sign-in will be available soon.",
-                  });
-                }}
-                className="w-full h-12 !bg-blue-600 hover:!bg-blue-700 !text-white !border-blue-600 hover:!border-blue-700"
-                style={{
-                  backgroundColor: '#2563eb',
-                  color: '#ffffff',
-                  borderColor: '#2563eb'
-                }}
-                disabled={loading || isSubmitting}
-              >
-                <User size={18} className="mr-3 !text-white" style={{ color: '#ffffff' }} />
-                Sign in with Facebook
-              </Button>
-            </div>
           </CardContent>
         </Card>
 
@@ -413,19 +371,27 @@ const Auth = () => {
             </div>
           </div>
           
-          <Button 
+          <button 
             type="button"
             onClick={handleGuestAccess}
-            className="w-full mt-4 h-12 !bg-blue-600 hover:!bg-blue-700 !text-white !border-blue-600 hover:!border-blue-700"
+            className="w-full mt-4 h-12 rounded-lg font-semibold text-lg shadow-lg transition-colors duration-200"
             style={{
               backgroundColor: '#2563eb',
               color: '#ffffff',
-              borderColor: '#2563eb'
+              border: '2px solid #2563eb'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = '#1d4ed8';
+              e.currentTarget.style.borderColor = '#1d4ed8';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = '#2563eb';
+              e.currentTarget.style.borderColor = '#2563eb';
             }}
             disabled={loading || isSubmitting}
           >
             Continue as Guest
-          </Button>
+          </button>
         </div>
         
         <p className="text-xs text-center text-blue-700 mt-6">
