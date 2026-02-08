@@ -343,7 +343,7 @@ const StoreTab = () => {
                     <Button
                       onClick={() => requireAuth(() => handleBuyNow(product))}
                       disabled={buyingItems.has(product.id)}
-                      className="w-full h-9 text-sm rounded-full"
+                      className="w-full"
                       data-testid={`button-buy-now-${product.id}`}
                     >
                       {buyingItems.has(product.id) ? (
@@ -359,27 +359,27 @@ const StoreTab = () => {
                     <Button
                       onClick={() => requireAuth(() => handleAddToCart(product))}
                       disabled={addingItems.has(product.id) || addedItems.has(product.id)}
-                      className="w-full h-9 text-sm rounded-full"
+                      className="w-full"
                       data-testid={`button-add-cart-${product.id}`}
                     >
                       {addingItems.has(product.id) ? (
                         <>
-                          <span className="inline-block h-3.5 w-3.5 animate-spin rounded-full border-2 border-white/30 border-t-white mr-1.5" />
+                          <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white mr-2" />
                           Adding…
                         </>
                       ) : addedItems.has(product.id) ? (
                         <>
-                          <Check className="h-3.5 w-3.5 mr-1" />
+                          <Check className="w-4 h-4 mr-2" />
                           Added
                         </>
                       ) : isInCart(product.id) ? (
                         <>
-                          <ShoppingCart className="h-3.5 w-3.5 mr-1" />
+                          <ShoppingCart className="w-4 h-4 mr-2" />
                           In Cart
                         </>
                       ) : (
                         <>
-                          <ShoppingCart className="h-3.5 w-3.5 mr-1" />
+                          <ShoppingCart className="w-4 h-4 mr-2" />
                           Add to Cart
                         </>
                       )}
