@@ -1,0 +1,50 @@
+GOAL: Cleanest UI fix for Marketplace product cards (mobile + desktop) without changing any business logic.
+
+CONTEXT:
+On /marketplace product cards, the layout feels off because descriptions take too much vertical space and the price is visually detached from the title. Fix the visual hierarchy and alignment.
+
+REQUIREMENTS (UI ONLY):
+1) Reorder card content to:
+   - Image
+   - Title
+   - Price (directly under title)
+   - Description (clamped)
+   - Action buttons (Buy Now / Add to Cart) pinned to bottom of card
+
+2) Clamp description text:
+   - Mobile: 2 lines max
+   - Desktop: 3 lines max
+   Use CSS line-clamp (not JS). Add ellipsis if truncated.
+   Do NOT change the actual description text in data.
+
+3) Ensure buttons align consistently across cards:
+   - The button container should sit at the bottom of the card even if title/description lengths differ.
+   - Use a flex column layout with the content area growing and buttons in a bottom section.
+
+4) Keep existing button styles and existing onClick handlers:
+   - Do NOT rename props, routes, or functions.
+   - Do NOT change Buy Now / Add to Cart logic, Stripe, cart state, or API calls.
+   - Only adjust layout + typography spacing.
+
+IMPLEMENTATION DETAILS:
+- Find the Marketplace product card component (likely in something like: MarketplacePage, ProductGrid, ProductCard, Store/Marketplace components).
+- Update the card wrapper to:
+   - display: flex; flex-direction: column; height: 100%;
+- Put the title/price/description in a “card-body” section and the buttons in a “card-actions” section.
+- Use `mt-auto` (Tailwind) or equivalent CSS so `card-actions` stays at the bottom.
+- Add line-clamp styles:
+   - Tailwind: use line-clamp-2 on mobile and line-clamp-3 on md+ (if plugin exists)
+   - If line-clamp plugin is not installed, add fallback CSS:
+     .clamp-2 { display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+     .clamp-3 { display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden; }
+
+ACCEPTANCE TEST:
+- On mobile preview, the price appears directly under the product title on every card.
+- Descriptions are truncated consistently (2 lines mobile, 3 desktop).
+- Buy Now and Add to Cart remain fully functional and unchanged in behavior.
+- Buttons are aligned at the bottom across cards regardless of description length.
+- No other pages are impacted.
+
+DELIVERABLE:
+- Commit only the minimal code changes required.
+- If you add CSS utilities, scope them safely (global CSS only if necessary).

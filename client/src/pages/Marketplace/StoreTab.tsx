@@ -328,22 +328,20 @@ const StoreTab = () => {
                 {/* Product Info */}
                 <div className="product-card__body">
                   <h3 className="product-card__title">{product.name}</h3>
-                  
-                  {product.description && (
-                    <p className="product-card__description">{product.description}</p>
-                  )}
 
-                  {/* Price */}
                   <div className="product-card__price">
                     ${parseFloat(product.unit_price).toFixed(2)}
                   </div>
+                  
+                  {product.description && (
+                    <p className="product-card__description line-clamp-2 md:line-clamp-3">{product.description}</p>
+                  )}
 
-                  {/* Action Buttons */}
-                  <div className="product-card__actions flex-col gap-2">
+                  <div className="mt-auto pt-3 flex flex-col gap-2">
                     <Button
                       onClick={() => requireAuth(() => handleBuyNow(product))}
                       disabled={buyingItems.has(product.id)}
-                      className="w-full text-xs sm:text-sm h-10"
+                      className="w-full text-xs sm:text-sm"
                       data-testid={`button-buy-now-${product.id}`}
                     >
                       {buyingItems.has(product.id) ? (
@@ -359,7 +357,7 @@ const StoreTab = () => {
                     <Button
                       onClick={() => requireAuth(() => handleAddToCart(product))}
                       disabled={addingItems.has(product.id) || addedItems.has(product.id)}
-                      className="w-full text-xs sm:text-sm h-11 px-2 sm:px-4"
+                      className="w-full text-xs sm:text-sm"
                       data-testid={`button-add-cart-${product.id}`}
                     >
                       {addingItems.has(product.id) ? (
