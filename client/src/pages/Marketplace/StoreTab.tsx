@@ -339,7 +339,7 @@ const StoreTab = () => {
                   </div>
 
                   {/* Action Buttons */}
-                  <div className="grid grid-cols-2 gap-2.5 mt-3">
+                  <div className="flex flex-col gap-2 mt-3">
                     <Button
                       onClick={() => requireAuth(() => handleBuyNow(product))}
                       disabled={buyingItems.has(product.id)}
