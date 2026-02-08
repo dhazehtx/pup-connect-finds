@@ -1,0 +1,59 @@
+Fix “Continue as Guest” button visibility (white-on-white)
+
+Find the button labeled “Continue as Guest” on the Greeting / Auth screen (where users choose Sign In / Sign Up / Guest).
+
+Update its styling so it’s readable on both desktop and mobile without hover.
+
+Requirements:
+
+Text must have strong contrast against its background (no white-on-white).
+
+Button must have a visible border OR filled background (whichever matches the app design system).
+
+Maintain consistent padding and rounded corners with the other auth buttons.
+
+Ensure hover/focus/active states don’t hide the text.
+
+If you have a shared Button component or Tailwind classes, prefer updating/using that for consistency.
+
+Enforce redirect to Greeting page when a guest clicks any gated CTA
+
+Create a small reusable helper (ex: requireAuth(action) or handleGatedClick(action)) that:
+
+Checks if the user is authenticated (use the existing auth/session state you already have—Supabase session, user context, etc.).
+
+If NOT authenticated:
+
+Navigate to the Greeting page route (use the actual existing route used by the app for the greeting/auth entry screen; do not invent a new route).
+
+Optionally show a short toast message like: “Please sign in to continue.”
+
+Return early (do not run the original action).
+
+If authenticated: run the original action normally.
+
+Apply this helper to ALL of these guest-gated clicks:
+
+Explore page: clicking demo ads and any listing CTA that requires auth
+
+Marketplace page: any “Sign in to book” buttons
+
+My Pup tab: clicking Pup Box size options and “Add to cart”
+
+Store tab: clicking “Buy Now” and “Add to Cart” on products
+
+Acceptance tests:
+
+Logged out on mobile: “Continue as Guest” is clearly visible without hover.
+
+Logged out: clicking any gated CTA always routes back to the Greeting page (and does not silently fail).
+
+Logged in: the same CTAs function normally.
+
+Important constraints:
+
+Do NOT add Google/Apple quick sign-up buttons in this change.
+
+Do NOT refactor unrelated UI or routes.
+
+Keep changes minimal and localized (button styles + a reusable auth gate helper + apply it to the specified CTAs).

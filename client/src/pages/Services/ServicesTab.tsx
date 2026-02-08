@@ -94,7 +94,7 @@ function DemoProviderCard({ provider }: { provider: any }) {
   const navigate = useNavigate();
   
   const handleSignIn = () => {
-    navigate('/auth/sign-up');
+    navigate('/greeting');
   };
 
   return (

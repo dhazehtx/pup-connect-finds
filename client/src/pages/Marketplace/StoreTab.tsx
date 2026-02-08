@@ -11,6 +11,7 @@ import FeaturedProducts from '@/components/FeaturedProducts';
 import ProductTags from '@/components/ProductTags';
 import { Separator } from '@/components/ui/separator';
 import StripeCheckoutDemo from '@/components/StripeCheckoutDemo';
+import { useRequireAuth } from '@/hooks/useRequireAuth';
 
 interface Product {
   id: string;
@@ -43,6 +44,7 @@ interface FilterState {
 const StoreTab = () => {
   const { addToCart, isInCart } = useCart();
   const { toast } = useToast();
+  const { requireAuth } = useRequireAuth();
   const [addedItems, setAddedItems] = useState<Set<string>>(new Set());
   const [sortType, setSortType] = useState<SortType>('featured');
   const [isFilterOpen, setIsFilterOpen] = useState(false);
@@ -312,7 +314,7 @@ const StoreTab = () => {
                   <div className="flex flex-col gap-2 md:flex-row md:gap-3 mt-3">
                     <button
                       type="button"
-                      onClick={() => checkoutMutation.mutate(product.id)}
+                      onClick={() => requireAuth(() => checkoutMutation.mutate(product.id))}
                       disabled={checkoutMutation.isPending}
                       className="flex-1 px-4 py-2.5 rounded-xl bg-[#0074d4] text-white font-semibold shadow-md hover:bg-[#005aa8] active:scale-[0.98] transition-all"
                       data-testid={`button-buy-now-${product.id}`}
@@ -322,7 +324,7 @@ const StoreTab = () => {
                     
                     <button
                       type="button"
-                      onClick={() => handleAddToCart(product)}
+                      onClick={() => requireAuth(() => handleAddToCart(product))}
                       disabled={addedItems.has(product.id)}
                       className="flex-1 px-4 py-2.5 rounded-xl bg-white text-gray-900 font-medium border border-gray-300 hover:bg-gray-50 active:scale-[0.98] transition-all"
                       data-testid={`button-add-cart-${product.id}`}

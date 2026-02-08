@@ -174,10 +174,16 @@ const Home = () => {
             <button 
               type="button"
               onClick={handleGuestAccess}
-              style={ctaButtonStyle}
+              style={{
+                ...ctaButtonStyle,
+                backgroundColor: '#ffffff',
+                color: '#0074D4',
+                border: '2px solid #0074D4',
+                boxShadow: '0 2px 4px rgba(0, 0, 0, 0.08)',
+              }}
             >
-              <Eye style={iconStyle} />
-              <span style={{ color: '#FFFFFF' }}>Browse as Guest</span>
+              <Eye style={{ ...iconStyle, color: '#0074D4' }} />
+              <span style={{ color: '#0074D4' }}>Browse as Guest</span>
             </button>
             
             <button 

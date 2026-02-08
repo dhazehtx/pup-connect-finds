@@ -10,6 +10,7 @@ import {
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { useCart } from "@/hooks/use-cart";
+import { useRequireAuth } from "@/hooks/useRequireAuth";
 
 // Pup Box Product Configuration
 // TODO: Replace these with your actual Stripe Product IDs from your Stripe dashboard
@@ -33,6 +34,7 @@ const PupBoxSubscription = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const { addToCart } = useCart();
+  const { requireAuth } = useRequireAuth();
 
   // Track billing type selection for each plan
   const [billingType, setBillingType] = useState<{
@@ -319,7 +321,7 @@ const PupBoxSubscription = () => {
                       <div className="inline-flex rounded-full p-1 bg-gray-100">
                         <button
                           onClick={() =>
-                            handleToggleBillingType(plan.id, "subscription")
+                            requireAuth(() => handleToggleBillingType(plan.id, "subscription"))
                           }
                           className={`px-6 py-2.5 rounded-full text-sm font-semibold transition-all duration-150 ${
                             billingType[plan.id] === "subscription"
@@ -332,7 +334,7 @@ const PupBoxSubscription = () => {
                         </button>
                         <button
                           onClick={() =>
-                            handleToggleBillingType(plan.id, "oneTime")
+                            requireAuth(() => handleToggleBillingType(plan.id, "oneTime"))
                           }
                           className={`px-6 py-2.5 rounded-full text-sm font-semibold transition-all duration-150 ml-1 ${
                             billingType[plan.id] === "oneTime"
@@ -429,7 +431,7 @@ const PupBoxSubscription = () => {
                   {/* Add to Cart Button */}
                   <div className="product-card__actions">
                     <button
-                      onClick={() => handleAddToCart(plan.id)}
+                      onClick={() => requireAuth(() => handleAddToCart(plan.id))}
                       className="btn-pill btn-pill--primary w-full flex items-center justify-center gap-2"
                       data-testid={`button-add-to-cart-${plan.id}`}
                     >

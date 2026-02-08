@@ -22,7 +22,7 @@ const GuestListingCard = ({ listing }: { listing: any }) => {
   const navigate = useNavigate();
   
   const handleSignIn = () => {
-    navigate('/auth/sign-up');
+    navigate('/greeting');
   };
 
   // Get image URL with fallback chain
