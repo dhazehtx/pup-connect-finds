@@ -374,20 +374,7 @@ const Auth = () => {
           <button 
             type="button"
             onClick={handleGuestAccess}
-            className="w-full mt-4 h-12 rounded-lg font-semibold text-lg shadow-lg transition-colors duration-200"
-            style={{
-              backgroundColor: '#2563eb',
-              color: '#ffffff',
-              border: 'none'
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = '#1d4ed8';
-              e.currentTarget.style.borderColor = '#1d4ed8';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = '#2563eb';
-              e.currentTarget.style.borderColor = '#2563eb';
-            }}
+            className="guest-continue-btn w-full mt-4 h-12 rounded-lg font-semibold text-lg shadow-lg transition-colors duration-200"
             disabled={loading || isSubmitting}
           >
             Continue as Guest

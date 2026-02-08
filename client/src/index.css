@@ -561,6 +561,20 @@ button.btn-primary span,
    END NUCLEAR BUTTON VISIBILITY FIX
    ============================================================ */
 
+/* Continue as Guest button - explicit blue bg, white text */
+.guest-continue-btn {
+  background-color: #2563eb !important;
+  color: #ffffff !important;
+  border: none !important;
+  outline: none !important;
+}
+.guest-continue-btn:hover {
+  background-color: #1d4ed8 !important;
+}
+.guest-continue-btn:disabled {
+  opacity: 0.6 !important;
+}
+
 /* Ensure consistent white backgrounds for main app containers */
 html,
 body,
