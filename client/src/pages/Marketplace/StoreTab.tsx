@@ -48,7 +48,9 @@ const StoreTab = () => {
   const { toast } = useToast();
   const { requireAuth } = useRequireAuth();
   const [, setLocation] = useLocation();
+  const [addingItems, setAddingItems] = useState<Set<string>>(new Set());
   const [addedItems, setAddedItems] = useState<Set<string>>(new Set());
+  const [buyingItems, setBuyingItems] = useState<Set<string>>(new Set());
   const [sortType, setSortType] = useState<SortType>('featured');
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
@@ -178,6 +180,8 @@ const StoreTab = () => {
   };
 
   const handleAddToCart = (product: Product) => {
+    setAddingItems(prev => new Set(prev).add(product.id));
+
     addToCart({
       id: product.id,
       name: product.name,
@@ -185,7 +189,7 @@ const StoreTab = () => {
       image_url: product.image_url || null,
       is_subscription: product.is_subscription
     });
-    
+
     const count = getItemCount() + 1;
     toast({
       title: "Added to cart",
@@ -197,17 +201,26 @@ const StoreTab = () => {
       ),
     });
 
-    setAddedItems(prev => new Set(prev).add(product.id));
+    setTimeout(() => {
+      setAddingItems(prev => {
+        const s = new Set(prev);
+        s.delete(product.id);
+        return s;
+      });
+      setAddedItems(prev => new Set(prev).add(product.id));
+    }, 400);
+
     setTimeout(() => {
       setAddedItems(prev => {
         const newSet = new Set(prev);
         newSet.delete(product.id);
         return newSet;
       });
-    }, 1500);
+    }, 1900);
   };
 
   const handleBuyNow = (product: Product) => {
+    setBuyingItems(prev => new Set(prev).add(product.id));
     addToCart({
       id: product.id,
       name: product.name,
@@ -325,26 +338,53 @@ const StoreTab = () => {
                     ${parseFloat(product.unit_price).toFixed(2)}
                   </div>
 
-                  {/* Action Buttons - Stack on mobile, row on desktop */}
-                  <div className="flex flex-col gap-2 md:flex-row md:gap-3 mt-3">
-                    <button
-                      type="button"
+                  {/* Action Buttons */}
+                  <div className="grid grid-cols-2 gap-2.5 mt-3">
+                    <Button
                       onClick={() => requireAuth(() => handleBuyNow(product))}
-                      className="flex-1 px-4 py-2.5 rounded-xl bg-[#0074d4] text-white font-semibold shadow-md hover:bg-[#005aa8] active:scale-[0.98] transition-all"
+                      disabled={buyingItems.has(product.id)}
+                      className="h-11 rounded-xl bg-[#0074d4] text-white font-semibold shadow-sm hover:bg-[#005aa8] active:scale-[0.97] transition-all text-sm"
                       data-testid={`button-buy-now-${product.id}`}
                     >
-                      Buy Now
-                    </button>
-                    
-                    <button
-                      type="button"
+                      {buyingItems.has(product.id) ? (
+                        <>
+                          <span className="inline-block h-3.5 w-3.5 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+                          Loading…
+                        </>
+                      ) : (
+                        'Buy Now'
+                      )}
+                    </Button>
+
+                    <Button
+                      variant="outline"
                       onClick={() => requireAuth(() => handleAddToCart(product))}
-                      disabled={addedItems.has(product.id)}
-                      className="flex-1 px-4 py-2.5 rounded-xl bg-white text-gray-900 font-medium border border-gray-300 hover:bg-gray-50 active:scale-[0.98] transition-all"
+                      disabled={addingItems.has(product.id) || addedItems.has(product.id)}
+                      className="h-11 rounded-xl font-medium border-gray-300 text-gray-800 hover:bg-gray-50 active:scale-[0.97] transition-all text-sm"
                       data-testid={`button-add-cart-${product.id}`}
                     >
-                      {addedItems.has(product.id) ? 'Added' : isInCart(product.id) ? 'In Cart' : 'Add'}
-                    </button>
+                      {addingItems.has(product.id) ? (
+                        <>
+                          <span className="inline-block h-3.5 w-3.5 animate-spin rounded-full border-2 border-gray-400/30 border-t-gray-600" />
+                          Adding…
+                        </>
+                      ) : addedItems.has(product.id) ? (
+                        <>
+                          <Check className="h-4 w-4 text-green-600" />
+                          Added
+                        </>
+                      ) : isInCart(product.id) ? (
+                        <>
+                          <ShoppingCart className="h-4 w-4" />
+                          In Cart
+                        </>
+                      ) : (
+                        <>
+                          <ShoppingCart className="h-4 w-4" />
+                          Add to Cart
+                        </>
+                      )}
+                    </Button>
                   </div>
                 </div>
               </div>
