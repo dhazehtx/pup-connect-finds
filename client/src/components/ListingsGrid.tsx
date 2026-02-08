@@ -1,10 +1,12 @@
 import { useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Heart, MapPin } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { useListings } from '@/hooks/useListings';
 
 export default function ListingsGrid() {
+  const navigate = useNavigate();
   const {
     data,
     fetchNextPage,
@@ -76,7 +78,7 @@ export default function ListingsGrid() {
     <div>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
         {allListings.map((listing) => (
-          <Card key={listing.id} className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer">
+          <Card key={listing.id} className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer" onClick={() => navigate(`/listing/${listing.id}`)}>
             <div className="relative aspect-square">
               <img
                 src={listing.image_url || '/api/placeholder/300/300'}
@@ -94,6 +96,7 @@ export default function ListingsGrid() {
                 variant="ghost"
                 size="sm"
                 className="absolute top-2 right-2 bg-white/90 hover:bg-white rounded-full w-8 h-8 p-0"
+                onClick={(e) => e.stopPropagation()}
               >
                 <Heart className="w-4 h-4 text-gray-600" />
               </Button>
