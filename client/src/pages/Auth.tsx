@@ -27,6 +27,10 @@ const Auth = () => {
   const location = useLocation();
 
   useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
+  useEffect(() => {
     const mode = searchParams.get('mode');
     if (mode === 'reset') {
       setResetMode(true);
