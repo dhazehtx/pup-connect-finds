@@ -116,11 +116,9 @@ const ListingCard = ({
             onClick={handleFavorite}
           >
             <Heart 
-              className={cn(
-                "h-4 w-4 transition-colors",
-                isFavorited ? "text-red-500" : "text-gray-400"
-              )}
-              fill={isFavorited ? "currentColor" : "none"}
+              className="h-4 w-4 transition-colors"
+              fill={isFavorited ? "#ef4444" : "none"}
+              stroke={isFavorited ? "#ef4444" : "#9ca3af"}
             />
           </Button>
         </div>
