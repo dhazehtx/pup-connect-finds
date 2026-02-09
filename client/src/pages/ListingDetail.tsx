@@ -169,8 +169,11 @@ const ListingDetail = () => {
     if (!listing || isFavoriteLoading) return;
 
     setIsFavoriteLoading(true);
+    const prevState = isFavorited;
+    setIsFavorited(!prevState);
+
     try {
-      if (isFavorited) {
+      if (prevState) {
         const { error: deleteError } = await supabase
           .from('favorites')
           .delete()
@@ -181,7 +184,6 @@ const ListingDetail = () => {
           throw deleteError;
         }
         
-        setIsFavorited(false);
         toast({
           title: "Removed from favorites",
           description: "Listing removed from your favorites",
@@ -198,7 +200,6 @@ const ListingDetail = () => {
           throw error;
         }
         
-        setIsFavorited(true);
         toast({
           title: "Added to favorites",
           description: "Listing saved to your favorites",
@@ -208,6 +209,7 @@ const ListingDetail = () => {
       if (error?.code === '23505') {
         setIsFavorited(true);
       } else {
+        setIsFavorited(prevState);
         console.error('Error updating favorite:', error);
         toast({
           title: "Error",

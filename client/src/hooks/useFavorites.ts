@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
@@ -35,9 +35,13 @@ export const useFavorites = () => {
   } = useOptimisticUpdates<Favorite>([]);
 
   const [toggleLoading, setToggleLoading] = useState<Set<string>>(new Set());
+  const toggleLoadingRef = useRef<Set<string>>(toggleLoading);
+  toggleLoadingRef.current = toggleLoading;
 
   useRealtimeFavorites(async () => {
-    await fetchFavorites();
+    if (toggleLoadingRef.current.size === 0) {
+      await fetchFavorites();
+    }
   });
 
   const fetchFavorites = async () => {

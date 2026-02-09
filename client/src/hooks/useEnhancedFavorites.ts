@@ -1,5 +1,5 @@
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
@@ -32,6 +32,8 @@ export const useEnhancedFavorites = () => {
   const [favoriteListingIds, setFavoriteListingIds] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(false);
   const [toggleLoading, setToggleLoading] = useState<Set<string>>(new Set());
+  const toggleLoadingRef = useRef<Set<string>>(toggleLoading);
+  toggleLoadingRef.current = toggleLoading;
   const { user } = useAuth();
   const { toast } = useToast();
 
@@ -91,9 +93,29 @@ export const useEnhancedFavorites = () => {
 
     setToggleLoading(prev => new Set(prev).add(listingId));
 
-    try {
-      const isFav = favoriteListingIds.has(listingId);
+    const isFav = favoriteListingIds.has(listingId);
+    const prevFavorites = [...favorites];
+    const prevIds = new Set(favoriteListingIds);
 
+    if (isFav) {
+      setFavorites(prev => prev.filter(fav => fav.listing_id !== listingId));
+      setFavoriteListingIds(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(listingId);
+        return newSet;
+      });
+    } else {
+      setFavoriteListingIds(prev => new Set(prev).add(listingId));
+      const optimisticFavorite: EnhancedFavorite = {
+        id: `temp-${Date.now()}`,
+        user_id: user.id,
+        listing_id: listingId,
+        created_at: new Date().toISOString(),
+      };
+      setFavorites(prev => [optimisticFavorite, ...prev]);
+    }
+
+    try {
       if (isFav) {
         const { error } = await supabase
           .from('favorites')
@@ -103,27 +125,11 @@ export const useEnhancedFavorites = () => {
 
         if (error) throw error;
 
-        setFavorites(prev => prev.filter(fav => fav.listing_id !== listingId));
-        setFavoriteListingIds(prev => {
-          const newSet = new Set(prev);
-          newSet.delete(listingId);
-          return newSet;
-        });
-
         toast({
           title: "Removed from Favorites",
           description: "Listing removed from your favorites",
         });
       } else {
-        setFavoriteListingIds(prev => new Set(prev).add(listingId));
-        const optimisticFavorite: EnhancedFavorite = {
-          id: `temp-${Date.now()}`,
-          user_id: user.id,
-          listing_id: listingId,
-          created_at: new Date().toISOString(),
-        };
-        setFavorites(prev => [optimisticFavorite, ...prev]);
-
         const { error } = await supabase
           .from('favorites')
           .upsert(
@@ -137,19 +143,13 @@ export const useEnhancedFavorites = () => {
           title: "Added to Favorites",
           description: "Listing added to your favorites",
         });
-
-        fetchFavorites().catch(() => {});
       }
     } catch (error: any) {
       if (error?.code === '23505') {
         setFavoriteListingIds(prev => new Set(prev).add(listingId));
       } else {
-        setFavorites(prev => prev.filter(fav => fav.listing_id !== listingId || !fav.id.startsWith('temp-')));
-        setFavoriteListingIds(prev => {
-          const newSet = new Set(prev);
-          newSet.delete(listingId);
-          return newSet;
-        });
+        setFavorites(prevFavorites);
+        setFavoriteListingIds(prevIds);
         console.error('Error toggling favorite:', error);
         toast({
           title: "Error",
@@ -231,7 +231,9 @@ export const useEnhancedFavorites = () => {
           filter: `user_id=eq.${user.id}`
         },
         () => {
-          fetchFavorites();
+          if (toggleLoadingRef.current.size === 0) {
+            fetchFavorites();
+          }
         }
       )
       .subscribe();
