@@ -91,13 +91,16 @@ const ListingDetail = () => {
 
         // Check if user has favorited this listing
         if (user) {
-          const { data: favoriteData } = await supabase
+          const { data: favoriteData, error: favError } = await supabase
             .from('favorites')
             .select('id')
             .eq('user_id', user.id)
             .eq('listing_id', id)
-            .single();
+            .maybeSingle();
           
+          if (favError) {
+            console.error('Unexpected error checking favorite status:', favError);
+          }
           setIsFavorited(!!favoriteData);
         }
       } catch (error) {
@@ -318,7 +321,13 @@ const ListingDetail = () => {
         <Button
           variant="ghost"
           size="icon"
-          onClick={() => navigate(-1)}
+          onClick={() => {
+            if (window.history.length > 1) {
+              navigate(-1);
+            } else {
+              navigate('/explore');
+            }
+          }}
         >
           <ArrowLeft size={20} />
         </Button>
