@@ -36,8 +36,6 @@ const ListingDetail = () => {
       
       try {
         setLoading(true);
-        console.log('Fetching listing with ID:', id);
-        
         // Fetch listing with seller profile - ensure we're getting the right listing by ID
         const { data: listingData, error: listingError } = await supabase
           .from('dog_listings')
@@ -87,7 +85,6 @@ const ListingDetail = () => {
           return;
         }
 
-        console.log('Fetched listing data:', listingData);
         setListing(listingData);
 
         // Check if user has favorited this listing
@@ -121,11 +118,7 @@ const ListingDetail = () => {
   }, [id, user, toast, navigate]);
 
   const handleShare = async () => {
-    console.log('=== SHARE BUTTON CLICKED ===');
-    console.log('Share button handler started');
-    
     if (!listing) {
-      console.log('ERROR: No listing data available for sharing');
       toast({
         title: "Error",
         description: "Unable to share - listing data not loaded",
@@ -134,37 +127,25 @@ const ListingDetail = () => {
       return;
     }
     
-    console.log('Listing data available:', { id: listing.id, name: listing.dog_name });
-    
     try {
       const url = window.location.href;
       const title = `${listing.dog_name} - ${listing.breed}`;
       const text = `Check out this adorable ${listing.breed} puppy looking for a forever home! Only $${listing.price}`;
 
-      console.log('Share data prepared:', { title, text, url });
-
-      // Try native share first
       if (navigator.share) {
-        console.log('Native share API available, attempting to use it');
         try {
           await navigator.share({ title, text, url });
-          console.log('Successfully shared via native share');
           return;
         } catch (shareError) {
-          console.log('Native share failed or was cancelled:', shareError);
+          // Native share cancelled or failed, fall through to clipboard
         }
-      } else {
-        console.log('Native share API not available');
       }
 
-      // Fallback to clipboard
-      console.log('Using clipboard fallback');
       await navigator.clipboard.writeText(url);
       toast({
         title: "Link copied!",
         description: "The listing link has been copied to your clipboard.",
       });
-      console.log('Successfully copied to clipboard');
     } catch (error) {
       console.error('Share completely failed:', error);
       toast({
@@ -240,11 +221,7 @@ const ListingDetail = () => {
   };
 
   const handleContactSeller = () => {
-    console.log('=== CONTACT SELLER BUTTON CLICKED ===');
-    console.log('Contact Seller handler started');
-    
     if (!listing) {
-      console.log('ERROR: No listing data for contact seller');
       toast({
         title: "Error",
         description: "Listing data not available",
@@ -252,11 +229,8 @@ const ListingDetail = () => {
       });
       return;
     }
-    
-    console.log('Listing data available:', { id: listing.id, sellerId: listing.user_id });
-    
+
     if (!user) {
-      console.log('ERROR: User not authenticated');
       toast({
         title: "Sign in required",
         description: "Please sign in to contact sellers",
@@ -265,10 +239,7 @@ const ListingDetail = () => {
       return;
     }
 
-    console.log('User authenticated:', { userId: user.id });
-
     if (listing.user_id === user.id) {
-      console.log('ERROR: User trying to contact themselves');
       toast({
         title: "Cannot contact yourself",
         description: "You cannot start a conversation with yourself",
@@ -277,9 +248,7 @@ const ListingDetail = () => {
       return;
     }
 
-    console.log('All checks passed, navigating to messages...');
     const targetUrl = `/messages?contact=${listing.user_id}&listing=${listing.id}&from=listing`;
-    console.log('Navigating to:', targetUrl);
     navigate(targetUrl);
   };
 
@@ -325,10 +294,6 @@ const ListingDetail = () => {
                  listing.image_url ? [listing.image_url] : [];
   
   const seller = listing.profiles || {};
-
-  console.log('=== RENDER DEBUG ===');
-  console.log('Current listing:', listing ? { id: listing.id, name: listing.dog_name } : 'null');
-  console.log('Current user:', user ? { id: user.id } : 'null');
 
   return (
     <div className="max-w-4xl mx-auto p-4 space-y-6">
@@ -439,10 +404,6 @@ const ListingDetail = () => {
           
           <Button
             onClick={(e) => {
-              console.log('=== CONTACT SELLER BUTTON DOM EVENT ===');
-              console.log('Button clicked, event:', e);
-              console.log('Event target:', e.target);
-              console.log('Event current target:', e.currentTarget);
               e.preventDefault();
               e.stopPropagation();
               handleContactSeller();
@@ -456,10 +417,6 @@ const ListingDetail = () => {
           <Button
             variant="outline"
             onClick={(e) => {
-              console.log('=== SHARE BUTTON DOM EVENT ===');
-              console.log('Button clicked, event:', e);
-              console.log('Event target:', e.target);
-              console.log('Event current target:', e.currentTarget);
               e.preventDefault();
               e.stopPropagation();
               handleShare();
