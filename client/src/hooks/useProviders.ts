@@ -44,7 +44,7 @@ export function useProviders(): UseProvidersResult {
       
       // Signed-in users: fetch only live data from Supabase
       const { data: providers, error } = await supabase
-        .from('pet_service_providers' as any)
+        .from('service_providers' as any)
         .select('*')
         .eq('is_active', true)
         .order('created_at', { ascending: false });
