@@ -118,8 +118,9 @@ const ListingCard = ({
             <Heart 
               className={cn(
                 "h-4 w-4 transition-colors",
-                isFavorited ? "text-red-500 fill-current" : "text-gray-400"
-              )} 
+                isFavorited ? "text-red-500" : "text-gray-400"
+              )}
+              fill={isFavorited ? "currentColor" : "none"}
             />
           </Button>
         </div>

@@ -40,11 +40,12 @@ const AnimatedHeart = ({ isLiked, onToggle, size = 24, className, disabled = fal
         className={cn(
           'transition-all duration-200',
           isLiked 
-            ? 'text-red-500 fill-current scale-110' 
+            ? 'text-red-500 scale-110' 
             : 'text-gray-600 hover:text-red-400',
           isAnimating && 'animate-bounce',
           disabled && 'hover:text-gray-600'
-        )} 
+        )}
+        fill={isLiked ? "currentColor" : "none"}
       />
       {isAnimating && isLiked && !disabled && (
         <>

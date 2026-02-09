@@ -103,8 +103,9 @@ const ExploreListingsGrid = ({
               >
                 <Heart 
                   className={`h-4 w-4 transition-colors ${
-                    favorites.has(listing.id) ? "text-red-500 fill-current" : "text-gray-600"
-                  }`} 
+                    favorites.has(listing.id) ? "text-red-500" : "text-gray-600"
+                  }`}
+                  fill={favorites.has(listing.id) ? "currentColor" : "none"}
                 />
               </Button>
             </div>
