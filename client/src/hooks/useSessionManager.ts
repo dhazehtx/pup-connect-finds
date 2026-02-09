@@ -1,86 +1,95 @@
-import { useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 
-const SESSION_TIMEOUT = 15 * 60 * 1000; // 15 minutes in milliseconds
+const SESSION_TIMEOUT = 30 * 60 * 1000; // 30 minutes
+const WARNING_BEFORE = 2 * 60 * 1000; // 2 minutes before timeout
 const ACTIVITY_EVENTS = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart', 'click'];
 
 export function useSessionManager() {
   const { user, signOut } = useAuth();
+  const [showWarningModal, setShowWarningModal] = useState(false);
+
+  const signOutRef = useRef(signOut);
+  signOutRef.current = signOut;
+
+  const userRef = useRef(user);
+  userRef.current = user;
 
   const updateLastActive = useCallback(() => {
-    if (user) {
+    if (userRef.current) {
       localStorage.setItem('lastActive', Date.now().toString());
     }
-  }, [user]);
+  }, []);
 
   const checkSessionExpiry = useCallback(() => {
-    if (!user) return;
+    if (!userRef.current) return;
 
     const lastActive = localStorage.getItem('lastActive');
     if (!lastActive) {
-      updateLastActive();
+      localStorage.setItem('lastActive', Date.now().toString());
       return;
     }
 
     const timeSinceActive = Date.now() - parseInt(lastActive);
-    
+
     if (timeSinceActive > SESSION_TIMEOUT) {
-      // Session expired, trigger modal
-      const event = new CustomEvent('sessionExpired', {
-        detail: { status: 440, message: 'Session expired due to inactivity' }
-      });
-      window.dispatchEvent(event);
-      
-      // Sign out user
-      signOut();
+      setShowWarningModal(false);
+      signOutRef.current();
+    } else if (timeSinceActive > SESSION_TIMEOUT - WARNING_BEFORE) {
+      setShowWarningModal(true);
     }
-  }, [user, signOut, updateLastActive]);
+  }, []);
+
+  const handleExtendSession = useCallback(() => {
+    localStorage.setItem('lastActive', Date.now().toString());
+    setShowWarningModal(false);
+  }, []);
+
+  const handleManualLogout = useCallback(() => {
+    setShowWarningModal(false);
+    signOutRef.current();
+  }, []);
 
   const refreshToken = useCallback(async () => {
-    if (!user) return;
-
+    if (!userRef.current) return;
     try {
-      // Update last active time
-      updateLastActive();
-      
-      // Optional: Make a lightweight API call to refresh server session
+      localStorage.setItem('lastActive', Date.now().toString());
       await fetch('/api/auth/refresh', {
         method: 'POST',
         credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      });
-    } catch (error) {
-      console.error('Token refresh failed:', error);
+        headers: { 'Content-Type': 'application/json' }
+      }).catch(() => {});
+    } catch {
+      // silent
     }
-  }, [user, updateLastActive]);
+  }, []);
 
   useEffect(() => {
-    if (!user) return;
+    if (!user) {
+      setShowWarningModal(false);
+      return;
+    }
 
-    // Set up activity listeners
+    // Reset lastActive on sign-in so stale timestamps don't trigger immediate signOut
+    localStorage.setItem('lastActive', Date.now().toString());
+
     const handleActivity = () => {
-      updateLastActive();
+      localStorage.setItem('lastActive', Date.now().toString());
     };
 
     ACTIVITY_EVENTS.forEach(event => {
       document.addEventListener(event, handleActivity, { passive: true });
     });
 
-    // Check session expiry every minute
+    // Check session expiry every minute — do NOT check immediately on mount
     const sessionCheckInterval = setInterval(checkSessionExpiry, 60 * 1000);
 
-    // Refresh token every 10 minutes if user is active
     const refreshInterval = setInterval(() => {
       const lastActive = localStorage.getItem('lastActive');
       if (lastActive && Date.now() - parseInt(lastActive) < 10 * 60 * 1000) {
         refreshToken();
       }
     }, 10 * 60 * 1000);
-
-    // Initial session check
-    checkSessionExpiry();
 
     return () => {
       ACTIVITY_EVENTS.forEach(event => {
@@ -89,11 +98,14 @@ export function useSessionManager() {
       clearInterval(sessionCheckInterval);
       clearInterval(refreshInterval);
     };
-  }, [user, updateLastActive, checkSessionExpiry, refreshToken]);
+  }, [user?.id, checkSessionExpiry, refreshToken]);
 
   return {
     updateLastActive,
     checkSessionExpiry,
-    refreshToken
+    refreshToken,
+    showWarningModal,
+    handleExtendSession,
+    handleManualLogout
   };
 }

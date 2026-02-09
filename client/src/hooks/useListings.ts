@@ -40,17 +40,12 @@ export const useListings = () => {
           .eq('status', 'active')
           .range(pageParam, pageParam + 19); // 20 items per page
 
-        // Apply breed filter
+        // Apply breed filter using local lookup (breeds table not in Supabase)
         if (filters.breedId) {
-          // For fallback compatibility, also check by breed name
-          try {
-            const breeds = await supabase.from('breeds' as any).select('name').eq('id', filters.breedId);
-            if (breeds.data && breeds.data.length > 0) {
-              query = query.eq('breed', (breeds.data[0] as any).name);
-            }
-          } catch (error) {
-            // Fallback: use breed ID directly or skip filter
-            console.error('Error fetching breed name:', error);
+          const { getBreedNameById } = await import('@/hooks/useBreedColorOptions');
+          const breedName = getBreedNameById(filters.breedId);
+          if (breedName) {
+            query = query.eq('breed', breedName);
           }
         }
 
