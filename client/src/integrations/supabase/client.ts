@@ -5,12 +5,6 @@ import type { Database } from './types';
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL!;
 const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY!;
 
-// Debug logging (only once)
-if (typeof window !== 'undefined' && !(window as any).__supabase_init_logged) {
-  console.log('URL →', SUPABASE_URL);
-  console.log('Key →', SUPABASE_ANON_KEY ? `${SUPABASE_ANON_KEY.substring(0, 20)}...` : 'Missing');
-  (window as any).__supabase_init_logged = true;
-}
 
 // Singleton pattern: reuse existing client if available (survives HMR)
 declare global {

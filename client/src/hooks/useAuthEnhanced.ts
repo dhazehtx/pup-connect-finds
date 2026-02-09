@@ -228,8 +228,6 @@ export const useAuthEnhanced = () => {
       async (event, session) => {
         if (!mounted) return;
 
-        console.log('Auth state changed:', event, session);
-        
         setSession(session);
         setUser(session?.user ?? null);
 
