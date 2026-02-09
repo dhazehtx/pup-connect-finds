@@ -47,12 +47,12 @@ const ListingCard = ({ listing, onFavorite, isFavorited }: ListingCardProps) => 
           <Button
             variant="ghost"
             size="icon"
-            className={`absolute top-3 right-3 rounded-full bg-white/90 hover:bg-white ${
-              isFavorited ? 'text-red-500' : 'text-gray-600'
+            className={`absolute top-3 right-3 rounded-full bg-white/90 transition-colors ${
+              isFavorited ? 'text-red-500 hover:bg-red-50' : 'text-gray-400 hover:bg-white'
             }`}
             onClick={handleFavoriteClick}
           >
-            <Heart className={`h-4 w-4 ${isFavorited ? 'fill-current' : ''}`} />
+            <Heart className={`h-4 w-4 transition-colors ${isFavorited ? 'fill-current' : ''}`} />
           </Button>
           <div className="absolute top-3 left-3">
             <Badge className="bg-[#2C3EDC] text-white hover:bg-[#2C3EDC]/90">

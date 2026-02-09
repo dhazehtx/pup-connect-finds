@@ -109,13 +109,16 @@ const ListingCard = ({
           <Button
             variant="ghost"
             size="sm"
-            className="absolute bottom-3 right-3 h-8 w-8 p-0 bg-white/90 hover:bg-white backdrop-blur-sm"
+            className={cn(
+              "absolute bottom-3 right-3 h-8 w-8 p-0 bg-white/90 backdrop-blur-sm transition-colors",
+              isFavorited ? "hover:bg-red-50" : "hover:bg-white"
+            )}
             onClick={handleFavorite}
           >
             <Heart 
               className={cn(
                 "h-4 w-4 transition-colors",
-                isFavorited ? "text-red-500 fill-current" : "text-gray-600"
+                isFavorited ? "text-red-500 fill-current" : "text-gray-400"
               )} 
             />
           </Button>

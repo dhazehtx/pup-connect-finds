@@ -397,9 +397,9 @@ const ListingDetail = () => {
             size="icon"
             disabled={isFavoriteLoading}
             onClick={() => handleFavorite()}
-            className={`${isFavorited ? 'text-red-500' : 'text-gray-400'}`}
+            className={`transition-colors ${isFavorited ? 'text-red-500 hover:bg-red-50' : 'text-gray-400 hover:bg-gray-50'}`}
           >
-            <Heart size={20} fill={isFavorited ? 'currentColor' : 'none'} />
+            <Heart className={`h-5 w-5 transition-colors ${isFavorited ? 'fill-current' : ''}`} />
           </Button>
           
           <Button

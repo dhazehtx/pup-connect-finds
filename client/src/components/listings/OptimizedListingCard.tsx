@@ -63,14 +63,17 @@ export const OptimizedListingCard = memo<ListingCardProps>(({
                 e.stopPropagation();
                 onFavorite(listing.id);
               }}
-              className="absolute top-2 right-2 p-2 rounded-full bg-white/90 hover:bg-white shadow-sm transition-colors"
+              className={cn(
+                "absolute top-2 right-2 p-2 rounded-full bg-white/90 shadow-sm transition-colors",
+                isFavorited ? 'hover:bg-red-50' : 'hover:bg-white'
+              )}
               aria-label={isFavorited ? 'Remove from favorites' : 'Add to favorites'}
             >
               <Heart
                 size={16}
                 className={cn(
                   'transition-colors',
-                  isFavorited ? 'fill-red-500 text-red-500' : 'text-gray-600'
+                  isFavorited ? 'fill-red-500 text-red-500' : 'text-gray-400'
                 )}
               />
             </button>
