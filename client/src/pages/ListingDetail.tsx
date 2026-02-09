@@ -18,6 +18,7 @@ const ListingDetail = () => {
   const [listing, setListing] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isFavorited, setIsFavorited] = useState(false);
+  const [isFavoriteLoading, setIsFavoriteLoading] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
   // Fetch listing data from Supabase with proper ID handling
@@ -184,15 +185,20 @@ const ListingDetail = () => {
       return;
     }
 
-    if (!listing) return;
-    
+    if (!listing || isFavoriteLoading) return;
+
+    setIsFavoriteLoading(true);
     try {
       if (isFavorited) {
-        await supabase
+        const { error: deleteError } = await supabase
           .from('favorites')
           .delete()
           .eq('user_id', user.id)
           .eq('listing_id', listing.id);
+
+        if (deleteError) {
+          throw deleteError;
+        }
         
         setIsFavorited(false);
         toast({
@@ -200,12 +206,16 @@ const ListingDetail = () => {
           description: "Listing removed from your favorites",
         });
       } else {
-        await supabase
+        const { error } = await supabase
           .from('favorites')
-          .insert([{
-            user_id: user.id,
-            listing_id: listing.id
-          }]);
+          .upsert(
+            { user_id: user.id, listing_id: listing.id },
+            { onConflict: 'user_id,listing_id', ignoreDuplicates: true }
+          );
+
+        if (error && error.code !== '23505') {
+          throw error;
+        }
         
         setIsFavorited(true);
         toast({
@@ -213,13 +223,19 @@ const ListingDetail = () => {
           description: "Listing saved to your favorites",
         });
       }
-    } catch (error) {
-      console.error('Error updating favorite:', error);
-      toast({
-        title: "Error",
-        description: "Failed to update favorites",
-        variant: "destructive",
-      });
+    } catch (error: any) {
+      if (error?.code === '23505') {
+        setIsFavorited(true);
+      } else {
+        console.error('Error updating favorite:', error);
+        toast({
+          title: "Error",
+          description: "Failed to update favorites",
+          variant: "destructive",
+        });
+      }
+    } finally {
+      setIsFavoriteLoading(false);
     }
   };
 
@@ -414,11 +430,8 @@ const ListingDetail = () => {
           <Button
             variant="ghost"
             size="icon"
-            onClick={(e) => {
-              console.log('=== FAVORITE BUTTON CLICKED ===');
-              console.log('Event object:', e);
-              handleFavorite();
-            }}
+            disabled={isFavoriteLoading}
+            onClick={() => handleFavorite()}
             className={`${isFavorited ? 'text-red-500' : 'text-gray-400'}`}
           >
             <Heart size={20} fill={isFavorited ? 'currentColor' : 'none'} />
