@@ -52,7 +52,7 @@ const ListingCard = ({ listing, onFavorite, isFavorited }: ListingCardProps) => 
             }`}
             onClick={handleFavoriteClick}
           >
-            <Heart className={`h-4 w-4 transition-colors ${isFavorited ? 'fill-current' : ''}`} />
+            <Heart className={`h-4 w-4 transition-colors ${isFavorited ? 'text-red-500 fill-current' : 'text-gray-400'}`} />
           </Button>
           <div className="absolute top-3 left-3">
             <Badge className="bg-[#2C3EDC] text-white hover:bg-[#2C3EDC]/90">

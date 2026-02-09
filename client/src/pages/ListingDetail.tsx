@@ -401,7 +401,7 @@ const ListingDetail = () => {
             onClick={() => handleFavorite()}
             className={`transition-colors ${isFavorited ? 'text-red-500 hover:bg-red-50' : 'text-gray-400 hover:bg-gray-50'}`}
           >
-            <Heart className={`h-5 w-5 transition-colors ${isFavorited ? 'fill-current' : ''}`} />
+            <Heart className={`h-5 w-5 transition-colors ${isFavorited ? 'text-red-500 fill-current' : 'text-gray-400'}`} />
           </Button>
           
           <Button
