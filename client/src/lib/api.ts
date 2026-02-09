@@ -55,10 +55,16 @@ export async function apiRequest(
     });
     clearTimeout(timeout);
     if (!res.ok) {
-      const text = await res.text();
-      throw new Error(`API request failed ${res.status}: ${text}`);
+      const errText = await res.text();
+      throw new Error(`API request failed ${res.status}: ${errText}`);
     }
-    return await res.json();
+    const responseText = await res.text();
+    if (!responseText) return { success: true };
+    try {
+      return JSON.parse(responseText);
+    } catch {
+      return { success: true, raw: responseText };
+    }
   } catch (e) {
     clearTimeout(timeout);
     console.error('[apiRequest] error for', path, e);

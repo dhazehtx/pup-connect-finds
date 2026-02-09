@@ -12,8 +12,7 @@ export async function logNav(event: {from:string; to:string}) {
     });
     
     // Success - navigation logged
-  } catch (err: any) {
-    // Silently ignore all errors to prevent UI freezes
-    console.warn('[admin log] network error:', err?.message || 'Unknown error');
+  } catch {
+    // Silently ignore all errors to prevent UI freezes and console spam
   }
 }
