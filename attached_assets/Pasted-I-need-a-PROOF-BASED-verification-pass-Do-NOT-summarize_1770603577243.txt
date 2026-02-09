@@ -1,0 +1,44 @@
+I need a PROOF-BASED verification pass. Do NOT summarize. Show the exact code and file paths.
+
+1) List EXACT files you changed (full paths) for this favorites spam-proof work.
+   (You mentioned: useFavorites.ts, useEnhancedFavorites.ts, WishlistButton.tsx, Favorites.tsx — confirm exact paths.)
+
+2) In useFavorites.ts:
+   - Paste the full toggleFavorite (or equivalent) function.
+   - It MUST use upsert (not insert) when favoriting:
+     supabase.from('favorites').upsert(
+       { user_id: user.id, listing_id },
+       { onConflict: 'user_id,listing_id' }
+     )
+   - Show how you prevent spam-click:
+     ✅ There must be per-listing in-flight protection, not just a single boolean.
+     Example acceptable pattern:
+       const [pendingIds, setPendingIds] = useState<Set<string>>(new Set());
+       if (pendingIds.has(listingId)) return;
+       setPendingIds(prev => new Set(prev).add(listingId));
+       ... finally remove listingId from the set
+     OR a map: Record<string, boolean>
+
+3) In useEnhancedFavorites.ts:
+   - Paste the full favorite/unfavorite handler.
+   - Confirm it uses upsert with onConflict.
+   - Show the optimistic update section and rollback logic.
+   - Confirm 409 / duplicate constraint errors do NOT call console.error and are treated as success.
+
+4) Listing cards wiring:
+   - Identify the listing card favorite button component(s) (ListingCard / OptimizedListingCard / FavoriteButton / WishlistButton).
+   - Paste the heart button code where it gets disabled.
+   - It MUST be disabled while that specific listingId is pending.
+
+5) Console cleanup:
+   - Search for console.error/debug related to favorites.
+   - Paste any remaining logs (if any) and gate them behind a DEBUG flag, or remove them.
+   - Confirm 409 is not logged as an error anywhere.
+
+6) Acceptance test checklist (confirm you tested, not just “should”):
+   - Spam-click heart on listing card: no console errors, ends favorited.
+   - Spam-click unfavorite: no console errors, ends unfavorited.
+   - Refresh page after each: state matches DB.
+   - Listing detail page still passes all the same tests.
+
+If any of the above is NOT implemented exactly, implement it now and then paste the code again.

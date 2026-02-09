@@ -62,7 +62,6 @@ export const useRealtimeFavorites = (onUpdate: () => void) => {
   return useRealtimeSubscription(
     'favorites',
     (payload) => {
-      console.log('Favorites updated:', payload);
       // Add polling fallback for reliability
       setTimeout(onUpdate, 1000);
     },
