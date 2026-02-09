@@ -65,84 +65,61 @@ const FilterBarWithSupabase: React.FC<FilterBarProps> = ({
   const [loadingBreeds, setLoadingBreeds] = useState(true);
   const [loadingColors, setLoadingColors] = useState(true);
 
-  // Fetch all 50 popular breeds from Supabase
   useEffect(() => {
-    const fetchBreeds = async () => {
-      try {
-        const { data: breeds, error } = await supabase
-          .from('breeds' as any)
-          .select('name')
-          .order('popularity_rank', { ascending: true })
-          .limit(50) as { data: Breed[] | null; error: any };
-        
-        if (error) {
-          console.error('Error fetching breeds:', error);
-          // If breeds table doesn't exist, use the full 50 popular breeds list with colors
-          const popularBreedsWithColors: Breed[] = [
-            { name: 'Labrador Retriever', color: '#F4D03F' },
-            { name: 'Golden Retriever', color: '#F1C40F' },
-            { name: 'German Shepherd', color: '#8D6E63' },
-            { name: 'French Bulldog', color: '#BDC3C7' },
-            { name: 'Bulldog', color: '#ECF0F1' },
-            { name: 'Poodle', color: '#F8C9D4' },
-            { name: 'Beagle', color: '#F39C12' },
-            { name: 'Rottweiler', color: '#2C3E50' },
-            { name: 'Yorkshire Terrier', color: '#D4AC0D' },
-            { name: 'German Shorthaired Pointer', color: '#A0522D' },
-            { name: 'Siberian Husky', color: '#85C1E9' },
-            { name: 'Dachshund', color: '#CB4335' },
-            { name: 'Pembroke Welsh Corgi', color: '#E67E22' },
-            { name: 'Australian Shepherd', color: '#5D6D7E' },
-            { name: 'Boston Terrier', color: '#17202A' },
-            { name: 'Bernese Mountain Dog', color: '#2C3E50' },
-            { name: 'Boxer', color: '#D35400' },
-            { name: 'Cocker Spaniel', color: '#A04000' },
-            { name: 'Border Collie', color: '#2C3E50' },
-            { name: 'Great Dane', color: '#566573' },
-            { name: 'Pomeranian', color: '#F39C12' },
-            { name: 'Shih Tzu', color: '#F4D03F' },
-            { name: 'Mastiff', color: '#D4AC0D' },
-            { name: 'Chihuahua', color: '#A04000' },
-            { name: 'Brittany', color: '#E67E22' },
-            { name: 'Shetland Sheepdog', color: '#8D6E63' },
-            { name: 'Belgian Malinois', color: '#B7950B' },
-            { name: 'Weimaraner', color: '#AEB6BF' },
-            { name: 'Miniature Schnauzer', color: '#566573' },
-            { name: 'Cavalier King Charles Spaniel', color: '#CB4335' },
-            { name: 'Doberman Pinscher', color: '#2C3E50' },
-            { name: 'Australian Cattle Dog', color: '#5D6D7E' },
-            { name: 'Cane Corso', color: '#2C3E50' },
-            { name: 'Collie', color: '#8D6E63' },
-            { name: 'Rhodesian Ridgeback', color: '#D35400' },
-            { name: 'Newfoundland', color: '#17202A' },
-            { name: 'West Highland White Terrier', color: '#FDFEFE' },
-            { name: 'Saint Bernard', color: '#CB4335' },
-            { name: 'Bloodhound', color: '#A04000' },
-            { name: 'Bull Terrier', color: '#FDFEFE' },
-            { name: 'Basset Hound', color: '#F39C12' },
-            { name: 'Bichon Frise', color: '#FDFEFE' },
-            { name: 'Akita', color: '#E67E22' },
-            { name: 'Portuguese Water Dog', color: '#2C3E50' },
-            { name: 'Whippet', color: '#AEB6BF' },
-            { name: 'Alaskan Malamute', color: '#566573' },
-            { name: 'Scottish Terrier', color: '#17202A' },
-            { name: 'Australian Terrier', color: '#D4AC0D' },
-            { name: 'Chinese Shar-Pei', color: '#D35400' },
-            { name: 'Vizsla', color: '#CB4335' }
-          ];
-          setBreeds(popularBreedsWithColors);
-          return;
-        }
-        
-        setBreeds(breeds || []);
-      } catch (error) {
-        console.error('Error fetching breeds:', error);
-      } finally {
-        setLoadingBreeds(false);
-      }
-    };
-
-    fetchBreeds();
+    const popularBreedsWithColors: Breed[] = [
+      { name: 'Labrador Retriever', color: '#F4D03F' },
+      { name: 'Golden Retriever', color: '#F1C40F' },
+      { name: 'German Shepherd', color: '#8D6E63' },
+      { name: 'French Bulldog', color: '#BDC3C7' },
+      { name: 'Bulldog', color: '#ECF0F1' },
+      { name: 'Poodle', color: '#F8C9D4' },
+      { name: 'Beagle', color: '#F39C12' },
+      { name: 'Rottweiler', color: '#2C3E50' },
+      { name: 'Yorkshire Terrier', color: '#D4AC0D' },
+      { name: 'German Shorthaired Pointer', color: '#A0522D' },
+      { name: 'Siberian Husky', color: '#85C1E9' },
+      { name: 'Dachshund', color: '#CB4335' },
+      { name: 'Pembroke Welsh Corgi', color: '#E67E22' },
+      { name: 'Australian Shepherd', color: '#5D6D7E' },
+      { name: 'Boston Terrier', color: '#17202A' },
+      { name: 'Bernese Mountain Dog', color: '#2C3E50' },
+      { name: 'Boxer', color: '#D35400' },
+      { name: 'Cocker Spaniel', color: '#A04000' },
+      { name: 'Border Collie', color: '#2C3E50' },
+      { name: 'Great Dane', color: '#566573' },
+      { name: 'Pomeranian', color: '#F39C12' },
+      { name: 'Shih Tzu', color: '#F4D03F' },
+      { name: 'Mastiff', color: '#D4AC0D' },
+      { name: 'Chihuahua', color: '#A04000' },
+      { name: 'Brittany', color: '#E67E22' },
+      { name: 'Shetland Sheepdog', color: '#8D6E63' },
+      { name: 'Belgian Malinois', color: '#B7950B' },
+      { name: 'Weimaraner', color: '#AEB6BF' },
+      { name: 'Miniature Schnauzer', color: '#566573' },
+      { name: 'Cavalier King Charles Spaniel', color: '#CB4335' },
+      { name: 'Doberman Pinscher', color: '#2C3E50' },
+      { name: 'Australian Cattle Dog', color: '#5D6D7E' },
+      { name: 'Cane Corso', color: '#2C3E50' },
+      { name: 'Collie', color: '#8D6E63' },
+      { name: 'Rhodesian Ridgeback', color: '#D35400' },
+      { name: 'Newfoundland', color: '#17202A' },
+      { name: 'West Highland White Terrier', color: '#FDFEFE' },
+      { name: 'Saint Bernard', color: '#CB4335' },
+      { name: 'Bloodhound', color: '#A04000' },
+      { name: 'Bull Terrier', color: '#FDFEFE' },
+      { name: 'Basset Hound', color: '#F39C12' },
+      { name: 'Bichon Frise', color: '#FDFEFE' },
+      { name: 'Akita', color: '#E67E22' },
+      { name: 'Portuguese Water Dog', color: '#2C3E50' },
+      { name: 'Whippet', color: '#AEB6BF' },
+      { name: 'Alaskan Malamute', color: '#566573' },
+      { name: 'Scottish Terrier', color: '#17202A' },
+      { name: 'Australian Terrier', color: '#D4AC0D' },
+      { name: 'Chinese Shar-Pei', color: '#D35400' },
+      { name: 'Vizsla', color: '#CB4335' }
+    ];
+    setBreeds(popularBreedsWithColors);
+    setLoadingBreeds(false);
   }, []);
 
   // Fetch coat colors
