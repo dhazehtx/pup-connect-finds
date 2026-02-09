@@ -1,0 +1,67 @@
+We already fixed the 406 and back button, and we added the unique constraint (user_id, listing_id). Now we must make favorites toggle fully spam-proof and idempotent, and stop logging scary errors for expected conflicts.
+
+DO THIS IN THIS ORDER:
+
+STEP 1 — Spam-proof favorites toggle (ListingDetail first)
+- In the component where the user toggles favorites on the listing detail page (ListingDetail / ListingDetailPage / ListingDetail.tsx etc), add local state:
+  const [isFavoriteLoading, setIsFavoriteLoading] = useState(false);
+
+- Disable the favorite button while loading (disabled + ignore clicks):
+  if (isFavoriteLoading) return;
+
+- In handleFavoriteToggle:
+  - Wrap in try/finally so loading always resets
+  - Set loading true immediately
+  - Use upsert when favoriting to prevent 409 spam conflicts:
+    await supabase.from('favorites').upsert(
+      { user_id: user.id, listing_id: listing.id },
+      { onConflict: 'user_id,listing_id' }
+    );
+
+  - If the client supports ignoreDuplicates, include it. If not, keep onConflict and handle response.
+
+- If a 409 still occurs, treat it as success (already favorited):
+  - DO NOT console.error for 409
+  - Update UI state to isFavorited=true
+
+- For unfavorite:
+  await supabase.from('favorites').delete().eq('user_id', user.id).eq('listing_id', listing.id);
+  then set isFavorited=false
+
+- Ensure UI state always ends correct:
+  - after favorite => setIsFavorited(true)
+  - after unfavorite => setIsFavorited(false)
+  - finally => setIsFavoriteLoading(false)
+
+STEP 2 — Stop logging “expected conflicts” as errors
+- Remove or downgrade any console.error that triggers for 409/duplicate favorites.
+- If you want logging, use console.debug ONLY in development and do not show scary stack traces.
+
+STEP 3 — Clean noisy debug logs
+- Remove or gate logs like:
+  "RENDER DEBUG", "FAVORITE BUTTON CLICKED", "favorites POST", etc
+- Add a dev flag if needed:
+  const DEBUG = import.meta.env.DEV && false;
+  and only log if DEBUG
+
+STEP 4 — Ensure the same behavior is used on Listing Cards too
+- Identify the favorite toggle logic used on listing cards (ListingCard / OptimizedListingCard / FavoriteButton).
+- Ensure it ALSO has in-flight protection (local loading state per card OR a shared hook that prevents spam).
+- Ensure favoriting uses upsert with onConflict and no scary 409 logs.
+- Make sure listing cards do not create duplicate favorites and do not flicker.
+
+IMPORTANT CONSTRAINTS:
+- Do NOT change database schema.
+- Do NOT remove the unique constraint.
+- Do NOT change routing or UI layout beyond disabling the button during loading.
+- Keep current heart styling changes (gray outline vs red filled) as-is.
+
+ACCEPTANCE TESTS:
+1) Refresh listing detail page: no favorites-related errors in console.
+2) Spam-click favorite rapidly: no 409 errors logged; UI ends in correct state (favorited).
+3) Spam-click unfavorite rapidly: UI ends in correct state (not favorited).
+4) Refresh after favoriting/unfavoriting: state is correct.
+5) Listing cards behave the same (no duplicate favorites, no scary logs).
+6) Favorite button disables while request is in-flight.
+
+After implementing, tell me exactly which files you edited and what you changed.

@@ -87,14 +87,14 @@ export const useEnhancedFavorites = () => {
   // Toggle favorite status
   const toggleFavorite = useCallback(async (listingId: string) => {
     if (!user) return;
+    if (toggleLoading.has(listingId)) return;
 
     setToggleLoading(prev => new Set(prev).add(listingId));
 
     try {
-      const isFavorited = favoriteListingIds.has(listingId);
+      const isFav = favoriteListingIds.has(listingId);
 
-      if (isFavorited) {
-        // Remove from favorites
+      if (isFav) {
         const { error } = await supabase
           .from('favorites')
           .delete()
@@ -115,53 +115,48 @@ export const useEnhancedFavorites = () => {
           description: "Listing removed from your favorites",
         });
       } else {
-        // Add to favorites
-        const { data, error } = await supabase
+        setFavoriteListingIds(prev => new Set(prev).add(listingId));
+        const optimisticFavorite: EnhancedFavorite = {
+          id: `temp-${Date.now()}`,
+          user_id: user.id,
+          listing_id: listingId,
+          created_at: new Date().toISOString(),
+        };
+        setFavorites(prev => [optimisticFavorite, ...prev]);
+
+        const { error } = await supabase
           .from('favorites')
-          .insert([{
-            user_id: user.id,
-            listing_id: listingId
-          }])
-          .select(`
-            *,
-            listing:dog_listings (
-              id,
-              dog_name,
-              breed,
-              age,
-              price,
-              image_url,
-              status,
-              location,
-              user_id,
-              profiles:user_id (
-                full_name,
-                username,
-                verified
-              )
-            )
-          `)
-          .single();
+          .upsert(
+            { user_id: user.id, listing_id: listingId },
+            { onConflict: 'user_id,listing_id', ignoreDuplicates: true }
+          );
 
-        if (error) throw error;
+        if (error && error.code !== '23505') throw error;
 
-        if (data.listing) {
-          setFavorites(prev => [data, ...prev]);
-          setFavoriteListingIds(prev => new Set(prev).add(listingId));
+        toast({
+          title: "Added to Favorites",
+          description: "Listing added to your favorites",
+        });
 
-          toast({
-            title: "Added to Favorites",
-            description: "Listing added to your favorites",
-          });
-        }
+        fetchFavorites().catch(() => {});
       }
-    } catch (error) {
-      console.error('Error toggling favorite:', error);
-      toast({
-        title: "Error",
-        description: "Failed to update favorites",
-        variant: "destructive",
-      });
+    } catch (error: any) {
+      if (error?.code === '23505') {
+        setFavoriteListingIds(prev => new Set(prev).add(listingId));
+      } else {
+        setFavorites(prev => prev.filter(fav => fav.listing_id !== listingId || !fav.id.startsWith('temp-')));
+        setFavoriteListingIds(prev => {
+          const newSet = new Set(prev);
+          newSet.delete(listingId);
+          return newSet;
+        });
+        console.error('Error toggling favorite:', error);
+        toast({
+          title: "Error",
+          description: "Failed to update favorites",
+          variant: "destructive",
+        });
+      }
     } finally {
       setToggleLoading(prev => {
         const newSet = new Set(prev);
@@ -169,7 +164,7 @@ export const useEnhancedFavorites = () => {
         return newSet;
       });
     }
-  }, [user, favoriteListingIds, toast]);
+  }, [user, favoriteListingIds, toggleLoading, toast, fetchFavorites]);
 
   // Check if listing is favorited
   const isFavorited = useCallback((listingId: string) => {

@@ -34,16 +34,15 @@ export const useFavorites = () => {
     executeOptimistic
   } = useOptimisticUpdates<Favorite>([]);
 
-  // Set up polling for favorites with reduced frequency
+  const [toggleLoading, setToggleLoading] = useState<Set<string>>(new Set());
+
   useRealtimeFavorites(async () => {
-    console.log('Favorites polling triggered - fetching latest favorites');
     await fetchFavorites();
   });
 
   const fetchFavorites = async () => {
     if (!user) return;
 
-    console.log('Fetching favorites for user:', user.id);
     try {
       setLoading(true);
       const { data, error } = await supabase
@@ -74,7 +73,6 @@ export const useFavorites = () => {
       
       const listingIds = new Set(data?.map(fav => fav.listing_id) || []);
       setFavoriteListingIds(listingIds);
-      console.log('Favorites fetched successfully, count:', mappedFavorites.length);
     } catch (error) {
       console.error('Error fetching favorites:', error);
       toast({
@@ -92,8 +90,7 @@ export const useFavorites = () => {
     
     await executeOptimistic({
       optimisticUpdate: (currentData) => {
-        // Add optimistic favorite
-        setFavoriteListingIds(prev => new Set([...prev, listingId]));
+        setFavoriteListingIds(prev => new Set(Array.from(prev).concat(listingId)));
         const newFavorite: Favorite = {
           id: `temp-${Date.now()}`,
           user_id: user.id,
@@ -105,11 +102,11 @@ export const useFavorites = () => {
       operation: async () => {
         const { error } = await supabase
           .from('favorites')
-          .insert([{
-            user_id: user.id,
-            listing_id: listingId
-          }]);
-        if (error) throw error;
+          .upsert(
+            { user_id: user.id, listing_id: listingId },
+            { onConflict: 'user_id,listing_id', ignoreDuplicates: true }
+          );
+        if (error && error.code !== '23505') throw error;
       },
       rollback: (currentData) => {
         setFavoriteListingIds(prev => {
@@ -151,7 +148,7 @@ export const useFavorites = () => {
         if (error) throw error;
       },
       rollback: (currentData) => {
-        setFavoriteListingIds(prev => new Set([...prev, listingId]));
+        setFavoriteListingIds(prev => new Set(Array.from(prev).concat(listingId)));
         // In a real app, we'd restore the favorite from cache or refetch
         return currentData;
       }
@@ -166,10 +163,20 @@ export const useFavorites = () => {
   };
 
   const toggleFavorite = async (listingId: string) => {
-    if (favoriteListingIds.has(listingId)) {
-      return await removeFromFavorites(listingId);
-    } else {
-      return await addToFavorites(listingId);
+    if (toggleLoading.has(listingId)) return false;
+    setToggleLoading(prev => new Set(prev).add(listingId));
+    try {
+      if (favoriteListingIds.has(listingId)) {
+        return await removeFromFavorites(listingId);
+      } else {
+        return await addToFavorites(listingId);
+      }
+    } finally {
+      setToggleLoading(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(listingId);
+        return newSet;
+      });
     }
   };
 
@@ -178,8 +185,7 @@ export const useFavorites = () => {
   };
 
   const isFavoritePending = (listingId: string) => {
-    // For now, return false since we don't have pending state tracking
-    return false;
+    return toggleLoading.has(listingId);
   };
 
   useEffect(() => {
