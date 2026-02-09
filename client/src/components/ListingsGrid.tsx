@@ -1,12 +1,17 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Heart, MapPin } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { useListings } from '@/hooks/useListings';
+import { useAuth } from '@/contexts/AuthContext';
+import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 export default function ListingsGrid() {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const { toast } = useToast();
   const {
     data,
     fetchNextPage,
@@ -16,9 +21,79 @@ export default function ListingsGrid() {
     error
   } = useListings();
 
+  const [favorites, setFavorites] = useState<Set<string>>(new Set());
+  const [togglingIds, setTogglingIds] = useState<Set<string>>(new Set());
   const loadMoreRef = useRef<HTMLDivElement>(null);
 
-  // Intersection Observer for infinite scroll
+  useEffect(() => {
+    if (!user) return;
+    const fetchFavorites = async () => {
+      const { data: favData } = await supabase
+        .from('favorites')
+        .select('listing_id')
+        .eq('user_id', user.id);
+      if (favData) {
+        setFavorites(new Set(favData.map((f: any) => f.listing_id)));
+      }
+    };
+    fetchFavorites();
+  }, [user]);
+
+  const toggleFavorite = useCallback(async (listingId: string) => {
+    if (!user) {
+      toast({ title: 'Sign in required', description: 'Please sign in to save listings.', variant: 'destructive' });
+      navigate('/greeting');
+      return;
+    }
+    if (togglingIds.has(listingId)) return;
+
+    setTogglingIds(prev => new Set(prev).add(listingId));
+    const wasFavorited = favorites.has(listingId);
+
+    setFavorites(prev => {
+      const next = new Set(prev);
+      if (wasFavorited) next.delete(listingId);
+      else next.add(listingId);
+      return next;
+    });
+
+    try {
+      if (wasFavorited) {
+        const { error: delErr } = await supabase
+          .from('favorites')
+          .delete()
+          .eq('user_id', user.id)
+          .eq('listing_id', listingId);
+        if (delErr) throw delErr;
+        toast({ title: 'Removed from favorites' });
+      } else {
+        const { error: insErr } = await supabase
+          .from('favorites')
+          .upsert({ user_id: user.id, listing_id: listingId }, { onConflict: 'user_id,listing_id', ignoreDuplicates: true });
+        if (insErr && insErr.code !== '23505') throw insErr;
+        toast({ title: 'Added to favorites' });
+      }
+    } catch (err: any) {
+      if (err?.code === '23505') {
+        setFavorites(prev => new Set(prev).add(listingId));
+      } else {
+        setFavorites(prev => {
+          const next = new Set(prev);
+          if (wasFavorited) next.add(listingId);
+          else next.delete(listingId);
+          return next;
+        });
+        toast({ title: 'Error', description: 'Failed to update favorites', variant: 'destructive' });
+      }
+    } finally {
+      setTogglingIds(prev => {
+        const next = new Set(prev);
+        next.delete(listingId);
+        return next;
+      });
+    }
+  }, [user, favorites, togglingIds, toast, navigate]);
+
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
@@ -77,72 +152,81 @@ export default function ListingsGrid() {
   return (
     <div>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        {allListings.map((listing) => (
-          <Card key={listing.id} className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer" onClick={() => navigate(`/listing/${listing.id}`)}>
-            <div className="relative aspect-square">
-              <img
-                src={listing.image_url || '/api/placeholder/300/300'}
-                alt={listing.dog_name}
-                className="w-full h-full object-cover"
-                onError={(e) => {
-                  const target = e.target as HTMLImageElement;
-                  target.src = '/api/placeholder/300/300';
-                }}
-              />
-              <div className="absolute top-2 left-2 bg-blue-600 text-white px-2 py-1 rounded text-sm font-semibold">
-                ${listing.price.toLocaleString()}
+        {allListings.map((listing) => {
+          const isFav = favorites.has(listing.id);
+          return (
+            <Card key={listing.id} className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer" onClick={() => navigate(`/listing/${listing.id}`)}>
+              <div className="relative aspect-square">
+                <img
+                  src={listing.image_url || '/api/placeholder/300/300'}
+                  alt={listing.dog_name}
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    target.src = '/api/placeholder/300/300';
+                  }}
+                />
+                <div className="absolute top-2 left-2 bg-blue-600 text-white px-2 py-1 rounded text-sm font-semibold">
+                  ${listing.price.toLocaleString()}
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className={`absolute top-2 right-2 rounded-full w-8 h-8 p-0 ${isFav ? 'bg-red-50 hover:bg-red-100' : 'bg-white/90 hover:bg-white'}`}
+                  disabled={togglingIds.has(listing.id)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    toggleFavorite(listing.id);
+                  }}
+                >
+                  <Heart
+                    className="w-4 h-4 transition-colors"
+                    fill={isFav ? "#ef4444" : "none"}
+                    stroke={isFav ? "#ef4444" : "#9ca3af"}
+                  />
+                </Button>
               </div>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="absolute top-2 right-2 bg-white/90 hover:bg-white rounded-full w-8 h-8 p-0"
-                onClick={(e) => e.stopPropagation()}
-              >
-                <Heart className="w-4 h-4 text-gray-600" />
-              </Button>
-            </div>
-            <CardContent className="p-4">
-              <h3 className="font-semibold text-lg mb-1 text-gray-900">{listing.dog_name}</h3>
-              <p className="text-sm text-gray-600 mb-1">{listing.breed}</p>
-              <p className="text-sm text-gray-600 mb-1">
-                {listing.age} {listing.age === 1 ? 'month' : 'months'} old • {listing.gender}
-              </p>
-              {listing.color && (
-                <p className="text-sm text-gray-600 mb-1">{listing.color}</p>
-              )}
-              <div className="flex items-center text-sm text-gray-600 mb-2">
-                <MapPin className="w-3 h-3 mr-1" />
-                {listing.location}
-              </div>
-              
-              {/* Status badges */}
-              <div className="flex flex-wrap gap-1 mb-2">
-                {(listing as any).verified && (
-                  <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded">
-                    Verified
-                  </span>
+              <CardContent className="p-4">
+                <h3 className="font-semibold text-lg mb-1 text-gray-900">{listing.dog_name}</h3>
+                <p className="text-sm text-gray-600 mb-1">{listing.breed}</p>
+                <p className="text-sm text-gray-600 mb-1">
+                  {listing.age} {listing.age === 1 ? 'month' : 'months'} old • {listing.gender}
+                </p>
+                {listing.color && (
+                  <p className="text-sm text-gray-600 mb-1">{listing.color}</p>
                 )}
-                {(listing as any).health_checked && (
-                  <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">
-                    Health Checked
-                  </span>
-                )}
-                {(listing as any).vaccinated && (
-                  <span className="bg-purple-100 text-purple-800 text-xs px-2 py-1 rounded">
-                    Vaccinated
-                  </span>
-                )}
-              </div>
+                <div className="flex items-center text-sm text-gray-600 mb-2">
+                  <MapPin className="w-3 h-3 mr-1" />
+                  {listing.location}
+                </div>
+                
+                <div className="flex flex-wrap gap-1 mb-2">
+                  {(listing as any).verified && (
+                    <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded">
+                      Verified
+                    </span>
+                  )}
+                  {(listing as any).health_checked && (
+                    <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">
+                      Health Checked
+                    </span>
+                  )}
+                  {(listing as any).vaccinated && (
+                    <span className="bg-purple-100 text-purple-800 text-xs px-2 py-1 rounded">
+                      Vaccinated
+                    </span>
+                  )}
+                </div>
 
-              {listing.description && (
-                <p className="text-sm text-gray-500 mt-2 line-clamp-2">{listing.description}</p>
-              )}
-            </CardContent>
-          </Card>
-        ))}
+                {listing.description && (
+                  <p className="text-sm text-gray-500 mt-2 line-clamp-2">{listing.description}</p>
+                )}
+              </CardContent>
+            </Card>
+          );
+        })}
       </div>
 
-      {/* Load more trigger */}
       <div ref={loadMoreRef} className="py-8">
         {isFetchingNextPage && (
           <div className="text-center">
