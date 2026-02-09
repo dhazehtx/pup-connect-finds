@@ -34,6 +34,7 @@ export const useEnhancedFavorites = () => {
   const [toggleLoading, setToggleLoading] = useState<Set<string>>(new Set());
   const toggleLoadingRef = useRef<Set<string>>(toggleLoading);
   toggleLoadingRef.current = toggleLoading;
+  const needsSyncRef = useRef(false);
   const { user } = useAuth();
   const { toast } = useToast();
 
@@ -161,6 +162,10 @@ export const useEnhancedFavorites = () => {
       setToggleLoading(prev => {
         const newSet = new Set(prev);
         newSet.delete(listingId);
+        if (newSet.size === 0 && needsSyncRef.current) {
+          needsSyncRef.current = false;
+          setTimeout(() => fetchFavorites(), 100);
+        }
         return newSet;
       });
     }
@@ -233,6 +238,8 @@ export const useEnhancedFavorites = () => {
         () => {
           if (toggleLoadingRef.current.size === 0) {
             fetchFavorites();
+          } else {
+            needsSyncRef.current = true;
           }
         }
       )
