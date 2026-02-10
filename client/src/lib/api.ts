@@ -6,6 +6,7 @@ export const isAbortError = (err: any): boolean =>
   err?.name === 'AbortError' ||
   err?.code === 'ERR_CANCELED' ||
   err?.message?.toLowerCase?.().includes?.('aborted') ||
+  err?.cause?.name === 'AbortError' ||
   err?.__isCanceled === true;
 
 export async function apiRequest(
