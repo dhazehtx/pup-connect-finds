@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import PostCard from './PostCard';
 import { usePosts } from '@/hooks/usePosts';
 import FullPostModal from '@/components/post/FullPostModal';
-import { apiRequest } from '@/lib/api';
+import { apiRequest, isAbortError } from '@/lib/api';
 import { AlertTriangle, RotateCcw } from 'lucide-react';
 
 interface User {
@@ -204,8 +204,7 @@ const HomeFeed = () => {
       .catch((err) => {
         if (cancelled) return;
         clearTimeout(timeout);
-        if (err.name === 'AbortError') {
-          console.log('[HOME FEED] Request aborted');
+        if (isAbortError(err)) {
           return;
         }
         console.warn('[HOME FEED] Posts fetch result: error -', err.message);

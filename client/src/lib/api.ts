@@ -2,6 +2,12 @@ import { supabase } from '@/integrations/supabase/client';
 
 const BACKEND_PREFIX = '/api'; // adjust if your proxy path differs
 
+export const isAbortError = (err: any): boolean =>
+  err?.name === 'AbortError' ||
+  err?.code === 'ERR_CANCELED' ||
+  err?.message?.toLowerCase?.().includes?.('aborted') ||
+  err?.__isCanceled === true;
+
 export async function apiRequest(
   path: string,
   {
@@ -67,7 +73,9 @@ export async function apiRequest(
     }
   } catch (e) {
     clearTimeout(timeout);
-    console.error('[apiRequest] error for', path, e);
+    if (!isAbortError(e)) {
+      console.error('[apiRequest] error for', path, e);
+    }
     throw e;
   }
 }
