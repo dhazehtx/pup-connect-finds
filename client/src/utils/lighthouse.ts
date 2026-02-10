@@ -43,15 +43,7 @@ export const lighthouseOptimizations = {
     console.log('CSS optimization should be handled by build process');
   },
 
-  // Optimize font loading
   optimizeFonts: () => {
-    const fontLinks = document.querySelectorAll('link[href*="fonts.googleapis.com"]');
-    fontLinks.forEach(link => {
-      link.setAttribute('rel', 'preconnect');
-      if (!link.hasAttribute('crossorigin')) {
-        link.setAttribute('crossorigin', '');
-      }
-    });
   },
 
   // Set up proper caching headers
