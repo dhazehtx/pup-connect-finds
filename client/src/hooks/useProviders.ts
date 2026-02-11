@@ -46,7 +46,6 @@ export function useProviders(): UseProvidersResult {
       const { data: providers, error } = await supabase
         .from('service_providers' as any)
         .select('*')
-        .eq('is_active', true)
         .order('created_at', { ascending: false });
 
       if (error) {
