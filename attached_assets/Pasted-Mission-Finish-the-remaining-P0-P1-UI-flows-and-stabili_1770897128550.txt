@@ -1,0 +1,135 @@
+Mission: Finish the remaining P0/P1 UI flows and stabilize core social features without adding new features, without changing database architecture, and without splitting data across Supabase + Neon. Fix only UI + client logic + existing server routes if needed.
+
+Non-negotiable Rules
+
+Do NOT add new tables, new DBs, or new services.
+
+Do NOT migrate Neon/Supabase today. Keep current architecture.
+
+Do NOT change follows logic or home feed logic (except UI display/bug fixes). Home feed already excludes self — do not regress it.
+
+Do NOT add new product features (no new systems). Only fix/finish broken flows and polish.
+
+Every change must include a quick verification checklist and no new console errors.
+
+TASKS (Do in this exact order)
+Task A — Followers/Following modal navigation (P0)
+
+Problem: Clicking a user in Followers/Following modal routes back to my own profile or doesn’t navigate correctly.
+
+Goal:
+
+Counts are clickable (Followers / Following).
+
+Modal/sheet opens with list.
+
+Clicking a user row navigates to that user’s profile route (e.g., /profile/:userId).
+
+Works for both followers + following lists.
+
+Clicking yourself should go to your own profile (expected), but clicking others must never bounce to /profile.
+
+Acceptance Tests:
+
+User A opens profile → clicks “Followers” → modal opens
+
+Click User B in list → routes to B profile, NOT A profile
+
+Close modal works, no console errors.
+
+Return: exact files changed + key code snippet (navigation handler).
+
+Task B — Full Post Modal must show comments + input everywhere (P0)
+
+Problem: In feed view I can see comments, but when opening full post (from Home feed image click or Profile grid click), the modal doesn’t show comments/add comment input.
+
+Goal:
+Wherever FullPostModal is opened, it must always show:
+
+Post content
+
+Comments list (or “No comments yet”)
+
+Add comment input
+
+Comments load state if fetching
+
+Important:
+
+Ensure the modal receives the correct post id used by the comments query (avoid postUuid vs id mismatches).
+
+Ensure the comments section is not hidden by layout issues (overflow-hidden, wrong container height, mobile layout missing comments, etc.).
+
+Fix in one shared modal component, not duplicated logic.
+
+Acceptance Tests:
+
+User A opens a post in Home feed → modal opens → comments visible
+
+User A opens a post from Profile grid → modal opens → comments visible
+
+Adding a comment works and appears after submit
+
+No console errors introduced.
+
+Return: exact files changed + final code that passes correct post id into comments hook + screenshot/console confirmation.
+
+Task C — Comments + replies consistency (P1)
+
+Goal:
+
+Replies (if implemented) show correctly in the modal.
+
+Comment count matches visible list (basic sanity)
+
+If replies aren’t fully implemented, do not invent them—just ensure existing comment UI doesn’t break.
+
+Acceptance Tests:
+
+Existing comment threads render
+
+No layout collapse on long comment lists.
+
+Task D — Messaging sanity checks (P1)
+
+You already fixed bubble colors; now verify:
+
+Outgoing bubble: blue background + white text
+
+Incoming bubble: light background + black text (or correct dark-mode variant)
+
+No 401/502 spam during normal messaging usage
+
+Acceptance Tests: send/receive messages, refresh thread, no errors.
+
+Task E — Notifications UI sanity checks (P1)
+
+Goal:
+
+Bell icon remains visible and clickable
+
+Badge/unread style doesn’t glitch (if it exists)
+
+No console spam on notifications tab
+
+Deliverables (Must include)
+
+Exact files changed
+
+Key code snippets for:
+
+followers modal navigation handler
+
+FullPostModal comments rendering + the post id used for fetching comments
+
+Verification checklist completed (bullet list)
+
+Confirm: No new console errors (ignore known harmless warnings only if explicitly listed)
+
+Why this “super prompt” works (and doesn’t blow stuff up)
+
+It’s one prompt, but it’s structured like a mini spec with hard order, guardrails, and acceptance tests.
+
+It stops the agent from “random refactors,” migrations, or adding new tables.
+
+It focuses on your real blockers: navigation + modal comments consistency.
