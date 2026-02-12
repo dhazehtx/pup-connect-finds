@@ -517,7 +517,7 @@ const MessageThread = ({ parentMessage, onClose, conversationId: propConversatio
                     : `${isReply ? 'bg-gray-50' : 'bg-white'} text-gray-900 rounded-bl-md border border-gray-100`
                 } ${isReply ? 'text-sm' : ''}`}
               >
-                <p className={`${isReply ? 'text-xs' : 'text-sm'} leading-relaxed break-words`}>
+                <p className={`${isReply ? 'text-xs' : 'text-sm'} leading-relaxed break-words ${isOwnMessage ? '!text-white' : theme === 'dark' ? '!text-gray-100' : '!text-slate-900'}`}>
                   {message.content}
                 </p>
               </div>

@@ -59,7 +59,7 @@ const UnifiedMessageBubble = ({
             />
           )}
           
-          <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+          <p className={`text-sm whitespace-pre-wrap ${isOwn ? '!text-white' : '!text-slate-900'}`}>{message.content}</p>
           
           <div className="flex items-center justify-between mt-1">
             <span className="text-xs opacity-70">

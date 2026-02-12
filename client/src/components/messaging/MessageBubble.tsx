@@ -66,7 +66,7 @@ const MessageBubble = ({
                 : 'bg-gray-100 text-gray-900'
             }`}
           >
-            <p className={`text-sm break-words ${isOwn ? 'text-white' : 'text-gray-900'}`}>{message.content}</p>
+            <p className={`text-sm break-words ${isOwn ? '!text-white' : '!text-slate-900'}`}>{message.content}</p>
             {message.is_encrypted && (
               <Shield className={`w-3 h-3 absolute top-1 right-1 opacity-60 ${isOwn ? 'text-white' : ''}`} />
             )}
