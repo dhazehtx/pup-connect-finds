@@ -20,6 +20,7 @@ import {
   petServiceProviders,
   serviceBookings,
   breeds,
+  follows,
   type User, 
   type InsertUser,
   type Profile,
@@ -64,7 +65,7 @@ import {
   type InsertBreed
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, and, or, like, sql, isNotNull } from "drizzle-orm";
+import { eq, desc, and, or, like, sql, isNotNull, inArray } from "drizzle-orm";
 
 export interface IStorage {
   // Legacy user methods
@@ -119,6 +120,7 @@ export interface IStorage {
   // Post methods
   getPosts(category?: string): Promise<Post[]>;
   getPost(id: string): Promise<Post | undefined>;
+  getHomeFeedPosts(userId: string): Promise<any[]>;
   createPost(post: InsertPost): Promise<Post>;
   updatePost(id: string, post: Partial<InsertPost>): Promise<Post | undefined>;
   
@@ -439,6 +441,50 @@ export class DatabaseStorage implements IStorage {
   async getPost(id: string): Promise<Post | undefined> {
     const result = await db.select().from(posts).where(eq(posts.id, id)).limit(1);
     return result[0];
+  }
+
+  async getHomeFeedPosts(userId: string): Promise<any[]> {
+    const followedRows = await db
+      .select({ followed_id: follows.followed_id })
+      .from(follows)
+      .where(eq(follows.follower_id, userId));
+
+    const feedUserIds = [userId, ...followedRows.map(r => r.followed_id)];
+
+    const result = await db
+      .select({
+        id: posts.id,
+        user_id: posts.user_id,
+        title: posts.title,
+        content: posts.content,
+        image_url: posts.image_url,
+        images: posts.images,
+        video_url: posts.video_url,
+        videos: posts.videos,
+        post_type: posts.post_type,
+        category: posts.category,
+        hashtags: posts.hashtags,
+        caption: posts.caption,
+        likes_count: posts.likes_count,
+        comments_count: posts.comments_count,
+        shares_count: posts.shares_count,
+        views_count: posts.views_count,
+        duration: posts.duration,
+        created_at: posts.created_at,
+        updated_at: posts.updated_at,
+        profiles: {
+          username: profiles.username,
+          full_name: profiles.full_name,
+          avatar_url: profiles.avatar_url,
+        },
+      })
+      .from(posts)
+      .leftJoin(profiles, eq(posts.user_id, profiles.id))
+      .where(inArray(posts.user_id, feedUserIds))
+      .orderBy(desc(posts.created_at))
+      .limit(50);
+
+    return result;
   }
 
   async createPost(post: InsertPost): Promise<Post> {

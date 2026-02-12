@@ -518,17 +518,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get posts for authenticated user's home feed
+  // Get posts for authenticated user's home feed (self + followed users)
   app.get('/api/posts/home-feed', authMiddleware, async (req, res) => {
     try {
-      console.log('[API] Home feed request for user:', req.user?.id);
-      
-      // For now, return empty array since we don't have posts in the database yet
-      // In the future, this would fetch posts from followed users, etc.
-      const posts: any[] = [];
-      
-      console.log('[API] Returning home feed with', posts.length, 'posts');
-      res.json(posts);
+      const userId = req.user?.id;
+      if (!userId) {
+        return res.status(401).json({ error: 'Authentication required' });
+      }
+
+      const feedPosts = await storage.getHomeFeedPosts(userId);
+      res.json(feedPosts);
     } catch (error) {
       console.error('[API] Error fetching home feed:', error);
       res.status(500).json({ error: 'Failed to fetch home feed' });
