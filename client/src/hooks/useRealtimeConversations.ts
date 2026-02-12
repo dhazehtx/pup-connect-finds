@@ -42,13 +42,13 @@ export const useRealtimeConversations = () => {
             .eq('id', otherUserId)
             .single();
 
-          // Get unread message count
-          const { count: unreadCount } = await supabase
+          const { data: unreadData } = await supabase
             .from('messages')
-            .select('*', { count: 'exact', head: true })
+            .select('id')
             .eq('conversation_id', conv.id)
             .neq('sender_id', user.id)
-            .is('read_at', null);
+            .eq('read', false);
+          const unreadCount = unreadData?.length || 0;
 
           const listingData = Array.isArray(conv.listing) ? conv.listing[0] : conv.listing;
 

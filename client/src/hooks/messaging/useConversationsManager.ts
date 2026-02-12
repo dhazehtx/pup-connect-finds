@@ -77,24 +77,26 @@ export const useConversationsManager = () => {
         (profilesData || []).map(p => [p.id, p])
       );
 
-      // Batch fetch unread counts for all conversations
-      const { data: messagesCounts } = await supabase
-        .from('messages')
-        .select('conversation_id', { count: 'exact', head: true })
-        .in('conversation_id', conversationsData.map(c => c.id))
-        .eq('read', false)
-        .neq('sender_id', user.id);
-
       const unreadCountMap = new Map<string, number>();
       conversationsData.forEach(conv => {
         unreadCountMap.set(conv.id, 0);
       });
-      
-      if (messagesCounts) {
-        conversationsData.forEach(conv => {
-          const count = messagesCounts.filter(m => m.conversation_id === conv.id).length;
-          unreadCountMap.set(conv.id, count);
-        });
+
+      const convIds = conversationsData.map(c => c.id);
+      if (convIds.length > 0) {
+        const { data: unreadMessages } = await supabase
+          .from('messages')
+          .select('conversation_id')
+          .in('conversation_id', convIds)
+          .eq('read', false)
+          .neq('sender_id', user.id);
+
+        if (unreadMessages) {
+          for (const msg of unreadMessages) {
+            const prev = unreadCountMap.get(msg.conversation_id) || 0;
+            unreadCountMap.set(msg.conversation_id, prev + 1);
+          }
+        }
       }
 
       const conversationsWithProfiles = conversationsData.map((conv) => {
