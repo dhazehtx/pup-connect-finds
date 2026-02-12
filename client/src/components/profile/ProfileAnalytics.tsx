@@ -61,10 +61,14 @@ const ProfileAnalytics = () => {
 
       const listingIds = userListings?.map(listing => listing.id) || [];
       
-      const { data: favorites } = await supabase
-        .from('favorites')
-        .select('*')
-        .in('listing_id', listingIds);
+      let favorites: any[] | null = null;
+      if (listingIds.length > 0) {
+        const { data } = await supabase
+          .from('favorites')
+          .select('*')
+          .in('listing_id', listingIds);
+        favorites = data;
+      }
 
       // Fetch recent notifications for activity
       const { data: notifications } = await supabase

@@ -1,5 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
+import { db } from "./db";
+import { sql } from "drizzle-orm";
 import savedPostsRouter from './routes/saved-posts';
 import bookmarksRouter from './routes/bookmarks';
 import reportsRouter from './routes/reports';
@@ -1450,6 +1452,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/admin/logs', authMiddleware, asyncHandler(async (req: any, res: any) => {
     // Return empty logs for now - implement full logging if needed
     res.json([]);
+  }));
+
+  app.post('/api/user/track-login', authMiddleware, asyncHandler(async (req: any, res: any) => {
+    try {
+      const userId = req.user?.id;
+      if (!userId) return res.status(401).json({ error: 'Not authenticated' });
+
+      await db.execute(
+        sql`UPDATE profiles SET last_login_at = NOW() WHERE id = ${userId}`
+      );
+      res.json({ ok: true });
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to track login' });
+    }
   }));
 
   // User preferences endpoints to prevent 406 errors

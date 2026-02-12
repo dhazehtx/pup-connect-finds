@@ -67,14 +67,15 @@ export const useComments = (postId: string) => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('User not authenticated');
 
+      const insertData: Record<string, any> = {
+        post_id: postId,
+        user_id: user.id,
+        content,
+      };
+
       const { data, error } = await supabase
         .from('comments')
-        .insert([{
-          post_id: postId,
-          user_id: user.id,
-          content,
-          parent_comment_id: parentCommentId || null
-        }])
+        .insert([insertData])
         .select(`
           *,
           profiles!comments_user_id_fkey (
@@ -97,16 +98,15 @@ export const useComments = (postId: string) => {
             .eq('id', parentCommentId)
             .single();
 
-          // Only notify if replying to someone else's comment
           if (originalComment && originalComment.user_id !== user.id) {
             await supabase
               .from('notifications')
               .insert({
                 type: 'comment_reply',
-                to_user_id: originalComment.user_id,
-                from_user_id: user.id,
-                post_id: postId,
-                comment_id: data.id,
+                user_id: originalComment.user_id,
+                sender_id: user.id,
+                related_id: postId,
+                title: 'Comment Reply',
                 message: 'replied to your comment',
                 is_read: false
               });
