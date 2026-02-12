@@ -10,6 +10,7 @@ import { useNavigate } from 'react-router-dom';
 import ProfileSettings from './ProfileSettings';
 import ProfileSettingsModal from './ProfileSettingsModal';
 import ProfilePostsGrid from './ProfilePostsGrid';
+import FollowersModal from './FollowersModal';
 import BugReportButton from '@/components/bugs/BugReportButton';
 import LoadingState from '@/components/ui/loading-state';
 import { useFollowSystem } from '@/hooks/useFollowSystem';
@@ -45,6 +46,8 @@ const UnifiedProfileView = ({ userId, isCurrentUser }: UnifiedProfileViewProps) 
   const [loading, setLoading] = useState(true);
   const [showSettings, setShowSettings] = useState(false);
   const [messagingLoading, setMessagingLoading] = useState(false);
+  const [showFollowersModal, setShowFollowersModal] = useState(false);
+  const [showFollowingModal, setShowFollowingModal] = useState(false);
 
   const profileId = userId || user?.id;
   const { followers, following, isFollowing, followUser, unfollowUser } = useFollowSystem(profileId);
@@ -229,11 +232,17 @@ const UnifiedProfileView = ({ userId, isCurrentUser }: UnifiedProfileViewProps) 
                   <div className="font-bold">{postCount}</div>
                   <div className="text-sm text-gray-600">Posts</div>
                 </div>
-                <div>
+                <div
+                  className="cursor-pointer hover:opacity-75 transition-opacity"
+                  onClick={() => setShowFollowersModal(true)}
+                >
                   <div className="font-bold">{followers.length}</div>
                   <div className="text-sm text-gray-600">Followers</div>
                 </div>
-                <div>
+                <div
+                  className="cursor-pointer hover:opacity-75 transition-opacity"
+                  onClick={() => setShowFollowingModal(true)}
+                >
                   <div className="font-bold">{following.length}</div>
                   <div className="text-sm text-gray-600">Following</div>
                 </div>
@@ -318,6 +327,36 @@ const UnifiedProfileView = ({ userId, isCurrentUser }: UnifiedProfileViewProps) 
       <div className="mt-6">
         <ProfilePostsGrid userId={profileId!} />
       </div>
+
+      <FollowersModal
+        isOpen={showFollowersModal}
+        onClose={() => setShowFollowersModal(false)}
+        type="followers"
+        users={followers.map(f => ({
+          id: f.follower_id,
+          full_name: f.follower_profile?.full_name || 'User',
+          username: f.follower_profile?.username || 'user',
+          avatar_url: f.follower_profile?.avatar_url || undefined,
+          verified: false,
+          user_type: 'buyer',
+        }))}
+        currentUserId={user?.id}
+      />
+
+      <FollowersModal
+        isOpen={showFollowingModal}
+        onClose={() => setShowFollowingModal(false)}
+        type="following"
+        users={following.map(f => ({
+          id: f.following_id,
+          full_name: f.following_profile?.full_name || 'User',
+          username: f.following_profile?.username || 'user',
+          avatar_url: f.following_profile?.avatar_url || undefined,
+          verified: false,
+          user_type: 'buyer',
+        }))}
+        currentUserId={user?.id}
+      />
     </div>
   );
 };

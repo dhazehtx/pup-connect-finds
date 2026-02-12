@@ -1,5 +1,6 @@
 
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { usePosts } from '@/hooks/usePosts';
 import FullPostModal from '@/components/post/FullPostModal';
 import LoadingState from '@/components/ui/loading-state';
@@ -9,9 +10,10 @@ interface ProfilePostsGridProps {
 }
 
 const ProfilePostsGrid = ({ userId }: ProfilePostsGridProps) => {
-  const { posts, loading } = usePosts(userId);
+  const { posts, loading, fetchPosts } = usePosts(userId);
   const [selectedPost, setSelectedPost] = useState<any>(null);
   const [showModal, setShowModal] = useState(false);
+  const navigate = useNavigate();
 
   const handlePostClick = (post: any) => {
     setSelectedPost(post);
@@ -24,18 +26,16 @@ const ProfilePostsGrid = ({ userId }: ProfilePostsGridProps) => {
   };
 
   const handlePostUpdate = (postId: string, newCaption: string) => {
-    console.log('Post updated:', postId, newCaption);
-    // This would typically update the post in the local state
+    fetchPosts();
   };
 
   const handlePostDelete = (postId: string) => {
-    console.log('Post deleted:', postId);
-    // This would typically remove the post from the local state
+    fetchPosts();
     handleCloseModal();
   };
 
-  const handleProfileClick = (userId: string) => {
-    console.log('Profile clicked:', userId);
+  const handleProfileClick = (clickedUserId: string) => {
+    navigate(`/profile/${clickedUserId}`);
   };
 
   if (loading) {

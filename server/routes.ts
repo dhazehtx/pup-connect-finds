@@ -526,8 +526,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ error: 'Authentication required' });
       }
 
-      const feedPosts = await storage.getHomeFeedPosts(userId);
-      res.json(feedPosts);
+      const { supabase: sb } = await import('./lib/supabase.js');
+
+      const { data: followRows } = await sb
+        .from('follows')
+        .select('following_id')
+        .eq('follower_id', userId);
+
+      const feedUserIds = [userId, ...(followRows || []).map((r: any) => r.following_id)];
+
+      const { data: feedPosts, error } = await sb
+        .from('posts')
+        .select(`
+          *,
+          profiles (
+            username,
+            full_name,
+            avatar_url
+          )
+        `)
+        .in('user_id', feedUserIds)
+        .order('created_at', { ascending: false })
+        .limit(50);
+
+      if (error) throw error;
+      res.json(feedPosts || []);
     } catch (error) {
       console.error('[API] Error fetching home feed:', error);
       res.status(500).json({ error: 'Failed to fetch home feed' });

@@ -1,10 +1,10 @@
 
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { CheckCircle, UserPlus } from 'lucide-react';
+import { CheckCircle } from 'lucide-react';
 
 interface User {
   id: string;
@@ -25,6 +25,16 @@ interface FollowersModalProps {
 
 const FollowersModal = ({ isOpen, onClose, type, users, currentUserId }: FollowersModalProps) => {
   const title = type === 'followers' ? 'Followers' : 'Following';
+  const navigate = useNavigate();
+
+  const handleUserClick = (userId: string) => {
+    onClose();
+    if (userId === currentUserId) {
+      navigate('/profile');
+    } else {
+      navigate(`/profile/${userId}`);
+    }
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -43,7 +53,11 @@ const FollowersModal = ({ isOpen, onClose, type, users, currentUserId }: Followe
             </div>
           ) : (
             users.map((user) => (
-              <div key={user.id} className="flex items-center justify-between p-3 rounded-lg border hover:bg-gray-50">
+              <div
+                key={user.id}
+                className="flex items-center justify-between p-3 rounded-lg border hover:bg-gray-50 cursor-pointer transition-colors"
+                onClick={() => handleUserClick(user.id)}
+              >
                 <div className="flex items-center gap-3">
                   <Avatar className="h-10 w-10">
                     <AvatarImage src={user.avatar_url} />
@@ -67,13 +81,6 @@ const FollowersModal = ({ isOpen, onClose, type, users, currentUserId }: Followe
                     <p className="text-sm text-gray-600">@{user.username}</p>
                   </div>
                 </div>
-                
-                {user.id !== currentUserId && (
-                  <Button size="sm" variant="outline" className="flex items-center gap-1">
-                    <UserPlus size={14} />
-                    Follow
-                  </Button>
-                )}
               </div>
             ))
           )}

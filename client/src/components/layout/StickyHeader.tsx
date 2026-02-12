@@ -91,19 +91,16 @@ const StickyHeader = () => {
                 />
                 
                 <div className="flex items-center space-x-3">
-                  {/* Dynamic Post Button - Hide on marketplace page */}
-                  {(isHomeOrProfilePage || isExplorePage) && (
+                  {/* Dynamic Post Button - Show on home, profile, and explore pages */}
+                  {(isHomeOrProfilePage || isExplorePage) && (user || isGuest) && (
                     <Button
                       onClick={handleCreatePost}
                       size="sm"
-                      className={`${
-                        isExplorePage 
-                          ? 'bg-green-600 hover:bg-green-700' 
-                          : ''
-                      } rounded-full px-4 py-2 flex items-center gap-2 flex-shrink-0 btn-primary`}
+                      style={{ backgroundColor: '#0074D4', color: '#FFFFFF', opacity: 1 }}
+                      className="rounded-full px-4 py-2 flex items-center gap-2 flex-shrink-0 btn-primary hover:bg-blue-700"
                     >
-                      <Plus className="w-4 h-4" />
-                      <span className="hidden sm:inline">{getPostButtonText()}</span>
+                      <Plus className="w-4 h-4" style={{ color: '#FFFFFF' }} />
+                      <span className="hidden sm:inline" style={{ color: '#FFFFFF' }}>{getPostButtonText()}</span>
                     </Button>
                   )}
 
@@ -142,17 +139,14 @@ const StickyHeader = () => {
                 
                 <div className="flex items-center space-x-2">
                   {/* Mobile Dynamic Post Button */}
-                  {(isHomeOrProfilePage || isMarketplacePage) && (
+                  {(isHomeOrProfilePage || isExplorePage || isMarketplacePage) && (user || isGuest) && (
                     <Button
                       onClick={handleCreatePost}
                       size="sm"
-                      className={`${
-                        isMarketplacePage 
-                          ? 'bg-green-600 hover:bg-green-700' 
-                          : ''
-                      } rounded-full w-8 h-8 p-0 flex-shrink-0 btn-primary`}
+                      style={{ backgroundColor: '#0074D4', color: '#FFFFFF', opacity: 1 }}
+                      className="rounded-full w-8 h-8 p-0 flex-shrink-0 btn-primary"
                     >
-                      <Plus className="w-4 h-4" />
+                      <Plus className="w-4 h-4" style={{ color: '#FFFFFF' }} />
                     </Button>
                   )}
 

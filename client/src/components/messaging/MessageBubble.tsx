@@ -58,17 +58,17 @@ const MessageBubble = ({
         )}
         
         {/* Text Messages */}
-        {message.message_type === 'text' && (
+        {(!message.message_type || message.message_type === 'text') && (
           <div
             className={`rounded-lg px-3 py-2 relative ${
               isOwn
-                ? 'bg-blue-500 text-white'
+                ? 'bg-blue-600 text-white'
                 : 'bg-gray-100 text-gray-900'
             }`}
           >
-            <p className="text-sm break-words">{message.content}</p>
+            <p className={`text-sm break-words ${isOwn ? 'text-white' : 'text-gray-900'}`}>{message.content}</p>
             {message.is_encrypted && (
-              <Shield className="w-3 h-3 absolute top-1 right-1 opacity-60" />
+              <Shield className={`w-3 h-3 absolute top-1 right-1 opacity-60 ${isOwn ? 'text-white' : ''}`} />
             )}
           </div>
         )}
