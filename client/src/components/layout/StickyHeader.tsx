@@ -111,9 +111,9 @@ const StickyHeader = () => {
                     <Link
                       to="/admin"
                       title="Admin Dashboard"
-                      className="shrink-0 hover:text-primary-700"
+                      className="shrink-0 p-2 rounded-full hover:bg-blue-50 transition-all duration-200"
                     >
-                      <ShieldCheck className="h-6 w-6 text-blue-600" />
+                      <ShieldCheck className="h-5 w-5 text-[#0074d4]" />
                     </Link>
                   ) : null}
                   
@@ -159,9 +159,9 @@ const StickyHeader = () => {
                     <Link
                       to="/admin"
                       title="Admin Dashboard"  
-                      className="shrink-0 hover:text-primary-700"
+                      className="shrink-0 p-1.5 rounded-full hover:bg-blue-50 transition-all duration-200"
                     >
-                      <ShieldCheck className="h-5 w-5" />
+                      <ShieldCheck className="h-5 w-5 text-[#0074d4]" />
                     </Link>
                   )}
 
