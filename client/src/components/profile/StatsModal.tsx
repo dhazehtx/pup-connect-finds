@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -41,6 +42,12 @@ const StatsModal = ({
   onFollowToggle,
   onPuppyClick 
 }: StatsModalProps) => {
+  const navigate = useNavigate();
+
+  const handleUserClick = (userId: string) => {
+    onClose();
+    navigate(`/profile/${userId}`);
+  };
   const getTitle = () => {
     switch (type) {
       case 'followers': return 'Followers';
@@ -53,7 +60,7 @@ const StatsModal = ({
   const renderUserList = (users: User[]) => (
     <div className="space-y-3 max-h-96 overflow-y-auto">
       {users.map((user) => (
-        <div key={user.id} className="flex items-center justify-between p-3 rounded-lg border hover:bg-gray-50">
+        <div key={user.id} className="flex items-center justify-between p-3 rounded-lg border hover:bg-gray-50 cursor-pointer" onClick={() => handleUserClick(user.id)}>
           <div className="flex items-center gap-3">
             <Avatar className="h-10 w-10">
               <AvatarImage src={user.avatar} />
@@ -76,7 +83,7 @@ const StatsModal = ({
           <Button 
             size="sm" 
             variant={user.isFollowing ? "outline" : "default"}
-            onClick={() => onFollowToggle?.(user.id)}
+            onClick={(e) => { e.stopPropagation(); onFollowToggle?.(user.id); }}
             className="flex items-center gap-1"
           >
             <UserPlus size={14} />

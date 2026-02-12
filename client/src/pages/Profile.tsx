@@ -48,7 +48,7 @@ const Profile = () => {
     return <LoadingState message="Redirecting..." />;
   }
 
-  return <UnifiedProfileView userId={userId} isCurrentUser={isCurrentUser || false} />;
+  return <UnifiedProfileView key={userId || user.id} userId={userId} isCurrentUser={isCurrentUser || false} />;
 };
 
 export default Profile;
