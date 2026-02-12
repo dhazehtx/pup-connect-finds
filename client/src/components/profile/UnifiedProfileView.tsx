@@ -5,7 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { MapPin, Globe, Calendar, UserPlus, UserCheck, Shield } from 'lucide-react';
+import { MapPin, Globe, Calendar, UserPlus, UserCheck, Shield, MessageCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import ProfileSettings from './ProfileSettings';
 import ProfileSettingsModal from './ProfileSettingsModal';
@@ -14,6 +14,7 @@ import BugReportButton from '@/components/bugs/BugReportButton';
 import LoadingState from '@/components/ui/loading-state';
 import { useFollowSystem } from '@/hooks/useFollowSystem';
 import { usePosts } from '@/hooks/usePosts';
+import { useToast } from '@/hooks/use-toast';
 
 interface Profile {
   id: string;
@@ -39,10 +40,11 @@ interface UnifiedProfileViewProps {
 const UnifiedProfileView = ({ userId, isCurrentUser }: UnifiedProfileViewProps) => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
   const [showSettings, setShowSettings] = useState(false);
-
+  const [messagingLoading, setMessagingLoading] = useState(false);
 
   const profileId = userId || user?.id;
   const { followers, following, isFollowing, followUser, unfollowUser } = useFollowSystem(profileId);
@@ -113,6 +115,45 @@ const UnifiedProfileView = ({ userId, isCurrentUser }: UnifiedProfileViewProps) 
       await unfollowUser(profileId);
     } else {
       await followUser(profileId);
+    }
+  };
+
+  const handleMessage = async () => {
+    if (!user) {
+      toast({ title: "Sign in required", description: "Please sign in to send messages", variant: "destructive" });
+      navigate('/greeting');
+      return;
+    }
+    if (!profileId || profileId === user.id) return;
+
+    setMessagingLoading(true);
+    try {
+      const { data: existing } = await supabase
+        .from('conversations')
+        .select('id')
+        .is('listing_id', null)
+        .or(`and(buyer_id.eq.${user.id},seller_id.eq.${profileId}),and(buyer_id.eq.${profileId},seller_id.eq.${user.id})`)
+        .limit(1)
+        .maybeSingle();
+
+      if (existing) {
+        navigate(`/messages/${existing.id}`);
+        return;
+      }
+
+      const { data: newConv, error } = await supabase
+        .from('conversations')
+        .insert([{ buyer_id: user.id, seller_id: profileId, listing_id: null }])
+        .select('id')
+        .single();
+
+      if (error) throw error;
+      navigate(`/messages/${newConv.id}`);
+    } catch (err) {
+      console.error('Error starting conversation:', err);
+      toast({ title: "Error", description: "Could not start conversation", variant: "destructive" });
+    } finally {
+      setMessagingLoading(false);
     }
   };
 
@@ -226,22 +267,32 @@ const UnifiedProfileView = ({ userId, isCurrentUser }: UnifiedProfileViewProps) 
               {/* Action Buttons */}
               <div className="flex gap-2">
                 {!isCurrentUser && (
-                  <Button
-                    onClick={handleFollowToggle}
-                    variant={isFollowing ? "outline" : "default"}
-                  >
-                    {isFollowing ? (
-                      <>
-                        <UserCheck className="w-4 h-4 mr-2" />
-                        Following
-                      </>
-                    ) : (
-                      <>
-                        <UserPlus className="w-4 h-4 mr-2" />
-                        Follow
-                      </>
-                    )}
-                  </Button>
+                  <>
+                    <Button
+                      onClick={handleFollowToggle}
+                      variant={isFollowing ? "outline" : "default"}
+                    >
+                      {isFollowing ? (
+                        <>
+                          <UserCheck className="w-4 h-4 mr-2" />
+                          Following
+                        </>
+                      ) : (
+                        <>
+                          <UserPlus className="w-4 h-4 mr-2" />
+                          Follow
+                        </>
+                      )}
+                    </Button>
+                    <Button
+                      onClick={handleMessage}
+                      variant="outline"
+                      disabled={messagingLoading}
+                    >
+                      <MessageCircle className="w-4 h-4 mr-2" />
+                      {messagingLoading ? 'Opening...' : 'Message'}
+                    </Button>
+                  </>
                 )}
                 {isCurrentUser && (
                   <>
