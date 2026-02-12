@@ -7,7 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Heart, MessageCircle, Share, MoreHorizontal, X, Reply, ChevronDown, ChevronUp, Send } from 'lucide-react';
 import { useComments } from '@/hooks/useComments';
 import { formatDistanceToNow } from 'date-fns';
-import { useLocation } from 'wouter';
+import { useLocation } from 'react-router-dom';
 
 interface Post {
   id: string;
@@ -66,7 +66,7 @@ const FullPostModal = ({
   const [expandedComments, setExpandedComments] = useState<Set<string>>(new Set());
   const [highlightedCommentId, setHighlightedCommentId] = useState<string | null>(null);
   
-  const [location] = useLocation();
+  const location = useLocation();
   const { comments: fetchedComments, addComment, fetchComments } = useComments(post?.id || '');
   
   // Always use fetched comments to ensure real-time updates
