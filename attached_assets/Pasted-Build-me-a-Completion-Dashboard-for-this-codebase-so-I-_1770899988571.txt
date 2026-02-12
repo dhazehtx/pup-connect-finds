@@ -1,0 +1,149 @@
+Build me a “Completion Dashboard” for this codebase so I can clearly see when we are at 100% for MVP (excluding future nice-to-have features).
+
+Output format (required)
+
+Return a single markdown report with:
+
+MVP Completion Score (0–100%)
+
+A table of Core Systems with:
+
+current % complete
+
+what is required to be “Done”
+
+what is still missing (specific items)
+
+where to verify it (exact pages/actions)
+
+highest-risk known bugs tied to it (if any)
+
+A final section: Definition of Done (MVP) with a checklist I can use to declare “Launch Ready”.
+
+Core systems to score (use these exact categories)
+
+Auth + gating (guest vs authed)
+
+Home feed logic (followed-only + no-self)
+
+Profile view + navigation (followers/following modal + profile routing)
+
+Posts + Full Post Modal (must show comments + input everywhere)
+
+Comments + replies
+
+Messaging threads (send/display/reload; no 401/502 spam)
+
+Notifications UI (bell, badge, click flows)
+
+Explore + filters
+
+Marketplace (core browsing + any critical flows currently implemented)
+
+Admin tools (if it exists: basic access + critical pages)
+
+Rules
+
+Do not invent features or propose new tables.
+
+Use what exists in the codebase. If something is missing, list it as missing.
+
+For each category, give a clear “Done when…” statement and exact verification steps.
+
+Bonus (if possible)
+
+At the end, include a Top 10 remaining tasks list sorted by impact → effort, and label each as P0/P1/P2.
+
+2) Paste this into Replit: “Bug Audit + Triage to 100%”
+
+Prompt:
+
+Perform a bug audit focused on getting to 100% MVP completion (no new features).
+
+Goal
+
+Identify bugs + broken flows that prevent “launch-ready,” and create a prioritized fix plan.
+
+Requirements
+
+Scan the project for:
+
+recurring console/network errors (401/403/400/500/502)
+
+routes/services that fail intermittently
+
+UI flows that silently fail (buttons, navigation, modals)
+
+common Supabase REST 400 patterns (bad joins, undefined IDs, empty .in() calls)
+
+Output a list of bugs in this format:
+
+Bug title
+
+Severity (P0/P1/P2)
+
+Where it happens (page + steps)
+
+Likely root cause (file/function)
+
+Fix approach (minimal change)
+
+How to verify (exact steps)
+
+Include a “Stop doing this” section: anything risky that could regress stable systems.
+
+Rules
+
+Do not migrate databases.
+
+Do not add new tables.
+
+Keep changes minimal and isolated.
+
+Confirm no new console errors introduced.
+
+About Codex: Can it find/fix bugs faster than manual testing?
+
+Yes — Codex (or an agent inside Replit) can speed this up a lot, but only if you use it the right way:
+
+What Codex is great at (fast)
+
+Finding the source of specific errors (401/502/400 spam, failing endpoints)
+
+Tracing a bug from UI → hook → API route → DB call
+
+Catching issues like:
+
+wrong ID field (id vs postUuid)
+
+modal renders but content hidden due to layout/overflow
+
+navigation routes pointing to /profile instead of /profile/:id
+
+calls firing before auth is ready (undefined userId)
+
+What still needs some human checking
+
+Visual/UI correctness (spacing, missing comment input, click targets)
+
+“Does this feel right?” flow testing (you’re still the best judge)
+
+Best workflow (fast + safe)
+
+Use Codex/Replit agent like this:
+
+You do a 30-second repro
+
+“Click X → expected Y → got Z”
+
+Give Codex the exact symptom + acceptance test
+
+“Fix it without changing DB, don’t refactor unrelated files”
+
+Codex makes a minimal patch
+
+You rerun the same repro
+
+Checkpoint
+
+This is way faster than wandering the app randomly.
