@@ -4,6 +4,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import { logToSupabase } from '@/utils/logToSupabase';
 import { logAdminAction } from '@/utils/logger';
 
+const DEBUG_NAV = import.meta.env.DEV && false;
+
 const AdminNavigationTracker = () => {
   const location = useLocation();
   const { user, profile } = useAuth();
@@ -46,7 +48,7 @@ const AdminNavigationTracker = () => {
           ...navigationData
         });
 
-        console.log(`[Admin Navigation] ${previousLocation.current} → ${location.pathname}`);
+        if (DEBUG_NAV) console.debug(`[Admin Navigation] ${previousLocation.current} → ${location.pathname}`);
       } catch (error) {
         console.error('Failed to track admin navigation:', error);
       }
@@ -82,7 +84,7 @@ const AdminNavigationTracker = () => {
             ...initialLoadData
           });
 
-          console.log(`[Admin Session] Started at ${location.pathname}`);
+          if (DEBUG_NAV) console.debug(`[Admin Session] Started at ${location.pathname}`);
         } catch (error) {
           console.error('Failed to track initial admin load:', error);
         }

@@ -42,11 +42,10 @@ class Logger {
       this.logs = this.logs.slice(-this.maxLogSize);
     }
 
-    // Console output for development
-    if (process.env.NODE_ENV === 'development') {
-      const logMethod = level === 'error' ? console.error : 
-                       level === 'warn' ? console.warn : console.log;
-      logMethod(`[${category.toUpperCase()}] ${action}`, metadata || '');
+    if (process.env.NODE_ENV === 'development' && level === 'error') {
+      console.error(`[${category.toUpperCase()}] ${action}`, metadata || '');
+    } else if (process.env.NODE_ENV === 'development' && level === 'warn') {
+      console.warn(`[${category.toUpperCase()}] ${action}`, metadata || '');
     }
 
     // Send to backend if needed (can be implemented later)
