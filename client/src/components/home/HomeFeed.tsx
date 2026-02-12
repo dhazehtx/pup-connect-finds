@@ -510,6 +510,7 @@ const HomeFeed = () => {
             setShowFullPostModal(false);
             setSelectedPost(null);
           }}
+          onProfileClick={handleProfileClick}
           onPostUpdate={handlePostUpdate}
           onPostDelete={handlePostDelete}
         />

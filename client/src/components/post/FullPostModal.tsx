@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -67,7 +67,7 @@ const FullPostModal = ({
   const [highlightedCommentId, setHighlightedCommentId] = useState<string | null>(null);
   
   const location = useLocation();
-  const { comments: fetchedComments, addComment, fetchComments } = useComments(post?.id || '');
+  const { comments: fetchedComments, addComment, fetchComments, loading: commentsLoading } = useComments(post?.id || '');
   
   // Always use fetched comments to ensure real-time updates
   const comments = fetchedComments.length > 0 ? fetchedComments : initialComments;
@@ -178,6 +178,7 @@ const FullPostModal = ({
     <Dialog open={isOpen} onOpenChange={(open) => { if (!open) onClose(); }}>
       <DialogContent className="max-w-6xl w-full h-[90vh] p-0 overflow-hidden">
         <DialogTitle className="sr-only">Post Details</DialogTitle>
+        <DialogDescription className="sr-only">View post image, comments, and add your own comment</DialogDescription>
         {/* Desktop Layout */}
         <div className="hidden md:flex h-full">
           {/* Image Section */}
@@ -234,6 +235,18 @@ const FullPostModal = ({
 
             {/* Comments */}
             <div className="flex-1 overflow-y-auto p-4 space-y-4">
+              {commentsLoading ? (
+                <div className="flex items-center justify-center py-4">
+                  <div className="animate-spin rounded-full h-5 w-5 border-2 border-blue-500 border-t-transparent mr-2"></div>
+                  <span className="text-sm text-gray-500">Loading comments...</span>
+                </div>
+              ) : organizedComments.length === 0 ? (
+                <div className="text-center py-6">
+                  <MessageCircle className="w-10 h-10 mx-auto text-gray-300 mb-2" />
+                  <p className="text-gray-500 text-sm">No comments yet</p>
+                  <p className="text-gray-400 text-xs">Be the first to comment!</p>
+                </div>
+              ) : null}
               {organizedComments.map((comment) => (
                 <div 
                   key={comment.id} 
@@ -486,7 +499,12 @@ const FullPostModal = ({
 
               {/* Comments Section */}
               <div className="p-4 space-y-4 bg-white">
-                {organizedComments.length === 0 ? (
+                {commentsLoading ? (
+                  <div className="flex items-center justify-center py-4">
+                    <div className="animate-spin rounded-full h-5 w-5 border-2 border-blue-500 border-t-transparent mr-2"></div>
+                    <span className="text-sm text-gray-500">Loading comments...</span>
+                  </div>
+                ) : organizedComments.length === 0 ? (
                   <div className="text-center py-8">
                     <MessageCircle className="w-12 h-12 mx-auto text-gray-300 mb-2" />
                     <p className="text-gray-500 text-sm">No comments yet</p>

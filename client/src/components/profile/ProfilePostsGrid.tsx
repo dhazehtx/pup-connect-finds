@@ -16,7 +16,6 @@ const ProfilePostsGrid = ({ userId }: ProfilePostsGridProps) => {
   const navigate = useNavigate();
 
   const handlePostClick = (post: any) => {
-    console.log('[ProfilePostsGrid] Post clicked:', post.id, 'Setting modal open');
     setSelectedPost(post);
     setShowModal(true);
   };

@@ -1,0 +1,59 @@
+Task: Fix Followers/Following navigation + ensure FullPostModal always shows comments/input (Home + Profile).
+Critical constraint: Do NOT add new DBs, tables, migrations, or any new writes/reads to Neon. Do not introduce new features that split data across Neon + Supabase. UI + routing only, and use existing Supabase client/hooks already in the codebase.
+
+A) Followers/Following modal → tapping a user should open that user’s profile (not mine)
+
+Goal: When I click a user row inside Followers/Following modal, it must navigate to the correct profile route (the app currently uses /profile/:id as shown by URLs like /profile/e0fd...).
+Requirements:
+
+Find the modal component (likely FollowersModal.tsx) and the place it’s used (likely UnifiedProfileView.tsx or ProfileHeader...).
+
+On row click, navigate to /profile/${clickedUser.id} (or the correct id field in that row object).
+
+Close the modal after navigation.
+
+Ensure it does not route to /profile (which is my own profile).
+
+No new data fetching logic — use the existing user list already displayed in the modal.
+
+B) Full post modal must show comments + add comment input everywhere it’s used
+
+Current bug:
+
+On Home feed, I can see comments under posts, but when I click the image/post to open “full post view”, the modal shows the image/post but no comments panel/input.
+
+Same on Profile grid posts: modal opens but comments section is missing.
+
+Goal: Clicking any post (Home or Profile grid) opens the same “FullPostModal” view that includes:
+
+post content
+
+comments list
+
+add comment input
+
+Requirements:
+
+Identify the modal component responsible (likely client/src/components/post/FullPostModal.tsx).
+
+Ensure the comments UI renders unconditionally when isOpen && post?.id (not hidden behind a tab/collapsed state).
+
+Ensure useComments(post.id) (or the existing comments hook) is actually invoked and the results are rendered.
+
+Fix layout so comments are not visually hidden (z-index/overflow/height). On mobile, comments can be below the image with scroll; on desktop, a right-side panel is fine — but it must be visible.
+
+Do not change any database schema, and do not add Neon queries.
+
+Return
+
+Exact files changed
+
+The exact JSX block that renders the comments list + input in the modal
+
+Confirmation steps:
+
+User A views Home feed → clicks a post → sees comments + can add comment
+
+User A goes to Profile grid → clicks post → sees comments + can add comment
+
+Followers modal: click a user → goes to /profile/:id for that user (not my profile)

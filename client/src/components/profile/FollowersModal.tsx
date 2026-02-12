@@ -29,11 +29,7 @@ const FollowersModal = ({ isOpen, onClose, type, users, currentUserId }: Followe
 
   const handleUserClick = (userId: string) => {
     onClose();
-    if (userId === currentUserId) {
-      navigate('/profile');
-    } else {
-      navigate(`/profile/${userId}`);
-    }
+    navigate(`/profile/${userId}`);
   };
 
   return (
