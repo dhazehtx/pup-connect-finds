@@ -23,9 +23,6 @@ export const initializeSentry = () => {
       }
     });
     
-    console.log('Sentry initialized for error tracking');
-  } else {
-    console.warn('Sentry DSN not configured, error tracking disabled');
   }
 };
 

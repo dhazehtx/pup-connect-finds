@@ -12,9 +12,6 @@ class AnalyticsService {
 
   static initialize() {
     if (this.isInitialized || !this.GA_ID) {
-      if (!this.GA_ID) {
-        console.warn('Google Analytics ID not configured');
-      }
       return;
     }
 
@@ -38,7 +35,6 @@ class AnalyticsService {
     });
 
     this.isInitialized = true;
-    console.log('Google Analytics 4 initialized');
   }
 
   // Track page views
