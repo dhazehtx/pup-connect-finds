@@ -16,6 +16,7 @@ const ProfilePostsGrid = ({ userId }: ProfilePostsGridProps) => {
   const navigate = useNavigate();
 
   const handlePostClick = (post: any) => {
+    console.log('[ProfilePostsGrid] Post clicked:', post.id, 'Setting modal open');
     setSelectedPost(post);
     setShowModal(true);
   };
@@ -68,14 +69,16 @@ const ProfilePostsGrid = ({ userId }: ProfilePostsGridProps) => {
         ))}
       </div>
 
-      <FullPostModal
-        post={selectedPost}
-        isOpen={showModal}
-        onClose={handleCloseModal}
-        onProfileClick={handleProfileClick}
-        onPostUpdate={handlePostUpdate}
-        onPostDelete={handlePostDelete}
-      />
+      {showModal && selectedPost && (
+        <FullPostModal
+          post={selectedPost}
+          isOpen={showModal}
+          onClose={handleCloseModal}
+          onProfileClick={handleProfileClick}
+          onPostUpdate={handlePostUpdate}
+          onPostDelete={handlePostDelete}
+        />
+      )}
     </>
   );
 };

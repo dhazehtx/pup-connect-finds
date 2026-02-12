@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -175,8 +175,9 @@ const FullPostModal = ({
   if (!post) return null;
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={(open) => { if (!open) onClose(); }}>
       <DialogContent className="max-w-6xl w-full h-[90vh] p-0 overflow-hidden">
+        <DialogTitle className="sr-only">Post Details</DialogTitle>
         {/* Desktop Layout */}
         <div className="hidden md:flex h-full">
           {/* Image Section */}
