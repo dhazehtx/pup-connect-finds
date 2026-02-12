@@ -94,11 +94,25 @@ const StickyHeader = () => {
                   {/* Create Post - visible on all pages for authenticated users */}
                   {(user || isGuest) && (
                     <button
+                      type="button"
                       onClick={handleCreatePost}
                       title="Create Post"
-                      className="shrink-0 p-2 rounded-full hover:bg-blue-50 transition-all duration-200"
+                      style={{
+                        padding: '8px',
+                        color: '#0074d4',
+                        backgroundColor: 'transparent',
+                        border: 'none',
+                        borderRadius: '9999px',
+                        width: '36px',
+                        height: '36px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        cursor: 'pointer',
+                        flexShrink: 0
+                      }}
                     >
-                      <Plus className="h-5 w-5 text-[#0074d4]" />
+                      <Plus className="h-5 w-5" style={{ color: '#0074d4' }} />
                     </button>
                   )}
 
@@ -109,9 +123,16 @@ const StickyHeader = () => {
                     <Link
                       to="/admin"
                       title="Admin Dashboard"
-                      className="shrink-0 p-2 rounded-full hover:bg-blue-50 transition-all duration-200"
+                      style={{
+                        padding: '8px',
+                        borderRadius: '9999px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        flexShrink: 0
+                      }}
                     >
-                      <ShieldCheck className="h-5 w-5 text-[#0074d4]" />
+                      <ShieldCheck className="h-5 w-5" style={{ color: '#0074d4' }} />
                     </Link>
                   ) : null}
                   
@@ -139,11 +160,25 @@ const StickyHeader = () => {
                   {/* Mobile Create Post - visible on all pages for authenticated users */}
                   {(user || isGuest) && (
                     <button
+                      type="button"
                       onClick={handleCreatePost}
                       title="Create Post"
-                      className="shrink-0 p-1.5 rounded-full hover:bg-blue-50 transition-all duration-200"
+                      style={{
+                        padding: '6px',
+                        color: '#0074d4',
+                        backgroundColor: 'transparent',
+                        border: 'none',
+                        borderRadius: '9999px',
+                        width: '32px',
+                        height: '32px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        cursor: 'pointer',
+                        flexShrink: 0
+                      }}
                     >
-                      <Plus className="h-5 w-5 text-[#0074d4]" />
+                      <Plus className="h-5 w-5" style={{ color: '#0074d4' }} />
                     </button>
                   )}
 
@@ -155,10 +190,17 @@ const StickyHeader = () => {
                   ) : profile?.is_admin && (
                     <Link
                       to="/admin"
-                      title="Admin Dashboard"  
-                      className="shrink-0 p-1.5 rounded-full hover:bg-blue-50 transition-all duration-200"
+                      title="Admin Dashboard"
+                      style={{
+                        padding: '6px',
+                        borderRadius: '9999px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        flexShrink: 0
+                      }}
                     >
-                      <ShieldCheck className="h-5 w-5 text-[#0074d4]" />
+                      <ShieldCheck className="h-5 w-5" style={{ color: '#0074d4' }} />
                     </Link>
                   )}
 
