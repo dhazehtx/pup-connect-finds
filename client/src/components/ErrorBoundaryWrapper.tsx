@@ -3,6 +3,8 @@ import ErrorBoundary from './ErrorBoundary';
 import { AlertTriangle, RotateCcw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
+const DEBUG = import.meta.env.DEV && false;
+
 interface Props {
   children: React.ReactNode;
   fallbackMessage?: string;
@@ -13,7 +15,7 @@ const RouteErrorFallback: React.FC<{ message?: string; onRetry?: () => void }> =
   message = "This page encountered an error", 
   onRetry 
 }) => {
-  console.log('[HOME FEED] Error boundary caught:', message);
+  if (DEBUG) console.debug('[HOME FEED] Error boundary caught:', message);
   
   return (
     <div className="min-h-[400px] flex items-center justify-center p-6">

@@ -6,6 +6,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useConversationsManager } from '@/hooks/messaging/useConversationsManager';
 import { formatDistanceToNow } from 'date-fns';
 
+const DEBUG = import.meta.env.DEV && false;
+
 interface MessageInboxProps {
   onConversationSelect?: (conversation: any) => void;
   loading?: boolean;
@@ -17,7 +19,7 @@ const MessageInbox = ({ onConversationSelect, loading }: MessageInboxProps) => {
 
   // Debug logging - throttled to avoid excessive re-renders
   useEffect(() => {
-    console.log('[MESSAGE INBOX] Component state changed', { user: !!user, loading, conversationsLoading });
+    if (DEBUG) console.debug('[MESSAGE INBOX] Component state changed', { user: !!user, loading, conversationsLoading });
   }, [user, loading, conversationsLoading]);
 
   if (!user) {

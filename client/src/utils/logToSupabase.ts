@@ -1,7 +1,7 @@
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 
-const DEBUG_NAV = import.meta.env.DEV && false;
+const DEBUG = import.meta.env.DEV && false;
 
 export interface AdminLogEntry {
   id?: string;
@@ -45,7 +45,7 @@ export async function logToSupabase(action: string, metadata?: any): Promise<boo
       return false;
     }
 
-    if (DEBUG_NAV) console.debug(`[Admin Log] ${action}`, metadata || '');
+    if (DEBUG) console.debug(`[Admin Log] ${action}`, metadata || '');
     return true;
   } catch (error) {
     console.error('Error logging to Supabase:', error);

@@ -12,7 +12,7 @@ import LoadingSpinner from '@/components/ui/loading-spinner';
 import { apiRequest } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
 
-const DEBUG_NAV = import.meta.env.DEV && false;
+const DEBUG = import.meta.env.DEV && false;
 
 const ExploreAuth: React.FC = () => {
   const { user, loading } = useAuth();
@@ -261,8 +261,8 @@ const ExploreAuth: React.FC = () => {
 
   // Handle tab changes with navigation diagnostics
   const handleTabChange = (newTab: 'listings' | 'posts') => {
-    if (DEBUG_NAV) console.debug('[NAV CLICK] explore tab:', newTab);
-    if (DEBUG_NAV) console.debug('[EXPLORE AUTH] Tab changed from', activeTab, 'to', newTab);
+    if (DEBUG) console.debug('[NAV CLICK] explore tab:', newTab);
+    if (DEBUG) console.debug('[EXPLORE AUTH] Tab changed from', activeTab, 'to', newTab);
     setActiveTab(newTab);
     
     // Clear timeout fallback when switching tabs
@@ -342,7 +342,7 @@ const ExploreAuth: React.FC = () => {
                     </Button>
                     <Button 
                       onClick={() => {
-                        if (DEBUG_NAV) console.debug('[NAV CLICK] switching to posts from timeout fallback');
+                        if (DEBUG) console.debug('[NAV CLICK] switching to posts from timeout fallback');
                         handleTabChange('posts');
                       }}
                       variant="ghost"
@@ -409,7 +409,7 @@ const ExploreAuth: React.FC = () => {
                     </Button>
                     <Button 
                       onClick={() => {
-                        if (DEBUG_NAV) console.debug('[NAV CLICK] switching to listings from timeout fallback');
+                        if (DEBUG) console.debug('[NAV CLICK] switching to listings from timeout fallback');
                         handleTabChange('listings');
                       }}
                       variant="ghost"

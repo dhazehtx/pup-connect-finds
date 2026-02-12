@@ -6,7 +6,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useNotifications } from '@/hooks/useNotifications';
 import { logNav } from '@/lib/adminLog';
 
-const DEBUG_NAV = import.meta.env.DEV && false;
+const DEBUG = import.meta.env.DEV && false;
 
 import GuestPrompt from '@/components/GuestPrompt';
 
@@ -56,8 +56,8 @@ const BottomNavigation = () => {
 
   // PROTECTED NAVIGATION with diagnostics
   const handleProtectedNavigation = async (path: string, action: string) => {
-    if (DEBUG_NAV) console.debug('[NAV CLICK]', path.replace('/', ''));
-    if (DEBUG_NAV) console.debug('[BOTTOM NAV] Protected navigation guard:', {
+    if (DEBUG) console.debug('[NAV CLICK]', path.replace('/', ''));
+    if (DEBUG) console.debug('[BOTTOM NAV] Protected navigation guard:', {
       currentPath: location.pathname,
       targetPath: path,
       hasUser: !!user,
@@ -66,12 +66,12 @@ const BottomNavigation = () => {
     });
 
     if (location.pathname === path) {
-      if (DEBUG_NAV) console.debug('[BOTTOM NAV] Already on target path, skipping navigation');
+      if (DEBUG) console.debug('[BOTTOM NAV] Already on target path, skipping navigation');
       return;
     }
 
     if (!user && !isGuest) {
-      if (DEBUG_NAV) console.debug('[BOTTOM NAV] Redirecting unauthenticated user to greeting');
+      if (DEBUG) console.debug('[BOTTOM NAV] Redirecting unauthenticated user to greeting');
       navigate('/greeting', { replace: true });
       return;
     }
@@ -79,7 +79,7 @@ const BottomNavigation = () => {
     try {
       logNav({ from: location.pathname, to: path });
       navigate(path);
-      if (DEBUG_NAV) console.debug('[BOTTOM NAV] Protected navigation to', path, 'completed successfully');
+      if (DEBUG) console.debug('[BOTTOM NAV] Protected navigation to', path, 'completed successfully');
     } catch (error) {
       console.error('[BOTTOM NAV] Protected navigation error to', path, ':', error);
       window.location.href = path;
@@ -87,21 +87,21 @@ const BottomNavigation = () => {
   };
 
   const handleNavigation = (path: string) => {
-    if (DEBUG_NAV) console.debug('[NAV CLICK]', path.replace('/', ''));
-    if (DEBUG_NAV) console.debug('[BOTTOM NAV] Regular navigation:', {
+    if (DEBUG) console.debug('[NAV CLICK]', path.replace('/', ''));
+    if (DEBUG) console.debug('[BOTTOM NAV] Regular navigation:', {
       currentPath: location.pathname,
       targetPath: path
     });
 
     if (location.pathname === path) {
-      if (DEBUG_NAV) console.debug('[BOTTOM NAV] Already on target path, skipping navigation');
+      if (DEBUG) console.debug('[BOTTOM NAV] Already on target path, skipping navigation');
       return;
     }
 
     try {
       logNav({ from: location.pathname, to: path });
       navigate(path);
-      if (DEBUG_NAV) console.debug('[BOTTOM NAV] Regular navigation to', path, 'completed successfully');
+      if (DEBUG) console.debug('[BOTTOM NAV] Regular navigation to', path, 'completed successfully');
     } catch (error) {
       console.error('[BOTTOM NAV] Regular navigation error to', path, ':', error);
       window.location.href = path;

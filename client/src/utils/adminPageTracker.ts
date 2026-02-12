@@ -1,6 +1,8 @@
 import { logToSupabase } from './logToSupabase';
 import { logAdminAction } from './logger';
 
+const DEBUG = import.meta.env.DEV && false;
+
 /**
  * Comprehensive admin panel navigation and page view tracking
  * Tracks detailed admin navigation patterns, section visits, and time spent
@@ -138,7 +140,7 @@ export const logAdminPageView = async (payload: Partial<AdminPageViewPayload> & 
       ...fullPayload
     });
 
-    console.log(`[Admin Page View] ${eventDetail}`, fullPayload);
+    if (DEBUG) console.debug(`[Admin Page View] ${eventDetail}`, fullPayload);
   } catch (error) {
     console.error('Failed to log admin page view:', error);
   }
@@ -213,7 +215,7 @@ export const logAdminSectionSwitch = async (
       time_spent_previous: timeSpentOnPrevious
     });
 
-    console.log(`[Admin Section Switch] ${eventDetail}`);
+    if (DEBUG) console.debug(`[Admin Section Switch] ${eventDetail}`);
   } catch (error) {
     console.error('Failed to log admin section switch:', error);
   }
@@ -247,7 +249,7 @@ export const logAdminMetricsAccess = async (
       data_range: dataRange
     });
 
-    console.log(`[Admin Metrics] ${eventDetail}`);
+    if (DEBUG) console.debug(`[Admin Metrics] ${eventDetail}`);
   } catch (error) {
     console.error('Failed to log admin metrics access:', error);
   }

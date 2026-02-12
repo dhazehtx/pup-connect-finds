@@ -3,12 +3,14 @@ import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { LoadingPage } from '@/components/ui/loading';
 
+const DEBUG = import.meta.env.DEV && false;
+
 export default function RequireAuth({ children }: { children: JSX.Element }) {
   const { user, loading, loaded } = useAuth();
   const location = useLocation();
 
   // 1. INSTRUMENT - Navigation guard activity logging
-  console.log('[REQUIRE AUTH] Guard check:', { 
+  if (DEBUG) console.debug('[REQUIRE AUTH] Guard check:', { 
     userId: user?.id,
     hasUser: !!user, 
     loading,
@@ -22,7 +24,7 @@ export default function RequireAuth({ children }: { children: JSX.Element }) {
   
   // Auth state change detection
   useEffect(() => {
-    console.log('[REQUIRE AUTH] Auth state changed:', { 
+    if (DEBUG) console.debug('[REQUIRE AUTH] Auth state changed:', { 
       userId: stableUserId,
       hasUser: !!user, 
       loading,
@@ -39,7 +41,7 @@ export default function RequireAuth({ children }: { children: JSX.Element }) {
     const targetPath = '/greeting';
     const alreadyOnTarget = currentPath === targetPath;
     
-    console.log('[REQUIRE AUTH] Redirect decision:', {
+    if (DEBUG) console.debug('[REQUIRE AUTH] Redirect decision:', {
       shouldRedirect: result,
       loading,
       loaded,
@@ -52,7 +54,7 @@ export default function RequireAuth({ children }: { children: JSX.Element }) {
     
     // Don't redirect if already on target path
     if (result && alreadyOnTarget) {
-      console.log('[NAV GUARD] Already on target path (/greeting), skipping redirect');
+      if (DEBUG) console.debug('[NAV GUARD] Already on target path (/greeting), skipping redirect');
       return false;
     }
     
@@ -61,16 +63,16 @@ export default function RequireAuth({ children }: { children: JSX.Element }) {
 
   // Wait until AuthContext finishes its first check - CRITICAL: Wait for loaded flag
   if (loading || !loaded) {
-    console.log('[REQUIRE AUTH] Still loading or not loaded, showing auth loading page', { loading, loaded });
+    if (DEBUG) console.debug('[REQUIRE AUTH] Still loading or not loaded, showing auth loading page', { loading, loaded });
     return <LoadingPage message="Checking authentication..." />;
   }
 
   // EXECUTE REDIRECT - Only when truly needed and not already on target
   if (shouldRedirect) {
-    console.log('[NAV GUARD] Executing redirect - user not authenticated, redirecting from', location.pathname, 'to /greeting');
+    if (DEBUG) console.debug('[NAV GUARD] Executing redirect - user not authenticated, redirecting from', location.pathname, 'to /greeting');
     return <Navigate to="/greeting" replace />;
   }
 
-  console.log('[REQUIRE AUTH] User authenticated, rendering protected content for:', location.pathname);
+  if (DEBUG) console.debug('[REQUIRE AUTH] User authenticated, rendering protected content for:', location.pathname);
   return children;
 }

@@ -1,6 +1,8 @@
 import { logToSupabase } from './logToSupabase';
 import { logAdminAction } from './logger';
 
+const DEBUG = import.meta.env.DEV && false;
+
 /**
  * Comprehensive admin action logging utilities for tracking filter applications,
  * data operations, moderation actions, and decision-making patterns
@@ -60,7 +62,7 @@ export const logAdminFilterAction = async (payload: FilterActionPayload): Promis
       ...payload
     });
 
-    console.log(`[Admin Filter] ${eventDetail}`, payload.filters);
+    if (DEBUG) console.debug(`[Admin Filter] ${eventDetail}`, payload.filters);
   } catch (error) {
     console.error('Failed to log admin filter action:', error);
   }
@@ -89,7 +91,7 @@ export const logAdminModerationAction = async (payload: ModerationActionPayload)
       ...payload
     });
 
-    console.log(`[Admin Moderation] ${eventDetail}`, payload);
+    if (DEBUG) console.debug(`[Admin Moderation] ${eventDetail}`, payload);
   } catch (error) {
     console.error('Failed to log admin moderation action:', error);
   }
@@ -119,7 +121,7 @@ export const logAdminDataOperation = async (payload: DataOperationPayload): Prom
       ...payload
     });
 
-    console.log(`[Admin Data] ${eventDetail}`, payload);
+    if (DEBUG) console.debug(`[Admin Data] ${eventDetail}`, payload);
   } catch (error) {
     console.error('Failed to log admin data operation:', error);
   }
@@ -149,7 +151,7 @@ export const logAdminSearchAction = async (searchQuery: string, searchType: stri
       page_context: pageContext
     });
 
-    console.log(`[Admin Search] ${eventDetail}`);
+    if (DEBUG) console.debug(`[Admin Search] ${eventDetail}`);
   } catch (error) {
     console.error('Failed to log admin search action:', error);
   }
@@ -182,7 +184,7 @@ export const logAdminBulkAction = async (actionType: string, targetType: string,
       failure_count: failureCount
     });
 
-    console.log(`[Admin Bulk] ${eventDetail}`);
+    if (DEBUG) console.debug(`[Admin Bulk] ${eventDetail}`);
   } catch (error) {
     console.error('Failed to log admin bulk action:', error);
   }
@@ -210,7 +212,7 @@ export const logAdminReportResolution = async (reportId: string, resolution: str
       notes: notes
     });
 
-    console.log(`[Admin Report] ${eventDetail}`);
+    if (DEBUG) console.debug(`[Admin Report] ${eventDetail}`);
   } catch (error) {
     console.error('Failed to log admin report resolution:', error);
   }

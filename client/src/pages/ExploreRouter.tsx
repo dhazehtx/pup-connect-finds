@@ -4,6 +4,8 @@ import { useLocation } from 'react-router-dom';
 import ExploreGuest from '@/pages/ExploreGuest';
 import ExploreAdvanced from '@/pages/ExploreAdvanced';
 
+const DEBUG = import.meta.env.DEV && false;
+
 export default function ExploreRouter() {
   const { user, loading } = useAuth();
   const location = useLocation();
@@ -11,7 +13,7 @@ export default function ExploreRouter() {
   // 2. AUDIT AND FIX GUARD LOGIC - Stable user identity
   const stableUserId = useMemo(() => user?.id || null, [user?.id]);
   
-  console.log('[EXPLORE ROUTER] Router render', {
+  if (DEBUG) console.debug('[EXPLORE ROUTER] Router render', {
     userId: stableUserId,
     hasUser: !!user,
     loading,
@@ -21,7 +23,7 @@ export default function ExploreRouter() {
 
   // Auth state change tracking with stable dependencies
   useEffect(() => {
-    console.log('[EXPLORE ROUTER] Router state changed', { 
+    if (DEBUG) console.debug('[EXPLORE ROUTER] Router state changed', { 
       userId: stableUserId, 
       hasUser: !!user, 
       loading,
@@ -31,7 +33,7 @@ export default function ExploreRouter() {
 
   // 3. FIX INFINITE RE-RENDERS - Proper loading and auth checks
   if (loading) {
-    console.log('[EXPLORE ROUTER] Still loading, showing loading state');
+    if (DEBUG) console.debug('[EXPLORE ROUTER] Still loading, showing loading state');
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
         <div className="text-center">
@@ -43,10 +45,10 @@ export default function ExploreRouter() {
   }
   
   if (!user) {
-    console.log('[EXPLORE ROUTER] No user, showing guest explore');
+    if (DEBUG) console.debug('[EXPLORE ROUTER] No user, showing guest explore');
     return <ExploreGuest />;
   }
   
-  console.log('[EXPLORE ROUTER] User authenticated, showing advanced explore');
+  if (DEBUG) console.debug('[EXPLORE ROUTER] User authenticated, showing advanced explore');
   return <ExploreAdvanced />;
 }

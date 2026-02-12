@@ -2,6 +2,8 @@ import React from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 
+const DEBUG = import.meta.env.DEV && false;
+
 interface ProtectedRouteProps {
   children: React.ReactNode;
 }
@@ -31,7 +33,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
 
   // HARDEN GUARD - Redirect unauthenticated users to the greeting page (landing page)
   if (!user && !isGuest) {
-    console.log('[NAV GUARD] Executing redirect - protected route requires auth, redirecting to /greeting');
+    if (DEBUG) console.debug('[NAV GUARD] Executing redirect - protected route requires auth, redirecting to /greeting');
     return <Navigate to="/greeting" replace />;
   }
 

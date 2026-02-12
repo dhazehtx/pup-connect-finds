@@ -9,6 +9,8 @@ import FullPostModal from '@/components/post/FullPostModal';
 import { apiRequest, isAbortError } from '@/lib/api';
 import { AlertTriangle, RotateCcw } from 'lucide-react';
 
+const DEBUG = import.meta.env.DEV && false;
+
 interface User {
   id: string;
   name: string;
@@ -141,8 +143,8 @@ const HomeFeed = () => {
   const [selectedPost, setSelectedPost] = useState<any>(null);
   const [showFullPostModal, setShowFullPostModal] = useState(false);
 
-  console.log('[HOME FEED] Auth state:', user, authLoading);
-  console.log('[HOME FEED] Rendering component', {
+  if (DEBUG) console.debug('[HOME FEED] Auth state:', user, authLoading);
+  if (DEBUG) console.debug('[HOME FEED] Rendering component', {
     userId: user?.id,
     hasUser: !!user,
     authLoading,
@@ -157,12 +159,12 @@ const HomeFeed = () => {
   useEffect(() => {
     // Enhanced auth guards - wait for auth to resolve and ensure user ID exists
     if (authLoading) {
-      console.log('[HOME FEED] Auth still loading, skipping fetch');
+      if (DEBUG) console.debug('[HOME FEED] Auth still loading, skipping fetch');
       return;
     }
     
     if (!user?.id) {
-      console.log('[HOME FEED] No user ID yet, skipping fetch. User:', user);
+      if (DEBUG) console.debug('[HOME FEED] No user ID yet, skipping fetch. User:', user);
       console.log('no user yet, skipping fetch');
       setLoading(false);
       setError('Authentication required');
@@ -170,14 +172,14 @@ const HomeFeed = () => {
       return;
     }
     
-    console.log('[HOME FEED] Fetching posts for user:', user?.id);
+    if (DEBUG) console.debug('[HOME FEED] Fetching posts for user:', user?.id);
     
-    console.log('[HOME FEED] Auth state:', {
+    if (DEBUG) console.debug('[HOME FEED] Auth state:', {
       userId: user.id,
       email: user.email,
       authenticated: !!user
     });
-    console.log('[HOME FEED] Fetching posts for user:', user.id);
+    if (DEBUG) console.debug('[HOME FEED] Fetching posts for user:', user.id);
     
     let cancelled = false;
     const controller = new AbortController();
@@ -198,7 +200,7 @@ const HomeFeed = () => {
       .then((data) => {
         if (cancelled) return;
         clearTimeout(timeout);
-        console.log('[HOME FEED] Posts fetch result: success, count:', data?.length || 0);
+        if (DEBUG) console.debug('[HOME FEED] Posts fetch result: success, count:', data?.length || 0);
         setPosts(data || []);
       })
       .catch((err) => {
@@ -228,12 +230,12 @@ const HomeFeed = () => {
     if (posts && Array.isArray(posts) && posts.length > 0) {
       // Check if posts are already in display format (mock data) or need conversion (API data)
       if (posts[0]?.postUuid) {
-        console.log('[HOME FEED] Using formatted posts:', posts.length);
+        if (DEBUG) console.debug('[HOME FEED] Using formatted posts:', posts.length);
         return posts;
       }
       
       // Convert API posts to display format
-      console.log('[HOME FEED] Converting API posts to display format:', posts.length);
+      if (DEBUG) console.debug('[HOME FEED] Converting API posts to display format:', posts.length);
       return posts.map(post => ({
         id: post.id,
         postUuid: post.id,
@@ -260,7 +262,7 @@ const HomeFeed = () => {
   useEffect(() => {
     // Add user's welcome post to mock data when using fallback
     if (user && error && posts === getMockPosts()) {
-      console.log('[HOME FEED] Adding welcome post for user in fallback mode:', user.id);
+      if (DEBUG) console.debug('[HOME FEED] Adding welcome post for user in fallback mode:', user.id);
       const userPost = {
         id: 'user_post_1',
         postUuid: 'user_post_1',
@@ -305,7 +307,7 @@ const HomeFeed = () => {
     // For API posts, also attempt to sync with backend
     if (!error) {
       try {
-        console.log('[HOME FEED] Syncing like for post:', postId);
+        if (DEBUG) console.debug('[HOME FEED] Syncing like for post:', postId);
         // Add API call to sync like status
         // await apiRequest(`/posts/${postId}/like`, { method: 'POST' });
       } catch (err) {
@@ -344,7 +346,7 @@ const HomeFeed = () => {
   };
 
   const handlePostUpdate = (postId: string, newCaption: string) => {
-    console.log('[HOME FEED] Updating post:', postId, newCaption);
+    if (DEBUG) console.debug('[HOME FEED] Updating post:', postId, newCaption);
     setPosts(prevPosts => 
       prevPosts.map(post => 
         post.postUuid === postId 
@@ -355,7 +357,7 @@ const HomeFeed = () => {
   };
 
   const handlePostDelete = (postId: string) => {
-    console.log('[HOME FEED] Deleting post:', postId);
+    if (DEBUG) console.debug('[HOME FEED] Deleting post:', postId);
     setPosts(prevPosts => 
       prevPosts.filter(post => post.postUuid !== postId)
     );
@@ -404,7 +406,7 @@ const HomeFeed = () => {
 
   // Error state with fallback content and recovery options
   if (error && displayPosts.length === 0) {
-    console.log('[HOME FEED] Showing error fallback UI for:', error);
+    if (DEBUG) console.debug('[HOME FEED] Showing error fallback UI for:', error);
     return (
       <div className="flex flex-col items-center justify-center py-12 px-4">
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 max-w-md mx-auto text-center">
@@ -414,7 +416,7 @@ const HomeFeed = () => {
           <div className="flex flex-col sm:flex-row gap-2 justify-center">
             <Button 
               onClick={() => {
-                console.log('[HOME FEED] User clicked retry button');
+                if (DEBUG) console.debug('[HOME FEED] User clicked retry button');
                 window.location.reload();
               }} 
               variant="outline"
@@ -425,7 +427,7 @@ const HomeFeed = () => {
             </Button>
             <Button 
               onClick={() => {
-                console.log('[HOME FEED] User navigating to Explore as fallback');
+                if (DEBUG) console.debug('[HOME FEED] User navigating to Explore as fallback');
                 window.location.href = '/explore';
               }}
               variant="default"
@@ -441,7 +443,7 @@ const HomeFeed = () => {
 
   // Error state with partial content (shows error banner but displays fallback posts)
   if (error && displayPosts.length > 0) {
-    console.log('[HOME FEED] Showing error banner with fallback posts');
+    if (DEBUG) console.debug('[HOME FEED] Showing error banner with fallback posts');
     return (
       <div className="space-y-4">
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">

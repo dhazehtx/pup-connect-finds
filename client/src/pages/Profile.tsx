@@ -6,6 +6,8 @@ import LoadingState from '@/components/ui/loading-state';
 import UnifiedProfileView from '@/components/profile/UnifiedProfileView';
 import { useEnsureConsent } from '@/hooks/useEnsureConsent';
 
+const DEBUG = import.meta.env.DEV && false;
+
 const Profile = () => {
   const { userId } = useParams();
   const { user, loading } = useAuth();
@@ -16,21 +18,21 @@ const Profile = () => {
   
   // Debug logging - throttled to avoid excessive re-renders
   useEffect(() => {
-    console.log('[PROFILE PAGE] Component state changed', { userId, user: !!user, loading });
+    if (DEBUG) console.debug('[PROFILE PAGE] Component state changed', { userId, user: !!user, loading });
   }, [userId, user, loading]);
 
   useEffect(() => {
-    console.log('[PROFILE PAGE] Component mounted', { userId });
+    if (DEBUG) console.debug('[PROFILE PAGE] Component mounted', { userId });
   }, [userId]);
 
   useEffect(() => {
-    console.log('[PROFILE PAGE] Auth state changed:', { user: !!user, loading });
+    if (DEBUG) console.debug('[PROFILE PAGE] Auth state changed:', { user: !!user, loading });
   }, [user, loading]);
   
   // Force redirect when signed out - adapted for React Router  
   useEffect(() => {
     if (!loading && !user) {
-      console.log('[PROFILE PAGE] Redirecting to greeting - no user');
+      if (DEBUG) console.debug('[PROFILE PAGE] Redirecting to greeting - no user');
       navigate('/greeting');
     }
   }, [user, loading, navigate]);

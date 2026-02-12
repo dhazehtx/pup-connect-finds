@@ -8,6 +8,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
+const DEBUG = import.meta.env.DEV && false;
+
 const Messages = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [loading, setLoading] = useState(false);
@@ -21,15 +23,15 @@ const Messages = () => {
 
   // Debug logging - throttled to avoid excessive re-renders
   useEffect(() => {
-    console.log('[MESSAGES PAGE] Component state changed', { user: !!user, loading, conversationsCount: conversations.length });  
+    if (DEBUG) console.debug('[MESSAGES PAGE] Component state changed', { user: !!user, loading, conversationsCount: conversations.length });  
   }, [user, loading, conversations.length]);
 
   useEffect(() => {
-    console.log('[MESSAGES PAGE] Component mounted');
+    if (DEBUG) console.debug('[MESSAGES PAGE] Component mounted');
   }, []);
 
   useEffect(() => {
-    console.log('[MESSAGES PAGE] Auth state changed:', { user: !!user });
+    if (DEBUG) console.debug('[MESSAGES PAGE] Auth state changed:', { user: !!user });
   }, [user]);
 
   useEffect(() => {

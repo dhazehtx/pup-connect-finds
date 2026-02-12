@@ -5,13 +5,15 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import HomeFeed from '@/components/home/HomeFeed';
 import ErrorBoundaryWrapper from '@/components/ErrorBoundaryWrapper';
 
+const DEBUG = import.meta.env.DEV && false;
+
 const HomeFeedPage = () => {
   const { user, loading, isGuest } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   
   // 1. INSTRUMENT & DETECT - Focused console logging
-  console.log('[HOME FEED PAGE] Render cycle start:', {
+  if (DEBUG) console.debug('[HOME FEED PAGE] Render cycle start:', {
     userId: user?.id,
     hasUser: !!user,
     loading,
@@ -30,7 +32,7 @@ const HomeFeedPage = () => {
 
   // Auth state change detection
   useEffect(() => {
-    console.log('[HOME FEED PAGE] Auth state changed:', {
+    if (DEBUG) console.debug('[HOME FEED PAGE] Auth state changed:', {
       userId: stableUserId,
       hasUser: stableAuthState.hasUser,
       loading: stableAuthState.loading,
@@ -45,7 +47,7 @@ const HomeFeedPage = () => {
     const currentPath = location.pathname;
     const targetPath = '/greeting';
     
-    console.log('[HOME FEED PAGE] Navigation guard check:', {
+    if (DEBUG) console.debug('[HOME FEED PAGE] Navigation guard check:', {
       loading,
       hasUser: !!user,
       isGuest,
@@ -56,31 +58,31 @@ const HomeFeedPage = () => {
     
     // Skip redirect if already on target path
     if (shouldRedirect && currentPath === targetPath) {
-      console.log('[NAV GUARD] Already on target path (/greeting), skipping redirect');
+      if (DEBUG) console.debug('[NAV GUARD] Already on target path (/greeting), skipping redirect');
       return;
     }
     
     // Only redirect if auth check is complete and user is not authenticated/guest
     if (shouldRedirect) {
-      console.log('[NAV GUARD] Redirecting unauthenticated user from', currentPath, 'to', targetPath);
+      if (DEBUG) console.debug('[NAV GUARD] Redirecting unauthenticated user from', currentPath, 'to', targetPath);
       navigate(targetPath, { replace: true });
       return;
     }
     
-    console.log('[NAV GUARD] No redirect needed - user authenticated or guest');
+    if (DEBUG) console.debug('[NAV GUARD] No redirect needed - user authenticated or guest');
   }, [loading, user, isGuest, location.pathname, navigate]);
 
   // Mount/unmount detection
   useEffect(() => {
-    console.log('[HOME FEED PAGE] Component mounted on:', location.pathname);
+    if (DEBUG) console.debug('[HOME FEED PAGE] Component mounted on:', location.pathname);
     return () => {
-      console.log('[HOME FEED PAGE] Component unmounting from:', location.pathname);
+      if (DEBUG) console.debug('[HOME FEED PAGE] Component unmounting from:', location.pathname);
     };
   }, [location.pathname]);
 
   // EARLY RETURN: Show loading spinner while auth is resolving
   if (loading) {
-    console.log('[HOME FEED PAGE] Showing loading spinner - auth is still resolving');
+    if (DEBUG) console.debug('[HOME FEED PAGE] Showing loading spinner - auth is still resolving');
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
@@ -93,11 +95,11 @@ const HomeFeedPage = () => {
 
   // Guard against rendering without proper auth
   if (!user && !isGuest) {
-    console.log('[HOME FEED PAGE] No auth, returning null (redirect should have happened)');
+    if (DEBUG) console.debug('[HOME FEED PAGE] No auth, returning null (redirect should have happened)');
     return null;
   }
 
-  console.log('[HOME FEED PAGE] Auth settled - rendering full home feed for:', { userId: user?.id, isGuest });
+  if (DEBUG) console.debug('[HOME FEED PAGE] Auth settled - rendering full home feed for:', { userId: user?.id, isGuest });
   return (
     <ErrorBoundaryWrapper fallbackMessage="Home feed failed to load">
       <div className="min-h-screen bg-gray-50">
