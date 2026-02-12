@@ -50,7 +50,7 @@ const NotificationButton: React.FC<NotificationButtonProps> = ({ className = '' 
   // Mark all notifications as read
   const markAllReadMutation = useMutation({
     mutationFn: async () => {
-      return apiRequest('POST', '/api/notifications/mark-all-read');
+      return apiRequest('/api/notifications/mark-all-read', { method: 'POST' });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['notifications'] });
@@ -63,7 +63,7 @@ const NotificationButton: React.FC<NotificationButtonProps> = ({ className = '' 
   // Mark single notification as read
   const markReadMutation = useMutation({
     mutationFn: async (notificationId: string) => {
-      return apiRequest('POST', `/api/notifications/${notificationId}/read`);
+      return apiRequest(`/api/notifications/${notificationId}/read`, { method: 'POST' });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['notifications'] });
@@ -73,7 +73,7 @@ const NotificationButton: React.FC<NotificationButtonProps> = ({ className = '' 
   // Clear all notifications
   const clearAllMutation = useMutation({
     mutationFn: async () => {
-      return apiRequest('DELETE', '/api/notifications/clear');
+      return apiRequest('/api/notifications/clear', { method: 'DELETE' });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['notifications'] });

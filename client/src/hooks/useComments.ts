@@ -67,15 +67,13 @@ export const useComments = (postId: string) => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('User not authenticated');
 
-      const insertData: Record<string, any> = {
-        post_id: postId,
-        user_id: user.id,
-        content,
-      };
-
       const { data, error } = await supabase
         .from('comments')
-        .insert([insertData])
+        .insert([{
+          post_id: postId,
+          user_id: user.id,
+          content,
+        }])
         .select(`
           *,
           profiles!comments_user_id_fkey (

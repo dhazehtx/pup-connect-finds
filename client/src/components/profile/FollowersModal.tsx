@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { CheckCircle } from 'lucide-react';
@@ -40,6 +40,9 @@ const FollowersModal = ({ isOpen, onClose, type, users, currentUserId }: Followe
             {title}
             <Badge variant="secondary">{users.length}</Badge>
           </DialogTitle>
+          <DialogDescription className="sr-only">
+            List of {type}
+          </DialogDescription>
         </DialogHeader>
         
         <div className="space-y-3">
