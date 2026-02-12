@@ -533,7 +533,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .select('following_id')
         .eq('follower_id', userId);
 
-      const feedUserIds = [userId, ...(followRows || []).map((r: any) => r.following_id)];
+      const feedUserIds = (followRows || []).map((r: any) => r.following_id).filter((id: string) => id !== userId);
+
+      if (feedUserIds.length === 0) {
+        return res.json([]);
+      }
 
       const { data: feedPosts, error } = await sb
         .from('posts')
