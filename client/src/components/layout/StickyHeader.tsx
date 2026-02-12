@@ -91,17 +91,15 @@ const StickyHeader = () => {
                 />
                 
                 <div className="flex items-center space-x-3">
-                  {/* Dynamic Post Button - Show on home, profile, and explore pages */}
-                  {(isHomeOrProfilePage || isExplorePage) && (user || isGuest) && (
-                    <Button
+                  {/* Create Post - visible on all pages for authenticated users */}
+                  {(user || isGuest) && (
+                    <button
                       onClick={handleCreatePost}
-                      size="sm"
-                      style={{ backgroundColor: '#0074D4', color: '#FFFFFF', opacity: 1 }}
-                      className="rounded-full px-4 py-2 flex items-center gap-2 flex-shrink-0 btn-primary hover:bg-blue-700"
+                      title="Create Post"
+                      className="shrink-0 p-2 rounded-full hover:bg-blue-50 transition-all duration-200"
                     >
-                      <Plus className="w-4 h-4" style={{ color: '#FFFFFF' }} />
-                      <span className="hidden sm:inline" style={{ color: '#FFFFFF' }}>{getPostButtonText()}</span>
-                    </Button>
+                      <Plus className="h-5 w-5 text-[#0074d4]" />
+                    </button>
                   )}
 
                   {/* Admin Panel Access - Only for admin users */}
@@ -138,16 +136,15 @@ const StickyHeader = () => {
                 />
                 
                 <div className="flex items-center space-x-2">
-                  {/* Mobile Dynamic Post Button */}
-                  {(isHomeOrProfilePage || isExplorePage || isMarketplacePage) && (user || isGuest) && (
-                    <Button
+                  {/* Mobile Create Post - visible on all pages for authenticated users */}
+                  {(user || isGuest) && (
+                    <button
                       onClick={handleCreatePost}
-                      size="sm"
-                      style={{ backgroundColor: '#0074D4', color: '#FFFFFF', opacity: 1 }}
-                      className="rounded-full w-8 h-8 p-0 flex-shrink-0 btn-primary"
+                      title="Create Post"
+                      className="shrink-0 p-1.5 rounded-full hover:bg-blue-50 transition-all duration-200"
                     >
-                      <Plus className="w-4 h-4" style={{ color: '#FFFFFF' }} />
-                    </Button>
+                      <Plus className="h-5 w-5 text-[#0074d4]" />
+                    </button>
                   )}
 
 
