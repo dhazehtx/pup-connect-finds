@@ -630,27 +630,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Notifications routes
-  app.get("/api/notifications/:userId", async (req, res) => {
-    try {
-      const notifications = await storage.getUserNotifications(req.params.userId);
-      res.json(notifications);
-    } catch (error) {
-      console.error("Error getting notifications:", error);
-      res.status(500).json({ error: "Internal server error" });
-    }
-  });
-
-  app.post("/api/notifications", sessionTimeout, async (req, res) => {
-    try {
-      const validatedData = insertNotificationSchema.parse(req.body);
-      const notification = await storage.createNotification(validatedData);
-      res.json(notification);
-    } catch (error) {
-      console.error("Error creating notification:", error);
-      res.status(500).json({ error: "Internal server error" });
-    }
-  });
 
   // AI Image Analysis route (replaces Supabase Edge Function)
   app.post("/api/ai/image-analysis", async (req, res) => {
@@ -1362,21 +1341,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   }));
 
-  // Notifications stub endpoint to prevent 404s
-  app.get('/api/notifications', authMiddleware, asyncHandler(async (req: any, res: any) => {
-    try {
-      const userId = req.query.user_id || req.user?.id;
-      if (!userId) {
-        return res.json([]); // Return empty array instead of error
-      }
-
-      // Return empty notifications array - this could be enhanced to store actual notifications
-      res.json([]);
-    } catch (error) {
-      console.error('Error fetching notifications:', error);
-      res.json([]); // Return empty array on error
-    }
-  }));
 
   // Create Stripe checkout session
   app.post("/create-checkout-session", asyncHandler(async (req: any, res: any) => {

@@ -50,7 +50,7 @@ const NotificationButton: React.FC<NotificationButtonProps> = ({ className = '' 
   // Mark all notifications as read
   const markAllReadMutation = useMutation({
     mutationFn: async () => {
-      return apiRequest('/api/notifications/mark-all-read', { method: 'POST' });
+      return apiRequest('/api/notifications/mark-all-read', { method: 'PATCH' });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['notifications'] });
@@ -63,7 +63,7 @@ const NotificationButton: React.FC<NotificationButtonProps> = ({ className = '' 
   // Mark single notification as read
   const markReadMutation = useMutation({
     mutationFn: async (notificationId: string) => {
-      return apiRequest(`/api/notifications/${notificationId}/read`, { method: 'POST' });
+      return apiRequest(`/api/notifications/${notificationId}/read`, { method: 'PATCH' });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['notifications'] });
@@ -83,7 +83,8 @@ const NotificationButton: React.FC<NotificationButtonProps> = ({ className = '' 
     },
   });
 
-  const unreadCount = notifications?.notifications?.filter((n: any) => !n.read).length || 0;
+  const notificationList: any[] = Array.isArray(notifications) ? notifications : [];
+  const unreadCount = notificationList.filter((n: any) => !n.isRead).length;
 
   const getNotificationIcon = (type: string) => {
     switch (type) {
@@ -196,18 +197,18 @@ const NotificationButton: React.FC<NotificationButtonProps> = ({ className = '' 
                 </div>
               ))}
             </div>
-          ) : notifications?.notifications?.length > 0 ? (
+          ) : notificationList.length > 0 ? (
             <div className="p-2">
-              {notifications.notifications.map((notification: any) => (
+              {notificationList.map((notification: any) => (
                 <div
                   key={notification.id}
                   className={`p-3 rounded-lg mb-2 cursor-pointer transition-colors ${
-                    notification.read 
+                    notification.isRead 
                       ? 'hover:bg-gray-50' 
                       : 'bg-blue-50 hover:bg-blue-100 border border-blue-200'
                   }`}
                   onClick={() => {
-                    if (!notification.read) {
+                    if (!notification.isRead) {
                       markReadMutation.mutate(notification.id);
                     }
                     setOpen(false);
@@ -218,7 +219,7 @@ const NotificationButton: React.FC<NotificationButtonProps> = ({ className = '' 
                       <Avatar className="w-8 h-8">
                         <AvatarImage src={notification.actor_avatar} />
                         <AvatarFallback>
-                          {notification.actor_name?.[0]?.toUpperCase() || 'U'}
+                          {(notification.title || notification.type || 'N')?.[0]?.toUpperCase()}
                         </AvatarFallback>
                       </Avatar>
                       <div className="absolute -bottom-1 -right-1 bg-white rounded-full p-0.5">
@@ -227,18 +228,18 @@ const NotificationButton: React.FC<NotificationButtonProps> = ({ className = '' 
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium leading-tight">
-                        {getNotificationText(notification)}
+                        {notification.title || getNotificationText(notification)}
                       </p>
-                      {notification.content && (
+                      {notification.message && (
                         <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
-                          "{notification.content}"
+                          {notification.message}
                         </p>
                       )}
                       <p className="text-xs text-muted-foreground mt-1">
-                        {formatDistanceToNow(new Date(notification.created_at), { addSuffix: true })}
+                        {formatDistanceToNow(new Date(notification.createdAt), { addSuffix: true })}
                       </p>
                     </div>
-                    {!notification.read && (
+                    {!notification.isRead && (
                       <div className="w-2 h-2 bg-blue-600 rounded-full mt-1" />
                     )}
                   </div>

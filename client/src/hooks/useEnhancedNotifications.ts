@@ -26,23 +26,23 @@ export const useEnhancedNotifications = () => {
     if (!user) return;
 
     try {
-      const { data, error } = await supabase
-        .from('notifications')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false })
-        .limit(50);
+      const response = await fetch('/api/notifications');
+      const data = response.ok ? await response.json() : [];
+      const error = response.ok ? null : new Error('Failed to fetch');
 
       if (error) throw error;
 
-      const transformedData = (data || []).map(item => ({
+      const transformedData = (data || []).map((item: any) => ({
         ...item,
+        user_id: item.toUserId || item.user_id,
+        is_read: item.isRead ?? item.is_read ?? false,
+        created_at: item.createdAt || item.created_at,
         priority: 'medium' as const,
         type: item.type as NotificationData['type']
       }));
 
       setNotifications(transformedData);
-      setUnreadCount(transformedData.filter(n => !n.is_read).length);
+      setUnreadCount(transformedData.filter((n: NotificationData) => !n.is_read).length);
     } catch (error) {
       console.error('Error fetching notifications:', error);
       toast({
@@ -115,12 +115,8 @@ export const useEnhancedNotifications = () => {
 
   const markAsRead = async (notificationId: string) => {
     try {
-      const { error } = await supabase
-        .from('notifications')
-        .update({ is_read: true })
-        .eq('id', notificationId);
-
-      if (error) throw error;
+      const response = await fetch(`/api/notifications/${notificationId}/read`, { method: 'PATCH' });
+      if (!response.ok) throw new Error('Failed to mark as read');
 
       setNotifications(prev => 
         prev.map(n => n.id === notificationId ? { ...n, is_read: true } : n)
@@ -135,13 +131,8 @@ export const useEnhancedNotifications = () => {
     if (!user) return;
 
     try {
-      const { error } = await supabase
-        .from('notifications')
-        .update({ is_read: true })
-        .eq('user_id', user.id)
-        .eq('is_read', false);
-
-      if (error) throw error;
+      const response = await fetch('/api/notifications/mark-all-read', { method: 'PATCH' });
+      if (!response.ok) throw new Error('Failed to mark all as read');
 
       setNotifications(prev => prev.map(n => ({ ...n, is_read: true })));
       setUnreadCount(0);
@@ -152,13 +143,6 @@ export const useEnhancedNotifications = () => {
 
   const deleteNotification = async (notificationId: string) => {
     try {
-      const { error } = await supabase
-        .from('notifications')
-        .delete()
-        .eq('id', notificationId);
-
-      if (error) throw error;
-
       setNotifications(prev => prev.filter(n => n.id !== notificationId));
       setUnreadCount(prev => {
         const notification = notifications.find(n => n.id === notificationId);
@@ -179,23 +163,22 @@ export const useEnhancedNotifications = () => {
     metadata?: any
   ) => {
     try {
-      const { data, error } = await supabase
-        .from('notifications')
-        .insert({
-          user_id: recipientId,
+      const response = await fetch('/api/notifications', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          toUserId: recipientId,
           type,
           title,
           message,
-          is_read: false,
-          sender_id: user?.id,
-          related_id: metadata?.listingId || metadata?.conversationId
+          fromUserId: user?.id,
+          relatedId: metadata?.listingId || metadata?.conversationId
         })
-        .select()
-        .single();
+      });
 
-      if (error) throw error;
+      if (!response.ok) throw new Error('Failed to create notification');
+      const data = await response.json();
 
-      // Send push notification if enabled
       if (settings.push_enabled && shouldSendNotification(type)) {
         await sendPushNotification(title, message, actionUrl);
       }
@@ -258,7 +241,7 @@ export const useEnhancedNotifications = () => {
             event: 'INSERT',
             schema: 'public',
             table: 'notifications',
-            filter: `user_id=eq.${user.id}`
+            filter: `to_user_id=eq.${user.id}`
           },
           (payload) => {
             const newNotification = {
@@ -270,7 +253,6 @@ export const useEnhancedNotifications = () => {
             setNotifications(prev => [newNotification, ...prev]);
             setUnreadCount(prev => prev + 1);
             
-            // Show toast for high priority notifications
             if (newNotification.priority === 'high' || newNotification.priority === 'urgent') {
               toast({
                 title: newNotification.title,
@@ -279,12 +261,11 @@ export const useEnhancedNotifications = () => {
               });
             }
 
-            // Send push notification
             if (settings.push_enabled && shouldSendNotification(newNotification.type)) {
               sendPushNotification(
                 newNotification.title,
                 newNotification.message,
-                newNotification.action_url
+                (newNotification as any).target_url
               );
             }
           }
