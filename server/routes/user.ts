@@ -1,5 +1,8 @@
 import { Request, Response, Router } from 'express';
 import { createClient } from '@supabase/supabase-js';
+import { db } from '../db';
+import { notifications } from '../../shared/schema';
+import { eq, or } from 'drizzle-orm';
 
 const router = Router();
 
@@ -103,13 +106,13 @@ router.get('/export-data', async (req: Request, res: Response) => {
     
     userData.favorites = favorites as any[] || [];
 
-    // Get notifications
-    const { data: notifications } = await supabase
-      .from('notifications')
-      .select('*')
-      .eq('user_id', user.id);
+    // Get notifications from Neon
+    const userNotifications = await db
+      .select()
+      .from(notifications)
+      .where(eq(notifications.toUserId, user.id));
     
-    userData.notifications = notifications as any[] || [];
+    userData.notifications = userNotifications || [];
 
     // Get transactions
     const { data: transactions } = await supabase
@@ -148,11 +151,13 @@ router.delete('/delete-account', async (req: Request, res: Response) => {
 
     // Delete user data in order (respecting foreign key constraints)
     
-    // 1. Delete notifications
-    await supabase
-      .from('notifications')
-      .delete()
-      .eq('user_id', user.id);
+    // 1. Delete notifications from Neon
+    await db.delete(notifications).where(
+      or(
+        eq(notifications.toUserId, user.id),
+        eq(notifications.fromUserId, user.id)
+      )
+    );
 
     // 2. Delete favorites
     await supabase

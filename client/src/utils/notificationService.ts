@@ -13,20 +13,19 @@ export class NotificationService {
     const template = getNotificationTemplate(type, data);
     
     try {
-      const { data: notification, error } = await supabase
-        .from('notifications')
-        .insert({
-          user_id: userId,
+      const response = await fetch('/api/notifications', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          toUserId: userId,
           type: type as NotificationData['type'],
           title: template.title,
           message: template.message,
-          is_read: false
         })
-        .select()
-        .single();
+      });
 
-      if (error) throw error;
-      return notification;
+      if (!response.ok) throw new Error('Failed to create notification');
+      return await response.json();
     } catch (error) {
       console.error('Error creating notification:', error);
       throw error;
@@ -39,33 +38,18 @@ export class NotificationService {
     data: any;
     priority?: NotificationData['priority'];
   }>) {
-    const notificationData = notifications.map(({ userId, type, data, priority = 'medium' }) => {
-      const template = getNotificationTemplate(type, data);
-      return {
-        user_id: userId,
-        type: type as NotificationData['type'],
-        title: template.title,
-        message: template.message,
-        is_read: false
-      };
-    });
+    const results = await Promise.allSettled(
+      notifications.map(({ userId, type, data, priority = 'medium' }) =>
+        this.createNotification(userId, type, data, priority)
+      )
+    );
 
-    try {
-      const { data, error } = await supabase
-        .from('notifications')
-        .insert(notificationData)
-        .select();
-
-      if (error) throw error;
-      return data;
-    } catch (error) {
-      console.error('Error creating bulk notifications:', error);
-      throw error;
-    }
+    return results
+      .filter((r): r is PromiseFulfilledResult<any> => r.status === 'fulfilled')
+      .map(r => r.value);
   }
 
   static async sendMessageNotification(senderId: string, recipientId: string, conversationId: string) {
-    // Get sender info
     const { data: sender } = await supabase
       .from('profiles')
       .select('full_name')
@@ -102,13 +86,9 @@ export class NotificationService {
   }
 
   static async scheduleDigestNotifications() {
-    // This would be called by a cron job to send digest notifications
     const { data: users } = await supabase
       .from('user_preferences')
       .select('user_id, matching_criteria')
       .not('matching_criteria', 'is', null);
-
-    // Process digest notifications based on frequency
-    // Implementation would depend on your scheduling system
   }
 }

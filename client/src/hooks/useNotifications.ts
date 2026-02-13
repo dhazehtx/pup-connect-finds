@@ -6,18 +6,14 @@ import { useAuth } from '@/contexts/AuthContext';
 interface Notification {
   id: string;
   type: string;
-  to_user_id: string;
-  from_user_id: string;
-  post_id?: string | null;
-  comment_id?: string | null;
+  toUserId: string;
+  fromUserId: string;
+  postId?: string | null;
+  commentId?: string | null;
   message: string;
-  is_read: boolean;
-  created_at: string;
-  from_profile?: {
-    full_name: string | null;
-    username: string | null;
-    avatar_url: string | null;
-  } | null;
+  isRead: boolean;
+  createdAt: string;
+  title?: string | null;
 }
 
 export function useNotifications() {
@@ -34,16 +30,12 @@ export function useNotifications() {
         return;
       }
 
-      const { data, error } = await supabase
-        .from('notifications')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false });
+      const response = await fetch('/api/notifications');
+      if (!response.ok) throw new Error('Failed to fetch notifications');
+      const data = await response.json();
 
-      if (error) throw error;
-      
       setNotifications(data || []);
-      setUnreadCount(data?.filter(n => !n.is_read).length || 0);
+      setUnreadCount(data?.filter((n: any) => !n.isRead).length || 0);
     } catch (error) {
       console.error('Error fetching notifications:', error);
       toast({
@@ -58,17 +50,13 @@ export function useNotifications() {
 
   const markAsRead = async (notificationId: string) => {
     try {
-      const { error } = await supabase
-        .from('notifications')
-        .update({ is_read: true })
-        .eq('id', notificationId);
-
-      if (error) throw error;
+      const response = await fetch(`/api/notifications/${notificationId}/read`, { method: 'PATCH' });
+      if (!response.ok) throw new Error('Failed to mark as read');
 
       setNotifications(prev => 
         prev.map(n => 
           n.id === notificationId 
-            ? { ...n, is_read: true }
+            ? { ...n, isRead: true }
             : n
         )
       );
@@ -86,19 +74,11 @@ export function useNotifications() {
 
   const markAllAsRead = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-
-      const { error } = await supabase
-        .from('notifications')
-        .update({ is_read: true })
-        .eq('to_user_id', user.id)
-        .eq('is_read', false);
-
-      if (error) throw error;
+      const response = await fetch('/api/notifications/mark-all-read', { method: 'PATCH' });
+      if (!response.ok) throw new Error('Failed to mark all as read');
 
       setNotifications(prev => 
-        prev.map(n => ({ ...n, is_read: true }))
+        prev.map(n => ({ ...n, isRead: true }))
       );
       setUnreadCount(0);
     } catch (error) {
@@ -115,7 +95,6 @@ export function useNotifications() {
     if (user) {
       fetchNotifications();
 
-      // Set up real-time subscription for notifications
       const channel = supabase
         .channel('notifications')
         .on(
@@ -126,9 +105,8 @@ export function useNotifications() {
             table: 'notifications',
             filter: `to_user_id=eq.${user.id}`
           },
-          (payload) => {
-            console.log('New notification received:', payload);
-            fetchNotifications(); // Refresh notifications when new one is received
+          () => {
+            fetchNotifications();
           }
         )
         .subscribe();

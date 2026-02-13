@@ -97,17 +97,18 @@ export const useComments = (postId: string) => {
             .single();
 
           if (originalComment && originalComment.user_id !== user.id) {
-            await supabase
-              .from('notifications')
-              .insert({
+            await fetch('/api/notifications', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
                 type: 'comment_reply',
-                user_id: originalComment.user_id,
-                sender_id: user.id,
-                related_id: postId,
+                toUserId: originalComment.user_id,
+                fromUserId: user.id,
+                relatedId: postId,
                 title: 'Comment Reply',
                 message: 'replied to your comment',
-                is_read: false
-              });
+              })
+            });
           }
         } catch (notificationError) {
           console.error('Error creating notification:', notificationError);

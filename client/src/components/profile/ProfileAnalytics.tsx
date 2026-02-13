@@ -71,12 +71,8 @@ const ProfileAnalytics = () => {
       }
 
       // Fetch recent notifications for activity
-      const { data: notifications } = await supabase
-        .from('notifications')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false })
-        .limit(10);
+      const notifResponse = await fetch('/api/notifications');
+      const notifications = notifResponse.ok ? await notifResponse.json() : [];
 
       // Calculate view trends (simulated for now)
       const getDaysAgo = (days: number) => {
@@ -90,10 +86,10 @@ const ProfileAnalytics = () => {
         views: Math.floor(Math.random() * 20) + 10 // Simulated data
       }));
 
-      const recentActivity = notifications?.slice(0, 5).map(notification => ({
+      const recentActivity = notifications?.slice(0, 5).map((notification: any) => ({
         type: notification.type,
         description: notification.message,
-        timestamp: new Date(notification.created_at).toLocaleString()
+        timestamp: new Date(notification.createdAt || notification.created_at).toLocaleString()
       })) || [];
 
       setAnalytics({

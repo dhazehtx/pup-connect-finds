@@ -70,7 +70,7 @@ const NotificationButton: React.FC<NotificationButtonProps> = ({ className = '' 
     },
   });
 
-  // Clear all notifications
+  // Mark all notifications as read (clear unread state)
   const clearAllMutation = useMutation({
     mutationFn: async () => {
       return apiRequest('/api/notifications/clear', { method: 'DELETE' });
@@ -78,7 +78,7 @@ const NotificationButton: React.FC<NotificationButtonProps> = ({ className = '' 
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['notifications'] });
       toast({
-        title: "All notifications cleared",
+        title: "All notifications marked as read",
       });
     },
   });
