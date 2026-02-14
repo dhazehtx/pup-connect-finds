@@ -1,0 +1,166 @@
+“Phase 1 Step 3 — Client Posts/Comments Neon-only (no DB changes)”
+
+GOAL: Remove all client-side Supabase DB usage for posts + comments only, and replace with calls to our existing Neon/Drizzle API endpoints. Do NOT migrate other domains yet.
+
+GUARDRAILS (must follow)
+
+Do NOT create/modify any DB tables in Supabase or Neon.
+
+Do NOT add any new Supabase DB usage (supabase.from(...)) for posts/comments anywhere.
+
+Supabase is still allowed ONLY for Auth + Storage (image uploads stay on Supabase Storage).
+
+Keep UI/UX the same. Only refactor data-fetch/mutations and ensure no feature breaks.
+
+Keep changes limited to posts/comments files listed below. If you must touch another file, explain why.
+
+REQUIRED OUTCOME
+
+After this step:
+
+There are zero supabase.from('posts') and zero supabase.from('comments') usages anywhere in client/src/**.
+
+Posts + comments load/save/edit/delete through API only:
+
+Posts: /api/posts, /api/posts/:id, /api/posts/home-feed, /api/posts/:id/comments
+
+Comments: /api/comments, /api/comments/:id (PATCH/DELETE if implemented), and /api/posts/:id/comments/count
+
+WHAT TO CHANGE (exact targets)
+A) Replace posts queries/mutations
+
+Update these files to use apiRequest (from client/src/lib/api.ts) or the app’s standard API helper:
+
+client/src/hooks/usePosts.ts
+
+Replace:
+
+select posts
+
+insert post
+
+update post
+
+With API calls:
+
+GET /api/posts
+
+POST /api/posts
+
+PATCH /api/posts/:id
+
+client/src/components/posts/PostFeed.tsx
+
+Replace any direct Supabase reads with GET /api/posts or GET /api/posts/:id depending on usage.
+
+client/src/components/home/PostContextMenu.tsx
+
+Replace delete with DELETE /api/posts/:id
+
+client/src/components/home/EditPostModal.tsx
+
+Replace update with PATCH /api/posts/:id
+
+client/src/components/home/ModernPostCreator.tsx
+
+client/src/components/posts/PostForm.tsx
+
+client/src/components/posts/SocialPostCreator.tsx
+
+Replace post creation insert with POST /api/posts
+
+Keep image upload to Supabase Storage unchanged (only swap the post DB write)
+
+B) Replace comments queries/mutations + remove Supabase realtime
+
+Update:
+
+client/src/hooks/useComments.ts
+
+Replace:
+
+fetch comments
+
+insert comment
+
+update comment
+
+delete comment
+
+With API calls:
+
+GET /api/posts/:id/comments
+
+POST /api/comments
+
+PATCH /api/comments/:id (if server supports; if not, stub UI actions gracefully)
+
+DELETE /api/comments/:id (same note)
+
+Remove Supabase realtime subscription on comments.
+
+Replace “live” updates with React Query polling:
+
+comments query should have refetchInterval: 10000 (10s) only when modal/post view is open.
+
+client/src/components/post/CommentButton.tsx
+
+Replace comment count Supabase query with:
+
+GET /api/posts/:id/comments/count
+
+AUTH REQUIREMENT
+
+All API calls must include the bearer token exactly like other API calls in the app.
+
+Use the existing apiRequest helper (it already attaches Supabase session token).
+
+If any new helper is needed, put it in client/src/lib/api.ts and reuse existing patterns.
+
+VALIDATION (must do and report)
+
+Repo grep proof (client-side):
+
+Search client/src and report counts:
+
+supabase.from('posts') = 0
+
+supabase.from("posts") = 0
+
+supabase.from('comments') = 0
+
+supabase.from("comments") = 0
+
+Network sanity:
+
+Confirm posts/comments screens no longer hit /rest/v1/posts or /rest/v1/comments.
+
+Smoke behaviors (manual quick):
+
+Home feed loads posts
+
+Profile grid opens post modal
+
+Full post view shows comments + add-comment input
+
+Add comment works and appears (may take up to 10s if polling)
+
+Create post works (including image upload)
+
+OUTPUT FORMAT (required)
+
+Section 1: Files changed (list)
+
+Section 2: What changed per file (1–2 bullets each)
+
+Section 3: Grep results (counts)
+
+Section 4: Any limitations (e.g., if PATCH/DELETE comments endpoints don’t exist yet)
+
+Do the implementation now.
+
+Optional tiny edit to your earlier A+B prompt (not required)
+
+You don’t need to rerun A+B. But if you do want a cleaner version for later phases, add this line under Task A:
+
+“Ignore Supabase Storage-related supabase.from(...) that are clearly not posts/comments/follows. Only FAIL if it’s in the home-feed code path or posts/comments endpoints.”
