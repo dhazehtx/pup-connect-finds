@@ -1,11 +1,12 @@
 
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Camera, Video, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent } from '@/components/ui/card';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
+import { apiRequest } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
 
 interface SocialPostCreatorProps {
@@ -76,24 +77,23 @@ const SocialPostCreator = ({ onPostCreated, className }: SocialPostCreatorProps)
         videoUrl = await uploadFile(videoFile);
       }
 
-      const { error } = await supabase
-        .from('posts')
-        .insert({
+      await apiRequest('/api/posts', {
+        method: 'POST',
+        body: {
           user_id: user.id,
           caption: caption.trim() || null,
+          content: caption.trim() || 'Post',
           image_url: imageUrl,
           video_url: videoUrl,
           post_type: 'profile'
-        });
-
-      if (error) throw error;
+        },
+      });
 
       toast({
         title: "Post created!",
         description: "Your post has been shared successfully.",
       });
 
-      // Reset form
       setCaption('');
       clearMedia();
       onPostCreated?.();

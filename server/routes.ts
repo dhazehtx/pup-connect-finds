@@ -511,16 +511,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Posts routes (community features)
   app.get("/api/posts", async (req, res) => {
     try {
-      const { category } = req.query;
-      const posts = await storage.getPosts(category as string);
-      res.json(posts);
+      const { category, userId, listingId } = req.query;
+      const allPosts = await storage.getPosts(category as string);
+      let filtered = allPosts;
+      if (userId) {
+        filtered = filtered.filter((p: any) => p.user_id === userId);
+      }
+      if (listingId) {
+        filtered = filtered.filter((p: any) => p.listing_id === listingId);
+      }
+      res.json(filtered);
     } catch (error) {
       console.error("Error getting posts:", error);
       res.status(500).json({ error: "Internal server error" });
     }
   });
 
-  // Get posts for authenticated user's home feed (self + followed users)
+  // Get posts for authenticated user's home feed (followed users only, NOT own posts)
   app.get('/api/posts/home-feed', authMiddleware, async (req, res) => {
     try {
       const userId = req.user?.id;
@@ -528,38 +535,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ error: 'Authentication required' });
       }
 
-      const { supabase: sb } = await import('./lib/supabase.js');
-
-      const { data: followRows } = await sb
-        .from('follows')
-        .select('following_id')
-        .eq('follower_id', userId);
-
-      const feedUserIds = (followRows || []).map((r: any) => r.following_id).filter((id: string) => id !== userId);
-
-      if (feedUserIds.length === 0) {
-        return res.json([]);
-      }
-
-      const { data: feedPosts, error } = await sb
-        .from('posts')
-        .select(`
-          *,
-          profiles (
-            username,
-            full_name,
-            avatar_url
-          )
-        `)
-        .in('user_id', feedUserIds)
-        .order('created_at', { ascending: false })
-        .limit(50);
-
-      if (error) throw error;
+      const feedPosts = await storage.getHomeFeedPosts(userId);
       res.json(feedPosts || []);
     } catch (error) {
       console.error('[API] Error fetching home feed:', error);
       res.status(500).json({ error: 'Failed to fetch home feed' });
+    }
+  });
+
+  // Get single post by ID
+  app.get("/api/posts/:id", async (req, res) => {
+    try {
+      const post = await storage.getPostWithProfile(req.params.id);
+      if (!post) {
+        return res.status(404).json({ error: "Post not found" });
+      }
+      res.json(post);
+    } catch (error) {
+      console.error("Error getting post:", error);
+      res.status(500).json({ error: "Internal server error" });
     }
   });
 
@@ -604,6 +598,77 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(comment);
     } catch (error) {
       console.error("Error creating comment:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  // Update post
+  app.patch("/api/posts/:id", async (req, res) => {
+    try {
+      const updated = await storage.updatePost(req.params.id, req.body);
+      if (!updated) {
+        return res.status(404).json({ error: "Post not found" });
+      }
+      res.json(updated);
+    } catch (error) {
+      console.error("Error updating post:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  // Delete post
+  app.delete("/api/posts/:id", async (req, res) => {
+    try {
+      const deleted = await storage.deletePost(req.params.id);
+      if (!deleted) {
+        return res.status(404).json({ error: "Post not found" });
+      }
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error deleting post:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  // Update comment
+  app.patch("/api/comments/:id", async (req, res) => {
+    try {
+      const { content } = req.body;
+      if (!content) {
+        return res.status(400).json({ error: "Content is required" });
+      }
+      const updated = await storage.updateComment(req.params.id, content);
+      if (!updated) {
+        return res.status(404).json({ error: "Comment not found" });
+      }
+      res.json(updated);
+    } catch (error) {
+      console.error("Error updating comment:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  // Delete comment
+  app.delete("/api/comments/:id", async (req, res) => {
+    try {
+      const deleted = await storage.deleteComment(req.params.id);
+      if (!deleted) {
+        return res.status(404).json({ error: "Comment not found" });
+      }
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error deleting comment:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  // Get comment count for a post
+  app.get("/api/posts/:id/comments/count", async (req, res) => {
+    try {
+      const count = await storage.getCommentCount(req.params.id);
+      res.json({ count });
+    } catch (error) {
+      console.error("Error getting comment count:", error);
       res.status(500).json({ error: "Internal server error" });
     }
   });

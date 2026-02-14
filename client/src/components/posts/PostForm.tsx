@@ -1,12 +1,12 @@
 
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { useUnifiedFileUpload } from '@/hooks/useUnifiedFileUpload';
-import { supabase } from '@/integrations/supabase/client';
+import { apiRequest } from '@/lib/api';
 import { Camera, X } from 'lucide-react';
 
 interface PostFormProps {
@@ -23,7 +23,7 @@ const PostForm = ({ listingId, onPostCreated }: PostFormProps) => {
   const { toast } = useToast();
   const { uploadImage, uploading } = useUnifiedFileUpload({
     bucket: 'posts',
-    maxSize: 50 * 1024 * 1024, // 50MB
+    maxSize: 50 * 1024 * 1024,
     allowedTypes: ['image/jpeg', 'image/png', 'image/webp', 'video/mp4', 'video/webm']
   });
 
@@ -69,25 +69,23 @@ const PostForm = ({ listingId, onPostCreated }: PostFormProps) => {
 
       const postData = {
         user_id: user.id,
+        content: caption.trim() || 'Post',
         caption: caption.trim() || null,
         image_url: selectedFile?.type.startsWith('image/') ? mediaUrl : null,
         video_url: selectedFile?.type.startsWith('video/') ? mediaUrl : null,
-        listing_id: listingId || null,
         post_type: listingId ? 'listing' : 'profile'
       };
 
-      const { error } = await supabase
-        .from('posts')
-        .insert([postData]);
-
-      if (error) throw error;
+      await apiRequest('/api/posts', {
+        method: 'POST',
+        body: postData,
+      });
 
       toast({
-        title: "Post Created! ✨",
+        title: "Post Created!",
         description: "Your post has been shared successfully",
       });
 
-      // Reset form
       setCaption('');
       removeFile();
       

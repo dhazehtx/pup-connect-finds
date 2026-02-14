@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { MoreHorizontal, Trash2, Edit3 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -19,7 +19,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
+import { apiRequest } from '@/lib/api';
 
 interface Post {
   id: number;
@@ -50,7 +50,6 @@ const PostContextMenu = ({ post, onEdit, onDelete }: PostContextMenuProps) => {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  // Only show menu for post owner
   const isOwner = user?.id === post.user.id;
 
   if (!isOwner) {
@@ -60,30 +59,19 @@ const PostContextMenu = ({ post, onEdit, onDelete }: PostContextMenuProps) => {
   const handleEdit = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    console.log('PostContextMenu: Edit clicked for post:', post.postUuid);
     onEdit(post);
   };
 
   const handleDeleteClick = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    console.log('PostContextMenu: Delete clicked for post:', post.postUuid);
     setShowDeleteDialog(true);
   };
 
   const handleDelete = async () => {
     setIsDeleting(true);
     try {
-      console.log('PostContextMenu: Deleting post:', post.postUuid);
-      const { error } = await supabase
-        .from('posts')
-        .delete()
-        .eq('id', post.postUuid);
-
-      if (error) {
-        console.error('Supabase delete error:', error);
-        throw error;
-      }
+      await apiRequest(`/api/posts/${post.postUuid}`, { method: 'DELETE' });
 
       toast({
         title: "Post deleted",
@@ -114,7 +102,6 @@ const PostContextMenu = ({ post, onEdit, onDelete }: PostContextMenuProps) => {
             className="p-1 h-auto hover:bg-gray-100"
             onClick={(e) => {
               e.stopPropagation();
-              console.log('PostContextMenu: 3-dot button clicked');
             }}
           >
             <MoreHorizontal className="w-5 h-5" />

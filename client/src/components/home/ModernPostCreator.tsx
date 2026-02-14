@@ -1,13 +1,13 @@
 
-import React, { useState, useRef } from 'react';
-import { X, Camera, Video, Upload, Loader2, Heart, Smile } from 'lucide-react';
+import { useState, useRef } from 'react';
+import { X, Camera, Video, Loader2, Heart, Smile } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { useImageUpload } from '@/hooks/useImageUpload';
-import { supabase } from '@/integrations/supabase/client';
+import { apiRequest } from '@/lib/api';
 
 interface ModernPostCreatorProps {
   onClose: () => void;
@@ -78,36 +78,29 @@ const ModernPostCreator = ({ onClose, onPostCreated }: ModernPostCreatorProps) =
 
     setIsUploading(true);
     try {
-      // Upload file to storage
       const uploadedUrl = await uploadImage(selectedFile, `post-${Date.now()}`);
       
       if (!uploadedUrl) {
         throw new Error('Failed to upload file');
       }
 
-      // Save post to Supabase
-      const { data: postData, error: postError } = await supabase
-        .from('posts')
-        .insert({
+      const postData = await apiRequest('/api/posts', {
+        method: 'POST',
+        body: {
           user_id: user.id,
+          content: caption || 'Post',
           caption: caption || null,
           image_url: postType === 'photo' ? uploadedUrl : null,
           video_url: postType === 'video' ? uploadedUrl : null,
           post_type: 'profile'
-        })
-        .select()
-        .single();
-
-      if (postError) {
-        throw postError;
-      }
+        },
+      });
 
       toast({
-        title: "Post created! 🎉",
+        title: "Post created!",
         description: "Your post has been shared successfully",
       });
 
-      // Create a formatted post object for the callback
       const newPost = {
         id: postData.id,
         user: {
@@ -168,7 +161,6 @@ const ModernPostCreator = ({ onClose, onPostCreated }: ModernPostCreatorProps) =
             style={{ 
               boxShadow: '0px 20px 40px rgba(0, 0, 0, 0.15), 0px 4px 12px rgba(0, 0, 0, 0.1)' 
             }}>
-        {/* Header */}
         <div className="flex items-center justify-between p-8 border-b border-gray-100">
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#2C3EDC] to-[#00B7FF] flex items-center justify-center text-white font-bold text-xl">
@@ -192,15 +184,12 @@ const ModernPostCreator = ({ onClose, onPostCreated }: ModernPostCreatorProps) =
         <CardContent className="p-8">
           {!selectedFile ? (
             <div className="space-y-8">
-              {/* What's on your mind section */}
               <div className="text-center">
                 <p className="text-xl text-gray-800 font-semibold mb-3">What's on your mind, {userName.split(' ')[0]}?</p>
                 <p className="text-gray-500">Share a photo or video to get started</p>
               </div>
               
-              {/* Upload Options */}
               <div className="space-y-6">
-                {/* Photo Button - Royal Blue Gradient */}
                 <button
                   onClick={() => triggerFileUpload('photo')}
                   className="w-full h-24 bg-gradient-to-r from-[#2C3EDC] to-[#00B7FF] text-white rounded-3xl transform transition-all hover:scale-[1.02] active:scale-[0.98] border-0"
@@ -220,7 +209,6 @@ const ModernPostCreator = ({ onClose, onPostCreated }: ModernPostCreatorProps) =
                   </div>
                 </button>
                 
-                {/* Video Button - Light Blue Gradient with Royal Blue Text */}
                 <button
                   onClick={() => triggerFileUpload('video')}
                   className="w-full h-24 bg-gradient-to-r from-[#EAF0FF] to-[#DCE6FF] text-[#2C3EDC] rounded-3xl transform transition-all hover:scale-[1.02] active:scale-[0.98] border-2 border-[#2C3EDC]/10"
@@ -249,7 +237,6 @@ const ModernPostCreator = ({ onClose, onPostCreated }: ModernPostCreatorProps) =
             </div>
           ) : (
             <div className="space-y-8">
-              {/* Media Preview */}
               <div className="relative rounded-3xl overflow-hidden bg-gray-100 shadow-inner">
                 {postType === 'photo' ? (
                   <img
@@ -274,7 +261,6 @@ const ModernPostCreator = ({ onClose, onPostCreated }: ModernPostCreatorProps) =
                 </Button>
               </div>
 
-              {/* Caption Input */}
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <label className="text-sm font-semibold text-gray-700">Write a caption</label>
@@ -298,7 +284,6 @@ const ModernPostCreator = ({ onClose, onPostCreated }: ModernPostCreatorProps) =
                 </div>
               </div>
 
-              {/* Action Buttons */}
               <div className="flex space-x-4 pt-4">
                 <Button 
                   onClick={removeFile} 

@@ -449,7 +449,11 @@ export class DatabaseStorage implements IStorage {
       .from(follows)
       .where(eq(follows.follower_id, userId));
 
-    const feedUserIds = [userId, ...followedRows.map(r => r.followed_id)];
+    const feedUserIds = followedRows.map(r => r.followed_id).filter(id => id !== userId);
+
+    if (feedUserIds.length === 0) {
+      return [];
+    }
 
     const result = await db
       .select({
@@ -497,6 +501,47 @@ export class DatabaseStorage implements IStorage {
     return result[0];
   }
 
+  async deletePost(id: string): Promise<boolean> {
+    await db.delete(comments).where(eq(comments.post_id, id));
+    const result = await db.delete(posts).where(eq(posts.id, id));
+    return (result.rowCount ?? 0) > 0;
+  }
+
+  async getPostWithProfile(id: string): Promise<any | undefined> {
+    const result = await db
+      .select({
+        id: posts.id,
+        user_id: posts.user_id,
+        title: posts.title,
+        content: posts.content,
+        image_url: posts.image_url,
+        images: posts.images,
+        video_url: posts.video_url,
+        videos: posts.videos,
+        post_type: posts.post_type,
+        category: posts.category,
+        hashtags: posts.hashtags,
+        caption: posts.caption,
+        likes_count: posts.likes_count,
+        comments_count: posts.comments_count,
+        shares_count: posts.shares_count,
+        views_count: posts.views_count,
+        duration: posts.duration,
+        created_at: posts.created_at,
+        updated_at: posts.updated_at,
+        profiles: {
+          username: profiles.username,
+          full_name: profiles.full_name,
+          avatar_url: profiles.avatar_url,
+        },
+      })
+      .from(posts)
+      .leftJoin(profiles, eq(posts.user_id, profiles.id))
+      .where(eq(posts.id, id))
+      .limit(1);
+    return result[0];
+  }
+
   // Comment methods
   async getPostComments(postId: string): Promise<Comment[]> {
     return await db.select().from(comments).where(eq(comments.post_id, postId)).orderBy(comments.created_at);
@@ -505,6 +550,22 @@ export class DatabaseStorage implements IStorage {
   async createComment(comment: InsertComment): Promise<Comment> {
     const result = await db.insert(comments).values([comment]).returning();
     return result[0];
+  }
+
+  async updateComment(id: string, content: string): Promise<Comment | undefined> {
+    const result = await db.update(comments).set({ content, updated_at: new Date() }).where(eq(comments.id, id)).returning();
+    return result[0];
+  }
+
+  async deleteComment(id: string): Promise<boolean> {
+    await db.delete(commentReplies).where(eq(commentReplies.comment_id, id));
+    const result = await db.delete(comments).where(eq(comments.id, id));
+    return (result.rowCount ?? 0) > 0;
+  }
+
+  async getCommentCount(postId: string): Promise<number> {
+    const result = await db.select({ count: sql<number>`count(*)` }).from(comments).where(eq(comments.post_id, postId));
+    return Number(result[0]?.count || 0);
   }
 
   // Comment reply methods

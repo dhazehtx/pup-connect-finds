@@ -1,8 +1,8 @@
 
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { MessageCircle } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
+import { apiRequest } from '@/lib/api';
 
 interface CommentButtonProps {
   postId: string;
@@ -11,38 +11,26 @@ interface CommentButtonProps {
 
 const CommentButton = ({ postId, onCommentClick }: CommentButtonProps) => {
   const [commentCount, setCommentCount] = useState(0);
+  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
     const fetchCommentCount = async () => {
-      const { count } = await supabase
-        .from('comments')
-        .select('*', { count: 'exact', head: true })
-        .eq('post_id', postId);
-      
-      setCommentCount(count || 0);
+      try {
+        const data = await apiRequest(`/api/posts/${postId}/comments/count`);
+        setCommentCount(data?.count || 0);
+      } catch {
+        // silent fail for count
+      }
     };
 
     fetchCommentCount();
 
-    // Set up real-time subscription for comment count
-    const channel = supabase
-      .channel(`comment-count-${postId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'comments',
-          filter: `post_id=eq.${postId}`
-        },
-        () => {
-          fetchCommentCount();
-        }
-      )
-      .subscribe();
+    pollRef.current = setInterval(fetchCommentCount, 30000);
 
     return () => {
-      supabase.removeChannel(channel);
+      if (pollRef.current) {
+        clearInterval(pollRef.current);
+      }
     };
   }, [postId]);
 

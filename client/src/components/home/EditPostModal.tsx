@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -9,7 +9,7 @@ import {
 } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
+import { apiRequest } from '@/lib/api';
 
 interface Post {
   id: string;
@@ -42,7 +42,6 @@ const EditPostModal = ({ post, isOpen, onClose, onUpdate }: EditPostModalProps) 
 
   useEffect(() => {
     if (post && isOpen) {
-      console.log('EditPostModal: Modal opened with post:', post);
       setCaption(post.caption || '');
     }
   }, [post, isOpen]);
@@ -52,18 +51,11 @@ const EditPostModal = ({ post, isOpen, onClose, onUpdate }: EditPostModalProps) 
   const handleSave = async () => {
     setIsSaving(true);
     try {
-      console.log('EditPostModal: Saving post update:', post.postUuid, caption);
-      const { error } = await supabase
-        .from('posts')
-        .update({ caption })
-        .eq('id', post.postUuid);
+      await apiRequest(`/api/posts/${post.postUuid}`, {
+        method: 'PATCH',
+        body: { caption },
+      });
 
-      if (error) {
-        console.error('EditPostModal: Supabase update error:', error);
-        throw error;
-      }
-
-      console.log('EditPostModal: Post updated successfully');
       toast({
         title: "Post updated",
         description: "Your post has been successfully updated.",
@@ -72,7 +64,7 @@ const EditPostModal = ({ post, isOpen, onClose, onUpdate }: EditPostModalProps) 
       onUpdate(post.postUuid, caption);
       onClose();
     } catch (error) {
-      console.error('EditPostModal: Error updating post:', error);
+      console.error('Error updating post:', error);
       toast({
         title: "Error",
         description: "Failed to update post. Please try again.",
@@ -96,7 +88,6 @@ const EditPostModal = ({ post, isOpen, onClose, onUpdate }: EditPostModalProps) 
         </DialogHeader>
         
         <div className="space-y-4">
-          {/* Post Image */}
           <div className="aspect-square rounded-lg overflow-hidden">
             <img
               src={post.image}
@@ -105,7 +96,6 @@ const EditPostModal = ({ post, isOpen, onClose, onUpdate }: EditPostModalProps) 
             />
           </div>
 
-          {/* Caption Editor */}
           <div>
             <label className="text-sm font-medium mb-2 block">Caption</label>
             <Textarea
@@ -120,7 +110,6 @@ const EditPostModal = ({ post, isOpen, onClose, onUpdate }: EditPostModalProps) 
             </div>
           </div>
 
-          {/* Action Buttons */}
           <div className="flex justify-end space-x-2 pt-4">
             <Button variant="outline" onClick={handleClose} disabled={isSaving}>
               Cancel

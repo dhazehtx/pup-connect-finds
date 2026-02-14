@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { apiRequest } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
 
 interface Post {
@@ -28,29 +28,13 @@ export const usePosts = (userId?: string, listingId?: string) => {
   const fetchPosts = async () => {
     try {
       setLoading(true);
-      let query = supabase
-        .from('posts')
-        .select(`
-          *,
-          profiles!posts_user_id_profiles_id_fkey (
-            full_name,
-            username,
-            avatar_url
-          )
-        `)
-        .order('created_at', { ascending: false });
+      let url = '/api/posts';
+      const params: string[] = [];
+      if (userId) params.push(`userId=${userId}`);
+      if (listingId) params.push(`listingId=${listingId}`);
+      if (params.length > 0) url += `?${params.join('&')}`;
 
-      if (userId) {
-        query = query.eq('user_id', userId);
-      }
-      
-      if (listingId) {
-        query = query.eq('listing_id', listingId);
-      }
-
-      const { data, error } = await query;
-
-      if (error) throw error;
+      const data = await apiRequest(url);
       setPosts(data || []);
       setPostCount(data?.length || 0);
     } catch (error) {
@@ -67,13 +51,8 @@ export const usePosts = (userId?: string, listingId?: string) => {
 
   const fetchPostCount = async (targetUserId: string) => {
     try {
-      const { count, error } = await supabase
-        .from('posts')
-        .select('*', { count: 'exact', head: true })
-        .eq('user_id', targetUserId);
-
-      if (error) throw error;
-      return count || 0;
+      const data = await apiRequest(`/api/posts?userId=${targetUserId}`);
+      return data?.length || 0;
     } catch (error) {
       console.error('Error fetching post count:', error);
       return 0;
@@ -82,12 +61,7 @@ export const usePosts = (userId?: string, listingId?: string) => {
 
   const deletePost = async (postId: string) => {
     try {
-      const { error } = await supabase
-        .from('posts')
-        .delete()
-        .eq('id', postId);
-
-      if (error) throw error;
+      await apiRequest(`/api/posts/${postId}`, { method: 'DELETE' });
 
       setPosts(posts.filter(post => post.id !== postId));
       setPostCount(prev => Math.max(0, prev - 1));

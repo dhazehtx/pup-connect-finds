@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
+import { apiRequest } from '@/lib/api';
 import { Heart, MessageCircle, MoreHorizontal, Trash2 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 
@@ -37,29 +37,13 @@ const PostFeed = ({ userId, listingId, refreshTrigger }: PostFeedProps) => {
 
   const fetchPosts = async () => {
     try {
-      let query = supabase
-        .from('posts')
-        .select(`
-          *,
-          profiles!posts_user_id_profiles_id_fkey (
-            full_name,
-            username,
-            avatar_url
-          )
-        `)
-        .order('created_at', { ascending: false });
+      let url = '/api/posts';
+      const params: string[] = [];
+      if (userId) params.push(`userId=${userId}`);
+      if (listingId) params.push(`listingId=${listingId}`);
+      if (params.length > 0) url += `?${params.join('&')}`;
 
-      if (userId) {
-        query = query.eq('user_id', userId);
-      }
-      
-      if (listingId) {
-        query = query.eq('listing_id', listingId);
-      }
-
-      const { data, error } = await query;
-
-      if (error) throw error;
+      const data = await apiRequest(url);
       setPosts(data || []);
     } catch (error) {
       console.error('Error fetching posts:', error);
@@ -81,12 +65,7 @@ const PostFeed = ({ userId, listingId, refreshTrigger }: PostFeedProps) => {
     if (!window.confirm('Are you sure you want to delete this post?')) return;
 
     try {
-      const { error } = await supabase
-        .from('posts')
-        .delete()
-        .eq('id', postId);
-
-      if (error) throw error;
+      await apiRequest(`/api/posts/${postId}`, { method: 'DELETE' });
 
       setPosts(posts.filter(post => post.id !== postId));
       toast({
@@ -146,7 +125,6 @@ const PostFeed = ({ userId, listingId, refreshTrigger }: PostFeedProps) => {
       {posts.map((post) => (
         <Card key={post.id} className="border-blue-200 shadow-sm">
           <CardContent className="p-4">
-            {/* Post Header */}
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center space-x-3">
                 <div className="w-10 h-10 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full flex items-center justify-center text-white font-bold">
@@ -182,12 +160,10 @@ const PostFeed = ({ userId, listingId, refreshTrigger }: PostFeedProps) => {
               )}
             </div>
 
-            {/* Post Caption */}
             {post.caption && (
               <p className="text-gray-900 mb-3 whitespace-pre-wrap">{post.caption}</p>
             )}
 
-            {/* Post Media */}
             {post.image_url && (
               <img
                 src={post.image_url}
@@ -204,7 +180,6 @@ const PostFeed = ({ userId, listingId, refreshTrigger }: PostFeedProps) => {
               />
             )}
 
-            {/* Post Actions */}
             <div className="flex items-center justify-between pt-2 border-t border-gray-100">
               <div className="flex items-center space-x-4">
                 <Button variant="ghost" size="sm" className="text-gray-600 hover:text-red-600">

@@ -1,6 +1,7 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { apiRequest } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
 
 interface Comment {
@@ -22,9 +23,9 @@ export const useComments = (postId: string) => {
   const [comments, setComments] = useState<Comment[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const pollIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const fetchComments = async () => {
-    // Skip if no postId
     if (!postId) {
       setComments([]);
       setLoading(false);
@@ -32,20 +33,7 @@ export const useComments = (postId: string) => {
     }
 
     try {
-      const { data, error } = await supabase
-        .from('comments')
-        .select(`
-          *,
-          profiles!comments_user_id_fkey (
-            full_name,
-            username,
-            avatar_url
-          )
-        `)
-        .eq('post_id', postId)
-        .order('created_at', { ascending: true });
-
-      if (error) throw error;
+      const data = await apiRequest(`/api/posts/${postId}/comments`);
       setComments(data || []);
     } catch (error) {
       console.error('Error fetching comments:', error);
@@ -60,63 +48,45 @@ export const useComments = (postId: string) => {
   };
 
   const addComment = async (content: string, parentCommentId?: string) => {
-    // Skip if no postId
     if (!postId) return;
 
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('User not authenticated');
 
-      const { data, error } = await supabase
-        .from('comments')
-        .insert([{
+      const newComment = await apiRequest('/api/comments', {
+        method: 'POST',
+        body: {
           post_id: postId,
           user_id: user.id,
           content,
-        }])
-        .select(`
-          *,
-          profiles!comments_user_id_fkey (
-            full_name,
-            username,
-            avatar_url
-          )
-        `)
-        .single();
+        },
+      });
 
-      if (error) throw error;
-      
-      // If this is a reply, create a notification for the original commenter
       if (parentCommentId) {
         try {
-          // Get the original comment to find the author
-          const { data: originalComment } = await supabase
-            .from('comments')
-            .select('user_id, profiles!comments_user_id_fkey(username)')
-            .eq('id', parentCommentId)
-            .single();
+          const parentComments = comments.filter(c => c.id === parentCommentId);
+          const originalComment = parentComments[0];
 
           if (originalComment && originalComment.user_id !== user.id) {
-            await fetch('/api/notifications', {
+            await apiRequest('/api/notifications', {
               method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
+              body: {
                 type: 'comment_reply',
                 toUserId: originalComment.user_id,
                 fromUserId: user.id,
                 relatedId: postId,
                 title: 'Comment Reply',
                 message: 'replied to your comment',
-              })
+              },
             });
           }
         } catch (notificationError) {
           console.error('Error creating notification:', notificationError);
-          // Don't fail the comment creation if notification fails
         }
       }
       
-      setComments(prev => [...prev, data]);
+      setComments(prev => [...prev, newComment]);
       toast({
         title: "Comment added",
         description: "Your comment has been posted",
@@ -134,48 +104,16 @@ export const useComments = (postId: string) => {
   useEffect(() => {
     fetchComments();
 
-    // Skip subscription setup if no postId
     if (!postId) return;
 
-    // Set up real-time subscription
-    const channel = supabase
-      .channel(`comments-${postId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'comments',
-          filter: `post_id=eq.${postId}`
-        },
-        async (payload) => {
-          // Fetch the new comment with profile data
-          const { data } = await supabase
-            .from('comments')
-            .select(`
-              *,
-              profiles!comments_user_id_fkey (
-                full_name,
-                username,
-                avatar_url
-              )
-            `)
-            .eq('id', payload.new.id)
-            .single();
-          
-          if (data) {
-            setComments(prev => {
-              const exists = prev.find(c => c.id === data.id);
-              if (exists) return prev;
-              return [...prev, data];
-            });
-          }
-        }
-      )
-      .subscribe();
+    pollIntervalRef.current = setInterval(() => {
+      fetchComments();
+    }, 10000);
 
     return () => {
-      supabase.removeChannel(channel);
+      if (pollIntervalRef.current) {
+        clearInterval(pollIntervalRef.current);
+      }
     };
   }, [postId]);
 
