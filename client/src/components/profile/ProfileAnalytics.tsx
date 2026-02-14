@@ -7,6 +7,7 @@ import { Eye, MessageCircle, Heart, TrendingUp, Calendar, Users } from 'lucide-r
 import { useAuth } from '@/contexts/AuthContext';
 import { useAnalytics } from '@/hooks/useBackendServices';
 import { supabase } from '@/integrations/supabase/client';
+import { apiRequest } from '@/lib/api';
 
 interface AnalyticsData {
   totalViews: number;
@@ -53,22 +54,18 @@ const ProfileAnalytics = () => {
         .select('*')
         .eq('seller_id', user.id);
 
-      // Fetch favorites for user's listings
-      const { data: userListings } = await supabase
-        .from('dog_listings')
-        .select('id')
-        .eq('user_id', user.id);
-
-      const listingIds = userListings?.map(listing => listing.id) || [];
+      const userListingsData = await apiRequest(`/api/listings?userId=${user.id}`);
+      const userListings = Array.isArray(userListingsData) ? userListingsData : [];
+      const listingIds = userListings.map((listing: any) => listing.id);
       
-      let favorites: any[] | null = null;
-      if (listingIds.length > 0) {
-        const { data } = await supabase
-          .from('favorites')
-          .select('*')
-          .in('listing_id', listingIds);
-        favorites = data;
+      let favoritesTotal = 0;
+      for (const lid of listingIds) {
+        try {
+          const countData = await apiRequest(`/api/favorites/count/${lid}`);
+          favoritesTotal += countData?.count ?? 0;
+        } catch {}
       }
+      const favorites = Array.from({ length: favoritesTotal });
 
       // Fetch recent notifications for activity
       const notifResponse = await fetch('/api/notifications');

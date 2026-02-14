@@ -1,6 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { apiRequest } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
 
 export const useEnhancedListings = () => {
@@ -37,11 +38,8 @@ export const useEnhancedListings = () => {
       // Enhance listings with analytics data
       const enhancedListings = await Promise.all(
         (data || []).map(async (listing) => {
-          // Get favorites count
-          const { count: favoritesCount } = await supabase
-            .from('favorites')
-            .select('*', { count: 'exact' })
-            .eq('listing_id', listing.id);
+          const favCountData = await apiRequest(`/api/favorites/count/${listing.id}`).catch(() => ({ count: 0 }));
+          const favoritesCount = favCountData?.count ?? 0;
 
           // Get conversations count
           const { count: conversationsCount } = await supabase

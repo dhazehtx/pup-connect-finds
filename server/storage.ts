@@ -21,6 +21,7 @@ import {
   serviceBookings,
   breeds,
   follows,
+  postLikes,
   type User, 
   type InsertUser,
   type Profile,
@@ -111,6 +112,16 @@ export interface IStorage {
   getUserFavorites(userId: string): Promise<DogListing[]>;
   addFavorite(favorite: InsertFavorite): Promise<Favorite>;
   removeFavorite(userId: string, listingId: string): Promise<boolean>;
+  checkFavorite(userId: string, listingId: string): Promise<boolean>;
+  getFavoriteCount(listingId: string): Promise<number>;
+  getUserFavoriteIds(userId: string): Promise<string[]>;
+  
+  // Post likes methods
+  getPostLikes(postId: string): Promise<{ count: number; likedByUser: boolean }>;
+  checkPostLike(postId: string, userId: string): Promise<boolean>;
+  addPostLike(postId: string, userId: string): Promise<void>;
+  removePostLike(postId: string, userId: string): Promise<void>;
+  getPostLikeCount(postId: string): Promise<number>;
   
   // Review methods
   getListingReviews(listingId: string): Promise<Review[]>;
@@ -413,6 +424,60 @@ export class DatabaseStorage implements IStorage {
     const result = await db.delete(favorites)
       .where(and(eq(favorites.user_id, userId), eq(favorites.listing_id, listingId)));
     return (result.rowCount ?? 0) > 0;
+  }
+
+  async checkFavorite(userId: string, listingId: string): Promise<boolean> {
+    const result = await db.select({ id: favorites.id })
+      .from(favorites)
+      .where(and(eq(favorites.user_id, userId), eq(favorites.listing_id, listingId)))
+      .limit(1);
+    return result.length > 0;
+  }
+
+  async getFavoriteCount(listingId: string): Promise<number> {
+    const result = await db.select({ count: sql<number>`count(*)::int` })
+      .from(favorites)
+      .where(eq(favorites.listing_id, listingId));
+    return result[0]?.count ?? 0;
+  }
+
+  async getUserFavoriteIds(userId: string): Promise<string[]> {
+    const result = await db.select({ listing_id: favorites.listing_id })
+      .from(favorites)
+      .where(eq(favorites.user_id, userId));
+    return result.map(r => r.listing_id);
+  }
+
+  // Post likes methods
+  async getPostLikes(postId: string): Promise<{ count: number; likedByUser: boolean }> {
+    const countResult = await db.select({ count: sql<number>`count(*)::int` })
+      .from(postLikes)
+      .where(eq(postLikes.post_id, postId));
+    return { count: countResult[0]?.count ?? 0, likedByUser: false };
+  }
+
+  async checkPostLike(postId: string, userId: string): Promise<boolean> {
+    const result = await db.select({ id: postLikes.id })
+      .from(postLikes)
+      .where(and(eq(postLikes.post_id, postId), eq(postLikes.user_id, userId)))
+      .limit(1);
+    return result.length > 0;
+  }
+
+  async addPostLike(postId: string, userId: string): Promise<void> {
+    await db.insert(postLikes).values({ post_id: postId, user_id: userId }).onConflictDoNothing();
+  }
+
+  async removePostLike(postId: string, userId: string): Promise<void> {
+    await db.delete(postLikes)
+      .where(and(eq(postLikes.post_id, postId), eq(postLikes.user_id, userId)));
+  }
+
+  async getPostLikeCount(postId: string): Promise<number> {
+    const result = await db.select({ count: sql<number>`count(*)::int` })
+      .from(postLikes)
+      .where(eq(postLikes.post_id, postId));
+    return result[0]?.count ?? 0;
   }
 
   // Review methods

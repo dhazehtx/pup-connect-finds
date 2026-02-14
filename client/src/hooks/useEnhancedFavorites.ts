@@ -1,6 +1,6 @@
 
-import { useState, useCallback, useEffect, useRef } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { useState, useCallback, useEffect } from 'react';
+import { apiRequest } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 
@@ -32,49 +32,25 @@ export const useEnhancedFavorites = () => {
   const [favoriteListingIds, setFavoriteListingIds] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(false);
   const [toggleLoading, setToggleLoading] = useState<Set<string>>(new Set());
-  const toggleLoadingRef = useRef<Set<string>>(toggleLoading);
-  toggleLoadingRef.current = toggleLoading;
-  const needsSyncRef = useRef(false);
   const { user } = useAuth();
   const { toast } = useToast();
 
-  // Fetch user's favorites
   const fetchFavorites = useCallback(async () => {
     if (!user) return;
 
     try {
       setLoading(true);
-      const { data, error } = await supabase
-        .from('favorites')
-        .select(`
-          *,
-          listing:dog_listings (
-            id,
-            dog_name,
-            breed,
-            age,
-            price,
-            image_url,
-            status,
-            location,
-            user_id,
-            profiles:user_id (
-              full_name,
-              username,
-              verified
-            )
-          )
-        `)
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-
-      const validFavorites = (data || []).filter(fav => fav.listing);
-      setFavorites(validFavorites);
-      
-      const ids = new Set(validFavorites.map(fav => fav.listing_id));
-      setFavoriteListingIds(ids);
+      const data = await apiRequest(`/api/favorites/${user.id}`);
+      const listings = Array.isArray(data) ? data : [];
+      const mapped: EnhancedFavorite[] = listings.map((listing: any) => ({
+        id: listing.id,
+        user_id: user.id,
+        listing_id: listing.id,
+        created_at: listing.created_at || new Date().toISOString(),
+        listing,
+      }));
+      setFavorites(mapped);
+      setFavoriteListingIds(new Set(listings.map((l: any) => l.id)));
     } catch (error) {
       console.error('Error fetching favorites:', error);
       toast({
@@ -87,7 +63,6 @@ export const useEnhancedFavorites = () => {
     }
   }, [user, toast]);
 
-  // Toggle favorite status
   const toggleFavorite = useCallback(async (listingId: string) => {
     if (!user) return;
     if (toggleLoading.has(listingId)) return;
@@ -118,139 +93,69 @@ export const useEnhancedFavorites = () => {
 
     try {
       if (isFav) {
-        const { error } = await supabase
-          .from('favorites')
-          .delete()
-          .eq('user_id', user.id)
-          .eq('listing_id', listingId);
-
-        if (error) throw error;
-
+        await apiRequest(`/api/favorites/${user.id}/${listingId}`, {
+          method: 'DELETE',
+        });
         toast({
           title: "Removed from Favorites",
           description: "Listing removed from your favorites",
         });
       } else {
-        const { error } = await supabase
-          .from('favorites')
-          .upsert(
-            { user_id: user.id, listing_id: listingId },
-            { onConflict: 'user_id,listing_id', ignoreDuplicates: true }
-          );
-
-        if (error && error.code !== '23505') throw error;
-
+        await apiRequest('/api/favorites', {
+          method: 'POST',
+          body: { user_id: user.id, listing_id: listingId },
+        });
         toast({
           title: "Added to Favorites",
           description: "Listing added to your favorites",
         });
       }
     } catch (error: any) {
-      if (error?.code === '23505') {
-        setFavoriteListingIds(prev => new Set(prev).add(listingId));
-      } else {
-        setFavorites(prevFavorites);
-        setFavoriteListingIds(prevIds);
-        console.error('Error toggling favorite:', error);
-        toast({
-          title: "Error",
-          description: "Failed to update favorites",
-          variant: "destructive",
-        });
-      }
+      setFavorites(prevFavorites);
+      setFavoriteListingIds(prevIds);
+      console.error('Error toggling favorite:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update favorites",
+        variant: "destructive",
+      });
     } finally {
       setToggleLoading(prev => {
         const newSet = new Set(prev);
         newSet.delete(listingId);
-        if (newSet.size === 0 && needsSyncRef.current) {
-          needsSyncRef.current = false;
-          setTimeout(() => fetchFavorites(), 100);
-        }
         return newSet;
       });
     }
-  }, [user, favoriteListingIds, toggleLoading, toast, fetchFavorites]);
+  }, [user, favoriteListingIds, toggleLoading, toast, favorites]);
 
-  // Check if listing is favorited
   const isFavorited = useCallback((listingId: string) => {
     return favoriteListingIds.has(listingId);
   }, [favoriteListingIds]);
 
-  // Check if toggle is pending
   const isFavoritePending = useCallback((listingId: string) => {
     return toggleLoading.has(listingId);
   }, [toggleLoading]);
 
-  // Get favorites count for a user
   const getFavoritesCount = useCallback(async (userId: string) => {
     try {
-      const { count, error } = await supabase
-        .from('favorites')
-        .select('*', { count: 'exact', head: true })
-        .eq('user_id', userId);
-
-      if (error) throw error;
-      return count || 0;
+      const data = await apiRequest(`/api/favorites/${userId}`);
+      return Array.isArray(data) ? data.length : 0;
     } catch (error) {
       console.error('Error getting favorites count:', error);
       return 0;
     }
   }, []);
 
-  // Get who favorited a listing
   const getListingFavorites = useCallback(async (listingId: string) => {
     try {
-      const { data, error } = await supabase
-        .from('favorites')
-        .select(`
-          *,
-          user:profiles!favorites_user_id_fkey (
-            full_name,
-            username,
-            avatar_url
-          )
-        `)
-        .eq('listing_id', listingId)
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      return data || [];
+      const data = await apiRequest(`/api/favorites/count/${listingId}`);
+      return data?.count ?? 0;
     } catch (error) {
       console.error('Error getting listing favorites:', error);
-      return [];
+      return 0;
     }
   }, []);
 
-  // Set up real-time subscription for favorite updates
-  useEffect(() => {
-    if (!user) return;
-
-    const channel = supabase
-      .channel('favorites-changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'favorites',
-          filter: `user_id=eq.${user.id}`
-        },
-        () => {
-          if (toggleLoadingRef.current.size === 0) {
-            fetchFavorites();
-          } else {
-            needsSyncRef.current = true;
-          }
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [user, fetchFavorites]);
-
-  // Load favorites on mount
   useEffect(() => {
     if (user) {
       fetchFavorites();

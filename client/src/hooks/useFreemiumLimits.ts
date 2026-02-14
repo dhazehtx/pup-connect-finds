@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSubscription } from '@/hooks/useSubscription';
 import { supabase } from '@/integrations/supabase/client';
+import { apiRequest } from '@/lib/api';
 
 interface FreemiumLimits {
   canContactBreeder: boolean;
@@ -45,11 +46,11 @@ export const useFreemiumLimits = () => {
         .select('*')
         .eq('user_id', user.id);
 
-      // Get favorites count
-      const { data: favoritesData } = await supabase
-        .from('favorites')
-        .select('id')
-        .eq('user_id', user.id);
+      let favoritesData: any[] = [];
+      try {
+        const favIds = await apiRequest(`/api/favorites/ids/${user.id}`);
+        favoritesData = (favIds?.ids || []).map((id: string) => ({ id }));
+      } catch {}
 
       const contactsUsed = usageData?.find(u => u.feature_name === 'breeder_contact')?.usage_count || 0;
       const filtersUsed = usageData?.find(u => u.feature_name === 'advanced_filters')?.usage_count || 0;

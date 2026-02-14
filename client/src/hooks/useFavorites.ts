@@ -1,10 +1,8 @@
 
-import { useState, useEffect, useRef } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { useState, useEffect, useRef, useCallback } from 'react';
+import { apiRequest } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
-import { useRealtimeFavorites } from '@/hooks/useRealtime';
-import { useOptimisticUpdates } from '@/hooks/useOptimisticUpdates';
 
 interface Favorite {
   id: string;
@@ -23,63 +21,30 @@ interface Favorite {
 }
 
 export const useFavorites = () => {
+  const [favorites, setFavorites] = useState<Favorite[]>([]);
   const [favoriteListingIds, setFavoriteListingIds] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
   const { user } = useAuth();
 
-  const {
-    data: favorites,
-    setData: setFavorites,
-    executeOptimistic
-  } = useOptimisticUpdates<Favorite>([]);
-
   const [toggleLoading, setToggleLoading] = useState<Set<string>>(new Set());
-  const toggleLoadingRef = useRef<Set<string>>(toggleLoading);
-  toggleLoadingRef.current = toggleLoading;
-  const needsSyncRef = useRef(false);
 
-  useRealtimeFavorites(async () => {
-    if (toggleLoadingRef.current.size === 0) {
-      await fetchFavorites();
-    } else {
-      needsSyncRef.current = true;
-    }
-  });
-
-  const fetchFavorites = async () => {
+  const fetchFavorites = useCallback(async () => {
     if (!user) return;
 
     try {
       setLoading(true);
-      const { data, error } = await supabase
-        .from('favorites')
-        .select(`
-          *,
-          dog_listings:listing_id (
-            id,
-            dog_name,
-            breed,
-            age,
-            price,
-            image_url,
-            status
-          )
-        `)
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-
-      const mappedFavorites = data?.map(fav => ({
-        ...fav,
-        listing: fav.dog_listings
-      })) || [];
-
-      setFavorites(mappedFavorites);
-      
-      const listingIds = new Set(data?.map(fav => fav.listing_id) || []);
-      setFavoriteListingIds(listingIds);
+      const data = await apiRequest(`/api/favorites/${user.id}`);
+      const listings = Array.isArray(data) ? data : [];
+      const mapped: Favorite[] = listings.map((listing: any) => ({
+        id: listing.id,
+        user_id: user.id,
+        listing_id: listing.id,
+        created_at: listing.created_at || new Date().toISOString(),
+        listing,
+      }));
+      setFavorites(mapped);
+      setFavoriteListingIds(new Set(listings.map((l: any) => l.id)));
     } catch (error) {
       console.error('Error fetching favorites:', error);
       toast({
@@ -90,83 +55,67 @@ export const useFavorites = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user, toast]);
 
   const addToFavorites = async (listingId: string) => {
     if (!user) return false;
-    
-    await executeOptimistic({
-      optimisticUpdate: (currentData) => {
-        setFavoriteListingIds(prev => new Set(Array.from(prev).concat(listingId)));
-        const newFavorite: Favorite = {
-          id: `temp-${Date.now()}`,
-          user_id: user.id,
-          listing_id: listingId,
-          created_at: new Date().toISOString(),
-        };
-        return [newFavorite, ...currentData];
-      },
-      operation: async () => {
-        const { error } = await supabase
-          .from('favorites')
-          .upsert(
-            { user_id: user.id, listing_id: listingId },
-            { onConflict: 'user_id,listing_id', ignoreDuplicates: true }
-          );
-        if (error && error.code !== '23505') throw error;
-      },
-      rollback: (currentData) => {
-        setFavoriteListingIds(prev => {
-          const newSet = new Set(prev);
-          newSet.delete(listingId);
-          return newSet;
-        });
-        return currentData.filter(fav => fav.listing_id !== listingId || !fav.id.startsWith('temp-'));
-      }
-    });
 
-    toast({
-      title: "Added to favorites!",
-      description: "Listing added to your favorites",
-    });
+    setFavoriteListingIds(prev => new Set(prev).add(listingId));
 
-    return true;
+    try {
+      await apiRequest('/api/favorites', {
+        method: 'POST',
+        body: { user_id: user.id, listing_id: listingId },
+      });
+      toast({
+        title: "Added to favorites!",
+        description: "Listing added to your favorites",
+      });
+      return true;
+    } catch (error) {
+      setFavoriteListingIds(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(listingId);
+        return newSet;
+      });
+      console.error('Error adding favorite:', error);
+      toast({
+        title: "Error",
+        description: "Failed to add to favorites",
+        variant: "destructive",
+      });
+      return false;
+    }
   };
 
   const removeFromFavorites = async (listingId: string) => {
     if (!user) return false;
-    
-    await executeOptimistic({
-      optimisticUpdate: (currentData) => {
-        // Remove optimistic favorite
-        setFavoriteListingIds(prev => {
-          const newSet = new Set(prev);
-          newSet.delete(listingId);
-          return newSet;
-        });
-        return currentData.filter(fav => fav.listing_id !== listingId);
-      },
-      operation: async () => {
-        const { error } = await supabase
-          .from('favorites')
-          .delete()
-          .eq('user_id', user.id)
-          .eq('listing_id', listingId);
-        if (error) throw error;
-      },
-      rollback: (currentData) => {
-        setFavoriteListingIds(prev => new Set(Array.from(prev).concat(listingId)));
-        // In a real app, we'd restore the favorite from cache or refetch
-        return currentData;
-      }
+
+    setFavoriteListingIds(prev => {
+      const newSet = new Set(prev);
+      newSet.delete(listingId);
+      return newSet;
     });
 
-    toast({
-      title: "Removed from favorites",
-      description: "Listing removed from your favorites",
-    });
-
-    return true;
+    try {
+      await apiRequest(`/api/favorites/${user.id}/${listingId}`, {
+        method: 'DELETE',
+      });
+      toast({
+        title: "Removed from favorites",
+        description: "Listing removed from your favorites",
+      });
+      return true;
+    } catch (error) {
+      setFavoriteListingIds(prev => new Set(prev).add(listingId));
+      console.error('Error removing favorite:', error);
+      toast({
+        title: "Error",
+        description: "Failed to remove from favorites",
+        variant: "destructive",
+      });
+      return false;
+    }
   };
 
   const toggleFavorite = async (listingId: string) => {
@@ -182,10 +131,6 @@ export const useFavorites = () => {
       setToggleLoading(prev => {
         const newSet = new Set(prev);
         newSet.delete(listingId);
-        if (newSet.size === 0 && needsSyncRef.current) {
-          needsSyncRef.current = false;
-          setTimeout(() => fetchFavorites(), 100);
-        }
         return newSet;
       });
     }
@@ -203,7 +148,7 @@ export const useFavorites = () => {
     if (user) {
       fetchFavorites();
     }
-  }, [user]);
+  }, [user, fetchFavorites]);
 
   return {
     favorites,

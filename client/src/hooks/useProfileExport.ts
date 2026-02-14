@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { UserProfile, ProfileExportData } from '@/types/profile';
 import { supabase } from '@/integrations/supabase/client';
+import { apiRequest } from '@/lib/api';
 
 export const useProfileExport = () => {
   const [isExporting, setIsExporting] = useState(false);
@@ -16,17 +17,17 @@ export const useProfileExport = () => {
       setIsExporting(true);
 
       // Fetch additional data for export
-      const [listingsData, reviewsData, favoritesData] = await Promise.all([
+      const [listingsData, reviewsData, favoritesApiData] = await Promise.all([
         supabase.from('dog_listings').select('*').eq('user_id', profile.id),
         supabase.from('reviews').select('*').eq('reviewed_user_id', profile.id),
-        supabase.from('favorites').select('*').eq('user_id', profile.id)
+        apiRequest(`/api/favorites/${profile.id}`).catch(() => [])
       ]);
 
       const exportData: ProfileExportData = {
         profile,
         listings: listingsData.data || [],
         reviews: reviewsData.data || [],
-        favorites: favoritesData.data || [],
+        favorites: Array.isArray(favoritesApiData) ? favoritesApiData : [],
         export_date: new Date().toISOString(),
         export_format: format
       };

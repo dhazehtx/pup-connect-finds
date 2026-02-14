@@ -6,7 +6,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { useListings } from '@/hooks/useListings';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
+import { apiRequest } from '@/lib/api';
 
 export default function ListingsGrid() {
   const navigate = useNavigate();
@@ -28,12 +28,13 @@ export default function ListingsGrid() {
   useEffect(() => {
     if (!user) return;
     const fetchFavorites = async () => {
-      const { data: favData } = await supabase
-        .from('favorites')
-        .select('listing_id')
-        .eq('user_id', user.id);
-      if (favData) {
-        setFavorites(new Set(favData.map((f: any) => f.listing_id)));
+      try {
+        const data = await apiRequest(`/api/favorites/ids/${user.id}`);
+        if (data?.ids) {
+          setFavorites(new Set(data.ids));
+        }
+      } catch (err) {
+        console.error('Error fetching favorites:', err);
       }
     };
     fetchFavorites();
@@ -59,32 +60,23 @@ export default function ListingsGrid() {
 
     try {
       if (wasFavorited) {
-        const { error: delErr } = await supabase
-          .from('favorites')
-          .delete()
-          .eq('user_id', user.id)
-          .eq('listing_id', listingId);
-        if (delErr) throw delErr;
+        await apiRequest(`/api/favorites/${user.id}/${listingId}`, { method: 'DELETE' });
         toast({ title: 'Removed from favorites' });
       } else {
-        const { error: insErr } = await supabase
-          .from('favorites')
-          .upsert({ user_id: user.id, listing_id: listingId }, { onConflict: 'user_id,listing_id', ignoreDuplicates: true });
-        if (insErr && insErr.code !== '23505') throw insErr;
+        await apiRequest('/api/favorites', {
+          method: 'POST',
+          body: { user_id: user.id, listing_id: listingId },
+        });
         toast({ title: 'Added to favorites' });
       }
     } catch (err: any) {
-      if (err?.code === '23505') {
-        setFavorites(prev => new Set(prev).add(listingId));
-      } else {
-        setFavorites(prev => {
-          const next = new Set(prev);
-          if (wasFavorited) next.add(listingId);
-          else next.delete(listingId);
-          return next;
-        });
-        toast({ title: 'Error', description: 'Failed to update favorites', variant: 'destructive' });
-      }
+      setFavorites(prev => {
+        const next = new Set(prev);
+        if (wasFavorited) next.add(listingId);
+        else next.delete(listingId);
+        return next;
+      });
+      toast({ title: 'Error', description: 'Failed to update favorites', variant: 'destructive' });
     } finally {
       setTogglingIds(prev => {
         const next = new Set(prev);

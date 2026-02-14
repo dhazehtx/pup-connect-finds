@@ -486,6 +486,78 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.get("/api/favorites/check/:listingId", async (req: any, res) => {
+    try {
+      const userId = req.user?.id;
+      if (!userId) return res.json({ isFavorited: false });
+      const isFavorited = await storage.checkFavorite(userId, req.params.listingId);
+      res.json({ isFavorited });
+    } catch (error) {
+      console.error("Error checking favorite:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  app.get("/api/favorites/count/:listingId", async (req, res) => {
+    try {
+      const count = await storage.getFavoriteCount(req.params.listingId);
+      res.json({ count });
+    } catch (error) {
+      console.error("Error getting favorite count:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  app.get("/api/favorites/ids/:userId", async (req, res) => {
+    try {
+      const ids = await storage.getUserFavoriteIds(req.params.userId);
+      res.json({ ids });
+    } catch (error) {
+      console.error("Error getting favorite ids:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  // Post likes routes
+  app.get("/api/posts/:id/likes", async (req: any, res) => {
+    try {
+      const postId = req.params.id;
+      const userId = req.user?.id;
+      const count = await storage.getPostLikeCount(postId);
+      const likedByUser = userId ? await storage.checkPostLike(postId, userId) : false;
+      res.json({ count, likedByUser });
+    } catch (error) {
+      console.error("Error getting post likes:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  app.post("/api/posts/:id/likes", async (req: any, res) => {
+    try {
+      const userId = req.user?.id;
+      if (!userId) return res.status(401).json({ error: "Unauthorized" });
+      await storage.addPostLike(req.params.id, userId);
+      const count = await storage.getPostLikeCount(req.params.id);
+      res.json({ liked: true, count });
+    } catch (error) {
+      console.error("Error adding post like:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  app.delete("/api/posts/:id/likes", async (req: any, res) => {
+    try {
+      const userId = req.user?.id;
+      if (!userId) return res.status(401).json({ error: "Unauthorized" });
+      await storage.removePostLike(req.params.id, userId);
+      const count = await storage.getPostLikeCount(req.params.id);
+      res.json({ liked: false, count });
+    } catch (error) {
+      console.error("Error removing post like:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
   // Review routes
   app.get("/api/listings/:id/reviews", async (req, res) => {
     try {

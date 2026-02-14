@@ -1,0 +1,93 @@
+hase 2 (Follows + Post Likes + Favorites)
+
+This is the next prompt you should paste into Replit right now:
+
+Phase 2 Migration — Follows + Post Likes + Favorites (Neon-only)
+
+GOAL: Ensure these domains use Neon API only end-to-end (client reads/writes + server reads/writes). No Supabase DB calls for these domains anywhere after this change.
+
+GUARDRAILS
+
+Neon is source of truth for: follows, post_likes, favorites.
+
+Do NOT add Supabase DB usage for these domains.
+
+Do NOT create/modify Supabase tables.
+
+Keep UI/UX unchanged.
+
+Minimal safe changes only.
+
+TASK 1 — FOLLOWS (Client -> Neon routes only)
+
+Replace any client-side supabase.from('follows') usage with existing Neon endpoints under /api/follows/*.
+
+Confirm the app’s follow/unfollow buttons, follower/following lists, and stats pull from Neon only.
+
+Expected endpoints (already exist):
+
+GET /api/follows/check/:userId
+
+GET /api/follows/stats/:userId
+
+GET /api/follows/followers/:userId
+
+GET /api/follows/following/:userId
+
+POST /api/follows/:userId
+
+DELETE /api/follows/:userId
+
+Required: Output file+line numbers for each client change.
+
+TASK 2 — POST LIKES (Neon-only)
+A) Audit
+
+Search and report all client-side usage:
+
+supabase.from('post_likes')
+
+any hook like usePostLikes, useRealtimePostLikes
+
+B) Implement Neon likes if missing
+
+If Neon routes/schema for post likes do not exist, implement them in Neon (Drizzle schema + routes + storage) with minimal surface area.
+
+Required endpoints:
+
+GET /api/posts/:id/likes -> returns { count, likedByMe }
+
+POST /api/posts/:id/likes -> like
+
+DELETE /api/posts/:id/likes -> unlike
+
+Rules:
+
+Must be idempotent (liking twice doesn’t double count).
+
+Must be authenticated.
+
+Must not break existing UI (same button behavior).
+
+C) Replace client usage
+
+Replace all post-like reads/writes to use the endpoints above.
+Remove Supabase realtime usage for likes; replace with polling/refetch after mutation.
+
+TASK 3 — FAVORITES (Client -> Neon endpoints only)
+
+Replace any client-side supabase.from('favorites') usage with Neon endpoints.
+
+Ensure favorite/unfavorite is consistent and doesn’t generate loops/log spam.
+
+Expected existing endpoints:
+
+GET /api/favorites/:userId
+
+POST /api/favorites
+
+DELETE /api/favorites/:userId/:listingId
+
+If you find missing needs (like “check if favorited”), add the smallest safe endpoint:
+
+GET /api/favorites/check/:listingId -> { isFavorited: boolean }

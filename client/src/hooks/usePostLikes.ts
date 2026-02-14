@@ -1,6 +1,6 @@
 
-import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { useState, useEffect, useCallback } from 'react';
+import { apiRequest } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 
@@ -11,41 +11,16 @@ export const usePostLikes = (postId: string) => {
   const { user } = useAuth();
   const { toast } = useToast();
 
-  const fetchLikesCount = async () => {
+  const fetchLikes = useCallback(async () => {
+    if (!postId) return;
     try {
-      const { count, error } = await supabase
-        .from('post_likes')
-        .select('*', { count: 'exact', head: true })
-        .eq('post_id', postId);
-
-      if (error) throw error;
-      setLikesCount(count || 0);
+      const data = await apiRequest(`/api/posts/${postId}/likes`);
+      setLikesCount(data.count ?? 0);
+      setIsLiked(data.likedByUser ?? false);
     } catch (error) {
-      console.error('Error fetching likes count:', error);
+      console.error('Error fetching likes:', error);
     }
-  };
-
-  const checkUserLiked = async () => {
-    if (!user) return;
-
-    try {
-      const { data, error } = await supabase
-        .from('post_likes')
-        .select('id')
-        .eq('post_id', postId)
-        .eq('user_id', user.id)
-        .single();
-
-      if (error && error.code !== 'PGRST116') {
-        console.error('Error checking like status:', error);
-        return;
-      }
-
-      setIsLiked(!!data);
-    } catch (error) {
-      console.error('Error checking like status:', error);
-    }
-  };
+  }, [postId]);
 
   const toggleLike = async () => {
     if (!user) {
@@ -59,38 +34,21 @@ export const usePostLikes = (postId: string) => {
 
     if (loading) return;
 
+    const prevLiked = isLiked;
+    const prevCount = likesCount;
+    setIsLiked(!prevLiked);
+    setLikesCount(prevLiked ? prevCount - 1 : prevCount + 1);
+
     try {
       setLoading(true);
-      
-      if (isLiked) {
-        // Unlike the post
-        const { error } = await supabase
-          .from('post_likes')
-          .delete()
-          .eq('post_id', postId)
-          .eq('user_id', user.id);
-
-        if (error) throw error;
-      } else {
-        // Like the post
-        const { error } = await supabase
-          .from('post_likes')
-          .insert([
-            {
-              post_id: postId,
-              user_id: user.id
-            }
-          ]);
-
-        if (error) {
-          if (error.code === '23505') {
-            // Already liked, just update state
-            return;
-          }
-          throw error;
-        }
-      }
+      const data = await apiRequest(`/api/posts/${postId}/likes`, {
+        method: prevLiked ? 'DELETE' : 'POST',
+      });
+      setLikesCount(data.count ?? (prevLiked ? prevCount - 1 : prevCount + 1));
+      setIsLiked(data.liked ?? !prevLiked);
     } catch (error: any) {
+      setIsLiked(prevLiked);
+      setLikesCount(prevCount);
       console.error('Error toggling like:', error);
       toast({
         title: "Error",
@@ -103,81 +61,18 @@ export const usePostLikes = (postId: string) => {
   };
 
   const getLikedUsers = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('post_likes')
-        .select(`
-          id,
-          user_id,
-          created_at,
-          profiles!post_likes_user_id_fkey (
-            full_name,
-            username,
-            avatar_url
-          )
-        `)
-        .eq('post_id', postId)
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      return data || [];
-    } catch (error) {
-      console.error('Error fetching liked users:', error);
-      return [];
-    }
+    return [];
   };
 
   useEffect(() => {
-    if (postId) {
-      fetchLikesCount();
-      checkUserLiked();
-    }
-  }, [postId, user]);
+    fetchLikes();
+  }, [fetchLikes, user]);
 
-  // Set up real-time subscription for likes
   useEffect(() => {
     if (!postId) return;
-
-    const channel = supabase
-      .channel(`post-likes-${postId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'post_likes',
-          filter: `post_id=eq.${postId}`
-        },
-        (payload) => {
-          console.log('New like added:', payload);
-          setLikesCount(prev => prev + 1);
-          if (payload.new.user_id === user?.id) {
-            setIsLiked(true);
-          }
-        }
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: 'DELETE',
-          schema: 'public',
-          table: 'post_likes',
-          filter: `post_id=eq.${postId}`
-        },
-        (payload) => {
-          console.log('Like removed:', payload);
-          setLikesCount(prev => prev - 1);
-          if (payload.old.user_id === user?.id) {
-            setIsLiked(false);
-          }
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [postId, user]);
+    const interval = setInterval(fetchLikes, 15000);
+    return () => clearInterval(interval);
+  }, [postId, fetchLikes]);
 
   return {
     likesCount,

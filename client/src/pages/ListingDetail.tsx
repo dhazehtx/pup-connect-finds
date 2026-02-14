@@ -8,6 +8,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { apiRequest } from '@/lib/api';
 
 const ListingDetail = () => {
   const { id } = useParams();
@@ -87,19 +88,13 @@ const ListingDetail = () => {
 
         setListing(listingData);
 
-        // Check if user has favorited this listing
         if (user) {
-          const { data: favoriteData, error: favError } = await supabase
-            .from('favorites')
-            .select('id')
-            .eq('user_id', user.id)
-            .eq('listing_id', id)
-            .maybeSingle();
-          
-          if (favError) {
+          try {
+            const favData = await apiRequest(`/api/favorites/check/${id}`);
+            setIsFavorited(favData?.isFavorited ?? false);
+          } catch (favError) {
             console.error('Unexpected error checking favorite status:', favError);
           }
-          setIsFavorited(!!favoriteData);
         }
       } catch (error) {
         console.error('Error:', error);
@@ -174,32 +169,16 @@ const ListingDetail = () => {
 
     try {
       if (prevState) {
-        const { error: deleteError } = await supabase
-          .from('favorites')
-          .delete()
-          .eq('user_id', user.id)
-          .eq('listing_id', listing.id);
-
-        if (deleteError) {
-          throw deleteError;
-        }
-        
+        await apiRequest(`/api/favorites/${user.id}/${listing.id}`, { method: 'DELETE' });
         toast({
           title: "Removed from favorites",
           description: "Listing removed from your favorites",
         });
       } else {
-        const { error } = await supabase
-          .from('favorites')
-          .upsert(
-            { user_id: user.id, listing_id: listing.id },
-            { onConflict: 'user_id,listing_id', ignoreDuplicates: true }
-          );
-
-        if (error && error.code !== '23505') {
-          throw error;
-        }
-        
+        await apiRequest('/api/favorites', {
+          method: 'POST',
+          body: { user_id: user.id, listing_id: listing.id },
+        });
         toast({
           title: "Added to favorites",
           description: "Listing saved to your favorites",

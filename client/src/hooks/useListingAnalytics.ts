@@ -1,5 +1,6 @@
 
 import { useState } from 'react';
+import { apiRequest } from '@/lib/api';
 import { supabase } from '@/integrations/supabase/client';
 
 export const useListingAnalytics = () => {
@@ -8,21 +9,16 @@ export const useListingAnalytics = () => {
   const getListingAnalytics = async (listingId: string) => {
     setLoading(true);
     try {
-      // Get basic listing data
       const { data: listing } = await supabase
         .from('dog_listings')
         .select('*')
         .eq('id', listingId)
         .single();
 
-      // Get favorites count
-      const { data: favorites, count: favoritesCount } = await supabase
-        .from('favorites')
-        .select('*', { count: 'exact' })
-        .eq('listing_id', listingId);
+      const favCountData = await apiRequest(`/api/favorites/count/${listingId}`);
+      const favoritesCount = favCountData?.count ?? 0;
 
-      // Get conversations count
-      const { data: conversations, count: inquiriesCount } = await supabase
+      const { count: inquiriesCount } = await supabase
         .from('conversations')
         .select('*', { count: 'exact' })
         .eq('listing_id', listingId);

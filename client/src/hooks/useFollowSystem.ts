@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { apiRequest } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 
@@ -35,21 +35,20 @@ export const useFollowSystem = (userId?: string) => {
     if (!userId) return;
     
     try {
-      const { data, error } = await supabase
-        .from('follows')
-        .select(`
-          *,
-          follower_profile:profiles!follows_follower_id_fkey (
-            id,
-            full_name,
-            username,
-            avatar_url
-          )
-        `)
-        .eq('following_id', userId);
-
-      if (error) throw error;
-      setFollowers(data || []);
+      const data = await apiRequest(`/api/follows/followers/${userId}`);
+      const mapped = (data?.followers || []).map((f: any) => ({
+        id: f.id,
+        follower_id: f.id,
+        following_id: userId,
+        created_at: f.followed_at,
+        follower_profile: {
+          id: f.id,
+          full_name: f.full_name,
+          username: f.username,
+          avatar_url: f.avatar_url,
+        },
+      }));
+      setFollowers(mapped);
     } catch (error) {
       console.error('Error fetching followers:', error);
     }
@@ -59,21 +58,20 @@ export const useFollowSystem = (userId?: string) => {
     if (!userId) return;
     
     try {
-      const { data, error } = await supabase
-        .from('follows')
-        .select(`
-          *,
-          following_profile:profiles!follows_following_id_fkey (
-            id,
-            full_name,
-            username,
-            avatar_url
-          )
-        `)
-        .eq('follower_id', userId);
-
-      if (error) throw error;
-      setFollowing(data || []);
+      const data = await apiRequest(`/api/follows/following/${userId}`);
+      const mapped = (data?.following || []).map((f: any) => ({
+        id: f.id,
+        follower_id: userId,
+        following_id: f.id,
+        created_at: f.followed_at,
+        following_profile: {
+          id: f.id,
+          full_name: f.full_name,
+          username: f.username,
+          avatar_url: f.avatar_url,
+        },
+      }));
+      setFollowing(mapped);
     } catch (error) {
       console.error('Error fetching following:', error);
     }
@@ -83,15 +81,8 @@ export const useFollowSystem = (userId?: string) => {
     if (!user || !userId || user.id === userId) return;
 
     try {
-      const { data, error } = await supabase
-        .from('follows')
-        .select('id')
-        .eq('follower_id', user.id)
-        .eq('following_id', userId)
-        .single();
-
-      if (error && error.code !== 'PGRST116') throw error;
-      setIsFollowing(!!data);
+      const data = await apiRequest(`/api/follows/check/${userId}`);
+      setIsFollowing(data?.isFollowing || false);
     } catch (error) {
       console.error('Error checking follow status:', error);
     }
@@ -101,14 +92,10 @@ export const useFollowSystem = (userId?: string) => {
     if (!user) return;
 
     try {
-      const { error } = await supabase
-        .from('follows')
-        .insert({
-          follower_id: user.id,
-          following_id: targetUserId
-        });
-
-      if (error) throw error;
+      await apiRequest('/api/follows', {
+        method: 'POST',
+        body: { followed_id: targetUserId },
+      });
 
       setIsFollowing(true);
       await fetchFollowers();
@@ -131,13 +118,9 @@ export const useFollowSystem = (userId?: string) => {
     if (!user) return;
 
     try {
-      const { error } = await supabase
-        .from('follows')
-        .delete()
-        .eq('follower_id', user.id)
-        .eq('following_id', targetUserId);
-
-      if (error) throw error;
+      await apiRequest(`/api/follows/${targetUserId}`, {
+        method: 'DELETE',
+      });
 
       setIsFollowing(false);
       await fetchFollowers();
