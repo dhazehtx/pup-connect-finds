@@ -78,16 +78,8 @@ const UnifiedProfileView = ({ userId, isCurrentUser }: UnifiedProfileViewProps) 
         return;
       }
 
-      // Force fresh data with cache busting
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', profileId)
-        .single();
-
-      if (error) throw error;
+      const data = await apiRequest(`/api/profiles/${profileId}`);
       
-      // Type-safe profile transformation
       const profileData: Profile = {
         id: data.id,
         full_name: data.full_name || '',

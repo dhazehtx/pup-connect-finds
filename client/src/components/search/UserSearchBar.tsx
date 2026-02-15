@@ -6,7 +6,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Search, X, MapPin, UserPlus, CheckCircle } from 'lucide-react';
 import { useDebounce } from '@/hooks/useDebounce';
-import { supabase } from '@/integrations/supabase/client';
+import { apiRequest } from '@/lib/api';
 import { useNavigate } from 'react-router-dom';
 
 interface UserProfile {
@@ -52,23 +52,11 @@ const UserSearchBar = ({
   const searchUsers = async (query: string) => {
     setLoading(true);
     try {
-      let searchQuery = supabase
-        .from('profiles')
-        .select('id, username, full_name, avatar_url, location, verified, user_type')
-        .or(`username.ilike.%${query}%,full_name.ilike.%${query}%,location.ilike.%${query}%`)
-        .limit(20);
+      const params = new URLSearchParams({ q: query, limit: '20' });
+      if (verifiedOnly) params.set('verified', 'true');
+      if (userTypeFilter !== 'all') params.set('user_type', userTypeFilter);
 
-      if (verifiedOnly) {
-        searchQuery = searchQuery.eq('verified', true);
-      }
-
-      if (userTypeFilter !== 'all') {
-        searchQuery = searchQuery.eq('user_type', userTypeFilter);
-      }
-
-      const { data, error } = await searchQuery;
-
-      if (error) throw error;
+      const data = await apiRequest(`/api/profiles/search?${params.toString()}`);
 
       setSearchResults(data || []);
       setShowResults(true);

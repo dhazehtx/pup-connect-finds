@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { apiRequest } from "@/lib/api";
 
 export type SearchResult =
   | { type: "listing"; id: string; title: string; sub: string; thumb: string }
@@ -33,13 +34,7 @@ export function useGlobalSearch(query: string) {
             .order('created_at', { ascending: false })
             .limit(8),
           
-          // Search profiles: username and full_name for comprehensive results
-          supabase
-            .from("profiles")
-            .select("id, username, full_name, avatar_url")
-            .or(`username.ilike.${like}, full_name.ilike.${like}`)
-            .order('created_at', { ascending: false })
-            .limit(8),
+          apiRequest(`/api/profiles/search?q=${encodeURIComponent(query)}&limit=8`).then(data => ({ data })),
         ]);
 
         const { data: list = [] } = listResp;
@@ -55,7 +50,7 @@ export function useGlobalSearch(query: string) {
         }));
 
         // Transform profiles data with enhanced display logic
-        const profiles: SearchResult[] = (prof || []).map(p => ({
+        const profiles: SearchResult[] = (prof || []).map((p: any) => ({
           type: "profile" as const,
           id: p.id,
           title: p.full_name ? p.full_name : `@${p.username || ''}`,

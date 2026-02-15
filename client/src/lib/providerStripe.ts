@@ -1,12 +1,6 @@
-import { supabase } from '@/integrations/supabase/client';
+import { apiRequest } from '@/lib/api';
 
 export async function fetchProviderStripeStatus(userId: string) {
-  const { data, error } = await supabase
-    .from('profiles')
-    .select('stripe_account_id, stripe_connected')
-    .eq('id', userId)
-    .maybeSingle();
-
-  if (error) throw error;
-  return data; // { stripe_account_id: string|null, stripe_connected: boolean }
+  const data = await apiRequest(`/api/profiles/${userId}`);
+  return data ? { stripe_account_id: data.stripe_account_id || null, stripe_connected: data.stripe_connected || false } : null;
 }

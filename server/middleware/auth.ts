@@ -83,20 +83,16 @@ export const authMiddleware = async (req: Request, res: Response, next: NextFunc
       return next();
     }
 
-    // Fetch user profile to get is_admin status using admin client to bypass RLS
+    // Fetch user profile to get is_admin status via Drizzle (Neon)
     console.log('[AUTH MIDDLEWARE] Looking up profile for user:', user.id, user.email);
-    const { data: profile, error: profileError } = await supabaseAdmin
-      .from('profiles')
-      .select('is_admin, username')
-      .eq('id', user.id)
-      .single();
+    const { storage } = await import('../storage');
+    const profile = await storage.getProfile(user.id);
 
     console.log('[AUTH MIDDLEWARE] Profile lookup result:', {
       userId: user.id,
       email: user.email,
       hasProfile: !!profile,
       isAdmin: profile?.is_admin,
-      error: profileError?.message
     });
 
     // Add user info to request with admin status

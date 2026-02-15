@@ -1,14 +1,8 @@
 import Stripe from 'stripe';
 import { Pool } from '@neondatabase/serverless';
-import { createClient } from '@supabase/supabase-js';
+import { storage } from '../storage';
 
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });
-
-// Supabase service role client for server-side operations
-const supabase = createClient(
-  process.env.SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
 
 interface ProviderStatus {
   stripeAccountId: string;
@@ -75,7 +69,7 @@ export async function upsertProviderStatus(status: ProviderStatus): Promise<void
       });
     }
 
-    // ALSO update profiles table using Supabase service role
+    // ALSO update profiles table via Drizzle storage
     // First get the user_id from providers
     const userResult = await pool.query<{ user_id: string }>(
       'SELECT user_id FROM providers WHERE stripe_account_id = $1 LIMIT 1',
@@ -83,16 +77,13 @@ export async function upsertProviderStatus(status: ProviderStatus): Promise<void
     );
     
     if (userResult.rows[0]?.user_id) {
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .update({
-          stripe_account_id: status.stripeAccountId,
-          stripe_connected: isFullyConnected,
-        })
-        .eq('id', userResult.rows[0].user_id);
+      const updatedProfile = await storage.updateProfile(userResult.rows[0].user_id, {
+        stripe_account_id: status.stripeAccountId,
+        stripe_connected: isFullyConnected,
+      });
       
-      if (profileError) {
-        console.error('[STRIPE HANDLERS] Error updating profiles table:', profileError);
+      if (!updatedProfile) {
+        console.error('[STRIPE HANDLERS] Error updating profiles table for user:', userResult.rows[0].user_id);
       } else {
         console.log('[STRIPE HANDLERS] Updated profiles table for user:', userResult.rows[0].user_id);
       }

@@ -1,0 +1,91 @@
+PROMPT: Profiles Migration (Neon-only, keep UI working)
+
+GUARDRAILS
+
+Do NOT change UI/UX layout/styling.
+
+Do NOT add Supabase DB usage for profiles (no supabase.from('profiles')) except where strictly tied to auth user creation if it exists.
+
+Supabase Auth stays. Supabase Storage stays for avatar uploads.
+
+No refactors. Minimal file edits only.
+
+Maintain backwards compatibility in response shape (snake_case + camelCase) during migration so the UI doesn’t break mid-transition.
+
+TASK 1 — Repo audit (file + line numbers)
+Find all profile-related reads/writes in client and server:
+
+supabase.from('profiles')
+
+rest/v1/profiles
+
+Components/hooks that read: current user profile, username lookup, profile page render, profile settings update, user search.
+
+Output:
+
+Which screens rely on profiles (Profile page, UnifiedProfileView, Settings, UserSearchBar, notifications actor display, messaging header, etc.)
+
+What fields are expected by UI (id, username, full_name, avatar_url, bio, location, created_at…)
+
+TASK 2 — Ensure Neon profile endpoints exist
+Implement or confirm these endpoints (Neon/Drizzle), auth-protected where needed:
+
+GET /api/profiles/:id
+
+GET /api/profiles/me
+
+PATCH /api/profiles/me
+
+GET /api/profiles/username/:username
+
+GET /api/profiles/search?q=...
+All endpoints must return stable UI-compatible shapes (snake_case + camelCase) and never return undefined strings.
+
+TASK 3 — Client wiring
+Replace profile reads/writes to use apiRequest():
+
+Profile page data
+
+Settings updates
+
+User search
+
+Username/profile lookup used by messaging/follows/notifications UI
+Keep avatar upload logic in Supabase Storage, but store the resulting avatar_url in Neon via PATCH /api/profiles/me.
+
+TASK 4 — Verification
+A) Grep proof (counts + file/line):
+
+supabase.from('profiles')
+
+rest/v1/profiles
+B) Smoke tests (status + snippet):
+
+GET /api/profiles/me (200 authed)
+
+GET /api/profiles/:id (200)
+
+PATCH /api/profiles/me (200)
+
+GET /api/profiles/search?q=test (200)
+C) Manual UI checklist:
+
+Profile page loads (desktop + mobile)
+
+Settings save changes
+
+User search returns results
+
+Messaging header shows correct user names
+
+Notifications show correct actor names (no undefined)
+
+OUTPUT
+
+Changed files + summary
+
+Grep table
+
+Smoke test table
+
+Manual UI checklist results

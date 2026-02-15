@@ -50,14 +50,15 @@ export class NotificationService {
   }
 
   static async sendMessageNotification(senderId: string, recipientId: string, conversationId: string) {
-    const { data: sender } = await supabase
-      .from('profiles')
-      .select('full_name')
-      .eq('id', senderId)
-      .single();
+    let senderName = 'Someone';
+    try {
+      const { apiRequest } = await import('@/lib/api');
+      const sender = await apiRequest(`/api/profiles/${senderId}`);
+      senderName = sender?.full_name || 'Someone';
+    } catch (e) {}
 
     await this.createNotification(recipientId, 'message', {
-      senderName: sender?.full_name || 'Someone',
+      senderName,
       conversationId
     });
   }

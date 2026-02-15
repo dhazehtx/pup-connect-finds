@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { supabaseAdmin } from '../lib/supabaseAdmin.js';
+import { storage } from '../storage';
 
 export async function requireAdmin(req: any, res: Response, next: NextFunction) {
   try {
@@ -15,28 +15,21 @@ export async function requireAdmin(req: any, res: Response, next: NextFunction) 
       return res.status(401).json({ error: 'Not authenticated' });
     }
 
-    // Fetch the profile from the database to check is_admin
-    const { data: profile, error } = await supabaseAdmin
-      .from('profiles')
-      .select('id, is_admin')
-      .eq('id', userId)
-      .single();
+    const profile = await storage.getProfile(userId);
 
     console.log('[REQUIRE ADMIN] Profile lookup result:', {
       userId,
       hasProfile: !!profile,
       isAdmin: profile?.is_admin,
-      error: error?.message
     });
 
-    if (error || !profile || !profile.is_admin) {
+    if (!profile || !profile.is_admin) {
       console.log('[REQUIRE ADMIN] Access denied - not admin');
       return res.status(403).json({ error: 'Admin access required' });
     }
 
     console.log('[REQUIRE ADMIN] Access granted for admin user:', userId);
 
-    // Attach profile to request for downstream use
     (req as any).profile = profile;
     return next();
   } catch (err) {

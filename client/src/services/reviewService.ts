@@ -1,4 +1,5 @@
 import { supabase } from '@/integrations/supabase/client';
+import { apiRequest } from '@/lib/api';
 
 export interface Review {
   id: string;
@@ -41,20 +42,22 @@ export const reviewService = {
 
     if (error) throw error;
     
-    // Fetch the reviewer profile separately
-    const { data: profileData } = await supabase
-      .from('profiles')
-      .select('full_name, username, avatar_url')
-      .eq('id', userData.user.id)
-      .single();
+    let reviewerProfile: any = undefined;
+    try {
+      const profileData = await apiRequest(`/api/profiles/${userData.user.id}`);
+      if (profileData) {
+        reviewerProfile = {
+          full_name: profileData.full_name,
+          username: profileData.username,
+          avatar_url: profileData.avatar_url
+        };
+      }
+    } catch (e) {}
     
     return {
       ...data,
-      reviewer_profile: profileData ? {
-        full_name: profileData.full_name,
-        username: profileData.username,
-        avatar_url: profileData.avatar_url
-      } : undefined
+      helpful_count: data.helpful_count ?? 0,
+      reviewer_profile: reviewerProfile
     };
   },
 
@@ -70,25 +73,27 @@ export const reviewService = {
     
     if (!data || data.length === 0) return [];
 
-    // Fetch reviewer profiles separately
     const reviewerIds = data.map(review => review.reviewer_id);
-    const { data: profiles } = await supabase
-      .from('profiles')
-      .select('id, full_name, username, avatar_url')
-      .in('id', reviewerIds);
+    const profileMap: Record<string, any> = {};
+    const uniqueIds = Array.from(new Set(reviewerIds));
+    for (const id of uniqueIds) {
+      try {
+        const p = await apiRequest(`/api/profiles/${id}`);
+        if (p) profileMap[id] = p;
+      } catch (e) {}
+    }
 
-    // Combine reviews with profiles
-    return data.map(review => ({
+    return data.map((review: any) => ({
       ...review,
-      reviewer_profile: profiles?.find(profile => profile.id === review.reviewer_id) ? {
-        full_name: profiles.find(profile => profile.id === review.reviewer_id)?.full_name || null,
-        username: profiles.find(profile => profile.id === review.reviewer_id)?.username || null,
-        avatar_url: profiles.find(profile => profile.id === review.reviewer_id)?.avatar_url || null
+      helpful_count: review.helpful_count ?? 0,
+      reviewer_profile: profileMap[review.reviewer_id] ? {
+        full_name: profileMap[review.reviewer_id]?.full_name || null,
+        username: profileMap[review.reviewer_id]?.username || null,
+        avatar_url: profileMap[review.reviewer_id]?.avatar_url || null
       } : undefined
     }));
   },
 
-  // Get reviews for a specific listing
   async getListingReviews(listingId: string): Promise<Review[]> {
     const { data, error } = await supabase
       .from('reviews')
@@ -100,20 +105,23 @@ export const reviewService = {
     
     if (!data || data.length === 0) return [];
 
-    // Fetch reviewer profiles separately
     const reviewerIds = data.map(review => review.reviewer_id);
-    const { data: profiles } = await supabase
-      .from('profiles')
-      .select('id, full_name, username, avatar_url')
-      .in('id', reviewerIds);
+    const profileMap: Record<string, any> = {};
+    const uniqueIds2 = Array.from(new Set(reviewerIds));
+    for (const id of uniqueIds2) {
+      try {
+        const p = await apiRequest(`/api/profiles/${id}`);
+        if (p) profileMap[id] = p;
+      } catch (e) {}
+    }
 
-    // Combine reviews with profiles
-    return data.map(review => ({
+    return data.map((review: any) => ({
       ...review,
-      reviewer_profile: profiles?.find(profile => profile.id === review.reviewer_id) ? {
-        full_name: profiles.find(profile => profile.id === review.reviewer_id)?.full_name || null,
-        username: profiles.find(profile => profile.id === review.reviewer_id)?.username || null,
-        avatar_url: profiles.find(profile => profile.id === review.reviewer_id)?.avatar_url || null
+      helpful_count: review.helpful_count ?? 0,
+      reviewer_profile: profileMap[review.reviewer_id] ? {
+        full_name: profileMap[review.reviewer_id]?.full_name || null,
+        username: profileMap[review.reviewer_id]?.username || null,
+        avatar_url: profileMap[review.reviewer_id]?.avatar_url || null
       } : undefined
     }));
   },

@@ -66,7 +66,7 @@ import {
   type InsertBreed
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, and, or, like, sql, isNotNull, inArray } from "drizzle-orm";
+import { eq, desc, and, or, like, ilike, sql, isNotNull, inArray } from "drizzle-orm";
 
 export interface IStorage {
   // Legacy user methods
@@ -79,6 +79,7 @@ export interface IStorage {
   getProfileByUsername(username: string): Promise<Profile | undefined>;
   createProfile(profile: InsertProfile): Promise<Profile>;
   updateProfile(id: string, profile: Partial<InsertProfile>): Promise<Profile | undefined>;
+  searchProfiles(query: string, options?: { userType?: string; verifiedOnly?: boolean; limit?: number }): Promise<Profile[]>;
   
   // Dog listing methods
   getDogListing(id: string): Promise<DogListing | undefined>;
@@ -260,6 +261,27 @@ export class DatabaseStorage implements IStorage {
   async updateProfile(id: string, profile: Partial<InsertProfile>): Promise<Profile | undefined> {
     const result = await db.update(profiles).set(profile).where(eq(profiles.id, id)).returning();
     return result[0];
+  }
+
+  async searchProfiles(query: string, options?: { userType?: string; verifiedOnly?: boolean; limit?: number }): Promise<Profile[]> {
+    const like = `%${query}%`;
+    const conditions = [
+      or(
+        ilike(profiles.username, like),
+        ilike(profiles.full_name, like),
+        ilike(profiles.location, like)
+      )
+    ];
+    if (options?.userType && options.userType !== 'all') {
+      conditions.push(eq(profiles.user_type, options.userType));
+    }
+    if (options?.verifiedOnly) {
+      conditions.push(eq(profiles.verified, true));
+    }
+    const result = await db.select().from(profiles)
+      .where(and(...conditions))
+      .limit(options?.limit || 20);
+    return result;
   }
 
   // Dog listing methods

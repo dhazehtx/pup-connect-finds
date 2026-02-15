@@ -67,13 +67,10 @@ const EnhancedSignInForm = ({ onSubmit, loading }: EnhancedSignInFormProps) => {
         throw error;
       }
 
-      // Check if user has 2FA enabled
       if (data.user) {
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('two_factor_enabled')
-          .eq('id', data.user.id)
-          .single();
+        const { apiRequest } = await import('@/lib/api');
+        let profile: any = null;
+        try { profile = await apiRequest(`/api/profiles/${data.user.id}`); } catch (e) {}
 
         if (profile?.two_factor_enabled) {
           // Sign out temporarily and require 2FA

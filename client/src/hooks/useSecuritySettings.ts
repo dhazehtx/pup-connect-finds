@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { apiRequest } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { SecuritySettings } from '@/types/security';
@@ -15,15 +16,8 @@ export const useSecuritySettings = () => {
 
     setLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('two_factor_enabled, privacy_settings')
-        .eq('id', user.id)
-        .single();
+      const data = await apiRequest('/api/profiles/me');
 
-      if (error) throw error;
-
-      // Safely parse privacy_settings
       let privacySettings: any = {};
       if (data.privacy_settings) {
         try {
@@ -57,21 +51,19 @@ export const useSecuritySettings = () => {
     try {
       const updatedSettings = { ...settings, ...newSettings };
       
-      const { error } = await supabase
-        .from('profiles')
-        .update({
+      await apiRequest('/api/profiles/me', {
+        method: 'PATCH',
+        body: {
           two_factor_enabled: updatedSettings.two_factor_enabled,
-          privacy_settings: {
+          privacy_settings: JSON.stringify({
             login_notifications: updatedSettings.login_notifications,
             suspicious_activity_alerts: updatedSettings.suspicious_activity_alerts,
             device_tracking: updatedSettings.device_tracking,
             session_timeout: updatedSettings.session_timeout,
             allowed_ip_ranges: updatedSettings.allowed_ip_ranges
-          }
-        })
-        .eq('id', user.id);
-
-      if (error) throw error;
+          })
+        },
+      } as any);
 
       setSettings(updatedSettings);
       

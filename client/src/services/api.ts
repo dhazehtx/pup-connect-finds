@@ -1,4 +1,5 @@
 import { supabase } from '@/integrations/supabase/client';
+import { apiRequest } from '@/lib/api';
 import { DogListing, User, Message, Favorite, Report } from '@/types/backend';
 
 // Helper function to map database user to User interface
@@ -58,18 +59,11 @@ const mapDogListingToDatabase = (listing: Omit<DogListing, 'id' | 'createdAt' | 
 // User Service
 export const userService = {
   async getProfile(userId: string): Promise<User | null> {
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', userId)
-      .single();
-    
-    if (error) throw error;
+    const data = await apiRequest(`/api/profiles/${userId}`);
     return data ? mapDatabaseUserToUser(data) : null;
   },
 
   async updateProfile(userId: string, updates: Partial<User>): Promise<User> {
-    // Map User interface to database format
     const dbUpdates: any = {};
     if (updates.fullName !== undefined) dbUpdates.full_name = updates.fullName;
     if (updates.username !== undefined) dbUpdates.username = updates.username;
@@ -84,29 +78,17 @@ export const userService = {
     if (updates.totalReviews !== undefined) dbUpdates.total_reviews = updates.totalReviews;
     if (updates.yearsExperience !== undefined) dbUpdates.years_experience = updates.yearsExperience;
 
-    const { data, error } = await supabase
-      .from('profiles')
-      .update(dbUpdates)
-      .eq('id', userId)
-      .select()
-      .single();
-    
-    if (error) throw error;
+    const data = await apiRequest('/api/profiles/me', {
+      method: 'PATCH',
+      body: dbUpdates,
+    } as any);
     return mapDatabaseUserToUser(data);
   },
 
   async searchUsers(query: string, userType?: 'buyer' | 'breeder' | 'shelter' | 'admin'): Promise<User[]> {
-    let queryBuilder = supabase
-      .from('profiles')
-      .select('*')
-      .or(`full_name.ilike.%${query}%, username.ilike.%${query}%`);
-    
-    if (userType) {
-      queryBuilder = queryBuilder.eq('user_type', userType);
-    }
-    
-    const { data, error } = await queryBuilder;
-    if (error) throw error;
+    const params = new URLSearchParams({ q: query });
+    if (userType) params.set('user_type', userType);
+    const data = await apiRequest(`/api/profiles/search?${params.toString()}`);
     return (data || []).map(mapDatabaseUserToUser);
   }
 };

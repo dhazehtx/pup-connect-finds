@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
+import { apiRequest } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
 
 export const useAuthState = () => {
@@ -12,25 +13,16 @@ export const useAuthState = () => {
 
   const fetchProfile = async (userId: string) => {
     try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', userId)
-        .single();
-
-      if (error && error.code !== 'PGRST116') {
-        throw error;
-      }
-      
-      // Set admin status for creator account
+      const data = await apiRequest(`/api/profiles/${userId}`);
       const profileData = data || null;
       if (profileData && profileData.id === '8b7adf6a-eb74-43a0-9a26-575e65886ac5') {
         (profileData as any).is_admin = true;
-        }
+      }
       setProfile(profileData);
       return profileData;
     } catch (error: any) {
       console.error('Error fetching profile:', error);
+      setProfile(null);
       return null;
     }
   };
@@ -167,14 +159,10 @@ export const useAuthState = () => {
     if (!user) throw new Error('No user logged in');
 
     try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .update(updates)
-        .eq('id', user.id)
-        .select()
-        .single();
-
-      if (error) throw error;
+      const data = await apiRequest('/api/profiles/me', {
+        method: 'PATCH',
+        body: updates,
+      } as any);
 
       setProfile(data);
       toast({

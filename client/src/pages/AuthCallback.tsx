@@ -28,12 +28,11 @@ const AuthCallback: React.FC = () => {
           // Update profile with social provider info
           const provider = data.session.user.app_metadata.provider;
           if (provider) {
-            await supabase
-              .from('profiles')
-              .update({
-                social_providers: { [provider]: true }
-              })
-              .eq('id', data.session.user.id);
+            const { apiRequest } = await import('@/lib/api');
+            await apiRequest('/api/profiles/me', {
+              method: 'PATCH',
+              body: { social_providers: JSON.stringify({ [provider]: true }) },
+            } as any).catch(() => {});
           }
 
           toast({

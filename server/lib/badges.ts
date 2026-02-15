@@ -1,4 +1,5 @@
 import { supabase } from "./supabase";
+import { storage } from "../storage";
 
 /**
  * Ensures a user has the "verified_provider" badge if they meet all verification criteria:
@@ -37,17 +38,8 @@ export async function ensureVerifiedBadge(userId: string): Promise<void> {
     // Policy acknowledged defaults to false if not found or not set
     const policyAcknowledged = serviceProvider?.policy_acknowledged === true;
 
-    // Fetch profile for badges
-    const { data: profile, error: profileError } = await supabase
-      .from("profiles")
-      .select("badges")
-      .eq("id", userId)
-      .single();
-
-    if (profileError) {
-      console.error("[BADGE] Error fetching profile:", profileError);
-      return;
-    }
+    // Fetch profile for badges via Drizzle storage
+    const profile = await storage.getProfile(userId);
 
     if (!profile) {
       console.warn("[BADGE] Profile not found for user:", userId);
@@ -80,15 +72,12 @@ export async function ensureVerifiedBadge(userId: string): Promise<void> {
       return;
     }
 
-    // Add verified_provider badge
+    // Add verified_provider badge via Drizzle storage
     const next = [...badges, "verified_provider"];
-    const { error: updateError } = await supabase
-      .from("profiles")
-      .update({ badges: next })
-      .eq("id", userId);
+    const updatedProfile = await storage.updateProfile(userId, { badges: next });
 
-    if (updateError) {
-      console.error("[BADGE] Error updating badges:", updateError);
+    if (!updatedProfile) {
+      console.error("[BADGE] Error updating badges for user:", userId);
       return;
     }
 

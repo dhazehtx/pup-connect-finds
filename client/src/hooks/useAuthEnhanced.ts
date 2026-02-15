@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
+import { apiRequest } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
 
 export const useAuthEnhanced = () => {
@@ -13,20 +14,12 @@ export const useAuthEnhanced = () => {
 
   const fetchProfile = async (userId: string) => {
     try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', userId)
-        .single();
-
-      if (error && error.code !== 'PGRST116') {
-        throw error;
-      }
-      
+      const data = await apiRequest(`/api/profiles/${userId}`);
       setProfile(data || null);
       return data;
     } catch (error: any) {
       console.error('Error fetching profile:', error);
+      setProfile(null);
       return null;
     }
   };
@@ -171,14 +164,10 @@ export const useAuthEnhanced = () => {
     if (!user) throw new Error('No user logged in');
 
     try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .update(updates)
-        .eq('id', user.id)
-        .select()
-        .single();
-
-      if (error) throw error;
+      const data = await apiRequest('/api/profiles/me', {
+        method: 'PATCH',
+        body: updates,
+      } as any);
 
       setProfile(data);
       toast({

@@ -28,6 +28,7 @@ import monetizationRouter from './routes/monetization';
 import providerApplicationsRouter from './routes/providerApplications';
 import enhancedNotificationsRouter from './routes/enhancedNotifications';
 import verificationRouter from './routes/verification';
+import profilesRouter from './routes/profiles';
 import paymentsRouter from './routes/payments';
 import bookingsRouter from './routes/bookings';
 import payoutsRouter from './routes/payouts';
@@ -270,7 +271,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Register GDPR compliance routes
   registerGDPRRoutes(app);
 
-  // Profile routes
+  // Profile routes (Neon/Drizzle)
+  app.use('/api/profiles', profilesRouter);
+
+  // Legacy profile routes (kept for backwards compatibility)
   app.get("/api/profile/:id", async (req, res) => {
     try {
       const profile = await storage.getProfile(req.params.id);

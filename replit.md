@@ -9,7 +9,7 @@ MY PUP is a comprehensive dog listing platform connecting dog lovers with breede
 Preferred communication style: Simple, everyday language.
 
 **Data Architecture (Neon/Drizzle Migration)**
-- Neon/Drizzle is the SINGLE source of truth for all app domains: posts, comments, likes, follows, favorites, listings, messages, conversations, notifications, marketplace
+- Neon/Drizzle is the SINGLE source of truth for all app domains: posts, comments, likes, follows, favorites, listings, messages, conversations, notifications, marketplace, profiles
 - Supabase is reserved ONLY for Auth + Storage (no data reads/writes for app domains)
 - Phase 1-2 Complete: Posts, Comments, Follows, Post Likes, Favorites migrated
 - Phase 3 Complete (Feb 2026): Messaging/Conversations fully migrated to Neon/Drizzle API
@@ -34,6 +34,16 @@ Preferred communication style: Simple, everyday language.
   - Zero supabase.from('notifications') calls remain in client or server
   - Zero postgres_changes subscriptions for notifications remain
   - Zero .channel() subscriptions for notifications remain
+- Phase 5 Complete (Feb 2026): Profiles fully migrated to Neon/Drizzle
+  - 11 columns added to profiles table (email, location, user_type, website_url, rating, total_reviews, years_experience, two_factor_enabled, two_factor_secret, backup_codes, privacy_settings, social_providers)
+  - Server endpoints: GET/PATCH /api/profiles/me, GET /api/profiles/:id, GET /api/profiles/username/:username, GET /api/profiles/search
+  - All 3 client auth hooks (useAuth, useAuthState, useAuthEnhanced) use apiRequest for profile fetch/update
+  - Client services migrated: api.ts userService, reviewService, notificationService, providerStripe, useSecuritySettings
+  - Client components migrated: ProfileSettings, UnifiedProfileView, UserSearchBar, useGlobalSearch, AuthCallback, EnhancedSignInForm, TwoFactorAuth
+  - Server middleware (auth.ts, requireAdmin.ts) uses storage.getProfile() for auth checks
+  - All server routes migrated: Stripe payouts/connect/account-status/create-connect-account, payout/start, providerApplications, user.ts, badges.ts, stripe-handlers
+  - Response includes both camelCase and snake_case aliases for UI compatibility
+  - Zero supabase.from('profiles') calls remain in client or server (excluding sampleDataLoader for dev/testing)
 
 ## System Architecture
 

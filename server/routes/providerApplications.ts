@@ -5,6 +5,7 @@ import { notificationService } from "../services/notificationService";
 import { db } from "../db";
 import { providerApplications, profiles } from "../../shared/schema";
 import { eq, and, desc } from "drizzle-orm";
+import { storage } from "../storage";
 
 const router = Router();
 
@@ -213,15 +214,12 @@ router.post("/review", async (req, res) => {
 
       // Update user profile (with error handling)
       try {
-        const { error: profileError } = await supabaseAdmin
-          .from("profiles")
-          .update({ verified: true })
-          .eq("id", application.user_id);
+        const updatedProfile = await storage.updateProfile(application.user_id, { verified: true });
 
-        if (profileError) {
+        if (!updatedProfile) {
           console.error(
-            "[PROVIDER APP] Failed to update profile:",
-            profileError,
+            "[PROVIDER APP] Failed to update profile for user:",
+            application.user_id,
           );
         } else {
           console.log("[PROVIDER APP] User profile marked as verified");
@@ -583,17 +581,13 @@ router.patch("/:id", async (req, res) => {
 
       // Update user profile (with error handling)
       try {
-        const { error: profileError } = await supabaseAdmin
-          .from("profiles")
-          .update({ verified: true })
-          .eq("id", application.user_id);
+        const updatedProfile = await storage.updateProfile(application.user_id, { verified: true });
 
-        if (profileError) {
+        if (!updatedProfile) {
           console.error(
-            "[PROVIDER APP] Failed to update profile:",
-            profileError,
+            "[PROVIDER APP] Failed to update profile for user:",
+            application.user_id,
           );
-          // Don't fail the request for profile update, just log
         } else {
           console.log("[PROVIDER APP] User profile marked as verified");
         }

@@ -1,14 +1,8 @@
 import { Request, Response } from 'express';
 import { z } from 'zod';
-import { createClient } from '@supabase/supabase-js';
 import { createStripeConnectAccount, createStripeAccountLink } from '../../../lib/stripe/connect';
 import { createProviderPayout, getProviderByUserId, getProviderPayout } from '../../../lib/supabase/providers';
-
-// Supabase service role client for server-side operations
-const supabase = createClient(
-  process.env.SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+import { storage } from '../../../storage';
 
 const connectPayoutSchema = z.object({
   providerId: z.string().uuid(),
@@ -46,18 +40,15 @@ export async function connectStripePayout(req: Request, res: Response) {
       account_type: accountType,
     });
 
-    // ALSO update profiles table using Supabase service role
-    const { error: upsertError } = await supabase
-      .from('profiles')
-      .update({
-        stripe_account_id: stripeAccount.id,
-        stripe_connected: false, // Will be set to true by webhook when details_submitted
-      })
-      .eq('id', req.user.id);
+    // ALSO update profiles table using Drizzle storage
+    const updatedProfile = await storage.updateProfile(req.user.id, {
+      stripe_account_id: stripeAccount.id,
+      stripe_connected: false, // Will be set to true by webhook when details_submitted
+    });
 
-    if (upsertError) {
-      console.error('[STRIPE CONNECT] Error updating profiles table:', upsertError);
-      throw upsertError;
+    if (!updatedProfile) {
+      console.error('[STRIPE CONNECT] Error updating profiles table for user:', req.user.id);
+      throw new Error('Failed to update profile');
     }
     
     console.log('[STRIPE CONNECT] Saved stripe_account_id to profiles table for user:', req.user.id);

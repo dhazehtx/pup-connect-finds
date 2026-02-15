@@ -1,19 +1,13 @@
 import type { Request, Response } from "express";
 import Stripe from "stripe";
 import { Pool } from "@neondatabase/serverless";
-import { createClient } from '@supabase/supabase-js';
+import { storage } from '../../storage';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: "2025-08-27.basil",
 });
 
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });
-
-// Supabase service role client for server-side operations
-const supabase = createClient(
-  process.env.SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
 
 // GET: health check for this route
 export async function getPayoutStart(req: Request, res: Response) {
@@ -148,18 +142,15 @@ async function saveStripeAccountId(userId: string, acctId: string): Promise<void
     
     console.log("[PAYOUT] Saved stripe_account_id to providers table:", providerId);
 
-    // 2) ALSO update profiles table using Supabase service role
-    const { error: upsertError } = await supabase
-      .from('profiles')
-      .update({
-        stripe_account_id: acctId,
-        stripe_connected: false, // Will be set to true by webhook when details_submitted
-      })
-      .eq('id', userId);
+    // 2) ALSO update profiles table via Drizzle storage
+    const updatedProfile = await storage.updateProfile(userId, {
+      stripe_account_id: acctId,
+      stripe_connected: false, // Will be set to true by webhook when details_submitted
+    });
 
-    if (upsertError) {
-      console.error("[PAYOUT] Error updating profiles table:", upsertError);
-      throw upsertError;
+    if (!updatedProfile) {
+      console.error("[PAYOUT] Error updating profiles table for user:", userId);
+      throw new Error('Failed to update profile');
     }
     
     console.log("[PAYOUT] Saved stripe_account_id to profiles table for user:", userId);

@@ -89,16 +89,15 @@ const TwoFactorAuth = ({ onSuccess }: TwoFactorAuthProps) => {
       // In a real implementation, you would verify the TOTP code here
       // For now, we'll simulate the verification
       if (verificationCode === '123456' || verificationCode.length === 6) {
-        const { error } = await supabase
-          .from('profiles')
-          .update({
+        const { apiRequest } = await import('@/lib/api');
+        await apiRequest('/api/profiles/me', {
+          method: 'PATCH',
+          body: {
             two_factor_enabled: true,
             two_factor_secret: secretKey,
             backup_codes: backupCodes
-          })
-          .eq('id', user?.id);
-        
-        if (error) throw error;
+          },
+        } as any);
         
         setIsEnabled(true);
         setSetupMode(false);
@@ -125,16 +124,15 @@ const TwoFactorAuth = ({ onSuccess }: TwoFactorAuthProps) => {
     setError(null);
     
     try {
-      const { error } = await supabase
-        .from('profiles')
-        .update({
+      const { apiRequest } = await import('@/lib/api');
+      await apiRequest('/api/profiles/me', {
+        method: 'PATCH',
+        body: {
           two_factor_enabled: false,
           two_factor_secret: null,
           backup_codes: null
-        })
-        .eq('id', user?.id);
-      
-      if (error) throw error;
+        },
+      } as any);
       
       setIsEnabled(false);
       setSetupMode(false);

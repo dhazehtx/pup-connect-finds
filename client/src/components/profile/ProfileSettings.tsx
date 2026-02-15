@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { ArrowLeft, Save } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
+import { apiRequest } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
 
 interface Profile {
@@ -52,12 +52,10 @@ const ProfileSettings = ({ profile, onBack, onUpdate }: ProfileSettingsProps) =>
   const handleSave = async () => {
     setLoading(true);
     try {
-      const { error } = await supabase
-        .from('profiles')
-        .update(formData)
-        .eq('id', profile.id);
-
-      if (error) throw error;
+      await apiRequest('/api/profiles/me', {
+        method: 'PATCH',
+        body: formData,
+      } as any);
 
       toast({
         title: "Profile Updated",

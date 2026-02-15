@@ -3,6 +3,7 @@ import { createClient } from '@supabase/supabase-js';
 import { db } from '../db';
 import { notifications, conversations, messages } from '../../shared/schema';
 import { eq, or, inArray } from 'drizzle-orm';
+import { storage } from '../storage';
 
 const router = Router();
 
@@ -54,12 +55,8 @@ router.get('/export-data', async (req: Request, res: Response) => {
       transactions: [] as any[]
     };
 
-    // Get profile data
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', user.id)
-      .single();
+    // Get profile data via Drizzle storage
+    const profile = await storage.getProfile(user.id);
     
     userData.profile = profile || {};
 
@@ -187,11 +184,8 @@ router.delete('/delete-account', async (req: Request, res: Response) => {
 
     await db.update(conversations).set({ seller_id: null, updated_at: new Date() }).where(eq(conversations.seller_id, user.id));
 
-    // 8. Delete profile
-    await supabase
-      .from('profiles')
-      .delete()
-      .eq('id', user.id);
+    // 8. Delete profile via Drizzle storage
+    await storage.deleteProfile(user.id);
 
     // 9. Delete auth user (this must be done with service role)
     const { error: deleteError } = await supabase.auth.admin.deleteUser(user.id);

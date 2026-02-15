@@ -1,16 +1,10 @@
 import type { Request, Response } from "express";
 import Stripe from "stripe";
-import { createClient } from '@supabase/supabase-js';
+import { storage } from '../../storage';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: "2025-08-27.basil",
 });
-
-// Supabase service role client for server-side operations
-const supabase = createClient(
-  process.env.SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
 
 /**
  * POST /create-connect-account
@@ -31,16 +25,13 @@ export async function createConnectAccount(req: Request, res: Response) {
 
     console.log('[STRIPE CONNECT] Created account:', account.id);
 
-    // Save to profiles table using Supabase service role
-    const { error: upsertError } = await supabase
-      .from('profiles')
-      .update({
-        stripe_account_id: account.id,
-        stripe_connected: !!account.details_submitted
-      })
-      .eq('id', userId);
+    // Save to profiles table via Drizzle storage
+    const updatedProfile = await storage.updateProfile(userId, {
+      stripe_account_id: account.id,
+      stripe_connected: !!account.details_submitted
+    });
 
-    if (upsertError) throw upsertError;
+    if (!updatedProfile) throw new Error('Failed to update profile');
 
     console.log('[STRIPE CONNECT] Saved stripe_account_id to profiles table for user:', userId);
 

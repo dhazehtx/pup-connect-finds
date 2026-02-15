@@ -1,16 +1,10 @@
 import type { Request, Response } from "express";
 import Stripe from "stripe";
-import { createClient } from '@supabase/supabase-js';
+import { storage } from '../../storage';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: "2025-08-27.basil",
 });
-
-// Supabase service role client for server-side operations
-const supabase = createClient(
-  process.env.SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
 
 /**
  * GET /stripe/account-status/:acctId/:userId
@@ -40,17 +34,14 @@ export async function getAccountStatus(req: Request, res: Response) {
       isReady
     });
 
-    // Update profiles table with connection status
-    const { error: updateError } = await supabase
-      .from('profiles')
-      .update({ 
-        stripe_connected: isReady 
-      })
-      .eq('id', userId);
+    // Update profiles table with connection status via Drizzle storage
+    const updatedProfile = await storage.updateProfile(userId, { 
+      stripe_connected: isReady 
+    });
 
-    if (updateError) {
-      console.error('[STRIPE ACCOUNT STATUS] Error updating profiles table:', updateError);
-      throw updateError;
+    if (!updatedProfile) {
+      console.error('[STRIPE ACCOUNT STATUS] Error updating profiles table for user:', userId);
+      throw new Error('Failed to update profile');
     }
 
     console.log('[STRIPE ACCOUNT STATUS] Updated profiles table for user:', userId);
