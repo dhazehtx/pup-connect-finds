@@ -1,0 +1,57 @@
+Phase X — Global Profile Search Dropdown Not Showing Results (BLOCKER)
+(No unrelated refactors)
+
+GUARDRAILS
+- Do NOT change database architecture. Profiles are Neon/Drizzle source of truth.
+- Do NOT add Supabase DB reads/writes for profiles.
+- Make the smallest possible change to restore search dropdown + click-to-open profile.
+- Maintain compatibility response shape: if UI expects old shape, support both temporarily.
+
+SYMPTOM
+Typing a profile name in the global search shows no dropdown results, so I can’t click a profile to test Follow/Message.
+
+TASK 1 — Confirm request fires (repo truth)
+Find the global search input component and the hook/service it uses (likely useGlobalSearch or similar).
+Add TEMP debug logs:
+- On input change: console.log("SEARCH_QUERY", query)
+- Before request: console.log("SEARCH_REQUEST", endpoint, query)
+- After response: console.log("SEARCH_RESPONSE", typeof data, Array.isArray(data), data?.length ?? data?.results?.length ?? data?.profiles?.length)
+
+Confirm in DevTools that a network request is made when typing >= 2 chars.
+
+TASK 2 — Fix endpoint + query param mismatch (if any)
+Verify the server route path for profile search (e.g. GET /api/profiles/search?q=... or /api/profiles/search?query=...).
+Verify the client is calling the correct endpoint and param name.
+
+If server expects `q` but client sends `query` (or vice versa), fix client to match server.
+If client expects /search/profiles but server is /profiles/search, fix to match.
+
+TASK 3 — Fix response shape + field mapping (most likely)
+Make the client accept ALL of these shapes without breaking:
+- Array: `[ { id, username, full_name/fullName, avatar_url/avatarUrl } ]`
+- Object: `{ results: [...] }`
+- Object: `{ profiles: [...] }`
+
+Normalize into a single `results` array for rendering.
+Also ensure fields used in UI exist after normalization:
+- displayName = full_name || fullName || username
+- avatar = avatar_url || avatarUrl || null
+- userId = id
+
+TASK 4 — Fix dropdown rendering/clickability (if data exists but nothing shows)
+If response contains results but dropdown appears empty:
+- Ensure dropdown container is rendered when results.length > 0
+- Ensure it’s not hidden by CSS:
+  - Add z-50 (or similar)
+  - Ensure parent does not have overflow-hidden that clips it
+  - Ensure pointer-events are enabled
+- Ensure each result row has onClick navigating to the profile route (and log "SEARCH_CLICK", userId)
+
+TASK 5 — Verification (must output)
+A) Evidence from logs:
+- Show 1 example: query typed, endpoint called, status code, response snippet (first 200 chars)
+B) Confirm dropdown shows at least 1 result for an existing username
+C) Confirm clicking a result navigates to that user’s profile page
+D) Grep proof:
+- No new supabase.from('profiles') added anywhere
+E) List changed files + what changed

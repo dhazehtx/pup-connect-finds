@@ -103,32 +103,39 @@ export default function SearchBar({ placeholder = "Search breeders, puppies, she
                 key={result.id}
                 to={result.type === "listing" ? `/listing/${result.id}` : `/profile/${result.id}`}
                 onClick={() => { 
-                  console.log("Link clicked →", result);
                   setQuery(""); 
                   setHighlightedIndex(-1); 
                 }}
                 onMouseEnter={() => setHighlightedIndex(index)}
                 className={`flex w-full items-center gap-3 px-4 py-3 text-left transition-colors duration-200 border-b border-gray-100 last:border-b-0 cursor-pointer
-                  ${index === highlightedIndex ? "bg-primary-50" : "hover:bg-gray-50"}`}
+                  ${index === highlightedIndex ? "bg-blue-50" : "hover:bg-gray-50"}`}
                 role="option"
                 aria-selected={index === highlightedIndex}
               >
-                {result.thumb ? (
-                  <img
-                    src={result.thumb}
-                    alt={result.title}
-                    className={`h-10 w-10 object-cover ${
+                {(() => {
+                  const thumb = result.type === 'listing' ? result.image : result.avatar_url;
+                  const alt = result.type === 'listing' ? result.name : result.username;
+                  return thumb ? (
+                    <img
+                      src={thumb}
+                      alt={alt}
+                      className={`h-10 w-10 object-cover ${
+                        result.type === "profile" ? "rounded-full" : "rounded"
+                      } flex-shrink-0`}
+                    />
+                  ) : (
+                    <div className={`h-10 w-10 bg-gray-200 flex-shrink-0 ${
                       result.type === "profile" ? "rounded-full" : "rounded"
-                    } flex-shrink-0`}
-                  />
-                ) : (
-                  <div className={`h-10 w-10 bg-gray-200 flex-shrink-0 ${
-                    result.type === "profile" ? "rounded-full" : "rounded"
-                  }`} />
-                )}
+                    }`} />
+                  );
+                })()}
                 <div className="min-w-0 flex-1">
-                  <p className="truncate font-medium text-gray-900">{result.title}</p>
-                  <p className="truncate text-xs text-gray-500">{result.sub}</p>
+                  <p className="truncate font-medium text-gray-900">
+                    {result.type === 'listing' ? result.name : (result.full_name || `@${result.username}`)}
+                  </p>
+                  <p className="truncate text-xs text-gray-500">
+                    {result.type === 'listing' ? `$${result.price.toLocaleString()} · ${result.breed}` : `@${result.username}`}
+                  </p>
                 </div>
               </Link>
             ))

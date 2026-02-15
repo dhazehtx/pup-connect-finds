@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Search, Loader2, User, MapPin, DollarSign } from 'lucide-react';
 import { useGlobalSearch } from '@/hooks/useGlobalSearch';
-import { COMPONENTS, buildCardClass } from '@/styles/constants';
+import { COMPONENTS } from '@/styles/constants';
 import { Input } from '@/components/ui/input';
 import { useLocation } from 'wouter';
 
@@ -83,9 +83,8 @@ const GlobalSearch: React.FC<GlobalSearchProps> = ({
         )}
       </div>
 
-      {/* Search Results Dropdown */}
       {isOpen && (
-        <div className={`absolute top-full left-0 right-0 mt-2 ${buildCardClass('elevated')} max-h-96 overflow-y-auto z-dropdown`}>
+        <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-200 rounded-lg shadow-xl max-h-96 overflow-y-auto z-[9999]">
           {loading ? (
             <div className="p-4 text-center text-gray-500">
               <Loader2 className="w-5 h-5 animate-spin mx-auto mb-2" />
@@ -93,7 +92,7 @@ const GlobalSearch: React.FC<GlobalSearchProps> = ({
             </div>
           ) : results.length > 0 ? (
             <div className="py-2">
-              {results.map((result, index) => (
+              {results.map((result) => (
                 <button
                   key={`${result.type}-${result.id}`}
                   onClick={() => handleResultClick(result)}
@@ -101,26 +100,19 @@ const GlobalSearch: React.FC<GlobalSearchProps> = ({
                 >
                   {result.type === 'listing' ? (
                     <div className="flex items-center space-x-3">
-                      {/* Listing Image */}
                       <div className="w-12 h-12 bg-gray-200 rounded-lg overflow-hidden flex-shrink-0">
                         {result.image ? (
-                          <img 
-                            src={result.image} 
-                            alt={result.name}
-                            className="w-full h-full object-cover"
-                          />
+                          <img src={result.image} alt={result.name} className="w-full h-full object-cover" />
                         ) : (
                           <div className="w-full h-full bg-gray-300 flex items-center justify-center">
                             <Search className="w-4 h-4 text-gray-500" />
                           </div>
                         )}
                       </div>
-                      
-                      {/* Listing Info */}
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between">
                           <h4 className="font-medium text-gray-900 truncate">{result.name}</h4>
-                          <span className="text-primary-600 font-semibold flex items-center">
+                          <span className="text-blue-600 font-semibold flex items-center">
                             <DollarSign className="w-3 h-3 mr-1" />
                             {result.price.toLocaleString()}
                           </span>
@@ -136,27 +128,20 @@ const GlobalSearch: React.FC<GlobalSearchProps> = ({
                     </div>
                   ) : (
                     <div className="flex items-center space-x-3">
-                      {/* Profile Avatar */}
                       <div className="w-10 h-10 bg-gray-200 rounded-full overflow-hidden flex-shrink-0">
                         {result.avatar_url ? (
-                          <img 
-                            src={result.avatar_url} 
-                            alt={result.username}
-                            className="w-full h-full object-cover"
-                          />
+                          <img src={result.avatar_url} alt={result.username} className="w-full h-full object-cover" />
                         ) : (
                           <div className="w-full h-full bg-gray-300 flex items-center justify-center">
                             <User className="w-4 h-4 text-gray-500" />
                           </div>
                         )}
                       </div>
-                      
-                      {/* Profile Info */}
                       <div className="flex-1 min-w-0">
-                        <h4 className="font-medium text-gray-900 truncate">@{result.username}</h4>
-                        {result.full_name && (
-                          <p className="text-sm text-gray-600 truncate">{result.full_name}</p>
-                        )}
+                        <h4 className="font-medium text-gray-900 truncate">
+                          {result.full_name || `@${result.username}`}
+                        </h4>
+                        <p className="text-sm text-gray-600 truncate">@{result.username}</p>
                       </div>
                     </div>
                   )}

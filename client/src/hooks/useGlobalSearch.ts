@@ -3,8 +3,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { apiRequest } from "@/lib/api";
 
 export type SearchResult =
-  | { type: "listing"; id: string; title: string; sub: string; thumb: string }
-  | { type: "profile"; id: string; title: string; sub: string; thumb: string };
+  | { type: "listing"; id: string; name: string; breed: string; price: number; image: string; location?: string }
+  | { type: "profile"; id: string; username: string; full_name: string; avatar_url: string; verified?: boolean };
 
 export function useGlobalSearch(query: string) {
   const [results, setResults] = useState<SearchResult[]>([]);
@@ -20,55 +20,50 @@ export function useGlobalSearch(query: string) {
     setLoading(true);
     const timer = setTimeout(async () => {
       try {
-        console.log('[GLOBAL SEARCH] Searching for:', query);
         const like = `%${query}%`;
         
-        // Enhanced search covering all relevant columns
-        const [listResp, profResp] = await Promise.all([
-          // Search dog_listings: name, breed, and description
+        const [listResp, profData] = await Promise.all([
           supabase
             .from("dog_listings")
-            .select("id, dog_name, breed, price, image_url, description")
+            .select("id, dog_name, breed, price, image_url, description, location")
             .or(`dog_name.ilike.${like}, breed.ilike.${like}, description.ilike.${like}`)
             .eq("status", "active")
             .order('created_at', { ascending: false })
             .limit(8),
           
-          apiRequest(`/api/profiles/search?q=${encodeURIComponent(query)}&limit=8`).then(data => ({ data })),
+          apiRequest(`/api/profiles/search?q=${encodeURIComponent(query)}&limit=8`),
         ]);
 
-        const { data: list = [] } = listResp;
-        const { data: prof = [] } = profResp;
+        const list = listResp.data || [];
+        const prof = Array.isArray(profData) ? profData : [];
 
-        // Transform listings data to match SearchResult interface
-        const listings: SearchResult[] = (list || []).map(l => ({
+        const listings: SearchResult[] = list.map((l: any) => ({
           type: "listing" as const,
           id: l.id,
-          title: l.dog_name || '',
-          sub: `$${(l.price || 0).toLocaleString()} · ${l.breed || ''}`,
-          thumb: l.image_url || "",
+          name: l.dog_name || '',
+          breed: l.breed || '',
+          price: l.price || 0,
+          image: l.image_url || '',
+          location: l.location || undefined,
         }));
 
-        // Transform profiles data with enhanced display logic
-        const profiles: SearchResult[] = (prof || []).map((p: any) => ({
+        const profiles: SearchResult[] = prof.map((p: any) => ({
           type: "profile" as const,
           id: p.id,
-          title: p.full_name ? p.full_name : `@${p.username || ''}`,
-          sub: p.username ? `@${p.username}` : "User Profile",
-          thumb: p.avatar_url || "",
+          username: p.username || '',
+          full_name: p.full_name || p.fullName || '',
+          avatar_url: p.avatar_url || p.avatarUrl || '',
+          verified: p.verified || false,
         }));
 
-        // Combine and set results
-        const combinedResults = [...listings, ...profiles];
-        console.log('[GLOBAL SEARCH] Total results:', combinedResults.length);
-        setResults(combinedResults);
+        setResults([...listings, ...profiles]);
       } catch (error) {
         console.error('[GLOBAL SEARCH] Error:', error);
         setResults([]);
       } finally {
         setLoading(false);
       }
-    }, 250); // reduced debounce for snappier feel
+    }, 250);
 
     return () => clearTimeout(timer);
   }, [query]);
