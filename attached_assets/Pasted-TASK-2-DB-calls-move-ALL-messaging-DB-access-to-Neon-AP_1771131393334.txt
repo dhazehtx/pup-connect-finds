@@ -1,0 +1,113 @@
+TASK 2 — DB calls: move ALL messaging DB access to Neon API
+
+Replace any client-side Supabase DB reads/writes for messages/conversations with API calls to existing endpoints.
+
+Expected existing endpoints (verify these exist; if not, create them):
+
+GET /api/conversations/:userId
+
+POST /api/conversations
+
+GET /api/conversations/:id/messages
+
+POST /api/messages
+
+If needed for correctness, add minimal endpoints:
+
+PATCH /api/conversations/:id (update metadata like last_message_at)
+
+POST /api/messages/:id/read (mark read)
+
+GET /api/messages/unread-count (optional)
+
+Important:
+
+Auth required for writes.
+
+Reads must verify the user is a participant in the conversation.
+
+TASK 3 — Realtime replacement for messaging (Socket.io)
+A) Add Socket.io server
+
+Add Socket.io to the server.
+
+Authenticate socket connections using the existing Supabase session/JWT token:
+
+Client sends Bearer token (same one used for API calls).
+
+Server verifies token using Supabase auth (same approach as your existing auth middleware) and assigns socket.userId.
+
+B) Implement realtime events (no UI changes)
+
+Server events:
+
+conversation:join { conversationId }
+
+conversation:leave { conversationId }
+
+message:send { conversationId, content, ... }
+
+Server writes message to Neon (Drizzle), then emits message:new to that conversation room.
+
+typing:start / typing:stop { conversationId }
+
+Emit typing:update to the room.
+
+presence:update (basic online/offline)
+
+Track connected users; emit presence:online / presence:offline.
+
+Client changes:
+
+Replace Supabase realtime subscriptions used for:
+
+new messages
+
+typing indicators
+
+presence
+
+With Socket.io listeners:
+
+on message:new → append message to UI (or trigger refetch)
+
+on typing:update → show typing indicator
+
+on presence events → update presence UI if it exists
+
+Rule: Keep your current MessageThread UI components. Only replace the realtime transport layer.
+
+Your payment is past due. Please update your payment method to continue using Replit.
+
+TASK 4 — Verification (must run + report)
+A) Grep proof (must be 0)
+
+Report counts:
+
+supabase.from('messages')
+
+supabase.from('conversations')
+
+rest/v1/messages
+
+rest/v1/conversations
+
+B) Smoke test API endpoints
+
+Report status + snippet:
+
+GET /api/conversations/:userId
+
+GET /api/conversations/:id/messages
+
+POST /api/messages (unauthed should 401; authed should succeed)
+
+C) Socket sanity test
+
+Log server output confirming socket connects with a valid userId
+
+Confirm sending a message triggers:
+
+Neon DB insert
+
+message:new emitted and received by another client tab (or simulate)

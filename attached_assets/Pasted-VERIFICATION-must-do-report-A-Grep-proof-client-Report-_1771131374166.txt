@@ -1,0 +1,109 @@
+VERIFICATION (must do + report)
+A) Grep proof (client)
+
+Report counts for each (must all be 0 after changes):
+
+supabase.from('follows')
+
+supabase.from('post_likes')
+
+supabase.from('favorites')
+
+rest/v1/follows
+
+rest/v1/post_likes
+
+rest/v1/favorites
+
+B) API smoke tests (server)
+
+Report status + snippet:
+
+GET /api/follows/stats/:userId
+
+GET /api/posts/:id/likes
+
+POST /api/posts/:id/likes (authed)
+
+DELETE /api/posts/:id/likes (authed)
+
+GET /api/favorites/:userId
+
+C) UI sanity (brief)
+
+Follow/unfollow works, follower/following list opens correct profiles
+
+Like toggles correctly + count updates
+
+Favorite toggles correctly (no error spam) OUTPUT FORMAT
+
+Files changed list
+
+Changes per file (1–2 bullets)
+
+Grep counts table
+
+Smoke test table
+
+Any assumptions / missing endpoints added
+
+Do the implementation now. paste back:
+
+the grep counts table
+
+and whether likes/favorites/follows work end-to-end
+
+⚠️ Biggest remaining “source-of-truth” risk
+
+Messaging + Conversations (because it likely still has Supabase DB + Supabase Realtime patterns somewhere, and messaging needs realtime behavior)
+
+So the correct next task is Phase 3: Messaging/Conversations. Phase 3 objective (simple)
+
+Neon owns messages + conversations (DB reads/writes through your Express API + Drizzle only)
+Supabase stays only for:
+
+Auth (session/JWT verification)
+
+Storage (uploads)
+
+(Optional) realtime only for non-DB channels — but for messaging we should switch to Socket.io Phase 3 (Messaging + Socket.io realtime)
+
+Paste this into Replit exactly:
+
+Phase 3 Migration — Messaging/Conversations Neon-only + Socket.io Realtime
+
+GOAL: Messages + conversations use Neon/Drizzle only for database reads/writes. Replace Supabase Realtime messaging/typing/presence with Socket.io, without changing UI/UX.
+
+GUARDRAILS
+
+Neon/Drizzle is the ONLY DB source of truth for: messages, conversations, conversation_participants (if exists).
+
+Do NOT add any Supabase DB usage for these domains: no supabase.from('messages'), no rest/v1/messages, no Supabase SQL/RPC.
+
+Keep Supabase ONLY for Auth session verification (get user from token).
+
+Keep UI/UX unchanged. Only swap data layer + realtime plumbing.
+
+If anything is missing, add the smallest safe endpoint.
+
+TASK 1 — Repo audit (must output file + line numbers)
+
+Search client + server for:
+
+supabase.from('messages'), supabase.from("messages")
+
+supabase.from('conversations'), supabase.from("conversations")
+
+supabase.channel( with anything related to:
+
+messages
+
+typing
+
+presence
+
+call / webrtc signaling
+
+any rest/v1/messages or rest/v1/conversations
+
+Output a short table: Pattern → Matches (file:line).
