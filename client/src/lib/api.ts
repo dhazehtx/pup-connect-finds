@@ -11,44 +11,33 @@ export const isAbortError = (err: any): boolean =>
 
 export async function apiRequest(
   path: string,
-  {
-    method = 'GET',
-    headers = {},
-    signal,
-    body,
-    ...rest
-  }: RequestInit & { body?: any } = {}
+  options: { method?: string; headers?: Record<string, string>; signal?: AbortSignal; body?: any } = {}
 ) {
+  const { method = 'GET', headers = {}, signal, body } = options;
+
   const {
     data: { session },
   } = await supabase.auth.getSession();
   let token = session?.access_token || '';
 
-  // Clean token to prevent ByteString errors - remove Unicode characters
   if (token) {
-    // Remove ellipsis and other problematic Unicode characters
     token = token.replace(/…|\u2026/g, '');
-    
-    // Validate token is clean ASCII (Base64 + dots/dashes)
     if (!/^[A-Za-z0-9._-]+$/.test(token)) {
       console.warn('[apiRequest] Invalid token characters detected, clearing token');
       token = '';
     }
   }
 
-  // Handle paths that already start with /api or just ensure leading slash
   const url = path.startsWith('/api') ? path : 
                path.startsWith('/') ? `${BACKEND_PREFIX}${path}` : 
                `${BACKEND_PREFIX}/${path}`;
-  const fetchUrl = url; // e.g. /api/posts/home-feed
 
-  // timeout fallback
   const controller = new AbortController();
   const finalSignal = signal || controller.signal;
-  const timeout = setTimeout(() => controller.abort(), 5000);
+  const timeout = setTimeout(() => controller.abort(), 15000);
 
   try {
-    const res = await fetch(fetchUrl, {
+    const res = await fetch(url, {
       method,
       headers: {
         Accept: 'application/json',
@@ -58,7 +47,6 @@ export async function apiRequest(
       },
       body: body ? JSON.stringify(body) : undefined,
       signal: finalSignal,
-      ...rest,
     });
     clearTimeout(timeout);
     if (!res.ok) {

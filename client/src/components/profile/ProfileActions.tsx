@@ -24,6 +24,7 @@ const ProfileActions = ({
   const { isFollowing, followUser, unfollowUser } = useFollowSystem(profileUserId);
 
   const handleFollowToggle = async () => {
+    console.log('[FOLLOW_CLICK] ProfileActions handler fired, target:', profileUserId);
     if (isFollowing) {
       await unfollowUser(profileUserId);
     } else {

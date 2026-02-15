@@ -20,7 +20,7 @@ router.post('/', async (req, res) => {
     }
 
     // Can't follow yourself
-    if (followed_id === req.user.id) {
+    if (followed_id === req.user!.id) {
       return res.status(400).json({ message: 'Cannot follow yourself' });
     }
 
@@ -39,7 +39,7 @@ router.post('/', async (req, res) => {
       .select()
       .from(follows)
       .where(and(
-        eq(follows.follower_id, req.user.id),
+        eq(follows.follower_id, req.user!.id),
         eq(follows.followed_id, followed_id)
       ));
 
@@ -51,7 +51,7 @@ router.post('/', async (req, res) => {
     const [follow] = await db
       .insert(follows)
       .values({
-        follower_id: req.user.id,
+        follower_id: req.user!.id,
         followed_id: followed_id
       })
       .returning();
@@ -79,7 +79,7 @@ router.delete('/:userId', async (req, res) => {
     const deletedRows = await db
       .delete(follows)
       .where(and(
-        eq(follows.follower_id, req.user.id),
+        eq(follows.follower_id, req.user!.id),
         eq(follows.followed_id, userId)
       ));
 
@@ -108,7 +108,7 @@ router.get('/check/:userId', async (req, res) => {
       .select()
       .from(follows)
       .where(and(
-        eq(follows.follower_id, req.user.id),
+        eq(follows.follower_id, req.user!.id),
         eq(follows.followed_id, userId)
       ));
 

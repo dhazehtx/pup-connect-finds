@@ -115,6 +115,7 @@ const UnifiedProfileView = ({ userId, isCurrentUser }: UnifiedProfileViewProps) 
   };
 
   const handleMessage = async () => {
+    console.log('[MESSAGE_CLICK] handler fired, user:', user?.id, 'target:', profileId);
     if (!user) {
       toast({ title: "Sign in required", description: "Please sign in to send messages", variant: "destructive" });
       navigate('/greeting');
@@ -124,14 +125,19 @@ const UnifiedProfileView = ({ userId, isCurrentUser }: UnifiedProfileViewProps) 
 
     setMessagingLoading(true);
     try {
-      const conv = await apiRequest('/messaging/conversations/find-or-create', {
+      const conv = await apiRequest('/api/messaging/conversations/find-or-create', {
         method: 'POST',
         body: { seller_id: profileId }
       });
-      navigate(`/messages/${conv.id}`);
-    } catch (err) {
-      console.error('Error starting conversation:', err);
-      toast({ title: "Error", description: "Could not start conversation", variant: "destructive" });
+      console.log('[MESSAGE_CLICK] conversation result:', conv);
+      if (conv?.id) {
+        navigate(`/messages/${conv.id}`);
+      } else {
+        navigate('/messages');
+      }
+    } catch (err: any) {
+      console.error('[MESSAGE_CLICK] error:', err);
+      toast({ title: "Error", description: err?.message || "Could not start conversation", variant: "destructive" });
     } finally {
       setMessagingLoading(false);
     }
@@ -186,9 +192,9 @@ const UnifiedProfileView = ({ userId, isCurrentUser }: UnifiedProfileViewProps) 
                 <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-4">
                   <h1 className="text-xl sm:text-2xl font-bold">{profile.full_name}</h1>
                   {profile.verified && (
-                    <div className="flex items-center gap-1 bg-blue-100 text-blue-800 text-xs px-3 py-1 rounded-full">
+                    <div className="flex items-center gap-1 bg-blue-600 text-white text-xs font-semibold px-3 py-1 rounded-full">
                       <Shield className="w-3 h-3" />
-                      Official
+                      Verified
                     </div>
                   )}
                 </div>

@@ -89,9 +89,13 @@ export const useFollowSystem = (userId?: string) => {
   };
 
   const followUser = async (targetUserId: string) => {
-    if (!user) return;
+    if (!user) {
+      toast({ title: "Login required", description: "Please sign in to follow users", variant: "destructive" });
+      return;
+    }
 
     try {
+      console.log('[FOLLOW_CLICK] followUser fired, target:', targetUserId);
       await apiRequest('/api/follows', {
         method: 'POST',
         body: { followed_id: targetUserId },
@@ -101,14 +105,14 @@ export const useFollowSystem = (userId?: string) => {
       await fetchFollowers();
       
       toast({
-        title: "Success",
-        description: "User followed successfully",
+        title: "Now following!",
+        description: "You'll see their posts in your feed",
       });
-    } catch (error) {
-      console.error('Error following user:', error);
+    } catch (error: any) {
+      console.error('[FOLLOW_CLICK] followUser error:', error);
       toast({
         title: "Error",
-        description: "Failed to follow user",
+        description: error?.message || "Failed to follow user",
         variant: "destructive",
       });
     }
@@ -118,6 +122,7 @@ export const useFollowSystem = (userId?: string) => {
     if (!user) return;
 
     try {
+      console.log('[FOLLOW_CLICK] unfollowUser fired, target:', targetUserId);
       await apiRequest(`/api/follows/${targetUserId}`, {
         method: 'DELETE',
       });
@@ -126,14 +131,14 @@ export const useFollowSystem = (userId?: string) => {
       await fetchFollowers();
       
       toast({
-        title: "Success",
-        description: "User unfollowed successfully",
+        title: "Unfollowed",
+        description: "You won't see their posts in your feed anymore",
       });
-    } catch (error) {
-      console.error('Error unfollowing user:', error);
+    } catch (error: any) {
+      console.error('[FOLLOW_CLICK] unfollowUser error:', error);
       toast({
         title: "Error",
-        description: "Failed to unfollow user",
+        description: error?.message || "Failed to unfollow user",
         variant: "destructive",
       });
     }

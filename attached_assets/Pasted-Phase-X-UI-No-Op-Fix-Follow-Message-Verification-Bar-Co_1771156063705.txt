@@ -1,0 +1,52 @@
+Phase X — UI No-Op Fix (Follow + Message) + Verification Bar Contrast
+(Do NOT do any unrelated refactors)
+
+GUARDRAILS
+- Do NOT change business logic unless needed to fix the no-op.
+- Do NOT change database architecture. Keep existing Neon/Drizzle server source of truth.
+- Keep UI working during migration: maintain compatible response shapes (snake_case + camelCase if needed).
+- Changes must be minimal, targeted, and fully verified.
+
+GOAL
+Right now Follow and Message appear to do nothing when clicked. We must determine whether:
+(A) click handler not firing,
+(B) request failing (401/404/etc),
+(C) request succeeds but UI doesn’t update.
+
+TASK 1 — Instrument the UI (minimal, removable)
+For BOTH buttons:
+- Add a temporary console.log at the start of the click handler (e.g. "FOLLOW_CLICK" / "MESSAGE_CLICK").
+- Wrap the handler in try/catch:
+  - On error: console.error + show a visible toast/banner error message (so failures aren’t silent).
+
+Also verify bottom-nav "Messages" tab navigation:
+- Ensure it actually routes to /messages and renders something (even if empty).
+
+TASK 2 — Verify Network + Auth behavior (repo truth)
+When clicking Follow/Message:
+- Confirm a network request is made.
+- Record endpoint + status code.
+- If 401: fix auth header attachment so apiRequest sends Authorization: Bearer <access_token> consistently.
+  - Confirm how apiRequest currently builds headers.
+  - Confirm how the server auth middleware reads tokens.
+- If no network request: fix UI layering / pointer-events / disabled state blocking clicks.
+
+TASK 3 — Make UI update after success
+- Follow: after POST/DELETE succeeds, ensure the follow state updates (invalidate/refetch follow status + follower counts).
+- Message: after find-or-create succeeds, navigate to the conversation thread (or messages page) and ensure something changes (route change or modal open).
+
+TASK 4 — Fix Verification Bar Text Contrast
+Find the verification banner/toast component:
+- Ensure text is readable (e.g. force text-black on light background, or text-white on dark).
+- Keep styling minimal.
+
+VERIFICATION (must provide output)
+1) Click-test proof:
+   - Confirm console logs appear for both buttons
+   - Confirm network requests fire
+   - Confirm status codes (and response snippet)
+2) If 401 was happening: show exactly what changed in apiRequest/auth
+3) Grep (prove no regressions):
+   - No new supabase.from(...) added
+4) Report:
+   - Changed files list + brief summary

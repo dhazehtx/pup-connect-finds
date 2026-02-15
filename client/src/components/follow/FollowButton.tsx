@@ -32,13 +32,11 @@ export const FollowButton: React.FC<FollowButtonProps> = ({
     return null;
   }
 
-  // Check if user is followed
   const { data: followStatus } = useQuery({
     queryKey: ['follow-status', userId],
     queryFn: async () => {
-      if (!user) return false;
-      const response = await apiRequest(`follows/check/${userId}`);
-      return response.json();
+      if (!user) return { isFollowing: false };
+      return apiRequest(`/api/follows/check/${userId}`);
     },
     enabled: !!user,
   });
@@ -49,27 +47,23 @@ export const FollowButton: React.FC<FollowButtonProps> = ({
     }
   }, [followStatus]);
 
-  // Follow/unfollow mutation
   const followMutation = useMutation({
     mutationFn: async () => {
+      console.log('[FOLLOW_CLICK] mutationFn fired, isFollowing:', isFollowing, 'userId:', userId);
       if (isFollowing) {
-        // Unfollow user
-        return apiRequest(`follows/${userId}`, { method: 'DELETE' });
+        return apiRequest(`/api/follows/${userId}`, { method: 'DELETE' });
       } else {
-        // Follow user
-        return apiRequest('follows', { method: 'POST', body: { followed_id: userId } });
+        return apiRequest('/api/follows', { method: 'POST', body: { followed_id: userId } });
       }
     },
     onSuccess: () => {
       const newFollowingState = !isFollowing;
       setIsFollowing(newFollowingState);
-      
-      // Update cache
       queryClient.setQueryData(['follow-status', userId], { isFollowing: newFollowingState });
+      queryClient.invalidateQueries({ queryKey: ['follow-status'] });
       queryClient.invalidateQueries({ queryKey: ['follows'] });
       queryClient.invalidateQueries({ queryKey: ['followers'] });
       queryClient.invalidateQueries({ queryKey: ['following'] });
-      
       toast({
         title: newFollowingState ? "Now following!" : "Unfollowed",
         description: newFollowingState 
@@ -78,6 +72,7 @@ export const FollowButton: React.FC<FollowButtonProps> = ({
       });
     },
     onError: (error: any) => {
+      console.error('[FOLLOW_CLICK] mutation error:', error);
       toast({
         title: "Error",
         description: error.message || "Failed to update follow status",
@@ -89,6 +84,7 @@ export const FollowButton: React.FC<FollowButtonProps> = ({
   const handleFollowToggle = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
+    console.log('[FOLLOW_CLICK] handler fired, user:', user?.id, 'target:', userId);
     
     if (!user) {
       toast({
