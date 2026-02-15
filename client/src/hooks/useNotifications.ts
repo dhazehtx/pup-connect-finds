@@ -2,7 +2,6 @@ import { useState, useEffect, useCallback } from 'react';
 import { apiRequest } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
-import { useSocket } from '@/hooks/useSocket';
 
 interface Notification {
   id: string;
@@ -10,11 +9,27 @@ interface Notification {
   toUserId: string;
   fromUserId: string;
   postId?: string | null;
+  post_id?: string | null;
   commentId?: string | null;
+  comment_id?: string | null;
+  from_user_id?: string | null;
   message: string;
   isRead: boolean;
+  is_read: boolean;
   createdAt: string;
+  created_at: string;
   title?: string | null;
+  from_profile?: {
+    id: string | null;
+    full_name: string | null;
+    username: string | null;
+    avatar_url: string | null;
+  } | null;
+  actor?: {
+    id: string | null;
+    full_name: string | null;
+    avatar_url: string | null;
+  } | null;
 }
 
 export function useNotifications() {
@@ -23,7 +38,6 @@ export function useNotifications() {
   const [unreadCount, setUnreadCount] = useState(0);
   const { toast } = useToast();
   const { user } = useAuth();
-  const { connected, onEvent } = useSocket();
 
   const fetchNotifications = useCallback(async () => {
     try {
@@ -35,18 +49,13 @@ export function useNotifications() {
       const data = await apiRequest('/api/notifications');
 
       setNotifications(data || []);
-      setUnreadCount(data?.filter((n: any) => !n.isRead).length || 0);
+      setUnreadCount(data?.filter((n: any) => n.isRead === false || n.is_read === false).length || 0);
     } catch (error) {
       console.error('Error fetching notifications:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load notifications",
-        variant: "destructive",
-      });
     } finally {
       setLoading(false);
     }
-  }, [user, toast]);
+  }, [user]);
 
   const markAsRead = async (notificationId: string) => {
     try {
@@ -55,7 +64,7 @@ export function useNotifications() {
       setNotifications(prev => 
         prev.map(n => 
           n.id === notificationId 
-            ? { ...n, isRead: true }
+            ? { ...n, isRead: true, is_read: true }
             : n
         )
       );
@@ -76,7 +85,7 @@ export function useNotifications() {
       await apiRequest('/api/notifications/mark-all-read', { method: 'PATCH' });
 
       setNotifications(prev => 
-        prev.map(n => ({ ...n, isRead: true }))
+        prev.map(n => ({ ...n, isRead: true, is_read: true }))
       );
       setUnreadCount(0);
     } catch (error) {
@@ -98,16 +107,12 @@ export function useNotifications() {
   }, [user, fetchNotifications]);
 
   useEffect(() => {
-    if (!connected) return;
-
-    const cleanup = onEvent('notification:new', () => {
+    if (!user) return;
+    const interval = setInterval(() => {
       fetchNotifications();
-    });
-
-    return () => {
-      cleanup?.();
-    };
-  }, [connected, onEvent, fetchNotifications]);
+    }, 30000);
+    return () => clearInterval(interval);
+  }, [user, fetchNotifications]);
 
   return {
     notifications,

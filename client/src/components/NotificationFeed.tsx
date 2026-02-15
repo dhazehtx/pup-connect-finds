@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuthState as useAuth } from '@/hooks/useAuth';
+import { apiRequest } from '@/lib/api';
 import { formatDistanceToNow } from 'date-fns';
 import { Heart, MessageCircle, UserPlus, ShoppingBag, FileText, CheckCircle, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -60,20 +61,12 @@ export function NotificationFeed({ onNotificationRead, onClose }: NotificationFe
     enabled: !!user?.id,
   });
 
-  const notifications: Notification[] = (notificationsData as any)?.notifications || [];
+  const notifications: Notification[] = Array.isArray(notificationsData) ? notificationsData : (notificationsData as any)?.notifications || [];
 
   // Mark notification as read
   const markAsReadMutation = useMutation({
     mutationFn: async (notificationId: string) => {
-      const response = await fetch(`/api/notifications/${notificationId}/read`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${user?.access_token || ''}`,
-        },
-      });
-      if (!response.ok) throw new Error('Failed to mark as read');
-      return response.json();
+      return apiRequest(`/api/notifications/${notificationId}/read`, { method: 'PATCH' });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/notifications'] });
@@ -85,15 +78,7 @@ export function NotificationFeed({ onNotificationRead, onClose }: NotificationFe
   // Mark all as read
   const markAllAsReadMutation = useMutation({
     mutationFn: async () => {
-      const response = await fetch('/api/notifications/mark-all-read', {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${user?.access_token || ''}`,
-        },
-      });
-      if (!response.ok) throw new Error('Failed to mark all as read');
-      return response.json();
+      return apiRequest('/api/notifications/mark-all-read', { method: 'PATCH' });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/notifications'] });

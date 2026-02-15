@@ -1,9 +1,10 @@
 import { Router } from "express";
 import { db } from "../db";
-import { notifications } from "../../shared/schema";
+import { notifications, profiles } from "../../shared/schema";
 import { eq, and, desc, sql } from "drizzle-orm";
 import { insertNotificationSchema } from "@shared/schema";
 import { emitToUser } from "../socket";
+import { alias } from "drizzle-orm/pg-core";
 
 const router = Router();
 
@@ -15,14 +16,82 @@ router.get("/", async (req, res) => {
       return res.status(200).json([]);
     }
 
+    const fromProfile = alias(profiles, 'from_profile');
+
     const data = await db
-      .select()
+      .select({
+        id: notifications.id,
+        toUserId: notifications.toUserId,
+        fromUserId: notifications.fromUserId,
+        type: notifications.type,
+        title: notifications.title,
+        message: notifications.message,
+        read: notifications.read,
+        relatedId: notifications.relatedId,
+        postId: notifications.postId,
+        commentId: notifications.commentId,
+        messageId: notifications.messageId,
+        actorId: notifications.actorId,
+        entityTable: notifications.entityTable,
+        entityId: notifications.entityId,
+        meta: notifications.meta,
+        isRead: notifications.isRead,
+        targetUrl: notifications.targetUrl,
+        readAt: notifications.readAt,
+        bucketKey: notifications.bucketKey,
+        createdAt: notifications.createdAt,
+        fromProfileId: fromProfile.id,
+        fromProfileUsername: fromProfile.username,
+        fromProfileFullName: fromProfile.full_name,
+        fromProfileAvatarUrl: fromProfile.avatar_url,
+      })
       .from(notifications)
+      .leftJoin(fromProfile, eq(notifications.fromUserId, fromProfile.id))
       .where(eq(notifications.toUserId, userId))
       .orderBy(desc(notifications.createdAt))
       .limit(50);
 
-    return res.status(200).json(data ?? []);
+    const shaped = (data ?? []).map((row) => ({
+      id: row.id,
+      type: row.type,
+      title: row.title,
+      message: row.message || '',
+      isRead: row.isRead ?? false,
+      is_read: row.isRead ?? false,
+      read: row.read ?? false,
+      createdAt: row.createdAt,
+      created_at: row.createdAt,
+      readAt: row.readAt,
+      targetUrl: row.targetUrl,
+      toUserId: row.toUserId,
+      to_user_id: row.toUserId,
+      fromUserId: row.fromUserId,
+      from_user_id: row.fromUserId,
+      actorId: row.actorId,
+      postId: row.postId,
+      post_id: row.postId,
+      commentId: row.commentId,
+      comment_id: row.commentId,
+      messageId: row.messageId,
+      relatedId: row.relatedId,
+      entityTable: row.entityTable,
+      entityId: row.entityId,
+      meta: row.meta,
+      bucketKey: row.bucketKey,
+      from_profile: {
+        id: row.fromProfileId || row.fromUserId || null,
+        full_name: row.fromProfileFullName || null,
+        username: row.fromProfileUsername || null,
+        avatar_url: row.fromProfileAvatarUrl || null,
+      },
+      actor: {
+        id: row.fromProfileId || row.actorId || null,
+        full_name: row.fromProfileFullName || null,
+        avatar_url: row.fromProfileAvatarUrl || null,
+      },
+    }));
+
+    return res.status(200).json(shaped);
   } catch (err) {
     console.error('Unexpected /notifications error:', err);
     return res.status(200).json([]);

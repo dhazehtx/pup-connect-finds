@@ -4,7 +4,6 @@ import { useAuth } from '@/contexts/AuthContext';
 import { apiRequest } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
 import { NotificationData, NotificationSettings } from '@/types/messaging';
-import { useSocket } from '@/hooks/useSocket';
 
 export const useEnhancedNotifications = () => {
   const [notifications, setNotifications] = useState<NotificationData[]>([]);
@@ -22,7 +21,6 @@ export const useEnhancedNotifications = () => {
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
   const { toast } = useToast();
-  const { connected, onEvent } = useSocket();
 
   const fetchNotifications = useCallback(async () => {
     if (!user) return;
@@ -84,7 +82,7 @@ export const useEnhancedNotifications = () => {
             notification_settings: updatedSettings
           } as any,
           updated_at: new Date().toISOString()
-        }
+        } as any
       });
 
       setSettings(updatedSettings);
@@ -160,7 +158,7 @@ export const useEnhancedNotifications = () => {
           message,
           fromUserId: user?.id,
           relatedId: metadata?.listingId || metadata?.conversationId
-        }
+        } as any
       });
 
       if (settings.push_enabled && shouldSendNotification(type)) {
@@ -219,39 +217,12 @@ export const useEnhancedNotifications = () => {
   }, [user, fetchNotifications, fetchSettings]);
 
   useEffect(() => {
-    if (!connected || !user) return;
-
-    const cleanup = onEvent('notification:new', (payload: any) => {
-      const newNotification = {
-        ...payload,
-        priority: 'medium' as const,
-        type: payload.type as NotificationData['type']
-      } as NotificationData;
-      
-      setNotifications(prev => [newNotification, ...prev]);
-      setUnreadCount(prev => prev + 1);
-      
-      if (newNotification.priority === 'high' || newNotification.priority === 'urgent') {
-        toast({
-          title: newNotification.title,
-          description: newNotification.message,
-          variant: newNotification.priority === 'urgent' ? 'destructive' : 'default',
-        });
-      }
-
-      if (settings.push_enabled && shouldSendNotification(newNotification.type)) {
-        sendPushNotification(
-          newNotification.title,
-          newNotification.message,
-          (newNotification as any).target_url
-        );
-      }
-    });
-
-    return () => {
-      cleanup?.();
-    };
-  }, [connected, user, onEvent, toast, settings]);
+    if (!user) return;
+    const interval = setInterval(() => {
+      fetchNotifications();
+    }, 30000);
+    return () => clearInterval(interval);
+  }, [user, fetchNotifications]);
 
   return {
     notifications,

@@ -2,14 +2,12 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
-import { useSocket } from '@/hooks/useSocket';
 
 export const usePushNotifications = () => {
   const [permission, setPermission] = useState<NotificationPermission>('default');
   const [isSupported, setIsSupported] = useState(false);
   const { user } = useAuth();
   const { toast } = useToast();
-  const { connected, onEvent } = useSocket();
 
   useEffect(() => {
     setIsSupported('Notification' in window && 'serviceWorker' in navigator);
@@ -75,22 +73,6 @@ export const usePushNotifications = () => {
       console.error('Service Worker registration failed:', error);
     }
   };
-
-  useEffect(() => {
-    if (!user || !connected) return;
-
-    const cleanup = onEvent('notification:new', (payload: any) => {
-      sendNotification(payload.title || 'New notification', {
-        body: payload.message,
-        tag: payload.type,
-        requireInteraction: payload.type === 'payment_confirmation',
-      });
-    });
-
-    return () => {
-      cleanup?.();
-    };
-  }, [user, connected, onEvent, permission]);
 
   return {
     permission,

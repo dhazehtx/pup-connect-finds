@@ -8,7 +8,7 @@ interface ReplyNotificationItemProps {
   notification: {
     id: string;
     type: string;
-    from_user_id: string;
+    from_user_id?: string | null;
     post_id?: string | null;
     comment_id?: string | null;
     message: string;

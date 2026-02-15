@@ -1,45 +1,10 @@
 
-import { useEffect, useCallback } from 'react';
+import { useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { useEnhancedNotifications } from '@/hooks/useEnhancedNotifications';
-import { usePushNotifications } from '@/hooks/usePushNotifications';
-import { useToast } from '@/hooks/use-toast';
-import { useSocket } from '@/hooks/useSocket';
 import { apiRequest } from '@/lib/api';
 
 export const useRealtimeNotifications = () => {
   const { user } = useAuth();
-  const { fetchNotifications } = useEnhancedNotifications();
-  const { sendNotification, permission } = usePushNotifications();
-  const { toast } = useToast();
-  const { connected, onEvent } = useSocket();
-
-  const handleNewNotification = useCallback((payload: any) => {
-    toast({
-      title: payload.title || 'New notification',
-      description: payload.message,
-    });
-
-    if (permission === 'granted') {
-      sendNotification(payload.title || 'New notification', {
-        body: payload.message,
-        tag: payload.type,
-        requireInteraction: ['payment_confirmation', 'security_alert'].includes(payload.type),
-      });
-    }
-
-    fetchNotifications();
-  }, [toast, permission, sendNotification, fetchNotifications]);
-
-  useEffect(() => {
-    if (!user || !connected) return;
-
-    const cleanup = onEvent('notification:new', handleNewNotification);
-
-    return () => {
-      cleanup?.();
-    };
-  }, [user, connected, onEvent, handleNewNotification]);
 
   const triggerMessageNotification = useCallback(async (recipientId: string, senderName: string, message: string) => {
     try {
@@ -51,7 +16,7 @@ export const useRealtimeNotifications = () => {
           title: 'New Message',
           message: `${senderName}: ${message.substring(0, 50)}${message.length > 50 ? '...' : ''}`,
           fromUserId: user?.id
-        }
+        } as any
       });
     } catch (error) {
       console.error('Error creating message notification:', error);
@@ -69,7 +34,7 @@ export const useRealtimeNotifications = () => {
           message: `${buyerName} is interested in your listing`,
           relatedId: listingId,
           fromUserId: user?.id
-        }
+        } as any
       });
     } catch (error) {
       console.error('Error creating listing interest notification:', error);
@@ -86,7 +51,7 @@ export const useRealtimeNotifications = () => {
           title: 'New Review',
           message: `${reviewerName} left you a ${rating}-star review`,
           fromUserId: user?.id
-        }
+        } as any
       });
     } catch (error) {
       console.error('Error creating review notification:', error);
@@ -102,7 +67,7 @@ export const useRealtimeNotifications = () => {
           type: 'favorite_update',
           title: 'Favorite Listing Updated',
           message: `${listingName} has been ${updateType}`
-        }
+        } as any
       });
     } catch (error) {
       console.error('Error creating favorite update notification:', error);

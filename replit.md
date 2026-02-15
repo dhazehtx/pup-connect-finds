@@ -23,14 +23,17 @@ Preferred communication style: Simple, everyday language.
   - Presence system unified (Feb 2026): RealtimeContext.tsx now uses Socket.io instead of Supabase channel('user-presence'). Server broadcasts global presence:online/offline events and responds to presence:list requests. No Supabase Realtime channels remain for presence tracking.
   - GDPR messaging export/deletion uses Drizzle in server/routes/user.ts
 - Phase 4 Complete (Feb 2026): Notifications fully migrated to Neon/Drizzle
-  - Server endpoints already Drizzle-backed: GET/POST /api/notifications, PATCH /:id/read, PATCH /mark-all-read, GET /unread-count, DELETE /clear
+  - Server endpoints Drizzle-backed: GET/POST /api/notifications, PATCH /:id/read, PATCH /mark-all-read, GET /unread-count, DELETE /clear
+  - GET /api/notifications uses Drizzle LEFT JOIN on profiles to return from_profile (id, username, full_name, avatar_url) and actor objects with each notification
+  - Response includes both camelCase and snake_case aliases (isRead/is_read, createdAt/created_at, fromUserId/from_user_id) for UI compatibility
   - Enhanced notifications v2 at /api/notifications-v2 with cursor pagination via notificationService
-  - All Supabase Realtime channels for notifications removed from: useNotifications, useEnhancedNotifications, useRealtimeNotifications, usePushNotifications
-  - Real-time notification delivery via Socket.io: server emits notification:new to target user sockets, client hooks listen for notification:new events
-  - server/socket.ts exports emitToUser() helper for targeted Socket.io emission
+  - All Supabase Realtime channels removed; Socket.io replaced with polling (setInterval 30s) for launch safety
+  - All notification hooks (useNotifications, useEnhancedNotifications, useRealtimeNotifications, usePushNotifications) use apiRequest() with polling, no Socket.io dependency
+  - isRead field is the canonical read-state field across all server queries (notificationService, routes)
   - All raw fetch() calls replaced with apiRequest() for proper Bearer token auth
   - Zero supabase.from('notifications') calls remain in client or server
   - Zero postgres_changes subscriptions for notifications remain
+  - Zero .channel() subscriptions for notifications remain
 
 ## System Architecture
 
