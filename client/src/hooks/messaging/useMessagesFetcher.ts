@@ -1,6 +1,6 @@
 
 import { useState, useCallback } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { apiRequest } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
 
 interface Message {
@@ -28,27 +28,8 @@ export const useMessagesFetcher = () => {
 
   const fetchMessages = useCallback(async (convId: string) => {
     try {
-      const { data, error } = await supabase
-        .from('messages')
-        .select(`
-          *,
-          sender_profile:profiles!messages_sender_id_profiles_id_fkey (
-            full_name,
-            username,
-            avatar_url
-          )
-        `)
-        .eq('conversation_id', convId)
-        .order('created_at', { ascending: true });
-
-      if (error) throw error;
-      
-      const processedMessages = (data || []).map(msg => ({
-        ...msg,
-        sender_profile: Array.isArray(msg.sender_profile) ? msg.sender_profile[0] : msg.sender_profile
-      }));
-      
-      setMessages(processedMessages);
+      const data = await apiRequest(`/messaging/conversations/${convId}/messages`);
+      setMessages(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error('Error fetching messages:', error);
       toast({

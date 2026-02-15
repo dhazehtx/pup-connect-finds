@@ -1,6 +1,6 @@
 
 import { useCallback } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { apiRequest } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 
@@ -38,28 +38,10 @@ export const useMessageOperations = () => {
     }
 
     try {
-      const { data, error } = await supabase
-        .from('messages')
-        .insert([{
-          conversation_id: conversationId,
-          sender_id: user.id,
-          content,
-          message_type: messageType,
-          image_url: imageUrl
-        }])
-        .select()
-        .single();
-
-      if (error) throw error;
-
-      // Update conversation last message timestamp
-      await supabase
-        .from('conversations')
-        .update({ 
-          last_message_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', conversationId);
+      const data = await apiRequest('/messaging/messages', {
+        method: 'POST',
+        body: { conversation_id: conversationId, content }
+      });
 
       return data;
     } catch (error) {
@@ -77,12 +59,7 @@ export const useMessageOperations = () => {
     if (!user) return;
 
     try {
-      await supabase
-        .from('messages')
-        .update({ read_at: new Date().toISOString() })
-        .eq('conversation_id', conversationId)
-        .neq('sender_id', user.id)
-        .is('read_at', null);
+      await apiRequest(`/messaging/conversations/${conversationId}/mark-read`, { method: 'POST' });
     } catch (error) {
       console.error('Error marking messages as read:', error);
     }

@@ -5,7 +5,7 @@ import { useSearchParams, useNavigate } from 'react-router-dom';
 import MessageInbox from '@/components/messaging/MessageInbox';
 import { useConversationsManager } from '@/hooks/messaging/useConversationsManager';
 import { useAuth } from '@/contexts/AuthContext';
-import { supabase } from '@/integrations/supabase/client';
+import { apiRequest } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
 
 const DEBUG = import.meta.env.DEV && false;
@@ -21,7 +21,6 @@ const Messages = () => {
   const contactUserId = searchParams.get('contact');
   const listingId = searchParams.get('listing');
 
-  // Debug logging - throttled to avoid excessive re-renders
   useEffect(() => {
     if (DEBUG) console.debug('[MESSAGES PAGE] Component state changed', { user: !!user, loading, conversationsCount: conversations.length });  
   }, [user, loading, conversations.length]);
@@ -46,25 +45,17 @@ const Messages = () => {
     setLoading(true);
     
     try {
-      // Check if conversation already exists (bidirectional - user can be buyer or seller)
-      const { data: existingConversation } = await supabase
-        .from('conversations')
-        .select('id')
-        .eq('listing_id', listingId)
-        .or(`and(buyer_id.eq.${user.id},seller_id.eq.${contactUserId}),and(buyer_id.eq.${contactUserId},seller_id.eq.${user.id})`)
-        .single();
+      const result = await apiRequest('/messaging/conversations/find-or-create', {
+        method: 'POST',
+        body: {
+          listing_id: listingId,
+          seller_id: contactUserId
+        }
+      });
 
-      if (existingConversation) {
-        // Navigate to existing conversation
-        navigate(`/messages/${existingConversation.id}`);
+      if (result?.id) {
+        navigate(`/messages/${result.id}`);
         return;
-      }
-
-      // Create new conversation (current user is buyer, contactUserId is seller)
-      const conversationId = await createConversation(listingId, contactUserId);
-      if (conversationId) {
-        // Navigate to new conversation
-        navigate(`/messages/${conversationId}`);
       }
     } catch (error) {
       console.error('Error handling contact flow:', error);
@@ -75,7 +66,6 @@ const Messages = () => {
       });
     } finally {
       setLoading(false);
-      // Clear URL parameters
       setSearchParams({});
     }
   };

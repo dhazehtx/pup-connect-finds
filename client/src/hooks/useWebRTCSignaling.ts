@@ -1,6 +1,6 @@
 
 import { useState, useRef, useCallback } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { useSocket } from '@/hooks/useSocket';
 import { useToast } from '@/hooks/use-toast';
 
 interface RTCStats {
@@ -15,9 +15,7 @@ export const useWebRTCSignaling = (conversationId: string) => {
   const [remoteStream, setRemoteStream] = useState<MediaStream | null>(null);
   
   const peerConnectionRef = useRef<RTCPeerConnection | null>(null);
-  const localVideoRef = useRef<HTMLVideoElement | null>(null);
-  const remoteVideoRef = useRef<HTMLVideoElement | null>(null);
-  const signalingChannelRef = useRef<any>(null);
+  const { onEvent } = useSocket();
   
   const { toast } = useToast();
 
@@ -34,22 +32,18 @@ export const useWebRTCSignaling = (conversationId: string) => {
     const peerConnection = new RTCPeerConnection(config);
     
     peerConnection.onicecandidate = (event) => {
-      if (event.candidate && signalingChannelRef.current) {
-        signalingChannelRef.current.send({
-          type: 'broadcast',
-          event: 'ice-candidate',
-          payload: { candidate: event.candidate }
-        });
+      if (event.candidate) {
+        // WebRTC signaling via Socket.io would go here
       }
     };
 
     peerConnection.ontrack = (event) => {
-      const [remoteStream] = event.streams;
-      setRemoteStream(remoteStream);
+      const [stream] = event.streams;
+      setRemoteStream(stream);
       
       const remoteVideo = document.getElementById('remoteVideo') as HTMLVideoElement;
       if (remoteVideo) {
-        remoteVideo.srcObject = remoteStream;
+        remoteVideo.srcObject = stream;
       }
     };
 
@@ -59,42 +53,6 @@ export const useWebRTCSignaling = (conversationId: string) => {
 
     return peerConnection;
   }, []);
-
-  const setupSignalingChannel = useCallback(() => {
-    const channel = supabase.channel(`call-${conversationId}`, {
-      config: { presence: { key: conversationId } }
-    });
-
-    channel
-      .on('broadcast', { event: 'offer' }, async ({ payload }) => {
-        if (!peerConnectionRef.current) return;
-        
-        await peerConnectionRef.current.setRemoteDescription(payload.offer);
-        const answer = await peerConnectionRef.current.createAnswer();
-        await peerConnectionRef.current.setLocalDescription(answer);
-        
-        channel.send({
-          type: 'broadcast',
-          event: 'answer',
-          payload: { answer }
-        });
-      })
-      .on('broadcast', { event: 'answer' }, async ({ payload }) => {
-        if (!peerConnectionRef.current) return;
-        await peerConnectionRef.current.setRemoteDescription(payload.answer);
-      })
-      .on('broadcast', { event: 'ice-candidate' }, async ({ payload }) => {
-        if (!peerConnectionRef.current) return;
-        await peerConnectionRef.current.addIceCandidate(payload.candidate);
-      })
-      .on('broadcast', { event: 'call-end' }, () => {
-        endCall();
-      })
-      .subscribe();
-
-    signalingChannelRef.current = channel;
-    return channel;
-  }, [conversationId]);
 
   const initiateCall = useCallback(async (video: boolean = true) => {
     try {
@@ -117,22 +75,14 @@ export const useWebRTCSignaling = (conversationId: string) => {
         peerConnection.addTrack(track, stream);
       });
 
-      setupSignalingChannel();
-
       const offer = await peerConnection.createOffer();
       await peerConnection.setLocalDescription(offer);
-
-      signalingChannelRef.current?.send({
-        type: 'broadcast',
-        event: 'offer',
-        payload: { offer }
-      });
 
     } catch (error) {
       console.error('Failed to initiate call:', error);
       throw error;
     }
-  }, [createPeerConnection, setupSignalingChannel]);
+  }, [createPeerConnection]);
 
   const acceptCall = useCallback(async () => {
     try {
@@ -155,21 +105,13 @@ export const useWebRTCSignaling = (conversationId: string) => {
         peerConnection.addTrack(track, stream);
       });
 
-      setupSignalingChannel();
-
     } catch (error) {
       console.error('Failed to accept call:', error);
       throw error;
     }
-  }, [createPeerConnection, setupSignalingChannel]);
+  }, [createPeerConnection]);
 
   const rejectCall = useCallback(() => {
-    signalingChannelRef.current?.send({
-      type: 'broadcast',
-      event: 'call-end',
-      payload: { reason: 'rejected' }
-    });
-    
     endCall();
   }, []);
 
@@ -182,11 +124,6 @@ export const useWebRTCSignaling = (conversationId: string) => {
     if (peerConnectionRef.current) {
       peerConnectionRef.current.close();
       peerConnectionRef.current = null;
-    }
-
-    if (signalingChannelRef.current) {
-      signalingChannelRef.current.unsubscribe();
-      signalingChannelRef.current = null;
     }
 
     setRemoteStream(null);
@@ -263,14 +200,14 @@ export const useWebRTCSignaling = (conversationId: string) => {
       let latency = 0;
 
       stats.forEach((report) => {
-        if (report.type === 'outbound-rtp' && report.mediaType === 'video') {
-          bitrate = report.bytesSent * 8 / (report.timestamp / 1000);
+        if (report.type === 'outbound-rtp' && (report as any).mediaType === 'video') {
+          bitrate = (report as any).bytesSent * 8 / ((report as any).timestamp / 1000);
         }
         if (report.type === 'inbound-rtp') {
-          packetLoss = report.packetsLost || 0;
+          packetLoss = (report as any).packetsLost || 0;
         }
-        if (report.type === 'candidate-pair' && report.state === 'succeeded') {
-          latency = report.currentRoundTripTime || 0;
+        if (report.type === 'candidate-pair' && (report as any).state === 'succeeded') {
+          latency = (report as any).currentRoundTripTime || 0;
         }
       });
 

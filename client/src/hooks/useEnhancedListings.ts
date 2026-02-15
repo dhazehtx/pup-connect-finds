@@ -41,11 +41,11 @@ export const useEnhancedListings = () => {
           const favCountData = await apiRequest(`/api/favorites/count/${listing.id}`).catch(() => ({ count: 0 }));
           const favoritesCount = favCountData?.count ?? 0;
 
-          // Get conversations count
-          const { count: conversationsCount } = await supabase
-            .from('conversations')
-            .select('*', { count: 'exact' })
-            .eq('listing_id', listing.id);
+          let conversationsCount = 0;
+          try {
+            const convData = await apiRequest(`/messaging/conversations?listing_id=${listing.id}`);
+            conversationsCount = Array.isArray(convData) ? convData.length : 0;
+          } catch {}
 
           return {
             ...listing,

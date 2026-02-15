@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
+import { apiRequest } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -131,27 +132,11 @@ const UnifiedProfileView = ({ userId, isCurrentUser }: UnifiedProfileViewProps) 
 
     setMessagingLoading(true);
     try {
-      const { data: existing } = await supabase
-        .from('conversations')
-        .select('id')
-        .is('listing_id', null)
-        .or(`and(buyer_id.eq.${user.id},seller_id.eq.${profileId}),and(buyer_id.eq.${profileId},seller_id.eq.${user.id})`)
-        .limit(1)
-        .maybeSingle();
-
-      if (existing) {
-        navigate(`/messages/${existing.id}`);
-        return;
-      }
-
-      const { data: newConv, error } = await supabase
-        .from('conversations')
-        .insert([{ buyer_id: user.id, seller_id: profileId, listing_id: null }])
-        .select('id')
-        .single();
-
-      if (error) throw error;
-      navigate(`/messages/${newConv.id}`);
+      const conv = await apiRequest('/messaging/conversations/find-or-create', {
+        method: 'POST',
+        body: { seller_id: profileId }
+      });
+      navigate(`/messages/${conv.id}`);
     } catch (err) {
       console.error('Error starting conversation:', err);
       toast({ title: "Error", description: "Could not start conversation", variant: "destructive" });

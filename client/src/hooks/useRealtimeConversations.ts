@@ -1,9 +1,9 @@
 
 import { useState, useCallback } from 'react';
-import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { ExtendedConversation } from '@/types/messaging';
+import { apiRequest } from '@/lib/api';
 
 export const useRealtimeConversations = () => {
   const [conversations, setConversations] = useState<ExtendedConversation[]>([]);
@@ -17,67 +17,32 @@ export const useRealtimeConversations = () => {
     try {
       setLoading(true);
       
-      const { data: conversationsData, error: conversationsError } = await supabase
-        .from('conversations')
-        .select(`
-          *,
-          listing:dog_listings!conversations_listing_id_dog_listings_id_fkey (
-            dog_name,
-            breed,
-            image_url
-          )
-        `)
-        .or(`buyer_id.eq.${user.id},seller_id.eq.${user.id}`)
-        .order('last_message_at', { ascending: false, nullsFirst: false });
+      const data = await apiRequest('/messaging/conversations');
+      
+      const formattedConversations = (Array.isArray(data) ? data : []).map((conv: any) => ({
+        id: conv.id,
+        listing_id: conv.listing_id,
+        buyer_id: conv.buyer_id,
+        seller_id: conv.seller_id,
+        created_at: conv.created_at,
+        updated_at: conv.updated_at,
+        last_message_at: conv.last_message_at,
+        listing: conv.listing ? {
+          id: conv.listing_id || '',
+          dog_name: conv.listing.dog_name,
+          breed: conv.listing.breed,
+          image_url: conv.listing.image_url
+        } : undefined,
+        other_user: conv.other_user ? {
+          id: conv.other_user.id,
+          full_name: conv.other_user.full_name || '',
+          username: conv.other_user.username,
+          avatar_url: conv.other_user.avatar_url
+        } : undefined,
+        unread_count: conv.unread_count || 0
+      } as ExtendedConversation));
 
-      if (conversationsError) throw conversationsError;
-
-      const conversationsWithProfiles = await Promise.all(
-        (conversationsData || []).map(async (conv) => {
-          const otherUserId = conv.buyer_id === user.id ? conv.seller_id : conv.buyer_id;
-          
-          const { data: profileData } = await supabase
-            .from('profiles')
-            .select('id, full_name, username, avatar_url')
-            .eq('id', otherUserId)
-            .single();
-
-          const { data: unreadData } = await supabase
-            .from('messages')
-            .select('id')
-            .eq('conversation_id', conv.id)
-            .neq('sender_id', user.id)
-            .eq('read', false);
-          const unreadCount = unreadData?.length || 0;
-
-          const listingData = Array.isArray(conv.listing) ? conv.listing[0] : conv.listing;
-
-          return {
-            id: conv.id,
-            listing_id: conv.listing_id,
-            buyer_id: conv.buyer_id,
-            seller_id: conv.seller_id,
-            created_at: conv.created_at,
-            updated_at: conv.updated_at,
-            last_message_at: conv.last_message_at,
-            listing: listingData ? {
-              id: conv.listing_id || '',
-              dog_name: listingData.dog_name,
-              breed: listingData.breed,
-              image_url: listingData.image_url
-            } : undefined,
-            other_user: profileData ? {
-              id: profileData.id,
-              full_name: profileData.full_name || '',
-              username: profileData.username,
-              avatar_url: profileData.avatar_url
-            } : undefined,
-            unread_count: unreadCount || 0
-          } as ExtendedConversation;
-        })
-      );
-
-      setConversations(conversationsWithProfiles);
+      setConversations(formattedConversations);
     } catch (error) {
       console.error('Error fetching conversations:', error);
       toast({
@@ -94,34 +59,16 @@ export const useRealtimeConversations = () => {
     if (!user) return null;
 
     try {
-      // Check if conversation already exists
-      const { data: existingConv } = await supabase
-        .from('conversations')
-        .select('id')
-        .eq('listing_id', listingId)
-        .eq('buyer_id', user.id)
-        .eq('seller_id', sellerId)
-        .single();
-
-      if (existingConv) {
-        return existingConv.id;
-      }
-
-      // Create new conversation
-      const { data, error } = await supabase
-        .from('conversations')
-        .insert([{
+      const result = await apiRequest('/messaging/conversations/find-or-create', {
+        method: 'POST',
+        body: {
           listing_id: listingId,
-          buyer_id: user.id,
           seller_id: sellerId
-        }])
-        .select()
-        .single();
-
-      if (error) throw error;
+        }
+      });
 
       await fetchConversations();
-      return data.id;
+      return result?.id || null;
     } catch (error) {
       console.error('Error creating conversation:', error);
       toast({

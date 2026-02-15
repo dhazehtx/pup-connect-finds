@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { apiRequest } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
 
 interface Message {
@@ -26,26 +26,23 @@ export const useMessagePagination = ({
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(false);
   const [hasMore, setHasMore] = useState(true);
-  const [page, setPage] = useState(0);
+  const [oldestMessageId, setOldestMessageId] = useState<string | null>(null);
   const { toast } = useToast();
 
-  const fetchMessages = async (pageNumber: number = 0, append: boolean = false) => {
+  const fetchMessages = async (before?: string, append: boolean = false) => {
     if (!conversationId) return;
 
     try {
       setLoading(true);
-      
-      const { data, error } = await supabase
-        .from('messages')
-        .select('*')
-        .eq('conversation_id', conversationId)
-        .order('created_at', { ascending: false })
-        .range(pageNumber * pageSize, (pageNumber + 1) * pageSize - 1);
 
-      if (error) throw error;
+      let url = `/messaging/conversations/${conversationId}/messages?limit=${pageSize}`;
+      if (before) {
+        url += `&before=${before}`;
+      }
 
-      const newMessages = (data || []).reverse();
-      
+      const data = await apiRequest(url);
+      const newMessages: Message[] = Array.isArray(data) ? data : [];
+
       if (append) {
         setMessages(prev => [...newMessages, ...prev]);
       } else {
@@ -53,7 +50,10 @@ export const useMessagePagination = ({
       }
 
       setHasMore(newMessages.length === pageSize);
-      setPage(pageNumber);
+
+      if (newMessages.length > 0) {
+        setOldestMessageId(newMessages[0].id);
+      }
     } catch (error) {
       console.error('Error fetching messages:', error);
       toast({
@@ -67,14 +67,14 @@ export const useMessagePagination = ({
   };
 
   const loadMore = () => {
-    if (!loading && hasMore) {
-      fetchMessages(page + 1, true);
+    if (!loading && hasMore && oldestMessageId) {
+      fetchMessages(oldestMessageId, true);
     }
   };
 
   const refresh = () => {
-    setPage(0);
-    fetchMessages(0, false);
+    setOldestMessageId(null);
+    fetchMessages(undefined, false);
   };
 
   useEffect(() => {

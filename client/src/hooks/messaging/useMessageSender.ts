@@ -1,6 +1,6 @@
 
 import { useState, useCallback } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { apiRequest } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 
@@ -14,17 +14,10 @@ export const useMessageSender = () => {
 
     setSending(true);
     try {
-      const { error } = await supabase
-        .from('messages')
-        .insert({
-          conversation_id: conversationId,
-          sender_id: user.id,
-          content,
-          message_type: messageType,
-          image_url: imageUrl
-        });
-
-      if (error) throw error;
+      await apiRequest('/messaging/messages', {
+        method: 'POST',
+        body: { conversation_id: conversationId, content }
+      });
 
       toast({
         title: "Message sent",

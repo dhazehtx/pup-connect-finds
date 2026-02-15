@@ -1,6 +1,6 @@
 
 import { useState, useCallback } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { apiRequest } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 
@@ -40,40 +40,8 @@ export const useConversationsFetcher = () => {
     if (!user) return;
 
     try {
-      const { data, error } = await supabase
-        .from('conversations')
-        .select(`
-          *,
-          buyer_profile:profiles!conversations_buyer_id_profiles_id_fkey (
-            full_name,
-            username,
-            avatar_url
-          ),
-          seller_profile:profiles!conversations_seller_id_profiles_id_fkey (
-            full_name,
-            username,
-            avatar_url
-          ),
-          listing:dog_listings!conversations_listing_id_dog_listings_id_fkey (
-            dog_name,
-            breed,
-            price,
-            image_url
-          )
-        `)
-        .or(`buyer_id.eq.${user.id},seller_id.eq.${user.id}`)
-        .order('last_message_at', { ascending: false });
-
-      if (error) throw error;
-      
-      const processedData = (data || []).map(conv => ({
-        ...conv,
-        buyer_profile: Array.isArray(conv.buyer_profile) ? conv.buyer_profile[0] : conv.buyer_profile,
-        seller_profile: Array.isArray(conv.seller_profile) ? conv.seller_profile[0] : conv.seller_profile,
-        listing: Array.isArray(conv.listing) ? conv.listing[0] : conv.listing
-      }));
-      
-      setConversations(processedData);
+      const data = await apiRequest('/messaging/conversations');
+      setConversations(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error('Error fetching conversations:', error);
       toast({

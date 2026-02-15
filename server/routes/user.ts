@@ -1,8 +1,8 @@
 import { Request, Response, Router } from 'express';
 import { createClient } from '@supabase/supabase-js';
 import { db } from '../db';
-import { notifications } from '../../shared/schema';
-import { eq, or } from 'drizzle-orm';
+import { notifications, conversations, messages } from '../../shared/schema';
+import { eq, or, inArray } from 'drizzle-orm';
 
 const router = Router();
 
@@ -72,22 +72,18 @@ router.get('/export-data', async (req: Request, res: Response) => {
     userData.listings = listings as any[] || [];
 
     // Get conversations where user is participant
-    const { data: conversations } = await supabase
-      .from('conversations')
-      .select('*')
-      .or(`buyer_id.eq.${user.id},seller_id.eq.${user.id}`);
+    const userConversations = await db.select().from(conversations)
+      .where(or(eq(conversations.buyer_id, user.id), eq(conversations.seller_id, user.id)));
     
-    userData.conversations = conversations as any[] || [];
+    userData.conversations = userConversations || [];
 
     // Get messages from user's conversations
-    const conversationIds = conversations?.map((c: any) => c.id) || [];
+    const conversationIds = userConversations?.map((c) => c.id) || [];
     if (conversationIds.length > 0) {
-      const { data: messages } = await supabase
-        .from('messages')
-        .select('*')
-        .in('conversation_id', conversationIds);
+      const userMessages = await db.select().from(messages)
+        .where(inArray(messages.conversation_id, conversationIds));
       
-      userData.messages = messages as any[] || [];
+      userData.messages = userMessages || [];
     }
 
     // Get reviews by and for the user
@@ -166,10 +162,7 @@ router.delete('/delete-account', async (req: Request, res: Response) => {
       .eq('user_id', user.id);
 
     // 3. Delete messages (but keep conversations for other users)
-    await supabase
-      .from('messages')
-      .delete()
-      .eq('sender_id', user.id);
+    await db.delete(messages).where(eq(messages.sender_id, user.id));
 
     // 4. Delete transactions
     await supabase
@@ -190,21 +183,9 @@ router.delete('/delete-account', async (req: Request, res: Response) => {
       .eq('user_id', user.id);
 
     // 7. Update conversations to anonymize user participation
-    await supabase
-      .from('conversations')
-      .update({ 
-        buyer_id: null,
-        updated_at: new Date().toISOString()
-      })
-      .eq('buyer_id', user.id);
+    await db.update(conversations).set({ buyer_id: null, updated_at: new Date() }).where(eq(conversations.buyer_id, user.id));
 
-    await supabase
-      .from('conversations')
-      .update({ 
-        seller_id: null,
-        updated_at: new Date().toISOString()
-      })
-      .eq('seller_id', user.id);
+    await db.update(conversations).set({ seller_id: null, updated_at: new Date() }).where(eq(conversations.seller_id, user.id));
 
     // 8. Delete profile
     await supabase

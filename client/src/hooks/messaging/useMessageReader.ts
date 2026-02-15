@@ -1,20 +1,22 @@
 
 import { useCallback } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { apiRequest } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
 
 export const useMessageReader = () => {
   const { user } = useAuth();
 
-  const markAsRead = useCallback(async (messageIds: string[]) => {
-    if (!user || messageIds.length === 0) return;
+  const markAsRead = useCallback(async (conversationIdOrMessageIds: string | string[]) => {
+    if (!user) return;
+
+    const conversationId = typeof conversationIdOrMessageIds === 'string'
+      ? conversationIdOrMessageIds
+      : null;
+
+    if (!conversationId) return;
 
     try {
-      await supabase
-        .from('messages')
-        .update({ read_at: new Date().toISOString() })
-        .in('id', messageIds)
-        .neq('sender_id', user.id);
+      await apiRequest(`/messaging/conversations/${conversationId}/mark-read`, { method: 'POST' });
     } catch (error) {
       console.error('Error marking messages as read:', error);
     }

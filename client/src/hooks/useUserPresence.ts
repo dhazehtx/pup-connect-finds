@@ -1,6 +1,7 @@
 
 import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { useSocket } from '@/hooks/useSocket';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface UserPresence {
   user_id: string;
@@ -11,29 +12,28 @@ interface UserPresence {
 export const useUserPresence = () => {
   const [onlineUsers, setOnlineUsers] = useState<string[]>([]);
   const [userPresence, setUserPresence] = useState<Record<string, UserPresence>>({});
+  const { user } = useAuth();
+  const { onEvent, connected } = useSocket();
 
   useEffect(() => {
-    // Subscribe to presence updates
-    const channel = supabase.channel('user-presence');
-    
-    channel
-      .on('presence', { event: 'sync' }, () => {
-        const presenceState = channel.presenceState();
-        const users = Object.keys(presenceState);
-        setOnlineUsers(users);
-      })
-      .on('presence', { event: 'join' }, ({ key, newPresences }) => {
-        setOnlineUsers(prev => [...prev, key]);
-      })
-      .on('presence', { event: 'leave' }, ({ key, leftPresences }) => {
-        setOnlineUsers(prev => prev.filter(userId => userId !== key));
-      })
-      .subscribe();
+    if (!user || !connected) return;
+
+    const cleanupOnline = onEvent('presence:online', (data: { userId: string }) => {
+      setOnlineUsers(prev => {
+        if (prev.includes(data.userId)) return prev;
+        return [...prev, data.userId];
+      });
+    });
+
+    const cleanupOffline = onEvent('presence:offline', (data: { userId: string }) => {
+      setOnlineUsers(prev => prev.filter(id => id !== data.userId));
+    });
 
     return () => {
-      supabase.removeChannel(channel);
+      cleanupOnline();
+      cleanupOffline();
     };
-  }, []);
+  }, [user, connected, onEvent]);
 
   const isUserOnline = (userId: string): boolean => {
     return onlineUsers.includes(userId);
@@ -43,19 +43,9 @@ export const useUserPresence = () => {
     return userPresence[userId] || null;
   };
 
-  const setUserOnline = async (userId: string) => {
-    const channel = supabase.channel('user-presence');
-    await channel.track({
-      user_id: userId,
-      status: 'online',
-      last_seen_at: new Date().toISOString()
-    });
-  };
+  const setUserOnline = async (userId: string) => {};
 
-  const setUserOffline = async (userId: string) => {
-    const channel = supabase.channel('user-presence');
-    await channel.untrack();
-  };
+  const setUserOffline = async (userId: string) => {};
 
   return {
     onlineUsers,

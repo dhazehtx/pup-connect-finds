@@ -1,7 +1,9 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
+import { setupSocketIO } from "./socket";
 import { db } from "./db";
-import { sql } from "drizzle-orm";
+import { sql, inArray } from "drizzle-orm";
+import { profiles } from "@shared/schema";
 import savedPostsRouter from './routes/saved-posts';
 import bookmarksRouter from './routes/bookmarks';
 import reportsRouter from './routes/reports';
@@ -418,6 +420,91 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.get("/api/messaging/conversations", async (req, res) => {
+    try {
+      const authHeader = req.headers.authorization;
+      if (!authHeader?.startsWith('Bearer ')) {
+        return res.status(401).json({ error: 'Unauthorized' });
+      }
+      const token = authHeader.substring(7);
+      const { createClient } = await import('@supabase/supabase-js');
+      const supabaseUrl = process.env.VITE_SUPABASE_URL;
+      const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+      if (!supabaseUrl || !supabaseServiceKey) {
+        return res.status(500).json({ error: 'Server misconfiguration' });
+      }
+      const sb = createClient(supabaseUrl, supabaseServiceKey);
+      const { data: { user }, error: authError } = await sb.auth.getUser(token);
+      if (authError || !user) {
+        return res.status(401).json({ error: 'Invalid token' });
+      }
+      const conversations = await storage.getUserConversationsWithDetails(user.id);
+      res.json(conversations);
+    } catch (error) {
+      console.error("Error getting conversations with details:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  app.get("/api/messaging/conversations/:id", async (req, res) => {
+    try {
+      const authHeader = req.headers.authorization;
+      if (!authHeader?.startsWith('Bearer ')) {
+        return res.status(401).json({ error: 'Unauthorized' });
+      }
+      const token = authHeader.substring(7);
+      const { createClient } = await import('@supabase/supabase-js');
+      const supabaseUrl = process.env.VITE_SUPABASE_URL;
+      const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+      if (!supabaseUrl || !supabaseServiceKey) {
+        return res.status(500).json({ error: 'Server misconfiguration' });
+      }
+      const sb = createClient(supabaseUrl, supabaseServiceKey);
+      const { data: { user }, error: authError } = await sb.auth.getUser(token);
+      if (authError || !user) {
+        return res.status(401).json({ error: 'Invalid token' });
+      }
+      const detail = await storage.getConversationDetail(req.params.id, user.id);
+      if (!detail) {
+        return res.status(404).json({ error: "Conversation not found" });
+      }
+      res.json(detail);
+    } catch (error) {
+      console.error("Error getting conversation detail:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  app.post("/api/messaging/conversations/find-or-create", messagingRateLimit, async (req, res) => {
+    try {
+      const authHeader = req.headers.authorization;
+      if (!authHeader?.startsWith('Bearer ')) {
+        return res.status(401).json({ error: 'Unauthorized' });
+      }
+      const token = authHeader.substring(7);
+      const { createClient } = await import('@supabase/supabase-js');
+      const supabaseUrl = process.env.VITE_SUPABASE_URL;
+      const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+      if (!supabaseUrl || !supabaseServiceKey) {
+        return res.status(500).json({ error: 'Server misconfiguration' });
+      }
+      const sb = createClient(supabaseUrl, supabaseServiceKey);
+      const { data: { user }, error: authError } = await sb.auth.getUser(token);
+      if (authError || !user) {
+        return res.status(401).json({ error: 'Invalid token' });
+      }
+      const { seller_id, listing_id } = req.body;
+      if (!seller_id) {
+        return res.status(400).json({ error: 'seller_id is required' });
+      }
+      const conversation = await storage.findOrCreateConversation(user.id, seller_id, listing_id || null);
+      res.json(conversation);
+    } catch (error) {
+      console.error("Error finding/creating conversation:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
   app.post("/api/conversations", async (req, res) => {
     try {
       const validatedData = insertConversationSchema.parse(req.body);
@@ -432,10 +519,179 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Message routes
   app.get("/api/conversations/:id/messages", async (req, res) => {
     try {
-      const messages = await storage.getConversationMessages(req.params.id);
-      res.json(messages);
+      const limit = parseInt(req.query.limit as string) || 50;
+      const before = req.query.before as string | undefined;
+      const msgs = before
+        ? await storage.getConversationMessagesPaginated(req.params.id, limit, before)
+        : await storage.getConversationMessagesPaginated(req.params.id, limit);
+      msgs.reverse();
+      res.json(msgs);
     } catch (error) {
       console.error("Error getting messages:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  app.get("/api/messaging/conversations/:id/messages", async (req, res) => {
+    try {
+      const authHeader = req.headers.authorization;
+      if (!authHeader?.startsWith('Bearer ')) {
+        return res.status(401).json({ error: 'Unauthorized' });
+      }
+      const token = authHeader.substring(7);
+      const { createClient } = await import('@supabase/supabase-js');
+      const supabaseUrl = process.env.VITE_SUPABASE_URL;
+      const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+      if (!supabaseUrl || !supabaseServiceKey) {
+        return res.status(500).json({ error: 'Server misconfiguration' });
+      }
+      const sb = createClient(supabaseUrl, supabaseServiceKey);
+      const { data: { user }, error: authError } = await sb.auth.getUser(token);
+      if (authError || !user) {
+        return res.status(401).json({ error: 'Invalid token' });
+      }
+      const limit = parseInt(req.query.limit as string) || 50;
+      const before = req.query.before as string | undefined;
+      const msgs = before
+        ? await storage.getConversationMessagesPaginated(req.params.id, limit, before)
+        : await storage.getConversationMessagesPaginated(req.params.id, limit);
+      msgs.reverse();
+
+      const senderIds = Array.from(new Set(msgs.map(m => m.sender_id).filter(Boolean))) as string[];
+      let profilesMap: Record<string, any> = {};
+      if (senderIds.length > 0) {
+        const profs = await db.select({
+          id: profiles.id,
+          full_name: profiles.full_name,
+          username: profiles.username,
+          email: profiles.email,
+          avatar_url: profiles.avatar_url,
+        }).from(profiles).where(inArray(profiles.id, senderIds));
+        profs.forEach(p => { profilesMap[p.id] = p; });
+      }
+      const messagesWithProfiles = msgs.map(m => ({
+        ...m,
+        sender_profile: m.sender_id ? profilesMap[m.sender_id] || null : null,
+      }));
+      res.json(messagesWithProfiles);
+    } catch (error) {
+      console.error("Error getting messages with profiles:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  app.post("/api/messaging/messages", messagingRateLimit, async (req, res) => {
+    try {
+      const authHeader = req.headers.authorization;
+      if (!authHeader?.startsWith('Bearer ')) {
+        return res.status(401).json({ error: 'Unauthorized' });
+      }
+      const token = authHeader.substring(7);
+      const { createClient } = await import('@supabase/supabase-js');
+      const supabaseUrl = process.env.VITE_SUPABASE_URL;
+      const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+      if (!supabaseUrl || !supabaseServiceKey) {
+        return res.status(500).json({ error: 'Server misconfiguration' });
+      }
+      const sb = createClient(supabaseUrl, supabaseServiceKey);
+      const { data: { user }, error: authError } = await sb.auth.getUser(token);
+      if (authError || !user) {
+        return res.status(401).json({ error: 'Invalid token' });
+      }
+      const { conversation_id, content } = req.body;
+      if (!conversation_id || !content) {
+        return res.status(400).json({ error: 'conversation_id and content are required' });
+      }
+      const message = await storage.createMessageWithProfile({
+        conversation_id,
+        sender_id: user.id,
+        content: content.trim(),
+      });
+      res.json(message);
+    } catch (error) {
+      console.error("Error creating message:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  app.post("/api/messaging/conversations/:id/mark-read", async (req, res) => {
+    try {
+      const authHeader = req.headers.authorization;
+      if (!authHeader?.startsWith('Bearer ')) {
+        return res.status(401).json({ error: 'Unauthorized' });
+      }
+      const token = authHeader.substring(7);
+      const { createClient } = await import('@supabase/supabase-js');
+      const supabaseUrl = process.env.VITE_SUPABASE_URL;
+      const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+      if (!supabaseUrl || !supabaseServiceKey) {
+        return res.status(500).json({ error: 'Server misconfiguration' });
+      }
+      const sb = createClient(supabaseUrl, supabaseServiceKey);
+      const { data: { user }, error: authError } = await sb.auth.getUser(token);
+      if (authError || !user) {
+        return res.status(401).json({ error: 'Invalid token' });
+      }
+      await storage.markMessagesAsRead(req.params.id, user.id);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error marking messages as read:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  app.get("/api/messaging/unread-count", async (req, res) => {
+    try {
+      const authHeader = req.headers.authorization;
+      if (!authHeader?.startsWith('Bearer ')) {
+        return res.status(401).json({ error: 'Unauthorized' });
+      }
+      const token = authHeader.substring(7);
+      const { createClient } = await import('@supabase/supabase-js');
+      const supabaseUrl = process.env.VITE_SUPABASE_URL;
+      const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+      if (!supabaseUrl || !supabaseServiceKey) {
+        return res.status(500).json({ error: 'Server misconfiguration' });
+      }
+      const sb = createClient(supabaseUrl, supabaseServiceKey);
+      const { data: { user }, error: authError } = await sb.auth.getUser(token);
+      if (authError || !user) {
+        return res.status(401).json({ error: 'Invalid token' });
+      }
+      const count = await storage.getUnreadCount(user.id);
+      res.json({ count });
+    } catch (error) {
+      console.error("Error getting unread count:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  app.get("/api/messaging/search", async (req, res) => {
+    try {
+      const authHeader = req.headers.authorization;
+      if (!authHeader?.startsWith('Bearer ')) {
+        return res.status(401).json({ error: 'Unauthorized' });
+      }
+      const token = authHeader.substring(7);
+      const { createClient } = await import('@supabase/supabase-js');
+      const supabaseUrl = process.env.VITE_SUPABASE_URL;
+      const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+      if (!supabaseUrl || !supabaseServiceKey) {
+        return res.status(500).json({ error: 'Server misconfiguration' });
+      }
+      const sb = createClient(supabaseUrl, supabaseServiceKey);
+      const { data: { user }, error: authError } = await sb.auth.getUser(token);
+      if (authError || !user) {
+        return res.status(401).json({ error: 'Invalid token' });
+      }
+      const query = req.query.q as string;
+      if (!query) {
+        return res.status(400).json({ error: 'Search query is required' });
+      }
+      const results = await storage.searchMessages(user.id, query);
+      res.json(results);
+    } catch (error) {
+      console.error("Error searching messages:", error);
       res.status(500).json({ error: "Internal server error" });
     }
   });
@@ -1837,5 +2093,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use(globalErrorHandler);
 
   const httpServer = createServer(app);
+  setupSocketIO(httpServer);
   return httpServer;
 }

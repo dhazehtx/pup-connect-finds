@@ -8,10 +8,19 @@ MY PUP is a comprehensive dog listing platform connecting dog lovers with breede
 
 Preferred communication style: Simple, everyday language.
 
-**Important: Preserve all existing Supabase functionality**
-- Keep all Supabase client calls, authentication, and storage intact
-- Do not remove or replace any existing Supabase integration
-- Supabase remains the primary backend service for this application
+**Data Architecture (Neon/Drizzle Migration)**
+- Neon/Drizzle is the SINGLE source of truth for all app domains: posts, comments, likes, follows, favorites, listings, messages, conversations, notifications, marketplace
+- Supabase is reserved ONLY for Auth + Storage (no data reads/writes for app domains)
+- Phase 1-2 Complete: Posts, Comments, Follows, Post Likes, Favorites migrated
+- Phase 3 Complete (Feb 2026): Messaging/Conversations fully migrated to Neon/Drizzle API
+  - All .from('messages') and .from('conversations') Supabase calls eliminated from client code
+  - 9 REST endpoints for messaging at /api/messaging/*
+  - Socket.io replaces Supabase Realtime for typing indicators, presence, and real-time message delivery
+  - server/socket.ts: Socket.io server with Supabase JWT auth
+  - client/src/hooks/useSocket.ts: Global singleton Socket.io client
+  - All 5 typing/presence hooks migrated: useTypingIndicator, useTypingIndicators, useRealtimeTyping, useUserPresence, usePresenceManager
+  - WebRTC signaling hook migrated from Supabase channels to Socket.io
+  - GDPR messaging export/deletion uses Drizzle in server/routes/user.ts
 
 ## System Architecture
 

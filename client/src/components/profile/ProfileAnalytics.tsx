@@ -6,7 +6,6 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import { Eye, MessageCircle, Heart, TrendingUp, Calendar, Users } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useAnalytics } from '@/hooks/useBackendServices';
-import { supabase } from '@/integrations/supabase/client';
 import { apiRequest } from '@/lib/api';
 
 interface AnalyticsData {
@@ -48,11 +47,11 @@ const ProfileAnalytics = () => {
     try {
       setLoading(true);
       
-      // Fetch profile views from conversations and messages
-      const { data: conversations } = await supabase
-        .from('conversations')
-        .select('*')
-        .eq('seller_id', user.id);
+      let conversations: any[] = [];
+      try {
+        const convData = await apiRequest('/messaging/conversations');
+        conversations = Array.isArray(convData) ? convData : [];
+      } catch {}
 
       const userListingsData = await apiRequest(`/api/listings?userId=${user.id}`);
       const userListings = Array.isArray(userListingsData) ? userListingsData : [];

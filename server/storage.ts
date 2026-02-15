@@ -96,13 +96,21 @@ export interface IStorage {
   
   // Conversation methods
   getConversation(id: string): Promise<Conversation | undefined>;
+  getConversationDetail(id: string, userId: string): Promise<any>;
   getUserConversations(userId: string): Promise<Conversation[]>;
+  getUserConversationsWithDetails(userId: string): Promise<any[]>;
   createConversation(conversation: InsertConversation): Promise<Conversation>;
+  findOrCreateConversation(buyerId: string, sellerId: string, listingId?: string | null): Promise<Conversation>;
   
   // Message methods
   getConversationMessages(conversationId: string): Promise<Message[]>;
+  getConversationMessagesPaginated(conversationId: string, limit: number, before?: string): Promise<Message[]>;
   createMessage(message: InsertMessage): Promise<Message>;
+  createMessageWithProfile(message: InsertMessage): Promise<any>;
   markMessagesAsRead(conversationId: string, userId: string): Promise<boolean>;
+  getUnreadCount(userId: string): Promise<number>;
+  searchMessages(userId: string, query: string): Promise<any[]>;
+  deleteUserMessages(userId: string): Promise<boolean>;
   
   // Admin Log methods
   createAdminLog(log: InsertAdminLog): Promise<AdminLog>;
@@ -348,14 +356,136 @@ export class DatabaseStorage implements IStorage {
     return result[0];
   }
 
+  async getConversationDetail(id: string, userId: string): Promise<any> {
+    const conv = await db.select().from(conversations).where(eq(conversations.id, id)).limit(1);
+    if (!conv[0]) return undefined;
+    const c = conv[0];
+    const otherUserId = c.buyer_id === userId ? c.seller_id : c.buyer_id;
+    let otherProfile = null;
+    if (otherUserId) {
+      const p = await db.select({
+        id: profiles.id,
+        full_name: profiles.full_name,
+        username: profiles.username,
+        email: profiles.email,
+        avatar_url: profiles.avatar_url,
+      }).from(profiles).where(eq(profiles.id, otherUserId)).limit(1);
+      otherProfile = p[0] || null;
+    }
+    let listing = null;
+    if (c.listing_id) {
+      const l = await db.select({
+        id: dogListings.id,
+        dog_name: dogListings.dog_name,
+        breed: dogListings.breed,
+        image_url: dogListings.image_url,
+      }).from(dogListings).where(eq(dogListings.id, c.listing_id)).limit(1);
+      listing = l[0] || null;
+    }
+    return {
+      ...c,
+      other_user: otherProfile ? {
+        id: otherProfile.id,
+        full_name: otherProfile.full_name || otherProfile.username || otherProfile.email?.split('@')[0] || 'Unknown User',
+        avatar_url: otherProfile.avatar_url,
+      } : { id: otherUserId, full_name: 'Unknown User', avatar_url: null },
+      listing,
+    };
+  }
+
   async getUserConversations(userId: string): Promise<Conversation[]> {
     return await db.select().from(conversations)
       .where(or(eq(conversations.buyer_id, userId), eq(conversations.seller_id, userId)))
       .orderBy(desc(conversations.last_message_at));
   }
 
+  async getUserConversationsWithDetails(userId: string): Promise<any[]> {
+    const convs = await this.getUserConversations(userId);
+    const results = [];
+    for (const c of convs) {
+      const otherUserId = c.buyer_id === userId ? c.seller_id : c.buyer_id;
+      let otherProfile = null;
+      if (otherUserId) {
+        const p = await db.select({
+          id: profiles.id,
+          full_name: profiles.full_name,
+          username: profiles.username,
+          email: profiles.email,
+          avatar_url: profiles.avatar_url,
+        }).from(profiles).where(eq(profiles.id, otherUserId)).limit(1);
+        otherProfile = p[0] || null;
+      }
+      let listing = null;
+      if (c.listing_id) {
+        const l = await db.select({
+          id: dogListings.id,
+          dog_name: dogListings.dog_name,
+          breed: dogListings.breed,
+          image_url: dogListings.image_url,
+          price: dogListings.price,
+        }).from(dogListings).where(eq(dogListings.id, c.listing_id)).limit(1);
+        listing = l[0] || null;
+      }
+      const lastMsgResult = await db.select({
+        content: messages.content,
+        sender_id: messages.sender_id,
+        created_at: messages.created_at,
+      }).from(messages)
+        .where(eq(messages.conversation_id, c.id))
+        .orderBy(desc(messages.created_at))
+        .limit(1);
+      const unreadResult = await db.select({
+        count: sql<number>`count(*)::int`,
+      }).from(messages)
+        .where(and(
+          eq(messages.conversation_id, c.id),
+          sql`${messages.sender_id} != ${userId}`,
+          eq(messages.read, false)
+        ));
+      results.push({
+        ...c,
+        other_user: otherProfile ? {
+          id: otherProfile.id,
+          full_name: otherProfile.full_name || otherProfile.username || otherProfile.email?.split('@')[0] || 'Unknown User',
+          username: otherProfile.username,
+          avatar_url: otherProfile.avatar_url,
+        } : { id: otherUserId, full_name: 'Unknown User', avatar_url: null },
+        listing,
+        last_message: lastMsgResult[0] || null,
+        unread_count: unreadResult[0]?.count || 0,
+      });
+    }
+    return results;
+  }
+
   async createConversation(conversation: InsertConversation): Promise<Conversation> {
     const result = await db.insert(conversations).values([conversation]).returning();
+    return result[0];
+  }
+
+  async findOrCreateConversation(buyerId: string, sellerId: string, listingId?: string | null): Promise<Conversation> {
+    const conditions = listingId
+      ? and(
+          or(
+            and(eq(conversations.buyer_id, buyerId), eq(conversations.seller_id, sellerId)),
+            and(eq(conversations.buyer_id, sellerId), eq(conversations.seller_id, buyerId))
+          ),
+          eq(conversations.listing_id, listingId)
+        )
+      : and(
+          or(
+            and(eq(conversations.buyer_id, buyerId), eq(conversations.seller_id, sellerId)),
+            and(eq(conversations.buyer_id, sellerId), eq(conversations.seller_id, buyerId))
+          ),
+          sql`${conversations.listing_id} IS NULL`
+        );
+    const existing = await db.select().from(conversations).where(conditions).limit(1);
+    if (existing[0]) return existing[0];
+    const result = await db.insert(conversations).values([{
+      buyer_id: buyerId,
+      seller_id: sellerId,
+      listing_id: listingId || null,
+    }]).returning();
     return result[0];
   }
 
@@ -366,16 +496,92 @@ export class DatabaseStorage implements IStorage {
       .orderBy(messages.created_at);
   }
 
+  async getConversationMessagesPaginated(conversationId: string, limit: number = 50, before?: string): Promise<Message[]> {
+    if (before) {
+      return await db.select().from(messages)
+        .where(and(
+          eq(messages.conversation_id, conversationId),
+          sql`${messages.created_at} < (SELECT created_at FROM messages WHERE id = ${before})`
+        ))
+        .orderBy(desc(messages.created_at))
+        .limit(limit);
+    }
+    return await db.select().from(messages)
+      .where(eq(messages.conversation_id, conversationId))
+      .orderBy(desc(messages.created_at))
+      .limit(limit);
+  }
+
   async createMessage(message: InsertMessage): Promise<Message> {
     const result = await db.insert(messages).values([message]).returning();
+    await db.update(conversations)
+      .set({ last_message_at: new Date(), updated_at: new Date() })
+      .where(eq(conversations.id, message.conversation_id!));
     return result[0];
+  }
+
+  async createMessageWithProfile(message: InsertMessage): Promise<any> {
+    const msg = await this.createMessage(message);
+    let senderProfile = null;
+    if (msg.sender_id) {
+      const p = await db.select({
+        id: profiles.id,
+        full_name: profiles.full_name,
+        username: profiles.username,
+        email: profiles.email,
+        avatar_url: profiles.avatar_url,
+      }).from(profiles).where(eq(profiles.id, msg.sender_id)).limit(1);
+      senderProfile = p[0] || null;
+    }
+    return { ...msg, sender_profile: senderProfile };
   }
 
   async markMessagesAsRead(conversationId: string, userId: string): Promise<boolean> {
     const result = await db.update(messages)
       .set({ read: true })
-      .where(and(eq(messages.conversation_id, conversationId), eq(messages.sender_id, userId)));
-    return (result.rowCount ?? 0) > 0;
+      .where(and(
+        eq(messages.conversation_id, conversationId),
+        sql`${messages.sender_id} != ${userId}`,
+        eq(messages.read, false)
+      ));
+    return (result.rowCount ?? 0) >= 0;
+  }
+
+  async getUnreadCount(userId: string): Promise<number> {
+    const userConvs = await db.select({ id: conversations.id })
+      .from(conversations)
+      .where(or(eq(conversations.buyer_id, userId), eq(conversations.seller_id, userId)));
+    if (userConvs.length === 0) return 0;
+    const convIds = userConvs.map(c => c.id);
+    const result = await db.select({
+      count: sql<number>`count(*)::int`,
+    }).from(messages)
+      .where(and(
+        inArray(messages.conversation_id, convIds),
+        sql`${messages.sender_id} != ${userId}`,
+        eq(messages.read, false)
+      ));
+    return result[0]?.count || 0;
+  }
+
+  async searchMessages(userId: string, query: string): Promise<any[]> {
+    const userConvs = await db.select({ id: conversations.id })
+      .from(conversations)
+      .where(or(eq(conversations.buyer_id, userId), eq(conversations.seller_id, userId)));
+    if (userConvs.length === 0) return [];
+    const convIds = userConvs.map(c => c.id);
+    return await db.select().from(messages)
+      .where(and(
+        inArray(messages.conversation_id, convIds),
+        sql`${messages.content} ILIKE ${'%' + query + '%'}`
+      ))
+      .orderBy(desc(messages.created_at))
+      .limit(50);
+  }
+
+  async deleteUserMessages(userId: string): Promise<boolean> {
+    const result = await db.delete(messages).where(eq(messages.sender_id, userId));
+    return (result.rowCount ?? 0) >= 0;
   }
 
   // Favorite methods

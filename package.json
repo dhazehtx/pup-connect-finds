@@ -92,6 +92,8 @@
     "react-router-dom": "^7.7.0",
     "react-spring": "^10.0.1",
     "recharts": "^2.15.2",
+    "socket.io": "^4.8.3",
+    "socket.io-client": "^4.8.3",
     "stripe": "^18.5.0",
     "tailwind-merge": "^2.6.0",
     "tailwindcss-animate": "^1.0.7",

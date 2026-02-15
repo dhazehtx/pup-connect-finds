@@ -1,6 +1,6 @@
 
 import { useState, useCallback, useRef, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { useSocket } from '@/hooks/useSocket';
 import { useAuth } from '@/contexts/AuthContext';
 
 interface TypingUser {
@@ -13,62 +13,76 @@ interface TypingUser {
 export const useTypingIndicators = () => {
   const [typingUsers, setTypingUsers] = useState<TypingUser[]>([]);
   const { user } = useAuth();
+  const { emitTypingStart, emitTypingStop, onEvent } = useSocket();
   const typingTimeoutRef = useRef<NodeJS.Timeout>();
 
   const startTyping = useCallback((conversationId: string) => {
     if (!user) return;
+    emitTypingStart(conversationId);
 
-    const channel = supabase.channel(`typing-${conversationId}`);
-    channel.track({
-      user_id: user.id,
-      username: user.email || 'Anonymous',
-      conversation_id: conversationId,
-      is_typing: true,
-      timestamp: Date.now()
-    });
-
-    // Clear existing timeout
     if (typingTimeoutRef.current) {
       clearTimeout(typingTimeoutRef.current);
     }
 
-    // Auto-stop typing after 3 seconds
     typingTimeoutRef.current = setTimeout(() => {
       stopTyping(conversationId);
     }, 3000);
-  }, [user]);
+  }, [user, emitTypingStart]);
 
   const stopTyping = useCallback((conversationId: string) => {
     if (!user) return;
-
-    const channel = supabase.channel(`typing-${conversationId}`);
-    channel.track({
-      user_id: user.id,
-      username: user.email || 'Anonymous',
-      conversation_id: conversationId,
-      is_typing: false,
-      timestamp: Date.now()
-    });
+    emitTypingStop(conversationId);
 
     if (typingTimeoutRef.current) {
       clearTimeout(typingTimeoutRef.current);
     }
-  }, [user]);
+  }, [user, emitTypingStop]);
 
   const getTypingUsers = useCallback((conversationId: string) => {
-    return typingUsers.filter(u => 
-      u.conversation_id === conversationId && 
+    return typingUsers.filter(u =>
+      u.conversation_id === conversationId &&
       u.user_id !== user?.id &&
-      Date.now() - u.timestamp < 5000 // Consider typing for 5 seconds
+      Date.now() - u.timestamp < 5000
     );
   }, [typingUsers, user]);
 
   useEffect(() => {
+    if (!user) return;
+
+    const cleanupStart = onEvent('typing:start', (data: { userId: string; userName: string; conversationId: string }) => {
+      if (data.userId !== user.id) {
+        setTypingUsers(prev => {
+          const filtered = prev.filter(u => !(u.user_id === data.userId && u.conversation_id === data.conversationId));
+          return [...filtered, {
+            user_id: data.userId,
+            username: data.userName || 'Someone',
+            conversation_id: data.conversationId,
+            timestamp: Date.now(),
+          }];
+        });
+      }
+    });
+
+    const cleanupStop = onEvent('typing:stop', (data: { userId: string; conversationId: string }) => {
+      if (data.userId !== user.id) {
+        setTypingUsers(prev => prev.filter(u => !(u.user_id === data.userId && u.conversation_id === data.conversationId)));
+      }
+    });
+
     return () => {
+      cleanupStart();
+      cleanupStop();
       if (typingTimeoutRef.current) {
         clearTimeout(typingTimeoutRef.current);
       }
     };
+  }, [user, onEvent]);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setTypingUsers(prev => prev.filter(u => Date.now() - u.timestamp < 5000));
+    }, 1000);
+    return () => clearInterval(interval);
   }, []);
 
   return {

@@ -5,7 +5,7 @@ import { MessageCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
+import { apiRequest } from '@/lib/api';
 
 interface ContactSellerButtonProps {
   listingId: string;
@@ -44,56 +44,20 @@ const ContactSellerButton = ({
     }
 
     try {
-      // Check if conversation already exists
-      const { data: existingConversation } = await supabase
-        .from('conversations')
-        .select('id')
-        .eq('listing_id', listingId)
-        .eq('buyer_id', user.id)
-        .eq('seller_id', sellerId)
-        .single();
+      const conv = await apiRequest('/messaging/conversations/find-or-create', {
+        method: 'POST',
+        body: { seller_id: sellerId, listing_id: listingId }
+      });
 
-      if (existingConversation) {
-        // Navigate directly to existing conversation thread
-        navigate(`/messages/${existingConversation.id}`);
-        return;
-      }
+      await apiRequest('/messaging/messages', {
+        method: 'POST',
+        body: {
+          conversation_id: conv.id,
+          content: `Hi! I'm interested in this puppy. Could you tell me more?`
+        }
+      });
 
-      // Create new conversation
-      const { data: newConversation, error } = await supabase
-        .from('conversations')
-        .insert({
-          listing_id: listingId,
-          buyer_id: user.id,
-          seller_id: sellerId
-        })
-        .select('id')
-        .single();
-
-      if (error) throw error;
-
-      // Send initial message
-      const { data: listingData } = await supabase
-        .from('dog_listings')
-        .select('dog_name, breed')
-        .eq('id', listingId)
-        .single();
-
-      if (listingData) {
-        const initialMessage = `Hi! I'm interested in ${listingData.dog_name} (${listingData.breed}). Could you tell me more about this puppy?`;
-        
-        await supabase
-          .from('messages')
-          .insert({
-            conversation_id: newConversation.id,
-            sender_id: user.id,
-            content: initialMessage,
-            message_type: 'text'
-          });
-      }
-
-      // Navigate directly to new conversation thread
-      navigate(`/messages/${newConversation.id}`);
+      navigate(`/messages/${conv.id}`);
 
     } catch (error) {
       console.error('Error creating conversation:', error);

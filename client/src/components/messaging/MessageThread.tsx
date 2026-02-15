@@ -9,7 +9,9 @@ import { ArrowLeft, Send, Smile, Check, CheckCheck, MoreVertical, Moon, Sun, Rep
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { useTheme } from '@/contexts/ThemeContext';
-import { supabase } from '@/integrations/supabase/client';
+import { apiRequest } from '@/lib/api';
+import { useSocket } from '@/hooks/useSocket';
+import { useTypingIndicator } from '@/hooks/useTypingIndicator';
 
 interface Message {
   id: string;
@@ -65,12 +67,14 @@ const MessageThread = ({ parentMessage, onClose, conversationId: propConversatio
   const [conversation, setConversation] = useState<ConversationData | null>(null);
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
-  const [typing, setTyping] = useState<string | null>(null);
   const [messageStatuses, setMessageStatuses] = useState<Record<string, 'sent' | 'delivered' | 'read'>>({});
   const [replyingTo, setReplyingTo] = useState<Message | null>(null);
   const [hoveredMessage, setHoveredMessage] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  
+  const { joinConversation, leaveConversation, onEvent, emitNewMessage } = useSocket();
+  const { otherUserTyping, startTyping, stopTyping } = useTypingIndicator(activeConversationId || '');
 
   // Scroll to bottom when messages change
   const scrollToBottom = () => {
@@ -90,49 +94,8 @@ const MessageThread = ({ parentMessage, onClose, conversationId: propConversatio
       try {
         console.log('Loading conversation:', activeConversationId);
 
-        // Load conversation details first
-        const { data: convData, error: convError } = await supabase
-          .from('conversations')
-          .select(`
-            id,
-            buyer_id,
-            seller_id,
-            listing_id,
-            dog_listings!conversations_listing_id_dog_listings_id_fkey (
-              id,
-              dog_name,
-              breed,
-              image_url
-            )
-          `)
-          .eq('id', activeConversationId)
-          .single();
+        const convData = await apiRequest(`/messaging/conversations/${activeConversationId}`);
 
-        if (convError) {
-          console.error('Error loading conversation:', convError);
-          toast({
-            title: "Error",
-            description: "Failed to load conversation",
-            variant: "destructive",
-          });
-          return;
-        }
-
-        // Determine the other user
-        const otherUserId = convData.buyer_id === user.id ? convData.seller_id : convData.buyer_id;
-        
-        // Fetch other user's profile
-        const { data: profileData, error: profileError } = await supabase
-          .from('profiles')
-          .select('id, full_name, username, email, avatar_url')
-          .eq('id', otherUserId)
-          .single();
-
-        if (profileError) {
-          console.error('Error loading profile:', profileError);
-        }
-
-        // Set conversation data
         const getDisplayName = (profile: any) => {
           if (profile?.full_name) return profile.full_name;
           if (profile?.username) return profile.username;
@@ -143,55 +106,27 @@ const MessageThread = ({ parentMessage, onClose, conversationId: propConversatio
         setConversation({
           id: convData.id,
           other_user: {
-            id: otherUserId,
-            full_name: getDisplayName(profileData),
-            avatar_url: profileData?.avatar_url || null
+            id: convData.other_user?.id || '',
+            full_name: getDisplayName(convData.other_user),
+            avatar_url: convData.other_user?.avatar_url || null
           },
-          listing: convData.dog_listings ? {
-            id: convData.dog_listings.id,
-            dog_name: convData.dog_listings.dog_name,
-            breed: convData.dog_listings.breed,
-            image_url: convData.dog_listings.image_url
+          listing: convData.listing ? {
+            id: convData.listing.id,
+            dog_name: convData.listing.dog_name,
+            breed: convData.listing.breed,
+            image_url: convData.listing.image_url
           } : undefined
         });
 
-        // Load messages with profiles manually joined
-        const { data: messagesData, error: messagesError } = await supabase
-          .from('messages')
-          .select('*')
-          .eq('conversation_id', activeConversationId)
-          .order('created_at', { ascending: true });
+        const messagesData = await apiRequest(`/messaging/conversations/${activeConversationId}/messages`);
 
-        if (messagesError) {
-          console.error('Error loading messages:', messagesError);
-          toast({
-            title: "Error",
-            description: "Failed to load messages",
-            variant: "destructive",
-          });
-          return;
-        }
-
-        // Fetch profiles for all unique sender IDs
-        const senderIds = Array.from(new Set(messagesData.map(msg => msg.sender_id)));
-        const { data: profilesData, error: profilesError } = await supabase
-          .from('profiles')
-          .select('id, full_name, username, email, avatar_url')
-          .in('id', senderIds);
-
-        if (profilesError) {
-          console.error('Error loading sender profiles:', profilesError);
-        }
-
-        // Combine messages with profile data and organize replies
-        const messagesWithProfiles = messagesData.map(msg => ({
+        const messagesWithProfiles = (Array.isArray(messagesData) ? messagesData : []).map((msg: any) => ({
           ...msg,
           content: msg.content || '',
-          sender_profile: profilesData?.find(p => p.id === msg.sender_id) || null,
+          sender_profile: msg.sender_profile || null,
           replies: []
         })) as Message[];
 
-        // Organize messages into threaded structure
         const organizedMessages = organizeThreadedMessages(messagesWithProfiles);
         setMessages(organizedMessages);
       } catch (error) {
@@ -208,95 +143,50 @@ const MessageThread = ({ parentMessage, onClose, conversationId: propConversatio
 
     loadConversationData();
 
-    // Set up real-time subscriptions
-    const messageChannel = supabase
-      .channel(`messages-${activeConversationId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'messages',
-          filter: `conversation_id=eq.${activeConversationId}`
-        },
-        async (payload) => {
-          const newMessage = payload.new as Message;
-          console.log('New message received via realtime:', newMessage.id);
-          
-          // Fetch sender profile for the new message
-          const { data: senderProfile } = await supabase
-            .from('profiles')
-            .select('id, full_name, username, email, avatar_url')
-            .eq('id', newMessage.sender_id)
-            .single();
-
-          const messageWithProfile = {
-            ...newMessage,
-            content: newMessage.content || '',
-            sender_profile: senderProfile || null,
-            replies: []
-          } as Message;
-
-          setMessages(prev => {
-            const updatedMessages = [...prev];
-            
-            if (messageWithProfile.reply_to_message_id) {
-              // This is a reply, add it to the parent message's replies
-              const addReplyToMessage = (messages: Message[]): Message[] => {
-                return messages.map(msg => {
-                  if (msg.id === messageWithProfile.reply_to_message_id) {
-                    return {
-                      ...msg,
-                      replies: [...(msg.replies || []), messageWithProfile]
-                    };
-                  } else if (msg.replies && msg.replies.length > 0) {
-                    return {
-                      ...msg,
-                      replies: addReplyToMessage(msg.replies)
-                    };
-                  }
-                  return msg;
-                });
-              };
-              
-              return addReplyToMessage(updatedMessages);
-            } else {
-              // This is a root message, add it to the end
-              return [...updatedMessages, messageWithProfile];
-            }
-          });
-          
-          // Update message status to delivered for others' messages
-          if (newMessage.sender_id !== user.id) {
-            updateMessageStatus(newMessage.id, 'delivered');
-          }
-        }
-      )
-      .subscribe();
-
-    // Typing indicator subscription
-    const typingChannel = supabase
-      .channel(`typing-${activeConversationId}`)
-      .on('broadcast', { event: 'typing' }, (payload) => {
-        const { user_id, user_name, is_typing } = payload.payload;
-        if (user_id !== user.id) {
-          if (is_typing) {
-            setTyping(user_name);
-          } else {
-            setTyping(null);
-          }
-        }
-      })
-      .subscribe();
+    if (activeConversationId) {
+      joinConversation(activeConversationId);
+    }
 
     return () => {
-      supabase.removeChannel(messageChannel);
-      supabase.removeChannel(typingChannel);
       if (typingTimeoutRef.current) {
         clearTimeout(typingTimeoutRef.current);
       }
+      if (activeConversationId) {
+        leaveConversation(activeConversationId);
+      }
     };
-  }, [activeConversationId, user, toast]);
+  }, [activeConversationId, user, toast, joinConversation, leaveConversation]);
+
+  useEffect(() => {
+    if (!activeConversationId || !user) return;
+
+    const cleanup = onEvent('message:new', (message: any) => {
+      if (message.sender_id !== user.id && message.conversation_id === activeConversationId) {
+        setMessages(prev => {
+          const newMsg: Message = {
+            ...message,
+            content: message.content || '',
+            sender_profile: message.sender_profile || null,
+            replies: []
+          };
+          return organizeThreadedMessages([...flattenMessages(prev), newMsg]);
+        });
+      }
+    });
+
+    return cleanup;
+  }, [activeConversationId, user, onEvent]);
+
+  const flattenMessages = (msgs: Message[]): Message[] => {
+    const flat: Message[] = [];
+    msgs.forEach(msg => {
+      flat.push({ ...msg, replies: [] });
+      if (msg.replies) {
+        msg.replies.forEach(reply => flat.push({ ...reply, replies: [] }));
+      }
+    });
+    return flat;
+  };
 
   // Organize messages into threaded structure
   const organizeThreadedMessages = (allMessages: Message[]): Message[] => {
@@ -341,43 +231,36 @@ const MessageThread = ({ parentMessage, onClose, conversationId: propConversatio
 
     setSending(true);
     try {
-      const messageData = {
-        conversation_id: activeConversationId,
-        sender_id: user.id,
-        content: newMessage.trim(),
-        message_type: 'text',
-        ...(replyingTo && { reply_to_message_id: replyingTo.id })
-      };
-
-      const { data, error } = await supabase
-        .from('messages')
-        .insert(messageData)
-        .select()
-        .single();
-
-      if (error) throw error;
-
-      // Update conversation last message timestamp
-      await supabase
-        .from('conversations')
-        .update({ 
-          last_message_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', activeConversationId);
+      const data = await apiRequest('/messaging/messages', {
+        method: 'POST',
+        body: {
+          conversation_id: activeConversationId,
+          content: newMessage.trim(),
+          ...(replyingTo && { reply_to_message_id: replyingTo.id })
+        }
+      });
 
       setNewMessage('');
       setReplyingTo(null);
-      
-      // Update message status to sent
-      if (data) {
+      stopTyping();
+
+      if (data?.id) {
         updateMessageStatus(data.id, 'sent');
-        
-        // Simulate delivery after a short delay
+        emitNewMessage(activeConversationId, data);
         setTimeout(() => {
           updateMessageStatus(data.id, 'delivered');
         }, 1000);
       }
+
+      const updatedMessages = await apiRequest(`/messaging/conversations/${activeConversationId}/messages`);
+      const messagesWithProfiles = (Array.isArray(updatedMessages) ? updatedMessages : []).map((msg: any) => ({
+        ...msg,
+        content: msg.content || '',
+        sender_profile: msg.sender_profile || null,
+        replies: []
+      })) as Message[];
+      const organizedMessages = organizeThreadedMessages(messagesWithProfiles);
+      setMessages(organizedMessages);
     } catch (error) {
       console.error('Error sending message:', error);
       toast({
@@ -390,39 +273,8 @@ const MessageThread = ({ parentMessage, onClose, conversationId: propConversatio
     }
   };
 
-  // Handle typing indicators
   const handleTyping = () => {
-    if (!activeConversationId || !user) return;
-
-    // Send typing event
-    supabase.channel(`typing-${activeConversationId}`)
-      .send({
-        type: 'broadcast',
-        event: 'typing',
-        payload: { 
-          user_id: user.id, 
-          user_name: user.user_metadata?.full_name || 'Someone',
-          is_typing: true 
-        }
-      });
-
-    // Clear previous timeout
-    if (typingTimeoutRef.current) {
-      clearTimeout(typingTimeoutRef.current);
-    }
-
-    // Set timeout to stop typing indicator
-    typingTimeoutRef.current = setTimeout(() => {
-      supabase.channel(`typing-${activeConversationId}`)
-        .send({
-          type: 'broadcast',
-          event: 'typing',
-          payload: { 
-            user_id: user.id, 
-            is_typing: false 
-          }
-        });
-    }, 2000);
+    startTyping();
   };
 
   // Handle Enter key press
@@ -673,11 +525,11 @@ const MessageThread = ({ parentMessage, onClose, conversationId: propConversatio
           )}
           
           {/* Typing Indicator */}
-          {typing && (
+          {otherUserTyping && (
             <div className="flex justify-start items-end gap-2 animate-pulse">
               <Avatar className="w-8 h-8 ring-2 ring-white dark:ring-gray-600 shadow-sm flex-shrink-0">
                 <AvatarFallback className="bg-gradient-to-br from-gray-400 to-gray-600 text-white text-xs font-semibold">
-                  {typing[0]?.toUpperCase() || 'U'}
+                  {conversation?.other_user?.full_name?.[0]?.toUpperCase() || 'U'}
                 </AvatarFallback>
               </Avatar>
               <div className={`px-4 py-2.5 rounded-2xl rounded-bl-md shadow-sm ${
@@ -739,9 +591,9 @@ const MessageThread = ({ parentMessage, onClose, conversationId: propConversatio
         )}
 
         {/* Typing Indicator Above Input */}
-        {typing && (
+        {otherUserTyping && (
           <div className={`text-xs mb-2 px-2 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
-            {typing} is typing...
+            {conversation?.other_user?.full_name || 'Someone'} is typing...
           </div>
         )}
         

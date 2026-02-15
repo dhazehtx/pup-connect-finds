@@ -1,12 +1,11 @@
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Send, Loader2 } from 'lucide-react';
 import { useMessagesManager } from '@/hooks/messaging/useMessagesManager';
 import { useAuth } from '@/contexts/AuthContext';
-import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
 interface RealTimeChatInterfaceProps {
@@ -40,7 +39,6 @@ const RealTimeChatInterface: React.FC<RealTimeChatInterfaceProps> = ({
   const { toast } = useToast();
   const previousMessageCount = useRef(0);
 
-  // Suggested messages for first interaction
   const suggestedMessages = [
     `Hi! Is ${listingInfo?.dog_name || 'this puppy'} still available?`,
     `I'm interested in ${listingInfo?.dog_name || 'this puppy'}, is he/she still looking for a home?`,
@@ -66,7 +64,6 @@ const RealTimeChatInterface: React.FC<RealTimeChatInterfaceProps> = ({
     }
   }, [conversationId, fetchMessages]);
 
-  // Only scroll when new messages are added, not on every render
   useEffect(() => {
     if (messages.length > previousMessageCount.current) {
       scrollToBottom();
@@ -74,29 +71,10 @@ const RealTimeChatInterface: React.FC<RealTimeChatInterfaceProps> = ({
     }
   }, [messages.length]);
 
-  // Real-time subscription
   useEffect(() => {
     if (!conversationId) return;
-
-    const channel = supabase
-      .channel(`messages-${conversationId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'messages',
-          filter: `conversation_id=eq.${conversationId}`
-        },
-        () => {
-          fetchMessages(conversationId);
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
+    const interval = setInterval(() => { fetchMessages(conversationId); }, 5000);
+    return () => clearInterval(interval);
   }, [conversationId, fetchMessages]);
 
   const handleSendMessage = async (content?: string) => {
@@ -137,7 +115,6 @@ const RealTimeChatInterface: React.FC<RealTimeChatInterfaceProps> = ({
 
   return (
     <div className="flex flex-col h-full bg-white rounded-lg border">
-      {/* Chat Header */}
       <div className="flex items-center gap-3 p-4 border-b bg-gray-50">
         <Avatar className="h-10 w-10">
           <AvatarImage src={otherUser.avatar} />
@@ -151,7 +128,6 @@ const RealTimeChatInterface: React.FC<RealTimeChatInterfaceProps> = ({
         </div>
       </div>
 
-      {/* Messages */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4 max-h-96">
         {messages.map((message) => (
           <div
@@ -176,7 +152,6 @@ const RealTimeChatInterface: React.FC<RealTimeChatInterfaceProps> = ({
           </div>
         ))}
         
-        {/* Suggested messages for first interaction */}
         {isFirstMessage && (
           <div className="space-y-2">
             <p className="text-sm text-gray-600 font-medium">Quick messages:</p>
@@ -200,7 +175,6 @@ const RealTimeChatInterface: React.FC<RealTimeChatInterfaceProps> = ({
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Message Input */}
       <div className="border-t p-4">
         <div className="flex gap-2">
           <Input

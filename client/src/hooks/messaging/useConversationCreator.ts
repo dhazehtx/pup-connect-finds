@@ -1,6 +1,6 @@
 
 import { useCallback } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { apiRequest } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 
@@ -12,17 +12,11 @@ export const useConversationCreator = () => {
     if (!user) return null;
 
     try {
-      const { data, error } = await supabase
-        .from('conversations')
-        .insert({
-          buyer_id: user.id,
-          seller_id: sellerId,
-          listing_id: listingId
-        })
-        .select()
-        .single();
+      const data = await apiRequest('/messaging/conversations/find-or-create', {
+        method: 'POST',
+        body: { seller_id: sellerId, listing_id: listingId }
+      });
 
-      if (error) throw error;
       return data;
     } catch (error) {
       console.error('Error creating conversation:', error);

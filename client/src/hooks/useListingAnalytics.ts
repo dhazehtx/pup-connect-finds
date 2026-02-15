@@ -18,10 +18,11 @@ export const useListingAnalytics = () => {
       const favCountData = await apiRequest(`/api/favorites/count/${listingId}`);
       const favoritesCount = favCountData?.count ?? 0;
 
-      const { count: inquiriesCount } = await supabase
-        .from('conversations')
-        .select('*', { count: 'exact' })
-        .eq('listing_id', listingId);
+      let inquiriesCount = 0;
+      try {
+        const convData = await apiRequest(`/messaging/conversations?listing_id=${listingId}`);
+        inquiriesCount = Array.isArray(convData) ? convData.length : 0;
+      } catch {}
 
       // Generate mock analytics data
       const analytics = {

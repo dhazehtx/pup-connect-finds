@@ -1,7 +1,7 @@
 
 import { useState, useCallback } from 'react';
-import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { apiRequest } from '@/lib/api';
 
 export interface SearchResult {
   id: string;
@@ -27,40 +27,21 @@ export const useMessageSearch = () => {
     try {
       setSearching(true);
       
-      let queryBuilder = supabase
-        .from('messages')
-        .select(`
-          id,
-          content,
-          sender_id,
-          created_at,
-          conversation_id,
-          message_type,
-          profiles:sender_id (
-            full_name,
-            username
-          )
-        `)
-        .ilike('content', `%${query}%`)
-        .order('created_at', { ascending: false })
-        .limit(50);
-
+      const params = new URLSearchParams({ q: query });
       if (conversationId) {
-        queryBuilder = queryBuilder.eq('conversation_id', conversationId);
+        params.append('conversation_id', conversationId);
       }
+      
+      const data = await apiRequest(`/messaging/search?${params.toString()}`);
 
-      const { data, error } = await queryBuilder;
-
-      if (error) throw error;
-
-      const formattedResults: SearchResult[] = (data || []).map(msg => ({
+      const formattedResults: SearchResult[] = (Array.isArray(data) ? data : []).map((msg: any) => ({
         id: msg.id,
         content: msg.content || '',
         sender_id: msg.sender_id,
         created_at: msg.created_at,
         conversation_id: msg.conversation_id,
         message_type: msg.message_type || 'text',
-        sender_name: (msg.profiles as any)?.full_name || (msg.profiles as any)?.username || 'Unknown User'
+        sender_name: msg.sender_profile?.full_name || msg.sender_profile?.username || 'Unknown User'
       }));
 
       setSearchResults(formattedResults);
@@ -85,6 +66,6 @@ export const useMessageSearch = () => {
     searching,
     searchMessages,
     clearSearch,
-    isSearching: searching // Legacy compatibility
+    isSearching: searching
   };
 };

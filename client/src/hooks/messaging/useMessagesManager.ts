@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { apiRequest } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 
@@ -22,16 +22,8 @@ export const useMessagesManager = () => {
 
   const fetchMessages = async (conversationId: string) => {
     try {
-      const { data, error } = await supabase
-        .from('messages')
-        .select('*')
-        .eq('conversation_id', conversationId)
-        .order('created_at', { ascending: true });
-
-      if (error) throw error;
-      
-      // Filter out messages with null content and ensure type safety
-      const validMessages = (data || []).filter(msg => msg.content !== null) as Message[];
+      const data = await apiRequest(`/messaging/conversations/${conversationId}/messages`);
+      const validMessages = (Array.isArray(data) ? data : []).filter((msg: any) => msg.content !== null) as Message[];
       setMessages(validMessages);
     } catch (error) {
       console.error('Error fetching messages:', error);
@@ -47,31 +39,13 @@ export const useMessagesManager = () => {
     if (!user) return;
 
     try {
-      const { data, error } = await supabase
-        .from('messages')
-        .insert([{
-          conversation_id: conversationId,
-          sender_id: user.id,
-          content,
-          message_type: messageType
-        }])
-        .select()
-        .single();
+      const data = await apiRequest('/messaging/messages', {
+        method: 'POST',
+        body: { conversation_id: conversationId, content }
+      });
 
-      if (error) throw error;
-
-      // Update conversation last message timestamp
-      await supabase
-        .from('conversations')
-        .update({ 
-          last_message_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', conversationId);
-
-      // Refresh messages
       await fetchMessages(conversationId);
-      
+
       return data;
     } catch (error) {
       console.error('Error sending message:', error);
