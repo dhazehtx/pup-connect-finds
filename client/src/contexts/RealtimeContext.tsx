@@ -1,8 +1,7 @@
 
-import React, { createContext, useContext, useEffect, useState } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { useAuth } from './AuthContext';
-import { useToast } from '@/hooks/use-toast';
+import { useSocket } from '@/hooks/useSocket';
 
 interface RealtimeContextType {
   isConnected: boolean;
@@ -16,67 +15,45 @@ const RealtimeContext = createContext<RealtimeContextType | undefined>(undefined
 
 export const RealtimeProvider = ({ children }: { children: React.ReactNode }) => {
   const { user } = useAuth();
-  const { toast } = useToast();
-  const [isConnected, setIsConnected] = useState(false);
-  const [connectionStatus, setConnectionStatus] = useState<'connected' | 'connecting' | 'disconnected'>('disconnected');
+  const { socket, connected, onEvent } = useSocket();
   const [onlineUsers, setOnlineUsers] = useState<string[]>([]);
 
+  const connectionStatus: 'connected' | 'connecting' | 'disconnected' =
+    connected ? 'connected' : user ? 'connecting' : 'disconnected';
+
   useEffect(() => {
-    if (!user) return;
+    if (!connected) return;
 
-    setConnectionStatus('connecting');
+    const cleanupList = onEvent('presence:list', (data: { users: string[] }) => {
+      setOnlineUsers(data.users);
+    });
 
-    // Set up presence channel for online users
-    const presenceChannel = supabase.channel('user-presence');
-    
-    presenceChannel
-      .on('presence', { event: 'sync' }, () => {
-        const presenceState = presenceChannel.presenceState();
-        const users = Object.keys(presenceState);
-        setOnlineUsers(users);
-        setIsConnected(true);
-        setConnectionStatus('connected');
-      })
-      .on('presence', { event: 'join' }, ({ key }) => {
-        setOnlineUsers(prev => [...new Set([...prev, key])]);
-      })
-      .on('presence', { event: 'leave' }, ({ key }) => {
-        setOnlineUsers(prev => prev.filter(userId => userId !== key));
-      })
-      .subscribe(async (status) => {
-        if (status === 'SUBSCRIBED') {
-          await presenceChannel.track({
-            user_id: user.id,
-            online_at: new Date().toISOString()
-          });
-        }
-      });
+    const cleanupOnline = onEvent('presence:online', (data: { userId: string }) => {
+      setOnlineUsers(prev => [...new Set([...prev, data.userId])]);
+    });
+
+    const cleanupOffline = onEvent('presence:offline', (data: { userId: string }) => {
+      setOnlineUsers(prev => prev.filter(id => id !== data.userId));
+    });
+
+    socket?.emit('presence:list');
 
     return () => {
-      supabase.removeChannel(presenceChannel);
-      setIsConnected(false);
-      setConnectionStatus('disconnected');
+      cleanupList?.();
+      cleanupOnline?.();
+      cleanupOffline?.();
     };
-  }, [user]);
+  }, [connected, onEvent, socket]);
 
-  const setUserOnline = async () => {
-    if (!user) return;
-    
-    const channel = supabase.channel('user-presence');
-    await channel.track({
-      user_id: user.id,
-      online_at: new Date().toISOString()
-    });
-  };
+  const setUserOnline = useCallback(async () => {
+  }, []);
 
-  const setUserOffline = async () => {
-    const channel = supabase.channel('user-presence');
-    await channel.untrack();
-  };
+  const setUserOffline = useCallback(async () => {
+  }, []);
 
   return (
     <RealtimeContext.Provider value={{
-      isConnected,
+      isConnected: connected,
       connectionStatus,
       onlineUsers,
       setUserOnline,

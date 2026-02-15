@@ -57,13 +57,16 @@ export function setupSocketIO(httpServer: HttpServer): Server {
     }
     onlineUsers.get(userId)!.add(socket.id);
 
+    io.emit('presence:online', { userId, userName });
+
+    socket.emit('presence:list', { users: Array.from(onlineUsers.keys()) });
+
+    socket.on('presence:list', () => {
+      socket.emit('presence:list', { users: Array.from(onlineUsers.keys()) });
+    });
+
     socket.on('join:conversation', (conversationId: string) => {
       socket.join(`conv:${conversationId}`);
-      socket.to(`conv:${conversationId}`).emit('presence:online', {
-        userId,
-        userName,
-        conversationId,
-      });
     });
 
     socket.on('leave:conversation', (conversationId: string) => {
