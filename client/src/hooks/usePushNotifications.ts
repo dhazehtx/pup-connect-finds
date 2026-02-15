@@ -1,17 +1,17 @@
 
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useSocket } from '@/hooks/useSocket';
 
 export const usePushNotifications = () => {
   const [permission, setPermission] = useState<NotificationPermission>('default');
   const [isSupported, setIsSupported] = useState(false);
   const { user } = useAuth();
   const { toast } = useToast();
+  const { connected, onEvent } = useSocket();
 
   useEffect(() => {
-    // Check if push notifications are supported
     setIsSupported('Notification' in window && 'serviceWorker' in navigator);
     
     if ('Notification' in window) {
@@ -67,7 +67,6 @@ export const usePushNotifications = () => {
     if (!user || permission !== 'granted') return;
 
     try {
-      // Register service worker if not already registered
       if ('serviceWorker' in navigator) {
         const registration = await navigator.serviceWorker.register('/sw.js');
         console.log('Service Worker registered:', registration);
@@ -77,35 +76,21 @@ export const usePushNotifications = () => {
     }
   };
 
-  // Set up real-time notification listener
   useEffect(() => {
-    if (!user) return;
+    if (!user || !connected) return;
 
-    const channel = supabase
-      .channel('push-notifications')
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'notifications',
-          filter: `user_id=eq.${user.id}`
-        },
-        (payload) => {
-          const notification = payload.new;
-          sendNotification(notification.title, {
-            body: notification.message,
-            tag: notification.type,
-            requireInteraction: notification.type === 'payment_confirmation',
-          });
-        }
-      )
-      .subscribe();
+    const cleanup = onEvent('notification:new', (payload: any) => {
+      sendNotification(payload.title || 'New notification', {
+        body: payload.message,
+        tag: payload.type,
+        requireInteraction: payload.type === 'payment_confirmation',
+      });
+    });
 
     return () => {
-      supabase.removeChannel(channel);
+      cleanup?.();
     };
-  }, [user, permission]);
+  }, [user, connected, onEvent, permission]);
 
   return {
     permission,

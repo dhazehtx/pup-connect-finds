@@ -20,12 +20,30 @@ interface AuthenticatedSocket extends Socket {
 const onlineUsers = new Map<string, Set<string>>();
 const typingUsers = new Map<string, Map<string, { name: string; timeout: NodeJS.Timeout }>>();
 
+let ioInstance: Server | null = null;
+
+export function getIO(): Server | null {
+  return ioInstance;
+}
+
+export function emitToUser(userId: string, event: string, data: any): void {
+  if (!ioInstance) return;
+  const userSockets = onlineUsers.get(userId);
+  if (userSockets) {
+    Array.from(userSockets).forEach(socketId => {
+      ioInstance!.to(socketId).emit(event, data);
+    });
+  }
+}
+
 export function setupSocketIO(httpServer: HttpServer): Server {
   const io = new Server(httpServer, {
     cors: { origin: '*', methods: ['GET', 'POST'] },
     path: '/socket.io',
     transports: ['websocket', 'polling'],
   });
+
+  ioInstance = io;
 
   io.use(async (socket: AuthenticatedSocket, next) => {
     const token = socket.handshake.auth?.token;

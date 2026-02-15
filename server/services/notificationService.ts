@@ -1,6 +1,7 @@
 import { eq, and, desc, gt, count, isNull, or } from 'drizzle-orm';
 import { db } from '../db';
 import { notifications, notificationPreferences, admins } from '../../shared/schema';
+import { emitToUser } from '../socket';
 
 export interface NotificationArgs {
   recipientId: string;
@@ -46,7 +47,7 @@ export class NotificationService {
           and(
             eq(notifications.toUserId, args.recipientId),
             eq(notifications.bucketKey, bucketKey),
-            eq(notifications.read, false),
+            eq(notifications.isRead, false),
             gt(notifications.createdAt, new Date(Date.now() - 24 * 60 * 60 * 1000)) // within 24 hours
           )
         )
@@ -56,7 +57,6 @@ export class NotificationService {
       const existing = existingNotifications[0];
 
       if (existing) {
-        // Update existing notification with new actor
         const meta = (existing.meta as any) || {};
         const actors: string[] = Array.from(new Set([...(meta.actors ?? []), args.actorId].filter(Boolean))) as string[];
         meta.actors = actors;
@@ -73,9 +73,14 @@ export class NotificationService {
             createdAt: new Date()
           })
           .where(eq(notifications.id, existing.id));
+
+        emitToUser(args.recipientId, 'notification:new', {
+          id: existing.id,
+          type: args.type,
+          message: groupedMessage,
+        });
       } else {
-        // Create new notification
-        await db.insert(notifications).values({
+        const [created] = await db.insert(notifications).values({
           toUserId: args.recipientId,
           fromUserId: args.actorId,
           actorId: args.actorId,
@@ -88,7 +93,11 @@ export class NotificationService {
           meta: args.meta || {},
           read: false,
           isRead: false
-        });
+        }).returning();
+
+        if (created) {
+          emitToUser(args.recipientId, 'notification:new', created);
+        }
       }
     } catch (error) {
       console.error('Error creating notification:', error);
@@ -104,7 +113,7 @@ export class NotificationService {
       .where(
         and(
           eq(notifications.toUserId, userId),
-          unreadOnly ? eq(notifications.read, false) : undefined,
+          unreadOnly ? eq(notifications.isRead, false) : undefined,
           cursor ? gt(notifications.createdAt, new Date(cursor)) : undefined
         )
       )
@@ -130,7 +139,7 @@ export class NotificationService {
       .where(
         and(
           eq(notifications.toUserId, userId),
-          eq(notifications.read, false)
+          eq(notifications.isRead, false)
         )
       );
 

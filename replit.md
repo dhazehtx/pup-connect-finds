@@ -22,6 +22,15 @@ Preferred communication style: Simple, everyday language.
   - WebRTC signaling hook migrated from Supabase channels to Socket.io
   - Presence system unified (Feb 2026): RealtimeContext.tsx now uses Socket.io instead of Supabase channel('user-presence'). Server broadcasts global presence:online/offline events and responds to presence:list requests. No Supabase Realtime channels remain for presence tracking.
   - GDPR messaging export/deletion uses Drizzle in server/routes/user.ts
+- Phase 4 Complete (Feb 2026): Notifications fully migrated to Neon/Drizzle
+  - Server endpoints already Drizzle-backed: GET/POST /api/notifications, PATCH /:id/read, PATCH /mark-all-read, GET /unread-count, DELETE /clear
+  - Enhanced notifications v2 at /api/notifications-v2 with cursor pagination via notificationService
+  - All Supabase Realtime channels for notifications removed from: useNotifications, useEnhancedNotifications, useRealtimeNotifications, usePushNotifications
+  - Real-time notification delivery via Socket.io: server emits notification:new to target user sockets, client hooks listen for notification:new events
+  - server/socket.ts exports emitToUser() helper for targeted Socket.io emission
+  - All raw fetch() calls replaced with apiRequest() for proper Bearer token auth
+  - Zero supabase.from('notifications') calls remain in client or server
+  - Zero postgres_changes subscriptions for notifications remain
 
 ## System Architecture
 

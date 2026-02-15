@@ -1,0 +1,96 @@
+PROMPT: Notifications Migration (Neon-only, keep UI working)
+
+GUARDRAILS
+
+Do NOT change UI/UX layout/styling.
+
+Do NOT add Supabase DB usage for notifications (no supabase.from('notifications')).
+
+Supabase Auth stays (token + getUser), Supabase Storage stays.
+
+If realtime exists for notifications, replace with polling (React Query refetchInterval) for launch safety.
+
+Implement minimal changes only; no refactors.
+
+TASK 0 — Source of truth
+
+Notifications source of truth = Neon/Drizzle only.
+
+Notifications UI must render actor + target labels correctly (no “undefined”).
+
+TASK 1 — Repo audit (must output file + line numbers)
+Find all client + server usage related to notifications:
+
+supabase.from('notifications'), rest/v1/notifications
+
+.channel( subscriptions related to notifications
+
+notification rendering components that show actor/target fields
+
+Output:
+
+Current reads/writes (Supabase / Neon / both)
+
+Which fields are missing and causing “undefined” in UI (actor name, post title, listing name, etc.)
+
+TASK 2 — Server endpoints (Neon)
+Ensure these exist and return fully shaped data needed by UI:
+
+GET /api/notifications (supports pagination)
+
+GET /api/notifications/unread-count
+
+POST /api/notifications/mark-read (single + “mark all”)
+Return includes:
+
+notification id, type, created_at, read_at
+
+actor profile (id, username, avatar_url)
+
+target metadata depending on type (post id/content OR listing id/name)
+Use Drizzle joins. If target record missing, return safe fallbacks (no undefined strings).
+
+TASK 3 — Client wiring (keep UI working)
+
+Replace any Supabase notification queries with apiRequest().
+
+Replace notification realtime subscription with polling:
+
+notifications list: refetchInterval: 30000
+
+unread count: refetchInterval: 15000
+
+Ensure UI never renders “undefined” (use fallback text like “Someone” / “your post” only if data truly missing).
+
+TASK 4 — Verification (must show evidence)
+A) Grep proof (counts + file/line):
+
+supabase.from('notifications')
+
+rest/v1/notifications
+
+.channel( notifications
+B) Smoke tests (status + snippet):
+
+GET /api/notifications (200)
+
+GET /api/notifications/unread-count (200)
+
+POST /api/notifications/mark-read (200)
+C) Manual UI checklist:
+
+open notifications panel
+
+verify actor name + target appear (no undefined)
+
+mark read works and unread badge updates
+
+OUTPUT
+
+Changed files + summary
+
+Grep table
+
+Smoke test table
+
+UI checklist results

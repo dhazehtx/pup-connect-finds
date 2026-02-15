@@ -1,9 +1,10 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { supabase } from '@/integrations/supabase/client';
+import { apiRequest } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
 import { NotificationData, NotificationSettings } from '@/types/messaging';
+import { useSocket } from '@/hooks/useSocket';
 
 export const useEnhancedNotifications = () => {
   const [notifications, setNotifications] = useState<NotificationData[]>([]);
@@ -21,16 +22,13 @@ export const useEnhancedNotifications = () => {
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
   const { toast } = useToast();
+  const { connected, onEvent } = useSocket();
 
   const fetchNotifications = useCallback(async () => {
     if (!user) return;
 
     try {
-      const response = await fetch('/api/notifications');
-      const data = response.ok ? await response.json() : [];
-      const error = response.ok ? null : new Error('Failed to fetch');
-
-      if (error) throw error;
+      const data = await apiRequest('/api/notifications');
 
       const transformedData = (data || []).map((item: any) => ({
         ...item,
@@ -59,15 +57,12 @@ export const useEnhancedNotifications = () => {
     if (!user) return;
 
     try {
-      const response = await fetch(`/api/user/preferences?user_id=${user.id}`);
+      const data = await apiRequest(`/api/user/preferences?user_id=${user.id}`);
       
-      if (response.ok) {
-        const data = await response.json();
-        if (data && data.matching_criteria) {
-          const criteria = data.matching_criteria as any;
-          if (criteria.notification_settings) {
-            setSettings(prev => ({ ...prev, ...criteria.notification_settings }));
-          }
+      if (data && data.matching_criteria) {
+        const criteria = data.matching_criteria as any;
+        if (criteria.notification_settings) {
+          setSettings(prev => ({ ...prev, ...criteria.notification_settings }));
         }
       }
     } catch (error) {
@@ -81,21 +76,16 @@ export const useEnhancedNotifications = () => {
     try {
       const updatedSettings = { ...settings, ...newSettings };
       
-      const response = await fetch('/api/user/preferences', {
+      await apiRequest('/api/user/preferences', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
+        body: {
           user_id: user.id,
           matching_criteria: {
             notification_settings: updatedSettings
           } as any,
           updated_at: new Date().toISOString()
-        })
+        }
       });
-
-      if (!response.ok) throw new Error('Failed to update settings');
 
       setSettings(updatedSettings);
       
@@ -115,8 +105,7 @@ export const useEnhancedNotifications = () => {
 
   const markAsRead = async (notificationId: string) => {
     try {
-      const response = await fetch(`/api/notifications/${notificationId}/read`, { method: 'PATCH' });
-      if (!response.ok) throw new Error('Failed to mark as read');
+      await apiRequest(`/api/notifications/${notificationId}/read`, { method: 'PATCH' });
 
       setNotifications(prev => 
         prev.map(n => n.id === notificationId ? { ...n, is_read: true } : n)
@@ -131,8 +120,7 @@ export const useEnhancedNotifications = () => {
     if (!user) return;
 
     try {
-      const response = await fetch('/api/notifications/mark-all-read', { method: 'PATCH' });
-      if (!response.ok) throw new Error('Failed to mark all as read');
+      await apiRequest('/api/notifications/mark-all-read', { method: 'PATCH' });
 
       setNotifications(prev => prev.map(n => ({ ...n, is_read: true })));
       setUnreadCount(0);
@@ -163,21 +151,17 @@ export const useEnhancedNotifications = () => {
     metadata?: any
   ) => {
     try {
-      const response = await fetch('/api/notifications', {
+      const data = await apiRequest('/api/notifications', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+        body: {
           toUserId: recipientId,
           type,
           title,
           message,
           fromUserId: user?.id,
           relatedId: metadata?.listingId || metadata?.conversationId
-        })
+        }
       });
-
-      if (!response.ok) throw new Error('Failed to create notification');
-      const data = await response.json();
 
       if (settings.push_enabled && shouldSendNotification(type)) {
         await sendPushNotification(title, message, actionUrl);
@@ -231,52 +215,43 @@ export const useEnhancedNotifications = () => {
     if (user) {
       fetchNotifications();
       fetchSettings();
-
-      // Set up real-time subscription
-      const channel = supabase
-        .channel('notifications')
-        .on(
-          'postgres_changes',
-          {
-            event: 'INSERT',
-            schema: 'public',
-            table: 'notifications',
-            filter: `to_user_id=eq.${user.id}`
-          },
-          (payload) => {
-            const newNotification = {
-              ...payload.new,
-              priority: 'medium' as const,
-              type: payload.new.type as NotificationData['type']
-            } as NotificationData;
-            
-            setNotifications(prev => [newNotification, ...prev]);
-            setUnreadCount(prev => prev + 1);
-            
-            if (newNotification.priority === 'high' || newNotification.priority === 'urgent') {
-              toast({
-                title: newNotification.title,
-                description: newNotification.message,
-                variant: newNotification.priority === 'urgent' ? 'destructive' : 'default',
-              });
-            }
-
-            if (settings.push_enabled && shouldSendNotification(newNotification.type)) {
-              sendPushNotification(
-                newNotification.title,
-                newNotification.message,
-                (newNotification as any).target_url
-              );
-            }
-          }
-        )
-        .subscribe();
-
-      return () => {
-        supabase.removeChannel(channel);
-      };
     }
-  }, [user, fetchNotifications, fetchSettings, toast, settings]);
+  }, [user, fetchNotifications, fetchSettings]);
+
+  useEffect(() => {
+    if (!connected || !user) return;
+
+    const cleanup = onEvent('notification:new', (payload: any) => {
+      const newNotification = {
+        ...payload,
+        priority: 'medium' as const,
+        type: payload.type as NotificationData['type']
+      } as NotificationData;
+      
+      setNotifications(prev => [newNotification, ...prev]);
+      setUnreadCount(prev => prev + 1);
+      
+      if (newNotification.priority === 'high' || newNotification.priority === 'urgent') {
+        toast({
+          title: newNotification.title,
+          description: newNotification.message,
+          variant: newNotification.priority === 'urgent' ? 'destructive' : 'default',
+        });
+      }
+
+      if (settings.push_enabled && shouldSendNotification(newNotification.type)) {
+        sendPushNotification(
+          newNotification.title,
+          newNotification.message,
+          (newNotification as any).target_url
+        );
+      }
+    });
+
+    return () => {
+      cleanup?.();
+    };
+  }, [connected, user, onEvent, toast, settings]);
 
   return {
     notifications,

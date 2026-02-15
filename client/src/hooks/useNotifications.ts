@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { useState, useEffect, useCallback } from 'react';
+import { apiRequest } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
+import { useSocket } from '@/hooks/useSocket';
 
 interface Notification {
   id: string;
@@ -22,17 +23,16 @@ export function useNotifications() {
   const [unreadCount, setUnreadCount] = useState(0);
   const { toast } = useToast();
   const { user } = useAuth();
+  const { connected, onEvent } = useSocket();
 
-  const fetchNotifications = async () => {
+  const fetchNotifications = useCallback(async () => {
     try {
       if (!user) {
         setLoading(false);
         return;
       }
 
-      const response = await fetch('/api/notifications');
-      if (!response.ok) throw new Error('Failed to fetch notifications');
-      const data = await response.json();
+      const data = await apiRequest('/api/notifications');
 
       setNotifications(data || []);
       setUnreadCount(data?.filter((n: any) => !n.isRead).length || 0);
@@ -46,12 +46,11 @@ export function useNotifications() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user, toast]);
 
   const markAsRead = async (notificationId: string) => {
     try {
-      const response = await fetch(`/api/notifications/${notificationId}/read`, { method: 'PATCH' });
-      if (!response.ok) throw new Error('Failed to mark as read');
+      await apiRequest(`/api/notifications/${notificationId}/read`, { method: 'PATCH' });
 
       setNotifications(prev => 
         prev.map(n => 
@@ -74,8 +73,7 @@ export function useNotifications() {
 
   const markAllAsRead = async () => {
     try {
-      const response = await fetch('/api/notifications/mark-all-read', { method: 'PATCH' });
-      if (!response.ok) throw new Error('Failed to mark all as read');
+      await apiRequest('/api/notifications/mark-all-read', { method: 'PATCH' });
 
       setNotifications(prev => 
         prev.map(n => ({ ...n, isRead: true }))
@@ -94,30 +92,22 @@ export function useNotifications() {
   useEffect(() => {
     if (user) {
       fetchNotifications();
-
-      const channel = supabase
-        .channel('notifications')
-        .on(
-          'postgres_changes',
-          {
-            event: 'INSERT',
-            schema: 'public',
-            table: 'notifications',
-            filter: `to_user_id=eq.${user.id}`
-          },
-          () => {
-            fetchNotifications();
-          }
-        )
-        .subscribe();
-
-      return () => {
-        supabase.removeChannel(channel);
-      };
     } else {
       setLoading(false);
     }
-  }, [user]);
+  }, [user, fetchNotifications]);
+
+  useEffect(() => {
+    if (!connected) return;
+
+    const cleanup = onEvent('notification:new', () => {
+      fetchNotifications();
+    });
+
+    return () => {
+      cleanup?.();
+    };
+  }, [connected, onEvent, fetchNotifications]);
 
   return {
     notifications,

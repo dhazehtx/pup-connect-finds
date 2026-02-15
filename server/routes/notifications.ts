@@ -3,6 +3,7 @@ import { db } from "../db";
 import { notifications } from "../../shared/schema";
 import { eq, and, desc, sql } from "drizzle-orm";
 import { insertNotificationSchema } from "@shared/schema";
+import { emitToUser } from "../socket";
 
 const router = Router();
 
@@ -141,6 +142,10 @@ router.post("/", async (req, res) => {
       .insert(notifications)
       .values(validatedData)
       .returning();
+
+    if (notification && validatedData.toUserId) {
+      emitToUser(validatedData.toUserId, 'notification:new', notification);
+    }
 
     res.json(notification);
   } catch (error) {
