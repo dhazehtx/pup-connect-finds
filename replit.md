@@ -20,6 +20,7 @@ Preferred communication style: Simple, everyday language.
   - client/src/hooks/useSocket.ts: Global singleton Socket.io client
   - All 5 typing/presence hooks migrated: useTypingIndicator, useTypingIndicators, useRealtimeTyping, useUserPresence, usePresenceManager
   - WebRTC signaling hook migrated from Supabase channels to Socket.io
+  - Presence system unified (Feb 2026): RealtimeContext.tsx now uses Socket.io instead of Supabase channel('user-presence'). Server broadcasts global presence:online/offline events and responds to presence:list requests. No Supabase Realtime channels remain for presence tracking.
   - GDPR messaging export/deletion uses Drizzle in server/routes/user.ts
 
 ## System Architecture
