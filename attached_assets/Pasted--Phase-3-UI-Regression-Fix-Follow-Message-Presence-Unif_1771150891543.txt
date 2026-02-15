@@ -1,0 +1,89 @@
+(Phase 3 UI Regression Fix — Follow + Message + Presence Unification)
+
+GUARDRAILS
+
+Do NOT change database schema.
+
+Do NOT change business logic, only fix broken UI wiring.
+
+Do NOT refactor unrelated components.
+
+Do NOT change styling except to revert/fix the profile header/avatar alignment regression if confirmed.
+
+Keep Supabase Auth + Storage as-is.
+
+Messaging remains Socket.io + Neon API (do not reintroduce Supabase DB or Supabase Realtime for messaging).
+
+TASK 1 — Reproduce + locate why “Follow” does nothing
+
+Find the component for viewing another user’s profile (public profile view) and the Follow button handler.
+
+Confirm whether the Follow button is:
+
+disabled due to missing currentUser/auth state, OR
+
+missing onClick handler, OR
+
+calling a function that never fires, OR
+
+calling an endpoint but failing silently.
+
+Add minimal visible feedback only if needed (e.g., toast on error), but do not change UI design.
+
+REQUIREMENTS
+
+Clicking Follow should call the Neon-backed follow endpoints:
+
+POST /api/follows (or your existing follow route)
+
+DELETE /api/follows/:userId (or your existing unfollow route)
+
+After success, UI should update follower count + button state.
+
+TASK 2 — Fix “Message” actions
+A) Bottom nav “Messages” tab:
+
+Ensure it navigates to the correct route (likely /messages) and is not blocked by an overlay.
+
+If an overlay is blocking clicks, fix pointer-events/z-index minimally.
+
+B) “Message” button on a profile:
+
+Ensure it calls the correct endpoint to find-or-create a conversation:
+
+POST /api/messaging/conversations/find-or-create
+
+Ensure payload keys match the server contract exactly (do not guess — read server route handler and match it).
+
+After success, navigate to the conversation thread view.
+
+TASK 3 — Presence system decision
+
+Disable Supabase presence channel usage (global presence) ONLY IF Socket.io presence is already available and used.
+
+Requirement: There must be only ONE presence source feeding the UI.
+
+If the UI is still using Supabase presence and Socket.io presence is not wired into that UI, then:
+
+Leave Supabase presence ON for now,
+
+but ensure messaging presence uses Socket.io only,
+
+and document this as a follow-up task.
+(Choose the safest option that avoids breaking UI.)
+
+TASK 4 — Profile header/avatar layout regression
+
+Check the profile header layout on desktop.
+
+If the avatar/name block shifted unexpectedly, revert the specific CSS/layout change causing it.
+
+Keep the existing intended design.
+
+OUTPUT
+
+Root cause(s) found for Follow + Messages issues (file + line).
+
+Exact minimal changes made (files changed + summary).
+
+Confirmation steps to verify in UI.
