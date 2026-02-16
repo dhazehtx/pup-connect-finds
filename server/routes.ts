@@ -440,7 +440,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const convList = await storage.getUserConversationsWithDetails(userId);
-      console.log('[PROOF:INBOX] ✓ END', JSON.stringify({ actorUserId: userId, count: convList.length }));
+      console.log('[PROOF:MSG:LIST]', JSON.stringify({ actorUserId: userId, count: convList.length }));
       res.json(convList);
     } catch (error: any) {
       console.error('[PROOF:INBOX] ✗ END error', JSON.stringify({ actorUserId: req.user?.id, error: error?.message, code: error?.code, stack: error?.stack }));
@@ -522,11 +522,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ ok: false, error: 'Target profile not found', code: 'TARGET_NOT_FOUND' });
       }
 
-      console.log('[PROOF:FIND_OR_CREATE] creating/finding conversation', JSON.stringify({ actorUserId, targetUserId, listing_id: listing_id || null }));
       const conversation = await storage.findOrCreateConversation(actorUserId, targetUserId, listing_id || null);
       const conversationId = conversation.id;
-      console.log('[PROOF:FIND_OR_CREATE] ✓ END result=success', JSON.stringify({ actorUserId, targetUserId, conversationId }));
-      res.json({ ok: true, conversationId, ...conversation });
+      console.log('[PROOF:MSG:FIND_OR_CREATE]', JSON.stringify({ actorUserId, targetUserId, conversationId, created: conversation.created }));
+      res.json({ ok: true, conversationId, id: conversationId, created: conversation.created });
     } catch (error: any) {
       console.error('[PROOF:FIND_OR_CREATE] ✗ END result=error', JSON.stringify({
         actorUserId: req.user?.id,

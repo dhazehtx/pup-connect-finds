@@ -13,6 +13,8 @@ Preferred communication style: Simple, everyday language.
 - Supabase is reserved ONLY for Auth + Storage (no data reads/writes for app domains)
 - Phase 1-2 Complete: Posts, Comments, Follows, Post Likes, Favorites migrated
 - Phase 3 Complete (Feb 2026): Messaging/Conversations fully migrated to Neon/Drizzle API
+  - conversation_participants join table added (Feb 2026): All conversation queries use participants table for user membership instead of buyer_id/seller_id columns. Unique constraint on (conversation_id, user_id), index on user_id. Messages table indexed on conversation_id.
+  - findOrCreateConversation uses participants table to find shared conversations, respects listing_id dedup, creates both conversation + 2 participant rows on new conversations
   - All .from('messages') and .from('conversations') Supabase calls eliminated from client code
   - 9 REST endpoints for messaging at /api/messaging/*
   - Socket.io replaces Supabase Realtime for typing indicators, presence, and real-time message delivery

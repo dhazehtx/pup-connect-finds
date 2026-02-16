@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, boolean, timestamp, uuid, decimal, jsonb, unique } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp, uuid, decimal, jsonb, unique, uniqueIndex, index } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -84,6 +84,17 @@ export const conversations = pgTable("conversations", {
   created_at: timestamp("created_at").defaultNow(),
   updated_at: timestamp("updated_at").defaultNow(),
 });
+
+// Conversation participants join table
+export const conversationParticipants = pgTable("conversation_participants", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  conversation_id: uuid("conversation_id").notNull().references(() => conversations.id),
+  user_id: uuid("user_id").notNull().references(() => profiles.id),
+  created_at: timestamp("created_at").defaultNow(),
+}, (table) => [
+  uniqueIndex("uq_conv_participant").on(table.conversation_id, table.user_id),
+  index("idx_conv_participant_user").on(table.user_id),
+]);
 
 // Messages table - Simplified to match database structure
 export const messages = pgTable("messages", {
@@ -253,6 +264,7 @@ export const transactions = pgTable("transactions", {
 export const insertProfileSchema = createInsertSchema(profiles).omit({ id: true, created_at: true, updated_at: true });
 export const insertDogListingSchema = createInsertSchema(dogListings).omit({ id: true, created_at: true, updated_at: true });
 export const insertConversationSchema = createInsertSchema(conversations).omit({ id: true, created_at: true, updated_at: true });
+export const insertConversationParticipantSchema = createInsertSchema(conversationParticipants).omit({ id: true, created_at: true });
 export const insertMessageSchema = createInsertSchema(messages).omit({ id: true, created_at: true });
 export const insertFavoriteSchema = createInsertSchema(favorites).omit({ id: true, created_at: true });
 export const insertReviewSchema = createInsertSchema(reviews).omit({ id: true, created_at: true });
@@ -470,6 +482,8 @@ export type DogListing = typeof dogListings.$inferSelect;
 export type InsertDogListing = z.infer<typeof insertDogListingSchema>;
 export type Conversation = typeof conversations.$inferSelect;
 export type InsertConversation = z.infer<typeof insertConversationSchema>;
+export type ConversationParticipant = typeof conversationParticipants.$inferSelect;
+export type InsertConversationParticipant = z.infer<typeof insertConversationParticipantSchema>;
 export type Message = typeof messages.$inferSelect;
 export type InsertMessage = z.infer<typeof insertMessageSchema>;
 export type Favorite = typeof favorites.$inferSelect;

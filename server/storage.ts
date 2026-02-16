@@ -3,6 +3,7 @@ import {
   profiles,
   dogListings,
   conversations,
+  conversationParticipants,
   messages,
   favorites,
   reviews,
@@ -101,7 +102,7 @@ export interface IStorage {
   getUserConversations(userId: string): Promise<Conversation[]>;
   getUserConversationsWithDetails(userId: string): Promise<any[]>;
   createConversation(conversation: InsertConversation): Promise<Conversation>;
-  findOrCreateConversation(buyerId: string, sellerId: string, listingId?: string | null): Promise<Conversation>;
+  findOrCreateConversation(actorId: string, targetId: string, listingId?: string | null): Promise<Conversation & { created: boolean }>;
   
   // Message methods
   getConversationMessages(conversationId: string): Promise<Message[]>;
@@ -383,7 +384,14 @@ export class DatabaseStorage implements IStorage {
     const conv = await db.select().from(conversations).where(eq(conversations.id, id)).limit(1);
     if (!conv[0]) return undefined;
     const c = conv[0];
-    const otherUserId = c.buyer_id === userId ? c.seller_id : c.buyer_id;
+
+    const participants = await db.select({ user_id: conversationParticipants.user_id })
+      .from(conversationParticipants)
+      .where(eq(conversationParticipants.conversation_id, c.id));
+    const isParticipant = participants.some(p => p.user_id === userId);
+    if (!isParticipant) return undefined;
+
+    const otherUserId = participants.find(p => p.user_id !== userId)?.user_id || null;
     let otherProfile = null;
     if (otherUserId) {
       const p = await db.select({
@@ -417,8 +425,14 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getUserConversations(userId: string): Promise<Conversation[]> {
+    const userConvIds = await db
+      .select({ conversation_id: conversationParticipants.conversation_id })
+      .from(conversationParticipants)
+      .where(eq(conversationParticipants.user_id, userId));
+    if (userConvIds.length === 0) return [];
+    const convIds = userConvIds.map(r => r.conversation_id);
     return await db.select().from(conversations)
-      .where(or(eq(conversations.buyer_id, userId), eq(conversations.seller_id, userId)))
+      .where(inArray(conversations.id, convIds))
       .orderBy(desc(conversations.last_message_at));
   }
 
@@ -426,7 +440,13 @@ export class DatabaseStorage implements IStorage {
     const convs = await this.getUserConversations(userId);
     const results = [];
     for (const c of convs) {
-      const otherUserId = c.buyer_id === userId ? c.seller_id : c.buyer_id;
+      const otherParticipants = await db.select({ user_id: conversationParticipants.user_id })
+        .from(conversationParticipants)
+        .where(and(
+          eq(conversationParticipants.conversation_id, c.id),
+          sql`${conversationParticipants.user_id} != ${userId}`
+        ));
+      const otherUserId = otherParticipants[0]?.user_id || null;
       let otherProfile = null;
       if (otherUserId) {
         const p = await db.select({
@@ -486,30 +506,42 @@ export class DatabaseStorage implements IStorage {
     return result[0];
   }
 
-  async findOrCreateConversation(buyerId: string, sellerId: string, listingId?: string | null): Promise<Conversation> {
-    const conditions = listingId
-      ? and(
-          or(
-            and(eq(conversations.buyer_id, buyerId), eq(conversations.seller_id, sellerId)),
-            and(eq(conversations.buyer_id, sellerId), eq(conversations.seller_id, buyerId))
-          ),
-          eq(conversations.listing_id, listingId)
-        )
-      : and(
-          or(
-            and(eq(conversations.buyer_id, buyerId), eq(conversations.seller_id, sellerId)),
-            and(eq(conversations.buyer_id, sellerId), eq(conversations.seller_id, buyerId))
-          ),
-          sql`${conversations.listing_id} IS NULL`
-        );
-    const existing = await db.select().from(conversations).where(conditions).limit(1);
-    if (existing[0]) return existing[0];
-    const result = await db.insert(conversations).values([{
-      buyer_id: buyerId,
-      seller_id: sellerId,
+  async findOrCreateConversation(actorId: string, targetId: string, listingId?: string | null): Promise<Conversation & { created: boolean }> {
+    const cp = conversationParticipants;
+
+    const sharedConvIds = await db
+      .select({ conversation_id: cp.conversation_id })
+      .from(cp)
+      .where(
+        sql`${cp.conversation_id} IN (
+          SELECT conversation_id FROM conversation_participants WHERE user_id = ${targetId}
+        ) AND ${cp.user_id} = ${actorId}`
+      );
+
+    if (sharedConvIds.length > 0) {
+      const convIds = sharedConvIds.map(r => r.conversation_id);
+      const listingCondition = listingId
+        ? eq(conversations.listing_id, listingId)
+        : sql`${conversations.listing_id} IS NULL`;
+      const rows = await db.select().from(conversations)
+        .where(and(inArray(conversations.id, convIds), listingCondition))
+        .limit(1);
+      if (rows[0]) return { ...rows[0], created: false };
+    }
+
+    const conv = await db.insert(conversations).values([{
+      buyer_id: actorId,
+      seller_id: targetId,
       listing_id: listingId || null,
     }]).returning();
-    return result[0];
+    const newConv = conv[0];
+
+    await db.insert(cp).values([
+      { conversation_id: newConv.id, user_id: actorId },
+      { conversation_id: newConv.id, user_id: targetId },
+    ]);
+
+    return { ...newConv, created: true };
   }
 
   // Message methods
@@ -571,11 +603,11 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getUnreadCount(userId: string): Promise<number> {
-    const userConvs = await db.select({ id: conversations.id })
-      .from(conversations)
-      .where(or(eq(conversations.buyer_id, userId), eq(conversations.seller_id, userId)));
+    const userConvs = await db.select({ conversation_id: conversationParticipants.conversation_id })
+      .from(conversationParticipants)
+      .where(eq(conversationParticipants.user_id, userId));
     if (userConvs.length === 0) return 0;
-    const convIds = userConvs.map(c => c.id);
+    const convIds = userConvs.map(c => c.conversation_id);
     const result = await db.select({
       count: sql<number>`count(*)::int`,
     }).from(messages)
@@ -588,11 +620,11 @@ export class DatabaseStorage implements IStorage {
   }
 
   async searchMessages(userId: string, query: string): Promise<any[]> {
-    const userConvs = await db.select({ id: conversations.id })
-      .from(conversations)
-      .where(or(eq(conversations.buyer_id, userId), eq(conversations.seller_id, userId)));
+    const userConvs = await db.select({ conversation_id: conversationParticipants.conversation_id })
+      .from(conversationParticipants)
+      .where(eq(conversationParticipants.user_id, userId));
     if (userConvs.length === 0) return [];
-    const convIds = userConvs.map(c => c.id);
+    const convIds = userConvs.map(c => c.conversation_id);
     return await db.select().from(messages)
       .where(and(
         inArray(messages.conversation_id, convIds),
@@ -960,6 +992,8 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteConversation(id: string): Promise<boolean> {
+    await db.delete(messages).where(eq(messages.conversation_id, id));
+    await db.delete(conversationParticipants).where(eq(conversationParticipants.conversation_id, id));
     const result = await db.delete(conversations).where(eq(conversations.id, id));
     return (result.rowCount ?? 0) > 0;
   }
