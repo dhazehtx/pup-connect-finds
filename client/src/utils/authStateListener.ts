@@ -1,5 +1,14 @@
 import { supabase } from '@/integrations/supabase/client';
 
+const ensureNeonProfile = async (accessToken: string) => {
+  try {
+    await fetch('/api/profiles/me', {
+      headers: { 'Authorization': `Bearer ${accessToken}` },
+    });
+  } catch {
+  }
+};
+
 const trackLoginViaApi = async () => {
   try {
     const { data: { session } } = await supabase.auth.getSession();
@@ -20,7 +29,8 @@ export const setupAuthStateListener = () => {
   const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
     switch (event) {
       case 'SIGNED_IN':
-        if (session?.user?.id) {
+        if (session?.user?.id && session.access_token) {
+          ensureNeonProfile(session.access_token);
           trackLoginViaApi();
         }
         break;

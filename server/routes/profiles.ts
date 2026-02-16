@@ -107,6 +107,7 @@ router.get('/search', async (req: Request, res: Response) => {
     const verifiedOnly = req.query.verified === 'true';
     const limit = parseInt(req.query.limit as string) || 20;
     const results = await storage.searchProfiles(q, { userType, verifiedOnly, limit });
+    console.log(`[profile-search] q="${q}" → ${results.length} results (${results.map(r => r.username).join(', ')})`);
     res.json(results.map(shapeProfile));
   } catch (error) {
     console.error('Error searching profiles:', error);

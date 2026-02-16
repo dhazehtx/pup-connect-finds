@@ -2114,6 +2114,65 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Register health check routes
   registerHealthRoutes(app);
 
+  // Dev-only: backfill Neon profiles from Supabase Auth users
+  app.post('/api/dev/backfill-profiles', async (req, res) => {
+    if (process.env.NODE_ENV === 'production') {
+      return res.status(404).json({ error: 'Not available in production' });
+    }
+    try {
+      const { supabaseAdmin } = await import('./lib/supabaseAdmin');
+      const { ensureProfile } = await import('./lib/ensureProfile');
+
+      let page = 1;
+      let totalInserted = 0;
+      let totalExisting = 0;
+      const perPage = 100;
+      let keepGoing = true;
+
+      while (keepGoing) {
+        const { data: { users }, error } = await supabaseAdmin.auth.admin.listUsers({ page, perPage });
+        if (error) {
+          console.error('[backfill] Supabase admin.listUsers error:', error);
+          return res.status(500).json({ error: 'Failed to list Supabase Auth users', details: error.message });
+        }
+        if (!users || users.length === 0) {
+          keepGoing = false;
+          break;
+        }
+
+        for (const u of users) {
+          const existing = await storage.getProfile(u.id);
+          if (existing) {
+            totalExisting++;
+            continue;
+          }
+          await ensureProfile({
+            id: u.id,
+            email: u.email || null,
+            full_name: u.user_metadata?.full_name || u.user_metadata?.name || null,
+            username: u.user_metadata?.username || (u.email ? u.email.split('@')[0] : null),
+            avatar_url: u.user_metadata?.avatar_url || null,
+          });
+          totalInserted++;
+        }
+
+        if (users.length < perPage) {
+          keepGoing = false;
+        }
+        page++;
+      }
+
+      const totalProfiles = await db.select({ count: sql<number>`count(*)` }).from(profiles);
+      const profileCount = Number(totalProfiles[0]?.count || 0);
+
+      console.log(`[backfill] Done. Inserted: ${totalInserted}, Already existed: ${totalExisting}, Total profiles now: ${profileCount}`);
+      res.json({ inserted: totalInserted, alreadyExisted: totalExisting, totalProfiles: profileCount });
+    } catch (error: any) {
+      console.error('[backfill] Error:', error);
+      res.status(500).json({ error: 'Backfill failed', details: error.message });
+    }
+  });
+
   // 404 handler for API routes only (not for static files)
   app.use('/api/*', notFoundHandler);
 
