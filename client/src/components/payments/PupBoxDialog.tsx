@@ -142,7 +142,7 @@ const PupBoxDialog: React.FC<PupBoxDialogProps> = ({ isOpen, onClose }) => {
                   <ul className="text-xs space-y-1">
                     {box.items.map((item, index) => (
                       <li key={index} className="flex items-start gap-1">
-                        <Star className="w-3 h-3 text-yellow-500 mt-0.5 flex-shrink-0" />
+                        <Star className="w-3 h-3 text-blue-500 mt-0.5 flex-shrink-0" />
                         {item}
                       </li>
                     ))}

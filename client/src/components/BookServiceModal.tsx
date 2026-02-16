@@ -298,13 +298,13 @@ export function BookServiceModal({ provider, open, onClose }: BookServiceModalPr
               )}
 
               {/* Terms Agreement */}
-              <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200">
+              <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
                 <div className="flex items-start gap-2">
-                  <AlertTriangle className="h-5 w-5 text-yellow-600 mt-0.5 flex-shrink-0" />
+                  <AlertTriangle className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" />
                   <div className="space-y-3">
                     <div>
-                      <p className="font-medium text-yellow-900">Service Terms</p>
-                      <p className="text-sm text-yellow-700 mt-1">
+                      <p className="font-medium text-blue-900">Service Terms</p>
+                      <p className="text-sm text-blue-700 mt-1">
                         By booking this service, you agree to use only verified providers on our platform 
                         and understand that payment arrangements are made directly with the provider.
                       </p>
@@ -318,7 +318,7 @@ export function BookServiceModal({ provider, open, onClose }: BookServiceModalPr
                       />
                       <label 
                         htmlFor="terms" 
-                        className="text-sm text-yellow-700 leading-relaxed cursor-pointer"
+                        className="text-sm text-blue-700 leading-relaxed cursor-pointer"
                       >
                         I agree to the service terms and understand that all providers are verified for safety.
                       </label>

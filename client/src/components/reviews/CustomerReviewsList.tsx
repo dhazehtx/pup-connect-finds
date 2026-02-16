@@ -34,7 +34,7 @@ const CustomerReviewsList: React.FC<CustomerReviewsListProps> = ({ reviews, load
       <Star
         key={i}
         size={16}
-        className={`${i < rating ? 'text-yellow-400 fill-current' : 'text-gray-300'}`}
+        className={`${i < rating ? 'text-blue-400 fill-current' : 'text-gray-300'}`}
       />
     ));
   };

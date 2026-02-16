@@ -143,11 +143,11 @@ export function NotificationFeedV2({ onMarkAsRead, onClose }: NotificationFeedPr
   const hasUnreadNotifications = notifications.some((n: Notification) => !n.read && !n.isRead);
 
   return (
-    <div className="w-full max-h-96">
+    <div className="w-full max-h-96 bg-white text-gray-900">
       {/* Header */}
-      <div className="p-4 border-b">
+      <div className="p-4 border-b bg-white">
         <div className="flex items-center justify-between">
-          <h3 className="font-semibold text-lg">Notifications</h3>
+          <h3 className="font-semibold text-lg text-gray-900">Notifications</h3>
           {hasUnreadNotifications && (
             <Button
               variant="ghost"
@@ -184,8 +184,8 @@ export function NotificationFeedV2({ onMarkAsRead, onClose }: NotificationFeedPr
               return (
                 <div
                   key={notification.id}
-                  className={`p-4 hover:bg-gray-50 cursor-pointer transition-colors ${
-                    isUnread ? 'bg-blue-50 border-l-4 border-l-blue-500' : ''
+                  className={`p-4 hover:bg-gray-50 cursor-pointer transition-colors bg-white ${
+                    isUnread ? '!bg-blue-50 border-l-4 border-l-blue-500' : ''
                   }`}
                   onClick={() => handleNotificationClick(notification)}
                   data-testid={`notification-item-${index}`}

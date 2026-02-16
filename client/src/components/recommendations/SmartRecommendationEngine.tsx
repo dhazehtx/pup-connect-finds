@@ -263,7 +263,7 @@ const SmartRecommendationEngine = ({
                     <div className="flex items-center justify-between">
                       <span className="font-bold text-xl">${rec.price.toLocaleString()}</span>
                       <div className="flex items-center gap-1">
-                        <Star className="h-4 w-4 text-yellow-500 fill-current" />
+                        <Star className="h-4 w-4 text-blue-500 fill-current" />
                         <span className="text-sm">{rec.seller_rating}</span>
                       </div>
                     </div>

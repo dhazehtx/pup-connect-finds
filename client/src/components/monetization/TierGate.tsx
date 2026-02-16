@@ -38,9 +38,9 @@ const TierGate = ({ requiredTier, feature, description, children, fallback }: Ti
     <Card className="border-2 border-dashed border-gray-300 bg-gray-50">
       <CardContent className="p-6 text-center">
         <div className="flex justify-center mb-4">
-          <div className="p-3 rounded-full bg-yellow-100">
+          <div className="p-3 rounded-full bg-blue-100">
             {requiredTier === 'pro' ? (
-              <Crown className="w-8 h-8 text-yellow-600" />
+              <Crown className="w-8 h-8 text-blue-600" />
             ) : (
               <Zap className="w-8 h-8 text-purple-600" />
             )}
@@ -60,7 +60,7 @@ const TierGate = ({ requiredTier, feature, description, children, fallback }: Ti
         <div className="flex gap-2 justify-center">
           <Button
             onClick={() => createCheckout(requiredTier === 'pro' ? 'Pro' : 'Enterprise')}
-            className={`${requiredTier === 'pro' ? 'bg-yellow-500 hover:bg-yellow-600' : 'bg-purple-500 hover:bg-purple-600'} text-white`}
+            className={`${requiredTier === 'pro' ? 'bg-blue-500 hover:bg-blue-600' : 'bg-purple-500 hover:bg-purple-600'} text-white`}
           >
             Upgrade to {requiredTier === 'pro' ? 'Pup Pro' : 'Pup Partner'}
           </Button>

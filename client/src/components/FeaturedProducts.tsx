@@ -73,7 +73,7 @@ const FeaturedProducts: React.FC<FeaturedProductsProps> = ({ onProductSelect }) 
           <Star
             key={star}
             className={`w-4 h-4 ${
-              star <= stars ? 'text-yellow-400 fill-current' : 'text-gray-300'
+              star <= stars ? 'text-blue-400 fill-current' : 'text-gray-300'
             }`}
           />
         ))}
@@ -86,7 +86,7 @@ const FeaturedProducts: React.FC<FeaturedProductsProps> = ({ onProductSelect }) 
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold text-gray-900">Featured Products</h2>
-        <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">
+        <Badge variant="secondary" className="bg-blue-100 text-blue-800">
           Featured
         </Badge>
       </div>
@@ -106,7 +106,7 @@ const FeaturedProducts: React.FC<FeaturedProductsProps> = ({ onProductSelect }) 
                   <ShoppingCart className="w-12 h-12 text-blue-400" />
                 </div>
               )}
-              <Badge className="absolute top-2 right-2 bg-yellow-500 text-white">
+              <Badge className="absolute top-2 right-2 bg-blue-500 text-white">
                 Featured
               </Badge>
             </div>

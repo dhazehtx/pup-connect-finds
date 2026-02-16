@@ -32,9 +32,9 @@ export const RateLimitError: React.FC<RateLimitErrorProps> = ({ error, onRetry }
 
   return (
     <Alert className="border-orange-200 bg-orange-50">
-      <AlertTriangle className="h-4 w-4 text-amber-600" />
-      <AlertTitle className="text-amber-900">Rate Limit Exceeded</AlertTitle>
-      <AlertDescription className="text-amber-800">
+      <AlertTriangle className="h-4 w-4 text-blue-600" />
+      <AlertTitle className="text-blue-900">Rate Limit Exceeded</AlertTitle>
+      <AlertDescription className="text-blue-800">
         <div className="space-y-2">
           <p>{error.message}</p>
           {countdown > 0 && (

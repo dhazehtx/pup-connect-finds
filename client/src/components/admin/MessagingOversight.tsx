@@ -190,7 +190,7 @@ const MessagingOversight = () => {
                 <p className="text-sm font-medium text-gray-600">Spam Detected</p>
                 <p className="text-2xl font-bold">{messagingStats.spamDetected}</p>
               </div>
-              <AlertTriangle className="w-8 h-8 text-amber-500" />
+              <AlertTriangle className="w-8 h-8 text-blue-500" />
             </div>
           </CardContent>
         </Card>

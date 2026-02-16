@@ -240,10 +240,10 @@ const AccountSettings = () => {
                     />
                   </div>
 
-                  <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                  <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
                     <div className="flex items-start gap-2">
-                      <AlertTriangle className="h-4 w-4 text-amber-600 mt-0.5" />
-                      <div className="text-sm text-amber-800">
+                      <AlertTriangle className="h-4 w-4 text-blue-600 mt-0.5" />
+                      <div className="text-sm text-blue-800">
                         Consider exporting your data first if you want to keep a copy for your records.
                       </div>
                     </div>

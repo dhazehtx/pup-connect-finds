@@ -173,7 +173,7 @@ const ProfessionalNetworkDashboard = () => {
                         <div className="flex items-center gap-2">
                           <h4 className="font-medium">Professional Breeder {i}</h4>
                           <Verified className="h-4 w-4 text-blue-500" />
-                          <Award className="h-4 w-4 text-yellow-500" />
+                          <Award className="h-4 w-4 text-blue-500" />
                         </div>
                         <p className="text-sm text-muted-foreground">
                           Licensed Breeder • Golden Retrievers & Labs
@@ -181,7 +181,7 @@ const ProfessionalNetworkDashboard = () => {
                         <div className="flex items-center gap-2 mt-1">
                           <MapPin className="h-3 w-3 text-muted-foreground" />
                           <span className="text-xs text-muted-foreground">San Francisco, CA</span>
-                          <Star className="h-3 w-3 text-yellow-500 fill-current" />
+                          <Star className="h-3 w-3 text-blue-500 fill-current" />
                           <span className="text-xs">4.9 (156 reviews)</span>
                         </div>
                       </div>

@@ -234,7 +234,7 @@ const WebRTCCallManager = ({ conversationId, otherUser, onCallEnd }: WebRTCCallM
   const getQualityColor = (quality: string) => {
     switch (quality) {
       case 'excellent': return 'text-green-600';
-      case 'good': return 'text-yellow-600';
+      case 'good': return 'text-blue-600';
       case 'poor': return 'text-red-600';
       default: return 'text-gray-600';
     }

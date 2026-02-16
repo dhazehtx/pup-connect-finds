@@ -168,7 +168,7 @@ const ProductionReadinessChecklist = () => {
       case 'issue':
         return <XCircle className="w-5 h-5 text-red-500" />;
       default:
-        return <AlertTriangle className="w-5 h-5 text-yellow-500" />;
+        return <AlertTriangle className="w-5 h-5 text-blue-500" />;
     }
   };
 
@@ -177,7 +177,7 @@ const ProductionReadinessChecklist = () => {
       case 'high':
         return 'bg-red-100 text-red-800';
       case 'medium':
-        return 'bg-yellow-100 text-yellow-800';
+        return 'bg-blue-100 text-blue-800';
       default:
         return 'bg-green-100 text-green-800';
     }
@@ -312,12 +312,12 @@ const ProductionReadinessChecklist = () => {
                 </p>
               </div>
             ) : overallScore >= 75 ? (
-              <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+              <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
                 <div className="flex items-center gap-2 mb-2">
-                  <AlertTriangle className="w-5 h-5 text-yellow-600" />
-                  <h3 className="font-semibold text-yellow-800">Almost Ready</h3>
+                  <AlertTriangle className="w-5 h-5 text-blue-600" />
+                  <h3 className="font-semibold text-blue-800">Almost Ready</h3>
                 </div>
-                <p className="text-yellow-700">
+                <p className="text-blue-700">
                   Your application is mostly ready. Address the remaining items before deploying to production.
                 </p>
               </div>

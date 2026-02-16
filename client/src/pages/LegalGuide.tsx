@@ -185,7 +185,7 @@ const LegalGuide = () => {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <AlertTriangle className="w-5 h-5 text-amber-600" />
+            <AlertTriangle className="w-5 h-5 text-blue-600" />
             Federal USDA Requirements
           </CardTitle>
         </CardHeader>

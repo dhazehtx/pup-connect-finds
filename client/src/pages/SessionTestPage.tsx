@@ -83,7 +83,7 @@ export default function SessionTestPage() {
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-medium flex items-center gap-2">
-                <Shield className="h-4 w-4 text-amber-600" />
+                <Shield className="h-4 w-4 text-blue-600" />
                 Security Modal
               </CardTitle>
             </CardHeader>

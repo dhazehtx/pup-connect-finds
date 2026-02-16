@@ -34,7 +34,7 @@ const GroupCard: React.FC<GroupCardProps> = ({
   const getRoleIcon = (role: string) => {
     switch (role) {
       case 'admin':
-        return <Crown className="w-3 h-3 text-yellow-600" />;
+        return <Crown className="w-3 h-3 text-blue-600" />;
       case 'moderator':
         return <Shield className="w-3 h-3 text-blue-600" />;
       default:

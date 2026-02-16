@@ -197,7 +197,7 @@ const GestureProductCard: React.FC<GestureProductCardProps> = ({
             {[...Array(5)].map((_, i) => (
               <Star 
                 key={i} 
-                className={`h-3 w-3 ${i < Math.floor(product.rating || 4.5) ? 'text-yellow-400 fill-current' : 'text-gray-300'}`} 
+                className={`h-3 w-3 ${i < Math.floor(product.rating || 4.5) ? 'text-blue-400 fill-current' : 'text-gray-300'}`} 
               />
             ))}
             <span className="text-xs text-gray-600 ml-1">{product.rating || '4.5'}</span>

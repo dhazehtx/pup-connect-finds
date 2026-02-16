@@ -14,11 +14,11 @@ function TermsOfService() {
         <p className="text-muted-foreground">Version {currentVersion} | Effective Date: {effectiveDate}</p>
       </div>
 
-      <Card className="border-amber-300 bg-amber-50">
+      <Card className="border-blue-300 bg-blue-50">
         <CardContent className="pt-6">
           <div className="flex gap-3">
-            <AlertTriangle className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
-            <p className="text-sm text-amber-900">
+            <AlertTriangle className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
+            <p className="text-sm text-blue-900">
               <strong>Important Notice:</strong> These Terms include limitations on liability, a release of claims, an indemnification obligation, and an arbitration agreement. Please read carefully.
             </p>
           </div>

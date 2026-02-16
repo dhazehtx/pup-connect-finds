@@ -28,7 +28,7 @@ const MessagingPerformanceDashboard = () => {
 
   const getMetricColor = (value: number, thresholds: { good: number; warning: number }) => {
     if (value <= thresholds.good) return 'text-green-600';
-    if (value <= thresholds.warning) return 'text-yellow-600';
+    if (value <= thresholds.warning) return 'text-blue-600';
     return 'text-red-600';
   };
 
@@ -115,7 +115,7 @@ const MessagingPerformanceDashboard = () => {
         <Card>
           <CardHeader className="pb-2">
             <div className="flex items-center gap-2">
-              <Zap className="w-4 h-4 text-yellow-600" />
+              <Zap className="w-4 h-4 text-blue-600" />
               <span className="text-sm font-medium">Search Performance</span>
             </div>
           </CardHeader>
@@ -173,7 +173,7 @@ const MessagingPerformanceDashboard = () => {
                 <AlertTriangle 
                   className={`w-4 h-4 mt-0.5 ${
                     suggestion.severity === 'high' ? 'text-red-500' :
-                    suggestion.severity === 'medium' ? 'text-yellow-500' :
+                    suggestion.severity === 'medium' ? 'text-blue-500' :
                     'text-blue-500'
                   }`} 
                 />

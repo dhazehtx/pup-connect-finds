@@ -91,7 +91,7 @@ const RefundManagementDashboard = () => {
         Medium Risk ({(riskScore * 100).toFixed(0)}%)
       </Badge>;
     } else if (riskScore >= 0.3) {
-      return <Badge variant="outline" className="border-yellow-500 text-blue-600">
+      return <Badge variant="outline" className="border-blue-500 text-blue-600">
         Low Risk ({(riskScore * 100).toFixed(0)}%)
       </Badge>;
     }

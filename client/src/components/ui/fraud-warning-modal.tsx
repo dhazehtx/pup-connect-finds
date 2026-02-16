@@ -43,7 +43,7 @@ export const FraudWarningModal: React.FC<FraudWarningModalProps> = ({
           title: 'Account Under Review',
           description: 'Your account is currently under security review. Some features may be limited.',
           color: 'bg-red-600',
-          textColor: 'text-amber-600',
+          textColor: 'text-blue-600',
           icon: Shield,
           severity: 'Medium'
         };
@@ -138,8 +138,8 @@ export const FraudWarningModal: React.FC<FraudWarningModalProps> = ({
           {profileStatus === 'under_review' && (
             <div className="p-4 bg-orange-50 border border-orange-200 rounded-lg">
               <div className="flex items-start gap-2">
-                <Info className="h-4 w-4 text-amber-600 mt-0.5" />
-                <div className="text-sm text-amber-800">
+                <Info className="h-4 w-4 text-blue-600 mt-0.5" />
+                <div className="text-sm text-blue-800">
                   <strong>Limited Access:</strong> New listings and account changes are temporarily 
                   disabled while we review your account.
                 </div>

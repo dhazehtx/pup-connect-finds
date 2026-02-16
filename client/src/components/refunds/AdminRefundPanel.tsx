@@ -149,7 +149,7 @@ export const AdminRefundPanel: React.FC = () => {
 
   const getStatusBadge = (status: string) => {
     const configs = {
-      pending: { color: 'bg-amber-100 text-amber-800', label: 'Pending' },
+      pending: { color: 'bg-blue-100 text-blue-800', label: 'Pending' },
       approved: { color: 'bg-blue-100 text-blue-800', label: 'Approved' },
       refunded: { color: 'bg-green-100 text-green-800', label: 'Refunded' },
       declined: { color: 'bg-red-100 text-red-800', label: 'Declined' },
@@ -228,9 +228,9 @@ export const AdminRefundPanel: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Pending Review</p>
-                <p className="text-2xl font-bold text-amber-600">{stats.pending}</p>
+                <p className="text-2xl font-bold text-blue-600">{stats.pending}</p>
               </div>
-              <Clock className="h-8 w-8 text-amber-600" />
+              <Clock className="h-8 w-8 text-blue-600" />
             </div>
           </CardContent>
         </Card>
@@ -286,7 +286,7 @@ export const AdminRefundPanel: React.FC = () => {
             </Card>
           ) : (
             pendingRefunds.map((refund) => (
-              <Card key={refund.id} className="border-l-4 border-l-amber-500">
+              <Card key={refund.id} className="border-l-4 border-l-blue-500">
                 <CardContent className="p-6">
                   <div className="flex items-start justify-between">
                     <div className="space-y-3 flex-1">
@@ -415,7 +415,7 @@ export const AdminRefundPanel: React.FC = () => {
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-sm">Pending Review</span>
-                    <Badge className="bg-amber-100 text-amber-800">{stats.pending}</Badge>
+                    <Badge className="bg-blue-100 text-blue-800">{stats.pending}</Badge>
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-sm">Declined</span>

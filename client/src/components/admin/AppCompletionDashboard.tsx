@@ -827,7 +827,7 @@ const AppCompletionDashboard = () => {
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-br from-orange-500 to-red-500 text-white">
+        <Card className="bg-gradient-to-br from-blue-500 to-red-500 text-white">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>

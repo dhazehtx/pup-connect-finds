@@ -51,7 +51,7 @@ const PRIORITY_OPTIONS = [
 
 const STATUS_OPTIONS = [
   { value: 'open', label: 'Open', icon: Clock, color: 'bg-blue-100 text-blue-800' },
-  { value: 'in_progress', label: 'In Progress', icon: Clock, color: 'bg-yellow-100 text-yellow-800' },
+  { value: 'in_progress', label: 'In Progress', icon: Clock, color: 'bg-blue-100 text-blue-800' },
   { value: 'resolved', label: 'Resolved', icon: CheckCircle, color: 'bg-green-100 text-green-800' },
   { value: 'closed', label: 'Closed', icon: XCircle, color: 'bg-gray-100 text-gray-800' }
 ];
@@ -210,7 +210,7 @@ const AdminSupportPage: React.FC = () => {
                   <div className="text-sm text-gray-500 dark:text-gray-400">Open</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-yellow-600">{ticketsData.stats.in_progress}</div>
+                  <div className="text-2xl font-bold text-blue-600">{ticketsData.stats.in_progress}</div>
                   <div className="text-sm text-gray-500 dark:text-gray-400">In Progress</div>
                 </div>
                 <div className="text-center">

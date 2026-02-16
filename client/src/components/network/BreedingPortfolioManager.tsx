@@ -226,7 +226,7 @@ const BreedingPortfolioManager = () => {
                   <div className="grid gap-3">
                     {portfolio.achievements.map((achievement, achievementIndex) => (
                       <div key={achievementIndex} className="flex items-center gap-3 p-3 border rounded-lg">
-                        <Award className="h-5 w-5 text-yellow-500" />
+                        <Award className="h-5 w-5 text-blue-500" />
                         <div className="flex-1">
                           <p className="font-medium">{achievement}</p>
                         </div>

@@ -83,7 +83,7 @@ const PremiumUpgradePrompt = ({ isOpen, onClose, trigger }: PremiumUpgradePrompt
       <DialogContent className="max-w-md mx-auto">
         <DialogHeader>
           <div className="flex items-center justify-center mb-4">
-            <div className="p-3 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full">
+            <div className="p-3 bg-gradient-to-r from-blue-400 to-blue-500 rounded-full">
               <Crown className="w-8 h-8 text-white" />
             </div>
           </div>
@@ -94,7 +94,7 @@ const PremiumUpgradePrompt = ({ isOpen, onClose, trigger }: PremiumUpgradePrompt
         
         <div className="space-y-4">
           <div className="text-center">
-            <Badge className="bg-gradient-to-r from-yellow-400 to-orange-500 text-white border-0 mb-2">
+            <Badge className="bg-gradient-to-r from-blue-400 to-blue-500 text-white border-0 mb-2">
               Upgrade to Premium
             </Badge>
             <p className="text-gray-600 text-sm">
@@ -136,7 +136,7 @@ const PremiumUpgradePrompt = ({ isOpen, onClose, trigger }: PremiumUpgradePrompt
             </Button>
             <Button 
               onClick={handleUpgrade}
-              className="flex-1 bg-gradient-to-r from-yellow-400 to-orange-500 hover:from-yellow-500 hover:to-orange-600 text-white"
+              className="flex-1 bg-gradient-to-r from-blue-400 to-blue-500 hover:from-blue-500 hover:to-blue-600 text-white"
             >
               Start Free Trial
             </Button>

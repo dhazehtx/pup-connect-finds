@@ -24,7 +24,7 @@ const PremiumDashboard = () => {
           <p className="text-gray-600 mt-2">Advanced tools and insights for premium users</p>
         </div>
         <div className="flex items-center gap-2">
-          <Badge className="bg-gradient-to-r from-yellow-400 to-orange-500">
+          <Badge className="bg-gradient-to-r from-blue-400 to-blue-500">
             PRO PLAN
           </Badge>
           <Badge variant="outline">

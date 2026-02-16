@@ -19,7 +19,7 @@ const EscrowDashboard = () => {
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'pending':
-        return <Clock className="w-4 h-4 text-yellow-600" />;
+        return <Clock className="w-4 h-4 text-blue-600" />;
       case 'funded':
         return <Shield className="w-4 h-4 text-blue-600" />;
       case 'confirmed':
@@ -36,7 +36,7 @@ const EscrowDashboard = () => {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'pending':
-        return 'bg-yellow-100 text-yellow-800';
+        return 'bg-blue-100 text-blue-800';
       case 'funded':
         return 'bg-blue-100 text-blue-800';
       case 'confirmed':
@@ -110,7 +110,7 @@ const EscrowDashboard = () => {
                 <p className="text-sm font-medium text-muted-foreground">Active</p>
                 <p className="text-2xl font-bold">{stats.active}</p>
               </div>
-              <Clock className="w-8 h-8 text-yellow-600" />
+              <Clock className="w-8 h-8 text-blue-600" />
             </div>
           </CardContent>
         </Card>

@@ -219,10 +219,10 @@ export const RefundStatusCard: React.FC<RefundStatusCardProps> = ({
 
         {/* Processing Status for Pending */}
         {refund.status === 'pending' && (
-          <div className="bg-amber-50 p-3 rounded-lg border border-amber-200">
+          <div className="bg-blue-50 p-3 rounded-lg border border-blue-200">
             <div className="flex items-center gap-2">
-              <Clock className="h-4 w-4 text-amber-600" />
-              <p className="text-sm text-amber-800">
+              <Clock className="h-4 w-4 text-blue-600" />
+              <p className="text-sm text-blue-800">
                 Your refund request is being reviewed. You'll receive an email notification once it's processed.
               </p>
             </div>

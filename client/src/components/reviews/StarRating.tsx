@@ -47,9 +47,9 @@ const StarRating = ({
             <Star
               className={`${starSize} ${
                 isFilled 
-                  ? 'fill-yellow-400 text-yellow-400' 
+                  ? 'fill-blue-400 text-blue-400' 
                   : isHalfFilled 
-                    ? 'fill-yellow-200 text-yellow-400'
+                    ? 'fill-blue-200 text-blue-400'
                     : 'fill-transparent text-gray-300'
               }`}
             />

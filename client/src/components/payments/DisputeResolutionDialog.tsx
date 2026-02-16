@@ -126,8 +126,8 @@ const DisputeResolutionDialog: React.FC<DisputeResolutionDialogProps> = ({
             <p className="text-sm text-blue-600">Amount: ${dispute.amount}</p>
           </div>
 
-          <div className="bg-yellow-50 p-3 rounded-lg border border-yellow-200">
-            <p className="text-sm text-yellow-800">
+          <div className="bg-blue-50 p-3 rounded-lg border border-blue-200">
+            <p className="text-sm text-blue-800">
               <strong>Policy:</strong> To prevent scams and ensure fairness, we only process full refunds. 
               No partial refunds are allowed for dog transactions.
             </p>
@@ -163,8 +163,8 @@ const DisputeResolutionDialog: React.FC<DisputeResolutionDialogProps> = ({
             />
           </div>
 
-          <div className="bg-amber-50 p-3 rounded-lg">
-            <p className="text-sm text-amber-800">
+          <div className="bg-blue-50 p-3 rounded-lg">
+            <p className="text-sm text-blue-800">
               <strong>Note:</strong> This action cannot be undone. Both parties will be notified of the resolution.
               All refunds are processed as full amounts to maintain transparency.
             </p>

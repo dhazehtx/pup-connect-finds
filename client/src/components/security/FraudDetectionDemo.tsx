@@ -26,7 +26,7 @@ export const FraudDetectionDemo: React.FC = () => {
       description: 'Simulate account flagged for review',
       status: 'under_review' as const,
       score: 75,
-      color: 'bg-amber-100 text-amber-800',
+      color: 'bg-blue-100 text-blue-800',
       icon: Shield
     },
     {
@@ -80,7 +80,7 @@ export const FraudDetectionDemo: React.FC = () => {
               <Badge variant="outline" className="bg-blue-100 text-blue-800 border-blue-300">
                 ✓ Abuse Detection Active
               </Badge>
-              <Badge variant="outline" className="bg-amber-100 text-amber-800 border-amber-300">
+              <Badge variant="outline" className="bg-blue-100 text-blue-800 border-blue-300">
                 ⚠ Fraud Detection (Demo Mode)
               </Badge>
             </div>

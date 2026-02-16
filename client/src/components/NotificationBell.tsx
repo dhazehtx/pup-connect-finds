@@ -70,7 +70,7 @@ export function NotificationBell() {
       </DropdownMenuTrigger>
       <DropdownMenuContent
         align="end"
-        className="w-80 p-0"
+        className="w-80 p-0 bg-white text-gray-900"
         data-testid="notification-dropdown"
       >
         <NotificationFeedV2 

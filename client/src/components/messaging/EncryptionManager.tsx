@@ -129,10 +129,10 @@ const EncryptionManager = ({
         {/* Warning for unencrypted */}
         {!isEncrypted && (
           <div className="flex items-start gap-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-            <AlertTriangle className="w-4 h-4 text-yellow-600 mt-0.5 flex-shrink-0" />
+            <AlertTriangle className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
             <div className="text-sm">
-              <p className="font-medium text-yellow-800">Messages are not encrypted</p>
-              <p className="text-yellow-700 mt-1">
+              <p className="font-medium text-blue-800">Messages are not encrypted</p>
+              <p className="text-blue-700 mt-1">
                 Enable encryption to secure your conversation with end-to-end protection.
               </p>
             </div>

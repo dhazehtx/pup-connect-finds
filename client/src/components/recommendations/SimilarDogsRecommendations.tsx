@@ -164,7 +164,7 @@ const SimilarDogsRecommendations: React.FC<SimilarDogsRecommendationsProps> = ({
                       {dog.distance}
                     </div>
                     <div className="flex items-center gap-1">
-                      <Star size={12} className="text-yellow-500" />
+                      <Star size={12} className="text-blue-500" />
                       {dog.rating}
                     </div>
                   </div>

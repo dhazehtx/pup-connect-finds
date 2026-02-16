@@ -59,19 +59,19 @@ export default {
           foreground: "#ffffff",
         },
         
-        // Platform Secondary (Warm Orange)
+        // Platform Secondary (Light Blue)
         secondary: {
-          50: "#fef7ed",
-          100: "#fed7aa",
-          200: "#feb575",
-          300: "#fd923f",
-          400: "#fb7c3c",
-          500: "#f97316",
-          600: "#ea580c", // Main accent orange
-          700: "#c2410c",
-          800: "#9a3412",
-          900: "#7c2d12",
-          DEFAULT: "#ea580c",
+          50: "#eff6ff",
+          100: "#dbeafe",
+          200: "#bfdbfe",
+          300: "#93c5fd",
+          400: "#60a5fa",
+          500: "#3b82f6",
+          600: "#2563eb",
+          700: "#1d4ed8",
+          800: "#1e40af",
+          900: "#1e3a8a",
+          DEFAULT: "#2563eb",
           foreground: "#ffffff",
         },
         
@@ -83,10 +83,10 @@ export default {
           700: "#15803d",
         },
         warning: {
-          50: "#fffbeb", 
-          500: "#f59e0b",
-          600: "#d97706",
-          700: "#b45309",
+          50: "#eff6ff",
+          500: "#3b82f6",
+          600: "#2563eb",
+          700: "#1d4ed8",
         },
         error: {
           50: "#fef2f2",

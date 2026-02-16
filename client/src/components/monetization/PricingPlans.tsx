@@ -115,7 +115,7 @@ const PricingPlans = () => {
             <Card 
               key={index} 
               className={`relative ${plan.borderColor} ${
-                plan.popular ? 'ring-2 ring-yellow-400' : ''
+                plan.popular ? 'ring-2 ring-blue-400' : ''
               } ${isCurrentlySubscribed ? 'ring-2 ring-green-400' : ''}`}
             >
               {plan.popular && !isCurrentlySubscribed && (
@@ -163,7 +163,7 @@ const PricingPlans = () => {
                     isCurrentlySubscribed 
                       ? 'bg-green-500 hover:bg-green-600' 
                       : plan.popular 
-                        ? 'bg-blue-500 hover:bg-yellow-600' 
+                        ? 'bg-blue-500 hover:bg-blue-600' 
                         : 'bg-blue-500 hover:bg-blue-600'
                   } text-white`}
                 >

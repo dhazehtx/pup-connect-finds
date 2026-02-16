@@ -96,8 +96,8 @@ const EscrowDisputeDialog: React.FC<EscrowDisputeDialogProps> = ({
         </DialogHeader>
 
         <div className="space-y-4">
-          <div className="bg-amber-50 p-3 rounded-lg">
-            <p className="text-sm text-amber-800">
+          <div className="bg-blue-50 p-3 rounded-lg">
+            <p className="text-sm text-blue-800">
               Creating a dispute will pause the transaction and notify our support team. 
               Please provide as much detail as possible.
             </p>

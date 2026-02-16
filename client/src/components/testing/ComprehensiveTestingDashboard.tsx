@@ -73,7 +73,7 @@ const ComprehensiveTestingDashboard = () => {
       case 'passed': return <Check className="w-4 h-4 text-green-600" />;
       case 'failed': return <X className="w-4 h-4 text-red-600" />;
       case 'running': return <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />;
-      default: return <AlertTriangle className="w-4 h-4 text-yellow-600" />;
+      default: return <AlertTriangle className="w-4 h-4 text-blue-600" />;
     }
   };
 
@@ -82,7 +82,7 @@ const ComprehensiveTestingDashboard = () => {
       case 'passed': return <Badge className="bg-green-100 text-green-800">Passed</Badge>;
       case 'failed': return <Badge className="bg-red-100 text-red-800">Failed</Badge>;
       case 'running': return <Badge className="bg-blue-100 text-blue-800">Running</Badge>;
-      default: return <Badge className="bg-yellow-100 text-yellow-800">Pending</Badge>;
+      default: return <Badge className="bg-blue-100 text-blue-800">Pending</Badge>;
     }
   };
 

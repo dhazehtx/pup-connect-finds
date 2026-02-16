@@ -32,7 +32,7 @@ export const quickToolsData = [
     id: 'breed-selector',
     title: '🐕 Breed Matching Tool',
     description: 'Find the perfect dog breed for your lifestyle',
-    color: 'bg-yellow-50 border-yellow-200',
+    color: 'bg-blue-50 border-blue-200',
     type: 'breed-selector'
   },
   {

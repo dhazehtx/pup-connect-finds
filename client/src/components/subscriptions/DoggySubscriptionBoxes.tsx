@@ -115,7 +115,7 @@ const DoggySubscriptionBoxes = () => {
           
           <div className="flex justify-center gap-6 mt-6 text-sm text-gray-600">
             <div className="flex items-center gap-2">
-              <Star className="w-4 h-4 text-yellow-500" />
+              <Star className="w-4 h-4 text-blue-500" />
               Premium Quality
             </div>
             <div className="flex items-center gap-2">
@@ -211,7 +211,7 @@ const DoggySubscriptionBoxes = () => {
                   <ul className="space-y-2 mb-6">
                     {plan.features.map((feature, index) => (
                       <li key={index} className="flex items-start gap-2 text-sm">
-                        <Star className="w-4 h-4 text-yellow-500 mt-0.5 flex-shrink-0" />
+                        <Star className="w-4 h-4 text-blue-500 mt-0.5 flex-shrink-0" />
                         {feature}
                       </li>
                     ))}
@@ -259,8 +259,8 @@ const DoggySubscriptionBoxes = () => {
             </div>
             
             <div className="text-center">
-              <div className="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Star className="w-8 h-8 text-yellow-600" />
+              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Star className="w-8 h-8 text-blue-600" />
               </div>
               <h3 className="font-semibold mb-2">Chew Items</h3>
               <p className="text-sm text-gray-600">Long-lasting chews for dental health and fun</p>

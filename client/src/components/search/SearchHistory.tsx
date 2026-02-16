@@ -134,7 +134,7 @@ const SearchHistory = () => {
                       <div className="flex items-center gap-2 mb-1">
                         <Search className="h-4 w-4 text-muted-foreground" />
                         <span className="font-medium">{item.query || 'Browse All'}</span>
-                        {item.saved && <Star className="h-4 w-4 text-yellow-500 fill-current" />}
+                        {item.saved && <Star className="h-4 w-4 text-blue-500 fill-current" />}
                       </div>
                       <div className="flex items-center gap-2 text-sm text-muted-foreground">
                         <Clock className="h-3 w-3" />
@@ -160,7 +160,7 @@ const SearchHistory = () => {
                         onClick={() => saveSearch(item.id)}
                         disabled={item.saved}
                       >
-                        <Star className={`h-4 w-4 ${item.saved ? 'text-yellow-500 fill-current' : ''}`} />
+                        <Star className={`h-4 w-4 ${item.saved ? 'text-blue-500 fill-current' : ''}`} />
                       </Button>
                       
                       <Button

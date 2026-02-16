@@ -26,7 +26,7 @@ const VerificationWorkflow = () => {
         return <CheckCircle className="w-5 h-5 text-green-600" />;
       case 'pending':
       case 'in_review':
-        return <Clock className="w-5 h-5 text-yellow-600" />;
+        return <Clock className="w-5 h-5 text-blue-600" />;
       default:
         return <Shield className="w-5 h-5 text-gray-400" />;
     }
@@ -113,7 +113,7 @@ const VerificationWorkflow = () => {
                           type.status === 'approved' 
                             ? 'bg-green-100 text-green-800' 
                             : type.status === 'pending' || type.status === 'in_review'
-                            ? 'bg-yellow-100 text-yellow-800'
+                            ? 'bg-blue-100 text-blue-800'
                             : 'bg-gray-100 text-gray-800'
                         }`}
                       >

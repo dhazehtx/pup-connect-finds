@@ -78,7 +78,7 @@ const ServiceCard = ({ service, onBook, onViewDetails }: ServiceCardProps) => {
     <Card className="overflow-hidden hover:shadow-lg transition-shadow relative">
       {service.featured_until && new Date(service.featured_until) > new Date() && (
         <div className="absolute top-2 left-2 z-10">
-          <Badge className="bg-yellow-500 text-white">Featured</Badge>
+          <Badge className="bg-blue-500 text-white">Featured</Badge>
         </div>
       )}
       
@@ -124,7 +124,7 @@ const ServiceCard = ({ service, onBook, onViewDetails }: ServiceCardProps) => {
 
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-1">
-            <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+            <Star className="w-4 h-4 fill-blue-400 text-blue-400" />
             <span className="font-medium">{service.rating}</span>
             <span className="text-gray-600">({service.review_count})</span>
           </div>

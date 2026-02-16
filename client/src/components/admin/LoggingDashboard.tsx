@@ -174,7 +174,7 @@ const LoggingDashboard = () => {
   const getLevelIcon = (level: string) => {
     switch (level) {
       case 'error': return <AlertTriangle className="w-4 h-4 text-red-500" />;
-      case 'warn': return <AlertCircle className="w-4 h-4 text-amber-500" />;
+      case 'warn': return <AlertCircle className="w-4 h-4 text-blue-500" />;
       case 'debug': return <Bug className="w-4 h-4 text-gray-500" />;
       default: return <Info className="w-4 h-4 text-blue-500" />;
     }

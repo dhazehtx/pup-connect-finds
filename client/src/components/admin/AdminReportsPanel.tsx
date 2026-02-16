@@ -331,7 +331,7 @@ const AdminReportsPanel = () => {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'pending': return 'bg-amber-100 text-amber-800';
+      case 'pending': return 'bg-blue-100 text-blue-800';
       case 'investigating': return 'bg-blue-100 text-blue-800';
       case 'resolved': return 'bg-green-100 text-green-800';
       case 'dismissed': return 'bg-gray-100 text-gray-800';

@@ -8,7 +8,7 @@ const MonetizationPage = () => {
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-4xl mx-auto">
         <div className="text-center mb-8">
-          <Crown size={48} className="text-amber-500 mx-auto mb-4" />
+          <Crown size={48} className="text-blue-500 mx-auto mb-4" />
           <h1 className="text-3xl font-bold mb-4">Premium Features</h1>
           <p className="text-gray-600">Unlock advanced features and grow your business</p>
         </div>
@@ -52,7 +52,7 @@ const MonetizationPage = () => {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Crown className="w-5 h-5 text-amber-500" />
+                <Crown className="w-5 h-5 text-blue-500" />
                 Enterprise
               </CardTitle>
             </CardHeader>

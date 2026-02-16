@@ -50,7 +50,7 @@ const FraudProtectionSystem = ({ transactionId, onRiskDetected }: FraudProtectio
 
   const getRiskColor = (score: number) => {
     if (score >= 0.8) return 'text-red-600';
-    if (score >= 0.6) return 'text-yellow-600';
+    if (score >= 0.6) return 'text-blue-600';
     if (score >= 0.3) return 'text-blue-600';
     return 'text-green-600';
   };
@@ -66,7 +66,7 @@ const FraudProtectionSystem = ({ transactionId, onRiskDetected }: FraudProtectio
     switch (recommendation) {
       case 'approve': return <CheckCircle className="w-5 h-5 text-green-600" />;
       case 'monitor': return <Eye className="w-5 h-5 text-blue-600" />;
-      case 'manual_review': return <AlertTriangle className="w-5 h-5 text-yellow-600" />;
+      case 'manual_review': return <AlertTriangle className="w-5 h-5 text-blue-600" />;
       case 'block_transaction': return <XCircle className="w-5 h-5 text-red-600" />;
       default: return <Shield className="w-5 h-5" />;
     }
@@ -102,7 +102,7 @@ const FraudProtectionSystem = ({ transactionId, onRiskDetected }: FraudProtectio
                   value={riskScore * 100} 
                   className={`h-3 ${
                     riskScore >= 0.8 ? '[&>div]:bg-red-500' :
-                    riskScore >= 0.6 ? '[&>div]:bg-yellow-500' :
+                    riskScore >= 0.6 ? '[&>div]:bg-blue-500' :
                     riskScore >= 0.3 ? '[&>div]:bg-blue-500' : '[&>div]:bg-green-500'
                   }`}
                 />
@@ -191,7 +191,7 @@ const FraudProtectionSystem = ({ transactionId, onRiskDetected }: FraudProtectio
               <p className="text-sm text-muted-foreground">Legitimate Transactions</p>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-yellow-600">0.2%</div>
+              <div className="text-2xl font-bold text-blue-600">0.2%</div>
               <p className="text-sm text-muted-foreground">Flagged for Review</p>
             </div>
             <div className="text-center">

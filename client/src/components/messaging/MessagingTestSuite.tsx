@@ -185,7 +185,7 @@ const MessagingTestSuite = () => {
       case 'failed':
         return <XCircle className="w-4 h-4 text-red-500" />;
       case 'running':
-        return <AlertCircle className="w-4 h-4 text-yellow-500 animate-pulse" />;
+        return <AlertCircle className="w-4 h-4 text-blue-500 animate-pulse" />;
       default:
         return <div className="w-4 h-4 rounded-full border-2 border-muted" />;
     }

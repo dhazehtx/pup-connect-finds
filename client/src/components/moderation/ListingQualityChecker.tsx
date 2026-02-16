@@ -116,7 +116,7 @@ const ListingQualityChecker = ({ listing }: { listing: any }) => {
 
   const getScoreColor = (score: number) => {
     if (score >= 80) return 'text-green-600';
-    if (score >= 60) return 'text-yellow-600';
+    if (score >= 60) return 'text-blue-600';
     return 'text-red-600';
   };
 
@@ -131,7 +131,7 @@ const ListingQualityChecker = ({ listing }: { listing: any }) => {
       case 'pass':
         return <CheckCircle className="h-4 w-4 text-green-600" />;
       case 'warning':
-        return <AlertTriangle className="h-4 w-4 text-yellow-600" />;
+        return <AlertTriangle className="h-4 w-4 text-blue-600" />;
       case 'fail':
         return <XCircle className="h-4 w-4 text-red-600" />;
       default:

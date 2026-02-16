@@ -135,7 +135,7 @@ const GroupDetailPage: React.FC = () => {
   const getRoleIcon = (role: string) => {
     switch (role) {
       case 'admin':
-        return <Crown className="w-4 h-4 text-yellow-600" />;
+        return <Crown className="w-4 h-4 text-blue-600" />;
       case 'moderator':
         return <Shield className="w-4 h-4 text-blue-600" />;
       default:

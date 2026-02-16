@@ -20,13 +20,13 @@ const FraudAnalysisDialog: React.FC<FraudAnalysisDialogProps> = ({
   const getRiskColor = (riskScore: number) => {
     if (riskScore >= 0.8) return 'text-red-600 bg-red-100';
     if (riskScore >= 0.6) return 'text-orange-600 bg-orange-100';
-    if (riskScore >= 0.3) return 'text-yellow-600 bg-yellow-100';
+    if (riskScore >= 0.3) return 'text-blue-600 bg-blue-100';
     return 'text-green-600 bg-green-100';
   };
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'pending': return 'bg-yellow-100 text-yellow-800';
+      case 'pending': return 'bg-blue-100 text-blue-800';
       case 'confirmed': return 'bg-red-100 text-red-800';
       case 'false_positive': return 'bg-green-100 text-green-800';
       case 'resolved': return 'bg-blue-100 text-blue-800';

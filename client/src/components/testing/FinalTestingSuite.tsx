@@ -159,7 +159,7 @@ const FinalTestingSuite = () => {
       case 'failed':
         return <XCircle className="w-4 h-4 text-red-500" />;
       case 'warning':
-        return <AlertTriangle className="w-4 h-4 text-yellow-500" />;
+        return <AlertTriangle className="w-4 h-4 text-blue-500" />;
       case 'running':
         return <RefreshCw className="w-4 h-4 animate-spin text-blue-500" />;
       default:

@@ -127,9 +127,9 @@ const DataExportSection = () => {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="flex items-start gap-2 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-            <AlertTriangle className="w-5 h-5 text-yellow-600 mt-0.5 flex-shrink-0" />
-            <div className="text-sm text-yellow-800">
+          <div className="flex items-start gap-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+            <AlertTriangle className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
+            <div className="text-sm text-blue-800">
               <p className="font-medium">Warning: This action cannot be undone immediately</p>
               <p>Your account will be scheduled for deletion in 30 days. You can recover it during this period using the recovery token.</p>
             </div>

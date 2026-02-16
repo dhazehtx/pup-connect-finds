@@ -253,7 +253,7 @@ const FullPostModal = ({
                   id={`comment-${comment.id}`}
                   className={`space-y-3 transition-all duration-500 ${
                     highlightedCommentId === comment.id 
-                      ? 'bg-yellow-100 border border-yellow-300 rounded-lg p-3 -m-3' 
+                      ? 'bg-blue-100 border border-blue-300 rounded-lg p-3 -m-3' 
                       : ''
                   }`}
                 >
@@ -340,7 +340,7 @@ const FullPostModal = ({
                           id={`comment-${reply.id}`}
                           className={`flex space-x-3 transition-all duration-500 ${
                             highlightedCommentId === reply.id 
-                              ? 'bg-yellow-100 border border-yellow-300 rounded-lg p-2 -m-2' 
+                              ? 'bg-blue-100 border border-blue-300 rounded-lg p-2 -m-2' 
                               : ''
                           }`}
                         >

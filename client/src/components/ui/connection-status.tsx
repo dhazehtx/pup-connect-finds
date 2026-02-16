@@ -15,8 +15,8 @@ const ConnectionStatus = ({ isOnline, isConnecting = false, className = "" }: Co
     <div className={`flex items-center gap-2 text-sm ${className}`}>
       {isConnecting ? (
         <>
-          <AlertTriangle size={16} className="text-yellow-500 animate-pulse" />
-          <span className="text-yellow-600">Connecting...</span>
+          <AlertTriangle size={16} className="text-blue-500 animate-pulse" />
+          <span className="text-blue-600">Connecting...</span>
         </>
       ) : (
         <>

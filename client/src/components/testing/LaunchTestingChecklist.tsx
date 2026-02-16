@@ -56,7 +56,7 @@ const LaunchTestingChecklist = () => {
     switch (status) {
       case 'passed': return <Check className="w-4 h-4 text-green-600" />;
       case 'failed': return <X className="w-4 h-4 text-red-600" />;
-      default: return <AlertTriangle className="w-4 h-4 text-yellow-600" />;
+      default: return <AlertTriangle className="w-4 h-4 text-blue-600" />;
     }
   };
 
@@ -64,7 +64,7 @@ const LaunchTestingChecklist = () => {
     switch (status) {
       case 'passed': return <Badge className="bg-green-100 text-green-800">Passed</Badge>;
       case 'failed': return <Badge className="bg-red-100 text-red-800">Failed</Badge>;
-      default: return <Badge className="bg-yellow-100 text-yellow-800">Pending</Badge>;
+      default: return <Badge className="bg-blue-100 text-blue-800">Pending</Badge>;
     }
   };
 
@@ -93,7 +93,7 @@ const LaunchTestingChecklist = () => {
             <Badge className="bg-blue-100 text-blue-800">
               {passedTests}/{totalTests} tests completed
             </Badge>
-            <Badge className={completionPercentage >= 80 ? "bg-green-100 text-green-800" : "bg-yellow-100 text-yellow-800"}>
+            <Badge className={completionPercentage >= 80 ? "bg-green-100 text-green-800" : "bg-blue-100 text-blue-800"}>
               {completionPercentage}% ready
             </Badge>
           </div>

@@ -15,7 +15,7 @@ const BackgroundCheckStatus = () => {
       case 'completed':
         return <CheckCircle className="w-5 h-5 text-green-600" />;
       case 'pending':
-        return <Clock className="w-5 h-5 text-yellow-600" />;
+        return <Clock className="w-5 h-5 text-blue-600" />;
       case 'failed':
         return <XCircle className="w-5 h-5 text-red-600" />;
       case 'expired':
@@ -30,7 +30,7 @@ const BackgroundCheckStatus = () => {
       case 'completed':
         return 'bg-green-100 text-green-800';
       case 'pending':
-        return 'bg-yellow-100 text-yellow-800';
+        return 'bg-blue-100 text-blue-800';
       case 'failed':
         return 'bg-red-100 text-red-800';
       case 'expired':

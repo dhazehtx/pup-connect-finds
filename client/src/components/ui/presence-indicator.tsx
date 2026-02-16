@@ -30,7 +30,7 @@ const PresenceIndicator = ({
     away: {
       color: 'bg-orange-500',
       label: 'Away',
-      ring: 'ring-yellow-500/20'
+      ring: 'ring-blue-500/20'
     },
     busy: {
       color: 'bg-red-500',

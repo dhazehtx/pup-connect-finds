@@ -58,7 +58,7 @@ const PromotionManager = ({ listingId, listingTitle }: PromotionManagerProps) =>
       features: ['10x visibility', 'Premium placement', '30 days featured', 'Social media boost', 'Analytics report'],
       boost: '10x',
       icon: Crown,
-      color: 'from-yellow-500 to-orange-500'
+      color: 'from-blue-500 to-blue-500'
     }
   ];
 

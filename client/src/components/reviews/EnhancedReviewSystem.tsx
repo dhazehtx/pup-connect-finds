@@ -74,10 +74,10 @@ const EnhancedReviewSystem: React.FC<EnhancedReviewSystemProps> = ({
                   return (
                     <div key={star} className="flex items-center gap-2 text-sm">
                       <span className="w-2">{star}</span>
-                      <Star size={12} className="fill-current text-yellow-500" />
+                      <Star size={12} className="fill-current text-blue-500" />
                       <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
                         <div 
-                          className="h-full bg-yellow-500" 
+                          className="h-full bg-blue-500" 
                           style={{ width: `${percentage}%` }}
                         />
                       </div>

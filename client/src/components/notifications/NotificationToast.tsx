@@ -39,7 +39,7 @@ const NotificationToast: React.FC<NotificationToastProps> = ({
       case 'like': 
         return <Heart className="w-5 h-5 text-red-500" />;
       case 'review': 
-        return <Star className="w-5 h-5 text-yellow-500" />;
+        return <Star className="w-5 h-5 text-blue-500" />;
       case 'payment_confirmation': 
         return <DollarSign className="w-5 h-5 text-mint-green" />;
       case 'follow':
@@ -53,7 +53,7 @@ const NotificationToast: React.FC<NotificationToastProps> = ({
     switch (notification.type) {
       case 'message': return 'from-royal-blue/10 to-soft-sky/20 border-royal-blue/20';
       case 'like': return 'from-red-50 to-red-100 border-red-200';
-      case 'review': return 'from-yellow-50 to-yellow-100 border-yellow-200';
+      case 'review': return 'from-blue-50 to-blue-100 border-blue-200';
       case 'payment_confirmation': return 'from-mint-green/10 to-mint-green/20 border-mint-green/30';
       case 'follow': return 'from-royal-blue/10 to-soft-sky/20 border-royal-blue/20';
       default: return 'from-cloud-white to-soft-sky/10 border-soft-sky/20';

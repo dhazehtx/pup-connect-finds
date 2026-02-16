@@ -153,7 +153,7 @@ const EnhancedPricingPlans = () => {
             <Card 
               key={index} 
               className={`relative ${plan.borderColor} ${
-                plan.popular ? 'ring-2 ring-yellow-400 scale-105' : ''
+                plan.popular ? 'ring-2 ring-blue-400 scale-105' : ''
               } transition-all hover:shadow-lg`}
             >
               {plan.popular && (
@@ -199,7 +199,7 @@ const EnhancedPricingPlans = () => {
                   disabled={!user && plan.monthlyPrice > 0}
                   className={`w-full ${
                     plan.popular 
-                      ? 'bg-blue-500 hover:bg-yellow-600' 
+                      ? 'bg-blue-500 hover:bg-blue-600' 
                       : plan.monthlyPrice === 0
                         ? 'bg-gray-500 hover:bg-gray-600'
                         : 'bg-blue-500 hover:bg-blue-600'

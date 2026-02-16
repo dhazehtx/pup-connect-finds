@@ -156,7 +156,7 @@ export const ResourceCard: React.FC<ResourceCardProps> = ({
                 {resource.readTime}
               </span>
               <div className="flex items-center gap-1">
-                <Star size={14} className="text-amber-500 fill-current" />
+                <Star size={14} className="text-blue-500 fill-current" />
                 <span>{resource.rating}</span>
                 <span>({resource.reviews})</span>
               </div>

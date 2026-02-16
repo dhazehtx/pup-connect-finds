@@ -166,7 +166,7 @@ const ReportUserModal: React.FC<ReportUserModalProps> = ({
         <DialogContent className="sm:max-w-[500px]">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <AlertTriangle className="w-5 h-5 text-yellow-600" />
+              <AlertTriangle className="w-5 h-5 text-blue-600" />
               Daily Report Limit Reached
             </DialogTitle>
           </DialogHeader>

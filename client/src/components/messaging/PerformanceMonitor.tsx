@@ -136,7 +136,7 @@ const PerformanceMonitor = () => {
   const getStatusColor = (status: PerformanceMetric['status']) => {
     switch (status) {
       case 'good': return 'text-green-500';
-      case 'warning': return 'text-yellow-500';
+      case 'warning': return 'text-blue-500';
       case 'critical': return 'text-red-500';
       default: return 'text-muted-foreground';
     }

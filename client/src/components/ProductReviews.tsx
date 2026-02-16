@@ -119,9 +119,9 @@ const ProductReviews: React.FC<ProductReviewsProps> = ({
             key={star}
             className={`${sizeClasses[size]} ${
               star <= starRating 
-                ? 'text-yellow-400 fill-current' 
+                ? 'text-blue-400 fill-current' 
                 : 'text-gray-300'
-            } ${interactive ? 'cursor-pointer hover:text-yellow-300' : ''}`}
+            } ${interactive ? 'cursor-pointer hover:text-blue-300' : ''}`}
             onClick={interactive ? () => setRating(star) : undefined}
           />
         ))}

@@ -145,7 +145,7 @@ const EnhancedRecommendations = ({
               <Badge variant="secondary">${listing.price}</Badge>
               {listing.rating && (
                 <div className="flex items-center gap-1">
-                  <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
+                  <Star className="w-3 h-3 fill-blue-400 text-blue-400" />
                   <span className="text-xs">{listing.rating}</span>
                 </div>
               )}
@@ -199,7 +199,7 @@ const EnhancedRecommendations = ({
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Star className="w-5 h-5 text-yellow-500" />
+              <Star className="w-5 h-5 text-blue-500" />
               Recommended for You
             </CardTitle>
             <p className="text-sm text-gray-600">

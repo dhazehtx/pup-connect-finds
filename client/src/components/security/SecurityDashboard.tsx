@@ -46,7 +46,7 @@ const SecurityDashboard = () => {
   const getRiskBadgeColor = (risk: string) => {
     switch (risk) {
       case 'high': return 'bg-red-500 text-white';
-      case 'medium': return 'bg-yellow-500 text-white';
+      case 'medium': return 'bg-blue-500 text-white';
       case 'low': return 'bg-green-500 text-white';
       default: return 'bg-gray-500 text-white';
     }
@@ -121,7 +121,7 @@ const SecurityDashboard = () => {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <AlertTriangle className="w-5 h-5 text-yellow-600" />
+                  <AlertTriangle className="w-5 h-5 text-blue-600" />
                   Recent Activity
                 </CardTitle>
               </CardHeader>
@@ -324,9 +324,9 @@ const SecurityDashboard = () => {
                 </div>
 
                 {userRisk && userRisk.eventCount > 0 && (
-                  <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-                    <h4 className="font-medium text-yellow-800">Security Events</h4>
-                    <p className="text-sm text-yellow-600">
+                  <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                    <h4 className="font-medium text-blue-800">Security Events</h4>
+                    <p className="text-sm text-blue-600">
                       {userRisk.eventCount} security events logged, {userRisk.recentEventCount} in the last 7 days
                     </p>
                   </div>

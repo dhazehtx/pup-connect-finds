@@ -81,7 +81,7 @@ const StoriesReel = () => {
                     <Plus className="w-6 h-6 text-gray-400" />
                   </div>
                 ) : (
-                  <div className="w-16 h-16 rounded-full bg-gradient-to-tr from-yellow-400 to-pink-500 p-0.5">
+                  <div className="w-16 h-16 rounded-full bg-gradient-to-tr from-blue-400 to-pink-500 p-0.5">
                     <div className="w-full h-full rounded-full bg-white p-0.5">
                       <img
                         src={story.avatar || '/placeholder.svg'}

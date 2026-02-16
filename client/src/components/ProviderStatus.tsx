@@ -23,7 +23,7 @@ export default function ProviderStatus({ provider }: ProviderStatusProps) {
   const getStatusColor = (status?: string) => {
     switch (status) {
       case 'verified': return 'text-green-600 bg-green-50';
-      case 'requires_action': return 'text-yellow-600 bg-yellow-50';
+      case 'requires_action': return 'text-blue-600 bg-blue-50';
       case 'started': return 'text-blue-600 bg-blue-50';
       default: return 'text-gray-600 bg-gray-50';
     }
@@ -72,9 +72,9 @@ export default function ProviderStatus({ provider }: ProviderStatusProps) {
         )}
 
         {requirementsDue.length > 0 && (
-          <div className="mt-3 p-2 bg-yellow-50 border border-yellow-200 rounded">
-            <p className="font-medium text-yellow-800">Requirements Due:</p>
-            <ul className="text-sm text-yellow-700 mt-1">
+          <div className="mt-3 p-2 bg-blue-50 border border-blue-200 rounded">
+            <p className="font-medium text-blue-800">Requirements Due:</p>
+            <ul className="text-sm text-blue-700 mt-1">
               {requirementsDue.map((req, index) => (
                 <li key={index} className="list-disc list-inside">
                   {req}

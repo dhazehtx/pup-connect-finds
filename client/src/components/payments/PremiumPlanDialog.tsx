@@ -45,7 +45,7 @@ const PremiumPlanDialog: React.FC<PremiumPlanDialogProps> = ({ isOpen, onClose }
 
   const features = [
     {
-      icon: <Crown className="w-5 h-5 text-yellow-500" />,
+      icon: <Crown className="w-5 h-5 text-blue-500" />,
       title: 'Priority Listings',
       description: 'Your listings appear at the top of search results',
     },
@@ -108,14 +108,14 @@ const PremiumPlanDialog: React.FC<PremiumPlanDialogProps> = ({ isOpen, onClose }
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-2xl">
-            <Crown className="w-6 h-6 text-yellow-500" />
+            <Crown className="w-6 h-6 text-blue-500" />
             Upgrade to Premium
           </DialogTitle>
         </DialogHeader>
 
         {subscriptionStatus?.hasActiveSubscription ? (
           <div className="text-center py-8">
-            <Crown className="w-16 h-16 text-yellow-500 mx-auto mb-4" />
+            <Crown className="w-16 h-16 text-blue-500 mx-auto mb-4" />
             <h3 className="text-xl font-semibold mb-2">You're already Premium!</h3>
             <p className="text-gray-600">Enjoy all the premium features you've unlocked.</p>
             <Button onClick={onClose} className="mt-4">

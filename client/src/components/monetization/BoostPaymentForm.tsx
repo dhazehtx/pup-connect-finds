@@ -34,7 +34,7 @@ export function BoostPaymentForm({
       title: 'Featured Product',
       description: 'Boost your product to the top of search results',
       benefits: ['Premium placement', 'Increased visibility', '30-day boost'],
-      color: 'bg-yellow-100 text-yellow-800',
+      color: 'bg-blue-100 text-blue-800',
     },
     boosted_service: {
       icon: TrendingUp,

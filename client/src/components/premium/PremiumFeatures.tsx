@@ -33,8 +33,8 @@ const PremiumFeatures = () => {
       title: 'Featured Listings',
       description: 'Get your listings highlighted at the top of search results',
       icon: Star,
-      color: 'text-yellow-600',
-      bgColor: 'bg-yellow-50',
+      color: 'text-blue-600',
+      bgColor: 'bg-blue-50',
       enabled: features.featuredListings
     },
     {
@@ -97,12 +97,12 @@ const PremiumFeatures = () => {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold flex items-center gap-2">
-            <Crown className="h-6 w-6 text-yellow-500" />
+            <Crown className="h-6 w-6 text-blue-500" />
             Premium Features
           </h2>
           <p className="text-gray-600">Unlock advanced tools and capabilities</p>
         </div>
-        <Badge className="bg-gradient-to-r from-yellow-400 to-orange-500">
+        <Badge className="bg-gradient-to-r from-blue-400 to-blue-500">
           PRO PLAN
         </Badge>
       </div>
@@ -150,7 +150,7 @@ const PremiumFeatures = () => {
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="text-center">
-              <div className="text-3xl font-bold text-yellow-600">15</div>
+              <div className="text-3xl font-bold text-blue-600">15</div>
               <div className="text-sm text-gray-600">Featured Listings</div>
               <div className="text-xs text-green-600">+3 from last month</div>
             </div>

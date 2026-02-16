@@ -102,7 +102,7 @@ const MessagePerformanceOptimizer = () => {
 
   const getScoreColor = (score: number) => {
     if (score >= 80) return 'text-green-500';
-    if (score >= 60) return 'text-yellow-500';
+    if (score >= 60) return 'text-blue-500';
     return 'text-red-500';
   };
 
@@ -264,7 +264,7 @@ const MessagePerformanceOptimizer = () => {
                   <div className="space-y-2">
                     {metrics.optimizationSuggestions.map((suggestion, index) => (
                       <div key={index} className="flex items-center gap-2 p-3 bg-muted rounded-lg">
-                        <Zap className="w-4 h-4 text-yellow-500" />
+                        <Zap className="w-4 h-4 text-blue-500" />
                         <span className="text-sm">{suggestion}</span>
                       </div>
                     ))}

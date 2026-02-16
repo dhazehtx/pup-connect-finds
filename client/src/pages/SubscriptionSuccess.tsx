@@ -54,7 +54,7 @@ const SubscriptionSuccess = () => {
 
           <div className="bg-blue-50 p-4 rounded-lg">
             <div className="flex items-center justify-center space-x-2 mb-2">
-              <Crown className="w-5 h-5 text-yellow-500" />
+              <Crown className="w-5 h-5 text-blue-500" />
               <Gift className="w-5 h-5 text-purple-500" />
             </div>
             <p className="text-sm font-medium text-gray-800">

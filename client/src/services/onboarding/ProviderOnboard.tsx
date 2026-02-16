@@ -1529,7 +1529,7 @@ const ProviderOnboard: React.FC = () => {
               {payoutSetupComplete ? (
                 <span className="text-green-600 font-medium">✓ Stripe connected - You can proceed.</span>
               ) : (
-                <span className="text-amber-600 font-medium">⚠ Stripe not connected yet.</span>
+                <span className="text-blue-600 font-medium">⚠ Stripe not connected yet.</span>
               )}
             </div>
 
@@ -2153,15 +2153,15 @@ const ProviderOnboard: React.FC = () => {
               </div>
             ) : (
               // PENDING STATUS - Show pending review message
-              <div className="bg-yellow-50 p-6 rounded-lg text-center">
-                <Clock className="h-16 w-16 text-yellow-500 mx-auto mb-4" />
-                <h3 className="text-xl font-semibold text-yellow-800 mb-2">Application Submitted</h3>
-                <p className="text-yellow-700 mb-4">
+              <div className="bg-blue-50 p-6 rounded-lg text-center">
+                <Clock className="h-16 w-16 text-blue-500 mx-auto mb-4" />
+                <h3 className="text-xl font-semibold text-blue-800 mb-2">Application Submitted</h3>
+                <p className="text-blue-700 mb-4">
                   Your application has been submitted and is pending review.
                 </p>
                 <div className="bg-white p-4 rounded-lg mb-4">
                   <p className="text-sm text-gray-700 mb-2">
-                    <strong>Provider Status:</strong> <span className="text-yellow-600 font-semibold">Pending Review</span>
+                    <strong>Provider Status:</strong> <span className="text-blue-600 font-semibold">Pending Review</span>
                   </p>
                   <p className="text-sm text-gray-700">
                     Our team will review your application within 24-48 hours. You'll receive a notification once your application is approved.

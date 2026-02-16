@@ -45,7 +45,7 @@ const AdminNavigation = () => {
       description: 'Content moderation and safety tools',
       icon: Shield,
       path: '/admin/safety',
-      color: 'from-red-500 to-orange-600'
+      color: 'from-red-500 to-blue-600'
     },
     {
       title: 'Platform Settings',
@@ -66,7 +66,7 @@ const AdminNavigation = () => {
       description: 'Review flagged content and listings',
       icon: AlertTriangle,
       path: '/admin/moderation',
-      color: 'from-orange-500 to-red-600'
+      color: 'from-blue-500 to-red-600'
     },
     {
       title: 'Revenue Analytics',

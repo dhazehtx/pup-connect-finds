@@ -33,9 +33,9 @@ export const FraudDetectionBanner: React.FC<FraudDetectionBannerProps> = ({
         return {
           title: 'Account Under Review',
           message: 'Your account is being reviewed for security purposes. Some features may be limited.',
-          bgColor: 'bg-amber-50 border-amber-200',
-          textColor: 'text-amber-800',
-          iconColor: 'text-amber-600',
+          bgColor: 'bg-blue-50 border-blue-200',
+          textColor: 'text-blue-800',
+          iconColor: 'text-blue-600',
           icon: Shield,
           canDismiss: true
         };
@@ -68,7 +68,7 @@ export const FraudDetectionBanner: React.FC<FraudDetectionBannerProps> = ({
   const getRiskBadgeColor = (score: number) => {
     if (score >= 90) return 'bg-red-100 text-red-800 border-red-300';
     if (score >= 70) return 'bg-orange-100 text-orange-800 border-orange-300';
-    if (score >= 50) return 'bg-amber-100 text-amber-800 border-amber-300';
+    if (score >= 50) return 'bg-blue-100 text-blue-800 border-blue-300';
     return 'bg-blue-100 text-blue-800 border-blue-300';
   };
 

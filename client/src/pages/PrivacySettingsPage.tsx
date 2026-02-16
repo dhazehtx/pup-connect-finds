@@ -223,7 +223,7 @@ const PrivacySettingsPage: React.FC = () => {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Cookie className="w-5 h-5 text-yellow-600" />
+                <Cookie className="w-5 h-5 text-blue-600" />
                 Cookie Preferences
               </CardTitle>
             </CardHeader>

@@ -94,7 +94,7 @@ const RealtimeAdminLogPanel: React.FC<RealtimeAdminLogPanelProps> = ({
       'REPORT_RESOLUTION': 'bg-green-100 text-green-800',
       'MODERATION_ACTION': 'bg-red-100 text-red-800',
       'DATA_OPERATION': 'bg-orange-100 text-orange-800',
-      'BULK_ACTION': 'bg-amber-100 text-amber-800'
+      'BULK_ACTION': 'bg-blue-100 text-blue-800'
     };
 
     return colorMap[eventType || ''] || 'bg-gray-100 text-gray-800';

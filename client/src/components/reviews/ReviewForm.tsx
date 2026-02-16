@@ -104,7 +104,7 @@ const ReviewForm = ({ listingId, sellerId, onReviewSubmitted }: ReviewFormProps)
                   <Star
                     className={`w-6 h-6 ${
                       star <= rating
-                        ? 'fill-yellow-400 text-yellow-400'
+                        ? 'fill-blue-400 text-blue-400'
                         : 'text-gray-300'
                     }`}
                   />
