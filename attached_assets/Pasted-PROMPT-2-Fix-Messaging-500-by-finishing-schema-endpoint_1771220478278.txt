@@ -1,0 +1,127 @@
+PROMPT 2 — Fix Messaging 500 by finishing schema + endpoints + proof logs (core social)
+
+Paste to Replit:
+
+Goal: Eliminate 500s for messaging and make Message button reliably create/open a conversation.
+Current failing endpoint: POST /api/messaging/conversations/find-or-create returns 500 with code MESSAGING_ERROR.
+We must: (1) ensure schema exists/matches queries, (2) add proof logs that reveal the exact SQL/drizzle failure, (3) return consistent payloads.
+
+Server tasks:
+A) Create/verify Neon schema + Drizzle models + migrations:
+
+conversations:
+
+id uuid pk default gen_random_uuid()
+
+created_at timestamptz default now()
+
+conversation_participants:
+
+conversation_id uuid fk conversations.id on delete cascade
+
+user_id uuid fk profiles.id on delete cascade
+
+created_at timestamptz default now()
+
+UNIQUE(conversation_id, user_id)
+
+messages:
+
+id uuid pk default gen_random_uuid()
+
+conversation_id uuid fk conversations.id on delete cascade
+
+sender_id uuid fk profiles.id on delete cascade
+
+body text not null
+
+created_at timestamptz default now()
+
+B) Implement/repair endpoints using ONLY Neon/Drizzle:
+
+POST /api/messaging/conversations/find-or-create
+
+Accept body keys: targetUserId OR seller_id OR participant_id (support any for compatibility).
+
+ensureProfile(req.user.id)
+
+Validate targetUserId is UUID string, else 400
+
+Confirm target profile exists in Neon, else 404
+
+Find an existing conversation that includes BOTH users (via conversation_participants join).
+
+If none: create conversation + insert both participants.
+
+Return JSON ALWAYS: { ok:true, conversationId } (and optionally legacy fields if client expects).
+
+GET /api/messaging/conversations
+
+Return list of conversations for req.user.id with:
+{ conversationId, otherUser: { id, username, full_name, avatar_url }, lastMessage?, updatedAt? }
+
+Must not 500 if user has zero conversations → return [].
+
+(Optional but recommended) GET /api/messaging/conversations/:id/messages
+
+Validate user is a participant, else 403
+
+Return messages list (or []).
+
+C) Add “proof mode” logging that prints exactly what’s failing:
+
+On entry to find-or-create:
+[PROOF:MSG:IN] { actorUserId, targetUserId, bodyKeys:Object.keys(body) }
+
+On success:
+[PROOF:MSG:OK] { conversationId, created:true/false }
+
+On error: log full stack + include a short reason:
+[PROOF:MSG:ERR] { actorUserId, targetUserId, message, stackTop }
+
+Also add proof for GET conversations:
+[PROOF:MSG:LIST] { actorUserId, count }
+
+Client tasks:
+
+In UnifiedProfileView.tsx handleMessage:
+
+console.log('[PROOF:MSG] request', { targetUserId })
+
+console.log('[PROOF:MSG] response', response)
+
+If ok + conversationId → navigate(/messages/${conversationId})
+
+else toast error with response.error
+
+Ensure the request body key matches what server accepts:
+
+send { targetUserId: profile.id } (preferred)
+
+Ensure routes support /messages/:conversationId:
+
+If route doesn’t exist, add it OR route to /messages and auto-select conversationId.
+
+Acceptance tests:
+
+Clicking Message on any profile:
+
+Server logs [PROOF:MSG:IN] then [PROOF:MSG:OK]
+
+Client logs response with conversationId
+
+Browser navigates to /messages/:conversationId (even if empty thread)
+
+Refresh page → GET /api/messaging/conversations returns 200 and lists conversations (or []).
+
+Creating conversation twice with same user returns same conversation (no duplicates).
+
+Zero 500s.
+
+Deliverables:
+
+Show the SQL migration (or Drizzle migration files) that created the 3 messaging tables + constraints.
+
+Show where logging was added.
+
+Provide brief notes if any pre-existing schema mismatch was fixed.
