@@ -3,7 +3,7 @@ import { createServer, type Server } from "http";
 import { setupSocketIO } from "./socket";
 import { db } from "./db";
 import { sql, inArray } from "drizzle-orm";
-import { profiles } from "@shared/schema";
+import { profiles, dogListings } from "@shared/schema";
 import savedPostsRouter from './routes/saved-posts';
 import bookmarksRouter from './routes/bookmarks';
 import reportsRouter from './routes/reports';
@@ -493,14 +493,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/messaging/conversations/find-or-create", messagingRateLimit, async (req, res) => {
     const bodyKeys = Object.keys(req.body || {});
-    console.log('[PROOF:FIND_OR_CREATE] ▶ START', JSON.stringify({
-      actorUserId: req.user?.id,
-      bodyKeys,
-      seller_id: req.body?.seller_id,
-      participant_id: req.body?.participant_id,
-      target_id: req.body?.target_id,
-      listing_id: req.body?.listing_id,
-    }));
+    const targetUserId_raw = req.body?.seller_id || req.body?.participant_id || req.body?.target_id || req.body?.targetUserId;
+    console.log('[PROOF:MSG:IN]', JSON.stringify({ actorUserId: req.user?.id, targetUserId: targetUserId_raw, bodyKeys }));
     try {
       if (!req.isAuthenticated || !req.isAuthenticated()) {
         console.log('[PROOF:FIND_OR_CREATE] ✗ END result=unauthorized');
@@ -521,7 +515,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(500).json({ ok: false, error: 'Failed to initialize user profile' });
       }
 
-      const targetUserId = req.body.seller_id || req.body.participant_id || req.body.target_id;
+      const targetUserId = req.body.seller_id || req.body.participant_id || req.body.target_id || req.body.targetUserId;
       const listing_id = req.body.listing_id;
       console.log('[PROOF:FIND_OR_CREATE] targetUserId resolved=' + targetUserId);
 
@@ -548,15 +542,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const conversation = await storage.findOrCreateConversation(actorUserId, targetUserId, listing_id || null);
       const conversationId = conversation.id;
-      console.log('[PROOF:MSG:FIND_OR_CREATE]', JSON.stringify({ actorUserId, targetUserId, conversationId, created: conversation.created }));
+      console.log('[PROOF:MSG:OK]', JSON.stringify({ conversationId, created: conversation.created }));
       res.json({ ok: true, conversationId, id: conversationId, created: conversation.created });
     } catch (error: any) {
-      console.error('[PROOF:FIND_OR_CREATE] ✗ END result=error', JSON.stringify({
+      console.error('[PROOF:MSG:ERR]', JSON.stringify({
         actorUserId: req.user?.id,
-        error: error?.message,
-        code: error?.code,
-        detail: error?.detail,
-        stack: error?.stack,
+        targetUserId: targetUserId_raw,
+        message: error?.message,
+        stackTop: error?.stack?.split('\n').slice(0, 3).join(' | '),
       }));
       if (error?.code === '23503') {
         res.status(404).json({ ok: false, error: 'Referenced profile not found in database', code: 'FK_VIOLATION' });
@@ -2211,6 +2204,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error: any) {
       console.error('[backfill] Error:', error);
       res.status(500).json({ error: 'Backfill failed', details: error.message });
+    }
+  });
+
+  app.post("/api/dev/seed-listings", async (req, res) => {
+    if (process.env.NODE_ENV === 'production') {
+      console.log('[PROOF:SEED:LISTINGS]', JSON.stringify({ ran: false, env: 'production' }));
+      return res.status(403).json({ error: 'Seeding disabled in production' });
+    }
+    try {
+      const existingProfiles = await db.select({ id: profiles.id }).from(profiles).limit(3);
+      if (existingProfiles.length === 0) {
+        return res.status(400).json({ error: 'No profiles exist to attach listings to' });
+      }
+      const sellerId = existingProfiles[0].id;
+
+      const seedListings = [
+        { user_id: sellerId, dog_name: 'Bella', breed: 'French Bulldog', age: 4, price: '2500', gender: 'female', description: 'Playful French Bulldog puppy', location: 'Houston, TX', image_url: 'https://images.unsplash.com/photo-1583337130417-13104dec14a3?w=400', status: 'active', vaccinated: true, good_with_kids: true },
+        { user_id: sellerId, dog_name: 'Max', breed: 'Golden Retriever', age: 6, price: '1800', gender: 'male', description: 'Friendly Golden Retriever', location: 'Los Angeles, CA', image_url: 'https://images.unsplash.com/photo-1552053831-71594a27632d?w=400', status: 'active', vaccinated: true, good_with_kids: true },
+        { user_id: sellerId, dog_name: 'Luna', breed: 'Labrador Retriever', age: 3, price: '1200', gender: 'female', description: 'Sweet Lab puppy', location: 'San Diego, CA', image_url: 'https://images.unsplash.com/photo-1591160690555-5debfba0c36a?w=400', status: 'active', vaccinated: true },
+        { user_id: sellerId, dog_name: 'Charlie', breed: 'German Shepherd', age: 8, price: '2000', gender: 'male', description: 'Loyal German Shepherd', location: 'Denver, CO', image_url: 'https://images.unsplash.com/photo-1589941013453-ec89f33b5e95?w=400', status: 'active', good_with_dogs: true },
+        { user_id: sellerId, dog_name: 'Daisy', breed: 'Poodle', age: 5, price: '900', gender: 'female', description: 'Hypoallergenic Poodle', location: 'Seattle, WA', image_url: 'https://images.unsplash.com/photo-1616149482875-ebce31de76a4?w=400', status: 'active', vaccinated: true },
+        { user_id: existingProfiles[Math.min(1, existingProfiles.length - 1)].id, dog_name: 'Rocky', breed: 'Bulldog', age: 7, price: '1500', gender: 'male', description: 'Calm and gentle Bulldog', location: 'Miami, FL', image_url: 'https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?w=400', status: 'active' },
+        { user_id: existingProfiles[Math.min(1, existingProfiles.length - 1)].id, dog_name: 'Sophie', breed: 'Beagle', age: 4, price: '700', gender: 'female', description: 'Adorable Beagle puppy', location: 'Austin, TX', image_url: 'https://images.unsplash.com/photo-1551717743-49959800b1f6?w=400', status: 'active', good_with_kids: true },
+        { user_id: existingProfiles[Math.min(2, existingProfiles.length - 1)].id, dog_name: 'Cooper', breed: 'Husky', age: 10, price: '2200', gender: 'male', description: 'Energetic Siberian Husky', location: 'Portland, OR', image_url: 'https://images.unsplash.com/photo-1605568427561-40dd23c2acea?w=400', status: 'active', good_with_dogs: true },
+      ];
+
+      const inserted = await db.insert(dogListings).values(seedListings as any).returning();
+      console.log('[PROOF:SEED:LISTINGS]', JSON.stringify({ ran: true, count: inserted.length, env: process.env.NODE_ENV || 'development' }));
+      res.json({ ok: true, count: inserted.length });
+    } catch (error: any) {
+      console.error('[PROOF:SEED:LISTINGS] error', error?.message);
+      res.status(500).json({ error: 'Seeding failed' });
     }
   });
 

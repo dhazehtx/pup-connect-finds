@@ -65,7 +65,6 @@ router.get('/me', authMiddleware, async (req: Request, res: Response) => {
     if (!req.user?.id) {
       return res.status(401).json({ error: 'Authentication required' });
     }
-    console.log('[PROOF:ME] ▶ START', JSON.stringify({ userId: req.user.id, email: req.user.email }));
     const profile = await ensureProfile({
       id: req.user.id,
       email: req.user.email || null,
@@ -73,10 +72,10 @@ router.get('/me', authMiddleware, async (req: Request, res: Response) => {
       full_name: req.user.full_name || req.user.name || null,
       avatar_url: req.user.avatar_url || null,
     });
-    console.log('[PROOF:ME] ✓ END', JSON.stringify({ userId: profile.id, username: profile.username, created: !!profile.created_at }));
+    console.log('[PROOF:PROFILES]', JSON.stringify({ route: 'GET /me', userId: profile.id, ensured: true }));
     res.json(shapeProfile(profile));
   } catch (error: any) {
-    console.error('[PROOF:ME] ✗ END error', JSON.stringify({ userId: req.user?.id, error: error?.message, stack: error?.stack }));
+    console.error('[PROOF:PROFILES]', JSON.stringify({ route: 'GET /me', userId: req.user?.id, ensured: false, error: error?.message }));
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -109,7 +108,7 @@ router.get('/search', async (req: Request, res: Response) => {
     const verifiedOnly = req.query.verified === 'true';
     const limit = parseInt(req.query.limit as string) || 20;
     const results = await storage.searchProfiles(q, { userType, verifiedOnly, limit });
-    console.log('[PROOF:SEARCH]', JSON.stringify({ q, count: results.length, matches: results.map(r => ({ id: r.id, username: r.username })) }));
+    console.log('[PROOF:SEARCH]', JSON.stringify({ q, count: results.length, topUsernames: results.slice(0, 5).map(r => r.username) }));
     res.json(results.map(shapeProfile));
   } catch (error: any) {
     console.error('[PROOF:SEARCH] error', JSON.stringify({ q: req.query.q, error: error?.message, stack: error?.stack }));
@@ -133,6 +132,7 @@ router.get('/username/:username', async (req: Request, res: Response) => {
 router.get('/:id', async (req: Request, res: Response) => {
   try {
     let profile;
+    let ensured = false;
     if (req.user?.id === req.params.id) {
       profile = await ensureProfile({
         id: req.user.id,
@@ -141,6 +141,7 @@ router.get('/:id', async (req: Request, res: Response) => {
         full_name: req.user.full_name || req.user.name || null,
         avatar_url: req.user.avatar_url || null,
       });
+      ensured = true;
     } else {
       profile = await storage.getProfile(req.params.id);
     }
@@ -148,9 +149,10 @@ router.get('/:id', async (req: Request, res: Response) => {
     if (!profile) {
       return res.status(404).json({ error: 'Profile not found' });
     }
+    console.log('[PROOF:PROFILES]', JSON.stringify({ route: 'GET /:id', userId: req.params.id, ensured }));
     res.json(shapeProfile(profile));
-  } catch (error) {
-    console.error('Error fetching profile:', error);
+  } catch (error: any) {
+    console.error('[PROOF:PROFILES]', JSON.stringify({ route: 'GET /:id', userId: req.params.id, ensured: false, error: error?.message }));
     res.status(500).json({ error: 'Internal server error' });
   }
 });

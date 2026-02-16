@@ -85,8 +85,9 @@ export const useListings = () => {
         params.append('sort', filters.sort);
 
         const data = await apiRequest(`/api/listings?${params.toString()}`);
-        console.log('[LISTINGS] Fetched from Neon:', data?.length || 0, 'listings');
-        return Array.isArray(data) ? data : [];
+        const list = Array.isArray(data) ? data : [];
+        console.log('[PROOF:LISTINGS] client count', list.length);
+        return list;
       } catch (error) {
         console.error('[LISTINGS] Error fetching listings:', error);
         return [];

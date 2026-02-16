@@ -79,7 +79,7 @@ router.post('/', async (req, res) => {
       })
       .returning();
 
-    console.log('[PROOF:FOLLOW] ✓ END result=inserted', JSON.stringify({ actorUserId: userId, followed_id }));
+    console.log('[PROOF:FOLLOWS]', JSON.stringify({ actorUserId: userId, targetId: followed_id, action: 'follow', ok: true }));
     res.status(201).json({
       ok: true,
       isFollowing: true,
@@ -127,7 +127,7 @@ router.delete('/:userId', async (req, res) => {
         eq(follows.followed_id, userId)
       ));
 
-    console.log('[PROOF:UNFOLLOW] ✓ END result=unfollowed', JSON.stringify({ actorUserId: req.user!.id, targetUserId: userId }));
+    console.log('[PROOF:FOLLOWS]', JSON.stringify({ actorUserId: req.user!.id, targetId: userId, action: 'unfollow', ok: true }));
     res.json({ ok: true, isFollowing: false, message: 'User unfollowed successfully' });
 
   } catch (error: any) {
