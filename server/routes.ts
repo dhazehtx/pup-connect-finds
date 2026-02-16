@@ -451,24 +451,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/messaging/conversations", async (req, res) => {
     try {
       if (!req.isAuthenticated || !req.isAuthenticated()) {
-        return res.status(401).json({ error: 'Unauthorized' });
+        return res.status(401).json({ error: 'Unauthorized', code: 'AUTH_REQUIRED' });
       }
       const userId = req.user!.id;
-      console.log('[PROOF:INBOX] ▶ START', JSON.stringify({ actorUserId: userId }));
 
       const { ensureProfile } = await import('./lib/ensureProfile');
       try {
         await ensureProfile({ id: userId, email: req.user!.email || null, username: req.user!.username || null });
-      } catch (epErr) {
-        console.error('[PROOF:INBOX] ensureProfile error', epErr);
+      } catch (epErr: any) {
+        console.error('[PROOF:MSG:ERR] ensureProfile in conversations list', epErr?.message);
       }
 
       const convList = await storage.getUserConversationsWithDetails(userId);
       console.log('[PROOF:MSG:LIST]', JSON.stringify({ actorUserId: userId, count: convList.length }));
       res.json(convList);
     } catch (error: any) {
-      console.error('[PROOF:INBOX] ✗ END error', JSON.stringify({ actorUserId: req.user?.id, error: error?.message, code: error?.code, stack: error?.stack }));
-      res.status(500).json({ error: "Internal server error" });
+      console.error('[PROOF:MSG:ERR] conversations list', error?.message);
+      res.json([]);
     }
   });
 
@@ -497,8 +496,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     console.log('[PROOF:MSG:IN]', JSON.stringify({ actorUserId: req.user?.id, targetUserId: targetUserId_raw, bodyKeys }));
     try {
       if (!req.isAuthenticated || !req.isAuthenticated()) {
-        console.log('[PROOF:FIND_OR_CREATE] ✗ END result=unauthorized');
-        return res.status(401).json({ ok: false, error: 'Unauthorized' });
+        return res.status(401).json({ ok: false, error: 'Unauthorized', code: 'AUTH_REQUIRED' });
       }
 
       const actorUserId = req.user!.id;
@@ -510,33 +508,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
           email: req.user!.email || null,
           username: req.user!.username || null,
         });
-      } catch (epErr) {
-        console.error('[PROOF:FIND_OR_CREATE] ✗ END result=ensure_profile_error', epErr);
-        return res.status(500).json({ ok: false, error: 'Failed to initialize user profile' });
+      } catch (epErr: any) {
+        console.error('[PROOF:MSG:ERR] ensureProfile failed', epErr?.message);
+        return res.status(422).json({ ok: false, error: 'Failed to initialize user profile', code: 'PROFILE_INIT_FAILED' });
       }
 
       const targetUserId = req.body.seller_id || req.body.participant_id || req.body.target_id || req.body.targetUserId;
       const listing_id = req.body.listing_id;
-      console.log('[PROOF:FIND_OR_CREATE] targetUserId resolved=' + targetUserId);
 
       if (!targetUserId || typeof targetUserId !== 'string') {
-        console.log('[PROOF:FIND_OR_CREATE] ✗ END result=missing_target', JSON.stringify({ bodyKeys }));
-        return res.status(400).json({ ok: false, error: 'seller_id, participant_id, or target_id is required' });
+        return res.status(400).json({ ok: false, error: 'seller_id, participant_id, or target_id is required', code: 'MISSING_TARGET' });
       }
 
       if (!UUID_RE_MSG.test(targetUserId)) {
-        console.log('[PROOF:FIND_OR_CREATE] ✗ END result=invalid_uuid', targetUserId);
-        return res.status(400).json({ ok: false, error: 'Target ID must be a valid UUID' });
+        return res.status(400).json({ ok: false, error: 'Target ID must be a valid UUID', code: 'INVALID_UUID' });
       }
 
       if (targetUserId === actorUserId) {
-        console.log('[PROOF:FIND_OR_CREATE] ✗ END result=self_message');
-        return res.status(400).json({ ok: false, error: 'Cannot message yourself' });
+        return res.status(400).json({ ok: false, error: 'Cannot message yourself', code: 'SELF_MESSAGE' });
       }
 
       const targetProfile = await storage.getProfile(targetUserId);
       if (!targetProfile) {
-        console.log('[PROOF:FIND_OR_CREATE] ✗ END result=target_not_found', targetUserId);
         return res.status(404).json({ ok: false, error: 'Target profile not found', code: 'TARGET_NOT_FOUND' });
       }
 
@@ -549,12 +542,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         actorUserId: req.user?.id,
         targetUserId: targetUserId_raw,
         message: error?.message,
-        stackTop: error?.stack?.split('\n').slice(0, 3).join(' | '),
+        code: error?.code,
       }));
       if (error?.code === '23503') {
         res.status(404).json({ ok: false, error: 'Referenced profile not found in database', code: 'FK_VIOLATION' });
+      } else if (error?.code === '23505') {
+        res.status(409).json({ ok: false, error: 'Duplicate conversation participant', code: 'DUPLICATE_PARTICIPANT' });
       } else {
-        res.status(500).json({ ok: false, error: 'Internal server error', code: 'MESSAGING_ERROR' });
+        res.status(422).json({ ok: false, error: error?.message || 'Conversation creation failed', code: 'CONVERSATION_FAILED' });
       }
     }
   });
@@ -2203,6 +2198,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error: any) {
       console.error('[backfill] Error:', error);
       res.status(500).json({ error: 'Backfill failed', details: error.message });
+    }
+  });
+
+  app.post("/api/dev/test-messaging", async (req, res) => {
+    if (process.env.NODE_ENV === 'production') {
+      return res.status(403).json({ error: 'Dev endpoint disabled in production' });
+    }
+    try {
+      const allProfiles = await db.select({ id: profiles.id, username: profiles.username }).from(profiles).limit(3);
+      if (allProfiles.length < 2) {
+        return res.status(400).json({ error: 'Need at least 2 profiles to test messaging' });
+      }
+      const actorId = allProfiles[0].id;
+      const targetId = allProfiles[1].id;
+      const conversation = await storage.findOrCreateConversation(actorId, targetId, null);
+      console.log('[PROOF:MSG:OK]', JSON.stringify({ conversationId: conversation.id, created: conversation.created }));
+      res.json({ ok: true, conversationId: conversation.id, created: conversation.created, actorId, targetId });
+    } catch (error: any) {
+      console.error('[PROOF:MSG:ERR] test-messaging', error?.message);
+      res.status(500).json({ error: error?.message });
     }
   });
 

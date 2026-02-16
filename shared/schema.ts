@@ -79,7 +79,6 @@ export const conversations = pgTable("conversations", {
   buyer_id: uuid("buyer_id").references(() => profiles.id),
   seller_id: uuid("seller_id").references(() => profiles.id),
   listing_id: uuid("listing_id").references(() => dogListings.id),
-  participant_id: uuid("participant_id"),
   last_message_at: timestamp("last_message_at"),
   created_at: timestamp("created_at").defaultNow(),
   updated_at: timestamp("updated_at").defaultNow(),
