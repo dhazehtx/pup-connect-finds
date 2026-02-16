@@ -46,32 +46,41 @@ const ContactSellerButton = ({
 
     setLoading(true);
     try {
-      const conv = await apiRequest('/api/messaging/conversations/find-or-create', {
+      const response = await apiRequest('/api/messaging/conversations/find-or-create', {
         method: 'POST',
-        body: { seller_id: sellerId, listing_id: listingId }
+        body: { targetUserId: sellerId, listing_id: listingId }
       });
-      console.log('[PROOF:MSG:OK] ContactSeller', JSON.stringify(conv));
+      console.log('[PROOF:MSG] response', response);
 
-      const cid = conv?.conversationId || conv?.id;
-      if (cid) {
+      if (response.ok && response.conversationId) {
         await apiRequest('/api/messaging/messages', {
           method: 'POST',
           body: {
-            conversation_id: cid,
+            conversation_id: response.conversationId,
             content: `Hi! I'm interested in this puppy. Could you tell me more?`
           }
         });
-        navigate(`/messages/${cid}`);
+        navigate(`/messages/${response.conversationId}`);
       } else {
-        console.warn('[PROOF:MSG:ERR] No conversationId in response');
-        navigate('/messages');
+        toast({
+          title: "Messaging unavailable",
+          description: `Messaging unavailable (${response.code || 'UNKNOWN'})`,
+          variant: "destructive",
+        });
       }
     } catch (error: any) {
-      const code = error?.message?.match(/failed (\d+)/)?.[1] || 'UNKNOWN';
-      console.error('[PROOF:MSG:ERR] ContactSeller', code, error?.message);
+      console.error('[PROOF:MSG:ERR] ContactSeller', error?.message);
+      let code = 'UNKNOWN';
+      try {
+        const jsonMatch = error?.message?.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          const parsed = JSON.parse(jsonMatch[0]);
+          code = parsed.code || code;
+        }
+      } catch {}
       toast({
         title: "Messaging unavailable",
-        description: `Messaging unavailable (see logs) [${code}]`,
+        description: `Messaging unavailable (${code})`,
         variant: "destructive",
       });
     } finally {

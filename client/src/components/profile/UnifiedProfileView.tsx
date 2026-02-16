@@ -125,24 +125,33 @@ const UnifiedProfileView = ({ userId, isCurrentUser }: UnifiedProfileViewProps) 
 
     setMessagingLoading(true);
     try {
-      const conv = await apiRequest('/api/messaging/conversations/find-or-create', {
+      const response = await apiRequest('/api/messaging/conversations/find-or-create', {
         method: 'POST',
-        body: { seller_id: profileId }
+        body: { targetUserId: profileId }
       });
-      console.log('[PROOF:MSG] response', JSON.stringify(conv));
-      const cid = conv?.conversationId || conv?.id;
-      if (cid) {
-        navigate(`/messages/${cid}`);
+      console.log('[PROOF:MSG] response', response);
+      if (response.ok && response.conversationId) {
+        navigate(`/messages/${response.conversationId}`);
       } else {
-        console.warn('[PROOF:MSG] No conversationId in response:', conv);
-        navigate('/messages');
+        toast({
+          title: "Messaging unavailable",
+          description: `Messaging unavailable (${response.code || 'UNKNOWN'})`,
+          variant: "destructive"
+        });
       }
     } catch (err: any) {
       console.error('[PROOF:MSG] error', err);
-      const msg = err?.message || "Could not start conversation";
+      let code = 'UNKNOWN';
+      try {
+        const jsonMatch = err?.message?.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          const parsed = JSON.parse(jsonMatch[0]);
+          code = parsed.code || code;
+        }
+      } catch {}
       toast({
-        title: "Couldn't start conversation",
-        description: msg.includes('404') ? "That user's profile wasn't found" : msg.includes('400') ? "Invalid request" : "Something went wrong. Please try again.",
+        title: "Messaging unavailable",
+        description: `Messaging unavailable (${code})`,
         variant: "destructive"
       });
     } finally {
