@@ -52,16 +52,7 @@ export function useSessionManager() {
 
   const refreshToken = useCallback(async () => {
     if (!userRef.current) return;
-    try {
-      localStorage.setItem('lastActive', Date.now().toString());
-      await fetch('/api/auth/refresh', {
-        method: 'POST',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' }
-      }).catch(() => {});
-    } catch {
-      // silent
-    }
+    localStorage.setItem('lastActive', Date.now().toString());
   }, []);
 
   useEffect(() => {
@@ -81,24 +72,15 @@ export function useSessionManager() {
       document.addEventListener(event, handleActivity, { passive: true });
     });
 
-    // Check session expiry every minute — do NOT check immediately on mount
     const sessionCheckInterval = setInterval(checkSessionExpiry, 60 * 1000);
-
-    const refreshInterval = setInterval(() => {
-      const lastActive = localStorage.getItem('lastActive');
-      if (lastActive && Date.now() - parseInt(lastActive) < 10 * 60 * 1000) {
-        refreshToken();
-      }
-    }, 10 * 60 * 1000);
 
     return () => {
       ACTIVITY_EVENTS.forEach(event => {
         document.removeEventListener(event, handleActivity);
       });
       clearInterval(sessionCheckInterval);
-      clearInterval(refreshInterval);
     };
-  }, [user?.id, checkSessionExpiry, refreshToken]);
+  }, [user?.id, checkSessionExpiry]);
 
   return {
     updateLastActive,

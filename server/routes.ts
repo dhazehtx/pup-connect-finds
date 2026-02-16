@@ -1953,35 +1953,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
 
 
-  // Auth routes for session management (must be before 404 handler)
-  app.post("/api/auth/refresh", async (req, res) => {
-    try {
-      const userId = req.body?.user_id || req.user?.id;
-      
-      if (!userId) {
-        return res.status(401).json({ 
-          error: 'Not authenticated',
-          message: 'User ID not found in request' 
-        });
-      }
-
-      // Update user's last activity
-      await storage.updateProfile(userId, {
-        last_login_ip: req.ip || req.connection.remoteAddress || 'unknown'
-      });
-
-      res.json({ 
-        success: true, 
-        message: 'Session refreshed',
-        timestamp: new Date().toISOString()
-      });
-    } catch (error) {
-      console.error('Auth refresh error:', error);
-      res.status(500).json({ 
-        error: 'Internal server error',
-        message: 'Failed to refresh session' 
-      });
-    }
+  app.post("/api/auth/refresh", (_req, res) => {
+    res.json({ ok: true, message: 'Supabase handles token refresh automatically' });
   });
 
   app.get("/api/auth/status", async (req, res) => {
