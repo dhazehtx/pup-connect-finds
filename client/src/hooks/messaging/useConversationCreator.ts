@@ -12,15 +12,14 @@ export const useConversationCreator = () => {
     if (!user) return null;
 
     try {
-      console.log('[MESSAGE] createConversation fired, seller:', sellerId, 'listing:', listingId);
       const data = await apiRequest('/api/messaging/conversations/find-or-create', {
         method: 'POST',
         body: { seller_id: sellerId, listing_id: listingId }
       });
-      console.log('[MESSAGE] createConversation result:', data);
+      console.log('[PROOF:MSG] createConversation response', JSON.stringify(data));
       return data;
     } catch (error: any) {
-      console.error('[MESSAGE] createConversation error:', error);
+      console.error('[PROOF:MSG] createConversation error', error);
       const msg = error?.message || '';
       toast({
         title: "Couldn't start conversation",

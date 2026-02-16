@@ -95,14 +95,13 @@ export const useFollowSystem = (userId?: string) => {
     }
 
     try {
-      console.log('[FOLLOW] followUser fired, target:', targetUserId);
       const result = await apiRequest('/api/follows', {
         method: 'POST',
         body: { followed_id: targetUserId },
       });
-      console.log('[FOLLOW] followUser response:', result);
+      console.log('[PROOF:FOLLOW] response', JSON.stringify(result));
 
-      setIsFollowing(true);
+      setIsFollowing(result?.isFollowing ?? true);
       await fetchFollowers();
       
       toast({
@@ -110,7 +109,7 @@ export const useFollowSystem = (userId?: string) => {
         description: "You'll see their posts in your feed",
       });
     } catch (error: any) {
-      console.error('[FOLLOW] followUser error:', error);
+      console.error('[PROOF:FOLLOW] error', error);
       const msg = error?.message || "Failed to follow user";
       toast({
         title: "Couldn't follow",
@@ -124,13 +123,12 @@ export const useFollowSystem = (userId?: string) => {
     if (!user) return;
 
     try {
-      console.log('[FOLLOW] unfollowUser fired, target:', targetUserId);
       const result = await apiRequest(`/api/follows/${targetUserId}`, {
         method: 'DELETE',
       });
-      console.log('[FOLLOW] unfollowUser response:', result);
+      console.log('[PROOF:UNFOLLOW] response', JSON.stringify(result));
 
-      setIsFollowing(false);
+      setIsFollowing(result?.isFollowing ?? false);
       await fetchFollowers();
       
       toast({
@@ -138,7 +136,7 @@ export const useFollowSystem = (userId?: string) => {
         description: "You won't see their posts in your feed anymore",
       });
     } catch (error: any) {
-      console.error('[FOLLOW] unfollowUser error:', error);
+      console.error('[PROOF:UNFOLLOW] error', error);
       toast({
         title: "Error",
         description: error?.message || "Failed to unfollow user",

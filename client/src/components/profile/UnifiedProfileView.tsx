@@ -129,15 +129,16 @@ const UnifiedProfileView = ({ userId, isCurrentUser }: UnifiedProfileViewProps) 
         method: 'POST',
         body: { seller_id: profileId }
       });
-      console.log('[MESSAGE] conversation result:', conv);
-      if (conv?.id) {
-        navigate(`/messages/${conv.id}`);
+      console.log('[PROOF:MSG] response', JSON.stringify(conv));
+      const cid = conv?.conversationId || conv?.id;
+      if (cid) {
+        navigate(`/messages/${cid}`);
       } else {
-        console.warn('[MESSAGE] No conversation id returned:', conv);
+        console.warn('[PROOF:MSG] No conversationId in response:', conv);
         navigate('/messages');
       }
     } catch (err: any) {
-      console.error('[MESSAGE] error:', err);
+      console.error('[PROOF:MSG] error', err);
       const msg = err?.message || "Could not start conversation";
       toast({
         title: "Couldn't start conversation",

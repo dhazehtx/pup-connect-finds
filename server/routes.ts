@@ -482,26 +482,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const UUID_RE_MSG = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
   app.post("/api/messaging/conversations/find-or-create", messagingRateLimit, async (req, res) => {
-    console.log('[MESSAGING] find-or-create request body:', req.body);
+    const bodyKeys = Object.keys(req.body || {});
+    console.log('[PROOF:MSG] ▶ START', JSON.stringify({ bodyKeys, seller_id: req.body?.seller_id, participant_id: req.body?.participant_id, listing_id: req.body?.listing_id }));
     try {
       const authHeader = req.headers.authorization;
       if (!authHeader?.startsWith('Bearer ')) {
-        return res.status(401).json({ error: 'Unauthorized' });
+        console.log('[PROOF:MSG] ✗ END result=no_auth_header');
+        return res.status(401).json({ ok: false, error: 'Unauthorized' });
       }
       const token = authHeader.substring(7);
       const { createClient } = await import('@supabase/supabase-js');
       const supabaseUrl = process.env.VITE_SUPABASE_URL;
       const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
       if (!supabaseUrl || !supabaseServiceKey) {
-        return res.status(500).json({ error: 'Server misconfiguration' });
+        console.log('[PROOF:MSG] ✗ END result=server_misconfiguration');
+        return res.status(500).json({ ok: false, error: 'Server misconfiguration' });
       }
       const sb = createClient(supabaseUrl, supabaseServiceKey);
       const { data: { user }, error: authError } = await sb.auth.getUser(token);
       if (authError || !user) {
-        return res.status(401).json({ error: 'Invalid token' });
+        console.log('[PROOF:MSG] ✗ END result=invalid_token');
+        return res.status(401).json({ ok: false, error: 'Invalid token' });
       }
 
-      console.log('[MESSAGING] Authenticated user:', user.id, user.email);
+      const actorUserId = user.id;
+      console.log('[PROOF:MSG] authenticated actorUserId=' + actorUserId);
 
       const { ensureProfile } = await import('./lib/ensureProfile');
       const meta = user.user_metadata || {};
@@ -514,48 +519,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
           avatar_url: meta.avatar_url || null,
         });
       } catch (epErr) {
-        console.error('[MESSAGING] ensureProfile failed for sender:', user.id, epErr);
-        return res.status(500).json({ error: 'Failed to initialize user profile' });
+        console.error('[PROOF:MSG] ✗ END result=ensure_profile_error actorUserId=' + actorUserId, epErr);
+        return res.status(500).json({ ok: false, error: 'Failed to initialize user profile' });
       }
 
-      const targetId = req.body.seller_id || req.body.participant_id;
+      const targetUserId = req.body.seller_id || req.body.participant_id;
       const listing_id = req.body.listing_id;
 
-      if (!targetId || typeof targetId !== 'string') {
-        console.log('[MESSAGING] Missing target ID. Body keys:', Object.keys(req.body || {}));
-        return res.status(400).json({ error: 'seller_id or participant_id is required' });
+      if (!targetUserId || typeof targetUserId !== 'string') {
+        console.log('[PROOF:MSG] ✗ END result=missing_target', JSON.stringify({ bodyKeys }));
+        return res.status(400).json({ ok: false, error: 'seller_id or participant_id is required' });
       }
 
-      if (!UUID_RE_MSG.test(targetId)) {
-        return res.status(400).json({ error: 'Target ID must be a valid UUID' });
+      if (!UUID_RE_MSG.test(targetUserId)) {
+        console.log('[PROOF:MSG] ✗ END result=invalid_uuid', targetUserId);
+        return res.status(400).json({ ok: false, error: 'Target ID must be a valid UUID' });
       }
 
-      if (targetId === user.id) {
-        return res.status(400).json({ error: 'Cannot message yourself' });
+      if (targetUserId === user.id) {
+        console.log('[PROOF:MSG] ✗ END result=self_message');
+        return res.status(400).json({ ok: false, error: 'Cannot message yourself' });
       }
 
-      const targetProfile = await storage.getProfile(targetId);
+      const targetProfile = await storage.getProfile(targetUserId);
       if (!targetProfile) {
-        console.log('[MESSAGING] Target profile not found in Neon:', targetId);
-        return res.status(404).json({ error: 'Target user profile not found', code: 'TARGET_NOT_FOUND' });
+        console.log('[PROOF:MSG] ✗ END result=target_not_found', targetUserId);
+        return res.status(404).json({ ok: false, error: 'Target user profile not found', code: 'TARGET_NOT_FOUND' });
       }
 
-      console.log('[MESSAGING] Creating conversation:', user.id, '->', targetId, 'listing:', listing_id || 'none');
-      const conversation = await storage.findOrCreateConversation(user.id, targetId, listing_id || null);
-      console.log('[MESSAGING] Conversation result:', conversation.id);
-      res.json(conversation);
+      console.log('[PROOF:MSG] creating conversation', JSON.stringify({ actorUserId, targetUserId, listing_id: listing_id || null }));
+      const conversation = await storage.findOrCreateConversation(user.id, targetUserId, listing_id || null);
+      const conversationId = conversation.id;
+      console.log('[PROOF:MSG] ✓ END result=success', JSON.stringify({ actorUserId, targetUserId, conversationId }));
+      res.json({ ok: true, conversationId, ...conversation });
     } catch (error: any) {
-      console.error("[MESSAGING] find-or-create error:", {
-        message: error?.message,
+      console.error('[PROOF:MSG] ✗ END result=error', JSON.stringify({
+        error: error?.message,
         code: error?.code,
         detail: error?.detail,
         stack: error?.stack,
         body: req.body,
-      });
+      }));
       if (error?.code === '23503') {
-        res.status(404).json({ error: 'Referenced profile not found in database', code: 'FK_VIOLATION' });
+        res.status(404).json({ ok: false, error: 'Referenced profile not found in database', code: 'FK_VIOLATION' });
       } else {
-        res.status(500).json({ error: "Internal server error", code: 'MESSAGING_ERROR' });
+        res.status(500).json({ ok: false, error: 'Internal server error', code: 'MESSAGING_ERROR' });
       }
     }
   });

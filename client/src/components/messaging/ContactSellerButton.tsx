@@ -44,28 +44,28 @@ const ContactSellerButton = ({
     }
 
     try {
-      console.log('[MESSAGE] ContactSeller fired, seller:', sellerId, 'listing:', listingId);
       const conv = await apiRequest('/api/messaging/conversations/find-or-create', {
         method: 'POST',
         body: { seller_id: sellerId, listing_id: listingId }
       });
-      console.log('[MESSAGE] ContactSeller conversation result:', conv);
+      console.log('[PROOF:MSG] ContactSeller response', JSON.stringify(conv));
 
-      if (conv?.id) {
+      const cid = conv?.conversationId || conv?.id;
+      if (cid) {
         await apiRequest('/api/messaging/messages', {
           method: 'POST',
           body: {
-            conversation_id: conv.id,
+            conversation_id: cid,
             content: `Hi! I'm interested in this puppy. Could you tell me more?`
           }
         });
-        navigate(`/messages/${conv.id}`);
+        navigate(`/messages/${cid}`);
       } else {
-        console.warn('[MESSAGE] No conversation id returned:', conv);
+        console.warn('[PROOF:MSG] No conversationId in response:', conv);
         navigate('/messages');
       }
     } catch (error: any) {
-      console.error('[MESSAGE] ContactSeller error:', error);
+      console.error('[PROOF:MSG] ContactSeller error', error);
       const msg = error?.message || '';
       toast({
         title: "Couldn't start conversation",
