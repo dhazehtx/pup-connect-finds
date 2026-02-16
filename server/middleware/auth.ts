@@ -2,11 +2,14 @@ import { Request, Response, NextFunction } from 'express';
 import { createClient } from '@supabase/supabase-js';
 import { supabaseAdmin } from '../lib/supabaseAdmin.js';
 
-// Initialize Supabase client for JWT verification
-const supabase = createClient(
-  'https://wneticxjhxpjpfghnclr.supabase.co',
-  process.env.SUPABASE_SERVICE_ROLE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InduZXRpY3hqaHhwanBmZ2huY2xyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDgzOTQ5MDksImV4cCI6MjA2Mzk3MDkwOX0.7bFOxaZyK97nruVmJFbyNpd6VnmgJpGVTzYtcZ74lUo'
-);
+const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL;
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+if (!supabaseUrl || !supabaseKey) {
+  console.error('[AUTH] Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY environment variables');
+}
+
+const supabase = createClient(supabaseUrl || '', supabaseKey || '');
 
 // Extend Express Request interface to include user and authentication methods
 declare global {

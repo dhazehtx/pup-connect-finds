@@ -526,9 +526,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       const conversation = await storage.findOrCreateConversation(user.id, seller_id, listing_id || null);
       res.json(conversation);
-    } catch (error) {
-      console.error("Error finding/creating conversation:", error);
-      res.status(500).json({ error: "Internal server error" });
+    } catch (error: any) {
+      console.error("[MESSAGING] find-or-create error:", {
+        message: error?.message,
+        code: error?.code,
+        stack: error?.stack?.split('\n').slice(0, 5),
+        body: req.body,
+      });
+      if (error?.code === '23503') {
+        res.status(400).json({ error: 'Seller profile not found in database', code: 'FK_VIOLATION' });
+      } else {
+        res.status(500).json({ error: "Internal server error", code: 'MESSAGING_ERROR' });
+      }
     }
   });
 
