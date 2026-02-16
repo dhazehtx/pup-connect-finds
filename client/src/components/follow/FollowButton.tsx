@@ -49,11 +49,15 @@ export const FollowButton: React.FC<FollowButtonProps> = ({
 
   const followMutation = useMutation({
     mutationFn: async () => {
-      console.log('[FOLLOW_CLICK] mutationFn fired, isFollowing:', isFollowing, 'userId:', userId);
+      console.log('[FOLLOW] mutationFn fired, isFollowing:', isFollowing, 'userId:', userId);
       if (isFollowing) {
-        return apiRequest(`/api/follows/${userId}`, { method: 'DELETE' });
+        const result = await apiRequest(`/api/follows/${userId}`, { method: 'DELETE' });
+        console.log('[FOLLOW] unfollow response:', result);
+        return result;
       } else {
-        return apiRequest('/api/follows', { method: 'POST', body: { followed_id: userId } });
+        const result = await apiRequest('/api/follows', { method: 'POST', body: { followed_id: userId } });
+        console.log('[FOLLOW] follow response:', result);
+        return result;
       }
     },
     onSuccess: () => {
@@ -72,10 +76,11 @@ export const FollowButton: React.FC<FollowButtonProps> = ({
       });
     },
     onError: (error: any) => {
-      console.error('[FOLLOW_CLICK] mutation error:', error);
+      console.error('[FOLLOW] mutation error:', error);
+      const msg = error?.message || "Failed to update follow status";
       toast({
-        title: "Error",
-        description: error.message || "Failed to update follow status",
+        title: "Couldn't update follow",
+        description: msg.includes('404') ? "That user's profile wasn't found" : msg,
         variant: "destructive",
       });
     },

@@ -6,6 +6,8 @@ import { storage } from '../storage';
 import { ensureProfile } from '../lib/ensureProfile';
 import type { Request, Response } from 'express';
 
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 const router = Router();
 
 router.post('/', async (req, res) => {
@@ -13,12 +15,18 @@ router.post('/', async (req, res) => {
     return res.status(401).json({ message: 'Authentication required' });
   }
 
-  try {
-    const { followed_id } = req.body;
-    const userId = req.user!.id;
+  const userId = req.user!.id;
+  const { followed_id } = req.body || {};
 
-    if (!followed_id) {
-      return res.status(400).json({ message: 'User ID to follow is required', code: 'MISSING_FOLLOWED_ID' });
+  console.log('[FOLLOWS] POST / request:', { userId, followed_id, body: req.body });
+
+  try {
+    if (!followed_id || typeof followed_id !== 'string') {
+      return res.status(400).json({ message: 'followed_id is required and must be a string', code: 'MISSING_FOLLOWED_ID' });
+    }
+
+    if (!UUID_RE.test(followed_id)) {
+      return res.status(400).json({ message: 'followed_id must be a valid UUID', code: 'INVALID_UUID' });
     }
 
     if (followed_id === userId) {
@@ -32,6 +40,7 @@ router.post('/', async (req, res) => {
         email: req.user!.email || null,
         username: req.user!.username || null,
       });
+      console.log('[FOLLOWS] Follower profile ensured:', followerProfile.id, followerProfile.username);
     } catch (err) {
       console.error('[FOLLOWS] ensureProfile failed for follower:', userId, err);
       return res.status(400).json({ message: 'Your profile is not initialized. Please reload the page.', code: 'FOLLOWER_MISSING' });
@@ -43,7 +52,8 @@ router.post('/', async (req, res) => {
       .where(eq(profiles.id, followed_id));
 
     if (!targetUser) {
-      return res.status(404).json({ message: 'User not found', code: 'TARGET_NOT_FOUND' });
+      console.log('[FOLLOWS] Target profile not found:', followed_id);
+      return res.status(404).json({ message: 'Target profile not found in database', code: 'TARGET_NOT_FOUND' });
     }
 
     const [existingFollow] = await db
@@ -55,6 +65,7 @@ router.post('/', async (req, res) => {
       ));
 
     if (existingFollow) {
+      console.log('[FOLLOWS] Already following:', userId, '->', followed_id);
       return res.status(200).json({ success: true, isFollowing: true, message: 'Already following this user' });
     }
 
@@ -66,6 +77,7 @@ router.post('/', async (req, res) => {
       })
       .returning();
 
+    console.log('[FOLLOWS] Follow created:', userId, '->', followed_id);
     res.status(201).json({
       success: true,
       isFollowing: true,
@@ -77,12 +89,16 @@ router.post('/', async (req, res) => {
     console.error('[FOLLOWS] POST / error:', {
       message: error?.message,
       code: error?.code,
-      stack: error?.stack?.split('\n').slice(0, 5),
-      userId: req.user?.id,
-      body: req.body,
+      detail: error?.detail,
+      stack: error?.stack,
+      userId,
+      followed_id,
     });
     if (error?.code === '23505') {
       return res.status(200).json({ success: true, isFollowing: true, message: 'Already following' });
+    }
+    if (error?.code === '23503') {
+      return res.status(404).json({ message: 'Target profile not found (foreign key)', code: 'FK_VIOLATION' });
     }
     res.status(500).json({ message: 'Internal server error', code: 'FOLLOW_ERROR' });
   }
@@ -96,6 +112,12 @@ router.delete('/:userId', async (req, res) => {
   try {
     const { userId } = req.params;
 
+    if (!userId || !UUID_RE.test(userId)) {
+      return res.status(400).json({ message: 'Valid user ID is required', code: 'INVALID_UUID' });
+    }
+
+    console.log('[FOLLOWS] DELETE /', req.user!.id, '->', userId);
+
     await db
       .delete(follows)
       .where(and(
@@ -103,6 +125,7 @@ router.delete('/:userId', async (req, res) => {
         eq(follows.followed_id, userId)
       ));
 
+    console.log('[FOLLOWS] Unfollow completed:', req.user!.id, '->', userId);
     res.json({ success: true, isFollowing: false, message: 'User unfollowed successfully' });
 
   } catch (error: any) {

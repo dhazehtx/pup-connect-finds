@@ -95,11 +95,12 @@ export const useFollowSystem = (userId?: string) => {
     }
 
     try {
-      console.log('[FOLLOW_CLICK] followUser fired, target:', targetUserId);
-      await apiRequest('/api/follows', {
+      console.log('[FOLLOW] followUser fired, target:', targetUserId);
+      const result = await apiRequest('/api/follows', {
         method: 'POST',
         body: { followed_id: targetUserId },
       });
+      console.log('[FOLLOW] followUser response:', result);
 
       setIsFollowing(true);
       await fetchFollowers();
@@ -109,10 +110,11 @@ export const useFollowSystem = (userId?: string) => {
         description: "You'll see their posts in your feed",
       });
     } catch (error: any) {
-      console.error('[FOLLOW_CLICK] followUser error:', error);
+      console.error('[FOLLOW] followUser error:', error);
+      const msg = error?.message || "Failed to follow user";
       toast({
-        title: "Error",
-        description: error?.message || "Failed to follow user",
+        title: "Couldn't follow",
+        description: msg.includes('404') ? "That user's profile wasn't found" : msg.includes('400') ? "Invalid request" : msg,
         variant: "destructive",
       });
     }
@@ -122,10 +124,11 @@ export const useFollowSystem = (userId?: string) => {
     if (!user) return;
 
     try {
-      console.log('[FOLLOW_CLICK] unfollowUser fired, target:', targetUserId);
-      await apiRequest(`/api/follows/${targetUserId}`, {
+      console.log('[FOLLOW] unfollowUser fired, target:', targetUserId);
+      const result = await apiRequest(`/api/follows/${targetUserId}`, {
         method: 'DELETE',
       });
+      console.log('[FOLLOW] unfollowUser response:', result);
 
       setIsFollowing(false);
       await fetchFollowers();
@@ -135,7 +138,7 @@ export const useFollowSystem = (userId?: string) => {
         description: "You won't see their posts in your feed anymore",
       });
     } catch (error: any) {
-      console.error('[FOLLOW_CLICK] unfollowUser error:', error);
+      console.error('[FOLLOW] unfollowUser error:', error);
       toast({
         title: "Error",
         description: error?.message || "Failed to unfollow user",
