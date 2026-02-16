@@ -60,10 +60,15 @@ export async function apiRequest(
     } catch {
       return { success: true, raw: responseText };
     }
-  } catch (e) {
+  } catch (e: any) {
     clearTimeout(timeout);
     if (!isAbortError(e)) {
-      console.error('[apiRequest] error for', path, e);
+      const status = e?.message?.match(/failed (\d+)/)?.[1];
+      if (status === '401' || status === '403') {
+        console.debug('[apiRequest] auth error', path, status);
+      } else {
+        console.error('[apiRequest] error for', path, e?.message || e);
+      }
     }
     throw e;
   }

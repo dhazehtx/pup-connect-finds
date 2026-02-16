@@ -1,7 +1,7 @@
 
-import React from 'react';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { MessageCircle } from 'lucide-react';
+import { MessageCircle, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
@@ -23,6 +23,7 @@ const ContactSellerButton = ({
   const navigate = useNavigate();
   const { user } = useAuth();
   const { toast } = useToast();
+  const [loading, setLoading] = useState(false);
 
   const handleContactSeller = async () => {
     if (!user) {
@@ -43,12 +44,13 @@ const ContactSellerButton = ({
       return;
     }
 
+    setLoading(true);
     try {
       const conv = await apiRequest('/api/messaging/conversations/find-or-create', {
         method: 'POST',
         body: { seller_id: sellerId, listing_id: listingId }
       });
-      console.log('[PROOF:MSG] ContactSeller response', JSON.stringify(conv));
+      console.log('[PROOF:MSG:OK] ContactSeller', JSON.stringify(conv));
 
       const cid = conv?.conversationId || conv?.id;
       if (cid) {
@@ -61,17 +63,19 @@ const ContactSellerButton = ({
         });
         navigate(`/messages/${cid}`);
       } else {
-        console.warn('[PROOF:MSG] No conversationId in response:', conv);
+        console.warn('[PROOF:MSG:ERR] No conversationId in response');
         navigate('/messages');
       }
     } catch (error: any) {
-      console.error('[PROOF:MSG] ContactSeller error', error);
-      const msg = error?.message || '';
+      const code = error?.message?.match(/failed (\d+)/)?.[1] || 'UNKNOWN';
+      console.error('[PROOF:MSG:ERR] ContactSeller', code, error?.message);
       toast({
-        title: "Couldn't start conversation",
-        description: msg.includes('404') ? "Seller profile not found" : "Failed to start conversation. Please try again.",
+        title: "Messaging unavailable",
+        description: `Messaging unavailable (see logs) [${code}]`,
         variant: "destructive",
       });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -79,8 +83,13 @@ const ContactSellerButton = ({
     <Button 
       onClick={handleContactSeller}
       className={className}
+      disabled={loading}
     >
-      <MessageCircle className="w-4 h-4 mr-2" />
+      {loading ? (
+        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+      ) : (
+        <MessageCircle className="w-4 h-4 mr-2" />
+      )}
       {children || 'Contact Seller'}
     </Button>
   );

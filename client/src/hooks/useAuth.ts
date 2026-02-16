@@ -19,7 +19,10 @@ export const useAuthState = () => {
       setProfile(data || null);
       return data;
     } catch (error: any) {
-      console.error('Error fetching profile:', error);
+      const status = error?.message?.match(/failed (\d+)/)?.[1];
+      if (status !== '401' && status !== '403') {
+        console.error('Error fetching profile:', error?.message);
+      }
       setProfile(null);
       return null;
     }

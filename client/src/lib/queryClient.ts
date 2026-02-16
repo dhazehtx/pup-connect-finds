@@ -1,7 +1,6 @@
 import { QueryClient } from '@tanstack/react-query';
 import { apiRequest } from './api';
 
-// Create and export the query client instance with default query function
 export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -12,13 +11,17 @@ export const queryClient = new QueryClient({
         }
         return apiRequest(path);
       },
-      staleTime: 60 * 1000, // 1 minute
-      gcTime: 300 * 1000, // 5 minutes
-      retry: 2,
+      staleTime: 60 * 1000,
+      gcTime: 300 * 1000,
+      retry: (failureCount, error: any) => {
+        const status = error?.message?.match(/failed (\d+)/)?.[1];
+        if (status === '401' || status === '403' || status === '404') return false;
+        return failureCount < 2;
+      },
       refetchOnWindowFocus: false,
     },
     mutations: {
-      retry: 1,
+      retry: false,
     },
   },
 });

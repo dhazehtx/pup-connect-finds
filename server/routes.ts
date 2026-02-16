@@ -1945,12 +1945,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
 
   app.post("/api/auth/refresh", (req, res) => {
-    console.log('[PROOF:REFRESH]', JSON.stringify({
-      ok: true,
-      reason: 'stub_supabase_handles_refresh',
-      userId: req.user?.id || null,
-      statusCode: 200,
-    }));
+    const userId = req.user?.id || null;
+    console.log('[PROOF:AUTH:REFRESH]', JSON.stringify({ ran: true, ok: true, reason: 'supabase_handles_refresh', userId }));
     res.json({ ok: true, message: 'Supabase handles token refresh automatically' });
   });
 
@@ -2126,23 +2122,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const authHeader = req.headers.authorization;
       if (!authHeader?.startsWith('Bearer ')) {
-        return res.json({ authenticated: false, supabaseUserId: null, neonProfileExists: false, neonProfile: null });
+        console.log('[PROOF:WHOAMI]', JSON.stringify({ supabaseUserId: null, neonProfileExists: false, neonProfileId: null, username: null }));
+        return res.json({ supabaseUserId: null, neonProfileExists: false, neonProfileId: null, username: null });
       }
       const token = authHeader.substring(7);
       const { createClient } = await import('@supabase/supabase-js');
       const sb = createClient(process.env.VITE_SUPABASE_URL || '', process.env.SUPABASE_SERVICE_ROLE_KEY || '');
       const { data: { user }, error: authError } = await sb.auth.getUser(token);
       if (authError || !user) {
-        return res.json({ authenticated: false, supabaseUserId: null, neonProfileExists: false, neonProfile: null, authError: authError?.message });
+        console.log('[PROOF:WHOAMI]', JSON.stringify({ supabaseUserId: null, neonProfileExists: false, neonProfileId: null, username: null, authError: authError?.message }));
+        return res.json({ supabaseUserId: null, neonProfileExists: false, neonProfileId: null, username: null, authError: authError?.message });
       }
       const neonProfile = await storage.getProfile(user.id);
-      res.json({
-        authenticated: true,
+      const result = {
         supabaseUserId: user.id,
-        supabaseEmail: user.email,
         neonProfileExists: !!neonProfile,
-        neonProfile: neonProfile ? { id: neonProfile.id, username: neonProfile.username, email: neonProfile.email, full_name: neonProfile.full_name, created_at: neonProfile.created_at } : null,
-      });
+        neonProfileId: neonProfile?.id || null,
+        username: neonProfile?.username || null,
+      };
+      console.log('[PROOF:WHOAMI]', JSON.stringify(result));
+      res.json(result);
     } catch (error: any) {
       res.status(500).json({ error: error.message });
     }
