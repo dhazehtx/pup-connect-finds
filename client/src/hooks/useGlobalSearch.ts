@@ -56,9 +56,10 @@ export function useGlobalSearch(query: string) {
           verified: p.verified || false,
         }));
 
+        console.log('[PROOF:SEARCH] client results', JSON.stringify({ query, listings: listings.length, profiles: profiles.length }));
         setResults([...listings, ...profiles]);
       } catch (error) {
-        console.error('[GLOBAL SEARCH] Error:', error);
+        console.error('[PROOF:SEARCH] client error', error);
         setResults([]);
       } finally {
         setLoading(false);

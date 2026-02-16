@@ -269,6 +269,7 @@ export class DatabaseStorage implements IStorage {
       or(
         ilike(profiles.username, like),
         ilike(profiles.full_name, like),
+        ilike(profiles.email, like),
         ilike(profiles.location, like)
       )
     ];
