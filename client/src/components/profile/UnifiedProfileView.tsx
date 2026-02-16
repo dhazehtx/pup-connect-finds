@@ -115,7 +115,7 @@ const UnifiedProfileView = ({ userId, isCurrentUser }: UnifiedProfileViewProps) 
   };
 
   const handleMessage = async () => {
-    console.log('[MESSAGE_CLICK] handler fired, user:', user?.id, 'target:', profileId);
+    console.log('[MESSAGE] handler fired, user:', user?.id, 'target:', profileId);
     if (!user) {
       toast({ title: "Sign in required", description: "Please sign in to send messages", variant: "destructive" });
       navigate('/greeting');
@@ -129,15 +129,21 @@ const UnifiedProfileView = ({ userId, isCurrentUser }: UnifiedProfileViewProps) 
         method: 'POST',
         body: { seller_id: profileId }
       });
-      console.log('[MESSAGE_CLICK] conversation result:', conv);
+      console.log('[MESSAGE] conversation result:', conv);
       if (conv?.id) {
         navigate(`/messages/${conv.id}`);
       } else {
+        console.warn('[MESSAGE] No conversation id returned:', conv);
         navigate('/messages');
       }
     } catch (err: any) {
-      console.error('[MESSAGE_CLICK] error:', err);
-      toast({ title: "Error", description: err?.message || "Could not start conversation", variant: "destructive" });
+      console.error('[MESSAGE] error:', err);
+      const msg = err?.message || "Could not start conversation";
+      toast({
+        title: "Couldn't start conversation",
+        description: msg.includes('404') ? "That user's profile wasn't found" : msg.includes('400') ? "Invalid request" : "Something went wrong. Please try again.",
+        variant: "destructive"
+      });
     } finally {
       setMessagingLoading(false);
     }

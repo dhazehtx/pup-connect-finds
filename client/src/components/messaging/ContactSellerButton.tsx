@@ -44,26 +44,32 @@ const ContactSellerButton = ({
     }
 
     try {
-      const conv = await apiRequest('/messaging/conversations/find-or-create', {
+      console.log('[MESSAGE] ContactSeller fired, seller:', sellerId, 'listing:', listingId);
+      const conv = await apiRequest('/api/messaging/conversations/find-or-create', {
         method: 'POST',
         body: { seller_id: sellerId, listing_id: listingId }
       });
+      console.log('[MESSAGE] ContactSeller conversation result:', conv);
 
-      await apiRequest('/messaging/messages', {
-        method: 'POST',
-        body: {
-          conversation_id: conv.id,
-          content: `Hi! I'm interested in this puppy. Could you tell me more?`
-        }
-      });
-
-      navigate(`/messages/${conv.id}`);
-
-    } catch (error) {
-      console.error('Error creating conversation:', error);
+      if (conv?.id) {
+        await apiRequest('/api/messaging/messages', {
+          method: 'POST',
+          body: {
+            conversation_id: conv.id,
+            content: `Hi! I'm interested in this puppy. Could you tell me more?`
+          }
+        });
+        navigate(`/messages/${conv.id}`);
+      } else {
+        console.warn('[MESSAGE] No conversation id returned:', conv);
+        navigate('/messages');
+      }
+    } catch (error: any) {
+      console.error('[MESSAGE] ContactSeller error:', error);
+      const msg = error?.message || '';
       toast({
-        title: "Error",
-        description: "Failed to start conversation. Please try again.",
+        title: "Couldn't start conversation",
+        description: msg.includes('404') ? "Seller profile not found" : "Failed to start conversation. Please try again.",
         variant: "destructive",
       });
     }

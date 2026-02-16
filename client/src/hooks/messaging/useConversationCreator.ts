@@ -12,17 +12,19 @@ export const useConversationCreator = () => {
     if (!user) return null;
 
     try {
-      const data = await apiRequest('/messaging/conversations/find-or-create', {
+      console.log('[MESSAGE] createConversation fired, seller:', sellerId, 'listing:', listingId);
+      const data = await apiRequest('/api/messaging/conversations/find-or-create', {
         method: 'POST',
         body: { seller_id: sellerId, listing_id: listingId }
       });
-
+      console.log('[MESSAGE] createConversation result:', data);
       return data;
-    } catch (error) {
-      console.error('Error creating conversation:', error);
+    } catch (error: any) {
+      console.error('[MESSAGE] createConversation error:', error);
+      const msg = error?.message || '';
       toast({
-        title: "Error",
-        description: "Failed to create conversation",
+        title: "Couldn't start conversation",
+        description: msg.includes('404') ? "User profile not found" : "Failed to create conversation",
         variant: "destructive",
       });
       return null;

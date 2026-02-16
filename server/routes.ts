@@ -479,7 +479,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  const UUID_RE_MSG = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
   app.post("/api/messaging/conversations/find-or-create", messagingRateLimit, async (req, res) => {
+    console.log('[MESSAGING] find-or-create request body:', req.body);
     try {
       const authHeader = req.headers.authorization;
       if (!authHeader?.startsWith('Bearer ')) {
@@ -497,6 +500,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (authError || !user) {
         return res.status(401).json({ error: 'Invalid token' });
       }
+
+      console.log('[MESSAGING] Authenticated user:', user.id, user.email);
+
       const { ensureProfile } = await import('./lib/ensureProfile');
       const meta = user.user_metadata || {};
       try {
@@ -508,25 +514,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
           avatar_url: meta.avatar_url || null,
         });
       } catch (epErr) {
-        console.error('[MESSAGING] ensureProfile failed:', epErr);
+        console.error('[MESSAGING] ensureProfile failed for sender:', user.id, epErr);
         return res.status(500).json({ error: 'Failed to initialize user profile' });
       }
 
-      const { seller_id, listing_id } = req.body;
-      if (!seller_id) {
-        return res.status(400).json({ error: 'seller_id is required' });
+      const targetId = req.body.seller_id || req.body.participant_id;
+      const listing_id = req.body.listing_id;
+
+      if (!targetId || typeof targetId !== 'string') {
+        console.log('[MESSAGING] Missing target ID. Body keys:', Object.keys(req.body || {}));
+        return res.status(400).json({ error: 'seller_id or participant_id is required' });
       }
-      const conversation = await storage.findOrCreateConversation(user.id, seller_id, listing_id || null);
+
+      if (!UUID_RE_MSG.test(targetId)) {
+        return res.status(400).json({ error: 'Target ID must be a valid UUID' });
+      }
+
+      if (targetId === user.id) {
+        return res.status(400).json({ error: 'Cannot message yourself' });
+      }
+
+      const targetProfile = await storage.getProfile(targetId);
+      if (!targetProfile) {
+        console.log('[MESSAGING] Target profile not found in Neon:', targetId);
+        return res.status(404).json({ error: 'Target user profile not found', code: 'TARGET_NOT_FOUND' });
+      }
+
+      console.log('[MESSAGING] Creating conversation:', user.id, '->', targetId, 'listing:', listing_id || 'none');
+      const conversation = await storage.findOrCreateConversation(user.id, targetId, listing_id || null);
+      console.log('[MESSAGING] Conversation result:', conversation.id);
       res.json(conversation);
     } catch (error: any) {
       console.error("[MESSAGING] find-or-create error:", {
         message: error?.message,
         code: error?.code,
-        stack: error?.stack?.split('\n').slice(0, 5),
+        detail: error?.detail,
+        stack: error?.stack,
         body: req.body,
       });
       if (error?.code === '23503') {
-        res.status(400).json({ error: 'Seller profile not found in database', code: 'FK_VIOLATION' });
+        res.status(404).json({ error: 'Referenced profile not found in database', code: 'FK_VIOLATION' });
       } else {
         res.status(500).json({ error: "Internal server error", code: 'MESSAGING_ERROR' });
       }
