@@ -497,6 +497,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (authError || !user) {
         return res.status(401).json({ error: 'Invalid token' });
       }
+      // Ensure buyer profile exists in Neon (auto-create if needed)
+      let buyerProfile = await storage.getProfile(user.id);
+      if (!buyerProfile) {
+        try {
+          const meta = user.user_metadata || {};
+          buyerProfile = await storage.createProfile({
+            id: user.id,
+            email: user.email || null,
+            username: meta.username || meta.user_name || (user.email ? user.email.split('@')[0] : null),
+            full_name: meta.full_name || meta.name || null,
+            avatar_url: meta.avatar_url || null,
+            user_type: 'buyer',
+          } as any);
+        } catch (createErr: any) {
+          if (createErr?.code === '23505') {
+            buyerProfile = await storage.getProfile(user.id);
+          } else {
+            console.error('Failed to auto-create buyer profile:', createErr);
+            return res.status(500).json({ error: 'Failed to initialize user profile' });
+          }
+        }
+      }
+
       const { seller_id, listing_id } = req.body;
       if (!seller_id) {
         return res.status(400).json({ error: 'seller_id is required' });

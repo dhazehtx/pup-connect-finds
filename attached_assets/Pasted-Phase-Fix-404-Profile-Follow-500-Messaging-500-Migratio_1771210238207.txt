@@ -1,0 +1,70 @@
+Phase: Fix 404 Profile + Follow 500 + Messaging 500 (Migration Blocker)
+NO UI redesign. Only fix backend + required client wiring.
+
+CURRENT SYMPTOMS (confirmed in console)
+- GET /api/profiles/<currentUserId> -> 404 {"error":"Profile not found"}
+- POST /api/follows -> 500 {"message":"Internal server error"}
+- POST /api/messaging/conversations/find-or-create -> 500 {"error":"Internal server error"}
+- Global search only finds my profile; old users no longer appear (likely not migrated into Neon)
+
+GOAL
+Make Neon/Drizzle the source of truth AND keep app functional during migration:
+- Any authenticated user MUST have a corresponding Neon profiles row (auto-create if missing)
+- Follow + Messaging endpoints must succeed (no 500s)
+- Search should return other users IF they exist in Neon. If they don’t exist, add a clear migration/seed plan and optionally seed test users.
+
+TASK 1 — Add real server error logging (must do first)
+For /api/follows and /api/messaging/conversations/find-or-create:
+- Wrap handlers in try/catch and console.error the actual error object + stack + request userId + request body.
+- Ensure API returns meaningful error JSON including a short error code (do NOT leak secrets).
+
+TASK 2 — Fix profiles 404 by implementing "ensureProfile" (auto-create / upsert)
+Wherever you fetch current profile (server route GET /api/profiles/:id and/or auth flow):
+- If profile not found for authenticated user id:
+  - Insert a default profiles row in Neon with:
+    id = userId
+    email if available from auth session
+    username = derived from email prefix or "user_<last6>"
+    full_name = existing value if provided else empty string
+    avatar_url = null
+    created_at/updated_at set
+  - Then return that created profile.
+This must stop the repeated 404 spam in console.
+
+Also update GET /api/profiles/:id to:
+- if requested id == req.user.id => ensureProfile()
+- if requested id != req.user.id => return 404 if missing (no auto-create for random ids)
+
+TASK 3 — Fix /api/follows 500
+After adding logging, fix based on actual error:
+Common required behavior:
+- Validate body: { followed_id: string } required
+- Prevent self-follow
+- Ensure both follower + followed profiles exist (ensureProfile for follower, and check followed exists)
+- Insert follow row using Drizzle
+- Add/ensure unique constraint (follower_id, followed_id) to prevent duplicates
+- Return 200 with { success: true, isFollowing: true }
+
+Also ensure GET /api/follows/check?followed_id=... works.
+
+TASK 4 — Fix messaging find-or-create 500
+Endpoint expects body { seller_id: string } (per earlier analysis).
+Fix based on actual error:
+- Validate seller_id
+- Ensure conversation exists between the two users:
+  - find existing conversation with both participants
+  - if not exists create conversation + participant rows
+- Return conversation id + route to /messages/<conversationId> or whatever UI expects
+
+TASK 5 — Search: explain why old users aren’t found + make it testable
+- Verify Neon profiles count.
+- If count is 1 (only me), explicitly state: search is correct, but users are not migrated.
+- Add a small DEV-only seed script or endpoint (guarded) that inserts 2-3 dummy profiles so search/follow/message can be tested without Supabase data.
+Do NOT reintroduce Supabase profile reads.
+
+VERIFICATION (must output)
+A) Console proof: after login, GET /api/profiles/<me> returns 200 and profile data
+B) Follow: POST /api/follows returns 200 and toggles state
+C) Messaging: POST find-or-create returns 200 and returns conversation id
+D) Grep: no supabase.from('profiles') introduced
+E) List changed files

@@ -83,19 +83,32 @@ export const authMiddleware = async (req: Request, res: Response, next: NextFunc
       return next();
     }
 
-    // Fetch user profile to get is_admin status via Drizzle (Neon)
-    console.log('[AUTH MIDDLEWARE] Looking up profile for user:', user.id, user.email);
     const { storage } = await import('../storage');
-    const profile = await storage.getProfile(user.id);
+    let profile = await storage.getProfile(user.id);
 
-    console.log('[AUTH MIDDLEWARE] Profile lookup result:', {
-      userId: user.id,
-      email: user.email,
-      hasProfile: !!profile,
-      isAdmin: profile?.is_admin,
-    });
+    if (!profile) {
+      console.log('[AUTH MIDDLEWARE] No Neon profile for user, auto-creating:', user.id, user.email);
+      try {
+        const meta = user.user_metadata || {};
+        profile = await storage.createProfile({
+          id: user.id,
+          email: user.email || null,
+          username: meta.username || meta.user_name || (user.email ? user.email.split('@')[0] : null),
+          full_name: meta.full_name || meta.name || null,
+          avatar_url: meta.avatar_url || null,
+          user_type: 'buyer',
+        } as any);
+        console.log('[AUTH MIDDLEWARE] Auto-created profile:', profile.id);
+      } catch (createErr: any) {
+        if (createErr?.code === '23505') {
+          profile = await storage.getProfile(user.id);
+          console.log('[AUTH MIDDLEWARE] Profile already existed (race condition), fetched:', profile?.id);
+        } else {
+          console.error('[AUTH MIDDLEWARE] Failed to auto-create profile:', createErr);
+        }
+      }
+    }
 
-    // Add user info to request with admin status
     req.user = {
       id: user.id,
       email: user.email,
@@ -103,8 +116,6 @@ export const authMiddleware = async (req: Request, res: Response, next: NextFunc
       username: profile?.username,
       ...user.user_metadata
     };
-
-    console.log('[AUTH MIDDLEWARE] Set req.user with is_admin:', req.user.is_admin);
 
     // Add isAuthenticated method that returns true
     req.isAuthenticated = () => true;
