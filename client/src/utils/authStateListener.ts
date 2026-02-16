@@ -2,10 +2,13 @@ import { supabase } from '@/integrations/supabase/client';
 
 const ensureNeonProfile = async (accessToken: string) => {
   try {
-    await fetch('/api/profiles/me', {
+    const res = await fetch('/api/profiles/me', {
       headers: { 'Authorization': `Bearer ${accessToken}` },
     });
-  } catch {
+    const data = await res.json();
+    console.log('[PROOF:LOGIN] ensureNeonProfile result', JSON.stringify({ ok: res.ok, status: res.status, id: data?.id, username: data?.username }));
+  } catch (err) {
+    console.error('[PROOF:LOGIN] ensureNeonProfile failed', err);
   }
 };
 

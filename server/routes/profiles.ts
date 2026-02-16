@@ -65,6 +65,7 @@ router.get('/me', authMiddleware, async (req: Request, res: Response) => {
     if (!req.user?.id) {
       return res.status(401).json({ error: 'Authentication required' });
     }
+    console.log('[PROOF:ME] ▶ START', JSON.stringify({ userId: req.user.id, email: req.user.email }));
     const profile = await ensureProfile({
       id: req.user.id,
       email: req.user.email || null,
@@ -72,9 +73,10 @@ router.get('/me', authMiddleware, async (req: Request, res: Response) => {
       full_name: req.user.full_name || req.user.name || null,
       avatar_url: req.user.avatar_url || null,
     });
+    console.log('[PROOF:ME] ✓ END', JSON.stringify({ userId: profile.id, username: profile.username, created: !!profile.created_at }));
     res.json(shapeProfile(profile));
-  } catch (error) {
-    console.error('Error fetching own profile:', error);
+  } catch (error: any) {
+    console.error('[PROOF:ME] ✗ END error', JSON.stringify({ userId: req.user?.id, error: error?.message, stack: error?.stack }));
     res.status(500).json({ error: 'Internal server error' });
   }
 });

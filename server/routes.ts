@@ -2149,6 +2149,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Register health check routes
   registerHealthRoutes(app);
 
+  app.get('/api/dev/whoami', async (req, res) => {
+    if (process.env.NODE_ENV === 'production') {
+      return res.status(404).json({ error: 'Not available in production' });
+    }
+    try {
+      const authHeader = req.headers.authorization;
+      if (!authHeader?.startsWith('Bearer ')) {
+        return res.json({ authenticated: false, supabaseUserId: null, neonProfileExists: false, neonProfile: null });
+      }
+      const token = authHeader.substring(7);
+      const { createClient } = await import('@supabase/supabase-js');
+      const sb = createClient(process.env.VITE_SUPABASE_URL || '', process.env.SUPABASE_SERVICE_ROLE_KEY || '');
+      const { data: { user }, error: authError } = await sb.auth.getUser(token);
+      if (authError || !user) {
+        return res.json({ authenticated: false, supabaseUserId: null, neonProfileExists: false, neonProfile: null, authError: authError?.message });
+      }
+      const neonProfile = await storage.getProfile(user.id);
+      res.json({
+        authenticated: true,
+        supabaseUserId: user.id,
+        supabaseEmail: user.email,
+        neonProfileExists: !!neonProfile,
+        neonProfile: neonProfile ? { id: neonProfile.id, username: neonProfile.username, email: neonProfile.email, full_name: neonProfile.full_name, created_at: neonProfile.created_at } : null,
+      });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
   // Dev-only: backfill Neon profiles from Supabase Auth users
   app.post('/api/dev/backfill-profiles', async (req, res) => {
     if (process.env.NODE_ENV === 'production') {
