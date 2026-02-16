@@ -23,6 +23,7 @@ import {
   breeds,
   follows,
   postLikes,
+  commentLikes,
   type User, 
   type InsertUser,
   type Profile,
@@ -67,7 +68,7 @@ import {
   type InsertBreed
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, and, or, like, ilike, sql, isNotNull, inArray } from "drizzle-orm";
+import { eq, desc, asc, and, or, like, ilike, sql, isNotNull, inArray } from "drizzle-orm";
 
 export interface IStorage {
   // Legacy user methods
@@ -145,6 +146,8 @@ export interface IStorage {
   addPostLike(postId: string, userId: string): Promise<void>;
   removePostLike(postId: string, userId: string): Promise<void>;
   getPostLikeCount(postId: string): Promise<number>;
+  togglePostLike(postId: string, userId: string): Promise<{ isLiked: boolean; likeCount: number }>;
+  toggleCommentLike(commentId: string, userId: string): Promise<{ isLiked: boolean; likeCount: number }>;
   
   // Review methods
   getListingReviews(listingId: string): Promise<Review[]>;
@@ -154,18 +157,19 @@ export interface IStorage {
   // Post methods
   getPosts(category?: string): Promise<Post[]>;
   getPost(id: string): Promise<Post | undefined>;
+  getPostsWithProfiles(options?: { userId?: string; limit?: number; cursor?: string }): Promise<any[]>;
   getHomeFeedPosts(userId: string): Promise<any[]>;
   createPost(post: InsertPost): Promise<Post>;
   updatePost(id: string, post: Partial<InsertPost>): Promise<Post | undefined>;
+  deletePost(id: string): Promise<boolean>;
   
   // Comment methods
   getPostComments(postId: string): Promise<Comment[]>;
+  getPostCommentsWithProfiles(postId: string): Promise<any[]>;
   createComment(comment: InsertComment): Promise<Comment>;
+  deleteComment(id: string): Promise<boolean>;
+  getCommentCount(postId: string): Promise<number>;
 
-  // Comment reply methods
-  getCommentReplies(commentId: string): Promise<CommentReply[]>;
-  createCommentReply(reply: InsertCommentReply): Promise<CommentReply>;
-  
   // Comment reply methods
   getCommentReplies(commentId: string): Promise<CommentReply[]>;
   createCommentReply(reply: InsertCommentReply): Promise<CommentReply>;
@@ -784,6 +788,35 @@ export class DatabaseStorage implements IStorage {
     return result[0]?.count ?? 0;
   }
 
+  async togglePostLike(postId: string, userId: string): Promise<{ isLiked: boolean; likeCount: number }> {
+    const existing = await this.checkPostLike(postId, userId);
+    if (existing) {
+      await this.removePostLike(postId, userId);
+      await db.update(posts).set({ likes_count: sql`GREATEST(0, ${posts.likes_count} - 1)` }).where(eq(posts.id, postId));
+    } else {
+      await this.addPostLike(postId, userId);
+      await db.update(posts).set({ likes_count: sql`${posts.likes_count} + 1` }).where(eq(posts.id, postId));
+    }
+    const likeCount = await this.getPostLikeCount(postId);
+    return { isLiked: !existing, likeCount };
+  }
+
+  async toggleCommentLike(commentId: string, userId: string): Promise<{ isLiked: boolean; likeCount: number }> {
+    const existing = await db.select({ id: commentLikes.id })
+      .from(commentLikes)
+      .where(and(eq(commentLikes.comment_id, commentId), eq(commentLikes.user_id, userId)))
+      .limit(1);
+    if (existing.length > 0) {
+      await db.delete(commentLikes).where(and(eq(commentLikes.comment_id, commentId), eq(commentLikes.user_id, userId)));
+      await db.update(comments).set({ likes_count: sql`GREATEST(0, ${comments.likes_count} - 1)` }).where(eq(comments.id, commentId));
+    } else {
+      await db.insert(commentLikes).values({ comment_id: commentId, user_id: userId }).onConflictDoNothing();
+      await db.update(comments).set({ likes_count: sql`${comments.likes_count} + 1` }).where(eq(comments.id, commentId));
+    }
+    const countResult = await db.select({ count: sql<number>`count(*)::int` }).from(commentLikes).where(eq(commentLikes.comment_id, commentId));
+    return { isLiked: existing.length === 0, likeCount: countResult[0]?.count ?? 0 };
+  }
+
   // Review methods
   async getListingReviews(listingId: string): Promise<Review[]> {
     return await db.select().from(reviews).where(eq(reviews.listing_id, listingId));
@@ -860,6 +893,50 @@ export class DatabaseStorage implements IStorage {
     return result;
   }
 
+  async getPostsWithProfiles(options?: { userId?: string; limit?: number; cursor?: string }): Promise<any[]> {
+    const lim = options?.limit || 20;
+    const conditions: any[] = [];
+    if (options?.userId) conditions.push(eq(posts.user_id, options.userId));
+    if (options?.cursor) conditions.push(sql`${posts.created_at} < ${options.cursor}`);
+
+    const q = db.select({
+      id: posts.id,
+      user_id: posts.user_id,
+      title: posts.title,
+      content: posts.content,
+      image_url: posts.image_url,
+      images: posts.images,
+      video_url: posts.video_url,
+      videos: posts.videos,
+      post_type: posts.post_type,
+      category: posts.category,
+      hashtags: posts.hashtags,
+      caption: posts.caption,
+      likes_count: posts.likes_count,
+      comments_count: posts.comments_count,
+      shares_count: posts.shares_count,
+      views_count: posts.views_count,
+      duration: posts.duration,
+      created_at: posts.created_at,
+      updated_at: posts.updated_at,
+      profiles: {
+        id: profiles.id,
+        username: profiles.username,
+        full_name: profiles.full_name,
+        avatar_url: profiles.avatar_url,
+      },
+    })
+    .from(posts)
+    .leftJoin(profiles, eq(posts.user_id, profiles.id))
+    .orderBy(desc(posts.created_at))
+    .limit(lim);
+
+    if (conditions.length > 0) {
+      return await (q as any).where(and(...conditions));
+    }
+    return await q;
+  }
+
   async createPost(post: InsertPost): Promise<Post> {
     const result = await db.insert(posts).values([post]).returning();
     return result[0];
@@ -916,8 +993,31 @@ export class DatabaseStorage implements IStorage {
     return await db.select().from(comments).where(eq(comments.post_id, postId)).orderBy(comments.created_at);
   }
 
+  async getPostCommentsWithProfiles(postId: string): Promise<any[]> {
+    return await db.select({
+      id: comments.id,
+      post_id: comments.post_id,
+      user_id: comments.user_id,
+      content: comments.content,
+      likes_count: comments.likes_count,
+      created_at: comments.created_at,
+      updated_at: comments.updated_at,
+      profiles: {
+        id: profiles.id,
+        username: profiles.username,
+        full_name: profiles.full_name,
+        avatar_url: profiles.avatar_url,
+      },
+    })
+    .from(comments)
+    .leftJoin(profiles, eq(comments.user_id, profiles.id))
+    .where(eq(comments.post_id, postId))
+    .orderBy(asc(comments.created_at));
+  }
+
   async createComment(comment: InsertComment): Promise<Comment> {
     const result = await db.insert(comments).values([comment]).returning();
+    await db.update(posts).set({ comments_count: sql`${posts.comments_count} + 1` }).where(eq(posts.id, comment.post_id));
     return result[0];
   }
 
@@ -927,14 +1027,19 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteComment(id: string): Promise<boolean> {
+    const comment = await db.select({ post_id: comments.post_id }).from(comments).where(eq(comments.id, id)).limit(1);
     await db.delete(commentReplies).where(eq(commentReplies.comment_id, id));
     const result = await db.delete(comments).where(eq(comments.id, id));
-    return (result.rowCount ?? 0) > 0;
+    const deleted = (result.rowCount ?? 0) > 0;
+    if (deleted && comment[0]) {
+      await db.update(posts).set({ comments_count: sql`GREATEST(0, ${posts.comments_count} - 1)` }).where(eq(posts.id, comment[0].post_id));
+    }
+    return deleted;
   }
 
   async getCommentCount(postId: string): Promise<number> {
-    const result = await db.select({ count: sql<number>`count(*)` }).from(comments).where(eq(comments.post_id, postId));
-    return Number(result[0]?.count || 0);
+    const result = await db.select({ count: sql<number>`count(*)::int` }).from(comments).where(eq(comments.post_id, postId));
+    return result[0]?.count ?? 0;
   }
 
   // Comment reply methods

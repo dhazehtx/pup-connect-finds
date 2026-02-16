@@ -838,8 +838,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const likedByUser = userId ? await storage.checkPostLike(postId, userId) : false;
       res.json({ count, likedByUser });
     } catch (error) {
-      console.error("Error getting post likes:", error);
+      console.error("[PROOF:LIKES:POST:ERR]", { postId: req.params.id, ts: new Date().toISOString(), error: String(error) });
       res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  app.post("/api/posts/:id/likes/toggle", async (req: any, res) => {
+    try {
+      const userId = req.user?.id;
+      if (!userId) return res.status(401).json({ error: "LIKES_UNAUTHORIZED" });
+      const postId = req.params.id;
+      const result = await storage.togglePostLike(postId, userId);
+      console.log("[PROOF:LIKES:POST]", { action: result.isLiked ? "liked" : "unliked", postId, userId, likeCount: result.likeCount, ts: new Date().toISOString() });
+      res.json({ isLiked: result.isLiked, likeCount: result.likeCount });
+    } catch (error) {
+      console.error("[PROOF:LIKES:POST:ERR]", { postId: req.params.id, ts: new Date().toISOString(), error: String(error) });
+      res.status(500).json({ error: "LIKES_FAILED" });
+    }
+  });
+
+  app.post("/api/comments/:id/likes/toggle", async (req: any, res) => {
+    try {
+      const userId = req.user?.id;
+      if (!userId) return res.status(401).json({ error: "LIKES_UNAUTHORIZED" });
+      const commentId = req.params.id;
+      const result = await storage.toggleCommentLike(commentId, userId);
+      console.log("[PROOF:LIKES:COMMENT]", { action: result.isLiked ? "liked" : "unliked", commentId, userId, likeCount: result.likeCount, ts: new Date().toISOString() });
+      res.json({ isLiked: result.isLiked, likeCount: result.likeCount });
+    } catch (error) {
+      console.error("[PROOF:LIKES:COMMENT:ERR]", { commentId: req.params.id, ts: new Date().toISOString(), error: String(error) });
+      res.status(500).json({ error: "LIKES_FAILED" });
     }
   });
 
@@ -849,9 +877,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!userId) return res.status(401).json({ error: "Unauthorized" });
       await storage.addPostLike(req.params.id, userId);
       const count = await storage.getPostLikeCount(req.params.id);
+      console.log("[PROOF:LIKES:POST]", { action: "liked", postId: req.params.id, userId, likeCount: count, ts: new Date().toISOString() });
       res.json({ liked: true, count });
     } catch (error) {
-      console.error("Error adding post like:", error);
+      console.error("[PROOF:LIKES:POST:ERR]", { postId: req.params.id, ts: new Date().toISOString(), error: String(error) });
       res.status(500).json({ error: "Internal server error" });
     }
   });
@@ -862,9 +891,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!userId) return res.status(401).json({ error: "Unauthorized" });
       await storage.removePostLike(req.params.id, userId);
       const count = await storage.getPostLikeCount(req.params.id);
+      console.log("[PROOF:LIKES:POST]", { action: "unliked", postId: req.params.id, userId, likeCount: count, ts: new Date().toISOString() });
       res.json({ liked: false, count });
     } catch (error) {
-      console.error("Error removing post like:", error);
+      console.error("[PROOF:LIKES:POST:ERR]", { postId: req.params.id, ts: new Date().toISOString(), error: String(error) });
       res.status(500).json({ error: "Internal server error" });
     }
   });
@@ -891,22 +921,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Posts routes (community features)
+  // Posts routes (community features) - Neon/Drizzle only
   app.get("/api/posts", async (req, res) => {
     try {
-      const { category, userId, listingId } = req.query;
-      const allPosts = await storage.getPosts(category as string);
-      let filtered = allPosts;
-      if (userId) {
-        filtered = filtered.filter((p: any) => p.user_id === userId);
-      }
-      if (listingId) {
-        filtered = filtered.filter((p: any) => p.listing_id === listingId);
-      }
-      res.json(filtered);
+      const { category, userId, limit, cursor } = req.query;
+      const result = await storage.getPostsWithProfiles({
+        userId: userId as string,
+        limit: limit ? parseInt(limit as string, 10) : 20,
+        cursor: cursor as string,
+      });
+      console.log("[PROOF:POSTS:LIST]", { count: result.length, userId: userId || "all", ts: new Date().toISOString() });
+      res.json(result);
     } catch (error) {
-      console.error("Error getting posts:", error);
-      res.status(500).json({ error: "Internal server error" });
+      console.error("[PROOF:POSTS:ERR]", { ts: new Date().toISOString(), error: String(error) });
+      res.status(500).json({ error: "POSTS_FAILED" });
     }
   });
 
@@ -957,14 +985,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Comments routes
+  // Comments routes - Neon/Drizzle only
   app.get("/api/posts/:id/comments", async (req, res) => {
     try {
-      const comments = await storage.getPostComments(req.params.id);
-      res.json(comments);
+      const postId = req.params.id;
+      const result = await storage.getPostCommentsWithProfiles(postId);
+      console.log("[PROOF:COMMENTS:LIST]", { postId, count: result.length, ts: new Date().toISOString() });
+      res.json(result);
     } catch (error) {
-      console.error("Error getting comments:", error);
-      res.status(500).json({ error: "Internal server error" });
+      console.error("[PROOF:COMMENTS:ERR]", { postId: req.params.id, ts: new Date().toISOString(), error: String(error) });
+      res.status(500).json({ error: "COMMENTS_FAILED" });
     }
   });
 
@@ -972,16 +1002,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const validatedData = insertCommentSchema.parse(req.body);
       const comment = await storage.createComment(validatedData);
+      console.log("[PROOF:COMMENTS:CREATE]", { commentId: comment.id, postId: validatedData.post_id, userId: validatedData.user_id, ts: new Date().toISOString() });
       
-      // Log admin action for comment creation
       if (validatedData.user_id) {
         await logCommentAction(validatedData.user_id, 'create', comment.id);
       }
       
       res.json(comment);
     } catch (error) {
-      console.error("Error creating comment:", error);
-      res.status(500).json({ error: "Internal server error" });
+      console.error("[PROOF:COMMENTS:ERR]", { ts: new Date().toISOString(), error: String(error) });
+      res.status(500).json({ error: "COMMENTS_FAILED" });
     }
   });
 
@@ -989,13 +1019,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.patch("/api/posts/:id", async (req, res) => {
     try {
       const updated = await storage.updatePost(req.params.id, req.body);
-      if (!updated) {
-        return res.status(404).json({ error: "Post not found" });
-      }
+      if (!updated) return res.status(404).json({ error: "POST_NOT_FOUND" });
+      console.log("[PROOF:POSTS:UPDATE]", { postId: req.params.id, ts: new Date().toISOString() });
       res.json(updated);
     } catch (error) {
-      console.error("Error updating post:", error);
-      res.status(500).json({ error: "Internal server error" });
+      console.error("[PROOF:POSTS:ERR]", { postId: req.params.id, ts: new Date().toISOString(), error: String(error) });
+      res.status(500).json({ error: "POSTS_FAILED" });
     }
   });
 
@@ -1003,13 +1032,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.delete("/api/posts/:id", async (req, res) => {
     try {
       const deleted = await storage.deletePost(req.params.id);
-      if (!deleted) {
-        return res.status(404).json({ error: "Post not found" });
-      }
+      if (!deleted) return res.status(404).json({ error: "POST_NOT_FOUND" });
+      console.log("[PROOF:POSTS:DELETE]", { postId: req.params.id, ts: new Date().toISOString() });
       res.json({ success: true });
     } catch (error) {
-      console.error("Error deleting post:", error);
-      res.status(500).json({ error: "Internal server error" });
+      console.error("[PROOF:POSTS:ERR]", { postId: req.params.id, ts: new Date().toISOString(), error: String(error) });
+      res.status(500).json({ error: "POSTS_FAILED" });
     }
   });
 
@@ -1017,17 +1045,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.patch("/api/comments/:id", async (req, res) => {
     try {
       const { content } = req.body;
-      if (!content) {
-        return res.status(400).json({ error: "Content is required" });
-      }
+      if (!content) return res.status(400).json({ error: "COMMENT_BAD_REQUEST" });
       const updated = await storage.updateComment(req.params.id, content);
-      if (!updated) {
-        return res.status(404).json({ error: "Comment not found" });
-      }
+      if (!updated) return res.status(404).json({ error: "COMMENT_NOT_FOUND" });
+      console.log("[PROOF:COMMENTS:UPDATE]", { commentId: req.params.id, ts: new Date().toISOString() });
       res.json(updated);
     } catch (error) {
-      console.error("Error updating comment:", error);
-      res.status(500).json({ error: "Internal server error" });
+      console.error("[PROOF:COMMENTS:ERR]", { commentId: req.params.id, ts: new Date().toISOString(), error: String(error) });
+      res.status(500).json({ error: "COMMENTS_FAILED" });
     }
   });
 
@@ -1035,13 +1060,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.delete("/api/comments/:id", async (req, res) => {
     try {
       const deleted = await storage.deleteComment(req.params.id);
-      if (!deleted) {
-        return res.status(404).json({ error: "Comment not found" });
-      }
+      if (!deleted) return res.status(404).json({ error: "COMMENT_NOT_FOUND" });
+      console.log("[PROOF:COMMENTS:DELETE]", { commentId: req.params.id, ts: new Date().toISOString() });
       res.json({ success: true });
     } catch (error) {
-      console.error("Error deleting comment:", error);
-      res.status(500).json({ error: "Internal server error" });
+      console.error("[PROOF:COMMENTS:ERR]", { commentId: req.params.id, ts: new Date().toISOString(), error: String(error) });
+      res.status(500).json({ error: "COMMENTS_FAILED" });
     }
   });
 
@@ -1051,8 +1075,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const count = await storage.getCommentCount(req.params.id);
       res.json({ count });
     } catch (error) {
-      console.error("Error getting comment count:", error);
-      res.status(500).json({ error: "Internal server error" });
+      console.error("[PROOF:COMMENTS:ERR]", { postId: req.params.id, ts: new Date().toISOString(), error: String(error) });
+      res.status(500).json({ error: "COMMENTS_FAILED" });
     }
   });
 
