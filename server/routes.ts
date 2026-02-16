@@ -469,82 +469,71 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/messaging/conversations/find-or-create", messagingRateLimit, async (req, res) => {
     const bodyKeys = Object.keys(req.body || {});
-    console.log('[PROOF:MSG] ▶ START', JSON.stringify({ bodyKeys, seller_id: req.body?.seller_id, participant_id: req.body?.participant_id, listing_id: req.body?.listing_id }));
+    console.log('[PROOF:FIND_OR_CREATE] ▶ START', JSON.stringify({
+      actorUserId: req.user?.id,
+      bodyKeys,
+      seller_id: req.body?.seller_id,
+      participant_id: req.body?.participant_id,
+      target_id: req.body?.target_id,
+      listing_id: req.body?.listing_id,
+    }));
     try {
-      const authHeader = req.headers.authorization;
-      if (!authHeader?.startsWith('Bearer ')) {
-        console.log('[PROOF:MSG] ✗ END result=no_auth_header');
+      if (!req.isAuthenticated || !req.isAuthenticated()) {
+        console.log('[PROOF:FIND_OR_CREATE] ✗ END result=unauthorized');
         return res.status(401).json({ ok: false, error: 'Unauthorized' });
       }
-      const token = authHeader.substring(7);
-      const { createClient } = await import('@supabase/supabase-js');
-      const supabaseUrl = process.env.VITE_SUPABASE_URL;
-      const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-      if (!supabaseUrl || !supabaseServiceKey) {
-        console.log('[PROOF:MSG] ✗ END result=server_misconfiguration');
-        return res.status(500).json({ ok: false, error: 'Server misconfiguration' });
-      }
-      const sb = createClient(supabaseUrl, supabaseServiceKey);
-      const { data: { user }, error: authError } = await sb.auth.getUser(token);
-      if (authError || !user) {
-        console.log('[PROOF:MSG] ✗ END result=invalid_token');
-        return res.status(401).json({ ok: false, error: 'Invalid token' });
-      }
 
-      const actorUserId = user.id;
-      console.log('[PROOF:MSG] authenticated actorUserId=' + actorUserId);
+      const actorUserId = req.user!.id;
 
       const { ensureProfile } = await import('./lib/ensureProfile');
-      const meta = user.user_metadata || {};
       try {
         await ensureProfile({
-          id: user.id,
-          email: user.email || null,
-          username: meta.username || meta.user_name || null,
-          full_name: meta.full_name || meta.name || null,
-          avatar_url: meta.avatar_url || null,
+          id: actorUserId,
+          email: req.user!.email || null,
+          username: req.user!.username || null,
         });
       } catch (epErr) {
-        console.error('[PROOF:MSG] ✗ END result=ensure_profile_error actorUserId=' + actorUserId, epErr);
+        console.error('[PROOF:FIND_OR_CREATE] ✗ END result=ensure_profile_error', epErr);
         return res.status(500).json({ ok: false, error: 'Failed to initialize user profile' });
       }
 
-      const targetUserId = req.body.seller_id || req.body.participant_id;
+      const targetUserId = req.body.seller_id || req.body.participant_id || req.body.target_id;
       const listing_id = req.body.listing_id;
+      console.log('[PROOF:FIND_OR_CREATE] targetUserId resolved=' + targetUserId);
 
       if (!targetUserId || typeof targetUserId !== 'string') {
-        console.log('[PROOF:MSG] ✗ END result=missing_target', JSON.stringify({ bodyKeys }));
-        return res.status(400).json({ ok: false, error: 'seller_id or participant_id is required' });
+        console.log('[PROOF:FIND_OR_CREATE] ✗ END result=missing_target', JSON.stringify({ bodyKeys }));
+        return res.status(400).json({ ok: false, error: 'seller_id, participant_id, or target_id is required' });
       }
 
       if (!UUID_RE_MSG.test(targetUserId)) {
-        console.log('[PROOF:MSG] ✗ END result=invalid_uuid', targetUserId);
+        console.log('[PROOF:FIND_OR_CREATE] ✗ END result=invalid_uuid', targetUserId);
         return res.status(400).json({ ok: false, error: 'Target ID must be a valid UUID' });
       }
 
-      if (targetUserId === user.id) {
-        console.log('[PROOF:MSG] ✗ END result=self_message');
+      if (targetUserId === actorUserId) {
+        console.log('[PROOF:FIND_OR_CREATE] ✗ END result=self_message');
         return res.status(400).json({ ok: false, error: 'Cannot message yourself' });
       }
 
       const targetProfile = await storage.getProfile(targetUserId);
       if (!targetProfile) {
-        console.log('[PROOF:MSG] ✗ END result=target_not_found', targetUserId);
-        return res.status(404).json({ ok: false, error: 'Target user profile not found', code: 'TARGET_NOT_FOUND' });
+        console.log('[PROOF:FIND_OR_CREATE] ✗ END result=target_not_found', targetUserId);
+        return res.status(404).json({ ok: false, error: 'Target profile not found', code: 'TARGET_NOT_FOUND' });
       }
 
-      console.log('[PROOF:MSG] creating conversation', JSON.stringify({ actorUserId, targetUserId, listing_id: listing_id || null }));
-      const conversation = await storage.findOrCreateConversation(user.id, targetUserId, listing_id || null);
+      console.log('[PROOF:FIND_OR_CREATE] creating/finding conversation', JSON.stringify({ actorUserId, targetUserId, listing_id: listing_id || null }));
+      const conversation = await storage.findOrCreateConversation(actorUserId, targetUserId, listing_id || null);
       const conversationId = conversation.id;
-      console.log('[PROOF:MSG] ✓ END result=success', JSON.stringify({ actorUserId, targetUserId, conversationId }));
+      console.log('[PROOF:FIND_OR_CREATE] ✓ END result=success', JSON.stringify({ actorUserId, targetUserId, conversationId }));
       res.json({ ok: true, conversationId, ...conversation });
     } catch (error: any) {
-      console.error('[PROOF:MSG] ✗ END result=error', JSON.stringify({
+      console.error('[PROOF:FIND_OR_CREATE] ✗ END result=error', JSON.stringify({
+        actorUserId: req.user?.id,
         error: error?.message,
         code: error?.code,
         detail: error?.detail,
         stack: error?.stack,
-        body: req.body,
       }));
       if (error?.code === '23503') {
         res.status(404).json({ ok: false, error: 'Referenced profile not found in database', code: 'FK_VIOLATION' });
