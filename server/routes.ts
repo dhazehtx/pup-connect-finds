@@ -1928,7 +1928,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
 
 
-  app.post("/api/auth/refresh", (_req, res) => {
+  app.post("/api/auth/refresh", (req, res) => {
+    console.log('[PROOF:REFRESH]', JSON.stringify({
+      ok: true,
+      reason: 'stub_supabase_handles_refresh',
+      userId: req.user?.id || null,
+      statusCode: 200,
+    }));
     res.json({ ok: true, message: 'Supabase handles token refresh automatically' });
   });
 

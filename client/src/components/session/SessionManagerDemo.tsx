@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { AlertCircle, CheckCircle, Clock, RefreshCw } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 
 interface SessionStatus {
   authenticated: boolean;
@@ -44,29 +45,23 @@ export default function SessionManagerDemo() {
     setError('');
     
     try {
-      const response = await fetch('/api/auth/refresh', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          user_id: '8b7adf6a-eb74-43a0-9a26-575e65886ac5'
-        })
-      });
+      const { data, error: refreshError } = await supabase.auth.refreshSession();
+      console.log('[PROOF:REFRESH] demo refresh', JSON.stringify({
+        ok: !refreshError,
+        reason: refreshError ? refreshError.message : 'refreshed',
+        userId: data?.user?.id || null,
+      }));
       
-      const data = await response.json();
-      
-      if (response.ok) {
-        setLastRefresh(data.timestamp);
-        // Update localStorage to match client-side session management
+      if (data?.session && !refreshError) {
+        setLastRefresh(new Date().toISOString());
         localStorage.setItem('lastActive', Date.now().toString());
-        await checkSessionStatus(); // Refresh status after successful refresh
+        await checkSessionStatus();
       } else {
-        setError(data.message || 'Failed to refresh session');
+        setError(refreshError?.message || 'Failed to refresh session');
       }
     } catch (err) {
       setError('Network error refreshing session');
-      console.error('Session refresh error:', err);
+      console.error('[PROOF:REFRESH] demo error', err);
     }
     
     setLoading(false);

@@ -3,6 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button';
 import { AlertTriangle } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 
 interface SessionExpiredModalProps {
   onRedirect?: () => void;
@@ -59,23 +60,20 @@ export default function SessionExpiredModal({ onRedirect }: SessionExpiredModalP
 
   const handleExtendSession = async () => {
     try {
-      // Try to refresh the current session
-      const response = await fetch('/api/auth/refresh', {
-        method: 'POST',
-        credentials: 'include'
-      });
-      
-      if (response.ok) {
-        // Session refreshed successfully
+      const { data, error } = await supabase.auth.refreshSession();
+      console.log('[PROOF:REFRESH] extend session', JSON.stringify({
+        ok: !error,
+        reason: error ? error.message : 'refreshed',
+        userId: data?.user?.id || null,
+      }));
+      if (data?.session && !error) {
         localStorage.setItem('lastActive', Date.now().toString());
         setOpen(false);
-        window.location.reload(); // Reload to ensure fresh state
       } else {
-        // Refresh failed, proceed to sign in
         handleSignIn();
       }
     } catch (error) {
-      console.error('Error refreshing session:', error);
+      console.error('[PROOF:REFRESH] extend error', error);
       handleSignIn();
     }
   };
