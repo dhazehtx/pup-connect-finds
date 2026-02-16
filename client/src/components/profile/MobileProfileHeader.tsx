@@ -47,7 +47,7 @@ const MobileProfileHeader = ({
             </h1>
             <div className="flex items-center gap-2">
               {profile?.verified && (
-                <Badge variant="secondary" className="text-xs bg-secondary text-secondary-foreground">
+                <Badge variant="secondary" className="text-xs bg-blue-100 text-blue-900 dark:bg-blue-900 dark:text-blue-100">
                   Verified
                 </Badge>
               )}

@@ -198,7 +198,7 @@ const UnifiedProfileView = ({ userId, isCurrentUser }: UnifiedProfileViewProps) 
                 <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-4">
                   <h1 className="text-xl sm:text-2xl font-bold">{profile.full_name}</h1>
                   {profile.verified && (
-                    <div className="flex items-center gap-1 bg-blue-600 text-white text-xs font-semibold px-3 py-1 rounded-full">
+                    <div className="flex items-center gap-1 bg-blue-100 text-blue-900 dark:bg-blue-900 dark:text-blue-100 text-xs font-semibold px-3 py-1 rounded-full">
                       <Shield className="w-3 h-3" />
                       Verified
                     </div>
