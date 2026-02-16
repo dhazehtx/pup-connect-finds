@@ -426,55 +426,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/messaging/conversations", async (req, res) => {
     try {
-      const authHeader = req.headers.authorization;
-      if (!authHeader?.startsWith('Bearer ')) {
+      if (!req.isAuthenticated || !req.isAuthenticated()) {
         return res.status(401).json({ error: 'Unauthorized' });
       }
-      const token = authHeader.substring(7);
-      const { createClient } = await import('@supabase/supabase-js');
-      const supabaseUrl = process.env.VITE_SUPABASE_URL;
-      const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-      if (!supabaseUrl || !supabaseServiceKey) {
-        return res.status(500).json({ error: 'Server misconfiguration' });
+      const userId = req.user!.id;
+      console.log('[PROOF:INBOX] ▶ START', JSON.stringify({ actorUserId: userId }));
+
+      const { ensureProfile } = await import('./lib/ensureProfile');
+      try {
+        await ensureProfile({ id: userId, email: req.user!.email || null, username: req.user!.username || null });
+      } catch (epErr) {
+        console.error('[PROOF:INBOX] ensureProfile error', epErr);
       }
-      const sb = createClient(supabaseUrl, supabaseServiceKey);
-      const { data: { user }, error: authError } = await sb.auth.getUser(token);
-      if (authError || !user) {
-        return res.status(401).json({ error: 'Invalid token' });
-      }
-      const conversations = await storage.getUserConversationsWithDetails(user.id);
-      res.json(conversations);
-    } catch (error) {
-      console.error("Error getting conversations with details:", error);
+
+      const convList = await storage.getUserConversationsWithDetails(userId);
+      console.log('[PROOF:INBOX] ✓ END', JSON.stringify({ actorUserId: userId, count: convList.length }));
+      res.json(convList);
+    } catch (error: any) {
+      console.error('[PROOF:INBOX] ✗ END error', JSON.stringify({ actorUserId: req.user?.id, error: error?.message, code: error?.code, stack: error?.stack }));
       res.status(500).json({ error: "Internal server error" });
     }
   });
 
   app.get("/api/messaging/conversations/:id", async (req, res) => {
     try {
-      const authHeader = req.headers.authorization;
-      if (!authHeader?.startsWith('Bearer ')) {
+      if (!req.isAuthenticated || !req.isAuthenticated()) {
         return res.status(401).json({ error: 'Unauthorized' });
       }
-      const token = authHeader.substring(7);
-      const { createClient } = await import('@supabase/supabase-js');
-      const supabaseUrl = process.env.VITE_SUPABASE_URL;
-      const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-      if (!supabaseUrl || !supabaseServiceKey) {
-        return res.status(500).json({ error: 'Server misconfiguration' });
-      }
-      const sb = createClient(supabaseUrl, supabaseServiceKey);
-      const { data: { user }, error: authError } = await sb.auth.getUser(token);
-      if (authError || !user) {
-        return res.status(401).json({ error: 'Invalid token' });
-      }
-      const detail = await storage.getConversationDetail(req.params.id, user.id);
+      const userId = req.user!.id;
+      const detail = await storage.getConversationDetail(req.params.id, userId);
       if (!detail) {
         return res.status(404).json({ error: "Conversation not found" });
       }
       res.json(detail);
-    } catch (error) {
-      console.error("Error getting conversation detail:", error);
+    } catch (error: any) {
+      console.error('[PROOF:CONV_DETAIL] error', JSON.stringify({ convId: req.params.id, userId: req.user?.id, error: error?.message, stack: error?.stack }));
       res.status(500).json({ error: "Internal server error" });
     }
   });
