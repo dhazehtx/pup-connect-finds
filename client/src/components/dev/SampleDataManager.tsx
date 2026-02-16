@@ -10,6 +10,10 @@ const SampleDataManager = () => {
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
 
+  if (import.meta.env.PROD) {
+    return null;
+  }
+
   const handleLoadData = async () => {
     setLoading(true);
     try {

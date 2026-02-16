@@ -6,7 +6,12 @@ import { sampleReviews } from '@/data/sampleReviews';
 import { sampleConversations, sampleMessages } from '@/data/sampleConversations';
 
 export const loadSampleData = async () => {
+  if (import.meta.env.PROD) {
+    console.warn('[PROOF:SEED] { ran: false, env: "production", reason: "blocked" }');
+    return false;
+  }
   try {
+    console.log('[PROOF:SEED]', JSON.stringify({ ran: true, env: import.meta.env.MODE }));
     console.log('Loading comprehensive sample data...');
 
     // Load sample profiles (users) first
@@ -75,6 +80,10 @@ export const loadSampleData = async () => {
 };
 
 export const clearSampleData = async () => {
+  if (import.meta.env.PROD) {
+    console.warn('[PROOF:SEED] clearSampleData blocked in production');
+    return false;
+  }
   try {
     console.log('Clearing sample data...');
 
