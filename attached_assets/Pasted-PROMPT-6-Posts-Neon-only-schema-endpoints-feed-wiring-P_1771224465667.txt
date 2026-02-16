@@ -1,0 +1,116 @@
+PROMPT 6 — Posts (Neon-only) schema + endpoints + feed wiring
+
+Paste to Replit:
+
+Goal: Migrate POSTS to Neon/Drizzle as the single source of truth. Implement feed + profile posts with proof logging and dev seeding. Remove any Supabase fallback for posts.
+
+A) Neon schema + Drizzle model (migration)
+Create tables (or verify they exist) and match Drizzle schema exactly:
+
+posts
+
+id uuid pk default gen_random_uuid()
+
+user_id uuid not null fk -> profiles.id on delete cascade
+
+caption text
+
+media_urls jsonb default '[]' (array of strings)
+
+media_type text default 'image' (image/video/mixed)
+
+visibility text default 'public' (public/private/unlisted)
+
+like_count integer default 0
+
+comment_count integer default 0
+
+created_at timestamptz default now()
+
+updated_at timestamptz default now()
+
+Indexes:
+
+index posts_user_id_created_at (user_id, created_at desc)
+
+index posts_created_at (created_at desc)
+
+B) Server endpoints (Neon/Drizzle ONLY)
+
+GET /api/posts/feed
+
+requires auth (or allow guest; if guest, return public posts)
+
+returns newest posts first (limit 20 default, support cursor optional)
+
+include author minimal: { id, username, full_name, avatar_url }
+
+include counts: like_count, comment_count
+
+proof log: [PROOF:POSTS:FEED] { actorUserId, count, ts }
+
+GET /api/posts/user/:userId
+
+returns newest posts for that user
+
+proof log: [PROOF:POSTS:USER] { actorUserId, userId, count, ts }
+
+POST /api/posts
+
+requires auth
+
+body: { caption, media_urls, media_type, visibility }
+
+validate media_urls is array of strings
+
+create post
+
+proof log: [PROOF:POSTS:CREATE] { actorUserId, postId, mediaCount, ts }
+
+DELETE /api/posts/:id
+
+requires auth
+
+only owner can delete
+
+proof log: [PROOF:POSTS:DELETE] { actorUserId, postId, ok, ts }
+
+Error handling:
+
+Never generic 500 without proof log
+
+Standard JSON:
+ok true: { ok:true, ... }
+ok false: { ok:false, code, error }
+
+C) Client wiring
+
+Confirm Home/Feed fetches /api/posts/feed (NOT supabase.from('posts'))
+
+Confirm Profile posts fetch /api/posts/user/:userId
+
+Add client proof logs once per fetch:
+console.log('[PROOF:POSTS] feed count', posts.length)
+console.log('[PROOF:POSTS] user count', posts.length)
+
+D) Dev seeding (non-production only)
+POST /api/dev/seed-posts
+
+seeds 8–12 posts across existing Neon profiles
+
+includes a few with 2–3 media_urls
+
+proof log: [PROOF:SEED:POSTS] { ran:true, count, ts }
+
+E) Grep proof
+Provide grep results showing zero usage of supabase.from('posts') in server + client paths used by feed/profile.
+
+Acceptance tests:
+
+Home feed shows posts immediately after seed (dev)
+
+Profile shows that user’s posts
+
+Creating a post works (200 + proof log)
+
+No Supabase posts calls remain

@@ -1,0 +1,91 @@
+PROMPT 7 — Comments + Replies (Neon-only) schema + endpoints + count sync
+
+Paste to Replit:
+
+Goal: Migrate COMMENTS (with replies) to Neon/Drizzle. Comments must load + create without breaking UI. Keep post.comment_count in sync.
+
+A) Schema + Drizzle model (migration)
+
+comments
+
+id uuid pk default gen_random_uuid()
+
+post_id uuid not null fk -> posts.id on delete cascade
+
+user_id uuid not null fk -> profiles.id on delete cascade
+
+parent_comment_id uuid null fk -> comments.id on delete cascade (for replies)
+
+content text not null
+
+like_count integer default 0
+
+created_at timestamptz default now()
+
+Indexes:
+
+index comments_post_id_created_at (post_id, created_at asc)
+
+index comments_parent_id (parent_comment_id)
+
+B) Endpoints (Neon/Drizzle ONLY)
+
+GET /api/posts/:postId/comments
+
+returns a nested structure OR flat list with parent_comment_id (choose whichever matches UI easiest)
+
+include author minimal: { id, username, full_name, avatar_url }
+
+proof log: [PROOF:COMMENTS:LIST] { actorUserId, postId, count, ts }
+
+POST /api/posts/:postId/comments
+
+requires auth
+
+body: { content, parent_comment_id? }
+
+validate content non-empty
+
+insert comment
+
+increment posts.comment_count (+1) safely
+
+proof log: [PROOF:COMMENTS:CREATE] { actorUserId, postId, commentId, parent_comment_id, ts }
+
+DELETE /api/comments/:commentId
+
+requires auth
+
+allow delete by owner (and optionally admin)
+
+decrement posts.comment_count appropriately:
+
+if deleting a parent comment, also delete its replies (cascade) and decrement by number deleted
+
+proof log: [PROOF:COMMENTS:DELETE] { actorUserId, commentId, deletedCount, ts }
+
+C) Client wiring
+
+Comment modal/thread must call:
+GET /api/posts/:postId/comments
+POST /api/posts/:postId/comments
+
+Add client proof logs:
+console.log('[PROOF:COMMENTS] loaded', comments.length)
+
+D) Dev seed (non-production only)
+POST /api/dev/seed-comments
+
+seeds comments on seeded posts, includes replies
+
+proof log: [PROOF:SEED:COMMENTS] { ran:true, count, ts }
+
+E) Acceptance tests
+
+Open a post → comments render (no empty silent fail)
+
+Add comment → appears immediately + post comment_count increments
+
+Add reply → nests properly (or appears with parent_comment_id)
+
+Delete comment → removed + counts adjust
