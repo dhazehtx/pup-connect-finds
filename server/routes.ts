@@ -2,8 +2,8 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { setupSocketIO } from "./socket";
 import { db } from "./db";
-import { sql, inArray } from "drizzle-orm";
-import { profiles, dogListings } from "@shared/schema";
+import { sql, inArray, eq, and, count } from "drizzle-orm";
+import { profiles, dogListings, posts, comments, postLikes, commentLikes, conversations, conversationParticipants, messages, notifications, follows } from "@shared/schema";
 import savedPostsRouter from './routes/saved-posts';
 import bookmarksRouter from './routes/bookmarks';
 import reportsRouter from './routes/reports';
@@ -2316,6 +2316,55 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error: any) {
       console.error('[PROOF:SEED:LISTINGS] error', error?.message);
       res.status(500).json({ error: 'Seeding failed' });
+    }
+  });
+
+  app.post("/api/dev/smoke-migration", async (req, res) => {
+    if (process.env.NODE_ENV === 'production') {
+      console.log('[PROOF:SMOKE:MIGRATION]', JSON.stringify({ ran: false, env: 'production', reason: 'blocked_in_production' }));
+      return res.status(403).json({ error: 'Smoke test disabled in production' });
+    }
+
+    const ts = Date.now();
+    const results: Record<string, any> = {};
+
+    try {
+      const profileRows = await db.select({ count: sql<number>`count(*)` }).from(profiles);
+      results.profiles = Number(profileRows[0]?.count) || 0;
+
+      const postRows = await db.select({ count: sql<number>`count(*)` }).from(posts);
+      results.posts = Number(postRows[0]?.count) || 0;
+
+      const commentRows = await db.select({ count: sql<number>`count(*)` }).from(comments);
+      results.comments = Number(commentRows[0]?.count) || 0;
+
+      const postLikeRows = await db.select({ count: sql<number>`count(*)` }).from(postLikes);
+      results.postLikes = Number(postLikeRows[0]?.count) || 0;
+
+      const commentLikeRows = await db.select({ count: sql<number>`count(*)` }).from(commentLikes);
+      results.commentLikes = Number(commentLikeRows[0]?.count) || 0;
+
+      const conversationRows = await db.select({ count: sql<number>`count(*)` }).from(conversations);
+      results.conversations = Number(conversationRows[0]?.count) || 0;
+
+      const messageRows = await db.select({ count: sql<number>`count(*)` }).from(messages);
+      results.messages = Number(messageRows[0]?.count) || 0;
+
+      const listingRows = await db.select({ count: sql<number>`count(*)` }).from(dogListings);
+      results.listings = Number(listingRows[0]?.count) || 0;
+
+      const notificationRows = await db.select({ count: sql<number>`count(*)` }).from(notifications);
+      results.notifications = Number(notificationRows[0]?.count) || 0;
+
+      const followRows = await db.select({ count: sql<number>`count(*)` }).from(follows);
+      results.follows = Number(followRows[0]?.count) || 0;
+
+      const response = { ok: true, ...results, ts };
+      console.log('[PROOF:SMOKE:MIGRATION]', JSON.stringify(response));
+      res.json(response);
+    } catch (error: any) {
+      console.error('[PROOF:SMOKE:MIGRATION:ERR]', JSON.stringify({ error: error?.message, stack: error?.stack, ts }));
+      res.status(500).json({ ok: false, error: error?.message, ts });
     }
   });
 

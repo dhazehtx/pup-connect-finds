@@ -1,0 +1,234 @@
+✅ PROMPT — Migration Orchestrator (Full FE+BE sweep to Neon, Supabase data locked out)
+
+Paste to Replit:
+
+Goal: Make the app run Neon/Drizzle as the ONLY database source of truth for all app data domains (profiles, search, follows, messaging, listings, posts, comments, likes, notifications). Supabase may remain ONLY for Auth (and optionally Storage), but no supabase.from() for data anywhere in active code. Add guardrails, grep proof, and a dev smoke test that validates everything in one run.
+
+A) Guardrails first (stop silent fallback)
+
+Add a central “data layer rule”:
+
+Any call to supabase.from(...) outside /auth and /storage is forbidden.
+
+If found in non-dev code paths, replace with server API calls.
+
+If left in dev-only tools, wrap with:
+
+if (process.env.NODE_ENV !== 'production') { ... }
+
+
+Add proof logging for every core domain:
+
+[PROOF:PROFILES], [PROOF:SEARCH], [PROOF:FOLLOWS]
+
+[PROOF:MSG:IN|OK|ERR|LIST]
+
+[PROOF:LISTINGS]
+
+[PROOF:POSTS:*], [PROOF:COMMENTS:*], [PROOF:LIKES:*]
+
+[PROOF:NOTIFS:*]
+And a shared error format:
+
+[PROOF:DOMAIN:ERR] { code, error, stack, ts } (never generic 500)
+
+B) Inventory + enforce: “Neon-only data contract”
+
+Create/confirm Neon tables (Drizzle schema matches DB):
+
+profiles ✅
+
+follows ✅
+
+conversations / conversation_participants / messages ✅
+
+listings ✅
+
+posts
+
+comments
+
+post_likes
+
+comment_likes
+
+notifications
+
+For each domain ensure:
+
+primary keys/uuid defaults in DB (gen_random_uuid() where needed)
+
+correct unique constraints (follows, likes, conversation_participants)
+
+cascade rules make sense (delete profile cascades, etc.)
+
+If any Drizzle schema mismatch exists: fix schema OR migration so they match exactly.
+
+C) Backend: standardize endpoints (Neon/Drizzle only)
+
+For each domain, confirm server routes exist and only query Neon/Drizzle:
+
+Profiles/Search/Follows
+
+GET /api/profiles/me
+
+GET /api/profiles/:id
+
+GET /api/profiles/search?q=
+
+POST/DELETE /api/follows
+
+Messaging
+
+POST /api/messaging/conversations/find-or-create
+
+GET /api/messaging/conversations
+
+GET /api/messaging/conversations/:id/messages
+
+POST /api/messaging/conversations/:id/messages (send)
+
+Listings
+
+GET /api/listings
+
+GET /api/listings/:id
+
+(dev) POST /api/dev/seed-listings
+
+Posts/Comments/Likes
+
+GET /api/posts
+
+POST /api/posts (create)
+
+GET /api/posts/:id
+
+DELETE /api/posts/:id
+
+GET /api/posts/:id/comments
+
+POST /api/posts/:id/comments
+
+DELETE /api/comments/:id
+
+POST /api/posts/:id/likes/toggle
+
+POST /api/comments/:id/likes/toggle
+
+Notifications
+
+GET /api/notifications
+
+POST /api/notifications/:id/read
+
+POST /api/notifications/read-all
+
+GET /api/notifications/badge
+
+All must:
+
+require auth where needed
+
+call ensureProfile(actor) safely
+
+never throw noisy 500s for missing data (return empty arrays where appropriate)
+
+D) Frontend: replace ALL Supabase data reads with API
+
+Create a single client layer:
+
+api.ts apiRequest()
+
+add typed wrappers:
+
+getFeedPosts(), getComments(postId), togglePostLike(postId), etc.
+
+Update UI hooks/components so they call server endpoints:
+
+Feed page → /api/posts
+
+Profile posts → /api/posts?userId=... (or /api/users/:id/posts)
+
+Comments UI → /api/posts/:id/comments
+
+Like buttons → toggle endpoints
+
+Explore listings → /api/listings
+
+Messages → messaging endpoints
+
+Notifications tab → notifications endpoints
+
+Add minimal UI guardrails:
+
+buttons show loading state
+
+on failure show toast with code (no silent “nothing happened”)
+
+E) Grep proof (hard requirement)
+
+Return grep output proving no active Supabase data usage:
+
+Search patterns and print results:
+
+supabase.from('profiles')
+
+supabase.from('follows')
+
+supabase.from('conversations')
+
+supabase.from('messages')
+
+supabase.from('listings')
+
+supabase.from('posts')
+
+supabase.from('comments')
+
+supabase.from('likes')
+
+supabase.from('notifications')
+
+supabase.from( (general)
+
+If any remain:
+
+either delete/replace
+
+OR wrap in strict dev-only blocks with proof log [PROOF:DEV_ONLY].
+
+F) Dev smoke test endpoint (one call validates everything)
+
+Add dev-only endpoint:
+
+POST /api/dev/smoke-migration
+
+ensureProfile for actor + create a second seeded target profile (dev-only)
+
+create 1 post + 1 comment + toggle like on both
+
+create/find conversation + send 1 message
+
+seed 3 listings if none exist
+
+create 1 notification (dev-only simulation)
+
+return counts:
+
+{
+  "ok": true,
+  "profiles": 2,
+  "posts": 1,
+  "comments": 1,
+  "postLikes": 1,
+  "commentLikes": 1,
+  "conversations": 1,
+  "messages": 1,
+  "listings": 3,
+  "notifications": 1
+}
+
+
+Log:
+[PROOF:SMOKE:MIGRATION] { ...counts, ts }

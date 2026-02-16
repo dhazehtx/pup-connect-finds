@@ -2,11 +2,13 @@ import { Router } from "express";
 import { supabase } from "../../lib/supabase";
 import { requireAuth } from "../../middleware/auth";
 import { ensureVerifiedBadge } from "../../lib/badges";
+import { db } from "../../db";
+import { providerDocuments } from "../../../shared/schema";
+import { eq, sql } from "drizzle-orm";
 
 const r = Router();
 r.use(requireAuth);
 
-// POST /api/provider/docs/signed-url {fileName, mime}
 r.post("/signed-url", async (req, res) => {
   const userId = req.user!.id;
   const { fileName, mime } = req.body || {};
@@ -15,36 +17,46 @@ r.post("/signed-url", async (req, res) => {
   const key = `${userId}/${Date.now()}-${fileName}`;
   const { data, error } = await supabase.storage.from("provider-docs").createSignedUploadUrl(key);
   if (error) return res.status(500).json({ error: error.message });
+  console.log('[PROOF:PROVIDER_DOCS] signed-url created', JSON.stringify({ userId, key, ts: Date.now() }));
   res.json({ key, uploadUrl: data.signedUrl });
 });
 
-// POST /api/provider/docs/record {docType, key, fileName, mime}
 r.post("/record", async (req, res) => {
   const userId = req.user!.id;
   const { docType, key, fileName, mime } = req.body || {};
   if (!docType || !key) return res.status(400).json({ error: "Missing docType/key" });
 
-  const { data, error } = await supabase.from("provider_documents").insert({
-    user_id: userId, doc_type: docType, file_path: key, file_name: fileName, mime_type: mime
-  }).select().single();
-  if (error) return res.status(500).json({ error: error.message });
-  res.json({ ok: true, doc: data });
+  try {
+    const [doc] = await db.insert(providerDocuments).values({
+      user_id: userId,
+      doc_type: docType,
+      file_path: key,
+      file_name: fileName,
+      mime_type: mime,
+    }).returning();
+    console.log('[PROOF:PROVIDER_DOCS] record inserted via Drizzle', JSON.stringify({ userId, docId: doc.id, ts: Date.now() }));
+    res.json({ ok: true, doc });
+  } catch (error: any) {
+    console.error('[PROOF:PROVIDER_DOCS:ERR]', JSON.stringify({ userId, code: 'INSERT_FAILED', error: error?.message, ts: Date.now() }));
+    res.status(500).json({ error: error?.message || 'Failed to record document' });
+  }
 });
 
-// POST /api/provider/policy-ack
 r.post("/policy-ack", async (req, res) => {
   const userId = req.user!.id;
   const { acknowledged } = req.body || {};
-  const { error } = await supabase
-    .from("service_providers")
-    .update({ policy_acknowledged: !!acknowledged })
-    .eq("user_id", userId);
-  if (error) return res.status(500).json({ error: error.message });
-  
-  // Check if provider is now fully verified and add badge
-  await ensureVerifiedBadge(userId);
-  
-  res.json({ ok: true });
+
+  try {
+    await db.execute(
+      sql`UPDATE service_providers SET policy_acknowledged = ${!!acknowledged} WHERE user_id = ${userId}`
+    );
+    await ensureVerifiedBadge(userId);
+    console.log('[PROOF:PROVIDER_DOCS] policy-ack updated via Drizzle', JSON.stringify({ userId, acknowledged: !!acknowledged, ts: Date.now() }));
+    res.json({ ok: true });
+  } catch (error: any) {
+    console.error('[PROOF:PROVIDER_DOCS:ERR] policy-ack', JSON.stringify({ userId, error: error?.message, ts: Date.now() }));
+    res.status(500).json({ error: error?.message || 'Failed to update policy acknowledgment' });
+  }
 });
 
 export default r;

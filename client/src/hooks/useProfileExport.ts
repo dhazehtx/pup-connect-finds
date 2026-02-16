@@ -2,7 +2,6 @@
 import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { UserProfile, ProfileExportData } from '@/types/profile';
-import { supabase } from '@/integrations/supabase/client';
 import { apiRequest } from '@/lib/api';
 
 export const useProfileExport = () => {
@@ -16,17 +15,16 @@ export const useProfileExport = () => {
     try {
       setIsExporting(true);
 
-      // Fetch additional data for export
-      const [listingsData, reviewsData, favoritesApiData] = await Promise.all([
-        supabase.from('dog_listings').select('*').eq('user_id', profile.id),
-        supabase.from('reviews').select('*').eq('reviewed_user_id', profile.id),
+      const [listingsResult, reviewsResult, favoritesApiData] = await Promise.all([
+        apiRequest(`/api/listings/user/${profile.id}`).catch(() => []),
+        apiRequest(`/api/listings/${profile.id}/reviews`).catch(() => []),
         apiRequest(`/api/favorites/${profile.id}`).catch(() => [])
       ]);
 
       const exportData: ProfileExportData = {
         profile,
-        listings: listingsData.data || [],
-        reviews: reviewsData.data || [],
+        listings: Array.isArray(listingsResult) ? listingsResult : [],
+        reviews: Array.isArray(reviewsResult) ? reviewsResult : [],
         favorites: Array.isArray(favoritesApiData) ? favoritesApiData : [],
         export_date: new Date().toISOString(),
         export_format: format

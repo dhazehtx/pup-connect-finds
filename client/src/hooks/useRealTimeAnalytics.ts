@@ -1,6 +1,5 @@
 
 import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 
 interface AnalyticsEvent {
@@ -46,36 +45,21 @@ export const useRealTimeAnalytics = () => {
   const [sessionId] = useState(() => `session_${Date.now()}_${Math.random()}`);
   const { user } = useAuth();
 
-  // Track page view
   const trackPageView = async (page: string) => {
     try {
-      await supabase.from('analytics_events').insert({
-        event_type: 'page_view',
-        event_data: { page },
-        user_id: user?.id,
-        session_id: sessionId,
-        page_url: window.location.href,
-        user_agent: navigator.userAgent,
-        timestamp: new Date().toISOString()
-      });
-
-      console.log('Page view tracked:', page);
+      if (import.meta.env.DEV) {
+        console.log('[PROOF:DEV_ONLY] analytics page_view skipped - Neon-only policy', { page });
+      }
     } catch (error) {
       console.error('Error tracking page view:', error);
     }
   };
 
-  // Track user interaction
   const trackEvent = async (eventType: string, eventData: any = {}) => {
     try {
-      await supabase.from('analytics_events').insert({
-        event_type: eventType,
-        event_data: eventData,
-        user_id: user?.id,
-        session_id: sessionId,
-        page_url: window.location.href,
-        timestamp: new Date().toISOString()
-      });
+      if (import.meta.env.DEV) {
+        console.log('[PROOF:DEV_ONLY] analytics event skipped - Neon-only policy', { eventType, eventData });
+      }
 
       console.log('Event tracked:', eventType, eventData);
     } catch (error) {
@@ -110,58 +94,18 @@ export const useRealTimeAnalytics = () => {
     });
   };
 
-  // Get real-time analytics
   const fetchAnalytics = async () => {
     try {
-      // Get page views for the last 24 hours
-      const { data: pageViews, error: pageViewsError } = await supabase
-        .from('analytics_events')
-        .select('event_data, timestamp')
-        .eq('event_type', 'page_view')
-        .gte('timestamp', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString());
-
-      if (pageViewsError) throw pageViewsError;
-
-      // Process page views
-      const pageViewStats: { [key: string]: PageView } = {};
-      pageViews?.forEach(event => {
-        const eventData = event.event_data;
-        let page = 'unknown';
-        
-        if (eventData && typeof eventData === 'object') {
-          page = (eventData as any).page || 'unknown';
-        }
-        
-        if (!pageViewStats[page]) {
-          pageViewStats[page] = {
-            page,
-            views: 0,
-            unique_visitors: 0,
-            avg_time_on_page: 0
-          };
-        }
-        pageViewStats[page].views++;
-      });
-
-      // Get current active users (last 5 minutes)
-      const { data: activeUsers, error: activeUsersError } = await supabase
-        .from('analytics_events')
-        .select('session_id')
-        .gte('timestamp', new Date(Date.now() - 5 * 60 * 1000).toISOString());
-
-      if (activeUsersError) throw activeUsersError;
-
-      const uniqueActiveSessions = new Set(activeUsers?.map(u => u.session_id) || []);
-
+      console.log('[PROOF:DEV_ONLY] analytics fetch skipped - Neon-only policy');
       setAnalytics({
-        page_views: Object.values(pageViewStats),
+        page_views: [],
         user_behavior: {
-          clicks: 0, // Would be calculated from click events
-          page_views: pageViews?.length || 0,
-          session_duration: 0, // Would be calculated from session data
-          bounce_rate: 0 // Would be calculated from session data
+          clicks: 0,
+          page_views: 0,
+          session_duration: 0,
+          bounce_rate: 0
         },
-        real_time_users: uniqueActiveSessions.size
+        real_time_users: 0
       });
     } catch (error) {
       console.error('Error fetching analytics:', error);

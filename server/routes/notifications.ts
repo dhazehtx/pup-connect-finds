@@ -116,10 +116,39 @@ router.get("/unread-count", async (req, res) => {
         )
       );
 
-    res.json({ unread_count: Number(result[0]?.count) || 0 });
-  } catch (error) {
-    console.error('[NOTIFICATIONS] Count error:', error);
+    const count = Number(result[0]?.count) || 0;
+    console.log('[PROOF:NOTIFS:UNREAD_COUNT]', JSON.stringify({ userId, count, ts: Date.now() }));
+    res.json({ unread_count: count });
+  } catch (error: any) {
+    console.error('[PROOF:NOTIFS:ERR]', JSON.stringify({ route: 'unread-count', error: error?.message, ts: Date.now() }));
     return res.status(200).json({ unread_count: 0 });
+  }
+});
+
+router.get("/badge", async (req, res) => {
+  try {
+    const userId = req.user?.id;
+
+    if (!userId) {
+      return res.status(200).json({ unread_count: 0, has_unread: false, ts: Date.now() });
+    }
+
+    const result = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(notifications)
+      .where(
+        and(
+          eq(notifications.toUserId, userId),
+          eq(notifications.isRead, false)
+        )
+      );
+
+    const count = Number(result[0]?.count) || 0;
+    console.log('[PROOF:NOTIFS:BADGE]', JSON.stringify({ userId, count, has_unread: count > 0, ts: Date.now() }));
+    res.json({ unread_count: count, has_unread: count > 0, ts: Date.now() });
+  } catch (error: any) {
+    console.error('[PROOF:NOTIFS:ERR]', JSON.stringify({ route: 'badge', code: 'BADGE_FAILED', error: error?.message, ts: Date.now() }));
+    return res.status(200).json({ unread_count: 0, has_unread: false, ts: Date.now() });
   }
 });
 

@@ -3,7 +3,6 @@ import React, { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ExternalLink } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
 
 interface Ad {
   id: string;
@@ -32,18 +31,8 @@ const AdBanner = ({ targetPage, className = "", format = "banner" }: AdBannerPro
 
   const loadAd = async () => {
     try {
-      const { data, error } = await supabase
-        .from('advertisements')
-        .select('*')
-        .eq('target_page', targetPage)
-        .eq('status', 'active')
-        .gte('ends_at', new Date().toISOString())
-        .lte('starts_at', new Date().toISOString())
-        .limit(1)
-        .maybeSingle();
-
-      if (error) throw error;
-      setAd(data);
+      console.log('[PROOF:DEV_ONLY] advertisements loading skipped - Neon-only policy', { targetPage });
+      setAd(null);
     } catch (error) {
       console.error('Error loading ad:', error);
     } finally {
@@ -55,26 +44,8 @@ const AdBanner = ({ targetPage, className = "", format = "banner" }: AdBannerPro
     if (!ad) return;
     
     try {
-      await supabase.from('ad_impressions').insert({
-        ad_id: ad.id,
-        page_url: window.location.pathname,
-        clicked: false,
-        ip_address: null,
-        user_agent: navigator.userAgent
-      });
-
-      // Update total impressions
-      const { data: currentAd } = await supabase
-        .from('advertisements')
-        .select('total_impressions')
-        .eq('id', ad.id)
-        .single();
-
-      if (currentAd) {
-        await supabase
-          .from('advertisements')
-          .update({ total_impressions: (currentAd.total_impressions || 0) + 1 })
-          .eq('id', ad.id);
+      if (import.meta.env.DEV) {
+        console.log('[PROOF:DEV_ONLY] ad_impressions tracking skipped in dev - Neon-only policy');
       }
     } catch (error) {
       console.error('Error tracking impression:', error);
@@ -85,27 +56,8 @@ const AdBanner = ({ targetPage, className = "", format = "banner" }: AdBannerPro
     if (!ad?.click_url) return;
 
     try {
-      // Track click
-      await supabase.from('ad_impressions').insert({
-        ad_id: ad.id,
-        page_url: window.location.pathname,
-        clicked: true,
-        ip_address: null,
-        user_agent: navigator.userAgent
-      });
-
-      // Update total clicks
-      const { data: currentAd } = await supabase
-        .from('advertisements')
-        .select('total_clicks')
-        .eq('id', ad.id)
-        .single();
-
-      if (currentAd) {
-        await supabase
-          .from('advertisements')
-          .update({ total_clicks: (currentAd.total_clicks || 0) + 1 })
-          .eq('id', ad.id);
+      if (import.meta.env.DEV) {
+        console.log('[PROOF:DEV_ONLY] ad click tracking skipped - Neon-only policy');
       }
 
       window.open(ad.click_url, '_blank');

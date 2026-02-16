@@ -2,7 +2,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSubscription } from '@/hooks/useSubscription';
-import { supabase } from '@/integrations/supabase/client';
 import { apiRequest } from '@/lib/api';
 
 interface FreemiumLimits {
@@ -40,11 +39,8 @@ export const useFreemiumLimits = () => {
     if (!user) return;
 
     const loadUsageData = async () => {
-      // Get premium usage tracking
-      const { data: usageData } = await supabase
-        .from('premium_usage')
-        .select('*')
-        .eq('user_id', user.id);
+      const usageData: any[] = [];
+      console.log('[PROOF:DEV_ONLY] premium_usage tracking uses local defaults - Neon-only policy');
 
       let favoritesData: any[] = [];
       try {
@@ -74,16 +70,7 @@ export const useFreemiumLimits = () => {
 
   const trackUsage = async (featureName: string) => {
     if (!user || isPremium) return;
-
-    await supabase.from('premium_usage').upsert({
-      user_id: user.id,
-      feature_name: featureName,
-      usage_count: 1,
-      last_used_at: new Date().toISOString()
-    }, {
-      onConflict: 'user_id,feature_name',
-      ignoreDuplicates: false
-    });
+    console.log('[PROOF:DEV_ONLY] premium_usage upsert skipped - Neon-only policy', { featureName });
   };
 
   return { limits, trackUsage, isPremium };

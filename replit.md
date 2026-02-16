@@ -8,89 +8,40 @@ MY PUP is a comprehensive dog listing platform connecting dog lovers with breede
 
 Preferred communication style: Simple, everyday language.
 
-**Data Architecture (Neon/Drizzle Migration)**
-- Neon/Drizzle is the SINGLE source of truth for all app domains: posts, comments, likes, follows, favorites, listings, messages, conversations, notifications, marketplace, profiles
-- Supabase is reserved ONLY for Auth + Storage (no data reads/writes for app domains)
-- Phase 1-2 Complete: Posts, Comments, Follows, Post Likes, Favorites migrated
-- Phase 3 Complete (Feb 2026): Messaging/Conversations fully migrated to Neon/Drizzle API
-  - conversation_participants join table added (Feb 2026): All conversation queries use participants table for user membership instead of buyer_id/seller_id columns. Unique constraint on (conversation_id, user_id), index on user_id. Messages table indexed on conversation_id.
-  - findOrCreateConversation uses participants table to find shared conversations, respects listing_id dedup, creates both conversation + 2 participant rows on new conversations
-  - All .from('messages') and .from('conversations') Supabase calls eliminated from client code
-  - 9 REST endpoints for messaging at /api/messaging/*
-  - Socket.io replaces Supabase Realtime for typing indicators, presence, and real-time message delivery
-  - server/socket.ts: Socket.io server with Supabase JWT auth
-  - client/src/hooks/useSocket.ts: Global singleton Socket.io client
-  - All 5 typing/presence hooks migrated: useTypingIndicator, useTypingIndicators, useRealtimeTyping, useUserPresence, usePresenceManager
-  - WebRTC signaling hook migrated from Supabase channels to Socket.io
-  - Presence system unified (Feb 2026): RealtimeContext.tsx now uses Socket.io instead of Supabase channel('user-presence'). Server broadcasts global presence:online/offline events and responds to presence:list requests. No Supabase Realtime channels remain for presence tracking.
-  - GDPR messaging export/deletion uses Drizzle in server/routes/user.ts
-- Phase 4 Complete (Feb 2026): Notifications fully migrated to Neon/Drizzle
-  - Server endpoints Drizzle-backed: GET/POST /api/notifications, PATCH /:id/read, PATCH /mark-all-read, GET /unread-count, DELETE /clear
-  - GET /api/notifications uses Drizzle LEFT JOIN on profiles to return from_profile (id, username, full_name, avatar_url) and actor objects with each notification
-  - Response includes both camelCase and snake_case aliases (isRead/is_read, createdAt/created_at, fromUserId/from_user_id) for UI compatibility
-  - Enhanced notifications v2 at /api/notifications-v2 with cursor pagination via notificationService
-  - All Supabase Realtime channels removed; Socket.io replaced with polling (setInterval 30s) for launch safety
-  - All notification hooks (useNotifications, useEnhancedNotifications, useRealtimeNotifications, usePushNotifications) use apiRequest() with polling, no Socket.io dependency
-  - isRead field is the canonical read-state field across all server queries (notificationService, routes)
-  - All raw fetch() calls replaced with apiRequest() for proper Bearer token auth
-  - Zero supabase.from('notifications') calls remain in client or server
-  - Zero postgres_changes subscriptions for notifications remain
-  - Zero .channel() subscriptions for notifications remain
-- Phase 5 Complete (Feb 2026): Profiles fully migrated to Neon/Drizzle
-  - 11 columns added to profiles table (email, location, user_type, website_url, rating, total_reviews, years_experience, two_factor_enabled, two_factor_secret, backup_codes, privacy_settings, social_providers)
-  - Server endpoints: GET/PATCH /api/profiles/me, GET /api/profiles/:id, GET /api/profiles/username/:username, GET /api/profiles/search
-  - All 3 client auth hooks (useAuth, useAuthState, useAuthEnhanced) use apiRequest for profile fetch/update
-  - Client services migrated: api.ts userService, reviewService, notificationService, providerStripe, useSecuritySettings
-  - Client components migrated: ProfileSettings, UnifiedProfileView, UserSearchBar, useGlobalSearch, AuthCallback, EnhancedSignInForm, TwoFactorAuth
-  - Server middleware (auth.ts, requireAdmin.ts) uses storage.getProfile() for auth checks
-  - All server routes migrated: Stripe payouts/connect/account-status/create-connect-account, payout/start, providerApplications, user.ts, badges.ts, stripe-handlers
-  - Response includes both camelCase and snake_case aliases for UI compatibility
-  - Zero supabase.from('profiles') calls remain in client or server (excluding sampleDataLoader for dev/testing)
-
 ## System Architecture
 
-The application employs a full-stack architecture with a clear separation of concerns.
-
-**Frontend**: React 18 with TypeScript, using Vite for build tooling.
-**Backend**: Express.js server with TypeScript.
-**Database**: PostgreSQL, managed with Drizzle ORM for type-safe operations.
-**Authentication & Real-time**: Supabase Auth for user management and real-time subscriptions.
-**Styling**: Tailwind CSS, augmented by the shadcn/ui component library.
-**Payments**: Stripe integration for monetization, subscriptions, and commission tracking.
+The application employs a full-stack architecture with a clear separation of concerns, using React 18 with TypeScript on the frontend (Vite), and an Express.js server with TypeScript on the backend. The database is PostgreSQL, managed with Drizzle ORM. Authentication is handled by Supabase Auth, and styling is managed with Tailwind CSS and shadcn/ui. Stripe integration is used for payments.
 
 ### Core Architectural Decisions:
-- **Modular Component Structure**: Frontend components are organized by feature (e.g., messaging, listings).
-- **State Management**: React Context for global state (Auth, Theme) and React Query for server state.
-- **RESTful API**: Backend exposes RESTful endpoints, with handlers organized by feature.
-- **ORM-driven Database Layer**: Drizzle ORM ensures type safety and a schema-first approach for database interactions.
-- **Responsive Design**: Mobile-first approach with responsive UI components and bottom navigation.
-- **Authentication Flow**: Supabase handles user authentication, profile synchronization with PostgreSQL, and protected routes. Includes guest browsing, session management (with timeout and refresh), and secure token handling.
-- **Scalable Features**: Designed for real-time messaging, robust listing management, advanced search with AI recommendations, fraud detection, comprehensive refund and commission tracking, and extensive social features (e.g., likes, comments, following, saved posts).
-- **Admin & Moderation**: Dedicated admin panel with detailed logging, user reporting, abuse protection, and comprehensive monitoring capabilities. **Provider Application Review System**: Comprehensive admin review workflow for service provider applications with database-driven access control (profiles.is_admin). Features include: detailed application view with user profile information (username, email, phone, location), provider business details, secure ID verification photo display with signed Supabase storage URLs (1-hour expiry), admin review notes, and approve/reject actions. Review metadata (reviewed_at, reviewed_by, review_notes) is persisted to the provider_applications table using Drizzle ORM. The frontend uses a Sheet drawer component for the review UI with proper data-testid attributes for testing. API architecture uses Neon (DATABASE_URL/Drizzle) for application data storage and Supabase for auth/storage only. **Admin Dashboard Implementation** (Complete): Created comprehensive server/routes/adminDashboard.ts with real Drizzle/Neon queries for metrics, user management, orders, analytics, and settings. All endpoints use explicit column selection and proper conditional query building using `$dynamic()` method to prevent TypeScript errors. Added platform_settings table for admin configuration. Added last_login_at timestamp field to profiles table for accurate activity tracking. **Login Tracking Pipeline**: Implemented via Supabase direct update in client/src/utils/authStateListener.ts - on SIGNED_IN event, the user's last_login_at is updated via Supabase RLS, enabling accurate "active users in last 30 days" metrics in the admin dashboard.
-- **Compliance**: GDPR and privacy compliance features including data export, account deletion, privacy policy, and cookie consent. **Legal Compliance System**: Comprehensive liability protection framework with updated Terms of Service (marketplace disclaimer, release of liability, indemnification, arbitration clauses), Privacy Policy with payment/dispute disclaimers, user consent tracking system (user_consents table stores consent versions, IP addresses, user agents, timestamps), and RiskDisclaimer component for high-risk actions (Stripe onboarding, bookings). Auth signup flow automatically records both Terms and Privacy consent with metadata using the Supabase signup response data. Consent recording API endpoint (/api/consent/record) validates payloads with Zod schema before persisting to database.
-- **Stripe Connect Integration**: Stripe account data is stored in both providers and profiles tables for efficient querying. The profiles table includes stripe_account_id and stripe_connected fields, which are automatically synced when providers connect their Stripe accounts and when webhook events update account status. OnboardingHydrator queries profiles table directly using authenticated user's UUID. Migration 20251015_add_stripe_to_profiles.sql added these fields with proper indexing.
-- **UI/UX Decisions**: Implemented a comprehensive Tailwind design token system with automated compliance enforcement, including a standardized color palette (primarily blue-themed), typography scale, spacing grid, and animation tokens. The search experience is Instagram-style with comprehensive database coverage and no auto-redirects, featuring advanced keyboard navigation, visual consistency, and full mouse/touch interaction support. All yellow/amber/orange colors have been systematically purged from the application, ensuring a consistent blue and white theme across all interfaces (desktop and mobile). This includes analytics components, admin dashboard, trust & safety tools, messaging oversight, subscription/escrow analytics, profile components, and logo assets. A centralized theme system using CSS variables ensures visual consistency. Pill tab styling has been implemented for navigation elements, particularly in the marketplace with proper segmented control design (white container background, blue active tabs with white text, white inactive tabs with blue text). Guest and authenticated user experiences now have feature parity for explore functionality, including advanced filters (breed selection, price range, age range, location), view mode toggles (grid/list), and tabbed content organization (puppy listings and community posts). Cookie consent banner uses consistent blue backgrounds with white text across all buttons. Product prices in store tabs display in black text for proper visibility. Input field styling uses gray borders with blue focus states, removing any yellow/amber visual elements.
-- **Technical Implementations**: Solutions for performance issues include stabilizing filter states with `useMemo`, serializing query keys, and using `useCallback` for handlers. Navigation issues were resolved by stabilizing `AuthContext`, fixing React Hooks order violations, and implementing comprehensive navigation guard logic to prevent loops and redundant redirects. Timeout diagnostics and non-blocking fallback UIs were added to prevent silent hangs during data fetching. The Instagram-style search implementation features a consolidated StickyHeader with SearchBar integration, complete removal of legacy query parameter redirects, and proper button elements for accessibility and mobile touch support. Admin shield access is implemented with loading state management and multi-field role checking.
+
+-   **Data Architecture**: Neon/Drizzle is the single source of truth for all application domains (posts, comments, likes, follows, favorites, listings, messages, conversations, notifications, marketplace, profiles). Supabase is reserved exclusively for Authentication and Storage. Messaging, Notifications, and Profiles have been fully migrated to Neon/Drizzle.
+-   **Modular Component Structure**: Frontend components are organized by feature.
+-   **State Management**: React Context for global state and React Query for server state.
+-   **RESTful API**: Backend exposes RESTful endpoints, organized by feature.
+-   **ORM-driven Database Layer**: Drizzle ORM ensures type safety and a schema-first approach.
+-   **Responsive Design**: Mobile-first approach with responsive UI components and bottom navigation.
+-   **Authentication Flow**: Supabase handles user authentication, profile synchronization with PostgreSQL, and protected routes, including guest browsing and session management.
+-   **Scalable Features**: Designed for real-time messaging (Socket.io), robust listing management, advanced search with AI recommendations, fraud detection, comprehensive refund and commission tracking, and extensive social features.
+-   **Admin & Moderation**: Dedicated admin panel with logging, user reporting, abuse protection, monitoring, and a comprehensive provider application review system. An admin dashboard provides metrics, user management, orders, analytics, and settings, with login tracking for active user metrics.
+-   **Compliance**: GDPR and privacy compliance features including data export, account deletion, and a legal compliance system with detailed Terms of Service, Privacy Policy, and user consent tracking.
+-   **Stripe Connect Integration**: Manages monetization, subscriptions, and commission tracking, with Stripe account data synced across provider and profile tables.
+-   **UI/UX Decisions**: A comprehensive Tailwind design token system ensures consistent color palette (blue-themed), typography, spacing, and animations. The search experience is Instagram-style with advanced keyboard navigation. All yellow/amber/orange colors have been purged for a consistent blue and white theme. Pill tab styling is used for navigation elements. Guest and authenticated users have feature parity for explore functionality.
+-   **Technical Implementations**: Performance issues addressed with `useMemo`, `useCallback`, and query key serialization. Navigation stability ensured by fixing React Hooks order violations and implementing navigation guard logic. Non-blocking fallback UIs prevent hangs during data fetching. Instagram-style search features a consolidated StickyHeader.
 
 ## External Dependencies
 
-### Core Technologies
-- **@neondatabase/serverless**: PostgreSQL connection pooling.
-- **@supabase/supabase-js**: Supabase client for auth, real-time, and storage.
-- **drizzle-orm**: ORM for PostgreSQL.
-- **@tanstack/react-query**: Server state management.
-
-### UI & Styling
-- **@radix-ui/**: Accessible UI primitives.
-- **tailwindcss**: Utility-first CSS framework.
-- **class-variance-authority**: Component variant management.
-- **lucide-react**: Icon library.
-
-### Development & Production Tools
-- **tsx**: TypeScript execution.
-- **esbuild**: Fast JavaScript bundler.
-- **vite**: Development server and build tool.
-- **Sentry**: Error tracking.
-- **SendGrid**: Email service.
-- **Google Analytics 4**: Analytics tracking.
-- **OpenAI API**: AI-powered content moderation.
+-   **@neondatabase/serverless**: PostgreSQL connection pooling.
+-   **@supabase/supabase-js**: Supabase client for auth and storage.
+-   **drizzle-orm**: ORM for PostgreSQL.
+-   **@tanstack/react-query**: Server state management.
+-   **@radix-ui/**: Accessible UI primitives.
+-   **tailwindcss**: Utility-first CSS framework.
+-   **class-variance-authority**: Component variant management.
+-   **lucide-react**: Icon library.
+-   **tsx**: TypeScript execution.
+-   **esbuild**: Fast JavaScript bundler.
+-   **vite**: Development server and build tool.
+-   **Sentry**: Error tracking.
+-   **SendGrid**: Email service.
+-   **Google Analytics 4**: Analytics tracking.
+-   **OpenAI API**: AI-powered content moderation.
