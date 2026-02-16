@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { storage } from '../storage';
 import { authMiddleware } from '../middleware/auth';
+import { ensureProfile } from '../lib/ensureProfile';
 
 const router = Router();
 
@@ -64,10 +65,13 @@ router.get('/me', authMiddleware, async (req: Request, res: Response) => {
     if (!req.user?.id) {
       return res.status(401).json({ error: 'Authentication required' });
     }
-    const profile = await storage.getProfile(req.user.id);
-    if (!profile) {
-      return res.status(404).json({ error: 'Profile not found' });
-    }
+    const profile = await ensureProfile({
+      id: req.user.id,
+      email: req.user.email || null,
+      username: req.user.username || null,
+      full_name: req.user.full_name || req.user.name || null,
+      avatar_url: req.user.avatar_url || null,
+    });
     res.json(shapeProfile(profile));
   } catch (error) {
     console.error('Error fetching own profile:', error);
@@ -125,26 +129,17 @@ router.get('/username/:username', async (req: Request, res: Response) => {
 
 router.get('/:id', async (req: Request, res: Response) => {
   try {
-    let profile = await storage.getProfile(req.params.id);
-
-    if (!profile && req.user?.id === req.params.id) {
-      try {
-        profile = await storage.createProfile({
-          id: req.user.id,
-          email: req.user.email || null,
-          username: req.user.username || (req.user.email ? req.user.email.split('@')[0] : `user_${req.user.id.slice(-6)}`),
-          full_name: req.user.full_name || req.user.name || null,
-          avatar_url: req.user.avatar_url || null,
-          user_type: 'buyer',
-        } as any);
-        console.log('[PROFILES] Auto-created profile for own user:', profile.id);
-      } catch (createErr: any) {
-        if (createErr?.code === '23505') {
-          profile = await storage.getProfile(req.params.id);
-        } else {
-          console.error('[PROFILES] Failed to auto-create profile:', createErr);
-        }
-      }
+    let profile;
+    if (req.user?.id === req.params.id) {
+      profile = await ensureProfile({
+        id: req.user.id,
+        email: req.user.email || null,
+        username: req.user.username || null,
+        full_name: req.user.full_name || req.user.name || null,
+        avatar_url: req.user.avatar_url || null,
+      });
+    } else {
+      profile = await storage.getProfile(req.params.id);
     }
 
     if (!profile) {

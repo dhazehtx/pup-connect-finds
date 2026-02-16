@@ -12,9 +12,9 @@ export const useAuthEnhanced = () => {
   const [profile, setProfile] = useState<any>(null);
   const { toast } = useToast();
 
-  const fetchProfile = async (userId: string) => {
+  const fetchProfile = async (_userId?: string) => {
     try {
-      const data = await apiRequest(`/api/profiles/${userId}`);
+      const data = await apiRequest('/api/profiles/me');
       setProfile(data || null);
       return data;
     } catch (error: any) {

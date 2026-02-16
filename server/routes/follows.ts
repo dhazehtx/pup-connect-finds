@@ -3,6 +3,7 @@ import { db } from '../db';
 import { follows, profiles } from '@shared/schema';
 import { eq, and, desc, count, sql } from 'drizzle-orm';
 import { storage } from '../storage';
+import { ensureProfile } from '../lib/ensureProfile';
 import type { Request, Response } from 'express';
 
 const router = Router();
@@ -24,15 +25,22 @@ router.post('/', async (req, res) => {
       return res.status(400).json({ message: 'Cannot follow yourself', code: 'SELF_FOLLOW' });
     }
 
-    const [followerProfile, targetUser] = await Promise.all([
-      storage.getProfile(userId),
-      db.select().from(profiles).where(eq(profiles.id, followed_id)).then(r => r[0]),
-    ]);
-
-    if (!followerProfile) {
-      console.error('[FOLLOWS] Follower profile missing in Neon:', userId);
+    let followerProfile;
+    try {
+      followerProfile = await ensureProfile({
+        id: userId,
+        email: req.user!.email || null,
+        username: req.user!.username || null,
+      });
+    } catch (err) {
+      console.error('[FOLLOWS] ensureProfile failed for follower:', userId, err);
       return res.status(400).json({ message: 'Your profile is not initialized. Please reload the page.', code: 'FOLLOWER_MISSING' });
     }
+
+    const [targetUser] = await db
+      .select()
+      .from(profiles)
+      .where(eq(profiles.id, followed_id));
 
     if (!targetUser) {
       return res.status(404).json({ message: 'User not found', code: 'TARGET_NOT_FOUND' });

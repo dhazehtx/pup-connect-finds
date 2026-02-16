@@ -70,7 +70,7 @@ const EnhancedSignInForm = ({ onSubmit, loading }: EnhancedSignInFormProps) => {
       if (data.user) {
         const { apiRequest } = await import('@/lib/api');
         let profile: any = null;
-        try { profile = await apiRequest(`/api/profiles/${data.user.id}`); } catch (e) {}
+        try { profile = await apiRequest('/api/profiles/me'); } catch (e) {}
 
         if (profile?.two_factor_enabled) {
           // Sign out temporarily and require 2FA

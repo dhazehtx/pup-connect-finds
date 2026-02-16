@@ -86,30 +86,20 @@ export const authMiddleware = async (req: Request, res: Response, next: NextFunc
       return next();
     }
 
-    const { storage } = await import('../storage');
-    let profile = await storage.getProfile(user.id);
-
-    if (!profile) {
-      console.log('[AUTH MIDDLEWARE] No Neon profile for user, auto-creating:', user.id, user.email);
-      try {
-        const meta = user.user_metadata || {};
-        profile = await storage.createProfile({
-          id: user.id,
-          email: user.email || null,
-          username: meta.username || meta.user_name || (user.email ? user.email.split('@')[0] : null),
-          full_name: meta.full_name || meta.name || null,
-          avatar_url: meta.avatar_url || null,
-          user_type: 'buyer',
-        } as any);
-        console.log('[AUTH MIDDLEWARE] Auto-created profile:', profile.id);
-      } catch (createErr: any) {
-        if (createErr?.code === '23505') {
-          profile = await storage.getProfile(user.id);
-          console.log('[AUTH MIDDLEWARE] Profile already existed (race condition), fetched:', profile?.id);
-        } else {
-          console.error('[AUTH MIDDLEWARE] Failed to auto-create profile:', createErr);
-        }
-      }
+    const { ensureProfile } = await import('../lib/ensureProfile');
+    const meta = user.user_metadata || {};
+    let profile;
+    try {
+      profile = await ensureProfile({
+        id: user.id,
+        email: user.email || null,
+        username: meta.username || meta.user_name || null,
+        full_name: meta.full_name || meta.name || null,
+        avatar_url: meta.avatar_url || null,
+      });
+    } catch (err) {
+      console.error('[AUTH MIDDLEWARE] ensureProfile failed:', err);
+      profile = null;
     }
 
     req.user = {

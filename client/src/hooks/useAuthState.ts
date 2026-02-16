@@ -11,15 +11,11 @@ export const useAuthState = () => {
   const [profile, setProfile] = useState<any>(null);
   const { toast } = useToast();
 
-  const fetchProfile = async (userId: string) => {
+  const fetchProfile = async (_userId?: string) => {
     try {
-      const data = await apiRequest(`/api/profiles/${userId}`);
-      const profileData = data || null;
-      if (profileData && profileData.id === '8b7adf6a-eb74-43a0-9a26-575e65886ac5') {
-        (profileData as any).is_admin = true;
-      }
-      setProfile(profileData);
-      return profileData;
+      const data = await apiRequest('/api/profiles/me');
+      setProfile(data || null);
+      return data;
     } catch (error: any) {
       console.error('Error fetching profile:', error);
       setProfile(null);
