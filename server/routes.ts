@@ -314,11 +314,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Dog listing routes (with rate limiting for creation)
-  app.get("/api/listings", async (req, res) => {
+  const handleListingsQuery = async (req: any, res: any) => {
     try {
-      const { breed, minPrice, maxPrice, location, status, userId, min_price, max_price, min_age, max_age, gender, verified_only, health_tested, vaccinated, breeds } = req.query;
+      const { breed, minPrice, maxPrice, location, status, userId, min_price, max_price, min_age, max_age, gender, verified_only, health_tested, vaccinated, breeds, search, sort, offset, limit, good_with_kids, neutered_spayed, color } = req.query;
       const filters = {
-        breed: breed as string,
+        breed: (breed as string) || (search as string),
         breeds: breeds ? (breeds as string).split(',') : undefined,
         minPrice: minPrice ? parseFloat(minPrice as string) : min_price ? parseFloat(min_price as string) : undefined,
         maxPrice: maxPrice ? parseFloat(maxPrice as string) : max_price ? parseFloat(max_price as string) : undefined,
@@ -326,22 +326,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
         maxAge: max_age ? parseInt(max_age as string) : undefined,
         location: location as string,
         gender: gender as string,
-        status: status as string,
+        color: color as string,
+        status: (status as string) || 'active',
         userId: userId as string,
         verifiedOnly: verified_only === 'true',
         healthTested: health_tested === 'true',
         vaccinated: vaccinated === 'true',
+        goodWithKids: good_with_kids === 'true',
+        neuteredSpayed: neutered_spayed === 'true',
+        sort: sort as string,
+        offset: offset ? parseInt(offset as string) : undefined,
+        limit: limit ? parseInt(limit as string) : undefined,
       };
       
-      console.log('[API] Fetching listings with filters:', filters);
       const listings = await storage.getDogListings(filters);
-      console.log('[API] Found', listings.length, 'listings');
+      console.log('[PROOF:LISTINGS]', JSON.stringify({ count: listings.length, filters: { breed: filters.breed, status: filters.status, location: filters.location, gender: filters.gender, sort: filters.sort } }));
       res.json(listings);
     } catch (error) {
       console.error("Error getting listings:", error);
       res.status(500).json({ error: "Internal server error" });
     }
-  });
+  };
+
+  app.get("/api/listings", handleListingsQuery);
+  app.get("/api/dog-listings/search", handleListingsQuery);
 
   // Get user's specific listings
   app.get("/api/listings/user/:userId", async (req, res) => {
@@ -368,7 +376,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!listing) {
         return res.status(404).json({ error: "Listing not found" });
       }
-      res.json(listing);
+      let sellerProfile = null;
+      if (listing.user_id) {
+        sellerProfile = await storage.getProfile(listing.user_id);
+      }
+      res.json({
+        ...listing,
+        profiles: sellerProfile ? {
+          id: sellerProfile.id,
+          full_name: sellerProfile.full_name,
+          username: sellerProfile.username,
+          avatar_url: sellerProfile.avatar_url,
+          location: sellerProfile.location,
+          created_at: sellerProfile.created_at,
+          rating: sellerProfile.rating,
+          total_reviews: sellerProfile.total_reviews,
+        } : null,
+      });
     } catch (error) {
       console.error("Error getting listing:", error);
       res.status(500).json({ error: "Internal server error" });

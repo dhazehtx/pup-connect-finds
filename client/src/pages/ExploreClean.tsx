@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { supabase } from '@/integrations/supabase/client';
+import { apiRequest } from '@/lib/api';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -465,45 +465,34 @@ const Explore = () => {
   // Check if user is authenticated
   const isAuthenticated = !!user && !authLoading;
 
-  // Fetch listings from Supabase with filters applied
   const fetchListings = async () => {
     try {
-      console.log('[EXPLORE] Fetching listings from Supabase...');
-      let query = supabase
-        .from('dog_listings')
-        .select('*')
-        .eq('status', 'active')
-        .order('created_at', { ascending: false });
+      console.log('[EXPLORE] Fetching listings from Neon API...');
+      const params = new URLSearchParams();
+      params.append('status', 'active');
 
-      // Apply filters
       if (selectedBreed !== 'all') {
-        query = query.eq('breed', selectedBreed);
+        params.append('breed', selectedBreed);
       }
-
       if (selectedColor !== 'all') {
-        query = query.eq('color', selectedColor);
+        params.append('color', selectedColor);
       }
-      
       if (selectedGender !== 'all') {
-        query = query.eq('gender', selectedGender);
+        params.append('gender', selectedGender);
       }
-
       if (searchTerm) {
-        query = query.or(`dog_name.ilike.%${searchTerm}%,breed.ilike.%${searchTerm}%,location.ilike.%${searchTerm}%`);
+        params.append('search', searchTerm);
+      }
+      if (priceRange[0] > 0) {
+        params.append('min_price', String(priceRange[0]));
+      }
+      if (priceRange[1] < 10000) {
+        params.append('max_price', String(priceRange[1]));
       }
 
-      // Price filter
-      query = query.gte('price', priceRange[0]).lte('price', priceRange[1]);
-
-      const { data, error } = await query;
-
-      if (error) {
-        console.error('[EXPLORE] Supabase error:', error);
-        return;
-      }
-
+      const data = await apiRequest(`/api/listings?${params.toString()}`);
       console.log('[EXPLORE] Fetched listings:', data?.length || 0);
-      setListings(data || []);
+      setListings(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error('[EXPLORE] Error fetching listings:', error);
     } finally {

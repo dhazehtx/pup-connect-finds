@@ -86,11 +86,24 @@ export interface IStorage {
   getDogListing(id: string): Promise<DogListing | undefined>;
   getDogListings(filters?: {
     breed?: string;
+    breeds?: string[];
     minPrice?: number;
     maxPrice?: number;
+    minAge?: number;
+    maxAge?: number;
     location?: string;
+    gender?: string;
+    color?: string;
     status?: string;
     userId?: string;
+    verifiedOnly?: boolean;
+    healthTested?: boolean;
+    vaccinated?: boolean;
+    goodWithKids?: boolean;
+    neuteredSpayed?: boolean;
+    sort?: string;
+    offset?: number;
+    limit?: number;
   }): Promise<DogListing[]>;
   createDogListing(listing: InsertDogListing): Promise<DogListing>;
   updateDogListing(id: string, listing: Partial<InsertDogListing>): Promise<DogListing | undefined>;
@@ -301,11 +314,17 @@ export class DatabaseStorage implements IStorage {
     maxAge?: number;
     location?: string;
     gender?: string;
+    color?: string;
     status?: string;
     userId?: string;
     verifiedOnly?: boolean;
     healthTested?: boolean;
     vaccinated?: boolean;
+    goodWithKids?: boolean;
+    neuteredSpayed?: boolean;
+    sort?: string;
+    offset?: number;
+    limit?: number;
   }): Promise<DogListing[]> {
     const conditions = [];
 
@@ -333,8 +352,11 @@ export class DatabaseStorage implements IStorage {
     if (filters?.location) {
       conditions.push(like(dogListings.location, `%${filters.location}%`));
     }
-    if (filters?.gender && filters.gender !== 'all') {
+    if (filters?.gender && filters.gender !== 'all' && filters.gender !== 'any') {
       conditions.push(eq(dogListings.gender, filters.gender));
+    }
+    if (filters?.color) {
+      conditions.push(eq(dogListings.color, filters.color));
     }
     if (filters?.status) {
       conditions.push(eq(dogListings.status, filters.status));
@@ -342,21 +364,42 @@ export class DatabaseStorage implements IStorage {
     if (filters?.userId) {
       conditions.push(eq(dogListings.user_id, filters.userId));
     }
-    // Note: verified and health_tested columns don't exist in current schema
-    // Skip these filters for now
     if (filters?.vaccinated) {
       conditions.push(eq(dogListings.vaccinated, true));
     }
+    if (filters?.goodWithKids) {
+      conditions.push(eq(dogListings.good_with_kids, true));
+    }
+    if (filters?.neuteredSpayed) {
+      conditions.push(eq(dogListings.neutered_spayed, true));
+    }
+
+    let orderByClause;
+    switch (filters?.sort) {
+      case 'price_low':
+        orderByClause = sql`${dogListings.price}::numeric ASC`;
+        break;
+      case 'price_high':
+        orderByClause = sql`${dogListings.price}::numeric DESC`;
+        break;
+      default:
+        orderByClause = desc(dogListings.created_at);
+    }
+
+    const queryLimit = filters?.limit || 50;
+    const queryOffset = filters?.offset || 0;
 
     const baseQuery = db.select().from(dogListings);
     
     if (conditions.length > 0) {
       return await baseQuery
         .where(and(...conditions))
-        .orderBy(desc(dogListings.created_at));
+        .orderBy(orderByClause)
+        .limit(queryLimit)
+        .offset(queryOffset);
     }
 
-    return await baseQuery.orderBy(desc(dogListings.created_at));
+    return await baseQuery.orderBy(orderByClause).limit(queryLimit).offset(queryOffset);
   }
 
   async createDogListing(listing: InsertDogListing): Promise<DogListing> {

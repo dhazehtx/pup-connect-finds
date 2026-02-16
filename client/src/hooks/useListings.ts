@@ -1,5 +1,5 @@
 import { useInfiniteQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { apiRequest } from '@/lib/api';
 import { useExploreFilters } from '@/context/ExploreFiltersContext';
 
 export interface Listing {
@@ -11,18 +11,17 @@ export interface Listing {
   location: string;
   description?: string;
   image_url?: string;
+  images?: string[];
   gender: string;
   color: string;
+  size?: string;
   status: string;
   created_at: string;
-  is_featured?: boolean;
-  verified?: boolean;
-  available_now?: boolean;
-  health_checked?: boolean;
   vaccinated?: boolean;
   good_with_kids?: boolean;
-  good_with_pets?: boolean;
-  spayed_neutered?: boolean;
+  good_with_dogs?: boolean;
+  neutered_spayed?: boolean;
+  user_id?: string;
 }
 
 export const useListings = () => {
@@ -32,99 +31,62 @@ export const useListings = () => {
     queryKey: ['listings', filters],
     queryFn: async ({ pageParam = 0 }) => {
       try {
-        console.log('[LISTINGS] Fetching with filters:', filters);
+        console.log('[LISTINGS] Fetching from Neon API with filters:', filters);
         
-        let query = supabase
-          .from('dog_listings')
-          .select('*')
-          .eq('status', 'active')
-          .range(pageParam, pageParam + 19); // 20 items per page
+        const params = new URLSearchParams();
+        params.append('offset', String(pageParam));
+        params.append('limit', '20');
+        params.append('status', 'active');
 
-        // Apply breed filter using local lookup (breeds table not in Supabase)
         if (filters.breedId) {
           const { getBreedNameById } = await import('@/hooks/useBreedColorOptions');
           const breedName = getBreedNameById(filters.breedId);
           if (breedName) {
-            query = query.eq('breed', breedName);
+            params.append('breed', breedName);
           }
         }
 
-        // Apply color filter
         if (filters.color) {
-          query = query.eq('color', filters.color);
+          params.append('color', filters.color);
         }
 
-        // Apply gender filter
         if (filters.gender !== 'any') {
-          query = query.eq('gender', filters.gender);
+          params.append('gender', filters.gender);
         }
 
-        // Apply price range
-        query = query.gte('price', filters.price[0]).lte('price', filters.price[1]);
+        if (filters.price[0] > 0) {
+          params.append('min_price', String(filters.price[0]));
+        }
+        if (filters.price[1] < 10000) {
+          params.append('max_price', String(filters.price[1]));
+        }
 
-        // Apply age range (convert weeks to approximate months for compatibility)
         if (filters.age.minWeeks > 0) {
-          query = query.gte('age', Math.floor(filters.age.minWeeks / 4));
+          params.append('min_age', String(Math.floor(filters.age.minWeeks / 4)));
         }
         if (filters.age.maxWeeks < 104) {
-          query = query.lte('age', Math.ceil(filters.age.maxWeeks / 4));
+          params.append('max_age', String(Math.ceil(filters.age.maxWeeks / 4)));
         }
 
-        // Apply location filter
         if (filters.location.city) {
-          query = query.ilike('location', `%${filters.location.city}%`);
+          params.append('location', filters.location.city);
         }
 
-        // Apply toggle filters
-        if (filters.toggles.verified) {
-          query = query.eq('verified', true);
-        }
-        if (filters.toggles.availableNow) {
-          query = query.eq('available_now', true);
-        }
-        if (filters.toggles.healthChecked) {
-          query = query.eq('health_checked', true);
-        }
         if (filters.toggles.vaccinated) {
-          query = query.eq('vaccinated', true);
+          params.append('vaccinated', 'true');
         }
         if (filters.toggles.goodWithKids) {
-          query = query.eq('good_with_kids', true);
-        }
-        if (filters.toggles.goodWithPets) {
-          query = query.eq('good_with_pets', true);
+          params.append('good_with_kids', 'true');
         }
         if (filters.toggles.spayedNeutered) {
-          query = query.eq('spayed_neutered', true);
+          params.append('neutered_spayed', 'true');
         }
 
-        // Apply sorting
-        switch (filters.sort) {
-          case 'newest':
-            query = query.order('created_at', { ascending: false });
-            break;
-          case 'price_low':
-            query = query.order('price', { ascending: true });
-            break;
-          case 'price_high':
-            query = query.order('price', { ascending: false });
-            break;
-          case 'featured':
-            query = query.order('is_featured', { ascending: false }).order('created_at', { ascending: false });
-            break;
-          default:
-            query = query.order('created_at', { ascending: false });
-        }
+        params.append('sort', filters.sort);
 
-        const { data, error } = await query;
-
-        if (error) {
-          console.error('[LISTINGS] Supabase error:', error);
-          return [];
-        }
-
-        console.log('[LISTINGS] Fetched:', data?.length || 0, 'listings');
-        return data || [];
+        const data = await apiRequest(`/api/listings?${params.toString()}`);
+        console.log('[LISTINGS] Fetched from Neon:', data?.length || 0, 'listings');
+        return Array.isArray(data) ? data : [];
       } catch (error) {
         console.error('[LISTINGS] Error fetching listings:', error);
         return [];

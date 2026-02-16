@@ -7,7 +7,6 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent } from '@/components/ui/card';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
 import { apiRequest } from '@/lib/api';
 
 const ListingDetail = () => {
@@ -22,7 +21,6 @@ const ListingDetail = () => {
   const [isFavoriteLoading, setIsFavoriteLoading] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
-  // Fetch listing data from Supabase with proper ID handling
   useEffect(() => {
     const fetchListing = async () => {
       if (!id) {
@@ -37,44 +35,7 @@ const ListingDetail = () => {
       
       try {
         setLoading(true);
-        // Fetch listing with seller profile - ensure we're getting the right listing by ID
-        const { data: listingData, error: listingError } = await supabase
-          .from('dog_listings')
-          .select(`
-            *,
-            profiles!dog_listings_user_id_fkey (
-              id,
-              full_name,
-              username,
-              avatar_url,
-              location,
-              created_at,
-              rating,
-              total_reviews
-            )
-          `)
-          .eq('id', id)
-          .eq('status', 'active')
-          .single();
-
-        if (listingError) {
-          console.error('Error fetching listing:', listingError);
-          if (listingError.code === 'PGRST116') {
-            toast({
-              title: "Not Found",
-              description: "This listing could not be found or is no longer active",
-              variant: "destructive",
-            });
-          } else {
-            toast({
-              title: "Error",
-              description: "Failed to load listing details",
-              variant: "destructive",
-            });
-          }
-          navigate('/marketplace');
-          return;
-        }
+        const listingData = await apiRequest(`/api/listings/${id}`);
 
         if (!listingData) {
           toast({
@@ -96,7 +57,7 @@ const ListingDetail = () => {
             console.error('Unexpected error checking favorite status:', favError);
           }
         }
-      } catch (error) {
+      } catch (error: any) {
         console.error('Error:', error);
         toast({
           title: "Error",
