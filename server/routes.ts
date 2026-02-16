@@ -972,16 +972,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const validatedData = insertPostSchema.parse(req.body);
       const post = await storage.createPost(validatedData);
+      console.log("[PROOF:POSTS:CREATE]", { postId: post.id, userId: validatedData.user_id, ts: new Date().toISOString() });
       
-      // Log admin action for post creation
       if (validatedData.user_id) {
         await logPostAction(validatedData.user_id, 'create', post.id);
       }
       
       res.json(post);
     } catch (error) {
-      console.error("Error creating post:", error);
-      res.status(500).json({ error: "Internal server error" });
+      console.error("[PROOF:POSTS:ERR]", { ts: new Date().toISOString(), error: String(error) });
+      res.status(500).json({ error: "POSTS_FAILED" });
     }
   });
 
@@ -1080,14 +1080,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Comment reply routes
+  // Comment reply routes - Neon/Drizzle only
   app.get("/api/comments/:id/replies", async (req, res) => {
     try {
-      const replies = await storage.getCommentReplies(req.params.id);
+      const commentId = req.params.id;
+      const replies = await storage.getCommentReplies(commentId);
+      console.log("[PROOF:REPLIES:LIST]", { commentId, count: replies.length, ts: new Date().toISOString() });
       res.json(replies);
     } catch (error) {
-      console.error("Error getting comment replies:", error);
-      res.status(500).json({ error: "Internal server error" });
+      console.error("[PROOF:REPLIES:ERR]", { commentId: req.params.id, ts: new Date().toISOString(), error: String(error) });
+      res.status(500).json({ error: "REPLIES_FAILED" });
     }
   });
 
@@ -1095,10 +1097,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const validatedData = insertCommentReplySchema.parse(req.body);
       const reply = await storage.createCommentReply(validatedData);
+      console.log("[PROOF:REPLIES:CREATE]", { replyId: reply.id, commentId: validatedData.comment_id, userId: validatedData.user_id, ts: new Date().toISOString() });
       res.json(reply);
     } catch (error) {
-      console.error("Error creating comment reply:", error);
-      res.status(500).json({ error: "Internal server error" });
+      console.error("[PROOF:REPLIES:ERR]", { ts: new Date().toISOString(), error: String(error) });
+      res.status(500).json({ error: "REPLIES_FAILED" });
+    }
+  });
+
+  // Alias endpoints for backward compatibility
+  app.get("/api/community/posts", async (req, res) => {
+    try {
+      const { userId, limit, cursor } = req.query;
+      const result = await storage.getPostsWithProfiles({
+        userId: userId as string,
+        limit: limit ? parseInt(limit as string, 10) : 20,
+        cursor: cursor as string,
+      });
+      console.log("[PROOF:POSTS:LIST:ALIAS]", { count: result.length, ts: new Date().toISOString() });
+      res.json(result);
+    } catch (error) {
+      console.error("[PROOF:POSTS:ERR]", { ts: new Date().toISOString(), error: String(error) });
+      res.status(500).json({ error: "POSTS_FAILED" });
+    }
+  });
+
+  app.get("/api/community/posts/:id/comments", async (req, res) => {
+    try {
+      const postId = req.params.id;
+      const result = await storage.getPostCommentsWithProfiles(postId);
+      console.log("[PROOF:COMMENTS:LIST:ALIAS]", { postId, count: result.length, ts: new Date().toISOString() });
+      res.json(result);
+    } catch (error) {
+      console.error("[PROOF:COMMENTS:ERR]", { postId: req.params.id, ts: new Date().toISOString(), error: String(error) });
+      res.status(500).json({ error: "COMMENTS_FAILED" });
     }
   });
 

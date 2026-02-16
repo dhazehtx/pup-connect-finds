@@ -41,11 +41,11 @@ export const usePostLikes = (postId: string) => {
 
     try {
       setLoading(true);
-      const data = await apiRequest(`/api/posts/${postId}/likes`, {
-        method: prevLiked ? 'DELETE' : 'POST',
+      const data = await apiRequest(`/api/posts/${postId}/likes/toggle`, {
+        method: 'POST',
       });
-      setLikesCount(data.count ?? (prevLiked ? prevCount - 1 : prevCount + 1));
-      setIsLiked(data.liked ?? !prevLiked);
+      setLikesCount(data.likeCount ?? (prevLiked ? prevCount - 1 : prevCount + 1));
+      setIsLiked(data.isLiked ?? !prevLiked);
     } catch (error: any) {
       setIsLiked(prevLiked);
       setLikesCount(prevCount);
