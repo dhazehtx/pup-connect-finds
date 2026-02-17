@@ -1,0 +1,74 @@
+PHASE 6 CLOSEOUT — Run full acceptance tests + produce final migration report (Neon-only contract)
+
+Goal:
+Run acceptance tests across the app, confirm Neon is the only data plane (Supabase = auth + storage only), and output a single closeout report with proof logs + grep proof.
+
+A) Acceptance Tests (must run + report results)
+1) Home feed
+- Load Home
+- Expect posts render OR empty state (no crash)
+- Server log must include: [PROOF:POSTS:LIST] ...
+
+2) Explore listings
+- Load Explore
+- Expect listings render OR empty state (no crash)
+- Server log must include: [PROOF:LISTINGS] ...
+
+3) Profile + Messaging
+- Open a profile that is NOT the current user
+- Click Message
+- Expect navigation to /messages/:conversationId OR /messages with auto-select
+- Server logs must include:
+  [PROOF:MSG:OK] {"conversationId":...}
+  [PROOF:MSG:LIST] {"count":...}
+
+4) Comments
+- Open a post
+- Load comments
+- Create a comment
+- Refresh and confirm comment persists
+- Server logs must include: [PROOF:COMMENTS:LIST] and a create proof log
+
+5) Likes
+- Toggle like on a post + on a comment
+- Confirm count updates immediately
+- Refresh and confirm persists
+- Server logs must include:
+  [PROOF:LIKES:POST] ...
+  [PROOF:LIKES:COMMENT] ...
+
+6) Notifications
+- Visit Notifications page
+- Must not crash the app (even if empty)
+- If notifications endpoints aren’t fully migrated yet, show a graceful empty-state (no 500 spam)
+
+7) Auth refresh / session noise
+- Keep app open 2–3 minutes
+- Confirm no repeating 401 spam or infinite retry loops
+- If any spam exists: fix retry logic, token refresh logic, or polling loops
+
+B) Grep proof (must paste outputs)
+Run grep and paste results showing no active Supabase reads for migrated domains:
+- supabase.from('profiles')
+- supabase.from('follows')
+- supabase.from('listings')
+- supabase.from('posts')
+- supabase.from('comments')
+- supabase.from('likes')
+Allow ONLY dev-only seed/sample code behind NODE_ENV != production.
+
+C) Closeout report (must output in reply)
+1) Which DB migrations were added/changed (filenames)
+2) Which server files changed (routes/storage/schema)
+3) Which client files changed (hooks/components)
+4) 1–2 real proof log lines per domain:
+- PROFILES, SEARCH, FOLLOWS
+- MSG
+- LISTINGS
+- POSTS/COMMENTS
+- LIKES
+- NOTIFICATIONS (or graceful empty-state proof)
+
+Rules:
+- Do NOT claim success if any test fails.
+- If something fails: provide the exact failure cause + the next patch prompt needed.

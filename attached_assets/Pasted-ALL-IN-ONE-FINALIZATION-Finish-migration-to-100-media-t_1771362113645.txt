@@ -1,0 +1,256 @@
+ALL-IN-ONE FINALIZATION — Finish migration to 100% + media + trust/safety + ops readiness (Neon data plane, Supabase auth+storage only)
+
+North Star:
+- Neon/Drizzle is the ONLY data plane for app data (profiles, posts, comments, likes, follows, messaging, listings, notifications, reports, blocks).
+- Supabase is ONLY for Auth + Storage (media uploads + signed URLs).
+- No production code path may read/write app data via supabase.from().
+- Everything must be verified with grep proof + server proof logs + final acceptance test pass.
+
+========================================================
+0) HARD GUARDRAILS (must do first)
+========================================================
+A) Grep gate:
+- Add a CI/dev script (or npm script) `npm run grep:supabase` that prints any usage of:
+  supabase.from(
+  supabase.rpc(
+  (except dev-only seed/sample behind NODE_ENV !== 'production')
+- If any non-dev usage exists, replace with Neon API calls.
+
+B) Production seeding OFF, dev seeding ON:
+- Ensure ALL seed endpoints and sample loaders are behind:
+  if (process.env.NODE_ENV !== 'production') ...
+- Add proof log once on server boot:
+  [PROOF:ENV] { nodeEnv, seedsEnabled:true/false }
+
+========================================================
+1) MEDIA (Supabase Storage) — avatars + posts + listings
+========================================================
+Goal:
+- Upload avatar, post media (photo/video), listing photos reliably.
+- Store only metadata in Neon (URLs + storage path + type + thumb).
+- Display fast (thumbs) + delete cleanup (DB + storage).
+
+A) Supabase Storage buckets:
+- Create buckets:
+  avatars (public or signed)
+  posts (signed)
+  listings (signed)
+- Prefer signed URLs for posts/listings; avatars can be public if desired.
+
+B) Neon tables (migrations + Drizzle schema)
+1) media_assets
+- id uuid pk default gen_random_uuid()
+- owner_id uuid fk profiles.id on delete cascade
+- bucket text not null  (avatars/posts/listings)
+- path text not null unique  (storage object path)
+- mime_type text
+- size_bytes integer
+- width integer null
+- height integer null
+- duration_seconds numeric null (video)
+- is_thumb boolean default false
+- parent_asset_id uuid null fk media_assets.id (thumb points to original)
+- created_at timestamptz default now()
+
+2) posts table update:
+- Add columns if missing:
+  media jsonb default '[]'   (array of {assetId,url,thumbUrl,type})
+  cover_thumb_url text null
+
+3) listings table update:
+- photos jsonb default '[]' (array of {assetId,url,thumbUrl})
+- cover_thumb_url text null
+
+C) Server endpoints (Neon + Supabase Storage)
+1) POST /api/media/sign
+- requires auth
+- input: { bucket, fileName, mimeType, kind: 'avatar'|'post'|'listing', parentId?: postId/listingId }
+- returns: { ok:true, uploadUrl, publicUrl?, path, bucket }
+- proof log: [PROOF:MEDIA:SIGN] { actorUserId, bucket, path, kind, ts }
+- MUST validate bucket/kind allowlist, block arbitrary buckets
+
+2) POST /api/media/commit
+- requires auth
+- input: { bucket, path, mimeType, sizeBytes, width?, height?, durationSeconds?, kind, parentId?, makeThumb?:boolean }
+- behavior:
+  - insert media_assets row in Neon
+  - attach to profile/post/listing by updating the jsonb media/photos arrays
+  - if kind=avatar: set profiles.avatar_url = resolved url
+  - return { ok:true, assetId, url, thumbUrl? }
+- proof log: [PROOF:MEDIA:COMMIT] { actorUserId, assetId, kind, parentId, ts }
+
+3) DELETE /api/media/:assetId
+- requires auth
+- must verify owner_id matches actor
+- delete from Supabase Storage (bucket/path)
+- remove references from posts/listings/profiles
+- delete Neon row
+- proof log: [PROOF:MEDIA:DELETE] { actorUserId, assetId, ok, ts }
+
+D) Client wiring (must be complete)
+- Avatar uploader:
+  - calls /api/media/sign -> PUT uploadUrl -> /api/media/commit
+  - updates UI immediately with new avatar_url
+- Post composer:
+  - supports single + multiple media
+  - stores returned asset refs in post.media
+- Listing creator/editor:
+  - supports multiple photos
+  - stores refs in listing.photos
+- Feed/List rendering:
+  - use thumbUrl when present, lazy-load originals
+  - show placeholder skeleton while loading
+- Error handling:
+  - show toast on any failure; never silent
+- Client proof logs:
+  [PROOF:MEDIA] { kind, parentId, ok }
+
+========================================================
+2) NOTIFICATIONS (Neon-only) — minimal but launch-safe
+========================================================
+Goal:
+- Notifications page never crashes.
+- Generate notifications for: follow, like, comment, message (optional).
+- Badge count works.
+
+A) Neon schema (migration + Drizzle)
+notifications:
+- id uuid pk default gen_random_uuid()
+- user_id uuid fk profiles.id on delete cascade        (receiver)
+- actor_id uuid fk profiles.id on delete set null      (who did it)
+- type text not null  ('follow'|'like_post'|'like_comment'|'comment'|'message')
+- entity_type text null ('post'|'comment'|'conversation'|'profile'|'listing')
+- entity_id uuid null
+- title text not null
+- body text null
+- is_read boolean default false
+- created_at timestamptz default now()
+Indexes: user_id, is_read, created_at
+
+B) Endpoints
+- GET /api/notifications
+  returns list ordered desc, limit/pagination optional
+  proof: [PROOF:NOTIF:LIST] { actorUserId, count, ts }
+- POST /api/notifications/:id/read
+  marks read
+  proof: [PROOF:NOTIF:READ] { actorUserId, id, ts }
+- GET /api/notifications/badge
+  returns unreadCount
+  proof: [PROOF:NOTIF:BADGE] { actorUserId, unreadCount, ts }
+
+C) Hook into existing actions (minimal)
+- When Follow succeeds -> create notification to target user
+- When Comment created -> notify post owner (if not self)
+- When Like toggled to ON -> notify content owner (if not self)
+- (Optional) When Message conversation created -> notify target user
+
+========================================================
+3) TRUST / SAFETY / QUALITY (launch-minimum)
+========================================================
+Goal:
+- Report user/post/listing
+- Block user (recommended)
+- Rate limiting (basic)
+- Errors are never silent
+
+A) Schema
+reports:
+- id uuid pk default gen_random_uuid()
+- reporter_id uuid fk profiles.id
+- target_type text not null ('user'|'post'|'comment'|'listing'|'message')
+- target_id uuid not null
+- reason text not null
+- details text null
+- status text default 'open' ('open'|'reviewing'|'closed')
+- created_at timestamptz default now()
+
+blocks:
+- blocker_id uuid not null fk profiles.id
+- blocked_id uuid not null fk profiles.id
+- created_at timestamptz default now()
+unique(blocker_id, blocked_id)
+
+B) Endpoints
+- POST /api/reports
+  requires auth; validate input
+  returns ok
+  proof: [PROOF:REPORT] { actorUserId, targetType, targetId, ts }
+- POST /api/blocks/:blockedId (toggle block/unblock)
+  proof: [PROOF:BLOCK] { actorUserId, blockedId, action, ts }
+
+C) Enforcement rules (must implement)
+- Search / profiles / follow / message / comments visibility:
+  - if A blocked B or B blocked A:
+    - hide from search results
+    - prevent follow
+    - prevent messaging
+    - optionally hide posts/comments in feed
+- Return clean 403 codes:
+  BLOCKED_RELATIONSHIP, etc.
+
+D) Rate limiting (basic, server-side)
+- Add a simple per-user limiter for write actions:
+  follows, comments, likes, messaging find-or-create, reports
+- Return 429 with code RATE_LIMITED
+- proof: [PROOF:RATE] { actorUserId, route, limited:true/false, ts }
+
+========================================================
+4) OPS LAUNCH READINESS
+========================================================
+A) Monitoring/logging
+- Standardize server error logs with codes + stack once:
+  [PROOF:ERR] { route, code, actorUserId, msg, stack, ts }
+- Ensure repeated errors don’t spam infinitely (client retries off for 401/403/404/429)
+
+B) Backups + env sanity
+- Add a server boot check endpoint (dev only):
+  GET /api/dev/health
+  returns:
+    neonConnected true/false
+    supabaseStorageConfigured true/false
+    nodeEnv
+  proof: [PROOF:HEALTH] ...
+
+C) Final “no-seed-in-prod” proof
+- On server boot, log [PROOF:ENV] once.
+
+========================================================
+5) FINAL ACCEPTANCE TEST RUN + CLOSEOUT REPORT (must output)
+========================================================
+Run and report PASS/FAIL for each:
+
+1) Home feed shows posts OR empty state (no crash)
+  server: [PROOF:POSTS:LIST]
+2) Explore shows listings OR empty state (no crash)
+  server: [PROOF:LISTINGS]
+3) Profile loads; Follow works; Message navigates successfully
+  server: [PROOF:MSG:OK] + [PROOF:MSG:LIST]
+4) Comments load + can post + persists on refresh
+  server: [PROOF:COMMENTS:LIST] + create log
+5) Likes toggle (post + comment) + persists on refresh
+  server: [PROOF:LIKES:POST] + [PROOF:LIKES:COMMENT]
+6) Notifications page loads (empty is fine), badge count works
+  server: [PROOF:NOTIF:*]
+7) Media:
+  - upload avatar works end-to-end
+  - upload post image works end-to-end
+  - upload listing photos works end-to-end
+  - delete media cleans DB + storage
+  server: [PROOF:MEDIA:*]
+8) Trust/Safety:
+  - report works
+  - block hides user + prevents follow/message
+  server: [PROOF:REPORT] + [PROOF:BLOCK]
+9) No console spam:
+  - no repeating 401 refresh loops
+  - retries disabled on auth errors
+10) Grep proof pasted:
+  - no active supabase.from() usage for app data domains
+
+Closeout report must include:
+- DB migration filenames added/changed
+- Server files changed
+- Client files changed
+- 1–2 real proof log lines per domain:
+  MEDIA, NOTIFICATIONS, REPORT/BLOCK, MSG, LISTINGS, POSTS/COMMENTS, LIKES, PROFILES/SEARCH/FOLLOWS
+- If ANY test fails: do NOT claim success — provide exact failure + next patch prompt.
