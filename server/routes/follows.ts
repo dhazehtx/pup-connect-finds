@@ -5,13 +5,14 @@ import { eq, and, or, desc, count, sql } from 'drizzle-orm';
 import { storage } from '../storage';
 import { ensureProfile } from '../lib/ensureProfile';
 import { createNotification } from '../lib/createNotification';
+import { perUserRateLimit } from '../middleware/perUserRateLimit';
 import type { Request, Response } from 'express';
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 const router = Router();
 
-router.post('/', async (req, res) => {
+router.post('/', perUserRateLimit('follows', 20), async (req, res) => {
   if (!req.isAuthenticated()) {
     return res.status(401).json({ ok: false, message: 'Authentication required' });
   }
@@ -66,7 +67,8 @@ router.post('/', async (req, res) => {
       )
     );
     if (blockRelation) {
-      return res.status(403).json({ ok: false, isFollowing: false, message: 'Cannot follow this user', code: 'BLOCKED_RELATIONSHIP' });
+      console.log('[PROOF:BLOCK]', JSON.stringify({ userId, followed_id, action: 'follow_blocked', ts: Date.now() }));
+      return res.status(403).json({ ok: false, code: 'BLOCKED', error: 'interaction blocked' });
     }
 
     const [existingFollow] = await db

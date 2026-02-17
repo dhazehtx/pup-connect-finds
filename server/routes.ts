@@ -108,6 +108,8 @@ import {
 } from "@shared/schema";
 
 import { supabase } from "./lib/supabase";
+import { isBlocked, blockedResponse } from "./lib/isBlocked";
+import { perUserRateLimit } from "./middleware/perUserRateLimit";
 
 async function cleanupParentMedia(parentType: string, parentId: string) {
   try {
@@ -581,6 +583,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ ok: false, code: 'MSG_TARGET_NOT_FOUND', error: 'target profile not found in Neon' });
       }
 
+      if (await isBlocked(actorUserId, targetUserId)) {
+        console.log('[PROOF:BLOCK]', JSON.stringify({ actorUserId, targetUserId, action: 'messaging_blocked', ts: Date.now() }));
+        return blockedResponse(res);
+      }
+
       const conversation = await storage.findOrCreateConversation(actorUserId, targetUserId, listing_id || null);
       const conversationId = conversation.id;
       console.log('[PROOF:MSG:OK]', JSON.stringify({ actorUserId, targetUserId, conversationId, created: conversation.created, ts: Date.now() }));
@@ -682,7 +689,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/messaging/messages", messagingRateLimit, async (req, res) => {
+  app.post("/api/messaging/messages", messagingRateLimit, perUserRateLimit('messages', 10), async (req, res) => {
     try {
       const authHeader = req.headers.authorization;
       if (!authHeader?.startsWith('Bearer ')) {
@@ -704,6 +711,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!conversation_id || !content) {
         return res.status(400).json({ error: 'conversation_id and content are required' });
       }
+
+      const conv = await storage.getConversation(conversation_id);
+      if (conv) {
+        const otherId = conv.buyer_id === user.id ? conv.seller_id : conv.buyer_id;
+        if (otherId && await isBlocked(user.id, otherId)) {
+          console.log('[PROOF:BLOCK]', JSON.stringify({ userId: user.id, otherId, action: 'message_send_blocked', ts: Date.now() }));
+          return blockedResponse(res);
+        }
+      }
+
       const message = await storage.createMessageWithProfile({
         conversation_id,
         sender_id: user.id,
@@ -798,9 +815,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/messages", messagingRateLimit, async (req, res) => {
+  app.post("/api/messages", messagingRateLimit, perUserRateLimit('messages', 10), async (req, res) => {
     try {
       const validatedData = insertMessageSchema.parse(req.body);
+
+      if (validatedData.conversation_id && validatedData.sender_id) {
+        const conv = await storage.getConversation(validatedData.conversation_id);
+        if (conv) {
+          const otherId = conv.buyer_id === validatedData.sender_id ? conv.seller_id : conv.buyer_id;
+          if (otherId && await isBlocked(validatedData.sender_id, otherId)) {
+            console.log('[PROOF:BLOCK]', JSON.stringify({ senderId: validatedData.sender_id, otherId, action: 'message_send_blocked', ts: Date.now() }));
+            return blockedResponse(res);
+          }
+        }
+      }
+
       const message = await storage.createMessage(validatedData);
       res.json(message);
     } catch (error) {
@@ -895,6 +924,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = req.user?.id;
       if (!userId) return res.status(401).json({ error: "LIKES_UNAUTHORIZED" });
       const postId = req.params.id;
+
+      const [postOwner] = await db.select({ user_id: posts.user_id }).from(posts).where(eq(posts.id, postId));
+      if (postOwner?.user_id && await isBlocked(userId, postOwner.user_id)) {
+        console.log('[PROOF:BLOCK]', JSON.stringify({ userId, postOwnerId: postOwner.user_id, action: 'like_post_blocked', ts: Date.now() }));
+        return blockedResponse(res);
+      }
+
       const result = await storage.togglePostLike(postId, userId);
       console.log("[PROOF:LIKES:POST]", { action: result.isLiked ? "liked" : "unliked", postId, userId, likeCount: result.likeCount, ts: new Date().toISOString() });
 
@@ -925,6 +961,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = req.user?.id;
       if (!userId) return res.status(401).json({ error: "LIKES_UNAUTHORIZED" });
       const commentId = req.params.id;
+
+      const [commentOwner] = await db.select({ user_id: comments.user_id }).from(comments).where(eq(comments.id, commentId));
+      if (commentOwner?.user_id && await isBlocked(userId, commentOwner.user_id)) {
+        console.log('[PROOF:BLOCK]', JSON.stringify({ userId, commentOwnerId: commentOwner.user_id, action: 'like_comment_blocked', ts: Date.now() }));
+        return blockedResponse(res);
+      }
+
       const result = await storage.toggleCommentLike(commentId, userId);
       console.log("[PROOF:LIKES:COMMENT]", { action: result.isLiked ? "liked" : "unliked", commentId, userId, likeCount: result.likeCount, ts: new Date().toISOString() });
       res.json({ isLiked: result.isLiked, likeCount: result.likeCount });
@@ -1061,9 +1104,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/comments", sessionTimeout, async (req, res) => {
+  app.post("/api/comments", sessionTimeout, perUserRateLimit('comments', 15), async (req, res) => {
     try {
       const validatedData = insertCommentSchema.parse(req.body);
+
+      if (validatedData.post_id && validatedData.user_id) {
+        const [postForBlock] = await db.select({ user_id: posts.user_id }).from(posts).where(eq(posts.id, validatedData.post_id));
+        if (postForBlock?.user_id && await isBlocked(validatedData.user_id, postForBlock.user_id)) {
+          console.log('[PROOF:BLOCK]', JSON.stringify({ userId: validatedData.user_id, postOwnerId: postForBlock.user_id, action: 'comment_blocked', ts: Date.now() }));
+          return blockedResponse(res);
+        }
+      }
+
       const comment = await storage.createComment(validatedData);
       console.log("[PROOF:COMMENTS:CREATE]", { commentId: comment.id, postId: validatedData.post_id, userId: validatedData.user_id, ts: new Date().toISOString() });
       

@@ -6,51 +6,39 @@ import type { Request, Response } from 'express';
 
 const router = Router();
 
-// Submit a report
-router.post('/', async (req, res) => {
-  if (!req.isAuthenticated()) {
-    return res.status(401).json({ message: 'Authentication required' });
-  }
-
+async function reportHandler(req: any, res: any) {
   try {
     const { target_id, target_type, reason, description } = req.body;
     
     if (!target_id || !target_type || !reason) {
-      return res.status(400).json({ message: 'Target ID, type, and reason are required' });
+      return res.status(400).json({ ok: false, error: 'Target ID, type, and reason are required' });
     }
 
     if (!['user', 'post', 'comment', 'listing'].includes(target_type)) {
-      return res.status(400).json({ message: 'Invalid target type' });
+      return res.status(400).json({ ok: false, error: 'Invalid target type' });
     }
 
-    // Check if target exists
     let targetExists = false;
-    switch (target_type) {
-      case 'user':
-        const [user] = await db.select().from(profiles).where(eq(profiles.id, target_id));
-        targetExists = !!user;
-        break;
-      case 'post':
-        const [post] = await db.select().from(posts).where(eq(posts.id, target_id));
-        targetExists = !!post;
-        break;
-      case 'comment':
-        const [comment] = await db.select().from(comments).where(eq(comments.id, target_id));
-        targetExists = !!comment;
-        break;
-      case 'listing':
-        const [listing] = await db.select().from(dogListings).where(eq(dogListings.id, target_id));
-        targetExists = !!listing;
-        break;
+    if (target_type === 'user') {
+      const [u] = await db.select({ id: profiles.id }).from(profiles).where(eq(profiles.id, target_id));
+      targetExists = !!u;
+    } else if (target_type === 'post') {
+      const [p] = await db.select({ id: posts.id }).from(posts).where(eq(posts.id, target_id));
+      targetExists = !!p;
+    } else if (target_type === 'comment') {
+      const [c] = await db.select({ id: comments.id }).from(comments).where(eq(comments.id, target_id));
+      targetExists = !!c;
+    } else if (target_type === 'listing') {
+      const [l] = await db.select({ id: dogListings.id }).from(dogListings).where(eq(dogListings.id, target_id));
+      targetExists = !!l;
     }
 
     if (!targetExists) {
-      return res.status(404).json({ message: 'Target not found' });
+      return res.status(404).json({ ok: false, error: 'Target not found' });
     }
 
-    // Check for duplicate reports (same user, target, and reason within 24 hours)
     const [existingReport] = await db
-      .select()
+      .select({ id: reports.id })
       .from(reports)
       .where(and(
         eq(reports.reporter_id, req.user.id),
@@ -61,16 +49,16 @@ router.post('/', async (req, res) => {
       ));
 
     if (existingReport) {
-      return res.status(400).json({ message: 'You have already reported this content for the same reason recently' });
+      return res.status(409).json({ ok: false, code: 'ALREADY_REPORTED', error: 'You have already reported this content for this reason recently' });
     }
 
     const [report] = await db
       .insert(reports)
       .values({
         reporter_id: req.user.id,
-        target_id: target_id,
-        target_type: target_type,
-        reason: reason,
+        target_id,
+        target_type,
+        reason,
         description: description || null
       })
       .returning();
@@ -78,19 +66,77 @@ router.post('/', async (req, res) => {
     console.log('[PROOF:REPORT]', JSON.stringify({ actorUserId: req.user.id, targetType: target_type, targetId: target_id, reason, ts: Date.now() }));
 
     res.status(201).json({
+      ok: true,
       message: 'Report submitted successfully',
       report
     });
 
   } catch (error) {
     console.error('Error creating report:', error);
-    res.status(500).json({ message: 'Internal server error' });
+    res.status(500).json({ ok: false, error: 'Internal server error' });
+  }
+}
+
+router.post('/', async (req, res) => {
+  if (!req.isAuthenticated()) {
+    return res.status(401).json({ ok: false, error: 'Authentication required' });
+  }
+  return reportHandler(req, res);
+});
+
+router.post('/user', async (req, res) => {
+  if (!req.isAuthenticated()) {
+    return res.status(401).json({ ok: false, error: 'Authentication required' });
+  }
+  req.body.target_type = 'user';
+  req.body.target_id = req.body.target_id || req.body.userId;
+  return reportHandler(req, res);
+});
+
+router.post('/post', async (req, res) => {
+  if (!req.isAuthenticated()) {
+    return res.status(401).json({ ok: false, error: 'Authentication required' });
+  }
+  req.body.target_type = 'post';
+  req.body.target_id = req.body.target_id || req.body.postId;
+  return reportHandler(req, res);
+});
+
+router.post('/listing', async (req, res) => {
+  if (!req.isAuthenticated()) {
+    return res.status(401).json({ ok: false, error: 'Authentication required' });
+  }
+  req.body.target_type = 'listing';
+  req.body.target_id = req.body.target_id || req.body.listingId;
+  return reportHandler(req, res);
+});
+
+router.get('/check/:targetType/:targetId', async (req, res) => {
+  if (!req.isAuthenticated()) {
+    return res.status(401).json({ ok: false, error: 'Authentication required' });
+  }
+
+  try {
+    const { targetType, targetId } = req.params;
+    const [existing] = await db
+      .select({ id: reports.id })
+      .from(reports)
+      .where(and(
+        eq(reports.reporter_id, req.user!.id),
+        eq(reports.target_id, targetId),
+        eq(reports.target_type, targetType),
+        sql`${reports.created_at} > NOW() - INTERVAL '24 hours'`
+      ));
+
+    res.json({ ok: true, alreadyReported: !!existing });
+  } catch (error) {
+    res.status(500).json({ ok: false, error: 'Failed to check report status' });
   }
 });
 
 // Get reports (admin only)
 router.get('/', async (req, res) => {
-  if (!req.isAuthenticated() || !req.user.is_admin) {
+  if (!req.isAuthenticated() || !req.user!.is_admin) {
     return res.status(403).json({ message: 'Admin access required' });
   }
 
@@ -169,7 +215,7 @@ router.get('/', async (req, res) => {
 
 // Update report status (admin only)
 router.patch('/:reportId', async (req, res) => {
-  if (!req.isAuthenticated() || !req.user.is_admin) {
+  if (!req.isAuthenticated() || !req.user!.is_admin) {
     return res.status(403).json({ message: 'Admin access required' });
   }
 
@@ -185,7 +231,7 @@ router.patch('/:reportId', async (req, res) => {
       .update(reports)
       .set({
         status: status,
-        reviewed_by: req.user.id,
+        reviewed_by: req.user!.id,
         reviewed_at: new Date()
       })
       .where(eq(reports.id, reportId))
