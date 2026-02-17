@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 
 export interface RefundRequest {
@@ -52,37 +52,17 @@ export const useRefundManagement = () => {
     refundType: RefundRequest['refund_type'] = 'full'
   ) => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('User not authenticated');
-
-      // Get transaction details to determine refund amount
-      const { data: transaction, error: txError } = await supabase
-        .from('escrow_transactions')
-        .select('amount, buyer_id, seller_id')
-        .eq('id', escrowTransactionId)
-        .single();
-
-      if (txError || !transaction) throw new Error('Transaction not found');
-
-      // Verify user is involved in the transaction
-      if (transaction.buyer_id !== user.id && transaction.seller_id !== user.id) {
-        throw new Error('Unauthorized to request refund for this transaction');
-      }
-
-      const { data, error } = await supabase
-        .from('refund_requests')
-        .insert({
-          escrow_transaction_id: escrowTransactionId,
-          requester_id: user.id,
-          refund_reason: refundReason,
+      const res = await apiRequest('/api/refunds/request', {
+        method: 'POST',
+        body: JSON.stringify({
+          transaction_id: escrowTransactionId,
+          reason: refundReason === 'full' ? 'other' : refundReason,
+          detailed_reason: refundReason,
+          refund_amount: 0,
           refund_type: refundType,
-          refund_amount: transaction.amount, // Always full refund
-          status: 'pending'
-        })
-        .select()
-        .single();
-
-      if (error) throw error;
+        }),
+      });
+      const data = await res.json();
 
       toast({
         title: "Refund Request Created",
@@ -104,18 +84,18 @@ export const useRefundManagement = () => {
     try {
       setIsProcessing(true);
 
-      const { data, error } = await supabase.functions.invoke('process-refund', {
-        body: {
-          refundRequestId,
-          adminApproval
-        }
+      const res = await apiRequest(`/api/refunds/admin/${refundRequestId}/action`, {
+        method: 'POST',
+        body: JSON.stringify({
+          action: adminApproval ? 'approve' : 'decline',
+          admin_notes: adminApproval ? 'Admin approved' : undefined,
+        }),
       });
-
-      if (error) throw error;
+      const data = await res.json();
 
       toast({
         title: "Refund Processed",
-        description: `Refund of $${data.amount} has been processed successfully.`,
+        description: data.message || "Refund has been processed successfully.",
       });
 
       return data;
@@ -137,18 +117,21 @@ export const useRefundManagement = () => {
     refundType: string = 'cancelled'
   ) => {
     try {
-      const { data, error } = await supabase.rpc('process_automatic_refund', {
-        escrow_transaction_id_param: escrowTransactionId,
-        refund_reason: refundReason,
-        refund_type: refundType
+      const res = await apiRequest('/api/refunds/request', {
+        method: 'POST',
+        body: JSON.stringify({
+          transaction_id: escrowTransactionId,
+          reason: 'canceled_order',
+          detailed_reason: refundReason,
+          refund_amount: 0,
+          refund_type: refundType,
+        }),
       });
+      const data = await res.json();
 
-      if (error) throw error;
-
-      const responseData = data as { message?: string; success?: boolean };
       toast({
         title: "Automatic Refund Processed",
-        description: responseData.message || "Refund processed successfully",
+        description: data.message || "Refund processed successfully",
       });
 
       return data;
@@ -171,16 +154,16 @@ export const useRefundManagement = () => {
     try {
       setIsFlagginFraud(true);
 
-      const { data, error } = await supabase.functions.invoke('fraud-detection', {
-        body: {
+      const res = await apiRequest('/api/fraud/flag', {
+        method: 'POST',
+        body: JSON.stringify({
           transactionId,
           eventType,
           userBehavior,
-          transactionDetails
-        }
+          transactionDetails,
+        }),
       });
-
-      if (error) throw error;
+      const data = await res.json();
 
       if (data.risk_score >= 0.6) {
         toast({
@@ -205,50 +188,12 @@ export const useRefundManagement = () => {
 
   const fetchRefundRequests = async (status?: string): Promise<RefundRequest[]> => {
     try {
-      let query = supabase
-        .from('refund_requests')
-        .select(`
-          *,
-          escrow_transactions!inner (
-            stripe_payment_intent_id,
-            amount,
-            buyer_id,
-            seller_id
-          )
-        `)
-        .order('created_at', { ascending: false });
-
-      if (status) {
-        query = query.eq('status', status);
-      }
-
-      const { data, error } = await query;
-      if (error) throw error;
-
-      // Transform the data to match our interface
-      const transformedData: RefundRequest[] = (data || []).map(item => ({
-        id: item.id,
-        escrow_transaction_id: item.escrow_transaction_id,
-        requester_id: item.requester_id,
-        refund_reason: item.refund_reason,
-        refund_type: item.refund_type as RefundRequest['refund_type'],
-        admin_notes: item.admin_notes,
-        processed_by: item.processed_by,
-        status: item.status as RefundRequest['status'],
-        refund_amount: item.refund_amount,
-        stripe_refund_id: item.stripe_refund_id,
-        created_at: item.created_at,
-        processed_at: item.processed_at,
-        escrow_transactions: item.escrow_transactions ? {
-          stripe_payment_intent_id: item.escrow_transactions.stripe_payment_intent_id,
-          amount: item.escrow_transactions.amount,
-          buyer_id: item.escrow_transactions.buyer_id,
-          seller_id: item.escrow_transactions.seller_id,
-          dog_listings: null // Simplified for now since the relation is complex
-        } : undefined
-      }));
-
-      return transformedData;
+      const url = status
+        ? `/api/refunds/user?status=${status}`
+        : '/api/refunds/user';
+      const res = await apiRequest(url);
+      const data = await res.json();
+      return data.refunds || [];
     } catch (error: any) {
       toast({
         title: "Failed to Fetch Refund Requests",
@@ -261,19 +206,12 @@ export const useRefundManagement = () => {
 
   const fetchFraudEvents = async (status?: string): Promise<FraudEvent[]> => {
     try {
-      let query = supabase
-        .from('fraud_detection_events')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (status) {
-        query = query.eq('status', status);
-      }
-
-      const { data, error } = await query;
-      if (error) throw error;
-
-      return (data || []) as FraudEvent[];
+      const url = status
+        ? `/api/fraud/events?status=${status}`
+        : '/api/fraud/events';
+      const res = await apiRequest(url);
+      const data = await res.json();
+      return data.events || [];
     } catch (error: any) {
       toast({
         title: "Failed to Fetch Fraud Events",

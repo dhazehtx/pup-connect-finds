@@ -1,21 +1,7 @@
 
 import { useState } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
-
-// Type definitions for the RPC function responses
-interface AccountDeletionResponse {
-  success: boolean;
-  recovery_token: string;
-  expires_at: string;
-  message: string;
-}
-
-interface AccountRecoveryResponse {
-  success: boolean;
-  message: string;
-  user_data: any;
-}
 
 export const useDataExport = () => {
   const [isExporting, setIsExporting] = useState(false);
@@ -25,18 +11,9 @@ export const useDataExport = () => {
   const exportUserData = async () => {
     setIsExporting(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        throw new Error('User not authenticated');
-      }
+      const res = await apiRequest('/api/export-user-data');
+      const data = await res.json();
 
-      const { data, error } = await supabase.rpc('export_user_data', {
-        user_id_param: user.id
-      });
-
-      if (error) throw error;
-
-      // Create and download the file
       const dataStr = JSON.stringify(data, null, 2);
       const dataBlob = new Blob([dataStr], { type: 'application/json' });
       const url = URL.createObjectURL(dataBlob);
@@ -70,20 +47,16 @@ export const useDataExport = () => {
   const initiateAccountDeletion = async () => {
     setIsDeletingAccount(true);
     try {
-      const { data, error } = await supabase.rpc('initiate_account_deletion');
-
-      if (error) throw error;
-
-      // Type assertion to properly access the response properties
-      const response = data as unknown as AccountDeletionResponse;
+      const res = await apiRequest('/api/delete-account', { method: 'DELETE' });
+      const data = await res.json();
 
       toast({
         title: "Account Deletion Initiated",
-        description: `Your account will be deleted in 30 days. Recovery token: ${response.recovery_token}`,
+        description: data.message || "Your account deletion has been scheduled.",
         duration: 10000,
       });
 
-      return response;
+      return data;
     } catch (error: any) {
       console.error('Account deletion error:', error);
       toast({
@@ -99,21 +72,18 @@ export const useDataExport = () => {
 
   const recoverAccount = async (recoveryToken: string) => {
     try {
-      const { data, error } = await supabase.rpc('recover_account', {
-        recovery_token_param: recoveryToken
+      const res = await apiRequest('/api/gdpr/recover-account', {
+        method: 'POST',
+        body: JSON.stringify({ recoveryToken }),
       });
-
-      if (error) throw error;
-
-      // Type assertion to properly access the response properties
-      const response = data as unknown as AccountRecoveryResponse;
+      const data = await res.json();
 
       toast({
         title: "Account Recovered",
         description: "Your account has been successfully recovered.",
       });
 
-      return response;
+      return data;
     } catch (error: any) {
       console.error('Account recovery error:', error);
       toast({

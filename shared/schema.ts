@@ -73,6 +73,22 @@ export const dogListings = pgTable("dog_listings", {
   updated_at: timestamp("updated_at").defaultNow(),
 });
 
+// Media assets table
+export const mediaAssets = pgTable("media_assets", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  owner_id: uuid("owner_id").references(() => profiles.id, { onDelete: "cascade" }).notNull(),
+  bucket: text("bucket").notNull(),
+  path: text("path").notNull().unique(),
+  mime_type: text("mime_type"),
+  size_bytes: integer("size_bytes"),
+  width: integer("width"),
+  height: integer("height"),
+  duration_seconds: integer("duration_seconds"),
+  is_thumb: boolean("is_thumb").default(false),
+  parent_asset_id: uuid("parent_asset_id"),
+  created_at: timestamp("created_at").defaultNow(),
+});
+
 // Conversations table
 export const conversations = pgTable("conversations", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -262,6 +278,7 @@ export const transactions = pgTable("transactions", {
 // Create insert schemas
 export const insertProfileSchema = createInsertSchema(profiles).omit({ id: true, created_at: true, updated_at: true });
 export const insertDogListingSchema = createInsertSchema(dogListings).omit({ id: true, created_at: true, updated_at: true });
+export const insertMediaAssetSchema = createInsertSchema(mediaAssets).omit({ id: true, created_at: true });
 export const insertConversationSchema = createInsertSchema(conversations).omit({ id: true, created_at: true, updated_at: true });
 export const insertConversationParticipantSchema = createInsertSchema(conversationParticipants).omit({ id: true, created_at: true });
 export const insertMessageSchema = createInsertSchema(messages).omit({ id: true, created_at: true });
@@ -715,6 +732,16 @@ export const follows = pgTable("follows", {
   uniqueFollow: unique("unique_follow").on(table.follower_id, table.followed_id),
 }));
 
+// Blocks table for blocking users
+export const blocks = pgTable("blocks", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  blocker_id: uuid("blocker_id").references(() => profiles.id, { onDelete: "cascade" }).notNull(),
+  blocked_id: uuid("blocked_id").references(() => profiles.id, { onDelete: "cascade" }).notNull(),
+  created_at: timestamp("created_at").defaultNow(),
+}, (table) => ({
+  uniqueBlock: unique("unique_block").on(table.blocker_id, table.blocked_id),
+}));
+
 // Enhanced notifications table for comprehensive engagement tracking (replaces existing notifications)
 export const enhancedNotifications = pgTable("enhanced_notifications", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -846,6 +873,7 @@ export const insertSavedPostSchema = createInsertSchema(savedPosts).omit({ id: t
 export const insertBookmarkSchema = createInsertSchema(bookmarks).omit({ id: true, created_at: true });
 export const insertReportSchema = createInsertSchema(reports).omit({ id: true, created_at: true });
 export const insertFollowSchema = createInsertSchema(follows).omit({ id: true, created_at: true });
+export const insertBlockSchema = createInsertSchema(blocks).omit({ id: true, created_at: true });
 export const insertEnhancedNotificationSchema = createInsertSchema(enhancedNotifications).omit({ id: true, created_at: true });
 export const insertUserPreferencesSchema = createInsertSchema(userPreferences).omit({ id: true, created_at: true, updated_at: true });
 export const insertCommunityGroupSchema = createInsertSchema(communityGroups).omit({ id: true, created_at: true, updated_at: true });
@@ -875,6 +903,10 @@ export type Report = typeof reports.$inferSelect;
 export type InsertReport = z.infer<typeof insertReportSchema>;
 export type Follow = typeof follows.$inferSelect;
 export type InsertFollow = z.infer<typeof insertFollowSchema>;
+export type Block = typeof blocks.$inferSelect;
+export type InsertBlock = z.infer<typeof insertBlockSchema>;
+export type MediaAsset = typeof mediaAssets.$inferSelect;
+export type InsertMediaAsset = z.infer<typeof insertMediaAssetSchema>;
 export type EnhancedNotification = typeof enhancedNotifications.$inferSelect;
 export type InsertEnhancedNotification = z.infer<typeof insertEnhancedNotificationSchema>;
 export type UserPreferences = typeof userPreferences.$inferSelect;

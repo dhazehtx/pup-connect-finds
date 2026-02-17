@@ -1,9 +1,10 @@
 import { Router } from 'express';
 import { db } from '../db';
-import { follows, profiles } from '@shared/schema';
-import { eq, and, desc, count, sql } from 'drizzle-orm';
+import { follows, profiles, blocks } from '@shared/schema';
+import { eq, and, or, desc, count, sql } from 'drizzle-orm';
 import { storage } from '../storage';
 import { ensureProfile } from '../lib/ensureProfile';
+import { createNotification } from '../lib/createNotification';
 import type { Request, Response } from 'express';
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -58,6 +59,16 @@ router.post('/', async (req, res) => {
       return res.status(404).json({ ok: false, isFollowing: false, message: 'Target profile not found in database', code: 'TARGET_NOT_FOUND' });
     }
 
+    const [blockRelation] = await db.select().from(blocks).where(
+      or(
+        and(eq(blocks.blocker_id, userId), eq(blocks.blocked_id, followed_id)),
+        and(eq(blocks.blocker_id, followed_id), eq(blocks.blocked_id, userId))
+      )
+    );
+    if (blockRelation) {
+      return res.status(403).json({ ok: false, isFollowing: false, message: 'Cannot follow this user', code: 'BLOCKED_RELATIONSHIP' });
+    }
+
     const [existingFollow] = await db
       .select()
       .from(follows)
@@ -80,6 +91,16 @@ router.post('/', async (req, res) => {
       .returning();
 
     console.log('[PROOF:FOLLOWS]', JSON.stringify({ actorUserId: userId, targetId: followed_id, action: 'follow', ok: true }));
+
+    createNotification({
+      toUserId: followed_id,
+      fromUserId: userId,
+      type: 'follow',
+      title: 'New Follower',
+      message: `${followerProfile?.username || 'Someone'} started following you`,
+      relatedId: followed_id,
+    }).catch(() => {});
+
     res.status(201).json({
       ok: true,
       isFollowing: true,

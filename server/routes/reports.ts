@@ -64,7 +64,6 @@ router.post('/', async (req, res) => {
       return res.status(400).json({ message: 'You have already reported this content for the same reason recently' });
     }
 
-    // Create report
     const [report] = await db
       .insert(reports)
       .values({
@@ -75,6 +74,8 @@ router.post('/', async (req, res) => {
         description: description || null
       })
       .returning();
+
+    console.log('[PROOF:REPORT]', JSON.stringify({ actorUserId: req.user.id, targetType: target_type, targetId: target_id, reason, ts: Date.now() }));
 
     res.status(201).json({
       message: 'Report submitted successfully',

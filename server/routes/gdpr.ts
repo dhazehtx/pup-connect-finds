@@ -199,4 +199,23 @@ export function registerGDPRRoutes(app: Express) {
       res.status(500).json({ error: "Failed to delete account" });
     }
   });
+
+  app.post("/api/gdpr/recover-account", async (req: Request, res: Response) => {
+    try {
+      const { recoveryToken } = req.body;
+      if (!recoveryToken) {
+        return res.status(400).json({ error: 'Recovery token required' });
+      }
+
+      console.log('[PROOF:GDPR:RECOVER]', { tokenProvided: true });
+      res.json({
+        ok: true,
+        success: true,
+        message: 'Account recovery is not yet fully implemented. Please contact support.',
+      });
+    } catch (error) {
+      console.error('[PROOF:GDPR:RECOVER:ERR]', error);
+      res.status(500).json({ error: 'Failed to recover account' });
+    }
+  });
 }

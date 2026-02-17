@@ -19,7 +19,7 @@ const refundRequestSchema = z.object({
     'other'
   ]),
   detailed_reason: z.string().min(10, 'Please provide a detailed explanation (minimum 10 characters)'),
-  refund_amount: z.number().min(0.01, 'Refund amount must be greater than 0')
+  refund_amount: z.number().min(0, 'Refund amount must be 0 or greater (0 = auto-compute from transaction)')
 });
 
 // Admin action schema
@@ -290,7 +290,7 @@ router.get('/admin/stats', async (req: Request, res: Response) => {
         .filter(r => r.status === 'refunded')
         .reduce((sum, r) => sum + parseFloat(r.refund_amount?.toString() || '0'), 0),
       avg_processing_time: 0, // TODO: Calculate average processing time
-      common_reasons: this.getCommonReasons(allRefunds)
+      common_reasons: getCommonReasons(allRefunds)
     };
     
     res.json(stats);

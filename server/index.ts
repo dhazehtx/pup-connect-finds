@@ -60,12 +60,15 @@ app.use((req, res, next) => {
 });
 
 (async () => {
+  const nodeEnv = process.env.NODE_ENV || 'development';
+  const seedsEnabled = nodeEnv !== 'production';
+  console.log('[PROOF:ENV]', JSON.stringify({ nodeEnv, seedsEnabled, ts: Date.now() }));
+
   // Ensure storage bucket exists for provider ID documents
   try {
     await ensureProviderIdBucket();
   } catch (error) {
     console.error('[Startup] Failed to ensure storage bucket:', error);
-    // Continue anyway - uploads will fail with clear error messages
   }
 
   const server = await registerRoutes(app);

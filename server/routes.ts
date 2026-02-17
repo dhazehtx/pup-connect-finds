@@ -36,6 +36,8 @@ import { registerHealthRoutes } from './routes/health';
 import consentRouter from './routes/consent';
 import consentGetRouter from './routes/consent-get';
 import uploadIdRouter from './routes/upload-id';
+import mediaRouter from './routes/media';
+import blocksRouter from './routes/blocks';
 
 // New Stripe verification system
 import { startVerificationRouter } from './routes/verification/start';
@@ -850,6 +852,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const postId = req.params.id;
       const result = await storage.togglePostLike(postId, userId);
       console.log("[PROOF:LIKES:POST]", { action: result.isLiked ? "liked" : "unliked", postId, userId, likeCount: result.likeCount, ts: new Date().toISOString() });
+
+      if (result.isLiked) {
+        const [post] = await db.select({ user_id: posts.user_id }).from(posts).where(eq(posts.id, postId));
+        if (post?.user_id && post.user_id !== userId) {
+          const { createNotification } = await import('./lib/createNotification');
+          createNotification({
+            toUserId: post.user_id,
+            fromUserId: userId,
+            type: 'like_post',
+            title: 'New Like',
+            message: 'Someone liked your post',
+            postId,
+          }).catch(() => {});
+        }
+      }
+
       res.json({ isLiked: result.isLiked, likeCount: result.likeCount });
     } catch (error) {
       console.error("[PROOF:LIKES:POST:ERR]", { postId: req.params.id, ts: new Date().toISOString(), error: String(error) });
@@ -1006,6 +1024,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       if (validatedData.user_id) {
         await logCommentAction(validatedData.user_id, 'create', comment.id);
+      }
+
+      if (validatedData.post_id && validatedData.user_id) {
+        const [post] = await db.select({ user_id: posts.user_id }).from(posts).where(eq(posts.id, validatedData.post_id));
+        if (post?.user_id && post.user_id !== validatedData.user_id) {
+          const { createNotification } = await import('./lib/createNotification');
+          createNotification({
+            toUserId: post.user_id,
+            fromUserId: validatedData.user_id,
+            type: 'comment',
+            title: 'New Comment',
+            message: (validatedData as any).content?.slice(0, 100) || 'Someone commented on your post',
+            postId: validatedData.post_id,
+            commentId: comment.id,
+          }).catch(() => {});
+        }
       }
       
       res.json(comment);
@@ -1988,6 +2022,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Register follows routes
   app.use('/api/follows', followsRouter);
 
+  // Register media routes (Supabase Storage + Neon metadata)
+  app.use('/api/media', mediaRouter);
+
+  // Register blocks routes
+  app.use('/api/blocks', blocksRouter);
+
   // Register payments routes for Stripe Connect PaymentIntents
   app.use('/api/payments', paymentsRouter);
 
@@ -2317,6 +2357,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error('[PROOF:SEED:LISTINGS] error', error?.message);
       res.status(500).json({ error: 'Seeding failed' });
     }
+  });
+
+  app.get("/api/dev/health", async (req, res) => {
+    if (process.env.NODE_ENV === 'production') {
+      return res.status(403).json({ error: 'Dev endpoint disabled in production' });
+    }
+    let neonConnected = false;
+    try {
+      await db.execute(sql`SELECT 1`);
+      neonConnected = true;
+    } catch {}
+    const supabaseStorageConfigured = !!(process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY);
+    const result = { neonConnected, supabaseStorageConfigured, nodeEnv: process.env.NODE_ENV || 'development', ts: Date.now() };
+    console.log('[PROOF:HEALTH]', JSON.stringify(result));
+    res.json(result);
   });
 
   app.post("/api/dev/smoke-migration", async (req, res) => {
