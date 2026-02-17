@@ -3,7 +3,7 @@ import { createServer, type Server } from "http";
 import { setupSocketIO } from "./socket";
 import { db } from "./db";
 import { sql, inArray, eq, and, count } from "drizzle-orm";
-import { profiles, dogListings, posts, comments, postLikes, commentLikes, conversations, conversationParticipants, messages, notifications, follows } from "@shared/schema";
+import { profiles, dogListings, posts, comments, postLikes, commentLikes, conversations, conversationParticipants, messages, notifications, follows, mediaAssets } from "@shared/schema";
 import savedPostsRouter from './routes/saved-posts';
 import bookmarksRouter from './routes/bookmarks';
 import reportsRouter from './routes/reports';
@@ -106,6 +106,48 @@ import {
   insertNotificationSchema,
   insertTransactionSchema
 } from "@shared/schema";
+
+import { supabase } from "./lib/supabase";
+
+async function cleanupParentMedia(parentType: string, parentId: string) {
+  try {
+    const assets = await db.select().from(mediaAssets).where(
+      and(eq(mediaAssets.parent_type, parentType), eq(mediaAssets.parent_id, parentId))
+    );
+    if (assets.length === 0) return;
+
+    const assetIds = assets.map(a => a.id);
+    const thumbs = await db.select().from(mediaAssets).where(
+      sql`${mediaAssets.parent_asset_id} = ANY(${assetIds})`
+    );
+
+    const allPaths = [...assets.map(a => a.path), ...thumbs.map(t => t.path)];
+    const buckets = Array.from(new Set(assets.map(a => a.bucket)));
+
+    for (const bucket of buckets) {
+      const bucketPaths = allPaths.filter(p =>
+        assets.some(a => a.path === p && a.bucket === bucket) ||
+        thumbs.some(t => t.path === p)
+      );
+      if (bucketPaths.length > 0) {
+        await supabase.storage.from(bucket).remove(bucketPaths);
+      }
+    }
+
+    if (thumbs.length > 0) {
+      await db.delete(mediaAssets).where(
+        sql`${mediaAssets.parent_asset_id} = ANY(${assetIds})`
+      );
+    }
+    await db.delete(mediaAssets).where(
+      and(eq(mediaAssets.parent_type, parentType), eq(mediaAssets.parent_id, parentId))
+    );
+
+    console.log('[PROOF:MEDIA:CASCADE_DELETE]', JSON.stringify({ parentType, parentId, deleted: assets.length + thumbs.length, ts: Date.now() }));
+  } catch (err: any) {
+    console.error('[PROOF:MEDIA:CASCADE_DELETE:ERR]', err?.message);
+  }
+}
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Apply security and performance middleware first
@@ -428,10 +470,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.delete("/api/listings/:id", async (req, res) => {
     try {
-      const success = await storage.deleteDogListing(req.params.id);
+      const listingId = req.params.id;
+      await cleanupParentMedia('listing', listingId);
+      const success = await storage.deleteDogListing(listingId);
       if (!success) {
         return res.status(404).json({ error: "Listing not found" });
       }
+      console.log("[PROOF:LISTINGS:DELETE]", { listingId, ts: new Date().toISOString() });
       res.json({ success: true });
     } catch (error) {
       console.error("Error deleting listing:", error);
@@ -1065,9 +1110,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Delete post
   app.delete("/api/posts/:id", async (req, res) => {
     try {
-      const deleted = await storage.deletePost(req.params.id);
+      const postId = req.params.id;
+      await cleanupParentMedia('post', postId);
+      const deleted = await storage.deletePost(postId);
       if (!deleted) return res.status(404).json({ error: "POST_NOT_FOUND" });
-      console.log("[PROOF:POSTS:DELETE]", { postId: req.params.id, ts: new Date().toISOString() });
+      console.log("[PROOF:POSTS:DELETE]", { postId, mediaCleanup: true, ts: new Date().toISOString() });
       res.json({ success: true });
     } catch (error) {
       console.error("[PROOF:POSTS:ERR]", { postId: req.params.id, ts: new Date().toISOString(), error: String(error) });

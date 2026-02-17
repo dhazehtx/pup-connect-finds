@@ -3,8 +3,12 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
+import { Progress } from '@/components/ui/progress';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+import { useMediaUpload } from '@/hooks/useMediaUpload';
+import { apiRequest } from '@/lib/queryClient';
+import { queryClient } from '@/lib/queryClient';
 import { Upload, X, Image, Video } from 'lucide-react';
 
 interface CreatePostFormProps {
@@ -15,8 +19,10 @@ interface CreatePostFormProps {
 const CreatePostForm = ({ onClose, onSubmit }: CreatePostFormProps) => {
   const { user } = useAuth();
   const { toast } = useToast();
+  const { upload, uploading, progress } = useMediaUpload();
   const [caption, setCaption] = useState('');
   const [mediaFiles, setMediaFiles] = useState<File[]>([]);
+  const [mediaPreviews, setMediaPreviews] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -24,7 +30,7 @@ const CreatePostForm = ({ onClose, onSubmit }: CreatePostFormProps) => {
     const validFiles = files.filter(file => {
       const isImage = file.type.startsWith('image/');
       const isVideo = file.type.startsWith('video/');
-      const isValidSize = file.size <= 10 * 1024 * 1024; // 10MB limit
+      const isValidSize = file.size <= 10 * 1024 * 1024;
       
       if (!isImage && !isVideo) {
         toast({
@@ -47,11 +53,19 @@ const CreatePostForm = ({ onClose, onSubmit }: CreatePostFormProps) => {
       return true;
     });
 
-    setMediaFiles(prev => [...prev, ...validFiles].slice(0, 5)); // Max 5 files
+    const newFiles = [...mediaFiles, ...validFiles].slice(0, 5);
+    setMediaFiles(newFiles);
+
+    const newPreviews = validFiles.map(f => URL.createObjectURL(f));
+    setMediaPreviews(prev => [...prev, ...newPreviews].slice(0, 5));
   };
 
   const removeFile = (index: number) => {
+    if (mediaPreviews[index]) {
+      URL.revokeObjectURL(mediaPreviews[index]);
+    }
     setMediaFiles(prev => prev.filter((_, i) => i !== index));
+    setMediaPreviews(prev => prev.filter((_, i) => i !== index));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -77,17 +91,51 @@ const CreatePostForm = ({ onClose, onSubmit }: CreatePostFormProps) => {
 
     setLoading(true);
     
-    // Simulate post creation
-    setTimeout(() => {
+    try {
+      const postRes = await apiRequest('/api/posts', {
+        method: 'POST',
+        body: JSON.stringify({
+          content: caption.trim(),
+          title: caption.trim().substring(0, 100),
+        }),
+      });
+      const postData = await postRes.json();
+      const postId = postData.id;
+
+      if (postId && mediaFiles.length > 0) {
+        for (const file of mediaFiles) {
+          await upload(file, {
+            bucket: 'posts',
+            kind: 'post',
+            parentId: postId,
+          });
+        }
+      }
+
       toast({
         title: "Post created!",
         description: "Your post has been published to your profile",
       });
-      setLoading(false);
+      
+      queryClient.invalidateQueries({ queryKey: ['/api/posts'] });
+      setCaption('');
+      setMediaFiles([]);
+      mediaPreviews.forEach(p => URL.revokeObjectURL(p));
+      setMediaPreviews([]);
       onSubmit?.();
       onClose?.();
-    }, 2000);
+    } catch (error: any) {
+      toast({
+        title: "Failed to create post",
+        description: error?.message || "Something went wrong",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
+
+  const isSubmitting = loading || uploading;
 
   return (
     <Card className="border-blue-200 shadow-sm max-w-lg mx-auto">
@@ -101,7 +149,6 @@ const CreatePostForm = ({ onClose, onSubmit }: CreatePostFormProps) => {
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
-          {/* User Info */}
           <div className="flex items-center space-x-3">
             <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center">
               <span className="text-white font-semibold">
@@ -114,7 +161,6 @@ const CreatePostForm = ({ onClose, onSubmit }: CreatePostFormProps) => {
             </div>
           </div>
 
-          {/* Caption */}
           <Textarea
             value={caption}
             onChange={(e) => setCaption(e.target.value)}
@@ -123,7 +169,6 @@ const CreatePostForm = ({ onClose, onSubmit }: CreatePostFormProps) => {
             className="resize-none"
           />
 
-          {/* Media Upload */}
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <label htmlFor="media-upload" className="cursor-pointer">
@@ -139,19 +184,17 @@ const CreatePostForm = ({ onClose, onSubmit }: CreatePostFormProps) => {
                 accept="image/*,video/*"
                 onChange={handleFileChange}
                 className="hidden"
+                disabled={isSubmitting}
               />
             </div>
 
-            {/* Media Preview */}
-            {mediaFiles.length > 0 && (
+            {mediaPreviews.length > 0 && (
               <div className="grid grid-cols-2 gap-2">
-                {mediaFiles.map((file, index) => (
+                {mediaPreviews.map((previewUrl, index) => (
                   <div key={index} className="relative">
                     <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden">
-                      {file.type.startsWith('image/') ? (
-                        <div className="w-full h-full flex items-center justify-center">
-                          <Image className="w-8 h-8 text-gray-400" />
-                        </div>
+                      {mediaFiles[index]?.type.startsWith('image/') ? (
+                        <img src={previewUrl} alt="" className="w-full h-full object-cover" />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center">
                           <Video className="w-8 h-8 text-gray-400" />
@@ -164,6 +207,7 @@ const CreatePostForm = ({ onClose, onSubmit }: CreatePostFormProps) => {
                       size="sm"
                       className="absolute -top-2 -right-2 w-6 h-6 rounded-full p-0"
                       onClick={() => removeFile(index)}
+                      disabled={isSubmitting}
                     >
                       <X className="w-3 h-3" />
                     </Button>
@@ -171,20 +215,25 @@ const CreatePostForm = ({ onClose, onSubmit }: CreatePostFormProps) => {
                 ))}
               </div>
             )}
+
+            {uploading && (
+              <div className="space-y-1">
+                <p className="text-xs text-gray-500">Uploading media... {progress}%</p>
+                <Progress value={progress} className="w-full h-1.5" />
+              </div>
+            )}
           </div>
 
-          {/* Privacy Note */}
           <div className="text-xs text-gray-500 bg-gray-50 p-2 rounded">
             Your post will be visible on your profile and may appear in community feeds.
           </div>
 
-          {/* Submit Button */}
           <Button 
             type="submit" 
-            disabled={loading || (!caption.trim() && mediaFiles.length === 0)}
+            disabled={isSubmitting || (!caption.trim() && mediaFiles.length === 0)}
             className="w-full bg-blue-600 hover:bg-blue-700"
           >
-            {loading ? 'Publishing...' : 'Share Post'}
+            {isSubmitting ? 'Publishing...' : 'Share Post'}
           </Button>
         </form>
       </CardContent>

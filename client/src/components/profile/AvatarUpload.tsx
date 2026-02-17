@@ -3,7 +3,7 @@ import { Camera, User, Upload, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Progress } from '@/components/ui/progress';
-import { useImageUpload } from '@/hooks/useImageUpload';
+import { useMediaUpload } from '@/hooks/useMediaUpload';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import ImageCropper from './ImageCropper';
@@ -16,14 +16,12 @@ interface AvatarUploadProps {
 
 const AvatarUpload = ({ currentAvatar, onAvatarChange, userName }: AvatarUploadProps) => {
   const [dragActive, setDragActive] = useState(false);
-  const [currentUploadId, setCurrentUploadId] = useState<string | null>(null);
   const [cropperOpen, setCropperOpen] = useState(false);
   const [imageToCrop, setImageToCrop] = useState<string | null>(null);
-  const { uploadImage, uploading, uploadProgress } = useImageUpload();
+  const { upload, uploading, progress } = useMediaUpload();
   const { toast } = useToast();
 
   const validateFile = (file: File): boolean => {
-    // Validate file size (10MB limit)
     if (file.size > 10 * 1024 * 1024) {
       toast({
         title: "File too large",
@@ -33,7 +31,6 @@ const AvatarUpload = ({ currentAvatar, onAvatarChange, userName }: AvatarUploadP
       return false;
     }
 
-    // Validate file type
     const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
     if (!allowedTypes.includes(file.type)) {
       toast({
@@ -52,22 +49,25 @@ const AvatarUpload = ({ currentAvatar, onAvatarChange, userName }: AvatarUploadP
       return;
     }
 
-    // Create a URL for the image to show in cropper
     const imageUrl = URL.createObjectURL(file);
     setImageToCrop(imageUrl);
     setCropperOpen(true);
   };
 
   const handleCropComplete = async (croppedFile: File) => {
-    const imageId = `avatar-${Date.now()}`;
-    setCurrentUploadId(imageId);
-    
-    const url = await uploadImage(croppedFile, imageId);
-    if (url) {
-      onAvatarChange(url);
+    const result = await upload(croppedFile, {
+      bucket: 'avatars',
+      kind: 'avatar',
+    });
+
+    if (result?.ok && result.url) {
+      onAvatarChange(result.url);
+      toast({
+        title: "Avatar updated",
+        description: "Your profile photo has been changed.",
+      });
     }
-    
-    setCurrentUploadId(null);
+
     setImageToCrop(null);
   };
 
@@ -103,11 +103,6 @@ const AvatarUpload = ({ currentAvatar, onAvatarChange, userName }: AvatarUploadP
     if (e.target.files && e.target.files[0]) {
       handleFile(e.target.files[0]);
     }
-  };
-
-  const getCurrentProgress = () => {
-    if (!currentUploadId) return 0;
-    return uploadProgress[currentUploadId] || 0;
   };
 
   return (
@@ -149,10 +144,10 @@ const AvatarUpload = ({ currentAvatar, onAvatarChange, userName }: AvatarUploadP
             {uploading ? (
               <>
                 <Upload className="h-6 w-6 text-blue-500 animate-pulse" />
-                <p className="text-sm text-gray-600">Uploading... {getCurrentProgress()}%</p>
+                <p className="text-sm text-gray-600">Uploading... {progress}%</p>
                 <div className="w-full max-w-xs">
                   <Progress 
-                    value={getCurrentProgress()} 
+                    value={progress} 
                     className="w-full h-2"
                   />
                 </div>

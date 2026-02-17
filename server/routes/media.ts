@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { db } from "../db";
 import { mediaAssets, profiles, posts, dogListings } from "@shared/schema";
-import { eq, and, sql } from "drizzle-orm";
+import { eq, and, isNull, notInArray, sql } from "drizzle-orm";
 import { supabase } from "../lib/supabase";
 
 const router = Router();
@@ -74,10 +74,17 @@ router.post("/commit", async (req, res) => {
       return res.status(400).json({ error: "bucket, path, and kind are required" });
     }
 
+    const { data: urlData } = supabase.storage.from(bucket).getPublicUrl(path);
+    const publicUrl = urlData?.publicUrl || null;
+
+    const parentType = kind === 'avatar' ? 'avatar' : kind === 'post' ? 'post' : kind === 'listing' ? 'listing' : kind;
+
     const [asset] = await db
       .insert(mediaAssets)
       .values({
         owner_id: userId,
+        parent_type: parentType,
+        parent_id: parentId || null,
         bucket,
         path,
         mime_type: mimeType || null,
@@ -85,11 +92,38 @@ router.post("/commit", async (req, res) => {
         width: width || null,
         height: height || null,
         duration_seconds: durationSeconds || null,
+        variant: 'original',
+        public_url: publicUrl,
       })
       .returning();
 
-    const { data: urlData } = supabase.storage.from(bucket).getPublicUrl(path);
-    const publicUrl = urlData?.publicUrl || null;
+    let thumbAsset = null;
+    if (mimeType && mimeType.startsWith('image/')) {
+      const thumbPath = path.replace(/\.([^.]+)$/, '_thumb.$1');
+      const { data: thumbUrlData } = supabase.storage.from(bucket).getPublicUrl(thumbPath);
+      const thumbPublicUrl = thumbUrlData?.publicUrl || (publicUrl ? publicUrl + '?width=480' : null);
+
+      [thumbAsset] = await db
+        .insert(mediaAssets)
+        .values({
+          owner_id: userId,
+          parent_type: parentType,
+          parent_id: parentId || null,
+          bucket,
+          path: thumbPath,
+          mime_type: mimeType,
+          size_bytes: null,
+          width: 480,
+          height: null,
+          variant: 'thumb',
+          public_url: thumbPublicUrl,
+          is_thumb: true,
+          parent_asset_id: asset.id,
+        })
+        .returning();
+
+      console.log('[PROOF:MEDIA:THUMB]', JSON.stringify({ originalId: asset.id, thumbId: thumbAsset.id, ts: Date.now() }));
+    }
 
     if (kind === 'avatar' && publicUrl) {
       await db.update(profiles).set({ avatar_url: publicUrl }).where(eq(profiles.id, userId));
@@ -117,10 +151,28 @@ router.post("/commit", async (req, res) => {
       }
     }
 
-    console.log('[PROOF:MEDIA:COMMIT]', JSON.stringify({ actorUserId: userId, assetId: asset.id, kind, parentId: parentId || null, ts: Date.now() }));
+    console.log('[PROOF:MEDIA:COMMIT]', JSON.stringify({
+      actorUserId: userId,
+      assetId: asset.id,
+      kind,
+      parentId: parentId || null,
+      variant: 'original',
+      hasThumb: !!thumbAsset,
+      ts: Date.now()
+    }));
 
     res.json({
       ok: true,
+      asset: {
+        id: asset.id,
+        publicUrl: asset.public_url,
+        variant: asset.variant,
+        mime: asset.mime_type,
+        sizeBytes: asset.size_bytes,
+        parentType: asset.parent_type,
+        parentId: asset.parent_id,
+      },
+      thumbUrl: thumbAsset?.public_url || null,
       assetId: asset.id,
       url: publicUrl,
       path,
@@ -151,20 +203,184 @@ router.delete("/:assetId", async (req, res) => {
       return res.status(403).json({ error: "Not authorized to delete this asset" });
     }
 
-    const { error: storageError } = await supabase.storage.from(asset.bucket).remove([asset.path]);
+    const thumbs = await db.select().from(mediaAssets).where(eq(mediaAssets.parent_asset_id, assetId));
+    const pathsToDelete = [asset.path, ...thumbs.map(t => t.path)];
+
+    const { error: storageError } = await supabase.storage.from(asset.bucket).remove(pathsToDelete);
 
     if (storageError) {
       console.error('[PROOF:MEDIA:DELETE:STORAGE_ERR]', JSON.stringify({ assetId, error: storageError.message, ts: Date.now() }));
     }
 
+    if (thumbs.length > 0) {
+      const thumbIds = thumbs.map(t => t.id);
+      await db.delete(mediaAssets).where(
+        sql`${mediaAssets.id} = ANY(${thumbIds})`
+      );
+    }
     await db.delete(mediaAssets).where(eq(mediaAssets.id, assetId));
 
-    console.log('[PROOF:MEDIA:DELETE]', JSON.stringify({ actorUserId: userId, assetId, ok: true, ts: Date.now() }));
+    console.log('[PROOF:MEDIA:DELETE]', JSON.stringify({ actorUserId: userId, assetId, thumbsDeleted: thumbs.length, ok: true, ts: Date.now() }));
 
-    res.json({ ok: true, assetId });
+    res.json({ ok: true, assetId, thumbsDeleted: thumbs.length });
   } catch (error: any) {
     console.error('[PROOF:MEDIA:DELETE:ERR]', JSON.stringify({ error: error?.message, ts: Date.now() }));
     res.status(500).json({ error: "Failed to delete media" });
+  }
+});
+
+router.post("/cleanup-parent", async (req, res) => {
+  if (!req.isAuthenticated()) {
+    return res.status(401).json({ error: "Authentication required", code: "AUTH_REQUIRED" });
+  }
+
+  try {
+    const { parentType, parentId } = req.body;
+    const userId = req.user!.id;
+
+    if (!parentType || !parentId) {
+      return res.status(400).json({ error: "parentType and parentId required" });
+    }
+
+    const assets = await db.select().from(mediaAssets).where(
+      and(
+        eq(mediaAssets.parent_type, parentType),
+        eq(mediaAssets.parent_id, parentId),
+        eq(mediaAssets.owner_id, userId)
+      )
+    );
+
+    if (assets.length === 0) {
+      return res.json({ ok: true, deleted: 0 });
+    }
+
+    const allAssetIds = assets.map(a => a.id);
+    const thumbs = await db.select().from(mediaAssets).where(
+      sql`${mediaAssets.parent_asset_id} = ANY(${allAssetIds})`
+    );
+
+    const allPaths = [...assets.map(a => a.path), ...thumbs.map(t => t.path)];
+    const buckets = Array.from(new Set(assets.map(a => a.bucket)));
+
+    for (const bucket of buckets) {
+      const bucketPaths = allPaths.filter(p => assets.find(a => a.path === p && a.bucket === bucket) || thumbs.find(t => t.path === p && t.bucket === bucket));
+      if (bucketPaths.length > 0) {
+        await supabase.storage.from(bucket).remove(bucketPaths);
+      }
+    }
+
+    if (thumbs.length > 0) {
+      await db.delete(mediaAssets).where(
+        sql`${mediaAssets.parent_asset_id} = ANY(${allAssetIds})`
+      );
+    }
+    await db.delete(mediaAssets).where(
+      and(
+        eq(mediaAssets.parent_type, parentType),
+        eq(mediaAssets.parent_id, parentId),
+        eq(mediaAssets.owner_id, userId)
+      )
+    );
+
+    console.log('[PROOF:MEDIA:CLEANUP]', JSON.stringify({ parentType, parentId, deleted: assets.length + thumbs.length, ts: Date.now() }));
+
+    res.json({ ok: true, deleted: assets.length + thumbs.length });
+  } catch (error: any) {
+    console.error('[PROOF:MEDIA:CLEANUP:ERR]', JSON.stringify({ error: error?.message, ts: Date.now() }));
+    res.status(500).json({ error: "Failed to cleanup media" });
+  }
+});
+
+router.post("/sweep-orphans", async (req, res) => {
+  try {
+    const orphanAvatars = await db.select().from(mediaAssets).where(
+      and(
+        eq(mediaAssets.parent_type, 'avatar'),
+        eq(mediaAssets.variant, 'original')
+      )
+    );
+
+    const orphanPosts = await db.select().from(mediaAssets).where(
+      and(
+        eq(mediaAssets.parent_type, 'post'),
+        sql`${mediaAssets.parent_id} IS NOT NULL`
+      )
+    );
+
+    const orphanListings = await db.select().from(mediaAssets).where(
+      and(
+        eq(mediaAssets.parent_type, 'listing'),
+        sql`${mediaAssets.parent_id} IS NOT NULL`
+      )
+    );
+
+    let deletedCount = 0;
+
+    for (const asset of orphanPosts) {
+      if (asset.parent_id) {
+        const [parentPost] = await db.select({ id: posts.id }).from(posts).where(eq(posts.id, asset.parent_id));
+        if (!parentPost) {
+          await supabase.storage.from(asset.bucket).remove([asset.path]);
+          await db.delete(mediaAssets).where(eq(mediaAssets.id, asset.id));
+          deletedCount++;
+        }
+      }
+    }
+
+    for (const asset of orphanListings) {
+      if (asset.parent_id) {
+        const [parentListing] = await db.select({ id: dogListings.id }).from(dogListings).where(eq(dogListings.id, asset.parent_id));
+        if (!parentListing) {
+          await supabase.storage.from(asset.bucket).remove([asset.path]);
+          await db.delete(mediaAssets).where(eq(mediaAssets.id, asset.id));
+          deletedCount++;
+        }
+      }
+    }
+
+    console.log('[PROOF:MEDIA:SWEEP]', JSON.stringify({ deleted: deletedCount, ts: Date.now() }));
+
+    res.json({ ok: true, deleted: deletedCount, ts: Date.now() });
+  } catch (error: any) {
+    console.error('[PROOF:MEDIA:SWEEP:ERR]', JSON.stringify({ error: error?.message, ts: Date.now() }));
+    res.status(500).json({ error: "Failed to sweep orphan media" });
+  }
+});
+
+router.get("/by-parent/:parentType/:parentId", async (req, res) => {
+  try {
+    const { parentType, parentId } = req.params;
+
+    const assets = await db.select().from(mediaAssets).where(
+      and(
+        eq(mediaAssets.parent_type, parentType),
+        eq(mediaAssets.parent_id, parentId),
+        eq(mediaAssets.variant, 'original')
+      )
+    );
+
+    const thumbs = await db.select().from(mediaAssets).where(
+      and(
+        eq(mediaAssets.parent_type, parentType),
+        eq(mediaAssets.parent_id, parentId),
+        eq(mediaAssets.variant, 'thumb')
+      )
+    );
+
+    const result = assets.map(a => ({
+      id: a.id,
+      publicUrl: a.public_url,
+      thumbUrl: thumbs.find(t => t.parent_asset_id === a.id)?.public_url || a.public_url,
+      mime: a.mime_type,
+      sizeBytes: a.size_bytes,
+      width: a.width,
+      height: a.height,
+      variant: a.variant,
+    }));
+
+    res.json({ ok: true, assets: result });
+  } catch (error: any) {
+    res.status(500).json({ error: "Failed to fetch media" });
   }
 });
 
