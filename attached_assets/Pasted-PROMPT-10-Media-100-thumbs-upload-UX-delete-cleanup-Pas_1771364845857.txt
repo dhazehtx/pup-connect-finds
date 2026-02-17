@@ -1,0 +1,120 @@
+PROMPT 10 — Media 100% (thumbs + upload UX + delete cleanup)
+
+Paste to Replit:
+
+Goal: Make media (avatars, post photos/videos, listing photos) launch-ready using Supabase Storage for bytes + Neon for metadata. Add thumbs for fast feeds, plus cleanup on delete.
+
+A) Standardize media metadata in Neon
+
+Ensure table media_assets exists (or create):
+
+id uuid pk default gen_random_uuid()
+
+owner_user_id uuid fk profiles.id
+
+parent_type text (avatar/post/listing)
+
+parent_id uuid (nullable for avatar)
+
+bucket text
+
+path text (unique)
+
+mime text
+
+size_bytes int
+
+width int null
+
+height int null
+
+duration_seconds int null (video)
+
+variant text (original/thumb)
+
+public_url text not null
+
+created_at timestamptz default now()
+Indexes:
+
+(parent_type, parent_id)
+
+(owner_user_id)
+
+B) Upload flow (API-first)
+
+Confirm /api/media/sign + /api/media/commit exist and work for:
+
+avatar
+
+post media (photo/video)
+
+listing photos
+
+commit must write media_assets row and return:
+{ ok:true, asset:{id, publicUrl, variant, mime, sizeBytes} }
+
+C) Thumbnails
+
+For images:
+
+generate thumb (ex 480px wide) on upload commit OR async job (dev ok)
+
+store as media_assets row with variant='thumb' linked to original
+
+For video:
+
+generate poster thumbnail (first frame) OR require poster upload
+
+store as thumb asset
+
+Feed endpoints must return thumbUrl for media arrays.
+
+D) Delete cleanup
+
+On delete post/listing: remove associated media_assets rows + delete storage objects.
+
+On avatar replace: delete old avatar objects + metadata.
+
+Add dev-only endpoint POST /api/dev/sweep-orphan-media
+
+finds media_assets with missing parent or deleted parent
+
+deletes storage object + row
+
+logs [PROOF:MEDIA:SWEEP] { deleted, ts }
+
+E) Client UX polish
+
+Create one shared hook useMediaUpload:
+
+progress %
+
+disable button while uploading
+
+retry once on failure
+
+user-friendly error toasts
+
+Update AvatarUpload, PostComposer, ListingCreate flow to use it.
+
+Proof logs:
+
+[PROOF:MEDIA:SIGN], [PROOF:MEDIA:COMMIT], [PROOF:MEDIA:DELETE], [PROOF:MEDIA:THUMB]
+Return payloads must never be ambiguous.
+
+Acceptance:
+
+Upload avatar works, refresh persists
+
+Upload post image/video works, feed uses thumbUrl
+
+Upload listing photos works, Explore uses thumbs
+
+Delete post/listing cleans storage + metadata (no orphan rows)
+
+Deliverables:
+
+list files changed
+
+1–2 proof log lines per media action

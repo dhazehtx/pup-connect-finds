@@ -77,6 +77,8 @@ export const dogListings = pgTable("dog_listings", {
 export const mediaAssets = pgTable("media_assets", {
   id: uuid("id").primaryKey().defaultRandom(),
   owner_id: uuid("owner_id").references(() => profiles.id, { onDelete: "cascade" }).notNull(),
+  parent_type: text("parent_type"),
+  parent_id: uuid("parent_id"),
   bucket: text("bucket").notNull(),
   path: text("path").notNull().unique(),
   mime_type: text("mime_type"),
@@ -84,6 +86,8 @@ export const mediaAssets = pgTable("media_assets", {
   width: integer("width"),
   height: integer("height"),
   duration_seconds: integer("duration_seconds"),
+  variant: text("variant").default("original"),
+  public_url: text("public_url"),
   is_thumb: boolean("is_thumb").default(false),
   parent_asset_id: uuid("parent_asset_id"),
   created_at: timestamp("created_at").defaultNow(),
