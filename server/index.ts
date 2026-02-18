@@ -53,6 +53,10 @@ app.use((req, res, next) => {
       }
 
       log(logLine);
+
+      if (duration > 800) {
+        console.log('[PROOF:SLOW]', JSON.stringify({ route: `${req.method} ${path}`, ms: duration, ts: Date.now() }));
+      }
     }
   });
 
@@ -82,7 +86,13 @@ app.use((req, res, next) => {
     const status = err.status || err.statusCode || 500;
     const message = err.message || "Internal Server Error";
     
-    // Capture error in Sentry
+    console.error('[PROOF:ERR]', JSON.stringify({
+      route: `${_req.method} ${_req.url}`,
+      code: err.code || status,
+      stack: (err.stack || '').split('\n').slice(0, 3).join(' | '),
+      ts: Date.now()
+    }));
+
     captureError(err, {
       url: _req.url,
       method: _req.method,
@@ -90,7 +100,6 @@ app.use((req, res, next) => {
     });
 
     res.status(status).json({ message });
-    throw err;
   });
 
   // importantly only setup vite in development and after
