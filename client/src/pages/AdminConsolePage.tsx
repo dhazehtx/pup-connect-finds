@@ -11,7 +11,7 @@ import {
   Shield, AlertTriangle, X, Eye, Check, Ban, Trash2,
   UserX, UserCheck, ChevronLeft, Clock, FileText,
   Search, Unlink, Activity, HardDrive, Loader2,
-  RotateCcw, Flame, Archive
+  RotateCcw, Flame, Archive, DollarSign, RefreshCw
 } from 'lucide-react';
 
 type Report = {
@@ -44,6 +44,7 @@ const tabs = [
   { key: 'media', label: 'Media', icon: HardDrive },
   { key: 'ratelimits', label: 'Rate Limits', icon: Activity },
   { key: 'trash', label: 'Trash', icon: Archive },
+  { key: 'deals', label: 'Deals', icon: DollarSign },
 ] as const;
 
 type TabKey = typeof tabs[number]['key'];
@@ -610,6 +611,214 @@ function TrashTab() {
   );
 }
 
+const dealStatusColors: Record<string, string> = {
+  DRAFT: 'bg-gray-100 text-gray-800',
+  RESERVED: 'bg-blue-100 text-blue-800',
+  DEPOSIT_PAID: 'bg-indigo-100 text-indigo-800',
+  PAID_IN_FULL: 'bg-purple-100 text-purple-800',
+  DELIVERED_PENDING_CONFIRM: 'bg-yellow-100 text-yellow-800',
+  DELIVERED_CONFIRMED: 'bg-teal-100 text-teal-800',
+  DISPUTED: 'bg-red-100 text-red-800',
+  REFUNDED: 'bg-orange-100 text-orange-800',
+  RELEASED: 'bg-green-100 text-green-800',
+  CANCELED: 'bg-gray-100 text-gray-500',
+  EXPIRED: 'bg-gray-100 text-gray-400',
+};
+
+function DealsTab() {
+  const { toast } = useToast();
+  const [statusFilter, setStatusFilter] = useState('ALL');
+  const [page, setPage] = useState(1);
+  const [selectedDeal, setSelectedDeal] = useState<string | null>(null);
+
+  const dealsQuery = useQuery<{ deals: any[]; total: number }>({
+    queryKey: ['/api/deals/admin/all', statusFilter, page],
+    queryFn: () => fetch(`/api/deals/admin/all?status=${statusFilter}&page=${page}&limit=20`, { credentials: 'include' }).then(r => r.json()),
+  });
+
+  const dealDetailQuery = useQuery<any>({
+    queryKey: ['/api/deals', selectedDeal],
+    queryFn: () => fetch(`/api/deals/${selectedDeal}`, { credentials: 'include' }).then(r => r.json()),
+    enabled: !!selectedDeal,
+  });
+
+  const cancelMutation = useMutation({
+    mutationFn: (dealId: string) => apiRequest(`/api/deals/${dealId}/cancel`, { method: 'POST' }),
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['/api/deals/admin/all'] }); toast({ title: 'Deal canceled' }); setSelectedDeal(null); },
+  });
+
+  const refundMutation = useMutation({
+    mutationFn: ({ dealId, type }: { dealId: string; type: string }) =>
+      apiRequest(`/api/deals/${dealId}/refund`, { method: 'POST', body: { type } }),
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['/api/deals/admin/all'] }); toast({ title: 'Refund processed' }); setSelectedDeal(null); },
+  });
+
+  const releaseMutation = useMutation({
+    mutationFn: (dealId: string) => apiRequest(`/api/deals/${dealId}/release`, { method: 'POST' }),
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['/api/deals/admin/all'] }); toast({ title: 'Payout released' }); setSelectedDeal(null); },
+  });
+
+  const extendMutation = useMutation({
+    mutationFn: ({ dealId, hours }: { dealId: string; hours: number }) =>
+      apiRequest(`/api/deals/admin/${dealId}/extend`, { method: 'POST', body: { hours } }),
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['/api/deals/admin/all'] }); toast({ title: 'Reservation extended' }); },
+  });
+
+  const statuses = ['ALL', 'RESERVED', 'DEPOSIT_PAID', 'PAID_IN_FULL', 'DELIVERED_PENDING_CONFIRM', 'DELIVERED_CONFIRMED', 'DISPUTED', 'REFUNDED', 'RELEASED', 'CANCELED'];
+
+  if (selectedDeal && dealDetailQuery.data) {
+    const d = dealDetailQuery.data;
+    return (
+      <div className="space-y-4">
+        <Button variant="ghost" size="sm" onClick={() => setSelectedDeal(null)}>
+          <ChevronLeft className="h-4 w-4 mr-1" /> Back to Deals
+        </Button>
+
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-lg">Deal {d.id?.substring(0, 8)}...</CardTitle>
+              <Badge className={dealStatusColors[d.status] || ''}>{d.status}</Badge>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-2 gap-4 text-sm">
+              <div><span className="text-muted-foreground">Dog:</span> {d.dog_name} ({d.breed})</div>
+              <div><span className="text-muted-foreground">Total:</span> ${(d.total_price_cents / 100).toFixed(2)}</div>
+              <div><span className="text-muted-foreground">Deposit:</span> ${(d.deposit_cents / 100).toFixed(2)}</div>
+              <div><span className="text-muted-foreground">Balance:</span> ${(d.balance_cents / 100).toFixed(2)}</div>
+              <div><span className="text-muted-foreground">Platform Fee:</span> ${(d.platform_fee_cents / 100).toFixed(2)}</div>
+              <div><span className="text-muted-foreground">Buyer:</span> {d.buyer_username || d.buyer_id?.substring(0, 8)}</div>
+              <div><span className="text-muted-foreground">Seller:</span> {d.seller_username || d.seller_id?.substring(0, 8)}</div>
+              <div><span className="text-muted-foreground">Created:</span> {new Date(d.created_at).toLocaleDateString()}</div>
+              {d.reserved_until && <div><span className="text-muted-foreground">Reserved Until:</span> {new Date(d.reserved_until).toLocaleString()}</div>}
+              {d.dispute_window_ends && <div><span className="text-muted-foreground">Dispute Window:</span> {new Date(d.dispute_window_ends).toLocaleString()}</div>}
+            </div>
+
+            {d.payments?.length > 0 && (
+              <div>
+                <h4 className="font-semibold text-sm mb-2">Payments</h4>
+                <div className="space-y-1">
+                  {d.payments.map((p: any) => (
+                    <div key={p.id} className="flex items-center justify-between text-sm p-2 bg-muted rounded">
+                      <span>{p.kind}</span>
+                      <span>${(p.amount_cents / 100).toFixed(2)}</span>
+                      <Badge variant="outline">{p.status}</Badge>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {d.payouts?.length > 0 && (
+              <div>
+                <h4 className="font-semibold text-sm mb-2">Payouts</h4>
+                {d.payouts.map((p: any) => (
+                  <div key={p.id} className="flex items-center justify-between text-sm p-2 bg-muted rounded">
+                    <span>${(p.amount_cents / 100).toFixed(2)}</span>
+                    <Badge variant="outline">{p.status}</Badge>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {d.disputes?.length > 0 && (
+              <div>
+                <h4 className="font-semibold text-sm mb-2">Disputes</h4>
+                {d.disputes.map((dp: any) => (
+                  <div key={dp.id} className="p-2 bg-red-50 rounded text-sm">
+                    <div className="font-medium">{dp.reason}</div>
+                    {dp.description && <div className="text-muted-foreground">{dp.description}</div>}
+                    <Badge variant="outline">{dp.status}</Badge>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <div className="flex gap-2 flex-wrap pt-4 border-t">
+              {['RESERVED', 'DEPOSIT_PAID'].includes(d.status) && (
+                <Button size="sm" variant="outline" onClick={() => extendMutation.mutate({ dealId: d.id, hours: 72 })}>
+                  <Clock className="h-3 w-3 mr-1" /> Extend 72h
+                </Button>
+              )}
+              {!['RELEASED', 'REFUNDED', 'CANCELED'].includes(d.status) && (
+                <Button size="sm" variant="outline" className="text-red-600" onClick={() => cancelMutation.mutate(d.id)}>
+                  <X className="h-3 w-3 mr-1" /> Cancel
+                </Button>
+              )}
+              {['DEPOSIT_PAID', 'PAID_IN_FULL', 'DISPUTED'].includes(d.status) && (
+                <Button size="sm" variant="outline" className="text-orange-600" onClick={() => refundMutation.mutate({ dealId: d.id, type: 'all' })}>
+                  <RefreshCw className="h-3 w-3 mr-1" /> Refund All
+                </Button>
+              )}
+              {['DELIVERED_CONFIRMED'].includes(d.status) && (
+                <Button size="sm" variant="outline" className="text-green-600" onClick={() => releaseMutation.mutate(d.id)}>
+                  <Check className="h-3 w-3 mr-1" /> Release Payout
+                </Button>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="flex gap-2 flex-wrap">
+        {statuses.map(s => (
+          <button
+            key={s}
+            onClick={() => { setStatusFilter(s); setPage(1); }}
+            className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
+              statusFilter === s ? 'bg-blue-600 text-white' : 'bg-muted text-muted-foreground hover:bg-muted/80'
+            }`}
+          >
+            {s}
+          </button>
+        ))}
+      </div>
+
+      {dealsQuery.isLoading ? (
+        <div className="flex justify-center py-8"><Loader2 className="h-6 w-6 animate-spin" /></div>
+      ) : dealsQuery.data?.deals?.length === 0 ? (
+        <Card><CardContent className="py-8 text-center text-muted-foreground">No deals found</CardContent></Card>
+      ) : (
+        <div className="space-y-2">
+          {dealsQuery.data?.deals?.map((deal: any) => (
+            <Card key={deal.id} className="cursor-pointer hover:bg-muted/50 transition-colors" onClick={() => setSelectedDeal(deal.id)}>
+              <CardContent className="py-3 px-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <DollarSign className="h-5 w-5 text-blue-600" />
+                    <div>
+                      <div className="font-medium text-sm">{deal.dog_name || 'Unknown'} — {deal.breed || 'N/A'}</div>
+                      <div className="text-xs text-muted-foreground">
+                        {deal.buyer_username || 'Buyer'} → {deal.seller_username || 'Seller'} • ${(deal.total_price_cents / 100).toFixed(2)}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Badge className={dealStatusColors[deal.status] || ''}>{deal.status}</Badge>
+                    <span className="text-xs text-muted-foreground">{new Date(deal.created_at).toLocaleDateString()}</span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+          {dealsQuery.data && dealsQuery.data.total > 20 && (
+            <div className="flex justify-center gap-2 pt-2">
+              <Button size="sm" variant="outline" disabled={page <= 1} onClick={() => setPage(p => p - 1)}>Prev</Button>
+              <span className="text-sm text-muted-foreground self-center">Page {page} of {Math.ceil(dealsQuery.data.total / 20)}</span>
+              <Button size="sm" variant="outline" disabled={page >= Math.ceil(dealsQuery.data.total / 20)} onClick={() => setPage(p => p + 1)}>Next</Button>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function AdminConsolePage() {
   const [activeTab, setActiveTab] = useState<TabKey>('reports');
 
@@ -642,7 +851,7 @@ export default function AdminConsolePage() {
         <Shield className="h-8 w-8 text-blue-600" />
         <div>
           <h1 className="text-2xl font-bold">Admin Console</h1>
-          <p className="text-muted-foreground text-sm">Reports, Blocks, Media, Rate Limits & Trash</p>
+          <p className="text-muted-foreground text-sm">Reports, Blocks, Media, Rate Limits, Trash & Deals</p>
         </div>
       </div>
 
@@ -668,6 +877,7 @@ export default function AdminConsolePage() {
       {activeTab === 'media' && <MediaTab />}
       {activeTab === 'ratelimits' && <RateLimitsTab />}
       {activeTab === 'trash' && <TrashTab />}
+      {activeTab === 'deals' && <DealsTab />}
     </div>
   );
 }

@@ -65,7 +65,6 @@ router.post("/", async (req, res) => {
             requirementsDue: acct.requirements?.currently_due ?? [],
           });
           
-          // Check if provider is now fully verified and add badge
           const { rows } = await pool.query<{ user_id: string }>(
             'SELECT user_id FROM providers WHERE stripe_account_id = $1',
             [acct.id]
@@ -79,14 +78,60 @@ router.post("/", async (req, res) => {
         case 'checkout.session.completed': {
           const session = event.data.object as Stripe.Checkout.Session;
           await markBookingPaid({ checkoutSessionId: session.id });
-          // TODO: If immediate payout enabled, create transfer to provider here
           break;
         }
 
         case 'payment_intent.succeeded': {
-          // Optional: Handle PaymentIntent success if needed
-          const paymentIntent = event.data.object as Stripe.PaymentIntent;
-          console.log('[STRIPE WEBHOOK] Payment succeeded:', paymentIntent.id);
+          const pi = event.data.object as Stripe.PaymentIntent;
+          const dealId = pi.metadata?.deal_id;
+          const kind = pi.metadata?.kind;
+
+          if (dealId && kind) {
+            await pool.query(
+              "UPDATE deal_payments SET status = 'succeeded', updated_at = NOW() WHERE stripe_payment_intent_id = $1",
+              [pi.id]
+            );
+
+            console.log(`[PROOF:PAYMENT:SUCCEEDED] deal=${dealId} pi=${pi.id} kind=${kind}`);
+
+            if (kind === 'DEPOSIT') {
+              await pool.query(
+                "UPDATE deals SET status = 'DEPOSIT_PAID', updated_at = NOW() WHERE id = $1 AND status = 'RESERVED'",
+                [dealId]
+              );
+              const listingId = pi.metadata?.listing_id;
+              if (listingId) {
+                await pool.query(
+                  "UPDATE dog_listings SET status = 'reserved', listing_status = 'reserved', updated_at = NOW() WHERE id = $1",
+                  [listingId]
+                );
+              }
+              console.log(`[PROOF:DEAL:DEPOSIT_PAID] deal=${dealId} pi=${pi.id}`);
+              console.log(`[PROOF:WEBHOOK:PROCESSED] event=${event.id} type=payment_intent.succeeded kind=DEPOSIT`);
+            } else if (kind === 'BALANCE') {
+              await pool.query(
+                "UPDATE deals SET status = 'PAID_IN_FULL', updated_at = NOW() WHERE id = $1 AND status = 'DEPOSIT_PAID'",
+                [dealId]
+              );
+              console.log(`[PROOF:DEAL:BALANCE_PAID] deal=${dealId} pi=${pi.id}`);
+              console.log(`[PROOF:WEBHOOK:PROCESSED] event=${event.id} type=payment_intent.succeeded kind=BALANCE`);
+            }
+          } else {
+            console.log('[STRIPE WEBHOOK] Payment succeeded (non-deal):', pi.id);
+          }
+          break;
+        }
+
+        case 'payment_intent.payment_failed': {
+          const pi = event.data.object as Stripe.PaymentIntent;
+          const dealId = pi.metadata?.deal_id;
+          if (dealId) {
+            await pool.query(
+              "UPDATE deal_payments SET status = 'failed', updated_at = NOW() WHERE stripe_payment_intent_id = $1",
+              [pi.id]
+            );
+            console.log(`[PROOF:PAYMENT:FAILED] deal=${dealId} pi=${pi.id}`);
+          }
           break;
         }
 
@@ -102,18 +147,37 @@ router.post("/", async (req, res) => {
           break;
         }
 
-        // Legacy: Identity verification events
+        case 'invoice.paid': {
+          const invoice = event.data.object as any;
+          const subId = typeof invoice.subscription === 'string' ? invoice.subscription : invoice.subscription?.id;
+          if (subId) {
+            await pool.query(
+              "UPDATE subscriptions SET status = 'active', updated_at = NOW() WHERE stripe_subscription_id = $1",
+              [subId]
+            );
+            console.log(`[PROOF:WEBHOOK:INVOICE_PAID] subscription=${subId}`);
+          }
+          break;
+        }
+
+        case 'invoice.payment_failed': {
+          const invoice = event.data.object as any;
+          const subId2 = typeof invoice.subscription === 'string' ? invoice.subscription : invoice.subscription?.id;
+          if (subId2) {
+            await pool.query(
+              "UPDATE subscriptions SET status = 'past_due', updated_at = NOW() WHERE stripe_subscription_id = $1",
+              [subId2]
+            );
+            console.log(`[PROOF:WEBHOOK:INVOICE_FAILED] subscription=${subId2}`);
+          }
+          break;
+        }
+
         case "identity.verification_session.verified":
         case "identity.verification_session.canceled":
         case "identity.verification_session.requires_input": {
           const session = event.data.object as Stripe.Identity.VerificationSession;
           const status = event.type === "identity.verification_session.verified" ? "completed" : "failed";
-
-          console.log('[STRIPE WEBHOOK] Updating ID verification status:', { 
-            sessionId: session.id, 
-            status, 
-            eventType: event.type 
-          });
 
           const query = `
             UPDATE provider_applications 

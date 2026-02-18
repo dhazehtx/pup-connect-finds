@@ -1337,3 +1337,84 @@ export const insertPlatformSettingSchema = createInsertSchema(platformSettings).
 
 export type PlatformSetting = typeof platformSettings.$inferSelect;
 export type InsertPlatformSetting = z.infer<typeof insertPlatformSettingSchema>;
+
+// ===== ESCROW / DEALS SYSTEM =====
+
+export const stripeCustomers = pgTable("stripe_customers", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  user_id: uuid("user_id").notNull().references(() => profiles.id, { onDelete: "cascade" }).unique(),
+  stripe_customer_id: text("stripe_customer_id").notNull().unique(),
+  created_at: timestamp("created_at").defaultNow().notNull(),
+});
+
+export type StripeCustomer = typeof stripeCustomers.$inferSelect;
+
+export const deals = pgTable("deals", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  listing_id: uuid("listing_id").notNull().references(() => dogListings.id),
+  buyer_id: uuid("buyer_id").notNull().references(() => profiles.id),
+  seller_id: uuid("seller_id").notNull().references(() => profiles.id),
+  total_price_cents: integer("total_price_cents").notNull(),
+  deposit_cents: integer("deposit_cents").notNull(),
+  balance_cents: integer("balance_cents").notNull(),
+  platform_fee_cents: integer("platform_fee_cents").notNull().default(0),
+  status: text("status").notNull().default("DRAFT"),
+  handoff_code: text("handoff_code"),
+  reserved_until: timestamp("reserved_until", { withTimezone: true }),
+  delivered_at: timestamp("delivered_at", { withTimezone: true }),
+  confirmed_at: timestamp("confirmed_at", { withTimezone: true }),
+  dispute_window_ends: timestamp("dispute_window_ends", { withTimezone: true }),
+  released_at: timestamp("released_at", { withTimezone: true }),
+  created_at: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  updated_at: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
+export const insertDealSchema = createInsertSchema(deals).omit({ id: true, created_at: true, updated_at: true });
+export type Deal = typeof deals.$inferSelect;
+export type InsertDeal = z.infer<typeof insertDealSchema>;
+
+export const dealPayments = pgTable("deal_payments", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  deal_id: uuid("deal_id").notNull().references(() => deals.id, { onDelete: "cascade" }),
+  kind: text("kind").notNull(),
+  stripe_payment_intent_id: text("stripe_payment_intent_id").unique(),
+  amount_cents: integer("amount_cents").notNull(),
+  status: text("status").notNull().default("pending"),
+  created_at: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  updated_at: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
+export const insertDealPaymentSchema = createInsertSchema(dealPayments).omit({ id: true, created_at: true, updated_at: true });
+export type DealPayment = typeof dealPayments.$inferSelect;
+export type InsertDealPayment = z.infer<typeof insertDealPaymentSchema>;
+
+export const dealPayouts = pgTable("deal_payouts", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  deal_id: uuid("deal_id").notNull().references(() => deals.id, { onDelete: "cascade" }),
+  stripe_transfer_id: text("stripe_transfer_id").unique(),
+  seller_account_id: text("seller_account_id").notNull(),
+  amount_cents: integer("amount_cents").notNull(),
+  status: text("status").notNull().default("pending"),
+  created_at: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
+export const insertDealPayoutSchema = createInsertSchema(dealPayouts).omit({ id: true, created_at: true });
+export type DealPayout = typeof dealPayouts.$inferSelect;
+export type InsertDealPayout = z.infer<typeof insertDealPayoutSchema>;
+
+export const dealDisputes = pgTable("deal_disputes", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  deal_id: uuid("deal_id").notNull().references(() => deals.id, { onDelete: "cascade" }),
+  opened_by: uuid("opened_by").notNull().references(() => profiles.id),
+  reason: text("reason").notNull(),
+  description: text("description"),
+  status: text("status").notNull().default("open"),
+  resolution: text("resolution"),
+  resolved_by: uuid("resolved_by").references(() => profiles.id),
+  resolved_at: timestamp("resolved_at", { withTimezone: true }),
+  created_at: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
+export const insertDealDisputeSchema = createInsertSchema(dealDisputes).omit({ id: true, created_at: true });
+export type DealDispute = typeof dealDisputes.$inferSelect;
+export type InsertDealDispute = z.infer<typeof insertDealDisputeSchema>;
