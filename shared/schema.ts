@@ -24,6 +24,10 @@ export const profiles = pgTable("profiles", {
   fraud_score: integer("fraud_score").default(0),
   profile_status: text("profile_status").default("active"),
   is_admin: boolean("is_admin").default(false),
+  role: text("role").notNull().default("user"),
+  is_suspended: boolean("is_suspended").notNull().default(false),
+  suspended_reason: text("suspended_reason"),
+  suspended_at: timestamp("suspended_at"),
   last_login_ip: text("last_login_ip"),
   last_login_at: timestamp("last_login_at"),
   suspicious_activity_count: integer("suspicious_activity_count").default(0),
@@ -162,7 +166,8 @@ export const posts = pgTable("posts", {
   comments_count: integer("comments_count").default(0),
   shares_count: integer("shares_count").default(0),
   views_count: integer("views_count").default(0),
-  duration: integer("duration"), // Video duration in seconds
+  duration: integer("duration"),
+  status: text("status").default("active"),
   created_at: timestamp("created_at").defaultNow(),
   updated_at: timestamp("updated_at").defaultNow(),
 });
@@ -716,13 +721,14 @@ export const bookmarks = pgTable("bookmarks", {
 export const reports = pgTable("reports", {
   id: uuid("id").primaryKey().defaultRandom(),
   reporter_id: uuid("reporter_id").references(() => profiles.id, { onDelete: "cascade" }).notNull(),
-  target_id: uuid("target_id").notNull(), // Can reference users, posts, comments, listings
-  target_type: text("target_type").notNull(), // 'user', 'post', 'comment', 'listing'
+  target_id: uuid("target_id").notNull(),
+  target_type: text("target_type").notNull(),
   reason: text("reason").notNull(),
   description: text("description"),
-  status: text("status").default("pending"), // pending, reviewed, resolved, dismissed
-  reviewed_by: uuid("reviewed_by").references(() => profiles.id),
-  reviewed_at: timestamp("reviewed_at"),
+  status: text("status").notNull().default("open"),
+  resolved_by: uuid("resolved_by").references(() => profiles.id),
+  resolved_at: timestamp("resolved_at"),
+  resolution_note: text("resolution_note"),
   created_at: timestamp("created_at").defaultNow(),
 });
 

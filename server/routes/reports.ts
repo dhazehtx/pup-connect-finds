@@ -179,7 +179,7 @@ router.get('/', async (req, res) => {
         description: reports.description,
         status: reports.status,
         created_at: reports.created_at,
-        reviewed_at: reports.reviewed_at,
+        resolved_at: reports.resolved_at,
         reporter: {
           id: profiles.id,
           username: profiles.username,
@@ -232,8 +232,8 @@ router.patch('/:reportId', async (req, res) => {
       .update(reports)
       .set({
         status: status,
-        reviewed_by: req.user!.id,
-        reviewed_at: new Date()
+        resolved_by: req.user!.id,
+        resolved_at: new Date()
       })
       .where(eq(reports.id, reportId))
       .returning();

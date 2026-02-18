@@ -6,13 +6,14 @@ import { storage } from '../storage';
 import { ensureProfile } from '../lib/ensureProfile';
 import { createNotification } from '../lib/createNotification';
 import { perUserRateLimit } from '../middleware/perUserRateLimit';
+import { requireNotSuspended } from '../middleware/requireAdmin';
 import type { Request, Response } from 'express';
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 const router = Router();
 
-router.post('/', perUserRateLimit('follows', 20), async (req, res) => {
+router.post('/', requireNotSuspended, perUserRateLimit('follows', 20), async (req, res) => {
   if (!req.isAuthenticated()) {
     return res.status(401).json({ ok: false, message: 'Authentication required' });
   }

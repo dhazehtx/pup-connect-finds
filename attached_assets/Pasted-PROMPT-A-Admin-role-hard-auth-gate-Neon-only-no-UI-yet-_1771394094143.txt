@@ -1,0 +1,195 @@
+PROMPT A — Admin role + hard auth gate (Neon-only, no UI yet)
+
+Paste to Replit:
+
+Goal: Add an “admin-only” gate that works everywhere and cannot be bypassed.
+
+Tasks
+
+Schema
+
+Add to profiles (Neon):
+
+role text not null default 'user' // 'user' | 'moderator' | 'admin'
+
+is_suspended boolean not null default false
+
+suspended_reason text null
+
+suspended_at timestamptz null
+
+Auth middleware
+
+Create requireAdmin(req,res,next):
+
+requires auth
+
+loads Neon profile for req.user.id
+
+checks role in ('admin','moderator') (configurable)
+
+if blocked: 403 { ok:false, code:'ADMIN_REQUIRED' }
+
+Proof logs
+
+[PROOF:ADMIN:GATE] { userId, role, ok, ts }
+
+Acceptance
+
+Non-admin hitting /api/admin/* returns 403 ADMIN_REQUIRED
+
+Admin succeeds
+
+Deliverables
+
+Migration filename(s)
+
+Middleware location + example usage in one admin route
+
+PROMPT B — Moderation API: reports queue + dedupe + status workflow
+
+Paste to Replit:
+
+Goal: Admin can review and resolve reports without touching DB manually.
+
+Tasks
+
+Ensure reports table has:
+
+id uuid pk default gen_random_uuid()
+
+reporter_id uuid fk profiles.id
+
+target_type text // user|post|listing|comment
+
+target_id uuid
+
+reason text
+
+details text null
+
+status text not null default 'open' // open|reviewing|resolved|dismissed
+
+created_at timestamptz default now()
+
+resolved_at timestamptz null
+
+resolved_by uuid null fk profiles.id
+
+resolution_note text null
+
+Add admin endpoints (Neon/Drizzle only, behind requireAdmin):
+
+GET /api/admin/reports?status=open&limit=50&cursor=...
+
+GET /api/admin/reports/:id
+
+PATCH /api/admin/reports/:id
+
+body: { status, resolution_note }
+
+sets resolved_by/resolved_at when status resolved/dismissed
+
+Proof logs
+
+[PROOF:ADMIN:REPORTS:LIST] { status, count, ts }
+
+[PROOF:ADMIN:REPORTS:UPDATE] { reportId, status, adminId, ts }
+
+Acceptance
+
+List returns reports newest-first
+
+Update changes status and persists
+
+Deliverables
+
+route file(s) changed
+
+2 proof log lines
+
+PROMPT C — Enforcement actions (remove content, suspend user, shadow-ban optional)
+
+Paste to Replit:
+
+Goal: Admin can take action from a report: remove post/listing/comment, or suspend a user.
+
+Tasks
+
+Add moderation actions endpoints (admin-only):
+
+POST /api/admin/actions/remove
+
+body: { target_type, target_id, reason }
+
+behavior:
+
+post: mark posts.status='removed' + cleanup media
+
+listing: mark listings.status='removed' + cleanup media
+
+comment: delete or mark removed
+
+POST /api/admin/actions/suspend-user
+
+body: { user_id, reason }
+
+sets profiles.is_suspended=true, suspended_reason, suspended_at
+
+POST /api/admin/actions/unsuspend-user
+
+body: { user_id }
+
+Enforce suspension globally
+
+In auth middleware or request guard: if is_suspended=true:
+
+allow read-only access OR block writes (choose one)
+
+recommended: block writes with 403 { code:'SUSPENDED' }
+
+Proof logs
+
+[PROOF:ADMIN:ACTION] { adminId, action, targetType, targetId, ts }
+
+[PROOF:SUSPEND] { userId, suspended:true/false, ts }
+
+Acceptance
+
+Removed content no longer appears in feed/explore
+
+Suspended user cannot comment/like/message/follow
+
+PROMPT D — Admin dashboard UI (minimal, shippable)
+
+Paste to Replit:
+
+Goal: Build a simple Admin page to operate moderation without SQL.
+
+Tasks
+
+Create /admin route in client (hidden unless admin)
+
+On load call GET /api/admin/reports?status=open
+
+Table columns: created_at, target_type, reason, reporter, status, action button
+
+Click row opens detail drawer:
+
+view report details + target preview (basic)
+
+buttons: “Reviewing”, “Resolved”, “Dismiss”
+
+actions: Remove content / Suspend user
+
+UI guard
+
+If API returns ADMIN_REQUIRED → show “Not authorized” page.
+
+Proof log (client)
+
+console.log('[PROOF:ADMIN:UI] loaded reports', count)
+
+Acceptance
+
+Admin can process reports end-to-end.

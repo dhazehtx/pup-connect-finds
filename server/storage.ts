@@ -895,7 +895,7 @@ export class DatabaseStorage implements IStorage {
 
   async getPostsWithProfiles(options?: { userId?: string; limit?: number; cursor?: string }): Promise<any[]> {
     const lim = options?.limit || 20;
-    const conditions: any[] = [];
+    const conditions: any[] = [sql`(${posts.status} IS NULL OR ${posts.status} != 'removed')`];
     if (options?.userId) conditions.push(eq(posts.user_id, options.userId));
     if (options?.cursor) conditions.push(sql`${posts.created_at} < ${options.cursor}`);
 

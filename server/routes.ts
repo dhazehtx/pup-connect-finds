@@ -71,7 +71,7 @@ import { sessionTimeout, lightSessionCheck } from './middleware/sessionTimeout';
 
 // Authentication middleware
 import { authMiddleware } from './middleware/auth';
-import { requireAdmin } from './middleware/requireAdmin';
+import { requireAdmin, requireNotSuspended } from './middleware/requireAdmin';
 
 // Admin logging utilities
 import { logPostAction, logCommentAction, logSubscriptionAction } from './utils/adminLogger';
@@ -180,6 +180,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api/orders', ordersRouter);
   app.use('/api/reviews', reviewsRouter);
   app.use('/api/services', servicesRouter);
+  // Admin moderation routes (reports queue + enforcement actions) - mount BEFORE generic admin router
+  const { default: adminModerationRouter } = await import('./routes/admin/moderation.js');
+  app.use('/api/admin/moderation', adminModerationRouter);
+
   app.use('/api/admin', adminRouter);
   app.use('/api/admin/dashboard', adminDashboardRouter);
   app.use('/api/admin/analytics', analyticsRouter);
@@ -656,7 +660,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/conversations", async (req, res) => {
+  app.post("/api/conversations", requireNotSuspended, async (req, res) => {
     try {
       const validatedData = insertConversationSchema.parse(req.body);
       const conversation = await storage.createConversation(validatedData);
@@ -857,7 +861,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/messages", messagingRateLimit, perUserRateLimit('messages', 10), async (req, res) => {
+  app.post("/api/messages", requireNotSuspended, messagingRateLimit, perUserRateLimit('messages', 10), async (req, res) => {
     try {
       const validatedData = insertMessageSchema.parse(req.body);
 
@@ -1151,7 +1155,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/posts", sessionTimeout, async (req, res) => {
+  app.post("/api/posts", sessionTimeout, requireNotSuspended, async (req, res) => {
     try {
       const validatedData = insertPostSchema.parse(req.body);
       const post = await storage.createPost(validatedData);
@@ -1197,7 +1201,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/comments", sessionTimeout, perUserRateLimit('comments', 15), async (req, res) => {
+  app.post("/api/comments", sessionTimeout, requireNotSuspended, perUserRateLimit('comments', 15), async (req, res) => {
     try {
       const validatedData = insertCommentSchema.parse(req.body);
 

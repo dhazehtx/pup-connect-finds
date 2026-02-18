@@ -58,6 +58,7 @@ const RateLimitDemo = lazy(() => import('./pages/RateLimitDemo'));
 // Lazy load error monitoring panel
 const ErrorMonitoringPanel = lazy(() => import('./components/admin/ErrorMonitoringPanel'));
 const ErrorTestPage = lazy(() => import('./pages/ErrorTestPage'));
+const AdminModerationPage = lazy(() => import('./pages/AdminModerationPage'));
 const AdminLogsPage = lazy(() => import('./pages/AdminLogsPage'));
 const AdminReportsPage = lazy(() => import('./pages/AdminReportsPage'));
 const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
@@ -245,6 +246,13 @@ function App() {
                     <ProtectedRoute>
                       <Suspense fallback={<LoadingPage message="Loading Log Viewer..." />}>
                         <AdminLogsPage />
+                      </Suspense>
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/admin/moderation" element={
+                    <ProtectedRoute>
+                      <Suspense fallback={<LoadingPage message="Loading Moderation Panel..." />}>
+                        <AdminModerationPage />
                       </Suspense>
                     </ProtectedRoute>
                   } />
